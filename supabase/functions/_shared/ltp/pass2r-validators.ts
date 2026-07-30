@@ -16,7 +16,7 @@ import type { RenderPlan } from "../render-plan/schema.ts";
 import { hasNameBigram, sanitizeRoleTitleSegments } from "./section-composers/cppa-risk.ts";
 
 export const PASS2R_VALIDATORS_VERSION =
-  "ltp-pass2r-validators-2026-07-30-item285-entity-whitelist";
+  "ltp-pass2r-validators-2026-07-30-item287-residual";
 
 
 /** Mirrors GroundedNoteMode (ltp/grounded-note.ts) — observe is the default. */
@@ -150,6 +150,52 @@ const NUMERIC_RE = /\b\d[\d,]*(?:\.\d+)?%?\b/g;
 const DATE_WORD_RE =
   /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b/g;
 
+/**
+ * ITEM 287 / FIX 1 — NUMERIC RANGE CONSTITUENTS.
+ *
+ * A plan-carried band string ("100,000–249,999", "100,000 - 249,999",
+ * "100,000 to 249,999") CARRIES both endpoints. Prose that names an endpoint
+ * is quoting the plan, not computing a value. CLOSED RULE: only endpoints
+ * LITERALLY present inside a carried string are admitted; nothing is derived,
+ * inferred or arithmetically produced.
+ */
+const NUMERIC_RANGE_RE =
+  /(\d[\d,]*(?:\.\d+)?)\s*(?:\u2013|\u2014|\u2212|-|to)\s*(\d[\d,]*(?:\.\d+)?)/gi;
+
+/** Thousands-separator-insensitive comparison key. */
+function numKey(s: string): string {
+  return s.replace(/,/g, "").replace(/\s+/g, "");
+}
+
+export function carriedNumericEndpoints(
+  carried: readonly string[],
+): ReadonlySet<string> {
+  const out = new Set<string>();
+  for (const raw of carried) {
+    const s = norm(raw);
+    NUMERIC_RANGE_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = NUMERIC_RANGE_RE.exec(s)) !== null) {
+      out.add(numKey(m[1]));
+      out.add(numKey(m[2]));
+    }
+  }
+  return out;
+}
+
+/**
+ * ITEM 287 / FIX 2 — ACRONYM DERIVED FORMS.
+ *
+ * The existing 2-6-cap acronym escape covers "ADMT" but not "ADMT's" or
+ * "ADMT-related", both of which rejected in batch 2. STEM RULE ONLY: the
+ * possessive/hyphenated-compound form escapes when its ACRONYM STEM passes
+ * the existing escape. The compound tail is not itself whitelisted.
+ */
+export function acronymDerivedStem(bare: string): string | null {
+  const m = bare.match(/^([A-Z]{2,6})(?:'s|-[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z][A-Za-z0-9]*)*)$/);
+  return m ? m[1] : null;
+}
+
 /** Number words the register permits without a plan anchor (small-count prose). */
 const ALLOWED_NUMBER_WORDS = new Set([
   "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
@@ -235,6 +281,7 @@ function properNounCandidates(text: string): string[] {
       if (ENTITY_STOPWORDS.has(bare)) continue;
       if (isNonEntityToken(bare)) continue; // ITEM 285: suffix / generic category term
       if (/^[A-Z]{2,6}$/.test(bare)) continue; // acronyms handled by the register rule
+      if (acronymDerivedStem(bare)) continue; // ITEM 287 FIX 2: "ADMT's", "ADMT-related"
       out.push(bare);
     }
   }
@@ -278,6 +325,8 @@ export function validateNumericDateWhitelist(
   wl: Pass2rWhitelist,
 ): Pass2rValidatorOutcome {
   const haystack = wl.numerics.map(norm).join(" | ");
+  // ITEM 287 FIX 1 — endpoints of plan-carried ranges are plan-carried values.
+  const endpoints = carriedNumericEndpoints(wl.numerics);
   const text = maskCitations(norm(proseOf(doc)));
   const bad: string[] = [];
 
@@ -287,6 +336,7 @@ export function validateNumericDateWhitelist(
   for (const n of text.match(NUMERIC_RE) ?? []) {
     if (haystack.includes(n)) continue;
     if (haystack.includes(n.replace(/,/g, ""))) continue;
+    if (endpoints.has(numKey(n))) continue;
     if (!bad.includes(n)) bad.push(n);
   }
 
@@ -447,7 +497,12 @@ export const PASS2R_PART_HOME: Readonly<Record<string, 1 | 2 | 3 | 4>> = {
   scope_confirmation: 1,
   processing_narrative: 1,
   risk_assessment_by_activity: 2,
-  exception_analysis: 2,
+  // ITEM 287 FIX 4 — §2R.2 MAP AMENDMENT (four-lens unanimous). Exception
+  // analysis re-homes from Part 2 to Part 4: Part 4 is "the result and how it
+  // could be changed", and an exception is precisely a condition of change.
+  // The map was wrong, not the model — this key fired wrong-part on every
+  // reject across batches 1R and 2.
+  exception_analysis: 4,
   record_sufficiency: 2,
   information_needed: 3,
   strengthen_items: 3,

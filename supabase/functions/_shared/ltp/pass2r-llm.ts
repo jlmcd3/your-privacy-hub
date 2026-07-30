@@ -135,10 +135,29 @@ export interface Pass2rContext {
   readonly deadline_literals?: readonly string[];
 }
 
+/**
+ * ITEM 287 FIX 6 — per-attempt rejection record, persisted alongside the
+ * rejected prose so observe-mode calibration questions (e.g. the
+ * verdict_consistency ["Low","Moderate"] class) can be adjudicated with the
+ * prose in hand.
+ */
+export interface Pass2rAttemptRejection {
+  readonly attempt: number;
+  readonly validators: readonly string[];
+  readonly codes: readonly string[];
+}
+
 export interface Pass2rResult {
   readonly prose: Pass2rProseDocument | null;
   readonly validation: Pass2rValidationResult | null;
   readonly telemetry: Pass2rTelemetry;
+  /**
+   * ITEM 287 FIX 6 — the FINAL attempt's prose when every attempt was
+   * validator-rejected. OBSERVE-MODE CALIBRATION ONLY: this never reaches a
+   * shipped surface; it is keyed `prose_rejected` everywhere it is persisted.
+   */
+  readonly prose_rejected?: Pass2rProseDocument | null;
+  readonly attempt_rejections?: readonly Pass2rAttemptRejection[];
 }
 
 // ---------------------------------------------------------------------
@@ -257,6 +276,8 @@ export async function runPass2r(
   const baseUser = fillPass2rUser(locked, wl);
   const details: Pass2rAttemptDetail[] = [];
   let lastValidation: Pass2rValidationResult | null = null;
+  let lastRejectedDoc: Pass2rProseDocument | null = null;
+  const attemptRejections: Pass2rAttemptRejection[] = [];
   let lastError = "";
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -290,6 +311,14 @@ export async function runPass2r(
       const validation = runPass2rValidators(doc, wl, { mode });
       lastValidation = validation;
       if (!validation.ok) {
+        // ITEM 287 FIX 6 — keep the rejected prose and this attempt's
+        // rejection set for observe-mode calibration.
+        lastRejectedDoc = doc;
+        attemptRejections.push({
+          attempt,
+          validators: validation.outcomes.filter((o) => !o.passed).map((o) => o.validator),
+          codes: validation.rejections.map((r) => r.code),
+        });
         details.push({
           attempt,
           elapsed_ms: Date.now() - attemptT0,
@@ -341,6 +370,9 @@ export async function runPass2r(
   return {
     prose: null,
     validation: lastValidation,
+    // ITEM 287 FIX 6 — observe-mode calibration payload; never shipped.
+    prose_rejected: lastRejectedDoc,
+    attempt_rejections: attemptRejections,
     telemetry: {
       ran: true,
       attempts: details.length,
@@ -400,6 +432,9 @@ export interface ProsePassStageResult {
   readonly prose: Pass2rProseDocument | null;
   readonly telemetry: Pass2rTelemetry | null;
   readonly skipped_reason?: string;
+  /** ITEM 287 FIX 6 — rejected prose, observe-mode calibration only. */
+  readonly prose_rejected?: Pass2rProseDocument | null;
+  readonly attempt_rejections?: readonly Pass2rAttemptRejection[];
 }
 
 function skipped(
@@ -501,6 +536,9 @@ export async function runProsePassStage(
       : deterministicReport,
     shipped_surface: enforceShips ? "2R" : "deterministic",
     prose: result.prose,
+    // ITEM 287 FIX 6 — passthrough only; never merged into shipped_report.
+    prose_rejected: result.prose_rejected ?? null,
+    attempt_rejections: result.attempt_rejections ?? [],
     telemetry: {
       ...result.telemetry,
       shipped_surface: enforceShips ? "2R" : "deterministic",

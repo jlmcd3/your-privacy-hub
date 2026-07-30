@@ -107,11 +107,22 @@ interface DocProcessOutcome {
   sideBySide: SideBySideRow | null;
   pass1Usage: Record<string, unknown>;
   assembledReport: Record<string, unknown> | null;
+  /**
+   * ITEM 287 FIX 5 — PERSIST-FIRST. The locked plan is carried out of the
+   * deterministic phase so the caller can persist the row FIRST and run
+   * Pass-2R afterwards, against the same plan.
+   */
+  plan: unknown | null;
 }
 
+/**
+ * ITEM 287 FIX 5 — DETERMINISTIC PHASE ONLY (Pass-1 + assembly + gates).
+ * Pass-2R no longer runs inside this function: the harness persists this
+ * result before any 2R call, so isolate death during 2R costs only the 2R
+ * telemetry, never the document.
+ */
 async function processDoc(
   doc: ArchivedDoc,
-  prosePass = false,
 ): Promise<DocProcessOutcome> {
   try {
     // ITEM 269 FIX 1 — ERA NORMALIZER. Pre-realignment (five-stage-shaped)
@@ -170,34 +181,8 @@ async function processDoc(
       hard_failures: substance.hard_failures,
     };
 
-    // ITEM 278 — PASS-2R OBSERVE. Runs strictly AFTER the deterministic
-    // document exists (§2R.1 order of operations) and only when the job
-    // row carries options.prose_pass = true. Observe mode: the shipped
-    // surface stays deterministic no matter what 2R returns.
-    if (prosePass) {
-      try {
-        const stage = await runProsePassStage(
-          p1.plan,
-          assembled.report as Record<string, unknown>,
-          { enabled: true, callerName: "replay-cppa-risk-harness" },
-        );
-        (perDoc as { pass2r?: unknown }).pass2r = {
-          telemetry: stage.telemetry,
-          prose: stage.prose,
-          shipped_surface: stage.shipped_surface,
-          ...(stage.skipped_reason ? { skipped_reason: stage.skipped_reason } : {}),
-        };
-      } catch (e) {
-        (perDoc as { pass2r?: unknown }).pass2r = {
-          telemetry: null,
-          prose: null,
-          shipped_surface: "deterministic",
-          skipped_reason: `pass2r_observe_error:${e instanceof Error ? e.message : String(e)}`,
-        };
-      }
-    }
-
     const sideBySide = doc.report_data ? compareDoc(perDoc, doc.report_data) : null;
+
 
     // Pass-1 usage passthrough:
     // NOTE for controller/CEO: `runPass1Llm` does NOT currently surface the
@@ -234,6 +219,7 @@ async function processDoc(
       sideBySide,
       pass1Usage,
       assembledReport: assembled.report as Record<string, unknown>,
+      plan: p1.plan,
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -262,6 +248,44 @@ async function processDoc(
       sideBySide: null,
       pass1Usage: { error: msg },
       assembledReport: null,
+      plan: null,
+    };
+  }
+}
+
+/**
+ * ITEM 287 FIX 5 / FIX 6 — PASS-2R OBSERVE PHASE.
+ * Runs strictly AFTER the deterministic result row has been persisted
+ * (§2R.1 order of operations + the fleet's PERSIST-FIRST law). Never throws;
+ * the rejected prose is carried under `prose_rejected` and never reaches any
+ * shipped surface.
+ */
+async function runProseObserve(
+  plan: unknown,
+  assembledReport: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  try {
+    const stage = await runProsePassStage(
+      plan as never,
+      assembledReport,
+      { enabled: true, callerName: "replay-cppa-risk-harness" },
+    );
+    return {
+      telemetry: stage.telemetry,
+      prose: stage.prose,
+      prose_rejected: stage.prose_rejected ?? null,
+      attempt_rejections: stage.attempt_rejections ?? [],
+      shipped_surface: stage.shipped_surface,
+      ...(stage.skipped_reason ? { skipped_reason: stage.skipped_reason } : {}),
+    };
+  } catch (e) {
+    return {
+      telemetry: null,
+      prose: null,
+      prose_rejected: null,
+      attempt_rejections: [],
+      shipped_surface: "deterministic",
+      skipped_reason: `pass2r_observe_error:${e instanceof Error ? e.message : String(e)}`,
     };
   }
 }
@@ -427,11 +451,15 @@ Deno.serve(async (req) => {
             sideBySide: null,
             pass1Usage: { error: loaded.error },
             assembledReport: null,
+            plan: null,
           };
         } else {
-          outcome = await processDoc(loaded, prosePass);
+          outcome = await processDoc(loaded);
         }
 
+        // ITEM 287 FIX 5 — PERSIST-FIRST. The deterministic result row is
+        // written BEFORE Pass-2R runs, so isolate death inside a 3-attempt
+        // 2R path costs only the 2R telemetry, never the document.
         const ins = await sb.from("replay_harness_results").insert({
           job_id: job.id,
           doc_id: String(docId),
@@ -443,7 +471,7 @@ Deno.serve(async (req) => {
           side_by_side: outcome.sideBySide,
           pass1_usage: outcome.pass1Usage,
           assembled_report: outcome.assembledReport,
-        });
+        }).select("id").maybeSingle();
         if (ins.error) {
           // Fail-loud: record the row-insert failure in the summary but keep going.
           summary.push({
@@ -456,6 +484,26 @@ Deno.serve(async (req) => {
             doc_id: docId,
             hard_failure_count: outcome.perDoc.hard_failures.length,
           });
+        }
+
+        // ITEM 287 FIX 5 — PASS-2R phase, then UPDATE the persisted row.
+        const rowId = (ins.data as { id?: string } | null)?.id ?? null;
+        if (prosePass && outcome.plan && outcome.assembledReport) {
+          const pass2r = await runProseObserve(outcome.plan, outcome.assembledReport);
+          if (rowId) {
+            const upd = await sb.from("replay_harness_results")
+              .update({
+                per_doc_result: {
+                  ...outcome.perDoc,
+                  pass2r,
+                  gtm: evaluateGtm(outcome.perDoc),
+                },
+              })
+              .eq("id", rowId);
+            if (upd.error) {
+              summary.push({ doc_id: docId, pass2r_update_error: upd.error.message });
+            }
+          }
         }
       }
 
