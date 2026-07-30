@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T10:16Z (Item 282 — cppa-cyber S0 pre-migration audit, DOCS-ONLY: 15-item audit recorded; seam-17 NOT at parity (suite-PDF renders `next_steps` objects as `[object Object]`; QB-P25 evidence/differentiator/rank dropped from PDF); corpus §§ 7122-7124 ABSENT and § 7120(b) threshold operands not collected — both blocking predecessors to the cyber LTP port. No code change, no deploy, no harness invocation.)
+**Last updated:** 2026-07-30T11:15Z (Item 283 — four-lens COLD READ of the Step-0a batch-1R replay documents, RECORD ONLY / DOCS-ONLY: F1 verdict-contradiction seam and F2 firm favorable verdict on an incomplete record are legal-blocking on doc `278d0608`; F3 mid-word truncation, F4 `priority_actions` phrase/owner defects, F5 Part-3/4 starvation, F6 story deficit, F7 2R entity-whitelist extraction-FP class, F8 provisional structure positives. Next steps N1 (Item 284 deterministic fix turn) / N2 (Item 285 whitelist fix + 10-doc re-run) / N3 (processing_narrative + 2R) / N4 (20-doc run + 4 side-by-side PDFs). No code change, no deploy, no harness invocation, no DB write.)
 
 ---
 
