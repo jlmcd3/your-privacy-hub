@@ -193,6 +193,15 @@ export const cppaRiskContract: IntakeContract = {
     // Business profile (Step 1 — all required)
     { key: "entity_name",    kind: "text", required: "always" },
     { key: "subject_anchor", kind: "text", required: "always" },
+    // ITEM 275 — primary-activity identification + § 7156(a) comparable-set
+    // fork. `secondary_activities` is structured/optional: it is emitted as
+    // [] unless the fork answer is the "Yes" option.
+    { key: "primary_activity_name",    kind: "text", required: "always" },
+    { key: "primary_activity_purpose", kind: "text", required: "always" },
+    { key: "has_secondary_uses",       kind: "enum", required: "always",
+      options: HAS_SECONDARY_USES_OPTS },
+    { key: "secondary_activities",     kind: "structured", required: "optional" },
+
     { key: "q1_revenue",     kind: "enum", required: "always", options: REVENUE_OPTS },
     { key: "q2_consumers",   kind: "enum", required: "always", options: CONSUMER_OPTS },
     { key: "q3_sector",      kind: "enum", required: "always", options: SECTORS },
