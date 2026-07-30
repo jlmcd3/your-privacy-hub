@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T23:23Z (Item 295 — CEO PDF read verdict + four-lens review: content rejected as recitation-without-analysis; ANALYSIS-DUTY design amendment CEO-gated, no build action until ruling.)
+**Last updated:** 2026-07-30T23:32Z (Item 296 — cppa-risk full pipeline code bundle delivered for external review; docs-only, no code change.)
 
 ---
 
@@ -7074,3 +7074,9 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK.** Diff limited to the courier and this ledger.
 
 **Disposition:** RECORDED. CEO-gated — no build action until the CEO rules on the ANALYSIS-DUTY design amendment.
+
+---
+
+## Item 296 — CPPA-RISK FULL PIPELINE CODE BUNDLE (2026-07-30T23:32Z)
+
+**Authority:** CEO order (urgent, docs-only, external review). Delivered `docs/CPPA-RISK-FULL-PIPELINE-CODE-2026-07-30.md` — 64 files verbatim (58-file transitive import closure from `supabase/functions/replay-cppa-risk-harness/index.ts`, zero unresolved modules, + 6 dispatched extras: `ltp/retry-budget.ts`, `emit-gate.ts`, `customer-messages.ts`, `registry/risk-verified-authorities.ts`, `verified-authority-resolver.ts`, `legal-test/registry-corpus-pin.test.ts`), with TOC, pipeline overview, and an explicit exclusion list. NO code changes, NO deploy, NO harness invocation. **Disposition:** DELIVERED.
