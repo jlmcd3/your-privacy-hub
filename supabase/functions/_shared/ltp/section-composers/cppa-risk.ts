@@ -595,12 +595,16 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
     const conclusionPart: TemplateInstance = activityLabel
       ? { template_id: conclusion.template_id, ctx: { ...conclusion.ctx, activity_label: activityLabel } }
       : conclusion;
+    // ITEM 284 (F2) — on an incomplete record the RABA narrative closes on
+    // the provisional posture, never on a firm verdict.
+    const provisional = provisionalPostureInstance(plan);
     return [
       recordStatusInstance(plan),
       ...presentFactorLines(plan, "benefit"),
       ...presentFactorLines(plan, "negative_impact"),
       ...presentFactorLines(plan, "safeguard"),
       conclusionPart,
+      ...(provisional ? [provisional] : []),
     ];
   };
 
