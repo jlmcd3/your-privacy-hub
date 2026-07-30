@@ -44,7 +44,11 @@ export default function BenchLayout({
   const policy = INTAKE_POLICY[toolType as string];
   const showRail = policy?.rail === true;
   const entryHasCoaching = !!(railEntry?.coachLead || railEntry?.goodAnswer);
-  const showCoach = policy?.goodAnswer === true && entryHasCoaching;
+  // COLUMN-STABILITY LAW: for any tool whose policy permits coaching, the
+  // coaching column is ALWAYS reserved. Per-entry coaching content may be
+  // absent (e.g. cppa-risk Q5 subsections), but the layout must never switch
+  // between three-column and two-column while the user moves through intake.
+  const showCoach = policy?.goodAnswer === true;
   return (
     <div
       className="rounded-b-2xl border border-t-0 border-rule bg-card xl:grid"
@@ -61,10 +65,18 @@ export default function BenchLayout({
         <div className="border-b border-rule p-6 xl:border-b-0 xl:border-r">
           <div className="xl:sticky xl:top-[var(--sticky-offset)] xl:max-h-[calc(100vh-var(--sticky-offset)-1.5rem)] xl:overflow-y-auto">
             <ColHeader tone="coach">How to answer well</ColHeader>
-            <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
+            {entryHasCoaching ? (
+              <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
+            ) : (
+              <p className="text-body-small text-ink-soft leading-relaxed">
+                No additional guidance is needed for this question — answer it from your
+                own records. The statutory basis is shown under “The law”.
+              </p>
+            )}
           </div>
         </div>
       )}
+
       <div className="p-6">
         <ColHeader tone="answers">Your answers</ColHeader>
         {children}
