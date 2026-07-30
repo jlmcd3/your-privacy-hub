@@ -64,6 +64,8 @@ export async function runReplayDoc(
       substance: substance.metrics,
       structure,
       hard_failures: substance.hard_failures,
+      ...(pass2r ? { pass2r } : {}),
+
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
