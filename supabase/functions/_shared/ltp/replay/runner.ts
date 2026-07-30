@@ -100,7 +100,41 @@ export async function runReplayDoc(
   }
 }
 
+/**
+ * ITEM 278 — Pass-2R observation wrapper. Never throws, never mutates the
+ * deterministic report, always reports a shipped_surface of "deterministic"
+ * while the validators observe.
+ */
+async function observeProsePass(
+  plan: RenderPlan,
+  deterministicReport: Record<string, unknown>,
+  cfg: ReplayRunConfig,
+): Promise<NonNullable<PerDocResult["pass2r"]>> {
+  try {
+    const stage = await runProsePassStage(plan, deterministicReport, {
+      enabled: true,
+      // enforce is NOT set by anything in this codebase (§2R.3).
+      call: cfg.pass2r_call,
+      callerName: "replay-cppa-risk-harness",
+    });
+    return {
+      telemetry: stage.telemetry as unknown as Record<string, unknown> | null,
+      prose: stage.prose as unknown as Record<string, unknown> | null,
+      shipped_surface: stage.shipped_surface,
+      ...(stage.skipped_reason ? { skipped_reason: stage.skipped_reason } : {}),
+    };
+  } catch (e) {
+    return {
+      telemetry: null,
+      prose: null,
+      shipped_surface: "deterministic",
+      skipped_reason: `pass2r_observe_error:${e instanceof Error ? e.message : String(e)}`,
+    };
+  }
+}
+
 function summarizeStructure(
+
   result: AssemblerResult,
   doc?: ReplayDoc,
 ): PerDocResult["structure"] {
