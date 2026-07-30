@@ -150,6 +150,52 @@ const NUMERIC_RE = /\b\d[\d,]*(?:\.\d+)?%?\b/g;
 const DATE_WORD_RE =
   /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b/g;
 
+/**
+ * ITEM 287 / FIX 1 — NUMERIC RANGE CONSTITUENTS.
+ *
+ * A plan-carried band string ("100,000–249,999", "100,000 - 249,999",
+ * "100,000 to 249,999") CARRIES both endpoints. Prose that names an endpoint
+ * is quoting the plan, not computing a value. CLOSED RULE: only endpoints
+ * LITERALLY present inside a carried string are admitted; nothing is derived,
+ * inferred or arithmetically produced.
+ */
+const NUMERIC_RANGE_RE =
+  /(\d[\d,]*(?:\.\d+)?)\s*(?:\u2013|\u2014|\u2212|-|to)\s*(\d[\d,]*(?:\.\d+)?)/gi;
+
+/** Thousands-separator-insensitive comparison key. */
+function numKey(s: string): string {
+  return s.replace(/,/g, "").replace(/\s+/g, "");
+}
+
+export function carriedNumericEndpoints(
+  carried: readonly string[],
+): ReadonlySet<string> {
+  const out = new Set<string>();
+  for (const raw of carried) {
+    const s = norm(raw);
+    NUMERIC_RANGE_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = NUMERIC_RANGE_RE.exec(s)) !== null) {
+      out.add(numKey(m[1]));
+      out.add(numKey(m[2]));
+    }
+  }
+  return out;
+}
+
+/**
+ * ITEM 287 / FIX 2 — ACRONYM DERIVED FORMS.
+ *
+ * The existing 2-6-cap acronym escape covers "ADMT" but not "ADMT's" or
+ * "ADMT-related", both of which rejected in batch 2. STEM RULE ONLY: the
+ * possessive/hyphenated-compound form escapes when its ACRONYM STEM passes
+ * the existing escape. The compound tail is not itself whitelisted.
+ */
+export function acronymDerivedStem(bare: string): string | null {
+  const m = bare.match(/^([A-Z]{2,6})(?:'s|-[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z][A-Za-z0-9]*)*)$/);
+  return m ? m[1] : null;
+}
+
 /** Number words the register permits without a plan anchor (small-count prose). */
 const ALLOWED_NUMBER_WORDS = new Set([
   "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
