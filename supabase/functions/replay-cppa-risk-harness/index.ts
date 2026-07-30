@@ -107,11 +107,22 @@ interface DocProcessOutcome {
   sideBySide: SideBySideRow | null;
   pass1Usage: Record<string, unknown>;
   assembledReport: Record<string, unknown> | null;
+  /**
+   * ITEM 287 FIX 5 — PERSIST-FIRST. The locked plan is carried out of the
+   * deterministic phase so the caller can persist the row FIRST and run
+   * Pass-2R afterwards, against the same plan.
+   */
+  plan: unknown | null;
 }
 
+/**
+ * ITEM 287 FIX 5 — DETERMINISTIC PHASE ONLY (Pass-1 + assembly + gates).
+ * Pass-2R no longer runs inside this function: the harness persists this
+ * result before any 2R call, so isolate death during 2R costs only the 2R
+ * telemetry, never the document.
+ */
 async function processDoc(
   doc: ArchivedDoc,
-  prosePass = false,
 ): Promise<DocProcessOutcome> {
   try {
     // ITEM 269 FIX 1 — ERA NORMALIZER. Pre-realignment (five-stage-shaped)
