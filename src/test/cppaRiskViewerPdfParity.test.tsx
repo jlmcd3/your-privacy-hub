@@ -13,10 +13,11 @@
  * V4 renderer — which expects object-shaped sections — emitted a blank
  * structure, while the PDF path branched on isLtpRiskShape and rendered fully.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
 import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
-import { isLtpRiskShape, headerForSection } from "@/lib/cppa-risk-shape";
+import { isLtpRiskShape, headerForSection, describeCppaRiskShape } from "@/lib/cppa-risk-shape";
+import { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
 import { toViewerReport } from "@/pages/admin/AdminReplayReview";
 import fixture from "./fixtures/cppa-risk-assembled-report.json";
 
@@ -68,5 +69,42 @@ describe("ITEM 274 — viewer/PDF shape parity (cppa-risk)", () => {
   it("legacy V3 rows still dispatch to the V3 renderer (no post-cutover regression)", () => {
     const v3 = { schema_version: "v3-part-a-part-b", part_a: { anything: true } };
     expect(isLtpRiskShape(v3)).toBe(false);
+  });
+});
+
+/**
+ * ITEM 279 / ISSUE 12 — FAIL-LOUD VIEWER GUARD.
+ * An unrecognized payload must render an explicit error card (never a blank
+ * body) and emit a console.error carrying the discriminator result.
+ */
+describe("ITEM 279 — unrecognized report shape fails loud", () => {
+  it("classifies an unknown payload as unrecognized", () => {
+    const unknown = { id: "rep_unknown_001", some_legacy_key: "x" };
+    const result = describeCppaRiskShape(unknown, isV4Report);
+    expect(result.shape).toBe("unrecognized");
+    expect(result.recognized).toBe(false);
+    expect(result.reportId).toBe("rep_unknown_001");
+  });
+
+  it("renders the error card with the report id and a support note", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const unknown = { id: "rep_unknown_001", some_legacy_key: "x" };
+    const { container, getByTestId } = render(<CPPARiskReportBody report={unknown} />);
+    const card = getByTestId("cppa-risk-unrecognized-shape");
+    expect(card.textContent).toContain("This report's format is not recognized by the viewer");
+    expect(card.textContent).toContain("rep_unknown_001");
+    expect(card.textContent?.toLowerCase()).toContain("contact support");
+    // non-blank body
+    expect((container.textContent ?? "").trim().length).toBeGreaterThan(80);
+    expect(spy).toHaveBeenCalled();
+    expect(spy.mock.calls[0][1]).toMatchObject({ shape: "unrecognized", recognized: false });
+    spy.mockRestore();
+  });
+
+  it("recognized shapes are unaffected by the guard", () => {
+    expect(describeCppaRiskShape(report, isV4Report).shape).toBe("ltp");
+    expect(
+      describeCppaRiskShape({ schema_version: "v3-part-a-part-b", part_a: {} }, isV4Report).shape,
+    ).toBe("v3");
   });
 });
