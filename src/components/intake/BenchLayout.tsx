@@ -59,7 +59,7 @@ export default function BenchLayout({
     >
       {showCoach && (
         <div className="border-b border-rule p-6 xl:border-b-0 xl:border-r">
-          <div className="xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto">
+          <div className="xl:sticky xl:top-[var(--sticky-offset)] xl:max-h-[calc(100vh-var(--sticky-offset)-1.5rem)] xl:overflow-y-auto">
             <ColHeader tone="coach">How to answer well</ColHeader>
             <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
           </div>
@@ -71,7 +71,7 @@ export default function BenchLayout({
       </div>
       {showRail && (
         <div className="border-t border-rule p-6 xl:border-l xl:border-t-0">
-          <div className="xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto">
+          <div className="xl:sticky xl:top-[var(--sticky-offset)] xl:max-h-[calc(100vh-var(--sticky-offset)-1.5rem)] xl:overflow-y-auto">
             <ColHeader tone="law">The law</ColHeader>
             <StatuteRail
               entry={railEntry}
