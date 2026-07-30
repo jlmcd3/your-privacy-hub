@@ -29,12 +29,14 @@ export interface CPPARiskReportBodyProps {
 }
 
 export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskReportBodyProps) {
-  const isV3 = !!(report?.schema_version === "v3-part-a-part-b" && report?.part_a);
-  const isV4 = !isV3 && isV4Report(report);
+  // ITEM 274 — LTP shape wins the dispatch; V3/V4 remain for legacy rows.
+  const isLtp = isLtpRiskShape(report);
+  const isV3 = !isLtp && !!(report?.schema_version === "v3-part-a-part-b" && report?.part_a);
+  const isV4 = !isLtp && !isV3 && isV4Report(report);
 
   return (
     <div className="space-y-6 font-serif-text">
-      {!isV4 && (
+      {!isLtp && !isV4 && (
         <section className="bg-slate-900 text-white rounded-lg p-8">
           <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
           {createdAt && (
@@ -58,8 +60,10 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
         </section>
       )}
 
+      {isLtp && <RiskAssessmentReportLTP report={report as any} createdAt={createdAt} />}
       {isV3 && <RiskAssessmentReportV3 report={report as any} />}
       {isV4 && <RiskAssessmentReportV4 report={report as any} />}
+
 
       {report?.enforcement_context
         && typeof report.enforcement_context === "string"
