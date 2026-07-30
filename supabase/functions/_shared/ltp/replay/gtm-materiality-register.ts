@@ -21,7 +21,8 @@
  */
 
 export const GTM_MATERIALITY_REGISTER_VERSION =
-  "gtm-materiality-v1.1-2026-07-30-RATIFIED";
+  "gtm-materiality-v1.2-2026-07-30";
+
 
 
 export type Materiality = "material" | "non_material";
@@ -112,6 +113,37 @@ export const GTM_MATERIALITY_REGISTER: readonly MaterialityEntry[] = [
       "Direct contradiction between shipped statements is a correctness defect.",
     source: "harness",
   },
+
+  // ---- ITEM 273 (v1.2) — NEW MATERIAL CLASSES ----
+  {
+    defect_class: "pii_owner_name",
+    materiality: "material",
+    rationale:
+      "CEO-read finding 3: personnel names leaked into Owner slots. Role-titles-only is a privacy-law invariant on the shipped surface; any name leak is a privacy harm.",
+    source: "harness",
+  },
+  {
+    defect_class: "registry_corpus_drift",
+    materiality: "material",
+    rationale:
+      "Item-272 pin-test class: a registry pinpoint that does not exist in the approved corpus misstates the law. Gates at TEST time (registry-corpus-pin.test.ts), not at runtime; recorded here so the class is never silently unclassified.",
+    source: "deterministic_check",
+  },
+  {
+    defect_class: "section_cross_duplication",
+    materiality: "material",
+    rationale:
+      "A >=200-char passage repeated verbatim across two different top-level sections is a composition failure, not a wording wart; the customer receives the same reasoning presented as two distinct legal surfaces.",
+    source: "harness",
+  },
+  {
+    defect_class: "activity_count_contradiction",
+    materiality: "material",
+    rationale:
+      "The executive summary and the scope section state different activity counts for the same assessment; a self-contradicting document misstates the assessed scope.",
+    source: "harness",
+  },
+
 
   // ---- NON-MATERIAL (ship + log) ----
   {

@@ -281,20 +281,36 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
       },
     };
   }
-  const direction = mode === "negative"
-    ? BALANCE_DIRECTION_CLAUSES[1]
-    : BALANCE_DIRECTION_CLAUSES[0];
+  // ITEM 273 FIX 3 — BALANCE-VERDICT GUARD (interim, Issue 10).
+  // CEO-read finding 2: the "negative" mode derives from CATEGORY COUNTING
+  // (anyImpactsOutweigh) but was rendered as a FIRM affirmative weighing
+  // verdict — a § 7154 exposure. Until the §2R weighted-weighing design
+  // lands, a count-driven negative may NOT assert that the negative
+  // impacts outweigh the benefits. It routes to the reserved
+  // does-not-support framing instead, so BALANCE_DIRECTION_CLAUSES[1] is
+  // UNREACHABLE from this composer.
+  if (mode === "negative") {
+    return {
+      template_id: "T.risk.summary.docs",
+      ctx: {
+        docs_completion_clause:
+          "records negative impacts that the documented benefits and safeguards do not, on this record, support a benefits-outweigh conclusion against; the weighing is reserved to the customer and qualified legal counsel and the record does not yet complete",
+        __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+      },
+    };
+  }
   return {
     template_id: "T.risk.balance.firm",
     ctx: {
       benefit_summary_tokens,
       negative_summary_tokens,
       safeguard_summary_tokens,
-      balance_direction_clause: direction,
+      balance_direction_clause: BALANCE_DIRECTION_CLAUSES[0],
       __cite: baseCite,
     },
   };
 }
+
 
 function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
   if (insufficientRecord(plan)) {
@@ -506,20 +522,82 @@ function certifyingExecTitle(plan: RenderPlan): string {
   return pickIntakeValue(plan, "i8_certifying_exec_title") || "the certifying executive";
 }
 
+/**
+ * ITEM 273 FIX 1 — OWNER-SLOT PII HARDENING (role-titles-only law).
+ *
+ * CEO-read finding 3: personnel NAMES leaked into Owner slots through
+ * parentheticals ("Chief Compliance Officer (Marcus Trent)"), narrative
+ * clauses ("The CPO role has been vacant since February 2024."), and
+ * unbalanced parentheses. The prior filter only required a role-word to
+ * appear anywhere in a segment, so any of those survived intact.
+ *
+ * Hardening, applied in order per segment:
+ *   (a) strip ALL parenthetical content, including an unterminated
+ *       trailing "(..." tail;
+ *   (b) reject narrative segments — closed-list verb-like token,
+ *       length > 60, or sentence punctuation;
+ *   (c) drop capitalized-bigram personal names not made of role words;
+ *   (d) dedupe, titles only, no trailing periods.
+ */
+const OWNER_ROLE_WORD_RE =
+  /officer|counsel|manager|director|lead|analyst|engineer|admin|privacy|security|compliance|dpo|cpo|ciso|cfo|cto|ceo|coo|specialist|architect|owner|head|chief|general|data|customer|success|junior|senior|deputy|associate|vice|president|executive/i;
+
+/** (b) closed narrative-verb list — a title never contains these. */
+export const OWNER_NARRATIVE_TOKENS: readonly string[] = [
+  "is", "are", "has", "have", "been", "was", "remains", "vacant",
+  "following", "assigned", "departure", "since",
+];
+
+const OWNER_NARRATIVE_RE = new RegExp(
+  `\\b(?:${OWNER_NARRATIVE_TOKENS.join("|")})\\b`,
+  "i",
+);
+
+/** (a) strip parentheticals, including an unterminated trailing tail. */
+export function stripParentheticals(segment: string): string {
+  let out = segment.replace(/\([^)]*\)/g, " ");
+  out = out.replace(/\([^)]*$/, " ");
+  out = out.replace(/^[^()]*\)/, " ");
+  return out.replace(/\s{2,}/g, " ").trim();
+}
+
+/** (c) two adjacent Capitalized tokens that are not role words → a name. */
+export function hasNameBigram(segment: string): boolean {
+  const re = /\b([A-Z][a-z]{1,})\s+([A-Z][a-z]{1,})\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(segment)) !== null) {
+    if (!OWNER_ROLE_WORD_RE.test(m[1]) && !OWNER_ROLE_WORD_RE.test(m[2])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function sanitizeRoleTitleSegments(raw: string): string[] {
+  const segments = raw.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+  const out: string[] = [];
+  for (const seg of segments) {
+    let s = stripParentheticals(seg);
+    // (d) drop terminal punctuation before evaluation.
+    s = s.replace(/[.!?]+\s*$/g, "").trim();
+    if (!s) continue;
+    if (/@|\+?\d{7,}/.test(s)) continue;                 // contact handles
+    if (s.length > 60) continue;                          // (b) length
+    if (/[.!?;:]/.test(s)) continue;                      // (b) sentence punctuation
+    if (OWNER_NARRATIVE_RE.test(s)) continue;             // (b) narrative verbs
+    if (!OWNER_ROLE_WORD_RE.test(s)) continue;            // must read as a title
+    if (hasNameBigram(s)) continue;                       // (c) personal name
+    if (!out.includes(s)) out.push(s);                    // (d) dedupe
+  }
+  return out;
+}
+
 function contributorRoleTitles(plan: RenderPlan): string {
   const raw = pickIntakeValue(plan, "i7_internal_contributors");
   if (!raw) return "";
-  // Role-titles-only guard: drop tokens that look like names / contact
-  // handles (defect 6 PII invariant). Retain segments that read as role
-  // titles (contain job-title-ish tokens or are short comma-separated
-  // items). This is a mechanical filter — nothing legal-substantive.
-  const segments = raw.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
-  const roleLike = segments.filter((s) =>
-    /officer|counsel|manager|director|lead|analyst|engineer|admin|privacy|security|compliance|dpo|cpo|ciso|cfo|cto|ceo|coo|specialist|architect|owner/i.test(s)
-    && !/@|\+?\d{7,}/.test(s),
-  );
-  return roleLike.length > 0 ? roleLike.join(", ") : "";
+  return sanitizeRoleTitleSegments(raw).join(", ");
 }
+
 
 function ownerForKind(kind: ActionKind, plan: RenderPlan): string {
   if (kind === "type_j_reserved") return "qualified legal counsel";
