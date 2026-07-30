@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T01:06Z (Item 265 — GRADER REVIEW resolved four-lens UNANIMOUS for OPTION 1: additive GO-TO-MARKET grader. New `gtm-materiality-register.ts` (v1 DRAFT, harm-anchored) + pure `gtm-grader.ts` `evaluateGtm` with fail-closed unclassified→block; wired into `replay_harness_results.per_doc_result.gtm`. Frozen C/G instruments and deterministic checks untouched; register ratification HELD for CEO before any release gating. Governance entries (a) testing-cadence ratification and (b) CEO grader-review directive recorded. Tests 6/6 + regression 60/60 green; `replay-cppa-risk-harness` redeployed; NO harness invocation.)
+**Last updated:** 2026-07-30T01:19Z (Item 266 — ACTIVITY-RATIONALE DE-DUPLICATION: ramp-1 attempt 8 shipped four byte-identical 5,506-char `risk_assessment_by_activity` items because the Item-264 rationale is composed from plan-GLOBAL artifacts only. `composeRiskByActivity` now emits ONE consolidated rationale with the engaged activities enumerated via existing `joinList` mechanics; new deterministic `evaluateSectionDuplication` gate emits `section_duplication:<key>:<i>=<j>`; GTM DRAFT register classifies it non_material. Build-Issues note opened on per-activity factor attribution (Pass-1 schema question, not wired). Tests 6/6 + regression 73/73 green; `replay-cppa-risk-harness` redeployed; NO harness invocation.)
 
 ---
 
@@ -6423,3 +6423,25 @@ GRANT EXECUTE ON FUNCTION public.replay_harness_fetch_doc(uuid) TO service_role;
 **Tests.** New `supabase/functions/_tests/gtm-grader.test.ts` **6/6 green** (clean → release; `golden_shape:risk_assessment_by_activity` only → release_with_logged_defects, i.e. today's ramp-2 distribution state; `presence_rate` → block; unknown defect → block + unclassified; advisory band flag → logged; `qc_r1_*` → block). Regression set (replay + item262 + item264 + pass1-injection + grader-check-mirror + grounded-note-mode + e2e-document + surface-ownership + gtm-grader): **60 passed / 0 failed**.
 
 **Deploy.** EXPLICIT redeploy of `replay-cppa-risk-harness` ONLY. NO harness invocation, NO Pass-1 model call, NO grader edits — controller reruns personally.
+
+---
+
+## Item 266 — TRACK 2: ACTIVITY-RATIONALE DE-DUPLICATION (Item 264 follow-up) (2026-07-30T01:19Z)
+
+**Type.** Composer consolidation + deterministic duplication detector + one DRAFT GTM register entry. No new customer prose beyond ratified templates. Courier: `docs/courier/ITEM266-RATIONALE-DEDUP-2026-07-30.md`.
+
+**Evidence.** Ramp-1 attempt 8 (job `54a21294`): four `risk_assessment_by_activity` items, each 5,506 chars, items 0 and 1 verified BYTE-IDENTICAL by controller SQL — the Golden-Shape quota was met by repetition (loop2 no-verbatim-duplication law violation). **Root cause:** the Item-264 rationale is composed entirely from plan-GLOBAL artifacts (documentation gates, `factor_table` weight notes, closeness); nothing in the current `RenderPlan` scopes factors to activities, so per-activity emission necessarily clones.
+
+**FIX 1 — honest consolidation.** `composeRiskByActivity` emits ONE combined rationale item: the engaged activities are enumerated into the existing ratified conclusion carrier's `activity_label` slot via the existing `joinList` mechanics (no new sentence frame), followed by the Item-264 four-part body ONCE. LIA line unchanged as its own item. Single-activity behaviour byte-identical to Item 264. Quota `min_items=1` and ≥800 chars/item remain satisfied honestly. `SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item266-rationale-dedup"`.
+
+**FIX 2 — duplication detector.** `substance-gates.ts` gains `evaluateSectionDuplication(report)` (Ruling-A location): for every top-level list section, byte-identical OR whitespace-normalized-identical items yield hard failure `section_duplication:<key>:<i>=<j>`; wired into `evaluateSubstance` hard_failures.
+
+**FIX 3 — GTM register (DRAFT).** `section_duplication` → **non_material** (repetition is a prose/quality defect; does not misstate law; loop2 dinged even 95+ docs for duplication classes — ship + log). Register remains DRAFT pending CEO ratification.
+
+**FIX 4 — BUILD ISSUES NOTE (controller mirrors to Drive).** NEW DESIGN QUESTION — *per-activity factor attribution*: genuinely distinct per-activity rationales require the plan to scope factors/notes to activities (Pass-1 schema addition, §2-architecture-level). Options: (i) model-authored `engaged_activity` refs on factor rows; (ii) keep record-level analysis as the product's honest shape — the golden corpus averaged 2.1 activities with distinct rationales; evaluate whether that distinctness came from activity-scoped INTAKES rather than plan structure. Requires spec-amendment evaluation; NOT wired this turn.
+
+**Declared spec-of-test change.** The Item-264 test's "one item PER ENGAGED ACTIVITY" expectation was restated to the consolidated shape (test renamed `item264/266 — one consolidated rationale item (plus the LIA line)`; header comment and inline comment updated). Its fixture engages exactly one activity, so no assertion value changed and nothing was relaxed or removed; the multi-activity case is newly covered by `item266-rationale-dedup.test.ts`. Deliberate change with rationale, not a weakening.
+
+**Tests.** New `item266-rationale-dedup.test.ts` **6/6 green** (multi-activity → one rationale item + LIA line; consolidated item enumerates all three engaged activities; detector flags byte-identical and whitespace-normalized duplicates; passes on distinct items; GTM logs `section_duplication:*` as non-material). Full regression (replay, item262, item264, item266, pass1-injection, grader-check-mirror, grounded-note-mode, e2e-document, surface-ownership, pass2-assembler, golden-shape-gate, gtm-grader): **73 passed / 0 failed**.
+
+**Deploy.** EXPLICIT redeploy of `replay-cppa-risk-harness` ONLY. NO harness invocation, NO Pass-1 model call, NO grader-instrument edits — controller reruns personally.
