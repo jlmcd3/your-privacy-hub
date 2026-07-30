@@ -26,7 +26,7 @@ import {
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-29-item262-value-seam";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-29-item264-activity-rationale";
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (e) — ADMT-INAPPLICABILITY EXPLANATION.
@@ -103,6 +103,13 @@ const DOCUMENTATION_JUDGMENT_GATE_IDS: ReadonlySet<string> = new Set([
 export interface TemplateInstance {
   readonly template_id: string;
   readonly ctx: SlotContext;
+  /**
+   * ITEM 264 — ONE-ITEM AGGREGATION. Ordered ratified template instances
+   * whose rendered texts the assembler JOINS (single space) into ONE
+   * shipped list item. Mechanical join only — no prose is authored here.
+   * `template_id` on the carrier is the calibration-bearing part id.
+   */
+  readonly parts?: readonly TemplateInstance[];
 }
 
 // ── Registry-backed label + anchor lookups ───────────────────────────────
@@ -311,6 +318,66 @@ function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
   ];
 }
 
+/**
+ * ITEM 264 — ENRICHED BALANCE RATIONALE (wiring of CEO-ratified content).
+ *
+ * Ratified composition order (CONTENT COURIER 2026-07-27,
+ * pass2-templates.ts "ENRICHED BALANCE RATIONALE"):
+ *   benefit factor_lines → negative factor_lines → safeguard factor_lines
+ *   → existing firm/hedged conclusion sentence.
+ * Prefixed by the record-status sentence (T.risk.summary.docs) already
+ * driven by the same `insufficientRecord` boolean.
+ *
+ * factor_basis = the factor row's `weight_note` VERBATIM (facts only).
+ * guidance_clause renders ONLY from the row's guidance_refs, in the
+ * ratified canonical phrasing; rows with no guidance_refs (or no
+ * weight_note) render basis-only / are not emitted — no invented reasoning.
+ */
+const GUIDANCE_CLAUSE_STEM =
+  "The Agency's Final Statement of Reasons addresses this consideration:";
+
+function guidanceClause(f: FactorTableEntry): { clause: string; pinpoint: string } {
+  const ref = f.guidance_refs?.find((g) => typeof g?.regulation_citation === "string" && g.regulation_citation.trim().length > 0);
+  if (!ref) return { clause: "", pinpoint: f.anchor?.pinpoint ?? BALANCE_ANCHOR.pinpoint };
+  const pin = ref.regulation_citation.trim();
+  return { clause: `${GUIDANCE_CLAUSE_STEM} ${pin}.`, pinpoint: pin };
+}
+
+function factorLine(f: FactorTableEntry): TemplateInstance | null {
+  const label = factorLabel(f);
+  const basis = (f.weight_note ?? "").trim();
+  if (!label || !basis) return null; // basis-less rows are never emitted
+  const g = guidanceClause(f);
+  return {
+    template_id: "T.risk.balance.factor_line",
+    ctx: {
+      factor_label: label,
+      factor_basis: basis.replace(/\s*\.\s*$/, ""),
+      guidance_clause: g.clause,
+      __cite: { GUIDANCE_PIN: g.pinpoint },
+    },
+  };
+}
+
+function recordStatusInstance(plan: RenderPlan): TemplateInstance {
+  return {
+    template_id: "T.risk.summary.docs",
+    ctx: {
+      docs_completion_clause: insufficientRecord(plan)
+        ? "has outstanding documentation items — see Items for your review; the record does not yet complete"
+        : "is complete against",
+      __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+    },
+  };
+}
+
+function presentFactorLines(plan: RenderPlan, kind: FactorTableEntry["kind"]): TemplateInstance[] {
+  return plan.factor_table
+    .filter((f) => f.kind === kind && f.present_in_intake)
+    .map(factorLine)
+    .filter((i): i is TemplateInstance => i !== null);
+}
+
 function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   // ITEM 244 (L3) — Less-intrusive-alternatives line. Correction 3:
   // pinpoint verified as § 7152(a)(2) (minimum PI necessary); no
@@ -333,19 +400,38 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
           __cite: { PINPOINT: LIA_PINPOINT },
         },
       };
+
+  const rationaleParts = (activityLabel?: string): TemplateInstance[] => {
+    const conclusion = balanceInstance(plan);
+    const conclusionPart: TemplateInstance = activityLabel
+      ? { template_id: conclusion.template_id, ctx: { ...conclusion.ctx, activity_label: activityLabel } }
+      : conclusion;
+    return [
+      recordStatusInstance(plan),
+      ...presentFactorLines(plan, "benefit"),
+      ...presentFactorLines(plan, "negative_impact"),
+      ...presentFactorLines(plan, "safeguard"),
+      conclusionPart,
+    ];
+  };
+
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
-    if (!insufficientRecord(plan)) return [balanceInstance(plan), liaLine];
+    if (!insufficientRecord(plan)) {
+      const parts = rationaleParts();
+      return [
+        { template_id: parts[parts.length - 1].template_id, ctx: parts[parts.length - 1].ctx, parts },
+        liaLine,
+      ];
+    }
     return [];
   }
-  const balances = engaged.map<TemplateInstance>((p) => {
-    const inst = balanceInstance(plan);
-    return {
-      template_id: inst.template_id,
-      ctx: { ...inst.ctx, activity_label: propLabel(p) },
-    };
+  const rationales = engaged.map<TemplateInstance>((p) => {
+    const parts = rationaleParts(propLabel(p));
+    const carrier = parts[parts.length - 1];
+    return { template_id: carrier.template_id, ctx: carrier.ctx, parts };
   });
-  return [...balances, liaLine];
+  return [...rationales, liaLine];
 }
 
 // ── ITEM 241.3 — Gap-driven four-move action composer ────────────────────
