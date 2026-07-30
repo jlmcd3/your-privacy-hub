@@ -63,7 +63,7 @@ const REAL_NOTES = [
 ] as const;
 
 Deno.test("item261 — version + stamp bumped", () => {
-  assertEquals(PASS1_GROUNDED_NOTE_VERSION, "pass1-grounded-note@2026-07-29-item261-observe-default");
+  assertEquals(PASS1_GROUNDED_NOTE_VERSION, "pass1-grounded-note@2026-07-30-item267-calibration");
   assertEquals(PASS1_LLM_STAMP, "ltp-pass1-llm-item261-grounded-observe@2026-07-29");
 });
 
