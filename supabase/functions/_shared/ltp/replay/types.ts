@@ -7,6 +7,8 @@
  */
 import type { DeriveInput } from "../derive.ts";
 import type { Pass1Result } from "../pass1-llm.ts";
+import type { Pass2rCallFn } from "../pass2r-llm.ts";
+
 
 export const REPLAY_HARNESS_VERSION = "replay-harness-2026-07-29-item253-stageA";
 
@@ -71,6 +73,19 @@ export interface PerDocResult {
   readonly substance: SubstanceMetrics;
   readonly structure: StructureMetrics;
   readonly hard_failures: readonly string[];
+  /**
+   * ITEM 278 — Pass-2R observation payload. Present ONLY when the job's
+   * `options.prose_pass` is true. Telemetry + the prose text so the CEO can
+   * read the actual prose from the admin review page. Never affects the
+   * shipped document while the validators observe (§2R.3).
+   */
+  readonly pass2r?: {
+    readonly telemetry: Record<string, unknown> | null;
+    readonly prose: Record<string, unknown> | null;
+    readonly shipped_surface: "2R" | "deterministic";
+    readonly skipped_reason?: string;
+  };
+
 }
 
 export interface PresenceRateDistribution {
@@ -123,4 +138,14 @@ export interface SubstanceGateConfig {
 
 export interface ReplayRunConfig {
   readonly substance?: SubstanceGateConfig;
+  /**
+   * ITEM 278 — when true the runner executes Pass-2R in OBSERVE mode after
+   * the deterministic document is assembled, and records per-doc 2R
+   * telemetry + prose. Default false: existing jobs and all current callers
+   * are byte-identical to pre-Item-278 behaviour.
+   */
+  readonly prose_pass?: boolean;
+  /** Test seam — injected Pass-2R transport. Never set in production. */
+  readonly pass2r_call?: Pass2rCallFn;
+
 }

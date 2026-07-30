@@ -9,7 +9,10 @@
  */
 import { assembleReport } from "../pass2-assembler.ts";
 import type { AssemblerResult, SectionTelemetry } from "../pass2-assembler.ts";
+import { runProsePassStage } from "../pass2r-llm.ts";
+import type { RenderPlan } from "../../render-plan/schema.ts";
 import { evaluateSubstance } from "./substance-gates.ts";
+
 import { compareDoc } from "./side-by-side.ts";
 import {
   REPLAY_HARNESS_VERSION,
@@ -43,6 +46,14 @@ export async function runReplayDoc(
     const substance = evaluateSubstance(p1.plan, result, cfg.substance);
     const structure = summarizeStructure(result, doc);
 
+    // ITEM 278 — Pass-2R OBSERVE. Runs only when the job requests it, and
+    // only AFTER the deterministic document exists (§2R.1 order of
+    // operations). Its outcome cannot change `result.report`.
+    const pass2r = cfg.prose_pass === true
+      ? await observeProsePass(p1.plan, result.report as Record<string, unknown>, cfg)
+      : undefined;
+
+
     return {
       doc_id: doc.doc_id,
       provider_kind: providerKind,
@@ -56,6 +67,8 @@ export async function runReplayDoc(
       substance: substance.metrics,
       structure,
       hard_failures: substance.hard_failures,
+      ...(pass2r ? { pass2r } : {}),
+
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -87,7 +100,41 @@ export async function runReplayDoc(
   }
 }
 
+/**
+ * ITEM 278 — Pass-2R observation wrapper. Never throws, never mutates the
+ * deterministic report, always reports a shipped_surface of "deterministic"
+ * while the validators observe.
+ */
+async function observeProsePass(
+  plan: RenderPlan,
+  deterministicReport: Record<string, unknown>,
+  cfg: ReplayRunConfig,
+): Promise<NonNullable<PerDocResult["pass2r"]>> {
+  try {
+    const stage = await runProsePassStage(plan, deterministicReport, {
+      enabled: true,
+      // enforce is NOT set by anything in this codebase (§2R.3).
+      call: cfg.pass2r_call,
+      callerName: "replay-cppa-risk-harness",
+    });
+    return {
+      telemetry: stage.telemetry as unknown as Record<string, unknown> | null,
+      prose: stage.prose as unknown as Record<string, unknown> | null,
+      shipped_surface: stage.shipped_surface,
+      ...(stage.skipped_reason ? { skipped_reason: stage.skipped_reason } : {}),
+    };
+  } catch (e) {
+    return {
+      telemetry: null,
+      prose: null,
+      shipped_surface: "deterministic",
+      skipped_reason: `pass2r_observe_error:${e instanceof Error ? e.message : String(e)}`,
+    };
+  }
+}
+
 function summarizeStructure(
+
   result: AssemblerResult,
   doc?: ReplayDoc,
 ): PerDocResult["structure"] {
