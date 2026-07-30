@@ -38,6 +38,9 @@ export interface SlotContext {
   readonly outcome_clause?: string;
   readonly key_factor_token?: string;
   readonly docs_completion_clause?: string;
+  // ── ITEM 284 (F2) — provisional-posture passthroughs ──
+  readonly provisional_support_clause?: string;
+  readonly outstanding_elements_clause?: string;
   readonly activity_singplural_clause?: string;
   // ── ITEM 235 (T-M9.5) per-instance slot passthroughs ──
   readonly action_label?: string;
