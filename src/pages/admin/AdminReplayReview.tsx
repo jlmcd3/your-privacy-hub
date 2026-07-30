@@ -261,10 +261,15 @@ export default function AdminReplayReview() {
             <div className="text-xs mb-3 text-muted-foreground">
               Showing: {showLegacy ? "archived legacy report_data" : "harness assembled_report (build item-269)"}
             </div>
+            {/* ITEM 274 — adapt at the page boundary only: the viewer contract
+                takes the BARE report body object (never a {report_data:…}
+                wrapper record). Harness rows store the bare assembled_report;
+                archived legacy rows nest it under report_data. */}
             <CPPARiskReportBody
-              report={showLegacy ? legacy?.report_data ?? {} : open.assembled_report ?? {}}
+              report={toViewerReport(showLegacy ? legacy?.report_data : open.assembled_report)}
               createdAt={open.created_at}
             />
+
           </div>
         </div>
       )}
