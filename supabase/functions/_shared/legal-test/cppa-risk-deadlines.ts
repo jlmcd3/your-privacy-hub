@@ -43,7 +43,7 @@
  */
 
 export const CPPA_RISK_DEADLINES_VERSION =
-  "cppa-risk-deadlines-2026-07-28-item241-3";
+  "cppa-risk-deadlines-2026-07-30-item267-prose";
 
 export type DeadlineClass =
   | "assessment_record"
@@ -64,6 +64,19 @@ export interface DeadlineRow {
   readonly deadline_sentence: string;
 }
 
+/**
+ * ITEM 267 PART 2 (Build Issue 6R) — DEADLINE-SENTENCE PROSE REWORD.
+ * Authority: CEO delegation 2026-07-30 (verbatim): "I agree to whatever
+ * the teams recommend on each issue - except for issue 8. Go forward with
+ * all other changes". The `deadline_sentence` values below are reworded so
+ * each reads as a natural standalone sentence when the action template
+ * emits it. ALL legal content is preserved verbatim: the ISO/long-form
+ * dates, the pinpoints, the §2.2 prospective-vs-ongoing marking law, and
+ * the "Immediate (before continuing the processing)" clause of §2.3. The
+ * `deadline_label` values — which carry the literal "Prospective —" /
+ * "Ongoing —" markings — are UNCHANGED.
+ * Record: docs/courier/ITEM267-DEADLINE-SENTENCES-2026-07-30.md
+ */
 export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
   {
     id: "d.assessment_record.pre_existing",
@@ -72,7 +85,7 @@ export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
     cohort_marking: "ongoing",
     deadline_label: "Ongoing — 2027-12-31 (§ 7155(b))",
     deadline_sentence:
-      "Complete and retain the assessment record by Ongoing — 2027-12-31, the § 7155(b) compliance date for processing that was underway before the operative date.",
+      "Complete and retain the assessment record by December 31, 2027, the compliance date fixed by 11 CCR § 7155(b) for processing that was underway before the operative date; this is an ongoing obligation.",
   },
   {
     id: "d.assessment_record.prospective",
@@ -81,7 +94,7 @@ export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
     cohort_marking: "prospective",
     deadline_label: "Prospective — before initiating the processing (§ 7155(a))",
     deadline_sentence:
-      "Complete and retain the assessment record Prospective — before initiating the processing, as § 7155(a) requires for processing initiated after the operative date.",
+      "Complete and retain the assessment record before initiating the processing, as 11 CCR § 7155(a) requires; this deadline applies prospectively, to processing initiated after the operative date.",
   },
   {
     id: "d.assessment_record.material_change",
@@ -90,7 +103,7 @@ export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
     cohort_marking: "prospective",
     deadline_label: "Prospective — before implementing the material change (§ 7155(c))",
     deadline_sentence:
-      "Update and retain the assessment record Prospective — before implementing the material change, as § 7155(c) requires when a material change to the processing occurs.",
+      "Update and retain the assessment record before implementing the material change, as 11 CCR § 7155(c) requires; this deadline applies prospectively, from the point the material change to the processing occurs.",
   },
   {
     id: "d.admt_pre_use_notice.existing",
@@ -99,7 +112,7 @@ export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
     cohort_marking: "ongoing",
     deadline_label: "Ongoing — 2027-01-01 (§ 7220)",
     deadline_sentence:
-      "Publish and retain the ADMT pre-use notice by Ongoing — 2027-01-01, the § 7220 compliance date for ADMT already in use.",
+      "Publish and retain the ADMT pre-use notice by January 1, 2027, the compliance date fixed by 11 CCR § 7220 for automated decisionmaking technology already in use; this is an ongoing obligation.",
   },
   {
     id: "d.admt_pre_use_notice.prospective",
@@ -108,7 +121,7 @@ export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
     cohort_marking: "prospective",
     deadline_label: "Prospective — before deploying the ADMT (§ 7220)",
     deadline_sentence:
-      "Publish and retain the ADMT pre-use notice Prospective — before deploying the ADMT, as § 7220 requires for ADMT not yet in use.",
+      "Publish and retain the ADMT pre-use notice before deploying the automated decisionmaking technology, as 11 CCR § 7220 requires; this deadline applies prospectively, to technology not yet in use.",
   },
   {
     id: "d.submission.attestation",
@@ -117,7 +130,7 @@ export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
     cohort_marking: "not_applicable",
     deadline_label: "Ongoing — annually (§ 7157)",
     deadline_sentence:
-      "Submit the § 7157 attestation Ongoing — annually, on the schedule the Agency prescribes for the business's cohort.",
+      "Submit the attestation required by 11 CCR § 7157 annually, on the schedule the Agency prescribes for the business's cohort; this is an ongoing annual obligation.",
   },
   {
     id: "d.ongoing_processing",
@@ -126,9 +139,10 @@ export const CPPA_RISK_DEADLINES: readonly DeadlineRow[] = [
     cohort_marking: "not_applicable",
     deadline_label: "Immediate (before continuing the processing)",
     deadline_sentence:
-      "Address this item Immediate (before continuing the processing), as no statutory deadline extends the compliance date.",
+      "Address this item immediately, before continuing the processing, because no statutory deadline extends the compliance date.",
   },
 ];
+
 
 export const CPPA_RISK_DEADLINE_INDEX: Readonly<Record<string, DeadlineRow>> =
   Object.freeze(Object.fromEntries(CPPA_RISK_DEADLINES.map((d) => [d.id, d])));
