@@ -6785,3 +6785,34 @@ The SPEC-TEMPLATE dispatch of 2026-07-30 was **STOPPED by the CEO mid-execution*
 **BLOCKING PREDECESSORS:** (a) corpus ingestion §§ 7122-7124; (b) § 7120(b) threshold operands added to intake (unblocks item 15 too). **FIX-AT-PORT:** clock budgets, retry structure, ping surface, era-normalizer, owner-slot sanitizer. **BAR TO BEAT:** mean 85.47 / max 94.70 over 143 docs.
 
 **Courier:** `docs/courier/ITEM282-CPPA-CYBER-S0-AUDIT-2026-07-30.md`.
+
+---
+
+## Item 283 — FOUR-LENS COLD READ OF THE STEP-0a REPLAY DOCUMENTS (RECORD ONLY, docs-only; 2026-07-30T11:15Z)
+
+**Authority:** CEO directive 2026-07-30 — "review the PDFs from a cold, first-time-reviewer perspective; determine next steps; goal: 100% legally correct and a very good read — a solid story built on the facts and analysis." **DOCS-ONLY** — no code change, no deploy, no harness invocation, no DB write. Full record: `docs/courier/ITEM283-COLD-READ-2026-07-30.md`.
+
+**SUBJECT.** Batch **1R** ("Step 0a — Pass-2R calibration batch 1R"): 3 docs done — **`1cda30f6`, `2391b49a`, `278d0608`** (the dispatch's `0754dbc8` is the job/batch handle, not a completed doc) — 7 reaped. All three 2R attempts ended `validator_reject`; rejected prose is NOT persisted (all-or-nothing swap), so the cold read ran on the DETERMINISTIC `assembled_report` reading surfaces (the shipped surface) plus the 2R `reject_reason` evidence.
+
+**FINDINGS (each unanimous).**
+
+| # | Finding | Doc | Class |
+|---|---|---|---|
+| F1 | **Verdict-contradiction seam.** `executive_summary` says "the information provided is not sufficient to complete the required benefit-and-impact analysis" while `assessment_summary` + `risk_assessment_by_activity` say the record "is complete against the documentation elements of 11 CCR § 7152(a)" and "the benefits, as documented, outweigh the identified negative impacts." `1cda30f6`/`2391b49a` are consistent (both not-yet-complete) → two composers compute the completeness predicate DIFFERENTLY. The 2R `verdict_consistency` reject (`conflicting_verdict_stated`, evidence "Low") is a TRUE POSITIVE downstream of this seam. | `278d0608` | LEGAL-BLOCKING |
+| F2 | **Firm favorable verdict on an incomplete record.** Benefits-outweigh conclusion issues while `information_needed` lists § 7152(a)(5) categories, (a)(6) safeguards and the (a)(7) initiation decision as missing, and safeguard sufficiency is reserved to counsel. The incentive-balance and reserved-framing laws bind on the FAVORABLE side too. | `278d0608` | LEGAL-BLOCKING |
+| F3 | **Mid-word truncation in shipped factor notes** (fragment law): "commercial benefit from t", "limiting data exposur", "this personal i", "dark-patter" in the factor table + RABA narrative — a hard character slice. Fill-or-omit: full value or omission with telemetry, never a fragment. | `278d0608` | CUSTOMER-VISIBLE |
+| F4 | **Template defects in `priority_actions`:** duplicated phrase ("to address the potential negative impact category the following potential negative impact categories:", "to document the safeguard the following safeguards:"); owner misassignment — the § 7152(a)(7) initiation-decision action names the accountable business owner in its text yet assigns "Owner: qualified legal counsel". The initiation decision belongs to the business. | `278d0608` | CUSTOMER-VISIBLE |
+| F5 | **Part 3/4 starvation.** `next_steps` NULL on two of three docs (golden_shape flagged) and one trivial item on the third, while `information_needed` is rich. The four-part narrative requires substantive Part 3 (missing info + next steps) and Part 4 (conclusion + how it could change). | all three | STRUCTURAL |
+| F6 | **Story deficit (cold-reader).** No customer-overview opening (the known-empty `T.risk.processing_narrative`, §7.5 inherited item, is the missing Part-1/2 connective tissue); the FSOR sentence repeats verbatim after every factor, some at bare "11 CCR § 7152"; exec summary cross-references "set out under Items for your review" — a UI label dangling in a PDF; the § 7121(a) cyber-audit schedule enters on a bare "Separately," — an unexplained detour. | all three | PROSE |
+| F7 | **2R `entity_whitelist` = EXTRACTION-FP CLASS CONFIRMED.** Reject evidence `["Ltd","SaaS","Cascade","Stripe","SendGrid"]`: corporate suffix, generic industry term, the customer's own name split by tokenization, and intake-carried vendors. The builder must include intake-ledger-carried entity values and must not flag suffix/generic tokens. | `278d0608` | 2R INPUT DEFECT |
+| F8 | **`section_structure` rejections** (`registry_key_wrong_part: exception_analysis:part_4`; cross-duplication) are **provisionally TRUE positives** — re-judge after F1/F5 fixes. | `278d0608` | PROVISIONAL |
+
+**ALSO RECORDED.** Doc `2391b49a`: GTM = **block** on `note_specificity:fossil_no_record_evidence:neg.c.impaired_control` — the Item-269 fossil guard functioning as designed. To the presence/fossil watch list; no new work this turn.
+
+**NEXT STEPS (four-lens unanimous; execution as separate dispatches).**
+- **N1 — Item 284 (deterministic fix turn):** one shared completeness predicate for the exec-summary / assessment-summary / RABA composers; when `information_needed` is non-empty the conclusion states the PROVISIONAL posture (what the record AS DOCUMENTED supports, expressly conditioned on the missing elements) and never a firm favorable verdict; F3 fill-or-omit (no character slice); F4 phrase + owner fixes; F5 `next_steps` emitter deriving Part-3/4 content from `information_needed` + present-confirmations. All with tests.
+- **N2 — Item 285:** fix the 2R entity-whitelist builder per F7, then re-run the 10-doc batch.
+- **N3:** the Part-1 story opening rides the `processing_narrative` re-homing turn + Pass-2R once N1/N2 land — the narrative is what 2R exists to deliver.
+- **N4:** 20-doc run, then 4 side-by-side PDFs to the CEO at `/admin/replay-review`.
+
+**Courier:** `docs/courier/ITEM283-COLD-READ-2026-07-30.md`.
