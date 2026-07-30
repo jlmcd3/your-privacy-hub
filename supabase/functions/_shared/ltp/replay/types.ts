@@ -71,6 +71,19 @@ export interface PerDocResult {
   readonly substance: SubstanceMetrics;
   readonly structure: StructureMetrics;
   readonly hard_failures: readonly string[];
+  /**
+   * ITEM 278 — Pass-2R observation payload. Present ONLY when the job's
+   * `options.prose_pass` is true. Telemetry + the prose text so the CEO can
+   * read the actual prose from the admin review page. Never affects the
+   * shipped document while the validators observe (§2R.3).
+   */
+  readonly pass2r?: {
+    readonly telemetry: Record<string, unknown> | null;
+    readonly prose: Record<string, unknown> | null;
+    readonly shipped_surface: "2R" | "deterministic";
+    readonly skipped_reason?: string;
+  };
+
 }
 
 export interface PresenceRateDistribution {
