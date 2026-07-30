@@ -44,6 +44,8 @@ export const REQUIRED_PLAN_SLOTS: Readonly<Record<string, readonly string[]>> = 
   "T.risk.summary.opening.insufficient": ["activity_count_phrase", "activity_singplural_clause"],
   "T.risk.summary.activity_line": ["activity_label", "outcome_clause"],
   "T.risk.summary.docs": ["docs_completion_clause"],
+  // ITEM 284 (F2) — provisional posture: both clauses are required.
+  "T.risk.summary.provisional_posture": ["provisional_support_clause", "outstanding_elements_clause"],
   "T.risk.summary.aggregation_note": ["driving_activity_label"],
   // Per-item shards.
   "T.risk.priority_action": ["action_label", "action_basis", "deadline_basis"],
