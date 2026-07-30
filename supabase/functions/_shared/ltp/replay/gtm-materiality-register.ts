@@ -125,7 +125,7 @@ export const GTM_MATERIALITY_REGISTER: readonly MaterialityEntry[] = [
     defect_class: "section_duplication",
     materiality: "non_material",
     rationale:
-      "ITEM 266 (DRAFT): verbatim repetition within a section is a prose/quality defect — it does not misstate law or alter the legal conclusion; loop2 dinged even 95+ documents for duplication classes. Ship + log.",
+      "ITEM 266 (RATIFIED by the 2026-07-30 CEO delegation): verbatim repetition within a section is a prose/quality defect — it does not misstate law or alter the legal conclusion; loop2 dinged even 95+ documents for duplication classes. Ship + log.",
     source: "harness",
   },
   {
