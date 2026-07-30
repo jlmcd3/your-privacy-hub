@@ -8,7 +8,7 @@
  * Courier-only edits.
  */
 
-export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-28-item244-wired";
+export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-30-item276-primary-subject";
 
 /**
  * Surface-audit rulings (item-136 default: CUT unless defended).
@@ -470,7 +470,37 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     max_chars: 340,
   },
   // ─────────────────────────────────────────────────────────────────
+  // ITEM 276 — REDESIGN STEP 2: THE ASSESSMENT'S SUBJECT IS THE
+  // PRIMARY ACTIVITY. Two new deterministic sentence frames, drafted
+  // team-unanimous under the campaign delegation and quoted verbatim in
+  // docs/courier/ITEM276-PRIMARY-SUBJECT-2026-07-30.md. Both degrade to
+  // nothing when the Item-275 intake fields are absent (legacy docs).
+  // ─────────────────────────────────────────────────────────────────
+  "T.risk.exec.primary_subject_lead": {
+    id: "T.risk.exec.primary_subject_lead",
+    text: "The activity assessed in this Risk Assessment is {{plan:primary_activity_name}}, undertaken for the purpose of {{plan:primary_activity_purpose_clause}}. The analysis that follows — scope, processing, benefits, negative impacts, safeguards, and the weighing conclusion — is directed to that activity.",
+    citation_slots: [],
+    plan_slots: ["primary_activity_name", "primary_activity_purpose_clause"],
+    intake_slots: [],
+    max_chars: 640,
+  },
+  "T.risk.scope.secondary_segmentation": {
+    id: "T.risk.scope.secondary_segmentation",
+    text: "{{plan:entity_name}} also recorded {{plan:secondary_activity_count_phrase}} beyond the assessed activity: {{plan:secondary_activity_list}}. {{cite:PINPOINT_7156A}} permits a single risk assessment to address more than one processing activity only where those activities are comparable — the same personal information, the same purpose, the same method and technology, the same consumers, and similar risks to consumers' privacy. On the record as submitted, the comparison stands as follows: {{plan:secondary_divergence_clause}} This assessment addresses the assessed activity only. Whether any additional use may be covered by a single comparable-set assessment, or requires its own, is a determination reserved to the Company and its counsel.",
+    citation_slots: ["PINPOINT_7156A"],
+    plan_slots: [
+      "entity_name",
+      "secondary_activity_count_phrase",
+      "secondary_activity_list",
+      "secondary_divergence_clause",
+    ],
+    intake_slots: [],
+    max_chars: 2400,
+  },
+
+  // ─────────────────────────────────────────────────────────────────
   // ITEM 244 CEO-approved wiring (2026-07-28). Every clause below is
+
   // verbatim from the ITEM244-WIRED courier. Silent intake sub-elements
   // resolve to a reserved-framing string; NEVER an invented process.
   // ─────────────────────────────────────────────────────────────────

@@ -112,6 +112,12 @@ export interface SlotContext {
   readonly engaged_prong_label?: string;
   readonly engaged_prong_posture_clause?: string;
   readonly non_engaged_prongs_inline?: string;
+  // ITEM 276 — primary-activity subject + § 7156(a) segmentation slots.
+  readonly primary_activity_name?: string;
+  readonly primary_activity_purpose_clause?: string;
+  readonly secondary_activity_count_phrase?: string;
+  readonly secondary_activity_list?: string;
+  readonly secondary_divergence_clause?: string;
 }
 
 
@@ -231,6 +237,12 @@ export function resolveSlot(
     case "type_j_pinpoints":            return ctx.type_j_pinpoints ?? "";
     // ── ITEM 242 (defect 7a) — action owner passthrough.
     case "owner_role_titles":           return ctx.owner_role_titles ?? "";
+    // ── ITEM 276 — primary-activity subject + § 7156(a) segmentation ──
+    case "primary_activity_name":            return ctx.primary_activity_name ?? "";
+    case "primary_activity_purpose_clause":  return ctx.primary_activity_purpose_clause ?? "";
+    case "secondary_activity_count_phrase":  return ctx.secondary_activity_count_phrase ?? "";
+    case "secondary_activity_list":          return ctx.secondary_activity_list ?? "";
+    case "secondary_divergence_clause":      return ctx.secondary_divergence_clause ?? "";
     default:
       return "";
   }

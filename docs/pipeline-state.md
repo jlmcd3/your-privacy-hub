@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T08:18Z (Item 275 — Redesign Step 1: primary-activity intake questions + § 7156(a) comparable-set fork, full left/right column wiring for every new field, six-prong regulatory-footprint realignment with the stale § 7122(a) cyber citation corrected to §§ 7120(b)/7121(a); frontend + intake contract only, no deploy, no harness invocation.)
+**Last updated:** 2026-07-30T08:40Z (Item 276 — Redesign Step 2: the assessment subject is the customer's named primary activity when the Item-275 intake supplies one, with a § 7156(a) comparable-set segmentation item for reported secondary uses and byte-identical degradation for every legacy document; composer + two new deterministic templates, `replay-cppa-risk-harness` redeployed, no harness invocation.)
 
 ---
 
@@ -6626,3 +6626,25 @@ Courier: `docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md`.
 **VERIFICATION.** `tsgo` clean. Deno contract suite `34 passed | 0 failed`. Vitest `25 passed (25)` across `assistedInput`, `intakeRailParity`, `cppaRiskFixturesOptionDrift`. `lint-rail-entries` 1 failure, PRE-EXISTING and out of scope (`BiometricRailEntries.ts` R1 form-directive phrasing) — zero failures on the CPPA risk rail including both new entries. Browser render of Step 1 at 1400×1800 confirms a stable three-column bench, rail seeded to §§ 7150(a)/7155(a)(1), fork reveal rendering the secondary row + divergence matrix, and no new console errors.
 
 **Courier:** `docs/courier/ITEM275-PRIMARY-ACTIVITY-INTAKE-2026-07-30.md`.
+
+---
+
+## Item 276 — REDESIGN STEP 2: THE ASSESSMENT'S SUBJECT IS THE PRIMARY ACTIVITY (2026-07-30T08:40Z)
+
+**Authority:** CEO campaign delegation; team-unanimous. Composer + template layer ONLY. **No prompt changes** (Pass-1 already receives the Item-275 fields verbatim in `intake_json`; the model-contract change belongs to the §2R amendment next step). No harness invocation. Legacy wire and `supabase/_rebuild-snapshot-item244/` untouched. No LLM calls, no DB writes.
+
+**THE CHANGE.** Before this turn the assessment's subject was the list of engaged § 7150(b) prongs. Now, when `primary_activity_name` is on the intake ledger, the subject is the customer's named activity: `composeExecutive` leads with it (activity count = one), `composeRiskByActivity` and `composeProcessingNarrative` carry it as `activity_label`, and the additional uses the customer reported are handled as a § 7156(a) comparable-set question instead of being silently folded into the same analysis.
+
+**MANDATORY DEGRADATION LAW.** Every new branch is gated on a non-empty `primary_activity_name`. Pre-Item-275 documents — i.e. the entire archive, including the ClearPath acceptance record — take the prior prong-derived path byte-for-byte: no lead instance, no segmentation item, no comparable-set ask. Pinned by a dedicated degradation test across `executive_summary`, `scope_and_triggers`, `scope_confirmation`, `processing_narrative`, `information_needed`.
+
+**TWO NEW DETERMINISTIC FRAMES** (drafted under delegation, quoted VERBATIM in the courier): `T.risk.exec.primary_subject_lead` and `T.risk.scope.secondary_segmentation` (cites `11 CCR § 7156(a)`). The segmentation frame states the five-dimension comparability standard, reproduces the customer's own Same / Different / Not sure comparison, states that this assessment addresses the assessed activity only, and **reserves** the bundling determination to the Company and its counsel — the tool never green-lights bundling. Unresolved ("Not sure") dimensions raise an Items-for-your-review ask through the ratified `T.risk.documentation.gap` frame anchored at § 7156(a); answered dimensions are not re-asked. Stamps: `ltp-section-composers-cppa-risk-2026-07-30-item276-primary-subject`, `pass2-templates-2026-07-30-item276-primary-subject`.
+
+**OBSERVATION ONLY.** `StructureMetrics` gains optional `primary_activity_named` / `secondary_uses_reported`, populated in `replay/runner.ts` off `doc.intake_data`. Advisory telemetry; no gate, band, quota, or grader change.
+
+**VERIFICATION.** New `item276-primary-subject.test.ts` — **5 passed (20ms)**. Full LTP suite `deno test --allow-all supabase/functions/_shared/ltp/` → **299 passed | 3 failed (10s)**; the 3 are the SAME 3 failing before this turn (`content.test.ts:35` + `waveb.test.ts:93` stale template-catalogue pins — live catalogue is 41, the pinned expectation was updated by the Item-276 delta to 36 and remains stale by pre-existing drift; `value-screen.test.ts:13` frozen instrument stamp — both inventoried under Item 273). Nothing that passed before this turn fails after it. `deno check` clean on every touched module.
+
+**CARRIED TO STEP 3.** `T.risk.processing_narrative` renders empty under fill-or-omit because its operational clause slots have no resolver cases — pre-existing, out of scope here, logged for the section re-homing turn.
+
+**DEPLOY.** `replay-cppa-risk-harness` ONLY.
+
+**Courier:** `docs/courier/ITEM276-PRIMARY-SUBJECT-2026-07-30.md`.
