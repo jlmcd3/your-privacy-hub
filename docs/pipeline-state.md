@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T21:56Z (Item 289 — CEO RULINGS on seven open issues: Word engine deferred until full rebuild complete; acceptance read after clean 20-doc run; scope-duplication decision held pending mockup; Pass-2R attempts stay at 3; European corpus authorized pending inventory review; CPPA-cyber intake approved; DPA/eu-notice/us-notice/RoPA excluded. Item 290 queued for mockup/evidence turn.)
+**Last updated:** 2026-07-30T22:11Z (Item 290 — SINGLE-KEY SCOPE EMISSION: `scope_confirmation` retired from Track-2 emission; surviving key `scope_and_triggers` per renderer evidence on both surfaces; detector and grader instrument untouched; no-twin/parity tests landed; `replay-cppa-risk-harness` deployed.)
 
 ---
 
