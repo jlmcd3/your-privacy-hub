@@ -20,7 +20,17 @@
  */
 import type { FactorTableEntry, RenderPlan } from "../render-plan/schema.ts";
 
-export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-28-item244-addendum-mass-absence-abort";
+export const PASS1_COHERENCE_VERSION = "pass1-present-note-coherence@2026-07-30-item269-fossil-note-rule";
+
+/**
+ * ITEM 269 FIX 2 — FOSSIL NOTE ON PRESENT ROW.
+ *
+ * The two modern-era ramp-3 blocks were rows where the model asserted
+ * `present_in_intake=true` while writing the canonical no-evidence note.
+ * The model's own evidence statement is adopted: the row becomes absent.
+ */
+export const CANONICAL_NO_EVIDENCE = /^\s*no record evidence\s*\.?\s*$/i;
+
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (b) — MASS-ABSENCE GUARD.
