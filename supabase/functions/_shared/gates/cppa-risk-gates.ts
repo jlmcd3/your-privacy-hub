@@ -49,7 +49,7 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
       "q_sells_or_shares",
       "q_processes_sensitive_pi",
       "q18_admt_use",
-      "q_extensive_profiling",
+      "q5b_profiling_observation",
       "q_trains_admt",
     ],
     on_block: "substitute_neutral",
@@ -89,21 +89,38 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(3)",
   },
+  // ITEM 272 — § 7150(b) six-prong realignment. Draft-era gate
+  // "G.applicability.extensive_profiling" is retired; final (b)(4) is
+  // systematic-observation inference, final (b)(5) is sensitive-location
+  // inference (new), final (b)(6) is training.
   {
-    id: "G.applicability.extensive_profiling",
+    id: "G.applicability.systematic_observation",
     jurisdiction_tag: CPPA,
-    description: "Applicability gate — § 7150(b)(4) extensive profiling.",
-    intake_fields: ["q_extensive_profiling"],
+    description:
+      "Applicability gate — § 7150(b)(4) inference from systematic observation of workers, students, or applicants. "
+      + "Keyed to q5b_profiling_observation options \"Yes — systematic observation of workers/students/applicants\" and \"Both\".",
+    intake_fields: ["q5b_profiling_observation"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(4)",
   },
   {
-    id: "G.applicability.train_admt",
+    id: "G.applicability.sensitive_location",
     jurisdiction_tag: CPPA,
-    description: "Applicability gate — § 7150(b)(5) training ADMT.",
-    intake_fields: ["q_trains_admt"],
+    description:
+      "Applicability gate — § 7150(b)(5) inference from a consumer's presence in a sensitive location. "
+      + "Keyed to q5b_profiling_observation options \"Yes — based on sensitive-location presence\" and \"Both\", "
+      + "plus sensitive_location_basis where present.",
+    intake_fields: ["q5b_profiling_observation", "sensitive_location_basis"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(5)",
+  },
+  {
+    id: "G.applicability.train_admt",
+    jurisdiction_tag: CPPA,
+    description: "Applicability gate — § 7150(b)(6) processing personal information to train an ADMT or identification technology.",
+    intake_fields: ["q_trains_admt"],
+    on_block: "suppress_assertions",
+    anchor_pinpoint: "11 CCR § 7150(b)(6)",
   },
   {
     id: "G.documentation.purpose_present",

@@ -38,7 +38,7 @@ Deno.test("CP5 (a) scope: each prong instance carries prong_subject + own PINPOI
   const plan = fixturePlan();
   const scope = composeSection("scope_and_triggers", plan)!
     .filter((i) => !i.template_id.startsWith("T.risk.section_opener."));
-  assertEquals(scope.length, 5, "must emit one instance per § 7150(b) prong");
+  assertEquals(scope.length, 6, "must emit one instance per § 7150(b) prong"); // ITEM 272: six prongs
 
   const pinpoints = new Set<string>();
   for (const inst of scope) {
@@ -48,7 +48,7 @@ Deno.test("CP5 (a) scope: each prong instance carries prong_subject + own PINPOI
     const subj = (inst.ctx as { prong_subject?: string }).prong_subject ?? "";
     assert(subj.length > 0, "prong_subject must be populated from registry label");
   }
-  assertEquals(pinpoints.size, 5, "every prong must render its OWN pinpoint");
+  assertEquals(pinpoints.size, 6, "every prong must render its OWN pinpoint"); // ITEM 272: six prongs
 });
 
 Deno.test("CP5 (b) coherence: balanceInstance on insufficient plan → T.risk.summary.docs (never firm/hedged)", () => {

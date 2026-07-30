@@ -141,7 +141,11 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     display_label: "Processing sensitive personal information",
     description:
       "A risk assessment is required when the business processes the personal information of consumers "
-      + "and that processing involves sensitive personal information (excluding the § 7027 employment-benefits carve-out).",
+      + "and that processing involves sensitive personal information; § 7150(b)(2)(A) carves out sensitive "
+      + "personal information of employees or independent contractors processed solely and specifically to "
+      + "administer compensation payments, determine and store employment authorization, administer employment "
+      + "benefits, provide legally required reasonable accommodation, or perform legally required wage reporting, "
+      + "and any other processing of consumers' sensitive personal information remains subject to this Article.",
     rule_gate: "G.applicability.sensitive_pi",
     compliance_guidance:
       "The business must complete and retain a risk assessment for every processing activity that involves sensitive personal information, naming the sensitive-PI categories processed, the consumer population affected, and the operational purpose that justifies processing sensitive data rather than non-sensitive alternatives.",
@@ -159,32 +163,66 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     compliance_guidance:
       "The business must complete and retain a risk assessment for every use of automated decisionmaking technology to make a significant decision concerning a consumer, identifying the ADMT deployed, the decision category, the consumer population subject to the decision, and the human-appeal pathway available to that population.",
   },
+  // ITEM 272 (Step 0(a), 2026-07-30) — § 7150(b) SIX-PRONG REALIGNMENT.
+  // The prior registry carried the DRAFT-era five-prong set: "(b)(4)
+  // extensive profiling" and training miscited at (b)(5). The OAL-approved
+  // text (corpus row cppa-7150, status=approved) enumerates SIX triggers.
+  // (b)(4) = systematic-observation inference (workers/students/applicants);
+  // (b)(5) = sensitive-location inference (was MISSING from the product);
+  // (b)(6) = training. Content below is drafted under the CEO delegation of
+  // 2026-07-30 (four-lens unanimity) and quoted in
+  // docs/courier/ITEM272-7150B-REALIGNMENT-2026-07-30.md.
   {
-    id: "r.applicability.extensive_profiling",
+    id: "r.applicability.systematic_observation",
     epistemic_type: "R",
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(4)" },
-    display_label: "Using ADMT for extensive profiling of a consumer",
+    display_label: "Inferring characteristics from systematic observation of workers, students, or applicants",
     description:
-      "A risk assessment is required when the business uses ADMT for extensive profiling of a consumer.",
-    rule_gate: "G.applicability.extensive_profiling",
+      "A risk assessment is required when the business uses automated processing to infer or extrapolate a consumer's "
+      + "intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), "
+      + "personal preferences, interests, reliability, predispositions, behavior, location, or movements, based upon "
+      + "systematic observation of that consumer when they are acting in their capacity as an educational program "
+      + "applicant, job applicant, student, employee, or independent contractor for the business.",
+    rule_gate: "G.applicability.systematic_observation",
     compliance_guidance:
-      "The business must complete and retain a risk assessment for every use of automated decisionmaking technology for extensive profiling of a consumer, identifying the profiling context (work / education / public-place systematic observation / behavioral advertising), the consumer population profiled, and the observation or inference method producing the profile.",
+      "The business must complete and retain a risk assessment for every activity that infers or extrapolates consumer characteristics from systematic observation of a person acting as an educational program applicant, job applicant, student, employee, or independent contractor, identifying the observation method and its coverage period, the characteristics inferred, the worker, student, or applicant population observed, and the operational decision the inference feeds.",
+  },
+  {
+    id: "r.applicability.sensitive_location",
+    epistemic_type: "R",
+    jurisdiction_tag: CPPA,
+    surface: "applicability",
+    anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(5)" },
+    display_label: "Inferring characteristics from presence at a sensitive location",
+    description:
+      "A risk assessment is required when the business uses automated processing to infer or extrapolate a consumer's "
+      + "intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), "
+      + "personal preferences, interests, reliability, predispositions, behavior, or movements, based upon that "
+      + "consumer's presence in a sensitive location; inferring or extrapolating does not include using a consumer's "
+      + "personal information solely to deliver goods to, or provide transportation for, that consumer at a sensitive location.",
+    rule_gate: "G.applicability.sensitive_location",
+    compliance_guidance:
+      "The business must complete and retain a risk assessment for every activity that infers or extrapolates consumer characteristics from a consumer's presence in a sensitive location, naming the sensitive-location categories involved, the source of the location signal, the characteristics inferred, and the record basis for distinguishing that inference from the excluded case of using location solely to deliver goods to, or provide transportation for, the consumer at that location.",
   },
   {
     id: "r.applicability.train_admt",
     epistemic_type: "R",
     jurisdiction_tag: CPPA,
     surface: "applicability",
-    anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(5)" },
-    display_label: "Training ADMT for significant decisions, extensive profiling, or physical/biological identification",
+    anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(6)" },
+    display_label: "Processing personal information to train an ADMT or identification technology",
     description:
-      "A risk assessment is required when the business processes personal information to train ADMT that is capable of "
-      + "being used for a significant decision, extensive profiling, or physical/biological identification or profiling.",
+      "A risk assessment is required when the business processes the personal information of consumers which it intends "
+      + "to use to train an ADMT for a significant decision concerning a consumer, or to train a facial-recognition, "
+      + "emotion-recognition, or other technology that verifies a consumer's identity or conducts physical or biological "
+      + "identification or profiling of a consumer; \"intends to use\" means the business is using, plans to use, permits "
+      + "others to use, plans to permit others to use, is advertising or marketing the use of, or plans to advertise or "
+      + "market the use of that processing.",
     rule_gate: "G.applicability.train_admt",
     compliance_guidance:
-      "The business must complete and retain a risk assessment for every processing activity that uses personal information to train automated decisionmaking technology capable of significant decisions, extensive profiling, or physical- or biological-identification profiling, naming the training data source, the consumer population whose data enters training, and the downstream ADMT capability being trained.",
+      "The business must complete and retain a risk assessment for every processing activity whose personal information the business intends to use to train an ADMT for a significant decision, or to train facial-recognition, emotion-recognition, or other identity-verification or physical- or biological-identification technology, naming the training data source, the consumer population whose personal information enters training, the capability being trained, and the record basis for the \"intends to use\" determination (current use, planned use, permitted third-party use, or marketing of the use).",
   },
   {
     id: "r.cohort.compliance_date",

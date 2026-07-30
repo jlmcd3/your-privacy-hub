@@ -62,7 +62,10 @@ const basePlan: RenderPlan = {
     { gate_id: "G.applicability.selling_sharing", outcome: "not_applicable" },
     { gate_id: "G.applicability.sensitive_pi", outcome: "not_applicable" },
     { gate_id: "G.applicability.admt_significant_decision", outcome: "not_applicable" },
-    { gate_id: "G.applicability.extensive_profiling", outcome: "pass" },
+    // ITEM 272 — six-prong realignment: (b)(4) is systematic observation,
+    // (b)(5) sensitive location (new), (b)(6) training.
+    { gate_id: "G.applicability.systematic_observation", outcome: "pass" },
+    { gate_id: "G.applicability.sensitive_location", outcome: "not_applicable" },
     { gate_id: "G.applicability.train_admt", outcome: "not_applicable" },
   ],
   conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
@@ -74,10 +77,10 @@ Deno.test("CP4 (b) — scope composer emits one instance per prong with distinct
   // 241.3 wiring test).
   const all = composeSection("scope_and_triggers", basePlan)!;
   const instances = all.filter((i) => !i.template_id.startsWith("T.risk.section_opener."));
-  assertEquals(instances.length, 5, "expected 5 § 7150(b) prong instances");
+  assertEquals(instances.length, 6, "expected 6 § 7150(b) prong instances");
   const pinpoints = instances.map((i) => (i.ctx as any).__cite?.PINPOINT);
   const uniq = new Set(pinpoints);
-  assertEquals(uniq.size, 5, `expected 5 distinct pinpoints, got ${JSON.stringify(pinpoints)}`);
+  assertEquals(uniq.size, 6, `expected 6 distinct pinpoints, got ${JSON.stringify(pinpoints)}`);
   const engagedIds = instances.filter((i) => i.template_id === "T.risk.applicability.engaged");
   assertEquals(engagedIds.length, 1, "only (b)(4) should be engaged");
   assert(

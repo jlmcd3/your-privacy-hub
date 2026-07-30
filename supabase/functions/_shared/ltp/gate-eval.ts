@@ -37,7 +37,7 @@ const FIELD_ALIASES: Readonly<Record<string, readonly string[]>> = {
   q_sells_or_shares: ["q5_sell_share"],
   q_processes_sensitive_pi: ["q15_sensitive_pi"],
   q_sensitive_pi_carveout: ["q17_sensitive_basis"],
-  q_extensive_profiling: ["q5b_profiling_observation"],
+  q5b_profiling_observation: ["q_extensive_profiling"],
   q_trains_admt: ["q18b_admt_training"],
   q_admt_significant_decision: ["q19_admt_description"],
   pi_categories: ["q4_pi_categories"],
@@ -75,6 +75,18 @@ const readField = (intake: Intake, key: string): unknown => {
 export { FIELD_ALIASES };
 
 
+/**
+ * ITEM 272 — § 7150(b)(4)/(b)(5) are BOTH keyed to the single intake enum
+ * q5b_profiling_observation, so the generic "every field negative" rule
+ * cannot separate them. These predicates read the option value.
+ */
+const q5bSaysObservation = (v: unknown): boolean =>
+  typeof v === "string" && /systematic observation|^both$/i.test(v.trim());
+const q5bSaysSensitiveLocation = (v: unknown): boolean =>
+  typeof v === "string" && /sensitive-location presence|^both$/i.test(v.trim());
+const sensitiveLocationBasisEngaged = (v: unknown): boolean =>
+  typeof v === "string" && v.trim() !== "" && !/^not applicable/i.test(v.trim());
+
 export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
   const outcomes: GateRuleOutcome[] = [];
   for (const gate of CPPA_RISK_GATES) {
@@ -90,6 +102,30 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
         }
         continue;
       }
+      if (gate.id === "G.applicability.systematic_observation") {
+        const v = readField(intake, "q5b_profiling_observation");
+        if (v === undefined) {
+          outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q5b_profiling_observation absent" });
+        } else if (q5bSaysObservation(v)) {
+          outcomes.push({ gate_id: gate.id, outcome: "pass" });
+        } else {
+          outcomes.push({ gate_id: gate.id, outcome: "block", reason: "q5b option does not select systematic observation" });
+        }
+        continue;
+      }
+      if (gate.id === "G.applicability.sensitive_location") {
+        const v = readField(intake, "q5b_profiling_observation");
+        const basis = readField(intake, "sensitive_location_basis");
+        if (v === undefined && basis === undefined) {
+          outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q5b_profiling_observation and sensitive_location_basis absent" });
+        } else if (q5bSaysSensitiveLocation(v) || sensitiveLocationBasisEngaged(basis)) {
+          outcomes.push({ gate_id: gate.id, outcome: "pass" });
+        } else {
+          outcomes.push({ gate_id: gate.id, outcome: "block", reason: "no sensitive-location inference on the record" });
+        }
+        continue;
+      }
+
       // Generic evaluator: gate blocks iff EVERY listed field is negative/absent.
       const reads = gate.intake_fields.map((f) => readField(intake, f));
       if (reads.every((v) => v === undefined)) {
