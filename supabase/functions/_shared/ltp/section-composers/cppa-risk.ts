@@ -162,15 +162,56 @@ const engagedApplicability = (plan: RenderPlan): Proposition[] =>
 const activityCount = (plan: RenderPlan): number => engagedApplicability(plan).length;
 
 /**
- * ITEM 241.3 CONDITION 5 — insufficiency derives from the FACTUAL
- * documentation-gate subset only. Judgment-subset gates are reserved
- * decisions and cannot cause an insufficient exec on a docs-complete
- * record. See DOCUMENTATION_FACTUAL_GATE_IDS / DOCUMENTATION_JUDGMENT_GATE_IDS.
+ * ITEM 284 (F1) — ONE COMPLETENESS PREDICATE.
+ *
+ * AUTOPSY (doc 278d0608, batch 1R). Two code paths computed completeness
+ * differently:
+ *   • composeExecutive (this file, exec branch) consumed
+ *     `aggregateBalance(plan)`, which returned "insufficient" ALSO when the
+ *     record carried no present benefit factor (BALANCE-SUBSTANCE RULE).
+ *   • composeAssessmentSummary / recordStatusInstance (consumed by the RABA
+ *     rationale) consumed the narrower `insufficientRecord(plan)`, which
+ *     read the FACTUAL documentation-gate subset ONLY.
+ * On 278d0608 the factual gates all passed while the benefit column was
+ * empty, so the exec summary said "not sufficient" while the assessment
+ * summary and RABA said "is complete against … § 7152(a)" and issued a firm
+ * benefits-outweigh conclusion.
+ *
+ * There is now exactly ONE predicate. Every composer that speaks to
+ * completeness consumes it: composeExecutive (via aggregateBalance),
+ * composeAssessmentSummary, recordStatusInstance (RABA), composeRiskByActivity,
+ * composeRecordSufficiency, composeNextSteps.
+ *
+ * ITEM 241.3 CONDITION 5 is preserved inside it: only the FACTUAL
+ * documentation-gate subset counts as a record gap; judgment-subset gates
+ * are reserved decisions and never make the record "incomplete" by themselves.
  */
+export type RecordCompletenessReason =
+  | "documentation_gate_unresolved"
+  | "no_present_benefit_factor"
+  | "information_needed_outstanding";
+
+export interface RecordCompleteness {
+  readonly complete: boolean;
+  readonly reasons: readonly RecordCompletenessReason[];
+}
+
+export function assessRecordCompleteness(plan: RenderPlan): RecordCompleteness {
+  const reasons: RecordCompletenessReason[] = [];
+  if (
+    plan.gate_outcomes.some(
+      (g) => DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id) && g.outcome !== "pass",
+    )
+  ) {
+    reasons.push("documentation_gate_unresolved");
+  }
+  if (!anyPresentBenefit(plan)) reasons.push("no_present_benefit_factor");
+  if (composeInformationNeeded(plan).length > 0) reasons.push("information_needed_outstanding");
+  return { complete: reasons.length === 0, reasons };
+}
+
 const insufficientRecord = (plan: RenderPlan): boolean =>
-  plan.gate_outcomes.some(
-    (g) => DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id) && g.outcome !== "pass",
-  );
+  !assessRecordCompleteness(plan).complete;
 
 const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   const benefits = plan.factor_table.filter((f) => f.kind === "benefit" && f.present_in_intake).length;
@@ -184,17 +225,52 @@ const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
  * the record. Zero present benefits → balance renders reserved/
  * insufficient; the exec-summary never asserts an outweigh over an
  * empty benefit column. Evidence: doc 2e697bf1's state.
+ * ITEM 284 (F1): now a component of `assessRecordCompleteness`.
  */
 const anyPresentBenefit = (plan: RenderPlan): boolean =>
   plan.factor_table.some((f) => f.kind === "benefit" && f.present_in_intake);
 
 type BalanceMode = "insufficient" | "negative" | "hedged" | "firm";
 function aggregateBalance(plan: RenderPlan): BalanceMode {
+  // ITEM 284 (F1) — single predicate first; "insufficient" now absorbs the
+  // former standalone no-present-benefit branch.
   if (insufficientRecord(plan)) return "insufficient";
   if (anyImpactsOutweigh(plan)) return "negative";
-  if (!anyPresentBenefit(plan)) return "insufficient";
   const closeness = computeCloseness(plan, plan.weighing_frame);
   return chooseVariant(closeness) === "hedged" ? "hedged" : "firm";
+}
+
+/**
+ * ITEM 284 (F2) — PROVISIONAL POSTURE.
+ * When the shared predicate reports the record incomplete, the balancing
+ * surfaces state what the record AS DOCUMENTED supports, expressly
+ * conditioned on the missing elements. A firm favorable verdict is
+ * structurally unreachable on that path (aggregateBalance can never return
+ * "firm" while the predicate reports incomplete), and the firm adverse side
+ * remains guarded by Item 273 / Issue 10.
+ */
+const COMPLETENESS_REASON_CLAUSES: Readonly<Record<RecordCompletenessReason, string>> = {
+  documentation_gate_unresolved: "documentation elements that are not yet on the assessment record",
+  no_present_benefit_factor: "the benefits of the processing, which the record does not yet document",
+  information_needed_outstanding: "the items listed under Items for your review",
+};
+
+function provisionalPostureInstance(plan: RenderPlan): TemplateInstance | null {
+  const completeness = assessRecordCompleteness(plan);
+  if (completeness.complete) return null;
+  const support = anyPresentBenefit(plan)
+    ? "the benefits, negative impacts, and safeguards recorded so far are stated as documented, and the record does not yet support a completed benefit-and-impact conclusion in either direction"
+    : "the record does not yet document benefits that can be weighed against the negative impacts identified, so no benefit-and-impact conclusion is supported on this record";
+  const outstanding = joinList(completeness.reasons.map((r) => COMPLETENESS_REASON_CLAUSES[r]));
+  if (!outstanding) return null; // fill-or-omit
+  return {
+    template_id: "T.risk.summary.provisional_posture",
+    ctx: {
+      provisional_support_clause: support,
+      outstanding_elements_clause: outstanding,
+      __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+    },
+  };
 }
 
 
