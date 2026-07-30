@@ -73,3 +73,27 @@ Type-check: `deno check` clean on the composer, resolver, and replay runner.
 ## 7. Known limitation carried to Step 3
 
 `T.risk.processing_narrative` currently renders empty under fill-or-omit because its operational clause slots (`pi_categories_clause`, `sources_clause`, …) have no resolver cases — a **pre-existing** condition unchanged by this turn and out of scope here. The Item-276 narrative assertion is therefore made on the composed ctx, and the defect is logged for the Step-3 section re-homing turn.
+
+---
+
+## RIDER — § 7156(a) STANDARD-STATEMENT CORRECTION (controller verification finding, legal lens, 2026-07-30T08:45Z)
+
+**DEFECT.** As first shipped, `T.risk.scope.secondary_segmentation` stated the comparable-set standard as "comparable — the same personal information, the same purpose, the same method and technology, the same consumers, and similar risks to consumers' privacy." Verified read-only against corpus row `cppa-7156` (`provision_texts.key = 'cppa-7156'`, citation `11 CCR § 7156 (OAL-approved text, eff. 2026-01-01)`): the DEFINITIONAL sentence is
+
+> A business may conduct a single risk assessment for a comparable set of processing activities. A “comparable set of processing activities” that can be addressed by a single risk assessment is a set of similar processing activities that present similar risks to consumers’ privacy.
+
+The "same X" enumeration comes from the § 7156(a)(1) **Business E EXAMPLE** ("collecting the same personal information in the same way…"), not from the rule. Presenting example facts as the definitional standard is a **misstated-law-class defect** under our own GTM materiality register (`registry_corpus_drift` family). Caught by controller verification before acceptance; nothing shipped to a customer surface.
+
+**FIX (surgical — this template's text only).** Corrected template, VERBATIM:
+
+> {{plan:entity_name}} also recorded {{plan:secondary_activity_count_phrase}} beyond the assessed activity: {{plan:secondary_activity_list}}. {{cite:PINPOINT_7156A}} permits a single risk assessment to cover more than one processing activity only for a comparable set — “a set of similar processing activities that present similar risks to consumers’ privacy.” On the record as submitted, the comparison stands as follows: {{plan:secondary_divergence_clause}} This assessment addresses the assessed activity only. Whether any additional use falls within a comparable set with the assessed activity, or requires its own assessment, is a determination reserved to the Company and its counsel.
+
+The quoted definitional sentence uses the corpus row's own typographic quote characters (U+201C / U+201D, and U+2019 in "consumers’"). Reserved framing is unchanged and strengthened: the tool states the rule, reproduces the customer's own comparison, and reserves the determination.
+
+**UNCHANGED.** The intake divergence DIMENSIONS (data / purpose / systems / people / risks) stand as-is — they are the customer's own structured comparison, not a statement of the standard. No composer logic, slot, registry, gate, quota, or grader change. Template stamp bumped to `pass2-templates-2026-07-30-item276-rider-7156a-standard`.
+
+**SPEC-OF-TEST CHANGE (deliberate).** `item276-primary-subject.test.ts` §3 now asserts (i) the rendered segmentation item contains the definitional sentence verbatim with corpus typography, and (ii) it does NOT contain the example-derived "the same personal information, the same purpose" enumeration — a permanent pin against re-introducing example facts as the rule.
+
+**VERIFICATION.** `deno test` on `item276-primary-subject.test.ts` + `content/content.test.ts` + `waveb.test.ts` → **31 passed | 2 failed**; the 2 are the pre-existing stale template-catalogue pins already inventoried (`content.test.ts:35`, `waveb.test.ts:93`). All 5 Item-276 tests pass.
+
+**DEPLOY.** `replay-cppa-risk-harness` ONLY. No harness invocation.

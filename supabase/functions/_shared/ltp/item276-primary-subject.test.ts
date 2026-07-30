@@ -122,6 +122,19 @@ Deno.test("ITEM 276: § 7156(a) segmentation item emits with reserved framing", 
     text.includes("reserved to the Company and its counsel"),
     "tool must never green-light bundling",
   );
+  // ITEM 276 RIDER — deliberate spec-of-test change: the standard clause must
+  // quote the § 7156(a) DEFINITIONAL sentence (corpus row cppa-7156), not the
+  // § 7156(a)(1) Business E example facts.
+  assert(
+    text.includes(
+      "\u201ca set of similar processing activities that present similar risks to consumers\u2019 privacy.\u201d",
+    ),
+    "standard clause must quote the § 7156(a) definitional sentence verbatim",
+  );
+  assert(
+    !text.includes("the same personal information, the same purpose"),
+    "example-derived 'same X' enumeration must not be stated as the standard",
+  );
   assert(
     text.includes("not resolved on the record"),
     '"Not sure" dimensions must read as unresolved',
