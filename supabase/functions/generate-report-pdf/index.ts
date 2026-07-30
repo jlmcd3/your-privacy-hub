@@ -2185,12 +2185,63 @@ Deno.serve(async (req) => {
     const callerRaw = await verifyCaller(req);
     const caller = callerRaw.ok ? callerRaw : { ok: true, userId: null as string | null, internal: false };
 
-    const { tool_type, assessment_id, user_email, user_name, result_url, force, mode } = await req.json();
+    const { tool_type, assessment_id, user_email, user_name, result_url, force, mode, result_id } = await req.json();
+
+    // ── ITEM 271: admin-only replay-harness export path ──────────────────
+    // Renders a harness `assembled_report` through the SAME shipped
+    // buildCPPARiskReportHTML + generatePDF path customers receive, so the
+    // CEO review surface is byte-faithful. Admin-gated, read-only, and
+    // never touches customer records.
+    if (mode === "replay_harness") {
+      if (!caller.userId) {
+        return new Response(JSON.stringify({ error: "forbidden" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: caller.userId, _role: "admin" });
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: "forbidden" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (!result_id) {
+        return new Response(JSON.stringify({ error: "result_id is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const { data: rrow } = await supabase
+        .from("replay_harness_results")
+        .select("id, doc_id, assembled_report, created_at")
+        .eq("id", result_id)
+        .maybeSingle();
+      if (!rrow?.assembled_report) {
+        return new Response(JSON.stringify({ error: "report_data_invalid" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const replayHtml = buildCPPARiskReportHTML(rrow.assembled_report, {
+        created_at: rrow.created_at,
+        intake_data: {},
+      });
+      const replayName = makeAttachmentName("cppa_risk", rrow.created_at || new Date().toISOString());
+      const replayBytes = await generatePDF(replayHtml, replayName.replace(".pdf", ""));
+      let replayUrl: string | null = null;
+      if (replayBytes) {
+        const p = `reports/replay_harness_results/${rrow.id}/${replayName}`;
+        const { error: sErr } = await supabase.storage.from("assessment-reports")
+          .upload(p, replayBytes, { contentType: "application/pdf", upsert: true });
+        if (!sErr) {
+          const { data: u } = await supabase.storage.from("assessment-reports").createSignedUrl(p, 600);
+          replayUrl = u?.signedUrl || null;
+        }
+      }
+      return new Response(
+        JSON.stringify({ success: true, pdf_generated: !!replayBytes, pdf_url: replayUrl }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!tool_type || !assessment_id) {
       return new Response(JSON.stringify({ error: "tool_type and assessment_id are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
 
 
     const tableMap: Record<string, string> = {
