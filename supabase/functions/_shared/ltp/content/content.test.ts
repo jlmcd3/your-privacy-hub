@@ -81,6 +81,8 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.summary.opening.any_negative",
     "T.risk.summary.opening.insufficient",
     "T.risk.summary.opening.mixed_hedged",
+    // ITEM 284 (F2) — provisional-posture frame for incomplete records.
+    "T.risk.summary.provisional_posture",
   ];
   assertEquals(ids, expected);
 });

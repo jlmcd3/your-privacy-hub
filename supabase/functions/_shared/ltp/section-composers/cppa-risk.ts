@@ -162,15 +162,56 @@ const engagedApplicability = (plan: RenderPlan): Proposition[] =>
 const activityCount = (plan: RenderPlan): number => engagedApplicability(plan).length;
 
 /**
- * ITEM 241.3 CONDITION 5 — insufficiency derives from the FACTUAL
- * documentation-gate subset only. Judgment-subset gates are reserved
- * decisions and cannot cause an insufficient exec on a docs-complete
- * record. See DOCUMENTATION_FACTUAL_GATE_IDS / DOCUMENTATION_JUDGMENT_GATE_IDS.
+ * ITEM 284 (F1) — ONE COMPLETENESS PREDICATE.
+ *
+ * AUTOPSY (doc 278d0608, batch 1R). Two code paths computed completeness
+ * differently:
+ *   • composeExecutive (this file, exec branch) consumed
+ *     `aggregateBalance(plan)`, which returned "insufficient" ALSO when the
+ *     record carried no present benefit factor (BALANCE-SUBSTANCE RULE).
+ *   • composeAssessmentSummary / recordStatusInstance (consumed by the RABA
+ *     rationale) consumed the narrower `insufficientRecord(plan)`, which
+ *     read the FACTUAL documentation-gate subset ONLY.
+ * On 278d0608 the factual gates all passed while the benefit column was
+ * empty, so the exec summary said "not sufficient" while the assessment
+ * summary and RABA said "is complete against … § 7152(a)" and issued a firm
+ * benefits-outweigh conclusion.
+ *
+ * There is now exactly ONE predicate. Every composer that speaks to
+ * completeness consumes it: composeExecutive (via aggregateBalance),
+ * composeAssessmentSummary, recordStatusInstance (RABA), composeRiskByActivity,
+ * composeRecordSufficiency, composeNextSteps.
+ *
+ * ITEM 241.3 CONDITION 5 is preserved inside it: only the FACTUAL
+ * documentation-gate subset counts as a record gap; judgment-subset gates
+ * are reserved decisions and never make the record "incomplete" by themselves.
  */
+export type RecordCompletenessReason =
+  | "documentation_gate_unresolved"
+  | "no_present_benefit_factor"
+  | "information_needed_outstanding";
+
+export interface RecordCompleteness {
+  readonly complete: boolean;
+  readonly reasons: readonly RecordCompletenessReason[];
+}
+
+export function assessRecordCompleteness(plan: RenderPlan): RecordCompleteness {
+  const reasons: RecordCompletenessReason[] = [];
+  if (
+    plan.gate_outcomes.some(
+      (g) => DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id) && g.outcome !== "pass",
+    )
+  ) {
+    reasons.push("documentation_gate_unresolved");
+  }
+  if (!anyPresentBenefit(plan)) reasons.push("no_present_benefit_factor");
+  if (composeInformationNeeded(plan).length > 0) reasons.push("information_needed_outstanding");
+  return { complete: reasons.length === 0, reasons };
+}
+
 const insufficientRecord = (plan: RenderPlan): boolean =>
-  plan.gate_outcomes.some(
-    (g) => DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id) && g.outcome !== "pass",
-  );
+  !assessRecordCompleteness(plan).complete;
 
 const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
   const benefits = plan.factor_table.filter((f) => f.kind === "benefit" && f.present_in_intake).length;
@@ -184,17 +225,52 @@ const anyImpactsOutweigh = (plan: RenderPlan): boolean => {
  * the record. Zero present benefits → balance renders reserved/
  * insufficient; the exec-summary never asserts an outweigh over an
  * empty benefit column. Evidence: doc 2e697bf1's state.
+ * ITEM 284 (F1): now a component of `assessRecordCompleteness`.
  */
 const anyPresentBenefit = (plan: RenderPlan): boolean =>
   plan.factor_table.some((f) => f.kind === "benefit" && f.present_in_intake);
 
 type BalanceMode = "insufficient" | "negative" | "hedged" | "firm";
 function aggregateBalance(plan: RenderPlan): BalanceMode {
+  // ITEM 284 (F1) — single predicate first; "insufficient" now absorbs the
+  // former standalone no-present-benefit branch.
   if (insufficientRecord(plan)) return "insufficient";
   if (anyImpactsOutweigh(plan)) return "negative";
-  if (!anyPresentBenefit(plan)) return "insufficient";
   const closeness = computeCloseness(plan, plan.weighing_frame);
   return chooseVariant(closeness) === "hedged" ? "hedged" : "firm";
+}
+
+/**
+ * ITEM 284 (F2) — PROVISIONAL POSTURE.
+ * When the shared predicate reports the record incomplete, the balancing
+ * surfaces state what the record AS DOCUMENTED supports, expressly
+ * conditioned on the missing elements. A firm favorable verdict is
+ * structurally unreachable on that path (aggregateBalance can never return
+ * "firm" while the predicate reports incomplete), and the firm adverse side
+ * remains guarded by Item 273 / Issue 10.
+ */
+const COMPLETENESS_REASON_CLAUSES: Readonly<Record<RecordCompletenessReason, string>> = {
+  documentation_gate_unresolved: "documentation elements that are not yet on the assessment record",
+  no_present_benefit_factor: "the benefits of the processing, which the record does not yet document",
+  information_needed_outstanding: "the items listed under Items for your review",
+};
+
+function provisionalPostureInstance(plan: RenderPlan): TemplateInstance | null {
+  const completeness = assessRecordCompleteness(plan);
+  if (completeness.complete) return null;
+  const support = anyPresentBenefit(plan)
+    ? "the benefits, negative impacts, and safeguards recorded so far are stated as documented, and the record does not yet support a completed benefit-and-impact conclusion in either direction"
+    : "the record does not yet document benefits that can be weighed against the negative impacts identified, so no benefit-and-impact conclusion is supported on this record";
+  const outstanding = joinList(completeness.reasons.map((r) => COMPLETENESS_REASON_CLAUSES[r]));
+  if (!outstanding) return null; // fill-or-omit
+  return {
+    template_id: "T.risk.summary.provisional_posture",
+    ctx: {
+      provisional_support_clause: support,
+      outstanding_elements_clause: outstanding,
+      __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
+    },
+  };
 }
 
 
@@ -280,6 +356,13 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
   // of the executive summary is THAT activity (exactly one), and a lead
   // instance names it before any weighing language. Legacy records with no
   // `primary_activity_name` keep the prong-count subject verbatim.
+  // ITEM 284 (F2) — the RABA carrier stays the BALANCE conclusion even
+  // though the provisional posture is appended after it in `parts`; the
+  // carrier's ctx is what downstream consumers read for activity_label.
+  const carrierOf = (parts: TemplateInstance[]): TemplateInstance =>
+    [...parts].reverse().find((p) => p.template_id.startsWith("T.risk.balance.")) ??
+      parts[parts.length - 1];
+
   const primaryName = primaryActivityName(plan);
   const lead: TemplateInstance[] = primaryName
     ? [{
@@ -406,14 +489,18 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
 
 
 function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
+  // ITEM 284 (F1/F2) — same predicate the exec summary and the RABA consume.
   if (insufficientRecord(plan)) {
-    return [{
+    const out: TemplateInstance[] = [{
       template_id: "T.risk.summary.docs",
       ctx: {
         docs_completion_clause: "has outstanding documentation items — see Items for your review; the record does not yet complete",
         __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
       },
     }];
+    const provisional = provisionalPostureInstance(plan);
+    if (provisional) out.push(provisional);
+    return out;
   }
   return [
     balanceInstance(plan),
@@ -515,12 +602,16 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
     const conclusionPart: TemplateInstance = activityLabel
       ? { template_id: conclusion.template_id, ctx: { ...conclusion.ctx, activity_label: activityLabel } }
       : conclusion;
+    // ITEM 284 (F2) — on an incomplete record the RABA narrative closes on
+    // the provisional posture, never on a firm verdict.
+    const provisional = provisionalPostureInstance(plan);
     return [
       recordStatusInstance(plan),
       ...presentFactorLines(plan, "benefit"),
       ...presentFactorLines(plan, "negative_impact"),
       ...presentFactorLines(plan, "safeguard"),
       conclusionPart,
+      ...(provisional ? [provisional] : []),
     ];
   };
 
@@ -541,20 +632,28 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   // ITEM 276 — the rationale carrier's subject is the named primary
   // activity when the record supplies one; otherwise the engaged-prong
   // enumeration retained from Item 266.
+  // ITEM 284 (F2) — the RABA carrier stays the BALANCE conclusion even
+  // though the provisional posture is appended after it in `parts`; the
+  // carrier's ctx is what downstream consumers read for activity_label.
+  const carrierOf = (parts: TemplateInstance[]): TemplateInstance =>
+    [...parts].reverse().find((p) => p.template_id.startsWith("T.risk.balance.")) ??
+      parts[parts.length - 1];
+
   const primaryName = primaryActivityName(plan);
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
     if (!insufficientRecord(plan)) {
       const parts = rationaleParts(primaryName || undefined);
+      const c = carrierOf(parts);
       return [
-        { template_id: parts[parts.length - 1].template_id, ctx: parts[parts.length - 1].ctx, parts },
+        { template_id: c.template_id, ctx: c.ctx, parts },
         liaLine,
       ];
     }
     return [];
   }
   const parts = rationaleParts(primaryName || joinList(engaged.map(propLabel)));
-  const carrier = parts[parts.length - 1];
+  const carrier = carrierOf(parts);
   return [
     { template_id: carrier.template_id, ctx: carrier.ctx, parts },
     liaLine,
@@ -772,6 +871,14 @@ interface ActionSource {
   readonly gap_or_consequence_clause: string;
   readonly compliance_guidance_sentence: string;
   readonly is_documentation_gate: boolean;
+  /**
+   * ITEM 284 (F4) — per-source owner. `ownerForKind` hard-coded EVERY
+   * type_j_reserved action to "qualified legal counsel", which misassigned
+   * the § 7152(a)(7) initiation decision (`j.initiation_decision`,
+   * reserved_to: "business") to counsel while the action text itself named
+   * the accountable business owner (doc 278d0608). When set, this wins.
+   */
+  readonly owner_role_titles_override?: string;
 }
 
 /** Lowercase the first character (used to fold CEO opener into label prefix). */
@@ -838,6 +945,16 @@ function groupFamilies(sources: ActionSource[]): ActionSource[] {
 // Sentinel used only inside groupFamilies (composer substitutes entityName at emit).
 function entityPlaceholder(): string { return "the business"; }
 
+/**
+ * ITEM 284 (F5) — hoisted from composePriorityActions so the next-steps
+ * emitter derives Part-3 items from the SAME gate labels the actions use.
+ */
+function documentationGateLabel(id: string): string {
+  const tail = id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
+  const noun = tail.replace(/\s+present$/i, "").trim();
+  return `assessment record — ${noun}`;
+}
+
 function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   const entity = entityName(plan);
 
@@ -890,15 +1007,19 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
       compliance_guidance_sentence: spec?.compliance_guidance
         ?? `Record ${reservedTo}'s decision on ${lcFirst(label)} in the assessment file per ${p.anchor.pinpoint}.`,
       is_documentation_gate: false,
+      // ITEM 284 (F4) — owner follows the registry's reserved_to when the
+      // registry states one. Unregistered conclusion ids keep the
+      // Item-243 defect-6 per-KIND default (qualified legal counsel).
+      owner_role_titles_override: spec?.reserved_to === "business"
+        ? (certifyingExecTitle(plan) || "the accountable business owner named on the assessment record")
+        : spec?.reserved_to === "external_auditor"
+          ? "the external auditor"
+          : undefined,
     });
   }
 
   // (4) Unresolved FACTUAL documentation gates.
-  const gateLabel = (id: string): string => {
-    const tail = id.replace(/^G\.documentation\./, "").replace(/_/g, " ");
-    const noun = tail.replace(/\s+present$/i, "").trim();
-    return `assessment record — ${noun}`;
-  };
+  const gateLabel = documentationGateLabel;
   for (const g of plan.gate_outcomes) {
     if (!DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id)) continue;
     if (g.outcome === "pass") continue;
@@ -924,8 +1045,16 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     // KIND opener stem prepended to element_short_label per courier §2.1.
     // For family-grouped rows the label already carries the family opener
     // ("the following …:"); prepend the KIND stem to complete the sentence.
-    const stem = KIND_OPENERS[s.kind];
-    const prefixedLabel = s.factor_id?.startsWith("family.")
+    // ITEM 284 (F4) — PHRASE DE-DUPLICATION. The family label already names
+    // the element class ("the following potential negative impact
+    // categories:"), so the class-naming KIND stem duplicated it
+    // ("…to address the potential negative impact category the following
+    // potential negative impact categories:", doc 278d0608). Family rows
+    // take the class-neutral ratified stem instead; non-family rows are
+    // unchanged.
+    const isFamily = !!s.factor_id?.startsWith("family.");
+    const stem = isFamily ? KIND_OPENERS.gate_unresolved : KIND_OPENERS[s.kind];
+    const prefixedLabel = isFamily
       ? `${stem} ${s.element_short_label}`
       : `${stem} ${lcFirst(s.element_short_label)}`;
     // Family customer_recorded_fact_clause carries the "the business" sentinel — replace here.
@@ -939,7 +1068,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         gap_or_consequence_clause: s.gap_or_consequence_clause,
         compliance_guidance_sentence: s.compliance_guidance_sentence,
         deadline_sentence: sel.row.deadline_sentence,
-        owner_role_titles: ownerForKind(s.kind, plan),
+        owner_role_titles: s.owner_role_titles_override ?? ownerForKind(s.kind, plan),
         __cite: { PINPOINT: s.pinpoint },
       },
     };
@@ -947,15 +1076,72 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
 }
 
 
+/**
+ * ITEM 284 (F5) — PART 3/4 STARVATION FIX.
+ *
+ * Evidence: docs 1cda30f6 and 2391b49a shipped `next_steps` NULL and
+ * 278d0608 shipped a single trivial item, while `information_needed` was
+ * rich. Part 3 (what is missing and what to do about it) and Part 4 (what
+ * the conclusion is and what would change it) must be substantive.
+ *
+ * Steps are derived, in order, from:
+ *   (1) every outstanding item in `information_needed` — the same emitter
+ *       the customer reads under "Items for your review";
+ *   (2) every unresolved FACTUAL documentation gate — same labels as
+ *       priority_actions;
+ *   (3) present-element confirmations (the prior behavior), retained.
+ *
+ * FILL-OR-OMIT: an entry with no label or no basis is dropped whole.
+ * Dedupe is by case-folded step_label so (1) and (2) cannot double-list the
+ * same element.
+ */
 function composeNextSteps(plan: RenderPlan): TemplateInstance[] {
-  const rows = plan.factor_table.filter((f) => f.present_in_intake && f.kind === "safeguard");
-  return rows.map<TemplateInstance>((f) => ({
-    template_id: "T.risk.next_step",
-    ctx: {
-      step_label: `Confirm ${factorLabel(f)} is documented in the assessment record`,
-      step_basis: `Present on the record; retain the supporting documentation with the assessment file.`,
-    },
-  }));
+  const out: TemplateInstance[] = [];
+  const seen = new Set<string>();
+  const push = (step_label: string, step_basis: string): void => {
+    const label = step_label.trim();
+    const basis = step_basis.trim();
+    if (!label || !basis) return; // fill-or-omit
+    const key = label.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ template_id: "T.risk.next_step", ctx: { step_label: label, step_basis: basis } });
+  };
+
+  // (1) Outstanding information-needed asks → completion steps.
+  for (const ask of composeInformationNeeded(plan)) {
+    const label = String(ask.ctx?.doc_element_label ?? "").trim();
+    if (!label) continue;
+    const question = String(ask.ctx?.customer_question ?? "").trim();
+    push(
+      `Complete the assessment record for ${lcFirst(label)}`,
+      question || `Listed under Items for your review; the assessment record is not complete for ${lcFirst(label)} until this is supplied.`,
+    );
+  }
+
+  // (2) Unresolved FACTUAL documentation gates.
+  for (const g of plan.gate_outcomes) {
+    if (!DOCUMENTATION_FACTUAL_GATE_IDS.has(g.gate_id)) continue;
+    if (g.outcome === "pass") continue;
+    const pin = CPPA_RISK_GATE_INDEX[g.gate_id]?.anchor_pinpoint ?? "11 CCR § 7152(a)";
+    const label = documentationGateLabel(g.gate_id);
+    push(
+      `Document ${lcFirst(label)}`,
+      `${pin} requires this element for the assessment record to be complete.`,
+    );
+  }
+
+  // (3) Present-element confirmations (retained prior behavior).
+  for (const f of plan.factor_table) {
+    if (!f.present_in_intake || f.kind !== "safeguard") continue;
+    const label = factorLabel(f);
+    push(
+      `Confirm ${label} is documented in the assessment record`,
+      `Present on the record; retain the supporting documentation with the assessment file.`,
+    );
+  }
+
+  return out;
 }
 
 function composeStrengthenItems(plan: RenderPlan): TemplateInstance[] {
@@ -1298,6 +1484,13 @@ function composeProcessingNarrative(plan: RenderPlan): TemplateInstance[] {
   const nsotr = "not stated on the record";
   const pick = (field: string) => pickIntakeValue(plan, field) || nsotr;
   // ITEM 276 — narrative subject is the named primary activity when present.
+  // ITEM 284 (F2) — the RABA carrier stays the BALANCE conclusion even
+  // though the provisional posture is appended after it in `parts`; the
+  // carrier's ctx is what downstream consumers read for activity_label.
+  const carrierOf = (parts: TemplateInstance[]): TemplateInstance =>
+    [...parts].reverse().find((p) => p.template_id.startsWith("T.risk.balance.")) ??
+      parts[parts.length - 1];
+
   const primaryName = primaryActivityName(plan);
   const engaged = engagedApplicability(plan);
   const activityLabel = primaryName ? primaryName : engaged.length > 0

@@ -38,6 +38,9 @@ export interface SlotContext {
   readonly outcome_clause?: string;
   readonly key_factor_token?: string;
   readonly docs_completion_clause?: string;
+  // ── ITEM 284 (F2) — provisional-posture passthroughs ──
+  readonly provisional_support_clause?: string;
+  readonly outstanding_elements_clause?: string;
   readonly activity_singplural_clause?: string;
   // ── ITEM 235 (T-M9.5) per-instance slot passthroughs ──
   readonly action_label?: string;
@@ -198,6 +201,9 @@ export function resolveSlot(
     case "outcome_clause":              return ctx.outcome_clause ?? "";
     case "key_factor_token":            return ctx.key_factor_token ?? "";
     case "docs_completion_clause":      return ctx.docs_completion_clause ?? "";
+    // ── ITEM 284 (F2) — provisional posture ──
+    case "provisional_support_clause":  return ctx.provisional_support_clause ?? "";
+    case "outstanding_elements_clause": return ctx.outstanding_elements_clause ?? "";
     case "activity_singplural_clause":  return ctx.activity_singplural_clause ?? "";
     // ── ITEM 235 (T-M9.5) per-instance slot passthroughs ──
     case "action_label":                return ctx.action_label ?? "";
