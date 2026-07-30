@@ -283,37 +283,57 @@ function renderTemplateSection(
   // ITEM 235 (T-M9.5) — per-instance composer path. When a composer
   // exists for this key, render each instance with its populated ctx.
   // Renderer enforces fill-or-omit at the instance level.
+  //
+  // ITEM 264 — ONE-ITEM AGGREGATION SEAM (assembler mechanics, not prose).
+  // A composer instance may carry `parts`: an ordered list of ratified
+  // template instances whose rendered texts are JOINED with a single
+  // space into ONE shipped list item. This exists because the shipped
+  // list item is the golden-shape quota unit (avg chars per item), and
+  // the enriched activity rationale is a composition of several ratified
+  // templates. No new text is introduced by the join.
   const instances = composeSection(shard.key, plan);
-  const renderList: { id: string; ctx: Record<string, unknown> }[] = instances
-    ? instances.map((i) => ({ id: i.template_id, ctx: i.ctx as Record<string, unknown> }))
+  type Part = { id: string; ctx: Record<string, unknown> };
+  const renderList: { parts: Part[] }[] = instances
+    ? instances.map((i) => ({
+        parts: (i.parts && i.parts.length > 0)
+          ? i.parts.map((p) => ({ id: p.template_id, ctx: p.ctx as Record<string, unknown> }))
+          : [{ id: i.template_id, ctx: i.ctx as Record<string, unknown> }],
+      }))
     : shard.owner.template_ids
         .filter((id) => id !== "deterministic")
-        .map((id) => ({ id, ctx: {} }));
+        .map((id) => ({ parts: [{ id, ctx: {} as Record<string, unknown> }] }));
 
-  for (const { id, ctx } of renderList) {
-    const r = renderTemplate(id, plan, ctx);
-    if (r.errors.length > 0) errors.push(...r.errors.map((e) => `${id}:${e}`));
-    if (r.text && r.text.length > 0) {
-      rendered.push(r.text);
-      usedIds.push(id);
-      if (closeBalance) {
-        const cal = assertCalibrationMatch(id, FIRM_VARIANT_CLOSENESS_MAX);
-        if (cal) {
-          return {
-            value: undefined,
-            telemetry: {
-              key: shard.key,
-              owner_kind: shard.owner.kind,
-              template_ids_rendered: usedIds,
-              render_errors: [...errors, `flat_certainty:${cal}`],
-              emitted: false,
-              omitted_reason: "flat_certainty_on_close_balance",
-            },
-          };
+  for (const unit of renderList) {
+    const chunks: string[] = [];
+    for (const { id, ctx } of unit.parts) {
+      const r = renderTemplate(id, plan, ctx);
+      if (r.errors.length > 0) errors.push(...r.errors.map((e) => `${id}:${e}`));
+      if (r.text && r.text.length > 0) {
+        chunks.push(r.text);
+        usedIds.push(id);
+        if (closeBalance) {
+          const cal = assertCalibrationMatch(id, FIRM_VARIANT_CLOSENESS_MAX);
+          if (cal) {
+            return {
+              value: undefined,
+              telemetry: {
+                key: shard.key,
+                owner_kind: shard.owner.kind,
+                template_ids_rendered: usedIds,
+                render_errors: [...errors, `flat_certainty:${cal}`],
+                emitted: false,
+                omitted_reason: "flat_certainty_on_close_balance",
+              },
+            };
+          }
         }
       }
     }
+    if (chunks.length > 0) {
+      rendered.push(chunks.length === 1 ? chunks[0] : chunks.map((c) => c.trim()).join(" "));
+    }
   }
+
   const value = rendered.length > 0 ? rendered : undefined;
   if (value !== undefined && NARRATIVE_CLASS_KEYS.has(shard.key)) {
     const pii = containsPii(value);

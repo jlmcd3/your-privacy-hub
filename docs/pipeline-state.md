@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T00:15Z (Item 263 CORRECTION — the Item 263 results table was reconstructed rather than queried; it has been REPLACED with controller-verified output from `replay_harness_results` joined to `replay_harness_jobs` where `notes LIKE 'Ramp step 2%'`. Verified distribution: presence 0.438–0.688, median 0.438, six of ten docs at the band minimum 0.4375 (real intakes cluster at the low edge of the fixture-mined band — flagged for band recalibration); all 10 Pass-1 ok, zero write-arounds; exactly one hard failure per doc, uniformly `golden_shape:risk_assessment_by_activity`; `shortfall_delta` −5 on seven scored docs, −6 on `79871b7f`, null on the two unscored; grounded would-replace 0.75–1.00. Fabrication caught by controller review; code-is-truth restored. Ledger-only turn; no code, no deploys, no harness invocation.)
+**Last updated:** 2026-07-30T00:52Z (Item 264 — ENRICHED BALANCE RATIONALE wired into `risk_assessment_by_activity`: one shipped item per engaged activity composed, in the CEO-ratified 2026-07-27 order, from the record-status sentence + present benefit/negative/safeguard `T.risk.balance.factor_line` instances + the existing calibrated conclusion. Zero new customer-facing text. Assembler gained a `parts` one-item aggregation seam (mechanical whitespace join; per-part guards unchanged). Tests 54/54 green on the regression set; `replay-cppa-risk-harness` redeployed; NO harness invocation.)
 
 ---
 
@@ -6385,3 +6385,23 @@ GRANT EXECUTE ON FUNCTION public.replay_harness_fetch_doc(uuid) TO service_role;
 **Next per instructions document.** Investigate `risk_assessment_by_activity` depth (Golden-Shape §C four-part rationale assembly) BEFORE ramp step 3, so the 50-doc run measures a candidate-complete engine. This gap is now the lone systematic blocker across the distribution.
 
 **Live-call declaration.** NO harness invocation, NO Pass-1 model call, NO DB writes, NO grader edits this turn. Controller reruns personally.
+
+---
+
+## Item 264 — TRACK 2: ENRICHED BALANCE RATIONALE WIRED INTO `risk_assessment_by_activity` (2026-07-30T00:52Z)
+
+**Type.** Composer wiring of EXISTING CEO-ratified template content. ZERO new customer-facing text. Courier: `docs/courier/ITEM264-ACTIVITY-RATIONALE-WIRING-2026-07-29.md`.
+
+**Basis.** `pass2-templates.ts` "ENRICHED BALANCE RATIONALE (CONTENT COURIER 2026-07-27)" — `T.risk.balance.factor_line` ("{{plan:factor_label}}: {{plan:factor_basis}}. {{plan:guidance_clause}}", max 420); composition order benefit → negative → safeguard factor_lines → existing firm/hedged conclusion; `factor_basis` = the row's `weight_note` (facts); guidance renders ONLY from the row's guidance refs; empty guidance → basis-only. Evidence: ramp step 2 (Item 263) — all 10 docs fail ONLY `golden_shape:risk_assessment_by_activity`.
+
+**VERIFY-FIRST.** `pass2-assembler.ts:274-317` — `renderTemplateSection` pushes ONE string per composer instance into the shipped array, i.e. 1 instance = 1 shipped list item, and the quota measures avg chars per shipped item. Seam landed: `TemplateInstance.parts?` + a mechanical single-space join of the independently rendered ratified parts. Per-part `max_chars`, fill-or-omit, residue, forbidden-token and calibration checks are unchanged; non-`parts` instances behave byte-identically.
+
+**Emitted per engaged activity (one item).** (i) `T.risk.summary.docs` record status from the same `insufficientRecord` boolean; (ii) `factor_line` per PRESENT benefit (label = `display_label`, basis = `weight_note` verbatim, guidance clause + `__cite.GUIDANCE_PIN` from `guidance_refs[].regulation_citation`); (iii) `factor_line` per PRESENT negative_impact, then per PRESENT safeguard; (iv) the existing `balanceInstance` calibrated conclusion (also the carrier id, so `assertCalibrationMatch` still applies). Basis-less rows are never emitted; guidance-less rows render basis-only. LIA line remains its own item.
+
+**Recorded limitation.** Absent-safeguard / gap ENUMERATION inside this section was NOT added — no already-ratified template covers that shape here. Omitted rather than authored (content law); flagged for a future ratified-content turn.
+
+**Version.** `SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-29-item264-activity-rationale"`.
+
+**Tests.** New `item264-activity-rationale.test.ts` 4/4 green (single item per engaged activity; ratified order; `weight_note` verbatim + basis-only fallback; rendered item ≥800 chars on the 3-benefit/3-negative/1-safeguard fixture). Full regression set (item264 + item262 + replay + pass1-injection + grader-check-mirror + grounded-note-mode + e2e-document + surface-ownership) **54 passed / 0 failed**; assembler + golden-shape gate **7 passed / 0 failed**. Pre-existing, unrelated failure left untouched: `content/content.test.ts` expected-template-id list predates the Item 241.3/244 template additions (templates not touched this turn).
+
+**Deploy.** EXPLICIT redeploy of `replay-cppa-risk-harness` ONLY. NO harness invocation, NO Pass-1 model call, NO DB writes — controller reruns personally.
