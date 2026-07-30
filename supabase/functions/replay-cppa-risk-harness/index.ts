@@ -181,34 +181,8 @@ async function processDoc(
       hard_failures: substance.hard_failures,
     };
 
-    // ITEM 278 — PASS-2R OBSERVE. Runs strictly AFTER the deterministic
-    // document exists (§2R.1 order of operations) and only when the job
-    // row carries options.prose_pass = true. Observe mode: the shipped
-    // surface stays deterministic no matter what 2R returns.
-    if (prosePass) {
-      try {
-        const stage = await runProsePassStage(
-          p1.plan,
-          assembled.report as Record<string, unknown>,
-          { enabled: true, callerName: "replay-cppa-risk-harness" },
-        );
-        (perDoc as { pass2r?: unknown }).pass2r = {
-          telemetry: stage.telemetry,
-          prose: stage.prose,
-          shipped_surface: stage.shipped_surface,
-          ...(stage.skipped_reason ? { skipped_reason: stage.skipped_reason } : {}),
-        };
-      } catch (e) {
-        (perDoc as { pass2r?: unknown }).pass2r = {
-          telemetry: null,
-          prose: null,
-          shipped_surface: "deterministic",
-          skipped_reason: `pass2r_observe_error:${e instanceof Error ? e.message : String(e)}`,
-        };
-      }
-    }
-
     const sideBySide = doc.report_data ? compareDoc(perDoc, doc.report_data) : null;
+
 
     // Pass-1 usage passthrough:
     // NOTE for controller/CEO: `runPass1Llm` does NOT currently surface the
