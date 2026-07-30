@@ -458,6 +458,12 @@ const F_CPPA_RISK_US: SampleFixture = {
         entity_name: "Tomorrow4Cariboo, Inc.",
         subject_anchor:
           "Consumer shipment-tracking profiles — cross-context behavioural advertising and sale/share of tracking data",
+        // ITEM 275 — primary-activity trio (contract fields added this turn).
+        primary_activity_name: "Shipment-tracking advertising profiles",
+        primary_activity_purpose:
+          "We combine shipment-tracking events with contact and device identifiers to build advertising profiles that are shared with advertising partners.",
+        has_secondary_uses: "No — this data is used for this activity only",
+        secondary_activities: [],
         q1_revenue: "Over $100M",
         q2_consumers: "1,000,000 or more",
         q3_sector: "Media/advertising",
