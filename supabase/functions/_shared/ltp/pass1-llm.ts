@@ -163,10 +163,17 @@ export function applySingleWriterInjection(
     }
   }
   let factor_ref_drops = 0;
+  let weight_note_omissions = 0;
   const factor_table: FactorTableEntry[] = factorScaffold.map((row) => {
     const m = modelByFactor.get(row.factor_id);
     if (!m) return row;
-    const weight_note = typeof m.weight_note === "string" ? String(m.weight_note).slice(0, 240) : undefined;
+    // ITEM 284 (F3) — FILL-OR-OMIT. The prior `.slice(0, 240)` shipped
+    // mid-word fragments onto the customer surface ("…commercial benefit
+    // from thi", doc 10b0e8c3 / 278d0608 batch 1R). A note now ships WHOLE
+    // or is omitted entirely with an omitted_reason_class telemetered here.
+    const wn = fillOrOmitWeightNote(m.weight_note);
+    if (wn.omitted_reason_class) weight_note_omissions += 1;
+    const weight_note = wn.note;
     const present_in_intake = typeof m.present_in_intake === "boolean" ? m.present_in_intake : row.present_in_intake;
     const rawRefs = Array.isArray(m.intake_ledger_refs) ? m.intake_ledger_refs : [];
     const kept: string[] = [];
