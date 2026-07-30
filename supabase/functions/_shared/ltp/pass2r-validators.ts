@@ -15,7 +15,9 @@
 import type { RenderPlan } from "../render-plan/schema.ts";
 import { hasNameBigram, sanitizeRoleTitleSegments } from "./section-composers/cppa-risk.ts";
 
-export const PASS2R_VALIDATORS_VERSION = "ltp-pass2r-validators-2026-07-30-item278";
+export const PASS2R_VALIDATORS_VERSION =
+  "ltp-pass2r-validators-2026-07-30-item285-entity-whitelist";
+
 
 /** Mirrors GroundedNoteMode (ltp/grounded-note.ts) — observe is the default. */
 export type Pass2rValidatorMode = "observe" | "enforce";
@@ -176,6 +178,44 @@ const ENTITY_STOPWORDS = new Set(
   ).split(/\s+/),
 );
 
+/**
+ * ITEM 285 / F7(2) — OVER-EAGER EXTRACTION FIX.
+ *
+ * Corporate-form suffixes are structural components of a company name, never
+ * an independent proper name. "Cascade Data Ltd" carries ONE entity; "Ltd" on
+ * its own is not a second one. Enumerated and anchored (smoke-#4/#5 curation
+ * law): only these exact forms, with or without a trailing dot.
+ */
+export const CORPORATE_SUFFIXES: ReadonlySet<string> = new Set(
+  (
+    "Ltd Limited Inc Incorporated LLC LLP LP PLC Plc Corp Corporation Co Company " +
+    "GmbH AG SA SAS SARL SRL BV NV AB AS ApS Oy Pty PteMarker Pte KK KG OHG UG"
+  ).split(/\s+/).filter((s) => s !== "PteMarker"),
+);
+
+/**
+ * ITEM 285 / F7(2) — curated GENERIC INDUSTRY / CATEGORY terms. These are
+ * capitalized-by-convention category words, not proper names of an entity,
+ * product or vendor. The list is CLOSED and enumerated: no bare common word
+ * is added beyond this set and CORPORATE_SUFFIXES.
+ */
+export const GENERIC_CATEGORY_TERMS: ReadonlySet<string> = new Set(
+  (
+    "SaaS PaaS IaaS FinTech MarTech AdTech HealthTech InsurTech RegTech LegTech " +
+    "eCommerce ECommerce Ecommerce Internet Cloud Platform Marketplace Analytics " +
+    "Website Mobile Online Software Vendor Vendors Processor Processors Subprocessor Subprocessors"
+  ).split(/\s+/),
+);
+
+function stripSuffixDot(s: string): string {
+  return s.replace(/\.$/, "");
+}
+
+function isNonEntityToken(bare: string): boolean {
+  const bareNoDot = stripSuffixDot(bare);
+  return CORPORATE_SUFFIXES.has(bareNoDot) || GENERIC_CATEGORY_TERMS.has(bareNoDot);
+}
+
 /** Candidate proper nouns: capitalized runs that are not sentence-initial. */
 function properNounCandidates(text: string): string[] {
   const out: string[] = [];
@@ -193,12 +233,14 @@ function properNounCandidates(text: string): string[] {
       if (i === 0) continue; // sentence-initial capitalization is not evidence
       if (!/^[A-Z][A-Za-z0-9'&.\-]*$/.test(bare)) continue;
       if (ENTITY_STOPWORDS.has(bare)) continue;
+      if (isNonEntityToken(bare)) continue; // ITEM 285: suffix / generic category term
       if (/^[A-Z]{2,6}$/.test(bare)) continue; // acronyms handled by the register rule
       out.push(bare);
     }
   }
   return out;
 }
+
 
 // ---------------------------------------------------------------------
 // (1) CITATION WHITELIST
@@ -268,6 +310,14 @@ export function validateEntityWhitelist(
   wl: Pass2rWhitelist,
 ): Pass2rValidatorOutcome {
   const haystack = norm(wl.entities.join(" | "));
+  // ITEM 285 / F7(1): multi-word plan-carried names are matchable by their FULL
+  // form AND by each constituent token ("Cascade" out of "Cascade Data Ltd").
+  const carriedTokens = new Set(
+    wl.entities
+      .flatMap((e) => norm(e).split(/[^A-Za-z0-9'&.\-]+/))
+      .map((t) => stripSuffixDot(t))
+      .filter(Boolean),
+  );
   const rejections: Pass2rRejection[] = [];
 
   // Verdict vocabulary is plan-carried by definition (§2R.4) and is capitalized
@@ -281,9 +331,11 @@ export function validateEntityWhitelist(
   const unknown: string[] = [];
   for (const cand of properNounCandidates(norm(proseOf(doc)))) {
     if (haystack.includes(cand)) continue;
+    if (carriedTokens.has(stripSuffixDot(cand))) continue;
     if (verdictWords.has(cand)) continue;
     if (!unknown.includes(cand)) unknown.push(cand);
   }
+
   if (unknown.length > 0) {
     rejections.push(rej(
       "entity_whitelist",
@@ -626,6 +678,34 @@ function displayStrings(plan: RenderPlan): string[] {
     .filter(Boolean);
 }
 
+/**
+ * ITEM 285 / F7(1) — UNDER-INCLUSIVE WHITELIST FIX.
+ * Every entity-bearing value the plan CARRIES is harvested: intake-ledger
+ * displays AND their raw values (a vendor can be carried as the raw value with
+ * a coded display), factor weight_notes (where vendor names actually live),
+ * factor and proposition display labels, and any bound template ctx values the
+ * caller supplies. Values are kept WHOLE; token-level matching happens in the
+ * validator so multi-word names match by full name and by constituent token.
+ */
+function entityBearingStrings(
+  plan: RenderPlan,
+  boundCtxValues: readonly unknown[],
+): string[] {
+  const rawLedgerValues = plan.intake_ledger
+    .map((l) => (l.value === null || l.value === undefined ? "" : String(l.value)))
+    .map((s) => s.trim());
+  return [
+    ...displayStrings(plan),
+    ...rawLedgerValues,
+    ...plan.factor_table.map((f) => String(f.weight_note ?? "")),
+    ...plan.factor_table.map((f) => String(f.display_label ?? "")),
+    ...plan.propositions.map((p) => String(p.display_label ?? "")),
+    ...boundCtxValues.map((v) => (typeof v === "string" || typeof v === "number" ? String(v) : "")),
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export function buildPass2rWhitelist(
   plan: RenderPlan,
   opts: {
@@ -633,6 +713,8 @@ export function buildPass2rWhitelist(
     close_outcome?: boolean;
     registry_keys?: readonly string[];
     deadline_literals?: readonly string[];
+    /** ITEM 285: values bound into the rendered template ctx, if the caller has them. */
+    bound_ctx_values?: readonly unknown[];
   },
 ): Pass2rWhitelist {
   const displays = displayStrings(plan);
@@ -643,11 +725,10 @@ export function buildPass2rWhitelist(
     ...(opts.deadline_literals ?? []),
   ].filter(Boolean);
 
-  const entities = [
-    ...displays,
-    ...plan.factor_table.map((f) => String(f.display_label ?? "")),
-    ...plan.propositions.map((p) => String(p.display_label ?? "")),
-  ].filter(Boolean);
+  const entities = Array.from(
+    new Set(entityBearingStrings(plan, opts.bound_ctx_values ?? [])),
+  );
+
 
   return {
     citations: plan.citation_bindings.map((c) => c.pinpoint),

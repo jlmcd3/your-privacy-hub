@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T17:44Z (Item 284 — DETERMINISTIC FIX TURN executing Item 283 N1: ONE shared completeness predicate `assessRecordCompleteness` (F1 verdict-contradiction seam closed); provisional posture on incomplete records, firm favorable verdict now structurally unreachable (F2); `weight_note` fill-or-omit, the 240-char slice deleted (F3); `priority_actions` family-stem de-duplication + registry-driven owner for § 7152(a)(7) (F4); substantive `next_steps` Part-3/4 emitter (F5). 8 new tests pass; failing set identical to HEAD baseline (21 pre-existing). Deployed `replay-cppa-risk-harness` only; no LLM call, no harness run, no DB write. N2/Item 285 unblocked.)
+**Last updated:** 2026-07-30T17:50Z (Item 285 — 2R ENTITY-WHITELIST BUILDER FIX executing Item 283 N2/F7: both failure modes closed — under-inclusive harvest (ledger raw values + weight_notes + optional bound ctx) and over-eager extraction (enumerated CORPORATE_SUFFIXES + GENERIC_CATEGORY_TERMS, plus constituent-token matching for multi-word names). Validator stays OBSERVE-defaulted; §2R.7 bar unchanged. 5 new tests pass, 36/0 across the 2R suites, full suite 511 passed / 21 pre-existing failures. Deployed `replay-cppa-risk-harness` only; no harness invocation. 10-doc re-run released to the controller.)
 
 ---
 
@@ -6836,3 +6836,23 @@ The SPEC-TEMPLATE dispatch of 2026-07-30 was **STOPPED by the CEO mid-execution*
 **TESTS.** New `_shared/ltp/item284-deterministic-fixes.test.ts` — 8 tests, 8 passing (one or more per finding). Full suite `_shared/ltp/` + `run-cppa-risk-assessment/`: **506 passed | 21 failed**, and the failing set is byte-identical to HEAD-before-this-turn (verified by restoring the five touched files to HEAD, capturing the failure list, and diffing: NO-NEW-FAILURES) — i.e. the Item-273 pre-existing legacy inventory only. No test weakened or deleted.
 
 **Disposition:** LANDED. F8 (`section_structure` provisional positives) is re-judgeable; **N2 (Item 285 — 2R entity-whitelist builder + 10-doc re-run) is unblocked.**
+
+---
+
+## Item 285 — 2R ENTITY-WHITELIST BUILDER FIX (executes Item 283 N2 / F7; cppa-risk Track 2; 2026-07-30T17:50Z)
+
+**Authority:** CEO "Proceed" 2026-07-30; four-lens unanimous per the Item-283 courier. ONE defect class: the `entity_whitelist` validator's INPUT CONSTRUCTION. NO prompt change, NO other validator change, NO composer change, NO legacy edit. **Deployed `replay-cppa-risk-harness` ONLY; NO harness invocation** (the controller runs the re-run batch). Full record: `docs/courier/ITEM285-ENTITY-WHITELIST-FIX-2026-07-30.md`.
+
+**EVIDENCE.** Batch 1R doc `278d0608`: `[entity_whitelist/entity_not_in_plan]` evidence `["Ltd","SaaS","Cascade","Stripe","SendGrid"]` — all five false positives, two classes.
+
+**MODE (1) UNDER-INCLUSIVE WHITELIST — FIXED.** `buildPass2rWhitelist` built `entities` from intake-ledger displays + factor/proposition `display_label` only (`pass2r-validators.ts:646-650` old). Vendors on `278d0608` are carried as the RAW `intake_ledger.value` behind a coded display ("3 service providers") and inside `factor_table[].weight_note` — neither harvested, so plan-carried "Stripe"/"SendGrid" read as model-invented. New `entityBearingStrings` harvests ledger displays, ledger RAW values, weight_notes, factor + proposition display labels, and an OPTIONAL `opts.bound_ctx_values` for bound template ctx (optional by design — no caller signature changed, `pass2r-llm.ts` untouched). Values kept whole and de-duplicated.
+
+**MODE (2) OVER-EAGER EXTRACTION — FIXED.** Two CLOSED, enumerated, exported sets consulted by `properNounCandidates`: `CORPORATE_SUFFIXES` (Ltd/Limited/Inc/LLC/LLP/PLC/Corp/Co/GmbH/AG/SA/SAS/SARL/BV/NV/Pty/Pte/KK/KG/… , trailing dot tolerated) and `GENERIC_CATEGORY_TERMS` (SaaS/PaaS/IaaS/FinTech/MarTech/AdTech/eCommerce/Cloud/Platform/Analytics/Software/Vendor(s)/Processor(s)/…). Structural or anchored entries only per the smoke-#4/#5 curation law; no bare common word beyond these two sets; `ENTITY_STOPWORDS` byte-unchanged. Separately, `validateEntityWhitelist` now matches a candidate against the FULL whitelist value OR any constituent token of it, so "Cascade" out of "Cascade Data Ltd" matches by construction.
+
+**LIFECYCLE UNCHANGED.** `PASS2R_DEFAULT_MODE` stays `"observe"`; `effective === (mode === "enforce")`; nothing sets enforce (Item-278 assertion still passes). §2R.7 promotion bar (two consecutive replay batches at ~zero FP) untouched and unmet. Version stamp → `ltp-pass2r-validators-2026-07-30-item285-entity-whitelist`.
+
+**TESTS.** New `_shared/ltp/item285-entity-whitelist.test.ts` — 5 tests, 5 passing: builder harvest assertion; the `278d0608` prose ("Cascade Data Ltd", "SaaS analytics", "Stripe", "SendGrid") → ZERO entity rejections; suffix/generic non-entity assertion; multi-word token match; COUNTER-CASE "Acxiom" (carried nowhere in the plan) still rejects with `entity_not_in_plan`. With the existing 2R suites: **36 passed | 0 failed**. Full suite `_shared/ltp/` + `run-cppa-risk-assessment/`: **511 passed | 21 failed** — the tolerated Item-284 inventory unchanged, no 2R test among them, no test that passed before this turn fails now. Type-check reports the same 7 pre-existing errors, none in a file touched this turn.
+
+**DIFF DISCIPLINE VERIFIED.** Only `pass2r-validators.ts`, the new `item285-entity-whitelist.test.ts`, this ledger and the courier. Inside `pass2r-validators.ts` the citation, numeric/date, verdict-consistency, section-structure, atomic-token and no-self-contradiction validators and their whitelist inputs are byte-unchanged.
+
+**Disposition:** LANDED. **10-doc re-run batch released to the controller.**
