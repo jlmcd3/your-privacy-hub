@@ -8,7 +8,7 @@
  * Courier-only edits.
  */
 
-export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-30-item276-primary-subject";
+export const PASS2_TEMPLATES_VERSION = "pass2-templates-2026-07-30-item276-rider-7156a-standard";
 
 /**
  * Surface-audit rulings (item-136 default: CUT unless defended).
@@ -486,7 +486,7 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   },
   "T.risk.scope.secondary_segmentation": {
     id: "T.risk.scope.secondary_segmentation",
-    text: "{{plan:entity_name}} also recorded {{plan:secondary_activity_count_phrase}} beyond the assessed activity: {{plan:secondary_activity_list}}. {{cite:PINPOINT_7156A}} permits a single risk assessment to address more than one processing activity only where those activities are comparable — the same personal information, the same purpose, the same method and technology, the same consumers, and similar risks to consumers' privacy. On the record as submitted, the comparison stands as follows: {{plan:secondary_divergence_clause}} This assessment addresses the assessed activity only. Whether any additional use may be covered by a single comparable-set assessment, or requires its own, is a determination reserved to the Company and its counsel.",
+    text: "{{plan:entity_name}} also recorded {{plan:secondary_activity_count_phrase}} beyond the assessed activity: {{plan:secondary_activity_list}}. {{cite:PINPOINT_7156A}} permits a single risk assessment to cover more than one processing activity only for a comparable set — \u201ca set of similar processing activities that present similar risks to consumers\u2019 privacy.\u201d On the record as submitted, the comparison stands as follows: {{plan:secondary_divergence_clause}} This assessment addresses the assessed activity only. Whether any additional use falls within a comparable set with the assessed activity, or requires its own assessment, is a determination reserved to the Company and its counsel.",
     citation_slots: ["PINPOINT_7156A"],
     plan_slots: [
       "entity_name",
