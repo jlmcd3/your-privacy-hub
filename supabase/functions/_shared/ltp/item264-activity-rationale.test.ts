@@ -1,7 +1,8 @@
 // ITEM 264 — ENRICHED BALANCE RATIONALE wiring into risk_assessment_by_activity.
 //
-// Asserts the ratified composition order lands as ONE shipped item per
-// engaged activity: record-status → benefit factor_lines → negative
+// Asserts the ratified composition order lands as ONE shipped rationale
+// item (Item 266 consolidation; this fixture engages exactly one
+// applicability proposition, so the shape is unchanged): record-status → benefit factor_lines → negative
 // factor_lines → safeguard factor_lines → calibrated conclusion.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import { composeSection } from "./section-composers/cppa-risk.ts";
@@ -82,10 +83,10 @@ function renderItem(parts: readonly { template_id: string; ctx: unknown }[]): st
     .join(" ");
 }
 
-Deno.test("item264 — one rationale item per engaged activity (plus the LIA line)", () => {
+Deno.test("item264/266 — one consolidated rationale item (plus the LIA line)", () => {
   const out = composeSection("risk_assessment_by_activity", PLAN) ?? [];
   const rationales = out.filter((i) => Array.isArray(i.parts) && i.parts!.length > 0);
-  assertEquals(rationales.length, 1); // one engaged applicability proposition
+  assertEquals(rationales.length, 1); // Item 266: always exactly one consolidated rationale
   assertEquals(out.length, 2); // rationale + LIA line
   assert(!out[1].parts, "LIA line must remain its own single-template item");
 });

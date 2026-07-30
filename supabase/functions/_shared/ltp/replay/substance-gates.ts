@@ -185,6 +185,38 @@ export function evaluateLabelResidue(report: Record<string, unknown>): {
   return { matches, failures: matches.map((m) => `label_residue:${m}`) };
 }
 
+/**
+ * ITEM 266 — SAME-SECTION DUPLICATION DETECTOR (loop2 "no verbatim
+ * duplication" law as a deterministic check; Ruling-A location).
+ *
+ * For every top-level LIST section on the shipped report, two items that
+ * are byte-identical — or identical after whitespace normalisation —
+ * produce a hard failure "section_duplication:<key>:<i>=<j>".
+ *
+ * Evidence: ramp-1 attempt 8 (job 54a21294) shipped four
+ * risk_assessment_by_activity items of 5,506 chars each, items 0 and 1
+ * byte-identical.
+ */
+export function evaluateSectionDuplication(report: Record<string, unknown>): {
+  failures: readonly string[];
+} {
+  const failures: string[] = [];
+  const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+  for (const [key, val] of Object.entries(report ?? {})) {
+    if (!Array.isArray(val)) continue;
+    const items = val.filter((v): v is string => typeof v === "string");
+    if (items.length < 2) continue;
+    for (let i = 0; i < items.length; i += 1) {
+      for (let j = i + 1; j < items.length; j += 1) {
+        if (items[i] === items[j] || norm(items[i]) === norm(items[j])) {
+          failures.push(`section_duplication:${key}:${i}=${j}`);
+        }
+      }
+    }
+  }
+  return { failures };
+}
+
 /** Aggregate evaluator used by the runner. */
 export function evaluateSubstance(
   plan: RenderPlan,
@@ -196,12 +228,14 @@ export function evaluateSubstance(
   const ad = actionDiversity(plan);
   const gs = goldenShapeHard(result.report);
   const lr = evaluateLabelResidue(result.report);
+  const sd = evaluateSectionDuplication(result.report);
   const failures = [
     ...(pr.failure ? [pr.failure] : []),
     ...ns.failures,
     ...ad.failures,
     ...gs.failures,
     ...lr.failures,
+    ...sd.failures,
   ];
   return {
     metrics: {

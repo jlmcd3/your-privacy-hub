@@ -26,7 +26,7 @@ import {
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-29-item264-activity-rationale";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item266-rationale-dedup";
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (e) — ADMT-INAPPLICABILITY EXPLANATION.
@@ -415,6 +415,20 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
     ];
   };
 
+  // ITEM 266 — HONEST CONSOLIDATION.
+  //
+  // The Item-264 rationale is composed entirely from plan-GLOBAL artifacts
+  // (documentation gates, factor_table, closeness). Nothing in the current
+  // RenderPlan scopes factors or weight notes to individual activities, so
+  // per-activity emission necessarily produced byte-identical clones
+  // (ramp-1 attempt 8, job 54a21294: four items, each 5,506 chars, items 0
+  // and 1 verified byte-identical). Presenting one record-level analysis
+  // N times fabricates differentiation the plan does not contain.
+  //
+  // Therefore: ONE combined rationale item. The engaged activities are
+  // ENUMERATED into the existing ratified conclusion carrier's
+  // activity_label slot via the existing joinList mechanics — no new
+  // sentence frame. Single-activity behaviour is unchanged from Item 264.
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
     if (!insufficientRecord(plan)) {
@@ -426,12 +440,12 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
     }
     return [];
   }
-  const rationales = engaged.map<TemplateInstance>((p) => {
-    const parts = rationaleParts(propLabel(p));
-    const carrier = parts[parts.length - 1];
-    return { template_id: carrier.template_id, ctx: carrier.ctx, parts };
-  });
-  return [...rationales, liaLine];
+  const parts = rationaleParts(joinList(engaged.map(propLabel)));
+  const carrier = parts[parts.length - 1];
+  return [
+    { template_id: carrier.template_id, ctx: carrier.ctx, parts },
+    liaLine,
+  ];
 }
 
 // ── ITEM 241.3 — Gap-driven four-move action composer ────────────────────
