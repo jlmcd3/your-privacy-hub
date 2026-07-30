@@ -369,6 +369,47 @@ export default function AdminReplayReview() {
               </tbody>
             </table>
           </div>
+
+          {/* ITEM 294 — jobs table is secondary bookkeeping: it renders BELOW
+              the documents table and is collapsed by default. */}
+          <div className="mt-8">
+            <button
+              type="button"
+              className="px-2 py-1 border rounded text-sm hover:bg-muted"
+              aria-expanded={showJobs}
+              onClick={() => setShowJobs((s) => !s)}
+            >
+              {showJobs ? "Hide jobs" : `Show jobs (${jobs.length})`}
+            </button>
+            {showJobs && (
+              <div className="mt-3 overflow-x-auto border rounded-lg" data-testid="jobs-table">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50 text-left">
+                    <tr>
+                      <th className="p-2">Created</th>
+                      <th className="p-2">Batch label</th>
+                      <th className="p-2">Status</th>
+                      <th className="p-2">Docs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortJobsNewestFirst(jobs).map((j) => (
+                      <tr
+                        key={j.id}
+                        className={`border-t cursor-pointer hover:bg-muted/40 ${jobLabel(j) === label ? "bg-muted/60" : ""}`}
+                        onClick={() => setLabel(jobLabel(j))}
+                      >
+                        <td className="p-2 whitespace-nowrap font-mono">{fmt(j.created_at)}</td>
+                        <td className="p-2">{jobLabel(j)}</td>
+                        <td className="p-2">{j.status ?? "—"}</td>
+                        <td className="p-2">{j.doc_ids?.length ?? 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </>
       )}
 
