@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T07:35Z (Item 273 Step 0(b) — owner-slot PII hardening + harness detector; true § 7157/§ 7155 submission-and-retention content ahead of the re-homed § 7121 schedule; count-driven balance verdict may no longer assert an affirmative outweigh; GTM register v1.2 with four new material classes; full 22-failure pre-existing inventory recorded, nothing fixed; deploy: replay-cppa-risk-harness only; no harness invocation.)
+**Last updated:** 2026-07-30T07:55Z (Item 274 — viewer/PDF shape-contract divergence: LTP reports rendered blank on screen while PDFs rendered fully; shared `isLtpRiskShape` discriminator mirrored to the frontend, new LTP viewer, page-boundary adapter, permanent viewer/PDF parity test on a real assembled_report fixture; frontend-only, no deploy, no harness invocation.)
 
 ---
 
@@ -6592,3 +6592,19 @@ Courier: `docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md`.
 
 **Courier:** `docs/courier/ITEM273-STEP0B-2026-07-30.md`.
 
+
+## Item 274 — VIEWER/PDF SHAPE-CONTRACT DIVERGENCE: LTP REPORTS RENDERED BLANK ON SCREEN (2026-07-30T07:55Z)
+
+**CEO-REPORTED, CUTOVER-BLOCKING.** "Review report" at `/admin/replay-review` rendered a blank structure with zero report information while the SAME documents rendered fully through the PDF path. Controller framing confirmed: `CPPARiskReportBody` is the shipped viewer on live customer result pages, so at Track-2 cutover customers would have seen blank on-screen reports with working PDFs. Team-unanimous wiring fix. Frontend + tests only; **no edge-function change was necessary**; no deploy; no harness invocation; legacy wire/snapshot/prompts untouched.
+
+**EVIDENCE.** (1) `src/pages/admin/AdminReplayReview.tsx:264-267` already passed the BARE `assembled_report` body under the correct prop — not the defect site. (2) `src/components/report-bodies/CPPARiskReportBody.tsx:32-33` branched only on V3 (`schema_version === "v3-part-a-part-b" && part_a`) and `isV4Report` (`RiskAssessmentReportV4.tsx:207-211`: stamp `startsWith("v4")` OR presence of `assessment_summary` / `risk_assessment_by_activity`). (3) `generate-report-pdf/index.ts:1150-1152, 1163-1171` dispatches `isLtpRiskShape` FIRST to `buildCPPARiskLtpHTML` (`index.ts:1177-1263`). (4) Read-only SELECT on `replay_harness_results` id `eb12abee-ed5b-4d16-a6d0-001039bfacf6` (doc `202cca35-3faa-4a19-9b79-d617d36dadc4`): `schema_version = "cppa_risk_v4"`, `part_a = {}`, `executive_summary` a 429-char string, `assessment_summary` a `{narrative}` bag, sections as string arrays, `submission_summary` a 1,762-char string.
+
+**ROOT CAUSE.** The LTP assembler stamps `cppa_risk_v4` but emits flat string/string[] sections. The viewer had NO LTP discriminator, so `isV4Report` matched and `RiskAssessmentReportV4` — which reads object fields off each item — emitted headings with no content. The PDF path never hit this because it tests `isLtpRiskShape` first. Confirmed identical on live result pages post-cutover; legacy V3 and true legacy-V4 rows are unaffected (`isLtpRiskShape` false for both).
+
+**FIX.** (a) NEW `src/lib/cppa-risk-shape.ts` — sanctioned frontend mirror of `_shared/report-contracts/cppa-risk-shape.ts`: `isLtpRiskShape` (byte-equivalent to the edge copy), `coerceNarrativeScalar`, `coerceNarrativeList`, `CPPA_RISK_HEADER_MAP` / `headerForSection`, `LTP_SECTION_ORDER`. Deno cannot import from `src/`; the parity test pins the two implementations. (b) NEW `src/components/cppa/RiskAssessmentReportLTP.tsx` — the on-screen analog of `buildCPPARiskLtpHTML`: same section set, same order, same customer-first headers, same coercion, `data-section="<key>"` on every section. `CPPARiskReportBody` now dispatches LTP FIRST with V3/V4 gated behind `!isLtp`. (c) `toViewerReport()` at the AdminReplayReview page boundary unwraps a `{report_data: …}` record and otherwise passes the bare body through — the component was NOT forked.
+
+**PERMANENT PARITY TEST.** `src/test/cppaRiskViewerPdfParity.test.tsx` against verbatim fixture `src/test/fixtures/cppa-risk-assembled-report.json` (result id `eb12abee-ed5b-4d16-a6d0-001039bfacf6`). Asserts LTP detection AND the mis-dispatching `cppa_risk_v4` stamp; >40 chars of body text beyond the header for EVERY golden-shape quota section (`executive_summary`, `assessment_summary`, `scope_and_triggers`, `risk_assessment_by_activity`, `priority_actions`, `next_steps`, `record_sufficiency`, `information_needed`, `submission_summary`); >5,000 chars total rendered text; the boundary-adapter contract; and legacy-V3 non-match. Verbatim: `✓ src/test/cppaRiskViewerPdfParity.test.tsx (5 tests) 124ms` — `Test Files 1 passed (1) / Tests 5 passed (5)`.
+
+**R6 RECORD.** The CEO's admin-page read caught a cutover-blocking defect every automated gate missed: golden-shape quotas, substance gates and the GTM register all measure the ASSEMBLED PAYLOAD, and the PDF exporter rendered it correctly — nothing measured the ON-SCREEN surface. Recorded law: a payload-side presence check is not evidence of a customer-visible render; each shipped surface needs its own presence gate.
+
+**Courier:** `docs/courier/ITEM274-VIEWER-SHAPE-PARITY-2026-07-30.md`.
