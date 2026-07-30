@@ -315,7 +315,7 @@ function geminationForms(t: string): string[] {
   const out: string[] = [];
   if (t.length >= 3 && /[bcdfgklmnprstvz]$/.test(t) && /[aeiou][bcdfgklmnprstvz]$/.test(t) && !/[aeiou]{2}[bcdfgklmnprstvz]$/.test(t)) {
     const dbl = t + t[t.length - 1];
-    out.push(dbl + "ing", dbl + "ed");
+    out.push(dbl + "ing", dbl + "ed", dbl + "er", dbl + "ers");
   }
   return out;
 }
