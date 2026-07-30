@@ -7017,3 +7017,22 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK VERIFIED.** Diff contains only the courier and this ledger.
 
 **Disposition:** RECORDED. Acceptance bar met; CEO read open; pending CEO inspection and prose-adjudication queue.
+
+----
+
+## Item 293 — /ADMIN/REPLAY-REVIEW BATCH-SELECTION FIX (2026-07-30T22:36Z)
+
+**Authority:** CEO report 2026-07-30 — "the page is not showing the new documents; all of them show that they were part of the 269 run."
+**Class:** FRONTEND-ONLY. No backend change, no edge-function deploy, no engine/emitter change, no harness invocation, no DB write, no DPA files.
+
+**AUTOPSY.** The pin was entirely client-side in `src/pages/admin/AdminReplayReview.tsx`: `ACCEPTANCE_NOTE_PREFIXES = ["Acceptance-40", "Ramp step 1, attempt 9"]` (`:18`) applied as `.filter(...)` (`:81-83`) after an unordered jobs query (`:73-75`), so the results query (`:90-94`) could only ever see Item-269-era jobs. The heading (`:173`) and the modal caption (`:276`, literal "build item-269") were hardcoded to match. **No server-side pin exists** — the page reads the base tables directly; `admin_replay_fetch_legacy_doc` is per-`doc_id` metadata only and constrains no batch. The fix therefore stayed in the frontend, as scoped.
+
+**FIX.** Pin deleted. Jobs load with `.order("created_at", { ascending: false })` plus a client-side `sortJobsNewestFirst()` ordering pin. A jobs table lists every job newest-first (created_at, batch label, status, doc count) and is click-to-select. A batch dropdown built from `batchLabels(jobs)` defaults via `defaultBatchLabel(jobs)` to the most recent label — today `Step 0a — CLEAN RUN batch 4 (post-Item-290, 20 docs, CEO read gate)` — with every earlier batch, including the Item-269-era labels, one click away. Results load for the selected batch only, with the latest-per-doc dedupe and GTM verdict columns unchanged. Heading and modal caption de-hardcoded. Admin gate, `openReport`, `downloadPdf` (`generate-report-pdf`, `mode: "replay_harness"`), the legacy toggle and the Item-274 `toViewerReport` adapter are untouched.
+
+**TESTS.** `src/test/item293-replay-review-batches.test.ts` — 5 passed: newest-first ordering pin, default-filter pin, Item-269-era reachability regression, unlabelled-job handling, empty-jobs case. `tsgo --noEmit -p tsconfig.app.json` clean. No previously passing test fails; tolerated inventory per Item-287 / Item-290 couriers unchanged.
+
+**COURIER.** `docs/courier/ITEM293-REPLAY-REVIEW-FIX-2026-07-30.md`.
+
+**DOUBLE-CHECK.** Diff: `src/pages/admin/AdminReplayReview.tsx`, `src/test/item293-replay-review-batches.test.ts`, the courier, and this ledger. No backend file in the diff.
+
+**Disposition:** FIXED. The CEO read now opens on CLEAN RUN batch 4.
