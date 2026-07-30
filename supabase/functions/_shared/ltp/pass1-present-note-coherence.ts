@@ -127,6 +127,18 @@ export function screenPresentNoteCoherence(
     }
     const note = (row.weight_note ?? "").toString();
     if (!note) return row;
+    // ITEM 269 FIX 2 — FOSSIL NOTE ON PRESENT ROW. Runs BEFORE the
+    // glossary patterns (after the defect-3 refs rule).
+    if (CANONICAL_NO_EVIDENCE.test(note)) {
+      rewrites.push({
+        factor_id: row.factor_id,
+        field_id: "(weight_note)",
+        reason: "present row carries the canonical no-evidence note — model's own evidence statement adopted",
+        original_note: note.slice(0, 200),
+      });
+      return { ...row, present_in_intake: false, weight_note: "no record evidence" } as FactorTableEntry;
+    }
+
     for (const p of PATTERNS) {
       if (!p.appliesTo.test(row.factor_id)) continue;
       if (!p.hit.test(note)) continue;
