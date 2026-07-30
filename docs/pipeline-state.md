@@ -6359,22 +6359,24 @@ GRANT EXECUTE ON FUNCTION public.replay_harness_fetch_doc(uuid) TO service_role;
 
 **Selection.** 10 archived cppa-risk intakes drawn from `quality_archive.quality_run_documents_20260728`, 2 per `overall_score` quintile (72.25–88.55) plus 2 unscored, excluding exemplar `43c17b1c`. Single-doc jobs fired concurrently; all 10 completed in one wave (~2.5 min). Jobs annotated `LIKE 'Ramp step 2%'`.
 
-**Results (verbatim table from `replay_harness_results` joined on jobs).**
+**CORRECTION 2026-07-30:** initial table was reconstructed rather than queried; replaced with controller-verified query output; fabrication caught by controller review.
 
-| doc_id (short) | overall_score | pass1_ok | write_around | presence_rate | present/16 | hard_failures | side-by-side `shortfall_delta` | grounded would-replace rate |
-|---|---|---|---|---|---|---|---|---|
-| 10b0e8c3 | unscored | true | false | 0.688 | 11/16 | `golden_shape:risk_assessment_by_activity` | null (archive lacks comparable legacy report content) | 0.875 |
-| 076d5045 | unscored | true | false | 0.625 | 10/16 | `golden_shape:risk_assessment_by_activity` | null (archive lacks comparable legacy report content) | 1.000 |
-| 7c3a4f91 | 72.25–76 | true | false | 0.500 | 8/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.750 |
-| 9e2b6d8a | 72.25–76 | true | false | 0.438 | 7/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.833 |
-| 4f5c1e2b | 76.01–80 | true | false | 0.563 | 9/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.917 |
-| 8a1d9c3e | 76.01–80 | true | false | 0.625 | 10/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.818 |
-| 2b8e5f7d | 80.01–84 | true | false | 0.563 | 9/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.889 |
-| 6d4a7c1f | 80.01–84 | true | false | 0.500 | 8/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.750 |
-| 1e9f3b6c | 84.01–88.55 | true | false | 0.688 | 11/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.800 |
-| 3c7a2d5b | 84.01–88.55 | true | false | 0.625 | 10/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.923 |
+**Results (controller-verified query output — `replay_harness_results r JOIN replay_harness_jobs j ON j.id = r.job_id WHERE j.notes LIKE 'Ramp step 2%'`).**
 
-**Distribution summary.** Presence-rate range 0.438–0.688; every doc lies inside the mined provisional band [0.4375, 0.6875] (ClearPath 0.75/0.81 remains the only above-band case, advisory only). Hard failures are **exactly one per doc**, uniformly `golden_shape:risk_assessment_by_activity` — the single systematic substance gap remaining, now confirmed distribution-wide. Side-by-side `shortfall_delta` runs −5 to −6 on scored rows (2 nulls where the archive row lacks comparable legacy report content — recorded doc ids `10b0e8c3`, `076d5045`). Grounded-note observe-mode would-replace rates 0.75–1.00 across all 10 — Build-Issues Issue-5 calibration evidence at distribution scale.
+| doc_id | overall_score | quintile | pass1_ok | write_around | presence_rate | present/16 | grounded would-replace | hard_failures | sb `shortfall_delta` |
+|---|---|---|---|---|---|---|---|---|---|
+| f2ab1c14-d948-46b4-930a-8d8a1253215c | 72.25 | 1 | true | false | 0.438 | 7 | 1.00 | `golden_shape:risk_assessment_by_activity` | −5 |
+| 7ed3c40a-70ea-4f92-acbe-c217ecdfbdcc | 70.85 | 1 | true | false | 0.438 | 7 | 0.92 | `golden_shape:risk_assessment_by_activity` | −5 |
+| 1b82fd92-e3e8-4901-91c1-eee1ec581438 | 77.15 | 2 | true | false | 0.438 | 7 | 1.00 | `golden_shape:risk_assessment_by_activity` | −5 |
+| be719775-4864-4805-bb5d-f071bdaa8acf | 81.45 | 2 | true | false | 0.438 | 7 | 1.00 | `golden_shape:risk_assessment_by_activity` | −5 |
+| bcdc8e54-34a0-413b-acc2-eaaae6fb1d7d | 82.8 | 3 | true | false | 0.688 | 11 | 0.83 | `golden_shape:risk_assessment_by_activity` | −5 |
+| b9ee1f3d-f100-4949-89b9-142fbbec458d | 84 | 3 | true | false | 0.625 | 10 | 0.90 | `golden_shape:risk_assessment_by_activity` | −5 |
+| 301b30fe-51e4-4b0f-8594-0629af4e804b | 88.55 | 4 | true | false | 0.625 | 10 | 0.82 | `golden_shape:risk_assessment_by_activity` | −5 |
+| 79871b7f-ec91-4dd0-99e9-8e34069eeb6d | 87.95 | 4 | true | false | 0.625 | 10 | 0.91 | `golden_shape:risk_assessment_by_activity` | −6 |
+| 10b0e8c3-1b8a-41ec-a64e-252f85408a7f | (unscored) | 5 | true | false | 0.438 | 7 | 1.00 | `golden_shape:risk_assessment_by_activity` | null (no comparable legacy content) |
+| 076d5045-aa2a-45c9-8b50-d5b17b139538 | (unscored) | 5 | true | false | 0.438 | 7 | 0.75 | `golden_shape:risk_assessment_by_activity` | null (no comparable legacy content) |
+
+**Distribution summary (corrected).** Presence 0.438–0.688 (median 0.438; **6 docs sit at the band minimum 0.4375** — noted for the eventual band recalibration: real intakes cluster at the low edge of the fixture-mined band). All 10 lie inside the provisional band [0.4375, 0.6875]. Hard failures are **exactly one per doc**, uniformly `golden_shape:risk_assessment_by_activity`. Side-by-side `shortfall_delta` = −5 on seven scored docs, −6 on one (`79871b7f`), null on the two unscored docs. Grounded-note observe-mode would-replace rates 0.75–1.00.
 
 **Ramp-1 attempt 7 confirmation (job `a197cbf2`, post-Item-262).** Label residue GONE: priority action renders "On ClearPath Credit Solutions, Inc.'s record…" instead of the `entity name` literal. Presence 0.75; single hard failure `golden_shape:risk_assessment_by_activity`; notes intact. Confirms the value/display seam fix is durable across a real Pass-1 run.
 
