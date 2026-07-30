@@ -139,7 +139,7 @@ function fillUserTemplate(input: DeriveInput): string {
 export function applySingleWriterInjection(
   parsed: Record<string, unknown>,
   input: DeriveInput,
-): { plan: RenderPlan; empty_by_finding: readonly string[]; factor_ref_drops: number } {
+): { plan: RenderPlan; empty_by_finding: readonly string[]; factor_ref_drops: number; weight_note_omissions: number } {
   const ledger = pickLedger(input.intake ?? {});
   const bindings = pickCitationBindings();
   const gate_outcomes = evaluateCppaRiskGates(input.intake ?? {});
