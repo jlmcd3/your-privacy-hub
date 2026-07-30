@@ -66,7 +66,9 @@ Deno.test("defect 8 — FIELD_ALIASES cover the canonical cppa-risk contract fie
   const expected: Record<string, string> = {
     q_sells_or_shares: "q5_sell_share",
     q_processes_sensitive_pi: "q15_sensitive_pi",
-    q_extensive_profiling: "q5b_profiling_observation",
+    // ITEM 272: alias direction inverted — q5b_profiling_observation is now
+    // the canonical gate field; q_extensive_profiling is the legacy alias.
+    q5b_profiling_observation: "q_extensive_profiling",
     q_trains_admt: "q18b_admt_training",
     q_admt_significant_decision: "q19_admt_description",
     pi_categories: "q4_pi_categories",
@@ -95,7 +97,7 @@ Deno.test("defect 8 — applicability gates fire against canonical contract fiel
   const byId = Object.fromEntries(outcomes.map((o) => [o.gate_id, o.outcome]));
   assertEquals(byId["G.applicability.selling_sharing"], "pass");
   assertEquals(byId["G.applicability.sensitive_pi"], "pass");
-  assertEquals(byId["G.applicability.extensive_profiling"], "pass");
+  assertEquals(byId["G.applicability.systematic_observation"], "pass");
   assertEquals(byId["G.applicability.train_admt"], "pass");
 });
 

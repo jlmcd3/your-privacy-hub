@@ -33,21 +33,22 @@ function planWithGateOutcomes(gates: RenderPlan["gate_outcomes"]): RenderPlan {
   };
 }
 
-Deno.test("241.1 (E1): scope_and_triggers emits five instances and engaged prongs LEAD", () => {
+Deno.test("241.1 (E1): scope_and_triggers emits six instances and engaged prongs LEAD", () => {
   const plan = derivePlan({
     intake: {
       q1_revenue: "Over $100M",
       q2_consumers: "1,000,000 or more",
       q18_admt_use: "yes",
-      // Engage extensive_profiling via the applicability gate.
-      q_extensive_profiling: "yes",
+      // ITEM 272 — engage § 7150(b)(4) systematic-observation via the
+      // real intake enum value (draft-era q_extensive_profiling retired).
+      q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants",
     },
     report_data: {},
     buildStamp: "item241-1@test",
   });
   const scope = composeSection("scope_and_triggers", plan)!
     .filter((i) => !i.template_id.startsWith("T.risk.section_opener."));
-  assertEquals(scope.length, 5, "must emit one instance per § 7150(b) prong");
+  assertEquals(scope.length, 6, "must emit one instance per § 7150(b) prong"); // ITEM 272: six prongs
   const engagedIndices: number[] = [];
   const notEngagedIndices: number[] = [];
   scope.forEach((i, idx) => {
@@ -77,7 +78,7 @@ Deno.test("241.1 (E1): scope shards emit in the shipped report (fill-or-omit no 
   });
   const out = assembleReport(plan);
   assert(Array.isArray(out.report.scope_and_triggers), "scope_and_triggers must ship as an array");
-  assert((out.report.scope_and_triggers as unknown[]).length >= 5, "scope_and_triggers must carry at least 5 items");
+  assert((out.report.scope_and_triggers as unknown[]).length >= 6, "scope_and_triggers must carry at least 6 items");
   assert(Array.isArray(out.report.scope_confirmation), "scope_confirmation must ship as an array");
 });
 

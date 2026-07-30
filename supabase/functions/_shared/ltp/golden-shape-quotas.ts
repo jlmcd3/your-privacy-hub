@@ -11,7 +11,7 @@
  * gap-driven action composer) tighten the shape; this module's contract
  * remains "measure and flag", never mutate.
  */
-export const GOLDEN_SHAPE_QUOTAS_VERSION = "golden-shape-quotas-cppa-risk-2026-07-30-item272";
+export const GOLDEN_SHAPE_QUOTAS_VERSION = "golden-shape-quotas-cppa-risk-2026-07-28-item241-1";
 
 export interface QuotaSpec {
   /** report_data key. */
