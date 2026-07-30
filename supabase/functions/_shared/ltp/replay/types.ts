@@ -136,4 +136,14 @@ export interface SubstanceGateConfig {
 
 export interface ReplayRunConfig {
   readonly substance?: SubstanceGateConfig;
+  /**
+   * ITEM 278 — when true the runner executes Pass-2R in OBSERVE mode after
+   * the deterministic document is assembled, and records per-doc 2R
+   * telemetry + prose. Default false: existing jobs and all current callers
+   * are byte-identical to pre-Item-278 behaviour.
+   */
+  readonly prose_pass?: boolean;
+  /** Test seam — injected Pass-2R transport. Never set in production. */
+  readonly pass2r_call?: Pass2rCallFn;
+
 }
