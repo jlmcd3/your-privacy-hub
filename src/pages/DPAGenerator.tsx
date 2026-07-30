@@ -158,25 +158,47 @@ export default function DPAGenerator() {
   };
 
   const handleGenerate = async () => {
+    if (!access.user) { setAuthGateOpen(true); return; }
     setPhase("generating");
+    // Create the row first — generate-dpa requires an existing dpa_documents
+    // row (assessment_id); raw intake in the body is reserved for the
+    // internal payments-webhook path and is rejected with 403.
+    const { data: row, error: insErr } = await supabase
+      .from("dpa_documents")
+      .insert({
+        user_id: access.user.id,
+        client_id: clientId ?? null,
+        status: "pending",
+        intake_data: buildInvokeBody(),
+        purchased_as_standalone: false,
+        is_subscriber_credit: true,
+        purchase_price_cents: 0,
+      })
+      .select("id")
+      .single();
+    if (insErr || !row) {
+      setResult(`Generation failed: ${insErr?.message || "Could not start generation. Please try again."}`);
+      setPhase("result");
+      return;
+    }
     const timeout = new Promise<never>((_, reject) =>
       window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
     );
     const response = await Promise.race([
-      supabase.functions.invoke("generate-dpa", { body: { ...buildInvokeBody(), user_id: access.user?.id, client_id: clientId ?? null } }),
-
+      supabase.functions.invoke("generate-dpa", { body: { assessment_id: row.id } }),
       timeout,
     ]).catch((error) => ({ data: null, error }));
-    const { data, error } = response;
-    if (error || !data?.id) {
-      const msg = (data as any)?.error || error?.message || "Generation failed. Please try again.";
+    const { error } = response as { data: unknown; error: { message?: string } | null };
+    if (error) {
+      const msg = error?.message || "Generation failed. Please try again.";
       setResult(`Generation failed: ${msg}`);
       setPhase("result");
       return;
     }
     void clearDraft();
-    navigate(`/dpa-generator/result/${data.id}`);
+    navigate(`/dpa-generator/result/${row.id}?purchased=true`);
   };
+
 
   const handlePurchase = async () => {
     const err = validateForm();
