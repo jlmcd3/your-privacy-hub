@@ -71,18 +71,25 @@ function intakeFromLedger(plan: RenderPlan): Record<string, unknown> {
 }
 
 function buildDefaultSubmissionSummary(plan: RenderPlan): string {
-  const schedule = renderCyberAuditSchedule();
+  // ITEM 273 FIX 2 — the § 7157/§ 7155 risk-assessment submission,
+  // retention, and review/update content leads; the pre-existing
+  // § 7121(a) cybersecurity-audit schedule follows under an explicit
+  // lead-in marking it a RELATED, SEPARATE obligation.
+  const head = renderSubmissionAndRetention();
+  const schedule = `${CYBER_AUDIT_SEPARATE_LEAD_IN}\n\n${renderCyberAuditSchedule()}`;
+  const base = `${head}\n\n${schedule}`;
   try {
     const intake = intakeFromLedger(plan);
     const outcomes = computeProngOutcomes(intake as Record<string, any>);
     const postures = renderAllProngPostures(outcomes);
-    if (postures.length === 0) return schedule;
-    return `${schedule}\n\nSubmission postures under 11 CCR § 7120(b):\n\n${postures.join("\n\n")}`;
+    if (postures.length === 0) return base;
+    return `${base}\n\nSubmission postures under 11 CCR § 7120(b):\n\n${postures.join("\n\n")}`;
   } catch {
     // Fail-open — never lose the schedule text on a posture crash.
-    return schedule;
+    return base;
   }
 }
+
 
 /**
  * CP5 (f) — SINGLE-WRITER coercion helper. Consolidates the CP3 shape
