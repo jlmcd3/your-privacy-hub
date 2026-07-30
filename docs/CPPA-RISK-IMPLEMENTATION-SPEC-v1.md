@@ -57,7 +57,7 @@ The document is FOUR parts, in order. The existing section registry is re-homed 
    *Registry mapping:* `opening_summary`, `executive_summary`, `assessment_summary`, `scope_and_triggers` / `scope_confirmation` (including the § 7156(a) secondary-segmentation item), `processing_narrative`.
 
 **PART 2 — REQUIRED ANALYSIS.** Reasoning **constrained to the issues the facts present**. Engaged triggers are analysed; **non-engaged triggers are dismissed in one clause** and never expanded into boilerplate recitation of inapplicable law. Benefits, negative impacts, safeguards, and the weighing discussion live here.
-   *Registry mapping:* `risk_assessment_by_activity`, `exception_analysis`, `record_sufficiency` (analytic portion).
+   *Registry mapping:* `risk_assessment_by_activity`, `record_sufficiency` (analytic portion). **(`exception_analysis` re-homed to Part 4 — see the §2R.2 AMENDMENT below, Item 287.)**
 
 **PART 3 — MISSING INFORMATION + NEXT STEPS.** What the record does not say, and the concrete steps that follow — including the § 7156(a) unresolved-comparison asks from Item 276. Every ask is actionable and names the specific missing item; "consult counsel" alone is not a next step.
    *Registry mapping:* `information_needed`, `strengthen_items`, `priority_actions`, `next_steps`, `submission_summary` (deadline/filing content).
