@@ -154,6 +154,7 @@ const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports")
 const AdminStaticStress = lazy(() => import("./pages/admin/AdminStaticStress"));
 const QualityLoop = lazy(() => import("./pages/admin/QualityLoop"));
 const QualityLoop2 = lazy(() => import("./pages/admin/QualityLoop2"));
+const AdminReplayReview = lazy(() => import("./pages/admin/AdminReplayReview"));
 const QualityLoop3 = lazy(() => import("./pages/admin/QualityLoop3"));
 const QualityBatch = lazy(() => import("./pages/admin/QualityBatch"));
 const QualityBatch2 = lazy(() => import("./pages/admin/QualityBatch2"));
