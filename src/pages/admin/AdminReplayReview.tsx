@@ -159,6 +159,7 @@ export default function AdminReplayReview() {
     let cancelled = false;
     (async () => {
       setRowsLoading(true);
+      setRowsError(null);
       const noteById = new Map(selectedJobs.map((j) => [j.id, jobLabel(j)]));
       const { data: res, error: rErr } = await supabase
         .from("replay_harness_results" as any)
@@ -167,6 +168,7 @@ export default function AdminReplayReview() {
         .order("created_at", { ascending: false });
       if (cancelled) return;
       if (rErr) {
+        setRowsError(rErr.message || "Unknown error");
         toast.error(`Could not load harness results: ${rErr.message}`);
         setRowsLoading(false);
         return;
