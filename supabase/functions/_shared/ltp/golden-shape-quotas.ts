@@ -11,7 +11,7 @@
  * gap-driven action composer) tighten the shape; this module's contract
  * remains "measure and flag", never mutate.
  */
-export const GOLDEN_SHAPE_QUOTAS_VERSION = "golden-shape-quotas-cppa-risk-2026-07-28-item241-1";
+export const GOLDEN_SHAPE_QUOTAS_VERSION = "golden-shape-quotas-cppa-risk-2026-07-30-item272";
 
 export interface QuotaSpec {
   /** report_data key. */
@@ -45,13 +45,15 @@ export const CPPA_RISK_GOLDEN_QUOTAS: readonly QuotaSpec[] = [
   {
     key: "scope_and_triggers",
     kind: "list",
-    min_items: 5,
+    // ITEM 272: quota counts § 7150(b) prongs; the OAL-approved text has SIX.
+    min_items: 6,
     target_note: "one instance per § 7150(b) prong; engaged prongs lead",
   },
   {
     key: "scope_confirmation",
     kind: "list",
-    min_items: 5,
+    // ITEM 272: quota counts § 7150(b) prongs; the OAL-approved text has SIX.
+    min_items: 6,
     target_note: "one instance per § 7150(b) prong; engaged prongs lead",
   },
   {
