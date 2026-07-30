@@ -63,7 +63,7 @@ const REAL_NOTES = [
 ] as const;
 
 Deno.test("item261 — version + stamp bumped", () => {
-  assertEquals(PASS1_GROUNDED_NOTE_VERSION, "pass1-grounded-note@2026-07-29-item261-observe-default");
+  assertEquals(PASS1_GROUNDED_NOTE_VERSION, "pass1-grounded-note@2026-07-30-item267-calibration");
   assertEquals(PASS1_LLM_STAMP, "ltp-pass1-llm-item261-grounded-observe@2026-07-29");
 });
 
@@ -72,15 +72,18 @@ Deno.test("item261 — DEFAULT is observe: notes byte-identical, no throw at rat
   const { plan: out, telemetry } = applyGroundedNoteScreen(plan);
   assertEquals(telemetry.mode, "observe");
   assertEquals(telemetry.candidates, REAL_NOTES.length);
-  assertEquals(telemetry.replacements, REAL_NOTES.length, "all four are would-replace");
-  assertEquals(telemetry.replacement_rate, 1);
+  // ITEM 267 calibration: "the setting supports fraud detection" now grounds
+  // (gemination + derivational feed-side expansion), so 3 of 4 are
+  // would-replace rather than 4 of 4. Observe-mode behaviour is unchanged.
+  assertEquals(telemetry.replacements, 3, "three of four are would-replace");
+  assertEquals(telemetry.replacement_rate, 0.75);
   assert(telemetry.replacement_rate > GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD);
   assertEquals(telemetry.over_threshold, true);
   for (let i = 0; i < REAL_NOTES.length; i++) {
     assertEquals(out.factor_table[i].weight_note, REAL_NOTES[i], "note must be byte-identical");
   }
   // details are still fully populated for calibration
-  assertEquals(telemetry.details.length, REAL_NOTES.length);
+  assertEquals(telemetry.details.length, 3);
   assert(telemetry.details.every((d) => d.ungrounded_tokens.length > 0));
   assert(telemetry.details.every((d) => d.original_note.length > 0 && d.replacement_note.length > 0));
 });
@@ -120,6 +123,6 @@ Deno.test("item261 — enforce mode still ABORTS above 0.5", () => {
     () => applyGroundedNoteScreen(plan, { mode: "enforce" }),
     GroundedNoteMassReplaceAbort,
   );
-  assertEquals((err as GroundedNoteMassReplaceAbort).replacement_rate, 1);
+  assertEquals((err as GroundedNoteMassReplaceAbort).replacement_rate, 0.75);
   assertEquals((err as GroundedNoteMassReplaceAbort).telemetry.mode, "enforce");
 });

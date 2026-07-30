@@ -1,19 +1,28 @@
 /**
- * ITEM 265 — GO-TO-MARKET MATERIALITY REGISTER (v1 DRAFT).
+ * ITEM 265 / ITEM 267 — GO-TO-MARKET MATERIALITY REGISTER (v1.1 RATIFIED).
  *
- * ACTIVE IN OBSERVE/TELEMETRY ONLY — register assignments require CEO
- * ratification before gating any release decision.
+ * RATIFIED by CEO delegation, 2026-07-30 (verbatim): "I agree to whatever
+ * the teams recommend on each issue - except for issue 8. Go forward with
+ * all other changes". The teams' recommendation on Build Issue 7 was that
+ * the draft v1 assignments stand as-is, including Item 266's
+ * section_duplication = non_material. This register is therefore no longer
+ * observe-only: its assignments are the ratified release policy.
  *
  * The frozen C/G quality instruments and the 7 deterministic checks are
  * NOT touched by this module. The register is a pure, versioned lookup
  * that classifies EXISTING harness telemetry defect classes as material
  * (blocks release) or non-material (ship + log).
  *
+ * FAIL-CLOSED RULE UNCHANGED: a defect class absent from this register is
+ * `unclassified` and forces "block".
+ *
  * Design record: docs/courier/ITEM265-GTM-GRADER-2026-07-30.md
+ * Ratification:  docs/courier/ITEM267-GTM-RATIFICATION-2026-07-30.md
  */
 
 export const GTM_MATERIALITY_REGISTER_VERSION =
-  "gtm-materiality-v1-2026-07-30-DRAFT";
+  "gtm-materiality-v1.1-2026-07-30-RATIFIED";
+
 
 export type Materiality = "material" | "non_material";
 export type DefectSource = "harness" | "deterministic_check" | "advisory";
@@ -116,7 +125,7 @@ export const GTM_MATERIALITY_REGISTER: readonly MaterialityEntry[] = [
     defect_class: "section_duplication",
     materiality: "non_material",
     rationale:
-      "ITEM 266 (DRAFT): verbatim repetition within a section is a prose/quality defect — it does not misstate law or alter the legal conclusion; loop2 dinged even 95+ documents for duplication classes. Ship + log.",
+      "ITEM 266 (RATIFIED by the 2026-07-30 CEO delegation): verbatim repetition within a section is a prose/quality defect — it does not misstate law or alter the legal conclusion; loop2 dinged even 95+ documents for duplication classes. Ship + log.",
     source: "harness",
   },
   {

@@ -42,7 +42,8 @@ import { CPPA_RISK_FACTORS } from "../factors/cppa-risk-factors.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 
 export const PASS1_GROUNDED_NOTE_VERSION =
-  "pass1-grounded-note@2026-07-29-item261-observe-default";
+  "pass1-grounded-note@2026-07-30-item267-calibration";
+
 
 /**
  * ITEM 261 — SPEC §6 GUARD-LIFECYCLE LAW. The screen now DEFAULTS to
@@ -186,7 +187,41 @@ export const CONNECTIVE_LEXICON: readonly string[] = [
   "purpose", "stated-purpose", "for-the-stated-purpose-of",
   // canonical field labels used as analytic terms
   "record", "records", "intake", "assessment",
+  // ── ITEM 267 PART 3(b) — EVIDENCE-MINED ADDITIONS (2026-07-30) ──
+  // Every token below was observed in the accumulated grounded-note
+  // telemetry (public.replay_harness_results → pass1_usage->grounded_note
+  // ->details[]->ungrounded_tokens) AND is ordinary function / analytic /
+  // record-descriptive English. Customer-specific nouns (vendor, product,
+  // sector terms) are DELIBERATELY EXCLUDED — those must ground via the
+  // intake ledger. Frequencies are recorded in
+  // docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md.
+  "type", "types", "service", "services", "support", "supports", "supported",
+  "via", "limited", "limits", "recipient", "recipients", "receive",
+  "receiving", "creating", "create", "commercial", "covering", "cover",
+  "field", "fields", "operation", "operations", "outside", "active",
+  "context", "enabling", "enable", "enables", "surface", "downstream",
+  "logical", "shared", "sold", "appeal", "cause", "direct", "include",
+  "including", "integrity", "percent", "request", "requests", "affect",
+  "among", "apply", "applied", "area", "bear", "bears", "bearing",
+  "conditioning", "conditioned", "conditions", "dependent", "detection",
+  "detect", "driving", "eliminating", "eliminate", "exposure", "finding",
+  "framing", "generating", "generate", "ongoing", "pathway", "pathways",
+  "profiling", "raising", "reducing", "reduces", "required", "residual",
+  "setting", "their", "though", "who", "across", "addresses", "address",
+  "analysis", "available", "average", "beyond", "completed", "consideration",
+  "correction", "degree", "deployment", "destruction", "determines",
+  "disclosed", "distress", "evidencing", "exceeding", "exceeds", "exception",
+  "expectations", "expected", "extends", "factor", "freely", "frustration",
+  "fully", "handle", "hold", "human", "indicating", "infers", "infrastructure",
+  "markets", "meets", "mitigate", "mitigating", "mitigants", "modification",
+  "negatively", "output", "outputs", "part", "parties", "persistent",
+  "potential", "prevention", "prior", "produce", "products", "prominent",
+  "question", "reflecting", "reflects", "relevance", "represent", "role",
+  "satisfy", "scrutiny", "self", "stigma", "stigmatizing", "systemic",
+  "third", "tied", "unlawful", "unreviewed", "used", "vendors", "warrants",
+  "ways", "window", "minimum", "necessary", "legal", "obligation",
 ];
+
 
 /** Registry vocabulary — display labels + fixed factor/gate/law shorthand. */
 const REGISTRY_VOCAB_TOKENS: readonly string[] = (() => {
@@ -256,6 +291,65 @@ function inflections(t: string): string[] {
   return [...set];
 }
 
+/**
+ * ITEM 267 PART 3(a) — NORMALIZATION EXTENSION (FEED SIDE ONLY).
+ *
+ * Conservative morphological expansion applied when a GROUNDED STEM is
+ * fed into the vocabulary (ledger / registry / connective lexicon). It
+ * NEVER relaxes the note side: a note token still has to land exactly on
+ * a member of the expanded set, so invented content tokens (vendor names
+ * absent from the intake, "blockchain" on a non-blockchain record) remain
+ * ungrounded. Evidence basis: the mined ungrounded-token register in
+ * docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md, where the bulk
+ * of "ungrounded" tokens were ordinary derivations of grounded stems
+ * ("setting" from "set", "detection" from "detect", "receiving" from
+ * "receive").
+ *
+ * Rules (closed set — any widening is a courier turn):
+ *   • consonant-gemination verb forms: set→setting/setted, ship→shipping/shipped
+ *     (single final consonant, not w/x/y, CVC shape, stem length ≥ 3);
+ *   • derivational suffixes off a grounded stem: -ion, -tion, -ation,
+ *     -ment, -ly, -er, -ers (plus their plurals via inflections()).
+ */
+function geminationForms(t: string): string[] {
+  const out: string[] = [];
+  if (t.length >= 3 && /[bcdfgklmnprstvz]$/.test(t) && /[aeiou][bcdfgklmnprstvz]$/.test(t) && !/[aeiou]{2}[bcdfgklmnprstvz]$/.test(t)) {
+    const dbl = t + t[t.length - 1];
+    out.push(dbl + "ing", dbl + "ed", dbl + "er", dbl + "ers");
+  }
+  return out;
+}
+
+const DERIVATIONAL_SUFFIXES = ["ion", "tion", "ation", "ment", "ly", "er", "ers"] as const;
+
+function derivations(t: string): string[] {
+  if (t.length < 3) return [];
+  const out: string[] = [];
+  for (const sfx of DERIVATIONAL_SUFFIXES) out.push(t + sfx);
+  // -e verbs: receive→reception is NOT derivable mechanically, but
+  // receive→receiver / detect→detection are. Drop a trailing "e" before
+  // the vowel-initial suffixes (create→creation, receive→receiver).
+  if (t.endsWith("e")) {
+    const stem = t.slice(0, -1);
+    out.push(stem + "ion", stem + "ation", stem + "er", stem + "ers", stem + "ing", stem + "ed");
+  }
+  return out;
+}
+
+/** Full FEED-side variant set for one grounded stem. */
+export function feedVariants(t: string): string[] {
+  const set = new Set<string>();
+  const base = inflections(t);
+  for (const b of base) set.add(b);
+  for (const g of geminationForms(t)) set.add(g);
+  for (const d of derivations(t)) {
+    set.add(d);
+    for (const dv of inflections(d)) set.add(dv);
+  }
+  return [...set];
+}
+
+
 // ────────────────────────────────────────────────────────────────────────
 // Grounded set builder
 // ────────────────────────────────────────────────────────────────────────
@@ -292,7 +386,7 @@ export function buildGroundedSet(ledger: readonly IntakeLedgerEntry[]): Grounded
     for (const raw of tokenize(text)) {
       if (!isContentToken(raw)) continue;
       if (/^\d/.test(raw)) continue;
-      for (const v of inflections(raw)) tokens.add(v);
+      for (const v of feedVariants(raw)) tokens.add(v);
     }
   };
   for (const t of CONNECTIVE_LEXICON) feed(t);
