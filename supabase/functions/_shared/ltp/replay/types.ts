@@ -7,6 +7,8 @@
  */
 import type { DeriveInput } from "../derive.ts";
 import type { Pass1Result } from "../pass1-llm.ts";
+import type { Pass2rCallFn } from "../pass2r-llm.ts";
+
 
 export const REPLAY_HARNESS_VERSION = "replay-harness-2026-07-29-item253-stageA";
 
