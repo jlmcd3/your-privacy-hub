@@ -282,18 +282,16 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     project: projectFactorTable,
     note: "Object allow-listed at serializer (10 keys + narrative). Firm summary forbidden when any activity rendered hedged.",
   },
-  {
-    key: "scope_confirmation",
-    owner: {
-      kind: "template",
-      template_ids: [
-        "T.risk.applicability.engaged",
-        "T.risk.applicability.not_engaged",
-      ],
-    },
-    project: projectPropositionsByType("R"),
-    note: "One rendering per § 7150(b) prong (Type R).",
-  },
+  // ITEM 290 — SINGLE-KEY SCOPE EMISSION. The `scope_confirmation` shard is
+  // RETIRED: it rendered the identical composeScope() output under a second
+  // key, and the GTM duplication detector correctly blocked the twin
+  // (section_cross_duplication:scope_confirmation=scope_and_triggers). Both
+  // renderers read `scope_and_triggers` FIRST
+  // (src/components/cppa/RiskAssessmentReportLTP.tsx:130,
+  //  supabase/functions/generate-report-pdf/index.ts:1249), so the surviving
+  // key is `scope_and_triggers`. The retired key is NOT emitted at all — no
+  // empty stub (fill-or-omit).
+
   {
     key: "scope_and_triggers",
     owner: {
