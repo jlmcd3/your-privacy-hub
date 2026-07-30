@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T07:55Z (Item 274 — viewer/PDF shape-contract divergence: LTP reports rendered blank on screen while PDFs rendered fully; shared `isLtpRiskShape` discriminator mirrored to the frontend, new LTP viewer, page-boundary adapter, permanent viewer/PDF parity test on a real assembled_report fixture; frontend-only, no deploy, no harness invocation.)
+**Last updated:** 2026-07-30T08:18Z (Item 275 — Redesign Step 1: primary-activity intake questions + § 7156(a) comparable-set fork, full left/right column wiring for every new field, six-prong regulatory-footprint realignment with the stale § 7122(a) cyber citation corrected to §§ 7120(b)/7121(a); frontend + intake contract only, no deploy, no harness invocation.)
 
 ---
 
@@ -6608,3 +6608,21 @@ Courier: `docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md`.
 **R6 RECORD.** The CEO's admin-page read caught a cutover-blocking defect every automated gate missed: golden-shape quotas, substance gates and the GTM register all measure the ASSEMBLED PAYLOAD, and the PDF exporter rendered it correctly — nothing measured the ON-SCREEN surface. Recorded law: a payload-side presence check is not evidence of a customer-visible render; each shipped surface needs its own presence gate.
 
 **Courier:** `docs/courier/ITEM274-VIEWER-SHAPE-PARITY-2026-07-30.md`.
+
+---
+
+## Item 275 — REDESIGN STEP 1: PRIMARY-ACTIVITY INTAKE + SIDE-COLUMN WIRING + FOOTPRINT PRONG FIX (2026-07-30T08:18Z)
+
+**Authority:** CEO campaign delegation; team-unanimous. Frontend + intake contract ONLY — no engine/composer change, no deploy, no harness invocation, legacy wire/snapshot/prompts untouched.
+
+**BUILD 1 — NEW QUESTIONS (top of Step 1, no renumbering).** `primary_activity_name` (text, required), `primary_activity_purpose` (text, required ≥10 chars), `has_secondary_uses` (radio, required; `"No — this data is used for this activity only"` / `"Yes — there are other uses"`), and on Yes a repeatable `secondary_activities` block (max 5) with name + one-line purpose + the five § 7156(a)(1)-derived divergence comparisons (data / purpose / systems / people / risks-and-safeguards; Same / Different / Not sure). Skip-tolerant: unanswered divergence = "Not sure"; unnamed row = `Additional use #N (not described)`. Only the three primary fields gate `stepValid` for Step 1. Reserved framing throughout — the tool never green-lights bundling.
+
+**BUILD 2 — COLUMN WIRING (CEO condition).** New verbatim rail entries `primary_activity` (§ 7150(a) + § 7155(a)(1); corpus rows cppa-7150 / cppa-7155) and `comparable_set` (§ 7156(a) definitional sentence + § 7156(a)(1) Business E excerpt; corpus row cppa-7156), 40-char pins in the courier. `STEP_DEFAULT_RAIL_KEY[1]` → `primary_activity`. Every new field wrapper carries `data-rail-key` + `onFocus={focusRail(...)}` so both the scroll spy (`useScrollActiveRail.ts:20-74`) and the focus spy drive the law column. `11 CCR § 7156(a)` registered in `useFscrCallouts` and rendered in the comparable-set block. DefPopover term `comparable_set` added.
+
+**BUILD 3 — FOOTPRINT PRONG FIX (six prongs).** Combined ADMT line split into `(b)(3)` significant decision (q18) and `(b)(6)` training (q18b); ADDED `(b)(4)` systematic-observation inference (work/education) and `(b)(5)` sensitive-location inference, both from q5b profiling; new `§ 7156(a)` reactive line when a secondary use diverges. CITATION VERIFICATION against corpus cppa-7120 / cppa-7121: audit thresholds live at § 7120(b) and timing at § 7121(a) — the stale user-visible "§ 7122(a)" line is CORRECTED to `11 CCR §§ 7120(b), 7121(a)`.
+
+**BUILD 4 — CONTRACT + FIXTURES.** Four fields appended to `_shared/intake-contracts/cppa-risk-assessment.ts` after `subject_anchor` (:195). `LEDGER_KEYS` derive from the contract field list (`_shared/ltp/derive.ts:55-80`, Item 258), so the keys are picked up with no second edit site. DELIBERATE spec-of-test updates to every fixture that flows through `validateIntake`: `_shared/golden/cppa-risk.ts`, `_shared/cppa-risk-contract-fixtures.ts` (3 scenarios), `src/lib/sampleFixtures.ts`.
+
+**VERIFICATION.** `tsgo` clean. Deno contract suite `34 passed | 0 failed`. Vitest `25 passed (25)` across `assistedInput`, `intakeRailParity`, `cppaRiskFixturesOptionDrift`. `lint-rail-entries` 1 failure, PRE-EXISTING and out of scope (`BiometricRailEntries.ts` R1 form-directive phrasing) — zero failures on the CPPA risk rail including both new entries. Browser render of Step 1 at 1400×1800 confirms a stable three-column bench, rail seeded to §§ 7150(a)/7155(a)(1), fork reveal rendering the secondary row + divergence matrix, and no new console errors.
+
+**Courier:** `docs/courier/ITEM275-PRIMARY-ACTIVITY-INTAKE-2026-07-30.md`.
