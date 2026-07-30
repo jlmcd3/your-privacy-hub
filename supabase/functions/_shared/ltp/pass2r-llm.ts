@@ -432,6 +432,9 @@ export interface ProsePassStageResult {
   readonly prose: Pass2rProseDocument | null;
   readonly telemetry: Pass2rTelemetry | null;
   readonly skipped_reason?: string;
+  /** ITEM 287 FIX 6 — rejected prose, observe-mode calibration only. */
+  readonly prose_rejected?: Pass2rProseDocument | null;
+  readonly attempt_rejections?: readonly Pass2rAttemptRejection[];
 }
 
 function skipped(
