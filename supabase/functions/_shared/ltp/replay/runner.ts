@@ -43,6 +43,14 @@ export async function runReplayDoc(
     const substance = evaluateSubstance(p1.plan, result, cfg.substance);
     const structure = summarizeStructure(result, doc);
 
+    // ITEM 278 — Pass-2R OBSERVE. Runs only when the job requests it, and
+    // only AFTER the deterministic document exists (§2R.1 order of
+    // operations). Its outcome cannot change `result.report`.
+    const pass2r = cfg.prose_pass === true
+      ? await observeProsePass(p1.plan, result.report as Record<string, unknown>, cfg)
+      : undefined;
+
+
     return {
       doc_id: doc.doc_id,
       provider_kind: providerKind,
