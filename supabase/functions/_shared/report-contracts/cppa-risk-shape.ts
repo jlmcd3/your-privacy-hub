@@ -49,7 +49,10 @@ export const CPPA_RISK_HEADER_MAP: Readonly<Record<string, string>> = {
   executive_summary: "What this assessment concludes",
   assessment_summary: "Why we reached this conclusion",
   scope_and_triggers: "What this assessment covers and what triggered it",
+  // ITEM 290 — header retained for LEGACY/pre-fix rows only; Track-2 emitters
+  // no longer produce `scope_confirmation` (single-key scope emission).
   scope_confirmation: "What this assessment covers and what triggered it",
+
   // ITEM 244 (L1) — Processing Narrative section, placed after
   // Scope & Triggers and before Risk Assessment by Activity.
   processing_narrative: "How the business processes personal information",
