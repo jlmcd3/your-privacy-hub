@@ -372,6 +372,8 @@ export function evaluateSubstance(
   const gs = goldenShapeHard(result.report);
   const lr = evaluateLabelResidue(result.report);
   const sd = evaluateSectionDuplication(result.report);
+  const op = evaluateOwnerSlotPii(result.report);
+  const ac = evaluateActivityCountContradiction(result.report);
   const failures = [
     ...(pr.failure ? [pr.failure] : []),
     ...ns.failures,
@@ -379,7 +381,10 @@ export function evaluateSubstance(
     ...gs.failures,
     ...lr.failures,
     ...sd.failures,
+    ...op.failures,
+    ...ac.failures,
   ];
+
   return {
     metrics: {
       presence_rate: pr.rate,
