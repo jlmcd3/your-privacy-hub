@@ -104,9 +104,14 @@ async function processDoc(
   doc: ArchivedDoc,
 ): Promise<DocProcessOutcome> {
   try {
+    // ITEM 269 FIX 1 — ERA NORMALIZER. Pre-realignment (five-stage-shaped)
+    // archive rows are normalized to the flat contract keys BEFORE Pass-1
+    // using the production mapping (`resolveIntakeForTestStates`) and the
+    // V1→V2 band resolvers. Fail-open; unmapped legacy keys pass through.
+    const era = normalizeEraIntake(doc.intake_data);
     const replayDoc: ReplayDoc = {
       doc_id: doc.id,
-      intake_data: doc.intake_data,
+      intake_data: era.intake,
       legacy_report: doc.report_data ?? undefined,
     };
     const p1 = await modelProvider({
@@ -114,6 +119,7 @@ async function processDoc(
       report_data: {},
       buildStamp: `${HARNESS_BUILD_STAMP}#${doc.id}`,
     }, { callerName: "replay-cppa-risk-harness" });
+
     const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });
     const substance = evaluateSubstance(
       p1.plan,
