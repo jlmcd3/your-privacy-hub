@@ -351,7 +351,7 @@ export function buildGroundedSet(ledger: readonly IntakeLedgerEntry[]): Grounded
     for (const raw of tokenize(text)) {
       if (!isContentToken(raw)) continue;
       if (/^\d/.test(raw)) continue;
-      for (const v of inflections(raw)) tokens.add(v);
+      for (const v of feedVariants(raw)) tokens.add(v);
     }
   };
   for (const t of CONNECTIVE_LEXICON) feed(t);
