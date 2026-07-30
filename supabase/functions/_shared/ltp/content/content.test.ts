@@ -77,6 +77,8 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.summary.activity_line",
     "T.risk.summary.aggregation_note",
     "T.risk.summary.docs",
+    // ITEM 284 (F2) — provisional-posture frame for incomplete records.
+    "T.risk.summary.provisional_posture",
     "T.risk.summary.opening.all_firm",
     "T.risk.summary.opening.any_negative",
     "T.risk.summary.opening.insufficient",
