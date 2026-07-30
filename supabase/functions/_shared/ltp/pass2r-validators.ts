@@ -176,6 +176,44 @@ const ENTITY_STOPWORDS = new Set(
   ).split(/\s+/),
 );
 
+/**
+ * ITEM 285 / F7(2) — OVER-EAGER EXTRACTION FIX.
+ *
+ * Corporate-form suffixes are structural components of a company name, never
+ * an independent proper name. "Cascade Data Ltd" carries ONE entity; "Ltd" on
+ * its own is not a second one. Enumerated and anchored (smoke-#4/#5 curation
+ * law): only these exact forms, with or without a trailing dot.
+ */
+export const CORPORATE_SUFFIXES: ReadonlySet<string> = new Set(
+  (
+    "Ltd Limited Inc Incorporated LLC LLP LP PLC Plc Corp Corporation Co Company " +
+    "GmbH AG SA SAS SARL SRL BV NV AB AS ApS Oy Pty PteMarker Pte KK KG OHG UG"
+  ).split(/\s+/).filter((s) => s !== "PteMarker"),
+);
+
+/**
+ * ITEM 285 / F7(2) — curated GENERIC INDUSTRY / CATEGORY terms. These are
+ * capitalized-by-convention category words, not proper names of an entity,
+ * product or vendor. The list is CLOSED and enumerated: no bare common word
+ * is added beyond this set and CORPORATE_SUFFIXES.
+ */
+export const GENERIC_CATEGORY_TERMS: ReadonlySet<string> = new Set(
+  (
+    "SaaS PaaS IaaS FinTech MarTech AdTech HealthTech InsurTech RegTech LegTech " +
+    "eCommerce ECommerce Ecommerce Internet Cloud Platform Marketplace Analytics " +
+    "Website Mobile Online Software Vendor Vendors Processor Processors Subprocessor Subprocessors"
+  ).split(/\s+/),
+);
+
+function stripSuffixDot(s: string): string {
+  return s.replace(/\.$/, "");
+}
+
+function isNonEntityToken(bare: string): boolean {
+  const bareNoDot = stripSuffixDot(bare);
+  return CORPORATE_SUFFIXES.has(bareNoDot) || GENERIC_CATEGORY_TERMS.has(bareNoDot);
+}
+
 /** Candidate proper nouns: capitalized runs that are not sentence-initial. */
 function properNounCandidates(text: string): string[] {
   const out: string[] = [];
@@ -193,12 +231,14 @@ function properNounCandidates(text: string): string[] {
       if (i === 0) continue; // sentence-initial capitalization is not evidence
       if (!/^[A-Z][A-Za-z0-9'&.\-]*$/.test(bare)) continue;
       if (ENTITY_STOPWORDS.has(bare)) continue;
+      if (isNonEntityToken(bare)) continue; // ITEM 285: suffix / generic category term
       if (/^[A-Z]{2,6}$/.test(bare)) continue; // acronyms handled by the register rule
       out.push(bare);
     }
   }
   return out;
 }
+
 
 // ---------------------------------------------------------------------
 // (1) CITATION WHITELIST
