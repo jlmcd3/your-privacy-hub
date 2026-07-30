@@ -6710,3 +6710,44 @@ Courier: `docs/courier/ITEM267-GROUNDED-CALIBRATION-2026-07-30.md`.
 **TESTS.** `src/test/cppaRiskViewerPdfParity.test.tsx` — **8 passed**, comprising the five Item-274 parity assertions (unchanged, green) and three new Item-279 assertions: unknown payload classifies as `unrecognized`; the viewer renders the error card with the report id, the support note, and non-blank body text, with `console.error` called carrying `{shape: "unrecognized", recognized: false}`; recognized shapes still classify as `ltp` / `v3`. `src/lib/__tests__/intakeRailParity.test.ts` — **4 passed**. `npm run lint:rails` — **1 failure**, the pre-existing `BiometricRailEntries.ts · types` R1 directive-phrasing failure, which remains the only tolerated failure; the CPPA risk rail set is clean.
 
 **Courier:** `docs/courier/ITEM279-BUILD-ISSUES-REVIEW-2026-07-30.md` (four-lens record per disposition, both builds, the verbatim coaching text for both entries, verbatim test output).
+
+---
+
+## ITEM 280 — SPEC-TEMPLATE DISPATCH STOPPED (RECORD ONLY)
+
+The SPEC-TEMPLATE dispatch of 2026-07-30 was **STOPPED by the CEO mid-execution**. Verified at HEAD `7e772532` that no `docs/specs/SPEC-TEMPLATE-v2.md` exists — no artifact landed. The **Product Rebuild Plan v1.0 supersedes it**. No code, deploy, DB write, or harness invocation resulted from that dispatch.
+
+---
+
+## ITEM 281 — PASS-2R CLOCK-BUDGET FIX + STEP 0a/0b RECORD (2026-07-30)
+
+**Authority:** CEO fleet-rebuild directive 2026-07-30; four-lens UNANIMOUS; content delegation per Plan §0.3 law 15. **Turn class:** clock-budget fix + ledger record, ONE VARIABLE ONLY. No prompt change, no validator change, no schema change. **Scope observed:** `supabase/functions/_shared/ltp/pass2r-llm.ts`, `supabase/functions/_shared/ltp/item278-pass2r.test.ts`, this ledger, and `docs/courier/ITEM281-PASS2R-CLOCK-FIX-2026-07-30.md`. `run-cppa-risk-assessment`, every legacy function, and all DPA files are absent from the diff.
+
+**(a) STEP 0a BATCH 1.** Job `343e35d0-2600-41cc-9b0a-4fde13c9afe5`, options `{"prose_pass": true}`, 10 Acceptance-40 doc ids. Outcome: **1 doc processed**; Pass-2R `stage_budget_exhausted`. Evidence on doc `0754dbc8-5976-4b5b-9b4f-af929176ce9e`: `anthropic_attempt_abort: ltp-pass2r-prose aborted after 90002ms (limit 90000ms)` ×2, terminal `pass2r_stage_budget_exhausted`, `validator_outcomes: []`, `shipped_surface: "deterministic"` — the fallback law held and observe mode held. The isolate is presumed dead mid-doc-2. **Remaining docs NOT re-queued pending this fix.** The job pattern for all future Step-0a batches is **SINGLE-DOC PARALLEL JOBS** (the proven Item-271 rerun pattern).
+
+**(b) STEP 0b GENERATOR-NAME RESOLUTIONS.** Source: `function_runs` telemetry + `supabase/config.toml`; file-level re-confirmation rides each wave's S0.
+
+| Product | Generator | Evidence |
+| --- | --- | --- |
+| cppa-cyber | `run-cppa-cybersecurity` | 338 runs |
+| cppa-admt | `run-admt-checker` | config.toml, 366 runs |
+| registration | `run-registration-assessment` | config.toml, 275 runs |
+| biometric | `check-biometric-compliance` | 3 runs, `source_table` `biometric_assessments`, streaming archetype — predates the `run-*` convention |
+| dpia | `run-dpia-framework` | 414 runs |
+| lia | `run-li-assessment` | 392 runs |
+| ir-playbook | `generate-ir-playbook` | 461 runs |
+| governance | `run-governance-assessment` | 377 runs |
+
+**(c) HARNESS GENERALIZATION DECISION (four-lens UNANIMOUS).** Generalize `replay-cppa-risk-harness` with a **`product` job parameter** rather than per-product clones. Every gate/geometry lookup keys off the job's product and **FAILS CLOSED on unknown products**. A per-product fork happens only if the generalization turn proves riskier than expected.
+
+**(d) THE FIX.** In `supabase/functions/_shared/ltp/pass2r-llm.ts`: `PASS2R_PER_ATTEMPT_TIMEOUT_MS` **90_000 → 170_000** (`pass2r-llm.ts:53`) and `PASS2R_STAGE_CEILING_MS` **180_000 → 360_000** (`pass2r-llm.ts:54`). `PASS2R_MAX_ATTEMPTS` (3) and `PASS2R_MAX_TOKENS` (6_000) unchanged. `PASS2R_MANIFEST` echoes both by reference, so the ping surface's declared-vs-actual assertion now reports 170000 / 360000. The stale pin at `item278-pass2r.test.ts:84–85` was updated in the same turn: **11 passed | 0 failed**. Tolerated-failure inventory unchanged (3 stale-pin failures from the Item 273/278 inventory + the `BiometricRailEntries.ts` R1 rail-lint failure). Grep confirms no live 2R-stage constant remains at 90000/180000 — the only surviving hits are `POST_RETRY_RESERVE_MS` (Pass-1 post-lint reserve, unrelated) and the historical note in this turn's own comment.
+
+**DEPLOY.** `replay-cppa-risk-harness` ONLY (it inlines the shared module). No other deploy. **No harness invocation this turn** — the controller runs replay jobs.
+
+**FOUR-LENS RECORD FOR THIS FIX (unanimous).**
+- **LEGAL.** No customer surface; observe-mode only; the fallback is absolute; no representation change.
+- **CS.** Clock budgets remain bounded (2 × 170s = 340s < the 360s ceiling); single-doc jobs bound isolate exposure; fail-closed env gates untouched.
+- **PROMPT.** No prompt variable moves; the experiment variable is the clock budget alone — the one-variable law is preserved for the calibration A/B.
+- **PROSE.** No register consequence until prose exists; this fix is what lets prose exist.
+
+**Courier:** `docs/courier/ITEM281-PASS2R-CLOCK-FIX-2026-07-30.md`.
