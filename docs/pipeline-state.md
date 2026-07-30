@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T17:50Z (Item 285 — 2R ENTITY-WHITELIST BUILDER FIX executing Item 283 N2/F7: both failure modes closed — under-inclusive harvest (ledger raw values + weight_notes + optional bound ctx) and over-eager extraction (enumerated CORPORATE_SUFFIXES + GENERIC_CATEGORY_TERMS, plus constituent-token matching for multi-word names). Validator stays OBSERVE-defaulted; §2R.7 bar unchanged. 5 new tests pass, 36/0 across the 2R suites, full suite 511 passed / 21 pre-existing failures. Deployed `replay-cppa-risk-harness` only; no harness invocation. 10-doc re-run released to the controller.)
+**Last updated:** 2026-07-30T18:10Z (Item 286 — STEP-0a BATCH 2 RESULTS: 4 results / 6 isolate-dead; GTM 2 release / 2 release_with_logged_defects / 0 block; first Pass-2R prose success: doc `2391b49a`; Item-284 F1/F2 empirically confirmed on doc `278d0608`; Item-285 entity FPs collapsed from ~5/doc to residual edge classes. Residual validator classes queued for Item 287: numeric range constituent normalization, acronym derived forms, role-title constituent tokens, verdict_consistency prose-in-hand adjudication, exception_analysis:part_4 re-homing map, and processing_narrative/RABA/opening_summary structure discipline. No code, no deploy, no harness invocation, no DB write.)
 
 ---
 
@@ -6856,3 +6856,35 @@ The SPEC-TEMPLATE dispatch of 2026-07-30 was **STOPPED by the CEO mid-execution*
 **DIFF DISCIPLINE VERIFIED.** Only `pass2r-validators.ts`, the new `item285-entity-whitelist.test.ts`, this ledger and the courier. Inside `pass2r-validators.ts` the citation, numeric/date, verdict-consistency, section-structure, atomic-token and no-self-contradiction validators and their whitelist inputs are byte-unchanged.
 
 **Disposition:** LANDED. **10-doc re-run batch released to the controller.**
+
+---
+
+## Item 286 — STEP-0a BATCH 2 RESULTS (2026-07-30T18:10Z)
+
+**Authority:** Controller dispatch 2026-07-30. RECORD ONLY — no `.ts` change, no deploy, no harness invocation, no DB write. Full record: `docs/courier/ITEM286-BATCH2-RESULTS-2026-07-30.md`.
+
+**BATCH DESIGN.** Jobs noted "Step 0a — Pass-2R calibration batch 2 (post-Item-284/285 build)", 10 single-document jobs.
+
+**OUTCOME DISTRIBUTION.** 4 results returned; 6 isolate-dead (3-attempt × ~170s paths exceed isolate lifetime — recurring structural constraint). Remedy candidates for four-lens next session: lower `PASS2R_MAX_ATTEMPTS` for replay jobs, or per-attempt budget tiering.
+
+**GTM.** 2 release / 2 release_with_logged_defects / 0 block.
+
+**FIRST PASS-2R PROSE SUCCESS.** Doc `2391b49a` — all seven validators passed; prose persisted. First candidate for the CEO side-by-side read.
+
+**ITEM-284 FIX CONFIRMED (EMPIRICAL).** Doc `278d0608` re-ran internally consistent: executive summary and assessment summary both state insufficiency; `provisional_posture` template rendered as designed; reserved framing intact. The F1/F2 verdict-contradiction seam is closed.
+
+**ITEM-285 WHITELIST FIX CONFIRMED.** Entity false positives collapsed from ~5 per document to residual edge classes.
+
+**RESIDUAL VALIDATOR CLASSES (next fix turn — Item 287).**
+
+- (a) **Numeric range constituents.** `"249,999"` rejected though plan carries `"100,000–249,999"` (en-dash range normalization needed).
+- (b) **Acronym derived forms.** `"ADMT's"` / `"ADMT-related"` rejected — possessive/hyphenated escape from carried acronym.
+- (c) **Constituent tokens of carried role titles.** `"Protection"` rejected as a standalone token of a longer role title.
+- (d) **`verdict_consistency` ["Low","Moderate"].** Needs prose-in-hand adjudication; rejected prose is still not persisted — `PERSIST-REJECTED-PROSE` is a four-lens candidate for observe-mode calibration.
+- (e) **`exception_analysis:part_4`.** Fired on every reject across both batches — likely a §2R.2 re-homing-map question, not a model defect: Part 4 ("how the result could change") naturally hosts exception analysis. Map amendment to be put to the four lenses next session.
+- (f) **Structure discipline watch.** Doc `278d0608` also homed `processing_narrative` / RABA / `opening_summary` in `part_4` — confirm section-to-part map; add structure validator if needed.
+
+**DOUBLE-CHECK VERIFIED.** Diff contains only the courier and this ledger.
+
+**Disposition:** RECORDED. Residual classes released to Item 287 for four-lens review and fix-turn scoping.
+
