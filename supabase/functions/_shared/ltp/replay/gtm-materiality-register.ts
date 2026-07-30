@@ -156,7 +156,11 @@ export function lookupMateriality(
 ): MaterialityEntry | null {
   let best: MaterialityEntry | null = null;
   for (const e of GTM_MATERIALITY_REGISTER) {
-    if (defect === e.defect_class || defect.startsWith(`${e.defect_class}:`)) {
+    if (
+      defect === e.defect_class ||
+      defect.startsWith(`${e.defect_class}:`) ||
+      defect.startsWith(`${e.defect_class}_`)
+    ) {
       if (!best || e.defect_class.length > best.defect_class.length) best = e;
     }
   }

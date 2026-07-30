@@ -16,6 +16,7 @@
  * NO customer-facing surface. Results rows live in service-role-locked
  * public.replay_harness_results.
  */
+import { evaluateGtm } from "../_shared/ltp/replay/gtm-grader.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
@@ -375,7 +376,11 @@ Deno.serve(async (req) => {
         const ins = await sb.from("replay_harness_results").insert({
           job_id: job.id,
           doc_id: String(docId),
-          per_doc_result: outcome.perDoc,
+          per_doc_result: {
+            ...outcome.perDoc,
+            // ITEM 265 — GTM releasability verdict (observe/telemetry only).
+            gtm: evaluateGtm(outcome.perDoc),
+          },
           side_by_side: outcome.sideBySide,
           pass1_usage: outcome.pass1Usage,
           assembled_report: outcome.assembledReport,
