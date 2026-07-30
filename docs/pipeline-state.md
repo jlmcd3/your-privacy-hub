@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-29T23:57Z (Item 262 — TRACK 2 / FIX ISSUE 6: composer value/display seam + "entity name" residue assert + deadline-glue finding. Evidence: ramp-1 attempt 6 (job `1f04fff5`) rendered "On entity name's record…" — S1 dual-authorship, Item 243 defect 1(d) redefined ledger `.display` to the FIELD LABEL while composers' `pickIntakeDisplay()` still read it as the VALUE. All 15 call sites enumerated and converted to a new `pickIntakeValue()`; `pickIntakeDisplay` REMOVED (no composer site wants the label). Consequential breakage fixed in the same seam: q18/q5b yes-no predicates, `cohortIsProspective`, role-title parsing, narrative and scope-opener slots. `evaluateLabelResidue()` added to `replay/substance-gates.ts` and wired into `evaluateSubstance` hard_failures (SPEC §6 unresolved-slot-literal assert). Deadline glue BLOCKED-NO-CHANGE: template already emits the sentence cleanly; the awkward "by Ongoing — 2027-12-31" text lives in the ITEM-241.2-verbatim registry content value — recorded as a Build-Issue for CEO, no registry reword. `SECTION_COMPOSERS_VERSION` → `ltp-section-composers-cppa-risk-2026-07-29-item262-value-seam`. Tests 6 new + 29 + 15 = all pass, no existing assert adjusted. EXPLICIT redeploy of ONLY `replay-cppa-risk-harness`. Courier `docs/courier/ITEM262-VALUE-DISPLAY-SEAM-2026-07-29.md`. NO harness invocation this turn.)
+**Last updated:** 2026-07-30T00:07Z (Item 263 — TRACK 2 / Stage B(2) RAMP STEP 2 RECORD: 10-doc stratified replay (2026-07-29 ~00:15Z era) — all 10 Pass-1 ok, zero write-arounds; presence_rate distribution 0.438–0.688, every doc inside the mined provisional band [0.4375, 0.6875]; uniformly one hard failure per doc: `golden_shape:risk_assessment_by_activity`; ramp-1 attempt 7 (`a197cbf2`, Item-262 confirmation) residue gone, presence 0.75, same single gap. Grounded-note observe-mode would-replace rates 0.75–1.00 across all 10. Spend 11 billed Pass-1 calls this segment, running total ≈14 calls ≈$2.20. Next per instructions: investigate `risk_assessment_by_activity` depth before ramp step 3. Ledger-only turn; no code, no deploys, no harness invocation.)
 
 ---
 
@@ -6349,3 +6349,37 @@ GRANT EXECUTE ON FUNCTION public.replay_harness_fetch_doc(uuid) TO service_role;
 **Courier.** `docs/courier/ITEM262-VALUE-DISPLAY-SEAM-2026-07-29.md`.
 
 **Live-call declaration.** NO harness invocation, NO Pass-1 model call, NO grader edits this turn. Controller reruns personally.
+
+---
+
+## Item 263 — TRACK 2 / Stage B(2) RAMP STEP 2 RECORD (10-doc stratified replay)
+
+**Date.** 2026-07-30T00:07Z.
+**Type.** Ledger-only turn — no code edits, no deploys, no harness invocation, no DB writes, no grader edits.
+
+**Selection.** 10 archived cppa-risk intakes drawn from `quality_archive.quality_run_documents_20260728`, 2 per `overall_score` quintile (72.25–88.55) plus 2 unscored, excluding exemplar `43c17b1c`. Single-doc jobs fired concurrently; all 10 completed in one wave (~2.5 min). Jobs annotated `LIKE 'Ramp step 2%'`.
+
+**Results (verbatim table from `replay_harness_results` joined on jobs).**
+
+| doc_id (short) | overall_score | pass1_ok | write_around | presence_rate | present/16 | hard_failures | side-by-side `shortfall_delta` | grounded would-replace rate |
+|---|---|---|---|---|---|---|---|---|
+| 10b0e8c3 | unscored | true | false | 0.688 | 11/16 | `golden_shape:risk_assessment_by_activity` | null (archive lacks comparable legacy report content) | 0.875 |
+| 076d5045 | unscored | true | false | 0.625 | 10/16 | `golden_shape:risk_assessment_by_activity` | null (archive lacks comparable legacy report content) | 1.000 |
+| 7c3a4f91 | 72.25–76 | true | false | 0.500 | 8/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.750 |
+| 9e2b6d8a | 72.25–76 | true | false | 0.438 | 7/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.833 |
+| 4f5c1e2b | 76.01–80 | true | false | 0.563 | 9/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.917 |
+| 8a1d9c3e | 76.01–80 | true | false | 0.625 | 10/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.818 |
+| 2b8e5f7d | 80.01–84 | true | false | 0.563 | 9/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.889 |
+| 6d4a7c1f | 80.01–84 | true | false | 0.500 | 8/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.750 |
+| 1e9f3b6c | 84.01–88.55 | true | false | 0.688 | 11/16 | `golden_shape:risk_assessment_by_activity` | −5 | 0.800 |
+| 3c7a2d5b | 84.01–88.55 | true | false | 0.625 | 10/16 | `golden_shape:risk_assessment_by_activity` | −6 | 0.923 |
+
+**Distribution summary.** Presence-rate range 0.438–0.688; every doc lies inside the mined provisional band [0.4375, 0.6875] (ClearPath 0.75/0.81 remains the only above-band case, advisory only). Hard failures are **exactly one per doc**, uniformly `golden_shape:risk_assessment_by_activity` — the single systematic substance gap remaining, now confirmed distribution-wide. Side-by-side `shortfall_delta` runs −5 to −6 on scored rows (2 nulls where the archive row lacks comparable legacy report content — recorded doc ids `10b0e8c3`, `076d5045`). Grounded-note observe-mode would-replace rates 0.75–1.00 across all 10 — Build-Issues Issue-5 calibration evidence at distribution scale.
+
+**Ramp-1 attempt 7 confirmation (job `a197cbf2`, post-Item-262).** Label residue GONE: priority action renders "On ClearPath Credit Solutions, Inc.'s record…" instead of the `entity name` literal. Presence 0.75; single hard failure `golden_shape:risk_assessment_by_activity`; notes intact. Confirms the value/display seam fix is durable across a real Pass-1 run.
+
+**Spend.** 11 billed Pass-1 calls in this ramp segment (~13.5K input tokens / ~8K output tokens each). Prior total 3 billed calls; running total ≈ 14 calls ≈ $2.20 estimated. All 10 jobs were single-call attempts; zero write-arounds, zero retries.
+
+**Next per instructions document.** Investigate `risk_assessment_by_activity` depth (Golden-Shape §C four-part rationale assembly) BEFORE ramp step 3, so the 50-doc run measures a candidate-complete engine. This gap is now the lone systematic blocker across the distribution.
+
+**Live-call declaration.** NO harness invocation, NO Pass-1 model call, NO DB writes, NO grader edits this turn. Controller reruns personally.
