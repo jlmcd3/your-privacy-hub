@@ -187,6 +187,19 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 280,
   },
+  // ITEM 284 (F2) — PROVISIONAL POSTURE. Emitted whenever the shared
+  // completeness predicate reports the record incomplete. States what the
+  // record AS DOCUMENTED supports, expressly conditioned on the missing
+  // elements, and never issues a firm favorable (or firm adverse) verdict.
+  // Reserved framing binds: completion stays with the customer and counsel.
+  "T.risk.summary.provisional_posture": {
+    id: "T.risk.summary.provisional_posture",
+    text: "On the record as documented, {{plan:provisional_support_clause}}. This statement is provisional and expressly conditioned on {{plan:outstanding_elements_clause}}, assessed against {{cite:PINPOINT_7152A}}; completing those elements, and any determination reserved to qualified legal counsel, remains with the customer and counsel.",
+    citation_slots: ["PINPOINT_7152A"],
+    plan_slots: ["provisional_support_clause", "outstanding_elements_clause"],
+    intake_slots: [],
+    max_chars: 900,
+  },
   // Insufficient-record opening variant added by CONTENT COURIER 2026-07-26
   // (HELD-F release). Pairs with the existing outcome_clause
   // "assessment incomplete — see Items for your review" for activity lines,
