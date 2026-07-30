@@ -70,6 +70,7 @@ Deno.test("item267 — feedVariants is feed-side only and closed", () => {
   const v = feedVariants("set");
   assert(v.includes("setting"));
   assert(v.includes("setter"));
+  assert(feedVariants("detect").includes("detection"));
   assert(!v.includes("blockchain"));
   // note-side tokenization is untouched
   assertEquals(tokenize("Fraud detection, applied."), ["fraud", "detection", "applied"]);
