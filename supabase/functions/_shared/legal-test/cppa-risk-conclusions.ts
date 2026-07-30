@@ -141,7 +141,11 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     display_label: "Processing sensitive personal information",
     description:
       "A risk assessment is required when the business processes the personal information of consumers "
-      + "and that processing involves sensitive personal information (excluding the § 7027 employment-benefits carve-out).",
+      + "and that processing involves sensitive personal information; § 7150(b)(2)(A) carves out sensitive "
+      + "personal information of employees or independent contractors processed solely and specifically to "
+      + "administer compensation payments, determine and store employment authorization, administer employment "
+      + "benefits, provide legally required reasonable accommodation, or perform legally required wage reporting, "
+      + "and any other processing of consumers' sensitive personal information remains subject to this Article.",
     rule_gate: "G.applicability.sensitive_pi",
     compliance_guidance:
       "The business must complete and retain a risk assessment for every processing activity that involves sensitive personal information, naming the sensitive-PI categories processed, the consumer population affected, and the operational purpose that justifies processing sensitive data rather than non-sensitive alternatives.",
