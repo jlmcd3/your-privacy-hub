@@ -214,8 +214,151 @@ export function evaluateSectionDuplication(report: Record<string, unknown>): {
       }
     }
   }
+  failures.push(...evaluateCrossSectionDuplication(report).failures);
   return { failures };
 }
+
+/**
+ * ITEM 273 FIX 4 — CROSS-SECTION DUPLICATION (GTM class
+ * `section_cross_duplication`, MATERIAL). A passage of ≥200 characters
+ * that appears byte-identical (after whitespace normalisation) in TWO
+ * DIFFERENT top-level sections is a composition failure — evidence: the
+ * balance paragraph duplicated between the executive summary and the
+ * assessment summary in the CEO read.
+ */
+export const CROSS_SECTION_DUP_MIN_CHARS = 200;
+
+export function evaluateCrossSectionDuplication(
+  report: Record<string, unknown>,
+): { failures: readonly string[] } {
+  const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+  const seen = new Map<string, string>();
+  const failures: string[] = [];
+  const consider = (key: string, raw: string) => {
+    const s = norm(raw);
+    if (s.length < CROSS_SECTION_DUP_MIN_CHARS) return;
+    const prev = seen.get(s);
+    if (prev === undefined) {
+      seen.set(s, key);
+    } else if (prev !== key) {
+      const id = `section_cross_duplication:${prev}=${key}`;
+      if (!failures.includes(id)) failures.push(id);
+    }
+  };
+  for (const [key, val] of Object.entries(report ?? {})) {
+    if (typeof val === "string") consider(key, val);
+    else if (Array.isArray(val)) {
+      for (const v of val) if (typeof v === "string") consider(key, v);
+    }
+  }
+  return { failures };
+}
+
+/**
+ * ITEM 273 FIX 1(e) — OWNER-SLOT PII DETECTOR (GTM class
+ * `pii_owner_name`, MATERIAL). Scans the text that follows an "Owner:"
+ * label in priority_actions for (i) parenthesised capitalized bigrams
+ * and (ii) closed-list narrative verbs — the two shapes in which
+ * personnel names and narrative leaked into Owner slots (CEO-read
+ * finding 3).
+ *
+ * HONEST LIMITS: heuristic, not a name recogniser. A single-token
+ * surname, a name with no capitalisation, or a name in a role-shaped
+ * segment ("Officer Trent") will not trip it; a legitimate two-word
+ * capitalized proper title inside parentheses would false-positive. It
+ * catches the observed defect shapes, nothing more.
+ */
+export const OWNER_SLOT_NARRATIVE_TOKENS: readonly string[] = [
+  "is", "are", "has", "have", "been", "was", "remains", "vacant",
+  "following", "assigned", "departure", "since",
+];
+
+export function evaluateOwnerSlotPii(report: Record<string, unknown>): {
+  matches: readonly string[];
+  failures: readonly string[];
+} {
+  const actions = (report ?? {})["priority_actions"];
+  const texts: string[] = [];
+  const collect = (v: unknown) => {
+    if (typeof v === "string") texts.push(v);
+    else if (Array.isArray(v)) v.forEach(collect);
+    else if (v && typeof v === "object") Object.values(v as Record<string, unknown>).forEach(collect);
+  };
+  collect(actions);
+
+  const matches: string[] = [];
+  const push = (m: string) => {
+    if (!matches.includes(m)) matches.push(m);
+  };
+  const narrativeRe = new RegExp(
+    `\\b(?:${OWNER_SLOT_NARRATIVE_TOKENS.join("|")})\\b`,
+    "i",
+  );
+
+  for (const t of texts) {
+    const re = /Owner:\s*([^\n]*)/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(t)) !== null) {
+      const slot = m[1];
+      const paren = /\(([^)]*)\)/g;
+      let p: RegExpExecArray | null;
+      while ((p = paren.exec(slot)) !== null) {
+        if (/\b[A-Z][a-z]+\s+[A-Z][a-z]+\b/.test(p[1])) push(`paren_name:${p[1].trim()}`);
+      }
+      if (narrativeRe.test(slot)) push(`narrative:${slot.trim().slice(0, 80)}`);
+    }
+  }
+  return { matches, failures: matches.map((m) => `pii_owner_name:${m}`) };
+}
+
+/**
+ * ITEM 273 FIX 4 — ACTIVITY-COUNT CONTRADICTION (GTM class
+ * `activity_count_contradiction`, MATERIAL). The executive summary
+ * states an activity count in prose; the scope section enumerates the
+ * engaged § 7150(b) prongs. PDF4 in the CEO read said "3" while scope
+ * showed 4 engaged. Mismatch → hard failure.
+ */
+const NUMBER_WORDS: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+};
+
+export function evaluateActivityCountContradiction(
+  report: Record<string, unknown>,
+): { failures: readonly string[]; stated?: number; engaged?: number } {
+  const flatten = (v: unknown, acc: string[]): string[] => {
+    if (typeof v === "string") acc.push(v);
+    else if (Array.isArray(v)) v.forEach((x) => flatten(x, acc));
+    else if (v && typeof v === "object") {
+      Object.values(v as Record<string, unknown>).forEach((x) => flatten(x, acc));
+    }
+    return acc;
+  };
+  const execText = flatten((report ?? {})["executive_summary"], []).join(" ");
+  const scopeText = flatten((report ?? {})["scope"], []).join(" ");
+  if (!execText || !scopeText) return { failures: [] };
+
+  const m = execText.match(
+    /\b(one|two|three|four|five|six|\d+)\s+(?:processing\s+)?activit(?:y|ies)\b/i,
+  );
+  if (!m) return { failures: [] };
+  const token = m[1].toLowerCase();
+  const stated = NUMBER_WORDS[token] ?? Number(token);
+  if (!Number.isFinite(stated)) return { failures: [] };
+
+  const prongs = new Set<string>();
+  for (const p of scopeText.matchAll(/7150\(b\)\((\d)\)/g)) prongs.add(p[1]);
+  const engaged = prongs.size;
+  if (engaged === 0) return { failures: [], stated };
+
+  return stated === engaged
+    ? { failures: [], stated, engaged }
+    : {
+      failures: [`activity_count_contradiction:exec=${stated}:scope=${engaged}`],
+      stated,
+      engaged,
+    };
+}
+
 
 /** Aggregate evaluator used by the runner. */
 export function evaluateSubstance(
