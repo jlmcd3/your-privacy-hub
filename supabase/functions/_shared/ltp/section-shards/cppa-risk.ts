@@ -613,7 +613,7 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   // Body sections — conditional on non-empty template render.
   executive_summary: "conditional",
   assessment_summary: "conditional",
-  scope_confirmation: "conditional",
+  // ITEM 290 — `scope_confirmation` RETIRED (single-key scope emission).
   scope_and_triggers: "conditional",
   processing_narrative: "conditional",
   risk_assessment_by_activity: "conditional",
