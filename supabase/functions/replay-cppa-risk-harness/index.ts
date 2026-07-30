@@ -179,7 +179,17 @@ async function processDoc(
       write_around: p1.telemetry.write_around,
       validator_issues: p1.telemetry.validator_issues,
       grounded_note: p1.telemetry.grounded_note ?? null,
+      // ITEM 269 FIX 1 transparency record.
+      intake_era_normalization: {
+        applied: era.telemetry.applied,
+        mapped_keys: era.telemetry.mapped_keys,
+        mapped_key_names: era.telemetry.mapped_key_names,
+        unmapped_legacy_keys: era.telemetry.unmapped_legacy_keys,
+        band_labels_resolved: era.telemetry.band_labels_resolved,
+        version: era.telemetry.version,
+      },
       note: "token_usage_not_surfaced_by_runPass1Llm_2026-07-29",
+
     };
 
     return {
