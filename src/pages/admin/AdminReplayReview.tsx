@@ -51,7 +51,7 @@ export function sortJobsNewestFirst(jobs: HarnessJob[]): HarnessJob[] {
 export function batchLabels(jobs: HarnessJob[]): string[] {
   const out: string[] = [];
   for (const j of sortJobsNewestFirst(jobs)) {
-    const label = String(j.notes ?? "").trim() || "(no label)";
+    const label = jobLabel(j);
     if (!out.includes(label)) out.push(label);
   }
   return out;
