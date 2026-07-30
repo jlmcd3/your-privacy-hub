@@ -482,14 +482,18 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
 
 
 function composeAssessmentSummary(plan: RenderPlan): TemplateInstance[] {
+  // ITEM 284 (F1/F2) — same predicate the exec summary and the RABA consume.
   if (insufficientRecord(plan)) {
-    return [{
+    const out: TemplateInstance[] = [{
       template_id: "T.risk.summary.docs",
       ctx: {
         docs_completion_clause: "has outstanding documentation items — see Items for your review; the record does not yet complete",
         __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
       },
     }];
+    const provisional = provisionalPostureInstance(plan);
+    if (provisional) out.push(provisional);
+    return out;
   }
   return [
     balanceInstance(plan),
