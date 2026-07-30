@@ -21,7 +21,54 @@ import type { RailEntry } from "@/components/intake/StatuteRail";
 const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 
 export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
+  // ITEM 275 — primary-activity identification. Verbatim § 7150(a) and
+  // § 7155(a)(1) (corpus rows cppa-7150, cppa-7155).
+  primary_activity: {
+    fieldLabel: "What should we call the processing activity you're assessing today?",
+    citation: "11 CCR §§ 7150(a), 7155(a)(1)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "A risk assessment is conducted for a processing activity, and it must be conducted and documented before that processing begins.",
+    regulationText:
+      "§ 7150(a) — \u201CEvery business whose processing of consumers\u2019 personal information presents significant risk to consumers\u2019 privacy as set forth in subsection (b) must conduct a risk assessment before initiating that processing.\u201D\n\n§ 7155(a)(1) — \u201CA business must conduct and document a risk assessment in accordance with the requirements of this Article before initiating any processing activity identified in section 7150, subsection (b).\u201D",
+    relatedCitations: [
+      { citation: "11 CCR § 7156(a)", label: "Comparable set of processing activities" },
+      { citation: "11 CCR § 7155(a)(3)", label: "Update on material change (45 days)" },
+    ],
+    coachLead: "Name one activity, and say what it does with the information.",
+    coachBody:
+      "The name fixes the subject of the record; the one-sentence description states the operation performed on personal information. Timing is part of the standard: the assessment belongs before the processing starts.",
+    goodAnswer:
+      "\u201CIn-store birthday mailing\u201D \u2014 \u201CWe use names, addresses, and birthdays collected on paper forms to mail a coupon during each child\u2019s birth month.\u201D The name is the activity; the sentence is the operation.",
+    commonMistake:
+      "Describing the business benefit (\u201Cimproves retention\u201D) instead of the processing. The record needs the operation performed on personal information.",
+  },
+
+  // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
+  // including the Business E example excerpt.
+  comparable_set: {
+    fieldLabel: "Does the same data serve any other distinct purpose, product, or audience?",
+    citation: "11 CCR § 7156(a)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "One risk assessment can cover several processing activities only where they are similar and present similar risks to consumers\u2019 privacy. Whether your uses meet that standard is reserved to you and your counsel.",
+    regulationText:
+      "\u201CA business may conduct a single risk assessment for a comparable set of processing activities. A \u2018comparable set of processing activities\u2019 that can be addressed by a single risk assessment is a set of similar processing activities that present similar risks to consumers\u2019 privacy.\u201D\n\n\u00A7 7156(a)(1) example (excerpt) \u2014 \u201CBusiness E may use a single risk assessment for processing the personal information for the birthday mailing and November mailing across all stores because in each case it is collecting the same personal information in the same way for the purpose of sending coupons and age-appropriate toy lists to children, and this processing presents similar risks to consumers\u2019 privacy.\u201D",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)", label: "Activities presenting significant risk" },
+      { citation: "11 CCR § 7156(b)", label: "Using an assessment prepared for another purpose" },
+    ],
+    coachLead: "Compare each other use against this one on all five dimensions.",
+    coachBody:
+      "The standard is similarity of the activities and similarity of the privacy risks. Answer each comparison from what your records show; where you do not know, \u201CNot sure\u201D is the accurate answer and is recorded as such.",
+    goodAnswer:
+      "A fictional retailer compares its birthday mailing with its November mailing: same information, same collection method, same purpose, same consumers, same risks \u2014 the comparison is documented dimension by dimension rather than asserted in one line.",
+    commonMistake:
+      "Treating uses as comparable because one team runs both, or because the data set is the same. Shared data does not make risks similar; the comparison is about the activities and their privacy risks.",
+  },
+
   subject_anchor: {
+
     fieldLabel: "In one line — what processing does this assessment cover?",
     citation: "11 CCR § 7150(b)",
     citationUrl: CPPA_URL,
