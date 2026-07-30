@@ -309,6 +309,14 @@ export async function runPass2r(
       const validation = runPass2rValidators(doc, wl, { mode });
       lastValidation = validation;
       if (!validation.ok) {
+        // ITEM 287 FIX 6 — keep the rejected prose and this attempt's
+        // rejection set for observe-mode calibration.
+        lastRejectedDoc = doc;
+        attemptRejections.push({
+          attempt,
+          validators: validation.outcomes.filter((o) => !o.passed).map((o) => o.validator),
+          codes: validation.rejections.map((r) => r.code),
+        });
         details.push({
           attempt,
           elapsed_ms: Date.now() - attemptT0,
