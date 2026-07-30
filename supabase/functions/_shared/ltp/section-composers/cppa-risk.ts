@@ -541,7 +541,7 @@ const OWNER_NARRATIVE_RE = new RegExp(
 export function stripParentheticals(segment: string): string {
   let out = segment.replace(/\([^)]*\)/g, " ");
   out = out.replace(/\([^)]*$/, " ");
-  out = out.replace(/^[^(]*\)/, (m) => (segment.includes("(") ? m : " "));
+  out = out.replace(/^[^()]*\)/, " ");
   return out.replace(/\s{2,}/g, " ").trim();
 }
 
