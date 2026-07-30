@@ -23,6 +23,8 @@ import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
 import { MINED_PRESENCE_BAND, defaultSubstanceGateConfig }
   from "../_shared/ltp/replay/presence-band.ts";
 import { modelProvider } from "../_shared/ltp/replay/providers.ts";
+import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
+
 import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
 import { evaluateSubstance } from "../_shared/ltp/replay/substance-gates.ts";
 import { compareDoc } from "../_shared/ltp/replay/side-by-side.ts";
