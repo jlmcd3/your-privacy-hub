@@ -41,7 +41,7 @@ export async function runReplayDoc(
       { exitMode: "observe" },
     );
     const substance = evaluateSubstance(p1.plan, result, cfg.substance);
-    const structure = summarizeStructure(result);
+    const structure = summarizeStructure(result, doc);
 
     return {
       doc_id: doc.doc_id,
@@ -76,13 +76,29 @@ export async function runReplayDoc(
         action_kind_diversity_ok: false,
         golden_shape: { review_flag: true, shortfall_keys: [] },
       },
-      structure: { sections_emitted: 0, sections_omitted_by_class: {} },
+      structure: {
+        sections_emitted: 0,
+        sections_omitted_by_class: {},
+        primary_activity_named: false,
+        secondary_uses_reported: 0,
+      },
       hard_failures: [`harness_error:${msg}`],
     };
   }
 }
 
-function summarizeStructure(result: AssemblerResult): PerDocResult["structure"] {
+function summarizeStructure(
+  result: AssemblerResult,
+  doc?: ReplayDoc,
+): PerDocResult["structure"] {
+  // Item 276 — primary-activity observation, read straight off the intake.
+  const intake = (doc?.intake_data ?? {}) as Record<string, unknown>;
+  const primaryName = typeof intake.primary_activity_name === "string"
+    ? intake.primary_activity_name.trim()
+    : "";
+  const secondary = Array.isArray(intake.secondary_activities)
+    ? (intake.secondary_activities as unknown[]).length
+    : 0;
   const sections: readonly SectionTelemetry[] =
     (result.telemetry as unknown as { sections?: readonly SectionTelemetry[] }).sections ??
     [];
@@ -97,6 +113,8 @@ function summarizeStructure(result: AssemblerResult): PerDocResult["structure"] 
   return {
     sections_emitted: emitted || result.telemetry.emitted_sections,
     sections_omitted_by_class: omittedByClass,
+    primary_activity_named: primaryName.length > 0,
+    secondary_uses_reported: secondary,
   };
 }
 

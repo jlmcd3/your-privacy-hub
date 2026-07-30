@@ -26,7 +26,7 @@ import {
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
 
-export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item272-engaged-lead";
+export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item276-primary-subject";
 
 /**
  * BATCH 55b9f3a2 ADDENDUM (e) — ADMT-INAPPLICABILITY EXPLANATION.
@@ -198,21 +198,114 @@ function aggregateBalance(plan: RenderPlan): BalanceMode {
 }
 
 
+
+// ── ITEM 276 — PRIMARY-ACTIVITY SUBJECT HELPERS ──────────────────────────
+//
+// REDESIGN STEP 2: the subject of the assessment is the customer-named
+// PRIMARY ACTIVITY (Item-275 intake fields), not the list of engaged
+// § 7150(b) prongs. MANDATORY DEGRADATION LAW: when `primary_activity_name`
+// is absent from the ledger (every pre-Item-275 document), every composer
+// below falls through to its prior prong-derived behaviour byte-for-byte.
+
+/** § 7156(a) comparable-set dimensions, keyed as the Item-275 intake emits them. */
+const DIVERGENCE_DIMENSION_LABELS: Readonly<Record<string, string>> = {
+  data: "the personal information used",
+  purpose: "the purpose of the processing",
+  systems: "the systems, technology, and service providers used",
+  people: "the consumers whose information is processed",
+  risks: "the risks to consumers' privacy and the safeguards applied",
+};
+
+const SECONDARY_ANCHOR_7156A = "11 CCR § 7156(a)";
+
+interface SecondaryActivityRow {
+  readonly name: string;
+  readonly purpose: string;
+  readonly divergence: Readonly<Record<string, string>>;
+}
+
+function primaryActivityName(plan: RenderPlan): string {
+  return pickIntakeValue(plan, "primary_activity_name");
+}
+
+function primaryActivityPurpose(plan: RenderPlan): string {
+  return pickIntakeValue(plan, "primary_activity_purpose");
+}
+
+/**
+ * `secondary_activities` reaches the ledger as a JSON string (pickLedger
+ * stringifies non-scalars). Parse defensively; any malformed payload
+ * degrades to an empty set rather than throwing.
+ */
+function secondaryActivityRows(plan: RenderPlan): SecondaryActivityRow[] {
+  const raw = pickIntakeValue(plan, "secondary_activities");
+  if (!raw) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  const out: SecondaryActivityRow[] = [];
+  for (const r of parsed) {
+    if (!r || typeof r !== "object") continue;
+    const rec = r as Record<string, unknown>;
+    const name = typeof rec.name === "string" ? rec.name.trim() : "";
+    if (!name) continue;
+    const purpose = typeof rec.purpose === "string" ? rec.purpose.trim() : "";
+    const divergence: Record<string, string> = {};
+    const d = rec.divergence;
+    if (d && typeof d === "object") {
+      for (const [k, v] of Object.entries(d as Record<string, unknown>)) {
+        if (typeof v === "string" && v.trim()) divergence[k] = v.trim();
+      }
+    }
+    out.push({ name, purpose, divergence });
+  }
+  return out;
+}
+
+/** Dimensions answered "Not sure" across all secondary rows (deduplicated, registry order). */
+function unresolvedDivergenceDimensions(rows: readonly SecondaryActivityRow[]): string[] {
+  const keys = Object.keys(DIVERGENCE_DIMENSION_LABELS);
+  return keys.filter((k) => rows.some((r) => r.divergence[k] === "Not sure"));
+}
+
+
 // ── Composers ────────────────────────────────────────────────────────────
 
 function composeExecutive(plan: RenderPlan): TemplateInstance[] {
-  const n = activityCount(plan);
+  // ITEM 276 — when the customer named the assessed activity, the subject
+  // of the executive summary is THAT activity (exactly one), and a lead
+  // instance names it before any weighing language. Legacy records with no
+  // `primary_activity_name` keep the prong-count subject verbatim.
+  const primaryName = primaryActivityName(plan);
+  const lead: TemplateInstance[] = primaryName
+    ? [{
+        template_id: "T.risk.exec.primary_subject_lead",
+        ctx: {
+          primary_activity_name: primaryName,
+          primary_activity_purpose_clause:
+            primaryActivityPurpose(plan) || "a purpose not stated on the record",
+        },
+      }]
+    : [];
+  const n = primaryName ? 1 : activityCount(plan);
   const each = n === 1 ? SUMMARY_EACH_OR_THIS_CLAUSES[0] : SUMMARY_EACH_OR_THIS_CLAUSES[1];
   const singplural = n === 1 ? SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[0] : SUMMARY_ACTIVITY_SINGPLURAL_CLAUSES[1];
   const acp = pluralActivityPhrase(n);
   const engagedLabels = engagedApplicability(plan).map(propLabel);
   const mode = aggregateBalance(plan);
   if (mode === "insufficient" || engagedLabels.length === 0) {
-    return [{ template_id: "T.risk.exec.insufficient", ctx: { activity_singplural_clause: singplural } }];
+    return [
+      ...lead,
+      { template_id: "T.risk.exec.insufficient", ctx: { activity_singplural_clause: singplural } },
+    ];
   }
-  const engagedList = joinList(engagedLabels);
+  const engagedList = primaryName || joinList(engagedLabels);
   if (mode === "negative") {
-    return [{
+    return [...lead, {
       template_id: "T.risk.exec.negative",
       ctx: {
         activity_count_phrase: acp,
@@ -227,7 +320,7 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
       .sort((a, b) => (b.closeness_contribution ?? 0) - (a.closeness_contribution ?? 0))
       .slice(0, 3)
       .map((f) => f.anchor_hint || f.pinpoint);
-    return [{
+    return [...lead, {
       template_id: "T.risk.exec.hedged",
       ctx: {
         activity_count_phrase: acp,
@@ -237,7 +330,7 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
       },
     }];
   }
-  return [{
+  return [...lead, {
     template_id: "T.risk.exec.firm",
     ctx: { activity_count_phrase: acp, each_or_this_clause: each },
   }];
@@ -445,10 +538,14 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   // ENUMERATED into the existing ratified conclusion carrier's
   // activity_label slot via the existing joinList mechanics — no new
   // sentence frame. Single-activity behaviour is unchanged from Item 264.
+  // ITEM 276 — the rationale carrier's subject is the named primary
+  // activity when the record supplies one; otherwise the engaged-prong
+  // enumeration retained from Item 266.
+  const primaryName = primaryActivityName(plan);
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
     if (!insufficientRecord(plan)) {
-      const parts = rationaleParts();
+      const parts = rationaleParts(primaryName || undefined);
       return [
         { template_id: parts[parts.length - 1].template_id, ctx: parts[parts.length - 1].ctx, parts },
         liaLine,
@@ -456,7 +553,7 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
     }
     return [];
   }
-  const parts = rationaleParts(joinList(engaged.map(propLabel)));
+  const parts = rationaleParts(primaryName || joinList(engaged.map(propLabel)));
   const carrier = parts[parts.length - 1];
   return [
     { template_id: carrier.template_id, ctx: carrier.ctx, parts },
@@ -999,8 +1096,24 @@ function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
     if (typeof v === "string") return v.trim().length > 0;
     return true;
   };
+  // ITEM 276 — unresolved § 7156(a) comparable-set answers ("Not sure")
+  // become an explicit customer ask. No rows / no "Not sure" → no ask.
+  const secondaryRows = secondaryActivityRows(plan);
+  const unresolvedDims = unresolvedDivergenceDimensions(secondaryRows);
+  const comparableSetAsk: TemplateInstance[] = unresolvedDims.length > 0
+    ? [{
+        template_id: "T.risk.documentation.gap",
+        ctx: {
+          doc_element_label:
+            "a completed comparison between the assessed activity and the additional uses recorded on the record",
+          customer_question:
+            `Please confirm, for each additional use, whether ${joinList(unresolvedDims.map((k) => DIVERGENCE_DIMENSION_LABELS[k]))} ${unresolvedDims.length === 1 ? "is" : "are"} the same as the assessed activity or different, so the comparable-set question can be resolved.`,
+          __cite: { PINPOINT: SECONDARY_ANCHOR_7156A },
+        },
+      }]
+    : [];
   const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
-  return jProps.flatMap<TemplateInstance>((p) => {
+  return [...comparableSetAsk, ...jProps.flatMap<TemplateInstance>((p) => {
     const spec = CPPA_RISK_CONCLUSIONS.find((c) => c.id === p.conclusion_id);
     const fields = spec?.resolution_source_fields ?? [];
     if (fields.length > 0 && fields.every(isPopulated)) {
@@ -1017,7 +1130,7 @@ function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
         __cite: { PINPOINT: anchor.pinpoint },
       },
     }];
-  });
+  })];
 }
 
 function composeExceptionAnalysis(plan: RenderPlan): TemplateInstance[] {
@@ -1037,6 +1150,50 @@ function composeExceptionAnalysis(plan: RenderPlan): TemplateInstance[] {
         },
       };
     });
+}
+
+
+/**
+ * ITEM 276 — § 7156(a) SECONDARY-USE SEGMENTATION ITEM.
+ *
+ * Emits ONE scope item when the customer reported additional uses of the
+ * same data. Reserved framing only: the tool never green-lights bundling —
+ * it states the comparable-set standard, reproduces the customer's own
+ * comparison, and reserves the determination to the Company and counsel.
+ * Absent secondary rows the function emits nothing (degradation law).
+ */
+function secondarySegmentationInstances(plan: RenderPlan): TemplateInstance[] {
+  const rows = secondaryActivityRows(plan);
+  if (rows.length === 0) return [];
+  const countPhrase = rows.length === 1
+    ? "one additional use of the same personal information"
+    : `${rows.length} additional uses of the same personal information`;
+  const list = joinList(
+    rows.map((r) => (r.purpose ? `${r.name} (${r.purpose})` : r.name)),
+  );
+  const clauses = rows.map((r) => {
+    const parts = Object.keys(DIVERGENCE_DIMENSION_LABELS).map((k) => {
+      const label = DIVERGENCE_DIMENSION_LABELS[k];
+      const answer = r.divergence[k] || "Not sure";
+      const verdict = answer === "Same"
+        ? "recorded as the same as the assessed activity"
+        : answer === "Different"
+          ? "recorded as different from the assessed activity"
+          : "not resolved on the record";
+      return `${label} — ${verdict}`;
+    });
+    return `for ${r.name}: ${parts.join("; ")}`;
+  });
+  return [{
+    template_id: "T.risk.scope.secondary_segmentation",
+    ctx: {
+      entity_name: entityName(plan),
+      secondary_activity_count_phrase: countPhrase,
+      secondary_activity_list: list,
+      secondary_divergence_clause: `${clauses.join(". ")}.`,
+      __cite: { PINPOINT_7156A: SECONDARY_ANCHOR_7156A },
+    },
+  }];
 }
 
 /**
@@ -1108,7 +1265,7 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
         __cite: { PINPOINT: e.c.anchor.pinpoint },
       },
     }));
-    return [...openers, ...items];
+    return [...openers, ...items, ...secondarySegmentationInstances(plan)];
   }
 
   // No engaged prongs: fall through to previous customer-first opener + items.
@@ -1131,7 +1288,7 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       __cite: { PINPOINT: e.c.anchor.pinpoint },
     },
   }));
-  return [opener, ...items];
+  return [opener, ...items, ...secondarySegmentationInstances(plan)];
 }
 
 // ── ITEM 244 (L1) — Processing Narrative composer ───────────────────────
@@ -1140,8 +1297,10 @@ function composeProcessingNarrative(plan: RenderPlan): TemplateInstance[] {
   // Correction 1: silent sub-elements resolve to "not stated on the record".
   const nsotr = "not stated on the record";
   const pick = (field: string) => pickIntakeValue(plan, field) || nsotr;
+  // ITEM 276 — narrative subject is the named primary activity when present.
+  const primaryName = primaryActivityName(plan);
   const engaged = engagedApplicability(plan);
-  const activityLabel = engaged.length > 0
+  const activityLabel = primaryName ? primaryName : engaged.length > 0
     ? engaged.map(propLabel).filter(Boolean).join(", ")
     : (pickIntakeValue(plan, "i1_processing_purpose") || "the processing activity in scope");
   return [{

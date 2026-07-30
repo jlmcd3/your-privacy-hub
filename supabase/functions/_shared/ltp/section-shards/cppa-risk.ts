@@ -260,6 +260,8 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
         "T.risk.exec.hedged",
         "T.risk.exec.negative",
         "T.risk.exec.insufficient",
+        // ITEM 276 — primary-activity subject lead (Item-275 fields only).
+        "T.risk.exec.primary_subject_lead",
       ],
     },
     project: projectFactorTable,
@@ -299,6 +301,8 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
       template_ids: [
         "T.risk.applicability.engaged",
         "T.risk.applicability.not_engaged",
+        // ITEM 276 — § 7156(a) comparable-set segmentation item.
+        "T.risk.scope.secondary_segmentation",
       ],
     },
     project: projectPropositionsByType("R"),

@@ -54,6 +54,14 @@ export interface SubstanceMetrics {
 export interface StructureMetrics {
   readonly sections_emitted: number;
   readonly sections_omitted_by_class: Readonly<Record<string, number>>;
+  /**
+   * Item 276 — observation only. True when the doc's intake carries a
+   * non-empty `primary_activity_name` (Item-275 contract); false for
+   * every legacy document, which is how the degradation path is counted.
+   */
+  readonly primary_activity_named?: boolean;
+  /** Item 276 — count of § 7156(a) secondary uses reported on the intake. */
+  readonly secondary_uses_reported?: number;
 }
 
 export interface PerDocResult {
