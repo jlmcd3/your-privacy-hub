@@ -451,11 +451,15 @@ Deno.serve(async (req) => {
             sideBySide: null,
             pass1Usage: { error: loaded.error },
             assembledReport: null,
+            plan: null,
           };
         } else {
-          outcome = await processDoc(loaded, prosePass);
+          outcome = await processDoc(loaded);
         }
 
+        // ITEM 287 FIX 5 — PERSIST-FIRST. The deterministic result row is
+        // written BEFORE Pass-2R runs, so isolate death inside a 3-attempt
+        // 2R path costs only the 2R telemetry, never the document.
         const ins = await sb.from("replay_harness_results").insert({
           job_id: job.id,
           doc_id: String(docId),
@@ -467,7 +471,7 @@ Deno.serve(async (req) => {
           side_by_side: outcome.sideBySide,
           pass1_usage: outcome.pass1Usage,
           assembled_report: outcome.assembledReport,
-        });
+        }).select("id").maybeSingle();
         if (ins.error) {
           // Fail-loud: record the row-insert failure in the summary but keep going.
           summary.push({
@@ -480,6 +484,26 @@ Deno.serve(async (req) => {
             doc_id: docId,
             hard_failure_count: outcome.perDoc.hard_failures.length,
           });
+        }
+
+        // ITEM 287 FIX 5 — PASS-2R phase, then UPDATE the persisted row.
+        const rowId = (ins.data as { id?: string } | null)?.id ?? null;
+        if (prosePass && outcome.plan && outcome.assembledReport) {
+          const pass2r = await runProseObserve(outcome.plan, outcome.assembledReport);
+          if (rowId) {
+            const upd = await sb.from("replay_harness_results")
+              .update({
+                per_doc_result: {
+                  ...outcome.perDoc,
+                  pass2r,
+                  gtm: evaluateGtm(outcome.perDoc),
+                },
+              })
+              .eq("id", rowId);
+            if (upd.error) {
+              summary.push({ doc_id: docId, pass2r_update_error: upd.error.message });
+            }
+          }
         }
       }
 
