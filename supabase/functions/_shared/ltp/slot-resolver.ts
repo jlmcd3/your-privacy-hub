@@ -201,6 +201,9 @@ export function resolveSlot(
     case "outcome_clause":              return ctx.outcome_clause ?? "";
     case "key_factor_token":            return ctx.key_factor_token ?? "";
     case "docs_completion_clause":      return ctx.docs_completion_clause ?? "";
+    // ── ITEM 284 (F2) — provisional posture ──
+    case "provisional_support_clause":  return ctx.provisional_support_clause ?? "";
+    case "outstanding_elements_clause": return ctx.outstanding_elements_clause ?? "";
     case "activity_singplural_clause":  return ctx.activity_singplural_clause ?? "";
     // ── ITEM 235 (T-M9.5) per-instance slot passthroughs ──
     case "action_label":                return ctx.action_label ?? "";
