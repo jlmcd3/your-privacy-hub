@@ -284,32 +284,20 @@ export default function AdminReplayReview() {
             </span>
           </div>
 
-          <div className="mb-6 overflow-x-auto border rounded-lg">
-            <table className="w-full text-xs">
-              <thead className="bg-muted/50 text-left">
-                <tr>
-                  <th className="p-2">Created</th>
-                  <th className="p-2">Batch label</th>
-                  <th className="p-2">Status</th>
-                  <th className="p-2">Docs</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortJobsNewestFirst(jobs).map((j) => (
-                  <tr
-                    key={j.id}
-                    className={`border-t cursor-pointer hover:bg-muted/40 ${jobLabel(j) === label ? "bg-muted/60" : ""}`}
-                    onClick={() => setLabel(jobLabel(j))}
-                  >
-                    <td className="p-2 whitespace-nowrap font-mono">{fmt(j.created_at)}</td>
-                    <td className="p-2">{jobLabel(j)}</td>
-                    <td className="p-2">{j.status ?? "—"}</td>
-                    <td className="p-2">{j.doc_ids?.length ?? 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {rowsError && (
+            <div
+              role="alert"
+              data-testid="results-error"
+              className="mb-4 border border-destructive/40 bg-destructive/10 text-destructive rounded-lg p-3 text-sm"
+            >
+              <strong>Could not load harness results.</strong> {rowsError}
+              <div className="mt-1 text-xs opacity-80">
+                If this persists, the backend may be temporarily unavailable (platform incident) — retry shortly.
+              </div>
+            </div>
+          )}
+
+
 
           <div className="mb-4 text-sm">
             <strong>{rows.length}</strong> documents ·{" "}
