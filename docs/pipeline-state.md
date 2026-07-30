@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T01:19Z (Item 266 — ACTIVITY-RATIONALE DE-DUPLICATION: ramp-1 attempt 8 shipped four byte-identical 5,506-char `risk_assessment_by_activity` items because the Item-264 rationale is composed from plan-GLOBAL artifacts only. `composeRiskByActivity` now emits ONE consolidated rationale with the engaged activities enumerated via existing `joinList` mechanics; new deterministic `evaluateSectionDuplication` gate emits `section_duplication:<key>:<i>=<j>`; GTM DRAFT register classifies it non_material. Build-Issues note opened on per-activity factor attribution (Pass-1 schema question, not wired). Tests 6/6 + regression 73/73 green; `replay-cppa-risk-harness` redeployed; NO harness invocation.)
+**Last updated:** 2026-07-30T01:14Z (Item 266 — ACTIVITY-RATIONALE DE-DUPLICATION: ramp-1 attempt 8 shipped four byte-identical 5,506-char `risk_assessment_by_activity` items because the Item-264 rationale is composed from plan-GLOBAL artifacts only. `composeRiskByActivity` now emits ONE consolidated rationale with the engaged activities enumerated via existing `joinList` mechanics; new deterministic `evaluateSectionDuplication` gate emits `section_duplication:<key>:<i>=<j>`; GTM DRAFT register classifies it non_material. Build-Issues note opened on per-activity factor attribution (Pass-1 schema question, not wired). Tests 6/6 + regression 73/73 green; `replay-cppa-risk-harness` redeployed; NO harness invocation.)
 
 ---
 
@@ -6426,7 +6426,7 @@ GRANT EXECUTE ON FUNCTION public.replay_harness_fetch_doc(uuid) TO service_role;
 
 ---
 
-## Item 266 — TRACK 2: ACTIVITY-RATIONALE DE-DUPLICATION (Item 264 follow-up) (2026-07-30T01:19Z)
+## Item 266 — TRACK 2: ACTIVITY-RATIONALE DE-DUPLICATION (Item 264 follow-up) (2026-07-30T01:14Z)
 
 **Type.** Composer consolidation + deterministic duplication detector + one DRAFT GTM register entry. No new customer prose beyond ratified templates. Courier: `docs/courier/ITEM266-RATIONALE-DEDUP-2026-07-30.md`.
 
