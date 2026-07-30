@@ -9018,9 +9018,11 @@ export type Database = {
       admin_replay_fetch_legacy_doc: {
         Args: { p_doc_id: string }
         Returns: {
+          entity_name: string
           id: string
           intake_data: Json
           report_data: Json
+          sector: string
         }[]
       }
       claim_enforcement_for_enrichment: {
