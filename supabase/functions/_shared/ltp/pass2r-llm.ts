@@ -276,6 +276,8 @@ export async function runPass2r(
   const baseUser = fillPass2rUser(locked, wl);
   const details: Pass2rAttemptDetail[] = [];
   let lastValidation: Pass2rValidationResult | null = null;
+  let lastRejectedDoc: Pass2rProseDocument | null = null;
+  const attemptRejections: Pass2rAttemptRejection[] = [];
   let lastError = "";
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
