@@ -15,7 +15,9 @@
 import type { RenderPlan } from "../render-plan/schema.ts";
 import { hasNameBigram, sanitizeRoleTitleSegments } from "./section-composers/cppa-risk.ts";
 
-export const PASS2R_VALIDATORS_VERSION = "ltp-pass2r-validators-2026-07-30-item278";
+export const PASS2R_VALIDATORS_VERSION =
+  "ltp-pass2r-validators-2026-07-30-item285-entity-whitelist";
+
 
 /** Mirrors GroundedNoteMode (ltp/grounded-note.ts) — observe is the default. */
 export type Pass2rValidatorMode = "observe" | "enforce";
