@@ -1,9 +1,18 @@
 // Pure presentational body for CPPA Risk Assessment.
 // Uses the same V3/V4 renderer as the real result page so sample and live
 // reports look identical.
+//
+// ITEM 274 — the LTP (Track-2) shape is dispatched FIRST, on the SAME
+// discriminator the PDF exporter uses (`isLtpRiskShape`, mirrored in
+// src/lib/cppa-risk-shape.ts). Before this, LTP reports matched isV4Report
+// (schema_version "cppa_risk_v4" + array sections) and rendered blank because
+// the V4 renderer expects object-shaped sections.
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
+import RiskAssessmentReportLTP from "@/components/cppa/RiskAssessmentReportLTP";
+import { isLtpRiskShape } from "@/lib/cppa-risk-shape";
+
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
