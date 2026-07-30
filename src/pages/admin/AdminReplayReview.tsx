@@ -313,7 +313,7 @@ export default function AdminReplayReview() {
             )}
           </div>
 
-          <div className="overflow-x-auto border rounded-lg">
+          <div className="overflow-x-auto border rounded-lg" data-testid="documents-table">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left">
                 <tr>
