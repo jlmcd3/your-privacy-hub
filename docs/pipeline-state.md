@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T18:25Z (Item 287 — RESIDUAL 2R FIXES: numeric range-constituent whitelist, acronym derived-form escape, "Protection" adjudicated a TRUE POSITIVE, §2R.2 map amendment re-homing `exception_analysis` to Part 4, PERSIST-FIRST harness restructure, and rejected-prose persistence for observe-mode calibration. Deployed `replay-cppa-risk-harness` only; no harness invocation, no DB writes.)
+**Last updated:** 2026-07-30T18:33Z (Item 288 — STEP-0a BATCH 3 RESULTS + ADJUDICATION QUEUE: 20/20 deterministic results persisted; 1 new prose success, 6 validator rejects with `prose_rejected` persisted, 13 lost to isolate death; GTM 5 release / 8 release_with_logged_defects / 7 block, all on `section_cross_duplication:scope_confirmation=scope_and_triggers`. Adjudication queue released to Item 289.)
 
 ---
 
