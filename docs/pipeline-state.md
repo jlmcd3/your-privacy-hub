@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T23:32Z (Item 296 — cppa-risk full pipeline code bundle delivered for external review; docs-only, no code change.)
+**Last updated:** 2026-07-30T23:46Z (Item 297 — fleet-wide product-requirements analysis + juxtaposition delivered; docs-only, no code change.)
 
 ---
 
@@ -7080,3 +7080,25 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 ## Item 296 — CPPA-RISK FULL PIPELINE CODE BUNDLE (2026-07-30T23:32Z)
 
 **Authority:** CEO order (urgent, docs-only, external review). Delivered `docs/CPPA-RISK-FULL-PIPELINE-CODE-2026-07-30.md` — 64 files verbatim (58-file transitive import closure from `supabase/functions/replay-cppa-risk-harness/index.ts`, zero unresolved modules, + 6 dispatched extras: `ltp/retry-budget.ts`, `emit-gate.ts`, `customer-messages.ts`, `registry/risk-verified-authorities.ts`, `verified-authority-resolver.ts`, `legal-test/registry-corpus-pin.test.ts`), with TOC, pipeline overview, and an explicit exclusion list. NO code changes, NO deploy, NO harness invocation. **Disposition:** DELIVERED.
+
+---
+
+## Item 297 — FLEET-WIDE PRODUCT-REQUIREMENTS ANALYSIS + JUXTAPOSITION (2026-07-30T23:46Z)
+
+**Authority:** CEO order (docs-only) — before any prompt drafting, establish what each product is SUPPOSED to include and what analysis it owes, citing corpus VERBATIM; then juxtapose current output and state what must change.
+
+**DELIVERED.** `docs/PRODUCT-REQUIREMENTS-AND-GAP-ANALYSIS-2026-07-30.md` — nine chapters (cppa-risk, cppa-cyber, cppa-admt, registration, biometric, dpia, lia, ir-playbook, governance) on the cppa-risk template (A purpose / B required contents / C named analytic operations with pinpoint cites / D juxtaposition against the top-scoring live document / E what must change), each with FOUR-LENS sign-off.
+
+**METHOD.** All statutory text read live from `provision_texts` and `gdpr_articles` and diffed before quoting; where governing text is absent the chapter is marked MUST-INGEST and its (B)/(C) DEFERRED — nothing stated from memory. Every juxtaposition claim carries a `quality_run_documents` row id (top `overall_score` per tool).
+
+**RESULT: 8 PERFORMS / 18 RECITES / 18 OMITS across 44 operations.** (1) Real analysis exists in exactly three places — ADMT `scope_analysis`, LIA `purpose_test`, ir-playbook awareness/clock reasoning — all sharing one shape: standard → record fact → application → verdict, including verdicts adverse to the customer. That shape is proposed as the concrete specification for the CEO-gated ANALYSIS-DUTY amendment (Item 295). (2) The weighing/determination operation is missing wherever a balancing standard governs: cppa-risk performs 0 of 5 on its best document; DPIA states the necessity/proportionality test and then assigns it to the customer; governance substitutes a maturity tier for the Art. 24(1) appropriateness-to-risk determination. (3) **GRADER DEFECT — CEO ATTENTION:** score does not track analysis. cppa-cyber (94.7, fleet-best) emits pinpoint cites to **11 CCR §§ 7122 and 7123(c), neither in corpus**; ir-playbook (94) assumes notifiability without running the Art. 33(1)/34(1) tests; registration scores 93.5 on an all-boolean summary with zero prose.
+
+**BLOCKING INGEST QUEUE (ordered).** (1) `gdpr-art-34` (−69 chars) and `gdpr-art-22` (−25 chars) P0 repairs per Item 291; (2) 11 CCR §§ 7122–7124 — Chapter 2 cannot be finalized without them; (3) §§ 7200, 7222 (pending rows); (4) BIPA 740 ILCS 14, Tex. Bus. & Com. Code § 503.001, Wash. RCW 19.375 (+19.373 headings for the conflation question) — Chapter 5 blocked; (5) data-broker registration registry — Chapter 4 has no registry at all; (6) EDPB Guidelines 1/2024 (already cited in shipped LIA output, unverified).
+
+**RECORDED, NOT FIXED:** cppa-cyber executive-summary clause duplication; governance severity legend embedded in `readiness_rationale`.
+
+**COURIER.** `docs/courier/ITEM297-FLEET-REQUIREMENTS-2026-07-30.md`.
+
+**DOUBLE-CHECK.** Diff limited to the deliverable, the courier, and this ledger. No code, no deploy, no harness invocation, no prompt drafting; database access read-only.
+
+**Disposition:** DELIVERED — CEO read open. Prompt drafting remains gated behind the ingest queue above and the Item 295 ANALYSIS-DUTY ruling.
