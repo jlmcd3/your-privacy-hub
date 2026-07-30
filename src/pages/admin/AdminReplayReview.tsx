@@ -1,21 +1,22 @@
-// ITEM 271 — CEO review surface for the Acceptance-40 replay campaign.
+// ITEM 271 — CEO review surface for the replay campaigns.
+// ITEM 293 — the page no longer pins the Item-269-era Acceptance-40 batches:
+// it lists ALL replay_harness_jobs newest-first and defaults to the most
+// recent batch label, with a one-click dropdown for any earlier batch.
+//
 // ADMIN-ONLY. Read-only. Renders harness `assembled_report` bodies through
 // the SAME shipped viewer (CPPARiskReportBody) and the SAME shipped PDF
 // exporter (generate-report-pdf → buildCPPARiskReportHTML) that customers
 // receive, so the CEO reads exactly what customers get.
 //
 // Authorization precedent: routed under <ProtectedRoute><AdminOnly>… in
-// src/App.tsx (same as /admin/quality-loop2, src/App.tsx:627-638), with data
-// read via authenticated admin RLS policies (precedent: quality_loop2_runs
-// policy "Admin quality_loop2_runs", has_role(auth.uid(),'admin')).
+// src/App.tsx (same as /admin/quality-loop2), with data read via authenticated
+// admin RLS policies (has_role(auth.uid(),'admin')). Gate unchanged.
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
-
-const ACCEPTANCE_NOTE_PREFIXES = ["Acceptance-40", "Ramp step 1, attempt 9"];
 
 /**
  * ITEM 274 — page-boundary adapter. Unwraps a `{ report_data: … }` record if
@@ -30,6 +31,40 @@ export function toViewerReport(value: any): any {
   return value;
 }
 
+export type HarnessJob = {
+  id: string;
+  notes: string | null;
+  status: string | null;
+  created_at: string;
+  doc_ids: string[] | null;
+};
+
+/** ITEM 293 — newest-first ordering, applied client-side as a belt-and-braces
+ * pin on top of the `created_at DESC` query order. */
+export function sortJobsNewestFirst(jobs: HarnessJob[]): HarnessJob[] {
+  return [...jobs].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+}
+
+/** Distinct batch labels (job `notes`), in newest-first order of first appearance. */
+export function batchLabels(jobs: HarnessJob[]): string[] {
+  const out: string[] = [];
+  for (const j of sortJobsNewestFirst(jobs)) {
+    const label = String(j.notes ?? "").trim() || "(no label)";
+    if (!out.includes(label)) out.push(label);
+  }
+  return out;
+}
+
+/** Default selection = the label of the most recent job. */
+export function defaultBatchLabel(jobs: HarnessJob[]): string | null {
+  return batchLabels(jobs)[0] ?? null;
+}
+
+export function jobLabel(job: HarnessJob): string {
+  return String(job.notes ?? "").trim() || "(no label)";
+}
 
 type Row = {
   id: string;
@@ -58,43 +93,71 @@ const verdictClass = (v: string) =>
       ? "bg-red-100 text-red-800"
       : "bg-amber-100 text-amber-800";
 
+const fmt = (iso: string) => {
+  try {
+    return new Date(iso).toISOString().replace("T", " ").slice(0, 16) + "Z";
+  } catch {
+    return iso;
+  }
+};
+
 export default function AdminReplayReview() {
+  const [jobs, setJobs] = useState<HarnessJob[]>([]);
+  const [label, setLabel] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rowsLoading, setRowsLoading] = useState(false);
   const [sectors, setSectors] = useState<Record<string, { entity: string | null; sector: string | null; hasLegacy: boolean }>>({});
   const [open, setOpen] = useState<Row | null>(null);
   const [legacy, setLegacy] = useState<LegacyDoc | null>(null);
   const [showLegacy, setShowLegacy] = useState(false);
   const [pdfBusy, setPdfBusy] = useState<string | null>(null);
 
+  // 1) Load ALL jobs, newest first. No note/date/id pin.
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data: jobs, error: jErr } = await supabase
+      const { data, error } = await supabase
         .from("replay_harness_jobs" as any)
-        .select("id, notes, created_at");
-      if (jErr) {
-        toast.error(`Could not load harness jobs: ${jErr.message}`);
+        .select("id, notes, status, created_at, doc_ids")
+        .order("created_at", { ascending: false });
+      if (error) {
+        toast.error(`Could not load harness jobs: ${error.message}`);
         setLoading(false);
         return;
       }
-      const wanted = (jobs ?? []).filter((j: any) =>
-        ACCEPTANCE_NOTE_PREFIXES.some((p) => String(j.notes ?? "").startsWith(p)),
-      );
-      const noteById = new Map(wanted.map((j: any) => [j.id, String(j.notes ?? "")]));
-      if (wanted.length === 0) {
-        setRows([]);
-        setLoading(false);
-        return;
-      }
+      const list = sortJobsNewestFirst((data ?? []) as unknown as HarnessJob[]);
+      setJobs(list);
+      setLabel(defaultBatchLabel(list));
+      setLoading(false);
+    })();
+  }, []);
+
+  const labels = useMemo(() => batchLabels(jobs), [jobs]);
+  const selectedJobs = useMemo(
+    () => sortJobsNewestFirst(jobs).filter((j) => jobLabel(j) === label),
+    [jobs, label],
+  );
+
+  // 2) Load results for the selected batch only.
+  useEffect(() => {
+    if (!label || selectedJobs.length === 0) {
+      setRows([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setRowsLoading(true);
+      const noteById = new Map(selectedJobs.map((j) => [j.id, jobLabel(j)]));
       const { data: res, error: rErr } = await supabase
         .from("replay_harness_results" as any)
         .select("id, job_id, doc_id, created_at, per_doc_result, assembled_report")
-        .in("job_id", wanted.map((j: any) => j.id))
+        .in("job_id", selectedJobs.map((j) => j.id))
         .order("created_at", { ascending: false });
+      if (cancelled) return;
       if (rErr) {
         toast.error(`Could not load harness results: ${rErr.message}`);
-        setLoading(false);
+        setRowsLoading(false);
         return;
       }
       // Dedupe to the latest result per doc_id.
@@ -117,7 +180,7 @@ export default function AdminReplayReview() {
       }
       const list = Array.from(latest.values());
       setRows(list);
-      setLoading(false);
+      setRowsLoading(false);
 
       // Lazy metadata (entity / sector / legacy availability) via the
       // admin-gated archive RPC.
@@ -133,9 +196,13 @@ export default function AdminReplayReview() {
           };
         }),
       );
-      setSectors(meta);
+      if (!cancelled) setSectors(meta);
     })();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [label, jobs]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -170,18 +237,67 @@ export default function AdminReplayReview() {
 
   return (
     <div className="p-8 max-w-[1400px] mx-auto">
-      <h1 className="font-serif text-2xl mb-1">Replay Review — Acceptance-40</h1>
+      <h1 className="font-serif text-2xl mb-1">Replay Review</h1>
       <p className="text-sm text-muted-foreground mb-6">
-        Item 271 CEO review surface. Reports render through the shipped viewer and the shipped PDF
+        CEO review surface. Reports render through the shipped viewer and the shipped PDF
         exporter, so what you read here is what customers receive.
       </p>
 
       {loading ? (
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="w-4 h-4 animate-spin" /> Loading results…
+          <Loader2 className="w-4 h-4 animate-spin" /> Loading harness jobs…
         </div>
       ) : (
         <>
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
+            <label htmlFor="batch-filter" className="font-medium">
+              Batch
+            </label>
+            <select
+              id="batch-filter"
+              aria-label="Batch"
+              className="border rounded px-2 py-1 max-w-[560px]"
+              value={label ?? ""}
+              onChange={(e) => setLabel(e.target.value)}
+            >
+              {labels.map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </select>
+            <span className="text-muted-foreground">
+              {selectedJobs.length} job{selectedJobs.length === 1 ? "" : "s"} in this batch
+            </span>
+          </div>
+
+          <div className="mb-6 overflow-x-auto border rounded-lg">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="p-2">Created</th>
+                  <th className="p-2">Batch label</th>
+                  <th className="p-2">Status</th>
+                  <th className="p-2">Docs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortJobsNewestFirst(jobs).map((j) => (
+                  <tr
+                    key={j.id}
+                    className={`border-t cursor-pointer hover:bg-muted/40 ${jobLabel(j) === label ? "bg-muted/60" : ""}`}
+                    onClick={() => setLabel(jobLabel(j))}
+                  >
+                    <td className="p-2 whitespace-nowrap font-mono">{fmt(j.created_at)}</td>
+                    <td className="p-2">{jobLabel(j)}</td>
+                    <td className="p-2">{j.status ?? "—"}</td>
+                    <td className="p-2">{j.doc_ids?.length ?? 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
           <div className="mb-4 text-sm">
             <strong>{rows.length}</strong> documents ·{" "}
             {Object.entries(counts).map(([k, v]) => (
@@ -189,6 +305,11 @@ export default function AdminReplayReview() {
                 {k}: {v}
               </span>
             ))}
+            {rowsLoading && (
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" /> loading…
+              </span>
+            )}
           </div>
 
           <div className="overflow-x-auto border rounded-lg">
@@ -273,7 +394,7 @@ export default function AdminReplayReview() {
               </div>
             </div>
             <div className="text-xs mb-3 text-muted-foreground">
-              Showing: {showLegacy ? "archived legacy report_data" : "harness assembled_report (build item-269)"}
+              Showing: {showLegacy ? "archived legacy report_data" : `harness assembled_report — ${open.job_notes || "(no label)"}`}
             </div>
             {/* ITEM 274 — adapt at the page boundary only: the viewer contract
                 takes the BARE report body object (never a {report_data:…}
