@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T18:25Z (Item 287 — RESIDUAL 2R FIXES: numeric range-constituent whitelist, acronym derived-form escape, "Protection" adjudicated a TRUE POSITIVE, §2R.2 map amendment re-homing `exception_analysis` to Part 4, PERSIST-FIRST harness restructure, and rejected-prose persistence for observe-mode calibration. Deployed `replay-cppa-risk-harness` only; no harness invocation, no DB writes.)
+**Last updated:** 2026-07-30T18:33Z (Item 288 — STEP-0a BATCH 3 RESULTS + ADJUDICATION QUEUE: 20/20 deterministic results persisted; 1 new prose success, 6 validator rejects with `prose_rejected` persisted, 13 lost to isolate death; GTM 5 release / 8 release_with_logged_defects / 7 block, all on `section_cross_duplication:scope_confirmation=scope_and_triggers`. Adjudication queue released to Item 289.)
 
 ---
 
@@ -6892,3 +6892,36 @@ The SPEC-TEMPLATE dispatch of 2026-07-30 was **STOPPED by the CEO mid-execution*
 ---
 
 287. **DONE (2026-07-30T18:25Z, ITEM 287 — RESIDUAL 2R FIXES + PERSIST-FIRST HARNESS + §2R.2 MAP AMENDMENT)** — Authority: CEO "go for it" 2026-07-30 on the Item-286 next steps; four-lens rulings unanimous. Deploy: `replay-cppa-risk-harness` ONLY; no harness invocation, no DB writes, no prompt/composer/legacy/schema change. **FIX 1 — numeric range constituents:** `carriedNumericEndpoints()` + `numKey()` added to `pass2r-validators.ts`; `validateNumericDateWhitelist` now admits the endpoints LITERALLY present inside plan-carried range strings (en dash / em dash / minus / hyphen / "to"), thousands-separator-insensitive. CLOSED RULE — nothing derived or computed. Closes the `"249,999"` vs `"100,000–249,999"` reject. **FIX 2 — acronym derived forms:** `acronymDerivedStem()` extends the 2-6-cap escape to possessive and hyphenated-compound forms whose acronym STEM passes; the compound tail is not itself whitelisted. Closes `"ADMT's"` / `"ADMT-related"`. **FIX 3 — "Protection" ADJUDICATED:** queried doc `1cda30f6`; `"Protection"` appears in `per_doc_result` ONLY as a rejection evidence string and is present in neither `intake_data` nor `report_data`, and no carried role title/label/ledger value contains it. **Disposition: TRUE POSITIVE — validator was right; nothing changed, no regression added.** **FIX 4 — §2R.2 MAP AMENDMENT (non-material, four-lens unanimous):** `exception_analysis` re-homes Part 2 → Part 4 in `PASS2R_PART_HOME` and in the `section_structure` expectation; SPEC §2R.2 amended with the four-lens record (LEGAL: exception discussion belongs with the conclusion's conditionality; CS: single-map edit, validator reads the same map, no drift; PROMPT: removes a systematic false structure signal polluting retry feedback; PROSE: Part 4 is where a reader expects "unless/except"). It fired wrong-part on EVERY reject across batches 1R and 2 — the map was wrong, not the model. `processing_narrative` / `opening_summary` / `risk_assessment_by_activity` part-4 homings from doc `278d0608` are NOT map errors and stand unchanged (structure-discipline watch). **FIX 5 — PERSIST-FIRST HARNESS (the fleet's own law applied to the harness):** `processDoc` reduced to the deterministic phase and now returns the locked `plan`; the doc loop INSERTs the `replay_harness_results` row (deterministic `per_doc_result` + `pass1_usage` + `assembled_report`) FIRST, then runs the new never-throwing `runProseObserve()`, then UPDATEs the same row with `per_doc_result.pass2r`. Isolate death during a 3-attempt × ~170s 2R path now costs only the 2R telemetry, not the doc (6/10 docs died with ZERO persisted output in each of batches 1R and 2). Job-row lifecycle unchanged. **FIX 6 — PERSIST REJECTED PROSE (observe-mode calibration):** `Pass2rResult` and `ProsePassStageResult` gain `prose_rejected` (final attempt's prose) and `attempt_rejections` (per-attempt validator + code sets); passed through `runProsePassStage` and persisted under `per_doc_result.pass2r.prose_rejected` — NEVER merged into any shipped surface. Unblocks adjudication of the `verdict_consistency ["Low","Moderate"]` class. `PASS2R_MAX_ATTEMPTS` stays 3 (the only prose success to date landed on attempt 3). Version stamp `ltp-pass2r-validators-2026-07-30-item287-residual`. **TESTS:** new `item287-residual-2r.test.ts` 6/6 pass; `item278-pass2r.test.ts` + `item285-entity-whitelist.test.ts` 16/16 pass; full `_shared/ltp/` suite 347 passed / 5 failed, the 5 being the tolerated pre-existing inventory in templates/composer/assembler modules untouched this turn — no test that passed before this turn fails now. Courier: `docs/courier/ITEM287-RESIDUAL-2R-FIXES-2026-07-30.md`.
+
+---
+
+## Item 288 — STEP-0a BATCH 3 RESULTS + ADJUDICATION QUEUE (2026-07-30T18:33Z)
+
+**Authority:** Controller dispatch 2026-07-30. RECORD ONLY — no `.ts` change, no deploy, no harness invocation, no DB write. Full record: `docs/courier/ITEM288-BATCH3-RESULTS-2026-07-30.md`.
+
+**BATCH DESIGN.** Jobs noted "Step 0a — Pass-2R calibration batch 3 (post-Item-287, 20 docs)", 20 single-document jobs.
+
+**PERSIST-FIRST VINDICATED.** 20/20 deterministic results persisted; batches 1R and 2 had each lost 6/10 with zero persisted output.
+
+**PASS-2R OUTCOME.** 1 new prose success (doc `d47f2960` — second overall), 6 validator rejects with `prose_rejected` persisted, 13 docs lost to isolate death (structural attempt-budget constraint stands; candidates remain per Item 286).
+
+**GTM.** 5 release / 8 release_with_logged_defects / 7 block.
+
+**BLOCK CLASS.** All 7 blocks are on the single defect class:
+
+```
+section_cross_duplication:scope_confirmation=scope_and_triggers
+```
+
+This includes 3 re-run documents that did NOT block in batch 2 — the outcome is at least partly NEW post-Item-284, and the two scope keys were already observed byte-identical (`916 = 916` chars) in batch-2 assembled reports.
+
+**ADJUDICATION QUEUE (Item 289, four-lens, evidence-first — no fix until adjudicated):**
+
+1. **`scope_confirmation` / `scope_and_triggers`** — establish from the emitters whether the pair is an intentional legacy-compat alias (one emitter, two keys) vs a real duplication introduced/converged by Item 284; remedy is either a detector alias-exemption for the known pair or a single-key emission with viewer/PDF parity; cite file:line before choosing.
+2. **Adjudicate the 6 rejects' `prose_rejected` payloads** validator-by-validator, starting with `verdict_consistency ["Low","Moderate"]`.
+3. **2R attempt-budget vs isolate-lifetime** — take the batch-3 latency data to the four lenses; candidate remedies remain lower `PASS2R_MAX_ATTEMPTS` for replay jobs or per-attempt budget tiering, balanced against the fact that both prose successes to date landed on attempt 3.
+
+**DOUBLE-CHECK VERIFIED.** Diff contains only the courier and this ledger.
+
+**Disposition:** RECORDED. Adjudication queue released to Item 289 for four-lens review and fix-turn scoping.
+
