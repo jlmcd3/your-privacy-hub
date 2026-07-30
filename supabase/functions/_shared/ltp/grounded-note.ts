@@ -42,7 +42,8 @@ import { CPPA_RISK_FACTORS } from "../factors/cppa-risk-factors.ts";
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 
 export const PASS1_GROUNDED_NOTE_VERSION =
-  "pass1-grounded-note@2026-07-29-item261-observe-default";
+  "pass1-grounded-note@2026-07-30-item267-calibration";
+
 
 /**
  * ITEM 261 — SPEC §6 GUARD-LIFECYCLE LAW. The screen now DEFAULTS to
