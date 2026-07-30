@@ -497,7 +497,12 @@ export const PASS2R_PART_HOME: Readonly<Record<string, 1 | 2 | 3 | 4>> = {
   scope_confirmation: 1,
   processing_narrative: 1,
   risk_assessment_by_activity: 2,
-  exception_analysis: 2,
+  // ITEM 287 FIX 4 — §2R.2 MAP AMENDMENT (four-lens unanimous). Exception
+  // analysis re-homes from Part 2 to Part 4: Part 4 is "the result and how it
+  // could be changed", and an exception is precisely a condition of change.
+  // The map was wrong, not the model — this key fired wrong-part on every
+  // reject across batches 1R and 2.
+  exception_analysis: 4,
   record_sufficiency: 2,
   information_needed: 3,
   strengthen_items: 3,
