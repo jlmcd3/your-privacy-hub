@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T22:27Z (Item 292 — CLEAN-RUN BATCH 4 RESULT: 20/20 persisted, GTM 0 release / 20 release_with_logged_defects / 0 block — acceptance bar MET; Item-290 single-key fix eliminated all duplication blocks. CEO read open at /admin/replay-review. Awaiting CEO read and rejected-prose adjudication queue.)
+**Last updated:** 2026-07-30T22:36Z (Item 293 — /admin/replay-review batch-selection fix: the hardcoded Acceptance-40 / Ramp-9 note pin is deleted; the page now lists ALL harness jobs newest-first with a batch dropdown defaulting to CLEAN RUN batch 4. Frontend-only; no backend pin existed.)
 
 ---
 
