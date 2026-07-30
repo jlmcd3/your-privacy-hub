@@ -1,0 +1,1 @@
+ALTER TABLE public.replay_harness_jobs ADD COLUMN IF NOT EXISTS options jsonb;

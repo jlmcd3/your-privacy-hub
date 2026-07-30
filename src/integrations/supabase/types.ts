@@ -6320,6 +6320,7 @@ export type Database = {
           finished_at: string | null
           id: string
           notes: string | null
+          options: Json | null
           started_at: string | null
           status: string
         }
@@ -6330,6 +6331,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           notes?: string | null
+          options?: Json | null
           started_at?: string | null
           status?: string
         }
@@ -6340,6 +6342,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           notes?: string | null
+          options?: Json | null
           started_at?: string | null
           status?: string
         }
