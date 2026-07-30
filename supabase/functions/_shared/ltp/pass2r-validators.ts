@@ -676,6 +676,34 @@ function displayStrings(plan: RenderPlan): string[] {
     .filter(Boolean);
 }
 
+/**
+ * ITEM 285 / F7(1) — UNDER-INCLUSIVE WHITELIST FIX.
+ * Every entity-bearing value the plan CARRIES is harvested: intake-ledger
+ * displays AND their raw values (a vendor can be carried as the raw value with
+ * a coded display), factor weight_notes (where vendor names actually live),
+ * factor and proposition display labels, and any bound template ctx values the
+ * caller supplies. Values are kept WHOLE; token-level matching happens in the
+ * validator so multi-word names match by full name and by constituent token.
+ */
+function entityBearingStrings(
+  plan: RenderPlan,
+  boundCtxValues: readonly unknown[],
+): string[] {
+  const rawLedgerValues = plan.intake_ledger
+    .map((l) => (l.value === null || l.value === undefined ? "" : String(l.value)))
+    .map((s) => s.trim());
+  return [
+    ...displayStrings(plan),
+    ...rawLedgerValues,
+    ...plan.factor_table.map((f) => String(f.weight_note ?? "")),
+    ...plan.factor_table.map((f) => String(f.display_label ?? "")),
+    ...plan.propositions.map((p) => String(p.display_label ?? "")),
+    ...boundCtxValues.map((v) => (typeof v === "string" || typeof v === "number" ? String(v) : "")),
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export function buildPass2rWhitelist(
   plan: RenderPlan,
   opts: {
@@ -683,6 +711,8 @@ export function buildPass2rWhitelist(
     close_outcome?: boolean;
     registry_keys?: readonly string[];
     deadline_literals?: readonly string[];
+    /** ITEM 285: values bound into the rendered template ctx, if the caller has them. */
+    bound_ctx_values?: readonly unknown[];
   },
 ): Pass2rWhitelist {
   const displays = displayStrings(plan);
@@ -693,11 +723,10 @@ export function buildPass2rWhitelist(
     ...(opts.deadline_literals ?? []),
   ].filter(Boolean);
 
-  const entities = [
-    ...displays,
-    ...plan.factor_table.map((f) => String(f.display_label ?? "")),
-    ...plan.propositions.map((p) => String(p.display_label ?? "")),
-  ].filter(Boolean);
+  const entities = Array.from(
+    new Set(entityBearingStrings(plan, opts.bound_ctx_values ?? [])),
+  );
+
 
   return {
     citations: plan.citation_bindings.map((c) => c.pinpoint),
