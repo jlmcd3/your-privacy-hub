@@ -1,0 +1,1785 @@
+{
+    "_meta": {
+        "factor_rows": 16,
+        "propositions": 15,
+        "citation_bindings": 15,
+        "render_plan_version": null
+    },
+    "gating": {
+    },
+    "part_a": {
+    },
+    "part_b": {
+    },
+    "domains": [
+        "cppa-ca"
+    ],
+    "top_risks": [
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.business",
+            "weight_note": "Intake records workforce productivity measurement, performance benchmarking, applicant tracking, absence analytics, DEI reporting, and platform security as processing purposes; Crestline operates as a Technology/SaaS business with $25M–$50M",
+            "display_label": "Benefits to the business",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q3_sector",
+                "L.q1_revenue"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.consumer",
+            "weight_note": "Intake records voluntary DEI self-identification data aggregation for reporting dashboards and structured interview scoring; performance quartile score is surfaced to HR managers, which may inform promotion eligibility decisions affecting c",
+            "display_label": "Benefits to the consumer",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q19_admt_description",
+                "L.i4b_sources"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.other_stakeholders",
+            "weight_note": "Intake records enterprise clients as recipients of performance benchmarking and productivity measurement outputs; score informs promotion eligibility, PIP initiation, and reduction-in-force selection for client organizations.",
+            "display_label": "Benefits to other stakeholders",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q19_admt_description",
+                "L.i6_vendors"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.public",
+            "weight_note": "no record evidence",
+            "display_label": "Benefits to the public",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(A)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.a.unauthorized_access",
+            "weight_note": "Intake records SentimentIQ Inc. DPA not yet executed; Datadog records potential incidental exposure of PI in log data; Q4 2023 audit found 14 offboarded client accounts with data present beyond contracted retention window; cyberGaps recorde",
+            "display_label": "Unauthorized access, destruction, use, modification, or disclosure",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 134",
+                    "anchor_hint": "balance privacy risks against broader benefits to various stakeholders",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i6_vendors",
+                "L.i2_retention_detail",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(B)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.b.discrimination",
+            "weight_note": "Intake records no fairness testing conducted; two enterprise clients flagged lower average scores for non-native English speakers; NLP sentiment component training data provenance is unknown; no disparate-impact analysis performed; harm typ",
+            "display_label": "Discrimination on protected characteristics",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 130",
+                    "anchor_hint": "transparency, accountability, and harm mitigation measures for ADMT",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i5_admt_fairness_testing",
+                "L.i5_admt_logic",
+                "L.i5_admt_training_source",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(C)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.c.impaired_control",
+            "weight_note": "Intake records acknowledgment banner does not enumerate all data types collected; notice content is some elements only; employee notice uses general privacy policy; no opt-out for selling/sharing; no ADMT opt-out; harm type Impairment of co",
+            "display_label": "Impairing consumers' control over their personal information",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "insufficient disclosure for informed decision-making is covered under (a)(5)(C)'s impairing-control prohibition",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q13_notice_content",
+                "L.q14_employee_notice",
+                "L.q9_opt_out",
+                "L.q20_admt_opt_out",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(D)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.d.coercion_dark_patterns",
+            "weight_note": "Intake records endpoint monitoring agents installed on employer-provisioned devices; systematic observation of workers recorded; most clients remain on full-collection settings; requests from two enterprise clients to disable URL-level coll",
+            "display_label": "Coercion or compulsion (including dark patterns)",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "(a)(5)(D) modified to add dark-pattern example demonstrating consent that fails the 'freely given' standard",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(D)"
+                },
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "coercion example retained as helpful guidance for identifying compelled-processing harms",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q5b_profiling_observation",
+                "L.i1b_min_pi"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(E)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.e.economic_harms",
+            "weight_note": "Intake records performance quartile score used by some enterprise clients for promotion eligibility, PIP initiation, and reduction-in-force selection; no technical control prevents automated PIP initiation; harm type Economic harm recorded.",
+            "display_label": "Economic harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "'based upon profiling' added to clarify one pathway through which processing causes economic injury to consumers (FSOR filed under pre-modification (a)(5)(F) label; substance addresses (a)(5)(E) economic harms)",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(E)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.i5_admt_human_review",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(F)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.f.physical_harms",
+            "weight_note": "no record evidence",
+            "display_label": "Physical harms",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(G)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.g.reputational_harms",
+            "weight_note": "Intake records racial or ethnic origin and sexual orientation or gender identity among PI categories processed; performance quartile score surfaced to HR managers; harm type Reputational harm recorded; Crestline records limited visibility i",
+            "display_label": "Reputational harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "reputational-harm examples retained as necessary business guidance for identifying stigmatization risks",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(G)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); stigmatization example expanded to show disclosure outside expected context",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.q4_pi_categories",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(H)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.h.psychological_harms",
+            "weight_note": "Intake records systematic observation of workers via endpoint monitoring agents collecting keystroke and application-usage data; performance quartile score aggregates six input dimensions; harm type Psychological harm recorded; likelihood r",
+            "display_label": "Psychological harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 142",
+                    "anchor_hint": "psychological-harm list is nonexhaustive; businesses need not perform expert-level mental-health assessments",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); 'disclosure' added to emotional-distress example for sensitive health information",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q5b_profiling_observation",
+                "L.i5_admt_logic",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(i)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.i.technical_controls",
+            "weight_note": "Intake records DPAs in place with AWS (cloud infrastructure, us-west-2), Snowflake (analytics warehouse), and Datadog (application monitoring); platform does not enforce deletion automatically; no technical control prevents automated PIP in",
+            "display_label": "Technical / architectural controls",
+            "guidance_refs": [
+                {
+                    "page_ref": null,
+                    "anchor_hint": "clarified risk assessment documentation requirements under 11 CCR § 7152(a) to streamline safeguards",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i6_vendors",
+                "L.i2_retention_detail"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(ii)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.ii.privacy_enhancing_technologies",
+            "weight_note": "no record evidence",
+            "display_label": "Privacy-enhancing technologies",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(iii)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.iii.external_consultation",
+            "weight_note": "Intake records outside counsel at Brant & Kelsey LLP conducted an initial CPPA threshold analysis in mid-2023; no follow-up engagement has occurred; no external technical consultant has reviewed the ADMT system.",
+            "display_label": "External consultation / knowledge of emergent risks",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i7_external_consultees"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(iv)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.iv.admt_governance",
+            "weight_note": "Intake records no fairness testing conducted by Crestline; product roadmap includes a bias audit for Q1 2025 but no vendor or methodology has been selected; no ADMT governance policies or training documented.",
+            "display_label": "ADMT governance policies and training",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 37",
+                    "anchor_hint": "businesses using ADMT in risk assessments must identify specific evaluations, policies, procedures, and training",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+                "L.i5_admt_fairness_testing",
+                "L.i5_admt_training_source"
+            ]
+        }
+    ],
+    "disclaimer": "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.",
+    "next_steps": [
+        "Confirm Technical / architectural controls is documented in the assessment record — Present on the record; retain the supporting documentation with the assessment file.",
+        "Confirm External consultation / knowledge of emergent risks is documented in the assessment record — Present on the record; retain the supporting documentation with the assessment file."
+    ],
+    "risk_level": [
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.business",
+            "weight_note": "Intake records workforce productivity measurement, performance benchmarking, applicant tracking, absence analytics, DEI reporting, and platform security as processing purposes; Crestline operates as a Technology/SaaS business with $25M–$50M",
+            "display_label": "Benefits to the business",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q3_sector",
+                "L.q1_revenue"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.consumer",
+            "weight_note": "Intake records voluntary DEI self-identification data aggregation for reporting dashboards and structured interview scoring; performance quartile score is surfaced to HR managers, which may inform promotion eligibility decisions affecting c",
+            "display_label": "Benefits to the consumer",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q19_admt_description",
+                "L.i4b_sources"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.other_stakeholders",
+            "weight_note": "Intake records enterprise clients as recipients of performance benchmarking and productivity measurement outputs; score informs promotion eligibility, PIP initiation, and reduction-in-force selection for client organizations.",
+            "display_label": "Benefits to other stakeholders",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q19_admt_description",
+                "L.i6_vendors"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.public",
+            "weight_note": "no record evidence",
+            "display_label": "Benefits to the public",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(A)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.a.unauthorized_access",
+            "weight_note": "Intake records SentimentIQ Inc. DPA not yet executed; Datadog records potential incidental exposure of PI in log data; Q4 2023 audit found 14 offboarded client accounts with data present beyond contracted retention window; cyberGaps recorde",
+            "display_label": "Unauthorized access, destruction, use, modification, or disclosure",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 134",
+                    "anchor_hint": "balance privacy risks against broader benefits to various stakeholders",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i6_vendors",
+                "L.i2_retention_detail",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(B)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.b.discrimination",
+            "weight_note": "Intake records no fairness testing conducted; two enterprise clients flagged lower average scores for non-native English speakers; NLP sentiment component training data provenance is unknown; no disparate-impact analysis performed; harm typ",
+            "display_label": "Discrimination on protected characteristics",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 130",
+                    "anchor_hint": "transparency, accountability, and harm mitigation measures for ADMT",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i5_admt_fairness_testing",
+                "L.i5_admt_logic",
+                "L.i5_admt_training_source",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(C)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.c.impaired_control",
+            "weight_note": "Intake records acknowledgment banner does not enumerate all data types collected; notice content is some elements only; employee notice uses general privacy policy; no opt-out for selling/sharing; no ADMT opt-out; harm type Impairment of co",
+            "display_label": "Impairing consumers' control over their personal information",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "insufficient disclosure for informed decision-making is covered under (a)(5)(C)'s impairing-control prohibition",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q13_notice_content",
+                "L.q14_employee_notice",
+                "L.q9_opt_out",
+                "L.q20_admt_opt_out",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(D)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.d.coercion_dark_patterns",
+            "weight_note": "Intake records endpoint monitoring agents installed on employer-provisioned devices; systematic observation of workers recorded; most clients remain on full-collection settings; requests from two enterprise clients to disable URL-level coll",
+            "display_label": "Coercion or compulsion (including dark patterns)",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "(a)(5)(D) modified to add dark-pattern example demonstrating consent that fails the 'freely given' standard",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(D)"
+                },
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "coercion example retained as helpful guidance for identifying compelled-processing harms",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q5b_profiling_observation",
+                "L.i1b_min_pi"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(E)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.e.economic_harms",
+            "weight_note": "Intake records performance quartile score used by some enterprise clients for promotion eligibility, PIP initiation, and reduction-in-force selection; no technical control prevents automated PIP initiation; harm type Economic harm recorded.",
+            "display_label": "Economic harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "'based upon profiling' added to clarify one pathway through which processing causes economic injury to consumers (FSOR filed under pre-modification (a)(5)(F) label; substance addresses (a)(5)(E) economic harms)",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(E)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.i5_admt_human_review",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(F)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.f.physical_harms",
+            "weight_note": "no record evidence",
+            "display_label": "Physical harms",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(G)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.g.reputational_harms",
+            "weight_note": "Intake records racial or ethnic origin and sexual orientation or gender identity among PI categories processed; performance quartile score surfaced to HR managers; harm type Reputational harm recorded; Crestline records limited visibility i",
+            "display_label": "Reputational harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "reputational-harm examples retained as necessary business guidance for identifying stigmatization risks",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(G)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); stigmatization example expanded to show disclosure outside expected context",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.q4_pi_categories",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(H)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.h.psychological_harms",
+            "weight_note": "Intake records systematic observation of workers via endpoint monitoring agents collecting keystroke and application-usage data; performance quartile score aggregates six input dimensions; harm type Psychological harm recorded; likelihood r",
+            "display_label": "Psychological harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 142",
+                    "anchor_hint": "psychological-harm list is nonexhaustive; businesses need not perform expert-level mental-health assessments",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); 'disclosure' added to emotional-distress example for sensitive health information",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q5b_profiling_observation",
+                "L.i5_admt_logic",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(i)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.i.technical_controls",
+            "weight_note": "Intake records DPAs in place with AWS (cloud infrastructure, us-west-2), Snowflake (analytics warehouse), and Datadog (application monitoring); platform does not enforce deletion automatically; no technical control prevents automated PIP in",
+            "display_label": "Technical / architectural controls",
+            "guidance_refs": [
+                {
+                    "page_ref": null,
+                    "anchor_hint": "clarified risk assessment documentation requirements under 11 CCR § 7152(a) to streamline safeguards",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i6_vendors",
+                "L.i2_retention_detail"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(ii)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.ii.privacy_enhancing_technologies",
+            "weight_note": "no record evidence",
+            "display_label": "Privacy-enhancing technologies",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(iii)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.iii.external_consultation",
+            "weight_note": "Intake records outside counsel at Brant & Kelsey LLP conducted an initial CPPA threshold analysis in mid-2023; no follow-up engagement has occurred; no external technical consultant has reviewed the ADMT system.",
+            "display_label": "External consultation / knowledge of emergent risks",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i7_external_consultees"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(iv)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.iv.admt_governance",
+            "weight_note": "Intake records no fairness testing conducted by Crestline; product roadmap includes a bias audit for Q1 2025 but no vendor or methodology has been selected; no ADMT governance policies or training documented.",
+            "display_label": "ADMT governance policies and training",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 37",
+                    "anchor_hint": "businesses using ADMT in risk assessments must identify specific evaluations, policies, procedures, and training",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+                "L.i5_admt_fairness_testing",
+                "L.i5_admt_training_source"
+            ]
+        }
+    ],
+    "annotations": [
+        {
+            "id": "p.j.initiation_decision",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(7)",
+                "corpus_key": "cppa-7152"
+            },
+            "conclusion_id": "j.initiation_decision",
+            "display_label": "Decision whether to initiate the processing",
+            "epistemic_type": "J",
+            "jurisdiction_tag": "cppa-ca",
+            "intake_ledger_refs": [
+            ],
+            "citation_binding_refs": [
+                "cb.j.initiation_decision"
+            ]
+        },
+        {
+            "id": "p.j.purpose_specificity_adequacy",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(1)",
+                "corpus_key": "cppa-7152"
+            },
+            "conclusion_id": "j.purpose_specificity_adequacy",
+            "display_label": "Adequacy of the processing purpose statement",
+            "epistemic_type": "J",
+            "jurisdiction_tag": "cppa-ca",
+            "intake_ledger_refs": [
+            ],
+            "citation_binding_refs": [
+                "cb.j.purpose_specificity_adequacy"
+            ]
+        },
+        {
+            "id": "p.j.safeguard_sufficiency",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)",
+                "corpus_key": "cppa-7152"
+            },
+            "conclusion_id": "j.safeguard_sufficiency",
+            "display_label": "Sufficiency of the safeguards",
+            "epistemic_type": "J",
+            "jurisdiction_tag": "cppa-ca",
+            "intake_ledger_refs": [
+            ],
+            "citation_binding_refs": [
+                "cb.j.safeguard_sufficiency"
+            ]
+        }
+    ],
+    "overall_score": [
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.business",
+            "weight_note": "Intake records workforce productivity measurement, performance benchmarking, applicant tracking, absence analytics, DEI reporting, and platform security as processing purposes; Crestline operates as a Technology/SaaS business with $25M–$50M",
+            "display_label": "Benefits to the business",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q3_sector",
+                "L.q1_revenue"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.consumer",
+            "weight_note": "Intake records voluntary DEI self-identification data aggregation for reporting dashboards and structured interview scoring; performance quartile score is surfaced to HR managers, which may inform promotion eligibility decisions affecting c",
+            "display_label": "Benefits to the consumer",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q19_admt_description",
+                "L.i4b_sources"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.other_stakeholders",
+            "weight_note": "Intake records enterprise clients as recipients of performance benchmarking and productivity measurement outputs; score informs promotion eligibility, PIP initiation, and reduction-in-force selection for client organizations.",
+            "display_label": "Benefits to other stakeholders",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i1_processing_purpose",
+                "L.q19_admt_description",
+                "L.i6_vendors"
+            ]
+        },
+        {
+            "kind": "benefit",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(4)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "benefit.public",
+            "weight_note": "no record evidence",
+            "display_label": "Benefits to the public",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 35",
+                    "anchor_hint": "identify benefits in specific, non-generic terms; 'as applicable' allows differential stakeholder coverage",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                },
+                {
+                    "page_ref": "Appendix, p. 139",
+                    "anchor_hint": "benefits from data processing may apply to different categories of stakeholders rather than accruing universally",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(4)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(A)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.a.unauthorized_access",
+            "weight_note": "Intake records SentimentIQ Inc. DPA not yet executed; Datadog records potential incidental exposure of PI in log data; Q4 2023 audit found 14 offboarded client accounts with data present beyond contracted retention window; cyberGaps recorde",
+            "display_label": "Unauthorized access, destruction, use, modification, or disclosure",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 134",
+                    "anchor_hint": "balance privacy risks against broader benefits to various stakeholders",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i6_vendors",
+                "L.i2_retention_detail",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(B)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.b.discrimination",
+            "weight_note": "Intake records no fairness testing conducted; two enterprise clients flagged lower average scores for non-native English speakers; NLP sentiment component training data provenance is unknown; no disparate-impact analysis performed; harm typ",
+            "display_label": "Discrimination on protected characteristics",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 130",
+                    "anchor_hint": "transparency, accountability, and harm mitigation measures for ADMT",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i5_admt_fairness_testing",
+                "L.i5_admt_logic",
+                "L.i5_admt_training_source",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(C)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.c.impaired_control",
+            "weight_note": "Intake records acknowledgment banner does not enumerate all data types collected; notice content is some elements only; employee notice uses general privacy policy; no opt-out for selling/sharing; no ADMT opt-out; harm type Impairment of co",
+            "display_label": "Impairing consumers' control over their personal information",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "insufficient disclosure for informed decision-making is covered under (a)(5)(C)'s impairing-control prohibition",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q13_notice_content",
+                "L.q14_employee_notice",
+                "L.q9_opt_out",
+                "L.q20_admt_opt_out",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(D)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.d.coercion_dark_patterns",
+            "weight_note": "Intake records endpoint monitoring agents installed on employer-provisioned devices; systematic observation of workers recorded; most clients remain on full-collection settings; requests from two enterprise clients to disable URL-level coll",
+            "display_label": "Coercion or compulsion (including dark patterns)",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "(a)(5)(D) modified to add dark-pattern example demonstrating consent that fails the 'freely given' standard",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(D)"
+                },
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "coercion example retained as helpful guidance for identifying compelled-processing harms",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q5b_profiling_observation",
+                "L.i1b_min_pi"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(E)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.e.economic_harms",
+            "weight_note": "Intake records performance quartile score used by some enterprise clients for promotion eligibility, PIP initiation, and reduction-in-force selection; no technical control prevents automated PIP initiation; harm type Economic harm recorded.",
+            "display_label": "Economic harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "'based upon profiling' added to clarify one pathway through which processing causes economic injury to consumers (FSOR filed under pre-modification (a)(5)(F) label; substance addresses (a)(5)(E) economic harms)",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(E)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.i5_admt_human_review",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(F)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.f.physical_harms",
+            "weight_note": "no record evidence",
+            "display_label": "Physical harms",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(G)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.g.reputational_harms",
+            "weight_note": "Intake records racial or ethnic origin and sexual orientation or gender identity among PI categories processed; performance quartile score surfaced to HR managers; harm type Reputational harm recorded; Crestline records limited visibility i",
+            "display_label": "Reputational harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "reputational-harm examples retained as necessary business guidance for identifying stigmatization risks",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(G)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); stigmatization example expanded to show disclosure outside expected context",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.q4_pi_categories",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(H)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.h.psychological_harms",
+            "weight_note": "Intake records systematic observation of workers via endpoint monitoring agents collecting keystroke and application-usage data; performance quartile score aggregates six input dimensions; harm type Psychological harm recorded; likelihood r",
+            "display_label": "Psychological harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 142",
+                    "anchor_hint": "psychological-harm list is nonexhaustive; businesses need not perform expert-level mental-health assessments",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); 'disclosure' added to emotional-distress example for sensitive health information",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q5b_profiling_observation",
+                "L.i5_admt_logic",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(i)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.i.technical_controls",
+            "weight_note": "Intake records DPAs in place with AWS (cloud infrastructure, us-west-2), Snowflake (analytics warehouse), and Datadog (application monitoring); platform does not enforce deletion automatically; no technical control prevents automated PIP in",
+            "display_label": "Technical / architectural controls",
+            "guidance_refs": [
+                {
+                    "page_ref": null,
+                    "anchor_hint": "clarified risk assessment documentation requirements under 11 CCR § 7152(a) to streamline safeguards",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i6_vendors",
+                "L.i2_retention_detail"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(ii)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.ii.privacy_enhancing_technologies",
+            "weight_note": "no record evidence",
+            "display_label": "Privacy-enhancing technologies",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(iii)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.iii.external_consultation",
+            "weight_note": "Intake records outside counsel at Brant & Kelsey LLP conducted an initial CPPA threshold analysis in mid-2023; no follow-up engagement has occurred; no external technical consultant has reviewed the ADMT system.",
+            "display_label": "External consultation / knowledge of emergent risks",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i7_external_consultees"
+            ]
+        },
+        {
+            "kind": "safeguard",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(6)(A)(iv)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "safe.iv.admt_governance",
+            "weight_note": "Intake records no fairness testing conducted by Crestline; product roadmap includes a bias audit for Q1 2025 but no vendor or methodology has been selected; no ADMT governance policies or training documented.",
+            "display_label": "ADMT governance policies and training",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 37",
+                    "anchor_hint": "businesses using ADMT in risk assessments must identify specific evaluations, policies, procedures, and training",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+                "L.i5_admt_fairness_testing",
+                "L.i5_admt_training_source"
+            ]
+        }
+    ],
+    "risk_register": [
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(A)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.a.unauthorized_access",
+            "weight_note": "Intake records SentimentIQ Inc. DPA not yet executed; Datadog records potential incidental exposure of PI in log data; Q4 2023 audit found 14 offboarded client accounts with data present beyond contracted retention window; cyberGaps recorde",
+            "display_label": "Unauthorized access, destruction, use, modification, or disclosure",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 134",
+                    "anchor_hint": "balance privacy risks against broader benefits to various stakeholders",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i6_vendors",
+                "L.i2_retention_detail",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(B)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.b.discrimination",
+            "weight_note": "Intake records no fairness testing conducted; two enterprise clients flagged lower average scores for non-native English speakers; NLP sentiment component training data provenance is unknown; no disparate-impact analysis performed; harm typ",
+            "display_label": "Discrimination on protected characteristics",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 130",
+                    "anchor_hint": "transparency, accountability, and harm mitigation measures for ADMT",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i5_admt_fairness_testing",
+                "L.i5_admt_logic",
+                "L.i5_admt_training_source",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(C)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.c.impaired_control",
+            "weight_note": "Intake records acknowledgment banner does not enumerate all data types collected; notice content is some elements only; employee notice uses general privacy policy; no opt-out for selling/sharing; no ADMT opt-out; harm type Impairment of co",
+            "display_label": "Impairing consumers' control over their personal information",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "insufficient disclosure for informed decision-making is covered under (a)(5)(C)'s impairing-control prohibition",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q13_notice_content",
+                "L.q14_employee_notice",
+                "L.q9_opt_out",
+                "L.q20_admt_opt_out",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(D)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.d.coercion_dark_patterns",
+            "weight_note": "Intake records endpoint monitoring agents installed on employer-provisioned devices; systematic observation of workers recorded; most clients remain on full-collection settings; requests from two enterprise clients to disable URL-level coll",
+            "display_label": "Coercion or compulsion (including dark patterns)",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "(a)(5)(D) modified to add dark-pattern example demonstrating consent that fails the 'freely given' standard",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(D)"
+                },
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "coercion example retained as helpful guidance for identifying compelled-processing harms",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.i4b_sources",
+                "L.q5b_profiling_observation",
+                "L.i1b_min_pi"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(E)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.e.economic_harms",
+            "weight_note": "Intake records performance quartile score used by some enterprise clients for promotion eligibility, PIP initiation, and reduction-in-force selection; no technical control prevents automated PIP initiation; harm type Economic harm recorded.",
+            "display_label": "Economic harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "p. 36",
+                    "anchor_hint": "'based upon profiling' added to clarify one pathway through which processing causes economic injury to consumers (FSOR filed under pre-modification (a)(5)(F) label; substance addresses (a)(5)(E) economic harms)",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(E)"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.i5_admt_human_review",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(F)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.f.physical_harms",
+            "weight_note": "no record evidence",
+            "display_label": "Physical harms",
+            "guidance_refs": [
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": false,
+            "intake_ledger_refs": [
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(G)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.g.reputational_harms",
+            "weight_note": "Intake records racial or ethnic origin and sexual orientation or gender identity among PI categories processed; performance quartile score surfaced to HR managers; harm type Reputational harm recorded; Crestline records limited visibility i",
+            "display_label": "Reputational harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 141",
+                    "anchor_hint": "reputational-harm examples retained as necessary business guidance for identifying stigmatization risks",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)(G)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); stigmatization example expanded to show disclosure outside expected context",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q19_admt_description",
+                "L.q4_pi_categories",
+                "L.impact_intake"
+            ]
+        },
+        {
+            "kind": "negative_impact",
+            "anchor": {
+                "pinpoint": "11 CCR § 7152(a)(5)(H)",
+                "corpus_key": "cppa-7152"
+            },
+            "factor_id": "neg.h.psychological_harms",
+            "weight_note": "Intake records systematic observation of workers via endpoint monitoring agents collecting keystroke and application-usage data; performance quartile score aggregates six input dimensions; harm type Psychological harm recorded; likelihood r",
+            "display_label": "Psychological harms",
+            "guidance_refs": [
+                {
+                    "page_ref": "Appendix, p. 142",
+                    "anchor_hint": "psychological-harm list is nonexhaustive; businesses need not perform expert-level mental-health assessments",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152(a)(5)"
+                },
+                {
+                    "page_ref": null,
+                    "anchor_hint": "'would' changed to 'could' in (G)/(H); 'disclosure' added to emotional-distress example for sensitive health information",
+                    "source_table": "cppa_fsor_commentary",
+                    "authority_weight": "binding",
+                    "regulation_citation": "11 CCR § 7152"
+                }
+            ],
+            "jurisdiction_tag": "cppa-ca",
+            "present_in_intake": true,
+            "intake_ledger_refs": [
+                "L.q5b_profiling_observation",
+                "L.i5_admt_logic",
+                "L.impact_intake"
+            ]
+        }
+    ],
+    "schema_version": "cppa_risk_v4",
+    "accuracy_caveat": "The analytical outputs in this document are computed deterministically from the intake record and the corpus-verified statutory anchors. Facts that are silent on the record are omitted, never invented.",
+    "citation_ledger": [
+        {
+            "pinpoint": "11 CCR § 7150(b)(1)",
+            "corpus_key": "cppa-7150",
+            "pinpoint_ref": "cb.r.applicability.selling_sharing",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7150(b)(2)",
+            "corpus_key": "cppa-7150",
+            "pinpoint_ref": "cb.r.applicability.sensitive_pi",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7150(b)(3)",
+            "corpus_key": "cppa-7150",
+            "pinpoint_ref": "cb.r.applicability.admt_significant_decision",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7150(b)(4)",
+            "corpus_key": "cppa-7150",
+            "pinpoint_ref": "cb.r.applicability.extensive_profiling",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7150(b)(5)",
+            "corpus_key": "cppa-7150",
+            "pinpoint_ref": "cb.r.applicability.train_admt",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7150(c)",
+            "corpus_key": "cppa-7150",
+            "pinpoint_ref": "cb.r.cohort.compliance_date",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)(1)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.r.documentation.purpose_present",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)(2)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.r.documentation.categories_present",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)(3)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.r.documentation.operational_elements_present",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)(9)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.r.documentation.approver_present",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7001(ddd)",
+            "corpus_key": "cppa-7001",
+            "pinpoint_ref": "cb.r.admt.consequence_gated",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.w.balance.risks_vs_benefits",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)(7)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.j.initiation_decision",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)(1)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.j.purpose_specificity_adequacy",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        },
+        {
+            "pinpoint": "11 CCR § 7152(a)(6)",
+            "corpus_key": "cppa-7152",
+            "pinpoint_ref": "cb.j.safeguard_sufficiency",
+            "authority_weight": "binding",
+            "jurisdiction_tag": "cppa-ca"
+        }
+    ],
+    "priority_actions": [
+        "**Qualified counsel should be consulted for further consideration of decision whether to initiate the processing** — 11 CCR § 7152(a)(7). On Crestline Workforce Analytics Corp.'s record, the record reserves decision whether to initiate the processing to the accountable business owner. The gap is the reserved judgment must be exercised and recorded before the assessment closes. The regulation requires the following: The business must record a reasoned initiation decision — proceed, proceed with modifications, or do not initiate — attaching the decision to the specific balancing outcome, naming the decisionmaker and the date of decision, and, when proceeding with modifications, listing each modification and the risk it addresses. Complete and retain the assessment record by December 31, 2027, the compliance date fixed by 11 CCR § 7155(b) for processing that was underway before the operative date; this is an ongoing obligation. Owner: qualified legal counsel.",
+        "**Qualified counsel should be consulted for further consideration of adequacy of the processing purpose statement** — 11 CCR § 7152(a)(1). On Crestline Workforce Analytics Corp.'s record, the record reserves adequacy of the processing purpose statement to qualified legal counsel. The gap is the reserved judgment must be exercised and recorded before the assessment closes. The regulation requires the following: Counsel must record a reasoned adequacy determination on the stated operational purpose, attaching the determination to the exact purpose language in the record, and identifying any narrowing required for the purpose to satisfy § 7152(a)(1) specificity. Complete and retain the assessment record by December 31, 2027, the compliance date fixed by 11 CCR § 7155(b) for processing that was underway before the operative date; this is an ongoing obligation. Owner: qualified legal counsel.",
+        "**Qualified counsel should be consulted for further consideration of sufficiency of the safeguards** — 11 CCR § 7152(a)(6). On Crestline Workforce Analytics Corp.'s record, the record reserves sufficiency of the safeguards to qualified legal counsel. The gap is the reserved judgment must be exercised and recorded before the assessment closes. The regulation requires the following: Counsel must record a reasoned sufficiency determination on the safeguards documented, attaching the determination to the specific safeguards enumerated in the record, and identifying any safeguard gap the balancing outcome must weigh under § 7152(a)(6). Complete and retain the assessment record by December 31, 2027, the compliance date fixed by 11 CCR § 7155(b) for processing that was underway before the operative date; this is an ongoing obligation. Owner: qualified legal counsel.",
+        "**Additional information would be needed to address the potential negative impact category physical harms** — 11 CCR § 7152(a)(5)(F). On Crestline Workforce Analytics Corp.'s record, physical harms is not present on Crestline Workforce Analytics Corp.'s record. The gap is the § 7152(a) record cannot be relied upon for physical harms without further documentation. The regulation requires the following: Document physical harms in the assessment record with the specificity 11 CCR § 7152(a)(5)(F) requires. Complete and retain the assessment record by December 31, 2027, the compliance date fixed by 11 CCR § 7155(b) for processing that was underway before the operative date; this is an ongoing obligation. Owner: General Counsel (Patricia Solis), Head of Data Engineering (Soren Beck), Customer Success Lead (Amara Diallo). Note: No dedicated privacy function, the CPO role is vacant following a departure in March 2024..",
+        "**Additional information would be needed to document the safeguard the following safeguards:\n• Privacy-enhancing technologies\n• ADMT governance policies and training** — 11 CCR § 7152(a)(6). On Crestline Workforce Analytics Corp.'s record, none of the listed items above are on Crestline Workforce Analytics Corp.'s record. The gap is 11 CCR § 7152(a)(6) requires each of these elements to be documented for the assessment record to be complete. The regulation requires the following: Document each of the listed § 7152(a)(6) safeguards on the assessment record with the specificity the subsection requires. Complete and retain the assessment record by December 31, 2027, the compliance date fixed by 11 CCR § 7155(b) for processing that was underway before the operative date; this is an ongoing obligation. Owner: General Counsel (Patricia Solis), Head of Data Engineering (Soren Beck), Customer Success Lead (Amara Diallo). Note: No dedicated privacy function, the CPO role is vacant following a departure in March 2024..",
+        "**Additional information would be needed to substantiate the stated benefit of benefits to the public** — 11 CCR § 7152(a)(4). On Crestline Workforce Analytics Corp.'s record, benefits to the public is not present on Crestline Workforce Analytics Corp.'s record. The gap is the § 7152(a) record cannot be relied upon for benefits to the public without further documentation. The regulation requires the following: Document benefits to the public in the assessment record with the specificity 11 CCR § 7152(a)(4) requires. Complete and retain the assessment record by December 31, 2027, the compliance date fixed by 11 CCR § 7155(b) for processing that was underway before the operative date; this is an ongoing obligation. Owner: General Counsel (Patricia Solis), Head of Data Engineering (Soren Beck), Customer Success Lead (Amara Diallo). Note: No dedicated privacy function, the CPO role is vacant following a departure in March 2024.."
+    ],
+    "attestation_block": {
+        "text": "This assessment must be reviewed and attested to by qualified legal counsel before operational reliance. The Company remains responsible for the accuracy of the underlying intake and for its determination under 11 CCR § 7152.",
+        "attested": false
+    },
+    "document_metadata": {
+        "tool": "cppa_risk_assessment",
+        "build_stamp": "replay-cppa-risk-harness-2026-07-30-item269#202cca35-3faa-4a19-9b79-d617d36dadc4",
+        "jurisdiction_tag": "cppa-ca",
+        "render_plan_version": "v1"
+    },
+    "executive_summary": "On the record as documented, 3 activities requiring assessment were assessed for this Risk Assessment. For Processing sensitive personal information, Using ADMT for a significant decision concerning a consumer, and Using ADMT for extensive profiling of a consumer, the record does not support the conclusion that the benefits outweigh the identified negative impacts; the safeguard gaps bearing on that outcome are set out below.",
+    "assessment_summary": {
+        "narrative": "Weighing the benefits identified in the record — Benefits to the business, Benefits to the consumer, and Benefits to other stakeholders — against the potential negative impacts — Unauthorized access, destruction, use, modification, or disclosure, Discrimination on protected characteristics, Impairing consumers' control over their personal information, Coercion or compulsion (including dark patterns), Economic harms, Reputational harms, and Psychological harms — and taking into account the safeguards described — Technical / architectural controls and External consultation / knowledge of emergent risks — the record supports the conclusion that the identified negative impacts, as documented, outweigh the stated benefits under the framework of 11 CCR § 7152(a).\n\nThe assessment record is complete against the documentation elements of 11 CCR § 7152(a)."
+    },
+    "information_needed": [
+        "The record does not yet include Decision whether to initiate the processing, which 11 CCR § 7152(a)(7) requires. To complete this assessment: Please confirm or provide additional detail regarding Decision whether to initiate the processing.",
+        "The record does not yet include Sufficiency of the safeguards, which 11 CCR § 7152(a)(6) requires. To complete this assessment: Please confirm or provide additional detail regarding Sufficiency of the safeguards."
+    ],
+    "record_sufficiency": [
+        "The record supporting this assessment is sufficient for the § 7152(a)(6) balancing frame to weigh. Crestline Workforce Analytics Corp. has documented the four factual elements § 7152(a) requires — the § 7152(a)(1) processing purpose, the § 7152(a)(2) categories of personal information, the § 7152(a)(3) operational elements, and the § 7152(a)(9) authorised approver — and has recorded reserved judgments for Decision whether to initiate the processing, Adequacy of the processing purpose statement, and Sufficiency of the safeguards, each attached to the specific record element the judgment governs. Reserved judgments are decisions the regulation reserves to the business and its qualified counsel under 11 CCR § 7152(a)(7), 11 CCR § 7152(a)(1), and 11 CCR § 7152(a)(6); they are not gaps in the record and do not diminish record sufficiency. Where a factual element is absent, the deficiency is enumerated in the safeguard-gaps section with its own pinpoint. As of 2026-07-30, the record is sufficient for the § 7152(a)(6) balancing frame to weigh.",
+        "Benefits to the business: present in the record as documented (11 CCR § 7152(a)(4)).",
+        "Benefits to the consumer: present in the record as documented (11 CCR § 7152(a)(4)).",
+        "Benefits to other stakeholders: present in the record as documented (11 CCR § 7152(a)(4)).",
+        "Unauthorized access, destruction, use, modification, or disclosure: present in the record as documented (11 CCR § 7152(a)(5)(A)).",
+        "Discrimination on protected characteristics: present in the record as documented (11 CCR § 7152(a)(5)(B)).",
+        "Impairing consumers' control over their personal information: present in the record as documented (11 CCR § 7152(a)(5)(C)).",
+        "Coercion or compulsion (including dark patterns): present in the record as documented (11 CCR § 7152(a)(5)(D)).",
+        "Economic harms: present in the record as documented (11 CCR § 7152(a)(5)(E)).",
+        "Reputational harms: present in the record as documented (11 CCR § 7152(a)(5)(G)).",
+        "Psychological harms: present in the record as documented (11 CCR § 7152(a)(5)(H)).",
+        "Technical / architectural controls: present in the record as documented (11 CCR § 7152(a)(6)(A)(i)).",
+        "External consultation / knowledge of emergent risks: present in the record as documented (11 CCR § 7152(a)(6)(A)(iii)).",
+        "Benefits to the public: not present in the record as documented (11 CCR § 7152(a)(4)).",
+        "Physical harms: not present in the record as documented (11 CCR § 7152(a)(5)(F)).",
+        "Privacy-enhancing technologies: not present in the record as documented (11 CCR § 7152(a)(6)(A)(ii)).",
+        "ADMT governance policies and training: not present in the record as documented (11 CCR § 7152(a)(6)(A)(iv))."
+    ],
+    "scope_and_triggers": [
+        "Not engaged — 11 CCR § 7150(b)(1) (Selling or sharing personal information): the record does not support this trigger.",
+        "Engaged — 11 CCR § 7150(b)(2) (Processing sensitive personal information): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+        "Engaged — 11 CCR § 7150(b)(3) (Using ADMT for a significant decision concerning a consumer): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+        "Engaged — 11 CCR § 7150(b)(4) (Using ADMT for extensive profiling of a consumer): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+        "Not engaged — 11 CCR § 7150(b)(5) (Training ADMT for significant decisions, extensive profiling, or physical/biological identification): the record does not support this trigger."
+    ],
+    "scope_confirmation": [
+        "Not engaged — 11 CCR § 7150(b)(1) (Selling or sharing personal information): the record does not support this trigger.",
+        "Engaged — 11 CCR § 7150(b)(2) (Processing sensitive personal information): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+        "Engaged — 11 CCR § 7150(b)(3) (Using ADMT for a significant decision concerning a consumer): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+        "Engaged — 11 CCR § 7150(b)(4) (Using ADMT for extensive profiling of a consumer): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+        "Not engaged — 11 CCR § 7150(b)(5) (Training ADMT for significant decisions, extensive profiling, or physical/biological identification): the record does not support this trigger."
+    ],
+    "submission_summary": "[§ 7121(a) phase-in schedule] Under 11 CCR § 7121(a), a business must complete its first cybersecurity audit report no later than one of three cohort deadlines fixed by the regulation: — Per § 7121(a)(1), April 1, 2028, if the business's annual gross revenue for 2026 was more than one hundred million dollars ($100,000,000) as of January 1, 2027; the audit would cover the period from January 1, 2027, through January 1, 2028. — Per § 7121(a)(2), April 1, 2029, if the business's annual gross revenue for 2027 was between fifty million dollars ($50,000,000) and one hundred million dollars ($100,000,000) as of January 1, 2028; the audit would cover the period from January 1, 2028, through January 1, 2029. — Per § 7121(a)(3), April 1, 2030, if the business's annual gross revenue for 2028 was less than fifty million dollars ($50,000,000); the audit would cover the period from January 1, 2029, through January 1, 2030. The customer, in consultation with qualified legal counsel, determines which tier its revenue places it in and calendars the corresponding deadline.\n\nSubmission postures under 11 CCR § 7120(b):\n\n§ 7120(b)(1) incorporates Civil Code § 1798.140(d)(1)(C), which applies when a business \"Derives 50 percent or more of its annual revenues from selling or sharing consumers’ personal information\". On the current record this threshold is not met.\n\n§ 7120(b)(2)(A) applies when a business \"Processed the personal information of 250,000 or more consumers or households in the preceding calendar year\". On the current record this threshold is not met.\n\n§ 7120(b)(2)(B) applies when a business \"Processed the sensitive personal information of 50,000 or more consumers in the preceding calendar year\". On the current record this threshold is not met.",
+    "enforcement_context": "No CPPA enforcement precedents are verified in the corpus at the time of this assessment. Enforcement context will be added when precedent rows are ingested and 40-character verbatim substring verified.",
+    "inconsistency_flags": [
+    ],
+    "framework_disclaimer": "This assessment is structured against the framework of the CCPA and its implementing regulations (11 CCR §§ 7150–7157). It is a documentation aid, not a legal opinion.",
+    "requires_attorney_review": true,
+    "risk_assessment_by_activity": [
+        "The assessment record is complete against the documentation elements of 11 CCR § 7152(a). Benefits to the business: Intake records workforce productivity measurement, performance benchmarking, applicant tracking, absence analytics, DEI reporting, and platform security as processing purposes; Crestline operates as a Technology/SaaS business with $25M–$50M. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(4). Benefits to the consumer: Intake records voluntary DEI self-identification data aggregation for reporting dashboards and structured interview scoring; performance quartile score is surfaced to HR managers, which may inform promotion eligibility decisions affecting c. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(4). Benefits to other stakeholders: Intake records enterprise clients as recipients of performance benchmarking and productivity measurement outputs; score informs promotion eligibility, PIP initiation, and reduction-in-force selection for client organizations. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(4). Unauthorized access, destruction, use, modification, or disclosure: Intake records SentimentIQ Inc. DPA not yet executed; Datadog records potential incidental exposure of PI in log data; Q4 2023 audit found 14 offboarded client accounts with data present beyond contracted retention window; cyberGaps recorde. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152. Discrimination on protected characteristics: Intake records no fairness testing conducted; two enterprise clients flagged lower average scores for non-native English speakers; NLP sentiment component training data provenance is unknown; no disparate-impact analysis performed; harm typ. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152. Impairing consumers' control over their personal information: Intake records acknowledgment banner does not enumerate all data types collected; notice content is some elements only; employee notice uses general privacy policy; no opt-out for selling/sharing; no ADMT opt-out; harm type Impairment of co. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(5). Coercion or compulsion (including dark patterns): Intake records endpoint monitoring agents installed on employer-provisioned devices; systematic observation of workers recorded; most clients remain on full-collection settings; requests from two enterprise clients to disable URL-level coll. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(5)(D). Economic harms: Intake records performance quartile score used by some enterprise clients for promotion eligibility, PIP initiation, and reduction-in-force selection; no technical control prevents automated PIP initiation; harm type Economic harm recorded. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(5)(E). Reputational harms: Intake records racial or ethnic origin and sexual orientation or gender identity among PI categories processed; performance quartile score surfaced to HR managers; harm type Reputational harm recorded; Crestline records limited visibility i. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(5)(G). Psychological harms: Intake records systematic observation of workers via endpoint monitoring agents collecting keystroke and application-usage data; performance quartile score aggregates six input dimensions; harm type Psychological harm recorded; likelihood r. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152(a)(5). Technical / architectural controls: Intake records DPAs in place with AWS (cloud infrastructure, us-west-2), Snowflake (analytics warehouse), and Datadog (application monitoring); platform does not enforce deletion automatically; no technical control prevents automated PIP in. The Agency's Final Statement of Reasons addresses this consideration: 11 CCR § 7152. External consultation / knowledge of emergent risks: Intake records outside counsel at Brant & Kelsey LLP conducted an initial CPPA threshold analysis in mid-2023; no follow-up engagement has occurred; no external technical consultant has reviewed the ADMT system. Weighing the benefits identified in the record — Benefits to the business, Benefits to the consumer, and Benefits to other stakeholders — against the potential negative impacts — Unauthorized access, destruction, use, modification, or disclosure, Discrimination on protected characteristics, Impairing consumers' control over their personal information, Coercion or compulsion (including dark patterns), Economic harms, Reputational harms, and Psychological harms — and taking into account the safeguards described — Technical / architectural controls and External consultation / knowledge of emergent risks — the record supports the conclusion that the identified negative impacts, as documented, outweigh the stated benefits under the framework of 11 CCR § 7152(a)."
+    ]
+}
