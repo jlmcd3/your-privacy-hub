@@ -53,6 +53,62 @@ const RISK_ENTRY_KEYS = [
   "status",
 ] as const;
 
+// ITEM 305 — allow-listed keys inside `activity_analytics[]`. The nested
+// deliverable records are serialized whole; this list covers the envelope
+// plus every leaf key emitted by
+// _shared/ltp/analytic-deliverables/build.ts.
+const ANALYTIC_ENTRY_KEYS = [
+  // envelope
+  "activity_id",
+  "activity_name",
+  "activity_purpose",
+  "is_primary",
+  "necessity_analysis",
+  "harm_causation",
+  "safeguard_map",
+  "weighing",
+  "consequence",
+  // shared leaves
+  "status",
+  "citation",
+  "information_needed",
+  // necessity_analysis[]
+  "element",
+  "asserted_status",
+  "verdict",
+  "justification",
+  // harm_causation[]
+  "harm_id",
+  "harm_pinpoint",
+  "harm_label",
+  "harm_verbatim",
+  "source",
+  "cause",
+  "likelihood",
+  "severity",
+  "inherent_band",
+  // safeguard_map[]
+  "safeguard",
+  "safeguard_status",
+  "residual_band",
+  // weighing[]
+  "beneficiary_class",
+  "benefit_statement",
+  "generic_benefit_flag",
+  "offsetting_harm_ids",
+  "sufficiency",
+  // consequence
+  "decision",
+  "rule_ids",
+  "reasons",
+  "conditions",
+  "approver_name",
+  "approver_position",
+  "approval_date",
+  "approval_recorded",
+] as const;
+
+
 export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
   version: "rs-w1-2026-07-26-ltp-waveb-summary",
   tool: "cppa_risk_assessment",
