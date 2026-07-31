@@ -139,6 +139,16 @@ const GovernanceAssessment = () => {
   // R1a: optional free-text catch-all rendered on the final input step.
   const [additionalContext, setAdditionalContext] = useState("");
 
+  // ITEM 313 — Art. 24(1) inputs: review cadence + last review date (second
+  // sentence), and the four factors Art. 24(1) names for risk calibration.
+  const [measuresReviewCadence, setMeasuresReviewCadence] = useState("");
+  const [measuresLastReviewDate, setMeasuresLastReviewDate] = useState("");
+  const [processingNature, setProcessingNature] = useState("");
+  const [processingScope, setProcessingScope] = useState("");
+  const [processingContext, setProcessingContext] = useState("");
+  const [processingPurposes, setProcessingPurposes] = useState("");
+
+
   const orgSizeNum = useMemo(() => {
     if (orgSize === "1-10" || orgSize === "11-50") return "small";
     return "large";
