@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T11:19Z (Item 312 — Chapter 8 ir-playbook rebuild: Art. 33(1) SA-notification determination, the SEPARATE Art. 34(1) high-risk test, all three Art. 34(3) exemption limbs, and Art. 33(3)(a)-(d) content/owner mapping with the Art. 33(4) phasing plan and Art. 33(5) record, in `_shared/ltp/ir-playbook-deliverables/`; Op. 1 clock/deadline arithmetic and Op. 5 timing/owner logic preserved untouched; five intake extensions + form fields; three golden cases in the same turn; 26/26 tests; NO deploy, NO harness invocation, NO ingestion.)
+**Last updated:** 2026-07-31T11:18Z (Item 312 — Chapter 8 ir-playbook rebuild: Art. 33(1) SA-notification determination, the SEPARATE Art. 34(1) high-risk test, all three Art. 34(3) exemption limbs, and Art. 33(3)(a)-(d) content/owner mapping with the Art. 33(4) phasing plan and Art. 33(5) record, in `_shared/ltp/ir-playbook-deliverables/`; Op. 1 clock/deadline arithmetic and Op. 5 timing/owner logic preserved untouched; five intake extensions + form fields; three golden cases in the same turn; 26/26 tests; NO deploy, NO harness invocation, NO ingestion.)
 
 ---
 
