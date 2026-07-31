@@ -124,7 +124,16 @@ export interface RenderPlan {
   readonly weighing_frame: readonly WeighingFrameEntry[];
   readonly gate_outcomes: readonly GateRuleOutcome[];
   readonly conservative_write_around: ConservativeWriteAround;
+  /**
+   * ITEM 305 — per-activity ANALYTIC DELIVERABLES (cppa-risk only).
+   * Optional so existing plan constructors for other products remain
+   * valid. Typed loosely here to keep the shared plan schema free of a
+   * product-specific import; the authoritative shape is
+   * `../ltp/analytic-deliverables/types.ts` → ActivityAnalytics[].
+   */
+  readonly activity_analytics?: readonly Record<string, unknown>[];
 }
+
 
 /** Words forbidden in Pass-2 output when the plan is CPPA-domain only. */
 export const FORBIDDEN_COMPARATIVE_TOKENS: readonly string[] = [
