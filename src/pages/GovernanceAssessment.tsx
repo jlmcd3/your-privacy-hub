@@ -663,7 +663,39 @@ const GovernanceAssessment = () => {
                   <div className="mt-3"><Label>Which controls are in place?</Label><div className="mt-2"><Pills options={["DLP rules","Content filtering","Endpoint upload restrictions","Prompt-injection detection","Approval workflow"]} value={technicalControlsList} onChange={setTechnicalControlsList} /></div></div>
                 )}
               </div>
+              {/* ITEM 313 — Art. 24(1): risk-calibration factors + the review-and-update sentence. */}
+              <div className="pt-2 border-t space-y-4">
+                <div>
+                  <Label>Q16b: How often is the technical and organisational measure set reviewed? <span className="text-xs text-muted-foreground font-mono">(Art. 24(1) GDPR — "Those measures shall be reviewed and updated where necessary")</span></Label>
+                  <div className="mt-2"><Radio name="review_cadence" options={["Annually or more often", "Every 1–2 years", "Less often than every 2 years", "On material change only", "No defined cadence", "Unsure"]} value={measuresReviewCadence} onChange={setMeasuresReviewCadence} /></div>
+                </div>
+                <div>
+                  <Label htmlFor="measures_last_review_date">Q16c: Date the measures were last reviewed</Label>
+                  <Input id="measures_last_review_date" type="date" className="mt-2" value={measuresLastReviewDate} onChange={(e) => setMeasuresLastReviewDate(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="processing_nature">Q16d: Nature of the processing <span className="text-xs text-muted-foreground font-mono">(Art. 24(1) GDPR)</span></Label>
+                  <p className="text-xs text-muted-foreground mt-1">What is done to the data — collection, profiling, monitoring, automated decisions, disclosure.</p>
+                  <textarea id="processing_nature" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingNature} onChange={(e) => setProcessingNature(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="processing_scope">Q16e: Scope of the processing</Label>
+                  <p className="text-xs text-muted-foreground mt-1">How much, how many data subjects, how often, over what geography and retention period.</p>
+                  <textarea id="processing_scope" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingScope} onChange={(e) => setProcessingScope(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="processing_context">Q16f: Context of the processing</Label>
+                  <p className="text-xs text-muted-foreground mt-1">The relationship with the data subjects, their expectations, any imbalance of power, vulnerability.</p>
+                  <textarea id="processing_context" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingContext} onChange={(e) => setProcessingContext(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="processing_purposes">Q16g: Purposes of the processing</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Why the data is processed, stated specifically enough to test necessity against.</p>
+                  <textarea id="processing_purposes" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingPurposes} onChange={(e) => setProcessingPurposes(e.target.value)} />
+                </div>
+              </div>
             </>
+
           )}
 
           {step === 5 && showStep5 && (
