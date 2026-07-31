@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T05:47Z (Item 301 — EDPB/WP29 guidance-layer audit; zero rows written, all three documents version-current, ir-playbook wired / dpia semantic-only / lia constant-authoritative; no engine code, no deploy.)
+**Last updated:** 2026-07-31T06:13Z (Item 302 — UK GDPR divergence twins; 19 `provision_texts` rows written (13 promotions + 6 fresh), ZERO mirrors — every Wave-3 article diverges; UK Arts. 22 and 44 confirmed REPEALED not missing, 22A–22D ingested; no engine code, no deploy.)
 
 ---
 
