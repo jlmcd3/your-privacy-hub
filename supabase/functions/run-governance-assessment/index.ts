@@ -1399,6 +1399,30 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] GOVERNANCE-T6-FIX post-pass failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 313 — GOVERNANCE ANALYTIC DELIVERABLES (single-writer) ────
+    // Deterministic builder for the Art. 5(2)/24(1) accountability
+    // determination, demonstrability findings, the Art. 30(1)(a)-(g) element
+    // walk plus the Art. 30(5) exemption, the Art. 37/38/39 DPO determination,
+    // and the Art. 24(1) risk-calibration and review-and-update findings.
+    // DEMOTION LAW: this pass also removes `overall_readiness_rating` /
+    // `readiness_rationale` from the headline and re-emits the tier as a
+    // labelled non-statutory readability aid. Fail-open.
+    try {
+      const { attachGovernanceDeliverables } = await import("../_shared/ltp/governance-deliverables/build.ts");
+      const govTelemetry = attachGovernanceDeliverables(
+        reportData as Record<string, unknown>,
+        ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
+      );
+      (reportData as any)._meta = {
+        ...((reportData as any)._meta ?? {}),
+        internal: { ...(((reportData as any)._meta ?? {}).internal ?? {}), governance_item313: govTelemetry },
+      };
+    } catch (e) {
+      console.warn("[run-governance-assessment] ITEM 313 deliverables failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
     // Runs AFTER the wire post-pass and BEFORE the P2 serializer so gate
     // telemetry rides `_meta.internal`. Fail-visible; never blocks.
