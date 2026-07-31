@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-30T23:46Z (Item 297 — fleet-wide product-requirements analysis + juxtaposition delivered; docs-only, no code change.)
+**Last updated:** 2026-07-31T01:01Z (Item 298 — CPPA cybersecurity-audit corpus ingestion §§ 7122–7124 + cyber corpus-pin test; no engine code, no deploy.)
 
 ---
 
@@ -7102,3 +7102,27 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK.** Diff limited to the deliverable, the courier, and this ledger. No code, no deploy, no harness invocation, no prompt drafting; database access read-only.
 
 **Disposition:** DELIVERED — CEO read open. Prompt drafting remains gated behind the ingest queue above and the Item 295 ANALYSIS-DUTY ruling.
+
+----
+
+## Item 298 — CORPUS INGESTION: CPPA CYBERSECURITY-AUDIT CONTENT PROVISIONS (2026-07-31T01:01Z)
+
+**Authority:** CEO corpus approval 2026-07-31 of the INGESTION-PROMPTS-2026-07-31 inventory (prompt 1 of 7; launch order 1→7→2→3→4→5→6); Plan §6.1; Item 282 (§§ 7122–7124 recorded ABSENT); Item 297 blocking ingest queue entry (2).
+
+**SOURCE HASH: PASS.** OAL-approved regulations PDF re-fetched and digested — computed SHA-256 equals the pinned `7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650`. No source drift. The controller's page-56 fetch truncation did not reproduce on the executor side; §§ 7122–7124 were read from the primary text, not a secondary source.
+
+**INGESTED (status `approved`, jurisdiction `US-CA`):** `cppa-7122` (Thoroughness and Independence; 3,991 chars, 10 plain requirements), `cppa-7123` (Scope of Audit and Audit Report; 15,371 chars, 13), `cppa-7124` (Certification of Completion; 2,190 chars, 6). Subsection typography preserved verbatim; only running headers/footers stripped. Each row read back from the database and diffed against the local PDF extract — **IDENTICAL, all three**.
+
+**JURISDICTION DEVIATION (open for ratification):** dispatch specified `cppa-ca`; every pre-existing CPPA row uses `US-CA` and the provision store keys on it, so ingesting as `cppa-ca` would have created an unreachable partition. Rows ingested as `US-CA`. One-line re-key available on order.
+
+**§ 7120 / § 7121 VERIFICATION: NO SHORTFALL.** `cppa-7120` carries the full § 7120(b) threshold structure including both (b)(2)(A) 250,000-consumer and (b)(2)(B) 50,000-sensitive-PI operands; `cppa-7121` carries all three § 7121(a) cohorts with dollar figures intact. Recorded typographical-only deviation: both rows use ASCII apostrophes where the PDF uses U+2019 — hence typography normalization in the pin test.
+
+**LOOP2 ANCHORS — SIX OF SIX CONFIRMED against the executor's own fetch.** (c)(10) segmentation is a standalone component and "zero trust" appears nowhere in the article; (c)(12) awareness and (c)(13) education-and-training are two distinct components; (d) is permissive, not mandatory; § 7123(e) auditor reporting duty is distinct from the business's remediation plan. **Two corrections to the loop2 record:** (1) § 7122(g) is NOT ambiguous — the enacted text fixes the anchor as "after completion of the cybersecurity audit"; reviewer row `6efe1922` should be reclassified resolved. (2) § 7123(c)(11) **paraphrase confirmed as generator invention** — enacted text is exactly "Limitation and control of ports, services, and protocols."; the phrase "permitted, restricted, or blocked" occurs zero times in the 127-page document.
+
+**PIN TESTS.** New cyber twin `src/registry/__tests__/cppa-cyber-corpus-pin.test.ts` — positive pins for the four § 7120(b) threshold operands, all three § 7121(a) cohort boundaries (dollar figures verbatim), § 7122(g) retention, § 7122(d) management-assertion bar, § 7123(c)(10)/(c)(11)/(c)(12)/(c)(13)/(d), and the § 7124(b) April 1 deadline — definitional sentences only, no illustrative examples. Negative pins block `zero[- ]trust` and `permitted, restricted, or blocked` from ever appearing in cyber corpus text. `registry-corpus-pin.test.ts` left untouched (Deno-resident, § 7150(b)-scoped). **Result: 1/1 PASSED.**
+
+**COURIER.** `docs/courier/ITEM298-CYBER-INGEST-2026-07-31.md`.
+
+**DOUBLE-CHECK.** Diff limited to the new pin test, the courier, and this ledger; rows written to `provision_texts` only. No engine, emitter, validator, or config file modified; no function deployed; no harness invoked.
+
+**Disposition:** COMPLETE — awaiting controller verification against the prompt's own pin tests before prompt 7 dispatches. Open items: jurisdiction-key ratification; § 7123(c)(11) generator paraphrase needs its own dispatch (out of scope here).
