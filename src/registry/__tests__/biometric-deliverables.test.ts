@@ -262,7 +262,7 @@ describe("Item 317 — per-duty analysis shape", () => {
 describe("Item 317 — divergence analysis", () => {
   it("names the CUBI one-year clock as having no BIPA or RCW 19.375 analogue", () => {
     const d = buildBiometricDeliverables(PERFECT_MULTI());
-    const clock = d.divergence_analysis.find((x) => /year/i.test(x.topic) || x.key.includes("retention"));
+    const clock = d.divergence_analysis.find((x) => x.key === "destruction_clock");
     expect(clock).toBeDefined();
     expect(clock!.positions.length).toBeGreaterThan(1);
     for (const p of clock!.positions) expect(p.standard.length).toBeGreaterThan(10);
