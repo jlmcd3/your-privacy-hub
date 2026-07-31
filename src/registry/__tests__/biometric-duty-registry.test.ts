@@ -49,10 +49,12 @@ describe("biometric duty registry — offline corpus pin", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("the un-ingested private right of action is never quoted", () => {
+  it("the un-ingested BIPA private right of action is never quoted", () => {
     expect(BIPA_PRA_CORPUS_STATUS.ingested).toBe(false);
+    // TX § 503.001(d) and RCW 19.375.030 ARE in corpus and may carry
+    // enforcement rows. Illinois must not: 740 ILCS 14/20 was never ingested.
     for (const r of BIOMETRIC_DUTY_ROWS) {
-      expect(r.kind).not.toBe("enforcement");
+      if (r.statute_key === "us_il_bipa") expect(r.kind).not.toBe("enforcement");
     }
   });
 
