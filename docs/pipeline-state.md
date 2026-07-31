@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T10:22Z (Item 309 — cppa-admt fixture unblock: fifth "Perfect Data" golden case `admt-hr-perfect-record` supplying every Item 308 intake addition, plus a fixture guard running the quality batch's own `validateIntake` + `cppaAdmtContract` over all five cases; ANALYSED path pinned off the `record_insufficient` fallback; 16/16 tests, typecheck clean; NO deploy, NO harness invocation, NO ingestion.)
+**Last updated:** 2026-07-31T10:42Z (Item 310 — Chapter 6 dpia rebuild: four analytic deliverables (necessity PERFORMED, proportionality SPLIT OUT, risk register, Art. 36 determination reasoned from residual bands) in `_shared/ltp/dpia-deliverables/`, Art. 35(9)/36(1)/36(3) anchored out of the write-around list, `alternatives_considered` intake extension + form repeater, `dpia-perfect-record` golden case and validateIntake guard in the same turn; 19/19 tests, typecheck clean; NO deploy, NO harness invocation, NO ingestion.)
 
 ---
 
@@ -7369,3 +7369,27 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **HONEST LIMIT.** This restores *measurability*, not a *measurement* — no benchmark was run (harness invocation is forbidden by the dispatch), so the ANALYSED path's quality remains unscored. The § 7222 access-response adequacy surface from Item 307 §6 stays OPEN and UNSCHEDULED.
 
 **Disposition:** COMPLETE — awaiting controller verification. Not deployed. Next per dispatch: Chapter 6 (dpia) rebuild.
+
+## Item 310 — CHAPTER 6 REBUILD: dpia (2026-07-31T10:42Z)
+
+**Authority:** CEO directive 2026-07-31 (overnight autonomous-continuation instruction), controller dispatch ITEM 310. **NO deploy, NO harness invocation, NO corpus ingestion.** Courier: `docs/courier/ITEM310-DPIA-REBUILD-2026-07-31.md`.
+
+**THE DEFECT.** Chapter 6 found Op. 1 (Art. 35(3) triggers) already PERFORMING — preserved untouched. Op. 2 (necessity) only RECITED: `completion_guidance` named the exact comparison and then asked the customer to run it. Op. 3 (proportionality) was OMITTED, merged into necessity, though the product's own `guidance_note` treats them as distinct tests. Op. 4 (risk register) RECITED. Op. 5 gave Art. 36 prior consultation no consideration at all.
+
+**COLLECT THE ANSWER, DON'T PROMPT LOUDER.** The record could not support the least-intrusive-means test because the intake never asked which alternatives were actually considered and rejected. `alternatives_considered` (structured: operation / alternative / rejection reason) added to the contract and surfaced as a repeater in `DPIAFramework.tsx` beneath the Art. 35(7)(b) narrative. Art. 35(9) views status and Art. 35(2) DPO advice already existed on the contract and form — they are now **read by the builder** rather than merely rendered.
+
+**FOUR DELIVERABLES, PURE BUILDERS.** `_shared/ltp/dpia-deliverables/{types,elements,build}.ts`, same architecture as Items 305/306 and 308/309. Necessity is now performed: a rejection reason turning only on usefulness, speed or cost returns `less_intrusive_alternative_available` rather than accepting the controller's conclusion; a listed alternative with no rejection reason is not a comparison and degrades. Proportionality is its own deliverable requiring **both directions** argued — benefit-only is undetermined, never proportionate. The risk register emits only triggered risks with likelihood/severity/residual, degrading each entry with a risk-specific `information_needed` rather than one generic sentence eight times. Art. 36 is **reasoned from** the register's residual bands, not re-derived, so it cannot contradict the risk table printed above it; an empty register is `undetermined_on_the_record` — the engine will not say "not required" from silence.
+
+**REUSE LAW + WRITE-AROUND RETIREMENT.** Art. 35(9), 36(1) and 36(3) rows added to `dpia-verified-authorities.ts` verbatim from corpus promoted in Item 300, and both `prior_consultation_art_36` and `consultation_of_data_subjects_35_9` **removed from `DPIA_UNANCHORED_PROPOSITIONS`** — anchoring a proposition while leaving it on the write-around list would let unanchored prose keep shipping. The pin test asserts byte-identity between every emitted `authority_verbatim` and its registry row, so a future paraphrase fails the build.
+
+**SEPARATION GUARD.** Item 308's mechanical-relocation pattern applied to the Art. 36 determination: enforcement-exposure sentences (fines, Art. 83) are moved out of the obligation finding into a separate exposure note, with repairs counted. An obligation finding that argues from the size of the fine is arguing from consequence, not from the statute.
+
+**SERIALIZER.** The four new top-level keys were added to `DPIA_REPORT_SCHEMA.topLevel` in the same turn — the wave-21 telemetry-gap lesson applied at authoring time rather than after a lost measurement.
+
+**FIXTURE UNBLOCK IN THE SAME TURN.** `dpia-perfect-record` appended to `_shared/golden/dpia.ts` — an occupational-health absence-triage record with two alternatives rejected on purpose-defeat grounds (not convenience), DPO advice naming changes made before finalisation, and works-council views recording the concern actually raised. The three existing cases keep their degraded and adversarial postures. `src/registry/__tests__/dpia-deliverables.test.ts` — **19/19 passing, typecheck clean** — traces the quality batch's own `validateIntake` + `dpiaFrameworkContract` over every golden case, the actual predicate rather than a proxy.
+
+**JUDGMENT CALLS (four-team lens, unanimous, no splits).** Necessity asks whether a less intrusive route reaches the *same* purpose (comparison); proportionality asks whether the benefit justifies the impact *given that none does* (weighing). Art. 36 reads the register rather than re-deriving risk.
+
+**HONEST LIMIT.** Measurability restored, **no measurement taken** — harness invocation is forbidden by the dispatch, so the ANALYSED path's quality is unscored. Op. 1 was preserved as-is and not re-verified.
+
+**Disposition:** COMPLETE — awaiting controller verification. Not deployed.
