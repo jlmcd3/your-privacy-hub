@@ -36,6 +36,12 @@ export const DPIA_REPORT_SCHEMA: ReportSchema = {
     "supervisory_authority_consultation",
     "jurisdiction_validation",
     "gdpr_meta",
+    // ITEM 310 — dpia analytic deliverables (single-writer, deterministic)
+    "necessity_findings",
+    "proportionality",
+    "risk_register",
+    "art36_consultation",
+
     // Cross-cutting arrays / bookkeeping
     "annotations",
     "information_needed",
