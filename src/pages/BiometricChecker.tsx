@@ -66,6 +66,31 @@ export default function BiometricChecker() {
     // W3-T3 — optional text: which US state(s) when "Other US state" is
     // selected. Sent as `other_state_names`; blank when the toggle is off.
     other_state_names: "",
+    // ITEM 317 — practice facts each state statute's duties are measured
+    // against. Every one is optional; blank degrades to record_insufficient
+    // in the deliverables builder rather than being assumed either way.
+    data_source_description: "",
+    healthcare_tpo_context: "",
+    entity_is_government: "",
+    glba_financial_institution: "",
+    notice_before_collection: "",
+    consent_artifact_type: "",
+    release_artifact_description: "",
+    retention_schedule_text: "",
+    retention_policy_public: "",
+    destruction_trigger: "",
+    sells_or_profits: "",
+    disclosure_recipients: "",
+    disclosure_bases: [] as string[],
+    security_measures_description: "",
+    protection_parity: "",
+    tx_destruction_within_one_year: "",
+    tx_longer_retention_required_by_law: "",
+    tx_employer_security_collection: "",
+    tx_ai_training_use: "",
+    wa_enrolls_in_database: "",
+    wa_commercial_purpose: "",
+    wa_security_purpose_only: "",
   });
 
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
