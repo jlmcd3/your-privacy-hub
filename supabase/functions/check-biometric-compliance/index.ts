@@ -22,6 +22,11 @@ import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+// ITEM 317 — deterministic biometric analytic deliverables (pure builder).
+import {
+  buildBiometricDeliverables,
+  type BiometricIntakeForDeliverables,
+} from "../_shared/ltp/biometric-deliverables/build.ts";
 import {
   selectApplicableRows,
   resolveJurisdictions,
