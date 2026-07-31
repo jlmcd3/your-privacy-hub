@@ -74,6 +74,38 @@ export interface IntakeData {
   // deployer registration for high-risk AI; Art. 37(1)(a) DPO). Provider
   // Art. 49(1) duties are independent of this flag.
   is_public_authority?: boolean;
+
+  // ── ITEM 316 intake extension (2026-07-31) ──────────────────────────────
+  // The counts each data-broker statute's threshold ACTUALLY uses, replacing
+  // reliance on the generic `organization_size` band. These are read by
+  // _shared/ltp/registration-deliverables/build.ts, not by the legacy rules
+  // below, which are left undisturbed.
+  //
+  //  * brokered_data_individual_count      — Tex. Bus. & Com. Code § 510.003(a)(2)
+  //                                          ("more than 50,000 individuals").
+  //  * brokered_data_revenue_share_pct     — § 510.003(a)(1) ("more than 50 percent").
+  //  * collects_data_not_directly_from_individuals
+  //                                        — the indirect-collection limb common
+  //                                          to CA/OR/TX/VT, each in its own words.
+  //  * has_direct_relationship_with_data_subjects
+  //                                        — the CA § 1798.99.80(c) and VT
+  //                                          § 2430(4)(A) carve-out. Oregon has NO
+  //                                          such carve-out; the field is recorded
+  //                                          for OR but does not defeat the duty.
+  //  * sells_or_licenses_brokered_data     — VT and OR reach LICENSING, not only sale.
+  //  * data_broker_exemption_claimed       — a claimed statutory exclusion. Recorded
+  //                                          and analysed, never auto-accepted.
+  //  * filing_* flags                      — filing-content readiness, per the
+  //                                          jurisdiction's own required-contents list.
+  brokered_data_individual_count?: number;
+  brokered_data_revenue_share_pct?: number;
+  collects_data_not_directly_from_individuals?: boolean;
+  has_direct_relationship_with_data_subjects?: boolean;
+  sells_or_licenses_brokered_data?: boolean;
+  data_broker_exemption_claimed?: string;
+  filing_contact_details_ready?: boolean;
+  filing_opt_out_mechanism_documented?: boolean;
+  filing_minors_data_practices_documented?: boolean;
 }
 
 export interface RecommendedJurisdiction {

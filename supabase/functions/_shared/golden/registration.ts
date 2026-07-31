@@ -114,4 +114,126 @@ export const REGISTRATION_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "Chapter III|Arts?\\.?\\s*26", flags: "i", label: "Chapter III deployer duties still cited" },
     ],
   },
+
+  // ── ITEM 316 — fixture unblock for the rebuilt registration engine ──────
+  // The three cases above predate the data-broker deliverables and supply
+  // NONE of the fields the Item 316 threshold analysis reads, so they can
+  // only ever produce `record_insufficient` on the state determinations.
+  // The three cases below make the product measurable: two states that must
+  // register, a Texas case that turns on the volume limb alone, and a
+  // not-registrable case that fails on the direct-relationship limb. Each is
+  // a specific organisation with specific numbers, not a generic shell.
+  {
+    id: "reg-ca-vt-broker-perfect-record",
+    tool: "registration",
+    set: "tuning",
+    intake: {
+      ...base,
+      organization_name: "Halyard Audience Data LLC",
+      organization_country: "US",
+      organization_size: "medium" as const,
+      employee_count: 140,
+      industry: "AdTech / MarTech",
+      role: "controller" as const,
+      has_uk_establishment: false,
+      has_eu_establishment: false,
+      markets_served: ["US-CA", "US-VT"],
+      acts_as_data_broker: true,
+      sells_or_shares_personal_info: true,
+      // Item 316 threshold fields — the CA/VT limbs in full.
+      collects_data_not_directly_from_individuals: true,
+      has_direct_relationship_with_data_subjects: false,
+      sells_or_licenses_brokered_data: true,
+      brokered_data_individual_count: 4_200_000,
+      brokered_data_revenue_share_pct: 88,
+      data_broker_exemption_claimed: "none",
+      filing_contact_details_ready: true,
+      filing_opt_out_mechanism_documented: true,
+      filing_minors_data_practices_documented: true,
+      processes_children_data: false,
+      processes_special_categories: false,
+      large_scale_monitoring: true,
+    },
+    assertions: [
+      { kind: "must_include", pattern: "1798\\.99\\.82", flags: "i", label: "CA registration provision cited" },
+      { kind: "must_include", pattern: "2446", flags: "i", label: "VT registration provision cited" },
+      { kind: "must_include", pattern: "direct relationship", flags: "i", label: "the deciding limb is named, not just the verdict" },
+      { kind: "must_not_include", pattern: "646A\\.593|510\\.005", flags: "i", label: "no Oregon or Texas bleed into a CA/VT record" },
+    ],
+  },
+  {
+    id: "reg-tx-volume-limb-tuning",
+    tool: "registration",
+    set: "tuning",
+    intake: {
+      ...base,
+      organization_name: "Brazos Identity Resolution Inc.",
+      organization_country: "US",
+      organization_size: "small" as const,
+      employee_count: 38,
+      industry: "SaaS / Software",
+      role: "controller" as const,
+      has_uk_establishment: false,
+      has_eu_establishment: false,
+      markets_served: ["US-TX"],
+      acts_as_data_broker: false,
+      sells_or_shares_personal_info: false,
+      // TX reaches PROCESSING and TRANSFER, not sale — and this record has a
+      // direct relationship with its data subjects, which would defeat CA and
+      // VT but is irrelevant in Texas. Revenue share is below 50%, so the
+      // determination must turn on the 50,000-individual volume limb alone.
+      collects_data_not_directly_from_individuals: true,
+      has_direct_relationship_with_data_subjects: true,
+      sells_or_licenses_brokered_data: false,
+      brokered_data_individual_count: 310_000,
+      brokered_data_revenue_share_pct: 31,
+      data_broker_exemption_claimed: "none",
+      filing_contact_details_ready: true,
+      large_scale_monitoring: false,
+      processes_special_categories: false,
+    },
+    assertions: [
+      { kind: "must_include", pattern: "510\\.003", flags: "i", label: "TX applicability test cited" },
+      { kind: "must_include", pattern: "50,000", flags: "i", label: "the volume limb is quoted, not summarised" },
+      { kind: "must_include", pattern: "\\$300", flags: "i", label: "TX statutory fee stated verbatim" },
+      { kind: "must_not_include", pattern: "1798\\.99\\.8|2430|646A", flags: "i", label: "no other state's threshold cited on a TX-only record" },
+    ],
+  },
+  {
+    id: "reg-ca-not-registrable-adversarial",
+    tool: "registration",
+    set: "adversarial",
+    intake: {
+      ...base,
+      organization_name: "Trailhead Outfitters Co.",
+      organization_country: "US",
+      organization_size: "medium" as const,
+      employee_count: 220,
+      industry: "E-commerce",
+      role: "controller" as const,
+      has_uk_establishment: false,
+      has_eu_establishment: false,
+      markets_served: ["US-CA"],
+      // Adversarial: LOOKS like a broker on the legacy CCPA flag (it shares
+      // data for cross-context advertising) but has a direct customer
+      // relationship and collects directly, so the CA definition FAILS. The
+      // engine must return not_registrable and say which limb decided it,
+      // rather than treating "sells or shares" as dispositive.
+      acts_as_data_broker: false,
+      sells_or_shares_personal_info: true,
+      collects_data_not_directly_from_individuals: false,
+      has_direct_relationship_with_data_subjects: true,
+      sells_or_licenses_brokered_data: true,
+      brokered_data_individual_count: 900_000,
+      brokered_data_revenue_share_pct: 4,
+      data_broker_exemption_claimed: "none",
+      large_scale_monitoring: false,
+      processes_special_categories: false,
+    },
+    assertions: [
+      { kind: "must_include", pattern: "not required to register|No registration duty", flags: "i", label: "negative determination reached, not omitted" },
+      { kind: "must_include", pattern: "direct relationship", flags: "i", label: "the limb that defeated the duty is named" },
+      { kind: "must_not_include", pattern: "on or before January 31", flags: "i", label: "no filing schedule surfaced where no duty attaches" },
+    ],
+  },
 ];
