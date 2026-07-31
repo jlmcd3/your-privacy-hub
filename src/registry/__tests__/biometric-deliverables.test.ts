@@ -369,8 +369,8 @@ describe("Item 317 — contract guard", () => {
         biometricCheckerContract,
         goldenIntake(id) as Record<string, unknown>,
       );
-      expect(res.missing_required ?? []).toEqual([]);
-      expect(res.invalid_enum_values ?? []).toEqual([]);
+      expect(res.violations).toEqual([]);
+      expect(res.ok).toBe(true);
     }
   });
 });
