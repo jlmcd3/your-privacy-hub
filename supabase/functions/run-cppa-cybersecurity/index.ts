@@ -1641,7 +1641,10 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       const { attachCyberDeliverables } = await import(
         "../_shared/ltp/cppa-cyber-deliverables/build.ts"
       );
-      const item315 = attachCyberDeliverables(report as any, intake as any);
+      const item315 = attachCyberDeliverables(
+        report as any,
+        ((row as any).intake_data as Record<string, unknown>) ?? {},
+      );
       console.log(JSON.stringify({
         evt: "item315_cyber_deliverables_attached",
         build_stamp: BUILD_STAMP,
