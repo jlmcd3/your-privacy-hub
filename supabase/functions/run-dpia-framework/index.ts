@@ -2214,7 +2214,9 @@ async function runStitch(dpia_id: string): Promise<void> {
         reportData as Record<string, unknown>,
         (dpiaIntake ?? {}) as Record<string, unknown>,
       );
-      ((reportData as any)._meta ??= {}).dpia_deliverables = dmeta;
+      const _m = ((reportData as any)._meta ??= {});
+      (_m.internal ??= {}).dpia_deliverables = dmeta;
+
       console.log(JSON.stringify({ evt: "_dpia_deliverables", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...dmeta }));
     } catch (e) {
       console.warn("[run-dpia-framework] ITEM-310 deliverables failed (non-fatal):", (e as Error)?.message);
