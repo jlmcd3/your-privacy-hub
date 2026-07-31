@@ -37,6 +37,12 @@ export const JURISDICTIONS = [
 const REASONABLE_EXPECTATION_OPTS = ["Yes", "Partly", "No"] as const;
 const POTENTIAL_HARM_OPTS = ["None / negligible", "Minor", "Moderate", "Severe"] as const;
 
+// ITEM 311 additions — Art. 6(1)(f) child clause and second subparagraph.
+const CHILD_DATA_SUBJECT_OPTS = ["Yes", "No", "Unknown"] as const;
+const PUBLIC_AUTHORITY_OPTS = ["Yes", "No"] as const;
+const PUBLIC_TASK_OPTS = ["Yes", "No", "Not applicable"] as const;
+
+
 /** Stage A — the row inserted at preview time (LIAssessment.tsx ~L158). */
 export const liAssessmentStageAContract: IntakeContract = {
   tool_type: "li_assessment_stage_a",
@@ -79,6 +85,14 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "purpose_details.interest_statement",       kind: "narrative",  required: "optional" },
     { key: "purpose_details.interest_holder_other",    kind: "text",       required: "optional" },
     { key: "purpose_details.interest_type_other",      kind: "text",       required: "optional" },
+    // ITEM 311 — Art. 6(1)(f) second subparagraph. The exclusion is decided
+    // BEFORE the balance is reached, so the record has to carry it. Optional
+    // at contract level; the builder degrades loudly when it is absent.
+    { key: "purpose_details.controller_is_public_authority", kind: "enum", required: "optional",
+      options: PUBLIC_AUTHORITY_OPTS },
+    { key: "purpose_details.public_task_processing",   kind: "enum",       required: "optional",
+      options: PUBLIC_TASK_OPTS },
+
 
     // necessity_details
     { key: "necessity_details",                        kind: "structured", required: "always" },
@@ -94,12 +108,23 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "balancing_details",                              kind: "structured", required: "always" },
     { key: "balancing_details.reasonable_expectation",       kind: "enum",       required: "always", options: REASONABLE_EXPECTATION_OPTS },
     { key: "balancing_details.reasonable_expectation_detail", kind: "narrative", required: "optional" },
+    // ITEM 311 — Recital 47 runs on the TIME AND CONTEXT OF COLLECTION, which
+    // the enum answer above does not supply. Optional at contract level; the
+    // builder degrades loudly with a named ask when it is absent.
+    { key: "balancing_details.collection_context",           kind: "narrative",  required: "optional" },
     { key: "balancing_details.vulnerable_subjects",          kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L127
     { key: "balancing_details.vulnerable_subjects_other",    kind: "text",       required: "optional" },
+    // ITEM 311 — Art. 6(1)(f) "in particular where the data subject is a child".
+    { key: "balancing_details.children_data_subjects",       kind: "enum",       required: "optional", options: CHILD_DATA_SUBJECT_OPTS },
+
     { key: "balancing_details.potential_harm",               kind: "enum",       required: "always", options: POTENTIAL_HARM_OPTS },
     { key: "balancing_details.potential_harm_detail",        kind: "narrative",  required: "optional" },
     { key: "balancing_details.safeguards",                   kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L129
     { key: "balancing_details.safeguards_other",             kind: "text",       required: "optional" },
+    // ITEM 311 — measures offered as MITIGATIONS. EDPB 1/2024 II.C.4 excludes
+    // measures the GDPR already requires; the builder classifies each entry.
+    { key: "balancing_details.additional_mitigations",       kind: "narrative",  required: "optional" },
+
     { key: "balancing_details.opt_out_mechanism",            kind: "narrative",  required: "always" },
     { key: "balancing_details.special_category_data",        kind: "boolean",    required: "optional" },
     // Branch-gated leaves.

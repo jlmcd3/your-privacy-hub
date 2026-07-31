@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T10:42Z (Item 310 — Chapter 6 dpia rebuild: four analytic deliverables (necessity PERFORMED, proportionality SPLIT OUT, risk register, Art. 36 determination reasoned from residual bands) in `_shared/ltp/dpia-deliverables/`, Art. 35(9)/36(1)/36(3) anchored out of the write-around list, `alternatives_considered` intake extension + form repeater, `dpia-perfect-record` golden case and validateIntake guard in the same turn; 19/19 tests, typecheck clean; NO deploy, NO harness invocation, NO ingestion.)
+**Last updated:** 2026-07-31T11:04Z (Item 311 — Chapter 7 lia rebuild: four analytic deliverables (reasonable expectations run on collection context, child factor, public-authority exclusion decided before the balance, determination carrying pass/fail plus balance-flipping mitigations) in `_shared/ltp/lia-deliverables/`, Op. 1's hand-typed EDPB 1/2024 block replaced by registry-composed verbatim excerpts, three intake extensions + form fields, `lia-perfect-record` golden case in the same turn; 20/20 tests; NO deploy, NO harness invocation, NO ingestion.)
 
 ---
 
@@ -7391,5 +7391,27 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **JUDGMENT CALLS (four-team lens, unanimous, no splits).** Necessity asks whether a less intrusive route reaches the *same* purpose (comparison); proportionality asks whether the benefit justifies the impact *given that none does* (weighing). Art. 36 reads the register rather than re-deriving risk.
 
 **HONEST LIMIT.** Measurability restored, **no measurement taken** — harness invocation is forbidden by the dispatch, so the ANALYSED path's quality is unscored. Op. 1 was preserved as-is and not re-verified.
+
+**Disposition:** COMPLETE — awaiting controller verification. Not deployed.
+
+---
+
+## Item 311 — CHAPTER 7 REBUILD: lia (2026-07-31T11:04Z)
+
+**Dispatch:** CONTROLLER — ITEM 311, Chapter 7 of `PRODUCT-REQUIREMENTS-AND-GAP-ANALYSIS-2026-07-30.md`. Own turn; Item 310 complete and not repeated. Engine turn on `run-li-assessment`: fix the Op. 1 citation, build four deliverables, unblock the fixture. NO deploy, NO harness invocation.
+
+**THE OP. 1 CITATION DEFECT — FIXED AT THE SOURCE.** `EDPB_1_2024_AUTHORITY` was a hand-typed prose block asserting, under the heading "SUPPLIED AUTHORITY EXCERPTS", six propositions attributed to Guidelines 1/2024 — including paragraph numbers (para. 39, para. 52, para. 73) that nothing in the corpus pinned. It is now **composed at boot from `lia-verified-authorities.ts`**, whose rows are byte-identical substrings of the approved `edpb_guidelines` rows. Fifteen anchored rows added (Section II, II.A, II.B, II.C plus Recital 47); `recital_47_three_part_test` and `edpb_1_2024_three_step_test` **removed from `LIA_UNANCHORED_PROPOSITIONS`** — anchoring while leaving the write-around entry in place lets unanchored prose keep shipping (Item 310's lesson, applied). The three paraphrases with no corpus row were **dropped, not retyped**, and the block now instructs the model that anything outside it must be written around or phrased VERIFY-FIRST with no section number attached.
+
+**COLLECT THE ANSWER, DON'T PROMPT LOUDER.** Recital 47 runs on the **time and context of collection**; the form asked only for a conclusion ("would data subjects reasonably expect this?"). Three fields added to the contract and surfaced in `LIAssessmentIntake.tsx`: `balancing_details.collection_context`, `balancing_details.children_data_subjects`, and `purpose_details.controller_is_public_authority` / `.public_task_processing` (the second gated on the first). `balancing_details.additional_mitigations` added and kept **separate from `safeguards`**, because the two are weighed differently.
+
+**FOUR DELIVERABLES, PURE BUILDERS.** `_shared/ltp/lia-deliverables/{types,elements,build}.ts`, same architecture as Items 305/308/310, all four carrying the Op. 1 analysis shape (standard → record fact → application → verdict). Reasonable expectations returns `undetermined_on_the_record` when the collection context is missing — an enum answer is the conclusion, not the fact the test runs on — and **downgrades a notice-only record to `partly_expected`** on the EDPB's own statement that fulfilment of information duties is not sufficient in itself. The child factor is an explicit determination in every case, read from the direct answer or from the vulnerable-groups list. The public-authority exclusion is decided **before** the balance and, when it applies, `basis_unavailable` short-circuits the determination — no mitigation reaches the point.
+
+**THE OP. 5 FIX.** `classifyRecordedMitigations` reads each recorded measure against the EDPB exclusion and marks measures the GDPR already requires (encryption, access control, retention limits, DPIA, notice) as **not counting** toward the rebalance, quoting the exclusion verbatim. The determination carries `outcome`, `driving_factors`, `rebalance_required`, and mitigations that each name the factor they move and why — the failing-balance case returns `available_only_with_mitigations` with a factor-specific, beyond-obligation measure rather than a generic list.
+
+**SERIALIZER + SEPARATION GUARD.** The four top-level keys were added to `LIA_REPORT_SCHEMA` in the same turn. Item 308's mechanical relocation is applied to the determination: exposure sentences are moved out of `why` into `exposure_note` with repairs counted.
+
+**FIXTURE UNBLOCK IN THE SAME TURN.** `lia-perfect-record` appended to `_shared/golden/lia.ts` — an acquiring-book fraud-screening record supplying all five new fields, with a collection context written to the relationship rather than to a notice, and `additional_mitigations` deliberately carrying one already-required measure and one beyond-obligation measure so both arms of the classification are exercised by a single fixture. The four existing cases keep their degraded and adversarial postures. `src/registry/__tests__/lia-deliverables.test.ts` — **20/20 passing** — pins every emitted `authority_verbatim` to the corpus snapshot by exact substring.
+
+**HONEST LIMITS.** (1) Measurability restored, **no measurement taken** — harness invocation is forbidden by the dispatch. (2) `three_part_test.purpose_test` (Op. 1's own analysis) was left untouched by design and not re-verified. (3) The LIA **report viewer** has not been extended to render the four new keys; they are emitted, schema-whitelisted and persisted, but not yet displayed. That is the first item of the next lia turn.
 
 **Disposition:** COMPLETE — awaiting controller verification. Not deployed.

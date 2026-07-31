@@ -30,6 +30,8 @@ import { buildLiaEngagementMap } from "../_shared/engagement-map.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
+import { LIA_VERIFIED_AUTHORITIES } from "../_shared/registry/lia-verified-authorities.ts";
+
 // RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
 import { withUpstreamRetry, heartbeat as liaHeartbeat, ensureTerminalFnRun as liaEnsureTerminal } from "./reliability.ts";
 
@@ -116,7 +118,42 @@ async function callAnthropic(
 const LIA_SHARED_CITATION_FRAMEWORK =
   "Cite Article 6(1)(f) GDPR/UK GDPR, EDPB Guidelines 1/2024 (three-step assessment in Section II — II.A 1st step: pursuit of a legitimate interest; II.B 2nd step: necessity; II.C 3rd step: balancing methodology; data-subject rights, incl. the right to object, in Section III), ICO LIA guidance, and applicable national DPA positions. Use ONLY the injected RESOLVED GDPR CITATIONS block for Article-6 legitimate-interest examples (direct marketing / intra-group / network-information security), for the recognised-LI basis where applicable, and for supervisory-authority names. Do NOT cite Article-6 examples or SA names from your own recollection.";
 
-export const EDPB_1_2024_AUTHORITY = "EDPB GUIDELINES 1/2024 — SUPPLIED AUTHORITY EXCERPTS (cite these, and only these, as the guidelines' content): (1) Three cumulative conditions govern Article 6(1)(f): a legitimate interest, necessity, and the balancing of that interest against the interests or fundamental rights and freedoms of data subjects. (2) An interest qualifies as legitimate only where it is lawful, clearly and precisely articulated, and real and present — not speculative. (3) Impact assessment (para. 39): after identifying the fundamental rights and interests that may be affected, the controller should carefully assess the LIKELY impact of the processing on the data subject, covering the various ways individuals may be affected — positively or negatively, actually or potentially — as influenced by the nature of the data, the context of the processing, and its further consequences. (4) Data subjects' reasonable expectations play an important role in the balancing test (para. 52). (5) Under Article 21(1), 'compelling legitimate grounds' comprise only interests ESSENTIAL to the controller — such as protecting its organisation or systems from serious and imminent harm or from a severe penalty seriously affecting its business (para. 73) — assessed case by case against the specific objection. (6) Where the balancing tips against the controller, mitigating measures may be introduced and the balancing performed again; measures already legally required under the GDPR do not count as mitigating measures.";
+// ITEM 311 — Op. 1 CITATION FIX. This block used to be hand-typed prose
+// asserting what EDPB Guidelines 1/2024 say. It is now composed from the
+// verified-authority registry, whose rows are pinned by exact substring to
+// the approved `edpb_guidelines` corpus rows (see
+// src/registry/__tests__/lia-deliverables.test.ts). REUSE LAW: verbatim,
+// never retyped. Propositions with no corpus row are NOT in this block and
+// must be written around or phrased VERIFY-FIRST.
+function renderEdpb12024Authority(): string {
+  const keys = [
+    "edpb_1_2024_three_cumulative_conditions",
+    "edpb_1_2024_legitimate_interest_qualities",
+    "edpb_1_2024_necessity_less_restrictive_means",
+    "edpb_1_2024_reasonable_expectations_weighed",
+    "edpb_1_2024_notice_alone_not_sufficient",
+    "edpb_1_2024_child_interests_prevail",
+    "edpb_1_2024_mitigating_measures_beyond_gdpr",
+    "edpb_1_2024_mitigating_measures_exclusions",
+    "edpb_1_2024_balance_override_outcome",
+    "edpb_1_2024_public_authorities_exclusion",
+  ];
+  const lines: string[] = [];
+  let n = 0;
+  for (const k of keys) {
+    const r = (LIA_VERIFIED_AUTHORITIES as Record<string, { subsection?: string; verbatim_quote?: string }>)[k];
+    if (!r?.verbatim_quote) continue;
+    n += 1;
+    lines.push(`(${n}) [${r.subsection}] "${r.verbatim_quote}"`);
+  }
+  return (
+    "EDPB GUIDELINES 1/2024 — VERBATIM AUTHORITY EXCERPTS (registry-backed; each excerpt below is an exact quotation from the guidelines. Quote or cite ONLY these as the guidelines' content. Any other proposition attributed to Guidelines 1/2024 is unsupported and must be written around or phrased VERIFY-FIRST — do NOT assert it, and do NOT attach a section or paragraph number to it): " +
+    lines.join(" ")
+  );
+}
+
+export const EDPB_1_2024_AUTHORITY = renderEdpb12024Authority();
+
 
 const LIA_ANALYSIS_EXTRA_RULES = [
 
@@ -1582,6 +1619,26 @@ Return JSON:
       sector: (assessment as any).sector ?? null,
       alternatives_considered: (assessment as any).alternatives_considered ?? null,
     };
+
+    // ── ITEM 311 — LIA ANALYTIC DELIVERABLES (Chapter 7).
+    // Single writer for reasonable_expectations, child_factor,
+    // public_authority_exclusion and lia_determination. Deterministic, pure,
+    // built from the record only. Reads the FULL persisted row (purpose_details
+    // / necessity_details / balancing_details), not the trimmed intake object.
+    // Fail-open.
+    try {
+      const { attachLiaDeliverables } = await import("../_shared/ltp/lia-deliverables/build.ts");
+      const lmeta = attachLiaDeliverables(
+        reportData as Record<string, unknown>,
+        assessment as unknown as Record<string, unknown>,
+      );
+      const _m = ((reportData as any)._meta ??= {});
+      (_m.internal ??= {}).lia_deliverables = lmeta;
+      console.log(JSON.stringify({ evt: "_lia_deliverables", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...lmeta }));
+    } catch (e) {
+      console.warn("[run-li-assessment] ITEM-311 deliverables failed (non-fatal):", (e as Error)?.message);
+    }
+
     const guarded = guardInformationNeeded(reportData, liaIntakeObject, "li_assessment");
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));

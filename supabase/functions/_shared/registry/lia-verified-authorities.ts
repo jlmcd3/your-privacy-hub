@@ -38,20 +38,27 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const LIA_VERIFIED_AUTHORITY_VERSION = "lia-va-w1-2026-07-25";
+export const LIA_VERIFIED_AUTHORITY_VERSION = "lia-va-w2-2026-07-31-item311";
 
 /** Canonical published text URLs (official primary sources). */
 const GDPR_URL = "https://eur-lex.europa.eu/eli/reg/2016/679/oj";
 const EDPB_2_2019_URL =
   "https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22019-processing-personal-data-under-article-61b_en";
+const EDPB_1_2024_URL =
+  "https://www.edpb.europa.eu/our-work-tools/documents/public-consultations/2024/guidelines-12024-processing-personal-data_en";
 
 /** Verification date — the date these rows were hand-verified against the primary source. */
 const VOD = "2026-07-25";
+
+/** ITEM 311 verification date — EDPB 1/2024 + Recital 47 anchors. */
+const VOD_311 = "2026-07-31";
 
 /** Governing anchor labels. */
 const GDPR = "Regulation (EU) 2016/679 (GDPR)";
 const EDPB_2_2019 =
   "EDPB Guidelines 2/2019 on processing of personal data under Article 6(1)(b) GDPR";
+const EDPB_1_2024 =
+  "EDPB Guidelines 1/2024 on processing of personal data based on Article 6(1)(f) GDPR";
 
 const R = (r: VerifiedAuthorityRow): VerifiedAuthorityRow => r;
 
@@ -254,6 +261,186 @@ export const LIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: EDPB_2_2019_URL,
   }),
+
+  // ---- ITEM 311 — EDPB Guidelines 1/2024 + Recital 47 anchors ---------------
+  // Every quote below is an EXACT substring of an approved corpus row; the
+  // snapshot used by the pin test is generated from the corpus, not typed.
+  edpb_1_2024_legitimate_interest_qualities: R({
+    proposition_key: "edpb_1_2024_legitimate_interest_qualities",
+    citation: "EDPB Guidelines 1/2024, Section II.A (pursuit of a legitimate interest)",
+    subsection: "EDPB Guidelines 1/2024, Section II.A",
+    verbatim_quote:
+      "only those interests that are lawful, precisely articulated and present may be validly invoked to rely on Article 6(1)(f) GDPR as a legal basis",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_three_cumulative_conditions: R({
+    proposition_key: "edpb_1_2024_three_cumulative_conditions",
+    citation: "EDPB Guidelines 1/2024, Section II (three cumulative conditions)",
+    subsection: "EDPB Guidelines 1/2024, Section II",
+    verbatim_quote:
+      "For processing to be based on the legitimate interest legal basis, three cumulative conditions must be fulfilled:",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_public_authorities_exclusion: R({
+    proposition_key: "edpb_1_2024_public_authorities_exclusion",
+    citation: "EDPB Guidelines 1/2024, Section II (public-authority exclusion)",
+    subsection: "EDPB Guidelines 1/2024, Section II",
+    verbatim_quote:
+      "the second indent of Article 6(1) GDPR provides that the legal basis in Article 6(1)(f) shall not apply to processing carried out by public authorities in the performance of their tasks.",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_necessity_less_restrictive_means: R({
+    proposition_key: "edpb_1_2024_necessity_less_restrictive_means",
+    citation: "EDPB Guidelines 1/2024, Section II.B (necessity of the processing)",
+    subsection: "EDPB Guidelines 1/2024, Section II.B",
+    verbatim_quote:
+      "it should be ascertained whether the legitimate interests pursued cannot reasonably be achieved just as effectively by other means less restrictive of the fundamental rights and freedoms of data subjects",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_reasonable_expectations_weighed: R({
+    proposition_key: "edpb_1_2024_reasonable_expectations_weighed",
+    citation: "EDPB Guidelines 1/2024, Section II.C.3 (reasonable expectations)",
+    subsection: "EDPB Guidelines 1/2024, Section II.C.3",
+    verbatim_quote:
+      "The controller should therefore take into account the reasonable expectations of data subjects when weighing its legitimate interest(s) and the interests or fundamental rights and freedom of data subjects.",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_reasonable_expectations_contextual_elements: R({
+    proposition_key: "edpb_1_2024_reasonable_expectations_contextual_elements",
+    citation: "EDPB Guidelines 1/2024, Section II.C.3 (contextual elements)",
+    subsection: "EDPB Guidelines 1/2024, Section II.C.3",
+    verbatim_quote:
+      "the following list is meant to illustrate contextual elements which can be considered in the assessment of the reasonable expectations of data subjects",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_notice_alone_not_sufficient: R({
+    proposition_key: "edpb_1_2024_notice_alone_not_sufficient",
+    citation: "EDPB Guidelines 1/2024 (information duties and reasonable expectations)",
+    subsection: "EDPB Guidelines 1/2024",
+    verbatim_quote:
+      "the mere fulfilment of information duties according to Articles 12, 13 and 14 GDPR is not sufficient in itself to consider that the data subjects can reasonably expect a given processing.",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_child_interests_prevail: R({
+    proposition_key: "edpb_1_2024_child_interests_prevail",
+    citation: "EDPB Guidelines 1/2024, Section II.C (children)",
+    subsection: "EDPB Guidelines 1/2024, Section II.C",
+    verbatim_quote:
+      "the interests or fundamental rights and freedoms of the child should in general prevail",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_child_specific_protection: R({
+    proposition_key: "edpb_1_2024_child_specific_protection",
+    citation: "EDPB Guidelines 1/2024, Section II.C (children)",
+    subsection: "EDPB Guidelines 1/2024, Section II.C",
+    verbatim_quote:
+      "children merit specific protection with regard to the processing of their personal data because they may be less aware of the risks, consequences and safeguards concerned and of their rights related to such processing of personal data.",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_mitigating_measures_beyond_gdpr: R({
+    proposition_key: "edpb_1_2024_mitigating_measures_beyond_gdpr",
+    citation: "EDPB Guidelines 1/2024, Section II.C.4 (mitigating measures)",
+    subsection: "EDPB Guidelines 1/2024, Section II.C.4",
+    verbatim_quote:
+      "introducing additional safeguards above and beyond the safeguards required under the GDPR may be seen as a mitigating measure",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_mitigating_measures_exclusions: R({
+    proposition_key: "edpb_1_2024_mitigating_measures_exclusions",
+    citation: "EDPB Guidelines 1/2024, Section II.C.4 (mitigating measures)",
+    subsection: "EDPB Guidelines 1/2024, Section II.C.4",
+    verbatim_quote:
+      "mitigating measures can, for instance, not consist of measures meant to ensure compliance with the controllers’ information obligations, security obligations, obligations to comply with the principle of data minimisation, or the fulfilment of data subject rights under the GDPR, and must go beyond what is already necessary to comply with these legal obligations under the GDPR.",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  edpb_1_2024_balance_override_outcome: R({
+    proposition_key: "edpb_1_2024_balance_override_outcome",
+    citation: "EDPB Guidelines 1/2024, Section II.C (outcome of the balancing test)",
+    subsection: "EDPB Guidelines 1/2024, Section II.C",
+    verbatim_quote:
+      "If the data subject’s interests, rights and freedoms override the legitimate interests being pursued, and no sufficient mitigating measures can be taken, the processing cannot be based on Article 6(1)(f) GDPR.",
+    depth_class: "subsection",
+    governing_anchor: EDPB_1_2024,
+    verified_on: VOD_311,
+    primary_source_url: EDPB_1_2024_URL,
+  }),
+  li_child_data_subject_clause: R({
+    proposition_key: "li_child_data_subject_clause",
+    citation: "GDPR Art. 6",
+    subsection: "GDPR Art. 6(1)(f)",
+    verbatim_quote:
+      "in particular where the data subject is a child.",
+    depth_class: "sub_subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD_311,
+    primary_source_url: GDPR_URL,
+  }),
+  recital_47_reasonable_expectation_at_collection: R({
+    proposition_key: "recital_47_reasonable_expectation_at_collection",
+    citation: "GDPR Recital 47",
+    subsection: "GDPR Recital 47",
+    verbatim_quote:
+      "At any rate the existence of a legitimate interest would need careful assessment including whether a data subject can reasonably expect at the time and in the context of the collection of the personal data that processing for that purpose may take place.",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD_311,
+    primary_source_url: GDPR_URL,
+  }),
+  recital_47_override_where_not_expected: R({
+    proposition_key: "recital_47_override_where_not_expected",
+    citation: "GDPR Recital 47",
+    subsection: "GDPR Recital 47",
+    verbatim_quote:
+      "The interests and fundamental rights of the data subject could in particular override the interest of the data controller where personal data are processed in circumstances where data subjects do not reasonably expect further processing.",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD_311,
+    primary_source_url: GDPR_URL,
+  }),
+  recital_47_expectations_from_relationship: R({
+    proposition_key: "recital_47_expectations_from_relationship",
+    citation: "GDPR Recital 47",
+    subsection: "GDPR Recital 47",
+    verbatim_quote:
+      "taking into consideration the reasonable expectations of data subjects based on their relationship with the controller.",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD_311,
+    primary_source_url: GDPR_URL,
+  }),
 };
 
 /**
@@ -275,16 +462,14 @@ export const LIA_UNANCHORED_PROPOSITIONS: readonly string[] = [
   "controller_accountability_art_24",       // Art. 24 not in approved P1 set
 
   // Recital surface not held (recitals are not in provision_texts P1)
-  "recital_47_three_part_test",             // three-part necessity/reasonable-expectations framing
   "recital_47_direct_marketing_li",         // direct marketing as a legitimate interest
   "recital_48_intra_group_transmission",    // intra-group administrative purposes
   "recital_49_network_security",            // network-and-information-security LI
   "recital_50_further_processing",          // secondary-use compatibility test
 
   // Guidance surface not usable this turn
-  "edpb_1_2024_three_step_test",            // EDPB Guidelines 1/2024 — rows lack excerpt_text_norm; no substring pin possible
-  "edpb_1_2024_reasonable_expectations",    // EDPB Guidelines 1/2024 — same
-  "edpb_1_2024_vulnerable_data_subjects",   // EDPB Guidelines 1/2024 — same
+  "edpb_1_2024_vulnerable_data_subjects",   // EDPB 1/2024 — vulnerability generally (the CHILD factor is
+                                            // now anchored: edpb_1_2024_child_interests_prevail)
   "wp29_wp217_balancing_test",              // WP29 Opinion 06/2014 not in corpus
 
   // CJEU case-law surface not held (case_law table not in scope this turn)

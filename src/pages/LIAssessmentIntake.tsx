@@ -135,6 +135,14 @@ const LIAssessmentIntake = () => {
   const [safeguards, setSafeguards] = useState<string[]>([]);
   const [optOutMechanism, setOptOutMechanism] = useState("");
 
+  // ITEM 311 — Chapter 7 rebuild. Four fields the analytic deliverables need
+  // and the old form never asked for.
+  const [collectionContext, setCollectionContext] = useState("");
+  const [childrenDataSubjects, setChildrenDataSubjects] = useState("");
+  const [controllerIsPublicAuthority, setControllerIsPublicAuthority] = useState("");
+  const [publicTaskProcessing, setPublicTaskProcessing] = useState("");
+  const [additionalMitigations, setAdditionalMitigations] = useState("");
+
   // Added flexibility — core interest field, free-form companions, catch-all
   const [interestStatement, setInterestStatement] = useState("");
   const [interestHolderOther, setInterestHolderOther] = useState("");
@@ -160,12 +168,14 @@ const LIAssessmentIntake = () => {
     interestStatement, interestHolderOther, interestTypeOther,
     reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
     statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
+    collectionContext, childrenDataSubjects, controllerIsPublicAuthority, publicTaskProcessing, additionalMitigations,
   }), [
     id, interestHolder, interestType, statedPurpose, alternatives, whyConsentNotUsed, dataMinimised,
     reasonableExpectation, vulnerableSubjects, potentialHarm, safeguards, optOutMechanism,
     interestStatement, interestHolderOther, interestTypeOther,
     reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
     statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
+    collectionContext, childrenDataSubjects, controllerIsPublicAuthority, publicTaskProcessing, additionalMitigations,
   ]);
   const initialLiaRef = useMemo(() => JSON.stringify({ ...draftPayload, assessment_id: id }), [id]);
   const touched = useMemo(() => JSON.stringify(draftPayload) !== initialLiaRef, [draftPayload, initialLiaRef]);
@@ -208,6 +218,11 @@ const LIAssessmentIntake = () => {
     S(d.statutoryRestrictions, setStatutoryRestrictions);
     S(d.pseudonymisationOptions, setPseudonymisationOptions);
     S(d.employmentSafeguards, setEmploymentSafeguards);
+    S(d.collectionContext, setCollectionContext);
+    S(d.childrenDataSubjects, setChildrenDataSubjects);
+    S(d.controllerIsPublicAuthority, setControllerIsPublicAuthority);
+    S(d.publicTaskProcessing, setPublicTaskProcessing);
+    S(d.additionalMitigations, setAdditionalMitigations);
   };
 
 
@@ -285,7 +300,7 @@ const LIAssessmentIntake = () => {
       // Stage B
       stated_purpose: statedPurpose,
       alternatives_considered: alternatives,
-      purpose_details: { interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther },
+      purpose_details: { interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther, controller_is_public_authority: controllerIsPublicAuthority, public_task_processing: publicTaskProcessing },
       necessity_details: {
         alternatives,
         why_consent_not_used: whyConsentNotUsed,
@@ -295,12 +310,15 @@ const LIAssessmentIntake = () => {
       balancing_details: {
         reasonable_expectation: reasonableExpectation,
         reasonable_expectation_detail: reasonableExpectationDetail,
+        collection_context: collectionContext,
+        children_data_subjects: childrenDataSubjects,
         vulnerable_subjects: vulnerableSubjects,
         vulnerable_subjects_other: vulnerableSubjectsOther,
         potential_harm: potentialHarm,
         potential_harm_detail: potentialHarmDetail,
         safeguards,
         safeguards_other: safeguardsOther,
+        additional_mitigations: additionalMitigations,
         opt_out_mechanism: optOutMechanism,
         special_category_data: hasSpecialCategory,
         statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
@@ -409,6 +427,31 @@ const LIAssessmentIntake = () => {
             <Textarea value={interestStatement} onChange={(e) => setInterestStatement(e.target.value)} className="mt-2" rows={3} />
           </div>
 
+          {/* ITEM 311 — Art. 6(1)(f) second subparagraph. Decided before the
+              balance is reached, so it has to be on the record. */}
+          <div>
+            <Label className="text-base">Is your organisation a public authority?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Article 6(1)(f) is not available to public authorities for processing carried out in the performance of their tasks.</p>
+            <select value={controllerIsPublicAuthority} onChange={(e) => setControllerIsPublicAuthority(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              <option>No</option>
+              <option>Yes</option>
+            </select>
+          </div>
+
+          {controllerIsPublicAuthority === "Yes" && (
+            <div>
+              <Label className="text-base">Is this processing carried out in the performance of your public tasks?</Label>
+              <p className="text-xs text-muted-foreground mt-1">If it is, legitimate interests is unavailable and Article 6(1)(e) applies instead.</p>
+              <select value={publicTaskProcessing} onChange={(e) => setPublicTaskProcessing(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                <option value="">Select…</option>
+                <option>Yes</option>
+                <option>No</option>
+                <option>Not applicable</option>
+              </select>
+            </div>
+          )}
+
           <div>
             <Label className="text-base">How would you state this purpose to data subjects in a privacy notice? *</Label>
             <Textarea value={statedPurpose} onChange={(e) => setStatedPurpose(e.target.value)} className="mt-2" rows={3} />
@@ -487,6 +530,25 @@ const LIAssessmentIntake = () => {
             <Textarea value={reasonableExpectationDetail} onChange={(e) => setReasonableExpectationDetail(e.target.value)} placeholder="Optional: briefly, why would (or wouldn't) they expect it?" className="mt-2" rows={2} />
           </div>
 
+          {/* ITEM 311 — Recital 47 turns on the relationship and the time and
+              context of collection, which the enum above does not supply. */}
+          <div>
+            <Label className="text-base">When and in what setting was this data collected?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Recital 47 asks what the individual could expect <em>at the time and in the context of collection</em>. Describe the moment and the relationship — not what your notice says.</p>
+            <Textarea value={collectionContext} onChange={(e) => setCollectionContext(e.target.value)} placeholder="e.g. collected at account opening in the branch, and at each transaction the customer initiates" className="mt-2" rows={3} />
+          </div>
+
+          <div>
+            <Label className="text-base">Are any data subjects children?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Article 6(1)(f) singles out children's interests expressly.</p>
+            <select value={childrenDataSubjects} onChange={(e) => setChildrenDataSubjects(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              <option>No</option>
+              <option>Yes</option>
+              <option>Unknown</option>
+            </select>
+          </div>
+
           <div>
             <Label className="text-base">Are vulnerable groups involved? (select all that apply)</Label>
             <div className="mt-2">
@@ -534,6 +596,15 @@ const LIAssessmentIntake = () => {
             {safeguards.includes("Other") && (
               <input value={safeguardsOther} onChange={(e) => setSafeguardsOther(e.target.value)} placeholder="Describe the other safeguard(s) in place" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             )}
+          </div>
+
+          {/* ITEM 311 — mitigations, kept separate from safeguards because
+              measures the GDPR already requires do not count as mitigating
+              measures in the balance. */}
+          <div>
+            <Label className="text-base">What measures have you added specifically to reduce the impact on individuals?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Only measures that go beyond what the GDPR already requires of you can shift the balance. Encryption, access control and retention limits are obligations, not mitigations.</p>
+            <Textarea value={additionalMitigations} onChange={(e) => setAdditionalMitigations(e.target.value)} placeholder="e.g. an unconditional opt-out from profiling that we are not required to offer" className="mt-2" rows={3} />
           </div>
 
           <div>
