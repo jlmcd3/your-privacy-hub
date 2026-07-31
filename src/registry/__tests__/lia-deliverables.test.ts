@@ -28,7 +28,7 @@ import {
   classifyRecordedMitigations,
 } from "../../../supabase/functions/_shared/ltp/lia-deliverables/build";
 import { ANCHOR_KEYS } from "../../../supabase/functions/_shared/ltp/lia-deliverables/elements";
-import { LIA_GOLDEN_CASES } from "../../../supabase/functions/_shared/golden/lia";
+import { LIA_GOLDEN } from "../../../supabase/functions/_shared/golden/lia";
 
 const CORPUS = [
   ...Object.values(EDPB_1_2024_EXCERPTS),
@@ -39,7 +39,7 @@ function inCorpus(quote: string): boolean {
   return CORPUS.some((t) => t.includes(quote));
 }
 
-const PERFECT = LIA_GOLDEN_CASES.find((c) => c.id === "lia-perfect-record")!;
+const PERFECT = LIA_GOLDEN.find((c) => c.id === "lia-perfect-record")!;
 
 describe("ITEM 311 — corpus pins", () => {
   it("every anchor the deliverables use resolves to a registry row", () => {
