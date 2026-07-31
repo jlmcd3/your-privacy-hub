@@ -141,7 +141,7 @@ const PINS: Readonly<Record<string, ReadonlyArray<readonly [string, string]>>> =
   "gdpr-art-38": [
     [
       "Art. 38(3) no-instructions independence",
-      "shall not receive any instructions regarding the exercise of those tasks",
+      "does not receive any instructions regarding the exercise of those tasks",
     ],
   ],
   "gdpr-art-39": [
@@ -165,7 +165,7 @@ const PINS: Readonly<Record<string, ReadonlyArray<readonly [string, string]>>> =
   "gdpr-recital-87": [
     [
       "Recital 87 promptness assessment",
-      "whether all appropriate technological protection and organisational measures were implemented",
+      "whether all appropriate technological protection and organisational measures have been implemented",
     ],
   ],
   "gdpr-recital-88": [
