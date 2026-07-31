@@ -334,6 +334,8 @@ const DPIAFramework = () => {
     dpo_advice: dpoAdvice,
     data_subjects_views_sought: dataSubjectsViewsSought,
     data_subjects_views: dataSubjectsViews,
+    alternatives_considered: alternativesConsidered,
+
     // Jurisdiction resolver inputs (deterministic resolvers in run-dpia-framework)
     controller_country: controllerCountry,
     controller_land: controllerLand,
