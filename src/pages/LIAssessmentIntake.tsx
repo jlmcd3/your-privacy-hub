@@ -135,6 +135,14 @@ const LIAssessmentIntake = () => {
   const [safeguards, setSafeguards] = useState<string[]>([]);
   const [optOutMechanism, setOptOutMechanism] = useState("");
 
+  // ITEM 311 — Chapter 7 rebuild. Four fields the analytic deliverables need
+  // and the old form never asked for.
+  const [collectionContext, setCollectionContext] = useState("");
+  const [childrenDataSubjects, setChildrenDataSubjects] = useState("");
+  const [controllerIsPublicAuthority, setControllerIsPublicAuthority] = useState("");
+  const [publicTaskProcessing, setPublicTaskProcessing] = useState("");
+  const [additionalMitigations, setAdditionalMitigations] = useState("");
+
   // Added flexibility — core interest field, free-form companions, catch-all
   const [interestStatement, setInterestStatement] = useState("");
   const [interestHolderOther, setInterestHolderOther] = useState("");
@@ -285,7 +293,7 @@ const LIAssessmentIntake = () => {
       // Stage B
       stated_purpose: statedPurpose,
       alternatives_considered: alternatives,
-      purpose_details: { interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther },
+      purpose_details: { interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther, controller_is_public_authority: controllerIsPublicAuthority, public_task_processing: publicTaskProcessing },
       necessity_details: {
         alternatives,
         why_consent_not_used: whyConsentNotUsed,
@@ -295,12 +303,15 @@ const LIAssessmentIntake = () => {
       balancing_details: {
         reasonable_expectation: reasonableExpectation,
         reasonable_expectation_detail: reasonableExpectationDetail,
+        collection_context: collectionContext,
+        children_data_subjects: childrenDataSubjects,
         vulnerable_subjects: vulnerableSubjects,
         vulnerable_subjects_other: vulnerableSubjectsOther,
         potential_harm: potentialHarm,
         potential_harm_detail: potentialHarmDetail,
         safeguards,
         safeguards_other: safeguardsOther,
+        additional_mitigations: additionalMitigations,
         opt_out_mechanism: optOutMechanism,
         special_category_data: hasSpecialCategory,
         statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
