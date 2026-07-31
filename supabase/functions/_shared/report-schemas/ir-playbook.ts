@@ -29,6 +29,12 @@ export const IR_PLAYBOOK_REPORT_SCHEMA: ReportSchema = {
     "information_needed",
     "deterministic_checks",
     "generated_at",
+    // ITEM 312 — Chapter 8 analytic deliverables (single-writer keys).
+    "sa_notification_determination",
+    "data_subject_communication_determination",
+    "art34_exemption_analysis",
+    "content_owner_mapping",
+
     // Ids & timestamps
     "build_stamp",
     // Meta bucket (serializer reduces to `_meta.internal` only)
