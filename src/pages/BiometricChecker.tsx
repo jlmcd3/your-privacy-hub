@@ -127,8 +127,16 @@ export default function BiometricChecker() {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
   }, [params]);
 
-  const toggle = (key: "biometricTypes" | "jurisdictions", v: string) =>
+  const toggle = (key: "biometricTypes" | "jurisdictions" | "disclosure_bases", v: string) =>
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
+
+  // ITEM 317 — the practice block only appears once a statute that has
+  // per-duty obligations is in play; the other jurisdictions have no duty
+  // registry behind them yet.
+  const showTexas = form.jurisdictions.some(j => j.includes("Texas"));
+  const showWashington = form.jurisdictions.some(j => j.includes("Washington"));
+  const showPractices =
+    form.jurisdictions.some(j => j.includes("Illinois")) || showTexas || showWashington;
 
   const handleGenerate = async () => {
     setPhase("generating");
