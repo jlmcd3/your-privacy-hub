@@ -52,6 +52,12 @@ const VOD = "2026-07-25";
 /** Governing anchor label. */
 const GDPR = "Regulation (EU) 2016/679 (GDPR)";
 
+/** UK GDPR anchors (ITEM 304 / FIX D — sourced from Item 302 corpus rows). */
+const UK_GDPR = "Regulation (EU) 2016/679 as retained in UK law (UK GDPR)";
+const UK_GDPR_URL_33 = "https://www.legislation.gov.uk/eur/2016/679/article/33";
+const UK_GDPR_URL_34 = "https://www.legislation.gov.uk/eur/2016/679/article/34";
+const UK_VOD = "2026-07-31";
+
 const R = (r: VerifiedAuthorityRow): VerifiedAuthorityRow => r;
 
 export const IR_PLAYBOOK_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
