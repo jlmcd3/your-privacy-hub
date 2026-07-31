@@ -271,6 +271,15 @@ import {
   IMPACT_BENEFITS_OUTWEIGH_OPTS,
   IMPACT_CYBER_GAPS_OPTS,
 } from "./CPPARiskAssessment.enums";
+// ITEM 305 — analytic-deliverable intake option sets (§ 7152(a)(2), (a)(4),
+// (a)(5), (a)(6), (a)(7)). Authored in the .enums module; never re-declared.
+import {
+  NECESSITY_STATUS_OPTS,
+  HARM_PATHWAY_OPTS,
+  HARM_LIKELIHOOD_OPTS,
+  HARM_SEVERITY_OPTS,
+  SAFEGUARD_STATUS_OPTS,
+} from "./CPPARiskAssessment.enums";
 
 // Step 6 statute popover helper — one-line plain-language summary with citation.
 function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
@@ -377,6 +386,23 @@ export default function CPPARiskAssessment() {
   const [q15cSpiVolume, setQ15cSpiVolume] = useState("");    // R1a: § 7120(b)(2)(B) SPI volume band
   const [q18bTraining, setQ18bTraining] = useState("");      // § 7150(b)(6) training ADMT / facial / emotion / biometric
   const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
+  // ── ITEM 305 — analytic-deliverable intake state ───────────────────
+  const [a2NecessitySet, setA2NecessitySet] = useState<{ element: string; necessity: string; justification: string }[]>([
+    { element: "", necessity: "", justification: "" },
+  ]);
+  const [a4BenefitBusiness, setA4BenefitBusiness] = useState("");
+  const [a4BenefitConsumer, setA4BenefitConsumer] = useState("");
+  const [a4BenefitOtherStakeholders, setA4BenefitOtherStakeholders] = useState("");
+  const [a4BenefitPublic, setA4BenefitPublic] = useState("");
+  const [a5HarmPathways, setA5HarmPathways] = useState<{ harm: string; source: string; cause: string; likelihood: string; severity: string }[]>([
+    { harm: "", source: "", cause: "", likelihood: "", severity: "" },
+  ]);
+  const [a6Safeguards, setA6Safeguards] = useState<{ harm: string; safeguard: string; safeguard_status: string }[]>([
+    { harm: "", safeguard: "", safeguard_status: "" },
+  ]);
+  const [a9ApproverName, setA9ApproverName] = useState("");
+  const [a9ApproverPosition, setA9ApproverPosition] = useState("");
+  const [a9ApprovalDate, setA9ApprovalDate] = useState("");
   const [i4bSources, setI4bSources] = useState("");          // § 7152(a)(3) sources of the PI
 
   // TURN 1b — CPPA-STANDARD-SETTER intake additions:
@@ -667,6 +693,19 @@ export default function CPPARiskAssessment() {
     i9_existing_dpia_summary: i9DpiaSummary,
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
+    // ITEM 305 — operands of the five per-activity analytic deliverables.
+    // Empty rows are dropped so the builder degrades honestly rather than
+    // receiving blank records it would have to treat as answered.
+    a2_necessity_set: a2NecessitySet.filter((r) => r.element.trim() || r.necessity),
+    a4_benefit_business: a4BenefitBusiness.trim(),
+    a4_benefit_consumer: a4BenefitConsumer.trim(),
+    a4_benefit_other_stakeholders: a4BenefitOtherStakeholders.trim(),
+    a4_benefit_public: a4BenefitPublic.trim(),
+    a5_harm_pathways: a5HarmPathways.filter((r) => r.harm),
+    a6_safeguards: a6Safeguards.filter((r) => r.harm && (r.safeguard.trim() || r.safeguard_status)),
+    a9_approver_name: a9ApproverName.trim(),
+    a9_approver_position: a9ApproverPosition.trim(),
+    a9_approval_date: a9ApprovalDate,
     // Improvement Kit (Doc N R1): parallel assertions map, only when
     // the flag is on AND at least one designated field carries an
     // entry. Absent key = legacy semantics.
@@ -682,6 +721,8 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, exceptionClaims, impactData,
+    a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
+    a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate,
     assertions,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
 
