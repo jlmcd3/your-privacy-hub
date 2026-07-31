@@ -1756,7 +1756,7 @@ export default function CPPARiskAssessment() {
 
                 {/* A-2 — minimum-necessary candidate set */}
                 <div data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-2: Candidate personal-information elements, and whether each is necessary <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="A-2 · Minimum-necessary set" summary="The assessment must identify the minimum personal information necessary to achieve the purpose; each element collected is tested against that purpose." cite="11 CCR § 7152(a)(2)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-2: Candidate personal-information elements, and whether each is necessary <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="A-2 · Minimum-necessary set" summary="The assessment must identify the minimum personal information necessary to achieve the purpose; each element collected is tested against that purpose." cite="11 CCR § 7152(a)(2)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">List each data element this activity collects. Mark the ones that are not necessary — they become minimisation findings in the report.</p>
                   <div className="mt-2 space-y-2">
                     {a2NecessitySet.map((row, idx) => (
@@ -1794,7 +1794,7 @@ export default function CPPARiskAssessment() {
 
                 {/* A-4 — benefits, four beneficiary classes */}
                 <div>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-4: Benefits of this processing, stated specifically for each group <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="A-4 · Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-4: Benefits of this processing, stated specifically for each group <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="A-4 · Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
                   <div className="mt-2 space-y-2">
                     <Textarea rows={2} value={a4BenefitBusiness} onChange={(e) => setA4BenefitBusiness(e.target.value)} placeholder="Benefit to the business — specific outcome, not 'improving our service'." />
                     <Textarea rows={2} value={a4BenefitConsumer} onChange={(e) => setA4BenefitConsumer(e.target.value)} placeholder="Benefit to the consumer — specific outcome the consumer receives." />
@@ -1805,7 +1805,7 @@ export default function CPPARiskAssessment() {
 
                 {/* A-5 — harm pathways against the statutory catalogue */}
                 <div data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-5: Negative impacts, with their sources and causes <span className="text-xs text-muted-foreground">(§ 7152(a)(5)(A)–(H))</span></Label><StatutePopover term="A-5 · Negative impacts" summary="Identify the negative impacts to consumers' privacy associated with the processing, and the sources and causes of those impacts." cite="11 CCR § 7152(a)(5)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-5: Negative impacts, with their sources and causes <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(5)(A)–(H))</span></Label><StatutePopover term="A-5 · Negative impacts" summary="Identify the negative impacts to consumers' privacy associated with the processing, and the sources and causes of those impacts." cite="11 CCR § 7152(a)(5)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">One row per impact. The source is where the impact comes from; the cause is what about this processing produces it.</p>
                   <div className="mt-2 space-y-3">
                     {a5HarmPathways.map((row, idx) => (
@@ -1886,7 +1886,7 @@ export default function CPPARiskAssessment() {
 
                 {/* A-9 — review and approval record */}
                 <div>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-9: Who reviewed and approved this assessment? <span className="text-xs text-muted-foreground">(§ 7152(a)(9))</span></Label><StatutePopover term="A-9 · Review and approval" summary="The assessment must record the date it was reviewed and approved and the names and positions of those who reviewed or approved it; the approver must have authority to participate in deciding whether the processing is initiated." cite="11 CCR § 7152(a)(9)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-9: Who reviewed and approved this assessment? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(9))</span></Label><StatutePopover term="A-9 · Review and approval" summary="The assessment must record the date it was reviewed and approved and the names and positions of those who reviewed or approved it; the approver must have authority to participate in deciding whether the processing is initiated." cite="11 CCR § 7152(a)(9)" /></div>
                   <div className="mt-2 grid gap-2 md:grid-cols-3">
                     <input className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApproverName} onChange={(e) => setA9ApproverName(e.target.value)} placeholder="Approver name" />
                     <input className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApproverPosition} onChange={(e) => setA9ApproverPosition(e.target.value)} placeholder="Approver position" />
