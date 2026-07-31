@@ -2204,6 +2204,23 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] engagement_map build skipped:", (e as Error)?.message);
     }
 
+    // ── ITEM 310 — DPIA ANALYTIC DELIVERABLES (Chapter 6 (E)(3)).
+    // Single writer for necessity_findings[], proportionality[],
+    // risk_register[] and art36_consultation. Deterministic, pure, and
+    // built from the record only. Fail-open.
+    try {
+      const { attachDpiaDeliverables } = await import("../_shared/ltp/dpia-deliverables/build.ts");
+      const dmeta = attachDpiaDeliverables(
+        reportData as Record<string, unknown>,
+        (dpiaIntake ?? {}) as Record<string, unknown>,
+      );
+      ((reportData as any)._meta ??= {}).dpia_deliverables = dmeta;
+      console.log(JSON.stringify({ evt: "_dpia_deliverables", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...dmeta }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] ITEM-310 deliverables failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── DPIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ─────
     // Registry-first citation stamping + write-around for unanchorable
     // propositions. Telemetry writes to `_meta.internal.dpia_w1_wire`.
