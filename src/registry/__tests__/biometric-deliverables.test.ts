@@ -80,38 +80,51 @@ const PHOTO_ONLY: BiometricIntakeForDeliverables = {
 };
 
 describe("Item 317 — cross-state bleed pins", () => {
-  it("each statute's definitional text sits only under that statute", () => {
-    const defs = BIOMETRIC_DUTY_ROWS.filter((r) => r.kind === "definition");
-    expect(defs.length).toBeGreaterThan(2);
+  /**
+   * BIPA and CUBI open their definitions with near-identical enumerations
+   * ("retina or iris scan, fingerprint, voiceprint, or scan/record of hand or
+   * face geometry"). The bleed hazard is therefore not the opening clause but
+   * the statute-specific material that follows it, which is what these pins
+   * hold: each distinctive phrase must live under exactly one statute.
+   */
+  const DISTINCTIVE: Array<[string, string]> = [
+    ["us_il_bipa", "used to diagnose, prognose, or treat an illness"],
+    ["us_il_bipa", "Genetic Information Privacy Act"],
+    ["us_tx_cubi", "first anniversary of the date the purpose for collecting"],
+    ["us_wa_19375", "other unique biological patterns or characteristics"],
+  ];
 
-    for (const def of defs) {
-      const others = BIOMETRIC_DUTY_ROWS.filter(
-        (r) => r.statute_key !== def.statute_key,
+  it("statute-specific text never appears under another statute", () => {
+    for (const [owner, phrase] of DISTINCTIVE) {
+      const carriers = BIOMETRIC_DUTY_ROWS.filter((r) =>
+        norm(r.verbatim_quote).includes(phrase),
       );
-      // Take a long, statute-specific fragment of the definition.
-      const fragment = norm(def.verbatim_quote).slice(0, 60);
-      for (const other of others) {
-        expect(norm(other.verbatim_quote)).not.toContain(fragment);
-      }
+      expect(carriers.length).toBeGreaterThan(0);
+      for (const r of carriers) expect(r.statute_key).toBe(owner);
     }
   });
 
-  it("BIPA's HIPAA/diagnostic-imaging exclusions belong to BIPA alone", () => {
-    const bipaOnly = "used to diagnose, prognose, or treat an illness";
-    const carriers = BIOMETRIC_DUTY_ROWS.filter((r) =>
-      norm(r.verbatim_quote).includes(bipaOnly),
-    );
-    expect(carriers.length).toBeGreaterThan(0);
-    for (const r of carriers) expect(r.statute_key).toBe("us_il_bipa");
+  it("each statute's definition row cites its own statute's pinpoint", () => {
+    const defs = BIOMETRIC_DUTY_ROWS.filter((r) => r.kind === "definition");
+    expect(defs.length).toBeGreaterThan(2);
+    const pinpointOwner: Record<string, RegExp> = {
+      us_il_bipa: /740 ILCS/,
+      us_tx_cubi: /503\.001/,
+      us_wa_19375: /RCW 19\.375/,
+    };
+    for (const def of defs) {
+      expect(def.pinpoint).toMatch(pinpointOwner[def.statute_key]);
+    }
   });
 
-  it("the CUBI one-year clock belongs to Texas alone", () => {
+  it("the CUBI one-year destruction clock belongs to Texas alone", () => {
     const carriers = BIOMETRIC_DUTY_ROWS.filter((r) =>
-      /within\s+(a\s+)?(reasonable\s+time|1|one)\s*year/i.test(norm(r.verbatim_quote)),
+      /first anniversary/i.test(norm(r.verbatim_quote)),
     );
     expect(carriers.length).toBeGreaterThan(0);
     for (const r of carriers) expect(r.statute_key).toBe("us_tx_cubi");
   });
+
 
   it("every duty row quotes a real statute and names its corpus row", () => {
     for (const r of BIOMETRIC_DUTY_ROWS) {
