@@ -190,8 +190,21 @@ export const governanceContract: IntakeContract = {
       requiredWhen: 'transfer_status ∈ {"Yes, US-based tools","Yes, other non-adequate countries"}',
       hiddenValue: "n/a", options: [...TRANSFER_MECHANISM, "n/a"] as unknown as readonly string[] },
     { key: "additional_context", kind: "narrative", required: "optional" },
+    // ── ITEM 313 additions ────────────────────────────────────────────
+    // Op. 5 (Art. 24(1) second sentence) inputs.
+    { key: "measures_review_cadence", kind: "enum", required: "optional", options: REVIEW_CADENCE },
+    { key: "measures_last_review_date", kind: "text", required: "optional" },
+    // Op. 1 (Art. 24(1) named risk factors). Deliberately NOT duplicated from
+    // sector/org_size/data_categories: Article 24(1) names nature, scope,
+    // context and purposes as the calibration factors, and the existing fields
+    // answer none of them in their own terms.
+    { key: "processing_nature", kind: "narrative", required: "optional" },
+    { key: "processing_scope", kind: "narrative", required: "optional" },
+    { key: "processing_context", kind: "narrative", required: "optional" },
+    { key: "processing_purposes", kind: "narrative", required: "optional" },
   ],
 };
+
 
 export const GOVERNANCE_INLINE_LISTS = {
   GOV_SECTORS, GOV_SIZES, GOV_JURISDICTIONS, GOV_TOOLS, GOV_DATA_CATS,
