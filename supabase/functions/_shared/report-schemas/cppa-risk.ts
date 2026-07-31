@@ -149,7 +149,10 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
   },
 
   entries: {
+    // ITEM 305 — analytic-deliverable envelope key set.
+    activity_analytics: ANALYTIC_ENTRY_KEYS,
     risk_assessment_by_activity: RISK_ENTRY_KEYS,
+
     top_risks: RISK_ENTRY_KEYS,
     priority_actions: RISK_ENTRY_KEYS,
     next_steps: RISK_ENTRY_KEYS,
