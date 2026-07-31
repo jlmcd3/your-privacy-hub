@@ -39,6 +39,7 @@ import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { Dna } from 'lucide-react';
+import { BIO_TRI, BIO_NOTICE, BIO_CONSENT_ARTIFACT, BIO_DISCLOSURE_BASES } from "@/registry/biometric-intake-options";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
