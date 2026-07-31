@@ -316,8 +316,21 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     project: projectIntakeLedger,
     note: "ITEM 244 (L1): deterministic prose from operational-elements ledger; silent sub-elements resolve to 'not stated on the record'.",
   },
+  // ── ITEM 305 — Per-activity ANALYTIC DELIVERABLES ────────────────
+  {
+    key: "activity_analytics",
+    owner: {
+      kind: "deterministic",
+      template_ids: ["deterministic"],
+      emitter: "_shared/ltp/analytic-deliverables/build.ts (§ 7152(a)(2),(4),(5),(6),(7))",
+    },
+    project: (plan) => (plan as unknown as { activity_analytics?: unknown }).activity_analytics,
+    note:
+      "ITEM 305: necessity_analysis / harm_causation / safeguard_map / weighing / consequence, per assessed activity. Deterministic; the prose pass narrates it and may not alter it.",
+  },
   {
     key: "risk_assessment_by_activity",
+
     owner: {
       kind: "template",
       template_ids: [
@@ -631,6 +644,9 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   // ITEM 290 — `scope_confirmation` RETIRED (single-key scope emission).
   scope_and_triggers: "conditional",
   processing_narrative: "conditional",
+  // ITEM 305 — always emitted: the builder degrades rather than omitting.
+  activity_analytics: "always",
+
   risk_assessment_by_activity: "conditional",
   risk_register: "conditional",
   top_risks: "conditional",

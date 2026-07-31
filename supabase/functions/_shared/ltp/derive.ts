@@ -23,6 +23,10 @@ import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 import { CPPA_RISK_FACTORS, WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
 import { evaluateCppaRiskGates } from "./gate-eval.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
+// ITEM 305 — the five per-activity analytic deliverables. SINGLE-WRITER:
+// derivePlan is the only caller; the assembler shard merely projects it.
+import { buildActivityAnalytics } from "./analytic-deliverables/build.ts";
+
 
 export interface DeriveInput {
   readonly intake: Record<string, unknown>;
@@ -61,6 +65,8 @@ const PII_EXCLUDED_LEDGER_KEYS: ReadonlySet<string> = new Set([
   "i8_certifying_exec_name",
   "i8_contact_email",
   "i8_contact_phone",
+  // ITEM 305 — § 7152(a)(9) approver NAME is PII; the POSITION stays.
+  "a9_approver_name",
 ]);
 
 const LEDGER_KEYS: readonly string[] = cppaRiskContract.fields
@@ -162,6 +168,9 @@ export function derivePlan(input: DeriveInput): RenderPlan {
       weighing_frame: [], // populated by Guide stage
       gate_outcomes,
       conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
+      // ITEM 305 — deterministic per-activity analytic deliverables.
+      activity_analytics: buildActivityAnalytics(input.intake ?? {}) as unknown as readonly Record<string, unknown>[],
+
     };
   } catch (e) {
     return {
@@ -176,6 +185,9 @@ export function derivePlan(input: DeriveInput): RenderPlan {
       weighing_frame: [],
       gate_outcomes: [],
       conservative_write_around: { triggered: true, reason: `derive_error:${(e as Error)?.message ?? "?"}`, disclosure: "silent+telemetry" },
+      // ITEM 305 — degraded envelope; never omitted, never invented.
+      activity_analytics: buildActivityAnalytics({}) as unknown as readonly Record<string, unknown>[],
+
     };
   }
 }

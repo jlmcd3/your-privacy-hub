@@ -88,3 +88,52 @@ export const SENSITIVE_LOCATION_BASIS_OPTS = [
   "Immigration- or refugee-services facility",
   "Other sensitive location (describe in the intake)",
 ];
+
+// ── ITEM 305 — ANALYTIC-DELIVERABLE INTAKE (Chapter 1 rebuild) ─────────
+// These option sets feed the five per-activity analytic deliverables
+// (§ 7152(a)(2), (a)(4), (a)(5), (a)(6), (a)(7)). This file is the single
+// source of truth for authoring; verbatim copies live in
+// supabase/functions/_shared/ltp/analytic-deliverables/enums.ts and in
+// supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts,
+// with parity asserted mechanically by the pin tests.
+
+// § 7152(a)(2) — minimum-necessary status of each candidate PI element.
+export const NECESSITY_STATUS_OPTS = [
+  "Necessary to the stated purpose",
+  "Collected but not necessary to the stated purpose",
+  "Unsure",
+];
+
+// § 7152(a)(5)(A)–(H) — the statutory negative-impact examples. The "(A)"…
+// "(H)" prefixes are LOAD-BEARING: resolveHarmId() reads the tag rather
+// than guessing the category from the label text. Never reorder, never
+// re-letter, never drop a prefix.
+export const HARM_PATHWAY_OPTS = [
+  "(A) Unauthorized access, destruction, use, modification, or disclosure",
+  "(B) Unlawful discrimination on protected characteristics",
+  "(C) Impairment of consumer control over personal information",
+  "(D) Coercion or compulsion, including dark patterns",
+  "(E) Economic harms",
+  "(F) Physical harms",
+  "(G) Reputational harms",
+  "(H) Psychological harms",
+];
+
+export const HARM_LIKELIHOOD_OPTS = ["Unlikely", "Possible", "Likely", "Highly likely"];
+export const HARM_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe"];
+
+// § 7152(a)(6) — implementation status of each safeguard.
+export const SAFEGUARD_STATUS_OPTS = [
+  "Implemented and tested",
+  "Implemented, not tested",
+  "Planned, not yet implemented",
+  "None",
+];
+
+// § 7152(a)(4) — the four enumerated beneficiary classes, verbatim.
+export const BENEFICIARY_CLASSES = [
+  "the business",
+  "the consumer",
+  "other stakeholders",
+  "the public",
+];

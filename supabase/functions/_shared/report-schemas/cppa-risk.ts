@@ -53,6 +53,62 @@ const RISK_ENTRY_KEYS = [
   "status",
 ] as const;
 
+// ITEM 305 — allow-listed keys inside `activity_analytics[]`. The nested
+// deliverable records are serialized whole; this list covers the envelope
+// plus every leaf key emitted by
+// _shared/ltp/analytic-deliverables/build.ts.
+const ANALYTIC_ENTRY_KEYS = [
+  // envelope
+  "activity_id",
+  "activity_name",
+  "activity_purpose",
+  "is_primary",
+  "necessity_analysis",
+  "harm_causation",
+  "safeguard_map",
+  "weighing",
+  "consequence",
+  // shared leaves
+  "status",
+  "citation",
+  "information_needed",
+  // necessity_analysis[]
+  "element",
+  "asserted_status",
+  "verdict",
+  "justification",
+  // harm_causation[]
+  "harm_id",
+  "harm_pinpoint",
+  "harm_label",
+  "harm_verbatim",
+  "source",
+  "cause",
+  "likelihood",
+  "severity",
+  "inherent_band",
+  // safeguard_map[]
+  "safeguard",
+  "safeguard_status",
+  "residual_band",
+  // weighing[]
+  "beneficiary_class",
+  "benefit_statement",
+  "generic_benefit_flag",
+  "offsetting_harm_ids",
+  "sufficiency",
+  // consequence
+  "decision",
+  "rule_ids",
+  "reasons",
+  "conditions",
+  "approver_name",
+  "approver_position",
+  "approval_date",
+  "approval_recorded",
+] as const;
+
+
 export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
   version: "rs-w1-2026-07-26-ltp-waveb-summary",
   tool: "cppa_risk_assessment",
@@ -86,7 +142,12 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     // deterministically from operational-elements ledger fields; silent
     // sub-elements resolve to "not stated on the record".
     "processing_narrative",
+    // ITEM 305 — per-activity ANALYTIC DELIVERABLES (§ 7152(a)(2), (a)(4),
+    // (a)(5), (a)(6), (a)(7)). Structured, deterministic; produced solely by
+    // _shared/ltp/analytic-deliverables/build.ts.
+    "activity_analytics",
     "risk_assessment_by_activity",
+
     "risk_register",
     "top_risks",
     "priority_actions",
@@ -144,7 +205,10 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
   },
 
   entries: {
+    // ITEM 305 — analytic-deliverable envelope key set.
+    activity_analytics: ANALYTIC_ENTRY_KEYS,
     risk_assessment_by_activity: RISK_ENTRY_KEYS,
+
     top_risks: RISK_ENTRY_KEYS,
     priority_actions: RISK_ENTRY_KEYS,
     next_steps: RISK_ENTRY_KEYS,
