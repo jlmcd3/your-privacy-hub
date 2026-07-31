@@ -225,4 +225,88 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "Limit\\s+the\\s+Use", flags: "i", label: "Limit the Use of My SPI link" },
     ],
   },
+  // ---------- ITEM 317 — "Perfect Data" fixture-unblock ----------
+  // These supply every field the Item 317 intake extension added, so the
+  // per-duty deliverables are measurable rather than degrading wholesale to
+  // record_insufficient. Two states plus a cross-statute divergence.
+  {
+    id: "bio-perfect-il-tx-wa-record",
+    tool: "biometric-checker",
+    set: "tuning",
+    intake: {
+      orgName: "Continental Freight Systems, Inc.",
+      orgType: "Employer (employee biometrics)",
+      biometricTypes: ["Fingerprint / palm print"],
+      purpose: "Time & attendance / workforce management",
+      jurisdictions: ["Illinois, USA (BIPA)", "Texas, USA (CUBI)", "Washington state, USA"],
+      data_source_description:
+        "Optical fingerprint readers at dock entrances convert each employee ridge scan to a proprietary numeric template; the raw ridge capture is discarded at once and only the numeric template is stored in the on-premises matching database.",
+      healthcare_tpo_context: "No",
+      entity_is_government: "No",
+      glba_financial_institution: "No",
+      notice_before_collection: "Written notice given before collection",
+      consent_artifact_type: "Standalone written release signed before collection",
+      release_artifact_description:
+        "One-page biometric consent form signed at induction, stating the specific purpose (shift clock-in), the term of collection and storage, and naming the retention schedule; countersigned copy retained in the personnel file.",
+      retention_schedule_text:
+        "Templates are destroyed on the earlier of (i) satisfaction of the initial purpose of collection or (ii) one year after the employee last interacts with the reader.",
+      retention_policy_public: "Yes",
+      destruction_trigger:
+        "Automated purge job runs nightly and deletes any template whose employment record closed more than 30 days earlier.",
+      sells_or_profits: "No",
+      disclosure_recipients: "None — the matching database is hosted on-premises and no vendor receives templates.",
+      disclosure_bases: ["No disclosures are made"],
+      security_measures_description:
+        "Templates encrypted at rest with AES-256, transmitted only over the internal network segment, access restricted to two named systems administrators under logged break-glass procedure.",
+      protection_parity: "Yes",
+      tx_destruction_within_one_year: "Yes",
+      tx_longer_retention_required_by_law: "No",
+      tx_employer_security_collection: "No",
+      tx_ai_training_use: "No",
+      wa_enrolls_in_database: "Yes",
+      wa_commercial_purpose: "No",
+      wa_security_purpose_only: "No",
+    },
+    assertions: [
+      { kind: "must_cite", citation: "740 ILCS 14", label: "BIPA cited for IL" },
+      { kind: "must_include", pattern: "503\\.001", label: "CUBI cited for TX" },
+      { kind: "must_include", pattern: "RCW\\s*19\\.375", flags: "i", label: "RCW 19.375 cited for WA" },
+      { kind: "must_include", pattern: "one\\s+year", flags: "i", label: "CUBI one-year clock named" },
+    ],
+  },
+  {
+    id: "bio-perfect-il-deficient-record",
+    tool: "biometric-checker",
+    set: "holdout",
+    intake: {
+      orgName: "Prairie Fitness Clubs LLC",
+      orgType: "Consumer app or platform",
+      biometricTypes: ["Facial geometry / facial recognition"],
+      purpose: "Customer authentication",
+      jurisdictions: ["Illinois, USA (BIPA)"],
+      data_source_description:
+        "Lobby kiosk cameras compute a facial geometry template for each member at check-in and match it against the stored member gallery.",
+      healthcare_tpo_context: "No",
+      entity_is_government: "No",
+      glba_financial_institution: "No",
+      notice_before_collection: "No notice given before collection",
+      consent_artifact_type: "Clickwrap or in-product acceptance",
+      release_artifact_description:
+        "Membership terms of service contain a single sentence permitting 'biometric check-in'; there is no standalone release and no signature specific to biometrics.",
+      retention_schedule_text: "",
+      retention_policy_public: "No",
+      destruction_trigger: "",
+      sells_or_profits: "Yes",
+      disclosure_recipients: "Templates are shared with an analytics partner that resells aggregate attendance insight.",
+      disclosure_bases: [],
+      security_measures_description: "Templates stored in the same unencrypted operational database as class bookings.",
+      protection_parity: "No",
+    },
+    assertions: [
+      { kind: "must_cite", citation: "740 ILCS 14", label: "BIPA cited" },
+      { kind: "must_include", pattern: "15\\(b\\)", label: "written release / \u00a715(b)" },
+      { kind: "must_include", pattern: "15\\(c\\)|profit", flags: "i", label: "profit prohibition reached" },
+      { kind: "must_include", pattern: "retention", flags: "i", label: "retention schedule reached" },
+    ],
+  },
 ];

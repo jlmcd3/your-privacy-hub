@@ -169,7 +169,8 @@ const IL_BIPA_ROWS: BiometricStatuteRow[] = [
     statute_short: "BIPA",
     pinpoint: "740 ILCS 14/15(d)",
     verbatim_quote:
-      "740 ILCS 14/15(d): No private entity in possession of a biometric identifier or biometric information may disclose, redisclose, or otherwise disseminate a person's or a customer's biometric identifier or biometric information unless: (1) the subject of the biometric identifier or biometric information or the subject's legally authorized representative consents to the disclosure or redisclosure; (2) the disclosure or redisclosure completes a financial transaction requested or authorized by the subject or the subject's legally authorized representative; (3) the disclosure or redisclosure is required by State or federal law or municipal ordinance; or (4) the disclosure is required pursuant to a valid warrant or subpoena issued by a court of competent jurisdiction.",
+      
+      "740 ILCS 14/15(d): (d) No private entity in possession of a biometric identifier or biometric information may disclose, redisclose, or otherwise disseminate a person's or a customer's biometric identifier or biometric information unless: (1) the subject of the biometric identifier or biometric information or the subject's legally authorized representative consents to the disclosure or redisclosure; (2) the disclosure or redisclosure completes a financial transaction requested or authorized by the subject of the biometric identifier or the biometric information or the subject's legally authorized representative; (3) the disclosure or redisclosure is required by State or federal law or municipal ordinance; or (4) the disclosure is required pursuant to a valid warrant or subpoena issued by a court of competent jurisdiction.",
     topic: "disclosure",
     primary_source_url:
       "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
@@ -191,23 +192,14 @@ const IL_BIPA_ROWS: BiometricStatuteRow[] = [
     verification_date: "2026-06-28",
     applicability_predicates: ["jurisdiction_named:Illinois"],
   },
-  {
-    id: "us_il_bipa.20_private_right_of_action",
-    jurisdiction_id: "us_il_bipa",
-    jurisdiction_display: "Illinois",
-    statute_long: "Illinois Biometric Information Privacy Act",
-    statute_short: "BIPA",
-    pinpoint: "740 ILCS 14/20",
-    verbatim_quote:
-      "740 ILCS 14/20: Any person aggrieved by a violation of this Act shall have a right of action in a State circuit court or as a supplemental claim in federal district court against an offending party. A prevailing party may recover for each violation: (1) against a private entity that negligently violates a provision of this Act, liquidated damages of $1,000 or actual damages, whichever is greater; (2) against a private entity that intentionally or recklessly violates a provision of this Act, liquidated damages of $5,000 or actual damages, whichever is greater; (3) reasonable attorneys' fees and costs, including expert witness fees and other litigation expenses; and (4) other relief, including an injunction, as the State or federal court may deem appropriate.",
-    topic: "pra_damages",
-    primary_source_url:
-      "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
-    verification_date: "2026-06-28",
-    applicability_predicates: ["jurisdiction_named:Illinois"],
-    note:
-      "P.A. 103-0769 (2024) caps recovery to one per person per biometric identifier per party; Clay v. Union Pacific (7th Cir. 2026) applies that cap retroactively in federal court.",
-  },
+  // ITEM 317 RECONCILIATION — the 740 ILCS 14/20 (private right of action) row
+  // was REMOVED. Its "verbatim_quote" was a reconstruction: 740 ILCS 14/20 was
+  // never ingested (Item 314 flagged it as a follow-on), so no corpus row
+  // supported the damages tiers, fee-shifting, or mental-state language the row
+  // carried. Supplying unverifiable text to the generator is the exact defect
+  // this registry exists to prevent. The PRA is now handled by
+  // BIPA_PRA_CORPUS_STATUS in biometric-verified-authorities.ts, which permits
+  // only the existence characterisation and degrades every specific.
 ];
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -223,7 +215,8 @@ const TX_CUBI_ROWS: BiometricStatuteRow[] = [
     statute_short: "CUBI",
     pinpoint: "Tex. Bus. & Com. Code § 503.001(a)",
     verbatim_quote:
-      "Tex. Bus. & Com. Code § 503.001(a): In this section, \"biometric identifier\" means a retina or iris scan, fingerprint, voiceprint, or record of hand or face geometry.",
+      
+      "Tex. Bus. & Com. Code § 503.001(a): (2) \"Biometric identifier\" means a retina or iris scan, fingerprint, voiceprint, or record of hand or face geometry.",
     topic: "definition",
     primary_source_url:
       "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm",
@@ -253,7 +246,8 @@ const TX_CUBI_ROWS: BiometricStatuteRow[] = [
     statute_short: "CUBI",
     pinpoint: "Tex. Bus. & Com. Code § 503.001(c)(1)",
     verbatim_quote:
-      "Tex. Bus. & Com. Code § 503.001(c)(1): A person who possesses a biometric identifier of an individual that is captured for a commercial purpose may not sell, lease, or otherwise disclose the biometric identifier to another person unless: (A) the individual consents to the disclosure for identification purposes in the event of the individual's disappearance or death; (B) the disclosure completes a financial transaction that the individual requested or authorized; (C) the disclosure is required or permitted by a federal statute or by a state statute other than Chapter 552, Government Code; or (D) the disclosure is made by or to a law enforcement agency for a law enforcement purpose in response to a warrant.",
+      
+      "Tex. Bus. & Com. Code § 503.001(c)(1): (c) A person who possesses a biometric identifier of an individual that is captured for a commercial purpose: (1) may not sell, lease, or otherwise disclose the biometric identifier to another person unless: (A) the individual consents to the disclosure for identification purposes in the event of the individual's disappearance or death; (B) the disclosure completes a financial transaction that the individual requested or authorized; (C) the disclosure is required or permitted by a federal statute or by a state statute other than Chapter 552, Government Code; or (D) the disclosure is made by or to a law enforcement agency for a law enforcement purpose in response to a warrant;",
     topic: "disclosure",
     primary_source_url:
       "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm",
@@ -268,7 +262,8 @@ const TX_CUBI_ROWS: BiometricStatuteRow[] = [
     statute_short: "CUBI",
     pinpoint: "Tex. Bus. & Com. Code § 503.001(c)(2)",
     verbatim_quote:
-      "Tex. Bus. & Com. Code § 503.001(c)(2): A person who possesses a biometric identifier of an individual that is captured for a commercial purpose shall store, transmit, and protect from disclosure the biometric identifier using reasonable care and in a manner that is the same as or more protective than the manner in which the person stores, transmits, and protects any other confidential information the person possesses.",
+      
+      "Tex. Bus. & Com. Code § 503.001(c)(2): (2) shall store, transmit, and protect from disclosure the biometric identifier using reasonable care and in a manner that is the same as or more protective than the manner in which the person stores, transmits, and protects any other confidential information the person possesses; and",
     topic: "security",
     primary_source_url:
       "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm",
@@ -283,7 +278,8 @@ const TX_CUBI_ROWS: BiometricStatuteRow[] = [
     statute_short: "CUBI",
     pinpoint: "Tex. Bus. & Com. Code § 503.001(c)(3)",
     verbatim_quote:
-      "Tex. Bus. & Com. Code § 503.001(c)(3): A person who possesses a biometric identifier of an individual that is captured for a commercial purpose shall destroy the biometric identifier within a reasonable time, but not later than the first anniversary of the date the purpose for collecting the identifier expires, except as provided by Subsection (c-1).",
+      
+      "Tex. Bus. & Com. Code § 503.001(c)(3): (3) shall destroy the biometric identifier within a reasonable time, but not later than the first anniversary of the date the purpose for collecting the identifier expires, except as provided by Subsection (c-1).",
     topic: "retention",
     primary_source_url:
       "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm",
@@ -314,7 +310,8 @@ const TX_CUBI_ROWS: BiometricStatuteRow[] = [
     statute_short: "CUBI",
     pinpoint: "Tex. Bus. & Com. Code § 503.001(e)",
     verbatim_quote:
-      "Tex. Bus. & Com. Code § 503.001(e): This section does not apply to a biometric identifier captured, possessed, or used solely for the purpose of developing, training, evaluating, testing, or otherwise improving an artificial intelligence model or system, provided the biometric identifier is not used for a commercial purpose to identify a specific individual.",
+      
+      "Tex. Bus. & Com. Code § 503.001(e): (e) This section does not apply to: (1) voiceprint data retained by a financial institution or an affiliate of a financial institution, as those terms are defined by 15 U.S.C. Section 6809; (2) the training, processing, or storage of biometric identifiers involved in developing, training, evaluating, disseminating, or otherwise offering artificial intelligence models or systems, unless a system is used or deployed for the purpose of uniquely identifying a specific individual; or (3) the development or deployment of an artificial intelligence model or system for the purposes of: (A) preventing, detecting, protecting against, or responding to security incidents, identity theft, fraud, harassment, malicious or deceptive activities, or any other illegal activity; (B) preserving the integrity or security of a system; or (C) investigating, reporting, or prosecuting a person responsible for a security incident, identity theft, fraud, harassment, a malicious or deceptive activity, or any other illegal activity.",
     topic: "exemption",
     primary_source_url:
       "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm",
@@ -341,7 +338,8 @@ const WA_HB1493_ROWS: BiometricStatuteRow[] = [
     statute_short: "RCW 19.375",
     pinpoint: "RCW 19.375.010",
     verbatim_quote:
-      "RCW 19.375.010(1): \"Biometric identifier\" means data generated by automatic measurements of an individual's biological characteristics, such as a fingerprint, voiceprint, eye retinas, irises, or other unique biological patterns or characteristics that is used to identify a specific individual. \"Biometric identifier\" does not include a physical or digital photograph, video or audio recording or data generated therefrom, or information collected, used, or stored for health care treatment, payment, or operations under the federal health insurance portability and accountability act of 1996.",
+      
+      "RCW 19.375.010(1): (1) \"Biometric identifier\" means data generated by automatic measurements of an individual's biological characteristics, such as a fingerprint, voiceprint, eye retinas, irises, or other unique biological patterns or characteristics that is used to identify a specific individual. \"Biometric identifier\" does not include a physical or digital photograph, video or audio recording or data generated therefrom, or information collected, used, or stored for health care treatment, payment, or operations under the federal health insurance portability and accountability act of 1996.",
     topic: "definition",
     primary_source_url:
       "https://app.leg.wa.gov/RCW/default.aspx?cite=19.375",
@@ -356,7 +354,8 @@ const WA_HB1493_ROWS: BiometricStatuteRow[] = [
     statute_short: "RCW 19.375",
     pinpoint: "RCW 19.375.020",
     verbatim_quote:
-      "RCW 19.375.020(1): A person may not enroll a biometric identifier in a database for a commercial purpose, without first providing notice, obtaining consent, or providing a mechanism to prevent the subsequent use of a biometric identifier for a commercial purpose. Notice is a disclosure, that is not considered affirmative consent, that is given through a procedure reasonably designed to be readily available to affected individuals. The exact notice and type of consent required to achieve compliance with this section is context-dependent.",
+      
+      "RCW 19.375.020(1): (1) A person may not enroll a biometric identifier in a database for a commercial purpose, without first providing notice, obtaining consent, or providing a mechanism to prevent the subsequent use of a biometric identifier for a commercial purpose. (2) Notice is a disclosure, that is not considered affirmative consent, that is given through a procedure reasonably designed to be readily available to affected individuals. The exact notice and type of consent required to achieve compliance with subsection (1) of this section is context-dependent.",
     topic: "consent_notice",
     primary_source_url:
       "https://app.leg.wa.gov/RCW/default.aspx?cite=19.375",
@@ -371,7 +370,8 @@ const WA_HB1493_ROWS: BiometricStatuteRow[] = [
     statute_short: "RCW 19.375",
     pinpoint: "RCW 19.375.020(3)",
     verbatim_quote:
-      "RCW 19.375.020(3): A person who has enrolled an individual's biometric identifier may not sell, lease, or otherwise disclose the biometric identifier to another person for a commercial purpose unless: (a) The individual consents to the disclosure; (b) the disclosure is necessary to provide a product or service subscribed to, requested, or expressly authorized by the individual; (c) the disclosure is necessary to effect, administer, enforce, or complete a financial transaction that the individual requested, initiated, or authorized, and the third party to whom the biometric identifier is disclosed maintains confidentiality of the biometric identifier and does not further disclose the biometric identifier except as otherwise permitted under this subsection (3); (d) the disclosure is required or expressly authorized by federal or state law, or municipal ordinance; or (e) the disclosure is made to a law enforcement agency for a law enforcement purpose in response to a court order, warrant, or subpoena.",
+      
+      "RCW 19.375.020(3): (3) Unless consent has been obtained from the individual, a person who has enrolled an individual's biometric identifier may not sell, lease, or otherwise disclose the biometric identifier to another person for a commercial purpose unless the disclosure: (a) Is consistent with subsections (1), (2), and (4) of this section; (b) Is necessary to provide a product or service subscribed to, requested, or expressly authorized by the individual; (c) Is necessary to effect, administer, enforce, or complete a financial transaction that the individual requested, initiated, or authorized, and the third party to whom the biometric identifier is disclosed maintains confidentiality of the biometric identifier and does not further disclose the biometric identifier except as otherwise permitted under this subsection (3); (d) Is required or expressly authorized by a federal or state statute, or court order; (e) Is made to a third party who contractually promises that the biometric identifier will not be further disclosed and will not be enrolled in a database for a commercial purpose inconsistent with the notice and consent described in this subsection (3) and subsections (1) and (2) of this section; or (f) Is made to prepare for litigation or to respond to or participate in judicial process.",
     topic: "disclosure",
     primary_source_url:
       "https://app.leg.wa.gov/RCW/default.aspx?cite=19.375",
@@ -386,7 +386,8 @@ const WA_HB1493_ROWS: BiometricStatuteRow[] = [
     statute_short: "RCW 19.375",
     pinpoint: "RCW 19.375.020(4)",
     verbatim_quote:
-      "RCW 19.375.020(4): A person in possession of a biometric identifier enrolled for a commercial purpose must take reasonable care to guard against unauthorized access to and acquisition of biometric identifiers that are in the possession or under the control of the person. A person in possession of biometric identifiers enrolled for a commercial purpose may retain the biometric identifier no longer than is reasonably necessary to: (a) Provide the services for which the biometric identifier was enrolled; (b) prevent fraud or criminal activity; or (c) use for the purposes authorized by consent.",
+      
+      "RCW 19.375.020(4): (4) A person who knowingly possesses a biometric identifier of an individual that has been enrolled for a commercial purpose: (a) Must take reasonable care to guard against unauthorized access to and acquisition of biometric identifiers that are in the possession or under the control of the person; and (b) May retain the biometric identifier no longer than is reasonably necessary to: (i) Comply with a court order, statute, or public records retention schedule specified under federal, state, or local law; (ii) Protect against or prevent actual or potential fraud, criminal activity, claims, security threats, or liability; and (iii) Provide the services for which the biometric identifier was enrolled.",
     topic: "security",
     primary_source_url:
       "https://app.leg.wa.gov/RCW/default.aspx?cite=19.375",
@@ -401,7 +402,8 @@ const WA_HB1493_ROWS: BiometricStatuteRow[] = [
     statute_short: "RCW 19.375",
     pinpoint: "RCW 19.375.030",
     verbatim_quote:
-      "RCW 19.375.030: The legislature finds that the practices covered by this chapter are matters vitally affecting the public interest for the purpose of applying the consumer protection act, chapter 19.86 RCW. A violation of this chapter is not reasonable in relation to the development and preservation of business and is an unfair or deceptive act in trade or commerce and an unfair method of competition for the purpose of applying the consumer protection act, chapter 19.86 RCW. This chapter may be enforced solely by the attorney general under the consumer protection act, chapter 19.86 RCW.",
+      
+      "RCW 19.375.030: (1) The legislature finds that the practices covered by this chapter are matters vitally affecting the public interest for the purpose of applying the consumer protection act, chapter 19.86 RCW. A violation of this chapter is not reasonable in relation to the development and preservation of business and is an unfair or deceptive act in trade or commerce and an unfair method of competition for the purpose of applying the consumer protection act, chapter 19.86 RCW. (2) This chapter may be enforced solely by the attorney general under the consumer protection act, chapter 19.86 RCW.",
     topic: "enforcement",
     primary_source_url:
       "https://app.leg.wa.gov/RCW/default.aspx?cite=19.375",

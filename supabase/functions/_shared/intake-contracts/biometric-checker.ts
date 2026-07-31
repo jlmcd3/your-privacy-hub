@@ -52,11 +52,47 @@ const JURS = [
   "Singapore (PDPA)",
 ] as const;
 
+// ITEM 317 — the intake previously asked what data the organisation processes
+// but not what it DOES about it, which made per-duty analysis structurally
+// impossible. These option lists mirror src/registry/biometric-intake-options.ts
+// exactly; a guard test asserts the two stay identical.
+const TRI = ["Yes", "No", "Not known"] as const;
+const NOTICE = [
+  "Written notice given before collection",
+  "Notice given before collection, but not in writing",
+  "No notice given before collection",
+  "Not known",
+] as const;
+const CONSENT_ARTIFACT = [
+  "Standalone written release signed before collection",
+  "Electronic signature captured in the enrolment flow",
+  "Release executed as a condition of employment (onboarding paperwork)",
+  "Clickwrap or in-product acceptance",
+  "Verbal consent only",
+  "No consent obtained",
+  "Not known",
+] as const;
+const DISCLOSURE_BASES = [
+  "No disclosures are made",
+  "Subject consent to the disclosure",
+  "Subject consent for identification on disappearance or death",
+  "Completes a financial transaction the subject requested or authorised",
+  "Required by law",
+  "Warrant or subpoena",
+  "Necessary to provide a product or service the subject requested",
+  "Third party contractually promises no further disclosure",
+  "To prepare for or respond to litigation",
+] as const;
+
 export {
   TYPES as BIO_TYPES,
   ORG as BIO_ORG,
   PURPOSE as BIO_PURPOSE,
   JURS as BIO_JURS,
+  TRI as BIO_TRI,
+  NOTICE as BIO_NOTICE,
+  CONSENT_ARTIFACT as BIO_CONSENT_ARTIFACT,
+  DISCLOSURE_BASES as BIO_DISCLOSURE_BASES,
 };
 
 export const biometricCheckerContract: IntakeContract = {
@@ -73,6 +109,43 @@ export const biometricCheckerContract: IntakeContract = {
     // produces a single conditional-framework section for that state
     // instead of the compact unresolved candidate-statute block.
     { key: "other_state_names", kind: "text", required: "optional" },
+
+    // ── ITEM 317 intake extension ────────────────────────────────────────
+    // Scope and characterisation facts.
+    { key: "data_source_description", kind: "text", required: "optional" },
+    { key: "healthcare_tpo_context", kind: "enum", required: "optional", options: TRI },
+    { key: "entity_is_government", kind: "enum", required: "optional", options: TRI },
+    { key: "glba_financial_institution", kind: "enum", required: "optional", options: TRI },
+
+    // Permission artifacts (BIPA § 15(b), CUBI § 503.001(b), RCW 19.375.020(1)).
+    { key: "notice_before_collection", kind: "enum", required: "optional", options: NOTICE },
+    { key: "consent_artifact_type", kind: "enum", required: "optional", options: CONSENT_ARTIFACT },
+    { key: "release_artifact_description", kind: "text", required: "optional" },
+
+    // Retention and destruction (BIPA § 15(a), CUBI § 503.001(c)(3), RCW 19.375.020(4)).
+    { key: "retention_schedule_text", kind: "text", required: "optional" },
+    { key: "retention_policy_public", kind: "enum", required: "optional", options: TRI },
+    { key: "destruction_trigger", kind: "text", required: "optional" },
+
+    // Profit and disclosure (BIPA § 15(c)/(d), CUBI § 503.001(c)(1), RCW 19.375.020(3)).
+    { key: "sells_or_profits", kind: "enum", required: "optional", options: TRI },
+    { key: "disclosure_recipients", kind: "text", required: "optional" },
+    { key: "disclosure_bases", kind: "multi-enum", required: "optional", options: DISCLOSURE_BASES },
+
+    // Security (BIPA § 15(e), CUBI § 503.001(c)(2), RCW 19.375.020(4)(a)).
+    { key: "security_measures_description", kind: "text", required: "optional" },
+    { key: "protection_parity", kind: "enum", required: "optional", options: TRI },
+
+    // Texas-specific facts the one-year clock and its qualifiers turn on.
+    { key: "tx_destruction_within_one_year", kind: "enum", required: "optional", options: TRI },
+    { key: "tx_longer_retention_required_by_law", kind: "enum", required: "optional", options: TRI },
+    { key: "tx_employer_security_collection", kind: "enum", required: "optional", options: TRI },
+    { key: "tx_ai_training_use", kind: "enum", required: "optional", options: TRI },
+
+    // Washington-specific facts the enrollment predicate turns on.
+    { key: "wa_enrolls_in_database", kind: "enum", required: "optional", options: TRI },
+    { key: "wa_commercial_purpose", kind: "enum", required: "optional", options: TRI },
+    { key: "wa_security_purpose_only", kind: "enum", required: "optional", options: TRI },
   ],
 };
 

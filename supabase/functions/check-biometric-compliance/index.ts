@@ -22,6 +22,11 @@ import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+// ITEM 317 — deterministic biometric analytic deliverables (pure builder).
+import {
+  buildBiometricDeliverables,
+  type BiometricIntakeForDeliverables,
+} from "../_shared/ltp/biometric-deliverables/build.ts";
 import {
   selectApplicableRows,
   resolveJurisdictions,
@@ -1993,6 +1998,13 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     }
     assessment_text = citationValidation.clean;
 
+    // ITEM 317 — deterministic analytic deliverables. Single writer: the
+    // builder is the only producer of these keys, and it is pure, so the model
+    // output above can never contradict a duty verdict.
+    const biometric_deliverables = buildBiometricDeliverables(
+      body as unknown as BiometricIntakeForDeliverables,
+    );
+
     const report_data = {
       // bipa_risk field retired 2026-07-14
       jurisdictions_analysed: body.jurisdictions,
@@ -2013,8 +2025,15 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
         stripped_citations: citationValidation.strippedCitations,
         stripped_quotes: citationValidation.strippedQuotes,
       },
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
+      identifier_characterizations: biometric_deliverables.identifier_characterizations,
+      entity_characterization: biometric_deliverables.entity_characterization,
+      duty_findings: biometric_deliverables.duty_findings,
+      divergence_analysis: biometric_deliverables.divergence_analysis,
+      consequence_determination: biometric_deliverables.consequence_determination,
+      biometric_deliverables,
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION, deliverables_version: biometric_deliverables.version },
     };
+
 
     try { const _prose = extractProseFromReport(report_data); const _roster = extractIntakeRoster(body ?? {}); const _det = runFormatChecksGeneric(_prose, { intakeRoster: _roster }).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
 
