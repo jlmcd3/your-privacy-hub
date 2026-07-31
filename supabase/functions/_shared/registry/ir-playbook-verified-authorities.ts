@@ -483,9 +483,11 @@ export const IR_PLAYBOOK_UNANCHORED_PROPOSITIONS: readonly string[] = [
   "art_60_cooperation_lead_and_concerned",   // Art. 60 not in approved P1 set (cross-border cooperation)
   "art_83_administrative_fines",             // Art. 83 not in approved P1 set (fine-exposure framing)
 
-  // UK GDPR / DPA 2018 mirror rows — not ingested as separate rows
-  "uk_gdpr_art_33_mirror",                   // UK GDPR Art. 33 (post-Data Act 2025) — not in corpus
-  "uk_gdpr_art_34_mirror",                   // UK GDPR Art. 34 mirror — not in corpus
+  // UK GDPR / DPA 2018 surface
+  // ITEM 304 / FIX D: `uk_gdpr_art_33_mirror` and `uk_gdpr_art_34_mirror` were
+  // REMOVED from this list — Item 302 landed the UK-specific text in corpus as
+  // provision_texts `ukgdpr-art-33` / `ukgdpr-art-34`, and both now carry real
+  // registry rows above (UK "Commissioner" language, not the EU fallback).
   "uk_dpa_2018_ico_notification_portal",     // ICO breach-notification portal mechanics — not in corpus
 
   // EDPB guidance the IR generator invokes but is not in approved corpus
