@@ -1369,6 +1369,7 @@ export type Database = {
           status: string
           title: string
           topic_tags: string[]
+          version_verified_at: string | null
         }
         Insert: {
           adopted_date?: string | null
@@ -1387,6 +1388,7 @@ export type Database = {
           status?: string
           title: string
           topic_tags?: string[]
+          version_verified_at?: string | null
         }
         Update: {
           adopted_date?: string | null
@@ -1405,6 +1407,7 @@ export type Database = {
           status?: string
           title?: string
           topic_tags?: string[]
+          version_verified_at?: string | null
         }
         Relationships: []
       }

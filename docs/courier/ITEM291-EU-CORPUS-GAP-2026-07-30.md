@@ -1,4 +1,36 @@
+> ## ⛔ WITHDRAWN — SUPERSEDED BY ITEM 300 (annotated 2026-07-31, Item 304 Fix C)
+>
+> **Scope of the withdrawal:** the P0 "truncation" finding in this document —
+> specifically the rows reading `Art. 22 | PRESENT BUT TRUNCATED` and
+> `Art. 34 | PRESENT BUT TRUNCATED` (and any downstream "fix before Wave 3"
+> framing that depends on them). **Nothing else in this courier is withdrawn.**
+>
+> **Why it was wrong.** The finding was produced by length-comparing the
+> `provision_texts` rows `gdpr-art-22` / `gdpr-art-34` against the corresponding
+> `gdpr_articles` (eu) rows. Those `gdpr_articles` rows themselves carried a
+> **trailing next-section-heading artifact** — the following Section/Chapter
+> heading block appended after the article's real end (Art. 22 carried
+> `"\n\nSection 5\n\nRestrictions"`, +25 chars; Art. 34 carried
+> `"\n\nSection 3\n\nData protection impact assessment and prior consultation"`,
+> +69 chars). The `provision_texts` rows were never short; the comparison
+> baseline was long. The apparent 25- and 69-character deficits are exactly the
+> artifact lengths.
+>
+> **Independent confirmation.** Item 300 confirmed both `provision_texts` rows
+> byte-identical to the live CELEX 32016R0679 text, and the controller
+> independently confirmed the same. Item 304 Fix A then scanned **all 180
+> `gdpr_articles` rows (99 `eu` + 81 `uk`)**, found the artifact on **21 EU rows**
+> (0 UK rows), stripped it, and re-verified each corrected `body_text` against
+> live CELEX. `provision_texts` was NOT touched by that fix — it was already
+> clean.
+>
+> **Status:** finding withdrawn; root cause fixed at source (Item 304 Fix A);
+> no repair to `provision_texts` was needed and none was made. The original
+> text below is preserved unedited for the record — read the Art. 22 / Art. 34
+> "TRUNCATED" rows as **FALSE POSITIVE**.
+
 # ITEM 291 — EUROPEAN CORPUS GAP ANALYSIS (2026-07-30)
+
 
 DOCS-ONLY. Executing the CEO's corpus authorization of 2026-07-30 (Item 289
 ruling 5: "European corpus completion authorized, conditioned on CEO review of
