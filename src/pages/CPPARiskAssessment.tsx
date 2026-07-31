@@ -1744,6 +1744,157 @@ export default function CPPARiskAssessment() {
                   </div>
                 </div>
               </div>
+
+              {/* === ITEM 305 — ANALYTIC DELIVERABLES (§ 7152(a)(2),(4),(5),(6),(9)) === */}
+              <div className="border-t pt-6 mt-6 space-y-6">
+                <div>
+                  <Label className="text-base font-semibold">Required analysis inputs</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    These answers are the operands of the assessment's required analysis: the minimum-necessary test, the catalogue of negative impacts and their sources and causes, the safeguards mapped to each impact, the benefit weighing across the four groups named in the regulation, and the record of who reviewed and approved the assessment. Anything left blank is reported as an item for your review — never guessed.
+                  </p>
+                </div>
+
+                {/* A-2 — minimum-necessary candidate set */}
+                <div data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-2: Candidate personal-information elements, and whether each is necessary <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="A-2 · Minimum-necessary set" summary="The assessment must identify the minimum personal information necessary to achieve the purpose; each element collected is tested against that purpose." cite="11 CCR § 7152(a)(2)" /></div>
+                  <p className="text-xs text-muted-foreground mt-1">List each data element this activity collects. Mark the ones that are not necessary — they become minimisation findings in the report.</p>
+                  <div className="mt-2 space-y-2">
+                    {a2NecessitySet.map((row, idx) => (
+                      <div key={idx} className="grid gap-2 md:grid-cols-[1fr_1fr_1.4fr] items-start">
+                        <input
+                          className="h-10 px-3 rounded-md border border-input bg-background"
+                          value={row.element}
+                          onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, element: e.target.value } : r))}
+                          placeholder="Data element (e.g. precise geolocation)"
+                        />
+                        <select
+                          className="h-10 px-3 rounded-md border border-input bg-background"
+                          value={row.necessity}
+                          onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, necessity: e.target.value } : r))}
+                        >
+                          <option value="">Necessary to the purpose?…</option>
+                          {NECESSITY_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        <input
+                          className="h-10 px-3 rounded-md border border-input bg-background"
+                          value={row.justification}
+                          onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, justification: e.target.value } : r))}
+                          placeholder="Why (required to support a necessity claim)"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setA2NecessitySet((r) => [...r, { element: "", necessity: "", justification: "" }])}>Add element</Button>
+                    {a2NecessitySet.length > 1 && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setA2NecessitySet((r) => r.slice(0, -1))}>Remove last</Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* A-4 — benefits, four beneficiary classes */}
+                <div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-4: Benefits of this processing, stated specifically for each group <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="A-4 · Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
+                  <div className="mt-2 space-y-2">
+                    <Textarea rows={2} value={a4BenefitBusiness} onChange={(e) => setA4BenefitBusiness(e.target.value)} placeholder="Benefit to the business — specific outcome, not 'improving our service'." />
+                    <Textarea rows={2} value={a4BenefitConsumer} onChange={(e) => setA4BenefitConsumer(e.target.value)} placeholder="Benefit to the consumer — specific outcome the consumer receives." />
+                    <Textarea rows={2} value={a4BenefitOtherStakeholders} onChange={(e) => setA4BenefitOtherStakeholders(e.target.value)} placeholder="Benefit to other stakeholders — or state that none applies." />
+                    <Textarea rows={2} value={a4BenefitPublic} onChange={(e) => setA4BenefitPublic(e.target.value)} placeholder="Benefit to the public — or state that none applies." />
+                  </div>
+                </div>
+
+                {/* A-5 — harm pathways against the statutory catalogue */}
+                <div data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-5: Negative impacts, with their sources and causes <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(5)(A)–(H))</span></Label><StatutePopover term="A-5 · Negative impacts" summary="Identify the negative impacts to consumers' privacy associated with the processing, and the sources and causes of those impacts." cite="11 CCR § 7152(a)(5)" /></div>
+                  <p className="text-xs text-muted-foreground mt-1">One row per impact. The source is where the impact comes from; the cause is what about this processing produces it.</p>
+                  <div className="mt-2 space-y-3">
+                    {a5HarmPathways.map((row, idx) => (
+                      <div key={idx} className="rounded-md border border-input p-3 space-y-2">
+                        <select
+                          className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                          value={row.harm}
+                          onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, harm: e.target.value } : r))}
+                        >
+                          <option value="">Select the statutory impact category…</option>
+                          {HARM_PATHWAY_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        <Textarea rows={2} value={row.source} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, source: e.target.value } : r))} placeholder="Source of the impact (e.g. third-party ad partners receiving segment data)." />
+                        <Textarea rows={2} value={row.cause} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, cause: e.target.value } : r))} placeholder="Cause — what about this processing produces the impact." />
+                        <div className="grid gap-2 md:grid-cols-2">
+                          <select
+                            className="h-10 px-3 rounded-md border border-input bg-background"
+                            value={row.likelihood}
+                            onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, likelihood: e.target.value } : r))}
+                          >
+                            <option value="">Likelihood…</option>
+                            {HARM_LIKELIHOOD_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                          <select
+                            className="h-10 px-3 rounded-md border border-input bg-background"
+                            value={row.severity}
+                            onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, severity: e.target.value } : r))}
+                          >
+                            <option value="">Severity…</option>
+                            {HARM_SEVERITY_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setA5HarmPathways((r) => [...r, { harm: "", source: "", cause: "", likelihood: "", severity: "" }])}>Add impact</Button>
+                    {a5HarmPathways.length > 1 && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setA5HarmPathways((r) => r.slice(0, -1))}>Remove last</Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* A-6 — safeguards mapped to an identified impact */}
+                <div data-rail-key="impact_safeguards" onFocus={() => focusRail('impact_safeguards')}>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-6: Safeguards, mapped to the impact each one addresses <span className="text-xs text-muted-foreground">(§ 7152(a)(6))</span></Label><StatutePopover term="A-6 · Safeguards" summary="Identify the safeguards the business plans to implement for the processing, including safeguards addressing the negative impacts identified under subsection (a)(5)." cite="11 CCR § 7152(a)(6)" /></div>
+                  <p className="text-xs text-muted-foreground mt-1">Each safeguard must name the impact it addresses. An impact with no safeguard is reported as unaddressed.</p>
+                  <div className="mt-2 space-y-3">
+                    {a6Safeguards.map((row, idx) => (
+                      <div key={idx} className="rounded-md border border-input p-3 space-y-2">
+                        <select
+                          className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                          value={row.harm}
+                          onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, harm: e.target.value } : r))}
+                        >
+                          <option value="">Impact addressed…</option>
+                          {HARM_PATHWAY_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        <Textarea rows={2} value={row.safeguard} onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, safeguard: e.target.value } : r))} placeholder="Safeguard (e.g. IP truncation before transfer; contractual use restrictions)." />
+                        <select
+                          className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                          value={row.safeguard_status}
+                          onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, safeguard_status: e.target.value } : r))}
+                        >
+                          <option value="">Implementation status…</option>
+                          {SAFEGUARD_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setA6Safeguards((r) => [...r, { harm: "", safeguard: "", safeguard_status: "" }])}>Add safeguard</Button>
+                    {a6Safeguards.length > 1 && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setA6Safeguards((r) => r.slice(0, -1))}>Remove last</Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* A-9 — review and approval record */}
+                <div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-9: Who reviewed and approved this assessment? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(9))</span></Label><StatutePopover term="A-9 · Review and approval" summary="The assessment must record the date it was reviewed and approved and the names and positions of those who reviewed or approved it; the approver must have authority to participate in deciding whether the processing is initiated." cite="11 CCR § 7152(a)(9)" /></div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-3">
+                    <input className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApproverName} onChange={(e) => setA9ApproverName(e.target.value)} placeholder="Approver name" />
+                    <input className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApproverPosition} onChange={(e) => setA9ApproverPosition(e.target.value)} placeholder="Approver position" />
+                    <input type="date" className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApprovalDate} onChange={(e) => setA9ApprovalDate(e.target.value)} />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Legal counsel who provided legal advice is excluded from this record by § 7152(a)(9).</p>
+                </div>
+              </div>
             </>
           )}
 
