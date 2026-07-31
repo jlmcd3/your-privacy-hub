@@ -166,6 +166,9 @@ export function derivePlan(input: DeriveInput): RenderPlan {
       weighing_frame: [], // populated by Guide stage
       gate_outcomes,
       conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
+      // ITEM 305 — deterministic per-activity analytic deliverables.
+      activity_analytics: buildActivityAnalytics(input.intake ?? {}) as unknown as readonly Record<string, unknown>[],
+
     };
   } catch (e) {
     return {
