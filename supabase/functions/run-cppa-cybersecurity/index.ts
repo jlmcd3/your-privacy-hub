@@ -1632,6 +1632,27 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W10-CYBER-AGG] non-fatal:", String(w10Err));
     }
 
+    // ITEM 315 — analytic deliverables (component coverage re-derived from
+    // § 7123(c), § 7122(d) evidence sufficiency, § 7122 independence, and the
+    // readiness determination that REPLACES the mean score as the conclusion).
+    // Runs AFTER W10 so the mean is available for demotion into a read-aid.
+    // Fail-open.
+    try {
+      const { attachCyberDeliverables } = await import(
+        "../_shared/ltp/cppa-cyber-deliverables/build.ts"
+      );
+      const item315 = attachCyberDeliverables(report as any, intake as any);
+      console.log(JSON.stringify({
+        evt: "item315_cyber_deliverables_attached",
+        build_stamp: BUILD_STAMP,
+        ...item315,
+      }));
+      (report as any)._item315_cyber_deliverables = item315;
+    } catch (dErr) {
+      console.error("[ITEM315-CYBER-DELIVERABLES] non-fatal:", String(dErr));
+    }
+
+
     // WAVE12-FIX TURN E — defensive crosswalk sanitizer. Runs LAST among
     // scrubs so it sees the final assembled prose (post-W6, post-W9, post-W10).
     // Drops truncated ";"/":" fragments, drops sentences with unbalanced
