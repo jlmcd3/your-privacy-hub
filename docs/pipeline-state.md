@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T06:44Z (Item 304 — mechanical fix batch; 21 `gdpr_articles` EU rows stripped of trailing-section-heading artifact (0 UK, `provision_texts` untouched); `edpb_guidelines` gains `doc_version`/`version_verified_at` with 3 documents backfilled and 7 left NULL; Item 291 P0-truncation finding withdrawn by annotation and 5 stale references in the fleet gap analysis superseded; UK Art. 33/34 mirror exclusion removed AND replaced with real registry rows in one edit to avoid an unknown-key citation leak; regression test 4/4; no deploy.)
+**Last updated:** 2026-07-31T07:36Z (Item 306 — close-out of Item 305: retroactive courier for the cppa-risk Chapter-1 rebuild + ledger Item 305; new pin/regression test `src/registry/__tests__/cppa-risk-analytics.test.ts` 24/24 passing (§ 7152(a)(5)(A)–(H) catalogue verbatim against corpus row `cppa-7152`, closed consequence domain, catalogue membership, class-token-stripped Dice distinctness with the detector itself pinned); golden `base` extended with every `required: "always"` § 7152 operand so `run-quality-batch` pin-validation passes 3/3 via the batch's own validator; 5 files touched; no engine change, no ingestion, no deploy.)
 
 ---
 
