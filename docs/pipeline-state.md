@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T05:20Z (Item 299 — FSOR guidance-layer audit §§ 7120–7124 / §§ 7220–7221; 5 rows ingested under final-text citations; no engine code, no deploy.)
+**Last updated:** 2026-07-31T05:31Z (Item 300 — GDPR registry completion; 10 EU rows promoted, Item 291's P0 truncation finding disproved, new gdpr-registry corpus pin; no engine code, no deploy.)
 
 ---
 
@@ -7152,3 +7152,29 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK.** Writes confined to `cppa_fsor_commentary` (5 INSERTs + one page-ref UPDATE on those same 5 rows). No other table, no engine code, no deploy, no harness invocation. Files touched: the courier and this ledger.
 
 **Disposition:** COMPLETE — ingestion inventory prompts 1 and 7 both discharged; awaiting controller verification before prompt 2 (GDPR registry completion). Open: whether the superseded-numbering defect should be swept across §§ 7220–7221 and the 2023 FSOR packages in a dedicated turn (audit found none there, but only § 7123 was renumbered wholesale — a broader sweep is cheap insurance, not a known gap).
+
+----
+
+## Item 300 — CORPUS INGESTION: GDPR REGISTRY COMPLETION (2026-07-31T05:31Z)
+
+**Authority:** CEO corpus approval 2026-07-31 of the INGESTION-PROMPTS-2026-07-31 inventory (prompt 2 of 7); Items 298 and 299 complete and controller-verified. Scope: `provision_texts` rows + pin test + courier + ledger ONLY.
+
+**BASELINE RE-VERIFIED.** `gdpr_articles`(eu) Arts. 1–99 and `gdpr_recitals`(eu) 1–173, both complete, hashed, `source_url` = CELEX 32016R0679. Item 291's core call holds: **promotion job, not fresh-ingest** — 10 rows promoted, **0 fresh EUR-Lex ingests**. EUR-Lex consolidated text was still fetched live (809 KB CELEX HTML) as an independent third check.
+
+**ITEM 291's P0 TRUNCATION FINDING IS DISPROVED — NO REPAIR MADE, NONE NEEDED.** `gdpr-art-22` (1,289) and `gdpr-art-34` (1,649) are COMPLETE. The reported deltas are **exactly** the trailing heading of the NEXT section carried as a scrape artifact by `gdpr_articles`: Art. 22 +"\n\nSection 5\n\nRestrictions" (25 chars), Art. 34 +"\n\nSection 3\n\nData protection impact assessment and prior consultation" (69 chars). Both registry rows match the live CELEX text as exact substrings; Art. 22 carries (1)–(4), Art. 34 carries (1)–(4) incl. the 33(3)(b)(c)(d) cross-reference. **Executing the dispatch literally would have injected a foreign section heading into both rows and pinned it in permanently.** Before/after: 1,289→1,289, 1,649→1,649. Length pins therefore lock **1,289 / 1,649**, NOT the dispatched 1,314 / 1,718 — deliberate recorded deviation, reasoning inlined in the test header so no future turn reverses it.
+
+**VERIFIED NO-CHANGE.** `gdpr-art-35` (4,410) carries 35(1) similar-processing sentence and 35(7)(a)–(d) through 35(11); `gdpr-art-33` (1,734) carries the 72-hour clause verbatim and 33(3)(a)–(d). Both byte-identical to source and CELEX-matched.
+
+**PROMOTED (10 rows, `INSERT … SELECT` straight from the source tables, so byte-identity is structural not transcribed):** `gdpr-art-5-2` (119), `gdpr-art-24` (861), `gdpr-art-36` (2,547), `gdpr-art-37` (1,989), `gdpr-art-38` (1,390), `gdpr-art-39` (1,278), `gdpr-recital-85/86/87/88` (1,188 / 957 / 643 / 608). Per-row provenance ids in the courier. **Two more artifacts caught and stripped on promotion** — Art. 36 ("Section 4 / Data protection officer") and Art. 39 ("Section 5 / Codes of conduct and certification").
+
+**ART. 5 RULING — 5(2) ALONE, SHARDS LEFT INTACT.** Promoting full Art. 5 would duplicate 5(1)(a)–(c) against the three live shard keys (`gdpr-art-5-1-a/-b/-c`) and deprecating them would break key lookups in an ingestion-only turn barred from engine code. Residual recorded, not silently accepted: 5(1)(d)–(f) remain unregistered; consolidation + shard-key migration needs its own engine turn.
+
+**DIFF RESULT: 12/12 EXACT** against live EUR-Lex CELEX 32016R0679; promotions additionally 10/10 against their source rows. **No U.S./CA content** in any EU row (queried and pinned negatively).
+
+**PIN TEST.** `src/registry/__tests__/gdpr-registry-corpus-pin.test.ts` — **1/1 PASSED**. Pins Art. 35(1)/35(7)(a)–(d), Art. 33(1) 72-hour + 33(3)(a)–(d), Art. 34(1)/(2), Art. 22(1)/(3)/(4), Art. 5(2) accountability, Arts. 24/36/37/38/39, recitals 85–88, both length pins, and a US/CA-bleed negative pin. Two pin quotes were corrected to the enacted text after the first run (Art. 38(3) "does not receive"; Recital 87 "have been implemented") — corpus not edited to fit pins.
+
+**COURIER.** `docs/courier/ITEM300-GDPR-REGISTRY-COMPLETION-2026-07-31.md`.
+
+**DOUBLE-CHECK.** Writes: 10 INSERTs into `provision_texts`; no existing row modified or deleted. Files: the courier, the new pin test, this ledger. No engine code, no deploy, no harness invocation.
+
+**Disposition:** COMPLETE — awaiting controller verification before prompt 3 (EDPB/WP29 guidance layer). Open: (1) `gdpr_articles` trailing section-heading artifact affects an unknown number of section-boundary articles and needs a cleanup turn; (2) Art. 5 consolidation deferred; (3) **Item 291's P0 finding should be formally withdrawn** — false positive from diffing against an artifact-bearing source.
