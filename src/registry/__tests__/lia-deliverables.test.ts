@@ -104,13 +104,13 @@ describe("ITEM 311 — reasonable expectations", () => {
 describe("ITEM 311 — child factor", () => {
   it("is an explicit determination, not silence, when the answer is no", () => {
     const f = buildChildFactor(PERFECT.intake);
-    expect(f.determination).toBe("no_children");
+    expect(f.determination).toBe("children_not_in_scope");
     expect(f.record_fact).toContain("child");
   });
 
   it("finds children from the vulnerable-groups answer alone", () => {
     const f = buildChildFactor({
-      balancing_details: { vulnerable_subjects: ["Children / minors"] },
+      balancing_details: { vulnerable_subjects: ["Children under 16"] },
     });
     expect(f.determination).toBe("children_in_scope");
   });
@@ -193,7 +193,8 @@ describe("ITEM 311 — determination and the Op. 5 mitigation fix", () => {
         public_task_processing: "Yes",
       },
     });
-    expect(built.lia_determination.outcome).toBe("basis_excluded");
+    expect(built.lia_determination.outcome).toBe("legitimate_interests_not_available");
+    expect(built.public_authority_exclusion.basis_unavailable).toBe(true);
   });
 
   it("is open, not falsely favourable, when the record is thin", () => {
