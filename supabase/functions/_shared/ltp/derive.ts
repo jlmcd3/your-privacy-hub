@@ -23,6 +23,10 @@ import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 import { CPPA_RISK_FACTORS, WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
 import { evaluateCppaRiskGates } from "./gate-eval.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
+// ITEM 305 — the five per-activity analytic deliverables. SINGLE-WRITER:
+// derivePlan is the only caller; the assembler shard merely projects it.
+import { buildActivityAnalytics } from "./analytic-deliverables/build.ts";
+
 
 export interface DeriveInput {
   readonly intake: Record<string, unknown>;
