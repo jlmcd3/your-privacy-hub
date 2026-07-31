@@ -296,6 +296,9 @@ const GovernanceAssessment = () => {
     dpaStatus, transferStatus, showDpoQ, showStep5,
     technicalControls, technicalControlsList, dsrCapability, dsrRightsTested,
     inventoryAudit, dpiaAiCoverage, trainingAiCoverage, dpaArt28Verified, transferMechanism, additionalContext,
+    measuresReviewCadence, measuresLastReviewDate,
+    processingNature, processingScope, processingContext, processingPurposes,
+
   ]);
 
   const initialIntakeJson = useMemo(() => JSON.stringify(buildIntake()), []);
