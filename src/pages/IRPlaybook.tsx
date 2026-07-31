@@ -94,7 +94,14 @@ export default function IRPlaybook() {
     cause: CAUSES[0], dataTypes: [] as string[], affectedCount: COUNTS[2],
     jurisdictions: [] as string[], processorInvolved: false, processorName: "",
     contained: "Unknown", organisationType: "Company",
+    // ITEM 312 — Art. 33(3)(a) / Art. 34(3)(a) / Op. 1 awareness inputs.
+    encryptionStatus: "Unknown",
+    encryptionKeyStatus: "Unknown",
+    affectedRecordCount: "",
+    affectedDataSubjectCount: "",
+    awarenessConfirmed: "Assumed — detection timestamp treated as awareness pending confirmation",
   });
+
   const [result, setResult] = useState("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
@@ -255,6 +262,30 @@ export default function IRPlaybook() {
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organisationType} onChange={e => setForm(f => ({ ...f, organisationType: e.target.value }))}>
                 {ORG_TYPES.map(o => <option key={o}>{o}</option>)}</select></label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-sm"><span className="font-semibold text-brand-navy">Affected data encrypted? <span className="text-xs text-muted-foreground font-mono">(Art. 34(3)(a))</span></span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.encryptionStatus} onChange={e => setForm(f => ({ ...f, encryptionStatus: e.target.value }))}>
+                  <option>All affected data encrypted / rendered unintelligible</option>
+                  <option>Some affected data encrypted</option>
+                  <option>No affected data encrypted</option>
+                  <option>Unknown</option></select></label>
+              <label className="block text-sm"><span className="font-semibold text-brand-navy">Encryption key status</span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.encryptionKeyStatus} onChange={e => setForm(f => ({ ...f, encryptionKeyStatus: e.target.value }))}>
+                  <option>Keys not compromised</option>
+                  <option>Keys compromised or possibly compromised</option>
+                  <option>Not applicable — no encryption</option>
+                  <option>Unknown</option></select></label>
+              <label className="block text-sm"><span className="font-semibold text-brand-navy">Approximate number of data subjects <span className="text-xs text-muted-foreground font-mono">(Art. 33(3)(a))</span></span>
+                <input type="text" placeholder="e.g. approx. 41,800" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedDataSubjectCount} onChange={e => setForm(f => ({ ...f, affectedDataSubjectCount: e.target.value }))} /></label>
+              <label className="block text-sm"><span className="font-semibold text-brand-navy">Approximate number of personal data records <span className="text-xs text-muted-foreground font-mono">(Art. 33(3)(a))</span></span>
+                <input type="text" placeholder="e.g. approx. 63,400" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedRecordCount} onChange={e => setForm(f => ({ ...f, affectedRecordCount: e.target.value }))} /></label>
+            </div>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Awareness timestamp status <span className="text-xs text-muted-foreground font-mono">(Art. 33(1) — awareness, not detection, starts the clock)</span></span>
+              <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.awarenessConfirmed} onChange={e => setForm(f => ({ ...f, awarenessConfirmed: e.target.value }))}>
+                <option>Confirmed — discovery timestamp verified as the moment of awareness</option>
+                <option>Assumed — detection timestamp treated as awareness pending confirmation</option>
+                <option>Unknown</option></select></label>
+
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             <FreeRunIndicator toolKey="ir_playbook" />
             <button onClick={handleGenerate} disabled={form.dataTypes.length === 0 || form.jurisdictions.length === 0}

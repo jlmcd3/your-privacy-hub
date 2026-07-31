@@ -1791,6 +1791,24 @@ let playbook_text = lint.clean;
           console.warn("[generate-ir-playbook] insufficient-info guard error:", e);
         }
 
+        // ── ITEM 312 — IR-PLAYBOOK ANALYTIC DELIVERABLES (Chapter 8) ───────
+        // Single writer for sa_notification_determination,
+        // data_subject_communication_determination, art34_exemption_analysis
+        // and content_owner_mapping. Pure, built from the intake record only.
+        // Op. 1's awareness/deadline arithmetic is NOT touched. Fail-open.
+        try {
+          const { attachIrPlaybookDeliverables } = await import("../_shared/ltp/ir-playbook-deliverables/build.ts");
+          const irmeta = attachIrPlaybookDeliverables(
+            report_data as Record<string, unknown>,
+            (body as unknown) as Record<string, unknown>,
+          );
+          const _m = ((report_data as any)._meta ??= {});
+          (_m.internal ??= {}).ir_deliverables = irmeta;
+          console.log(JSON.stringify({ evt: "_ir_deliverables", fn: "generate-ir-playbook", build_stamp: BUILD_STAMP, ...irmeta }));
+        } catch (e) {
+          console.warn("[generate-ir-playbook] ITEM-312 deliverables failed (non-fatal):", (e as Error)?.message);
+        }
+
         // ── IR-PLAYBOOK-REGISTRY-WIRING (2026-07-25) — deterministic post-pass ──
         // Registry-first citation stamping + write-around; telemetry under
         // `_meta.internal.ir_w1`. Fail-open; never blocks emission.
@@ -1800,6 +1818,7 @@ let playbook_text = lint.clean;
         } catch (e) {
           console.warn("[generate-ir-playbook] IR-PLAYBOOK-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
         }
+
         // ── LEAK-PREV-P1 — EMIT GATE ─────────────────────────────────────
         try {
           const { runEmitGate } = await import("../_shared/emit-gate.ts");

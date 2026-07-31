@@ -39,7 +39,7 @@ export const IR_PLAYBOOK_GOLDEN: GoldenCase[] = [
       organizationName: "Nordbank AG",
       discoveryDateTime: isoDaysAgo(1),
       cause: "Phishing / credential compromise",
-      dataTypes: ["Financial / payment data", "Names and contact details"],
+      dataTypes: ["Names and contact details"],
       affectedCount: "1,000–10,000",
       jurisdictions: ["Germany", "EU/EEA"],
       processorInvolved: false,
@@ -73,3 +73,87 @@ export const IR_PLAYBOOK_GOLDEN: GoldenCase[] = [
 
 // Fixup — irPlaybookContract requires enum "No"|"Yes"|"Unknown" for contained
 IR_PLAYBOOK_GOLDEN[1].intake.contained = "No";
+
+// ── ITEM 312 (Chapter 8 rebuild) — fixture unblock ────────────────────
+// Three cases supplying every field the contract added in Item 312, with
+// specific non-generic content. Together they exercise:
+//   * the Art. 33(1) risk test reaching BOTH outcomes;
+//   * the Art. 34(1) HIGH-risk test diverging from the Art. 33(1) outcome
+//     (TWO-THRESHOLD LAW);
+//   * the Art. 34(3)(a) unintelligibility exemption being available.
+IR_PLAYBOOK_GOLDEN.push(
+  {
+    id: "ir-perfect-record",
+    tool: "ir-playbook",
+    set: "tuning",
+    intake: {
+      organizationName: "Halvorsen Klinikk AS",
+      discoveryDateTime: isoDaysAgo(1),
+      cause: "Unauthorized external access / cyberattack",
+      dataTypes: ["Health / medical records", "Government IDs / SSN", "Names and contact details"],
+      affectedCount: "10,000–100,000",
+      jurisdictions: ["Norway", "EU/EEA"],
+      processorInvolved: true,
+      processorName: "Nordlys Journal Hosting AS",
+      contained: "Yes",
+      organisationType: "Healthcare provider",
+      encryptionStatus: "No affected data encrypted",
+      encryptionKeyStatus: "Not applicable — no encryption",
+      affectedRecordCount: "approx. 63,400 patient journal entries",
+      affectedDataSubjectCount: "approx. 41,800 patients",
+      awarenessConfirmed: "Confirmed — discovery timestamp verified as the moment of awareness",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "unlikely to result in a risk", flags: "i", label: "Art. 33(1) risk test quoted" },
+      { kind: "must_include", pattern: "high risk", flags: "i", label: "Art. 34(1) separate threshold reached" },
+    ],
+  },
+  {
+    id: "ir-encrypted-backup-exemption",
+    tool: "ir-playbook",
+    set: "tuning",
+    intake: {
+      organizationName: "Brightwell Pensions Ltd",
+      discoveryDateTime: isoDaysAgo(1),
+      cause: "Lost or stolen device",
+      dataTypes: ["Names and contact details"],
+      affectedCount: "1,000–10,000",
+      jurisdictions: ["United Kingdom"],
+      processorInvolved: false,
+      contained: "Yes",
+      organisationType: "Financial institution",
+      encryptionStatus: "All affected data encrypted / rendered unintelligible",
+      encryptionKeyStatus: "Keys not compromised",
+      affectedRecordCount: "approx. 7,200 annual benefit statements",
+      affectedDataSubjectCount: "approx. 6,050 scheme members",
+      awarenessConfirmed: "Confirmed — discovery timestamp verified as the moment of awareness",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "unintelligible", flags: "i", label: "Art. 34(3)(a) limb walked" },
+    ],
+  },
+  {
+    id: "ir-two-threshold-divergence",
+    tool: "ir-playbook",
+    set: "adversarial",
+    intake: {
+      organizationName: "Kestrel Community Trust",
+      discoveryDateTime: isoDaysAgo(2),
+      cause: "Accidental disclosure",
+      dataTypes: ["Names and contact details"],
+      affectedCount: "Fewer than 100",
+      jurisdictions: ["Ireland"],
+      processorInvolved: false,
+      contained: "Yes",
+      organisationType: "Company",
+      encryptionStatus: "No affected data encrypted",
+      encryptionKeyStatus: "Not applicable — no encryption",
+      affectedRecordCount: "62 mailing-list rows in a single misdirected attachment",
+      affectedDataSubjectCount: "62 newsletter subscribers",
+      awarenessConfirmed: "Assumed — detection timestamp treated as awareness pending confirmation",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "Article\\s*33", flags: "i", label: "Art. 33 duty reasoned" },
+    ],
+  },
+);
