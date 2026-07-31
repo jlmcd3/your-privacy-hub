@@ -1,4 +1,21 @@
+> ## ⛔ PARTIAL CORRECTION — GDPR "P0 TRUNCATION" PASSAGES ARE SUPERSEDED (2026-07-31, Item 304 Fix C)
+>
+> Every passage in this document asserting a **P0 truncation defect** on
+> `gdpr-art-22` or `gdpr-art-34` — at **L42, L205, L440, L444, and the fleet
+> table cell at L516** — is **WITHDRAWN as a false positive**. Both
+> `provision_texts` rows are complete and byte-identical to live CELEX
+> (confirmed by Item 300 and independently by the controller). The apparent
+> 25-/69-character deficits were a trailing next-section-heading artifact on the
+> *comparison baseline* (`gdpr_articles`), stripped fleet-wide by Item 304 Fix A.
+>
+> **Operational consequence:** the instructions in this document to "repair
+> before quoting" Art. 22 / Art. 34, and the bar on quoting Art. 34's tail, are
+> **LIFTED**. Nothing needs repair. All other findings in this document stand
+> unchanged. Body text below is preserved unedited for the record.
+
 # FLEET-WIDE PRODUCT REQUIREMENTS AND GAP ANALYSIS
+
+
 
 **Item 297 · docs-only · authored 2026-07-30T23:46Z**
 **Authority:** CEO order 2026-07-30 — *before any prompt drafting*, (1) establish what each product being revised is SUPPOSED to include and the analysis it is supposed to do, so there is no mistake about what each product does; then (2) juxtapose each product's current output against those requirements and identify what must change from this point, per product.
