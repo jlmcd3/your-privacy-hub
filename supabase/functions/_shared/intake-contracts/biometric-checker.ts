@@ -52,11 +52,47 @@ const JURS = [
   "Singapore (PDPA)",
 ] as const;
 
+// ITEM 317 — the intake previously asked what data the organisation processes
+// but not what it DOES about it, which made per-duty analysis structurally
+// impossible. These option lists mirror src/registry/biometric-intake-options.ts
+// exactly; a guard test asserts the two stay identical.
+const TRI = ["Yes", "No", "Not known"] as const;
+const NOTICE = [
+  "Written notice given before collection",
+  "Notice given before collection, but not in writing",
+  "No notice given before collection",
+  "Not known",
+] as const;
+const CONSENT_ARTIFACT = [
+  "Standalone written release signed before collection",
+  "Electronic signature captured in the enrolment flow",
+  "Release executed as a condition of employment (onboarding paperwork)",
+  "Clickwrap or in-product acceptance",
+  "Verbal consent only",
+  "No consent obtained",
+  "Not known",
+] as const;
+const DISCLOSURE_BASES = [
+  "No disclosures are made",
+  "Subject consent to the disclosure",
+  "Subject consent for identification on disappearance or death",
+  "Completes a financial transaction the subject requested or authorised",
+  "Required by law",
+  "Warrant or subpoena",
+  "Necessary to provide a product or service the subject requested",
+  "Third party contractually promises no further disclosure",
+  "To prepare for or respond to litigation",
+] as const;
+
 export {
   TYPES as BIO_TYPES,
   ORG as BIO_ORG,
   PURPOSE as BIO_PURPOSE,
   JURS as BIO_JURS,
+  TRI as BIO_TRI,
+  NOTICE as BIO_NOTICE,
+  CONSENT_ARTIFACT as BIO_CONSENT_ARTIFACT,
+  DISCLOSURE_BASES as BIO_DISCLOSURE_BASES,
 };
 
 export const biometricCheckerContract: IntakeContract = {
