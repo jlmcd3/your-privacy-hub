@@ -183,6 +183,9 @@ export function derivePlan(input: DeriveInput): RenderPlan {
       weighing_frame: [],
       gate_outcomes: [],
       conservative_write_around: { triggered: true, reason: `derive_error:${(e as Error)?.message ?? "?"}`, disclosure: "silent+telemetry" },
+      // ITEM 305 — degraded envelope; never omitted, never invented.
+      activity_analytics: buildActivityAnalytics({}) as unknown as readonly Record<string, unknown>[],
+
     };
   }
 }
