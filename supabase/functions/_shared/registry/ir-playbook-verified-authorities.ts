@@ -430,6 +430,35 @@ export const IR_PLAYBOOK_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: GDPR_URL,
   }),
+
+  // ---- UK GDPR breach surface (ITEM 304 / FIX D) ---------------------------
+  // Item 302 ingested the UK-specific text as provision_texts `ukgdpr-art-33`
+  // / `ukgdpr-art-34` (jurisdiction='UK', status='approved'). These rows carry
+  // the UK-specific "Commissioner" language and therefore MUST NOT fall back
+  // to the EU Art. 33/34 rows above. Both keys were removed from
+  // IR_PLAYBOOK_UNANCHORED_PROPOSITIONS in the same turn.
+  uk_gdpr_art_33_mirror: R({
+    proposition_key: "uk_gdpr_art_33_mirror",
+    citation: "UK GDPR Art. 33",
+    subsection: "UK GDPR Art. 33(1)",
+    verbatim_quote:
+      "In the case of a personal data breach, the controller shall without undue delay and, where feasible, not later than 72 hours after having become aware of it, notify the personal data breach to the Commissioner , unless the personal data breach is unlikely to result in a risk to the rights and freedoms of natural persons.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL_33,
+  }),
+  uk_gdpr_art_34_mirror: R({
+    proposition_key: "uk_gdpr_art_34_mirror",
+    citation: "UK GDPR Art. 34",
+    subsection: "UK GDPR Art. 34(1)",
+    verbatim_quote:
+      "When the personal data breach is likely to result in a high risk to the rights and freedoms of natural persons, the controller shall communicate the personal data breach to the data subject without undue delay.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL_34,
+  }),
 };
 
 /**
