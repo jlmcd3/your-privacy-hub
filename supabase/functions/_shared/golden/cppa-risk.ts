@@ -47,7 +47,81 @@ const base = {
   // no fixture accidentally engages § 7150(b)(5) unless it opts in.
   public_privacy_policy_url: "https://meridian.example/privacy",
   sensitive_location_basis: "Not applicable — no sensitive-location processing",
+
+  // ── ITEM 306 — § 7152 ANALYTIC-DELIVERABLE OPERANDS ──────────────────
+  // Item 305 made these `required: "always"` in `cppaRiskContract`; without
+  // them every cppa-risk batch aborts at pin-validation. Authored to the
+  // "Perfect Data" standard (specific, non-generic, fully-sourced) so this
+  // block can seed the deferred quality-batch "Perfect Data" variant.
+  // Enum values are VERBATIM from
+  // supabase/functions/_shared/ltp/analytic-deliverables/enums.ts.
+  a2_necessity_set: [
+    {
+      element: "Account email address",
+      necessity: "Necessary to the stated purpose",
+      justification:
+        "The email address is the account identifier used to authenticate the free-tier session that the usage measurement is attributed to; without it no measurement can be tied to an account.",
+    },
+    {
+      element: "Device identifier (cookie ID)",
+      necessity: "Necessary to the stated purpose",
+      justification:
+        "The cookie ID distinguishes repeat sessions from first sessions, which is the measurement the activity exists to produce.",
+    },
+    {
+      element: "Approximate location derived from IP address",
+      necessity: "Collected but not necessary to the stated purpose",
+      justification:
+        "Location is captured by the telemetry SDK's defaults and is not used in any usage-measurement output.",
+    },
+  ],
+  a4_benefit_business:
+    "Free-tier usage measurement tells the engineering team which onboarding step free-tier accounts abandon, which is the input to the quarterly onboarding rework decision.",
+  a4_benefit_consumer:
+    "Consumers reach a working configuration faster because the abandoned onboarding steps identified by this measurement are the ones rewritten first.",
+  a4_benefit_other_stakeholders:
+    "Enterprise administrators who sponsor free-tier trials receive accurate seat-activation reporting instead of estimates when deciding whether to convert a trial.",
+  a4_benefit_public:
+    "No public benefit is claimed for this activity beyond the consumer benefit stated above.",
+  a5_harm_pathways: [
+    {
+      harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+      source:
+        "The telemetry event store, which holds account email addresses joined to device identifiers, is readable by the analytics service account.",
+      cause:
+        "An over-broad analytics service-account credential could be reused outside the measurement pipeline and export the joined table.",
+      likelihood: "Unlikely",
+      severity: "Moderate",
+    },
+    {
+      harm: "(C) Impairment of consumer control over personal information",
+      source:
+        "The free-tier signup notice describes telemetry collection but does not name the derived approximate-location field.",
+      cause:
+        "A consumer reading the notice cannot tell that IP-derived location is retained, so the opt-out choice is made on an incomplete description.",
+      likelihood: "Possible",
+      severity: "Minimal",
+    },
+  ],
+  a6_safeguards: [
+    {
+      harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+      safeguard:
+        "The analytics service account is scoped to the measurement views only, credentials rotate every 30 days, and exports are logged and reviewed weekly.",
+      safeguard_status: "Implemented and tested",
+    },
+    {
+      harm: "(C) Impairment of consumer control over personal information",
+      safeguard:
+        "The notice at collection is being amended to name IP-derived approximate location and the telemetry SDK default is being disabled.",
+      safeguard_status: "Implemented and tested",
+    },
+  ],
+  a9_approver_name: "Priya Raman",
+  a9_approver_position: "General Counsel",
+  a9_approval_date: "2026-07-30",
 };
+
 
 export const CPPA_RISK_GOLDEN: GoldenCase[] = [
   {
