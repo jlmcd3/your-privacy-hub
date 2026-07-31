@@ -240,7 +240,7 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       purpose: "Time & attendance / workforce management",
       jurisdictions: ["Illinois, USA (BIPA)", "Texas, USA (CUBI)", "Washington state, USA"],
       data_source_description:
-        "Optical fingerprint readers at dock entrances convert each employee ridge scan to a proprietary numeric template; the source image is discarded at capture and only the template is stored in the on-premises matching database.",
+        "Optical fingerprint readers at dock entrances convert each employee ridge scan to a proprietary numeric template; the raw ridge capture is discarded at once and only the numeric template is stored in the on-premises matching database.",
       healthcare_tpo_context: "No",
       entity_is_government: "No",
       glba_financial_institution: "No",

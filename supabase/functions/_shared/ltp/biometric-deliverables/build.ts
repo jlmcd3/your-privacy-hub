@@ -226,7 +226,11 @@ function buildIdentifierCharacterizations(
         citation: def.pinpoint,
         standard: def.verbatim_quote,
         record_fact: sourceFact,
-        engaged: photo === null ? null : null,
+        // Unresolvable only where the source IS photographic — BIPA excludes
+        // photographs but not in terms a scan derived from one. Where the
+        // record describes no photographic source, the exclusion is simply
+        // not engaged and must not hold the characterization open.
+        engaged: photo === null ? null : (photo ? null : false),
         reasoning: photo === null
           ? "The record does not say whether the template is generated from photographic or video source material, so the photographs exclusion cannot be evaluated."
           : photo
