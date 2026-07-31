@@ -46,6 +46,19 @@ export const ADMT_ROLE_ROSTER_OPTS = [
 ] as const;
 
 
+// ITEM 308 — § 7221(b)(2) exception-evidence options (parity mirror).
+export const ADMT_SOLE_USE_ATTESTATION_OPTS = [
+  "Yes — solely to assess ability to perform",
+  "No — the output is also used for other purposes",
+  "Unsure",
+] as const;
+export const ADMT_NONDISCRIM_TESTING_OPTS = [
+  "Yes — documented testing record",
+  "Testing performed but not documented",
+  "No testing performed",
+  "Unsure",
+] as const;
+
 // ── Verbatim inline lists from ADMTChecker.tsx ─────────────────────────
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",
@@ -194,6 +207,28 @@ export const cppaAdmtContract: IntakeContract = {
     { key: "admt_detail.sole_factor",           kind: "enum",       required: "optional", options: ADMT_SOLE_FACTOR_OPTS },
     { key: "admt_detail.feeds_future_decisions", kind: "enum",      required: "optional", options: ADMT_YES_NO_UNSURE_OPTS },
     { key: "admt_detail.solely_advertising",    kind: "enum",       required: "optional", options: ADMT_SOLELY_ADVERTISING_OPTS },
+
+    // ITEM 308 — intake additions for the three analytic deliverables.
+    // (a) Published pre-use notice text, transcribed element by element.
+    //     Without it, § 7220(c) adequacy can only be ASSERTED, not PERFORMED.
+    { key: "notice_element_text", kind: "structured", required: "optional" },
+    { key: "notice_element_text.purpose",           kind: "narrative", required: "optional" },
+    { key: "notice_element_text.optout",            kind: "narrative", required: "optional" },
+    { key: "notice_element_text.access",            kind: "narrative", required: "optional" },
+    { key: "notice_element_text.antiretaliation",   kind: "narrative", required: "optional" },
+    { key: "notice_element_text.howworks_inputs",   kind: "narrative", required: "optional" },
+    { key: "notice_element_text.howworks_output",   kind: "narrative", required: "optional" },
+    { key: "notice_element_text.altprocess",        kind: "narrative", required: "optional" },
+    // (b) § 7221(b)(1) condition evidence. appeal_reviewer_role /
+    //     appeal_trained / appeal_authority_overturn already exist on the
+    //     form; registered here so the contract carries them. New: step count.
+    { key: "admt_detail.appeal_reviewer_role",      kind: "text", required: "optional" },
+    { key: "admt_detail.appeal_trained",            kind: "enum", required: "optional", options: ADMT_YES_NO_OPTS },
+    { key: "admt_detail.appeal_authority_overturn", kind: "enum", required: "optional", options: ADMT_YES_NO_OPTS },
+    { key: "admt_detail.appeal_step_count",         kind: "text", required: "optional" },
+    // (c) § 7221(b)(2) condition evidence.
+    { key: "admt_detail.sole_use_attestation",      kind: "enum", required: "optional", options: ADMT_SOLE_USE_ATTESTATION_OPTS },
+    { key: "admt_detail.nondiscrimination_testing", kind: "enum", required: "optional", options: ADMT_NONDISCRIM_TESTING_OPTS },
   ],
 };
 

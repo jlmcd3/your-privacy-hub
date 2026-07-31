@@ -83,10 +83,37 @@ describe("cppa-admt verified-authority registry — row-shape contract", () => {
     for (const r of notice) expect(r.citation).toBe("11 CCR § 7220");
   });
 
-  it("all rows share a single verified_on stamp (S-A hand-verification pass)", () => {
-    const stamps = new Set(ADMT_VERIFIED_AUTHORITY_ROWS.map((r) => r.verified_on));
-    expect(stamps.size).toBe(1);
+  // ITEM 308 / TASK 0 — the former assertion ("all rows share a single
+  // verified_on stamp") was a TEST-DESIGN defect, not a data defect. The
+  // registry grows by hand-verification passes: 33 rows carry the S-A pass
+  // stamp (2026-07-24) and `access_timeline` carries its own, later, genuine
+  // verification date (2026-07-26, pinned separately by
+  // supabase/functions/run-admt-checker/_w9_admt_access_timeline_corpus.test.ts).
+  // Forcing uniformity would mean falsifying a verification date. Nothing
+  // else consumes a registry-wide single-stamp invariant for admt: every
+  // other consumer (the emit-time VA stamp in run-admt-checker/index.ts and
+  // the corpus pin test) reads `row.verified_on` per row.
+  it("every row carries a valid, non-empty ISO verification date", () => {
+    for (const r of ADMT_VERIFIED_AUTHORITY_ROWS) {
+      expect(r.verified_on, `${r.proposition_key} verified_on empty`).toBeTruthy();
+      expect(r.verified_on, `${r.proposition_key} verified_on not ISO`).toMatch(
+        /^\d{4}-\d{2}-\d{2}$/,
+      );
+      expect(Number.isNaN(Date.parse(r.verified_on))).toBe(false);
+    }
   });
+
+  it("verification dates are per-row facts, not a registry-wide invariant", () => {
+    const stamps = new Set(ADMT_VERIFIED_AUTHORITY_ROWS.map((r) => r.verified_on));
+    // Multiple stamps are LEGITIMATE (later hand-verification passes).
+    expect(stamps.size).toBeGreaterThanOrEqual(1);
+    // The later access_timeline verification must not be back-dated.
+    const at = ADMT_VERIFIED_AUTHORITY_ROWS.find(
+      (r) => r.proposition_key === "access_timeline",
+    );
+    if (at) expect(at.verified_on).toBe("2026-07-26");
+  });
+
 });
 
 describe("cppa-admt verified-authority registry — coverage contract", () => {

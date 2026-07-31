@@ -59,6 +59,13 @@ console.log(`[run-admt-checker] boot admt_sanitizer_w25_stamp=${W25_ADMT_SANITIZ
 import { applyW9AdmtPreEmitGates, W9_ADMT_PRE_EMIT_STAMP } from "./_w9_admt_pre_emit_gates.ts";
 console.log(`[run-admt-checker] boot admt_pre_emit_stamp=${W9_ADMT_PRE_EMIT_STAMP}`);
 import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-contract.ts";
+// ITEM 308 — cppa-admt analytic deliverables (Chapter 3 (E)(3)).
+import {
+  attachAdmtDeliverables,
+  ADMT_DELIVERABLES_VERSION,
+} from "../_shared/ltp/admt-deliverables/build.ts";
+console.log(`[run-admt-checker] boot admt_deliverables=${ADMT_DELIVERABLES_VERSION}`);
+
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
@@ -316,7 +323,9 @@ ONE VERDICT PER FINDING: each gap finding states its conclusion once and stands 
 
 THE CONDITION IS STATED ONCE, UP FRONT: where the assessment proceeds on a stated unresolved threshold (e.g. whether the service falls within an enumerated significant-decision category), state that condition ONCE, prominently, at the top of the findings ('This assessment proceeds on the assumption that …; if the business determines otherwise, the §§ 7200–7222 ADMT findings below do not apply.'), and let individual findings proceed cleanly without each repeating the disclaimer. Findings may reference the condition ('subject to the scope condition above') but never restate it.
 
-DEADLINES DISTINGUISH EXISTING FROM NEW PROCESSING — AND WARNINGS ARE PROSPECTIVE: state the two compliance clocks as two clean clauses: 'For processing already underway before January 1, 2026: by December 31, 2027. For processing commenced or materially changed on or after January 1, 2026: before the processing begins.' Never a compound sentence whose conditions can be read against each other. And phrase prospective obligations as forward guidance ('When consolidating notices, the business must retain the per-system specific-purpose, how-it-works, and alternative-process disclosures'), never as an accusation of an attempt not in evidence ('cannot use consolidation to simplify away …').`;
+DEADLINES DISTINGUISH EXISTING FROM NEW PROCESSING — AND WARNINGS ARE PROSPECTIVE: state the two compliance clocks as two clean clauses: 'For processing already underway before January 1, 2026: by December 31, 2027. For processing commenced or materially changed on or after January 1, 2026: before the processing begins.' Never a compound sentence whose conditions can be read against each other. And phrase prospective obligations as forward guidance ('When consolidating notices, the business must retain the per-system specific-purpose, how-it-works, and alternative-process disclosures'), never as an accusation of an attempt not in evidence ('cannot use consolidation to simplify away …').
+
+ITEM 308 — DETERMINATION IS TWO SEPARATE ANSWERS: emit a top-level "determination" object with exactly two components. (1) "lawfulness": { "finding": "<what is unlawful NOW under the pre-use-notice and opt-out provisions as they stand, reasoned from the notice element findings and the exception conditions in the supplied record>" }. (2) "exposure": { "statement": "<what the consequence of that non-compliance is>" }. NEVER put penalty, fine, enforcement, civil-action or dollar language inside "lawfulness.finding" — that content belongs only in "exposure.statement". A determination that leads with enforcement exposure instead of the lawfulness answer is a defect. Do not write any "§" token in either field; the system stamps citations. Where the record cannot support the lawfulness answer, say so plainly and name the missing facts rather than asserting a conclusion.`;
 
 export const ADMT_TOOL_MODULE: ToolModule = {
   identity:
@@ -2254,6 +2263,23 @@ Return this JSON structure exactly:
         console.log(`[run-admt-checker] W9-ADMT-SLOTS attached ${attached.join(",")} (clean)`);
       }
     } catch (e) { console.error("[run-admt-checker] W9-ADMT-SLOTS errored (fail-open):", e); }
+
+    // ── ITEM 308 — ANALYTIC DELIVERABLES (Chapter 3 (E)(3)).
+    // Single writer for notice_element_findings[], exception_qualification[]
+    // and determination. Deliverables 1 and 2 are rebuilt deterministically
+    // from the record (the model's versions, if any, are discarded);
+    // determination 3 is model-authored and passed through the separation
+    // guard, which relocates enforcement-exposure language out of the
+    // lawfulness component (Item 297 defect). Fail-open.
+    try {
+      const _intakeForDeliverables = ((assessment as any)?.intake_data as Record<string, unknown>) ?? {};
+      const dmeta = attachAdmtDeliverables(report as any, _intakeForDeliverables);
+      (report as any)._admt_deliverables = dmeta;
+      console.log(JSON.stringify({ evt: "_admt_deliverables", fn: "run-admt-checker", build_stamp: BUILD_STAMP, ...dmeta }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM-308 deliverables failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     // ── TURN 2 — BOUNDED REGENERATION for W6 still_failing survivors.
     // Policy: ONE bounded pass — for every finding still carrying a defect

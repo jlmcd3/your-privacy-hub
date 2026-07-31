@@ -34,3 +34,16 @@ export const ADMT_ROLE_ROSTER_OPTS = [
   "Consumer-request handler",
   "Vendor manager",
 ];
+
+// ITEM 308 — § 7221(b)(2) exception evidence (Chapter 3 (E)(1) intake additions).
+export const ADMT_SOLE_USE_ATTESTATION_OPTS = [
+  "Yes — solely to assess ability to perform",
+  "No — the output is also used for other purposes",
+  "Unsure",
+];
+export const ADMT_NONDISCRIM_TESTING_OPTS = [
+  "Yes — documented testing record",
+  "Testing performed but not documented",
+  "No testing performed",
+  "Unsure",
+];
