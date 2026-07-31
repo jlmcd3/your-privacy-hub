@@ -316,5 +316,55 @@ export const cppaRiskContract: IntakeContract = {
     { key: "impact_intake.benefitsOutweigh", kind: "enum", required: "optional", options: IMPACT_BENEFITS_OUTWEIGH_OPTS },
     { key: "impact_intake.cyberGaps",       kind: "enum", required: "optional", options: IMPACT_CYBER_GAPS_OPTS },
     { key: "impact_intake.harmTypes",       kind: "multi-enum", required: "optional", options: HARM_TYPES },
+
+    // ── ITEM 305 — ANALYTIC-DELIVERABLE INTAKE ───────────────────────
+    // Chapter 1 of PRODUCT-REQUIREMENTS-AND-GAP-ANALYSIS-2026-07-30.md.
+    // These fields are the operands of the five per-activity analytic
+    // deliverables built in
+    // _shared/ltp/analytic-deliverables/build.ts. Option lists are
+    // VERBATIM copies of src/pages/CPPARiskAssessment.enums.ts (parity
+    // asserted by the ITEM 305 pin test).
+    //
+    // Requiredness note: the form gates submission on these (§ 7152(a)(2),
+    // (a)(4), (a)(5), (a)(9) are mandatory elements of the assessment), but
+    // the builder still degrades rather than inventing, so LEGACY stored
+    // rows without them render as record_insufficient instead of failing.
+    { key: "a2_necessity_set",              kind: "structured", required: "always" },
+    { key: "a2_necessity_set[].element",    kind: "text",       required: "always" },
+    { key: "a2_necessity_set[].necessity",  kind: "enum",       required: "always",
+      options: NECESSITY_STATUS_OPTS },
+    { key: "a2_necessity_set[].justification", kind: "narrative", required: "optional", askEligible: true },
+
+    { key: "a4_benefit_business",           kind: "narrative",  required: "always", askEligible: true },
+    { key: "a4_benefit_consumer",           kind: "narrative",  required: "always", askEligible: true },
+    { key: "a4_benefit_other_stakeholders", kind: "narrative",  required: "always", askEligible: true },
+    { key: "a4_benefit_public",             kind: "narrative",  required: "always", askEligible: true },
+
+    { key: "a5_harm_pathways",              kind: "structured", required: "always" },
+    { key: "a5_harm_pathways[].harm",       kind: "enum",       required: "always",
+      options: HARM_PATHWAY_OPTS },
+    { key: "a5_harm_pathways[].source",     kind: "narrative",  required: "always", askEligible: true },
+    { key: "a5_harm_pathways[].cause",      kind: "narrative",  required: "always", askEligible: true },
+    { key: "a5_harm_pathways[].likelihood", kind: "enum",       required: "always",
+      options: HARM_LIKELIHOOD_OPTS },
+    { key: "a5_harm_pathways[].severity",   kind: "enum",       required: "always",
+      options: HARM_SEVERITY_OPTS },
+
+    { key: "a6_safeguards",                 kind: "structured", required: "optional" },
+    { key: "a6_safeguards[].harm",          kind: "enum",       required: "conditional",
+      requiredWhen: "a safeguard row is present", options: HARM_PATHWAY_OPTS },
+    { key: "a6_safeguards[].safeguard",     kind: "narrative",  required: "conditional",
+      requiredWhen: "a safeguard row is present", askEligible: true },
+    { key: "a6_safeguards[].safeguard_status", kind: "enum",    required: "conditional",
+      requiredWhen: "a safeguard row is present", options: SAFEGUARD_STATUS_OPTS },
+
+    // § 7152(a)(9) — review-and-approval record. Distinct from the
+    // i8_certifying_exec_* pair (the person who CERTIFIES the submission);
+    // (a)(9) is the person who REVIEWED AND APPROVED the assessment and who
+    // has authority to participate in the initiation decision.
+    { key: "a9_approver_name",     kind: "text", required: "always" },
+    { key: "a9_approver_position", kind: "text", required: "always" },
+    { key: "a9_approval_date",     kind: "date", required: "optional" },
   ],
+
 };
