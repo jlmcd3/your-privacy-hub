@@ -87,18 +87,27 @@ function orgName(intake: I): string {
   return n || "The organisation";
 }
 
-/** In-scope test for a US state. Explicit state code, or a US-wide market
- *  selection combined with a broker-type activity indicator. */
+/** In-scope test for a US state.
+ *
+ *  A state is in scope when the record names that state as a market or as the
+ *  place of establishment, or when the record selects the United States as a
+ *  whole AND indicates broker-type activity — a nationwide broker is exposed
+ *  to every state regime, so silence about individual states is not a reason
+ *  to omit them.
+ *
+ *  `organization_country` alone is deliberately NOT enough: being established
+ *  in the US says nothing about which state regimes are engaged, and treating
+ *  it as a trigger would pull all four states into every US record and
+ *  reintroduce exactly the cross-state bleed this item exists to prevent. */
 export function stateInScope(intake: I, code: string): boolean {
   const markets = Array.isArray(intake.markets_served) ? intake.markets_served : [];
   if (markets.includes(code)) return true;
   if ((intake.organization_country || "") === code) return true;
-  const usWide = markets.includes("US") || (intake.organization_country || "") === "US";
   const brokerish =
     intake.acts_as_data_broker === true ||
     intake.sells_or_licenses_brokered_data === true ||
     intake.collects_data_not_directly_from_individuals === true;
-  return usWide && brokerish;
+  return markets.includes("US") && brokerish;
 }
 
 // ── Op. 1 + Op. 2 — per-state threshold analysis and determination ──────────
