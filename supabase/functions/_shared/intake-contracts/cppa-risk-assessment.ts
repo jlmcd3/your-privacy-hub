@@ -72,6 +72,40 @@ export const HARM_TYPES = [
   "Psychological harm",
 ] as const;
 
+// ── ITEM 305 — analytic-deliverable option sets ──────────────────────
+// VERBATIM copies of src/pages/CPPARiskAssessment.enums.ts. Parity is
+// asserted by the ITEM 305 pin test. The "(A)"…"(H)" prefixes on
+// HARM_PATHWAY_OPTS are load-bearing (resolveHarmId reads the tag).
+export const NECESSITY_STATUS_OPTS = [
+  "Necessary to the stated purpose",
+  "Collected but not necessary to the stated purpose",
+  "Unsure",
+] as const;
+export const HARM_PATHWAY_OPTS = [
+  "(A) Unauthorized access, destruction, use, modification, or disclosure",
+  "(B) Unlawful discrimination on protected characteristics",
+  "(C) Impairment of consumer control over personal information",
+  "(D) Coercion or compulsion, including dark patterns",
+  "(E) Economic harms",
+  "(F) Physical harms",
+  "(G) Reputational harms",
+  "(H) Psychological harms",
+] as const;
+export const HARM_LIKELIHOOD_OPTS = ["Unlikely", "Possible", "Likely", "Highly likely"] as const;
+export const HARM_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe"] as const;
+export const SAFEGUARD_STATUS_OPTS = [
+  "Implemented and tested",
+  "Implemented, not tested",
+  "Planned, not yet implemented",
+  "None",
+] as const;
+export const BENEFICIARY_CLASSES = [
+  "the business",
+  "the consumer",
+  "other stakeholders",
+  "the public",
+] as const;
+
 // Page-inline option lists (see CPPARiskAssessment.tsx line numbers in
 // comments below). These live inline in the JSX (or as page-local const
 // arrays not re-exported from .enums.ts); parity for them is spot-checked

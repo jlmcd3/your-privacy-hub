@@ -65,6 +65,8 @@ const PII_EXCLUDED_LEDGER_KEYS: ReadonlySet<string> = new Set([
   "i8_certifying_exec_name",
   "i8_contact_email",
   "i8_contact_phone",
+  // ITEM 305 — § 7152(a)(9) approver NAME is PII; the POSITION stays.
+  "a9_approver_name",
 ]);
 
 const LEDGER_KEYS: readonly string[] = cppaRiskContract.fields
