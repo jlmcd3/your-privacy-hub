@@ -46,6 +46,24 @@ const ORG = ["Employer (employee biometrics)","Consumer app or platform","Health
 const PURPOSE = ["Time & attendance / workforce management","Physical access control","Customer authentication","Surveillance / monitoring","Research or product development","Other"];
 const JURS = ["EU / EEA (GDPR)","United Kingdom (UK GDPR)","Illinois, USA (BIPA)","Texas, USA (CUBI)","Washington state, USA","California, USA (CCPA/CPRA)","Colorado, USA (CPA)","New York, USA (SHIELD)","Other US state","United States — Federal (FTC)","Canada (PIPEDA / provincial)","Australia (Privacy Act)","Singapore (PDPA)"];
 
+/**
+ * ITEM 317 — three-state answer control. "Not known" is a real answer here:
+ * it tells the builder the record is silent, which produces a named
+ * record_insufficient finding rather than a satisfied/not-satisfied verdict.
+ */
+function Tri({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block text-sm">
+      <span className="font-semibold text-brand-navy">{label}</span>
+      <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={value} onChange={e => onChange(e.target.value)}>
+        <option value="">Not supplied</option>
+        {BIO_TRI.map(o => <option key={o}>{o}</option>)}
+      </select>
+    </label>
+  );
+}
+
+
 
 export default function BiometricChecker() {
   useToolStartedOnInteraction("biometric");
