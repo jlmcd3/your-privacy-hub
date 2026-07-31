@@ -79,6 +79,44 @@ export const DPIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: GDPR_URL,
   }),
+  // ITEM 310 — Art. 35(9) views of data subjects. Verbatim substring of the
+  // approved provision_texts row key='gdpr-art-35' (status='approved').
+  consultation_of_data_subjects_35_9: R({
+    proposition_key: "consultation_of_data_subjects_35_9",
+    citation: "GDPR Art. 35",
+    subsection: "GDPR Art. 35(9)",
+    verbatim_quote:
+      "Where appropriate, the controller shall seek the views of data subjects or their representatives on the intended processing, without prejudice to the protection of commercial or public interests or the security of processing operations.",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD,
+    primary_source_url: GDPR_URL,
+  }),
+  // ITEM 310 — Art. 36 promoted into provision_texts as key='gdpr-art-36'
+  // in Item 300 (status='approved'); both quotes are verbatim substrings.
+  prior_consultation_art_36: R({
+    proposition_key: "prior_consultation_art_36",
+    citation: "GDPR Art. 36",
+    subsection: "GDPR Art. 36(1)",
+    verbatim_quote:
+      "The controller shall consult the supervisory authority prior to processing where a data protection impact assessment under Article 35 indicates that the processing would result in a high risk in the absence of measures taken by the controller to mitigate the risk.",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD,
+    primary_source_url: GDPR_URL,
+  }),
+  prior_consultation_materials_art_36_3: R({
+    proposition_key: "prior_consultation_materials_art_36_3",
+    citation: "GDPR Art. 36",
+    subsection: "GDPR Art. 36(3)",
+    verbatim_quote:
+      "When consulting the supervisory authority pursuant to paragraph 1, the controller shall provide the supervisory authority with:",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD,
+    primary_source_url: GDPR_URL,
+  }),
+
   dpia_mandatory_intro: R({
     proposition_key: "dpia_mandatory_intro",
     citation: "GDPR Art. 35",
@@ -370,15 +408,15 @@ export const DPIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
  * DO NOT paraphrase these into verbatim_quote strings — narrow-but-solid rule.
  */
 export const DPIA_UNANCHORED_PROPOSITIONS: readonly string[] = [
-  "prior_consultation_art_36",           // GDPR Art. 36 not in approved P1 set
+  // ITEM 310 — "prior_consultation_art_36" and "consultation_of_data_subjects_35_9"
+  // were removed from this list: Art. 36 was promoted into provision_texts
+  // (key='gdpr-art-36', approved) in Item 300 and Art. 35(9) is inside the
+  // approved gdpr-art-35 excerpt. Both now carry verbatim registry rows above.
   "dpo_designation_art_37_39",           // Arts. 37-39 not in approved P1 set
   "risk_severity_edpb_wp248",            // WP248 not in P2 batch 1
   "high_risk_criteria_edpb_wp248",       // WP248 not in P2 batch 1
-  "consultation_of_data_subjects_35_9",  // covered by Art 35(9), which is in the excerpt but
-                                         // is discretionary ("where appropriate") — reserved
-                                         // for the wiring turn once the generator surface is
-                                         // decided (do not anchor conclusory claims to it).
 ];
+
 
 /** Keys where the row's verbatim_quote is a paraphrase rather than a corpus
  *  substring. MUST be empty per authoring rule. */

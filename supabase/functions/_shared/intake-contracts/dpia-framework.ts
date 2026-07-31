@@ -127,6 +127,13 @@ export const dpiaFrameworkContract: IntakeContract = {
     { key: "data_subjects_views_sought", kind: "text", required: "optional" },
     { key: "data_subjects_views", kind: "narrative", required: "optional" },
 
+    // ITEM 310 — Chapter 6 (E)(4). The least-intrusive-means test cannot be
+    // PERFORMED without the alternatives the controller actually considered
+    // and rejected. Array of { processing_operation, alternative,
+    // rejection_reason } records (DPIAFramework.tsx repeater).
+    { key: "alternatives_considered", kind: "structured", required: "optional" },
+
+
     // Jurisdiction resolver inputs
     { key: "controller_country", kind: "text", required: "optional" },
     { key: "controller_land", kind: "text", required: "optional" },

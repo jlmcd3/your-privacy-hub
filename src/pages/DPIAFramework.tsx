@@ -135,6 +135,10 @@ const DPIAFramework = () => {
   const [dpoAdvice, setDpoAdvice] = useState("");                                         // 5.1
   const [dataSubjectsViewsSought, setDataSubjectsViewsSought] = useState("");             // 5.2
   const [dataSubjectsViews, setDataSubjectsViews] = useState("");                         // 5.2
+  // ITEM 310 — alternatives actually considered and rejected, per processing
+  // operation. Feeds the deterministic least-intrusive-means test (Art. 35(7)(b)).
+  const [alternativesConsidered, setAlternativesConsidered] = useState<Array<{ processing_operation: string; alternative: string; rejection_reason: string }>>([]);
+
   const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
 
   // ── Jurisdiction resolver inputs (Layer 5 — feed the deterministic resolvers) ──
@@ -330,6 +334,8 @@ const DPIAFramework = () => {
     dpo_advice: dpoAdvice,
     data_subjects_views_sought: dataSubjectsViewsSought,
     data_subjects_views: dataSubjectsViews,
+    alternatives_considered: alternativesConsidered,
+
     // Jurisdiction resolver inputs (deterministic resolvers in run-dpia-framework)
     controller_country: controllerCountry,
     controller_land: controllerLand,
@@ -351,7 +357,7 @@ const DPIAFramework = () => {
     supportingAssets, codesOfConduct, dataMinimisationJustification, dataQualityMeasures,
     dataSubjectRightsMechanisms, dpByDesignMeasures, dpoAdvice, dataSubjectsViewsSought,
     dataSubjectsViews, controllerCountry, controllerLand, controllerSector, centralAdminCountry,
-    euDecisionEstablishment, transferFlows, retentionRecordType,
+    euDecisionEstablishment, transferFlows, retentionRecordType, alternativesConsidered,
   ]);
   const initialDraftJson = useMemo(() => JSON.stringify(draftData), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== initialDraftJson, [draftData, initialDraftJson]);
@@ -406,6 +412,7 @@ const DPIAFramework = () => {
     S(d.dpo_advice, setDpoAdvice);
     S(d.data_subjects_views_sought, setDataSubjectsViewsSought);
     S(d.data_subjects_views, setDataSubjectsViews);
+    A(d.alternatives_considered, setAlternativesConsidered);
     S(d.controller_country, setControllerCountry);
     S(d.controller_land, setControllerLand);
     if (["private","public","federal-public","telecom","postal",""].includes(d.controller_sector)) setControllerSector(d.controller_sector);
@@ -702,6 +709,60 @@ const DPIAFramework = () => {
             <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} placeholder="Why is this processing necessary for the purpose, and what less-intrusive alternatives did you consider and why were they rejected?" className="mt-2 min-h-24" />
             <IntakeGuidance className="mt-2">Take each alternative you considered in turn and say plainly why it was rejected. Listing them separately lets the assessment weigh each one — a single general statement can't be.</IntakeGuidance>
           </div>
+
+          {/* ITEM 310 — alternatives actually considered, per processing operation.
+              Feeds the deterministic least-intrusive-means test (Art. 35(7)(b)). */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>Alternatives considered and rejected <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
+              <button
+                type="button"
+                onClick={() => setAlternativesConsidered([...alternativesConsidered, { processing_operation: "", alternative: "", rejection_reason: "" }])}
+                className="text-xs underline text-brand-teal-text"
+              >+ Add alternative</button>
+            </div>
+            {alternativesConsidered.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">None recorded. Without at least one alternative and the reason it was rejected, the assessment cannot run the least-intrusive-means comparison and will record the point as open.</p>
+            )}
+            {alternativesConsidered.map((a, i) => (
+              <div key={i} className="grid md:grid-cols-3 gap-2 mt-2 p-3 rounded-md border bg-muted/20">
+                <div>
+                  <Label className="text-xs">Processing operation</Label>
+                  <Input
+                    value={a.processing_operation}
+                    onChange={(e) => { const n = [...alternativesConsidered]; n[i].processing_operation = e.target.value; setAlternativesConsidered(n); }}
+                    placeholder="Leave blank for the primary activity"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Alternative considered</Label>
+                  <Input
+                    value={a.alternative}
+                    onChange={(e) => { const n = [...alternativesConsidered]; n[i].alternative = e.target.value; setAlternativesConsidered(n); }}
+                    placeholder="e.g. aggregated data only"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Why it was rejected</Label>
+                  <Input
+                    value={a.rejection_reason}
+                    onChange={(e) => { const n = [...alternativesConsidered]; n[i].rejection_reason = e.target.value; setAlternativesConsidered(n); }}
+                    placeholder="Why it would not achieve the purpose"
+                    className="mt-1"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAlternativesConsidered(alternativesConsidered.filter((_, j) => j !== i))}
+                  className="text-xs text-red-600 underline md:col-span-3 text-right"
+                >remove</button>
+              </div>
+            ))}
+            <IntakeGuidance className="mt-2">A rejection reason that says the alternative was less useful, slower or more expensive does not establish necessity — say why it would not achieve the purpose.</IntakeGuidance>
+          </div>
+
 
           {/* Optional EDPB-aligned depth — collapsed by default, feeds the generator when filled */}
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
