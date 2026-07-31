@@ -98,6 +98,21 @@ export const CYBER_EVIDENCE_OPTS = [
 // callers cannot invent alternative framework names.
 export const CYBER_IN_SCOPE_FRAMEWORKS = FRAMEWORK_OPTIONS;
 
+// ITEM 315 — § 7122 auditor-engagement status. LITERAL COPY of
+// src/pages/CPPACybersecurity.enums.ts CYBER_AUDITOR_ENGAGEMENT. Parity with
+// the form module and with the deliverables builder is asserted in
+// src/registry/__tests__/cppa-cyber-deliverables.test.ts.
+export const CYBER_AUDITOR_ENGAGEMENT_OPTIONS = [
+  "No auditor engaged yet",
+  "Internal auditor identified, reporting line not yet settled",
+  "Internal auditor engaged, reports to an executive without cybersecurity-program responsibility",
+  "Internal auditor engaged, reports to the executive responsible for the cybersecurity program",
+  "External auditor engaged",
+  "External auditor engaged, independence confirmed in writing",
+] as const;
+
+
+
 export const cppaCybersecurityContract: IntakeContract = {
   tool_type: "cppa_cybersecurity",
   table: "cppa_cybersecurity_runs",
@@ -115,6 +130,12 @@ export const cppaCybersecurityContract: IntakeContract = {
     { key: "profile.in_scope_frameworks", kind: "multi-enum", required: "optional",
       options: CYBER_IN_SCOPE_FRAMEWORKS, askEligible: true },
     { key: "profile.audit_scope_rationale", kind: "narrative", required: "optional",
+      askEligible: true },
+    // ITEM 315 — § 7122 independence inputs (optional; feed the
+    // independence determination and the § 7122(g) retention finding).
+    { key: "profile.auditor_engagement_status", kind: "enum", required: "optional",
+      options: CYBER_AUDITOR_ENGAGEMENT_OPTIONS, askEligible: true },
+    { key: "profile.prior_audit_scope", kind: "narrative", required: "optional",
       askEligible: true },
     // controls[]
     { key: "controls[].key",     kind: "enum",      required: "always",

@@ -84,6 +84,47 @@ const helios: Record<string, CtrlSpec> = {
   c18_continuity: { notes: "Three-region active-active (Frankfurt, Dublin, Zurich); RTO 30m / RPO 5m; full DR test 2026-04 with successful customer-facing failover." },
 };
 
+// ITEM 315 — per-component descriptions for the "Perfect Data" fixture. One
+// distinct, operationally specific description per component (no template
+// reuse — sibling-note drift is what the adversarial fixture is for).
+const NORTHWIND_NOTES: Record<string, string> = {
+  c1_auth: "Entra ID with FIDO2 security keys for all 3,100 staff and phishing-resistant MFA on every admin path; no password fallback since 2026-01.",
+  c2_encryption: "AES-256 at rest on all stores via customer-managed HSM keys with 12-month rotation; TLS 1.3 enforced in transit with HSTS preload.",
+  c3_account_access: "Least-privilege RBAC in Okta; joiner/mover/leaver automated within 1h; quarterly recertification completed at 100% in 2026-Q2 with zero orphaned accounts.",
+  c4_inventory: "ServiceNow CMDB reconciled nightly against cloud APIs; 6,420 assets and 41 personal-information stores, each with a named owner and data-category tag.",
+  c5_secure_config: "CIS Level 1 baselines enforced by Ansible with drift auto-remediation; Wiz CSPM reports 100% conformance across production for eight consecutive weeks.",
+  c6_vuln_mgmt: "Authenticated Qualys scans weekly, external quarterly penetration test by NCC Group, and a published vulnerability-disclosure policy; zero open criticals, high MTTR 5.2 days.",
+  c7_audit_logs: "Centralised Splunk collection across 100% of in-scope systems, 400-day retention, WORM-backed integrity, and daily monitoring by the SOC.",
+  c8_network_mon: "Corelight NDR plus Defender for Cloud on all VPCs, 24x7 SOC coverage, MTTD 9 minutes measured on the 2026-05 purple-team exercise.",
+  c9_anti_malware: "SentinelOne on 100% of endpoints, servers, and build agents, with quarterly rollback tests and no excluded hosts.",
+  c10_segmentation: "Production, corporate, and warehouse OT networks separated by enforced firewall policy with default-deny east-west rules; segmentation tested by an external assessor in 2026-04.",
+  c11_port_protocol: "Default-deny ingress and egress with an explicit allow-list reviewed monthly; no legacy exceptions outstanding as of 2026-07.",
+  c12_awareness: "Monthly threat briefings drawn from CISA and MS-ISAC advisories, with a documented process for updating controls when a new technique is reported.",
+  c13_training: "Annual role-based training for every employee, contractor, and third party with system access; 100% completion within 30 days of grant, tracked in the LMS.",
+  c14_secure_dev: "Mandatory peer code review, SAST and SCA gating in CI, and pre-release security testing on every change to customer-facing services.",
+  c15_third_party: "244 service providers and contractors risk-tiered in OneTrust; Tier-1 vendors provide annual SOC 2 Type II and are contractually bound to equivalent controls.",
+  c16_retention: "Published retention schedule per data category with automated deletion jobs and certificates of destruction for physical media; annual disposition attestation signed 2026-06.",
+  c17_incident: "IR plan v6 with defined roles and escalation, two functional exercises per year, and post-incident retrospectives published to the security committee.",
+  c18_continuity: "Multi-region active-active with RTO 1h and RPO 5m; full failover exercise executed 2026-05-20 with restoration from immutable backup verified.",
+};
+
+
+// ─── ITEM 315 — "Perfect Data" fixture: Northwind Logistics Co. ───
+// Fixture-unblock case for the Item 315 rebuild. Supplies EVERY field the
+// contract carries — including the two Item 315 additions
+// (auditor_engagement_status, prior_audit_scope) — with every § 7123(c)
+// component implemented and evidenced by at least one TESTABLE artefact,
+// so `readiness_determination` can reach "ready" cleanly rather than being
+// hedged. Any hedge on this record is a defect, not a posture.
+const TESTABLE = ["Policy / procedure document", "Sample log / report", "Screenshot / config export"];
+const northwind: Record<string, CtrlSpec> = Object.fromEntries(
+  SLUGS.map((k) => [k, {
+    maturity: "Implemented with continuous monitoring",
+    evidence: TESTABLE,
+    notes: NORTHWIND_NOTES[k],
+  } as CtrlSpec]),
+);
+
 // QB-P25 CYBER — schema-shape assertions applied to every fixture. The three
 // new customer-facing fields (evidence, differentiator, rank) are DESIGNED
 // OUTPUT, so their presence is a hard contract rather than a rubric hint;
@@ -135,6 +176,32 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "encryption|AES", flags: "i",
         label: "encryption evidence surfaces even though written under c1_auth" },
+      ...CYBER_SCHEMA_GUARDS,
+    ],
+  },
+  {
+    id: "cyber-perfect-record",
+    tool: "cppa-cyber",
+    set: "tuning",
+    intake: {
+      profile: {
+        entity_name: "Northwind Logistics Co.",
+        industry: "Logistics and freight",
+        incidents_12mo: "None",
+        framework: "ISO 27001",
+        last_audit: "Within 12 months",
+        in_scope_frameworks: ["ISO 27001", "SOC 2"],
+        audit_scope_rationale:
+          "Audit covers the entire production processing estate and all systems that process California personal information; the ISO 27001 ISMS is supplemented with direct testing for each § 7123(c) component.",
+        // ITEM 315 additions.
+        auditor_engagement_status: "External auditor engaged, independence confirmed in writing",
+        prior_audit_scope:
+          "FY2025 cybersecurity audit covering the same production estate; report, sampling worksheets, interview notes, and management letter retained in the GRC system under a five-year hold.",
+      },
+      controls: build(northwind, "Implemented with continuous monitoring"),
+    },
+    assertions: [
+      { kind: "must_include", pattern: "ISO\\s*27001", flags: "i", label: "framework named" },
       ...CYBER_SCHEMA_GUARDS,
     ],
   },

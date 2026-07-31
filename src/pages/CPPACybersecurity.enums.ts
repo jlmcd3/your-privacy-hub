@@ -40,3 +40,16 @@ export const CYBER_IN_SCOPE_FRAMEWORKS = [
   "None / informal",
   "Other",
 ] as const;
+
+// ITEM 315 — § 7122 auditor-engagement status. Content-anchored: the edge
+// contract copies this list verbatim (supabase/functions/_shared/ltp/
+// cppa-cyber-deliverables/build.ts CYBER_AUDITOR_ENGAGEMENT_OPTIONS) and
+// parity is asserted in cppa-cyber-deliverables.test.ts.
+export const CYBER_AUDITOR_ENGAGEMENT = [
+  "No auditor engaged yet",
+  "Internal auditor identified, reporting line not yet settled",
+  "Internal auditor engaged, reports to an executive without cybersecurity-program responsibility",
+  "Internal auditor engaged, reports to the executive responsible for the cybersecurity program",
+  "External auditor engaged",
+  "External auditor engaged, independence confirmed in writing",
+] as const;

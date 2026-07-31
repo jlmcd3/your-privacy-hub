@@ -45,8 +45,8 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 // RC-C3.CLOSE-1 / RC-FLIP-2 — MATURITY lives in a standalone enums module so
 // shared components (refine surface) don't import this page module. Re-export
 // kept for any external references to `@/pages/CPPACybersecurity`.
-export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
-import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
+export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
+import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
 
 type Control = { key: string; label: string; description: string; citation: string };
 
@@ -98,6 +98,8 @@ export default function CPPACybersecurity() {
   const [profile, setProfile] = useState({
     entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "",
     in_scope_frameworks: [] as string[], audit_scope_rationale: "",
+    // ITEM 315 — § 7122 independence inputs (both optional).
+    auditor_engagement_status: "", prior_audit_scope: "",
   });
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
@@ -355,6 +357,21 @@ export default function CPPACybersecurity() {
             <Label>Audit scope rationale <span className="text-xs text-muted-foreground font-normal">(optional — explain what the audit covers and, if leveraging a prior framework under § 7123(f), how it supplements)</span></Label>
             <Textarea rows={3} value={profile.audit_scope_rationale} onChange={(e) => setProfile({ ...profile, audit_scope_rationale: e.target.value })} className="mt-2" placeholder="e.g., Audit covers the SaaS production estate; leverages last year's SOC 2 Type II, supplemented for § 7123(c) components not covered by SOC 2 (segmentation, retention)." />
           </div>
+          {/* ITEM 315 — § 7122 auditor-engagement status. Feeds the
+              independence determination; § 7122(a)(3) turns on the internal
+              auditor's reporting line, which no prior field captured. */}
+          <div data-rail-key="auditor_engagement_status" onFocus={() => focusRail('auditor_engagement_status')}>
+            <Label>Auditor engagement status <span className="text-xs text-muted-foreground font-normal">(optional — § 7122 requires a qualified, objective, independent auditor; internal auditors must report to an executive without responsibility for the cybersecurity program)</span></Label>
+            <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.auditor_engagement_status} onChange={(e) => setProfile({ ...profile, auditor_engagement_status: e.target.value })}>
+              <option value="">Select…</option>
+              {CYBER_AUDITOR_ENGAGEMENT.map((opt) => <option key={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div data-rail-key="prior_audit_scope" onFocus={() => focusRail('prior_audit_scope')}>
+            <Label>Prior audit scope <span className="text-xs text-muted-foreground font-normal">(optional — what the last audit covered; § 7122(g) requires five-year retention of all documents relevant to each audit)</span></Label>
+            <Textarea rows={3} value={profile.prior_audit_scope} onChange={(e) => setProfile({ ...profile, prior_audit_scope: e.target.value })} className="mt-2" placeholder="e.g., FY2025 SOC 2 Type II covering the production estate; report, sampling worksheets, and management letter retained in the GRC system." />
+          </div>
+
         </section>
 
         <section className="bg-card border rounded-lg p-6 space-y-6">

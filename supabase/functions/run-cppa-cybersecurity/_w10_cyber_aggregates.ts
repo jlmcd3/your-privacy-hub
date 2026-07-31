@@ -75,18 +75,29 @@ export function scrubAuthoredAggregates(
   if (!text || typeof text !== "string") return { out: text ?? "", replaced: 0 };
   let replaced = 0;
   let out = text;
-  // Full-sentence replacement first — preserves paragraph structure.
-  out = out.replace(AGG_SENTENCE_RE, () => {
+  // ITEM 315 — DEDUP LAW. Prior behaviour replaced EVERY authored aggregate
+  // sentence with the same canonical sentence, so a summary carrying two mean
+  // sentences emitted the canonical sentence verbatim twice. Only the FIRST
+  // occurrence now emits the canonical sentence; later occurrences are dropped.
+  let emitted = false;
+  const emit = (): string => {
     replaced++;
+    if (emitted) return " ";
+    emitted = true;
     return ` ${agg.canonical_sentence}`;
-  });
+  };
+  // Full-sentence replacement first — preserves paragraph structure.
+  out = out.replace(AGG_SENTENCE_RE, emit);
   // Fallback: neutralize any surviving loose mean/average token.
   out = out.replace(LOOSE_SCORE_RE, () => {
     replaced++;
+    if (emitted) return "figure stated above";
+    emitted = true;
     return agg.canonical_sentence.replace(/\.$/, "");
   });
   return { out: out.replace(/\s{2,}/g, " ").trim(), replaced };
 }
+
 
 export interface AggApplyResult {
   aggregates: CyberAggregates;
