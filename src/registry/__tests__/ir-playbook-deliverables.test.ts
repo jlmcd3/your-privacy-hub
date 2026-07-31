@@ -255,7 +255,7 @@ describe("ITEM 312 — Art. 33(3) content/owner mapping", () => {
 describe("ITEM 312 — contract guard + attach", () => {
   it("every new golden case validates against the actual contract", () => {
     for (const fixture of [PERFECT, ENCRYPTED, DIVERGENCE]) {
-      const res = validateIntake(fixture.intake as Record<string, unknown>, irPlaybookContract);
+      const res = validateIntake(irPlaybookContract, fixture.intake as Record<string, unknown>);
       expect(res.violations, `${fixture.id}: ${JSON.stringify(res.violations)}`).toEqual([]);
       expect(res.ok).toBe(true);
     }
@@ -263,7 +263,7 @@ describe("ITEM 312 — contract guard + attach", () => {
 
   it("the pre-existing golden cases still validate (no contract regression)", () => {
     for (const c of IR_PLAYBOOK_GOLDEN.filter((x) => !["ir-perfect-record", "ir-encrypted-backup-exemption", "ir-two-threshold-divergence"].includes(x.id))) {
-      const res = validateIntake(c.intake as Record<string, unknown>, irPlaybookContract);
+      const res = validateIntake(irPlaybookContract, c.intake as Record<string, unknown>);
       expect(res.violations, `${c.id}: ${JSON.stringify(res.violations)}`).toEqual([]);
     }
   });
