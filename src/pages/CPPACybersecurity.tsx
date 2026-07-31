@@ -45,8 +45,8 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 // RC-C3.CLOSE-1 / RC-FLIP-2 — MATURITY lives in a standalone enums module so
 // shared components (refine surface) don't import this page module. Re-export
 // kept for any external references to `@/pages/CPPACybersecurity`.
-export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
-import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS } from "./CPPACybersecurity.enums";
+export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
+import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
 
 type Control = { key: string; label: string; description: string; citation: string };
 
@@ -98,6 +98,8 @@ export default function CPPACybersecurity() {
   const [profile, setProfile] = useState({
     entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "",
     in_scope_frameworks: [] as string[], audit_scope_rationale: "",
+    // ITEM 315 — § 7122 independence inputs (both optional).
+    auditor_engagement_status: "", prior_audit_scope: "",
   });
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
