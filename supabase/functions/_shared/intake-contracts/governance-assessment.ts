@@ -116,6 +116,17 @@ const INVENTORY_AUDIT = [
   "Inventory exists, no formal audit/approval",
   "No formal inventory", "Unsure",
 ] as const;
+// ITEM 313 — Art. 24(1) second sentence ("Those measures shall be reviewed and
+// updated where necessary") is unanswerable without a cadence and a date.
+const REVIEW_CADENCE = [
+  "Annually or more often",
+  "Every 1–2 years",
+  "Less often than every 2 years",
+  "On material change only",
+  "No defined cadence",
+  "Unsure",
+] as const;
+
 
 export const governanceContract: IntakeContract = {
   tool_type: "governance_assessment",
@@ -179,8 +190,21 @@ export const governanceContract: IntakeContract = {
       requiredWhen: 'transfer_status ∈ {"Yes, US-based tools","Yes, other non-adequate countries"}',
       hiddenValue: "n/a", options: [...TRANSFER_MECHANISM, "n/a"] as unknown as readonly string[] },
     { key: "additional_context", kind: "narrative", required: "optional" },
+    // ── ITEM 313 additions ────────────────────────────────────────────
+    // Op. 5 (Art. 24(1) second sentence) inputs.
+    { key: "measures_review_cadence", kind: "enum", required: "optional", options: REVIEW_CADENCE },
+    { key: "measures_last_review_date", kind: "text", required: "optional" },
+    // Op. 1 (Art. 24(1) named risk factors). Deliberately NOT duplicated from
+    // sector/org_size/data_categories: Article 24(1) names nature, scope,
+    // context and purposes as the calibration factors, and the existing fields
+    // answer none of them in their own terms.
+    { key: "processing_nature", kind: "narrative", required: "optional" },
+    { key: "processing_scope", kind: "narrative", required: "optional" },
+    { key: "processing_context", kind: "narrative", required: "optional" },
+    { key: "processing_purposes", kind: "narrative", required: "optional" },
   ],
 };
+
 
 export const GOVERNANCE_INLINE_LISTS = {
   GOV_SECTORS, GOV_SIZES, GOV_JURISDICTIONS, GOV_TOOLS, GOV_DATA_CATS,
@@ -188,5 +212,5 @@ export const GOVERNANCE_INLINE_LISTS = {
   DPIA_STATUS, DPIA_AI_COVERAGE, INCIDENT_RESPONSE, TRAINING_STATUS,
   TRAINING_AI_COVERAGE, TOOL_INSTRUCTION, DPA_STATUS, DPA_ART28,
   TRANSFER_STATUS, TRANSFER_MECHANISM, TECHNICAL_CONTROLS,
-  TECHNICAL_CONTROLS_LIST, DSR_CAPABILITY, DSR_RIGHTS_TESTED, INVENTORY_AUDIT,
+  TECHNICAL_CONTROLS_LIST, DSR_CAPABILITY, DSR_RIGHTS_TESTED, INVENTORY_AUDIT, REVIEW_CADENCE,
 };

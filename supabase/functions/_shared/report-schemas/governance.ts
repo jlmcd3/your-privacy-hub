@@ -37,8 +37,23 @@ export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
     "regulatory_hot_topics",
     "domain_scores",
     "domain_findings",
+    // ITEM 313 — the maturity tier is DEMOTED. `overall_readiness_rating` and
+    // `readiness_rationale` are deleted by attachGovernanceDeliverables and
+    // re-emitted, labelled non-statutory, as `maturity_tier_readability_aid`.
+    // The keys stay allow-listed only so a fail-open attach cannot silently
+    // strip a report generated before the deliverables land.
     "overall_readiness_rating",
     "readiness_rationale",
+    "maturity_tier_readability_aid",
+    // ITEM 313 — governance analytic deliverables (single-writer).
+    "accountability_determination",
+    "demonstrability_findings",
+    "art30_element_findings",
+    "art30_exemption_determination",
+    "dpo_determination",
+    "risk_calibration_finding",
+    "review_and_update_finding",
+
     "interaction_effects",
     "dpia_scope",
     "disclaimer",
