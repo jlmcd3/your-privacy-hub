@@ -135,6 +135,10 @@ const DPIAFramework = () => {
   const [dpoAdvice, setDpoAdvice] = useState("");                                         // 5.1
   const [dataSubjectsViewsSought, setDataSubjectsViewsSought] = useState("");             // 5.2
   const [dataSubjectsViews, setDataSubjectsViews] = useState("");                         // 5.2
+  // ITEM 310 — alternatives actually considered and rejected, per processing
+  // operation. Feeds the deterministic least-intrusive-means test (Art. 35(7)(b)).
+  const [alternativesConsidered, setAlternativesConsidered] = useState<Array<{ processing_operation: string; alternative: string; rejection_reason: string }>>([]);
+
   const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
 
   // ── Jurisdiction resolver inputs (Layer 5 — feed the deterministic resolvers) ──
