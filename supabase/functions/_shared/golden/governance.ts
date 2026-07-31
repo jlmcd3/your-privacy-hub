@@ -100,4 +100,39 @@ export const GOVERNANCE_GOLDEN: GoldenCase[] = [
       ...V2_ANTI_HEDGE_GUARDS,
     ],
   },
+  // ITEM 313 — fixture unblock. "Perfect Data" standard: supplies every field
+  // the Item 313 contract added, so the governance analytic deliverables are
+  // measurable rather than degrading to record_insufficient on arrival.
+  {
+    id: "gov-perfect-record",
+    tool: "governance",
+    set: "tuning",
+    intake: {
+      ...base,
+      organization_name: "Calder Health Analytics Ltd",
+      sector: "Healthcare/Life Sciences",
+      org_size: "251-1000",
+      data_categories: ["Employee records", "Customer records", "Health or medical data"],
+      special_category: "Yes",
+      special_categories_list: ["Health data"],
+      measures_review_cadence: "Annually or more often",
+      measures_last_review_date: "2026-03-17",
+      processing_nature:
+        "Continuous ingestion of clinician-entered and device-generated health records, pseudonymisation at rest, and cohort-level analytics returned to NHS trust customers; no automated decision produces a legal or similarly significant effect on a patient.",
+      processing_scope:
+        "Approximately 2.4 million patient records across 31 NHS trusts and 4 EU hospital groups, refreshed nightly, retained for the seven-year clinical-audit period and then deleted on a scheduled job.",
+      processing_context:
+        "Patients are not the customer and have no direct relationship with Calder; they cannot practically opt out of their trust's analytics contract, so the imbalance is material and expectations are set entirely by the trust's own notice.",
+      processing_purposes:
+        "Clinical-outcome benchmarking, readmission-risk cohort reporting, and contractual service-level reporting to the commissioning trust. No secondary research use and no onward sale.",
+      additional_context:
+        "DPO reports to the CEO and also owns the information-security function, which is under review as a possible Art. 38(6) conflict.",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "Article 5\\(2\\)|Art\\. 5\\(2\\)", flags: "i", label: "accountability standard cited" },
+      { kind: "must_include", pattern: "Article 30|Art\\. 30", flags: "i", label: "Art. 30 record duty reached" },
+      { kind: "must_not_include", pattern: "Critical = no controls in place", label: "inline non-statutory severity scale not restated as the conclusion" },
+      ...V2_ANTI_HEDGE_GUARDS,
+    ],
+  },
 ];
