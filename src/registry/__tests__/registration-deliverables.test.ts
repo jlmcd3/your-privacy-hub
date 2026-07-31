@@ -328,7 +328,7 @@ describe("ITEM 316 — analysis shape", () => {
     expect(flag.status).toBe("record_insufficient");
     expect(flag.note).toContain("corpus pending");
     expect(flag.named_provisions.join(" ")).toContain("2024/1689");
-    expect((flag as Record<string, unknown>).verdict).toBeUndefined();
+    expect((flag as unknown as Record<string, unknown>).verdict).toBeUndefined();
     // Absent any AI indicator, no flag is raised at all.
     expect(buildRegistrationDeliverables(CA_VT_BROKER as never).corpus_pending.length).toBe(0);
   });
