@@ -12,6 +12,7 @@ import {
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
+import { buildRegistrationDeliverables, REGISTRATION_DELIVERABLES_VERSION } from "../_shared/ltp/registration-deliverables/build.ts";
 
 export const BUILD_STAMP = "r1-hds-conditional@2026-07-23T14:20:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
@@ -578,6 +579,26 @@ Deno.serve(async (req) => {
 
 
 
+
+    // ── ITEM 316 — reasoned registration deliverables ────────────────────
+    // This REPLACES the boolean/null `obligations_summary` as the analytic
+    // surface of the product. `obligations_summary` is retained above for
+    // backwards compatibility with existing readers, but every determination
+    // now also appears here with its statute, verbatim standard, record fact,
+    // application and verdict. Pure and deterministic: a failure here is a
+    // build defect, so it is recorded rather than swallowed into silence.
+    try {
+      const deliverables = buildRegistrationDeliverables(intake as any);
+      (result_summary as any).registration_deliverables = deliverables;
+      (result_summary as any).narrative = deliverables.narrative;
+      (result_summary as any).deliverables_version = REGISTRATION_DELIVERABLES_VERSION;
+    } catch (e) {
+      console.error("[run-registration-assessment] deliverables build failed:", (e as Error)?.message);
+      (result_summary as any).registration_deliverables_error = {
+        status: "record_insufficient",
+        note: "The reasoned registration determinations could not be produced for this record. No conclusion is asserted in their place.",
+      };
+    }
 
     // 4. Persist
     let row;
