@@ -97,6 +97,21 @@ export const REGISTRATION_MARKET_CODES = [
   "ZA","NG","KE",
 ] as const;
 
+// ITEM 316 — claimed data-broker statutory exclusion. The values name the
+// exclusion FAMILIES the four statutes use; the engine records the claim and
+// analyses it against the reproduced exclusion text, and never auto-accepts it.
+export const REGISTRATION_BROKER_EXEMPTIONS = [
+  "none",
+  "fcra_consumer_reporting",
+  "glba_financial",
+  "hipaa_health",
+  "insurance",
+  "service_provider_processor",
+  "affiliate_or_subsidiary",
+  "publicly_available_information",
+  "unknown",
+] as const;
+
 export const registrationContract: IntakeContract = {
   tool_type: "registration_assessment",
   // The edge function persists intake at registration_assessments.intake_data;
@@ -134,6 +149,21 @@ export const registrationContract: IntakeContract = {
     { key: "acts_as_data_broker",           kind: "boolean", required: "optional" },
     { key: "sells_or_shares_personal_info", kind: "boolean", required: "optional" },
     { key: "processes_biometrics_for_id",   kind: "boolean", required: "optional" },
+
+    // ── ITEM 316 intake extension (2026-07-31) — data-broker thresholds ──
+    // Statute-specific counts and limbs. Emitted by the form as numbers
+    // (parsed from string inputs) and booleans; keys are omitted when blank,
+    // which the deliverables builder reads as "record does not state".
+    { key: "collects_data_not_directly_from_individuals", kind: "boolean", required: "optional" },
+    { key: "has_direct_relationship_with_data_subjects",  kind: "boolean", required: "optional" },
+    { key: "sells_or_licenses_brokered_data",             kind: "boolean", required: "optional" },
+    { key: "brokered_data_individual_count",              kind: "text",    required: "optional" },
+    { key: "brokered_data_revenue_share_pct",             kind: "text",    required: "optional" },
+    { key: "data_broker_exemption_claimed",               kind: "enum",    required: "optional",
+      options: REGISTRATION_BROKER_EXEMPTIONS },
+    { key: "filing_contact_details_ready",                kind: "boolean", required: "optional" },
+    { key: "filing_opt_out_mechanism_documented",         kind: "boolean", required: "optional" },
+    { key: "filing_minors_data_practices_documented",     kind: "boolean", required: "optional" },
 
     // ── Step 3 — establishment & markets ────────────────────────────────
     { key: "has_eu_establishment", kind: "boolean", required: "optional" },
