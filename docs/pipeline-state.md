@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T05:31Z (Item 300 — GDPR registry completion; 10 EU rows promoted, Item 291's P0 truncation finding disproved, new gdpr-registry corpus pin; no engine code, no deploy.)
+**Last updated:** 2026-07-31T05:47Z (Item 301 — EDPB/WP29 guidance-layer audit; zero rows written, all three documents version-current, ir-playbook wired / dpia semantic-only / lia constant-authoritative; no engine code, no deploy.)
 
 ---
 
@@ -7178,3 +7178,25 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK.** Writes: 10 INSERTs into `provision_texts`; no existing row modified or deleted. Files: the courier, the new pin test, this ledger. No engine code, no deploy, no harness invocation.
 
 **Disposition:** COMPLETE — awaiting controller verification before prompt 3 (EDPB/WP29 guidance layer). Open: (1) `gdpr_articles` trailing section-heading artifact affects an unknown number of section-boundary articles and needs a cleanup turn; (2) Art. 5 consolidation deferred; (3) **Item 291's P0 finding should be formally withdrawn** — false positive from diffing against an artifact-bearing source.
+
+----
+
+## Item 301 — GUIDANCE-LAYER AUDIT: EDPB/WP29 (2026-07-31T05:47Z)
+
+**Authority:** CEO corpus approval 2026-07-31 of the INGESTION-PROMPTS-2026-07-31 inventory (prompt 3 of 7); Items 298/299/300 complete and controller-verified. Scope: audit + courier + ledger.
+
+**ZERO ROWS WRITTEN.** No `edpb_guidelines` insert/update/delete, no engine code, no deploy, no harness invocation. The controller's "this layer already exists" finding is CONFIRMED: 893 rows / 10 documents, all embedded, `related_articles` correctly tagged (1/2024 `{6}`×106, 9/2022 `{33,34}`×70, WP248 `{35,36}`×46). One baseline deviation: **WP248 rev.01 has 0 front_matter rows, not 3** (46 final only). `doc_version` remains NULL fleet-wide.
+
+**VERSION CURRENCY — ALL THREE CURRENT, NO STOP CONDITION.** 9/2022: EDPB page states "Final version", sole download v2.0 — matches the ingested PDF. 1/2024: live PDF still "Version 1.0 / Adopted on 8 October 2024"; consultation (ref 10/2024) closed 20 Nov 2024, **no v2.0 published** — standing watch item, 1/2024 is a post-consultation-pending instrument and its v2.0 adoption is the expected supersession event. WP248 rev.01: the endorsed-WP29 list annotates supersessions explicitly (WP259 → 05/2020) and **carries no annotation on WP248** — still endorsed, no successor. URLs in the courier.
+
+**WIRING — MECHANISM EXISTS (no `guidance_refs` column anywhere; it is `match_edpb_guidelines` RPC + direct pulls).** ir-playbook **WIRED, deterministic** (`generate-ir-playbook` L791–830 pulls 9/2022 final rows overlapping Arts 33/34, ordered, 9k cap, pushes the citation) — **Item 291's ir-playbook wiring gap is STALE, since closed.** dpia **WIRED, semantic only** (`guidelineArticles:["35"]` → WP248 reachable; 4-excerpt cap, needs `LOVABLE_API_KEY`, fails open to zero, block labelled non-verbatim). lia **PARTIALLY WIRED** — semantic path passes `guidelineArticles:["6"]`, but the authoritative block is the hand-written `EDPB_1_2024_AUTHORITY` constant ("cite these, and only these") and corpus contact is otherwise `verifyEdpb12024AgainstCorpus()`, **observe-only**; **Item 291's lia finding still holds.** Engine-turn finding recorded, not acted on: move lia to corpus-first and give dpia a deterministic WP248 nine-criteria pull in the ir-playbook shape.
+
+**GAP CHECK — READ, NOT ASSUMED; BOTH CLAIMS CONFIRMED.** All 46 WP248 final excerpts dumped (61,504 chars): **all nine criteria present with text**. EDPB 1/2024: **25 of 106 rows** carry `Meta v Bundeskartellamt` / `C-252/21`, incl. the pinpoint footnote "judgment of 4 July 2023 … (ECLI:EU:C:2023:537), para. 121" plus paras 112/116/118 and C-13/16 Rīgas satiksme para. 29; "three cumulative" in 7 rows. Nothing absent → nothing ingested.
+
+**PIN TESTS: NONE — deliberately.** No gap, no ingest, therefore no passage to pin; a no-op test file would be dead weight. Runtime anchoring already exists via `_shared/edpb-1-2024-consistency.ts` (8 phrases).
+
+**Step-4 compliance:** 2/2019, 3/2018, 05/2020, 07/2020, 01/2022, Recommendations 01/2020, WP260 rev.01 counted in the census only — untouched.
+
+**COURIER.** `docs/courier/ITEM301-EDPB-GUIDANCE-AUDIT-2026-07-31.md`.
+
+**Disposition:** COMPLETE (audit-only, zero writes) — awaiting controller verification before prompt 4 (UK divergence twins). Open: (1) lia corpus-first cutover + dpia deterministic WP248 pull — dedicated engine turn; (2) semantic guidance path caps at 4 excerpts and degrades silently to zero on embedding failure; (3) `doc_version` NULL fleet-wide — version-currency metadata has no home in the table; (4) 1/2024 v2.0 watch.
