@@ -35,7 +35,13 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     "enforcement_precedents_note",
     "gdpr_meta",
     "three_part_test",
+    // ITEM 311 — lia analytic deliverables (single-writer keys)
+    "reasonable_expectations",
+    "child_factor",
+    "public_authority_exclusion",
+    "lia_determination",
     "documentation_recommendations",
+
     "disclaimer",
     "data_currency_note",
     // Cross-cutting arrays / bookkeeping
