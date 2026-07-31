@@ -644,6 +644,9 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   // ITEM 290 — `scope_confirmation` RETIRED (single-key scope emission).
   scope_and_triggers: "conditional",
   processing_narrative: "conditional",
+  // ITEM 305 — always emitted: the builder degrades rather than omitting.
+  activity_analytics: "always",
+
   risk_assessment_by_activity: "conditional",
   risk_register: "conditional",
   top_risks: "conditional",
