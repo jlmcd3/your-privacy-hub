@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T01:01Z (Item 298 — CPPA cybersecurity-audit corpus ingestion §§ 7122–7124 + cyber corpus-pin test; no engine code, no deploy.)
+**Last updated:** 2026-07-31T05:20Z (Item 299 — FSOR guidance-layer audit §§ 7120–7124 / §§ 7220–7221; 5 rows ingested under final-text citations; no engine code, no deploy.)
 
 ---
 
@@ -7126,3 +7126,29 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **DOUBLE-CHECK.** Diff limited to the new pin test, the courier, and this ledger; rows written to `provision_texts` only. No engine, emitter, validator, or config file modified; no function deployed; no harness invoked.
 
 **Disposition:** COMPLETE — awaiting controller verification against the prompt's own pin tests before prompt 7 dispatches. Open items: jurisdiction-key ratification; § 7123(c)(11) generator paraphrase needs its own dispatch (out of scope here).
+
+----
+
+## Item 299 — GUIDANCE-LAYER AUDIT + INGESTION: FSOR FOR §§ 7120–7124 AND §§ 7220–7221 (2026-07-31T05:20Z)
+
+**Authority:** CEO corpus approval 2026-07-31 of the INGESTION-PROMPTS-2026-07-31 inventory (prompt 7 of 7, final); predicate Item 298 complete and controller-verified. Scope: `cppa_fsor_commentary` rows + courier + ledger ONLY.
+
+**SOURCE.** *Final Statement of Reasons — CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations*, published as `…/pdf/ccpa_updates_cyber_risk_admt_fsor_and_uid.pdf` (there is no standalone `_fsor.pdf`; the body ships combined with the updated informative digest). SHA-256 `be2785fe763532707cf4b8ea4b418285113eb3b101dc7cfa0a0070708f46fa19`, 58 pp. Appendix A `…_fsor_appen_a.pdf`, SHA-256 `c2a79ee21ac2d1b2fb2d32cbf0a5771146185089af83674107c795991eec6da2`, 339 pp. Both fetched and hashed by the executor.
+
+**AUDIT (before → after, primary / related-only):** § 7120 6/9 → 6/9 · § 7121 14/7 → 14/7 · § 7122 37/14 → 37/14 · § 7123 98/18 → **103**/18 · § 7124 21/9 → 21/9 · § 7220 58/15 → 58/15 · § 7221 105/18 → 105/18. Controller baseline counts were uniformly low (exact-bucket counting missed deeper-subsection primaries); audit numbers stand.
+
+**ROOT DEFECT FOUND — SUPERSEDED-NUMBERING PRIMARIES.** The FSOR body's § 7123 walkthrough labels each modified component by its FINAL number with a "previously …" parenthetical; the prior ingest keyed those rows to the PREVIOUS number. Five load-bearing passages were therefore unreachable by final-citation lookup — the exact lookup shape the cyber registries use. Remedy is ADDITIVE: five new rows under final citations, superseded citation preserved in `related_citations`; **no existing row modified or deleted**. New primaries: `11 CCR § 7123(c)(1)(B)` p.24 (password conditional), `(c)(3)(A)` p.25 (account/application), `(c)(8)(A)` p.25 (bot-/intrusion-detection examples), `(c)(13)` p.25 (awareness vs. education-and-training), `(c)(17)(A)` p.25 ("potentially"→"imminently", NIST alignment). **Verbatim diff 5/5 EXACT** against the normalized FSOR body.
+
+**CONTROLLER'S FLAGGED GAP — RESOLVED BY READING.** (1) **§ 7123(c)(9) antivirus/anti-malware: REAL ABSENCE, no ingestion.** "Antivirus/anti-malware" occurs exactly ONCE in the entire FSOR corpus (Appendix A p. 87) and that passage is already row `a99195b0-…`, primary (b)(2)(J) with (c)(9) as a related citation. The component was carried forward unchanged, so the body walkthrough skips it. The related-citation row carries everything the FSOR says; a dedicated row would have required inventing text. (2) **§ 7123(c)(13): REAL GAP, ingested** — the p.25 distinction passage existed only under superseded (b)(2)(M).
+
+**ITEM 298 ANCHOR CORRECTION.** Zero-trust deletion is already ingested (`2bdc1b14-…`, p. 25) and the deletion is attached by the Agency to **deleted previous subsection (b)(2)(C)**, NOT to (c)(10) — (c)(10) is segmentation and has its own intact row. Item 298's substantive finding is corroborated; its pinpoint is not. (c)(12)/(c)(13) distinction now reachable at final numbering.
+
+**NO-INGEST FINDINGS.** § 7120 has NO "Amend § 7120" section in the FSOR body at all — the section was not amended, so no body narrative exists (absence in the source, not a corpus gap); threshold intent lives in Appendix rows pp. 64–66 and the § 7121 phase-in discussion pp. 19–20. §§ 7121/7122/7124 kept current numbering throughout — no unreachable primaries. §§ 7220/7221 pre-use-notice and opt-out narratives fully represented at final numbering.
+
+**DEVIATIONS.** (1) `authority_weight` **does not exist** on `cppa_fsor_commentary` (it is a `cppa_authorities` column) — nothing recorded, nothing to record it in. (2) `agency_position_summary` and `embedding` left NULL on the new rows: both are machine-derived (`backfill-fsor-summaries` / embedding job), and hand-authoring them would be unsourced prose. Backfill picks up NULL rows on its next run.
+
+**COURIER.** `docs/courier/ITEM299-FSOR-GUIDANCE-AUDIT-2026-07-31.md`.
+
+**DOUBLE-CHECK.** Writes confined to `cppa_fsor_commentary` (5 INSERTs + one page-ref UPDATE on those same 5 rows). No other table, no engine code, no deploy, no harness invocation. Files touched: the courier and this ledger.
+
+**Disposition:** COMPLETE — ingestion inventory prompts 1 and 7 both discharged; awaiting controller verification before prompt 2 (GDPR registry completion). Open: whether the superseded-numbering defect should be swept across §§ 7220–7221 and the 2023 FSOR packages in a dedicated turn (audit found none there, but only § 7123 was renumbered wholesale — a broader sweep is cheap insurance, not a known gap).
