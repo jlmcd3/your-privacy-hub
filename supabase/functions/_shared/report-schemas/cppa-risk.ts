@@ -86,7 +86,12 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     // deterministically from operational-elements ledger fields; silent
     // sub-elements resolve to "not stated on the record".
     "processing_narrative",
+    // ITEM 305 — per-activity ANALYTIC DELIVERABLES (§ 7152(a)(2), (a)(4),
+    // (a)(5), (a)(6), (a)(7)). Structured, deterministic; produced solely by
+    // _shared/ltp/analytic-deliverables/build.ts.
+    "activity_analytics",
     "risk_assessment_by_activity",
+
     "risk_register",
     "top_risks",
     "priority_actions",
