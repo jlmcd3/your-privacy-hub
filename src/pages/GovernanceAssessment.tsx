@@ -347,6 +347,13 @@ const GovernanceAssessment = () => {
     S(d.dpa_art28_verified, setDpaArt28Verified);
     S(d.transfer_mechanism, setTransferMechanism);
     S(d.additional_context, setAdditionalContext);
+    S(d.measures_review_cadence, setMeasuresReviewCadence);
+    S(d.measures_last_review_date, setMeasuresLastReviewDate);
+    S(d.processing_nature, setProcessingNature);
+    S(d.processing_scope, setProcessingScope);
+    S(d.processing_context, setProcessingContext);
+    S(d.processing_purposes, setProcessingPurposes);
+
     if (typeof restoreStage === "number") setStep(restoreStage);
     else if (typeof payload?.step === "number") setStep(payload.step);
   };
