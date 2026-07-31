@@ -106,6 +106,8 @@ export {
   ADMT_SOLELY_ADVERTISING_OPTS,
   ADMT_AFFECTED_POPULATION_BAND_OPTS,
   ADMT_ROLE_ROSTER_OPTS,
+  ADMT_SOLE_USE_ATTESTATION_OPTS,
+  ADMT_NONDISCRIM_TESTING_OPTS,
 } from "./ADMTChecker.enums";
 import {
   ADMT_VENDOR_STATUS_OPTS,
@@ -119,7 +121,11 @@ import {
   ADMT_SOLELY_ADVERTISING_OPTS,
   ADMT_AFFECTED_POPULATION_BAND_OPTS,
   ADMT_ROLE_ROSTER_OPTS,
+  ADMT_SOLE_USE_ATTESTATION_OPTS,
+  ADMT_NONDISCRIM_TESTING_OPTS,
 } from "./ADMTChecker.enums";
+const SOLE_USE_ATTESTATION_OPTIONS = ADMT_SOLE_USE_ATTESTATION_OPTS;
+const NONDISCRIM_TESTING_OPTIONS = ADMT_NONDISCRIM_TESTING_OPTS;
 import { AlertTriangle } from 'lucide-react';
 
 function formatRelativeTime(d: Date) {
@@ -265,6 +271,9 @@ export default function ADMTChecker() {
   const [accessTradeSecretPolicy, setAccessTradeSecretPolicy] = useState("");
 
   // Article 11 detail fields (G1–G7) — kept in one nested object to avoid per-field bookkeeping.
+  // ITEM 308 — element-by-element transcription of the published pre-use notice.
+  const [noticeElementText, setNoticeElementText] = useState<Record<string, string>>({});
+  const setNET = (k: string, v: string) => setNoticeElementText((p) => ({ ...p, [k]: v }));
   const [adv, setAdv] = useState<Record<string, any>>({});
   const setA = (k: string, v: any) => setAdv((a) => ({ ...a, [k]: v }));
 
@@ -367,6 +376,7 @@ export default function ADMTChecker() {
       notice_delivery: noticeDelivery,
       notice_has_specific_purpose: noticeHasSpecificPurpose,
       notice_purpose_text: noticePurposeText,
+      notice_element_text: noticeElementText,
       notice_has_opt_out_desc: noticeHasOptOutDesc,
       notice_has_access_desc: noticeHasAccessDesc,
       notice_has_anti_retaliation: noticeHasAntiRetaliation,
@@ -400,7 +410,7 @@ export default function ADMTChecker() {
     [
       organizationName, systemName, systemType, systemDescription, decisionDomains, humanReview,
       trainingDataUse, profilingUse, noticeDelivery, noticeHasSpecificPurpose,
-      noticePurposeText, noticeHasOptOutDesc, noticeHasAccessDesc,
+      noticePurposeText, noticeElementText, noticeHasOptOutDesc, noticeHasAccessDesc,
       noticeHasAntiRetaliation, noticeHasHowItWorks, noticeHasAlternativeProcess,
       optOutException, optOutMethods, optOutLinkTitle, optOutNoCookieBanner,
       optOutNoAccountRequired, optOutConfirmationMechanism, optOutAppealProcess,
@@ -433,7 +443,7 @@ export default function ADMTChecker() {
     JSON.stringify({
       organizationName, systemName, systemType, systemDescription, decisionDomains, humanReview,
       trainingDataUse, profilingUse, noticeDelivery, noticeHasSpecificPurpose,
-      noticePurposeText, noticeHasOptOutDesc, noticeHasAccessDesc,
+      noticePurposeText, noticeElementText, noticeHasOptOutDesc, noticeHasAccessDesc,
       noticeHasAntiRetaliation, noticeHasHowItWorks, noticeHasAlternativeProcess,
       optOutException, optOutMethods, optOutLinkTitle, optOutNoCookieBanner,
       optOutNoAccountRequired, optOutConfirmationMechanism, optOutAppealProcess,
@@ -467,6 +477,7 @@ export default function ADMTChecker() {
     if (Array.isArray(d.notice_delivery)) setNoticeDelivery(d.notice_delivery);
     if (typeof d.notice_has_specific_purpose === "string") setNoticeHasSpecificPurpose(d.notice_has_specific_purpose);
     if (typeof d.notice_purpose_text === "string") setNoticePurposeText(d.notice_purpose_text);
+    if (d.notice_element_text && typeof d.notice_element_text === "object") setNoticeElementText(d.notice_element_text as Record<string, string>);
     if (typeof d.notice_has_opt_out_desc === "string") setNoticeHasOptOutDesc(d.notice_has_opt_out_desc);
     if (typeof d.notice_has_access_desc === "string") setNoticeHasAccessDesc(d.notice_has_access_desc);
     if (typeof d.notice_has_anti_retaliation === "string") setNoticeHasAntiRetaliation(d.notice_has_anti_retaliation);
@@ -1087,6 +1098,41 @@ export default function ADMTChecker() {
                     )}
                   </div>
 
+                  {/* ITEM 308 — published pre-use notice text, element by element.
+                      Without the actual words, § 7220(c) adequacy can only be asserted. */}
+                  <div className="border-l-4 border-brand-teal/60 pl-4 py-2 rounded-r bg-muted/30">
+                    <p className="text-[12px] font-semibold mb-1" data-rail-key="notice_element_text" onFocus={() => focus("notice_element_text")}>
+                      Paste your published Pre-use Notice, element by element
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Optional but strongly recommended: we assess each § 7220(c) element against the words you actually publish. Leave an element blank if your notice does not cover it.
+                    </p>
+                    <div className="space-y-3">
+                      {[
+                        ["purpose", "Specific purpose for using the ADMT"],
+                        ["optout", "Right to opt out, and how to submit the request"],
+                        ["access", "Right to access ADMT, and how to submit the request"],
+                        ["antiretaliation", "Prohibition on retaliation for exercising CCPA rights"],
+                        ["howworks_inputs", "How the ADMT processes personal information (inputs)"],
+                        ["howworks_output", "Type of output, and how it is used in the decision"],
+                        ["altprocess", "Alternative process for consumers who opt out"],
+                      ].map(([k, label]) => (
+                        <div key={k}>
+                          <Label className="text-[12px]">{label}</Label>
+                          <Textarea
+                            className="mt-1"
+                            rows={2}
+                            value={noticeElementText[k] || ""}
+                            onChange={(e) => setNET(k, e.target.value)}
+                            data-rail-key="notice_element_text"
+                            onFocus={() => focus("notice_element_text")}
+                            placeholder="Paste the exact wording from your published notice…"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <Label data-rail-key="notice_opt_out_description" onFocus={() => focus("notice_opt_out_description")}>
                       Does your notice describe the consumer's right to opt out and how to submit a request? <Req />
@@ -1225,6 +1271,9 @@ export default function ADMTChecker() {
                           <div><Label className="text-[12px]">Trained to interpret output?</Label><div className="mt-1"><Radio name="ap_trained" options={["Yes", "No"]} value={adv.appeal_trained || ""} onChange={(v) => setA("appeal_trained", v)} /></div></div>
                           <div><Label className="text-[12px]">Authority to overturn?</Label><div className="mt-1"><Radio name="ap_auth" options={["Yes", "No"]} value={adv.appeal_authority_overturn || ""} onChange={(v) => setA("appeal_authority_overturn", v)} /></div></div>
                         </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div><Label className="text-[12px]" data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")}>Steps from decision to human reviewer</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_step_count || ""} onChange={(e) => setA("appeal_step_count", e.target.value)} data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")} placeholder="e.g. 2 (submit form → reviewer decides)" /></div>
+                        </div>
                         <div>
                           <Label className="text-[12px]">What may the consumer submit on appeal? (select all)</Label>
                           <div className="mt-1"><Pills options={["Free-text statement", "Supporting documents", "Witness statements"]} value={adv.appeal_consumer_submit || []} onChange={(v) => setA("appeal_consumer_submit", v)} /></div>
@@ -1247,6 +1296,16 @@ export default function ADMTChecker() {
                       <p className="text-xs text-muted-foreground mb-3">
                         This exception only applies if the ADMT 'works for the business's purpose and does not unlawfully discriminate based upon protected characteristics' (§ 7221(b)(2)(B), (b)(3)(B)). You must have documented evidence.
                       </p>
+                      <div className="mb-4 space-y-3">
+                        <div>
+                          <Label className="text-[12px]" data-rail-key="sole_use_attestation" onFocus={() => focus("sole_use_attestation")}>Is the ADMT used solely to assess the person's ability to perform at work or in an educational program?</Label>
+                          <div className="mt-1"><Radio name="sole_use_attestation" options={SOLE_USE_ATTESTATION_OPTIONS} value={adv.sole_use_attestation || ""} onChange={(v) => setA("sole_use_attestation", v)} /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]" data-rail-key="nondiscrimination_testing" onFocus={() => focus("nondiscrimination_testing")}>Do you hold a non-discrimination testing record for this ADMT?</Label>
+                          <div className="mt-1"><Radio name="nondiscrimination_testing" options={NONDISCRIM_TESTING_OPTIONS} value={adv.nondiscrimination_testing || ""} onChange={(v) => setA("nondiscrimination_testing", v)} /></div>
+                        </div>
+                      </div>
                       <Label className="text-[12px]">Describe your fairness and non-discrimination testing <Req /></Label>
                       <AssistedInput
                         className="mt-2"
