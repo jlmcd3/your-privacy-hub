@@ -116,6 +116,17 @@ const INVENTORY_AUDIT = [
   "Inventory exists, no formal audit/approval",
   "No formal inventory", "Unsure",
 ] as const;
+// ITEM 313 — Art. 24(1) second sentence ("Those measures shall be reviewed and
+// updated where necessary") is unanswerable without a cadence and a date.
+const REVIEW_CADENCE = [
+  "Annually or more often",
+  "Every 1–2 years",
+  "Less often than every 2 years",
+  "On material change only",
+  "No defined cadence",
+  "Unsure",
+] as const;
+
 
 export const governanceContract: IntakeContract = {
   tool_type: "governance_assessment",
