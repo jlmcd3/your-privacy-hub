@@ -231,6 +231,14 @@ const GovernanceAssessment = () => {
     dpa_art28_verified: (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) ? dpaArt28Verified : "n/a",
     transfer_mechanism: (showStep5 && (transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries")) ? transferMechanism : "n/a",
     additional_context: additionalContext,
+    // ITEM 313 — Art. 24(1) review + risk-calibration factors.
+    measures_review_cadence: measuresReviewCadence,
+    measures_last_review_date: measuresLastReviewDate,
+    processing_nature: processingNature,
+    processing_scope: processingScope,
+    processing_context: processingContext,
+    processing_purposes: processingPurposes,
+
   });
 
   const handlePurchase = async () => {
