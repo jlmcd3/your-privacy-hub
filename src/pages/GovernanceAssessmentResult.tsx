@@ -205,7 +205,7 @@ const GovernanceAssessmentResult = () => {
           {status === "complete" && (
             <div className="space-y-6 font-serif-text">
               {/* Executive Summary */}
-              {(report?.overall_readiness_rating || report?.executive_summary) && (
+              {(report?.accountability_determination || report?.maturity_tier_readability_aid || report?.overall_readiness_rating || report?.executive_summary) && (
                 <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-3">Executive Summary</h2>
                   {(assessment?.organization_name || assessment?.intake_data?.organization_name) && (
@@ -213,16 +213,46 @@ const GovernanceAssessmentResult = () => {
                       This assessment evaluates the privacy programme of <span className="font-semibold">{assessment?.organization_name || assessment?.intake_data?.organization_name}</span>.
                     </p>
                   )}
-                  {report?.overall_readiness_rating && (
-                    <div className="mb-3">
-                      <span className={`inline-block px-3 py-1.5 rounded font-medium ${ratingColor(report.overall_readiness_rating)}`}>
+                  {/* ITEM 313 — the headline conclusion is the statutory
+                      accountability determination under Arts. 5(2)/24(1). */}
+                  {report?.accountability_determination && (
+                    <div className="mb-4 rounded border border-blue-300 dark:border-blue-800 bg-background/60 p-4">
+                      <p className="text-eyebrow font-mono uppercase tracking-wide text-muted-foreground mb-1">
+                        Accountability determination — {report.accountability_determination.citation}
+                      </p>
+                      <p className="text-sm font-semibold text-foreground mb-2">
+                        {String(report.accountability_determination.verdict || "").replace(/_/g, " ")}
+                      </p>
+                      {report.accountability_determination.reasoning && (
+                        <p className="text-sm text-foreground">{report.accountability_determination.reasoning}</p>
+                      )}
+                    </div>
+                  )}
+                  {report?.executive_summary && <p className="text-sm text-foreground">{report.executive_summary}</p>}
+                  {/* Demoted: non-statutory readability aid, never the conclusion. */}
+                  {report?.maturity_tier_readability_aid && (
+                    <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-900">
+                      <p className="text-eyebrow font-mono uppercase tracking-wide text-muted-foreground mb-1">
+                        {report.maturity_tier_readability_aid.label}
+                      </p>
+                      <span className={`inline-block px-2 py-1 rounded text-meta ${ratingColor(report.maturity_tier_readability_aid.tier)}`}>
+                        {report.maturity_tier_readability_aid.tier}
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-2">{report.maturity_tier_readability_aid.caveat}</p>
+                    </div>
+                  )}
+                  {/* Legacy reports generated before Item 313 still carry the tier at top level. */}
+                  {!report?.maturity_tier_readability_aid && report?.overall_readiness_rating && (
+                    <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-900">
+                      <p className="text-eyebrow font-mono uppercase tracking-wide text-muted-foreground mb-1">Non-statutory readability aid</p>
+                      <span className={`inline-block px-2 py-1 rounded text-meta ${ratingColor(report.overall_readiness_rating)}`}>
                         {report.overall_readiness_rating}
                       </span>
                     </div>
                   )}
-                  {report?.executive_summary && <p className="text-sm text-foreground">{report.executive_summary}</p>}
                 </section>
               )}
+
 
               {/* 10-Domain Overview grid */}
               {domainList.length > 0 && (
