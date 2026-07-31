@@ -88,4 +88,80 @@ export const DPIA_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "\"basis\"\\s*:\\s*\"(stated|inferred)\"", label: "row source.basis is stated|inferred" },
     ],
   },
+  // ITEM 310 — "Perfect Data" case. Supplies every field the Item 310 intake
+  // extension added (alternatives_considered, Art. 35(9) views status, DPO
+  // advice) with specific, non-generic content, so the four analytic
+  // deliverables run on the ANALYSED path rather than degrading. This is the
+  // measurability unblock for dpia (same role Item 309 played for cppa-admt).
+  {
+    id: "dpia-perfect-record",
+    tool: "dpia",
+    set: "tuning",
+    intake: {
+      ...base,
+      organization_name: "Helvetia Occupational Health AG",
+      processing_activity_name: "Occupational-health absence triage",
+      description:
+        "Triage of employee sickness-absence certificates by the occupational-health team to schedule return-to-work assessments and adjust duties.",
+      purpose:
+        "Schedule return-to-work assessments and set temporary duty adjustments for employees on certified sickness absence.",
+      data_categories: ["Health or medical data", "Employee records", "Contact details"],
+      data_subjects: "Employees of the controller who submit a sickness-absence certificate.",
+      volume_frequency: "1,400 employees; roughly 60 certificates per month.",
+      jurisdictions: ["EU (GDPR)"],
+      legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
+      article_9_condition:
+        "Preventive/occupational medicine, health or social care (Art. 9(2)(h))",
+      necessity_proportionality:
+        "The occupational-health team needs the certified diagnosis category to set duty adjustments; the processing is intrusive because it exposes an employee's health condition to a team inside their own employer, and employees cannot avoid it if they wish to be paid during absence. That impact on the data subjects is confined by holding the diagnosis category only within the occupational-health team and releasing only a fitness verdict to line management.",
+      data_minimisation_justification:
+        "Only the diagnosis category, certified dates and prescribed restrictions are recorded; free-text clinical notes are not transcribed into the HR system.",
+      retention_period: "18 months from the end of the absence, then deleted.",
+      existing_safeguards: [
+        "Encryption at rest",
+        "Encryption in transit",
+        "Access controls",
+        "Data minimisation",
+        "Pseudonymisation",
+        "Staff training",
+        "DPA signed with processor",
+        "Contractual restrictions",
+      ],
+      third_party_processors: ["Other: Occupational-health provider (Arbeitsmedizin Zürich AG)"],
+      reasons_to_conduct: [
+        "Large-scale special-category or criminal-offence data (Art. 35(3)(b))",
+        "Sensitive or highly personal data",
+      ],
+      alternatives_considered: [
+        {
+          processing_operation: "",
+          alternative: "Accept a fit-note carrying only start and end dates, with no diagnosis category",
+          rejection_reason:
+            "Without the diagnosis category the occupational-health physician cannot determine which duties are contraindicated, so the purpose of setting safe duty adjustments would not be achieved at all.",
+        },
+        {
+          processing_operation: "",
+          alternative: "Have the treating physician send duty restrictions directly to line management, bypassing occupational health",
+          rejection_reason:
+            "This does not reduce the intrusion, it widens it: line managers would receive clinical restrictions that presently stop at the occupational-health team, so the alternative would not achieve the purpose with less impact on the employee.",
+        },
+      ],
+      dpo_advice:
+        "The DPO advised that the diagnosis category must not be replicated into the HR case-management system and that access be limited to the two named occupational-health physicians; both points were implemented before this assessment was finalised.",
+      data_subjects_views_sought: "Yes — views sought",
+      data_subjects_views:
+        "The works council surveyed 120 employees in March; the principal concern raised was line-management visibility of diagnosis, which the access restriction described above addresses.",
+      controller_country: "DE",
+      controller_land: "Bavaria",
+      controller_sector: "private",
+      central_administration_country: "DE",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "Article\\s*9\\(2\\)\\(h\\)", flags: "i", label: "Art 9(2)(h) selected" },
+      { kind: "must_include", pattern: "necessity|proportionality", flags: "i", label: "necessity/proportionality" },
+      { kind: "must_include", pattern: "\"intake_field\"", label: "row source.intake_field present" },
+      { kind: "must_include", pattern: "\"basis\"\\s*:\\s*\"(stated|inferred)\"", label: "row source.basis is stated|inferred" },
+    ],
+  },
 ];
+
