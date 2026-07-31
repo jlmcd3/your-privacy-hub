@@ -299,6 +299,103 @@ export default function BiometricChecker() {
               )}
             </fieldset>
 
+            {showPractices && (
+              <fieldset data-rail-key="practices" onFocus={() => focusBioRail("practices")} onClick={() => focusBioRail("practices")} className="text-sm border border-border rounded-lg p-4 space-y-4">
+                <legend className="font-semibold text-brand-navy px-1">Your practices <span className="text-xs text-muted-foreground font-normal">(optional — each answer is measured against a specific subsection; anything left blank is reported as an open point rather than assumed)</span></legend>
+
+                <label className="block"><span className="font-semibold text-brand-navy">How is the biometric data generated?</span>
+                  <input type="text" className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                    placeholder="e.g., fingerprint sensor at the door reader; template stored locally"
+                    value={form.data_source_description}
+                    onChange={(e) => setForm(f => ({ ...f, data_source_description: e.target.value }))} /></label>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Tri label="Collected, used, or stored for health-care treatment, payment, or operations?" value={form.healthcare_tpo_context} onChange={(v) => setForm(f => ({ ...f, healthcare_tpo_context: v }))} />
+                  <Tri label="Is the organisation a State or local government body?" value={form.entity_is_government} onChange={(v) => setForm(f => ({ ...f, entity_is_government: v }))} />
+                  <Tri label="Is it a financial institution under Gramm-Leach-Bliley?" value={form.glba_financial_institution} onChange={(v) => setForm(f => ({ ...f, glba_financial_institution: v }))} />
+                  <Tri label="Are biometric identifiers sold, leased, traded, or otherwise turned to profit?" value={form.sells_or_profits} onChange={(v) => setForm(f => ({ ...f, sells_or_profits: v }))} />
+                </div>
+
+                <label className="block"><span className="font-semibold text-brand-navy">Notice before collection</span>
+                  <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.notice_before_collection}
+                    onChange={e => setForm(f => ({ ...f, notice_before_collection: e.target.value }))}>
+                    <option value="">Not supplied</option>
+                    {BIO_NOTICE.map(o => <option key={o}>{o}</option>)}</select></label>
+
+                <label className="block"><span className="font-semibold text-brand-navy">Consent or release artifact</span>
+                  <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.consent_artifact_type}
+                    onChange={e => setForm(f => ({ ...f, consent_artifact_type: e.target.value }))}>
+                    <option value="">Not supplied</option>
+                    {BIO_CONSENT_ARTIFACT.map(o => <option key={o}>{o}</option>)}</select></label>
+
+                <label className="block"><span className="font-semibold text-brand-navy">Describe the release instrument</span>
+                  <textarea className="mt-1 w-full rounded border px-3 py-2 text-sm" rows={2}
+                    placeholder="e.g., one-page biometric consent form signed at induction, naming purpose and retention period"
+                    value={form.release_artifact_description}
+                    onChange={(e) => setForm(f => ({ ...f, release_artifact_description: e.target.value }))} /></label>
+
+                <label className="block"><span className="font-semibold text-brand-navy">Retention schedule (as written)</span>
+                  <textarea className="mt-1 w-full rounded border px-3 py-2 text-sm" rows={2}
+                    placeholder="e.g., templates destroyed on the earlier of purpose satisfaction or 3 years from last interaction"
+                    value={form.retention_schedule_text}
+                    onChange={(e) => setForm(f => ({ ...f, retention_schedule_text: e.target.value }))} /></label>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Tri label="Is that policy made available to the public?" value={form.retention_policy_public} onChange={(v) => setForm(f => ({ ...f, retention_policy_public: v }))} />
+                  <Tri label="Are biometrics protected at least as well as your other confidential information?" value={form.protection_parity} onChange={(v) => setForm(f => ({ ...f, protection_parity: v }))} />
+                </div>
+
+                <label className="block"><span className="font-semibold text-brand-navy">Destruction trigger</span>
+                  <input type="text" className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                    placeholder="e.g., automated deletion 30 days after the employment record closes"
+                    value={form.destruction_trigger}
+                    onChange={(e) => setForm(f => ({ ...f, destruction_trigger: e.target.value }))} /></label>
+
+                <label className="block"><span className="font-semibold text-brand-navy">Storage and transmission controls</span>
+                  <input type="text" className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                    placeholder="e.g., templates encrypted at rest, access restricted to two named administrators"
+                    value={form.security_measures_description}
+                    onChange={(e) => setForm(f => ({ ...f, security_measures_description: e.target.value }))} /></label>
+
+                <label className="block"><span className="font-semibold text-brand-navy">Disclosure recipients</span>
+                  <input type="text" className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                    placeholder="e.g., the access-control vendor that hosts the matching database"
+                    value={form.disclosure_recipients}
+                    onChange={(e) => setForm(f => ({ ...f, disclosure_recipients: e.target.value }))} /></label>
+
+                <fieldset><legend className="font-semibold text-brand-navy">On what basis is biometric data disclosed?</legend>
+                  <div className="grid grid-cols-1 gap-1 mt-1">{BIO_DISCLOSURE_BASES.map(b => (
+                    <label key={b} className="flex items-center gap-2 text-meta">
+                      <input type="checkbox" checked={form.disclosure_bases.includes(b)} onChange={() => toggle("disclosure_bases", b)} />{b}</label>
+                  ))}</div></fieldset>
+
+                {showTexas && (
+                  <div className="border-t border-border pt-3 space-y-3">
+                    <p className="font-semibold text-brand-navy">Texas — the one-year destruction clock</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Tri label="Destroyed within one year of the collection purpose expiring?" value={form.tx_destruction_within_one_year} onChange={(v) => setForm(f => ({ ...f, tx_destruction_within_one_year: v }))} />
+                      <Tri label="Does another law require the associated document to be kept longer?" value={form.tx_longer_retention_required_by_law} onChange={(v) => setForm(f => ({ ...f, tx_longer_retention_required_by_law: v }))} />
+                      <Tri label="Collected for security purposes by an employer?" value={form.tx_employer_security_collection} onChange={(v) => setForm(f => ({ ...f, tx_employer_security_collection: v }))} />
+                      <Tri label="Used in developing, training, or evaluating an AI model or system?" value={form.tx_ai_training_use} onChange={(v) => setForm(f => ({ ...f, tx_ai_training_use: v }))} />
+                    </div>
+                  </div>
+                )}
+
+                {showWashington && (
+                  <div className="border-t border-border pt-3 space-y-3">
+                    <p className="font-semibold text-brand-navy">Washington — the enrollment predicate</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Tri label="Are identifiers converted to reference templates and stored in a matching database?" value={form.wa_enrolls_in_database} onChange={(v) => setForm(f => ({ ...f, wa_enrolls_in_database: v }))} />
+                      <Tri label="Is that done for a commercial purpose (sale or disclosure for unrelated marketing)?" value={form.wa_commercial_purpose} onChange={(v) => setForm(f => ({ ...f, wa_commercial_purpose: v }))} />
+                      <Tri label="Is enrollment solely in furtherance of a security purpose?" value={form.wa_security_purpose_only} onChange={(v) => setForm(f => ({ ...f, wa_security_purpose_only: v }))} />
+                    </div>
+                  </div>
+                )}
+              </fieldset>
+            )}
+
+
+
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
