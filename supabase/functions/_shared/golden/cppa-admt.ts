@@ -132,4 +132,154 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       { kind: "must_not_include", pattern: "\"remediation\"", flags: "", label: "no remediation field in COMPACT mode" },
     ],
   },
+  // ─────────────────────────────────────────────────────────────────────
+  // ITEM 309 — "Perfect Data" fixture. Supplies EVERY field Item 308 added
+  // to the contract (notice_element_text.*, admt_detail.appeal_step_count,
+  // admt_detail.sole_use_attestation, admt_detail.nondiscrimination_testing)
+  // so a quality-batch run on cppa-admt exercises the ANALYSED path of the
+  // three deliverables rather than the record_insufficient path.
+  //
+  // Notice text is deliberately SPECIFIC: each element names the concrete
+  // system, the concrete inputs/output, and the concrete route. None of the
+  // GENERIC_TEXT_PATTERNS in ltp/admt-deliverables/build.ts ("business
+  // purposes", "improve our service", "as described in our privacy policy",
+  // "various purposes", "among other things", "operational purposes") appear
+  // — tripping that screen would defeat the point of a Perfect fixture.
+  //
+  // Exception claimed: § 7221(b)(2) hiring/admission. Both (b)(2) conditions
+  // carry evidence, and the (b)(1) appeal operands are supplied too and are
+  // mutually consistent: a named reviewer role, trained = Yes, authority to
+  // overturn = Yes, and a step count that matches the narrated appeal flow.
+  {
+    id: "admt-hr-perfect-record",
+    tool: "cppa-admt",
+    set: "tuning",
+    intake: {
+      organization_name: "Cascadia Health Systems, Inc.",
+      system_name: "NurseMatch v4",
+      system_type: "ML classifier",
+      system_description:
+        "NurseMatch v4 scores registered-nurse applications for inpatient staff-nurse openings. It reads the licence record, years of acute-care experience, unit-specific competency checklist scores, and shift-availability, and returns a rubric band (A–D) plus a rank within the requisition. Recruiters see the band and rank alongside the full application before advancing or rejecting.",
+      decision_domains: ["Hiring or admission decisions"],
+      human_review:
+        "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
+      training_data_use: "Yes",
+      profiling_use: "Yes",
+      admt_system_count: "1",
+      third_party_admt: "No",
+      ca_consumer_count: "42000",
+
+      notice_delivery: ["Separate standalone Pre-use Notice"],
+      notice_has_specific_purpose: "Yes",
+      notice_purpose_text:
+        "We use NurseMatch v4 to rank registered-nurse applicants for a specific inpatient staff-nurse requisition against that unit's competency rubric.",
+      notice_has_opt_out_desc: "Yes — with specific opt-out instructions",
+      notice_has_access_desc: "Yes",
+      notice_has_anti_retaliation: "Yes",
+      notice_has_how_it_works: "Yes — included inline in the notice",
+      notice_has_alternative_process: "Yes",
+
+      // ITEM 308 (a) — published pre-use notice text, transcribed element by
+      // element from the standalone notice served at application start.
+      notice_element_text: {
+        purpose:
+          "Cascadia Health Systems uses NurseMatch v4 to rank your registered-nurse application against the competency rubric for the specific inpatient unit you applied to, and to place you in rubric band A, B, C or D for that requisition. We use it for no other decision about you.",
+        optout:
+          "You may tell us not to run NurseMatch v4 on your application. Select \"Do not use automated screening\" on the application review page, call 1-800-555-0142 (option 3), or email admt-optout@cascadiahealth.example with your requisition number. We stop the automated screening within 15 business days of the request and route your application to manual review.",
+        access:
+          "You may ask us what NurseMatch v4 did with your application. Submit the request at cascadiahealth.example/privacy/admt-access or by calling 1-800-555-0142 (option 4). We will tell you the rubric band we assigned, the inputs we used, the rank recorded for your requisition, and how that output was used in the hiring decision, within 45 calendar days.",
+        antiretaliation:
+          "Cascadia Health Systems will not deny your application, withdraw an offer, delay your requisition, downgrade your rubric band, or treat you less favourably in any way because you opted out of NurseMatch v4, asked us for access to its output, or exercised any other CCPA right.",
+        howworks_inputs:
+          "NurseMatch v4 reads four inputs from your application: your California RN licence status and expiry from the licence field, the number of months of acute-care experience you listed, your self-reported scores on the unit competency checklist, and the shift availability you selected. It does not read your name, address, photograph, date of birth, or any free-text personal statement.",
+        howworks_output:
+          "NurseMatch v4 outputs a rubric band (A, B, C or D) and a numeric rank within the requisition. The band reflects how closely your listed experience and checklist scores match the unit rubric; the rank orders candidates within a band by acute-care months. A recruiter reads the band and rank next to your full application and decides whether to advance or reject; the band alone never rejects an application.",
+        altprocess:
+          "If you opt out, a Cascadia nurse recruiter reviews your full application against the same unit competency rubric by hand, within the same requisition timeline, and records the rubric band manually. Opting out does not remove you from consideration for the requisition.",
+      },
+
+      opt_out_exception:
+        "Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination",
+      opt_out_methods: [
+        "Interactive online form linked from the Pre-use Notice",
+        "Toll-free phone number",
+        "Designated email address",
+      ],
+      opt_out_link_title: "Do not use automated screening",
+      opt_out_no_cookie_banner:
+        "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
+      opt_out_no_account_required: "Confirmed — no account required",
+      opt_out_confirmation_mechanism:
+        "Emailed confirmation with a ticket number within one business day, and a status page at cascadiahealth.example/privacy/admt-status.",
+      opt_out_appeal_process:
+        "An applicant who receives an adverse screening outcome requests human review from the decision email (step 1); the request routes to a senior nurse recruiter who took no part in the original screen (step 2); that recruiter re-reviews the full application against the unit rubric and records a written outcome that either affirms or overturns the band and the reject decision (step 3). The three steps complete within 15 business days.",
+      opt_out_15_day_process:
+        "Opt-out and appeal requests are worked from a single queue with a 15-business-day service level; the queue owner (Talent Operations Manager) reports breaches weekly to the Privacy Officer.",
+      opt_out_fairness_doc:
+        "Adverse-impact testing of NurseMatch v4 band assignments was performed on 2026-03-18 by the People Analytics team with outside counsel oversight, covering race, sex, age (40+), and disability status, using the four-fifths selection-rate rule plus a two-proportion z-test at p<0.05 on 18 months of requisition data (11,204 applications). No selection-rate ratio fell below 0.92. The report and the underlying tables are retained as CHS-AIA-2026-03.",
+
+      access_submission_methods:
+        "Online request form at cascadiahealth.example/privacy/admt-access; toll-free 1-800-555-0142 (option 4).",
+      access_verification_process:
+        "Match the requisition number plus the applicant email of record, then a one-time code to that email.",
+      access_logic_disclosure:
+        "We disclose the four inputs read, the rubric band returned, the rank within the requisition, and the fact that a recruiter weighed the band alongside the full application. Rubric weights are withheld as a trade secret.",
+      access_outcome_disclosure:
+        "We disclose the band assigned, the rank recorded, the hiring decision made, and the appeal route, in the access response.",
+      access_response_timeline: "Within 45 calendar days (standard)",
+      access_trade_secret_policy:
+        "Rubric weightings are withheld under Civil Code § 3426.1(d); everything else in the logic disclosure is released.",
+
+      affected_population_band: "10,001 – 100,000",
+      role_roster: [
+        "Executive sponsor",
+        "Privacy officer / DPO",
+        "Legal counsel",
+        "Product owner",
+        "Data scientist / ML engineer",
+        "Human reviewer",
+        "Consumer-request handler",
+      ],
+
+      admt_detail: {
+        vendor_status: "Service provider",
+        vendor_docs: ["Model card / datasheet", "Validation report", "Bias-testing report"],
+        vendor_makes_available: "Yes",
+        v_audit: "Yes",
+        v_assist: "Yes",
+        v_optout: "Yes",
+        v_appeal: "Yes",
+        v_incident: "Yes",
+        hosting: "Hosted by the vendor",
+        model_types: ["ML classifier"],
+        decision_effects: ["Ranking", "Eligibility"],
+        decision_cadence: "Repeated",
+        sole_factor: "Material factor — heavily weighted alongside others",
+        feeds_future_decisions: "No",
+        solely_advertising: "No",
+        // ITEM 308 (b) — § 7221(b)(1) condition evidence. Consistent with
+        // opt_out_appeal_process above: three steps, senior nurse recruiter,
+        // trained, holds overturn authority.
+        appeal_reviewer_role:
+          "Senior nurse recruiter (RN, Talent Acquisition) who took no part in the original screen",
+        appeal_trained: "Yes",
+        appeal_authority_overturn: "Yes",
+        appeal_step_count: "3",
+        // ITEM 308 (c) — § 7221(b)(2) condition evidence.
+        sole_use_attestation: "Yes — solely to assess ability to perform",
+        nondiscrimination_testing: "Yes — documented testing record",
+      },
+    },
+    assertions: [
+      { kind: "must_include", pattern: "7221", flags: "i", label: "§7221 anchored" },
+      { kind: "must_include", pattern: "\"determination_basis\"\\s*:\\s*\"established\"", flags: "", label: "determination_basis=established" },
+      // ITEM 309 — the Perfect record must drive the deliverables off the
+      // record_insufficient path.
+      { kind: "must_include", pattern: "\"notice_element_findings\"", flags: "", label: "deliverable 1 present" },
+      { kind: "must_include", pattern: "\"exception_qualification\"", flags: "", label: "deliverable 2 present" },
+      { kind: "must_include", pattern: "\"determination\"", flags: "", label: "deliverable 3 present" },
+      { kind: "must_not_include", pattern: "record_insufficient", flags: "", label: "no insufficient-record notice element on a complete record" },
+    ],
+  },
 ];
+

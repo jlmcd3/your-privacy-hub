@@ -218,3 +218,95 @@ describe("cppa-admt deliverables — determination separation", () => {
     expect(built.determination.exposure).toBeTruthy();
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// ITEM 309 — FIXTURE GUARD.
+//
+// Mirrors Item 306's cppa-risk guard: the check is TRACED, not asserted.
+// run-quality-batch/index.ts validates every pinned intake with
+// validateIntake(CONTRACT_BY_TOOL[tool], intake) at run start and aborts the
+// run on any violation. The guard below calls that SAME function with that
+// SAME contract object over every CPPA_ADMT_GOLDEN[].intake — i.e. the exact
+// predicate the batch evaluates, not a proxy for it.
+//
+// It additionally pins that the Item 309 "Perfect Data" case supplies every
+// field Item 308 added, and that its notice text clears the § 7220(c)(1)
+// generic-language screen (otherwise the fixture would measure the degraded
+// path it exists to avoid).
+import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
+import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+
+describe("ITEM 309 — cppa-admt golden fixtures clear the batch's own validator", () => {
+  it("every CPPA_ADMT_GOLDEN intake validates against cppaAdmtContract", () => {
+    for (const fx of CPPA_ADMT_GOLDEN) {
+      const res = validateIntake(
+        cppaAdmtContract,
+        (fx.intake ?? {}) as Record<string, unknown>,
+      );
+      expect(
+        res.violations.map((v) => `${v.key}: ${v.reason}`).join("; ") || "ok",
+      ).toBe("ok");
+      expect(res.ok, fx.id).toBe(true);
+    }
+  });
+
+  const perfect = CPPA_ADMT_GOLDEN.find((f) => f.id === "admt-hr-perfect-record");
+
+  it("the Perfect fixture exists and carries every Item 308 intake addition", () => {
+    expect(perfect, "admt-hr-perfect-record missing").toBeTruthy();
+    const i = perfect!.intake as Record<string, any>;
+    for (const k of [
+      "purpose",
+      "optout",
+      "access",
+      "antiretaliation",
+      "howworks_inputs",
+      "howworks_output",
+      "altprocess",
+    ]) {
+      expect(String(i.notice_element_text?.[k] ?? "").length, `notice_element_text.${k}`)
+        .toBeGreaterThan(40);
+    }
+    expect(i.admt_detail.appeal_step_count).toBe("3");
+    expect(i.admt_detail.appeal_reviewer_role).toBeTruthy();
+    expect(i.admt_detail.appeal_trained).toBe("Yes");
+    expect(i.admt_detail.appeal_authority_overturn).toBe("Yes");
+    expect(i.admt_detail.sole_use_attestation).toBe("Yes — solely to assess ability to perform");
+    expect(i.admt_detail.nondiscrimination_testing).toBe("Yes — documented testing record");
+  });
+
+  it("the Perfect fixture's notice text clears the generic-language screen", () => {
+    const i = perfect!.intake as Record<string, any>;
+    const patterns: RegExp[] = [
+      /\bbusiness purposes?\b/i,
+      /\bimprov(e|ing) (our |the )?(service|services|experience|product|products)\b/i,
+      /\bas (further )?described in (our|the) privacy policy\b/i,
+      /\bvarious purposes\b/i,
+      /\bamong other things\b/i,
+      /\boperational purposes\b/i,
+    ];
+    for (const [k, v] of Object.entries(i.notice_element_text as Record<string, string>)) {
+      for (const re of patterns) {
+        expect(re.test(v), `notice_element_text.${k} trips ${re}`).toBe(false);
+      }
+    }
+  });
+
+  it("the Perfect fixture drives all five notice elements off the insufficient-record path", () => {
+    const built = buildAdmtDeliverables(perfect!.intake as Record<string, unknown>, undefined);
+    expect(built.notice_element_findings.length).toBe(5);
+    for (const f of built.notice_element_findings) {
+      expect(f.status, f.element_id).not.toBe("record_insufficient");
+      expect(f.verdict, f.element_id).not.toBe("insufficient_record");
+    }
+    // § 7221(b)(2) is the claimed exception; both conditions carry evidence.
+    const q = built.exception_qualification;
+    expect(q.length).toBeGreaterThan(0);
+    for (const e of q) {
+      for (const c of e.conditions) {
+        expect(c.verdict, c.condition_id).not.toBe("insufficient_record");
+      }
+    }
+  });
+});
