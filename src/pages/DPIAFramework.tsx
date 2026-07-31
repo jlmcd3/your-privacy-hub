@@ -357,7 +357,7 @@ const DPIAFramework = () => {
     supportingAssets, codesOfConduct, dataMinimisationJustification, dataQualityMeasures,
     dataSubjectRightsMechanisms, dpByDesignMeasures, dpoAdvice, dataSubjectsViewsSought,
     dataSubjectsViews, controllerCountry, controllerLand, controllerSector, centralAdminCountry,
-    euDecisionEstablishment, transferFlows, retentionRecordType,
+    euDecisionEstablishment, transferFlows, retentionRecordType, alternativesConsidered,
   ]);
   const initialDraftJson = useMemo(() => JSON.stringify(draftData), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== initialDraftJson, [draftData, initialDraftJson]);
@@ -412,6 +412,7 @@ const DPIAFramework = () => {
     S(d.dpo_advice, setDpoAdvice);
     S(d.data_subjects_views_sought, setDataSubjectsViewsSought);
     S(d.data_subjects_views, setDataSubjectsViews);
+    A(d.alternatives_considered, setAlternativesConsidered);
     S(d.controller_country, setControllerCountry);
     S(d.controller_land, setControllerLand);
     if (["private","public","federal-public","telecom","postal",""].includes(d.controller_sector)) setControllerSector(d.controller_sector);
