@@ -710,6 +710,60 @@ const DPIAFramework = () => {
             <IntakeGuidance className="mt-2">Take each alternative you considered in turn and say plainly why it was rejected. Listing them separately lets the assessment weigh each one — a single general statement can't be.</IntakeGuidance>
           </div>
 
+          {/* ITEM 310 — alternatives actually considered, per processing operation.
+              Feeds the deterministic least-intrusive-means test (Art. 35(7)(b)). */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>Alternatives considered and rejected <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
+              <button
+                type="button"
+                onClick={() => setAlternativesConsidered([...alternativesConsidered, { processing_operation: "", alternative: "", rejection_reason: "" }])}
+                className="text-xs underline text-brand-teal-text"
+              >+ Add alternative</button>
+            </div>
+            {alternativesConsidered.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">None recorded. Without at least one alternative and the reason it was rejected, the assessment cannot run the least-intrusive-means comparison and will record the point as open.</p>
+            )}
+            {alternativesConsidered.map((a, i) => (
+              <div key={i} className="grid md:grid-cols-3 gap-2 mt-2 p-3 rounded-md border bg-muted/20">
+                <div>
+                  <Label className="text-xs">Processing operation</Label>
+                  <Input
+                    value={a.processing_operation}
+                    onChange={(e) => { const n = [...alternativesConsidered]; n[i].processing_operation = e.target.value; setAlternativesConsidered(n); }}
+                    placeholder="Leave blank for the primary activity"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Alternative considered</Label>
+                  <Input
+                    value={a.alternative}
+                    onChange={(e) => { const n = [...alternativesConsidered]; n[i].alternative = e.target.value; setAlternativesConsidered(n); }}
+                    placeholder="e.g. aggregated data only"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Why it was rejected</Label>
+                  <Input
+                    value={a.rejection_reason}
+                    onChange={(e) => { const n = [...alternativesConsidered]; n[i].rejection_reason = e.target.value; setAlternativesConsidered(n); }}
+                    placeholder="Why it would not achieve the purpose"
+                    className="mt-1"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAlternativesConsidered(alternativesConsidered.filter((_, j) => j !== i))}
+                  className="text-xs text-red-600 underline md:col-span-3 text-right"
+                >remove</button>
+              </div>
+            ))}
+            <IntakeGuidance className="mt-2">A rejection reason that says the alternative was less useful, slower or more expensive does not establish necessity — say why it would not achieve the purpose.</IntakeGuidance>
+          </div>
+
+
           {/* Optional EDPB-aligned depth — collapsed by default, feeds the generator when filled */}
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
             <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Fuller description detail (EDPB-aligned)</summary>
