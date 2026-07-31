@@ -94,7 +94,14 @@ export default function IRPlaybook() {
     cause: CAUSES[0], dataTypes: [] as string[], affectedCount: COUNTS[2],
     jurisdictions: [] as string[], processorInvolved: false, processorName: "",
     contained: "Unknown", organisationType: "Company",
+    // ITEM 312 — Art. 33(3)(a) / Art. 34(3)(a) / Op. 1 awareness inputs.
+    encryptionStatus: "Unknown",
+    encryptionKeyStatus: "Unknown",
+    affectedRecordCount: "",
+    affectedDataSubjectCount: "",
+    awarenessConfirmed: "Assumed — detection timestamp treated as awareness pending confirmation",
   });
+
   const [result, setResult] = useState("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
