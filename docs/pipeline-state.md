@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-07-31T10:09Z (Item 308 — cppa-admt Chapter 3 product rebuild: three analytic deliverables (`notice_element_findings[]`, `exception_qualification[]`, two-part `determination`) landed as a new `_shared/ltp/admt-deliverables/` module reusing the existing verified-authority registry verbatim; SEPARATION GUARD mechanically relocates penalty/enforcement language out of the lawfulness finding; intake extended with the published pre-use notice text element by element plus § 7221(b) condition evidence; Task 0 replaced the false single-`verified_on` registry invariant with per-row ISO validation; new pin test 12/12, ADMT suite 28/28, typecheck clean; NO deploy, NO harness invocation.)
+**Last updated:** 2026-07-31T10:22Z (Item 309 — cppa-admt fixture unblock: fifth "Perfect Data" golden case `admt-hr-perfect-record` supplying every Item 308 intake addition, plus a fixture guard running the quality batch's own `validateIntake` + `cppaAdmtContract` over all five cases; ANALYSED path pinned off the `record_insufficient` fallback; 16/16 tests, typecheck clean; NO deploy, NO harness invocation, NO ingestion.)
 
 ---
 
@@ -7354,3 +7354,18 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 
 **Disposition:** COMPLETE — awaiting controller verification. Not deployed.
 
+## Item 309 — CLOSE-OUT: cppa-admt GOLDEN-FIXTURE UNBLOCK (2026-07-31T10:22Z)
+
+**Authority:** CEO directive 2026-07-31 (overnight autonomous-continuation instruction), controller dispatch ITEM 309. Mirrors Item 306's role for cppa-risk. **NO other engine changes, NO deploy, NO harness invocation, NO ingestion.** Courier: `docs/courier/ITEM309-CPPA-ADMT-FIXTURE-UNBLOCK-2026-07-31.md`.
+
+**THE BLOCK.** Item 308 extended the cppa-admt contract with the published pre-use notice text element by element and the § 7221(b) condition evidence. No fixture carried any of it, so all four `CPPA_ADMT_GOLDEN` cases would have scored the degraded path — `record_insufficient` notice elements, `insufficient_record` exception conditions. A benchmark would have measured the fallback scaffold, not the analysis.
+
+**A FIFTH CASE, NOT A RETROFIT.** `admt-hr-perfect-record` added to `supabase/functions/_shared/golden/cppa-admt.ts`. cppa-admt has no shared `base` object (unlike cppa-risk, where Item 306 could extend one) — its four cases are independent literals holding deliberately different postures, and retrofitting a complete record onto the adversarial case would destroy the posture it exists to test. The new case adds the ANALYSED path; the four degraded/adversarial paths remain intact coverage.
+
+**PERFECT DATA STANDARD, ENFORCED RATHER THAN CLAIMED.** All seven `notice_element_text` elements and all six `admt_detail` operands populated. Each notice element names the concrete system, inputs, output and route, and **clears all six `GENERIC_TEXT_PATTERNS`** in `ltp/admt-deliverables/build.ts` — asserted pattern by pattern, because tripping the § 7220(c)(1) screen would defeat the fixture's purpose. Structured fields agree with the prose: `appeal_step_count: "3"` matches the three steps narrated in `opt_out_appeal_process`, and the reviewer role is the same reviewer in both. A fixture whose structured fields contradict its narrative teaches the grader the wrong lesson.
+
+**GUARD IS TRACED, NOT ASSERTED.** `run-quality-batch/index.ts` validates every pinned intake at run start (L1886–1910) and aborts on any violation. The new block in `src/registry/__tests__/admt-deliverables.test.ts` calls that same `validateIntake` with that same `cppaAdmtContract` over all five cases and asserts zero violations — the exact predicate the batch evaluates, not a proxy. Plus: every Item 308 field present, the generic screen cleared, and `buildAdmtDeliverables` emitting five notice findings with zero `record_insufficient` and zero `insufficient_record`. **16/16 passing, typecheck clean.**
+
+**HONEST LIMIT.** This restores *measurability*, not a *measurement* — no benchmark was run (harness invocation is forbidden by the dispatch), so the ANALYSED path's quality remains unscored. The § 7222 access-response adequacy surface from Item 307 §6 stays OPEN and UNSCHEDULED.
+
+**Disposition:** COMPLETE — awaiting controller verification. Not deployed. Next per dispatch: Chapter 6 (dpia) rebuild.
