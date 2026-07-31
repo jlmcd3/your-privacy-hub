@@ -91,7 +91,7 @@ export function scrubAuthoredAggregates(
   // Fallback: neutralize any surviving loose mean/average token.
   out = out.replace(LOOSE_SCORE_RE, () => {
     replaced++;
-    if (emitted) return "";
+    if (emitted) return "figure stated above";
     emitted = true;
     return agg.canonical_sentence.replace(/\.$/, "");
   });
