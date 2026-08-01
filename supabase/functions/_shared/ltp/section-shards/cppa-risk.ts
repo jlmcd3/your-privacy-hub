@@ -373,15 +373,17 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   },
   {
     key: "risk_register",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "risk-register-projection" },
-    project: (plan) => plan.factor_table.filter((r) => r.kind === "negative_impact"),
-    note: "Deterministic projection over negative-polarity factor rows.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@risk_register" },
+    // ITEM 354 — customer-shaped entries; factor rows stay in _meta.internal.
+    project: projectRiskRegister,
+    note: "Customer-shaped projection over negative-polarity factor rows (title/description/citation/status).",
   },
   {
     key: "top_risks",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "top-risks-ranking" },
-    project: (plan) => plan.factor_table,
-    note: "Deterministic rank over factor_table; no template composition.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@top_risks" },
+    // ITEM 354 — customer-shaped entries; documented impacts rank first.
+    project: projectTopRisks,
+    note: "Deterministic customer-shaped rank over negative-impact rows; no template composition.",
   },
   {
     key: "priority_actions",
