@@ -118,8 +118,8 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       placeholders: [
         { token: "ENTITY", kind: "text", source: "entity_name", required: true },
         { token: "COUNT", kind: "count", source: "q2_consumers", required: true },
-        { token: "VENDORS", kind: "list", source: "vendors", required: true },
-        { token: "SAFEGUARDS", kind: "list", source: "safeguards", required: true },
+        { token: "VENDORS", kind: "list", source: "i6_vendors", required: true },
+        { token: "SAFEGUARDS", kind: "list", source: "impact_intake.safeguards", required: true },
       ],
       provenance: {
         sample_report_id: "a7689621-63e6-42ad-90cc-7760e892eb6d",

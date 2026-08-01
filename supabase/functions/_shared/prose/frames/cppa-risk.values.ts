@@ -119,7 +119,10 @@ export function buildCppaRiskFrameValues(input: {
     sources: s(intake.i4b_sources) || NOT_STATED,
     retention_period: s(intake.i2_retention_period) || NOT_STATED,
     vendors: splitList(intake.i6_vendors),
-    safeguards: analytics.safeguard_map.map((g) => g.safeguard),
+    // record_echo is the CEO-approved frame and keeps its original source
+    // paths byte-identical, so its two values are supplied under those names.
+    i6_vendors: splitList(intake.i6_vendors),
+    "impact_intake.safeguards": analytics.safeguard_map.map((g) => g.safeguard),
     q2_consumers: s(intake.q2_consumers) || NOT_STATED,
     secondary_use_status: s(intake.has_secondary_uses) || NOT_STATED,
 

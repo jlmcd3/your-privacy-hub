@@ -70,15 +70,22 @@ Deno.test("F7 — nothing renders until the set is approved", () => {
   assertEquals(r.rendered, null);
 });
 
+// ITEM 346 — F8/F9/F10 re-pointed at the REVISED frames (the Item 338 slot
+// paths they used were retired with the set the CEO rejected). record_echo is
+// unchanged and still exercised by F11 on its original source paths.
+const narrative = () =>
+  CPPA_RISK_FRAMES.frames.find((f) => f.section === "processing_narrative")!;
+
 Deno.test("F8 — realizer quotes free text verbatim and joins lists naturally", () => {
-  const frame = CPPA_RISK_FRAMES.frames[0];
-  const r = renderFrame(frame, {
+  const r = renderFrame(narrative(), {
     values: {
       entity_name: "Syntara Corp.",
-      subject_anchor: "automated risk scoring of California customers",
-      i1_categories: ["contact identifiers", "device identifiers", "transaction history"],
-      i4b_sources: "directly from the consumer at signup",
-      i2_retention_period: "24 months",
+      activity_name: "automated risk scoring of California customers",
+      activity_purpose: "scoring accounts for fraud review",
+      data_categories: ["contact identifiers", "device identifiers", "transaction history"],
+      sources: "directly from the consumer at signup",
+      retention_period: "24 months",
+      vendors: ["AWS", "Snowflake"],
     },
     resolveCite: () => null,
   });
@@ -88,21 +95,27 @@ Deno.test("F8 — realizer quotes free text verbatim and joins lists naturally",
 });
 
 Deno.test("F9 — FILL-OR-OMIT: a silent required placeholder degrades, never half-fills", () => {
-  const frame = CPPA_RISK_FRAMES.frames[0];
-  const r = renderFrame(frame, { values: { entity_name: "Syntara Corp." } });
+  const r = renderFrame(narrative(), { values: { entity_name: "Syntara Corp." } });
   assertEquals(r.rendered, null);
   assertEquals(r.omitted, true);
-  assert(r.missing_required.includes("i2_retention_period"));
+  assert(r.missing_required.includes("retention_period"));
 });
 
-Deno.test("F10 — CITE slots fill only from the registry resolver", () => {
-  const frame = CPPA_RISK_FRAMES.frames[2];
-  const r = renderFrame(frame, {
-    values: { subject_anchor: "risk scoring", i6_vendors: ["AWS", "Snowflake"] },
-    resolveCite: (k) => (k === "scope_of_assessment" ? "Cal. Code Regs. tit. 11, § 7150(b)." : null),
+Deno.test("F10 — CITE slots fill only from the caller's registry resolver", () => {
+  const r = renderFrame(narrative(), {
+    values: {
+      entity_name: "Syntara Corp.",
+      activity_name: "risk scoring",
+      activity_purpose: "scoring accounts for fraud review",
+      data_categories: ["contact identifiers"],
+      sources: "directly from the consumer at signup",
+      retention_period: "24 months",
+      vendors: ["AWS", "Snowflake"],
+    },
+    resolveCite: (k) => (k === "ra_content_purpose" ? "Cal. Code Regs. tit. 11, § 7152(a)(1)." : null),
   });
-  assert(r.rendered?.includes("§ 7150(b)"));
-  assertEquals([...r.cites_filled], ["scope_of_assessment"]);
+  assert(r.rendered?.includes("§ 7152(a)(1)"));
+  assertEquals([...r.cites_filled], ["ra_content_purpose"]);
 });
 
 Deno.test("F11 — an approved set renders; frame provenance is retained", () => {
