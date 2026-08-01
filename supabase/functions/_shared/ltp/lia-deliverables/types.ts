@@ -156,4 +156,50 @@ export interface LiaDeliverables {
   readonly child_factor: ChildFactorFinding;
   readonly public_authority_exclusion: PublicAuthorityFinding;
   readonly lia_determination: LiaDetermination;
+  readonly automated_decision_analysis: AutomatedDecisionFinding;
+}
+
+// ── 5. Automated-decision analysis (ITEM 326) ────────────────────────
+/**
+ * Which Article-22-family regime the RECORDED jurisdictions engage.
+ * "dual" = both EU and UK are recorded; the two defaults differ and both
+ * are stated. "not_engaged" = neither EU nor UK is recorded.
+ */
+export type AdmRegime = "eu" | "uk" | "dual" | "not_engaged";
+
+/**
+ * The DEFAULT POSITION of the engaged regime for a solely automated
+ * significant decision. These are not interchangeable:
+ *   • EU  Art. 22(1) — prohibition-by-default, three narrow exceptions,
+ *                      and legitimate interests is NOT one of them.
+ *   • UK  Arts. 22A–22C — for data outside Art. 9(1), PERMITTED subject to
+ *                      the Art. 22C safeguards; Art. 22B restricts special
+ *                      category data and bars Art. 6(1)(ea) reliance.
+ */
+export type AdmDefaultPosition =
+  | "prohibited_unless_excepted"
+  | "permitted_with_safeguards"
+  | "both_defaults_stated"
+  | "not_applicable";
+
+export interface AutomatedDecisionFinding extends AnalysisShape {
+  readonly regime: AdmRegime;
+  readonly default_position: AdmDefaultPosition;
+  /** UK only: Art. 22B(4) bars grounding such a decision on Art. 6(1)(ea). */
+  readonly recognised_li_barred: boolean;
+  /** UK only: Art. 22B(1) restriction engaged by recorded Art. 9(1) data. */
+  readonly special_category_restriction: boolean;
+  /** The Art. 22C(2) safeguard measures, verbatim, where UK is engaged. */
+  readonly safeguards_citation: string;
+  readonly safeguards_verbatim: string;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  /**
+   * ANNEX 1 SCOPE LIMIT (ITEM 326): Annex 1 is not in this tool's corpus.
+   * When Art. 6(1)(ea) is mentioned, this sentence is emitted verbatim and
+   * no Annex 1 condition is ever stated, paraphrased, or evaluated.
+   */
+  readonly annex_1_reserved_note: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
 }
