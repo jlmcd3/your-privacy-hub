@@ -812,6 +812,7 @@ function buildNarrative(
   reps: RepresentativeDetermination[],
   dpo: DpoDetermination,
   pending: CorpusPendingFlag[],
+  combinedCallout: string | null,
 ): RegistrationNarrative {
   const name = orgName(intake);
   const assessed = determinations.map((d) => d.state_name);
@@ -858,6 +859,7 @@ function buildNarrative(
         .join(", ")} the record is insufficient to reach a conclusion. The specific facts needed are listed with each determination and are not guessed at here.`,
     );
   }
+  if (combinedCallout) parts.push(combinedCallout);
   for (const r of reps) parts.push(`${r.label}: ${r.application}`);
   parts.push(`Data protection officer: ${dpo.headline} ${dpo.reasoning}`);
   if (pending.length) {
@@ -896,6 +898,12 @@ export function buildRegistrationDeliverables(
     buildRepresentative(intake, "EU"),
     buildRepresentative(intake, "UK"),
   ];
+  const both_representatives_required = representative_determinations.every(
+    (r) => r.verdict === "engaged",
+  );
+  const combined_representative_callout = both_representatives_required
+    ? `Both representative duties are engaged on this record. This processing requires appointing TWO separate representatives: one established in a Member State where the relevant data subjects are (GDPR Art. 27(1), (3)), and one established in the United Kingdom (UK GDPR Art. 27(1), (3)). Neither designation satisfies the other — the two regimes have applied independently since the United Kingdom left the Union, and a single person or entity may only serve both roles if it is separately established in each territory and separately designated in writing for each.`
+    : null;
   const dpo_determination = buildDpo(intake);
   const corpus_pending = buildCorpusPending(intake);
 
@@ -904,6 +912,10 @@ export function buildRegistrationDeliverables(
     schedules,
     filing_readiness,
     representative_determinations,
+    both_representatives_required,
+    ...(combined_representative_callout
+      ? { combined_representative_callout }
+      : {}),
     dpo_determination,
     corpus_pending,
     narrative: buildNarrative(
@@ -912,6 +924,7 @@ export function buildRegistrationDeliverables(
       representative_determinations,
       dpo_determination,
       corpus_pending,
+      combined_representative_callout,
     ),
   };
 }

@@ -311,6 +311,65 @@ describe("ITEM 316 — analysis shape", () => {
     }
   });
 
+  it("ITEM 329 — both EU and UK engaged raises the combined flag and one callout", () => {
+    const out = buildRegistrationDeliverables({
+      ...CA_VT_BROKER,
+      markets_served: ["US-CA", "DE", "UK"],
+    } as never);
+    const [eu, uk] = out.representative_determinations;
+    expect(eu.verdict).toBe("engaged");
+    expect(uk.verdict).toBe("engaged");
+
+    expect(out.both_representatives_required).toBe(true);
+    expect(out.combined_representative_callout).toBeTruthy();
+    expect(out.combined_representative_callout).toContain("TWO separate representatives");
+    expect(out.combined_representative_callout).toContain("United Kingdom");
+    expect(out.combined_representative_callout).toContain("GDPR Art. 27(1)");
+
+    // The callout leads the representative section — it precedes, and does not
+    // replace, the two individual determinations.
+    const d = out.narrative.determination;
+    const calloutAt = d.indexOf(out.combined_representative_callout!);
+    expect(calloutAt).toBeGreaterThan(-1);
+    expect(calloutAt).toBeLessThan(d.indexOf(`${eu.label}: `));
+    expect(calloutAt).toBeLessThan(d.indexOf(`${uk.label}: `));
+    expect(d).toContain(eu.application);
+    expect(d).toContain(uk.application);
+  });
+
+  it("ITEM 329 — one leg engaged only: no combined flag, no combined callout", () => {
+    // EU markets only: the UK leg cannot reach "engaged".
+    const euOnly = buildRegistrationDeliverables({
+      ...CA_VT_BROKER,
+      markets_served: ["US-CA", "DE"],
+    } as never);
+    expect(euOnly.representative_determinations[0].verdict).toBe("engaged");
+    expect(euOnly.representative_determinations[1].verdict).not.toBe("engaged");
+    expect(euOnly.both_representatives_required).toBe(false);
+    expect(euOnly.combined_representative_callout).toBeUndefined();
+    expect(euOnly.narrative.determination).not.toContain("TWO separate representatives");
+
+    // UK market only: mirror case.
+    const ukOnly = buildRegistrationDeliverables({
+      ...CA_VT_BROKER,
+      markets_served: ["US-CA", "UK"],
+    } as never);
+    expect(ukOnly.representative_determinations[1].verdict).toBe("engaged");
+    expect(ukOnly.representative_determinations[0].verdict).not.toBe("engaged");
+    expect(ukOnly.both_representatives_required).toBe(false);
+    expect(ukOnly.combined_representative_callout).toBeUndefined();
+    expect(ukOnly.narrative.determination).not.toContain("TWO separate representatives");
+
+    // Established in the EU and UK-facing: EU leg not_applicable, no combined flag.
+    const established = buildRegistrationDeliverables({
+      ...CA_VT_BROKER,
+      has_eu_establishment: true,
+      markets_served: ["US-CA", "DE", "UK"],
+    } as never);
+    expect(established.both_representatives_required).toBe(false);
+    expect(established.combined_representative_callout).toBeUndefined();
+  });
+
   it("no Art. 27 duty where the organisation is established in the territory", () => {
     const out = buildRegistrationDeliverables({
       ...CA_VT_BROKER,
