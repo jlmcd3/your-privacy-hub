@@ -8299,3 +8299,97 @@ Each function's upload is its own files plus every shared file under supabase/fu
 **Scope.** Ledger only. Zero code edits, zero deploys, zero database writes.
 
 **BLOCKER FOR CEO — SHARED-TREE SLIMMING IS NOW THE CRITICAL PATH.** Every remaining LTP milestone is behind it: the Item 344 graded batch, this cutover, the Item 340 cppa-risk shadow polish flag, and the Item 245 release. It is a standalone engineering turn (audit `supabase/functions/_shared/`, move single-consumer code into its owning function directory, relocate large static corpora/catalogues out of source into tables or Storage) and it is NOT in scope of any dispatch currently authorized. Attempt #3 should be dispatched only after the shared tree deploys under the cap and Item 344's graded run posts a score.
+
+---
+
+## ITEM 350 — DEGRADATION-DIFFERENTIATION DEFECT: ROOT-CAUSED AND FIXED (production-entry wiring + tests; no deploy)
+
+**Hypothesis CONFIRMED, not assumed.** Reproduced locally against the two real Item 349 smoke intakes
+(`tests/edge/fixtures/item350/perfect-a073d9c5.json`, `messy-bd458f0d.json`): the sufficiency evaluator saw
+**ZERO operands on both records** — `factor_table` presence count `0 / 16` on each — so every record rendered
+the identical all-elements-missing degradation. Pre-fix repro (both records byte-identical):
+`record_sufficiency` and `information_needed` hashes matched exactly, and the perfect record was told
+"sufficiency of the safeguards" was missing while `a6_safeguards` IS in its intake.
+
+### ROOT CAUSE (named precisely) — three parts, ALL in ENTRY WIRING; engine analytics unchanged
+
+1. **Operand-blind factor presence.** `_shared/ltp/derive.ts::pickFactorTable()` hard-pinned
+   `present_in_intake:false` on every § 7152 factor row ("presence detection is a Pass-1 model
+   responsibility"). On the deterministic/production path no model overlay ever raised it, so the
+   § 7152(a)(4)/(5)/(6) operand set was empty for **every** record.
+2. **Non-parity entry paths.** The graded harness (`ltp-risk-doc-gen`) normalized archived intake with
+   `normalizeEraIntake` before `derivePlan`; production `run-cppa-risk-assessment` passed
+   `row.intake_data` **raw**. Two entries, two intake shapes — which is why harness runs #184/#185
+   differentiated fine while production did not.
+3. **Unresolvable § 7152(a)(6) ask.** `j.safeguard_sufficiency` carried no `resolution_source_fields`,
+   so the safeguard element was enumerated as missing even on records that document safeguards.
+   ITEM 252 Ruling B rejected `["safeguards_summary"]` because that key is a shadow-era fossil; that
+   reasoning does not reach `a6_safeguards`, which IS a live contract key emitted by `pickLedger`.
+
+### FIX
+
+- **NEW** `_shared/ltp/factor-presence.ts` — deterministic presence from contract-real operands only
+  (`a4_benefit_*` → benefit rows; `a5_harm_pathways` harm codes (A)–(H) → `neg.*` rows;
+  `a6_safeguards` → `safe.i.technical_controls`; `q18_admt_use` affirmative + `a6_safeguards` →
+  `safe.iv.admt_governance`). Each asserted row carries its `L.<field>` ledger refs, so the Item 243
+  defect-3 present-requires-refs coherence rule stays satisfied. **Omission over invention:**
+  `safe.ii` (PETs) and `safe.iii` (external consultation) have no contract-real operand and stay absent.
+- **NEW** `_shared/ltp/entry-intake.ts::resolveLtpIntake()` — the single LTP entry-intake resolver.
+  Both `ltp-risk-doc-gen` and the `run-cppa-risk-assessment` LTP branch now resolve through it.
+- `derive.ts::pickFactorTable(intake)` and `pass1-llm.ts` scaffold call now take intake; model overlay
+  behaviour unchanged (it may still raise a row).
+- `legal-test/cppa-risk-conclusions.ts` — `j.safeguard_sufficiency.resolution_source_fields = ["a6_safeguards"]`
+  (**supersedes Row 3 of signed courier ITEM252-RULING-B** for the stated reason; Row 1
+  `j.initiation_decision` stays always-asking, Row 2 unchanged).
+- `tests/edge/_shared/ltp/grader-check-mirror.test.ts` CHECK 1a pin updated to the Item 350 state.
+
+### BLOCKING TESTS (all green) — `tests/edge/_shared/ltp/item350-entry-parity.test.ts`
+
+```
+ITEM350 entry-parity: harness and production entries derive identical plans (perfect-a073d9c5) ... ok
+ITEM350 entry-parity: harness and production entries derive identical plans (messy-bd458f0d) ... ok
+ITEM350 differentiation: perfect vs messy records diverge on factor presence ... ok
+ITEM350 differentiation: a6_safeguards present ⇒ safeguard sufficiency not enumerated as missing ... ok
+ITEM350 presence rows carry ledger refs (present-requires-refs coherence) ... ok
+ok | 5 passed | 0 failed
+```
+
+**Suite delta.** `deno test -A --no-check tests/edge/_shared/` — baseline (`1a997ec52`, pre-change):
+`706 passed | 13 failed`; post-change: `711 passed | 13 failed`. Failure-set diff is EMPTY — the 13
+failures are pre-existing (Item-348 relocation path/registry pins), none introduced by this turn.
+
+### RE-RUN OF THE ITEM 349 SMOKE INTAKES THROUGH THE FIXED PATH (harness-side; no deploy)
+
+```
+=== perfect-a073d9c5 ===
+record_sufficiency md5   : a025ccaaffe78ad97315fe9018be53fe
+information_needed md5   : fb562fb4102f763270bd350ab55c22ef
+processing_narrative md5 : d7241b7da788abc003f7f929b3725120
+information_needed count : 1
+
+=== messy-bd458f0d ===
+record_sufficiency md5   : 26b56aa3a3164830ea00296b5dbe7eb8
+information_needed md5   : b5ab4a4c232027a73f7a0723bbd2cf4e
+processing_narrative md5 : d7241b7da788abc003f7f929b3725120
+information_needed count : 2
+```
+
+`record_sufficiency` and `information_needed` now DIFFER (Item 349: identical `5e2ffa3a…` / `84bd089f…`).
+
+**Perfect record's sufficiency statement (verbatim):**
+> "The record is not yet sufficient for the § 7152(a)(6) balancing frame. Meridian SaaS Inc has adequately
+> documented 7 of the § 7152(a) elements listed below; 8 of these elements remain enumerated for your review.
+> Each element is stated once, with its § 7152(a) pinpoint, in the order the record was assessed."
+
+Its single remaining ask is § 7152(a)(7) *"Decision whether to initiate the processing"* — the one element
+that is reserved-to-counsel by registry design. **"Sufficiency of the safeguards" is no longer enumerated on
+the perfect record** and IS still enumerated on the messy record (which lacks `a6_safeguards`).
+
+**`processing_narrative` md5 remains equal on both records — REPORTED, NOT PAPERED OVER.** The two fixtures
+differ only in `a6_safeguards`, `a9_approval_date`, `secondary_activities`, `sensitive_location_basis`, and
+`a2_necessity_set`; the narrative composer reads `q4_pi_categories`, `i4b_sources`, `i1_processing_purpose`,
+`q7_right_delete` etc., which are **identical byte-for-byte on both fixtures**. Equal output on equal operands
+is honest, not a flattening defect. Narrative differentiation cannot be demonstrated with these two fixtures.
+
+**Scope honoured.** Production-entry wiring + tests only. `run-cppa-risk-assessment` NOT deployed (cutover
+attempt #4). Item 245 hold untouched and still ACTIVE. Rollback path `git archive 4fe2e76c1 …` unchanged.
