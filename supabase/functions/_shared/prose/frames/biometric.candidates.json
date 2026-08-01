@@ -1,0 +1,29 @@
+{
+  "product": "biometric",
+  "version": "prose-frames-2026-08-01-item338",
+  "approved": false,
+  "frames": [
+    {
+      "id": "biometric.note.001",
+      "product": "biometric",
+      "section": "note",
+      "body": "Based on 2,500 enrolled individuals (midpoint of the stated {{COUNT:count}} range) × $1,000 (negligent) to $5,000 (intentional) per person. This is a mathematical illustration only — not a legal opinion.",
+      "placeholders": [
+        {
+          "token": "COUNT",
+          "kind": "count",
+          "source": "invoke_body_extras.enrolledCount",
+          "required": true
+        }
+      ],
+      "provenance": {
+        "sample_report_id": "29a8a1e1-56da-4a9e-aa0b-de2dc9768bbf",
+        "tool_slug": "biometric",
+        "report_path": "bipa_risk.note",
+        "harvested_at": "2026-08-01",
+        "origin": "harvest"
+      },
+      "status": "pending_review"
+    }
+  ]
+}
