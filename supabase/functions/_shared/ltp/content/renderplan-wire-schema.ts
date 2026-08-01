@@ -213,10 +213,22 @@ export const RENDERPLAN_WIRE_SCHEMA = {
 } as const;
 
 /**
+ * ITEM 305 — DETERMINISTIC-ONLY PLAN KEYS.
+ *
+ * `activity_analytics` is computed deterministically by `derivePlan`
+ * (buildActivityAnalytics) and is NEVER model-authored. It is therefore
+ * deliberately ABSENT from the wire schema the model is shown — declaring
+ * it there would invite Pass-1 to fabricate the § 7152 analytic
+ * deliverables the deterministic engine owns. The projection check below
+ * excludes these keys instead of widening the model contract.
+ */
+export const DETERMINISTIC_ONLY_PLAN_KEYS: readonly string[] = ["activity_analytics"];
+
+/**
  * Shallow structural round-trip check used by the projection test: every
  * property on a candidate RenderPlan object must be listed in the schema's
  * top-level `properties` block (no drift surface between the TS canonical
- * and the wire projection).
+ * and the wire projection), except the deterministic-only keys above.
  */
 export function planKeysProjected(plan: Record<string, unknown>): {
   ok: boolean;
@@ -224,9 +236,13 @@ export function planKeysProjected(plan: Record<string, unknown>): {
   missing_required: string[];
 } {
   const allowed = new Set(Object.keys(RENDERPLAN_WIRE_SCHEMA.properties));
+  const deterministicOnly = new Set(DETERMINISTIC_ONLY_PLAN_KEYS);
   const required = new Set(RENDERPLAN_WIRE_SCHEMA.required);
   const extra_keys: string[] = [];
-  for (const k of Object.keys(plan ?? {})) if (!allowed.has(k)) extra_keys.push(k);
+  for (const k of Object.keys(plan ?? {})) {
+    if (!allowed.has(k) && !deterministicOnly.has(k)) extra_keys.push(k);
+  }
+
   const missing_required: string[] = [];
   for (const k of required) if (!(k in (plan ?? {}))) missing_required.push(k);
   return { ok: extra_keys.length === 0 && missing_required.length === 0, extra_keys, missing_required };
