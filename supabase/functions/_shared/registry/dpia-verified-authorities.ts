@@ -27,20 +27,26 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const DPIA_VERIFIED_AUTHORITY_VERSION = "dpia-va-w1-2026-07-25";
+export const DPIA_VERIFIED_AUTHORITY_VERSION = "dpia-va-wp248-2026-08-01";
 
 /** Canonical published text URLs (official primary sources). */
 const GDPR_URL = "https://eur-lex.europa.eu/eli/reg/2016/679/oj";
 const EDPB_2_2019_URL =
   "https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22019-processing-personal-data-under-article-61b_en";
+const EDPB_WP248_URL = "https://ec.europa.eu/newsroom/just/document.cfm?doc_id=47711";
 
 /** Verification date — the date these rows were hand-verified against the primary source. */
 const VOD = "2026-07-25";
+/** WP248-PINNING turn verification date. */
+const WP248_VOD = "2026-08-01";
 
 /** Governing anchor labels. */
 const GDPR = "Regulation (EU) 2016/679 (GDPR)";
 const EDPB_2_2019 =
   "EDPB Guidelines 2/2019 on processing of personal data under Article 6(1)(b) GDPR";
+const EDPB_WP248 =
+  "Article 29 Working Party WP248 rev.01, Guidelines on Data Protection Impact Assessment (DPIA) (EDPB-endorsed)";
+
 
 const R = (r: VerifiedAuthorityRow): VerifiedAuthorityRow => r;
 
