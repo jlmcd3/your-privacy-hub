@@ -130,8 +130,10 @@ describe("Item 319 addendum — the fifth encoding (live statutory-trigger line)
 
   it("the reactive § 7156(a) trigger line is directive, not reserved-framed", () => {
     expect(src).not.toContain("determination reserved to you and counsel");
+    // ITEM 336 (d): the trigger also fires on Not-sure-only records, so the
+    // label must cover unresolved dimensions as well as differing ones.
     expect(src).toContain(
-      "a separate risk assessment is recommended for each use that differs",
+      "a separate risk assessment is recommended for each use that differs or has unresolved comparison dimensions",
     );
     expect(src).toContain(
       "this tool's recommendation on your record, not a statement of what the law requires",

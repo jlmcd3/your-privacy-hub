@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.admin_fire_ingest_edpb_oss(text, integer, integer);

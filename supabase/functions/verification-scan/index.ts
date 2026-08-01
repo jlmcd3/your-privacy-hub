@@ -118,7 +118,23 @@ async function selectRows(
     const rows = all.filter(
       (r: any) => (r.source_document_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS,
     );
-    return { rows, remaining: (count ?? 0) - all.length, scanned: all.length, lastScannedId: all.length ? all[all.length - 1].id : null };
+    // ITEM 336 (c): short cached documents were skipped invisibly. Count them
+    // and surface their ids so the backlog is findable later. No status writes.
+    const skippedShortIds = all
+      .filter((r: any) => (r.source_document_text?.length ?? 0) < CACHED_MIN_DOC_CHARS)
+      .map((r: any) => r.id as string);
+    if (skippedShortIds.length > 0) {
+      console.log(
+        `[verification-scan] cached mode skipped ${skippedShortIds.length} row(s) with source_document_text < ${CACHED_MIN_DOC_CHARS} chars: ${skippedShortIds.join(",")}`,
+      );
+    }
+    return {
+      rows,
+      remaining: (count ?? 0) - all.length,
+      scanned: all.length,
+      lastScannedId: all.length ? all[all.length - 1].id : null,
+      skippedShortIds,
+    };
   }
   if (mode === "targeted") {
     if (!targetIds || targetIds.length === 0) return { rows: [], remaining: 0 };
@@ -537,6 +553,8 @@ Deno.serve(async (req) => {
       failed,
       requires_review,
       memo_eligible_after_batch: memo_eligible_after,
+      skipped_short_doc: (sel.skippedShortIds ?? []).length,
+      skipped_short_doc_ids: sel.skippedShortIds ?? [],
       last_id,
       estimated_remaining: Math.max(remaining, 0),
       batch_cost_usd: Number(batch_cost_usd.toFixed(4)),

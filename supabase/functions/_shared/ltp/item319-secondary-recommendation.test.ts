@@ -160,3 +160,32 @@ Deno.test("ITEM 319: MANDATORY DEGRADATION — no secondary rows, no emission", 
     "segmentation item must not emit without secondary activities",
   );
 });
+
+// ITEM 336 (a) — MALFORMED DIVERGENCE VALUE MUST BE UNRESOLVED, NEVER "Same".
+// Before this fix, a value the intake never emits (typo, stale enum, injected
+// payload) fell through both filters and the record scored a bundling
+// green-light on data nobody had actually compared.
+Deno.test("ITEM 336: unrecognized divergence value counts as UNRESOLVED, not Same", () => {
+  const r = secondaryRecommendation({
+    data: "Same",
+    purpose: "Same",
+    systems: "maybe?",
+    people: "Same",
+    risks: "Same",
+  });
+  assertEquals(r.verdict, "unresolved");
+  assertEquals(r.diverging.length, 0);
+  assertEquals(r.unresolved, ["systems"]);
+});
+
+Deno.test("ITEM 336: a divergent dimension still wins over a malformed one", () => {
+  const r = secondaryRecommendation({
+    data: "Different",
+    purpose: "Same",
+    systems: "???",
+    people: "Same",
+    risks: "Same",
+  });
+  assertEquals(r.verdict, "separate");
+  assertEquals(r.diverging, ["data"]);
+});
