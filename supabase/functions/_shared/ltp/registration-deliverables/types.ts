@@ -162,6 +162,16 @@ export interface RegistrationDeliverables {
   schedules: ScheduleAndFee[];
   filing_readiness: FilingReadiness[];
   representative_determinations: RepresentativeDetermination[];
+  /**
+   * ITEM 329 — combined EU+UK representative check. True only when BOTH the EU
+   * and the UK Art. 27 determinations reach verdict "engaged". The individual
+   * determinations remain the operative analysis; this is a clarity flag that
+   * names the joint scenario explicitly instead of leaving it to emerge from
+   * two independent evaluations rendered side by side.
+   */
+  both_representatives_required: boolean;
+  /** Present only when both_representatives_required is true. */
+  combined_representative_callout?: string;
   dpo_determination: DpoDetermination;
   corpus_pending: CorpusPendingFlag[];
   narrative: RegistrationNarrative;
