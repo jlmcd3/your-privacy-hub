@@ -8977,3 +8977,169 @@ from all product surfaces by the CPPA-INCLUSION-GATE (2026-08-01, CEO) in
 extended extraction schema is executed inside that function, so the sweep is
 unexecutable without shipping it. Nothing else was deployed; no frontend, no product
 surface, no LTP function. **Item 245 posture untouched — hold REMAINS ACTIVE.**
+
+---
+
+## Item 356 — REFETCH CAMPAIGN PLAN (WRITE-UP ONLY; nothing fetched, $0 spent this item)
+
+CEO budget-approval document. **No execution.** No function was invoked, no document fetched, no
+model called, nothing deployed. All numbers below are deterministic queries over the Item 352
+stratification map plus the measured rates from prior runs, cited to their source.
+
+### 1. The two target cohorts
+
+| Cohort | Definition | Rows | Rows with a URL |
+| --- | --- | --- | --- |
+| **A — subject-defect unrepairable** | `review_reason = 'corpus_defect_subject_unrepairable'` (Item 340 residue) | **1,371** | **1,371 (100%)** |
+| **B — unverified, no document** | `verification_status='unverified' AND strat_has_document = false` | **1,190** | **1,190 (100%)** |
+| Combined (A and B are disjoint) | | **2,561** | 2,561 |
+
+Cohort A is document-starved by construction: 1,284 of the 1,371 were `no_document`, ~86 were
+`document_states_no_name`, 1 `extracted_not_verbatim`. A refetch changes the outcome only for the
+`no_document` majority; the ~86 pseudonymised decisions will still honestly yield no name and must
+stay flagged after the campaign. **Do not budget them as recoverable.**
+
+### 2. Cohort A by authority class — CPPA FIRST (binding order)
+
+| Order | authority_class | Rows | Note |
+| --- | --- | --- | --- |
+| **1** | **cppa** | **93** | **FETCH FIRST.** All 93 have URLs, all on `cppa.ca.gov` (88) + strays. |
+| **2** | eu_dpa | 322 | then EU DPA, per instruction |
+| 3 | eea_dpa | 2 | rides with EU |
+| 4 | uk_dpa | 6 | |
+| 5 | ca_commissioner | 651 | largest block, lowest yield expectation (see §4) |
+| 6 | us_state_ag | 175 | |
+| 7 | us_federal_agency | 43 | |
+| 8 | court | 42 | |
+| 9 | other / unclassified | 37 | |
+
+Top domains, cohort A: `oipc.ab.ca` 424, `www.priv.gc.ca` 141, `illinoisattorneygeneral.gov` 96,
+`gdprhub.eu` 91, `cppa.ca.gov` 88, `uodo.gov.pl` 85, `www.ipc.on.ca` 82, `www.datatilsynet.dk` 54,
+`www.naih.hu` 47, `www.dataprotectionauthority.be` 46, `www.ftc.gov` 35, `www.aepd.es` 31,
+`www.pdpc.gov.sg` 28, `ag.ny.gov` 21, `www.atg.wa.gov` 11.
+
+### 3. Cohort B by authority class and domain
+
+| authority_class | Rows |
+| --- | --- |
+| eu_dpa | 1,002 |
+| eea_dpa | 79 |
+| us_federal_agency | 61 |
+| uk_dpa | 26 |
+| other | 7 |
+| ca_commissioner | 6 |
+| **cppa** | **3** (the three unverified CPPA rows — fetch with cohort A's CPPA block) |
+| court | 3 |
+| us_state_ag | 2 |
+| unclassified | 1 |
+
+Top domains, cohort B: `www.zaftda.de` 107, `gdprhub.eu` 85, `uodo.gov.pl` 65,
+`www.datatilsynet.no` 58, `www.ftc.gov` 50, `azop.hr` 45, `www.aepd.es` 42,
+`www.dataprotection.gov.cy` 40, `www.dataprotection.ro` 34, `www.uodo.gov.pl` 32,
+`cnpd.public.lu` 30, `www.datatilsynet.dk` 27, `www.imy.se` 26,
+`autoriteitpersoonsgegevens.nl` 26, `www.uoou.cz` 26.
+
+### 4. Expected link rot / resolution failure — from MEASURED rate, not assumption
+
+Source: `primary_source_fetch_runs`, non-dry-run history — 5 runs, **78 rows processed, 60 fetch
+failures = 76.9% resolution-failure rate**, split by scope:
+
+| Scope | Processed | Failed | Failure rate |
+| --- | --- | --- | --- |
+| CMS-sourced rows | 68 | 60 | **88.2%** |
+| FTC (`www.ftc.gov`) | 10 | 0 | **0.0%** |
+
+That sample is small (n=78) and is the single largest uncertainty in this budget. It is also
+directionally consistent with the Item 340 finding that ~70% of stored GDPRhub `raw_text` is
+Anubis bot-wall junk rather than decision text — the failures are predominantly **bot-walls and
+aggregator interstitials, not dead links**.
+
+Planning bands (applied per domain family, not corpus-wide):
+
+| Domain family | Rows (A+B) | Assumed success | Expected documents |
+| --- | --- | --- | --- |
+| US federal / state AG (`ftc.gov`, `ag.ny.gov`, `illinoisattorneygeneral.gov`, `atg.wa.gov`) | ~215 | 80–95% | ~170–205 |
+| **cppa.ca.gov** | ~91 | 70–90% | ~64–82 |
+| Canadian commissioners (`oipc.ab.ca`, `priv.gc.ca`, `ipc.on.ca`) | ~651 | 25–50% | ~163–326 |
+| National EU/EEA DPA sites (direct) | ~600 | 45–70% | ~270–420 |
+| Aggregators (`gdprhub.eu`, `zaftda.de`, CMS-sourced) | ~460 | 10–25% | ~46–115 |
+| Remainder / long tail | ~544 | 30–50% | ~163–272 |
+| **Total** | **2,561** | **~34–56%** | **~876–1,420 documents** |
+
+**Recommended gate: run the 93 CPPA rows + a 200-row stratified probe FIRST and re-measure.** The
+probe replaces the n=78 estimate with a real rate before the CEO commits the remaining budget.
+
+### 5. Infrastructure to reuse (no new fetch stack)
+
+- `batch-fetch-primary-sources` — batched, resumable, dry-run capable, already ledgered to
+  `primary_source_fetch_runs` (queried / processed / extracted_verbatim / fetched_partial /
+  fetch_failed / events). Reuse as the campaign driver.
+- `fetch-and-extract-primary-source` — per-row fetch + extraction worker.
+- `discover-primary-source-url` — for rows whose `source_url` is an aggregator page rather than the
+  decision (the `gdprhub.eu` / `zaftda.de` / CMS blocks); this is where most of the rot lives.
+- `source_document_cache` (254 rows today) — cache-first, keyed on `source_url`; a refetched
+  document lands here and is then free for every later pass.
+- `repair-corpus-subjects` — subject re-extraction under the Item 340 MANDATORY DEGRADATION LAW
+  (verbatim substring re-check; no document or no name ⇒ write nothing and flag).
+- `verification-scan` cached mode with the Item 355 budget cap, ledgered to
+  `verification_sweep_ledger`.
+
+**No new function is required.** The campaign is: fetch → cache → `repair-corpus-subjects` (cohort A
+only) → `verification-scan --mode=cached` (both cohorts). Each stage is independently resumable and
+independently capped.
+
+### 6. Model cost per row and total
+
+Fetching itself is $0 in model spend (HTTP + extraction is deterministic); the cost is the two
+model stages that run only on rows where a document actually arrives.
+
+| Stage | Basis | Cost / document |
+| --- | --- | --- |
+| Subject re-extraction (`repair-corpus-subjects`, cohort A only) | one grounded extraction call | ~$0.015 |
+| Verification + disposition/instrument extraction | **measured** in Item 355: $5.93 / 143 rows | **$0.041** |
+
+Only rows that yield a document incur spend. Against the §4 band of 876–1,420 documents:
+
+| Scenario | Documents | Cohort-A subject calls | Verification calls | **Model spend** |
+| --- | --- | --- | --- | --- |
+| Low yield (34%) | 876 | ~469 | 876 | **~$43** |
+| Mid yield (45%) | 1,152 | ~617 | 1,152 | **~$56** |
+| High yield (56%) | 1,420 | ~761 | 1,420 | **~$70** |
+
+**Total model cost range: $43 – $70.** Recommended approval: **$90 cap** (headroom for retries and
+partial-document re-reads), enforced by the same `verification_sweep_ledger` mechanism as Item 355 —
+pre-batch cumulative check, mid-batch check, halt with cursor, $0 spent past the cap.
+
+Non-model cost is edge-function runtime only (no per-request billing exposure beyond Cloud usage).
+
+### 7. Runtime
+
+- Fetch stage: ~2–4 s per row wall-clock with polite per-domain throttling ⇒ 2,561 rows ≈
+  **1.5–3 hours** of driver time, resumable, and parallelisable by domain family if desired.
+- Subject re-extraction: ~4 s/row over ~470–760 rows ⇒ **0.5–0.9 h**.
+- Verification: **measured at ~13 s/row** (Item 355) over 876–1,420 rows ⇒ **3.2–5.1 h**.
+- **Total ≈ 5–9 hours** of driver wall-clock, across resumable batches. This does not fit one
+  session; it needs the same cursor-driven, multi-invocation pattern Item 355 is already using.
+
+### 8. Ordering (binding)
+
+1. **CPPA first** — cohort A's 93 CPPA rows plus cohort B's 3 unverified CPPA rows (96 total, the
+   full CPPA corpus block), before anything else.
+2. EU DPA (cohort A 322, then cohort B 1,002) + EEA/UK.
+3. 200-row stratified probe across the remaining domain families, then re-price §4/§6 from the
+   measured rate before continuing.
+4. Canadian commissioners, US state AG, US federal, court, other/unclassified.
+
+### 9. CPPA CAVEAT (binding, unchanged)
+
+CPPA rows are fetched, re-extracted, verified and classified exactly like every other row **and
+remain excluded from every customer-facing enforcement/precedent surface** by the
+CPPA-INCLUSION-GATE (2026-08-01, CEO) in `_shared/enforcement/surface-gate.ts`. Nothing in this
+campaign wires CPPA material to a product surface; inclusion requires an explicit, separately dated
+CEO instruction. Fetching them first improves corpus quality and readiness, not exposure.
+
+### 10. What this item did NOT do
+
+No fetch, no model call, no migration, no deploy, no code change. **Item 245 posture untouched — hold
+REMAINS ACTIVE.** Item 355's cached sweep remains paused at cursor
+`2b1cf1b8-768b-4b64-b193-438744335219` and is unaffected by this plan.
