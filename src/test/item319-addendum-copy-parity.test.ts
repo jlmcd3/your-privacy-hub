@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { CPPA_RISK_RAIL_ENTRIES } from "@/components/cppa/CPPARiskRailEntries";
+import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
 import {
   secondaryRecommendation,
   secondaryRecommendationSentence,
@@ -29,7 +29,7 @@ const RESERVED_PHRASES = [
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 
 describe("Item 319 addendum — directive posture is consistent across all four surfaces", () => {
-  const rail = CPPA_RISK_RAIL_ENTRIES.comparable_set;
+  const rail = CPPA_RISK_RAIL.comparable_set;
 
   it("rail 'The law' column no longer reserves the call to counsel and states the recommendation", () => {
     for (const phrase of RESERVED_PHRASES) {
