@@ -71,7 +71,10 @@ export function connectiveMatchesRelation(word: string, relation: Relation): boo
   return (CONNECTIVES[relation] ?? []).includes(w);
 }
 
-const lower1 = (s: string) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
+// Never case-fold what looks like a proper noun ("Acme Ltd reports …").
+const PROPER_NOUN_OPENER = /^[A-Z][A-Za-z.'-]*\s+[A-Z]/;
+const lower1 = (s: string) =>
+  /^[A-Z][a-z]/.test(s) && !PROPER_NOUN_OPENER.test(s) ? s[0].toLowerCase() + s.slice(1) : s;
 const upper1 = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 const stripEnd = (s: string) => s.replace(/\s*[.;]\s*$/, "");
 

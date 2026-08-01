@@ -104,29 +104,32 @@ export function renderPlannedSection(
     }
   }
 
+  // (4) REFERRING EXPRESSIONS — applied BEFORE joining, one tracker per major
+  // section, so the connective layer never case-folds a legal name.
+  const mentioned = applyMentionRule(
+    [degradationLead(input, opts), ...agg.sentences],
+    opts.mentions,
+  );
+
   // (1) CONCLUSION FIRST.
   const degraded = !input.determination?.trim();
-  const lead = degraded
-    ? (opts.degradationSentence ?? DEFAULT_DEGRADATION)
-    : input.determination!.trim();
+  const lead = mentioned[0];
+  const body = mentioned.slice(1);
 
   // (3) DETERMINISTIC CONNECTIVES.
   const occurrences = new Map<Relation, number>();
   let text = lead;
-  agg.sentences.forEach((s, i) => {
+  body.forEach((s, i) => {
     const rel = relations[i] ?? "none";
     const n = occurrences.get(rel) ?? 0;
     occurrences.set(rel, n + 1);
     text = joinWithConnective(text, s, rel, n);
   });
 
-  // (4) REFERRING EXPRESSIONS — one tracker per major section.
-  const [rewritten] = applyMentionRule([text], opts.mentions);
-
   return {
     section_id: section.id,
     title: section.title,
-    text: rewritten,
+    text,
     degraded,
     information_needed: degraded
       ? [...(input.information_needed ?? [])]
@@ -135,6 +138,11 @@ export function renderPlannedSection(
     unplaced,
     variants_used: agg.variants_used,
   };
+}
+
+function degradationLead(input: SectionInput, opts: PlanRenderOptions): string {
+  return input.determination?.trim() ||
+    (opts.degradationSentence ?? DEFAULT_DEGRADATION);
 }
 
 /** Length of the aggregated run starting at index i (mirrors aggregateFacts). */
