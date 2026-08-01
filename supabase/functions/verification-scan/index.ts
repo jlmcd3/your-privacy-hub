@@ -247,6 +247,8 @@ async function processRow(row: any, mode: Mode = "initial") {
     const next_status = fetched.reason === "js_required" ? "requires_review" : "failed";
     await sb.from("enforcement_actions").update({
       verification_status: next_status,
+      // Item 334: a js_required source is a genuine "needs a human" routing.
+      review_reason: next_status === "requires_review" ? "verification_uncertain" : null,
       verification_deterministic_pass: false,
       verification_last_run_at: new Date().toISOString(),
       memo_eligible: false,
