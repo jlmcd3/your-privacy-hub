@@ -532,7 +532,7 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   // asserted).
   "T.risk.processing_narrative": {
     id: "T.risk.processing_narrative",
-    text: "**How {{plan:entity_name}} processes personal information for {{plan:activity_label}}.**\n\n{{plan:entity_name}} collects {{plan:pi_categories_clause}} from {{plan:sources_clause}}. The information is used {{plan:i1_processing_purpose_clause}}. {{plan:entity_name}} discloses this information to {{plan:i6_vendors_clause}} through {{plan:i4_disclosure_mechanisms_clause}}. The record sets a retention period of {{plan:i2_retention_period_clause}}, applying the criterion that {{plan:i2_retention_criteria_clause}}. At the end of that period the information is {{plan:i2_deletion_clause}}.\n\nEach element above is drawn from the assessment record. Where the record is silent on a sub-element, the corresponding clause reads \"not stated on the record\" and the item is enumerated in Items for your review.",
+    text: "**How {{plan:entity_name}} processes personal information for {{plan:activity_label}}.**\n\n{{plan:entity_name}} collects {{plan:pi_categories_clause}} from {{plan:sources_clause}}. The information is used {{plan:i1_processing_purpose_clause}}. {{plan:entity_name}} discloses this information to {{plan:i6_vendors_clause}} through {{plan:i4_disclosure_mechanisms_clause}}. The record sets a retention period of {{plan:i2_retention_period_clause}}, applying the criterion that {{plan:i2_retention_criteria_clause}}. At the end of that period the information is {{plan:i2_deletion_clause}}.",
     citation_slots: [],
     plan_slots: [
       "entity_name",
