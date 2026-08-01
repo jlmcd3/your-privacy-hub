@@ -2,6 +2,13 @@
 // surface most relevant enforcement actions for a given processing activity.
 // Caches responses keyed on the request signature for 2h.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// ITEM 354 — enforcement surface gate (one shared implementation, REUSE LAW).
+import {
+  applyGateQuery,
+  filterSurfaceRows,
+  gateAudit,
+  GATE_COLUMNS,
+} from "../_shared/enforcement/surface-gate.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -86,17 +93,17 @@ async function sha256(s: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-const ENFORCEMENT_SELECT = "id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, fine_verified, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related, statutory_provisions, provisions_normalized, enrichment_version, source_database";
+const ENFORCEMENT_SELECT = "id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, fine_verified, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related, statutory_provisions, provisions_normalized, enrichment_version, source_database, " + GATE_COLUMNS;
 
 function applyCommonFilters(q: any, query: Query) {
   let out = q;
   if (query.sector) out = out.eq("industry_sector", query.sector);
   if (query.biometric) out = out.eq("biometric_related", true);
   if (query.breach) out = out.eq("breach_related", true);
-  // SWEEP-2 T11: hide rows explicitly flagged for moderator review from
-  // subscriber-facing enforcement context. Applies to every tier / fallback
-  // query in this module.
-  out = out.not("verification_status", "eq", "requires_review");
+  // ITEM 354: the enforcement surface gate replaces the former inline
+  // SWEEP-2 T11 requires_review filter. Applies to every tier / fallback
+  // query in this module. `preserved` profile keeps prior behaviour.
+  out = applyGateQuery(out, query.tool);
   return out;
 }
 
@@ -304,7 +311,10 @@ Deno.serve(async (req) => {
   const qualityFilter = (r: any) =>
     typeof r?.subject === "string" && r.subject.trim().length > 0 &&
     (r?.precedent_significance ?? 0) >= 2;
-  const results = [...t1Sorted, ...t2Sorted, ...t3Sorted].filter(qualityFilter);
+  const results = filterSurfaceRows(
+    [...t1Sorted, ...t2Sorted, ...t3Sorted].filter(qualityFilter),
+    { product: q.tool },
+  );
   const totalMatched = tier1.length + tier2.length + tier3.length;
 
 
@@ -319,6 +329,7 @@ Deno.serve(async (req) => {
     regime: q.regime ?? null,
     jurisdiction_whitelist_size: homeList.length,
     tier_counts: { tier1: t1Sorted.length, tier2: t2Sorted.length, tier3: t3Sorted.length },
+    surface_gate: gateAudit([...t1Sorted, ...t2Sorted, ...t3Sorted], { product: q.tool }),
     note,
     cached: false,
   };
@@ -429,11 +440,13 @@ async function runUntiered(q: Query, limit: number, cacheKey: string): Promise<R
     .filter((r: any) =>
       typeof r?.subject === "string" && r.subject.trim().length > 0 &&
       (r?.precedent_significance ?? 0) >= 2);
-  const note = scored.length === 0
+  const gatedScored = filterSurfaceRows(scored, { product: q.tool });
+  const note = gatedScored.length === 0
     ? (jurisdictionWhitelist || regimeCfg ? "no_jurisdictional_precedent" : "no_match")
     : fallbackUsed;
   const response = {
-    count: scored.length, total_matched: finalRows.length, results: scored,
+    count: gatedScored.length, total_matched: finalRows.length, results: gatedScored,
+    surface_gate: gateAudit(scored, { product: q.tool }),
     regime: q.regime ?? null,
     jurisdiction_whitelist_size: jurisdictionWhitelist?.length ?? null,
     note, cached: false,
