@@ -10,7 +10,7 @@
 //     frame does not render half-filled — it degrades to the honest
 //     "not stated on the record" path (MANDATORY DEGRADATION LAW).
 
-import { collapseRenderArtifacts, joinNaturalList, renderSlotValue } from "./slots.ts";
+import { adapterFor, collapseRenderArtifacts, joinNaturalList, renderSlotValue } from "./slots.ts";
 import {
   type Frame,
   FRAME_LIBRARY_VERSION,
@@ -65,10 +65,10 @@ function fillOne(
     case "date":
       return String(raw).trim();
     case "enum":
-      return renderSlotValue(raw, { contract: opts.contract, position: "mid" });
+      return renderSlotValue(raw, { adapter: adapterFor(opts.contract), midSentence: true });
     case "text":
     default: {
-      const s = renderSlotValue(raw, { contract: opts.contract, position: "mid" }).trim();
+      const s = renderSlotValue(raw, { adapter: adapterFor(opts.contract), midSentence: true }).trim();
       const quote = opts.quoteFreeText !== false;
       return quote ? `“${s.replace(/^["“”]|["“”]$/g, "")}”` : s;
     }
