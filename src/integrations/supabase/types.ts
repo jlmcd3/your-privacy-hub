@@ -1411,6 +1411,72 @@ export type Database = {
         }
         Relationships: []
       }
+      edpb_oss_decisions: {
+        Row: {
+          case_reference: string
+          concerned_sas: string[]
+          content_hash: string
+          created_at: string
+          decision_date: string | null
+          decision_pdf_url: string | null
+          doc_type: string
+          gdpr_provisions: string[]
+          id: string
+          lead_sa: string | null
+          outcomes: string[]
+          source_document_text: string | null
+          source_url: string | null
+          status: string
+          subject: string | null
+          summary_text: string | null
+          title: string | null
+          topic_tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          case_reference: string
+          concerned_sas?: string[]
+          content_hash: string
+          created_at?: string
+          decision_date?: string | null
+          decision_pdf_url?: string | null
+          doc_type?: string
+          gdpr_provisions?: string[]
+          id?: string
+          lead_sa?: string | null
+          outcomes?: string[]
+          source_document_text?: string | null
+          source_url?: string | null
+          status?: string
+          subject?: string | null
+          summary_text?: string | null
+          title?: string | null
+          topic_tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          case_reference?: string
+          concerned_sas?: string[]
+          content_hash?: string
+          created_at?: string
+          decision_date?: string | null
+          decision_pdf_url?: string | null
+          doc_type?: string
+          gdpr_provisions?: string[]
+          id?: string
+          lead_sa?: string | null
+          outcomes?: string[]
+          source_document_text?: string | null
+          source_url?: string | null
+          status?: string
+          subject?: string | null
+          summary_text?: string | null
+          title?: string | null
+          topic_tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_signups: {
         Row: {
           confirmed: boolean | null
@@ -8996,6 +9062,24 @@ export type Database = {
         | { Args: { p_source_group: string }; Returns: number }
         | {
             Args: { p_dry_run?: boolean; p_source_group: string }
+            Returns: number
+          }
+      admin_fire_ingest_edpb_oss:
+        | {
+            Args: {
+              p_max_pages?: number
+              p_mode?: string
+              p_start_page?: number
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_fetch_pdf_text?: boolean
+              p_max_pages?: number
+              p_mode?: string
+              p_start_page?: number
+            }
             Returns: number
           }
       admin_fire_ingest_fsor: {
