@@ -31,7 +31,15 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
-import { goldenIntakes, GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
+import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant } from "../_shared/golden/registry.ts";
+// ITEM 325 — fixture variant (Perfect / Messy) for /admin/final-test.
+// Additive: a null variant is byte-for-byte the legacy /admin/quality-batch path.
+import {
+  type FixtureVariant,
+  normalizeVariant,
+  normalizeToolVariants,
+  resolveToolVariant,
+} from "../_shared/quality/fixture-variant.ts";
 import {
   createContract as _dcCreate,
   heartbeatContract as _dcHb,
@@ -377,7 +385,7 @@ export function applyStopRule(
 export { buildSeedRow } from "../_shared/quality/seed-row.ts";
 import { buildSeedRow } from "../_shared/quality/seed-row.ts";
 
-async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null } = {})
+async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null } = {})
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
   const db = admin();
   // (a) Compute run_number the same way run-quality-batch does at ~L2544.
@@ -390,8 +398,15 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
   // QB-P20 item 2 — pin the tool's golden intakes unless explicitly opted out.
   const pins = opts.pinsOverride !== undefined
     ? opts.pinsOverride
-    : (opts.noPins ? null : goldenIntakes(tool));
+    : (opts.noPins ? null : (opts.variant ? intakesForVariant(tool, opts.variant) : goldenIntakes(tool)));
+  // ITEM 325 — MESSY-EMPTY GUARD. A messy run with no authored messy fixture
+  // must fail loudly here rather than silently degrade to an unpinned
+  // (generated-only) run that would be reported as "messy" evidence.
+  if (opts.variant === "messy" && (!pins || pins.length === 0)) {
+    return { ok: false, err: `no messy fixtures authored for tool ${tool} — author them in _shared/golden/messy-registry.ts before running the Messy variant` };
+  }
   const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso, { pins });
+  if (opts.variant) seed.fixture_variant = opts.variant;
   if (campaignId) seed.campaign_id = campaignId; // QB-P9 linkage
   const { data: run, error: iErr } = await db.from("quality_runs")
     .insert(seed).select("id").single();
@@ -551,7 +566,14 @@ async function runUnit(runId: string) {
         await heartbeat(runId);
         const size = resolveToolBatchSize(tool, toolStateForBatch, (run as any).batch_size);
         perToolSizes[tool] = size;
-        const inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch);
+        // ITEM 325 — per-tool fixture variant, falling back to the batch-level
+        // value and then to null (legacy, unlabelled).
+        const variantForTool = resolveToolVariant(
+          tool,
+          normalizeToolVariants((run as any).tool_variants),
+          normalizeVariant((run as any).fixture_variant),
+        );
+        const inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, { variant: variantForTool });
         if (!inv.ok) {
           results.push({
             tool, quality_run_id: null, run_number: null,
@@ -697,7 +719,7 @@ async function finalizeIfDone(runId: string) {
   })());
 }
 
-async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown)
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -706,6 +728,27 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   if (bad.length) return { ok: false, status: 400, err: `unknown tool slug(s): ${bad.join(", ")}` };
   const batchSize = Math.max(1, Math.min(50, Math.floor(Number(batchSizeRaw) || 0) || 5));
   const concurrency = concurrencyRaw == null ? DEFAULT_CONCURRENCY : clampConcurrency(concurrencyRaw);
+  // ITEM 325 — optional fixture variant. Absent ⇒ null ⇒ unchanged legacy path.
+  let variant: FixtureVariant | null = null;
+  let toolVariants: Record<string, FixtureVariant> | null = null;
+  try {
+    variant = normalizeVariant(variantRaw);
+    toolVariants = normalizeToolVariants(toolVariantsRaw);
+  } catch (e) {
+    return { ok: false, status: 400, err: (e as Error).message };
+  }
+  if (toolVariants) {
+    const badVar = Object.keys(toolVariants).filter((t) => !tools.includes(t));
+    if (badVar.length) return { ok: false, status: 400, err: `tool_variants references tools not in this run: ${badVar.join(", ")}` };
+  }
+  // MESSY-EMPTY PRE-CHECK — reject before the parent row exists so the console
+  // shows a 400 with the tool name instead of a batch that dies at dispatch.
+  const messyMissing = tools.filter(
+    (t) => resolveToolVariant(t, toolVariants, variant) === "messy" && intakesForVariant(t, "messy").length === 0,
+  );
+  if (messyMissing.length) {
+    return { ok: false, status: 400, err: `no messy fixtures authored yet for: ${messyMissing.join(", ")}` };
+  }
 
   // §16 MEASUREMENT-VALIDITY (fail-loud pre-insert).
   const modeCheck = await assertLtpModeForTools(tools);
@@ -729,6 +772,8 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
     concurrency, // QB-P7
     declared_count: tools.length * batchSize, // §16.n born-state
+    ...(variant ? { fixture_variant: variant } : {}),
+    ...(toolVariants ? { tool_variants: toolVariants } : {}),
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
@@ -747,11 +792,15 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
 // pins-override plumbing is required — a single-tool batch of size==pins.length
 // IS a pinned rerun. Used by both the internal (service-role) and admin-JWT
 // branches; `createdBy` MUST be a real admin UUID (schema is uuid NOT NULL).
-async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: string | null)
+async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: string | null, variant: FixtureVariant | null = null)
   : Promise<{ ok: true; runId: string; pins: number } | { ok: false; status: number; err: string }> {
   if (!RUN_QUALITY_BATCH_SLUGS.has(tool)) return { ok: false, status: 400, err: `unknown tool slug: ${tool}` };
-  const pins = goldenIntakes(tool);
-  if (!pins.length) return { ok: false, status: 400, err: `no goldens for tool ${tool}` };
+  const pins = variant ? intakesForVariant(tool, variant) : goldenIntakes(tool);
+  if (!pins.length) {
+    return variant === "messy"
+      ? { ok: false, status: 400, err: `no messy fixtures authored yet for tool ${tool}` }
+      : { ok: false, status: 400, err: `no goldens for tool ${tool}` };
+  }
   // §16 MEASUREMENT-VALIDITY (fail-loud pre-insert).
   const modeCheck = await assertLtpModeForTools([tool]);
   if (!modeCheck.ok) {
@@ -773,6 +822,7 @@ async function startPinnedRerunBatch(tool: string, createdBy: string, sentinel: 
     instrument_version: GRADER_CONTEXT_VERSION,
     concurrency: 1,
     declared_count: pins.length, // §16.n born-state (single tool)
+    ...(variant ? { fixture_variant: variant } : {}),
   }).select("id").single();
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
   const attribution = sentinel ? ` (attribution=${sentinel})` : "";
@@ -1196,7 +1246,7 @@ async function handler(req: Request) {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }
@@ -1275,7 +1325,10 @@ async function handler(req: Request) {
   // Kickoff → dispatch_wave calls seedAndResume which pins goldens by default,
   // so batch_size == pins.length IS a pinned rerun.
   if (body?.action === "pinned_rerun" && body?.tool) {
-    const res = await startPinnedRerunBatch(String(body.tool), userId, null);
+    let prVariant: FixtureVariant | null = null;
+    try { prVariant = normalizeVariant(body?.variant); }
+    catch (e) { return json({ error: (e as Error).message }, 400); }
+    const res = await startPinnedRerunBatch(String(body.tool), userId, null, prVariant);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ ok: true, action: "pinned_rerun", tool: body.tool, run_id: res.runId, pins: res.pins, build_stamp: BUILD_STAMP }, 202);
   }

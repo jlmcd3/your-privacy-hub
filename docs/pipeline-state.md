@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-08-01T08:14Z (Item 324 — cppa-risk pinned-fixture contract parity restored: the three revision-contract fixtures carried none of the eight Item 305 required-always § 7152 operands, aborting every /admin/quality-batch run on cppa-risk at start; 24 violations → 0, 6/6 pinned intakes now validate. Dedicated § 7152(a)(5)(A)–(H) corpus pin and a permanent parity guard added, 12 new tests. vitest 820/827 — same 7 pre-existing failures. Previously: Item 323 — Washington My Health My Data Act (RCW 19.373) ingested, verified, and activated in the biometric product as a DISTINCT authority alongside RCW 19.375. Five sections approved in provision_texts; 11 duty rows added; the Item 317 absence guards flipped, not deleted. vitest 807/814 — the 7 failures are the pre-existing font-size and cppa-risk/cyber fixture pins, untouched.)
+**Last updated:** 2026-08-01T08:27Z (Item 325 — `/admin/final-test` shipped: a separate CEO-ordered console route sharing ONE execution engine and ONE UI component with `/admin/quality-batch`, plus a per-tool Perfect/Messy fixture-variant toggle and a fleet-wide fixture × tool × variant CI contract matrix. Messy fixtures are not authored yet by design; a messy run is rejected by name. Legacy console behaviour verified unchanged. 2026-08-01T08:14Z (Item 324 — cppa-risk pinned-fixture contract parity restored: the three revision-contract fixtures carried none of the eight Item 305 required-always § 7152 operands, aborting every /admin/quality-batch run on cppa-risk at start; 24 violations → 0, 6/6 pinned intakes now validate. Dedicated § 7152(a)(5)(A)–(H) corpus pin and a permanent parity guard added, 12 new tests. vitest 820/827 — same 7 pre-existing failures. Previously: Item 323 — Washington My Health My Data Act (RCW 19.373) ingested, verified, and activated in the biometric product as a DISTINCT authority alongside RCW 19.375. Five sections approved in provision_texts; 11 duty rows added; the Item 317 absence guards flipped, not deleted. vitest 807/814 — the 7 failures are the pre-existing font-size and cppa-risk/cyber fixture pins, untouched.))
 
 ---
 
@@ -7646,3 +7646,27 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **Open:** (i) controller green-light to launch the cppa-risk batch; (ii) two normalizers now cover the same corpus row (Item 306 rejoins to `nonmedical`, Item 324 keeps the hyphen) — flagged, not unilaterally retired; (iii) `REQUIRED_ALWAYS_FILLERS` covers only the pre-305 required-always set, so the durable fix is the parity guard, not the fixture data.
 
 **Disposition:** BUILT / NOT DEPLOYED — Item 245 hold stands.
+
+---
+
+## 325. **DONE (2026-08-01T08:27Z, FINAL-TEST-CONSOLE + FIXTURE-VARIANT PLATFORM)** — additive; no behaviour change to `/admin/quality-batch`.
+
+**Decision respected:** CEO chose a genuinely separate page/route over extending `/admin/quality-batch` in place (an internal exploratory doc argued the opposite; not re-litigated).
+
+**1. Shared, not duplicated.** One execution engine (`quality-batch-orchestrator` → `run-quality-batch`) and one UI component (`src/components/admin/quality-console/QualityConsole.tsx`, lifted verbatim from the old page) serve both consoles. `src/pages/admin/QualityBatch.tsx` and the new `src/pages/admin/FinalTest.tsx` are 13- and 25-line wrappers.
+
+**2. Variant plumbing (additive).** New `_shared/quality/fixture-variant.ts` (`"perfect" | "messy"`; unknown values THROW rather than degrade to perfect). Threaded: request `variant` / `tool_variants` → `startRun` / `startPinnedRerunBatch` → `quality_batch_runs.fixture_variant` + `.tool_variants` → `seedAndResume` → `quality_runs.fixture_variant` → `quality_run_documents.fixture_variant` → grader payload header (`GOLDEN_FIXTURE_SET: … [variant=messy]`). Migration adds three nullable columns with NOT VALID enum checks.
+
+**3. DEFAULT-PATH LAW.** `showVariants=false` (what `/admin/quality-batch` renders) sends no variant field at all; a null variant resolves to `goldenIntakes(tool)` and produces a byte-identical grader header. `"perfect"` is an explicit LABEL for the same set — it changes what is stamped, never what is run.
+
+**4. MESSY-EMPTY GUARD.** No messy fixture exists for any tool (separate, upcoming work). `MESSY_BY_TOOL` is deliberately empty — no perfect fixtures copied in as placeholders, which would pass while measuring nothing. A messy start is rejected 400 pre-insert naming the tools; the dispatch path re-checks.
+
+**5. CONTRACT_BY_TOOL extracted** from `run-quality-batch/index.ts` (3.3k lines) to `_shared/intake-contracts/registry.ts` so CI can import it. Content unchanged.
+
+**6. CI matrix.** `src/registry/__tests__/fixture-contract-matrix.test.ts` — 11 tests, all passing: every contract-backed tool × every populated variant, run through the batch's own validator, plus the cppa-risk revision fixtures. Generic by construction: a new tool, contract, or the first messy fixture is covered automatically. This is the Item 324 lesson made permanent fleet-wide.
+
+**7. Verification.** vitest 838 tests: 831 pass, 7 fail — the SAME pre-existing font-size / cyber-fixture / W9-slot failures recorded at Item 324, none touched. `deno check` on both edge functions reports zero errors referencing the new identifiers (the 93 pre-existing supabase typed-client errors are unchanged). Both routes serve 200. Functions deployed.
+
+**Explicitly NOT claimed:** no batch was launched from either console (Item 245 hold + no-harness-invocation scope). The Messy path is verified only as far as its rejection message.
+
+**Disposition:** SHIPPED (platform) — Item 245 hold unaffected; messy fixture CONTENT remains open work.

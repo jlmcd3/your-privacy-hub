@@ -57,3 +57,24 @@ export function matchFixtureSet(tool: string, intake: unknown): string | null {
   }
   return null;
 }
+
+// ─── ITEM 325 — variant-aware pin resolution ────────────────────────────────
+// `/admin/final-test` selects a fixture VARIANT per tool. "perfect" resolves
+// to exactly the same set as the legacy unlabelled path (GOLDEN_BY_TOOL), so
+// labelling a run cannot change what it runs. "messy" resolves to the (as yet
+// unpopulated) MESSY_BY_TOOL set and returns an empty array when no messy
+// fixture has been authored — callers MUST treat empty as a loud failure,
+// never as "fall back to perfect".
+
+import type { FixtureVariant } from "../quality/fixture-variant.ts";
+import { MESSY_BY_TOOL } from "./messy-registry.ts";
+
+export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {
+  if (variant === "messy") return MESSY_BY_TOOL[tool] ?? [];
+  return GOLDEN_BY_TOOL[tool] ?? [];
+}
+
+/** Variant-aware sibling of goldenIntakes(). variant=null ⇒ legacy behaviour. */
+export function intakesForVariant(tool: string, variant: FixtureVariant | null): unknown[] {
+  return casesForVariant(tool, variant).map((c) => c.intake);
+}
