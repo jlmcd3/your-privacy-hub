@@ -1,0 +1,1 @@
+select cron.unschedule('item349-smoke-kick');
