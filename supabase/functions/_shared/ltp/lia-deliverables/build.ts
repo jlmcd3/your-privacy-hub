@@ -604,7 +604,7 @@ export const ADM_DEFAULT_LABEL: Record<string, string> = {
   not_applicable: "not applicable on this record",
 };
 
-function buildAutomatedDecisionAnalysis(
+export function buildAutomatedDecisionAnalysis(
   intake: unknown,
 ): AutomatedDecisionFinding {
   const f = readAdmJurisdictionFacts(intake);
