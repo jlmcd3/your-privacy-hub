@@ -73,7 +73,7 @@ Purpose: Required documentation: a specific, non-generic purpose identifying the
 
 ### Determination
 
-Syntara Believedbasis Corp. records exceptions status of Material gaps identified, because sector on the record is Believed-basis Pilot. In addition, company name on the record is the company. Further, assessment date on the record is 2026-07-06. However, exceptions claimed on the record is Fraud prevention / detection; Security and integrity of systems and data; Compliance with a legal obligation.
+Syntara Believedbasis Corp. records overall risk level of Moderate, because sector on the record is Believed-basis Pilot. In addition, assessment date on the record is 2026-07-06. However, exceptions status on the record is Material gaps identified. By contrast, exceptions claimed on the record is Fraud prevention / detection; Security and integrity of systems and data; Compliance with a legal obligation.
 
 ### Why this assessment is required *(degraded — no determination on the record)*
 

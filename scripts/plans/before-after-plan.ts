@@ -105,7 +105,13 @@ function inputsFromDonor(): Record<string, SectionInput> {
         .filter(([, v]) => v);
       // The determination is the donor's own outcome-bearing field where one
       // exists; otherwise the section degrades honestly.
-      const dIdx = entries.findIndex(([k]) => DETERMINATION_KEY.test(k));
+      // Prefer the section's headline outcome field where the donor has one.
+      const dIdx = (() => {
+        const priority = entries.findIndex(([k]) =>
+          /^(overall_risk_level|determination|conclusion|outcome)$/i.test(k)
+        );
+        return priority >= 0 ? priority : entries.findIndex(([k]) => DETERMINATION_KEY.test(k));
+      })();
       if (dIdx >= 0 && s.lead === "determination") {
         determination = `${entity} records ${label(entries[dIdx][0]).toLowerCase()} of ${
           trunc(entries[dIdx][1], 200)
@@ -113,7 +119,7 @@ function inputsFromDonor(): Record<string, SectionInput> {
       }
       entries.forEach(([k, v], i) => {
         if (i === dIdx || statements.length >= MAX_STATEMENTS) return;
-        if (/guidance_note|completion_guidance|version/i.test(k)) return;
+        if (/guidance_note|completion_guidance|version|company_name|entity_name/i.test(k)) return;
         statements.push({
           theme: s.themes[Math.min(statements.length, s.themes.length - 1)],
           topic: k,
