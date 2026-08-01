@@ -14,12 +14,13 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z";
+export const BUILD_STAMP = "ltp-risk-tm-cutover-item355@2026-08-01";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
+console.log(`[run-cppa-risk-assessment] boot engine_path=ltp cutover=T-M item=355 item245=RELEASED legacy_engine=item217-retained-not-called rollback="git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite"`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=${GRADER_CONTEXT_VERSION} risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
@@ -921,6 +922,28 @@ async function runPipeline(assessment_id: string) {
       // Cannot persist lifecycle state — abort before spending model time.
       return;
     }
+
+    // ── ITEM 355 — T-M CUTOVER (ATTEMPT #6), ENFORCE MODE ────────────────
+    // The customer path generates the cppa-risk document through the Legal
+    // Test Pipeline orchestrator. The Item-217 legacy composer below is
+    // RETAINED but NOT CALLED on this path.
+    // Rollback: git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment/index.ts
+    {
+      const { runLtpProduction } = await import("./_local/ltp/production-entry.ts");
+      const res = await runLtpProduction({
+        db: supabase,
+        assessmentId: assessment_id,
+        row: row as Record<string, unknown>,
+        buildStamp: BUILD_STAMP,
+        lifecycleUpdate,
+      });
+      console.log(JSON.stringify({
+        evt: "ltp_cutover_return", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, ok: res.ok, error: res.error ?? null,
+      }));
+      return;
+    }
+
 
     const { intake: fiveStage, wasLegacyShimmed, bandResolution } = normaliseIntake(row.intake_data ?? {});
 
