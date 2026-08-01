@@ -1306,6 +1306,44 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
  * still comes from the single deterministic detector in `factor-presence.ts`
  * via `derive.ts`, resolved through `entry-intake.ts` on every entry path.
  */
+/**
+ * ITEM 358 (FIX 1) — NEEDS CLASSIFICATION.
+ *
+ * A need is either:
+ *   • "missing_data"      — record data the customer has not supplied. These
+ *                           and ONLY these gate record completeness (and so
+ *                           the customer `risk_level` / `overall_score` band).
+ *   • "reserved_decision" — a determination the regulation RESERVES to a
+ *                           party (canonically the § 7152(a)(7) initiation
+ *                           decision, `j.initiation_decision`). It is not a
+ *                           record gap: no amount of intake resolves it, and
+ *                           an engine that gates the band on it can never
+ *                           render a band for ANY complete record.
+ *
+ * VERIFY-FIRST (Item 358 requirement). The Type-J inventory in
+ * `cppa-risk-conclusions.ts` carries three reserved judgments:
+ *   - j.initiation_decision        — resolution_source_fields undefined
+ *                                    (Item 252 Ruling B: "always-asking";
+ *                                    no intake field can resolve it)
+ *                                    → reserved_decision. CANONICAL.
+ *   - j.purpose_specificity_adequacy — resolution_source_fields
+ *                                    ["i1_processing_purpose"]
+ *   - j.safeguard_sufficiency      — resolution_source_fields ["a6_safeguards"]
+ * The latter two surface as needs ONLY when their source fields are absent
+ * from the record — i.e. the outstanding element IS missing record data —
+ * so they classify as `missing_data`. `need.comparable_set` (§ 7156(a)) is
+ * likewise an unanswered intake question → `missing_data`.
+ *
+ * The rule is therefore derived, not hand-listed: a Type-J need whose spec
+ * declares NO resolution_source_fields is a reserved decision; every other
+ * need is missing data.
+ */
+export type RecordNeedKind = "missing_data" | "reserved_decision";
+
+/** Status clause for a reserved decision in the record-sufficiency panel. */
+const RESERVED_DECISION_STATUS_CLAUSE =
+  "reserved to you for decision under the regulation; not a deficiency in the record as documented";
+
 export interface RecordNeed {
   /** Stable identity used by the consistency guard. */
   readonly need_id: string;
@@ -1315,6 +1353,8 @@ export interface RecordNeed {
   readonly question: string;
   /** Governing pinpoint for the ask. */
   readonly pinpoint: string;
+  /** ITEM 358 — sufficiency classification. */
+  readonly kind: RecordNeedKind;
 }
 
 export function computeRecordNeeds(plan: RenderPlan): RecordNeed[] {
@@ -1347,6 +1387,7 @@ export function computeRecordNeeds(plan: RenderPlan): RecordNeed[] {
         question:
           `Please confirm, for each additional use, whether ${joinList(unresolvedDims.map((k) => DIVERGENCE_DIMENSION_LABELS[k]))} ${unresolvedDims.length === 1 ? "is" : "are"} the same as the assessed activity or different, so the comparable-set question can be resolved.`,
         pinpoint: SECONDARY_ANCHOR_7156A,
+        kind: "missing_data",
       }]
     : [];
   const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
@@ -1359,14 +1400,31 @@ export function computeRecordNeeds(plan: RenderPlan): RecordNeed[] {
     }
     const label = propLabel(p) || conclusionLabel(p.conclusion_id) || "this reserved judgment";
     const anchor = conclusionAnchor(p.conclusion_id) ?? DOC_APPROVER_ANCHOR;
+    // ITEM 358 — no resolvable source field ⇒ the outstanding element is a
+    // reserved DECISION, not absent record data.
+    const kind: RecordNeedKind = fields.length === 0 ? "reserved_decision" : "missing_data";
+    const reservedTo = spec?.reserved_to === "legal_counsel"
+      ? "qualified legal counsel"
+      : spec?.reserved_to === "external_auditor"
+        ? "the external auditor"
+        : "the business";
     return [{
       need_id: `need.${p.conclusion_id}`,
       label,
-      question: `Please confirm or provide additional detail regarding ${label}.`,
+      question: kind === "reserved_decision"
+        ? `This element is a determination reserved to ${reservedTo} under the regulation rather than a gap in the assessment record. Please record ${lcFirst(label)}, the decisionmaker, and the date of the decision.`
+        : `Please confirm or provide additional detail regarding ${label}.`,
       pinpoint: anchor.pinpoint,
+      kind,
     }];
   })];
 }
+
+/** ITEM 358 — the sufficiency-gating subset: missing record data only. */
+export function missingDataNeeds(plan: RenderPlan): RecordNeed[] {
+  return computeRecordNeeds(plan).filter((n) => n.kind === "missing_data");
+}
+
 
 function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
   // ITEM 352 — renders the canonical needs set; no independent evaluation.
