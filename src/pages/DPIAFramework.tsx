@@ -34,6 +34,8 @@ import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useEdpbGuidelineRailEntry } from "@/hooks/useEdpbGuidelineRailEntry";
+
 import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
