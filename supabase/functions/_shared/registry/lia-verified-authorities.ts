@@ -648,6 +648,15 @@ export const LIA_UNANCHORED_PROPOSITIONS: readonly string[] = [
 
   // Statutory / SA guidance surface not held
   "uk_ico_lia_template_guidance",           // ICO LIA template guidance
+
+  // ITEM 326 — UK Annex 1. BINDING SCOPE LIMIT: Annex 1 to the UK GDPR is not
+  // held in gdpr_articles or provision_texts (verified by direct query
+  // 2026-08-01). The conditions that make a "recognised legitimate interest"
+  // available under Art. 6(1)(ea) therefore CANNOT be stated, paraphrased, or
+  // evaluated by this tool. Output may cite only that the basis exists and is
+  // conditioned on Annex 1, and must reserve the conditions to review.
+  "uk_annex_1_recognised_li_conditions",
+
   "cnil_direct_marketing_guidance",         // CNIL direct-marketing LI guidance
 
   // Balancing conclusion prose (structural, not quotable)
