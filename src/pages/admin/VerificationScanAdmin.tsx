@@ -31,6 +31,9 @@ type Health = {
   unverified: number;
   failed: number;
   requires_review: number;
+  // Item 334: the requires_review bucket split by cause.
+  review_corpus_defect: number;
+  review_genuine: number;
   memo_eligible: number;
   paraphrase_high: number;
   paraphrase_medium: number;
