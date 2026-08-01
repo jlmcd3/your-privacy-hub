@@ -1252,16 +1252,47 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
 
 
 
-function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
+/**
+ * ITEM 352 — SINGLE SOURCE OF TRUTH FOR RECORD NEEDS.
+ *
+ * ROOT CAUSE THIS CLOSES (Item 351 Phase-2 findings 1+2). Two surfaces
+ * computed "what the record still needs" from DIFFERENT operands:
+ *   • `information_needed` — outstanding Type-J reserved judgments plus the
+ *     § 7156(a) comparable-set ask (this function).
+ *   • `record_sufficiency` — the count of factor_table rows whose
+ *     `present_in_intake` was false, which sweeps in registry rows that are
+ *     structurally silent on the record (unselected § 7152(a)(5) harm codes,
+ *     § 7152(a)(6)(ii)/(iii) rows that have no contract-real operand at all).
+ * On the perfect fixture that produced "8 of these elements remain enumerated
+ * for your review" against an `information_needed` array carrying ONE item —
+ * a self-contradiction — and, before Item 350's presence fix reached
+ * factor_table, byte-identical sufficiency prose on both records.
+ *
+ * There is now exactly ONE needs evaluator. `composeInformationNeeded` and
+ * `composeRecordSufficiency` both consume it, so the two surfaces cannot
+ * disagree (enforced by the Item 352 consistency guard test). Presence itself
+ * still comes from the single deterministic detector in `factor-presence.ts`
+ * via `derive.ts`, resolved through `entry-intake.ts` on every entry path.
+ */
+export interface RecordNeed {
+  /** Stable identity used by the consistency guard. */
+  readonly need_id: string;
+  /** Customer-facing element label. */
+  readonly label: string;
+  /** Customer-facing ask. */
+  readonly question: string;
+  /** Governing pinpoint for the ask. */
+  readonly pinpoint: string;
+}
+
+export function computeRecordNeeds(plan: RenderPlan): RecordNeed[] {
   // CP4 (a)+(b) — Type J review items resolve display_label + own anchor.
   // ITEM 250 (Ruling B) — scaffold skip-logic. When a Type-J
   // ConclusionSpec carries a non-empty `resolution_source_fields`, and
   // every listed intake field has a non-empty value on the derived
   // intake_ledger, the reserved judgment is already resolved on the
   // record and MUST NOT surface as a review ask (grader check
-  // qc_r1_1_no_asks_on_resolved_tests). SCAFFOLD ONLY: no registry row
-  // populates the field today, so this is a no-op until the courier
-  // ITEM250-RULING-B-TYPEJ-RESOLUTION-FIELDS is CEO-signed.
+  // qc_r1_1_no_asks_on_resolved_tests).
   const ledgerByField = new Map(
     plan.intake_ledger.map((r) => [r.intake_field, r.value]),
   );
@@ -1276,20 +1307,18 @@ function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
   // become an explicit customer ask. No rows / no "Not sure" → no ask.
   const secondaryRows = secondaryActivityRows(plan);
   const unresolvedDims = unresolvedDivergenceDimensions(secondaryRows);
-  const comparableSetAsk: TemplateInstance[] = unresolvedDims.length > 0
+  const comparableSetNeed: RecordNeed[] = unresolvedDims.length > 0
     ? [{
-        template_id: "T.risk.documentation.gap",
-        ctx: {
-          doc_element_label:
-            "a completed comparison between the assessed activity and the additional uses recorded on the record",
-          customer_question:
-            `Please confirm, for each additional use, whether ${joinList(unresolvedDims.map((k) => DIVERGENCE_DIMENSION_LABELS[k]))} ${unresolvedDims.length === 1 ? "is" : "are"} the same as the assessed activity or different, so the comparable-set question can be resolved.`,
-          __cite: { PINPOINT: SECONDARY_ANCHOR_7156A },
-        },
+        need_id: "need.comparable_set",
+        label:
+          "a completed comparison between the assessed activity and the additional uses recorded on the record",
+        question:
+          `Please confirm, for each additional use, whether ${joinList(unresolvedDims.map((k) => DIVERGENCE_DIMENSION_LABELS[k]))} ${unresolvedDims.length === 1 ? "is" : "are"} the same as the assessed activity or different, so the comparable-set question can be resolved.`,
+        pinpoint: SECONDARY_ANCHOR_7156A,
       }]
     : [];
   const jProps = plan.propositions.filter((p) => p.epistemic_type === "J");
-  return [...comparableSetAsk, ...jProps.flatMap<TemplateInstance>((p) => {
+  return [...comparableSetNeed, ...jProps.flatMap<RecordNeed>((p) => {
     const spec = CPPA_RISK_CONCLUSIONS.find((c) => c.id === p.conclusion_id);
     const fields = spec?.resolution_source_fields ?? [];
     if (fields.length > 0 && fields.every(isPopulated)) {
@@ -1299,15 +1328,26 @@ function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
     const label = propLabel(p) || conclusionLabel(p.conclusion_id) || "this reserved judgment";
     const anchor = conclusionAnchor(p.conclusion_id) ?? DOC_APPROVER_ANCHOR;
     return [{
-      template_id: "T.risk.documentation.gap",
-      ctx: {
-        doc_element_label: label,
-        customer_question: `Please confirm or provide additional detail regarding ${label}.`,
-        __cite: { PINPOINT: anchor.pinpoint },
-      },
+      need_id: `need.${p.conclusion_id}`,
+      label,
+      question: `Please confirm or provide additional detail regarding ${label}.`,
+      pinpoint: anchor.pinpoint,
     }];
   })];
 }
+
+function composeInformationNeeded(plan: RenderPlan): TemplateInstance[] {
+  // ITEM 352 — renders the canonical needs set; no independent evaluation.
+  return computeRecordNeeds(plan).map<TemplateInstance>((need) => ({
+    template_id: "T.risk.documentation.gap",
+    ctx: {
+      doc_element_label: need.label,
+      customer_question: need.question,
+      __cite: { PINPOINT: need.pinpoint },
+    },
+  }));
+}
+
 
 function composeExceptionAnalysis(plan: RenderPlan): TemplateInstance[] {
   return plan.propositions
