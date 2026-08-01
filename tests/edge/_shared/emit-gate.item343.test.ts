@@ -62,13 +62,24 @@ Deno.test("ITEM 343: LTP shape — degrade preserves information_needed array (2
   assert(ids.includes("info_7152_a_6"), "\u00a7 7152(a)(6) row must survive");
   assert(ids.includes("info_7152_a_7"), "\u00a7 7152(a)(7) row must survive");
 
-  // The gate appends its own row rather than replacing.
-  const appended = report.information_needed.filter(
-    (r: any) => r.source === "emit_gate",
+  // ITEM 352 — CONTRACT CORRECTION. Item 343 preserved the array (kept
+  // above) but APPENDED a gate-internal row into it; the Item 351 live
+  // smoke leaked `info_emit_gate_disclaimer` and
+  // `info_emit_gate_submission_summary` onto the customer surface. The
+  // bookkeeping now lives in internal telemetry ONLY.
+  assertEquals(
+    report.information_needed.filter((r: any) => r.source === "emit_gate").length,
+    0,
+    "gate-internal rows must never enter the customer array",
   );
-  assertEquals(appended.length, 1);
-  assertEquals(appended[0].path, "$.opening_summary");
+  assertEquals(
+    report.information_needed.map((r: any) => r.id).some((id: string) => id.startsWith("info_emit_gate_")),
+    false,
+  );
+  const paths: string[] = report._meta.internal.emit_gate.degraded_paths;
+  assertEquals(paths, ["$.opening_summary"]);
 });
+
 
 Deno.test("ITEM 343: append is idempotent across repeated gate runs", () => {
   const report = ltpPayload();
