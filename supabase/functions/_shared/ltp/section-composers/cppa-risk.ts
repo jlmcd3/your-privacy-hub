@@ -1340,13 +1340,40 @@ function composeExceptionAnalysis(plan: RenderPlan): TemplateInstance[] {
 
 
 /**
- * ITEM 276 — § 7156(a) SECONDARY-USE SEGMENTATION ITEM.
+ * ITEM 319 (PROMPT A) — SHIPPED DIVERGENCE THRESHOLD.
+ *
+ * A dimension "diverges" ONLY when the record answers "Different". The
+ * recommendation threshold is ANY-DIVERGENCE: one divergent dimension out of
+ * the five § 7156(a)(1)-derived dimensions is enough to recommend a separate
+ * risk assessment. Where nothing diverges but one or more dimensions are
+ * unresolved ("Not sure"), the tool does NOT recommend bundling — it
+ * recommends resolving the unresolved dimensions first. Locked by
+ * `item319-secondary-recommendation.test.ts`; do not change silently.
+ */
+export function secondaryRecommendation(
+  divergence: Readonly<Record<string, string>>,
+): { verdict: "single" | "separate" | "unresolved"; diverging: string[]; unresolved: string[] } {
+  const keys = Object.keys(DIVERGENCE_DIMENSION_LABELS);
+  const diverging = keys.filter((k) => divergence[k] === "Different");
+  const unresolved = keys.filter((k) => (divergence[k] || "Not sure") === "Not sure");
+  const verdict = diverging.length > 0
+    ? "separate"
+    : unresolved.length > 0
+      ? "unresolved"
+      : "single";
+  return { verdict, diverging, unresolved };
+}
+
+/**
+ * ITEM 276 / ITEM 319 — § 7156(a) SECONDARY-USE SEGMENTATION ITEM.
  *
  * Emits ONE scope item when the customer reported additional uses of the
- * same data. Reserved framing only: the tool never green-lights bundling —
- * it states the comparable-set standard, reproduces the customer's own
- * comparison, and reserves the determination to the Company and counsel.
- * Absent secondary rows the function emits nothing (degradation law).
+ * same data. It states the comparable-set standard, reproduces the customer's
+ * own comparison IN FULL, and — since Item 319 — adds a directive
+ * recommendation per secondary activity. The recommendation is the tool's
+ * operational recommendation ("we recommend"), never a statement of what the
+ * law requires. Absent secondary rows the function emits nothing
+ * (degradation law).
  */
 function secondarySegmentationInstances(plan: RenderPlan): TemplateInstance[] {
   const rows = secondaryActivityRows(plan);
@@ -1370,6 +1397,24 @@ function secondarySegmentationInstances(plan: RenderPlan): TemplateInstance[] {
     });
     return `for ${r.name}: ${parts.join("; ")}`;
   });
+  const recommendations = rows.map((r) => {
+    const { verdict, diverging, unresolved } = secondaryRecommendation(r.divergence);
+    const labels = (keys: string[]) =>
+      joinList(keys.map((k) => DIVERGENCE_DIMENSION_LABELS[k]));
+    if (verdict === "separate") {
+      return `Recommended: conduct a separate risk assessment for ${r.name}. We recommend this because ${
+        diverging.length === 1 ? "one dimension of the comparison diverges" : `${diverging.length} dimensions of the comparison diverge`
+      } from the assessed activity — ${labels(diverging)}.`;
+    }
+    if (verdict === "unresolved") {
+      return `Recommended: resolve the open dimensions for ${r.name} before deciding. No dimension is recorded as different, but ${labels(unresolved)} ${
+        unresolved.length === 1 ? "is" : "are"
+      } unresolved on the record; we recommend a separate risk assessment for this activity unless ${
+        unresolved.length === 1 ? "that dimension is" : "those dimensions are"
+      } confirmed to be the same.`;
+    }
+    return `Recommended: ${r.name} can be addressed within this single assessment. We recommend this because none of the five comparison dimensions is recorded as differing from the assessed activity.`;
+  });
   return [{
     template_id: "T.risk.scope.secondary_segmentation",
     ctx: {
@@ -1377,10 +1422,12 @@ function secondarySegmentationInstances(plan: RenderPlan): TemplateInstance[] {
       secondary_activity_count_phrase: countPhrase,
       secondary_activity_list: list,
       secondary_divergence_clause: `${clauses.join(". ")}.`,
+      secondary_recommendation_clause: recommendations.join(" "),
       __cite: { PINPOINT_7156A: SECONDARY_ANCHOR_7156A },
     },
   }];
 }
+
 
 /**
  * CP4 (b) — SCOPE & TRIGGERS. One instance PER § 7150(b) prong. Each
