@@ -3,8 +3,8 @@
 // 7f0de458 (quality_run 0e744761, wave-27 run 140) per dispatch
 // W24A-V3-TURN-2026-07-26 (c). Read from DB, not retyped.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
-import { applyW24RiskTurnA } from "./_w24_risk_turna.ts";
+import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "../../../supabase/functions/run-cppa-risk-assessment/_w24a_v3.ts";
+import { applyW24RiskTurnA } from "../../../supabase/functions/run-cppa-risk-assessment/_w24_risk_turna.ts";
 
 // ── Verbatim wave-27 offending strings (doc 7f0de458) ────────────────────
 const SCOPE_NOTES_7F0DE458 =

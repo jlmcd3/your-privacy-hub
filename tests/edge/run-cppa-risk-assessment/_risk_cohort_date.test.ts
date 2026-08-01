@@ -18,8 +18,8 @@ import {
   DETERMINISTIC_COHORT_SENTENCE_25_50M,
   COHORT_DATE_LITERAL_25_50M,
   AUDIT_PERIOD_LITERAL_25_50M,
-} from "./_risk_cohort_date.ts";
-import { applyW24aV3 } from "./_w24a_v3.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_risk_cohort_date.ts";
+import { applyW24aV3 } from "../../../supabase/functions/run-cppa-risk-assessment/_w24a_v3.ts";
 
 // ── Corpus-pin: literals must match provision_texts.cppa-7121 §7121(a)(3) ──
 Deno.test("RCD [corpus pin]: literal date + audit period match § 7121(a)(3) verbatim", () => {

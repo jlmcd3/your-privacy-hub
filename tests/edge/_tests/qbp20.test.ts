@@ -8,21 +8,21 @@
 //   5. shadow score arithmetic.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
-import { validateIntake } from "../_shared/intake-contracts/validate.ts";
-import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
-import { cppaRiskContract } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
-import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
-import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";
-import { dpiaFrameworkContract } from "../_shared/intake-contracts/dpia-framework.ts";
-import { liAssessmentStageBContract } from "../_shared/intake-contracts/li-assessment.ts";
-import { dpaGeneratorContract } from "../_shared/intake-contracts/dpa-generator.ts";
-import { irPlaybookContract } from "../_shared/intake-contracts/ir-playbook.ts";
-import { biometricCheckerContract } from "../_shared/intake-contracts/biometric-checker.ts";
-import { buildSeedRow } from "../_shared/quality/seed-row.ts";
-import { lintFixture } from "../_shared/quality/fixture-lint.ts";
-import { evaluateGateV2 } from "../_shared/quality/gate-v2.ts";
-import { shadowScore } from "../_shared/quality/shadow-score.ts";
+import { GOLDEN_BY_TOOL } from "../../../supabase/functions/_shared/golden/registry.ts";
+import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
+import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
+import { cppaCybersecurityContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-cybersecurity.ts";
+import { governanceContract } from "../../../supabase/functions/_shared/intake-contracts/governance-assessment.ts";
+import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
+import { liAssessmentStageBContract } from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
+import { dpaGeneratorContract } from "../../../supabase/functions/_shared/intake-contracts/dpa-generator.ts";
+import { irPlaybookContract } from "../../../supabase/functions/_shared/intake-contracts/ir-playbook.ts";
+import { biometricCheckerContract } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker.ts";
+import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
+import { lintFixture } from "../../../supabase/functions/_shared/quality/fixture-lint.ts";
+import { evaluateGateV2 } from "../../../supabase/functions/_shared/quality/gate-v2.ts";
+import { shadowScore } from "../../../supabase/functions/_shared/quality/shadow-score.ts";
 
 const CONTRACTS: Record<string, unknown> = {
   "cppa-admt": cppaAdmtContract,

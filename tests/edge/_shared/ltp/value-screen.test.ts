@@ -8,7 +8,7 @@ import {
   VALUE_SCREEN_VERSION,
   LEAK_LEXICON,
   TRUNCATED_SLOT_VALUES,
-} from "./value-screen.ts";
+} from "../../../../supabase/functions/_shared/ltp/value-screen.ts";
 
 Deno.test("value-screen: version stamp (Item 237)", () => {
   assertEquals(VALUE_SCREEN_VERSION, "value-screen@2026-07-28-item244-addendum-slot-name-literals");

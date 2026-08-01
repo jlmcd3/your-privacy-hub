@@ -9,7 +9,7 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import type { RenderPlan } from "./schema.ts";
+import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 import {
   validateAuthorityDomain,
   validateAuthorityWeight,
@@ -18,10 +18,10 @@ import {
   validateRenderPlan,
   validateTypeRPolarity,
   validateTypeWFactorCompleteness,
-} from "./validators.ts";
-import { LIA_WEIGHING_TESTS } from "../factors/lia-factors.ts";
-import { LIA_CONCLUSIONS } from "../legal-test/lia-conclusions.ts";
-import { LIA_PASSG_INDEX_BY_TEST } from "../pass-g/lia-candidate-index.ts";
+} from "../../../../supabase/functions/_shared/render-plan/validators.ts";
+import { LIA_WEIGHING_TESTS } from "../../../../supabase/functions/_shared/factors/lia-factors.ts";
+import { LIA_CONCLUSIONS } from "../../../../supabase/functions/_shared/legal-test/lia-conclusions.ts";
+import { LIA_PASSG_INDEX_BY_TEST } from "../../../../supabase/functions/_shared/pass-g/lia-candidate-index.ts";
 
 function liaBasePlan(overrides: Partial<RenderPlan> = {}): RenderPlan {
   const plan: RenderPlan = {

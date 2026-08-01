@@ -14,7 +14,7 @@
 //     against cppa_authorities Cal. Civ. Code § 1798.140 corpus text.
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW10RiskB1, W12_RISK_D2_STAMP } from "./_w10_risk_b1.ts";
+import { applyW10RiskB1, W12_RISK_D2_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_w10_risk_b1.ts";
 
 Deno.test("TURN D — BUILD_STAMP restamped (w15-risk-factledger/w15-risk-regwire supersedes w12-risk-turnd)", async () => {
   const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));

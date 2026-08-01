@@ -8,8 +8,8 @@ import {
   buildFactLedger,
   enforceLedger,
   FACT_LEDGER_VERSION,
-} from "../_shared/intake/fact-ledger.ts";
-import { BUILD_STAMP } from "./index.ts";
+} from "../../../supabase/functions/_shared/intake/fact-ledger.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-admt-checker/index.ts";
 
 Deno.test("W15-ADMT-FL: BUILD_STAMP restamped (accepts w15, w16-hotfix, or w19 fallback-join variants)", () => {
   assert(

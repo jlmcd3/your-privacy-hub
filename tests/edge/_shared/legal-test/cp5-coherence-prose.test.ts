@@ -23,13 +23,13 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   buildRiskOpening,
   RISK_OPENING_SLOT_ORDER,
-} from "../openings/risk-opening.ts";
+} from "../../../../supabase/functions/_shared/openings/risk-opening.ts";
 import {
   assertShippedCoherence,
   detectShippedMode,
-} from "../report-contracts/cppa-risk-shape.ts";
-import { derivePlan } from "../ltp/derive.ts";
-import { composeSection } from "../ltp/section-composers/cppa-risk.ts";
+} from "../../../../supabase/functions/_shared/report-contracts/cppa-risk-shape.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
 
 Deno.test("CP5-CP: (a) RISK_OPENING_SLOT_ORDER is S2→S3→S4→S0→S1→S5→S6", () => {
   assertEquals(

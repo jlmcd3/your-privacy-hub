@@ -10,9 +10,9 @@ import {
   RISK_VERIFIED_AUTHORITIES,
   RISK_VERIFIED_AUTHORITY_VERSION,
   RISK_VERIFIED_AUTHORITY_ROWS,
-} from "../_shared/registry/risk-verified-authorities.ts";
-import { resolveByPropositionKey, registrySize } from "../_shared/verified-authority-resolver.ts";
-import { BUILD_STAMP } from "./index.ts";
+} from "../../../supabase/functions/_shared/registry/risk-verified-authorities.ts";
+import { resolveByPropositionKey, registrySize } from "../../../supabase/functions/_shared/verified-authority-resolver.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/index.ts";
 
 Deno.test("W15 (a) registry loads + version stamp exported + BUILD_STAMP w15-risk-* wave", () => {
   assert(RISK_VERIFIED_AUTHORITY_VERSION.startsWith("risk-va-w1-"), `unexpected va version: ${RISK_VERIFIED_AUTHORITY_VERSION}`);

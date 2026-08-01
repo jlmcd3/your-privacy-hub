@@ -10,7 +10,7 @@
 //       gate_outcomes) are replaced with adapter-derived values even if
 //       the model returned junk for them.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runPass1Llm } from "./pass1-llm.ts";
+import { runPass1Llm } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
 
 const BASE = {
   intake: { q1_revenue: "Over $100M", q2_consumers: "Over 100,000" } as Record<string, unknown>,

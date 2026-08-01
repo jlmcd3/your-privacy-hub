@@ -13,11 +13,11 @@
  * These tests fail if either regression returns.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { derivePlan } from "./derive.ts";
-import { composeSection } from "./section-composers/cppa-risk.ts";
-import { renderTemplate } from "./pass2-render.ts";
-import { resolveSlot } from "./slot-resolver.ts";
-import { PASS2_TEMPLATES } from "./content/pass2-templates.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { renderTemplate } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
+import { resolveSlot } from "../../../../supabase/functions/_shared/ltp/slot-resolver.ts";
+import { PASS2_TEMPLATES } from "../../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
 
 const FULL_INTAKE: Record<string, unknown> = {
   entity_name: "ClearPath Credit Solutions, Inc.",

@@ -1,6 +1,6 @@
 // QB-P26 Item 3 — E3 nesting-aware matcher regression test.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runFormatChecksIR as runFormatChecks } from "./format-checks.ts";
+import { runFormatChecksIR as runFormatChecks } from "../../../../supabase/functions/_shared/grader/format-checks.ts";
 
 Deno.test("E3 — nested [TO BE COMPLETED placeholders are recognised as closed", () => {
   // Reduced from IR run 474ac70f doc 02d9dca8: outer placeholder wraps two

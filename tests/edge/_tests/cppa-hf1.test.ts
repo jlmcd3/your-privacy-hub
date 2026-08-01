@@ -11,7 +11,7 @@ import {
   runCppaHf1Checks,
   runAdmtHf1Checks,
   ADMT_VERIFIED_CITES,
-} from "../_shared/grader/cppa-hf1-checks.ts";
+} from "../../../supabase/functions/_shared/grader/cppa-hf1-checks.ts";
 
 Deno.test("H1 — bans 'Article 11 ADMT' / 'Article 10 CCPA' phrasing", () => {
   const bad = "The Article 11 ADMT obligations do not attach.";

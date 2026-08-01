@@ -12,9 +12,9 @@
  *       pre-Item-276 prong-derived behaviour: no new templates emitted.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { derivePlan } from "./derive.ts";
-import { composeSection } from "./section-composers/cppa-risk.ts";
-import { renderTemplate } from "./pass2-render.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { renderTemplate } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
 
 const LEGACY_INTAKE: Record<string, unknown> = {
   entity_name: "ClearPath Credit Solutions, Inc.",

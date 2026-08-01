@@ -18,8 +18,8 @@ import {
   sanitizeCrosswalkText,
   W12_CYBER_E1_STAMP,
   type W12CyberE1Counters,
-} from "./_w12_cyber_e1.ts";
-import { rewriteComparativeAsOperative } from "./_w6_cyber_fix.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_w12_cyber_e1.ts";
+import { rewriteComparativeAsOperative } from "../../../supabase/functions/run-cppa-cybersecurity/_w6_cyber_fix.ts";
 
 function emptyCounters(): W12CyberE1Counters {
   return {

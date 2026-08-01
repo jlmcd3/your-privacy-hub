@@ -1,7 +1,7 @@
 // A1 + A2 (2026-07-24) — end-to-end pins for cppa-cyber pre-emit gates.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/testing/asserts.ts";
-import { applyW6CyberFix } from "./_w6_cyber_fix.ts";
-import { attachCyberAggregates, computeCyberAggregates, scrubAuthoredAggregates } from "./_w10_cyber_aggregates.ts";
+import { applyW6CyberFix } from "../../../supabase/functions/run-cppa-cybersecurity/_w6_cyber_fix.ts";
+import { attachCyberAggregates, computeCyberAggregates, scrubAuthoredAggregates } from "../../../supabase/functions/run-cppa-cybersecurity/_w10_cyber_aggregates.ts";
 
 // ── A1 (2026-07-24) — no "(N)" placeholder survives anywhere in the report ──
 Deno.test("A1 — no unresolved (N) placeholder survives in any narrative field", () => {

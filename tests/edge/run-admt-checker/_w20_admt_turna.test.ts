@@ -8,7 +8,7 @@ import {
   rewriteKeylessFallbackOnEntry,
   scrubSpliceVariants,
   W20_ADMT_TURNA_STAMP,
-} from "./_w20_admt_turna.ts";
+} from "../../../supabase/functions/run-admt-checker/_w20_admt_turna.ts";
 
 const FALLBACK = "the applicable ADMT-subchapter provision";
 

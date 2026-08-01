@@ -10,13 +10,13 @@ import {
   COUNSEL_REFERRAL_RE,
   hasCounselReferral,
   scanAdvisoryVoice,
-} from "../_shared/advisory-voice.ts";
-import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
-import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+} from "../../../supabase/functions/_shared/advisory-voice.ts";
+import { applyGraderCal1Filter } from "../../../supabase/functions/_shared/grader/post-filters.ts";
+import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
 import {
   runFormatChecksDPA,
   runFormatChecksIR,
-} from "../_shared/grader/format-checks.ts";
+} from "../../../supabase/functions/_shared/grader/format-checks.ts";
 
 // ─── §1: advisory formulas exist and are correctly spelled ───────────
 
@@ -203,13 +203,13 @@ Deno.test("COUNSEL-VOICE-1B: IR non-privilege counsel referral still fires E6", 
 // ─── §5: runFormatChecksGeneric wiring (7 remaining tools) ───────────
 
 Deno.test("COUNSEL-VOICE-1B: runFormatChecksGeneric flags bare advisory close", async () => {
-  const { runFormatChecksGeneric } = await import("../_shared/grader/format-checks.ts");
+  const { runFormatChecksGeneric } = await import("../../../supabase/functions/_shared/grader/format-checks.ts");
   const findings = runFormatChecksGeneric("Unknown; further clarification is advisable.");
   assert(findings.some((f) => f.check_id === "e5_bare_advisory_close" && !f.passed));
 });
 
 Deno.test("COUNSEL-VOICE-1B: extractProseFromReport skips reserved keys", async () => {
-  const { extractProseFromReport } = await import("../_shared/advisory-voice.ts");
+  const { extractProseFromReport } = await import("../../../supabase/functions/_shared/advisory-voice.ts");
   const rd = {
     executive_summary: "Consult your attorney about this obligation.",
     _meta: { prompt_version: "should-be-skipped" },

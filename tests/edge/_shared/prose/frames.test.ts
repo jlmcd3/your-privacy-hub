@@ -1,7 +1,7 @@
 // ITEM 338 (PROSE PROGRAM 2 of 4) — FRAME LINT + REALIZER TESTS.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { type Frame, type FrameSet, frameSetRenderable, lintFrame, lintFrameSet } from "./frames.ts";
-import { renderFrame, renderSectionFromFrames } from "./frame-render.ts";
+import { type Frame, type FrameSet, frameSetRenderable, lintFrame, lintFrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
+import { renderFrame, renderSectionFromFrames } from "../../../../supabase/functions/_shared/prose/frame-render.ts";
 import { CPPA_RISK_FRAMES } from "./frames/cppa-risk.frames.ts";
 
 const base = (over: Partial<Frame>): Frame => ({
@@ -144,12 +144,12 @@ Deno.test("F11 — an approved set renders; frame provenance is retained", () =>
 });
 
 // ── ITEM 346 — THREE-SLOT-TYPE AND NO-FLATTENING GUARANTEES ────────────
-import { buildCppaRiskFrameValues } from "./frames/cppa-risk.values.ts";
-import { checkCoverage, collectCoverageAtoms } from "./frame-coverage.ts";
-import { CPPA_RISK_ENGINE_CONCLUSIONS, resolveEngineConclusion } from "./engine-conclusions.ts";
-import { CPPA_RISK_LEGAL_PHRASINGS } from "./legal-phrasings.ts";
-import { buildActivityAnalytics } from "../ltp/analytic-deliverables/build.ts";
-import { CPPA_RISK_GOLDEN } from "../golden/cppa-risk.ts";
+import { buildCppaRiskFrameValues } from "../../../../supabase/functions/_shared/prose/frames/cppa-risk.values.ts";
+import { checkCoverage, collectCoverageAtoms } from "../../../../supabase/functions/_shared/prose/frame-coverage.ts";
+import { CPPA_RISK_ENGINE_CONCLUSIONS, resolveEngineConclusion } from "../../../../supabase/functions/_shared/prose/engine-conclusions.ts";
+import { CPPA_RISK_LEGAL_PHRASINGS } from "../../../../supabase/functions/_shared/prose/legal-phrasings.ts";
+import { buildActivityAnalytics } from "../../../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
+import { CPPA_RISK_GOLDEN } from "../../../../supabase/functions/_shared/golden/cppa-risk.ts";
 
 const SECTIONS_346 = [
   "opening_analysis",

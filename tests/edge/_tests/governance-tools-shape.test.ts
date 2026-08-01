@@ -9,8 +9,8 @@
 //     else empty. This test locks in that behavior for the fix.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";
-import { validateIntake } from "../_shared/intake-contracts/validate.ts";
+import { governanceContract } from "../../../supabase/functions/_shared/intake-contracts/governance-assessment.ts";
+import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
 
 Deno.test("governance contract: nested-object tools is rejected by validator", () => {
   const bad = {

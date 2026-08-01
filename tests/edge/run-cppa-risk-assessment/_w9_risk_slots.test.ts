@@ -8,7 +8,7 @@ import {
   buildSubmissionSummary,
   validateSlots,
   W9_RISK_SLOTS_STAMP,
-} from "./_w9_risk_slots.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_w9_risk_slots.ts";
 
 const baseIntake = {
   content_detail: {

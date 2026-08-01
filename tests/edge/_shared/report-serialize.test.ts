@@ -1,6 +1,6 @@
 // LEAK-PREV-P2 — serializer core tests.
 import { assertEquals, assert } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { serializeCustomerReport, SERIALIZER_VERSION, type ReportSchema } from "./report-serialize.ts";
+import { serializeCustomerReport, SERIALIZER_VERSION, type ReportSchema } from "../../../supabase/functions/_shared/report-serialize.ts";
 
 const TEST_SCHEMA: ReportSchema = {
   version: SERIALIZER_VERSION,

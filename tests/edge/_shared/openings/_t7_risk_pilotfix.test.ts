@@ -3,7 +3,7 @@
 // fields outside target set untouched.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runT7RiskPilotFix } from "./_t7_risk_pilotfix.ts";
+import { runT7RiskPilotFix } from "../../../../supabase/functions/_shared/openings/_t7_risk_pilotfix.ts";
 
 function seedMeta(rd: any, triggers: number[]) {
   rd._meta = { internal: { risk_t7_opening: { s1_triggers: triggers } } };

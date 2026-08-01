@@ -22,8 +22,8 @@ import {
 import {
   selectApplicableRows,
   resolveJurisdictions,
-} from "../_shared/registry/biometric-select.ts";
-import { BIOMETRIC_REGISTRY_VERSION } from "../_shared/registry/biometric-statute-registry.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/registry/biometric-select.ts";
+import { BIOMETRIC_REGISTRY_VERSION } from "../../../supabase/functions/_shared/registry/biometric-statute-registry.ts";
 
 // The WA golden fixture intake shape from _shared/golden/biometric-extra.ts
 // (Wave-1 registered: Washington HB1493). We rebuild only the intake fields

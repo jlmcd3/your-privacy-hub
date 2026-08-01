@@ -9,7 +9,7 @@ import {
   readAdmtScope,
   normalizeAdmtScopeShape,
   assertAdmtScopeShape,
-} from "../_shared/admt-scope-contract.ts";
+} from "../../../supabase/functions/_shared/admt-scope-contract.ts";
 
 Deno.test("readAdmtScope — nested-only report returns nested values", () => {
   const r = { scope_analysis: { is_admt: true, triggers_significant_decision: false, triggers_risk_assessment: true, human_review_qualifies: false, triggers_profiling: false, exception_qualifies: "cannot_determine" } };

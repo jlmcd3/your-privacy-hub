@@ -4,13 +4,13 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildSystemContent } from "../_shared/prompt-core.ts";
-import { DPIA_TOOL_MODULE } from "../run-dpia-framework/index.ts";
+import { buildSystemContent } from "../../../supabase/functions/_shared/prompt-core.ts";
+import { DPIA_TOOL_MODULE } from "../../../supabase/functions/run-dpia-framework/index.ts";
 import {
   resolveDpiaJurisdiction,
   renderResolvedBlock,
   type DpiaIntakeFacts,
-} from "../_shared/dpia-jurisdiction-registry.ts";
+} from "../../../supabase/functions/_shared/dpia-jurisdiction-registry.ts";
 
 const today = "2026-06-26";
 

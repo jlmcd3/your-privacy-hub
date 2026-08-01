@@ -2,7 +2,7 @@ import {
   canonicalizeSourceUrl,
   isOaicEnforcementTitle,
   extractOaicSubject,
-} from "./oaic.ts";
+} from "../../../supabase/functions/ingest-gov-enforcement/oaic.ts";
 
 // ── canonicalizeSourceUrl ───────────────────────────────────────────────────
 Deno.test("canonicalize: OAIC funnelback redirect → inner url decoded", () => {

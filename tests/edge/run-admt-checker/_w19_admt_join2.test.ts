@@ -17,8 +17,8 @@ import {
   collapseFallbackJoinAndFusion,
   rewriteInsufficientBasisFinding,
   W19_ADMT_JOIN2_STAMP,
-} from "./_w19_admt_join2.ts";
-import { BUILD_STAMP } from "./index.ts";
+} from "../../../supabase/functions/run-admt-checker/_w19_admt_join2.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-admt-checker/index.ts";
 
 const FALLBACK = "the applicable ADMT-subchapter provision";
 

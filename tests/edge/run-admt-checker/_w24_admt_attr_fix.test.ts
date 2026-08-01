@@ -6,7 +6,7 @@ import {
   scrubInformationNeededProse,
   rewriteOrDropUnresolvedTemplate,
   W24_ADMT_ATTR_STAMP,
-} from "./_w24_admt_attr_fix.ts";
+} from "../../../supabase/functions/run-admt-checker/_w24_admt_attr_fix.ts";
 
 Deno.test("stamp format", () => {
   assert(W24_ADMT_ATTR_STAMP.startsWith("w24-admt-attr@"));

@@ -2,7 +2,7 @@ import {
   parseRegisterDeterminations,
   normalizeEntity,
   datesWithin,
-} from "./oaic-register.ts";
+} from "../../../supabase/functions/ingest-gov-enforcement/oaic-register.ts";
 
 const FIXTURE = `
 Decision

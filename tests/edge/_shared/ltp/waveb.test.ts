@@ -3,11 +3,11 @@
  * Deno tests; run via supabase test-edge-functions harness.
  */
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runPass1Llm, PASS1_MANIFEST } from "./pass1-llm.ts";
-import { renderTemplate, assertCalibrationMatch } from "./pass2-render.ts";
-import { resolveSlot } from "./slot-resolver.ts";
-import { derivePlan } from "./derive.ts";
-import { PASS2_TEMPLATES, FIRM_VARIANT_CLOSENESS_MAX } from "./content/pass2-templates.ts";
+import { runPass1Llm, PASS1_MANIFEST } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
+import { renderTemplate, assertCalibrationMatch } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
+import { resolveSlot } from "../../../../supabase/functions/_shared/ltp/slot-resolver.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { PASS2_TEMPLATES, FIRM_VARIANT_CLOSENESS_MAX } from "../../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
 
 const buildStamp = "test-waveb";
 

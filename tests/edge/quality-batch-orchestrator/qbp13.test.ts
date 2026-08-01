@@ -17,7 +17,7 @@ import {
   INFLIGHT_STALE_MS,
   type CampaignToolState,
   type CampaignRowLite,
-} from "./index.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 
 const baseState = (over: Partial<CampaignToolState> = {}): CampaignToolState => ({
   batch_size: 3, max_runs: 6, runs_completed: 0, consecutive_ge98: 0,

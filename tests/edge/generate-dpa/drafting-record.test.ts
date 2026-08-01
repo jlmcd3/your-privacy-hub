@@ -10,8 +10,8 @@
 // the three-section wire contract: body / ANNOTATIONS / DRAFTING_RECORD.
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { buildGraderPayload } from "../_shared/grader/payload.ts";
-import { extractProseFromReport } from "../_shared/advisory-voice.ts";
+import { buildGraderPayload } from "../../../supabase/functions/_shared/grader/payload.ts";
+import { extractProseFromReport } from "../../../supabase/functions/_shared/advisory-voice.ts";
 
 Deno.test("QB-P25 A1 — buildGraderPayload strips _drafting_record", () => {
   const report = {

@@ -5,7 +5,7 @@
 // Alias: cppa_risk q1_revenue → normalised_intake.* is allowed via alias map.
 // Cyber: controls.c13_training → controls[12].status is allowed via alias map.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { qcChangedPathsAuthorized } from "../_shared/revision-qc.ts";
+import { qcChangedPathsAuthorized } from "../../../supabase/functions/_shared/revision-qc.ts";
 
 Deno.test("qcChangedPathsAuthorized: green — answered target and descendant paths pass", () => {
   const answered = [{ target: { path: "impact.severity_of_harm" } }];

@@ -1,7 +1,7 @@
 // W10-RISK-B1 tests — pin the two hallucination classes from batch 5e0558f3.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW10RiskB1, W10_RISK_B1_STAMP } from "./_w10_risk_b1.ts";
+import { applyW10RiskB1, W10_RISK_B1_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_w10_risk_b1.ts";
 
 Deno.test("W10-RISK-B1 stamp present", () => {
   assert(W10_RISK_B1_STAMP.startsWith("w10-risk-b1@"));

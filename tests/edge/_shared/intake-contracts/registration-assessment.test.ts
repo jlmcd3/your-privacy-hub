@@ -2,7 +2,7 @@
 // validate tests for the Registration Assessment intake contract.
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { validateIntake } from "./validate.ts";
+import { validateIntake } from "../../../../supabase/functions/_shared/intake-contracts/validate.ts";
 import {
   registrationContract,
   REGISTRATION_ORG_SIZES,
@@ -10,7 +10,7 @@ import {
   REGISTRATION_ROLES,
   REGISTRATION_EU_LEAD_CODES,
   REGISTRATION_MARKET_CODES,
-} from "./registration-assessment.ts";
+} from "../../../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
 
 Deno.test("registration contract / shape", () => {
   assertEquals(registrationContract.tool_type, "registration_assessment");

@@ -4,7 +4,7 @@
 // - NEW open_items using `i3_ca_consumer_band_composition` must resolve as
 //   `structured` (category composition object), NOT as re-select.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildOpenItems, rewriteI3CompositionAsks } from "../_shared/open-items.ts";
+import { buildOpenItems, rewriteI3CompositionAsks } from "../../../supabase/functions/_shared/open-items.ts";
 
 Deno.test("i3 legacy band key stays a re-select (historical open_items resolve)", () => {
   const items = buildOpenItems(

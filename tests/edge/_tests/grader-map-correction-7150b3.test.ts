@@ -11,7 +11,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   GRADER_CONTEXT_VERSION,
   SHARED_GRADER_CONTEXT,
-} from "../_shared/grader/context.ts";
+} from "../../../supabase/functions/_shared/grader/context.ts";
 
 Deno.test("instrument id bumped to s4", () => {
   assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-26-s5-eu-uk-ca-au-sg");

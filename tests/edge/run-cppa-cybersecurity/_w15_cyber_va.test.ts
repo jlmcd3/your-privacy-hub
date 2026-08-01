@@ -16,11 +16,11 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   CYBER_VERIFIED_AUTHORITIES,
   CYBER_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/cyber-verified-authorities.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
 import {
   resolveByPropositionKey,
   registrySize,
-} from "../_shared/verified-authority-resolver.ts";
+} from "../../../supabase/functions/_shared/verified-authority-resolver.ts";
 
 Deno.test("W15: BUILD_STAMP is w15-cyber-regwire@<iso> or w15-cyber-factledger@<iso>", async () => {
   const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));

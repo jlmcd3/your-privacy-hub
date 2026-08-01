@@ -6,8 +6,8 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   applyDeterministicPostGenFallback as applyRiskFallback,
   PROSE_FIELD_ID_MAP,
-} from "../run-cppa-risk-assessment/index.ts";
-import type { TestState } from "../_shared/cppa-test-states.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/index.ts";
+import type { TestState } from "../../../supabase/functions/_shared/cppa-test-states.ts";
 
 Deno.test("REBUILD-DPIA T10a: 'the M6 cohort determination' → 'the audit-cohort determination' (byte-exact)", () => {
   const report = { priority_actions: [{ text: "the M6 cohort determination" }], information_needed: [] };

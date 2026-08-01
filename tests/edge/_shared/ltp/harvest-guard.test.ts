@@ -3,17 +3,17 @@
  * Pure; no I/O. Exercises both keys and every rejection reason.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import type { RenderPlan } from "../render-plan/schema.ts";
+import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 import {
   evaluateHarvest,
   evaluateOpeningHarvest,
   evaluateSubmissionHarvest,
   HARVEST_GUARD_VERSION,
-} from "./harvest-guard.ts";
+} from "../../../../supabase/functions/_shared/ltp/harvest-guard.ts";
 import {
   renderCyberAuditSchedule,
   SCHEDULE_MARKER,
-} from "./cyber-audit-schedule.ts";
+} from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
 
 // Minimal plan factory: only the fields the guard reads.
 function makePlan(over: Partial<RenderPlan> = {}): RenderPlan {

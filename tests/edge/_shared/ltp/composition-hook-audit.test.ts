@@ -7,7 +7,7 @@ import {
   classifyPass1WriteAroundOrigin,
   CompositionHookAuditError,
   COMPOSITION_HOOK_AUDIT_VERSION,
-} from "./composition-hook-audit.ts";
+} from "../../../../supabase/functions/_shared/ltp/composition-hook-audit.ts";
 
 Deno.test("composition-hook-audit: version stamp (Item 230)", () => {
   assertEquals(COMPOSITION_HOOK_AUDIT_VERSION, "composition-hook-audit@2026-07-28-item230");

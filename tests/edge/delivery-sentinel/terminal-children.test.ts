@@ -6,7 +6,7 @@
 // (d) fail-open on driver exception.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { reapAllChildrenTerminal } from "./index.ts";
+import { reapAllChildrenTerminal } from "../../../supabase/functions/delivery-sentinel/index.ts";
 
 const NOW_MS = new Date("2026-07-25T15:00:00.000Z").getTime();
 

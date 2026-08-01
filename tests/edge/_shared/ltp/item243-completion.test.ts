@@ -15,10 +15,10 @@
 //                names and applicability propositions engage on those
 //                canonical inputs.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { screenPresentNoteCoherence } from "./pass1-present-note-coherence.ts";
-import { evaluateCppaRiskGates, FIELD_ALIASES } from "./gate-eval.ts";
-import type { FactorTableEntry, RenderPlan } from "../render-plan/schema.ts";
-import { RECORD_STATUS_CLAUSES } from "./content/pass2-templates.ts";
+import { screenPresentNoteCoherence } from "../../../../supabase/functions/_shared/ltp/pass1-present-note-coherence.ts";
+import { evaluateCppaRiskGates, FIELD_ALIASES } from "../../../../supabase/functions/_shared/ltp/gate-eval.ts";
+import type { FactorTableEntry, RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+import { RECORD_STATUS_CLAUSES } from "../../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
 
 const ANCHOR = { corpus_key: "cppa-7152", pinpoint: "11 CCR § 7152(a)(4)", jurisdiction_tag: "cppa-ca" as const };
 
@@ -53,7 +53,7 @@ Deno.test("defect 4 — RECORD_STATUS_CLAUSES includes the ADMT not-applicable c
 });
 
 Deno.test("defect 5 — factual gate id set defines exactly the four § 7152(a) documentation gates", async () => {
-  const mod = await import("./section-composers/cppa-risk.ts");
+  const mod = await import("../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts");
   const ids: ReadonlySet<string> = mod.DOCUMENTATION_FACTUAL_GATE_IDS;
   assertEquals(ids.size, 4);
   assert(ids.has("G.documentation.purpose_present"));
@@ -109,7 +109,7 @@ Deno.test("defect 4 (companion) — q18_admt_use negative blocks G.q18.admt_cons
 });
 
 Deno.test("defect 6 — ownerForKind returns per-KIND defaults (Type-J → qualified legal counsel)", async () => {
-  const mod = await import("./section-composers/cppa-risk.ts");
+  const mod = await import("../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts");
   // The function is not directly exported, but composePriorityActionsForTest
   // exercises the seam. We assert via a minimal plan that a Type-J action
   // uses "qualified legal counsel" as owner and a factor gap does not.

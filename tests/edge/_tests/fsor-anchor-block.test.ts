@@ -11,7 +11,7 @@
 //       echoing the bracketed anchor format into report prose.
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildFsorAnchorBlock, type FsorAnchorSpec } from "../_shared/fsor-anchor-block.ts";
+import { buildFsorAnchorBlock, type FsorAnchorSpec } from "../../../supabase/functions/_shared/fsor-anchor-block.ts";
 
 interface StubRow {
   regulation_citation: string;

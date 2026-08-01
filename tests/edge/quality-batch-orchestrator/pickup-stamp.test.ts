@@ -6,7 +6,7 @@
 // client and asserts the update is dispatched with the version string.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
 
 Deno.test("IR-HF1 T3 [pickup-stamp]: a row inserted with instrument_version NULL is stamped at pickup", () => {
   // Simulate the runUnit pickup gate. This mirrors the exact block added to

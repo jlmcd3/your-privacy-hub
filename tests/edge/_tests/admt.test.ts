@@ -4,9 +4,9 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildSystemContent } from "../_shared/prompt-core.ts";
-import { ADMT_TOOL_MODULE } from "../run-admt-checker/index.ts";
-import { resolveCitations, CITATION_REGISTRY } from "../_shared/admt-citation-registry.ts";
+import { buildSystemContent } from "../../../supabase/functions/_shared/prompt-core.ts";
+import { ADMT_TOOL_MODULE } from "../../../supabase/functions/run-admt-checker/index.ts";
+import { resolveCitations, CITATION_REGISTRY } from "../../../supabase/functions/_shared/admt-citation-registry.ts";
 
 const injected = "REGULATION AUTHORITIES:\n(none)\n\nCOMPLIANCE DEADLINES:\n(none)";
 

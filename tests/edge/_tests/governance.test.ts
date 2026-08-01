@@ -4,11 +4,11 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildSystemContent } from "../_shared/prompt-core.ts";
+import { buildSystemContent } from "../../../supabase/functions/_shared/prompt-core.ts";
 import {
   buildGovernanceDomainToolModule,
   buildGovernanceSynthesisToolModule,
-} from "../run-governance-assessment/index.ts";
+} from "../../../supabase/functions/run-governance-assessment/index.ts";
 
 const today = "2026-06-26";
 
@@ -111,7 +111,7 @@ Deno.test("Generic 'Return ONLY valid JSON' lives in the core, not duplicated in
 import {
   ASK_ELIGIBLE_CRITICAL_FIELDS,
   guardInformationNeeded,
-} from "../_shared/insufficient-info-guard.ts";
+} from "../../../supabase/functions/_shared/insufficient-info-guard.ts";
 
 Deno.test("P4 registry: governance_assessment is intentionally empty (CEO 2026-07-14)", () => {
   assertEquals(ASK_ELIGIBLE_CRITICAL_FIELDS.governance_assessment.length, 0);

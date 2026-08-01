@@ -1,9 +1,9 @@
 // ITEM 337 — PROSE PROGRAM 1, Part B/C/E tests.
 // Recorded cppa-risk processing_narrative defects used verbatim.
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { renderSlotValue, joinNaturalList, collapseRenderArtifacts, adapterFor } from "./slots.ts";
-import { applyMethodologyNote, stripMethodologySentences, METHODOLOGY_NOTE } from "./methodology.ts";
-import { lintNarrativeCitations, extractCitations } from "./citation-lint.ts";
+import { renderSlotValue, joinNaturalList, collapseRenderArtifacts, adapterFor } from "../../../../supabase/functions/_shared/prose/slots.ts";
+import { applyMethodologyNote, stripMethodologySentences, METHODOLOGY_NOTE } from "../../../../supabase/functions/_shared/prose/methodology.ts";
+import { lintNarrativeCitations, extractCitations } from "../../../../supabase/functions/_shared/prose/citation-lint.ts";
 
 const RISK = adapterFor("cppa-risk");
 

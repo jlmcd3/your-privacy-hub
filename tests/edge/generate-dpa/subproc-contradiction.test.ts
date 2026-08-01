@@ -72,7 +72,7 @@ Deno.test("subproc [clean] no-sub-processors clause on hasSubProcessors=false", 
 // Ensures the constant follows the expected shape so downstream ledger
 // dividers ("◈ EPOCH CHANGE") can parse it.
 Deno.test("MC-S1b epoch-stamp: GRADER_CONTEXT_VERSION shape", async () => {
-  const { GRADER_CONTEXT_VERSION } = await import("../_shared/grader/context.ts");
+  const { GRADER_CONTEXT_VERSION } = await import("../../../supabase/functions/_shared/grader/context.ts");
   assert(typeof GRADER_CONTEXT_VERSION === "string");
   assert(/^gc-\d{4}-\d{2}-\d{2}/.test(GRADER_CONTEXT_VERSION), `unexpected shape: ${GRADER_CONTEXT_VERSION}`);
 });

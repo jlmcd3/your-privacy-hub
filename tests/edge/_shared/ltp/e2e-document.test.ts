@@ -11,16 +11,16 @@
  *    No exceptions."
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assembleReport } from "./pass2-assembler.ts";
-import { derivePlan } from "./derive.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
 import {
   CPPA_RISK_SECTION_SHARDS,
   expectedEmissionForKey,
-} from "./section-shards/cppa-risk.ts";
-import { CPPA_RISK_REPORT_SCHEMA } from "../report-schemas/cppa-risk.ts";
-import { INTERPOLATION_RESIDUE_PATTERNS } from "./pass2-render.ts";
-import { composeSection } from "./section-composers/cppa-risk.ts";
-import { chooseVariant } from "./closeness.ts";
+} from "../../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
+import { CPPA_RISK_REPORT_SCHEMA } from "../../../../supabase/functions/_shared/report-schemas/cppa-risk.ts";
+import { INTERPOLATION_RESIDUE_PATTERNS } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { chooseVariant } from "../../../../supabase/functions/_shared/ltp/closeness.ts";
 
 const ALLOWED_OMIT_REASONS: readonly string[] = [
   "no_content",

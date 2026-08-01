@@ -3,8 +3,8 @@
 // first-occurrence kept, citations untouched, fail-open on malformed,
 // telemetry placement, and customer-surface leak guard.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyCyberBoilerplateGuard, CYBER_BOILER_VERSION } from "./_w17_cyber_boiler.ts";
-import { BUILD_STAMP } from "./index.ts";
+import { applyCyberBoilerplateGuard, CYBER_BOILER_VERSION } from "../../../supabase/functions/run-cppa-cybersecurity/_w17_cyber_boiler.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-cppa-cybersecurity/index.ts";
 
 const GENERIC_A =
   "Implement documented policies and procedures for this control aligned with the intake-elected framework; retain the supporting documentation per the § 7122(g) five-year audit-record retention rule and confirm coverage against § 7123(c). Assign an accountable owner and establish review cadence sufficient to evidence continuous operation over the audit period; escalate exceptions through the incident-management workflow.";

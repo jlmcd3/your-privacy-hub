@@ -8,7 +8,7 @@ import {
   buildSystemContent,
   PROMPT_CORE_VERSION,
   type ToolModule,
-} from "../_shared/prompt-core.ts";
+} from "../../../supabase/functions/_shared/prompt-core.ts";
 
 const toolModule: ToolModule = {
   identity: "You are a test specialist.",

@@ -7,8 +7,8 @@
 // `deterministic_checks` key.
 
 import { assert, assertEquals, assertExists } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runEmitGate, EMIT_GATE_VERSION } from "./emit-gate.ts";
-import { attachDeterministicChecks } from "./advisory-voice.ts";
+import { runEmitGate, EMIT_GATE_VERSION } from "../../../supabase/functions/_shared/emit-gate.ts";
+import { attachDeterministicChecks } from "../../../supabase/functions/_shared/advisory-voice.ts";
 
 const wellFormed =
   "The record identifies the certifying executive as the reported contact; the intake supports this position and no additional confirmation is required at this stage.";

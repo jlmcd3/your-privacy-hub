@@ -6,7 +6,7 @@ import {
   CAMPAIGN_TOKEN_BASIS,
   GPT_DISAGREEMENT_MAX,
   type CampaignToolState,
-} from "./index.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 
 const s = (over: Partial<CampaignToolState> = {}): CampaignToolState => ({
   batch_size: 3, max_runs: 6, runs_completed: 0, consecutive_ge98: 0,

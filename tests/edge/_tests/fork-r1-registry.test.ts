@@ -9,11 +9,11 @@ import {
   renderTransferAdequacyNote,
   renderGdprCitationBlock,
   AI_ACT,
-} from "../_shared/dpia-jurisdiction-registry.ts";
+} from "../../../supabase/functions/_shared/dpia-jurisdiction-registry.ts";
 import {
   renderIcoPenaltyFigures,
   ICO_FIGURES,
-} from "../_shared/enforcement-figures-registry.ts";
+} from "../../../supabase/functions/_shared/enforcement-figures-registry.ts";
 
 Deno.test("AI Act block: identity + four current-law phased dates + Omnibus WATCH as pending", () => {
   const out = renderAiActCitationBlock();

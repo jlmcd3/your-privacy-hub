@@ -9,8 +9,8 @@ import {
   resolveDutyAnchor,
   W24_ADMT_H6_STAMP,
   _internals,
-} from "./_w24_admt_h6.ts";
-import { ADMT_VERIFIED_AUTHORITIES } from "../_shared/registry/admt-verified-authorities.ts";
+} from "../../../supabase/functions/run-admt-checker/_w24_admt_h6.ts";
+import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
 
 Deno.test("stamp format", () => {
   assert(W24_ADMT_H6_STAMP.startsWith("w24-admt-h6@"));

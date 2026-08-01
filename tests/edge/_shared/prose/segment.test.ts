@@ -6,7 +6,7 @@ import {
   truncateAtSentenceBoundary,
   isAbbreviationFragment,
   rejoinSentences,
-} from "./segment.ts";
+} from "../../../../supabase/functions/_shared/prose/segment.ts";
 
 const HEDGE = "The organisation should confirm whether the described position applies here.";
 

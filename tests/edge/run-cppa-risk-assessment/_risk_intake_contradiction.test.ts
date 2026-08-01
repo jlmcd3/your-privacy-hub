@@ -4,7 +4,7 @@ import {
   applyRiskIntakeContradiction,
   RISK_INTAKE_CONTRADICTION_VERSION,
   RISK_INTAKE_CONTRADICTION_STAMP,
-} from "./_risk_intake_contradiction.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_risk_intake_contradiction.ts";
 
 // ── BEFORE-FIXTURE: w28 doc 1036f12c (quality_run 38cfb5d6) shapes ────────
 Deno.test("BEFORE-FIXTURE: profiling-established claim excised when q5b=No (doc 1036f12c shape A)", () => {

@@ -11,7 +11,7 @@ import {
   is7150B3,
   isDefinitional7001,
   resolveGoverningDutyAnchor,
-} from "./_h6_admt_anchor.ts";
+} from "../../../supabase/functions/run-admt-checker/_h6_admt_anchor.ts";
 
 // ── Unit — anchor classifiers ───────────────────────────────────────
 

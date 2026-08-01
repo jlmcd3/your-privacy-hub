@@ -9,7 +9,7 @@ import {
   buildDeadlineTable,
   validateAdmtSlots,
   W9_ADMT_SLOTS_STAMP,
-} from "./_w9_admt_slots.ts";
+} from "../../../supabase/functions/run-admt-checker/_w9_admt_slots.ts";
 
 Deno.test("stamp exists", () => { assert(W9_ADMT_SLOTS_STAMP.startsWith("w9-admt-turn2-slots@")); });
 

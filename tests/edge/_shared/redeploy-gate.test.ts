@@ -1,7 +1,7 @@
 // MC-S1b Task 9 — unit tests for the redeploy conflict-gate.
 // Runs under Deno test. Uses a hand-rolled fake DB.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { detectRedeployConflicts, summariseConflicts, OVERRIDE_TOKEN } from "./redeploy-gate.ts";
+import { detectRedeployConflicts, summariseConflicts, OVERRIDE_TOKEN } from "../../../supabase/functions/admin-redeploy/_local/redeploy-gate.ts";
 
 function fakeDb(fixtures: Record<string, any[]>) {
   return {

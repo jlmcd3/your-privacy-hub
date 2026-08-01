@@ -15,11 +15,11 @@ import {
   assertEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { validateIntake } from "../_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
 import {
   cppaCybersecurityContract,
   CYBER_MATURITY_OPTIONS,
-} from "../_shared/intake-contracts/cppa-cybersecurity.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/cppa-cybersecurity.ts";
 import {
   cppaRiskContract,
   REVENUE_OPTS as RISK_REVENUE_OPTS,
@@ -35,7 +35,7 @@ import {
   IMPACT_CYBER_GAPS_OPTS as RISK_IMPACT_CYBER,
   HARM_TYPES as RISK_HARM_TYPES,
   CPPA_RISK_INLINE_LISTS,
-} from "../_shared/intake-contracts/cppa-risk-assessment.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import {
   cppaAdmtContract,
   ADMT_VENDOR_STATUS_OPTS,
@@ -48,18 +48,18 @@ import {
   ADMT_DECISION_CADENCE_OPTS,
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
-} from "../_shared/intake-contracts/cppa-admt.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 import {
   liAssessmentStageAContract,
   liAssessmentStageBContract,
   DATA_CATEGORIES as LIA_DATA_CATEGORIES,
   RELATIONSHIPS as LIA_RELATIONSHIPS,
   JURISDICTIONS as LIA_JURISDICTIONS,
-} from "../_shared/intake-contracts/li-assessment.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
 import {
   governanceContract,
   GOVERNANCE_INLINE_LISTS,
-} from "../_shared/intake-contracts/governance-assessment.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/governance-assessment.ts";
 import {
   dpiaFrameworkContract,
   DPIA_DATA_CATS as CONTRACT_DPIA_DATA_CATS,
@@ -69,7 +69,7 @@ import {
   DPIA_REASONS as CONTRACT_DPIA_REASONS,
   DPIA_SAFEGUARDS as CONTRACT_DPIA_SAFEGUARDS,
   DPIA_TOOLS as CONTRACT_DPIA_TOOLS,
-} from "../_shared/intake-contracts/dpia-framework.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import {
   dpaGeneratorContract,
   DPA_JURISDICTIONS,
@@ -77,26 +77,26 @@ import {
   DPA_RETENTION_OPTIONS,
   DPA_AUDIT_RIGHTS_OPTIONS,
   DPA_TRANSFER_MECHANISM_OPTIONS,
-} from "../_shared/intake-contracts/dpa-generator.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/dpa-generator.ts";
 import {
   irPlaybookContract,
   IR_CAUSES,
   IR_DATA_TYPES,
   IR_JURISDICTIONS,
   IR_ORG_TYPES,
-} from "../_shared/intake-contracts/ir-playbook.ts";
+} from "../../../supabase/functions/_shared/intake-contracts/ir-playbook.ts";
 import {
   biometricCheckerContract,
   BIO_TYPES,
   BIO_ORG,
   BIO_PURPOSE,
   BIO_JURS,
-} from "../_shared/intake-contracts/biometric-checker.ts";
-import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
-import { CPPA_RISK_CONTRACT_FIXTURES } from "../_shared/cppa-risk-contract-fixtures.ts";
-import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
-import { GOVERNANCE_CONTRACT_FIXTURES } from "../_shared/governance-contract-fixtures.ts";
-import { FIELD_ENUM_MIRROR } from "../_shared/field-enums.ts";
+} from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker.ts";
+import { CYBER_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/cyber-contract-fixtures.ts";
+import { CPPA_RISK_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/cppa-risk-contract-fixtures.ts";
+import { ADMT_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/admt-contract-fixtures.ts";
+import { GOVERNANCE_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/governance-contract-fixtures.ts";
+import { FIELD_ENUM_MIRROR } from "../../../supabase/functions/_shared/field-enums.ts";
 
 // Form enums modules (zero imports; safe to load under Deno test).
 import { MATURITY as FORM_MATURITY } from "../../../src/pages/CPPACybersecurity.enums.ts";

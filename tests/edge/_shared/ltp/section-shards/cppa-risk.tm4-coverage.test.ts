@@ -17,10 +17,10 @@ import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.t
 import {
   CPPA_RISK_SECTION_SHARDS,
   CPPA_RISK_TEMPLATE_GAPS,
-} from "./cppa-risk.ts";
-import { PASS2_TEMPLATES } from "../content/pass2-templates.ts";
-import { runValueScreen } from "../value-screen.ts";
-import { derivePlan } from "../derive.ts";
+} from "../../../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
+import { PASS2_TEMPLATES } from "../../../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
+import { runValueScreen } from "../../../../../supabase/functions/_shared/ltp/value-screen.ts";
+import { derivePlan } from "../../../../../supabase/functions/_shared/ltp/derive.ts";
 
 // ─────────────────────────────────────────────────────────────────
 // (a) Gap-closure re-assertion.

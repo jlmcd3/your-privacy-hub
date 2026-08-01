@@ -4,7 +4,7 @@ import {
   renderCyberAuditSchedule,
   SCHEDULE_MARKER,
   SCHEDULE_LITERALS,
-} from "./cyber-audit-schedule.ts";
+} from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
 
 Deno.test("cyber-audit-schedule: renders all three tiers verbatim from corpus", () => {
   const s = renderCyberAuditSchedule();

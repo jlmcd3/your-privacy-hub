@@ -9,10 +9,10 @@
  * (c) T7 opening: no unhyphenated "systematicobservation" residue.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { composeSection } from "../ltp/section-composers/cppa-risk.ts";
-import { derivePlan } from "../ltp/derive.ts";
-import { PASS2_TEMPLATES } from "../ltp/content/pass2-templates.ts";
-import { buildRiskOpening } from "../openings/risk-opening.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { PASS2_TEMPLATES } from "../../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
+import { buildRiskOpening } from "../../../../supabase/functions/_shared/openings/risk-opening.ts";
 
 function fixturePlan() {
   return derivePlan({

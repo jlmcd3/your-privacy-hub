@@ -16,7 +16,7 @@ import {
 import {
   decideSubscriptionWrite,
   handleSubscriptionEvent,
-} from "../payments-webhook/index.ts";
+} from "../../../supabase/functions/payments-webhook/index.ts";
 
 type Write = {
   table: string;

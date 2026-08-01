@@ -1,7 +1,7 @@
 // QB-P17 item 4 — mixed-evidence corpus MUST survive the a4 filter.
 // Also verifies pure affirmations still drop, and dpa_defaults counters exist.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyGraderCal1Filter } from "./post-filters.ts";
+import { applyGraderCal1Filter } from "../../../../supabase/functions/_shared/grader/post-filters.ts";
 
 const MIXED_MUST_SURVIVE = [
   "The citation is correct but applied to the wrong proposition.",

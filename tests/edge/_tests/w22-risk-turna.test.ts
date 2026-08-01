@@ -3,8 +3,8 @@ import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.t
 import {
   applyW22RiskTurnA,
   W22_RISK_TURNA_STAMP,
-} from "../run-cppa-risk-assessment/_w22_risk_turna.ts";
-import { buildFactLedger } from "../_shared/intake/fact-ledger.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_w22_risk_turna.ts";
+import { buildFactLedger } from "../../../supabase/functions/_shared/intake/fact-ledger.ts";
 
 const PLACEHOLDER =
   "We could not verify this item from the information provided; it is listed under information needed.";

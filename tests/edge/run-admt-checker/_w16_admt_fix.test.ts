@@ -17,13 +17,13 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 
 import {
   ADMT_VERIFIED_AUTHORITIES,
-} from "../_shared/registry/admt-verified-authorities.ts";
+} from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
 import {
   resolveByCitationString,
   resolveByPropositionKey,
   normalizeCitationString,
-} from "../_shared/verified-authority-resolver.ts";
-import { stripModelCitations } from "../_shared/admt-citation-registry.ts";
+} from "../../../supabase/functions/_shared/verified-authority-resolver.ts";
+import { stripModelCitations } from "../../../supabase/functions/_shared/admt-citation-registry.ts";
 
 // ─────────────────────────────────────────────────────────────────────────
 // (a) reverse-lookup resolves § 7155(a)(1) with no proposition_key.

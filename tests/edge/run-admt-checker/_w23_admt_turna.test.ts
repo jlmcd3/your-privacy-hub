@@ -9,7 +9,7 @@ import {
   downgradeS7155InEntry,
   downgradeS7001ChainInEntry,
   W23_ADMT_TURNA_STAMP,
-} from "./_w23_admt_turna.ts";
+} from "../../../supabase/functions/run-admt-checker/_w23_admt_turna.ts";
 
 Deno.test("stamp: format w23-admt-turna@<ISO>", () => {
   assert(W23_ADMT_TURNA_STAMP.startsWith("w23-admt-turna@"));

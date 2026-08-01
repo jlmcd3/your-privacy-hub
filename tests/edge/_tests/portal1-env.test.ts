@@ -3,7 +3,7 @@
 // after live provisioning, detectEnv() always returned "live" and
 // sandbox portal requests hit the live gateway → "no such customer".
 import { assertEquals } from "https://deno.land/std@0.168.0/testing/asserts.ts";
-import { detectEnv } from "../create-portal-session/index.ts";
+import { detectEnv } from "../../../supabase/functions/create-portal-session/index.ts";
 
 Deno.test("detectEnv: explicit sandbox override wins even if live key present", () => {
   Deno.env.set("STRIPE_LIVE_API_KEY", "sk_live_dummy");

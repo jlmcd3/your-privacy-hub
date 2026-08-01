@@ -6,8 +6,8 @@ import {
   KNOWN_TOOL_SLUGS,
   TOOL_TABLE,
   handler,
-} from "../grade-single-assessment/index.ts";
-import { GRADER_STAMP } from "../ql3-orchestrator/index.ts";
+} from "../../../supabase/functions/grade-single-assessment/index.ts";
+import { GRADER_STAMP } from "../../../supabase/functions/ql3-orchestrator/index.ts";
 
 // ---------- TOOL_TABLE coverage ----------
 

@@ -2,7 +2,7 @@
 // No network I/O; the DB-backed create/advance/heartbeat paths get
 // end-to-end coverage in DS-T3 when the first tool wires the contract.
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { slaFor, DELIVERY_CONTRACT_STAMP, _testables } from "./delivery-contract.ts";
+import { slaFor, DELIVERY_CONTRACT_STAMP, _testables } from "../../../supabase/functions/quality-batch-orchestrator/_local/delivery-contract.ts";
 
 Deno.test("build stamp is stable", () => {
   assertEquals(DELIVERY_CONTRACT_STAMP, "ds-t2c@2026-07-25T04:53:00Z");

@@ -6,7 +6,7 @@ import {
   PICKUP_STALE_MS,
   REAP_STALE_MS,
   type KickoffRow,
-} from "../batch-kickoff-pickup/index.ts";
+} from "../../../supabase/functions/batch-kickoff-pickup/index.ts";
 import {
   buildQaFileName,
   bytesToBase64,
@@ -14,7 +14,7 @@ import {
   TOOL_SLUG_TO_PDF_TYPE,
   type ExportDeps,
   type QaDocRow,
-} from "../_shared/qa-pdf-export.ts";
+} from "../../../supabase/functions/_shared/qa-pdf-export.ts";
 
 const now = Date.parse("2026-07-17T12:00:00Z");
 const iso = (offsetMs: number) => new Date(now - offsetMs).toISOString();

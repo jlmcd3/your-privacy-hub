@@ -15,8 +15,8 @@ import {
   NEUTRAL_LABEL,
   RISK_INTAKE_FIELD_IDS,
   W18_RISK_VOCABSCRUB_STAMP,
-} from "./_w18_risk_vocab.ts";
-import { BUILD_STAMP } from "./index.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_w18_risk_vocab.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/index.ts";
 
 Deno.test("W18 BUILD_STAMP is w18-risk-vocabscrub@ (or w19 successor)", () => {
   assert(

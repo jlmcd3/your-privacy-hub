@@ -9,7 +9,7 @@ import {
   POST_LINT_LLM_BUDGET_MS,
   POST_LINT_LLM_MAX_CALL_MS,
   POST_LINT_PASS1_MAX_CALL_MS,
-} from "./retry-budget.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/retry-budget.ts";
 
 // SMOKE-HANG BRANCH-CORRECTION regression suite (item 202).
 // Contract: total post-lint work (retry + finalize + persist) must fit

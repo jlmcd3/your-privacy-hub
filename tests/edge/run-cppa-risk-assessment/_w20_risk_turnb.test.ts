@@ -1,7 +1,7 @@
 // W20-RISK-TURNB deterministic sanitizer tests.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "./_w20_risk_turnb.ts";
-import { applyW10RiskB1 } from "./_w10_risk_b1.ts";
+import { applyW20RiskTurnB, W20_RISK_TURNB_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_w20_risk_turnb.ts";
+import { applyW10RiskB1 } from "../../../supabase/functions/run-cppa-risk-assessment/_w10_risk_b1.ts";
 
 Deno.test("W20-TURNB: stamp present and shaped", () => {
   assert(W20_RISK_TURNB_STAMP.startsWith("w20-risk-turnb@"));

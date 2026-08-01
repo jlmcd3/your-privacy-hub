@@ -11,9 +11,9 @@ import {
   ADMT_INAPPLICABILITY_EXPLANATION,
   composeRecordSufficiencyForTest,
   composeSection,
-} from "./section-composers/cppa-risk.ts";
-import { evaluateLabelResidue } from "./replay/substance-gates.ts";
-import type { RenderPlan } from "../render-plan/schema.ts";
+} from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { evaluateLabelResidue } from "../../../../supabase/functions/_shared/ltp/replay/substance-gates.ts";
+import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 function ledger(field: string, value: string, display: string) {
   return { ledger_id: `L.${field}`, intake_field: field, value, display };

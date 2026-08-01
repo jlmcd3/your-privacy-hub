@@ -41,7 +41,7 @@ import {
   validateAISummary,
   validateSignalsPatch,
   validateActionItemsPatch,
-} from "../_shared/ai-validation.ts";
+} from "../../../supabase/functions/_shared/ai-validation.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAMPLE ARTICLES — fixed corpus the prompts are expected to handle correctly.

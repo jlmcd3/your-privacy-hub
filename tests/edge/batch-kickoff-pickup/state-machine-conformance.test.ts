@@ -17,8 +17,8 @@ import {
   isTerminal,
   stateKey,
   verifyStateMachine,
-} from "../_shared/harness/state-machine.ts";
-import { KICKOFF_ELIGIBLE, isKickoffEligible } from "./index.ts";
+} from "../../../supabase/functions/batch-kickoff-pickup/_local/harness/state-machine.ts";
+import { KICKOFF_ELIGIBLE, isKickoffEligible } from "../../../supabase/functions/batch-kickoff-pickup/index.ts";
 
 Deno.test("state machine — every non-terminal state has a primary owner", () => {
   for (const s of LEGAL_STATES) {

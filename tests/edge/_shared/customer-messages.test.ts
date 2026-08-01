@@ -9,7 +9,7 @@ import {
   labelForField,
   P,
   renderMessage,
-} from "./customer-messages.ts";
+} from "../../../supabase/functions/_shared/customer-messages.ts";
 
 Deno.test("version stamp exists", () => {
   assert(CUSTOMER_MESSAGES_VERSION.startsWith("cm-w"));

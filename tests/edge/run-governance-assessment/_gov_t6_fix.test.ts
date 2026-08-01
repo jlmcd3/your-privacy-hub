@@ -6,7 +6,7 @@
 import {
   assert, assertEquals, assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyGovT6Fix, _internals, GOV_T6_FIX_STAMP } from "./_gov_t6_fix.ts";
+import { applyGovT6Fix, _internals, GOV_T6_FIX_STAMP } from "../../../supabase/functions/run-governance-assessment/_gov_t6_fix.ts";
 
 // ── Class A: truncated citation string is nulled (no proposition_key) ──
 Deno.test("Class A: truncated 'Art. 5(' citation is nulled", () => {

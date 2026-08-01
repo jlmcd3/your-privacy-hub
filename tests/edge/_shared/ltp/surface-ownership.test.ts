@@ -16,11 +16,11 @@
  *       ruling path (belt-and-suspenders across the runtime guard).
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assembleReport } from "./pass2-assembler.ts";
-import { derivePlan } from "./derive.ts";
-import { CPPA_RISK_SECTION_SHARDS } from "./section-shards/cppa-risk.ts";
-import { CPPA_RISK_REPORT_SCHEMA } from "../report-schemas/cppa-risk.ts";
-import { RISK_CUT_RULINGS } from "./content/risk-surface-map.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { CPPA_RISK_SECTION_SHARDS } from "../../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
+import { CPPA_RISK_REPORT_SCHEMA } from "../../../../supabase/functions/_shared/report-schemas/cppa-risk.ts";
+import { RISK_CUT_RULINGS } from "../../../../supabase/functions/_shared/ltp/content/risk-surface-map.ts";
 
 const ASSEMBLER_PATH = new URL("../../../../supabase/functions/_shared/ltp/pass2-assembler.ts", import.meta.url);
 

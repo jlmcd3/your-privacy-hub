@@ -6,7 +6,7 @@ import {
   assertCreatedByIsRealUser,
   CreatedByGuardError,
   CREATED_BY_GUARD_VERSION,
-} from "./created-by-guard.ts";
+} from "../../../../supabase/functions/quality-batch-orchestrator/_local/harness/created-by-guard.ts";
 
 const REAL = "02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122";
 const alwaysTrue = async (_id: string) => true;

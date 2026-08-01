@@ -18,9 +18,9 @@
  * The hard assert stays commented out; Item 236 law still binds:
  * never weaken CPPA_RISK_GOLDEN_QUOTAS, never pad the fixture.
  */
-import { assembleReport } from "./pass2-assembler.ts";
-import { derivePlan } from "./derive.ts";
-import { evaluateGoldenShape } from "./golden-shape-quotas.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { evaluateGoldenShape } from "../../../../supabase/functions/_shared/ltp/golden-shape-quotas.ts";
 
 // Real archived intake — quality_archive.quality_run_documents_20260728.intake_data
 // for doc 43c17b1c-dbb7-467a-ad99-fc98e352cbac. Verbatim; do not paraphrase.

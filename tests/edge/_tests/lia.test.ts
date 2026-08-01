@@ -4,7 +4,7 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildSystemContent } from "../_shared/prompt-core.ts";
+import { buildSystemContent } from "../../../supabase/functions/_shared/prompt-core.ts";
 import {
   LIA_ANALYSIS_TOOL_MODULE,
   LIA_CLASSIFY_TOOL_MODULE,
@@ -14,8 +14,8 @@ import {
   applyDeterministicPostGenFallbackLia,
   computeLiaTestStates,
   LIA_M_HUMAN_MAP,
-} from "../run-li-assessment/index.ts";
-import { detectBlacklistPhrases } from "../_shared/blacklist-phrases.ts";
+} from "../../../supabase/functions/run-li-assessment/index.ts";
+import { detectBlacklistPhrases } from "../../../supabase/functions/_shared/blacklist-phrases.ts";
 
 const today = "2026-06-26";
 

@@ -1,6 +1,6 @@
 // QB-P21 unit test: shouldResurrect decision logic.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { shouldResurrect } from "./index.ts";
+import { shouldResurrect } from "../../../supabase/functions/run-quality-batch/index.ts";
 
 const now = Date.parse("2026-07-23T00:20:00Z");
 

@@ -10,7 +10,7 @@ import {
   scrubCounselReferralProse,
   W21_ADMT_TURNB_STAMP,
   _internals,
-} from "../run-admt-checker/_w21_admt_turnb.ts";
+} from "../../../supabase/functions/run-admt-checker/_w21_admt_turnb.ts";
 
 Deno.test("stamp has w21-admt-turnb prefix", () => {
   assert(W21_ADMT_TURNB_STAMP.startsWith("w21-admt-turnb@"));

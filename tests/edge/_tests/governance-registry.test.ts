@@ -22,7 +22,7 @@ import {
   GOVERNANCE_VERIFIED_AUTHORITY_VERSION,
   GOVERNANCE_UNANCHORED_PROPOSITIONS,
   KNOWN_PARAPHRASED_KEYS,
-} from "../_shared/registry/governance-verified-authorities.ts";
+} from "../../../supabase/functions/_shared/registry/governance-verified-authorities.ts";
 
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;

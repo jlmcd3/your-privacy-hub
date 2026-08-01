@@ -14,28 +14,28 @@ import {
   OUTCOME_STAGES,
   type PlannedSection,
   planRenderable,
-} from "./plan.ts";
+} from "../../../../supabase/functions/_shared/prose/plan.ts";
 import {
   CONNECTIVES,
   connectiveFor,
   connectiveMatchesRelation,
   joinWithConnective,
   type Relation,
-} from "./connectives.ts";
-import { applyMentionRule, MentionTracker } from "./mentions.ts";
-import { aggregateFacts } from "./aggregate.ts";
+} from "../../../../supabase/functions/_shared/prose/connectives.ts";
+import { applyMentionRule, MentionTracker } from "../../../../supabase/functions/_shared/prose/mentions.ts";
+import { aggregateFacts } from "../../../../supabase/functions/_shared/prose/aggregate.ts";
 import {
   auditSectionConnectives,
   renderDocumentFromPlan,
   renderPlannedSection,
-} from "./plan-render.ts";
+} from "../../../../supabase/functions/_shared/prose/plan-render.ts";
 import {
   edge,
   enumerateConnectives,
   LEAD_NODE,
   ReasoningGraph,
-} from "./reasoning-graph.ts";
-import type { FrameSet } from "./frames.ts";
+} from "../../../../supabase/functions/_shared/prose/reasoning-graph.ts";
+import type { FrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
 import { CPPA_RISK_PLAN } from "./plans/cppa-risk.plan.ts";
 import { DPIA_PLAN } from "./plans/dpia.plan.ts";
 import { GOVERNANCE_PLAN } from "./plans/governance.plan.ts";

@@ -17,7 +17,7 @@
 // make a failing registry pass — fix the registry.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { CPPA_RISK_CONCLUSIONS } from "./cppa-risk-conclusions.ts";
+import { CPPA_RISK_CONCLUSIONS } from "../../../../supabase/functions/_shared/legal-test/cppa-risk-conclusions.ts";
 import {
   CCPA_7150_B_1,
   CCPA_7150_B_2,
@@ -25,7 +25,7 @@ import {
   CCPA_7150_B_4,
   CCPA_7150_B_5,
   CCPA_7150_B_6,
-} from "../openings/ccpa-7150-pin.ts";
+} from "../../../../supabase/functions/_shared/openings/ccpa-7150-pin.ts";
 
 /** Corpus fixture: § 7150(b)(N) → verbatim subdivision text. */
 const CORPUS_7150_B: Readonly<Record<string, string>> = {

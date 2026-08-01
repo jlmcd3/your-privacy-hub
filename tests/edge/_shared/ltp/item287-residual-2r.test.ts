@@ -12,7 +12,7 @@ import {
   acronymDerivedStem,
   carriedNumericEndpoints,
   PASS2R_PART_HOME,
-} from "./pass2r-validators.ts";
+} from "../../../../supabase/functions/_shared/ltp/pass2r-validators.ts";
 
 Deno.test("FIX 1 — endpoints of a carried en-dash range are carried values", () => {
   const set = carriedNumericEndpoints(["100,000–249,999"]);

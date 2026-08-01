@@ -4,7 +4,7 @@ import {
   isHhsOcrEnforcementUrl,
   extractHhsSubject,
   normalizeRegulatorLabel,
-} from "./us-ingest.ts";
+} from "../../../supabase/functions/ingest-gov-enforcement/us-ingest.ts";
 
 // ── FTC URL gate ────────────────────────────────────────────────────────────
 const FTC_PASS = [

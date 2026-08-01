@@ -8,8 +8,8 @@ import {
   DPIA_M_TOKEN_MAP,
   dedupeStringArrayPreserveOrder,
   correctOssTemplateFromRecord,
-} from "../run-dpia-framework/index.ts";
-import { logPostGenLint } from "../_shared/function-run-logger.ts";
+} from "../../../supabase/functions/run-dpia-framework/index.ts";
+import { logPostGenLint } from "../../../supabase/functions/_shared/function-run-logger.ts";
 
 Deno.test("REBUILD-DPIA T3a: DPIA fallback drops resolved-source information_needed", () => {
   const testStates = {

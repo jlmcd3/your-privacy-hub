@@ -16,7 +16,7 @@ import {
   inFlightEntries,
   type BatchRow,
   type ChildSnapshot,
-} from "../quality-batch-orchestrator/index.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 
 
 Deno.test("slug set matches the run-quality-batch slugs exactly", () => {
@@ -316,7 +316,7 @@ import {
   CAMPAIGN_MAX_RUNS,
   type CampaignRowLite,
   type CampaignToolState,
-} from "../quality-batch-orchestrator/index.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 
 const seed: CampaignToolState = {
   batch_size: 3, max_runs: 10, runs_completed: 0,

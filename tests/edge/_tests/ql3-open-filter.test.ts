@@ -1,6 +1,6 @@
 // QL3-OPEN-1 pin: register with mixed statuses yields OPEN-only dummy set.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { selectOpenForRevision, BUILD_STAMP } from "../ql3-orchestrator/index.ts";
+import { selectOpenForRevision, BUILD_STAMP } from "../../../supabase/functions/ql3-orchestrator/index.ts";
 
 Deno.test("QL3-OPEN-1 selectOpenForRevision — [open, resolved, not_resolved] → 1 open item", () => {
   const register = [

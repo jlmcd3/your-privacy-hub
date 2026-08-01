@@ -22,7 +22,7 @@ import {
   IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION,
   IR_PLAYBOOK_UNANCHORED_PROPOSITIONS,
   KNOWN_PARAPHRASED_KEYS,
-} from "../_shared/registry/ir-playbook-verified-authorities.ts";
+} from "../../../supabase/functions/_shared/registry/ir-playbook-verified-authorities.ts";
 
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;

@@ -4,7 +4,7 @@ import {
   applyW9AdmtPreEmitGates,
   W9_ADMT_PRE_EMIT_STAMP,
   _internals,
-} from "./_w9_admt_pre_emit_gates.ts";
+} from "../../../supabase/functions/run-admt-checker/_w9_admt_pre_emit_gates.ts";
 
 Deno.test("W9 pre-emit / G1: § 7001 sole-anchor duty sentence gains operative fallback", () => {
   const report: any = {

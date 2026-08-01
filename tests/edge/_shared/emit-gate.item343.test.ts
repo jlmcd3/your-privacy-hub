@@ -7,7 +7,7 @@
 // §7152(a)(6)/(a)(7) rows.
 
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runEmitGate } from "./emit-gate.ts";
+import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 
 const wellFormed =
   "The record identifies the certifying executive as the reported contact; the intake supports this position and no additional confirmation is required at this stage.";

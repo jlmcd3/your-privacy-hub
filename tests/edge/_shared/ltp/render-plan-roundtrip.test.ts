@@ -4,7 +4,7 @@
 // invariant that lets us persist it verbatim under
 // _meta.internal.render_plan and hand it back to downstream body assembly.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { derivePlan } from "./derive.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
 
 Deno.test("derive→persist round-trip: minimal intake yields JSON-stable plan", () => {
   const plan = derivePlan({

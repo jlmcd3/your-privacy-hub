@@ -3,8 +3,8 @@
 // alongside the existing quality-batch orchestrator tests.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyGraderCal1Filter, recomputeOverallPreCal1 } from "../_shared/grader/post-filters.ts";
-import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+import { applyGraderCal1Filter, recomputeOverallPreCal1 } from "../../../supabase/functions/_shared/grader/post-filters.ts";
+import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
 
 Deno.test("GRADER-CAL-2 T5: legacy NOTE FOR LEGAL REVIEW is no longer whitelisted", () => {
   // Prompts prohibit the heading; a leak finding quoting it must survive
@@ -135,7 +135,7 @@ Deno.test("GRADER-CAL-1 B [already-resolved-in-code]: pickup-stamp guard tracks 
 // GRADER-CAL-2 regression tests
 // ---------------------------------------------------------------------------
 
-import { _internals as fmt } from "../_shared/grader/format-checks.ts";
+import { _internals as fmt } from "../../../supabase/functions/_shared/grader/format-checks.ts";
 
 Deno.test("GRADER-CAL-2 T1: bare owner-cell role title is exempt", () => {
   const doc = "| Action | Owner |\n| Update DPIA | Legal Counsel |\n";

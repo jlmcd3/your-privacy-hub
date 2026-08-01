@@ -21,7 +21,7 @@ import {
   PASS2R_VALIDATOR_IDS,
   type Pass2rProseDocument,
   type Pass2rWhitelist,
-} from "./pass2r-validators.ts";
+} from "../../../../supabase/functions/_shared/ltp/pass2r-validators.ts";
 
 const WL: Pass2rWhitelist = {
   citations: ["11 CCR § 7152(a)(5)", "11 CCR § 7156(a)"],

@@ -22,7 +22,7 @@ import {
   enforceLedger,
   FACT_LEDGER_VERSION,
   rewriteUnsupported,
-} from "./fact-ledger.ts";
+} from "../../../../supabase/functions/_shared/intake/fact-ledger.ts";
 
 // ── Version pin ─────────────────────────────────────────────────────────
 Deno.test("version stamp is v4 LEAK-PREV-P0 tag", () => {
@@ -321,13 +321,13 @@ Deno.test("rewriteUnsupported produces D2-consistent phrasing", () => {
 // v3 (sb-fl-w3-2026-07-25) FACT-LEDGER-W17-GAP extractor tests
 // ═══════════════════════════════════════════════════════════════════════
 
-import type { Claim } from "./fact-ledger.ts";
+import type { Claim } from "../../../../supabase/functions/_shared/intake/fact-ledger.ts";
 import {
   ANCHOR_SKIP_KEYS,
   extractComparativeClaims,
   extractProseClaims,
   splitAggregatedClaim,
-} from "./fact-ledger.ts";
+} from "../../../../supabase/functions/_shared/intake/fact-ledger.ts";
 
 Deno.test("v3 exports ANCHOR_SKIP_KEYS matching RISK-INTERNAL-VOCAB-SCRUB list", () => {
   const set = new Set(ANCHOR_SKIP_KEYS);

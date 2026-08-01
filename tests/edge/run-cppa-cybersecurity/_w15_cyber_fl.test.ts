@@ -10,8 +10,8 @@ import {
   buildFactLedger,
   enforceLedger,
   FACT_LEDGER_VERSION,
-} from "../_shared/intake/fact-ledger.ts";
-import { BUILD_STAMP } from "./index.ts";
+} from "../../../supabase/functions/_shared/intake/fact-ledger.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-cppa-cybersecurity/index.ts";
 
 Deno.test("W15-CYBER-FL: BUILD_STAMP restamped (accepts w15/w16-hotfix/w17-boiler/w21-turnc variants)", () => {
   assert(

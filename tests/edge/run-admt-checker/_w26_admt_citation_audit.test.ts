@@ -12,7 +12,7 @@ import {
   splitSentences,
   substituteFallbackWithPinpoint,
   W26_ADMT_CITATION_AUDIT_STAMP,
-} from "./_w26_admt_citation_audit.ts";
+} from "../../../supabase/functions/run-admt-checker/_w26_admt_citation_audit.ts";
 
 const FALLBACK = "the applicable ADMT-subchapter provision";
 

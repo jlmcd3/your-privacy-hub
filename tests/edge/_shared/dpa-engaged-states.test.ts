@@ -13,7 +13,7 @@
 import {
   detectNonEngagedStateAssertions,
   deriveEngagedStates,
-} from "./dpa-engaged-states.ts";
+} from "../../../supabase/functions/generate-dpa/_local/dpa-engaged-states.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 // -------------------- Class 1: CAUGHT --------------------

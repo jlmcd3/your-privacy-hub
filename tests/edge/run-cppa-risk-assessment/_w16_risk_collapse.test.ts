@@ -6,7 +6,7 @@
 // information_needed; (vii) fail-open on malformed report; (viii) telemetry
 // placement leak guard.
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { BUILD_STAMP } from "./index.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/index.ts";
 
 // Local mirror of the production prose pass semantics for unit coverage.
 const TRIGGER_KW = /\b(sell|shar(?:e|ing)|target(?:ed|ing)?\s+ad|sensitive|profil|admt|automated\s+decision|train(?:ing)?|biometric|infer|systematic\s+observation|location|worker|student|applicant|monitor)/i;

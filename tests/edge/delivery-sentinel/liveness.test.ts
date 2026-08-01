@@ -3,7 +3,7 @@
 // to exercise latestHarnessBatchActivity() and the refresh path.
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { latestHarnessBatchActivity } from "./index.ts";
+import { latestHarnessBatchActivity } from "../../../supabase/functions/delivery-sentinel/index.ts";
 
 function fakeAdmin(batch: any, kids: any[]) {
   return {

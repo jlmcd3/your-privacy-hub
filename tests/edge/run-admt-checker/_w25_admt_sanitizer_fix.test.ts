@@ -12,7 +12,7 @@ import {
   splitSentences,
   rejoinSentences,
   W25_ADMT_SANITIZER_STAMP,
-} from "./_w25_admt_sanitizer_fix.ts";
+} from "../../../supabase/functions/run-admt-checker/_w25_admt_sanitizer_fix.ts";
 
 Deno.test("splitSentences — preserves terminators and trailing fragment", () => {
   const s = "First one. Second two! Third three? Trailing";

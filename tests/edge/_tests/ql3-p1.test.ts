@@ -7,12 +7,12 @@ import {
   GRADER_STAMP,
   medianOrNull,
   emptyGraderSamples,
-} from "../ql3-orchestrator/index.ts";
+} from "../../../supabase/functions/ql3-orchestrator/index.ts";
 import {
   decideBatchStep,
   snapshotDocs,
   BUILD_STAMP as BATCH_BUILD_STAMP,
-} from "../ql3-batch-orchestrator/index.ts";
+} from "../../../supabase/functions/ql3-batch-orchestrator/index.ts";
 
 // ---------- incorporation comparator ----------
 

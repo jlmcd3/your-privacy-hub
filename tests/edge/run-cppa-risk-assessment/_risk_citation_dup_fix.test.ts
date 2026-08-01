@@ -7,7 +7,7 @@ import {
   isDefectiveTriggerComparison,
   isAdmtConsequence,
   RISK_CITATION_DUP_FIX_VERSION,
-} from "./_risk_citation_dup_fix.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_risk_citation_dup_fix.ts";
 
 // ── Invariant unit tests ──────────────────────────────────────────────
 

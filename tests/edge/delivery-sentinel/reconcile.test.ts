@@ -3,7 +3,7 @@
 // the .from().update().eq().not().select() shape used in the impl.
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { reconcileQualityBatchRun } from "./index.ts";
+import { reconcileQualityBatchRun } from "../../../supabase/functions/delivery-sentinel/index.ts";
 
 interface Captured {
   table?: string;

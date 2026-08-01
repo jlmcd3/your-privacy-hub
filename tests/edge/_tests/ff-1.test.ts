@@ -1,9 +1,9 @@
 // FF-1 tests: truncation opt-out, export retry sweep bounds, DPIA authority
 // backfill, Risk tri-bool normalisation.
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { invokeGated } from "../_shared/invoke-gated.ts";
-import { backfillDpiaAuthorities, DPIA_AUTHORITY_MAP } from "../run-dpia-framework/index.ts";
-import { shimLegacyIntake } from "../_shared/cppa-risk-normalise.ts";
+import { invokeGated } from "../../../supabase/functions/_shared/invoke-gated.ts";
+import { backfillDpiaAuthorities, DPIA_AUTHORITY_MAP } from "../../../supabase/functions/run-dpia-framework/index.ts";
+import { shimLegacyIntake } from "../../../supabase/functions/_shared/cppa-risk-normalise.ts";
 
 Deno.test("FF-1 T1 — invokeGated default preserves 500-char cap (existing callers)", async () => {
   // Sanity check on the option surface. We cannot easily hit a real endpoint

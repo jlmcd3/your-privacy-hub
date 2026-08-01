@@ -16,20 +16,20 @@
 
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { validateIntake } from "../_shared/intake-contracts/validate.ts";
-import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
+import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import type { IntakeContract } from "../../../supabase/functions/_shared/intake-contracts/types.ts";
 
-import { GOLDEN_BY_TOOL } from "../_shared/golden/registry.ts";
+import { GOLDEN_BY_TOOL } from "../../../supabase/functions/_shared/golden/registry.ts";
 
-import { cppaAdmtContract }         from "../_shared/intake-contracts/cppa-admt.ts";
-import { cppaRiskContract }         from "../_shared/intake-contracts/cppa-risk-assessment.ts";
-import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
-import { governanceContract }       from "../_shared/intake-contracts/governance-assessment.ts";
-import { dpiaFrameworkContract }    from "../_shared/intake-contracts/dpia-framework.ts";
-import { liAssessmentStageBContract } from "../_shared/intake-contracts/li-assessment.ts";
-import { dpaGeneratorContract }     from "../_shared/intake-contracts/dpa-generator.ts";
-import { irPlaybookContract }       from "../_shared/intake-contracts/ir-playbook.ts";
-import { biometricCheckerContract } from "../_shared/intake-contracts/biometric-checker.ts";
+import { cppaAdmtContract }         from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
+import { cppaRiskContract }         from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
+import { cppaCybersecurityContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-cybersecurity.ts";
+import { governanceContract }       from "../../../supabase/functions/_shared/intake-contracts/governance-assessment.ts";
+import { dpiaFrameworkContract }    from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
+import { liAssessmentStageBContract } from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
+import { dpaGeneratorContract }     from "../../../supabase/functions/_shared/intake-contracts/dpa-generator.ts";
+import { irPlaybookContract }       from "../../../supabase/functions/_shared/intake-contracts/ir-playbook.ts";
+import { biometricCheckerContract } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker.ts";
 
 // MUST mirror CONTRACT_BY_TOOL in run-quality-batch/index.ts. If a new
 // contract is added there, add it here (test intentionally hand-mirrored so

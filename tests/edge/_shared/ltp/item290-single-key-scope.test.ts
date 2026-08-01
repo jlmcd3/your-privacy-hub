@@ -19,8 +19,8 @@ import {
   CPPA_RISK_SECTION_SHARDS,
   deriveTopLevelAllowedKeys,
   shardKeys,
-} from "./section-shards/cppa-risk.ts";
-import { composeSection } from "./section-composers/cppa-risk.ts";
+} from "../../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
 
 Deno.test("ITEM 290 — no scope_confirmation shard is declared", () => {
   const keys = CPPA_RISK_SECTION_SHARDS.map((s) => s.key);

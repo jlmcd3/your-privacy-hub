@@ -7,8 +7,8 @@ import {
   applyW23RiskTurnB,
   W23_RISK_TURNB_STAMP,
   W23_RISK_TURNB_VERSION,
-} from "../run-cppa-risk-assessment/_w23_risk_turnb.ts";
-import { buildFactLedger } from "../_shared/intake/fact-ledger.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_w23_risk_turnb.ts";
+import { buildFactLedger } from "../../../supabase/functions/_shared/intake/fact-ledger.ts";
 
 const TYPE_CASE =
   "The intake on profiling and systematic observation does not support this statement; it must be reconciled before use.. Civ. Code § 1798.140(ag)/(j) is not documented";

@@ -1,7 +1,7 @@
 // WAVE24-FIX TURN A (cppa-risk) — deterministic tests.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "./_w24_risk_turna.ts";
-import { applyW23RiskTurnB } from "./_w23_risk_turnb.ts";
+import { applyW24RiskTurnA, W24_RISK_TURNA_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_w24_risk_turna.ts";
+import { applyW23RiskTurnB } from "../../../supabase/functions/run-cppa-risk-assessment/_w23_risk_turnb.ts";
 
 Deno.test("W24-TURNA: stamp shape", () => {
   assert(W24_RISK_TURNA_STAMP.startsWith("w24-risk-turna@"));
@@ -217,7 +217,7 @@ Deno.test("W24-A regression pin (doc 93a8313b input shape): resolved cohort emit
 });
 
 // ── Bimodal emitter tests (W24-RISK-TURNA §1) ──────────────────────────
-import { applyW21RiskTurnA } from "./_w21_risk_turna.ts";
+import { applyW21RiskTurnA } from "../../../supabase/functions/run-cppa-risk-assessment/_w21_risk_turna.ts";
 
 Deno.test("W24-A bimodal: resolved branch emits unhedged claim with § 7121(a)(3) pinpoint", () => {
   const report: Record<string, unknown> = {

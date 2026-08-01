@@ -8,14 +8,14 @@
  *      report; the assembler surfaces the report under exit_checks.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { composeSection, aggregateBalance } from "../ltp/section-composers/cppa-risk.ts";
-import { derivePlan } from "../ltp/derive.ts";
-import { assembleReport } from "../ltp/pass2-assembler.ts";
+import { composeSection, aggregateBalance } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
 import {
   CPPA_RISK_GOLDEN_QUOTAS,
   evaluateGoldenShape,
-} from "../ltp/golden-shape-quotas.ts";
-import type { RenderPlan } from "../render-plan/schema.ts";
+} from "../../../../supabase/functions/_shared/ltp/golden-shape-quotas.ts";
+import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 function planWithGateOutcomes(gates: RenderPlan["gate_outcomes"]): RenderPlan {
   return {

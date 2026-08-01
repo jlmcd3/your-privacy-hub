@@ -6,7 +6,7 @@
 //   (c) the forced-degradation magic-token path still trips ONLY on the
 //       change-controlled token (Item 173(c) — regression from prior file).
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runPass1Llm, PASS1_ABORT_TIMEOUT_ERROR } from "./pass1-llm.ts";
+import { runPass1Llm, PASS1_ABORT_TIMEOUT_ERROR } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
 
 const BASE = {
   intake: { q1_revenue: "Over $100M" } as Record<string, unknown>,
@@ -84,7 +84,7 @@ Deno.test("pass1-llm: N=2 aborts → write_around with pass1_abort_timeout", asy
 // adapter MUST override it to `triggered:false` so the cutover ships the
 // assembler body instead of routing to Type-J with a stale clock_cap origin.
 Deno.test({ name: "pass1-llm: model-emitted triggered=true is IGNORED on validator-clean ok", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const { derivePlan } = await import("./derive.ts");
+  const { derivePlan } = await import("../../../../supabase/functions/_shared/ltp/derive.ts");
   // Build a real, validator-clean plan via the deterministic shadow
   // arm, then decorate it with a stray triggered=true to simulate a
   // model that copied the flag through.

@@ -5,7 +5,7 @@
 // orchestrator loop would otherwise never honor their cancel flag.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { decidePickup, PICKUP_STALE_MS } from "./index.ts";
+import { decidePickup, PICKUP_STALE_MS } from "../../../supabase/functions/batch-kickoff-pickup/index.ts";
 
 const NOW_MS = new Date("2026-07-27T03:30:00.000Z").getTime();
 const STALE = new Date(NOW_MS - (PICKUP_STALE_MS + 60_000)).toISOString();

@@ -7,7 +7,7 @@
 // Uses an in-memory Stripe stub — no gateway calls.
 
 import { assertEquals, assertStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { resolveOrCreateCustomer } from "../_shared/stripe.ts";
+import { resolveOrCreateCustomer } from "../../../supabase/functions/_shared/stripe.ts";
 
 type FakeCustomer = {
   id: string;

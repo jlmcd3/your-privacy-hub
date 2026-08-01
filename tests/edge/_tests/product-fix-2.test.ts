@@ -2,7 +2,7 @@
 // sharing (q5_sell_share = "Yes — share for advertising only" / "Both")
 // to targeted_advertising=true.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { shimLegacyIntake } from "../_shared/cppa-risk-normalise.ts";
+import { shimLegacyIntake } from "../../../supabase/functions/_shared/cppa-risk-normalise.ts";
 
 Deno.test("T1: 'share for advertising only' -> targeted_advertising=true", () => {
   const out = shimLegacyIntake({ q5_sell_share: "Yes — share for advertising only" });

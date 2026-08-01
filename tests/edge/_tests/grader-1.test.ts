@@ -10,8 +10,8 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   collectRationaleEntries,
   evaluateResolvedHedgePerField,
-} from "../_shared/grader/qc-r1-per-field.ts";
-import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+} from "../../../supabase/functions/run-quality-batch/_local/grader/qc-r1-per-field.ts";
+import { detectTestStatesLeak } from "../../../supabase/functions/_shared/cppa-test-states.ts";
 
 const HEDGE = /(cannot be determined|cannot determine|unable to (?:confirm|verify|resolve)|please (?:confirm|verify|clarify)|to (?:be )?confirm(?:ed)?|pending confirmation|no basis to assess|insufficient (?:basis|information))/i;
 

@@ -4,8 +4,8 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildSystemContent } from "../_shared/prompt-core.ts";
-import { CPPA_RISK_TOOL_MODULE } from "../run-cppa-risk-assessment/index.ts";
+import { buildSystemContent } from "../../../supabase/functions/_shared/prompt-core.ts";
+import { CPPA_RISK_TOOL_MODULE } from "../../../supabase/functions/run-cppa-risk-assessment/index.ts";
 
 const injected = [
   "ENFORCEMENT CONTEXT FROM CORPUS:\n(none)",

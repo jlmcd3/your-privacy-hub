@@ -5,15 +5,15 @@ import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   applyW1DpaWire,
   W1_DPA_WIRE_STAMP,
-} from "../generate-dpa/_w1_dpa_wire.ts";
+} from "../../../supabase/functions/generate-dpa/_w1_dpa_wire.ts";
 import {
   DPA_VERIFIED_AUTHORITIES,
   DPA_UNANCHORED_PROPOSITIONS,
   DPA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/dpa-verified-authorities.ts";
-import { DPA_REPORT_SCHEMA } from "../_shared/report-schemas/dpa.ts";
-import { serializeCustomerReport } from "../_shared/report-serialize.ts";
-import { runEmitGate } from "../_shared/emit-gate.ts";
+} from "../../../supabase/functions/_shared/registry/dpa-verified-authorities.ts";
+import { DPA_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/dpa.ts";
+import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
+import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 
 const REGISTRY_KEYS = Object.keys(DPA_VERIFIED_AUTHORITIES);
 assert(REGISTRY_KEYS.length > 0, "registry must have at least one row");

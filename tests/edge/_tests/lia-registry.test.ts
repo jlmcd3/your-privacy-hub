@@ -22,7 +22,7 @@ import {
   LIA_VERIFIED_AUTHORITY_VERSION,
   LIA_UNANCHORED_PROPOSITIONS,
   KNOWN_PARAPHRASED_KEYS,
-} from "../_shared/registry/lia-verified-authorities.ts";
+} from "../../../supabase/functions/_shared/registry/lia-verified-authorities.ts";
 
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;

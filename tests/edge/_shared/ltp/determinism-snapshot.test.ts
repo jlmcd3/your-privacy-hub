@@ -13,8 +13,8 @@
  * that could mask drift).
  */
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assembleReport } from "./pass2-assembler.ts";
-import { derivePlan } from "./derive.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
 
 export const DETERMINISM_SNAPSHOT_VERSION = "determinism-snapshot-2026-07-29-item247";
 

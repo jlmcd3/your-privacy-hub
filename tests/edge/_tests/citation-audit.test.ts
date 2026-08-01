@@ -3,7 +3,7 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { auditCitations } from "../_shared/citation-audit.ts";
+import { auditCitations } from "../../../supabase/functions/generate-registration-docs/_local/citation-audit.ts";
 
 // Stub LLM caller that returns a fixed verdict array.
 function stubLLM(verdicts: Array<{ citation: string; verdict: string; looksFabricated?: boolean }>) {

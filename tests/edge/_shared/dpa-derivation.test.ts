@@ -4,7 +4,7 @@
 //   deno test --allow-none supabase/functions/_shared/dpa-derivation.test.ts
 
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { detectDocType, frameworkFor } from "./dpa-derivation.ts";
+import { detectDocType, frameworkFor } from "../../../supabase/functions/generate-dpa/_local/dpa-derivation.ts";
 
 type Row = { name: string; ctrl: string; proc: string; explicit?: unknown; expected: string; expectedCtrlMapped?: boolean; expectedProcMapped?: boolean };
 

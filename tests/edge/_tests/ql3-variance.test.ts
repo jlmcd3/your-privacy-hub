@@ -8,7 +8,7 @@ import {
   seedFromSamples,
   VARIANCE_BAND_FLOOR,
   VARIANCE_BOOTSTRAP_B,
-} from "../_shared/ql3-variance.ts";
+} from "../../../supabase/functions/ql3-orchestrator/_local/ql3-variance.ts";
 
 Deno.test("floor applies when pre samples coincide (zero variance)", () => {
   // Identical pre samples → bootstrapped sigma = 0 → band = floor.

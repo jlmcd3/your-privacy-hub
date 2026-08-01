@@ -5,7 +5,7 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import type { RenderPlan } from "./schema.ts";
+import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 import {
   lintPass2Output,
   lintPersuasiveMarking,
@@ -18,8 +18,8 @@ import {
   validateRenderPlan,
   validateTypeRPolarity,
   validateTypeWFactorCompleteness,
-} from "./validators.ts";
-import { WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
+} from "../../../../supabase/functions/_shared/render-plan/validators.ts";
+import { WEIGHING_TESTS } from "../../../../supabase/functions/_shared/factors/cppa-risk-factors.ts";
 
 function basePlan(overrides: Partial<RenderPlan> = {}): RenderPlan {
   const plan: RenderPlan = {

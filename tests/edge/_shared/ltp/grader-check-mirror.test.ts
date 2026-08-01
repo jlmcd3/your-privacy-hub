@@ -41,12 +41,12 @@
  *   runs 157–164 (0 fails).
  */
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assembleReport } from "./pass2-assembler.ts";
-import { derivePlan } from "./derive.ts";
-import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../legal-test/cppa-risk-conclusions.ts";
-import { composeSection } from "./section-composers/cppa-risk.ts";
-import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "./cyber-audit-schedule.ts";
-import { CUSTOMER_COHORT_PATTERNS } from "./harvest-guard.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../../../../supabase/functions/_shared/legal-test/cppa-risk-conclusions.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+import { CUSTOMER_COHORT_PATTERNS } from "../../../../supabase/functions/_shared/ltp/harvest-guard.ts";
 
 export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item252";
 

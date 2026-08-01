@@ -157,6 +157,6 @@ Deno.test("IR-HF1 T4 [confirmed-literal]: literal is appended when nothing offen
 // mirrors the subproc-contradiction.test.ts epoch-stamp shape assertion.
 
 Deno.test("IR-HF1 T3 [epoch-stamp]: GRADER_CONTEXT_VERSION shape is gc-YYYY-MM-DD-tag", async () => {
-  const { GRADER_CONTEXT_VERSION } = await import("../_shared/grader/context.ts");
+  const { GRADER_CONTEXT_VERSION } = await import("../../../supabase/functions/_shared/grader/context.ts");
   assert(/^gc-\d{4}-\d{2}-\d{2}(-[a-z0-9-]+)?$/i.test(GRADER_CONTEXT_VERSION), GRADER_CONTEXT_VERSION);
 });

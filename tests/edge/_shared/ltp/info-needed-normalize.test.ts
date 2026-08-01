@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { normalizeInformationNeeded } from "./info-needed-normalize.ts";
+import { normalizeInformationNeeded } from "../../../../supabase/functions/_shared/ltp/info-needed-normalize.ts";
 
 Deno.test("info-needed-normalize: stamps id/topic on rows missing them", () => {
   const report: any = {

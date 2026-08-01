@@ -4,7 +4,7 @@ import {
   applyW22AdmtTurnB,
   W22_ADMT_TURNB_STAMP,
   _internals,
-} from "../run-admt-checker/_w22_admt_turnb.ts";
+} from "../../../supabase/functions/run-admt-checker/_w22_admt_turnb.ts";
 
 // P1 — pinpoint substitution replaces blanket range when proposition_key resolves.
 Deno.test("P1: registry-first substitution for optout_offer", () => {
@@ -178,11 +178,9 @@ Deno.test("Fail-open on null / non-object / missing buckets", () => {
 
 // LEAK-PREV P2 whitelist survival: _meta.internal preserved by serializer.
 Deno.test("Serializer preservation: _meta.internal.admt_w22b survives report-serialize", async () => {
-  const { serializeCustomerReport } = await import(
-    "../_shared/report-serialize.ts"
+  const { serializeCustomerReport } = await import("../../../supabase/functions/_shared/report-serialize.ts"
   );
-  const { ADMT_REPORT_SCHEMA } = await import(
-    "../_shared/report-schemas/admt.ts"
+  const { ADMT_REPORT_SCHEMA } = await import("../../../supabase/functions/_shared/report-schemas/admt.ts"
   );
   const report: any = { notice_gaps: [] };
   applyW22AdmtTurnB(report, {});

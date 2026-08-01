@@ -9,7 +9,7 @@ import {
   renderGdprCitationBlock,
   resolveArticle6Examples,
   resolveSupervisoryAuthorityName,
-} from "../_shared/dpia-jurisdiction-registry.ts";
+} from "../../../supabase/functions/_shared/dpia-jurisdiction-registry.ts";
 
 Deno.test("Germany private-sector Bavaria → BayLDA (never BfDI)", () => {
   const name = resolveSupervisoryAuthorityName("DE", { sector: "private", land: "Bavaria" });

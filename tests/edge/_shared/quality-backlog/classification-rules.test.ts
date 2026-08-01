@@ -4,7 +4,7 @@
 // for the recurring high-volume classes).
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { CLASS_BY_CHECK_ID, classify } from "./classification-rules.ts";
+import { CLASS_BY_CHECK_ID, classify } from "../../../../supabase/functions/classify-quality-findings/_local/quality-backlog/classification-rules.ts";
 
 const VALID_CLASSES = new Set(["prompt", "feature", "intake", "measurement_noise", "unclassified"]);
 const VALID_LEVERS = new Set(["L1", "L2", "L3", "L4", "prompt", "variance", null]);

@@ -1,6 +1,6 @@
 // QB-P14 item 5 — per-tool batch size resolution.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { resolveToolBatchSize } from "./index.ts";
+import { resolveToolBatchSize } from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 
 Deno.test("resolveToolBatchSize: prefers per-tool tool_state.batch_size", () => {
   const state = { lia: { batch_size: 5 }, dpia: { batch_size: 2 } };

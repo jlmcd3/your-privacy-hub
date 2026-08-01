@@ -1,7 +1,7 @@
 // POSTBATCH-1 — unit tests for the deterministic post-generation fallback.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyDeterministicPostGenFallback } from "../run-cppa-risk-assessment/index.ts";
-import type { TestState } from "../_shared/cppa-test-states.ts";
+import { applyDeterministicPostGenFallback } from "../../../supabase/functions/run-cppa-risk-assessment/index.ts";
+import type { TestState } from "../../../supabase/functions/_shared/cppa-test-states.ts";
 
 const RESOLVED_STATES: Record<string, TestState> = {
   M6: {

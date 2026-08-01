@@ -6,7 +6,7 @@ import {
   assertSurfaceWriteAllowed,
   SurfaceWriteGuardError,
   SURFACE_WRITE_GUARD_VERSION,
-} from "./surface-write-guard.ts";
+} from "../../../../supabase/functions/_shared/ltp/surface-write-guard.ts";
 
 Deno.test("surface-write-guard: version stamp", () => {
   assertEquals(

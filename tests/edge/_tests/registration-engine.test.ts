@@ -8,7 +8,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   runRegistrationAssessment,
   type IntakeData,
-} from "../_shared/registration-engine.ts";
+} from "../../../supabase/functions/run-registration-assessment/_local/registration-engine.ts";
 
 Deno.test("US+CA+VA fixture emits unique ISO-form jurisdiction codes", () => {
   const intake: IntakeData = {

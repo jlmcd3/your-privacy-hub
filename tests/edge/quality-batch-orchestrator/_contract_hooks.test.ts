@@ -10,7 +10,7 @@ import {
   dcHeartbeatBatchContract,
   dcTerminateBatchContract,
   type ContractDeps,
-} from "./_contract_hooks.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/_contract_hooks.ts";
 
 function throwingDeps(): ContractDeps {
   return {

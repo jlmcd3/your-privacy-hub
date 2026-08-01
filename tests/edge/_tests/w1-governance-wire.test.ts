@@ -5,15 +5,15 @@ import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   applyW1GovernanceWire,
   W1_GOVERNANCE_WIRE_STAMP,
-} from "../run-governance-assessment/_w1_governance_wire.ts";
+} from "../../../supabase/functions/run-governance-assessment/_w1_governance_wire.ts";
 import {
   GOVERNANCE_VERIFIED_AUTHORITIES,
   GOVERNANCE_UNANCHORED_PROPOSITIONS,
   GOVERNANCE_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/governance-verified-authorities.ts";
-import { GOVERNANCE_REPORT_SCHEMA } from "../_shared/report-schemas/governance.ts";
-import { serializeCustomerReport } from "../_shared/report-serialize.ts";
-import { runEmitGate } from "../_shared/emit-gate.ts";
+} from "../../../supabase/functions/_shared/registry/governance-verified-authorities.ts";
+import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/governance.ts";
+import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
+import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 
 const REGISTRY_KEYS = Object.keys(GOVERNANCE_VERIFIED_AUTHORITIES);
 assert(REGISTRY_KEYS.length > 0, "registry must have at least one row");

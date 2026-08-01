@@ -3,8 +3,8 @@ import {
   applyH7bAdmtCitationRelabel,
   H7B_ADMT_CITATION_RELABEL_STAMP,
   isBlanketOnlyCitation,
-} from "./_h7b_citation_relabel.ts";
-import { applyH7AdmtBlanketRange } from "./_h7_admt_blanket_range.ts";
+} from "../../../supabase/functions/run-admt-checker/_h7b_citation_relabel.ts";
+import { applyH7AdmtBlanketRange } from "../../../supabase/functions/run-admt-checker/_h7_admt_blanket_range.ts";
 
 // ────────────────────────────────────────────────────────────────────
 // Fixture VERBATIM from quality_run_documents (SELECT-only read

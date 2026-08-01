@@ -5,8 +5,8 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   applyW21CyberTurnC,
   W21_CYBER_TURNC_STAMP,
-} from "../run-cppa-cybersecurity/_w21_cyber_turnc.ts";
-import { buildFactLedger } from "../_shared/intake/fact-ledger.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_w21_cyber_turnc.ts";
+import { buildFactLedger } from "../../../supabase/functions/_shared/intake/fact-ledger.ts";
 
 Deno.test("W21-CYBER-TURNC — stamp is a well-formed build stamp", () => {
   assert(

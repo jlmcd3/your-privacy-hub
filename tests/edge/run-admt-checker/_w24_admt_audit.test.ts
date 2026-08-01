@@ -10,7 +10,7 @@ import {
   auditActionability,
   W24_ADMT_AUDIT_STAMP,
   _internals,
-} from "./_w24_admt_audit.ts";
+} from "../../../supabase/functions/run-admt-checker/_w24_admt_audit.ts";
 
 Deno.test("stamp format", () => {
   assert(W24_ADMT_AUDIT_STAMP.startsWith("w24-admt-audit@"));

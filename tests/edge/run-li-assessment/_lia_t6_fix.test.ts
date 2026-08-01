@@ -6,7 +6,7 @@
 import {
   assert, assertEquals, assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyLiaT6Fix, _internals, LIA_T6_FIX_STAMP } from "./_lia_t6_fix.ts";
+import { applyLiaT6Fix, _internals, LIA_T6_FIX_STAMP } from "../../../supabase/functions/run-li-assessment/_lia_t6_fix.ts";
 
 // ── Class A: truncated citation string is nulled (no proposition_key) ──
 Deno.test("Class A: truncated 'Art. 6(' citation is nulled", () => {

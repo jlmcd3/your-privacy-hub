@@ -6,8 +6,8 @@ import {
 import {
   finalizeComposition,
   COMPOSITION_FINALIZE_VERSION,
-} from "./composition-finalize.ts";
-import { CompositionHookAuditError } from "./composition-hook-audit.ts";
+} from "../../../../supabase/functions/_shared/ltp/composition-finalize.ts";
+import { CompositionHookAuditError } from "../../../../supabase/functions/_shared/ltp/composition-hook-audit.ts";
 
 const nullEnv = { get: (_: string) => undefined };
 
@@ -157,7 +157,7 @@ Deno.test("composition-finalize: hook set + branch entered = OK", () => {
   assertEquals(res.telemetry.write_around_entered, true);
 });
 
-import { safeFinalizeComposition, SAFE_FINALIZE_VERSION } from "./composition-finalize.ts";
+import { safeFinalizeComposition, SAFE_FINALIZE_VERSION } from "../../../../supabase/functions/_shared/ltp/composition-finalize.ts";
 
 Deno.test("safeFinalizeComposition: version stamp (Item 217)", () => {
   assertEquals(SAFE_FINALIZE_VERSION, "safe-finalize@2026-07-28-item217-repair-outside-guard");
@@ -230,7 +230,7 @@ Deno.test("safeFinalizeComposition: budget telemetry present and honored", () =>
 });
 
 // ── ITEM 208 — POST-SERIALIZER SHIPPED SURFACE GUARD ────────────────
-import { evaluateShippedSurfaceGuard } from "./composition-finalize.ts";
+import { evaluateShippedSurfaceGuard } from "../../../../supabase/functions/_shared/ltp/composition-finalize.ts";
 
 Deno.test("shipped-surface-guard: smoke-#6 shipped shape (scope_notes absent, no CTR, empty flags) is clean", () => {
   const shipped = {
@@ -316,7 +316,7 @@ import {
   evaluateShippedValueScreen,
   SHIPPED_VALUE_SCREEN_VERSION,
   isRetiredSurfacePath,
-} from "./composition-finalize.ts";
+} from "../../../../supabase/functions/_shared/ltp/composition-finalize.ts";
 
 Deno.test("shipped-value-screen: version stamp (Item 215)", () => {
   assertEquals(SHIPPED_VALUE_SCREEN_VERSION, "shipped-value-screen@2026-07-28-item215");

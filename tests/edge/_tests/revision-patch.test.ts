@@ -1,8 +1,8 @@
 // RC-B.1 — unit-ish checks for revision-patch primitives + dpia unit map.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyRevisionPatch, guardAdvisoryNotes, checkAdvisoryGrounding } from "../_shared/revision-patch.ts";
-import { buildItemUnitMap, mapItemsToUnits } from "../_shared/dpia-unit-map.ts";
-import { updateOpenItemStatuses, type OpenItem } from "../_shared/open-items.ts";
+import { applyRevisionPatch, guardAdvisoryNotes, checkAdvisoryGrounding } from "../../../supabase/functions/_shared/revision-patch.ts";
+import { buildItemUnitMap, mapItemsToUnits } from "../../../supabase/functions/_shared/dpia-unit-map.ts";
+import { updateOpenItemStatuses, type OpenItem } from "../../../supabase/functions/_shared/open-items.ts";
 
 Deno.test("applyRevisionPatch: untouched subtree byte-identical (SHA-256 equal)", async () => {
   const stored = {

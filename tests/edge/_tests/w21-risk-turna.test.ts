@@ -6,8 +6,8 @@ import {
   W21_RISK_TURNA_STAMP,
   CPPA_7121_A3_CITATION,
   CPPA_7121_A3_VERBATIM,
-} from "../run-cppa-risk-assessment/_w21_risk_turna.ts";
-import { buildFactLedger } from "../_shared/intake/fact-ledger.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_w21_risk_turna.ts";
+import { buildFactLedger } from "../../../supabase/functions/_shared/intake/fact-ledger.ts";
 
 Deno.test("W21 A1 — token map attributes sensitive-location claims", () => {
   assertEquals(

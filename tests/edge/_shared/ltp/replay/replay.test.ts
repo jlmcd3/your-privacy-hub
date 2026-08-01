@@ -20,12 +20,12 @@ import {
   DETERMINISTIC_PROVIDER_KIND,
   _modelProviderCallCount_get,
   _modelProviderCallCount_reset,
-} from "./providers.ts";
-import { runReplayBatch, runReplayDoc } from "./runner.ts";
-import { compareDoc } from "./side-by-side.ts";
-import { defaultSubstanceGateConfig, MINED_PRESENCE_BAND } from "./presence-band.ts";
-import type { Pass1Provider, ReplayDoc } from "./types.ts";
-import type { DeriveInput } from "../derive.ts";
+} from "../../../../../supabase/functions/_shared/ltp/replay/providers.ts";
+import { runReplayBatch, runReplayDoc } from "../../../../../supabase/functions/_shared/ltp/replay/runner.ts";
+import { compareDoc } from "../../../../../supabase/functions/_shared/ltp/replay/side-by-side.ts";
+import { defaultSubstanceGateConfig, MINED_PRESENCE_BAND } from "../../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/presence-band.ts";
+import type { Pass1Provider, ReplayDoc } from "../../../../../supabase/functions/_shared/ltp/replay/types.ts";
+import type { DeriveInput } from "../../../../../supabase/functions/_shared/ltp/derive.ts";
 
 _modelProviderCallCount_reset();
 

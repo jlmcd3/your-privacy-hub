@@ -17,10 +17,10 @@ import {
   resolveRevenueBand,
   resolveConsumerBand,
   isBandLegacyAmbiguous,
-} from "../_shared/bands/revenue-consumer.ts";
-import { classifyRevenueBand } from "../_shared/cppa-test-states.ts";
-import { normaliseIntake } from "../_shared/cppa-risk-normalise.ts";
-import { CPPA_RISK_GOLDEN } from "../_shared/golden/cppa-risk.ts";
+} from "../../../supabase/functions/_shared/bands/revenue-consumer.ts";
+import { classifyRevenueBand } from "../../../supabase/functions/_shared/cppa-test-states.ts";
+import { normaliseIntake } from "../../../supabase/functions/_shared/cppa-risk-normalise.ts";
+import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
 
 // (i) — exhaustive V2 revenue band → cohort map (matches classifier).
 Deno.test("T2A (i) — every V2 revenue band resolves to exactly one § 7121 cohort", () => {

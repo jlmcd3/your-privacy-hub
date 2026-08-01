@@ -18,8 +18,8 @@ import {
   isGrounded,
   feedVariants,
   tokenize,
-} from "./grounded-note.ts";
-import type { IntakeLedgerEntry } from "../render-plan/schema.ts";
+} from "../../../../supabase/functions/_shared/ltp/grounded-note.ts";
+import type { IntakeLedgerEntry } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 const LEDGER: readonly IntakeLedgerEntry[] = [
   {

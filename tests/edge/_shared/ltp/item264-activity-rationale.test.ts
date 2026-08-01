@@ -5,9 +5,9 @@
 // applicability proposition, so the shape is unchanged): record-status → benefit factor_lines → negative
 // factor_lines → safeguard factor_lines → calibrated conclusion.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { composeSection } from "./section-composers/cppa-risk.ts";
-import { renderTemplate } from "./pass2-render.ts";
-import type { RenderPlan, FactorTableEntry } from "../render-plan/schema.ts";
+import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { renderTemplate } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
+import type { RenderPlan, FactorTableEntry } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 function factor(
   id: string,

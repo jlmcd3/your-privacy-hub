@@ -2,7 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   applyW6RiskFix,
   computeIntakeSelectedSubsections,
-} from "./_w6_risk_fix.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_w6_risk_fix.ts";
 
 Deno.test("computeIntakeSelectedSubsections — (b)(4) from systematic observation", () => {
   const s = computeIntakeSelectedSubsections({

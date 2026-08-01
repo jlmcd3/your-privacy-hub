@@ -8,7 +8,7 @@ import {
   rewriteComparativeAsOperative,
   scrubCrossControlDerivedFigures,
   W6_CYBER_FIX_VERSION,
-} from "./_w6_cyber_fix.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_w6_cyber_fix.ts";
 
 Deno.test("W6-CYBER (1) — regulatory_basis inflation with 'including' is truncated", () => {
   const s = "encryption of personal information at rest and in transit, including key management practices and field-level protections for PII";

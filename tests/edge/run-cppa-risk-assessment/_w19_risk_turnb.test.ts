@@ -8,7 +8,7 @@
 //     still fires (D2 legacy behaviour preserved).
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW10RiskB1, W19_RISK_TURNB_STAMP } from "./_w10_risk_b1.ts";
+import { applyW10RiskB1, W19_RISK_TURNB_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_w10_risk_b1.ts";
 
 Deno.test("W19-TURNB: stamp present and shaped", () => {
   assert(W19_RISK_TURNB_STAMP.startsWith("w19-risk-turnb@"));

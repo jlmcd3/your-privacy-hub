@@ -11,9 +11,9 @@
 // record (one that actually reports secondary uses). Absent secondary rows
 // the section is correctly omitted under the degradation law.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { derivePlan } from "./derive.ts";
-import { applySingleWriterInjection } from "./pass1-llm.ts";
-import { assembleReport } from "./pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { applySingleWriterInjection } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
 
 const COMPLETE_INTAKE: Record<string, unknown> = {
   entity_name: "Acme, Inc.",

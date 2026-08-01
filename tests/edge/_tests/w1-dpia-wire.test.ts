@@ -2,11 +2,11 @@
 // Deno.test — invoked by supabase edge-function test runner.
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW1DpiaWire, W1_DPIA_WIRE_STAMP } from "../run-dpia-framework/_w1_dpia_wire.ts";
+import { applyW1DpiaWire, W1_DPIA_WIRE_STAMP } from "../../../supabase/functions/run-dpia-framework/_w1_dpia_wire.ts";
 import {
   DPIA_VERIFIED_AUTHORITIES,
   DPIA_UNANCHORED_PROPOSITIONS,
-} from "../_shared/registry/dpia-verified-authorities.ts";
+} from "../../../supabase/functions/_shared/registry/dpia-verified-authorities.ts";
 
 // Pick one deterministic registry key + one unanchored key that both exist.
 const REGISTRY_KEYS = Object.keys(DPIA_VERIFIED_AUTHORITIES);

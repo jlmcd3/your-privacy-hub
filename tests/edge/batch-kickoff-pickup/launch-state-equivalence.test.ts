@@ -6,7 +6,7 @@
 // because inserts landed in shape (B) while the picker only served shape (A).
 
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { decidePickup, isKickoffEligible, PICKUP_STALE_MS } from "./index.ts";
+import { decidePickup, isKickoffEligible, PICKUP_STALE_MS } from "../../../supabase/functions/batch-kickoff-pickup/index.ts";
 
 const NOW_MS = new Date("2026-07-27T03:30:00.000Z").getTime();
 const STALE = new Date(NOW_MS - (PICKUP_STALE_MS + 60_000)).toISOString();

@@ -2,15 +2,15 @@
 // Deno.test — invoked by supabase edge-function test runner.
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyW1LiaWire, W1_LIA_WIRE_STAMP } from "../run-li-assessment/_w1_lia_wire.ts";
+import { applyW1LiaWire, W1_LIA_WIRE_STAMP } from "../../../supabase/functions/run-li-assessment/_w1_lia_wire.ts";
 import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
   LIA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/lia-verified-authorities.ts";
-import { LIA_REPORT_SCHEMA } from "../_shared/report-schemas/lia.ts";
-import { serializeCustomerReport } from "../_shared/report-serialize.ts";
-import { runEmitGate } from "../_shared/emit-gate.ts";
+} from "../../../supabase/functions/_shared/registry/lia-verified-authorities.ts";
+import { LIA_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/lia.ts";
+import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
+import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 
 const REGISTRY_KEYS = Object.keys(LIA_VERIFIED_AUTHORITIES);
 assert(REGISTRY_KEYS.length > 0, "registry must have at least one row");

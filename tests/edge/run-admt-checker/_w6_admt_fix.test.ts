@@ -10,7 +10,7 @@ import {
   stripScopeReasoningLeaks,
   softenBareRoleAssertions,
   rewriteSilenceAsFact,
-} from "./_w6_admt_fix.ts";
+} from "../../../supabase/functions/run-admt-checker/_w6_admt_fix.ts";
 
 Deno.test("W6 (2) — § 7001(ddd)(1) depth-capped to § 7001(ddd)", () => {
   const { out, capped } = capSec7001Depth("as defined in 11 CCR § 7001(ddd)(1)");

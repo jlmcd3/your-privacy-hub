@@ -12,7 +12,7 @@ import {
   resolveEvalSourceRef,
   CV_REGEN_TRIGGER_CHECKS,
   type DetCheck,
-} from "../_shared/grader/counsel-voice-regen.ts";
+} from "../../../supabase/functions/run-quality-batch/_local/grader/counsel-voice-regen.ts";
 
 const p = (id: string, passed: boolean): DetCheck => ({ check_id: id, passed });
 

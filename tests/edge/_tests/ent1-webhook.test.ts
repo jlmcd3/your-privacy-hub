@@ -15,7 +15,7 @@ import {
   assertEquals,
   assertStrictEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { handleSubscriptionEvent } from "../payments-webhook/index.ts";
+import { handleSubscriptionEvent } from "../../../supabase/functions/payments-webhook/index.ts";
 
 type Write = {
   table: string;

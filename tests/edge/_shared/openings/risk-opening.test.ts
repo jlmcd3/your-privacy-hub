@@ -5,8 +5,8 @@
 // Run: deno test supabase/functions/_shared/openings/risk-opening.test.ts
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { buildRiskOpening, RISK_OPENING_VERSION } from "./risk-opening.ts";
-import { CCPA_1798_140_D_1_A, CCPA_1798_140_D_1_B } from "./ccpa-1798-140-pin.ts";
+import { buildRiskOpening, RISK_OPENING_VERSION } from "../../../../supabase/functions/_shared/openings/risk-opening.ts";
+import { CCPA_1798_140_D_1_A, CCPA_1798_140_D_1_B } from "../../../../supabase/functions/_shared/openings/ccpa-1798-140-pin.ts";
 
 const base = {
   entity_name: "Meridian SaaS Inc.",

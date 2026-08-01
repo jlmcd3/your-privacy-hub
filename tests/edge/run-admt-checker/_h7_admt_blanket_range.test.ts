@@ -13,7 +13,7 @@ import {
   relabelBlanketRange,
   splitSentences,
   stripBlanketCitation,
-} from "./_h7_admt_blanket_range.ts";
+} from "../../../supabase/functions/run-admt-checker/_h7_admt_blanket_range.ts";
 
 Deno.test("hasBlanketRange detects hyphen, en-dash, em-dash, and spacing variants", () => {
   assert(hasBlanketRange("Under 11 CCR §§ 7200-7222 the controller must ..."));

@@ -1,7 +1,7 @@
 // QB-P25 CYBER — Turn A2 schema/normalisation assertions.
 // Run: deno test --allow-env --allow-net supabase/functions/run-cppa-cybersecurity/qbp25-cyber-schema.test.ts
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { BUILD_STAMP } from "./index.ts";
+import { BUILD_STAMP } from "../../../supabase/functions/run-cppa-cybersecurity/index.ts";
 
 Deno.test("BUILD_STAMP bumped past QB-P25 A2 (current: w10-cyber-a1a2)", () => {
   // Historical bump: qbp25-cyber-evidence-differentiator-rank. Current

@@ -5,15 +5,15 @@ import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   applyW1IrWire,
   W1_IR_WIRE_STAMP,
-} from "../generate-ir-playbook/_w1_ir_wire.ts";
+} from "../../../supabase/functions/generate-ir-playbook/_w1_ir_wire.ts";
 import {
   IR_PLAYBOOK_VERIFIED_AUTHORITIES,
   IR_PLAYBOOK_UNANCHORED_PROPOSITIONS,
   IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/ir-playbook-verified-authorities.ts";
-import { IR_PLAYBOOK_REPORT_SCHEMA } from "../_shared/report-schemas/ir-playbook.ts";
-import { serializeCustomerReport } from "../_shared/report-serialize.ts";
-import { runEmitGate } from "../_shared/emit-gate.ts";
+} from "../../../supabase/functions/_shared/registry/ir-playbook-verified-authorities.ts";
+import { IR_PLAYBOOK_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/ir-playbook.ts";
+import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
+import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 
 const REGISTRY_KEYS = Object.keys(IR_PLAYBOOK_VERIFIED_AUTHORITIES);
 assert(REGISTRY_KEYS.length > 0, "registry must have at least one row");

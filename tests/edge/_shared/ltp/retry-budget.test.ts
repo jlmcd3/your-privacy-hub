@@ -14,7 +14,7 @@ import {
   ISOLATE_CEILING_MS,
   POST_RETRY_RESERVE_MS,
   MIN_RETRY_WINDOW_MS,
-} from "./retry-budget.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/retry-budget.ts";
 
 Deno.test("computeRetryBudget: ok when elapsed low and wall-clock permits", () => {
   const b = computeRetryBudget({ elapsedMs: 60_000, elapsedThresholdMs: 150_000 });

@@ -6,7 +6,7 @@
 import {
   assert, assertEquals, assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyDpaT6Fix, _internals, DPA_T6_FIX_STAMP } from "./_dpa_t6_fix.ts";
+import { applyDpaT6Fix, _internals, DPA_T6_FIX_STAMP } from "../../../supabase/functions/generate-dpa/_dpa_t6_fix.ts";
 
 // ── Before-fixture pin #1: doc 02622011 Section 6.1 sub-processor claim ──
 // "The Controller has confirmed that no Sub-processors are engaged for the

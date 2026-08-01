@@ -1,8 +1,8 @@
 // ITEM 265 — GTM grader tests. Deterministic; no network.
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { evaluateGtm } from "../_shared/ltp/replay/gtm-grader.ts";
-import { GTM_MATERIALITY_REGISTER_VERSION } from "../_shared/ltp/replay/gtm-materiality-register.ts";
-import type { PerDocResult } from "../_shared/ltp/replay/types.ts";
+import { evaluateGtm } from "../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/gtm-grader.ts";
+import { GTM_MATERIALITY_REGISTER_VERSION } from "../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/gtm-materiality-register.ts";
+import type { PerDocResult } from "../../../supabase/functions/_shared/ltp/replay/types.ts";
 
 function doc(hard: string[], extra: Partial<PerDocResult["substance"]> = {}): PerDocResult {
   return {

@@ -17,7 +17,7 @@ import {
   CPPA_RISK_DEADLINES,
   CPPA_RISK_DEADLINE_INDEX,
   selectDeadlineOrFallback,
-} from "../legal-test/cppa-risk-deadlines.ts";
+} from "../../../../supabase/functions/_shared/legal-test/cppa-risk-deadlines.ts";
 
 Deno.test("item267 — no sentence contains the marker-glue wart", () => {
   for (const d of CPPA_RISK_DEADLINES) {

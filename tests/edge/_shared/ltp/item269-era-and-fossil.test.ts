@@ -5,13 +5,13 @@
 //   pre-realignment write-around docs). intake_data read READ-ONLY and
 //   recorded verbatim below.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { normalizeEraIntake, ERA_NORMALIZER_VERSION } from "./replay/era-normalize.ts";
+import { normalizeEraIntake, ERA_NORMALIZER_VERSION } from "../../../../supabase/functions/_shared/ltp/replay/era-normalize.ts";
 import {
   screenPresentNoteCoherence,
   PASS1_COHERENCE_VERSION,
   MASS_ABSENCE_ABORT_THRESHOLD,
-} from "./pass1-present-note-coherence.ts";
-import type { FactorTableEntry } from "../render-plan/schema.ts";
+} from "../../../../supabase/functions/_shared/ltp/pass1-present-note-coherence.ts";
+import type { FactorTableEntry } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 // ── VERBATIM ERA FIXTURE (doc 89ee89d5-b404-43f1-adb7-918a52d5c30c) ──────
 const ERA_INTAKE: Record<string, unknown> = {

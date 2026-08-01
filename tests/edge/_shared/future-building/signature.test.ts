@@ -2,7 +2,7 @@
 // Run: deno test supabase/functions/_shared/future-building/signature.test.ts
 
 import { assert, assertEquals, assertRejects } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { computeScenarioSignature } from "./signature.ts";
+import { computeScenarioSignature } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/future-building/signature.ts";
 
 const baseInput = {
   product: "cppa-risk-assessment",

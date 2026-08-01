@@ -16,9 +16,9 @@
  * is not exercised here.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { derivePlan } from "./derive.ts";
-import { composeSection, secondaryRecommendation } from "./section-composers/cppa-risk.ts";
-import { renderTemplate } from "./pass2-render.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { composeSection, secondaryRecommendation } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { renderTemplate } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
 
 const DIMS = ["data", "purpose", "systems", "people", "risks"] as const;
 

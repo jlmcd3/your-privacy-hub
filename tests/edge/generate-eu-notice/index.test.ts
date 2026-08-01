@@ -23,7 +23,7 @@ import {
   formatAnswer,
   escapeHtml,
   type FwSel,
-} from "./index.ts";
+} from "../../../supabase/functions/generate-eu-notice/index.ts";
 
 const FW_GDPR: FwSel = {
   framework_code: "EU_GDPR",

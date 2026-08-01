@@ -11,8 +11,8 @@
  *   prose_pass=false is byte-identical to today.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { derivePlan } from "./derive.ts";
-import { assembleReport } from "./pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
 import {
   runPass2r,
   runProsePassStage,
@@ -28,7 +28,7 @@ import {
   _pass2rCallCount_get,
   _pass2rCallCount_reset,
   type Pass2rCallFn,
-} from "./pass2r-llm.ts";
+} from "../../../../supabase/functions/_shared/ltp/pass2r-llm.ts";
 
 const INTAKE: Record<string, unknown> = {
   entity_name: "ClearPath Credit Solutions, Inc.",

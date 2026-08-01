@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyCohortAppendIfAbsent } from "./cohort-append.ts";
+import { applyCohortAppendIfAbsent } from "../../../../supabase/functions/_shared/ltp/cohort-append.ts";
 
 // ITEM-204: cohort-append is RETIRED (Defect B). The graded surface now
 // renders the full § 7121(a) phase-in schedule via cyber-audit-schedule.ts.

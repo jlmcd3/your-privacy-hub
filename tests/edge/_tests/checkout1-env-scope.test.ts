@@ -7,7 +7,7 @@
 import {
   assertEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { resolveSubscribedInEnv } from "../create-checkout-session/index.ts";
+import { resolveSubscribedInEnv } from "../../../supabase/functions/create-checkout-session/index.ts";
 
 type Row = Record<string, unknown> | null;
 

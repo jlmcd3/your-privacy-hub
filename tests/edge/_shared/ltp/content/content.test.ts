@@ -1,8 +1,8 @@
 // LTP content-file smoke + wire-schema projection round-trip tests.
 // Deterministic; no network.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { PASS1_DERIVE_SYSTEM, PASS1_DERIVE_USER_TEMPLATE, PASS1_DERIVE_PROMPT_VERSION } from "./pass1-derive-prompt.ts";
-import { PASSV_VERIFY_SYSTEM, PASSV_VERIFY_PROMPT_VERSION } from "./passv-verify-prompt.ts";
+import { PASS1_DERIVE_SYSTEM, PASS1_DERIVE_USER_TEMPLATE, PASS1_DERIVE_PROMPT_VERSION } from "../../../../../supabase/functions/_shared/ltp/content/pass1-derive-prompt.ts";
+import { PASSV_VERIFY_SYSTEM, PASSV_VERIFY_PROMPT_VERSION } from "../../../../../supabase/functions/_shared/ltp/content/passv-verify-prompt.ts";
 import {
   PASS2_TEMPLATES,
   SURFACE_AUDIT_RULINGS,
@@ -10,9 +10,9 @@ import {
   BALANCE_DIRECTION_CLAUSES,
   FIRM_VARIANT_CLOSENESS_MAX,
   shouldEmitBCriterionCountQuestion,
-} from "./pass2-templates.ts";
-import { RENDERPLAN_WIRE_SCHEMA, planKeysProjected } from "./renderplan-wire-schema.ts";
-import { derivePlan } from "../derive.ts";
+} from "../../../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
+import { RENDERPLAN_WIRE_SCHEMA, planKeysProjected } from "../../../../../supabase/functions/_shared/ltp/content/renderplan-wire-schema.ts";
+import { derivePlan } from "../../../../../supabase/functions/_shared/ltp/derive.ts";
 
 Deno.test("content: pass1 prompt loads and carries expected priority rules", () => {
   assert(PASS1_DERIVE_PROMPT_VERSION.startsWith("pass1-derive-"));

@@ -1,7 +1,7 @@
-import { buildSystemContent } from "../_shared/prompt-core.ts";
-import { CPPA_RISK_TOOL_MODULE } from "../run-cppa-risk-assessment/index.ts";
-import { ADMT_TOOL_MODULE } from "../run-admt-checker/index.ts";
-import { CPPA_CYBER_TOOL_MODULE } from "../run-cppa-cybersecurity/index.ts";
+import { buildSystemContent } from "../../../supabase/functions/_shared/prompt-core.ts";
+import { CPPA_RISK_TOOL_MODULE } from "../../../supabase/functions/run-cppa-risk-assessment/index.ts";
+import { ADMT_TOOL_MODULE } from "../../../supabase/functions/run-admt-checker/index.ts";
+import { CPPA_CYBER_TOOL_MODULE } from "../../../supabase/functions/run-cppa-cybersecurity/index.ts";
 const injected = "ENFORCEMENT CONTEXT:\n(none)";
 for (const [name, tm] of [["risk",CPPA_RISK_TOOL_MODULE],["admt",ADMT_TOOL_MODULE],["cyber",CPPA_CYBER_TOOL_MODULE]] as any) {
   const b = buildSystemContent({ toolModule: tm, currentDate: "2026-06-26", injected: name==="cyber"?undefined:injected });

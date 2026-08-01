@@ -5,8 +5,8 @@
 // that genuine body-text counsel referrals still fire.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { extractProseFromReport } from "../_shared/advisory-voice.ts";
-import { runFormatChecksGeneric } from "../_shared/grader/format-checks.ts";
+import { extractProseFromReport } from "../../../supabase/functions/_shared/advisory-voice.ts";
+import { runFormatChecksGeneric } from "../../../supabase/functions/_shared/grader/format-checks.ts";
 
 const SANCTIONED_SENTENCE =
   "Your qualified Data Protection Officer or legal counsel must review, complete, and own it.";

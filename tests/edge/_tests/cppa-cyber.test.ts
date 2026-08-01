@@ -4,10 +4,10 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildSystemContent } from "../_shared/prompt-core.ts";
-import { CPPA_CYBER_TOOL_MODULE } from "../run-cppa-cybersecurity/index.ts";
-import { TARGET_PATH_ALIASES } from "../_shared/target-path-aliases.ts";
-import { FIXTURE_CYBER_YIELD_K1 } from "../_shared/cyber-contract-fixtures.ts";
+import { buildSystemContent } from "../../../supabase/functions/_shared/prompt-core.ts";
+import { CPPA_CYBER_TOOL_MODULE } from "../../../supabase/functions/run-cppa-cybersecurity/index.ts";
+import { TARGET_PATH_ALIASES } from "../../../supabase/functions/_shared/target-path-aliases.ts";
+import { FIXTURE_CYBER_YIELD_K1 } from "../../../supabase/functions/_shared/cyber-contract-fixtures.ts";
 
 // RC-C3.CYB-2 (RULING 2) — PIN the 18-entry ordering across:
 //   (a) TARGET_PATH_ALIASES.cppa_cybersecurity  (ask-vocab → controls[N].status)
@@ -73,7 +73,7 @@ Deno.test("cyber T_CLASS pins 18 controls.<slug> → cppa_cybersecurity:maturity
 });
 
 Deno.test("cyber maturity enum resolves via server FIELD_ENUM_MIRROR", async () => {
-  const { resolveEnumRef } = await import("../_shared/field-enums.ts");
+  const { resolveEnumRef } = await import("../../../supabase/functions/_shared/field-enums.ts");
   const opts = resolveEnumRef("cppa_cybersecurity:maturity");
   assert(Array.isArray(opts) && opts.length === 5,
     `expected 5 maturity options; got ${JSON.stringify(opts)}`);
@@ -86,7 +86,7 @@ Deno.test("cyber maturity enum resolves via server FIELD_ENUM_MIRROR", async () 
 // two empty-maturity controls (c13_training, c14_secure_dev), guard must
 // mint dotted asks. Copy must never contain "gap".
 Deno.test("cyber synthesis walker mints dotted asks for empty-maturity controls", async () => {
-  const { guardInformationNeeded } = await import("../_shared/insufficient-info-guard.ts");
+  const { guardInformationNeeded } = await import("../../../supabase/functions/_shared/insufficient-info-guard.ts");
   const report: any = { information_needed: [], lint_warnings: [] };
   const { report: guarded } = guardInformationNeeded(
     report,

@@ -1,6 +1,6 @@
 // FF-2 T1/T3 unit tests — blacklist trigger + export done-marker.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
+import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../../../supabase/functions/_shared/blacklist-phrases.ts";
 
 Deno.test("FF-2 T1: detects all five phrases in user-facing prose (case-insensitive)", () => {
   const doc = {
