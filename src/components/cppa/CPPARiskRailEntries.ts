@@ -62,7 +62,8 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7156(b)", label: "Using an assessment prepared for another purpose" },
     ],
     coachLead:
-      "List every other use the same data is put to, including the ones you would rather leave out, then set each one beside this activity on all five dimensions: the data, the people, the collection method, the purpose, and the privacy risk. Report the differences you find rather than smoothing them over \u2014 whether a difference matters is for you and your counsel to judge, not for this form. If a use does not line up, say so; that answer is as usable as a match.",
+      "List every other use the same data is put to, including the ones you would rather leave out, then set each one beside this activity on all five dimensions: the data, the people, the systems, the purpose, and the privacy risks and safeguards. Report the differences you find rather than smoothing them over \u2014 if any single dimension differs, this tool will recommend a separate risk assessment for that use, and if a dimension is unresolved it will recommend one unless you confirm the dimension is the same. If a use does not line up, say so; that answer is as usable as a match.",
+
     coachBody:
       "The standard is similarity of the activities and similarity of the privacy risks. Answer each comparison from what your records show; where you do not know, \u201CNot sure\u201D is the accurate answer and is recorded as such.",
     goodAnswer:
