@@ -146,6 +146,15 @@ export const biometricCheckerContract: IntakeContract = {
     { key: "wa_enrolls_in_database", kind: "enum", required: "optional", options: TRI },
     { key: "wa_commercial_purpose", kind: "enum", required: "optional", options: TRI },
     { key: "wa_security_purpose_only", kind: "enum", required: "optional", options: TRI },
+
+    // Item 323 — RCW 19.373 (My Health My Data Act). A DISTINCT Washington
+    // authority from RCW 19.375: its own predicate, its own duties, its own
+    // enforcement route. Never merged with the wa_* fields above.
+    { key: "wa_mhmda_health_inference", kind: "enum", required: "optional", options: TRI },
+    { key: "wa_mhmda_privacy_policy_published", kind: "enum", required: "optional", options: TRI },
+    { key: "wa_mhmda_collection_consent", kind: "enum", required: "optional", options: TRI },
+    { key: "wa_mhmda_share_consent_separate", kind: "enum", required: "optional", options: TRI },
+    { key: "wa_mhmda_geofence_health_facility", kind: "enum", required: "optional", options: TRI },
   ],
 };
 

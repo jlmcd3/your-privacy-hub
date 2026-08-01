@@ -110,6 +110,11 @@ export default function BiometricChecker() {
     wa_enrolls_in_database: "",
     wa_commercial_purpose: "",
     wa_security_purpose_only: "",
+    wa_mhmda_health_inference: "",
+    wa_mhmda_privacy_policy_published: "",
+    wa_mhmda_collection_consent: "",
+    wa_mhmda_share_consent_separate: "",
+    wa_mhmda_geofence_health_facility: "",
   });
 
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
@@ -440,6 +445,23 @@ export default function BiometricChecker() {
                       <Tri label="Are identifiers converted to reference templates and stored in a matching database?" value={form.wa_enrolls_in_database} onChange={(v) => setForm(f => ({ ...f, wa_enrolls_in_database: v }))} />
                       <Tri label="Is that done for a commercial purpose (sale or disclosure for unrelated marketing)?" value={form.wa_commercial_purpose} onChange={(v) => setForm(f => ({ ...f, wa_commercial_purpose: v }))} />
                       <Tri label="Is enrollment solely in furtherance of a security purpose?" value={form.wa_security_purpose_only} onChange={(v) => setForm(f => ({ ...f, wa_security_purpose_only: v }))} />
+                    </div>
+
+                    {/* Item 323 — RCW 19.373 is a SECOND Washington statute, not a
+                        continuation of RCW 19.375. Kept in its own block, under its
+                        own heading, so the two are never read as one regime. */}
+                    <div className="border-t border-border pt-3 space-y-3">
+                      <p className="font-semibold text-brand-navy">Washington — My Health My Data Act (RCW 19.373), a separate chapter</p>
+                      <p className="text-meta text-muted-foreground">
+                        RCW 19.373 is distinct from RCW 19.375 above and is triggered on different facts. Answering these does not change the RCW 19.375 analysis, and clearing one chapter does not clear the other.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <Tri label="Does the biometric data identify or infer health status, or identify a consumer seeking health-care services?" value={form.wa_mhmda_health_inference} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_health_inference: v }))} />
+                        <Tri label="Is a consumer health data privacy policy published and linked from the homepage?" value={form.wa_mhmda_privacy_policy_published} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_privacy_policy_published: v }))} />
+                        <Tri label="Was consent obtained before collection, for a specified purpose?" value={form.wa_mhmda_collection_consent} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_collection_consent: v }))} />
+                        <Tri label="Is there a sharing consent separate and distinct from the collection consent?" value={form.wa_mhmda_share_consent_separate} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_share_consent_separate: v }))} />
+                        <Tri label="Is any geofence implemented around an entity providing in-person health-care services?" value={form.wa_mhmda_geofence_health_facility} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_geofence_health_facility: v }))} />
+                      </div>
                     </div>
                   </div>
                 )}
