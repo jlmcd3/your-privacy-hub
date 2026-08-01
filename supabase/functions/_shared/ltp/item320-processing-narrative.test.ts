@@ -58,10 +58,12 @@ Deno.test("ITEM 320: every declared narrative slot has a resolver case", () => {
   const ctx: Record<string, string> = {};
   for (const slot of tpl.plan_slots) ctx[slot] = `VALUE_${slot}`;
   for (const slot of tpl.plan_slots) {
-    assertEquals(
-      resolveSlot(slot, planFor(FULL_INTAKE), ctx as never),
-      `VALUE_${slot}`,
-      `resolveSlot has no case for "${slot}" — it would fall to default ""`,
+    // Some slots (e.g. entity_name) resolve from the plan rather than ctx;
+    // what matters is that NO slot falls through to the empty default.
+    const value = resolveSlot(slot, planFor(FULL_INTAKE), ctx as never);
+    assert(
+      value.length > 0,
+      `resolveSlot has no case for "${slot}" — it falls to default ""`,
     );
   }
 });
