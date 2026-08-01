@@ -180,7 +180,23 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
       // clears the § 7150(b) pre-generation validator; the boundary
       // character (consumer-volume enum edge) is unchanged.
       q18_admt_use: "Yes",
+      // ITEM 324 — the ADMT companions the contract marks `conditional` on
+      // `q18_admt_use === "Yes"` (q19_admt_description, q20_admt_opt_out,
+      // i5_admt_logic, i5_admt_human_review) were absent, leaving this case
+      // silently dependent on the fact that `validateIntake` does not
+      // mechanically evaluate `requiredWhen`. This case tests a CONSUMER-
+      // VOLUME boundary, not the conditional-requirement rejection path, so
+      // the correct resolution is to supply the companions — the boundary
+      // character is untouched. Authored to the "Perfect Data" standard.
+      q19_admt_description:
+        "A scoring model ranks free-tier accounts for proactive outreach; a ranking above the outreach threshold determines whether an account is offered a paid-conversion discount.",
+      q20_admt_opt_out: "Yes, with documented opt-out",
+      i5_admt_logic:
+        "The model takes three inputs — sessions in the trailing 30 days, count of completed onboarding steps, and seat count — and returns a 0–100 propensity score. Accounts scoring above 70 are queued for outreach; the score is not used for any other decision and no inference about a protected characteristic is an input or an output.",
+      i5_admt_human_review:
+        "Every queued account is reviewed by a named account manager before any offer is sent; the manager can remove an account from the queue and records the reason, and no offer is issued on the score alone.",
     },
+
     assertions: [
       { kind: "must_include", pattern: "100,000", flags: "i", label: "boundary threshold surfaced" },
       // T7-RISK-OPENING-PILOT: q2_consumers "100,000 to under 250,000" straddles from below

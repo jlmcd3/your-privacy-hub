@@ -83,6 +83,20 @@ const REQUIRED_ALWAYS_FILLERS = {
   i9_has_existing_dpia: "No",
 } as const;
 
+// ── ITEM 324 — § 7152 ANALYTIC-DELIVERABLE OPERANDS ──────────────────────
+// Item 305 made `a2_necessity_set`, the four `a4_benefit_*` narratives,
+// `a5_harm_pathways` and the `a9_approver_*` pair `required: "always"` in
+// `cppaRiskContract`, but only `_shared/golden/cppa-risk.ts` was refreshed
+// (Item 306). These three revision-contract fixtures were left stale, so
+// `validateIntake(cppaRiskContract, fixture.intake)` returned eight
+// required-always violations apiece. Each fixture below now carries its OWN
+// operand block — authored to the "Perfect Data" standard (specific to that
+// entity's activity, non-generic, source-and-cause traced), never a shared
+// filler, because the harm pathways of a triage service, a credit scorer and
+// a loyalty engine are not interchangeable.
+// Enum values are VERBATIM from
+// supabase/functions/_shared/ltp/analytic-deliverables/enums.ts.
+
 export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
   fixture_id: "cppa-risk-rcC1-yield-k3",
   contract_scenario: "yield_k3",
@@ -117,6 +131,87 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
       // benefits + rationale intentionally omitted — surface as asks
     },
     exceptions_intake: {},
+    // ITEM 324 — § 7152 analytic-deliverable operands (see header note).
+    a2_necessity_set: [
+      {
+        element: "Triage questionnaire responses",
+        necessity: "Necessary to the stated purpose",
+        justification:
+          "The responses are the sole input to the care-pathway routing decision; without them no pathway can be selected.",
+      },
+      {
+        element: "Patient name and contact telephone number",
+        necessity: "Necessary to the stated purpose",
+        justification:
+          "The routed pathway is delivered by a clinician calling the patient back, so a reachable contact point is part of the routing outcome itself.",
+      },
+      {
+        element: "Free-text mood-diary entries carried over from the companion app",
+        necessity: "Collected but not necessary to the stated purpose",
+        justification:
+          "The diary text is imported by the shared account sync and is not read by the routing logic, which uses only the structured questionnaire scores.",
+      },
+    ],
+    a4_benefit_business:
+      "Structured triage routing lets Meridian staff its two clinical queues to measured demand instead of to estimates, which is the input to the monthly clinician-rostering decision.",
+    a4_benefit_consumer:
+      "A patient who screens as higher acuity reaches a clinician on the urgent pathway the same day rather than waiting in a single undifferentiated queue.",
+    a4_benefit_other_stakeholders:
+      "Referring primary-care practices receive a routing outcome for each patient they refer, so they know which pathway their patient entered without telephoning the service.",
+    a4_benefit_public:
+      "No public benefit is claimed for this activity beyond the patient benefit stated above.",
+    a5_harm_pathways: [
+      {
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        source:
+          "The triage response store holds questionnaire answers about mental-health symptoms joined to patient names, and is readable by the routing service account.",
+        cause:
+          "A routing service credential scoped more broadly than the routing views could export the joined table outside the triage pipeline.",
+        likelihood: "Unlikely",
+        severity: "Severe",
+      },
+      {
+        harm: "(G) Reputational harms",
+        source:
+          "The routing outcome names the clinical pathway a patient entered, and the callback is placed to a telephone number the patient may share with a household.",
+        cause:
+          "A callback that identifies the mental-health pathway to whoever answers discloses the patient's use of the service to a third party.",
+        likelihood: "Possible",
+        severity: "Significant",
+      },
+      {
+        harm: "(H) Psychological harms",
+        source:
+          "The imported mood-diary free text sits in the same record as the triage responses and is visible to reviewers who open the record.",
+        cause:
+          "A patient who wrote the diary for the companion app did not expect it to be read during triage, and its appearance there causes distress on disclosure.",
+        likelihood: "Possible",
+        severity: "Moderate",
+      },
+    ],
+    a6_safeguards: [
+      {
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        safeguard:
+          "The routing service account is scoped to the routing views only, credentials rotate every 30 days, and every export from the response store is logged and reviewed weekly.",
+        safeguard_status: "Implemented and tested",
+      },
+      {
+        harm: "(G) Reputational harms",
+        safeguard:
+          "Callback scripts identify the caller by the practice name only and confirm the patient's identity before any clinical content is discussed.",
+        safeguard_status: "Implemented, not tested",
+      },
+      {
+        harm: "(H) Psychological harms",
+        safeguard:
+          "The mood-diary field is being removed from the triage record view and excluded from the account sync.",
+        safeguard_status: "Planned, not yet implemented",
+      },
+    ],
+    a9_approver_name: "Dr. Helena Voss",
+    a9_approver_position: "Chief Medical Officer",
+    a9_approval_date: "2026-07-30",
     ...REQUIRED_ALWAYS_FILLERS,
   },
   answer_targets: [
@@ -167,6 +262,87 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
       severity: "Significant",
     },
     exceptions_intake: {},
+    // ITEM 324 — § 7152 analytic-deliverable operands (see header note).
+    a2_necessity_set: [
+      {
+        element: "Applicant income and existing-obligation figures",
+        necessity: "Necessary to the stated purpose",
+        justification:
+          "These figures are the affordability inputs the creditworthiness decision is computed from; the score cannot be produced without them.",
+      },
+      {
+        element: "Applicant name and date of birth",
+        necessity: "Necessary to the stated purpose",
+        justification:
+          "Both are required to match the applicant to the bureau record the score is drawn against, and a mismatch produces the wrong decision.",
+      },
+      {
+        element: "Precise device geolocation captured at application",
+        necessity: "Collected but not necessary to the stated purpose",
+        justification:
+          "Geolocation is captured by the mobile SDK's fraud defaults and is not an input to the scoring model or to the decision it supports.",
+      },
+    ],
+    a4_benefit_business:
+      "Scoring applicants against measured affordability rather than a manual review queue is what allows Solstice to price its consumer credit book to observed default rates.",
+    a4_benefit_consumer:
+      "An applicant receives a decision within the application session instead of waiting for a manual underwriting pass, and a declined applicant is told which affordability input drove the decline.",
+    a4_benefit_other_stakeholders:
+      "The sponsoring bank that funds the credit line receives a consistent, documented basis for each decision when it audits the portfolio.",
+    a4_benefit_public:
+      "No public benefit is claimed for this activity beyond the applicant benefit stated above.",
+    a5_harm_pathways: [
+      {
+        harm: "(B) Unlawful discrimination on protected characteristics",
+        source:
+          "The model's behavioural signals include application-time device and location features that correlate with residential area.",
+        cause:
+          "A feature that proxies for residential area can shift decline rates across protected groups even though no protected characteristic is an input.",
+        likelihood: "Possible",
+        severity: "Severe",
+      },
+      {
+        harm: "(E) Economic harms",
+        source:
+          "The score sets both the accept/decline outcome and the interest rate offered to an accepted applicant.",
+        cause:
+          "An applicant scored on an incorrect or stale bureau match is declined credit or charged a higher rate than their circumstances warrant.",
+        likelihood: "Possible",
+        severity: "Significant",
+      },
+      {
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        source:
+          "The scoring feature store holds applicant financial figures joined to identity fields and precise geolocation.",
+        cause:
+          "An over-broad analytics credential could export the joined feature table outside the scoring pipeline.",
+        likelihood: "Unlikely",
+        severity: "Significant",
+      },
+    ],
+    a6_safeguards: [
+      {
+        harm: "(B) Unlawful discrimination on protected characteristics",
+        safeguard:
+          "Decline rates are tested quarterly across proxy cohorts and the model is blocked from release when a cohort disparity exceeds the documented tolerance.",
+        safeguard_status: "Implemented, not tested",
+      },
+      {
+        harm: "(E) Economic harms",
+        safeguard:
+          "Every decline is reviewable by an underwriter on request, and an applicant may submit corrected affordability figures for a re-score.",
+        safeguard_status: "Implemented and tested",
+      },
+      {
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        safeguard:
+          "The feature store is segmented from the analytics estate, access is granted per-role with 30-day rotation, and exports are logged.",
+        safeguard_status: "Implemented and tested",
+      },
+    ],
+    a9_approver_name: "Marcus Adeyemi",
+    a9_approver_position: "General Counsel",
+    a9_approval_date: "2026-07-30",
     ...REQUIRED_ALWAYS_FILLERS,
   },
   // Answer only 2 of the ~3+ items on the first revision.
@@ -211,6 +387,87 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
       benefitsOutweigh: "Yes",
     },
     exceptions_intake: {},
+    // ITEM 324 — § 7152 analytic-deliverable operands (see header note).
+    a2_necessity_set: [
+      {
+        element: "Loyalty member number and purchase history",
+        necessity: "Necessary to the stated purpose",
+        justification:
+          "Offer selection is computed from what a member has previously bought, so the member-to-purchase join is the activity itself.",
+      },
+      {
+        element: "Member email address",
+        necessity: "Necessary to the stated purpose",
+        justification:
+          "The selected offer is delivered by email, so the address is part of the outcome and not an ancillary field.",
+      },
+      {
+        element: "Precise in-store geolocation from the loyalty app",
+        necessity: "Collected but not necessary to the stated purpose",
+        justification:
+          "Store-visit precision beyond the store identifier is not used by offer selection, which resolves to the nearest store, not to a position within it.",
+      },
+    ],
+    a4_benefit_business:
+      "Selecting offers from actual purchase history rather than sending the same circular to every member is what lets Aurora fund the loyalty discount from measured incremental margin.",
+    a4_benefit_consumer:
+      "A member receives discounts on the categories they actually buy instead of a general circular, and can see in the app which purchases drove each offer.",
+    a4_benefit_other_stakeholders:
+      "Participating brand suppliers receive category-level redemption reporting for the promotions they fund, without receiving member-level data.",
+    a4_benefit_public:
+      "No public benefit is claimed for this activity beyond the member benefit stated above.",
+    a5_harm_pathways: [
+      {
+        harm: "(C) Impairment of consumer control over personal information",
+        source:
+          "The loyalty enrolment notice describes purchase-history personalisation but does not name the precise in-store geolocation the app collects.",
+        cause:
+          "A member reading the notice cannot tell that in-store position is retained, so the enrolment choice is made on an incomplete description.",
+        likelihood: "Likely",
+        severity: "Moderate",
+      },
+      {
+        harm: "(E) Economic harms",
+        source:
+          "Offer selection sets which members see a discount and at what depth.",
+        cause:
+          "A member whose purchase history is thin is systematically shown shallower discounts than a comparable member, paying more for the same basket.",
+        likelihood: "Possible",
+        severity: "Minimal",
+      },
+      {
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        source:
+          "The personalisation store holds member identity joined to itemised purchase history and store-visit records.",
+        cause:
+          "A shared reporting credential used outside the personalisation pipeline could export the joined member table.",
+        likelihood: "Unlikely",
+        severity: "Moderate",
+      },
+    ],
+    a6_safeguards: [
+      {
+        harm: "(C) Impairment of consumer control over personal information",
+        safeguard:
+          "The enrolment notice is being amended to name in-store geolocation, and the app's location permission is being reduced to coarse store-level resolution.",
+        safeguard_status: "Planned, not yet implemented",
+      },
+      {
+        harm: "(E) Economic harms",
+        safeguard:
+          "A floor discount is applied to every enrolled member regardless of score, and offer depth distribution is reviewed monthly.",
+        safeguard_status: "Implemented and tested",
+      },
+      {
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        safeguard:
+          "Reporting reads from an aggregated view with no member identifiers; the member-level store is reachable only by the personalisation service account.",
+        safeguard_status: "Implemented and tested",
+      },
+    ],
+    a9_approver_name: "Denise Okafor",
+    a9_approver_position: "SVP, Legal and Compliance",
+    a9_approval_date: "2026-07-30",
     ...REQUIRED_ALWAYS_FILLERS,
   },
   answer_targets: [], // answer every open_item on the second revision
