@@ -9316,3 +9316,96 @@ Diagnosis to carry into the fix item: Pass-2R runs outside the persisted lifecyc
 Throwaway Phase-2 driver `item355-smoke` (hard-pinned to the two fixture IDs) deleted from the project and from the platform after use.
 
 **PHASE 3 NOT REACHED.** Item 245 hold **REMAINS ACTIVE**; Items 319–321 remain NOT DEPLOYED. Next critical path: (1) rebase the surface contract on the persisted payload and reconcile `_engine_path` / `risk_assessment_by_activity`; (2) make Pass-2R ship inside the persisted lifecycle or record an explicit rejection reason.
+
+---
+
+## ITEM 357 — ENGINE UNIFICATION + BLUE/GREEN V2 (2026-08-01)
+
+Retires the cutover-attempt model after six Phase-2 failures. No flip performed
+this turn; V2 is deployed alongside the legacy function and carries no traffic.
+
+### 1. One shared generation module
+`supabase/functions/_shared/ltp/generate-cppa-risk.ts`
+- `generateCppaRiskReport(intake, options)` owns the COMPLETE path from raw
+  intake to the FINAL PERSISTED-PAYLOAD SERIALIZATION (entry normalization →
+  Pass-1 (model or deterministic) → derive → assemble → emit-gate →
+  customer projections → telemetry sink → serialization).
+- `runCppaRiskPass2R(gen, options)` is the post-persist prose stage.
+- Consumers refactored to a single call: `ltp-risk-doc-gen` (graded harness),
+  `run-cppa-risk-assessment/_local/ltp/production-entry.ts` (legacy), and the
+  new V2 shell. Harness and production now execute identical code.
+- Hermetic seams added: `pass2rEnabled`, `pass2rCall` (no model spend in tests).
+
+### 2. Item-355 (#6) defects fixed
+(a) CONTRACT REBASE — `_shared/ltp/conformance/surface-contract.v2.ts`
+    (33 keys; re-exported from `tests/edge/fixtures/item354/` for compatibility).
+    - `risk_assessment_by_activity` ADJUDICATED AS CUSTOMER CONTENT → DECLARED.
+    - `_engine_path` (and `_ltp`) ADJUDICATED AS TELEMETRY → sunk to
+      `_meta.internal`; both are on `INTERNAL_TOP_LEVEL_FORBIDDEN`.
+    - Checks live in `_shared/ltp/conformance/conformance-checks.ts` — one
+      implementation, run harness-side AND against live-persisted payloads.
+(b) PASS-2R LIFECYCLE — persist-first-then-UPDATE inside one awaited task
+    (`EdgeRuntime.waitUntil`). No model call can land post-shutdown. A
+    deterministic ship ALWAYS records `pass2r_skipped_reason`; silent fallback
+    is now a test failure (`item357-pass2r-lifecycle.test.ts`, 6/6 green).
+
+### 3. V2 shell
+`supabase/functions/run-cppa-risk-assessment-v2/index.ts` — legacy plumbing
+(auth, entitlement, metering, function_runs lifecycle, versioning) wrapped
+around one call to the shared module. Build stamp `ltp-risk-v2-item357@2026-08-01`.
+DEPLOYED. Not routed.
+
+### 4. PRODUCTION PARITY GATE — PASSED
+Both smoke fixtures generated through the DEPLOYED v2 (throwaway service-role
+driver, since deleted; throwaway rows since deleted).
+
+| check | perfect | messy |
+|---|---|---|
+| status | complete | complete |
+| top-level key count | 33 | 33 |
+| key set == v2 contract | yes | yes |
+| conformance checks | 19 passed / 0 failed | 19 passed / 0 failed |
+| `record_sufficiency` md5 | 7e0405742071acbadf52eebc3fa89227 | d1bb365493f8c4a97392dea3a8230a22 |
+| `information_needed` md5 | fb562fb4102f763270bd350ab55c22ef | 637f8509a92b1c3ce19be0e877acde67 |
+| `information_needed` length | 1 | 2 |
+| §7152 / §7156 present | yes / yes | yes / yes |
+| `risk_assessment_by_activity` | 2 activities | 2 activities |
+| `_engine_path` / `_ltp` at top level | absent | absent |
+
+Differentiation holds live (distinct md5s; messy needs ≥ perfect).
+Harness renders of the same fixtures satisfy the identical suite (structural
+parity); byte-identity is not assertable because Pass-1/Pass-2R are model calls.
+
+OPEN, NOT A GATE FAILURE — two substantive observations for CEO adjudication:
+1. `shipped_surface = "deterministic"` on BOTH live runs.
+   `pass2r_skipped_reason = "prose_rejected"`; Pass-2R RAN (3 attempts,
+   ~230s, claude-sonnet-4-6) and every attempt was rejected by the validators:
+   `citation_not_plan_carried` (["11 CCR § 7156"]),
+   `number_or_date_not_in_plan` (["250,000","1,000,000","24","2026","07"]),
+   `conflicting_verdict_stated` (["Low"]).
+   The lifecycle defect is FIXED (it runs, in-lifecycle, and is recorded);
+   the prose surface still does not ship on the merits.
+2. `risk_level = "Insufficient basis"` on BOTH records, including the complete
+   one. Contract-legal, but a quality question for a follow-up item.
+
+### 5. ROUTE-FLIP PLAN (not executed)
+Invocation sites to switch from `run-cppa-risk-assessment` to `-v2`:
+- `src/pages/CPPARiskAssessment*` client `functions.invoke` call sites.
+- `supabase/functions/regenerate-assessment` (re-run path).
+- `supabase/functions/payments-webhook` (post-purchase generation).
+- admin/stress/eval drivers: `static-stress-*`, `quality-*` batch runners.
+Flip is one string per site, reversible by reverting the same string. Legacy
+remains deployed and callable throughout; no data migration is involved.
+
+### Suites
+`deno test tests/edge/_shared/ltp/` → 390 passed / 12 failed. The identical
+12 failures reproduce on the pre-turn tree (`2141a6869^`, 398 passed / 12
+failed): all pre-date Item 357 (methodology_note shard-registry ownership and
+the Item 319/320/264/276 frame-rework assertions). ZERO new failures.
+
+### Rollback
+`git archive 4fe2e76c1 …` intact. V2 carries no traffic; deleting the v2
+function is itself a complete rollback of this turn's production surface.
+
+### Item 245
+Hold REMAINS ACTIVE. No customer route was flipped.
