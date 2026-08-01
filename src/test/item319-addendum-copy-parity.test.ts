@@ -124,3 +124,17 @@ describe("Item 319 addendum — the carve-out did NOT repeal the reserved-framin
     expect(spec).toContain("does **not** reach the primary activity's five § 7152 analytic deliverables");
   });
 });
+
+describe("Item 319 addendum — the fifth encoding (live statutory-trigger line)", () => {
+  const src = read("src/pages/CPPARiskAssessment.tsx");
+
+  it("the reactive § 7156(a) trigger line is directive, not reserved-framed", () => {
+    expect(src).not.toContain("determination reserved to you and counsel");
+    expect(src).toContain(
+      "a separate risk assessment is recommended for each use that differs",
+    );
+    expect(src).toContain(
+      "this tool's recommendation on your record, not a statement of what the law requires",
+    );
+  });
+});
