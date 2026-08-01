@@ -195,9 +195,10 @@ function alternativesFor(intake: unknown, op: Operation): AlternativeConsidered[
 // 1. Art. 35(7)(b) — necessity (least-intrusive means, PERFORMED)
 // ---------------------------------------------------------------------
 export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
-  const a = anchor("necessity");
-  const test = anchor("necessity_test");
-  const useful = anchor("useful_not_necessary");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("necessity", regime);
+  const test = anchor("necessity_test", regime);
+  const useful = anchor("useful_not_necessary", regime);
 
   return buildOperations(intake).map((op) => {
     const purpose_stated = op.purpose_text.length > 0;
@@ -255,7 +256,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
       alternatives_considered: alternatives,
       verdict,
       why,
-      citation: a.citation || "GDPR Art. 35(7)(b)",
+      citation: a.citation || cit(regime, "Art. 35(7)(b)"),
       authority_verbatim: a.verbatim,
       status,
       ...(information_needed ? { information_needed } : {}),
@@ -267,7 +268,8 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
 // 2. Art. 35(7)(b) — proportionality, SPLIT OUT from necessity
 // ---------------------------------------------------------------------
 export function buildProportionality(intake: unknown): ProportionalityFinding[] {
-  const a = anchor("necessity");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("necessity", regime);
   const narrative = str(get(intake, "necessity_proportionality"));
   const minimisation = str(get(intake, "data_minimisation_justification"));
   const subjects = str(get(intake, "data_subjects"));
@@ -315,7 +317,7 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
       argued_both_directions,
       verdict,
       why,
-      citation: a.citation || "GDPR Art. 35(7)(b)",
+      citation: a.citation || cit(regime, "Art. 35(7)(b)"),
       authority_verbatim: a.verbatim,
       status,
       ...(information_needed ? { information_needed } : {}),
@@ -357,10 +359,11 @@ function lower(band: RiskBand, steps: number): RiskBand {
 
 export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
   const f = facts(intake);
-  const a = anchor("risks");
-  const m = anchor("measures");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("risks", regime);
+  const m = anchor("measures", regime);
   // WP248-PINNING (2026-08-01) — the severity appraisal is guidance-anchored.
-  const g = anchor("risk_severity");
+  const g = anchor("risk_severity", regime);
   const out: RiskRegisterEntry[] = [];
 
   for (const spec of DPIA_RISK_SPECS) {
@@ -406,7 +409,7 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       inherent_band,
       measures,
       residual_band,
-      citation: a.citation || "GDPR Art. 35(7)(c)",
+      citation: a.citation || cit(regime, "Art. 35(7)(c)"),
       authority_verbatim: [a.verbatim, m.verbatim].filter(Boolean).join(" "),
       ...(g.verbatim
         ? { guidance_citation: g.citation, guidance_verbatim: g.verbatim }
@@ -443,8 +446,9 @@ export function buildArt36Consultation(
   intake: unknown,
   register: readonly RiskRegisterEntry[],
 ): Art36Consultation {
-  const a = anchor("art36");
-  const proc = anchor("art36_materials");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("art36", regime);
+  const proc = anchor("art36_materials", regime);
 
   const high = register.filter((r) => r.residual_band === "high");
   const undetermined = register.filter((r) => r.residual_band === "undetermined");
@@ -488,12 +492,12 @@ export function buildArt36Consultation(
     exposure_note: moved,
     separation_repairs: repairs,
     driving_risk_ids: high.map((r) => r.risk_id),
-    citation: a.citation || "GDPR Art. 36(1)",
+    citation: a.citation || cit(regime, "Art. 36(1)"),
     authority_verbatim: a.verbatim,
     procedural_note: determination === "consultation_required"
       ? `${proc.verbatim} the respective responsibilities of the controller, joint controllers and processors; the purposes and means of the intended processing; the measures and safeguards; the contact details of the data protection officer where applicable; and this data protection impact assessment.`
       : "Art. 36(3) applies only where a consultation is required; on this determination no consultation submission arises.",
-    procedural_citation: proc.citation || "GDPR Art. 36(3)",
+    procedural_citation: proc.citation || cit(regime, "Art. 36(3)"),
     status,
     ...(information_needed ? { information_needed } : {}),
   };
