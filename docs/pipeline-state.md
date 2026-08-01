@@ -9143,3 +9143,118 @@ CEO instruction. Fetching them first improves corpus quality and readiness, not 
 No fetch, no model call, no migration, no deploy, no code change. **Item 245 posture untouched — hold
 REMAINS ACTIVE.** Item 355's cached sweep remains paused at cursor
 `2b1cf1b8-768b-4b64-b193-438744335219` and is unaffected by this plan.
+
+---
+
+## ITEM 354-B — SYSTEMATIC CUSTOMER-SURFACE AUDIT + FIX BUNDLE (2026-08-01)
+
+**Ledger-number collision noted:** "Item 354" was already used by the ENFORCEMENT SURFACE
+GATING entry. This entry is recorded as **Item 354-B (queued as Item 354)**.
+
+**Scope honoured:** rendering / projection / config only. No engine analytics changes.
+**NO deploy of `run-cppa-risk-assessment`.** Item 245 hold **UNTOUCHED — REMAINS ACTIVE**.
+
+### 1. Surface contract (versioned fixture)
+
+`tests/edge/fixtures/item354/surface-contract.v1.ts`
+(`cppa-risk-surface-contract@v1-item354`). Built by walking the persisted `report_data` of
+BOTH smoke fixtures exhaustively — 32 top-level keys, no sampling. Every key carries a kind:
+`prose` / `scalar` / `shaped` / `internal`. `_meta` is the ONLY key typed `internal` and is
+the only permitted home for factor tables, the render plan and emit-gate nodes.
+
+### 2. Violations found and fixed
+
+**(a) Item 353 FAILURE 1 — raw engine structures on customer keys.**
+`section-shards/cppa-risk.ts` bound `overall_score`, `risk_level` to `projectFactorTable`
+and `risk_register` / `top_risks` to raw `plan.factor_table` slices, so 16 factor rows
+carrying `factor_id`, `present_in_intake`, `intake_ledger_refs`, `guidance_refs` shipped
+whole. FIXED via the new `_shared/ltp/customer-projections.ts`
+(`cppa-risk-customer-projection@2026-08-01-item354`):
+`risk_level` = finite mapping over the engine's existing `aggregateBalance` determination;
+`overall_score` = `null` (the LTP risk engine ships a band, not a 0-100 score);
+`risk_register` / `top_risks` = customer-shaped `{title, description, citation, status}`.
+Factor tables now live at `_meta.internal.factor_table`. Two further violations of the same
+class were found by the exhaustive walk and fixed in the same turn: `annotations` shipped raw
+Type-J propositions (now `{title, citation}`), and `risk_register` was missing from the
+serializer's entry-pruning map in `report-schemas/cppa-risk.ts` (now pruned, belt and braces).
+`jurisdiction_tag` is explicitly NOT treated as internal — it is a human jurisdiction label
+on `document_metadata` and the citation ledger.
+
+**(b) Item 353 FAILURE 2 — § 7156(a) directive section absent. CAUSE NAMED: NOT a regression.**
+Verify-first result: the Item 352 whitelist filter (the prime suspect) is exonerated — it never
+touches the scope section. Both Item 350 smoke fixtures (`perfect-a073d9c5`,
+`messy-bd458f0d`) carry `has_secondary_uses = "No"`, and the § 7156(a) directive section is
+governed by `secondarySegmentationInstances`, which correctly suppresses the section when the
+record declares no secondary uses. Attempt #4's pass came from a fixture that declared secondary
+uses. **This is a FIXTURE GAP, not a code defect** — the conformance suite therefore does not
+assert §7156(a) against these two fixtures; a secondary-use fixture is required to gate it and
+is the open follow-up.
+
+**(c) Item 353 FAILURE 3 — Pass-2R not shipping (`shipped_surface = "deterministic"` on both).**
+CAUSE NAMED: `runLtpProduction` in
+`run-cppa-risk-assessment/_local/ltp/production-entry.ts` called `runProsePassStage` WITHOUT
+`enforce`, so the stage ran in observe mode where `enforceShips` is structurally false and 2R
+can never be the shipped surface. FIXED: the stage now inherits the entry's enforce posture.
+Second defect closed in the same place: a non-shipping 2R previously left NO telemetry on the
+row (silent fallback). `pass2r_telemetry`, `pass2r_skipped_reason`, `pass2r_attempt_rejections`
+and `pass2r_prose_rejected` are now persisted to `_ltp` on BOTH branches, so a rejection on a
+healthy record surfaces as evidence rather than a silent deterministic pass.
+
+### 3. Conformance suite (permanent cutover gate)
+
+`tests/edge/_shared/ltp/item354-surface-conformance.test.ts` — every check from Items
+342 / 345 / 349 / 351 / 353 plus the surface contract, run harness-side against BOTH fixtures:
+key-set equality, per-key contract type, internal-identifier scan (incl. `info_emit_gate_*`),
+scalar risk band, customer-shaped registers/annotations, non-empty raw-JSON-free
+`processing_narrative`, no field-name subjects, `record_sufficiency` and `information_needed`
+differentiation, honest degradation ordering.
+
+```
+ok | 19 passed | 0 failed (8ms)
+```
+
+Full edge suite: `2112 passed | 72 failed | 5 ignored` — **byte-identical to the pristine
+`git archive HEAD` baseline run (`2112 passed | 72 failed | 5 ignored`)**: zero regressions;
+the 72 are the pre-existing failures (e.g. `Unmapped keys: methodology_note`, LIA registry
+version pins) carried in from earlier items.
+
+### 4. Verbatim key surfaces (harness render, both fixtures)
+
+```
+=== perfect-a073d9c5
+risk_level: "Insufficient basis"
+overall_score: null
+risk_register[0]: {"title": "Unauthorized access, destruction, use, modification, or disclosure", "description": "Unauthorized access, destruction, use, modification, or disclosure is documented on the assessment record.", "citation": "11 CCR § 7152(a)(5)(A)", "status": "Documented on the record"}
+annotations[0]: {"title": "Decision whether to initiate the processing", "citation": "11 CCR § 7152(a)(7)"}
+information_needed: ["The record does not yet include decision whether to initiate the processing, which 11 CCR § 7152(a)(7) requires. To complete this assessment: please confirm or provide additional detail regarding Decision whether to initiate the processing"]
+record_sufficiency[0]: "The record is not yet sufficient for the § 7152(a)(6) balancing frame. Meridian SaaS Inc has adequately documented 7 of the § 7152(a) elements listed below; 1 of these elements remain enumerated for your review. Each element is stated once, with its § 7152(a) pinpoint, in the order the record was assessed."
+md5(record_sufficiency) = 2a291b36bf9c245f7c20edb148cbbbcd
+md5(information_needed) = 1e0099c96ecd50814a6273cbd0da9807
+
+=== messy-bd458f0d
+risk_level: "Insufficient basis"
+overall_score: null
+risk_register[0]: {"title": "Unauthorized access, destruction, use, modification, or disclosure", "description": "Unauthorized access, destruction, use, modification, or disclosure is documented on the assessment record.", "citation": "11 CCR § 7152(a)(5)(A)", "status": "Documented on the record"}
+annotations[0]: {"title": "Decision whether to initiate the processing", "citation": "11 CCR § 7152(a)(7)"}
+information_needed: ["The record does not yet include decision whether to initiate the processing, which 11 CCR § 7152(a)(7) requires. To complete this assessment: please confirm or provide additional detail regarding Decision whether to initiate the processing", "The record does not yet include sufficiency of the safeguards, which 11 CCR § 7152(a)(6) requires. To complete this assessment: please confirm or provide additional detail regarding Sufficiency of the safeguards"]
+record_sufficiency[0]: "The record is not yet sufficient for the § 7152(a)(6) balancing frame. Meridian SaaS Inc has adequately documented 6 of the § 7152(a) elements listed below; 2 of these elements remain enumerated for your review. Each element is stated once, with its § 7152(a) pinpoint, in the order the record was assessed."
+md5(record_sufficiency) = 507be8d678c526f1a7d6b99fb9b5b0ff
+md5(information_needed) = 1441f2f1a76a5f88a098479f204b49e3
+```
+
+Differentiation holds on both surfaces; no `info_emit_gate_*` or other internal identifier
+appears anywhere on either customer surface.
+
+### 5. OPEN FINDING (engine analytics — out of this item's scope, NOT fixed here)
+
+The "perfect" fixture still renders `risk_level = "Insufficient basis"` with one outstanding
+element (`j.initiation_decision`, § 7152(a)(7)). That is a sufficiency-evaluator/fixture
+question, not a rendering one, and this item was scoped out of engine analytics. It must be
+resolved (or the fixture corrected) before a cutover attempt is worth making — a complete
+record that cannot reach a band is a poor first customer impression even though it is
+internally consistent.
+
+### 6. Cutover posture
+
+The conformance suite is now the permanent gate: **green harness-side is the precondition for
+any future T-M cutover attempt.** No cutover attempted this turn. Item 245 hold ACTIVE.
