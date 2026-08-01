@@ -117,6 +117,7 @@ export interface FrameLintFinding {
     | "authority_assertion"
     | "legal_standard"
     | "unknown_placeholder"
+    | "malformed_placeholder"
     | "undeclared_placeholder"
     | "empty_body";
   readonly detail: string;
@@ -162,6 +163,12 @@ export function lintFrame(frame: Frame): FrameLintFinding[] {
   for (const re of LEGAL_STANDARD_SHAPES) {
     const hit = prose.match(re);
     if (hit) push("legal_standard", hit[0]);
+  }
+
+  for (const used of extractPlaceholders(body)) {
+    if (!/^[A-Z][A-Z0-9_]*$/.test(used.token)) {
+      push("malformed_placeholder", used.token);
+    }
   }
 
   const declared = new Map(frame.placeholders.map((p) => [p.token, p]));
