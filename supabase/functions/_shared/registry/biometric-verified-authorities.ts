@@ -16,12 +16,21 @@
  *     flagged it as a follow-on. See `BIPA_PRA_CORPUS_STATUS`; the deliverables
  *     builder degrades to `record_insufficient` on any PRA specifics rather
  *     than quoting text no corpus row supports.
- *   - RCW 19.373 (My Health My Data Act) — its corpus row is `status='pending'`
- *     by CEO-gated design. Item 314 adjudicated RCW 19.375 as the biometric-
- *     identifiers chapter. Nothing here reads, cites, or activates 19.373.
+ * IN SCOPE SINCE ITEM 323 (CEO-authorized 2026-08-01):
+ *   - RCW 19.373 (My Health My Data Act). Its sections were ingested verbatim
+ *     from app.leg.wa.gov, double-pulled and hash-compared, and promoted to
+ *     `status='approved'`. RCW 19.373 and RCW 19.375 are TWO DISTINCT
+ *     AUTHORITIES under one Washington branch: separate `statute_key`s,
+ *     separate rows, separately cited, never merged into a single combined
+ *     "Washington biometric law" section. A business can trigger one, the
+ *     other, or both.
  */
 
-export type BiometricStatuteKey = "us_il_bipa" | "us_tx_cubi" | "us_wa_19375";
+export type BiometricStatuteKey =
+  | "us_il_bipa"
+  | "us_tx_cubi"
+  | "us_wa_19375"
+  | "us_wa_19373";
 
 export type BiometricDutyKind =
   | "definition"
@@ -610,6 +619,171 @@ export const BIOMETRIC_DUTY_ROWS: readonly BiometricDutyRow[] = [
       "(1) The legislature finds that the practices covered by this chapter are matters vitally affecting the public interest for the purpose of applying the consumer protection act, chapter 19.86 RCW. A violation of this chapter is not reasonable in relation to the development and preservation of business and is an unfair or deceptive act in trade or commerce and an unfair method of competition for the purpose of applying the consumer protection act, chapter 19.86 RCW.\n(2) This chapter may be enforced solely by the attorney general under the consumer protection act, chapter 19.86 RCW.",
     corpus_key: "wa-rcw-19-375-030",
     source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.375",
+  },
+  {
+    id: "wa_19373.def_biometric_data",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.010 (Definitions)",
+    pinpoint: "RCW 19.373.010(4)",
+    kind: "definition",
+    label: "\"Biometric data\" (MHMDA)",
+    verbatim_quote:
+      "(4) \"Biometric data\" means data that is generated from the measurement or technological processing of an individual's physiological, biological, or behavioral characteristics and that identifies a consumer, whether individually or in combination with other data. Biometric data includes, but is not limited to:\n(a) Imagery of the iris, retina, fingerprint, face, hand, palm, vein patterns, and voice recordings, from which an identifier template can be extracted; or\n(b) Keystroke patterns or rhythms and gait patterns or rhythms that contain identifying information.",
+    corpus_key: "wa-rcw-19-373-010-biometric-data",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.def_consumer_health_data",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.010 (Definitions)",
+    pinpoint: "RCW 19.373.010(8)",
+    kind: "definition",
+    label: "\"Consumer health data\" \u2014 biometric data is an enumerated species (MHMDA)",
+    verbatim_quote:
+      "(8)(a) \"Consumer health data\" means personal information that is linked or reasonably linkable to a consumer and that identifies the consumer's past, present, or future physical or mental health status.\n(b) For the purposes of this definition, physical or mental health status includes, but is not limited to:\n(i) Individual health conditions, treatment, diseases, or diagnosis;\n(ii) Social, psychological, behavioral, and medical interventions;\n(iii) Health-related surgeries or procedures;\n(iv) Use or purchase of prescribed medication;\n(v) Bodily functions, vital signs, symptoms, or measurements of the information described in this subsection (8)(b);\n(vi) Diagnoses or diagnostic testing, treatment, or medication;\n(vii) Gender-affirming care information;\n(viii) Reproductive or sexual health information;\n(ix) Biometric data;\n(x) Genetic data;\n(xi) Precise location information that could reasonably indicate a consumer's attempt to acquire or receive health services or supplies;\n(xii) Data that identifies a consumer seeking health care services; or\n(xiii) Any information that a regulated entity or a small business, or their respective processor, processes to associate or identify a consumer with the data described in (b)(i) through (xii) of this subsection that is derived or extrapolated from nonhealth information (such as proxy, derivative, inferred, or emergent data by any means, including algorithms or machine learning).",
+    corpus_key: "wa-rcw-19-373-010-biometric-data",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.chd_research_exclusion",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.010 (Definitions)",
+    pinpoint: "RCW 19.373.010(8)(c)",
+    kind: "exclusion",
+    label: "IRB-governed public-interest research exclusion (MHMDA)",
+    verbatim_quote:
+      "(c) \"Consumer health data\" does not include personal information that is used to engage in public or peer-reviewed scientific, historical, or statistical research in the public interest that adheres to all other applicable ethics and privacy laws and is approved, monitored, and governed by an institutional review board, human subjects research ethics review board, or a similar independent oversight entity that determines that the regulated entity or the small business has implemented reasonable safeguards to mitigate privacy risks associated with research, including any risks associated with reidentification.",
+    corpus_key: "wa-rcw-19-373-010-biometric-data",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.020_privacy_policy",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.020 (Consumer health data privacy policy)",
+    pinpoint: "RCW 19.373.020(1)(a)-(b)",
+    kind: "duty",
+    label: "Consumer health data privacy policy and homepage link",
+    verbatim_quote:
+      "(1)(a) Except as provided in subsection (2) of this section, beginning March 31, 2024, a regulated entity and a small business shall maintain a consumer health data privacy policy that clearly and conspicuously discloses:\n(i) The categories of consumer health data collected and the purpose for which the data is collected, including how the data will be used;\n(ii) The categories of sources from which the consumer health data is collected;\n(iii) The categories of consumer health data that is shared;\n(iv) A list of the categories of third parties and specific affiliates with whom the regulated entity or the small business shares the consumer health data; and\n(v) How a consumer can exercise the rights provided in RCW 19.373.040.\n(b) A regulated entity and a small business shall prominently publish a link to its consumer health data privacy policy on its homepage.",
+    corpus_key: "wa-rcw-19-373-020",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.020_undisclosed_categories_purposes",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.020 (Consumer health data privacy policy)",
+    pinpoint: "RCW 19.373.020(1)(c)-(e)",
+    kind: "duty",
+    label: "No undisclosed categories or purposes without affirmative consent",
+    verbatim_quote:
+      "(c) A regulated entity or a small business may not collect, use, or share additional categories of consumer health data not disclosed in the consumer health data privacy policy without first disclosing the additional categories and obtaining the consumer's affirmative consent prior to the collection, use, or sharing of such consumer health data.\n(d) A regulated entity or a small business may not collect, use, or share consumer health data for additional purposes not disclosed in the consumer health data privacy policy without first disclosing the additional purposes and obtaining the consumer's affirmative consent prior to the collection, use, or sharing of such consumer health data.\n(e) It is a violation of this chapter for a regulated entity or a small business to contract with a processor to process consumer health data in a manner that is inconsistent with the regulated entity's or the small business's consumer health data privacy policy.",
+    corpus_key: "wa-rcw-19-373-020",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.030_collection_consent",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.030 (Collection or sharing of consumer health data)",
+    pinpoint: "RCW 19.373.030(1)(a)",
+    kind: "duty",
+    label: "Consent before collection of consumer health data",
+    verbatim_quote:
+      "(1)(a) Except as provided in subsection (2) of this section, beginning March 31, 2024, a regulated entity or a small business may not collect any consumer health data except:\n(i) With consent from the consumer for such collection for a specified purpose; or\n(ii) To the extent necessary to provide a product or service that the consumer to whom such consumer health data relates has requested from such regulated entity or small business.",
+    corpus_key: "wa-rcw-19-373-030",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.030_share_consent",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.030 (Collection or sharing of consumer health data)",
+    pinpoint: "RCW 19.373.030(1)(b)",
+    kind: "duty",
+    label: "Separate and distinct consent before sharing",
+    verbatim_quote:
+      "(b) A regulated entity or a small business may not share any consumer health data except:\n(i) With consent from the consumer for such sharing that is separate and distinct from the consent obtained to collect consumer health data; or\n(ii) To the extent necessary to provide a product or service that the consumer to whom such consumer health data relates has requested from such regulated entity or small business.",
+    corpus_key: "wa-rcw-19-373-030",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.030_consent_disclosure_content",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.030 (Collection or sharing of consumer health data)",
+    pinpoint: "RCW 19.373.030(1)(c)",
+    kind: "qualifier",
+    label: "What a valid consent request must disclose",
+    verbatim_quote:
+      "(c) Consent required under this section must be obtained prior to the collection or sharing, as applicable, of any consumer health data, and the request for consent must clearly and conspicuously disclose: (i) The categories of consumer health data collected or shared; (ii) the purpose of the collection or sharing of the consumer health data, including the specific ways in which it will be used; (iii) the categories of entities with whom the consumer health data is shared; and (iv) how the consumer can withdraw consent from future collection or sharing of the consumer's health data.",
+    corpus_key: "wa-rcw-19-373-030",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.030_nondiscrimination",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.030 (Collection or sharing of consumer health data)",
+    pinpoint: "RCW 19.373.030(1)(d)",
+    kind: "duty",
+    label: "No unlawful discrimination for exercising rights",
+    verbatim_quote:
+      "(d) A regulated entity or a small business may not unlawfully discriminate against a consumer for exercising any rights included in this chapter.",
+    corpus_key: "wa-rcw-19-373-030",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.080_geofence",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.080 (Geofence restrictions)",
+    pinpoint: "RCW 19.373.080",
+    kind: "duty",
+    label: "Geofence restrictions around in-person health-care facilities",
+    verbatim_quote:
+      "It is unlawful for any person to implement a geofence around an entity that provides in-person health care services where such geofence is used to: (1) Identify or track consumers seeking health care services; (2) collect consumer health data from consumers; or (3) send notifications, messages, or advertisements to consumers related to their consumer health data or health care services.",
+    corpus_key: "wa-rcw-19-373-080",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
+  },
+  {
+    id: "wa_19373.090_cpa_enforcement",
+    statute_key: "us_wa_19373",
+    statute_long: "Washington My Health My Data Act",
+    statute_short: "RCW 19.373 (MHMDA)",
+    jurisdiction: "US-WA",
+    citation: "RCW 19.373.090 (Application of consumer protection act)",
+    pinpoint: "RCW 19.373.090",
+    kind: "enforcement",
+    label: "Violations are unfair or deceptive acts under the Consumer Protection Act",
+    verbatim_quote:
+      "The legislature finds that the practices covered by this chapter are matters vitally affecting the public interest for the purpose of applying the consumer protection act, chapter 19.86 RCW. A violation of this chapter is not reasonable in relation to the development and preservation of business, and is an unfair or deceptive act in trade or commerce and an unfair method of competition for the purpose of applying the consumer protection act, chapter 19.86 RCW.",
+    corpus_key: "wa-rcw-19-373-090",
+    source_url: "https://app.leg.wa.gov/RCW/default.aspx?cite=19.373",
   },
 ];
 

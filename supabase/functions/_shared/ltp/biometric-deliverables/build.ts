@@ -17,8 +17,13 @@
  * RESERVED-FRAMING LAW: 740 ILCS 14/20 is not in corpus. The builder may say
  * BIPA is enforced by private suit; every specific degrades.
  *
- * SCOPE GATE: RCW 19.373 (My Health My Data) is `status='pending'` by CEO
- * design. It is surfaced as a flag with no verdict field and is never read.
+ * ITEM 323 (CEO-authorized 2026-08-01): RCW 19.373 (My Health My Data Act) is
+ * IN SCOPE. It is built as a SECOND, DISTINCT Washington authority alongside
+ * RCW 19.375 — its own statute key, its own duty findings, its own enforcement
+ * surface, cited separately. The two are never merged into one combined
+ * "Washington biometric law" section: an organisation can trigger 19.375
+ * (enrollment of biometric identifiers for a commercial purpose), 19.373
+ * (biometric data that identifies or infers health status), or both.
  */
 
 import {
@@ -82,6 +87,14 @@ export interface BiometricIntakeForDeliverables {
   wa_enrolls_in_database?: string | null;
   wa_commercial_purpose?: string | null;
   wa_security_purpose_only?: string | null;
+
+  // Item 323 — RCW 19.373 (MHMDA) predicate and duty facts. Kept in their own
+  // block because they belong to a different Washington statute.
+  wa_mhmda_health_inference?: string | null;
+  wa_mhmda_privacy_policy_published?: string | null;
+  wa_mhmda_collection_consent?: string | null;
+  wa_mhmda_share_consent_separate?: string | null;
+  wa_mhmda_geofence_health_facility?: string | null;
 }
 
 // ── Small pure helpers ───────────────────────────────────────────────────────
@@ -123,6 +136,12 @@ const STATUTES: Record<StatuteKey, StatuteRef> = {
     statute_long: "Washington biometric identifiers chapter",
     jurisdiction: "Washington",
   },
+  us_wa_19373: {
+    statute_key: "us_wa_19373",
+    statute_short: "RCW 19.373 (MHMDA)",
+    statute_long: "Washington My Health My Data Act",
+    jurisdiction: "Washington",
+  },
 };
 
 /** Which of the three statutes the record actually puts in scope. */
@@ -136,7 +155,13 @@ export function statutesInScope(
   const out: StatuteRef[] = [];
   if (hit(["illinois", "bipa"])) out.push(STATUTES.us_il_bipa);
   if (hit(["texas", "cubi"])) out.push(STATUTES.us_tx_cubi);
-  if (hit(["washington"])) out.push(STATUTES.us_wa_19375);
+  // DISTINCT-AUTHORITY LAW (Item 323): naming Washington puts BOTH Washington
+  // statutes on the page as separate authorities. Whether each one's duties
+  // actually attach is decided by that statute's own predicate, not here.
+  if (hit(["washington"])) {
+    out.push(STATUTES.us_wa_19375);
+    out.push(STATUTES.us_wa_19373);
+  }
   return out;
 }
 
@@ -176,12 +201,21 @@ const TYPE_MATCH: Record<
     { match: /gait/i, within: true, why: "the definition is open-ended — \"other unique biological patterns or characteristics\" — and gait is measured automatically to identify an individual" },
     { match: /vein/i, within: true, why: "the definition is open-ended — \"other unique biological patterns or characteristics\"" },
   ],
+  us_wa_19373: [
+    { match: /facial/i, within: true, why: "imagery of the face from which an identifier template can be extracted is named" },
+    { match: /fingerprint|palm/i, within: true, why: "imagery of the fingerprint, hand, and palm is named" },
+    { match: /voice/i, within: true, why: "voice recordings from which an identifier template can be extracted are named" },
+    { match: /iris|retina/i, within: true, why: "imagery of the iris and retina is named" },
+    { match: /gait/i, within: true, why: "gait patterns or rhythms that contain identifying information are named expressly" },
+    { match: /vein/i, within: true, why: "vein patterns are named expressly" },
+  ],
 };
 
 const DEFINITION_ROW: Record<StatuteKey, string> = {
   us_il_bipa: "il_bipa.def_biometric_identifier",
   us_tx_cubi: "tx_cubi.def_biometric_identifier",
   us_wa_19375: "wa_19375.def_biometric_identifier",
+  us_wa_19373: "wa_19373.def_biometric_data",
 };
 
 function photographicSource(intake: BiometricIntakeForDeliverables): boolean | null {
@@ -312,6 +346,35 @@ function buildIdentifierCharacterizations(
           : glba === "unknown" && tpo === "unknown"
           ? "Neither exclusion can be evaluated on this record."
           : "Neither chapter-level exclusion is engaged on this record.",
+      });
+    }
+
+    if (s.statute_key === "us_wa_19373") {
+      const chd = dutyRow("wa_19373.def_consumer_health_data");
+      const research = dutyRow("wa_19373.chd_research_exclusion");
+      const health = tri(intake.wa_mhmda_health_inference);
+      exclusions_engaged.push({
+        exclusion:
+          "reaches biometric data only as a species of consumer health data — the data must identify past, present, or future physical or mental health status",
+        citation: chd.pinpoint,
+        standard: chd.verbatim_quote,
+        record_fact: `Biometric data used to identify or infer health status, or to identify a consumer seeking health-care services: ${health}`,
+        engaged: health === "unknown" ? null : health === "no",
+        reasoning: health === "yes"
+          ? "RCW 19.373.010(8)(b)(ix) lists biometric data as consumer health data. The record states the data identifies or infers health status, so the chapter reaches it."
+          : health === "no"
+          ? "The record states the biometric data neither identifies nor infers health status and does not identify a consumer seeking health-care services, so it is not consumer health data under RCW 19.373.010(8) and the chapter does not reach it. RCW 19.375 is unaffected by that answer."
+          : "Whether the biometric data identifies or infers health status is not on the record, so its characterisation as consumer health data cannot be settled.",
+      });
+      exclusions_engaged.push({
+        exclusion: "IRB-governed public-interest research",
+        citation: research.pinpoint,
+        standard: research.verbatim_quote,
+        record_fact: `Stated purpose: ${txt(intake.purpose) ?? "not supplied"}.`,
+        engaged: /research/i.test(intake.purpose ?? "") ? null : false,
+        reasoning: /research/i.test(intake.purpose ?? "")
+          ? "The record describes a research purpose. The exclusion is narrow — it requires public or peer-reviewed research in the public interest approved, monitored, and governed by an institutional review board or similar body — and the record does not say whether those conditions are met."
+          : "The record does not describe research, so the (8)(c) research exclusion is not engaged.",
       });
     }
 
@@ -455,6 +518,34 @@ function buildEntityCharacterization(
         information_needed: commercial
           ? undefined
           : "State whether the research or development activity is undertaken for a commercial purpose.",
+      };
+    }
+    if (s.statute_key === "us_wa_19373") {
+      // Item 323 — MHMDA has its own actor question and must not borrow the
+      // RCW 19.375 "person" definition or its GLBA exclusion. The "regulated
+      // entity" definition is not in corpus, so the actor analysis is anchored
+      // to the subject-matter predicate that is: RCW 19.373.010(8).
+      const chd = dutyRow("wa_19373.def_consumer_health_data");
+      const health = tri(intake.wa_mhmda_health_inference);
+      return {
+        ...s,
+        citation: chd.pinpoint,
+        standard: chd.verbatim_quote,
+        record_fact: `Reasoned role: ${role}. Biometric data identifies or infers health status: ${health}.`,
+        application: health === "yes"
+          ? "The chapter reaches an entity that collects, processes, shares, or sells consumer health data of Washington consumers. Biometric data is enumerated consumer health data, and the record puts this data inside that enumeration, so the chapter reaches this organisation. The RCW 19.375 exclusions do not carry over: this is a different chapter."
+          : health === "no"
+          ? "The chapter reaches an entity only in respect of consumer health data. The record puts this biometric data outside that definition, so the chapter does not reach this organisation on these facts. That conclusion is confined to RCW 19.373."
+          : "Whether this organisation is within the chapter turns on whether the biometric data it holds is consumer health data, and the record does not settle it.",
+        verdict: health === "yes"
+          ? ("within_actor_scope" as const)
+          : health === "no"
+          ? ("outside_actor_scope" as const)
+          : ("record_insufficient" as const),
+        status: health === "unknown" ? ("record_insufficient" as const) : ("analysed" as const),
+        information_needed: health === "unknown"
+          ? "State whether the biometric data identifies or infers the consumer's physical or mental health status, or identifies a consumer seeking health-care services."
+          : undefined,
       };
     }
     const row = dutyRow("wa_19375.def_person");
@@ -960,6 +1051,164 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
   return out;
 }
 
+function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
+  const s = STATUTES.us_wa_19373;
+  const health = tri(intake.wa_mhmda_health_inference);
+  const policy = tri(intake.wa_mhmda_privacy_policy_published);
+  const collect = tri(intake.wa_mhmda_collection_consent);
+  const share = tri(intake.wa_mhmda_share_consent_separate);
+  const geofence = tri(intake.wa_mhmda_geofence_health_facility);
+  const bases = listed(intake.disclosure_bases);
+  const noDisclosures = bases.some((b) => /^no disclosures are made$/i.test(b));
+  const out: DutyFinding[] = [];
+
+  const chd = dutyRow("wa_19373.def_consumer_health_data");
+  const gateQualifier = [{
+    citation: chd.pinpoint,
+    standard: chd.verbatim_quote,
+    record_fact: `Biometric data identifies or infers health status: ${health}.`,
+    effect: health === "yes"
+      ? "Biometric data is an enumerated species of consumer health data, so the chapter's duties attach to it on this record."
+      : health === "no"
+      ? "The chapter reaches biometric data only where it is consumer health data. That predicate is absent, so these duties do not attach. This says nothing about RCW 19.375, which is assessed separately on its own predicate."
+      : "The chapter reaches biometric data only where it is consumer health data, and the record does not settle that predicate.",
+  }];
+
+  const gated = (rowId: string, label: string, record_fact: string): DutyFinding =>
+    mk(
+      s,
+      rowId,
+      label,
+      record_fact,
+      health === "no"
+        ? "The duty attaches only to consumer health data as RCW 19.373.010(8) defines it, and the record puts this data outside that definition."
+        : "Whether the duty attaches turns on whether the biometric data is consumer health data, and the record does not settle it.",
+      health === "no" ? "not_applicable" : "record_insufficient",
+      health === "no"
+        ? undefined
+        : "State whether the biometric data identifies or infers the consumer's past, present, or future physical or mental health status, or identifies a consumer seeking health-care services.",
+      gateQualifier,
+    );
+
+  // RCW 19.373.020 — consumer health data privacy policy.
+  if (health !== "yes") {
+    out.push(gated(
+      "wa_19373.020_privacy_policy",
+      "Consumer health data privacy policy and homepage link",
+      `Consumer health data privacy policy published with a homepage link: ${policy}.`,
+    ));
+  } else {
+    out.push(mk(
+      s,
+      "wa_19373.020_privacy_policy",
+      "Consumer health data privacy policy and homepage link",
+      `Consumer health data privacy policy published with a homepage link: ${policy}.`,
+      policy === "yes"
+        ? "The record describes a maintained consumer health data privacy policy carrying the five disclosures subsection (1)(a) enumerates, with the homepage link subsection (1)(b) requires."
+        : policy === "no"
+        ? "Subsection (1)(a) requires a maintained policy disclosing the five enumerated matters, and subsection (1)(b) requires a prominent homepage link. The record describes neither."
+        : "Whether a consumer health data privacy policy is maintained and linked is not on the record.",
+      policy === "yes" ? "satisfied" : policy === "no" ? "not_satisfied" : "record_insufficient",
+      policy === "unknown"
+        ? "State whether a consumer health data privacy policy is maintained, whether it carries each of the five disclosures RCW 19.373.020(1)(a) enumerates, and whether it is linked from the homepage."
+        : undefined,
+      [{
+        citation: dutyRow("wa_19373.020_undisclosed_categories_purposes").pinpoint,
+        standard: dutyRow("wa_19373.020_undisclosed_categories_purposes").verbatim_quote,
+        record_fact: `Stated purpose: ${txt(intake.purpose) ?? "not supplied"}.`,
+        effect:
+          "The policy also fixes the outer limit of permitted processing: collecting, using, or sharing categories or purposes the policy does not disclose requires fresh affirmative consent, and contracting a processor inconsistently with the policy is itself a violation.",
+      }],
+    ));
+  }
+
+  // RCW 19.373.030(1)(a) — consent before collection.
+  if (health !== "yes") {
+    out.push(gated(
+      "wa_19373.030_collection_consent",
+      "Consent before collection of consumer health data",
+      `Consent obtained before collection for a specified purpose: ${collect}.`,
+    ));
+  } else {
+    out.push(mk(
+      s,
+      "wa_19373.030_collection_consent",
+      "Consent before collection of consumer health data",
+      `Consent obtained before collection for a specified purpose: ${collect}. Consent artifact described for the biometric collection generally: ${txt(intake.consent_artifact_type) ?? "not supplied"}.`,
+      collect === "yes"
+        ? "The record describes consent for collection for a specified purpose, which is the first of the two routes subsection (1)(a) allows. This is a different instrument from a BIPA written release: MHMDA consent must be a clear affirmative opt-in act and cannot be carried by a general terms-of-use acceptance."
+        : collect === "no"
+        ? "Subsection (1)(a) permits collection only on consent for a specified purpose or where collection is necessary to provide a product or service the consumer requested. The record describes neither."
+        : "Whether consent for collection was obtained for a specified purpose is not on the record.",
+      collect === "yes" ? "satisfied" : collect === "no" ? "not_satisfied" : "record_insufficient",
+      collect === "unknown"
+        ? "State whether consent for collection was obtained before collection, for what specified purpose, and by what mechanism."
+        : undefined,
+      [{
+        citation: dutyRow("wa_19373.030_consent_disclosure_content").pinpoint,
+        standard: dutyRow("wa_19373.030_consent_disclosure_content").verbatim_quote,
+        record_fact: `Consent artifact: ${txt(intake.consent_artifact_type) ?? "not supplied"}.`,
+        effect:
+          "Consent is measured by what the request disclosed: categories, purpose including specific uses, categories of recipients, and how to withdraw. An artifact that omits any of the four does not carry the subsection even where something labelled consent was collected.",
+      }],
+    ));
+  }
+
+  // RCW 19.373.030(1)(b) — separate and distinct sharing consent.
+  if (health !== "yes") {
+    out.push(gated(
+      "wa_19373.030_share_consent",
+      "Separate and distinct consent before sharing",
+      `Separate sharing consent: ${share}. Disclosure recipients: ${txt(intake.disclosure_recipients) ?? "not supplied"}.`,
+    ));
+  } else {
+    out.push(mk(
+      s,
+      "wa_19373.030_share_consent",
+      "Separate and distinct consent before sharing",
+      `Separate sharing consent: ${share}. Bases asserted for disclosure: ${bases.join("; ") || "none supplied"}.`,
+      noDisclosures && share !== "no"
+        ? "The record states no disclosures are made, so the sharing limb is not engaged."
+        : share === "yes"
+        ? "The record describes a sharing consent that is separate and distinct from the collection consent, which is what subsection (1)(b) requires — a single combined permission does not satisfy it."
+        : share === "no"
+        ? "Subsection (1)(b) permits sharing only on a consent separate and distinct from the collection consent, or where sharing is necessary to provide a requested product or service. The record describes neither."
+        : "Whether a separate sharing consent exists is not on the record.",
+      noDisclosures && share !== "no"
+        ? "not_applicable"
+        : share === "yes"
+        ? "satisfied"
+        : share === "no"
+        ? "not_satisfied"
+        : "record_insufficient",
+      !noDisclosures && share === "unknown"
+        ? "State whether consumer health data is shared and, if so, whether a consent separate and distinct from the collection consent was obtained."
+        : undefined,
+      gateQualifier,
+    ));
+  }
+
+  // RCW 19.373.080 — geofencing. NOT gated on the consumer-health-data
+  // predicate: the section binds "any person", not only regulated entities.
+  out.push(mk(
+    s,
+    "wa_19373.080_geofence",
+    "Geofence restrictions around in-person health-care facilities",
+    `Geofence implemented around an entity providing in-person health-care services: ${geofence}.`,
+    geofence === "yes"
+      ? "The section makes it unlawful for any person to implement such a geofence for any of the three listed uses. The record describes one."
+      : geofence === "no"
+      ? "The record describes no geofence around an entity providing in-person health-care services."
+      : "Whether a geofence is implemented around an entity providing in-person health-care services is not on the record. This section binds any person, so it does not wait on the consumer-health-data predicate.",
+    geofence === "yes" ? "not_satisfied" : geofence === "no" ? "satisfied" : "record_insufficient",
+    geofence === "unknown"
+      ? "State whether any geofence is implemented around an entity that provides in-person health-care services and, if so, what it is used for."
+      : undefined,
+  ));
+
+  return out;
+}
+
 // ── Op. 4 — divergence ───────────────────────────────────────────────────────
 
 function buildDivergence(
@@ -1152,6 +1401,34 @@ function buildDivergence(
     });
   }
 
+  // (g) the two Washington chapters, kept apart. This is an INTRA-state
+  // divergence: it fires whenever both WA authorities are on the page, even if
+  // Washington is the only jurisdiction named.
+  if (has("us_wa_19375") && has("us_wa_19373")) {
+    items.push({
+      key: "wa_two_chapters",
+      topic: "Washington regulates the same data twice, under two chapters with different triggers",
+      statutes: ["us_wa_19375", "us_wa_19373"],
+      positions: [
+        {
+          statute_short: "RCW 19.375",
+          citation: dutyRow("wa_19375.020_1_enrollment_notice_consent").pinpoint,
+          standard: dutyRow("wa_19375.020_1_enrollment_notice_consent").verbatim_quote,
+          position: "turns on enrolling a biometric identifier in a database for a commercial purpose, and exempts enrollment for a security purpose",
+        },
+        {
+          statute_short: "RCW 19.373 (MHMDA)",
+          citation: dutyRow("wa_19373.def_consumer_health_data").pinpoint,
+          standard: dutyRow("wa_19373.def_consumer_health_data").verbatim_quote,
+          position: "turns on the data identifying or inferring health status, has no security-purpose carve-out, and requires a separate and distinct consent to share",
+        },
+      ],
+      no_analogue_in: [],
+      record_consequence:
+        "These are two chapters, not two readings of one chapter. Clearing RCW 19.375 — because enrollment is for a security purpose, or because nothing is enrolled in a database — does not clear RCW 19.373, and vice versa. They are analysed and cited separately throughout this report, and neither answer should be read across to the other.",
+    });
+  }
+
   return items;
 }
 
@@ -1198,6 +1475,18 @@ function buildConsequence(
         citation: row.pinpoint,
         standard: row.verbatim_quote,
         mechanism: "Enforcement is by the attorney general, by action to recover a civil penalty. CUBI's operative text creates no private suit.",
+        reserved: null,
+        corpus_status: "in_corpus",
+      });
+    }
+    if (s.statute_key === "us_wa_19373") {
+      const row = dutyRow("wa_19373.090_cpa_enforcement");
+      exposure_surfaces.push({
+        ...s,
+        citation: row.pinpoint,
+        standard: row.verbatim_quote,
+        mechanism:
+          "A violation of the chapter is an unfair or deceptive act in trade or commerce and an unfair method of competition for purposes of applying the consumer protection act, chapter 19.86 RCW. Unlike RCW 19.375.030, this section reserves no enforcement to the attorney general alone, and chapter 19.86 RCW supplies a private action.",
         reserved: null,
         corpus_status: "in_corpus",
       });
@@ -1285,12 +1574,11 @@ function buildNarrative(
 
 // ── Entry point ──────────────────────────────────────────────────────────────
 
-const SCOPE_GATED: ScopeGatedCorpusFlag[] = [{
-  citation: "RCW 19.373 (Washington My Health My Data Act)",
-  status: "scope_gated_pending",
-  note:
-    "Ingested for provenance at status='pending' and deliberately not activated. Item 314 adjudicated RCW 19.375 as the biometric-identifiers chapter; RCW 19.373 reaches biometric data only derivatively as a species of consumer health data. Bringing it into product scope is a business decision reserved to the CEO. Nothing in this assessment reads or applies it.",
-}];
+// Item 323 retired the RCW 19.373 scope gate: the chapter was ingested,
+// verified, and activated as its own authority. The list stays in the shape so
+// the next gated corpus row has somewhere to go, and so the deliverable keeps
+// declaring — explicitly — that nothing is being held back.
+const SCOPE_GATED: ScopeGatedCorpusFlag[] = [];
 
 export function buildBiometricDeliverables(
   intake: BiometricIntakeForDeliverables,
@@ -1304,6 +1592,7 @@ export function buildBiometricDeliverables(
     if (s.statute_key === "us_il_bipa") duty_findings.push(...buildIlDuties(intake));
     if (s.statute_key === "us_tx_cubi") duty_findings.push(...buildTxDuties(intake));
     if (s.statute_key === "us_wa_19375") duty_findings.push(...buildWaDuties(intake));
+    if (s.statute_key === "us_wa_19373") duty_findings.push(...buildWaMhmdaDuties(intake));
   }
 
   const divergence_analysis = buildDivergence(scope, identifier_characterizations, duty_findings);

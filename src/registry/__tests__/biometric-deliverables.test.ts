@@ -154,8 +154,12 @@ describe("Item 317 — scope and identifier characterization", () => {
 
   it("characterizes the identifier under each statute's OWN definition", () => {
     const d = buildBiometricDeliverables(PERFECT_MULTI());
-    expect(d.identifier_characterizations).toHaveLength(3);
-    for (const c of d.identifier_characterizations) {
+    // Item 323: naming Washington puts BOTH Washington chapters on the page.
+    expect(d.identifier_characterizations).toHaveLength(4);
+    // RCW 19.373 reaches biometric data only where it is consumer health data,
+    // so its characterization tracks that predicate and is pinned separately
+    // in the Item 323 block below.
+    for (const c of d.identifier_characterizations.filter((x) => x.statute_key !== "us_wa_19373")) {
       expect(c.definition_standard.length).toBeGreaterThan(20);
       // The definition quoted is the one belonging to that statute.
       const owned = BIOMETRIC_DUTY_ROWS.filter(
@@ -184,7 +188,7 @@ describe("Item 317 — entity characterization is reasoned, not echoed", () => {
     expect(e.role.length).toBeGreaterThan(0);
     expect(e.role_reasoning.length).toBeGreaterThan(30);
     expect(norm(e.role_reasoning)).not.toBe(norm(e.intake_label ?? ""));
-    expect(e.per_statute.length).toBe(3);
+    expect(e.per_statute.length).toBe(4);
     for (const p of e.per_statute) {
       expect(p.standard.length).toBeGreaterThan(20);
       expect(p.application.length).toBeGreaterThan(20);
@@ -320,24 +324,96 @@ describe("Item 317 — SEPARATION GUARD and RESERVED-FRAMING LAW", () => {
   });
 });
 
-describe("Item 317 — RCW 19.373 stays inert", () => {
-  it("no duty row or deliverable applies the MHMD row", () => {
-    for (const r of BIOMETRIC_DUTY_ROWS) {
-      expect(r.citation).not.toContain("19.373");
-      expect(r.corpus_key).not.toContain("19-373");
-    }
-    const d = buildBiometricDeliverables(PERFECT_MULTI());
-    for (const f of d.duty_findings) expect(f.citation).not.toContain("19.373");
-    for (const c of d.identifier_characterizations) {
-      expect(c.definition_citation).not.toContain("19.373");
+describe("Item 323 — RCW 19.373 (MHMDA) is ACTIVE, as a DISTINCT Washington authority", () => {
+  /**
+   * These are the Item 317 mechanical guards, flipped rather than deleted.
+   * Item 317 asserted "19.373" appeared nowhere; the CEO authorized the
+   * chapter into scope on 2026-08-01, so the same surfaces are now asserted
+   * to carry it — correctly cited, corpus-anchored, and never blended with
+   * RCW 19.375.
+   */
+  const MHMDA_ROWS = BIOMETRIC_DUTY_ROWS.filter((r) => r.statute_key === "us_wa_19373");
+
+  it("the registry carries MHMDA duty rows, each cited to RCW 19.373", () => {
+    expect(MHMDA_ROWS.length).toBeGreaterThanOrEqual(5);
+    for (const r of MHMDA_ROWS) {
+      expect(r.citation).toContain("19.373");
+      expect(r.pinpoint).toMatch(/^RCW 19\.373\./);
+      expect(r.corpus_key).toContain("19-373");
+      expect(r.verbatim_quote.length).toBeGreaterThan(40);
     }
   });
 
-  it("carries it only as a scope-gated provenance flag", () => {
+  it("MHMDA rows never carry an RCW 19.375 citation, and vice versa", () => {
+    for (const r of MHMDA_ROWS) expect(r.pinpoint).not.toContain("19.375");
+    for (const r of BIOMETRIC_DUTY_ROWS.filter((x) => x.statute_key === "us_wa_19375")) {
+      expect(r.pinpoint).not.toContain("19.373");
+      expect(r.citation).not.toContain("19.373");
+    }
+  });
+
+  it("selecting Washington puts BOTH chapters in scope, separately keyed", () => {
+    const scope = statutesInScope(PERFECT_MULTI()).map((s) => s.statute_key);
+    expect(scope).toEqual(expect.arrayContaining(["us_wa_19375", "us_wa_19373"]));
+    expect(new Set(scope).size).toBe(scope.length);
+  });
+
+  it("the deliverable emits MHMDA duty findings under their own statute key", () => {
     const d = buildBiometricDeliverables(PERFECT_MULTI());
-    const gated = d.scope_gated.find((g) => g.citation.includes("19.373"));
-    expect(gated).toBeDefined();
-    expect(gated!.status).toBe("scope_gated_pending");
+    const mh = d.duty_findings.filter((f) => f.statute_key === "us_wa_19373");
+    expect(mh.length).toBeGreaterThanOrEqual(4);
+    for (const f of mh) {
+      expect(f.citation).toContain("19.373");
+      expect(f.standard.length).toBeGreaterThan(40);
+      expect(f.application.length).toBeGreaterThan(20);
+    }
+  });
+
+  it("keeps the two Washington chapters apart in the report", () => {
+    const d = buildBiometricDeliverables(PERFECT_MULTI());
+    // No finding mixes the two chapters' citations.
+    for (const f of d.duty_findings) {
+      const both = f.citation.includes("19.373") && f.citation.includes("19.375");
+      expect(both).toBe(false);
+    }
+    // The divergence layer states the distinction explicitly.
+    const item = d.divergence_analysis.find((x) => x.key === "wa_two_chapters");
+    expect(item).toBeDefined();
+    expect(item!.statutes).toEqual(["us_wa_19375", "us_wa_19373"]);
+    // Both enforcement routes are surfaced, separately.
+    const wa = d.consequence_determination.exposure_surfaces.filter((e) => e.jurisdiction === "Washington");
+    expect(wa.map((e) => e.statute_key).sort()).toEqual(["us_wa_19373", "us_wa_19375"]);
+  });
+
+  it("the scope-gate list is empty — nothing is being withheld", () => {
+    const d = buildBiometricDeliverables(PERFECT_MULTI());
+    expect(d.scope_gated).toEqual([]);
+  });
+
+  it("the geofence duty is NOT gated on the consumer-health-data predicate", () => {
+    const d = buildBiometricDeliverables({
+      ...PERFECT_MULTI(),
+      wa_mhmda_health_inference: "No",
+      wa_mhmda_geofence_health_facility: "Yes",
+    });
+    const geo = d.duty_findings.find((f) => f.key === "wa_19373.080_geofence");
+    expect(geo).toBeDefined();
+    expect(geo!.verdict).toBe("not_satisfied");
+  });
+
+  it("clearing the MHMDA predicate does not disturb the RCW 19.375 analysis", () => {
+    const d = buildBiometricDeliverables({ ...PERFECT_MULTI(), wa_mhmda_health_inference: "No" });
+    const base = buildBiometricDeliverables(PERFECT_MULTI());
+    const only375 = (x: typeof d) =>
+      x.duty_findings.filter((f) => f.statute_key === "us_wa_19375");
+    expect(only375(d).length).toBeGreaterThan(0);
+    // The RCW 19.375 slice is byte-identical either way: the chapters do not
+    // read across to one another.
+    expect(only375(d)).toEqual(only375(base));
+    const mh = d.duty_findings.filter(
+      (f) => f.statute_key === "us_wa_19373" && f.key !== "wa_19373.080_geofence",
+    );
+    expect(mh.every((f) => f.verdict === "not_applicable")).toBe(true);
   });
 });
 

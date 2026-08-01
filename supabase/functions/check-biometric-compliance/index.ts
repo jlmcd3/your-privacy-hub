@@ -649,20 +649,20 @@ Compliance risk rating: UNRESOLVED — statute-specific obligations, penalties, 
 On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data is expressly consumer health data under RCW 19.373.010(8)(b)(ix) where it is generated from or used to identify a consumer seeking health-care services or to infer the consumer's health conditions or status.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
-1. RCW 19.373.030: separate written consent required BEFORE collection of consumer health data — consent must be freely given, specific, informed, opt-in, voluntary, and unambiguous.
-2. RCW 19.373.040: separate SIGNED authorization required before SALE of consumer health data — a distinct instrument from collection consent.
-3. RCW 19.373.050: geofencing around health-care facilities is prohibited outright.
-4. RCW 19.373.060: consumer rights of access, withdrawal of consent, and deletion — with a 30-day response window.
+1. RCW 19.373.030(1)(a): consent required BEFORE collection of consumer health data, for a specified purpose; RCW 19.373.030(1)(b) requires a SEPARATE AND DISTINCT consent before sharing.
+2. RCW 19.373.070: a valid authorization to SELL consumer health data — a distinct instrument from collection or sharing consent.
+3. RCW 19.373.080: geofencing around an entity that provides in-person health-care services is unlawful for the three uses the section lists.
+4. RCW 19.373.040: consumer rights of access, withdrawal of consent, and deletion.
 5. RCW 19.373.090: violations enforceable under the Washington Consumer Protection Act (chapter 19.86 RCW), which supplies a PRIVATE RIGHT OF ACTION — a differentiator among US state biometric regimes.
 
 Consent and notice:
-Opt-in written consent BEFORE any collection of biometric consumer health data; separate signed authorization BEFORE any sale. Notice must appear in the consumer health data privacy policy required by RCW 19.373.020.
+Opt-in consent BEFORE any collection of biometric consumer health data, a separate and distinct consent before sharing, and a valid authorization before any sale. Notice must appear in the consumer health data privacy policy required by RCW 19.373.020, which must be linked from the homepage.
 
 Retention and destruction:
-No fixed retention ceiling; destruction triggered by consumer deletion request under RCW 19.373.060(1)(c) or when purpose expires.
+No fixed retention ceiling; destruction triggered by a consumer deletion request under RCW 19.373.040 or when the specified purpose expires.
 
 Sale and sharing restrictions:
-Sale prohibited absent a separate signed authorization (§ 19.373.040); processors bound by written contract (§ 19.373.080).
+Sale prohibited absent a valid authorization (§ 19.373.070); processors bound by written contract (§ 19.373.060).
 
 Current enforcement posture:
 Washington AG and private plaintiffs both enforce. Private-action exposure via the Consumer Protection Act's per-violation damages plus attorney fees makes MHMD one of the highest-exposure US state biometric regimes.
@@ -670,7 +670,7 @@ Washington AG and private plaintiffs both enforce. Private-action exposure via t
 Priority actions:
 1. Publish a consumer health data privacy policy conforming to RCW 19.373.020 before collection.
 2. Implement separate opt-in consent (collection) AND separate signed authorization (sale) flows.
-3. Audit vendor contracts against RCW 19.373.080 processor requirements.
+3. Audit vendor contracts against RCW 19.373.060 processor requirements.
 
 Compliance risk rating: HIGH
 Private right of action via the Consumer Protection Act plus separate consent-and-authorization requirements create material litigation and regulatory exposure.

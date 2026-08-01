@@ -58,12 +58,26 @@ describe("biometric duty registry — offline corpus pin", () => {
     }
   });
 
-  it("the MHMD row is absent from the snapshot and from the registry", () => {
-    for (const k of Object.keys(BIOMETRIC_CORPUS_SNAPSHOT)) {
-      expect(k).not.toContain("19-373");
+  // ITEM 323 — the Item 317 absence guard, FLIPPED (not removed). The CEO
+  // authorized RCW 19.373 into scope on 2026-08-01; the same two surfaces are
+  // now held to carry it, verbatim-anchored and separately cited.
+  it("the MHMDA rows are present in the snapshot and in the registry", () => {
+    const snapKeys = Object.keys(BIOMETRIC_CORPUS_SNAPSHOT).filter((k) => k.includes("19-373"));
+    expect(snapKeys.length).toBeGreaterThanOrEqual(5);
+    const rows = BIOMETRIC_DUTY_ROWS.filter((r) => r.statute_key === "us_wa_19373");
+    expect(rows.length).toBeGreaterThanOrEqual(5);
+    for (const r of rows) {
+      expect(r.citation).toContain("19.373");
+      expect(snapKeys).toContain(r.corpus_key);
+      // Byte-exact against the corpus snapshot.
+      expect(norm(BIOMETRIC_CORPUS_SNAPSHOT[r.corpus_key])).toContain(norm(r.verbatim_quote));
     }
+  });
+
+  it("RCW 19.373 and RCW 19.375 are never merged into one authority", () => {
     for (const r of BIOMETRIC_DUTY_ROWS) {
-      expect(r.citation).not.toContain("19.373");
+      const both = r.pinpoint.includes("19.373") && r.pinpoint.includes("19.375");
+      expect(both).toBe(false);
     }
   });
 });
