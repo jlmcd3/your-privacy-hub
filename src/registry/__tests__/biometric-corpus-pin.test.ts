@@ -255,11 +255,17 @@ describe.skipIf(!CAN_RUN)("biometric statutes (IL BIPA / TX CUBI / WA 19.375) �
     expect(bad, bad.join("\n")).toEqual([]);
   }, 30_000);
 
-  it("RCW 19.373 (My Health My Data) stays OUT of the active corpus pending CEO scope ruling", async () => {
+  // ITEM 323 — flipped guard. RCW 19.373 was ingested verbatim from
+  // app.leg.wa.gov, hash-compared across two independent pulls, and promoted
+  // to 'approved'. The CLOSED-SET rule now renders it.
+  it("RCW 19.373 (My Health My Data) is IN the active corpus and approved", async () => {
     const map = await loadJurisdictions();
-    const mhmd = map["wa-rcw-19-373-010-biometric-data"];
-    expect(mhmd, "MHMD provenance row missing").toBeTruthy();
-    // status must remain 'pending' → CLOSED-SET rule keeps it un-renderable.
-    expect(mhmd.split("|")[1]).toBe("pending");
+    const keys = Object.keys(map).filter((k) => k.startsWith("wa-rcw-19-373"));
+    expect(keys.length, "MHMDA corpus rows missing").toBeGreaterThanOrEqual(5);
+    for (const k of keys) {
+      const [j, status] = map[k].split("|");
+      expect(j, `${k} jurisdiction`).toBe("US-WA");
+      expect(status, `${k} status`).toBe("approved");
+    }
   }, 30_000);
 });
