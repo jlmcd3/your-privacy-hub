@@ -24,7 +24,17 @@ import {
 } from "./connectives.ts";
 import { applyMentionRule, MentionTracker } from "./mentions.ts";
 import { aggregateFacts } from "./aggregate.ts";
-import { renderDocumentFromPlan, renderPlannedSection } from "./plan-render.ts";
+import {
+  auditSectionConnectives,
+  renderDocumentFromPlan,
+  renderPlannedSection,
+} from "./plan-render.ts";
+import {
+  edge,
+  enumerateConnectives,
+  LEAD_NODE,
+  ReasoningGraph,
+} from "./reasoning-graph.ts";
 import type { FrameSet } from "./frames.ts";
 import { CPPA_RISK_PLAN } from "./plans/cppa-risk.plan.ts";
 import { DPIA_PLAN } from "./plans/dpia.plan.ts";
@@ -302,25 +312,32 @@ Deno.test("render: the determination leads and facts follow in engine theme orde
   }, { mentions: { primary: "Acme Ltd" } });
 
   assert(r.text.startsWith("The activity presents a significant risk to consumers"));
-  const iImpact = r.text.indexOf("unauthorised access");
-  const iSafe = r.text.indexOf("encryption at rest");
-  const iWeigh = r.text.indexOf("benefits do not outweigh");
+  const lower = r.text.toLowerCase();
+  const iImpact = lower.indexOf("unauthorised access");
+  const iSafe = lower.indexOf("encryption at rest");
+  const iWeigh = lower.indexOf("benefits do not outweigh");
   assert(iImpact < iSafe && iSafe < iWeigh, `themes out of engine order: ${r.text}`);
   assertEquals(r.degraded, false);
 });
 
-Deno.test("render: each statement carries the connective its relation licenses", () => {
+Deno.test("render: a statement carries a connective only when the engine graph licenses it", () => {
+  const graph = new ReasoningGraph([
+    edge(LEAD_NODE, "breach", "trigger_duty", "harm_causation[0].cause"),
+    edge("breach", "controls", "contrast", "safeguard_map[0].residual_band"),
+  ]);
   const r = renderPlannedSection(analysis, {
     section_id: "risk",
     determination: "A duty is engaged",
     statements: [
-      { theme: "negative_impacts", sentence: "the record reports a breach", relation: "trigger_duty" },
-      { theme: "safeguards_applied", sentence: "controls were in place", relation: "contrast" },
+      { id: "breach", theme: "negative_impacts", sentence: "the record reports a breach", relation: "trigger_duty" },
+      { id: "controls", theme: "safeguards_applied", sentence: "controls were in place", relation: "contrast" },
     ],
-  }, { mentions: { primary: "Acme Ltd" } });
+  }, { mentions: { primary: "Acme Ltd" }, graph });
   assertStringIncludes(r.text, "because the record reports a breach");
   assertStringIncludes(r.text, "However, controls were in place");
+  assertEquals(r.connectives.length, 2);
 });
+
 
 Deno.test("render: a section with no determination degrades honestly", () => {
   const r = renderPlannedSection(analysis, {
@@ -353,7 +370,7 @@ Deno.test("render: a record section leads with its first statement and is not de
   }, { mentions: { primary: "Acme Ltd" } });
   assertEquals(r.degraded, false);
   assert(r.text.startsWith("The record reports unauthorised access"));
-  assertStringIncludes(r.text, "encryption at rest");
+  assertStringIncludes(r.text.toLowerCase(), "encryption at rest");
   assertEquals(r.text.includes("does not state enough"), false);
 });
 
@@ -390,9 +407,14 @@ Deno.test("render: mention shortening applies within a section", () => {
     section_id: "risk",
     determination: "Acme Ltd faces a significant risk",
     statements: [
-      { theme: "negative_impacts", sentence: "Acme Ltd reports unauthorised access", relation: "trigger_duty" },
+      { id: "access", theme: "negative_impacts", sentence: "Acme Ltd reports unauthorised access", relation: "trigger_duty" },
     ],
-  }, { mentions: { primary: "Acme Ltd" } });
+  }, {
+    mentions: { primary: "Acme Ltd" },
+    graph: new ReasoningGraph([
+      edge(LEAD_NODE, "access", "trigger_duty", "harm_causation[0].source"),
+    ]),
+  });
   assertStringIncludes(r.text, "Acme Ltd faces");
   assertStringIncludes(r.text, "the company reports");
 });
@@ -416,4 +438,214 @@ Deno.test("render: whole-document render follows the plan's order and arc", () =
 Deno.test("arc order is the single source of truth for stage sequencing", () => {
   assertEquals(ARC_ORDER[0], "headline");
   assertEquals(ARC_ORDER[ARC_ORDER.length - 1], "close");
+});
+
+// ---------------------------------------------------------------------------
+// ITEM 347 — DOCUMENT-PLAN REWORK GUARANTEES
+// ---------------------------------------------------------------------------
+
+// P1 — CONNECTIVE-EDGE RULE (hard).
+Deno.test("P1: no edge, no connective — statements are juxtaposed plainly", () => {
+  const r = renderPlannedSection(analysis, {
+    section_id: "risk",
+    determination: "The risk level is Moderate",
+    statements: [
+      { id: "sector", theme: "negative_impacts", sentence: "the sector is a believed-basis pilot", relation: "trigger_duty" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" } });
+  // the rejected Item 339 render's fabricated causal claim
+  assertEquals(r.text.includes("because"), false);
+  assertEquals(r.connectives.length, 0);
+  assertStringIncludes(r.text, "The risk level is Moderate. The sector is a believed-basis pilot.");
+});
+
+Deno.test("P1: a proposed relation with no matching edge is downgraded, not spoken", () => {
+  const graph = new ReasoningGraph([
+    // an edge exists, but of a DIFFERENT kind than the statement proposes
+    edge(LEAD_NODE, "sector", "addition", "activity_index[0]"),
+  ]);
+  const r = renderPlannedSection(analysis, {
+    section_id: "risk",
+    determination: "The risk level is Moderate",
+    statements: [
+      { id: "sector", theme: "negative_impacts", sentence: "the sector is a believed-basis pilot", relation: "trigger_duty" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" }, graph });
+  assertEquals(r.connectives.length, 0);
+  assertEquals(r.text.includes("because"), false);
+});
+
+Deno.test("P1: every connective emitted in a render maps to a real computed edge", () => {
+  const graph = new ReasoningGraph([
+    edge(LEAD_NODE, "a", "trigger_duty", "necessity_analysis[0].verdict"),
+    edge("a", "b", "contrast", "safeguard_map[0].residual_band"),
+    edge("b", "c", "consequence", "consequence.decision"),
+  ]);
+  const r = renderPlannedSection(analysis, {
+    section_id: "risk",
+    determination: "A duty is engaged",
+    statements: [
+      { id: "a", theme: "negative_impacts", sentence: "the record reports unauthorised access", relation: "trigger_duty" },
+      { id: "b", theme: "safeguards_applied", sentence: "encryption at rest is described", relation: "contrast" },
+      { id: "c", theme: "weighing", sentence: "the benefit stated is supported", relation: "consequence" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" }, graph });
+
+  const audit = auditSectionConnectives(r);
+  assertEquals(audit.findings, []);
+  assert(audit.emitted.length >= 3, `expected connectives, got: ${r.text}`);
+  assertEquals(audit.emitted.length, r.connectives.length);
+  for (const use of r.connectives) {
+    assert(graph.has(use.from, use.to, use.relation), `unlicensed: ${use.word}`);
+    assert(use.basis.length > 0, "an edge must name the engine structure that computed it");
+  }
+});
+
+Deno.test("P1: an edge with no engine basis is refused at construction", () => {
+  let threw = false;
+  try {
+    new ReasoningGraph([{ from: LEAD_NODE, to: "x", kind: "trigger_duty", basis: "" }]);
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
+});
+
+Deno.test("P1: the connective enumerator finds both join shapes", () => {
+  const found = enumerateConnectives(
+    "A duty is engaged, because the record reports a breach. However, controls were in place.",
+  ).map((c) => c.word);
+  assertEquals(found, ["because", "however"]);
+});
+
+// P2 — NO FIELD-NAME SUBJECTS.
+Deno.test("P2: a field-name pseudo-sentence is refused", () => {
+  let msg = "";
+  try {
+    renderPlannedSection(analysis, {
+      section_id: "risk",
+      determination: "A duty is engaged",
+      statements: [
+        { id: "t", theme: "negative_impacts", sentence: "triggers on the record is Admt Involved: false", relation: "none" },
+      ],
+    }, { mentions: { primary: "Acme Ltd" } });
+  } catch (e) {
+    msg = String(e);
+  }
+  assertStringIncludes(msg, "field_name_subject");
+});
+
+Deno.test("P2: structured record values render as labeled card lines, not sentences", () => {
+  const recordSection: PlannedSection = {
+    id: "record",
+    title: "The record as stated",
+    source_key: "record_echo",
+    arc_stage: "record",
+    lead: "record",
+    themes: ["data"],
+    required: true,
+    status: "approved",
+  };
+  const r = renderPlannedSection(recordSection, {
+    section_id: "record",
+    determination_status: "not_owed",
+    statements: [
+      { id: "admt", theme: "data", kind: "record_card", label: "Automated decision-making involved", value: "no", sentence: "", relation: "none" },
+      { id: "cats", theme: "data", kind: "record_card", label: "Personal information categories", value: "identifiers; commercial information", sentence: "", relation: "none" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" } });
+
+  assertEquals(r.record_card.length, 2);
+  assertStringIncludes(r.text, "- Automated decision-making involved: no");
+  assertEquals(r.text.includes("on the record is"), false);
+  assertEquals(r.degraded, false);
+});
+
+// P3 — NO ELLIPSIS TRUNCATION.
+Deno.test("P3: mid-content ellipsis truncation is refused", () => {
+  let msg = "";
+  try {
+    renderPlannedSection(analysis, {
+      section_id: "risk",
+      determination: "A duty is engaged",
+      statements: [
+        { id: "h", theme: "negative_impacts", sentence: "the record describes a long causal path that was cut off here \u2026", relation: "none" },
+      ],
+    }, { mentions: { primary: "Acme Ltd" } });
+  } catch (e) {
+    msg = String(e);
+  }
+  assertStringIncludes(msg, "ellipsis_truncation");
+});
+
+Deno.test("P3: long analytic content flows through in full", () => {
+  const long = "the record describes " + "a specific causal step, ".repeat(20) + "and the outcome";
+  const r = renderPlannedSection(analysis, {
+    section_id: "risk",
+    determination: "A duty is engaged",
+    statements: [{ id: "h", theme: "negative_impacts", sentence: long, relation: "none" }],
+  }, { mentions: { primary: "Acme Ltd" } });
+  assertStringIncludes(r.text.toLowerCase(), long.slice(0, 60).toLowerCase());
+  assertStringIncludes(r.text, "and the outcome");
+  assertEquals(/\u2026|\.\.\./.test(r.text), false);
+});
+
+// P4 — DEGRADATION BANNER LOGIC.
+Deno.test("P4: a section holding a determination is never banner-degraded", () => {
+  const r = renderPlannedSection(analysis, {
+    section_id: "risk",
+    determination: "The activity may be initiated subject to the conditions below",
+    determination_status: "stated",
+    statements: [
+      { id: "a", theme: "negative_impacts", sentence: "the record identifies unauthorised access", relation: "none" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" } });
+  assertEquals(r.determination_status, "stated");
+  assertEquals(r.degraded, false);
+});
+
+Deno.test("P4: the banner is reserved for record_insufficient", () => {
+  const recordSection: PlannedSection = {
+    id: "ask",
+    title: "What the record does not yet state",
+    source_key: "information_needed",
+    arc_stage: "ask",
+    lead: "record",
+    themes: ["silent_fields"],
+    required: true,
+    status: "approved",
+  };
+  const notOwed = renderPlannedSection(recordSection, {
+    section_id: "ask",
+    statements: [
+      { id: "s", theme: "silent_fields", sentence: "the record does not state a retention period", relation: "none" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" } });
+  assertEquals(notOwed.determination_status, "not_owed");
+  assertEquals(notOwed.degraded, false);
+
+  const insufficient = renderPlannedSection(analysis, {
+    section_id: "risk",
+    statements: [],
+    determination_status: "record_insufficient",
+  }, { mentions: { primary: "Acme Ltd" } });
+  assertEquals(insufficient.degraded, true);
+});
+
+Deno.test("P1: a connective inside a pinned clause is not a renderer join and needs no edge", () => {
+  const r = renderPlannedSection(analysis, {
+    section_id: "risk",
+    determination:
+      "This assessment records the processing as supportable only while the conditions below are met — it cannot treat those conditions as optional, because the conclusion rests on them",
+    statements: [
+      { id: "a", theme: "negative_impacts", sentence: "the record identifies unauthorised access", relation: "trigger_duty" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" } });
+
+  // no graph → the renderer made no causal join
+  assertEquals(r.connectives.length, 0);
+  // the pinned clause keeps its own "because" …
+  assertStringIncludes(r.text, "because the conclusion rests on them");
+  // … and the seam audit still passes, because that "because" is not a seam
+  assertEquals(auditSectionConnectives(r).findings, []);
 });

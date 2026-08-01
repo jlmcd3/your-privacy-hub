@@ -91,13 +91,16 @@ export function applyMentionRule(
   const tracker = new MentionTracker(opts);
   const primary = opts.primary.trim();
   if (!primary) return [...sentences];
-  const re = new RegExp(escapeRe(primary), "g");
+  // The entity name may have been rendered as a quoted record value. A short
+  // form is the renderer's own word, so the quotes go with the name.
+  const re = new RegExp(`[“"]?${escapeRe(primary)}[”"]?`, "g");
   return sentences.map((s) =>
-    s.replace(re, () => {
+    s.replace(re, (match) => {
       const m = tracker.render(primary);
-      return m;
+      return m === primary ? match : m;
     })
   );
+
 }
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
