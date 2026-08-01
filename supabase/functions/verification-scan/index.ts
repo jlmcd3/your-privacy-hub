@@ -37,6 +37,26 @@ const PRICE = {
 
 type Mode = "initial" | "targeted" | "sample" | "cached";
 
+// Cached verification sweep: hard budget cap (USD of model spend) tracked in
+// public.verification_sweep_ledger so the sweep is resumable and idempotent
+// across invocations. Default matches the CEO-approved cap.
+const DEFAULT_BUDGET_CAP_USD = 120;
+
+function costOf(t: { haiku_in: number; haiku_out: number; sonnet_in: number; sonnet_out: number }): number {
+  return (t.haiku_in / 1e6) * PRICE.haiku_in +
+    (t.haiku_out / 1e6) * PRICE.haiku_out +
+    (t.sonnet_in / 1e6) * PRICE.sonnet_in +
+    (t.sonnet_out / 1e6) * PRICE.sonnet_out;
+}
+
+async function sweepSpentSoFar(sweep_id: string): Promise<number> {
+  const { data } = await sb
+    .from("verification_sweep_ledger")
+    .select("batch_cost_usd")
+    .eq("sweep_id", sweep_id);
+  return (data ?? []).reduce((a: number, r: any) => a + Number(r.batch_cost_usd ?? 0), 0);
+}
+
 const CACHED_MIN_DOC_CHARS = 200;
 
 // Item 333: hard cap on the document text passed to any model in a single
@@ -63,6 +83,7 @@ function isPlaceholderSubject(subject: string | null | undefined): boolean {
 const TIER_FIELDS = [
   "statutory_provisions",
   "disposition_type",
+  "instrument_class",
   "appeal_status",
   "case_reference",
   "sector",
@@ -406,6 +427,7 @@ async function processRow(row: any, mode: Mode = "initial") {
   const newVals: Record<string, any> = {
     statutory_provisions: extraction.statutory_provisions,
     disposition_type: extraction.disposition_type,
+    instrument_class: extraction.instrument_class,
     appeal_status: extraction.appeal_status,
     case_reference: extraction.case_reference,
     sector: extraction.sector,
@@ -440,6 +462,8 @@ async function processRow(row: any, mode: Mode = "initial") {
     statutory_provisions_extraction_method: "source_extracted",
     disposition_type: extraction.disposition_type,
     disposition_type_extraction_method: "source_extracted",
+    instrument_class: extraction.instrument_class,
+    instrument_class_extraction_method: extraction.instrument_class ? "source_extracted" : null,
     appeal_status: extraction.appeal_status,
     appeal_status_extraction_method: "source_extracted",
     case_reference: extraction.case_reference,
@@ -481,12 +505,38 @@ Deno.serve(async (req) => {
     const jurisdiction_in: string[] | null = Array.isArray(body.jurisdiction_in) && body.jurisdiction_in.length > 0
       ? body.jurisdiction_in as string[]
       : null;
+    const sweep_id: string | null = typeof body.sweep_id === "string" && body.sweep_id ? body.sweep_id : null;
+    const budget_cap_usd: number = Number.isFinite(body.budget_cap_usd)
+      ? Number(body.budget_cap_usd)
+      : DEFAULT_BUDGET_CAP_USD;
+    const batch_index: number | null = Number.isFinite(body.batch_index) ? Number(body.batch_index) : null;
 
     if (!["initial", "targeted", "sample", "cached"].includes(mode)) {
       return new Response(JSON.stringify({ error: "invalid_mode" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Fail-closed budget gate: refuse to spend anything once the sweep's
+    // recorded cumulative spend has reached the cap. Cursor is returned so the
+    // sweep can be resumed after an explicit cap raise.
+    let spent_before = 0;
+    if (sweep_id) {
+      spent_before = await sweepSpentSoFar(sweep_id);
+      if (spent_before >= budget_cap_usd) {
+        return new Response(JSON.stringify({
+          mode,
+          sweep_id,
+          halted: true,
+          halted_reason: "budget_cap_reached",
+          processed: 0,
+          cumulative_cost_usd: Number(spent_before.toFixed(4)),
+          budget_cap_usd,
+          resume_after_id: start_after_id,
+          next_batch_available: false,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     const sel: any = await selectRows(mode, batch_size, start_after_id, target_ids, jurisdiction_in);
@@ -497,9 +547,20 @@ Deno.serve(async (req) => {
     const tokens = { haiku_input: 0, haiku_output: 0, sonnet_input: 0, sonnet_output: 0 };
     let last_id: string | null = null;
 
+    const failure_reasons: Record<string, number> = {};
+    let halted_reason: string | null = null;
+    let batch_spend = 0;
+    let processed = 0;
+
     for (const row of rows) {
+      if (sweep_id && spent_before + batch_spend >= budget_cap_usd) {
+        halted_reason = "budget_cap_reached";
+        break;
+      }
       try {
         const r = await processRow(row, mode);
+        processed++;
+        batch_spend += costOf(r.tokens);
         if (r.verdict === "verified") verified++;
         else if (r.verdict === "requires_review") requires_review++;
         else failed++;
@@ -510,6 +571,10 @@ Deno.serve(async (req) => {
         last_id = row.id;
       } catch (e) {
         failed++;
+        processed++;
+        const reason = ((e as Error).message ?? String(e)).slice(0, 120);
+        failure_reasons[reason] = (failure_reasons[reason] ?? 0) + 1;
+        last_id = row.id;
         await sb.from("verification_results").insert({
           enforcement_action_id: row.id,
           check_name: "fatal_error",
@@ -521,7 +586,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (mode === "cached" && sel.lastScannedId) last_id = sel.lastScannedId;
+    // Only advance the cursor past skipped-short rows when the whole selected
+    // window was actually processed; a mid-batch halt must not skip work.
+    if (mode === "cached" && sel.lastScannedId && !halted_reason && processed === rows.length) {
+      last_id = sel.lastScannedId;
+    }
 
     // Recompute memo_eligible_after_batch as count of just-processed rows that ended eligible.
     if (last_id || (target_ids?.length ?? 0) > 0) {
@@ -545,10 +614,35 @@ Deno.serve(async (req) => {
     const per_row_avg = rows.length > 0 ? batch_cost_usd / rows.length : 0;
     const estimated_cost_remaining_usd = per_row_avg * Math.max(remaining, 0);
 
+    const cumulative_cost_usd = spent_before + batch_cost_usd;
+    if (sweep_id) {
+      if (!halted_reason && cumulative_cost_usd >= budget_cap_usd) halted_reason = "budget_cap_reached";
+      await sb.from("verification_sweep_ledger").insert({
+        sweep_id,
+        mode,
+        batch_index,
+        start_after_id,
+        last_id,
+        processed,
+        verified,
+        failed,
+        requires_review,
+        skipped_short_doc: (sel.skippedShortIds ?? []).length,
+        batch_cost_usd: Number(batch_cost_usd.toFixed(6)),
+        cumulative_cost_usd: Number(cumulative_cost_usd.toFixed(6)),
+        budget_cap_usd,
+        halted_reason,
+        failure_reasons: Object.keys(failure_reasons).length ? failure_reasons : null,
+        tokens,
+      });
+    }
+
     return new Response(JSON.stringify({
       mode,
+      sweep_id,
       batch_size,
-      processed: rows.length,
+      processed,
+      selected: rows.length,
       verified,
       failed,
       requires_review,
@@ -558,8 +652,14 @@ Deno.serve(async (req) => {
       last_id,
       estimated_remaining: Math.max(remaining, 0),
       batch_cost_usd: Number(batch_cost_usd.toFixed(4)),
+      cumulative_cost_usd: Number(cumulative_cost_usd.toFixed(4)),
+      budget_cap_usd,
+      halted: !!halted_reason,
+      halted_reason,
+      failure_reasons,
+      resume_after_id: last_id ?? start_after_id,
       estimated_cost_remaining_usd: Number(estimated_cost_remaining_usd.toFixed(2)),
-      next_batch_available: mode === "initial"
+      next_batch_available: halted_reason ? false : mode === "initial"
         ? rows.length === batch_size
         : mode === "cached"
           ? (sel.scanned ?? 0) === batch_size
