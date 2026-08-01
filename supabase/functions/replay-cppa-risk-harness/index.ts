@@ -135,10 +135,13 @@ async function processDoc(
       intake_data: era.intake,
       legacy_report: doc.report_data ?? undefined,
     };
+    // ITEM 341 — EU persuasive-authority corpus (read-only; null-safe).
+    const euCorpus = await fetchEuAuthorityCorpus(admin);
     const p1 = await modelProvider({
       intake: replayDoc.intake_data,
       report_data: {},
       buildStamp: `${HARNESS_BUILD_STAMP}#${doc.id}`,
+      eu_authority_corpus: euCorpus,
     }, { callerName: "replay-cppa-risk-harness" });
 
     const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });
