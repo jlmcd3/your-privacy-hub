@@ -20,6 +20,9 @@ import {
 } from "../_shared/grader/payload.ts";
 // R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
 import { matchFixtureSet } from "../_shared/golden/registry.ts";
+import { CONTRACT_BY_TOOL } from "../_shared/intake-contracts/registry.ts";
+// ITEM 325 — fixture-variant (Perfect/Messy) plumbing.
+import type { FixtureVariant } from "../_shared/quality/fixture-variant.ts";
 // GRADER-1 Tasks 2/3 — shared authoritative context block injected into
 // BOTH grader system prompts (Claude rubric + GPT cross-review).
 import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
@@ -80,17 +83,9 @@ import { biometricCheckerContract } from "../_shared/intake-contracts/biometric-
 // is Phase-1's nine census tools. Non-contract tools (ask-privacy,
 // weekly-brief, custom-brief, trend-report, state-law, registration) fall
 // through to their existing hand-typed descriptions in generateIntakes.
-const CONTRACT_BY_TOOL: Record<string, IntakeContract> = {
-  "cppa-admt":         cppaAdmtContract,
-  "cppa-risk":         cppaRiskContract,
-  "cppa-cyber":        cppaCybersecurityContract,
-  "governance":        governanceContract,
-  "dpia":              dpiaFrameworkContract,
-  "lia":               liAssessmentStageBContract,
-  "dpa-generator":     dpaGeneratorContract,
-  "ir-playbook":       irPlaybookContract,
-  "biometric-checker": biometricCheckerContract,
-};
+// ITEM 325 — CONTRACT_BY_TOOL now lives in _shared/intake-contracts/registry.ts
+// so the CI fixture-contract matrix can import it without booting this
+// function. The map content is unchanged.
 
 // Per-tool scenario coaching. This is PROMPT COLOR — mixes of sector,
 // posture, jurisdiction — kept OUT of the contract itself (which is schema
