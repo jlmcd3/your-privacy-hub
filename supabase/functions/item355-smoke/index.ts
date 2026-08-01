@@ -22,6 +22,13 @@ Deno.serve(async (req) => {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+  if (body?.mode === "fetch") {
+    const rr = await fetch(`${SUPABASE_URL}/rest/v1/cppa_assessments?id=eq.${id}&select=id,status,report_data`, {
+      headers: { "Authorization": `Bearer ${SERVICE_ROLE}`, "apikey": SERVICE_ROLE },
+    });
+    const t = await rr.text();
+    return new Response(t, { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   const r = await fetch(`${SUPABASE_URL}/functions/v1/run-cppa-risk-assessment`, {
     method: "POST",
     headers: {
