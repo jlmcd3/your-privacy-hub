@@ -192,7 +192,14 @@ describe("ITEM 327 — transfer analysis branches to the correct chapter", () =>
     });
     expect(out.regime).toBe("not_engaged");
     expect(out.verdict).toBe("not_applicable");
-    expect(out.application).not.toMatch(/Article 4[4-9]/);
+    // Nothing is cited and no standard is asserted: the only Article
+    // reference permitted is the disclaimer that no such duty applies.
+    expect(out.citations_used).toEqual([]);
+    expect(out.standard).toBe("");
+    expect(out.citation).toBe("");
+    expect(out.application).toContain(
+      "impose no Article 45/46-style transfer-mechanism requirement",
+    );
   });
 
   it("transfers recorded as staying in the EEA/UK are not applicable", () => {
