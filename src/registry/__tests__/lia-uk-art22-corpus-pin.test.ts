@@ -47,6 +47,7 @@ function norm(s: string): string {
 
 /** registry proposition_key → provision_texts key holding its source text. */
 const ROW_FOR: Readonly<Record<string, string>> = {
+  uk_art_22_substituted: "ukgdpr-art-22",
   uk_art_22a_solely_automated_definition: "ukgdpr-art-22a",
   uk_art_22a_significant_decision_definition: "ukgdpr-art-22a",
   uk_art_22a_profiling_consideration: "ukgdpr-art-22a",

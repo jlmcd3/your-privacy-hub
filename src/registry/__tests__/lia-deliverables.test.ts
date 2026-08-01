@@ -14,6 +14,7 @@ import { describe, it, expect } from "vitest";
 import {
   EDPB_1_2024_EXCERPTS,
   GDPR_PROVISION_EXCERPTS,
+  UK_GDPR_PROVISION_EXCERPTS,
 } from "./__fixtures__/lia-corpus-snapshot";
 import {
   LIA_VERIFIED_AUTHORITIES,
@@ -33,6 +34,9 @@ import { LIA_GOLDEN } from "../../../supabase/functions/_shared/golden/lia";
 const CORPUS = [
   ...Object.values(EDPB_1_2024_EXCERPTS),
   ...Object.values(GDPR_PROVISION_EXCERPTS),
+  // ITEM 326 — UK Arts. 22A-22D / Art. 6(1)(ea) rows are pinned to the UK
+  // corpus, not the EU one; the two regimes' texts differ.
+  ...Object.values(UK_GDPR_PROVISION_EXCERPTS),
 ];
 
 function inCorpus(quote: string): boolean {
