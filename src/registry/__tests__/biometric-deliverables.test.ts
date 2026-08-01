@@ -156,7 +156,10 @@ describe("Item 317 — scope and identifier characterization", () => {
     const d = buildBiometricDeliverables(PERFECT_MULTI());
     // Item 323: naming Washington puts BOTH Washington chapters on the page.
     expect(d.identifier_characterizations).toHaveLength(4);
-    for (const c of d.identifier_characterizations) {
+    // RCW 19.373 reaches biometric data only where it is consumer health data,
+    // so its characterization tracks that predicate and is pinned separately
+    // in the Item 323 block below.
+    for (const c of d.identifier_characterizations.filter((x) => x.statute_key !== "us_wa_19373")) {
       expect(c.definition_standard.length).toBeGreaterThan(20);
       // The definition quoted is the one belonging to that statute.
       const owned = BIOMETRIC_DUTY_ROWS.filter(
@@ -374,11 +377,11 @@ describe("Item 323 — RCW 19.373 (MHMDA) is ACTIVE, as a DISTINCT Washington au
       expect(both).toBe(false);
     }
     // The divergence layer states the distinction explicitly.
-    const item = d.divergence.find((x) => x.key === "wa_two_chapters");
+    const item = d.divergence_analysis.find((x) => x.key === "wa_two_chapters");
     expect(item).toBeDefined();
     expect(item!.statutes).toEqual(["us_wa_19375", "us_wa_19373"]);
     // Both enforcement routes are surfaced, separately.
-    const wa = d.consequence.exposure_surfaces.filter((e) => e.jurisdiction === "Washington");
+    const wa = d.consequence_determination.exposure_surfaces.filter((e) => e.jurisdiction === "Washington");
     expect(wa.map((e) => e.statute_key).sort()).toEqual(["us_wa_19373", "us_wa_19375"]);
   });
 
@@ -402,7 +405,7 @@ describe("Item 323 — RCW 19.373 (MHMDA) is ACTIVE, as a DISTINCT Washington au
     const d = buildBiometricDeliverables({ ...PERFECT_MULTI(), wa_mhmda_health_inference: "No" });
     const chapter375 = d.duty_findings.filter((f) => f.statute_key === "us_wa_19375");
     expect(chapter375.length).toBeGreaterThan(0);
-    expect(chapter375.every((f) => f.verdict === "not_applicable")).toBe(false);
+    expect(chapter375.some((f) => f.verdict !== "not_applicable")).toBe(true);
     const mh = d.duty_findings.filter(
       (f) => f.statute_key === "us_wa_19373" && f.key !== "wa_19373.080_geofence",
     );
