@@ -638,7 +638,7 @@ const DPIAFramework = () => {
             <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
             <Input placeholder="Other (specify)" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
           </div>
-          <div><Label>Existing safeguards</Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
+          <div data-rail-key='4.1.c' onFocus={() => handleTemplateRailFocus('4.1.c')}><Label>Existing safeguards <span className="text-xs text-muted-foreground font-mono">(§ 4.1.c — feeds the inherent-risk severity appraisal)</span></Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
           <div data-rail-key="transfers" onFocus={() => handleDpiaRailFocus("transfers")}><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–49 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
 
           {/* ── Jurisdiction resolver inputs (deterministic facts) ─────────── */}
