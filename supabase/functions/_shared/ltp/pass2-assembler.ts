@@ -26,6 +26,7 @@ import type { RenderPlan } from "../render-plan/schema.ts";
 import { CPPA_RISK_SECTION_SHARDS, expectedEmissionForKey, type SectionShard, type ExpectedEmission } from "./section-shards/cppa-risk.ts";
 import { renderTemplate, assertCalibrationMatch } from "./pass2-render.ts";
 import { applyMethodologyNote } from "../prose/methodology.ts";
+import { CITATION_LINT_VERSION, lintNarrativeCitations } from "../prose/citation-lint.ts";
 import { FIRM_VARIANT_CLOSENESS_MAX } from "./content/pass2-templates.ts";
 import {
   evaluateOpeningHarvest,
@@ -525,6 +526,13 @@ function renderTemplateCutSection(shard: SectionShard): RenderedSection {
 export interface AssembleOptions {
   /** Exit-mode for the shipped value-screen. Defaults to observe. */
   readonly exitMode?: FinalizeMode;
+  /**
+   * ITEM 337 (PROSE PROGRAM 1, Part E) — citations actually supplied to the
+   * model for this run. When provided, narrative citations are linted against
+   * it and an unsupplied cite is degraded rather than shipped.
+   */
+  readonly citationSupply?: readonly string[];
+  readonly runId?: string | null;
 }
 
 function structuralCompleteness(sections: readonly SectionTelemetry[]) {
@@ -548,6 +556,7 @@ function assembleCore(
   plan: RenderPlan,
   harvest: HarvestInputs,
   exitMode: FinalizeMode,
+  lintOpts?: { supply?: readonly string[]; runId?: string | null },
 ): AssemblerResult {
   const report: Record<string, unknown> = {};
   const sectionTele: SectionTelemetry[] = [];
@@ -589,6 +598,31 @@ function assembleCore(
   // Methodology sentences are stripped from every narrative field and the
   // canonical note is rendered ONCE at report.methodology_note.
   const methodology = applyMethodologyNote(report as Record<string, unknown>, { always: true });
+
+  // ITEM 337 (PROSE PROGRAM 1, Part E) — REGISTRY CITATION LINT. Runs only
+  // when the caller supplies the run's citation supply; an unsupplied or
+  // repealed cite is degraded, never shipped.
+  let citation_lint: unknown = { ran: false, reason: "no citation supply provided" };
+  if (lintOpts?.supply && lintOpts.supply.length > 0) {
+    const narrativeFields: Record<string, string> = {};
+    for (const [k, v] of Object.entries(report)) {
+      if (typeof v === "string" && v.trim().length > 0) narrativeFields[k] = v;
+    }
+    const lint = lintNarrativeCitations(narrativeFields, {
+      tool: "cppa-risk",
+      runId: lintOpts.runId ?? null,
+      supplied: lintOpts.supply,
+    });
+    for (const f of lint.fields_changed) report[f] = lint.fields[f];
+    citation_lint = {
+      ran: true,
+      version: CITATION_LINT_VERSION,
+      events: lint.events.length,
+      degraded: lint.events.filter((e) => e.action !== "kept").length,
+      fields_changed: lint.fields_changed,
+      information_needed: lint.information_needed,
+    };
+  }
 
   const shipped_surface = evaluateShippedSurfaceGuard(report);
   const shipped_value_screen = evaluateShippedValueScreen(report, { mode: exitMode });
@@ -658,7 +692,10 @@ export function assembleReport(
 ): AssemblerResult {
   let exitMode: FinalizeMode = "observe";
   try { exitMode = opts.exitMode ?? currentEnforceMode(); } catch { /* env unavailable */ }
-  return assembleCore(plan, harvest, exitMode);
+  return assembleCore(plan, harvest, exitMode, {
+    supply: opts.citationSupply,
+    runId: opts.runId ?? null,
+  });
 }
 
 // ---------------------------------------------------------------------
