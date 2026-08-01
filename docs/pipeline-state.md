@@ -8594,3 +8594,99 @@ document-backed, verbatim-checked, and final. Option (3) is the fallback if the 
 before the verification campaign completes. **No implementation this turn.**
 
 Spend: $0, no model calls, no deploys.
+
+---
+
+## ITEM 352 — CUTOVER PREREQ: the three Item 351 Phase-2 failures, fixed (renderer wiring + emit-gate filter)
+
+Scope honored: renderer wiring + emit-gate filter + tests ONLY. **No deploy of `run-cppa-risk-assessment`
+this turn.** Item 245 hold untouched (still ACTIVE). No model spend.
+
+### ROOT CAUSES (verified, not assumed)
+
+**(1+2) TWO EVALUATORS FOR ONE QUESTION — `record_sufficiency` never consumed Item 350's presence fix.**
+`composeInformationNeeded` (cppa-risk.ts) computes needs as: outstanding Type-J reserved judgments (minus
+those resolved on the record via `resolution_source_fields`, Ruling B) plus the § 7156(a) comparable-set ask.
+`composeRecordSufficiency` computed its gap count and its enumerated-missing items from a DISJOINT operand:
+`plan.factor_table` rows with `present_in_intake === false`. That set sweeps in registry rows the record is
+structurally silent on (unselected § 7152(a)(5) harm codes, § 7152(a)(6)(ii)/(iii) rows with no contract-real
+operand), which are not customer asks. Consequences, both reproduced on the Item 351 smoke fixtures:
+  * the perfect record read "**8 of these elements remain enumerated for your review**" against a
+    **one-item** `information_needed` array — the self-contradiction;
+  * before Item 350's presence fix reached `factor_table` at all, EVERY record rendered the same
+    all-elements-missing prose — the byte-identical live md5 `cf02e292…`.
+FIX: one evaluator. New exported `computeRecordNeeds(plan)` in
+`supabase/functions/_shared/ltp/section-composers/cppa-risk.ts` is the single canonical needs set;
+`composeInformationNeeded` renders it, and `composeRecordSufficiency` takes its gap COUNT and its
+enumerated-missing ITEMS from the same call. Absent-but-not-asked factor rows are no longer enumerated as
+gaps (the prose block already routes factual deficiencies to the safeguard-gaps section with their own
+pinpoints). Presence itself is still the single deterministic detector in `factor-presence.ts` via
+`derive.ts`, resolved on every entry path through `entry-intake.ts` — **no second evaluator was created.**
+
+**(3) EMIT-GATE LEAK — YES, THIS WAS AN ITEM 343 REGRESSION.** Confirmed at
+`supabase/functions/_shared/emit-gate.ts` (`markInformationNeeded`, pre-fix line 297). Item 343 correctly
+stopped the array being clobbered by a scalar, but implemented preservation as **append**: it pushed a
+gate-internal row `{ id: "info_emit_gate_<slug(path)>", source: "emit_gate", path }` into the CUSTOMER
+`information_needed` array. That is exactly what surfaced `info_emit_gate_disclaimer` and
+`info_emit_gate_submission_summary` in the Item 351 live smoke.
+FIX: degraded-path bookkeeping is internal telemetry only — `_meta.internal.emit_gate.degraded_paths`. The
+customer array is preserved verbatim and untouched (the Item 343 property is kept and still tested), and
+`filterCustomerInformationNeeded()` applies a whitelist on emit that strips any row carrying an internal
+identity (`id` starting `info_emit_gate_`, or `source === "emit_gate"`), counted at
+`_meta.internal.emit_gate.customer_rows_filtered`. Legacy non-array shape unchanged (scalar `true`).
+
+### FILES CHANGED
+* `supabase/functions/_shared/ltp/section-composers/cppa-risk.ts` — `computeRecordNeeds` + both surfaces rewired.
+* `supabase/functions/_shared/emit-gate.ts` — internal telemetry routing + customer whitelist filter.
+* `tests/edge/_shared/ltp/item352-sufficiency-consistency.test.ts` — NEW, 11 blocking tests.
+* `tests/edge/_shared/emit-gate.item343.test.ts` — contract corrected (array still preserved; internal rows
+  must NOT appear on the customer array; `degraded_paths` asserted internally).
+
+### BLOCKING TESTS — ALL GREEN (11/11 in the new file)
+(a) `record_sufficiency` md5s DIFFER between the two Item 351 smoke intakes.
+(b) CONSISTENCY GUARD, both records: sufficiency's enumerated-missing set === `information_needed` set
+    (same items, same count), and both === `computeRecordNeeds(plan).length`; plus the stated gap count in
+    the opener equals both.
+(c) perfect record enumerates exactly what its `information_needed` carries, and — `a6_safeguards` being
+    present — never enumerates "sufficiency of the safeguards"; messy record still does enumerate it.
+(d) no `info_emit_gate_*` identifier on any customer surface (per-surface + whole-report sweep, both
+    fixtures), gate appends nothing to the customer array, pre-existing internal rows are stripped.
+(e) FULL SUITES: **2081 passed / 71 failed** vs pre-change baseline **2069 passed / 72 failed**.
+    Failure-set diff is exact: **zero new failures**; the 71 are the identical pre-existing set, and the
+    previously-failing `emit-gate.item343` LTP-shape test is now GREEN.
+
+### HARNESS-SIDE RE-RUN OF BOTH ITEM 351 SMOKE INTAKES (verbatim)
+
+| surface | perfect `a073d9c5…` | messy `bd458f0d…` |
+|---|---|---|
+| md5(record_sufficiency) | `5361e34ce9d69302ce6f2a9ef5ea016c` | `74c4e18bbd6295f3048456a7227382a7` |
+| md5(information_needed) | `fb562fb4102f763270bd350ab55c22ef` | `b5ab4a4c232027a73f7a0723bbd2cf4e` |
+| md5(processing_narrative) | `d7241b7da788abc003f7f929b3725120` | `d7241b7da788abc003f7f929b3725120` |
+
+`record_sufficiency` now DIFFERS (was byte-identical `cf02e292…` live). `processing_narrative` still matches
+across both fixtures — per the Item 351 refined check this is the legitimate case: both fixtures carry
+identical narrative operands (same entity, same activity, same § 7152(a)(1)/(2)/(3) content); they diverge
+only on the safeguards operand, which the narrative does not consume.
+
+**Perfect record — sufficiency statement (verbatim opener):**
+> "The record is not yet sufficient for the § 7152(a)(6) balancing frame. Meridian SaaS Inc has adequately
+> documented 7 of the § 7152(a) elements listed below; **1 of these elements remain enumerated for your
+> review**. Each element is stated once, with its § 7152(a) pinpoint, in the order the record was assessed."
+
+Its single enumerated gap: `"Decision whether to initiate the processing: not present in the record as
+documented (11 CCR § 7152(a)(7))."` — and its `information_needed` carries exactly that one item. No
+"sufficiency of the safeguards" anywhere in the perfect record's gap enumeration.
+
+**Messy record — sufficiency statement (verbatim opener):**
+> "The record is not yet sufficient for the § 7152(a)(6) balancing frame. Meridian SaaS Inc has adequately
+> documented 6 of the § 7152(a) elements listed below; **2 of these elements remain enumerated for your
+> review**. Each element is stated once, with its § 7152(a) pinpoint, in the order the record was assessed."
+
+Its two enumerated gaps: `"Decision whether to initiate the processing: not present…(11 CCR § 7152(a)(7))."`
+and `"Sufficiency of the safeguards: not present…(11 CCR § 7152(a)(6))."` — matching its two-item
+`information_needed` exactly.
+
+### POSTURE
+Item 245 hold: **ACTIVE** (untouched). `run-cppa-risk-assessment` live boot remains
+`ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z`. All three Item 351 Phase-2 findings
+are closed harness-side; cutover attempt #4 is unblocked pending a CEO-authorized queued item.
