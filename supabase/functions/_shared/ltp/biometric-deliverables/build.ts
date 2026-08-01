@@ -520,6 +520,34 @@ function buildEntityCharacterization(
           : "State whether the research or development activity is undertaken for a commercial purpose.",
       };
     }
+    if (s.statute_key === "us_wa_19373") {
+      // Item 323 — MHMDA has its own actor question and must not borrow the
+      // RCW 19.375 "person" definition or its GLBA exclusion. The "regulated
+      // entity" definition is not in corpus, so the actor analysis is anchored
+      // to the subject-matter predicate that is: RCW 19.373.010(8).
+      const chd = dutyRow("wa_19373.def_consumer_health_data");
+      const health = tri(intake.wa_mhmda_health_inference);
+      return {
+        ...s,
+        citation: chd.pinpoint,
+        standard: chd.verbatim_quote,
+        record_fact: `Reasoned role: ${role}. Biometric data identifies or infers health status: ${health}.`,
+        application: health === "yes"
+          ? "The chapter reaches an entity that collects, processes, shares, or sells consumer health data of Washington consumers. Biometric data is enumerated consumer health data, and the record puts this data inside that enumeration, so the chapter reaches this organisation. The RCW 19.375 exclusions do not carry over: this is a different chapter."
+          : health === "no"
+          ? "The chapter reaches an entity only in respect of consumer health data. The record puts this biometric data outside that definition, so the chapter does not reach this organisation on these facts. That conclusion is confined to RCW 19.373."
+          : "Whether this organisation is within the chapter turns on whether the biometric data it holds is consumer health data, and the record does not settle it.",
+        verdict: health === "yes"
+          ? ("within_actor_scope" as const)
+          : health === "no"
+          ? ("outside_actor_scope" as const)
+          : ("record_insufficient" as const),
+        status: health === "unknown" ? ("record_insufficient" as const) : ("analysed" as const),
+        information_needed: health === "unknown"
+          ? "State whether the biometric data identifies or infers the consumer's physical or mental health status, or identifies a consumer seeking health-care services."
+          : undefined,
+      };
+    }
     const row = dutyRow("wa_19375.def_person");
     const excl = dutyRow("wa_19375.040_exclusions");
     const out = gov === "yes" || glba === "yes";
