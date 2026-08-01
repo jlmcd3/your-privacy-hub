@@ -102,6 +102,9 @@ export interface RiskRegisterEntry {
   readonly residual_band: RiskBand;
   readonly citation: string;
   readonly authority_verbatim: string;
+  /** WP248 rev.01 severity-appraisal anchor (guidance, not statute). */
+  readonly guidance_citation?: string;
+  readonly guidance_verbatim?: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
 }

@@ -172,4 +172,9 @@ export const ANCHOR_KEYS = {
   art36_materials: "prior_consultation_materials_art_36_3",
   views: "consultation_of_data_subjects_35_9",
   dpo_advice: "dpia_dpo_advice",
+  // WP248-PINNING (2026-08-01) — WP248 rev.01 is now anchored in the registry,
+  // so the "reasons to conduct" criteria call and the risk-severity appraisal
+  // cite verbatim guidance instead of being barred as unanchored.
+  high_risk_criteria: "high_risk_criteria_edpb_wp248",
+  risk_severity: "risk_severity_edpb_wp248",
 } as const;
