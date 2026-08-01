@@ -158,7 +158,8 @@ describe("ir-playbook — Chapter V framing is regime-correct (Item 302 watch it
     expect(uk.application).toContain("Article 44A(1)");
     expect(uk.application).toContain("Article 45B");
     expect(uk.application).toContain("Article 47A(1)");
-    expect(uk.application).not.toContain("Commission");
+    // "Commissioner" (ICO) is correct UK wording; the EU Commission is not.
+    expect(uk.application).not.toMatch(/Commission(?!er)/);
   });
 
   it("the EU leg cites Art. 44 and carries no UK omission record", () => {
