@@ -9258,3 +9258,20 @@ internally consistent.
 
 The conformance suite is now the permanent gate: **green harness-side is the precondition for
 any future T-M cutover attempt.** No cutover attempted this turn. Item 245 hold ACTIVE.
+
+### 7. Independent trace — corroboration + one added precondition (Item 354-B addendum)
+
+A read-only trace run in parallel corroborated all three root causes named above
+(`project: projectFactorTable` on `risk_level`/`overall_score`; `secondaryActivityRows(plan)`
+empty → fill-or-omit suppression of § 7156(a), with the Item-352 whitelist explicitly
+exonerated because `filterCustomerInformationNeeded` prunes only `information_needed`;
+`runProsePassStage` called without `enforce: true`, so `mode` defaulted to `"observe"` and
+`enforceShips` was structurally false).
+
+ADDED PRECONDITION for any future cutover: Pass-2R has a SECOND gate ahead of the one fixed
+here — `pass2r-llm.ts:500-502` short-circuits with `skipped_reason = "ltp_enforce_disabled"`
+unless the deployed function's `LTP_ENFORCE_ENABLED` env var is exactly `"1"`. The enforce-flag
+fix in `production-entry.ts` is necessary but not sufficient; the live env value must be
+confirmed at Phase 0 of the next attempt. The telemetry dual-write added in this item makes
+that gate self-reporting: if it fires, `_ltp.pass2r_skipped_reason` will say so on the row
+instead of the run silently shipping deterministic prose.
