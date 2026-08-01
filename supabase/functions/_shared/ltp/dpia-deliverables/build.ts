@@ -90,13 +90,42 @@ function get(obj: unknown, path: string): unknown {
   return cur;
 }
 
-function anchor(key: keyof typeof ANCHOR_KEYS): { citation: string; verbatim: string } {
-  const r = row(ANCHOR_KEYS[key]);
+/**
+ * ITEM 330 — DPIA regime selector (CITATION ONLY).
+ *
+ * Returns "UK" when the record's `jurisdictions` name the United Kingdom and
+ * no EU/EEA GDPR jurisdiction. The UK Art. 35 text is word-identical to the
+ * EU text (the Commissioner replaces the supervisory authority), and Art.
+ * 35(3)(a) does not cross-reference Art. 22 by number in either regime, so
+ * this selector NEVER changes a trigger, threshold, likelihood, band or
+ * determination — it only selects which verbatim row is cited.
+ */
+export type DpiaRegime = "EU" | "UK";
+
+export function readDpiaRegime(intake: unknown): DpiaRegime {
+  const js = arr(get(intake, "jurisdictions"));
+  const uk = js.some((j) => /united kingdom|uk gdpr/i.test(j));
+  const eu = js.some((j) => /^eu \(gdpr\)|european|eea/i.test(j));
+  return uk && !eu ? "UK" : "EU";
+}
+
+function anchor(
+  key: keyof typeof ANCHOR_KEYS,
+  regime: DpiaRegime = "EU",
+): { citation: string; verbatim: string } {
+  const base = ANCHOR_KEYS[key];
+  const r = (regime === "UK" ? row(`uk_${base}`) : null) ?? row(base);
   return {
     citation: r?.subsection ?? "",
     verbatim: r?.verbatim_quote ?? "",
   };
 }
+
+/** Fallback citation prefix used only when a registry row is missing. */
+function cit(regime: DpiaRegime, subsection: string): string {
+  return `${regime === "UK" ? "UK GDPR" : "GDPR"} ${subsection}`;
+}
+
 
 function matches(text: string, res: readonly RegExp[]): boolean {
   return res.some((re) => re.test(text));
