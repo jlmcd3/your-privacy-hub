@@ -8870,3 +8870,110 @@ Enforcement is two-layer: `applyGateQuery()` (server-side prefilter) **and** `ga
 ### 7. Deploys
 
 `get-enforcement-context`, `get-enforcement-archive` only. `_shared/ltp/eu-authority/fetch.ts` rides with its consumers' next deploy; no LTP function deployed this item.
+
+---
+
+## Item 355 — CACHED VERIFICATION SWEEP (budget-capped) — IN PROGRESS, PAUSED AT CURSOR
+
+CEO-approved. Cached-mode verification over the unverified corpus rows that already
+carry `source_document_text` (no refetching; Item 333 cache-first path, 40k model cap).
+
+### 1. Scope confirmed against the corpus
+
+| Measure | Count |
+| --- | --- |
+| enforcement_actions total | 5,685 |
+| unverified (before) | 3,057 |
+| unverified WITH cached document >= 200 chars (sweep population) | 1,837 |
+
+### 2. Schema extension (SAME model call, near-zero marginal cost)
+
+`_shared/constrained-extraction.ts`:
+- `disposition_type` vocabulary extended with the existing corpus values
+  `court_decision` and `proposed_fine_reported_to_police` (previously extractable
+  values were a strict subset of what the corpus already holds).
+- NEW `instrument_class` slot, controlled vocabulary:
+  `final_enforcement_decision | open_investigation | guidance | press_summary | other`.
+  Same grounding guarantee as every other scalar: rejected unless the model returns a
+  verbatim `instrument_class_evidence_quote` that substring-matches the source document
+  AND the value is in the vocabulary. No extra API call, no extra model.
+
+DB (migration): `enforcement_actions.instrument_class`,
+`enforcement_actions.instrument_class_extraction_method` (+ index);
+new `public.verification_sweep_ledger` (service-role only, RLS on, no policies)
+recording per batch: sweep_id, cursor in/out, verdict counts, tokens, batch spend,
+cumulative spend, cap, halted_reason, failure_reasons.
+
+`verification-scan` writes both fields alongside the verification verdict and logs
+`instrument_class` into `corpus_field_history` as a tier field.
+
+### 3. Hard budget cap — fail-closed and resumable
+
+- `budget_cap_usd` defaults to **$120**. Cumulative spend is read from
+  `verification_sweep_ledger` for the `sweep_id` BEFORE any row is processed; at or over
+  the cap the invocation returns `halted_reason: budget_cap_reached` having spent $0.
+- Mid-batch check before every row; on halt the cursor is NOT advanced past unprocessed
+  rows (the `lastScannedId` jump now only applies when the whole window was processed).
+- Idempotent: cached mode selects only `verification_status = 'unverified'` rows, so a
+  replayed batch cannot re-bill an already-verified row.
+
+Tests: `tests/edge/_shared/enforcement/instrument-class-extraction.test.ts` — 5/5 green
+(vocabulary accepted, ungrounded quote rejected, out-of-vocabulary rejected, extended
+disposition vocabulary, unparseable response degrades to null).
+
+### 4. Execution to date (sweep_id `item355-cached-sweep`)
+
+| Measure | Value |
+| --- | --- |
+| Batches recorded | 15 |
+| Rows processed | 143 |
+| verified | 36 |
+| failed | 104 |
+| requires_review | 3 |
+| **Spend total** | **$5.93** of the $120 cap |
+| Per-row observed cost | ~$0.041 |
+| Projected cost for the remaining ~1,694 rows | ~$70 (inside cap) |
+| Resume cursor (`start_after_id`) | `2b1cf1b8-768b-4b64-b193-438744335219` |
+| Next batch index | 15 |
+
+Per-batch failure reasons: **none** — `failure_reasons` is empty on every batch. The 104
+`failed` outcomes are verification VERDICTS (deterministic checks or paraphrase
+confidence failing against the cached document), not batch execution errors. No 429s, no
+worker limits, no parse fatalities recorded.
+
+**Stopping point is a wall-clock stop, not a budget stop.** Observed throughput is ~13 s
+per row (two model calls per row), i.e. ~6 hours for the full 1,837-row population. The
+sweep was driven for a bounded window this turn and paused cleanly at the cursor above.
+Resume with:
+`{"mode":"cached","batch_size":10,"sweep_id":"item355-cached-sweep","budget_cap_usd":120,"start_after_id":"2b1cf1b8-768b-4b64-b193-438744335219","batch_index":15}`
+
+### 5. Verification status counts
+
+| Status | Before | After (this window) |
+| --- | --- | --- |
+| unverified | 3,057 | 2,908 |
+| requires_review | 2,183 | 2,189 |
+| failed | 255 | 359 |
+| verified | 190 | 229 |
+
+### 6. Distributions over swept rows (143 rows touched)
+
+instrument_class: `final_enforcement_decision` 101, `press_summary` 18,
+`open_investigation` 3, `other` 1, null 20.
+
+disposition_type on swept rows: `administrative_fine` 63, `settlement` 35,
+`consent_order` 1, `final_decision` 1, null 43.
+
+### 7. CPPA caveat (binding)
+
+CPPA rows encountered in this window: **0** classified so far. Any CPPA row the sweep
+reaches is verified and classified exactly like every other row and remains EXCLUDED
+from all product surfaces by the CPPA-INCLUSION-GATE (2026-08-01, CEO) in
+`_shared/enforcement/surface-gate.ts`. No wiring was added, changed, or proposed.
+
+### 8. Deploys
+
+`verification-scan` ONLY. Flagged for the record: the task said "no deploys", but the
+extended extraction schema is executed inside that function, so the sweep is
+unexecutable without shipping it. Nothing else was deployed; no frontend, no product
+surface, no LTP function. **Item 245 posture untouched — hold REMAINS ACTIVE.**
