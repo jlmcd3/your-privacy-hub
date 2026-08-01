@@ -3,6 +3,14 @@
 // Premium gating is enforced server-side by checking profiles.is_premium / is_pro.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
+// ITEM 354 — enforcement surface gate (one shared implementation, REUSE LAW).
+// Archive is a non-cppa-risk surface: `preserved` profile keeps current
+// behaviour, plus the global CPPA-INCLUSION-GATE (2026-08-01).
+import {
+  applyGateQuery,
+  filterSurfaceRows,
+  GATE_COLUMNS,
+} from '../_shared/enforcement/surface-gate.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -95,13 +103,13 @@ Deno.serve(async (req) => {
     let query = admin
       .from('enforcement_actions')
       .select(
-        'id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law,source_database,case_reference,verification_status',
+        'id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law,source_database,case_reference,' + GATE_COLUMNS,
         { count: 'exact' }
       )
-      // SWEEP-2 T10/T11: null subjects allowed only for structured OAIC
-      // Register rows; moderator-review rows stay hidden regardless of source.
-      .or('subject.not.is.null,source_database.eq.OAIC Register')
-      .not('verification_status', 'eq', 'requires_review');
+      // SWEEP-2 T10: null subjects allowed only for structured OAIC
+      // Register rows.
+      .or('subject.not.is.null,source_database.eq.OAIC Register');
+    query = applyGateQuery(query, 'enforcement-archive');
 
     if (!includeRecent) {
       // Premium archive only: rows older than 60 days
@@ -150,7 +158,10 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ rows: data ?? [], count: count ?? 0 }),
+      JSON.stringify({
+        rows: filterSurfaceRows((data ?? []) as any[], { product: 'enforcement-archive' }),
+        count: count ?? 0,
+      }),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
