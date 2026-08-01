@@ -103,7 +103,16 @@ Deno.test("ITEM 276: processing narrative and rationale name the primary activit
     .ctx as { activity_label?: string };
   assertEquals(narrativeCtx.activity_label, "credit-decisioning on loan applications");
 
-  const plan = planFor(PRIMARY_INTAKE);
+  // ITEM 321 (PROMPT D) — SCAFFOLD CORRECTION. `derivePlan` is the
+  // deterministic shadow derive: by design it stamps EVERY R proposition
+  // `polarity: "not_applicable"` (derive.ts:131) because polarity is a
+  // Pass-1 model responsibility. `composeRiskByActivity` emits only when
+  // an applicability proposition is engaged, so a derive-only plan can
+  // never emit this section — the previous assertion was unsatisfiable
+  // against the scaffold, not a defect in the composer. The plan is
+  // therefore lifted to the Pass-1 shape (one engaged prong) exactly as
+  // item264-activity-rationale.test.ts does.
+  const plan = pass1Like(planFor(PRIMARY_INTAKE));
   const rationale = composeSection("risk_assessment_by_activity", plan) ?? [];
   assert(rationale.length > 0, "rationale must emit");
   assertEquals(
@@ -111,6 +120,7 @@ Deno.test("ITEM 276: processing narrative and rationale name the primary activit
     "credit-decisioning on loan applications",
   );
 });
+
 
 Deno.test("ITEM 276: § 7156(a) segmentation item emits with reserved framing", () => {
   const scopeIds = ids(PRIMARY_INTAKE, "scope_and_triggers");
