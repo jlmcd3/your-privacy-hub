@@ -92,7 +92,7 @@ export function aggregateFacts(
       unmerged.add(group[0].topic);
       for (const g of group) sentences.push(g.sentence);
     } else {
-      sentences.push(rendered.text);
+      sentences.push(rendered.rendered ?? "");
       used.push(frame.id);
     }
     i = j;
