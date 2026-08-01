@@ -1538,6 +1538,8 @@ export type Database = {
           ingestion_method: string | null
           ingestion_run_id: string | null
           ingestion_strategy_used: string | null
+          instrument_class: string | null
+          instrument_class_extraction_method: string | null
           jurisdiction: string
           key_compliance_failure: string | null
           last_source_fetch_at: string | null
@@ -1617,6 +1619,8 @@ export type Database = {
           ingestion_method?: string | null
           ingestion_run_id?: string | null
           ingestion_strategy_used?: string | null
+          instrument_class?: string | null
+          instrument_class_extraction_method?: string | null
           jurisdiction: string
           key_compliance_failure?: string | null
           last_source_fetch_at?: string | null
@@ -1696,6 +1700,8 @@ export type Database = {
           ingestion_method?: string | null
           ingestion_run_id?: string | null
           ingestion_strategy_used?: string | null
+          instrument_class?: string | null
+          instrument_class_extraction_method?: string | null
           jurisdiction?: string
           key_compliance_failure?: string | null
           last_source_fetch_at?: string | null
@@ -9057,6 +9063,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      verification_sweep_ledger: {
+        Row: {
+          batch_cost_usd: number
+          batch_index: number | null
+          budget_cap_usd: number | null
+          created_at: string
+          cumulative_cost_usd: number
+          failed: number
+          failure_reasons: Json | null
+          halted_reason: string | null
+          id: string
+          last_id: string | null
+          mode: string
+          processed: number
+          requires_review: number
+          skipped_short_doc: number
+          start_after_id: string | null
+          sweep_id: string
+          tokens: Json | null
+          verified: number
+        }
+        Insert: {
+          batch_cost_usd?: number
+          batch_index?: number | null
+          budget_cap_usd?: number | null
+          created_at?: string
+          cumulative_cost_usd?: number
+          failed?: number
+          failure_reasons?: Json | null
+          halted_reason?: string | null
+          id?: string
+          last_id?: string | null
+          mode: string
+          processed?: number
+          requires_review?: number
+          skipped_short_doc?: number
+          start_after_id?: string | null
+          sweep_id: string
+          tokens?: Json | null
+          verified?: number
+        }
+        Update: {
+          batch_cost_usd?: number
+          batch_index?: number | null
+          budget_cap_usd?: number | null
+          created_at?: string
+          cumulative_cost_usd?: number
+          failed?: number
+          failure_reasons?: Json | null
+          halted_reason?: string | null
+          id?: string
+          last_id?: string | null
+          mode?: string
+          processed?: number
+          requires_review?: number
+          skipped_short_doc?: number
+          start_after_id?: string | null
+          sweep_id?: string
+          tokens?: Json | null
+          verified?: number
+        }
+        Relationships: []
       }
       weekly_briefs: {
         Row: {

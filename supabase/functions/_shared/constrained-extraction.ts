@@ -8,8 +8,21 @@ const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const DISPOSITION_VOCAB = new Set([
   "settlement","consent_order","administrative_fine",
   "final_decision","civil_penalty","injunctive_relief",
+  // Existing corpus vocabulary values (present on already-classified rows).
+  "court_decision","proposed_fine_reported_to_police",
+]);
+// Instrument class: distinguishes a FINAL enforcement instrument from an open
+// investigation, guidance, or a press summary. Orthogonal to disposition_type
+// (which names the instrument); this names its procedural standing.
+const INSTRUMENT_VOCAB = new Set([
+  "final_enforcement_decision",
+  "open_investigation",
+  "guidance",
+  "press_summary",
+  "other",
 ]);
 const APPEAL_VOCAB = new Set(["final","appeal_pending","affirmed","vacated","remanded","unknown"]);
+
 const SECTOR_VOCAB = new Set([
   "financial_services","healthcare","technology","retail","telecommunications",
   "automotive","insurance","education","government","energy","hospitality",
@@ -28,8 +41,10 @@ Output JSON schema:
   "statutory_provisions": [
     {"provision": "string (canonical form)", "evidence_quote": "string"}
   ],
-  "disposition_type": "settlement|consent_order|administrative_fine|final_decision|civil_penalty|injunctive_relief|null",
+  "disposition_type": "settlement|consent_order|administrative_fine|final_decision|civil_penalty|injunctive_relief|court_decision|proposed_fine_reported_to_police|null",
   "disposition_evidence_quote": "string or null",
+  "instrument_class": "final_enforcement_decision|open_investigation|guidance|press_summary|other|null",
+  "instrument_class_evidence_quote": "string or null",
   "appeal_status": "final|appeal_pending|affirmed|vacated|remanded|unknown",
   "appeal_status_evidence_quote": "string or null",
   "case_reference": "string or null",
@@ -42,9 +57,24 @@ Output JSON schema:
 }
 
 Controlled vocabularies:
-- disposition_type: settlement, consent_order, administrative_fine, final_decision, civil_penalty, injunctive_relief
+- disposition_type: settlement, consent_order, administrative_fine, final_decision, civil_penalty, injunctive_relief, court_decision, proposed_fine_reported_to_police
+- instrument_class: final_enforcement_decision, open_investigation, guidance, press_summary, other
 - appeal_status: final, appeal_pending, affirmed, vacated, remanded, unknown
 - sector: financial_services, healthcare, technology, retail, telecommunications, automotive, insurance, education, government, energy, hospitality, media, manufacturing, transportation, other
+
+instrument_class definitions (choose the one the document itself evidences; the
+evidence_quote must be a verbatim substring showing that standing):
+- final_enforcement_decision: the document IS the operative decision, order,
+  sanction, settlement or judgment concluding the matter.
+- open_investigation: the document announces or reports an inquiry, probe, or
+  proceeding that has been opened and not concluded.
+- guidance: advisory, opinion, guidelines, FAQ, or other non-adjudicative
+  regulator publication.
+- press_summary: a press release or news summary ABOUT a decision rather than
+  the decision text itself.
+- other: none of the above is evidenced.
+If the document does not evidence any of these, return null.
+
 
 For statutory_provisions, use canonical form when possible:
 - GDPR articles: "GDPR Article 6(1)(f)" not "Art. 6(1)(f)"
@@ -90,6 +120,7 @@ Respond with the JSON object only. No prose before or after.`;
 export type ExtractionResult = {
   statutory_provisions: string[];
   disposition_type: string | null;
+  instrument_class: string | null;
   appeal_status: string;
   case_reference: string | null;
   sector: string | null;
@@ -231,6 +262,7 @@ The first character of your response must be { and the last must be }.`;
       return {
         statutory_provisions: [],
         disposition_type: null,
+      instrument_class: null,
         appeal_status: "unknown",
         case_reference: null,
         sector: null,
@@ -287,6 +319,7 @@ The first character of your response must be { and the last must be }.`;
       return {
         statutory_provisions: salvaged.provisions,
         disposition_type: null,
+      instrument_class: null,
         appeal_status: "unknown",
         case_reference: null,
         sector: null,
@@ -300,6 +333,7 @@ The first character of your response must be { and the last must be }.`;
     return {
       statutory_provisions: [],
       disposition_type: null,
+      instrument_class: null,
       appeal_status: "unknown",
       case_reference: null,
       sector: null,
@@ -355,6 +389,13 @@ The first character of your response must be { and the last must be }.`;
     DISPOSITION_VOCAB,
   );
 
+  const instrument_class = validatedScalar(
+    parsed.instrument_class,
+    parsed.instrument_class_evidence_quote,
+    "instrument_class",
+    INSTRUMENT_VOCAB,
+  );
+
   let appeal_status: string;
   if (typeof parsed.appeal_status === "string" && APPEAL_VOCAB.has(parsed.appeal_status)) {
     if (parsed.appeal_status === "unknown") {
@@ -403,6 +444,7 @@ The first character of your response must be { and the last must be }.`;
   return {
     statutory_provisions: sp,
     disposition_type,
+    instrument_class,
     appeal_status,
     case_reference,
     sector,
