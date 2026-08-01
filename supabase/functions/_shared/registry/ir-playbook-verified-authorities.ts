@@ -35,13 +35,21 @@
 // supabase/functions/_tests/ir-registry.test.ts). KNOWN_PARAPHRASED_KEYS is
 // EMPTY on entry and must stay empty.
 
+// ITEM 328 (UK/EU FIX 3) — REUSE-NOT-DUPLICATE.
+// The UK Chapter V rows this product needs (Art. 44 omission record, Art. 44A
+// general principle, Art. 45B / 46 benchmarks) were verified byte-exact against
+// the approved corpus by Item 327 and live in the governance registry. They are
+// IMPORTED here by reference rather than re-typed: a second literal copy of the
+// same verbatim quote is a second thing to drift, and the Item 327 pin test
+// would not be guarding it. The corpus pin therefore covers both products.
+import { GOVERNANCE_VERIFIED_AUTHORITIES } from "./governance-verified-authorities.ts";
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION = "ir-va-w1-2026-07-25";
+export const IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION = "ir-va-w2-2026-08-01-item328";
 
 /** Canonical published text URL (official primary source). */
 const GDPR_URL = "https://eur-lex.europa.eu/eli/reg/2016/679/oj";
@@ -465,6 +473,22 @@ export const IR_PLAYBOOK_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: UK_VOD,
     primary_source_url: UK_GDPR_URL_34,
   }),
+
+  // ---- UK Chapter V transfer surface (ITEM 328, reused from Item 327) ------
+  // Item 302 residual watch item (2): this product cited EU Art. 44 for UK
+  // transfer framing against an article that is OMITTED in UK law. The UK rail
+  // is Art. 44A / 45A / 45B / 46, and the omission itself is a stated record.
+  // Imported by reference from GOVERNANCE_VERIFIED_AUTHORITIES — NOT re-typed.
+  uk_art_44_not_in_force: GOVERNANCE_VERIFIED_AUTHORITIES["uk_art_44_not_in_force"],
+  uk_transfers_general_principle: GOVERNANCE_VERIFIED_AUTHORITIES["uk_transfers_general_principle"],
+  uk_transfers_adequacy_route: GOVERNANCE_VERIFIED_AUTHORITIES["uk_transfers_adequacy_route"],
+  uk_transfers_safeguards_route: GOVERNANCE_VERIFIED_AUTHORITIES["uk_transfers_safeguards_route"],
+  uk_adequacy_data_protection_test: GOVERNANCE_VERIFIED_AUTHORITIES["uk_adequacy_data_protection_test"],
+  uk_transfers_appropriate_safeguards: GOVERNANCE_VERIFIED_AUTHORITIES["uk_transfers_appropriate_safeguards"],
+  uk_transfers_sos_clauses: GOVERNANCE_VERIFIED_AUTHORITIES["uk_transfers_sos_clauses"],
+  uk_transfers_commissioner_clauses: GOVERNANCE_VERIFIED_AUTHORITIES["uk_transfers_commissioner_clauses"],
+  uk_transfers_data_protection_test: GOVERNANCE_VERIFIED_AUTHORITIES["uk_transfers_data_protection_test"],
+
 };
 
 /**

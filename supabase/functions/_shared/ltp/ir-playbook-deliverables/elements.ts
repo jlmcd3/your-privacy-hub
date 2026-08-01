@@ -42,7 +42,34 @@ export const ANCHOR_KEYS = {
   sa_override: "sa_may_require_communication",
   uk_sa_72h: "uk_gdpr_art_33_mirror",
   uk_ds_high_risk: "uk_gdpr_art_34_mirror",
+  // ITEM 328 — Chapter V transfer framing, per regime.
+  eu_transfers_general: "transfers_chapter_v_general_principle",
+  eu_transfers_safeguards: "transfers_appropriate_safeguards_required",
+  uk_art_44_omitted: "uk_art_44_not_in_force",
+  uk_transfers_general: "uk_transfers_general_principle",
+  uk_transfers_adequacy_route: "uk_transfers_adequacy_route",
+  uk_transfers_safeguards_route: "uk_transfers_safeguards_route",
+  uk_transfers_safeguards: "uk_transfers_appropriate_safeguards",
+  uk_transfers_test: "uk_transfers_data_protection_test",
 } as const;
+
+/**
+ * ITEM 328 — the two GDPR-family notification regimes this product can put in
+ * scope. A breach touching both EU and UK data subjects engages BOTH
+ * independently: there is no mutual recognition post-Brexit, so the correct
+ * output states both duties side by side rather than choosing one.
+ */
+export type NotificationRegime = "eu" | "uk";
+
+export const REGIME_LABEL: Record<NotificationRegime, string> = {
+  eu: "EU/EEA — GDPR (Regulation (EU) 2016/679)",
+  uk: "United Kingdom — UK GDPR (as it forms part of UK domestic law)",
+};
+
+export const REGIME_AUTHORITY: Record<NotificationRegime, string> = {
+  eu: "the competent supervisory authority",
+  uk: "the Commissioner",
+};
 
 /** Jurisdiction strings that put the EU/EEA GDPR text in scope. */
 export const EEA_JURISDICTIONS: readonly string[] = [

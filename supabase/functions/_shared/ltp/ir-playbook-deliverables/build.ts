@@ -24,11 +24,14 @@ import {
   KEYS_SECURE,
   LARGE_SCALE_COUNTS,
   OWNERS,
+  REGIME_AUTHORITY,
+  REGIME_LABEL,
   row,
   SEVERITY_RAISING_DATA_TYPES,
   TO_BE_COMPLETED,
   UK_JURISDICTION,
 } from "./elements.ts";
+import type { NotificationRegime } from "./elements.ts";
 import type {
   Art34ExemptionAnalysis,
   ContentElementKey,
@@ -39,12 +42,14 @@ import type {
   ExemptionFinding,
   IrPlaybookDeliverables,
   PhasingPlan,
+  RegimeDutySet,
   RiskFactor,
   SaNotificationDetermination,
   SaVerdict,
+  TransferFraming,
 } from "./types.ts";
 
-export const IR_DELIVERABLES_VERSION = "ir-deliverables-item312-2026-07-31";
+export const IR_DELIVERABLES_VERSION = "ir-deliverables-item328-2026-08-01";
 
 // ── record helpers ───────────────────────────────────────────────────
 function get(root: unknown, path: string): unknown {
@@ -103,12 +108,23 @@ interface IncidentFacts {
   processorName: string;
   ukOnly: boolean;
   gdprInScope: boolean;
+  /**
+   * ITEM 328 PARALLEL-DUTY LAW: every GDPR-family regime the record engages,
+   * in render order. A breach touching both an EEA country and the United
+   * Kingdom engages BOTH — there is no mutual recognition post-Brexit, so
+   * neither leg may be dropped in favour of the other.
+   */
+  regimes: NotificationRegime[];
+  mixed: boolean;
 }
 
 export function readIncidentFacts(intake: unknown): IncidentFacts {
   const jurisdictions = arr(get(intake, "jurisdictions"));
   const eea = jurisdictions.filter((j) => EEA_JURISDICTIONS.includes(j));
   const uk = jurisdictions.includes(UK_JURISDICTION);
+  const regimes: NotificationRegime[] = [];
+  if (eea.length > 0) regimes.push("eu");
+  if (uk) regimes.push("uk");
   return {
     org: str(get(intake, "organizationName")) || str(get(intake, "organization_name")),
     cause: str(get(intake, "cause")),
@@ -125,7 +141,14 @@ export function readIncidentFacts(intake: unknown): IncidentFacts {
     processorName: str(get(intake, "processorName")),
     ukOnly: uk && eea.length === 0,
     gdprInScope: uk || eea.length > 0,
+    regimes,
+    mixed: regimes.length > 1,
   };
+}
+
+/** The regime the scalar (legacy) deliverable fields are stated under. */
+export function primaryRegime(f: IncidentFacts): NotificationRegime {
+  return f.regimes[0] ?? "eu";
 }
 
 function unintelligible(f: IncidentFacts): "yes" | "no" | "partial" | "unknown" {
@@ -138,11 +161,19 @@ function unintelligible(f: IncidentFacts): "yes" | "no" | "partial" | "unknown" 
 // ---------------------------------------------------------------------
 // 1. Art. 33(1) — supervisory-authority notification determination
 // ---------------------------------------------------------------------
-export function buildSaNotificationDetermination(intake: unknown): SaNotificationDetermination {
+export function buildSaNotificationDetermination(
+  intake: unknown,
+  regimeArg?: NotificationRegime,
+): SaNotificationDetermination {
   const f = readIncidentFacts(intake);
-  const std = f.ukOnly
+  const regime = regimeArg ?? primaryRegime(f);
+  const authority = REGIME_AUTHORITY[regime];
+  const std = regime === "uk"
     ? anchor("uk_sa_72h", "UK GDPR Art. 33(1)")
     : anchor("sa_72h", "GDPR Art. 33(1)");
+  const parallel_duty_note = f.mixed
+    ? `The incident engages ${f.regimes.length} GDPR-family regimes on the recorded jurisdictions. This determination states the ${REGIME_LABEL[regime]} duty only. The ${f.regimes.filter((r) => r !== regime).map((r) => REGIME_LABEL[r]).join(" and ")} duty applies independently and is determined separately: the two regimes do not recognise each other's notifications, so notifying one does not discharge the other.`
+    : undefined;
 
   const factors: RiskFactor[] = [];
   const severe = f.dataTypes.filter((d) => SEVERITY_RAISING_DATA_TYPES.includes(d));
@@ -216,18 +247,21 @@ export function buildSaNotificationDetermination(intake: unknown): SaNotificatio
     application =
       `Article 33(1) lifts the notification duty only where the breach is "unlikely to result in a risk to the rights and freedoms of natural persons". On this record the affected data were rendered unintelligible to any unauthorised person and the keys are recorded as uncompromised, the incident is contained, and no severity-raising category, hostile actor or large-scale exposure is recorded. Run over those facts the negative condition is satisfied: there is no route by which the data can be read, used or acted on by the person who obtained them.`;
     whyRaw =
-      `The Article 33(1) negative condition is established on the facts recorded, so no notification to the supervisory authority is required for this incident. That conclusion is bound to the encryption and containment facts as recorded: if the key status changes, or further affected data are identified, the test must be re-run before the position is relied on. The Article 33(5) documentation duty applies regardless of this outcome, and the reasoning above is the record that discharges it.`;
+      `The Article 33(1) negative condition is established on the facts recorded, so no notification to ${authority} is required for this incident. That conclusion is bound to the encryption and containment facts as recorded: if the key status changes, or further affected data are identified, the test must be re-run before the position is relied on. The Article 33(5) documentation duty applies regardless of this outcome, and the reasoning above is the record that discharges it.`;
   } else {
     verdict = "notification_required";
     const drivers = aggravating.map((x) => x.factor.toLowerCase()).slice(0, 4);
     application =
       `Article 33(1) requires notification unless the breach is "unlikely to result in a risk to the rights and freedoms of natural persons". That is a negative condition the controller must establish, not a presumption in its favour. On this record it is not established: ${drivers.length ? drivers.join("; ") : "the mitigating facts recorded do not remove the possibility of a risk to the affected individuals"}.${mitigating.length ? ` The mitigating facts the record does supply — ${mitigating.map((m) => m.factor.toLowerCase()).join("; ")} — reduce the severity but do not make a risk unlikely.` : ""} The duty therefore stands.`;
     whyRaw =
-      `Notification to the competent supervisory authority is required, because the Article 33(1) exception is not made out on these facts. The clock and the filing deadline are computed separately in the awareness and deadline analysis and are not restated here.${f.processorInvolved ? ` A processor is involved${f.processorName ? ` (${f.processorName})` : ""}, so the Article 33(2) notification from processor to controller is part of the same record.` : ""}`;
+      `Notification to ${authority} is required, because the Article 33(1) exception is not made out on these facts. The clock and the filing deadline are computed separately in the awareness and deadline analysis and are not restated here.${f.processorInvolved ? ` A processor is involved${f.processorName ? ` (${f.processorName})` : ""}, so the Article 33(2) notification from processor to controller is part of the same record.` : ""}`;
   }
 
   const sep = separateExposure(whyRaw);
   return {
+    regime,
+    regime_label: REGIME_LABEL[regime],
+    ...(parallel_duty_note ? { parallel_duty_note } : {}),
     standard: std.verbatim,
     standard_citation: std.citation,
     record_fact,
@@ -250,11 +284,16 @@ export function buildDataSubjectCommunicationDetermination(
   intake: unknown,
   saVerdict: SaVerdict,
   exemptionAvailable: boolean,
+  regimeArg?: NotificationRegime,
 ): DataSubjectCommunicationDetermination {
   const f = readIncidentFacts(intake);
-  const std = f.ukOnly
+  const regime = regimeArg ?? primaryRegime(f);
+  const std = regime === "uk"
     ? anchor("uk_ds_high_risk", "UK GDPR Art. 34(1)")
     : anchor("ds_high_risk", "GDPR Art. 34(1)");
+  const parallel_duty_note = f.mixed
+    ? `The Article 34(1) communication duty is determined separately under each regime the record engages. This determination is the ${REGIME_LABEL[regime]} one; the ${f.regimes.filter((r) => r !== regime).map((r) => REGIME_LABEL[r]).join(" and ")} determination stands alongside it.`
+    : undefined;
   const plain = anchor("ds_plain_language", "GDPR Art. 34(2)");
 
   const factors: RiskFactor[] = [];
@@ -325,6 +364,9 @@ export function buildDataSubjectCommunicationDetermination(
 
   const sep = separateExposure(whyRaw);
   return {
+    regime,
+    regime_label: REGIME_LABEL[regime],
+    ...(parallel_duty_note ? { parallel_duty_note } : {}),
     standard: std.verbatim,
     standard_citation: std.citation,
     record_fact,
@@ -451,6 +493,58 @@ export function buildArt34ExemptionAnalysis(intake: unknown): Art34ExemptionAnal
     sa_override_citation: override.citation,
     sa_override_verbatim: override.verbatim,
     status: limbs.every((l) => l.status === "analysed") ? "analysed" : "record_insufficient",
+  };
+}
+
+
+// ---------------------------------------------------------------------
+// 3b. Chapter V transfer framing — ITEM 328 (Item 302 residual watch item 2)
+// ---------------------------------------------------------------------
+/**
+ * The EU and UK Chapter V rails are DIFFERENT rails, not the same rail under
+ * two names. EU Art. 44 states the general principle; in UK law Art. 44 is
+ * OMITTED and the general principle is Art. 44A, with the Art. 45B / 46(6)
+ * "not materially lower" data protection test in place of the EU benchmark.
+ * Citing Art. 44 in a UK leg cites a repealed article — which is what this
+ * product did before this item.
+ *
+ * DEGRADATION LAW: the ir_playbook intake contract carries no field stating
+ * whether the affected data were transferred to or held in a third country, so
+ * the limb is emitted as `record_insufficient` with that named ask. It is not
+ * assumed either way and it is not omitted.
+ */
+export function buildTransferFraming(
+  intake: unknown,
+  regimeArg?: NotificationRegime,
+): TransferFraming {
+  const f = readIncidentFacts(intake);
+  const regime = regimeArg ?? primaryRegime(f);
+  const gen = regime === "uk"
+    ? anchor("uk_transfers_general", "UK GDPR Art. 44A(1)")
+    : anchor("eu_transfers_general", "GDPR Art. 44");
+  const safeguards = regime === "uk"
+    ? anchor("uk_transfers_safeguards", "UK GDPR Art. 46(1A)")
+    : anchor("eu_transfers_safeguards", "GDPR Art. 46(1)");
+  const test = regime === "uk" ? anchor("uk_transfers_test", "UK GDPR Art. 46(6)") : null;
+  const omitted = regime === "uk" ? anchor("uk_art_44_omitted", "UK GDPR Art. 44 (omitted)") : null;
+
+  const record_fact =
+    `The record puts the following jurisdictions in scope: ${JSON.stringify(f.jurisdictions)}. It states no fact about whether the personal data affected by this incident were transferred to, or held in, a third country or by an international organisation, and no fact about the mechanism relied on for any such transfer.`;
+
+  const application = regime === "uk"
+    ? `Where the incident touches personal data that were transferred outside the United Kingdom, the transfer stands or falls on the UK rail, not the EU one: the general principle is Article 44A(1), the adequacy route is regulations under Article 45A tested against the Article 45B standard, and the safeguards route under Article 46 turns on clause sets specified by the Secretary of State under Article 47A(1) or issued by the Commissioner under section 119A of the 2018 Act, with the exporter's own Article 46(6) data protection test. ${test ? "The test asks whether protection would be \"not materially lower\" than the UK standard — a different benchmark from the EU one, applied by a different decision-maker. " : ""}The record does not state whether any affected data were transferred outside the United Kingdom, so whether Chapter V is engaged at all is left open rather than asserted.`
+    : `Where the incident touches personal data that were transferred outside the EU/EEA, Article 44 requires that the conditions of Chapter V were complied with for that transfer and for any onward transfer, and in the absence of an adequacy decision the transfer must rest on appropriate safeguards under Article 46. Whether that condition was satisfied bears directly on the breach record, because a breach of data already transferred on a defective basis is two failures, not one. The record does not state whether any affected data were transferred outside the EU/EEA, so the question is left open rather than assumed.`;
+
+  return {
+    regime,
+    citation: gen.citation,
+    standard: gen.verbatim,
+    ...(omitted ? { omitted_article_note: omitted.verbatim } : {}),
+    record_fact,
+    application: `${application} Safeguards standard relied on where the limb is reached: ${safeguards.citation}.`,
+    status: "record_insufficient",
+    information_needed:
+      "Whether the personal data affected by this incident were transferred to, or held in, a third country or by an international organisation, and if so the transfer mechanism relied on. The ir_playbook intake contract carries no field for this today; the field must be added before the limb can be closed.",
   };
 }
 
@@ -588,11 +682,36 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
 // Composite builder + attach
 // ---------------------------------------------------------------------
 export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDeliverables {
-  const sa = buildSaNotificationDetermination(intake);
+  const f = readIncidentFacts(intake);
   const exemptions = buildArt34ExemptionAnalysis(intake);
-  const ds = buildDataSubjectCommunicationDetermination(intake, sa.verdict, exemptions.any_exemption_available);
+
+  // ITEM 328 PARALLEL-DUTY LAW: one complete duty set per engaged regime.
+  // A mixed EU + UK incident yields two, stated side by side. Where no
+  // GDPR-family jurisdiction is recorded the EU rail is stated as the default
+  // frame so the deliverable is never empty.
+  const regimes: NotificationRegime[] = f.regimes.length ? f.regimes : ["eu"];
+  const notification_duties: RegimeDutySet[] = regimes.map((regime) => {
+    const rsa = buildSaNotificationDetermination(intake, regime);
+    return {
+      regime,
+      regime_label: REGIME_LABEL[regime],
+      supervisory_authority: REGIME_AUTHORITY[regime],
+      sa_notification_determination: rsa,
+      data_subject_communication_determination: buildDataSubjectCommunicationDetermination(
+        intake,
+        rsa.verdict,
+        exemptions.any_exemption_available,
+        regime,
+      ),
+      transfer_framing: buildTransferFraming(intake, regime),
+    };
+  });
+
+  const sa = notification_duties[0].sa_notification_determination;
+  const ds = notification_duties[0].data_subject_communication_determination;
   const mapping = buildContentOwnerMapping(intake);
   return {
+    notification_duties,
     sa_notification_determination: sa,
     data_subject_communication_determination: ds,
     art34_exemption_analysis: exemptions,
@@ -607,6 +726,7 @@ export function attachIrPlaybookDeliverables(
 ): Record<string, unknown> {
   try {
     const built = buildIrPlaybookDeliverables(intake);
+    report.notification_duties = built.notification_duties;
     report.sa_notification_determination = built.sa_notification_determination;
     report.data_subject_communication_determination = built.data_subject_communication_determination;
     report.art34_exemption_analysis = built.art34_exemption_analysis;
@@ -614,15 +734,24 @@ export function attachIrPlaybookDeliverables(
     return {
       version: IR_DELIVERABLES_VERSION,
       ok: true,
+      regimes: built.notification_duties.map((d) => d.regime),
+      mixed_regime: built.notification_duties.length > 1,
+      regime_verdicts: built.notification_duties.map(
+        (d) => `${d.regime}:${d.sa_notification_determination.verdict}/${d.data_subject_communication_determination.verdict}`,
+      ),
+      transfer_citations: built.notification_duties.map((d) => `${d.regime}:${d.transfer_framing.citation}`),
       sa_verdict: built.sa_notification_determination.verdict,
       ds_verdict: built.data_subject_communication_determination.verdict,
       high_risk: built.data_subject_communication_determination.high_risk_established,
       exemption_available: built.art34_exemption_analysis.any_exemption_available,
       exemption_verdicts: built.art34_exemption_analysis.limbs.map((l) => `${l.limb}:${l.verdict}`),
       content_elements_complete: built.content_owner_mapping.elements.filter((e) => e.status === "analysed").length,
-      separation_repairs:
-        built.sa_notification_determination.separation_repairs +
-        built.data_subject_communication_determination.separation_repairs,
+      separation_repairs: built.notification_duties.reduce(
+        (n, d) =>
+          n + d.sa_notification_determination.separation_repairs +
+          d.data_subject_communication_determination.separation_repairs,
+        0,
+      ),
     };
   } catch (e) {
     return { version: IR_DELIVERABLES_VERSION, ok: false, error: (e as Error)?.message ?? "unknown" };

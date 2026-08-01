@@ -44,6 +44,10 @@
  * but NOT communicable to data subjects.
  */
 
+import type { NotificationRegime } from "./elements.ts";
+
+export type { NotificationRegime };
+
 export type DeliverableStatus = "analysed" | "record_insufficient";
 
 /** The four-part analytic shape every deliverable in this module carries. */
@@ -72,6 +76,16 @@ export interface RiskFactor {
 }
 
 export interface SaNotificationDetermination extends AnalysisShape {
+  /** ITEM 328 — which GDPR-family regime this determination is made under. */
+  readonly regime: NotificationRegime;
+  /** Human-readable label for the regime, rendered as the duty's heading. */
+  readonly regime_label: string;
+  /**
+   * ITEM 328 PARALLEL-DUTY LAW: present where the incident engages more than
+   * one regime. States that this duty stands alongside the other, not instead
+   * of it.
+   */
+  readonly parallel_duty_note?: string;
   readonly verdict: SaVerdict;
   /** The factors the risk test was actually run over. */
   readonly risk_factors: readonly RiskFactor[];
@@ -97,6 +111,10 @@ export type CommunicationVerdict =
   | "undetermined_on_the_record";
 
 export interface DataSubjectCommunicationDetermination extends AnalysisShape {
+  /** ITEM 328 — which GDPR-family regime this determination is made under. */
+  readonly regime: NotificationRegime;
+  readonly regime_label: string;
+  readonly parallel_duty_note?: string;
   readonly verdict: CommunicationVerdict;
   readonly high_risk_factors: readonly RiskFactor[];
   readonly high_risk_established: boolean;
@@ -190,7 +208,45 @@ export interface ContentOwnerMapping {
   readonly status: DeliverableStatus;
 }
 
+/**
+ * ITEM 328 — Chapter V framing for the regime, cited to the regime's own
+ * general principle. For the UK leg that is Art. 44A: Art. 44 is OMITTED in UK
+ * law (Item 302 residual watch item 2) and is carried only as an omission
+ * record, never as the operative authority.
+ */
+export interface TransferFraming {
+  readonly regime: NotificationRegime;
+  readonly citation: string;
+  readonly standard: string;
+  /** UK leg only: the record that Art. 44 is not in force. */
+  readonly omitted_article_note?: string;
+  readonly record_fact: string;
+  readonly application: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+/**
+ * ITEM 328 — one regime's complete, independently-stated duty set. A mixed
+ * EU + UK incident produces TWO of these, rendered side by side.
+ */
+export interface RegimeDutySet {
+  readonly regime: NotificationRegime;
+  readonly regime_label: string;
+  readonly supervisory_authority: string;
+  readonly sa_notification_determination: SaNotificationDetermination;
+  readonly data_subject_communication_determination: DataSubjectCommunicationDetermination;
+  readonly transfer_framing: TransferFraming;
+}
+
 export interface IrPlaybookDeliverables {
+  /**
+   * ITEM 328: every GDPR-family regime the record puts in scope, each with its
+   * own Art. 33 / Art. 34 determination. Length 2 for a mixed EU + UK incident.
+   * The scalar fields below are the FIRST entry, retained for the existing
+   * renderer contract — they are a view onto this array, not a substitute.
+   */
+  readonly notification_duties: readonly RegimeDutySet[];
   readonly sa_notification_determination: SaNotificationDetermination;
   readonly data_subject_communication_determination: DataSubjectCommunicationDetermination;
   readonly art34_exemption_analysis: Art34ExemptionAnalysis;
