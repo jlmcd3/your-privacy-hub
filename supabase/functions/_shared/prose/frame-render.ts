@@ -137,7 +137,9 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
     };
   }
 
-  const cleaned = collapseRenderArtifacts(out);
+  // A quoted record value that already ends in terminal punctuation must not
+  // acquire a second one from the frame's own sentence end.
+  const cleaned = collapseRenderArtifacts(out).replace(/([.?!]”)\s*\./g, "$1");
   return {
     rendered: cleaned,
     omitted: false,
