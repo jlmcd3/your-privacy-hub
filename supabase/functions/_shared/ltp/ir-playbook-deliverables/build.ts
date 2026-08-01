@@ -496,6 +496,58 @@ export function buildArt34ExemptionAnalysis(intake: unknown): Art34ExemptionAnal
   };
 }
 
+
+// ---------------------------------------------------------------------
+// 3b. Chapter V transfer framing — ITEM 328 (Item 302 residual watch item 2)
+// ---------------------------------------------------------------------
+/**
+ * The EU and UK Chapter V rails are DIFFERENT rails, not the same rail under
+ * two names. EU Art. 44 states the general principle; in UK law Art. 44 is
+ * OMITTED and the general principle is Art. 44A, with the Art. 45B / 46(6)
+ * "not materially lower" data protection test in place of the EU benchmark.
+ * Citing Art. 44 in a UK leg cites a repealed article — which is what this
+ * product did before this item.
+ *
+ * DEGRADATION LAW: the ir_playbook intake contract carries no field stating
+ * whether the affected data were transferred to or held in a third country, so
+ * the limb is emitted as `record_insufficient` with that named ask. It is not
+ * assumed either way and it is not omitted.
+ */
+export function buildTransferFraming(
+  intake: unknown,
+  regimeArg?: NotificationRegime,
+): TransferFraming {
+  const f = readIncidentFacts(intake);
+  const regime = regimeArg ?? primaryRegime(f);
+  const gen = regime === "uk"
+    ? anchor("uk_transfers_general", "UK GDPR Art. 44A(1)")
+    : anchor("eu_transfers_general", "GDPR Art. 44");
+  const safeguards = regime === "uk"
+    ? anchor("uk_transfers_safeguards", "UK GDPR Art. 46(1A)")
+    : anchor("eu_transfers_safeguards", "GDPR Art. 46(1)");
+  const test = regime === "uk" ? anchor("uk_transfers_test", "UK GDPR Art. 46(6)") : null;
+  const omitted = regime === "uk" ? anchor("uk_art_44_omitted", "UK GDPR Art. 44 (omitted)") : null;
+
+  const record_fact =
+    `The record puts the following jurisdictions in scope: ${JSON.stringify(f.jurisdictions)}. It states no fact about whether the personal data affected by this incident were transferred to, or held in, a third country or by an international organisation, and no fact about the mechanism relied on for any such transfer.`;
+
+  const application = regime === "uk"
+    ? `Where the incident touches personal data that were transferred outside the United Kingdom, the transfer stands or falls on the UK rail, not the EU one: the general principle is Article 44A(1), the adequacy route is regulations under Article 45A tested against the Article 45B standard, and the safeguards route under Article 46 turns on clause sets specified by the Secretary of State under Article 47A(1) or issued by the Commissioner under section 119A of the 2018 Act, with the exporter's own Article 46(6) data protection test. ${test ? "The test asks whether protection would be \"not materially lower\" than the UK standard — a different benchmark from the EU one, applied by a different decision-maker. " : ""}The record does not state whether any affected data were transferred outside the United Kingdom, so whether Chapter V is engaged at all is left open rather than asserted.`
+    : `Where the incident touches personal data that were transferred outside the EU/EEA, Article 44 requires that the conditions of Chapter V were complied with for that transfer and for any onward transfer, and in the absence of an adequacy decision the transfer must rest on appropriate safeguards under Article 46. Whether that condition was satisfied bears directly on the breach record, because a breach of data already transferred on a defective basis is two failures, not one. The record does not state whether any affected data were transferred outside the EU/EEA, so the question is left open rather than assumed.`;
+
+  return {
+    regime,
+    citation: gen.citation,
+    standard: gen.verbatim,
+    ...(omitted ? { omitted_article_note: omitted.verbatim } : {}),
+    record_fact,
+    application: `${application} Safeguards standard relied on where the limb is reached: ${safeguards.citation}.`,
+    status: "record_insufficient",
+    information_needed:
+      "Whether the personal data affected by this incident were transferred to, or held in, a third country or by an international organisation, and if so the transfer mechanism relied on. The ir_playbook intake contract carries no field for this today; the field must be added before the limb can be closed.",
+  };
+}
+
 // ---------------------------------------------------------------------
 // 4. Art. 33(3)(a)-(d) content / owner mapping + 33(4) phasing + 33(5) record
 // ---------------------------------------------------------------------
@@ -630,11 +682,36 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
 // Composite builder + attach
 // ---------------------------------------------------------------------
 export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDeliverables {
-  const sa = buildSaNotificationDetermination(intake);
+  const f = readIncidentFacts(intake);
   const exemptions = buildArt34ExemptionAnalysis(intake);
-  const ds = buildDataSubjectCommunicationDetermination(intake, sa.verdict, exemptions.any_exemption_available);
+
+  // ITEM 328 PARALLEL-DUTY LAW: one complete duty set per engaged regime.
+  // A mixed EU + UK incident yields two, stated side by side. Where no
+  // GDPR-family jurisdiction is recorded the EU rail is stated as the default
+  // frame so the deliverable is never empty.
+  const regimes: NotificationRegime[] = f.regimes.length ? f.regimes : ["eu"];
+  const notification_duties: RegimeDutySet[] = regimes.map((regime) => {
+    const rsa = buildSaNotificationDetermination(intake, regime);
+    return {
+      regime,
+      regime_label: REGIME_LABEL[regime],
+      supervisory_authority: REGIME_AUTHORITY[regime],
+      sa_notification_determination: rsa,
+      data_subject_communication_determination: buildDataSubjectCommunicationDetermination(
+        intake,
+        rsa.verdict,
+        exemptions.any_exemption_available,
+        regime,
+      ),
+      transfer_framing: buildTransferFraming(intake, regime),
+    };
+  });
+
+  const sa = notification_duties[0].sa_notification_determination;
+  const ds = notification_duties[0].data_subject_communication_determination;
   const mapping = buildContentOwnerMapping(intake);
   return {
+    notification_duties,
     sa_notification_determination: sa,
     data_subject_communication_determination: ds,
     art34_exemption_analysis: exemptions,
