@@ -39,6 +39,10 @@ type Mode = "initial" | "targeted" | "sample" | "cached";
 
 const CACHED_MIN_DOC_CHARS = 200;
 
+// Item 333: hard cap on the document text passed to any model in a single
+// invocation (was an implicit 60k inside each helper, applied twice per row).
+const MAX_MODEL_DOC_CHARS = 40_000;
+
 // Placeholder-subject precheck. Skip corpus rows whose subject is a generic
 // placeholder before any fetch or LLM cost is incurred.
 const SUBJECT_PLACEHOLDERS = new Set<string>([
@@ -253,6 +257,12 @@ async function processRow(row: any, mode: Mode = "initial") {
   }
 
   const doc = fetched.content_text!;
+  // Item 333: cap the text handed to the models per invocation. Deterministic
+  // checks still run over the full document; only the LLM payloads are capped,
+  // which is what drove WORKER_RESOURCE_LIMIT on 100k+ char sources.
+  const docForModel = doc.length > MAX_MODEL_DOC_CHARS
+    ? doc.slice(0, MAX_MODEL_DOC_CHARS)
+    : doc;
   const docHash = fetched.content_hash!;
 
   // Pre-extraction checks
@@ -293,7 +303,7 @@ async function processRow(row: any, mode: Mode = "initial") {
   try {
     extraction = await constrainedExtract({
       apiKey: anthropicKey,
-      doc,
+      doc: docForModel,
       regulator: row.regulator,
       subject: row.subject,
       decisionDate: row.decision_date,
@@ -337,7 +347,7 @@ async function processRow(row: any, mode: Mode = "initial") {
     para = await paraphraseFaithfulness({
       apiKey: anthropicKey,
       paraphraseA: row.key_compliance_failure ?? "",
-      sourceB: doc,
+      sourceB: docForModel,
     });
   } catch (e) {
     para = {
