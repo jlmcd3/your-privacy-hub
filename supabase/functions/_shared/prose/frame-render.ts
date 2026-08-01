@@ -11,6 +11,9 @@
 //     "not stated on the record" path (MANDATORY DEGRADATION LAW).
 
 import { adapterFor, collapseRenderArtifacts, joinNaturalList, renderSlotValue } from "./slots.ts";
+import { resolveLegalPhrasing } from "./legal-phrasings.ts";
+import { resolveEngineConclusion } from "./engine-conclusions.ts";
+import { RISK_VERIFIED_AUTHORITIES } from "../registry/risk-verified-authorities.ts";
 import {
   type Frame,
   FRAME_LIBRARY_VERSION,
@@ -22,12 +25,36 @@ import {
 export const FRAME_RENDER_VERSION = FRAME_LIBRARY_VERSION;
 
 export type CiteResolver = (propositionKey: string) => string | null | undefined;
+export type LegalResolver = (phrasingKey: string) => string | null | undefined;
+export type ConclusionResolver = (determinationKey: string) => string | null | undefined;
+
+/**
+ * ITEM 346 — DEFAULT CITE RESOLVER (review-render defect fix).
+ *
+ * Item 338's review renders printed the literal string
+ * "[registry: re-queried at build time]" because the review script passed a
+ * stub. Cite slots now resolve from the same verified-authority registry the
+ * engine uses, so a review render shows the pinpoint a customer would see.
+ * Callers may still inject their own resolver (an engine that re-queries the
+ * live row at build time does exactly that).
+ */
+export const REGISTRY_CITE_RESOLVERS: Record<string, CiteResolver> = {
+  "cppa-risk": (key) => RISK_VERIFIED_AUTHORITIES[key]?.subsection ?? null,
+};
+
+export function defaultCiteResolver(product: string): CiteResolver {
+  return REGISTRY_CITE_RESOLVERS[product] ?? (() => null);
+}
 
 export interface FrameRenderOptions {
   /** Record values keyed by placeholder source path. */
   readonly values: Record<string, unknown>;
   /** Registry lookup for {{CITE:...}} slots. Absent resolver = cites are silent. */
   readonly resolveCite?: CiteResolver;
+  /** Pinned requirement phrasings for {{...:legal}}. Defaults to the product book. */
+  readonly resolveLegal?: LegalResolver;
+  /** Pinned engine-determination phrasings for {{...:conclusion}}. Defaults to the product book. */
+  readonly resolveConclusion?: ConclusionResolver;
   /** Product contract for the Item 337 enum adapter. */
   readonly contract?: string;
   /** Quote free-text record values. Default true. */
@@ -40,6 +67,8 @@ export interface FrameRenderResult {
   readonly missing_required: readonly string[];
   readonly missing_optional: readonly string[];
   readonly cites_filled: readonly string[];
+  readonly legal_filled: readonly string[];
+  readonly conclusions_filled: readonly string[];
   readonly degradation?: { readonly reason: string; readonly information_needed: readonly string[] };
 }
 
@@ -89,6 +118,8 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
   const missingRequired: string[] = [];
   const missingOptional: string[] = [];
   const citesFilled: string[] = [];
+  const legalFilled: string[] = [];
+  const conclusionsFilled: string[] = [];
   const byToken = new Map(frame.placeholders.map((p) => [p.token, p]));
 
   let out = String(frame.body ?? "");
@@ -96,12 +127,40 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
   for (const p of frame.placeholders) {
     let replacement = "";
     if (p.kind === "cite") {
-      const resolved = opts.resolveCite?.(p.source);
+      const resolver = opts.resolveCite ?? defaultCiteResolver(frame.product);
+      const resolved = resolver(p.source);
       if (isSilent(resolved)) {
         (p.required ? missingRequired : missingOptional).push(p.source);
       } else {
         replacement = String(resolved).trim();
         citesFilled.push(p.source);
+      }
+    } else if (p.kind === "legal") {
+      // SLOT TYPE 2 — pinned only. No generation, no fallback prose.
+      const resolved = opts.resolveLegal
+        ? opts.resolveLegal(p.source)
+        : resolveLegalPhrasing(frame.product, p.source);
+      if (isSilent(resolved)) {
+        (p.required ? missingRequired : missingOptional).push(p.source);
+      } else {
+        replacement = String(resolved).trim();
+        legalFilled.push(p.source);
+      }
+    } else if (p.kind === "conclusion") {
+      // SLOT TYPE 3 — the engine chose the key; the library supplies the words.
+      // "@path" = the engine wrote the determination key at that value path;
+      // a bare source names a pinned determination directly.
+      const key = p.source.startsWith("@")
+        ? String(opts.values?.[p.source.slice(1)] ?? "")
+        : p.source;
+      const resolved = opts.resolveConclusion
+        ? opts.resolveConclusion(key)
+        : resolveEngineConclusion(frame.product, key);
+      if (isSilent(resolved)) {
+        (p.required ? missingRequired : missingOptional).push(p.source);
+      } else {
+        replacement = String(resolved).trim();
+        conclusionsFilled.push(key);
       }
     } else {
       const raw = opts.values?.[p.source];
@@ -130,6 +189,8 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
       missing_required: missingRequired,
       missing_optional: missingOptional,
       cites_filled: citesFilled,
+      legal_filled: legalFilled,
+      conclusions_filled: conclusionsFilled,
       degradation: {
         reason: "required placeholder silent on the record",
         information_needed: missingRequired,
@@ -146,6 +207,8 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
     missing_required: [],
     missing_optional: missingOptional,
     cites_filled: citesFilled,
+    legal_filled: legalFilled,
+    conclusions_filled: conclusionsFilled,
   };
 }
 
@@ -172,6 +235,8 @@ export function renderSectionFromFrames(
     missing_required: [] as string[],
     missing_optional: [] as string[],
     cites_filled: [] as string[],
+    legal_filled: [] as string[],
+    conclusions_filled: [] as string[],
   };
   if (!frameSetRenderable(set)) return base;
   const candidates = set.frames.filter((f) => f.section === section);
