@@ -69,7 +69,7 @@ Deno.test("ITEM 284 F1: predicate reports the no-present-benefit state as incomp
   const plan = planOf(INTAKE);
   const stripped: RenderPlan = {
     ...plan,
-    factor_table: plan.factor_table.map((f) =>
+    factor_table: plan.factor_table.map((f: { kind: string }) =>
       f.kind === "benefit" ? { ...f, present_in_intake: false } : f
     ),
   } as RenderPlan;
@@ -183,5 +183,5 @@ Deno.test("ITEM 284 F5: next_steps is substantive whenever information_needed is
     assert((ctx.step_label ?? "").trim().length > 0, "fill-or-omit: empty step_label shipped");
     assert((ctx.step_basis ?? "").trim().length > 0, "fill-or-omit: empty step_basis shipped");
   }
-  assert(!/undefined|null/i.test(textOf(steps)), "no residue tokens on the next-steps surface");
+  assert(!/undefined|null/i.test(textOf(steps as unknown as { readonly ctx: Record<string, unknown> }[])), "no residue tokens on the next-steps surface");
 });
