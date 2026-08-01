@@ -58,7 +58,12 @@ export interface EmitGateReport {
   findings: EmitGateFinding[];
   enforcement_skipped_reason?: string;
   crashed?: boolean;
+  /** ITEM 352 — internal bookkeeping for degraded LTP-shape prose nodes. */
+  degraded_paths?: string[];
+  /** ITEM 352 — internal rows stripped from the customer array. */
+  customer_rows_filtered?: number;
 }
+
 
 export interface EmitGateOptions {
   intakeRoster?: unknown;
@@ -273,9 +278,19 @@ function detectFindings(
  * `obj.information_needed = true` clobbered that array with a scalar,
  * destroying (in the Item 342 repro) the two §7152(a)(6)/(a)(7) rows.
  *
+ * ITEM 352 — REGRESSION CLOSED. Item 343's append semantics preserved the
+ * array but APPENDED gate-internal rows (`id: "info_emit_gate_<path>"`,
+ * `source: "emit_gate"`) into the CUSTOMER array; the Item 351 live smoke
+ * surfaced `info_emit_gate_disclaimer` and
+ * `info_emit_gate_submission_summary` to the customer. Degraded-path
+ * bookkeeping is internal telemetry and now lands ONLY on
+ * `_meta.internal.emit_gate.degraded_paths`. The customer array is
+ * preserved untouched (the Item 343 property) and is additionally passed
+ * through a whitelist filter before emit.
+ *
  * Contract:
- *   - Array present  → PRESERVE it and APPEND one row naming the degraded
- *     path. Never replaced by a scalar.
+ *   - Array present  → PRESERVE it verbatim; record the degraded path in
+ *     internal telemetry. Never replaced by a scalar, never appended to.
  *   - Anything else  → legacy behavior, byte-identical: scalar `true`.
  */
 function slugPath(path: string): string {
@@ -286,29 +301,57 @@ function slugPath(path: string): string {
     .slice(0, 48) || "unspecified";
 }
 
-function markInformationNeeded(obj: Record<string, unknown>, leaf: LeafRef): void {
+/** Internal identifier prefix that must never reach a customer surface. */
+export const EMIT_GATE_INTERNAL_ID_PREFIX = "info_emit_gate_";
+
+function markInformationNeeded(
+  obj: Record<string, unknown>,
+  leaf: LeafRef,
+  degradedPaths: string[],
+): void {
   const existing = obj.information_needed;
   if (!Array.isArray(existing)) {
     // Legacy shape — unchanged.
     obj.information_needed = true;
     return;
   }
+  // ITEM 352: internal bookkeeping only — the customer array is not touched.
   const topic = slugPath(leaf.path);
-  const id = `info_emit_gate_${topic}`;
-  const already = existing.some(
-    (r) => r && typeof r === "object" && (r as Record<string, unknown>).id === id,
-  );
-  if (already) return;
-  existing.push({
-    id,
-    topic,
-    prompt: renderMessage("information.needed"),
-    source: "emit_gate",
-    path: leaf.path,
-  });
+  if (!degradedPaths.some((p) => p === leaf.path)) degradedPaths.push(leaf.path);
+  void topic;
 }
 
-function degrade(leaf: LeafRef): void {
+/**
+ * ITEM 352 — CUSTOMER-SURFACE WHITELIST.
+ *
+ * Only customer-facing degradation rows may remain in `information_needed`.
+ * Any row carrying an internal gate identity (`info_emit_gate_*` id, or
+ * `source: "emit_gate"`) is removed and counted. Fail-open on odd shapes.
+ */
+export function filterCustomerInformationNeeded(
+  report: Record<string, unknown> | null | undefined,
+): number {
+  try {
+    if (!report || typeof report !== "object") return 0;
+    const arr = (report as Record<string, unknown>).information_needed;
+    if (!Array.isArray(arr)) return 0;
+    const kept = arr.filter((row) => {
+      if (!row || typeof row !== "object") return true;
+      const r = row as Record<string, unknown>;
+      if (typeof r.id === "string" && r.id.startsWith(EMIT_GATE_INTERNAL_ID_PREFIX)) return false;
+      if (typeof r.source === "string" && r.source === "emit_gate") return false;
+      return true;
+    });
+    const removed = arr.length - kept.length;
+    if (removed > 0) (report as Record<string, unknown>).information_needed = kept;
+    return removed;
+  } catch {
+    return 0;
+  }
+}
+
+
+function degrade(leaf: LeafRef, degradedPaths: string[]): void {
   const replacement = renderMessage("information.needed");
   if (Array.isArray(leaf.parent)) {
     (leaf.parent as unknown[])[leaf.key as number] = replacement;
@@ -317,9 +360,11 @@ function degrade(leaf: LeafRef): void {
   const obj = leaf.parent as Record<string, unknown>;
   obj[leaf.key as string] = replacement;
   // Additive structured flag — non-breaking. Consumers may key styling
-  // on this without needing a literal string check.
-  markInformationNeeded(obj, leaf);
+  // on this without needing a literal string check. ITEM 352: on the LTP
+  // array shape this records internal telemetry only.
+  markInformationNeeded(obj, leaf, degradedPaths);
 }
+
 
 
 // ── Public API ──────────────────────────────────────────────────────────
@@ -340,6 +385,7 @@ export function runEmitGate(
   opts: EmitGateOptions = {},
 ): Record<string, unknown> | null | undefined {
   if (!report || typeof report !== "object") return report;
+  const degradedPaths: string[] = [];
   const gateReport: EmitGateReport = {
     version: EMIT_GATE_VERSION,
     tool: opts.tool ?? "unknown",
@@ -347,6 +393,7 @@ export function runEmitGate(
     prose_node_count: 0,
     findings: [],
   };
+
   try {
     const intakeRosterText = opts.intakeRoster
       ? extractIntakeRoster(opts.intakeRoster)
@@ -379,9 +426,13 @@ export function runEmitGate(
         prose_nodes: leaves.length,
       }));
     } else {
-      for (const leaf of leavesToDegrade) degrade(leaf);
+      for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
       gateReport.degraded_count = leavesToDegrade.length;
     }
+    // ITEM 352 — internal gate rows never reach the customer array.
+    gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
+    if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;
+
   } catch (e) {
     gateReport.crashed = true;
     console.error(JSON.stringify({
