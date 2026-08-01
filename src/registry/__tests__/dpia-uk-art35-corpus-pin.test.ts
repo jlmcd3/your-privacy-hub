@@ -163,12 +163,18 @@ describe("ITEM 330 — the DPIA determination is unchanged; only citations diffe
   const strip = (v: unknown): unknown =>
     JSON.parse(
       JSON.stringify(v, (k, val) =>
-        /citation|verbatim|authority|procedural_note/.test(k) ? undefined : val,
+        /citation|verbatim|authority|procedural_note|^why$/.test(k) ? undefined : val,
       ),
     );
 
   it("produces the identical reasoning payload under both regimes", () => {
     expect(strip(uk)).toEqual(strip(eu));
+  });
+
+  it("names the Commissioner on the UK rail in the consultation reasoning", () => {
+    expect(uk.art36_consultation.why).toContain("the Commissioner");
+    expect(uk.art36_consultation.why).not.toContain("supervisory authority");
+    expect(eu.art36_consultation.why).toContain("supervisory authority");
   });
 
   it("reaches the same Art. 36 consultation determination", () => {

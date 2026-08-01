@@ -469,7 +469,7 @@ export function buildArt36Consultation(
   } else if (high.length > 0) {
     determination = "consultation_required";
     rawWhy =
-      `${a.verbatim} On this record ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — remain at a high residual band after the measures the record states, so the condition in Art. 36(1) is met and the controller must consult the competent supervisory authority before the processing begins.`;
+      `${a.verbatim} On this record ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — remain at a high residual band after the measures the record states, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
   } else if (undetermined.length > 0 || insufficient.length > 0) {
     determination = "undetermined_on_the_record";
     status = "record_insufficient";
