@@ -38,7 +38,38 @@ export const ANCHOR_KEYS = {
   edpb_mitigation_beyond: "edpb_1_2024_mitigating_measures_beyond_gdpr",
   edpb_mitigation_excluded: "edpb_1_2024_mitigating_measures_exclusions",
   edpb_override_outcome: "edpb_1_2024_balance_override_outcome",
+  // ITEM 326 — UK GDPR Chapter III Section 4A + Art. 6(1)(ea).
+  eu_art_22_right: "art_22_admt_right",
+  uk_art_22_substituted: "uk_art_22_substituted",
+  uk_22a_solely_automated: "uk_art_22a_solely_automated_definition",
+  uk_22a_significant: "uk_art_22a_significant_decision_definition",
+  uk_22a_profiling: "uk_art_22a_profiling_consideration",
+  uk_22b_special_category: "uk_art_22b_special_category_restriction",
+  uk_22b_recognised_li_bar: "uk_art_22b_recognised_li_bar",
+  uk_22c_duty: "uk_art_22c_safeguards_duty",
+  uk_22c_measures: "uk_art_22c_safeguard_measures",
+  uk_6_1_ea: "uk_art_6_1_ea_recognised_li",
+  uk_6_ea_annex_1: "uk_art_6_ea_annex_1_condition",
 } as const;
+
+// ── ITEM 326 — jurisdiction branching (mirrors the `ukOnly` pattern in
+// ../ir-playbook-deliverables/build.ts: exact-value membership over the
+// recorded `jurisdictions` array, no semantic defaults). ────────────────
+
+/** Verbatim option string from LIAssessment.enums.ts JURISDICTIONS. */
+export const UK_JURISDICTION = "United Kingdom (UK GDPR)";
+/** Verbatim option string from LIAssessment.enums.ts JURISDICTIONS. */
+export const EU_JURISDICTION = "EU (GDPR)";
+
+/**
+ * ANNEX 1 SCOPE LIMIT (ITEM 326, binding). Annex 1 to the UK GDPR is not held
+ * in this tool's corpus (no gdpr_articles / provision_texts row; verified by
+ * direct query 2026-08-01). Wherever Art. 6(1)(ea) is mentioned, THIS EXACT
+ * SENTENCE is emitted and nothing further: no Annex 1 condition may be
+ * stated, paraphrased, listed, or evaluated anywhere downstream.
+ */
+export const ANNEX_1_RESERVED_NOTE =
+  "Article 6(1)(ea) is available only where processing meets a condition in Annex 1. The specific conditions in Annex 1 are outside this tool's current corpus and are not assessed here; whether any Annex 1 condition is met is reserved to review by qualified counsel.";
 
 /** Intake option strings that indicate children are among the data subjects. */
 export const CHILD_VULNERABLE_OPTIONS: readonly string[] = [
