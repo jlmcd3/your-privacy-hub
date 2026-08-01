@@ -2,8 +2,90 @@
   "product": "li_assessment",
   "donors_total": 37,
   "donors_with_text": 0,
-  "method": "no_document_text — plan must be drafted fresh from exemplars",
-  "sections": [],
-  "arc": [],
+  "method": "report_keys — inventory + lead types from report_data prose; ordering from the shared arc",
+  "sections": [
+    {
+      "label": "data_currency_note",
+      "arc_stage": "unclassified",
+      "donors": 37,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 37
+      },
+      "mean_position": 0
+    },
+    {
+      "label": "disclaimer",
+      "arc_stage": "unclassified",
+      "donors": 37,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 37
+      },
+      "mean_position": 0.167
+    },
+    {
+      "label": "enforcement_precedents_note",
+      "arc_stage": "unclassified",
+      "donors": 37,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 37
+      },
+      "mean_position": 0.333
+    },
+    {
+      "label": "gdpr_meta",
+      "arc_stage": "unclassified",
+      "donors": 37,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 37
+      },
+      "mean_position": 0.5
+    },
+    {
+      "label": "three_part_test",
+      "arc_stage": "unclassified",
+      "donors": 37,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 37
+      },
+      "mean_position": 0.667
+    },
+    {
+      "label": "information_needed",
+      "arc_stage": "ask",
+      "donors": 37,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 34,
+        "determination": 3
+      },
+      "mean_position": 0.833
+    },
+    {
+      "label": "documentation_recommendations",
+      "arc_stage": "remedy",
+      "donors": 37,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 37
+      },
+      "mean_position": 1
+    }
+  ],
+  "arc": [
+    "ask",
+    "remedy"
+  ],
   "extracted_at": "2026-08-01"
 }

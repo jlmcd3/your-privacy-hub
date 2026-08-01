@@ -201,6 +201,8 @@ function extract(tool) {
     }))
     .sort((a, b) => a.mean_position - b.mean_position);
 
+  if (!sections.length) return fallbackFromReportKeys(tool, donors);
+
   return {
     product: tool,
     donors_total: donors.length,
@@ -212,6 +214,73 @@ function extract(tool) {
     arc: dedupe(sections.map((s) => s.arc_stage).filter((s) => s !== "unclassified")),
     extracted_at: new Date().toISOString().slice(0, 10),
   };
+}
+
+// FALLBACK — donors with structured report_data but no rendered document_text.
+// Section inventory comes from the report keys (shape, not content); ordering
+// comes from the shared arc, never from the engine's key order, which is an
+// intake walk. Lead type is classified from the donor's own prose values.
+function fallbackFromReportKeys(tool, donors) {
+  const NON_CONTENT =
+    /^(generated_at|portals|annotations|lint_warnings|enforcement_meta|version|engine|meta|_)/i;
+  const keys = new Map();
+  for (const d of donors) {
+    const r = d.report;
+    if (!r || typeof r !== "object") continue;
+    for (const [k, v] of Object.entries(r)) {
+      if (NON_CONTENT.test(k)) continue;
+      const prose = proseOf(v);
+      if (!prose) continue;
+      let e = keys.get(k);
+      if (!e) {
+        e = { docs: new Set(), leads: {}, paras: [] };
+        keys.set(k, e);
+      }
+      e.docs.add(d.id);
+      const paragraphs = prose.split(/\n{2,}/).map((p) => p.trim()).filter((p) => p.length > 60);
+      e.paras.push(Math.max(1, paragraphs.length));
+      const lead = classifyLead(paragraphs[0] || prose);
+      e.leads[lead] = (e.leads[lead] || 0) + 1;
+    }
+  }
+  const min = Math.max(2, Math.ceil(donors.length * 0.2));
+  const sections = [...keys.entries()]
+    .filter(([, e]) => e.docs.size >= min)
+    .map(([label, e]) => ({
+      label,
+      arc_stage: arcStageOf(label.replace(/_/g, " ")),
+      donors: e.docs.size,
+      median_paragraphs: median(e.paras),
+      lead_type: dominant(e.leads),
+      lead_counts: e.leads,
+    }))
+    .sort((a, b) => {
+      const d = ARC_ORDER.indexOf(a.arc_stage) - ARC_ORDER.indexOf(b.arc_stage);
+      return d !== 0 ? d : a.label.localeCompare(b.label);
+    })
+    .map((s, i, all) => ({ ...s, mean_position: all.length > 1 ? +(i / (all.length - 1)).toFixed(3) : 0 }));
+
+  return {
+    product: tool,
+    donors_total: donors.length,
+    donors_with_text: 0,
+    method: sections.length
+      ? "report_keys — inventory + lead types from report_data prose; ordering from the shared arc"
+      : "no donor material — plan must be drafted fresh from exemplars",
+    sections,
+    arc: dedupe(sections.map((s) => s.arc_stage).filter((s) => s !== "unclassified")),
+    extracted_at: new Date().toISOString().slice(0, 10),
+  };
+}
+
+/** Longest prose string anywhere in a report value; shape probe only. */
+function proseOf(v) {
+  if (typeof v === "string") return v.length > 80 ? v : "";
+  if (Array.isArray(v)) return v.map(proseOf).sort((a, b) => b.length - a.length)[0] || "";
+  if (v && typeof v === "object") {
+    return Object.values(v).map(proseOf).sort((a, b) => b.length - a.length)[0] || "";
+  }
+  return "";
 }
 
 const median = (a) => (a.length ? [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)] : 0);

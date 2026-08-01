@@ -2,8 +2,155 @@
   "product": "cppa_admt",
   "donors_total": 36,
   "donors_with_text": 0,
-  "method": "no_document_text — plan must be drafted fresh from exemplars",
-  "sections": [],
-  "arc": [],
+  "method": "report_keys — inventory + lead types from report_data prose; ordering from the shared arc",
+  "sections": [
+    {
+      "label": "aggregate_access_response",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 34,
+        "record": 1,
+        "determination": 1
+      },
+      "mean_position": 0
+    },
+    {
+      "label": "compliant_elements",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 33,
+        "determination": 3
+      },
+      "mean_position": 0.091
+    },
+    {
+      "label": "documentation_to_maintain",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 34,
+        "determination": 2
+      },
+      "mean_position": 0.182
+    },
+    {
+      "label": "enforcement_context",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "record": 5,
+        "unclassified": 31
+      },
+      "mean_position": 0.273
+    },
+    {
+      "label": "priority_actions",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.364
+    },
+    {
+      "label": "scope_analysis",
+      "arc_stage": "scope",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "determination": 8,
+        "unclassified": 27,
+        "record": 1
+      },
+      "mean_position": 0.455
+    },
+    {
+      "label": "risk_assessment_obligation",
+      "arc_stage": "analysis",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 22,
+        "determination": 14
+      },
+      "mean_position": 0.545
+    },
+    {
+      "label": "access_gaps",
+      "arc_stage": "ask",
+      "donors": 22,
+      "median_paragraphs": 2,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 22
+      },
+      "mean_position": 0.636
+    },
+    {
+      "label": "information_needed",
+      "arc_stage": "ask",
+      "donors": 16,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 14,
+        "determination": 2
+      },
+      "mean_position": 0.727
+    },
+    {
+      "label": "notice_gaps",
+      "arc_stage": "ask",
+      "donors": 22,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 22
+      },
+      "mean_position": 0.818
+    },
+    {
+      "label": "opt_out_gaps",
+      "arc_stage": "ask",
+      "donors": 22,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 22
+      },
+      "mean_position": 0.909
+    },
+    {
+      "label": "consolidated_notice_analysis",
+      "arc_stage": "communicate",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 1
+    }
+  ],
+  "arc": [
+    "scope",
+    "analysis",
+    "ask",
+    "communicate"
+  ],
   "extracted_at": "2026-08-01"
 }

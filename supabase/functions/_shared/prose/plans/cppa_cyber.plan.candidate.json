@@ -2,8 +2,81 @@
   "product": "cppa_cyber",
   "donors_total": 36,
   "donors_with_text": 0,
-  "method": "no_document_text — plan must be drafted fresh from exemplars",
-  "sections": [],
-  "arc": [],
+  "method": "report_keys — inventory + lead types from report_data prose; ordering from the shared arc",
+  "sections": [
+    {
+      "label": "enforcement_context",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0
+    },
+    {
+      "label": "fsor_section_commentary",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.2
+    },
+    {
+      "label": "top_risks",
+      "arc_stage": "analysis",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.4
+    },
+    {
+      "label": "controls",
+      "arc_stage": "remedy",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.6
+    },
+    {
+      "label": "next_steps",
+      "arc_stage": "remedy",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 34,
+        "determination": 2
+      },
+      "mean_position": 0.8
+    },
+    {
+      "label": "executive_summary",
+      "arc_stage": "close",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 34,
+        "determination": 2
+      },
+      "mean_position": 1
+    }
+  ],
+  "arc": [
+    "analysis",
+    "remedy",
+    "close"
+  ],
   "extracted_at": "2026-08-01"
 }

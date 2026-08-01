@@ -1,8 +1,8 @@
 {
   "product": "biometric",
   "donors_total": 1,
-  "donors_with_text": 1,
-  "method": "extracted",
+  "donors_with_text": 0,
+  "method": "no donor material — plan must be drafted fresh from exemplars",
   "sections": [],
   "arc": [],
   "extracted_at": "2026-08-01"
