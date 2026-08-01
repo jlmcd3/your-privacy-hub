@@ -78,13 +78,29 @@ export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
       "Capture the DPIA's own metadata: its version and change log; the team conducting it and their roles (a RACI matrix works well); the guidelines, standards and codes of conduct used; and the completion date plus the formal validation date (approval as complete by a responsible official). Decision-making and review methods should be documented, even if recorded outside this template.",
     paraRefs: [5, 6, 7, 10],
   },
+  // WP248-PINNING (2026-08-01) — verbatim, reused from the engine registry.
   "0.5.reasons": {
     sectionRef: "0.5",
     sectionTitle: "DPIA technical sheet — reasons to conduct",
-    guidance:
-      "Explain why the DPIA is being done; more than one reason may apply. It may be a legal obligation under Article 35(3) (systematic, extensive evaluation or profiling with significant effects; large-scale special-category or criminal-offence data; or large-scale systematic monitoring of a public area), required under national law or EDPB/national guidance (the WP248 criteria — scoring, automated decisions, sensitive data, large scale, dataset matching, vulnerable subjects, innovative technology), or simply necessary or beneficial (a DPO or data-subject recommendation, a code of conduct, or to manage risk and demonstrate accountability). It may also be an existing high-risk activity whose risk has changed.",
+    guidance: WP248_CRITERIA.verbatim_quote,
     paraRefs: [8],
+    verbatimPropositionKey: WP248_CRITERIA.proposition_key,
+    citation: WP248_CRITERIA.citation,
+    sourceLabel: WP248_GUIDANCE_SOURCE.label,
+    sourceUrl: WP248_CRITERIA.primary_source_url,
   },
+  // WP248-PINNING (2026-08-01) — § 4.1.c inherent-risk severity appraisal.
+  "4.1.c": {
+    sectionRef: "4.1.c",
+    sectionTitle: "Inherent risk assessment — severity appraisal",
+    guidance: WP248_SEVERITY.verbatim_quote,
+    paraRefs: [],
+    verbatimPropositionKey: WP248_SEVERITY.proposition_key,
+    citation: WP248_SEVERITY.citation,
+    sourceLabel: WP248_GUIDANCE_SOURCE.label,
+    sourceUrl: WP248_SEVERITY.primary_source_url,
+  },
+
   "0.5.scope": {
     sectionRef: "0.5",
     sectionTitle: "DPIA technical sheet — scope",
