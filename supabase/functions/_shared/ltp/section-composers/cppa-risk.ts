@@ -1549,13 +1549,24 @@ function composeProcessingNarrative(plan: RenderPlan): TemplateInstance[] {
       entity_name: entity,
       activity_label: activityLabel,
       pi_categories_clause: pick("q4_pi_categories"),
-      sources_clause: pick("i3_sources") || nsotr,
+      // ITEM 320 (PROMPT B) — CONTRACT-KEY CORRECTION. `i3_sources` and
+      // `i2_deletion` are not keys in cppaRiskContract, so these two
+      // sub-elements read "not stated on the record" even when the
+      // customer HAD answered them. The contract keys are `i4b_sources`
+      // (collection sources) and `q7_right_delete` (deletion process).
+      sources_clause: pick("i4b_sources"),
       i1_processing_purpose_clause: pick("i1_processing_purpose"),
       i6_vendors_clause: pick("i6_vendors"),
       i4_disclosure_mechanisms_clause: pick("i4_disclosure_mechanisms"),
       i2_retention_period_clause: pick("i2_retention_period"),
       i2_retention_criteria_clause: pick("i2_retention_criteria"),
-      i2_deletion_clause: pick("i2_deletion"),
+      // q7_right_delete is an enum of PROCESS descriptors ("Automated
+      // deletion with confirmation"), not a predicate; it is framed as a
+      // process so the sentence reads correctly.
+      i2_deletion_clause: (() => {
+        const v = pickIntakeValue(plan, "q7_right_delete");
+        return v ? `handled under the record's stated deletion process: ${v}` : nsotr;
+      })(),
     },
   }];
 }
