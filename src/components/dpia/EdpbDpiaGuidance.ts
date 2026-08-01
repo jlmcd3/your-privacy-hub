@@ -1,23 +1,46 @@
 // src/components/dpia/EdpbDpiaGuidance.ts
-// Paraphrased completion guidance for the EDPB DPIA template, keyed by the
-// Explainer's section numbering (the template body uses letter sub-sections,
-// e.g. "1.1.a"; the Explainer and TOC use "1.1.1" — we key by the Explainer).
+// Completion guidance for the EDPB DPIA template, keyed by the Explainer's
+// section numbering (the template body uses letter sub-sections, e.g. "1.1.a";
+// the Explainer and TOC use "1.1.1" — we key by the Explainer).
 //
 // Source: EDPB "Template [2026] for DPIA — Explainer" v1.0 (10 Mar 2026).
 // NOTE: this is a PUBLIC-CONSULTATION DRAFT (consultation closed 9 Jun 2026);
-// the final text may differ. Guidance below is PARAPHRASED, not verbatim.
+// the final text may differ. Guidance below is PARAPHRASED, not verbatim —
+// EXCEPT entries that carry `verbatimPropositionKey`, whose `guidance` string
+// is the byte-exact `verbatim_quote` from the engine's verified-authority
+// registry (supabase/functions/_shared/registry/dpia-verified-authorities.ts,
+// WP248-PINNING 2026-08-01). Those entries are reused, never retyped.
+
+import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/dpia-verified-authorities";
 
 export const EDPB_DPIA_SOURCE = {
   label: "EDPB DPIA Template Explainer v1.0 (10 Mar 2026, public-consultation draft)",
   url: "https://www.edpb.europa.eu/public-consultations/edpb-dpia-template_en",
 };
 
+/** WP248 rev.01 rows reused verbatim from the engine registry. */
+const WP248_CRITERIA = DPIA_VERIFIED_AUTHORITIES.high_risk_criteria_edpb_wp248;
+const WP248_SEVERITY = DPIA_VERIFIED_AUTHORITIES.risk_severity_edpb_wp248;
+
+export const WP248_GUIDANCE_SOURCE = {
+  label: "EDPB (endorsed) Guidelines on DPIA (WP248 rev.01) — verbatim",
+  url: WP248_CRITERIA.primary_source_url,
+};
+
 export interface EdpbGuidanceEntry {
   sectionRef: string;     // Explainer numbering, e.g. "0.5"
   sectionTitle: string;
-  guidance: string;       // paraphrased plain-language guidance
+  guidance: string;       // paraphrased plain-language guidance, unless verbatimPropositionKey is set
   paraRefs: number[];     // Explainer paragraph numbers, for traceability
+  /** Registry proposition this entry reproduces verbatim (WP248-PINNING). */
+  verbatimPropositionKey?: string;
+  /** Pinpoint citation shown with a verbatim entry. */
+  citation?: string;
+  /** Source label/url override for verbatim entries. */
+  sourceLabel?: string;
+  sourceUrl?: string;
 }
+
 
 export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
   "0.1": {
