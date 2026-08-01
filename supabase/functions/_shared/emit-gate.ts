@@ -58,7 +58,12 @@ export interface EmitGateReport {
   findings: EmitGateFinding[];
   enforcement_skipped_reason?: string;
   crashed?: boolean;
+  /** ITEM 352 — internal bookkeeping for degraded LTP-shape prose nodes. */
+  degraded_paths?: string[];
+  /** ITEM 352 — internal rows stripped from the customer array. */
+  customer_rows_filtered?: number;
 }
+
 
 export interface EmitGateOptions {
   intakeRoster?: unknown;
