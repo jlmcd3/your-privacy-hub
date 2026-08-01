@@ -1,0 +1,143 @@
+{
+  "product": "ir_playbook",
+  "donors_total": 73,
+  "donors_with_text": 73,
+  "method": "extracted",
+  "sections": [
+    {
+      "label": "immediate actions",
+      "arc_stage": "act",
+      "mean_position": 0,
+      "donors": 73,
+      "median_paragraphs": 25,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 73
+      }
+    },
+    {
+      "label": "breach assessment checklist",
+      "arc_stage": "analysis",
+      "mean_position": 0.064,
+      "donors": 73,
+      "median_paragraphs": 20,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 73
+      }
+    },
+    {
+      "label": "regulatory notification timeline",
+      "arc_stage": "duty",
+      "mean_position": 0.131,
+      "donors": 73,
+      "median_paragraphs": 34,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 73
+      }
+    },
+    {
+      "label": "individual notification decision tree",
+      "arc_stage": "duty",
+      "mean_position": 0.194,
+      "donors": 73,
+      "median_paragraphs": 40,
+      "lead_type": "determination",
+      "lead_counts": {
+        "determination": 61,
+        "unclassified": 12
+      }
+    },
+    {
+      "label": "notification templates",
+      "arc_stage": "duty",
+      "mean_position": 0.276,
+      "donors": 73,
+      "median_paragraphs": 6,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 70,
+        "determination": 3
+      }
+    },
+    {
+      "label": "breach register entry",
+      "arc_stage": "duty",
+      "mean_position": 0.341,
+      "donors": 15,
+      "median_paragraphs": 2,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 15
+      }
+    },
+    {
+      "label": "documentation accountability checklist",
+      "arc_stage": "unclassified",
+      "mean_position": 0.439,
+      "donors": 73,
+      "median_paragraphs": 12,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 70,
+        "determination": 3
+      }
+    },
+    {
+      "label": "post incident actions",
+      "arc_stage": "unclassified",
+      "mean_position": 0.603,
+      "donors": 30,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 27,
+        "determination": 3
+      }
+    },
+    {
+      "label": "root cause analysis",
+      "arc_stage": "unclassified",
+      "mean_position": 0.653,
+      "donors": 69,
+      "median_paragraphs": 5,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "determination": 6,
+        "unclassified": 63
+      }
+    },
+    {
+      "label": "technical remediation",
+      "arc_stage": "remedy",
+      "mean_position": 0.754,
+      "donors": 28,
+      "median_paragraphs": 3,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "determination": 5,
+        "unclassified": 23
+      }
+    },
+    {
+      "label": "regulatory follow up",
+      "arc_stage": "unclassified",
+      "mean_position": 0.921,
+      "donors": 18,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 17,
+        "determination": 1
+      }
+    }
+  ],
+  "arc": [
+    "act",
+    "analysis",
+    "duty",
+    "remedy"
+  ],
+  "extracted_at": "2026-08-01"
+}
