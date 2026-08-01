@@ -334,7 +334,7 @@ Deno.test("render: a section with no determination degrades honestly", () => {
 });
 
 Deno.test("render: a record section leads with its first statement and is not degraded", () => {
-  const recordSection: PlanSection = {
+  const recordSection: PlannedSection = {
     id: "record",
     title: "The record as stated",
     source_key: "record_echo",
@@ -357,7 +357,7 @@ Deno.test("render: a record section leads with its first statement and is not de
 });
 
 Deno.test("render: a record section with nothing on the record still degrades", () => {
-  const recordSection: PlanSection = {
+  const recordSection: PlannedSection = {
     id: "record",
     title: "The record as stated",
     source_key: "record_echo",
