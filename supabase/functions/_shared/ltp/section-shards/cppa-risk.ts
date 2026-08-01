@@ -215,7 +215,6 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   },
 
   // ── Headline scores / risk band (deterministic from plan) ─────────
-  // ── Headline scores / risk band (deterministic from plan) ─────────
   // ITEM 354 — CUSTOMER CONTRACT: rendered scalars. These keys previously
   // projected the raw factor table (Item 353 Phase-2 FAILURE 1).
   {
