@@ -269,3 +269,25 @@ describe.skipIf(!CAN_RUN)("biometric statutes (IL BIPA / TX CUBI / WA 19.375) �
     }
   }, 30_000);
 });
+
+// ITEM 323 — live byte-exact pin for the MHMDA duty rows. Same discipline as
+// the Item 314/317 pins: every verbatim_quote in the registry must be an exact
+// substring of the approved corpus row it names. Re-ingest the corpus rather
+// than editing a quote to make this pass.
+describe("RCW 19.373 (MHMDA) — live corpus pin", () => {
+  it("every MHMDA duty row is verbatim against its approved corpus row", async () => {
+    const { BIOMETRIC_DUTY_ROWS } = await import(
+      "../../../supabase/functions/_shared/registry/biometric-verified-authorities"
+    );
+    const rows = BIOMETRIC_DUTY_ROWS.filter((r) => r.statute_key === "us_wa_19373");
+    expect(rows.length).toBeGreaterThanOrEqual(5);
+    const corpus = await loadCorpus([...new Set(rows.map((r) => r.corpus_key))]);
+    const bad: string[] = [];
+    for (const r of rows) {
+      const body = corpus[r.corpus_key];
+      if (!body) { bad.push(`${r.id} → corpus row ${r.corpus_key} missing or not approved`); continue; }
+      if (!body.includes(norm(r.verbatim_quote))) bad.push(`${r.id} → quote not verbatim in ${r.corpus_key}`);
+    }
+    expect(bad, bad.join("\n")).toEqual([]);
+  }, 30_000);
+});
