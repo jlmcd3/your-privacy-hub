@@ -16,7 +16,8 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
 export const BUILD_STAMP = "ltp-risk-tm-cutover-item353@2026-08-01";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
-const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
+const LTP_MODE_BOOT = "enforce"; // ITEM 353 cutover — LTP is the production engine.
+console.log(`[run-cppa-risk-assessment] boot engine=ltp ltp_mode=${LTP_MODE_BOOT} cutover=item353`);
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
