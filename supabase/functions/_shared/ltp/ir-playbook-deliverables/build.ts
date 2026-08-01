@@ -726,6 +726,7 @@ export function attachIrPlaybookDeliverables(
 ): Record<string, unknown> {
   try {
     const built = buildIrPlaybookDeliverables(intake);
+    report.notification_duties = built.notification_duties;
     report.sa_notification_determination = built.sa_notification_determination;
     report.data_subject_communication_determination = built.data_subject_communication_determination;
     report.art34_exemption_analysis = built.art34_exemption_analysis;
@@ -733,15 +734,24 @@ export function attachIrPlaybookDeliverables(
     return {
       version: IR_DELIVERABLES_VERSION,
       ok: true,
+      regimes: built.notification_duties.map((d) => d.regime),
+      mixed_regime: built.notification_duties.length > 1,
+      regime_verdicts: built.notification_duties.map(
+        (d) => `${d.regime}:${d.sa_notification_determination.verdict}/${d.data_subject_communication_determination.verdict}`,
+      ),
+      transfer_citations: built.notification_duties.map((d) => `${d.regime}:${d.transfer_framing.citation}`),
       sa_verdict: built.sa_notification_determination.verdict,
       ds_verdict: built.data_subject_communication_determination.verdict,
       high_risk: built.data_subject_communication_determination.high_risk_established,
       exemption_available: built.art34_exemption_analysis.any_exemption_available,
       exemption_verdicts: built.art34_exemption_analysis.limbs.map((l) => `${l.limb}:${l.verdict}`),
       content_elements_complete: built.content_owner_mapping.elements.filter((e) => e.status === "analysed").length,
-      separation_repairs:
-        built.sa_notification_determination.separation_repairs +
-        built.data_subject_communication_determination.separation_repairs,
+      separation_repairs: built.notification_duties.reduce(
+        (n, d) =>
+          n + d.sa_notification_determination.separation_repairs +
+          d.data_subject_communication_determination.separation_repairs,
+        0,
+      ),
     };
   } catch (e) {
     return { version: IR_DELIVERABLES_VERSION, ok: false, error: (e as Error)?.message ?? "unknown" };
