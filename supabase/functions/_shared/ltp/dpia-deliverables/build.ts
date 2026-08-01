@@ -90,13 +90,42 @@ function get(obj: unknown, path: string): unknown {
   return cur;
 }
 
-function anchor(key: keyof typeof ANCHOR_KEYS): { citation: string; verbatim: string } {
-  const r = row(ANCHOR_KEYS[key]);
+/**
+ * ITEM 330 — DPIA regime selector (CITATION ONLY).
+ *
+ * Returns "UK" when the record's `jurisdictions` name the United Kingdom and
+ * no EU/EEA GDPR jurisdiction. The UK Art. 35 text is word-identical to the
+ * EU text (the Commissioner replaces the supervisory authority), and Art.
+ * 35(3)(a) does not cross-reference Art. 22 by number in either regime, so
+ * this selector NEVER changes a trigger, threshold, likelihood, band or
+ * determination — it only selects which verbatim row is cited.
+ */
+export type DpiaRegime = "EU" | "UK";
+
+export function readDpiaRegime(intake: unknown): DpiaRegime {
+  const js = arr(get(intake, "jurisdictions"));
+  const uk = js.some((j) => /united kingdom|uk gdpr/i.test(j));
+  const eu = js.some((j) => /^eu \(gdpr\)|european|eea/i.test(j));
+  return uk && !eu ? "UK" : "EU";
+}
+
+function anchor(
+  key: keyof typeof ANCHOR_KEYS,
+  regime: DpiaRegime = "EU",
+): { citation: string; verbatim: string } {
+  const base = ANCHOR_KEYS[key];
+  const r = (regime === "UK" ? row(`uk_${base}`) : null) ?? row(base);
   return {
     citation: r?.subsection ?? "",
     verbatim: r?.verbatim_quote ?? "",
   };
 }
+
+/** Fallback citation prefix used only when a registry row is missing. */
+function cit(regime: DpiaRegime, subsection: string): string {
+  return `${regime === "UK" ? "UK GDPR" : "GDPR"} ${subsection}`;
+}
+
 
 function matches(text: string, res: readonly RegExp[]): boolean {
   return res.some((re) => re.test(text));
@@ -166,9 +195,10 @@ function alternativesFor(intake: unknown, op: Operation): AlternativeConsidered[
 // 1. Art. 35(7)(b) — necessity (least-intrusive means, PERFORMED)
 // ---------------------------------------------------------------------
 export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
-  const a = anchor("necessity");
-  const test = anchor("necessity_test");
-  const useful = anchor("useful_not_necessary");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("necessity", regime);
+  const test = anchor("necessity_test", regime);
+  const useful = anchor("useful_not_necessary", regime);
 
   return buildOperations(intake).map((op) => {
     const purpose_stated = op.purpose_text.length > 0;
@@ -226,7 +256,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
       alternatives_considered: alternatives,
       verdict,
       why,
-      citation: a.citation || "GDPR Art. 35(7)(b)",
+      citation: a.citation || cit(regime, "Art. 35(7)(b)"),
       authority_verbatim: a.verbatim,
       status,
       ...(information_needed ? { information_needed } : {}),
@@ -238,7 +268,8 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
 // 2. Art. 35(7)(b) — proportionality, SPLIT OUT from necessity
 // ---------------------------------------------------------------------
 export function buildProportionality(intake: unknown): ProportionalityFinding[] {
-  const a = anchor("necessity");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("necessity", regime);
   const narrative = str(get(intake, "necessity_proportionality"));
   const minimisation = str(get(intake, "data_minimisation_justification"));
   const subjects = str(get(intake, "data_subjects"));
@@ -286,7 +317,7 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
       argued_both_directions,
       verdict,
       why,
-      citation: a.citation || "GDPR Art. 35(7)(b)",
+      citation: a.citation || cit(regime, "Art. 35(7)(b)"),
       authority_verbatim: a.verbatim,
       status,
       ...(information_needed ? { information_needed } : {}),
@@ -328,10 +359,11 @@ function lower(band: RiskBand, steps: number): RiskBand {
 
 export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
   const f = facts(intake);
-  const a = anchor("risks");
-  const m = anchor("measures");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("risks", regime);
+  const m = anchor("measures", regime);
   // WP248-PINNING (2026-08-01) — the severity appraisal is guidance-anchored.
-  const g = anchor("risk_severity");
+  const g = anchor("risk_severity", regime);
   const out: RiskRegisterEntry[] = [];
 
   for (const spec of DPIA_RISK_SPECS) {
@@ -377,7 +409,7 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       inherent_band,
       measures,
       residual_band,
-      citation: a.citation || "GDPR Art. 35(7)(c)",
+      citation: a.citation || cit(regime, "Art. 35(7)(c)"),
       authority_verbatim: [a.verbatim, m.verbatim].filter(Boolean).join(" "),
       ...(g.verbatim
         ? { guidance_citation: g.citation, guidance_verbatim: g.verbatim }
@@ -414,8 +446,9 @@ export function buildArt36Consultation(
   intake: unknown,
   register: readonly RiskRegisterEntry[],
 ): Art36Consultation {
-  const a = anchor("art36");
-  const proc = anchor("art36_materials");
+  const regime = readDpiaRegime(intake);
+  const a = anchor("art36", regime);
+  const proc = anchor("art36_materials", regime);
 
   const high = register.filter((r) => r.residual_band === "high");
   const undetermined = register.filter((r) => r.residual_band === "undetermined");
@@ -436,7 +469,7 @@ export function buildArt36Consultation(
   } else if (high.length > 0) {
     determination = "consultation_required";
     rawWhy =
-      `${a.verbatim} On this record ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — remain at a high residual band after the measures the record states, so the condition in Art. 36(1) is met and the controller must consult the competent supervisory authority before the processing begins.`;
+      `${a.verbatim} On this record ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — remain at a high residual band after the measures the record states, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
   } else if (undetermined.length > 0 || insufficient.length > 0) {
     determination = "undetermined_on_the_record";
     status = "record_insufficient";
@@ -459,12 +492,12 @@ export function buildArt36Consultation(
     exposure_note: moved,
     separation_repairs: repairs,
     driving_risk_ids: high.map((r) => r.risk_id),
-    citation: a.citation || "GDPR Art. 36(1)",
+    citation: a.citation || cit(regime, "Art. 36(1)"),
     authority_verbatim: a.verbatim,
     procedural_note: determination === "consultation_required"
       ? `${proc.verbatim} the respective responsibilities of the controller, joint controllers and processors; the purposes and means of the intended processing; the measures and safeguards; the contact details of the data protection officer where applicable; and this data protection impact assessment.`
       : "Art. 36(3) applies only where a consultation is required; on this determination no consultation submission arises.",
-    procedural_citation: proc.citation || "GDPR Art. 36(3)",
+    procedural_citation: proc.citation || cit(regime, "Art. 36(3)"),
     status,
     ...(information_needed ? { information_needed } : {}),
   };

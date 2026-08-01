@@ -27,23 +27,28 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const DPIA_VERIFIED_AUTHORITY_VERSION = "dpia-va-wp248-2026-08-01";
+export const DPIA_VERIFIED_AUTHORITY_VERSION = "dpia-va-uk35-2026-08-01-item330";
 
 /** Canonical published text URLs (official primary sources). */
 const GDPR_URL = "https://eur-lex.europa.eu/eli/reg/2016/679/oj";
 const EDPB_2_2019_URL =
   "https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22019-processing-personal-data-under-article-61b_en";
 const EDPB_WP248_URL = "https://ec.europa.eu/newsroom/just/document.cfm?doc_id=47711";
+const UK_GDPR_URL = "https://www.legislation.gov.uk/eur/2016/679/contents";
 
 /** Verification date — the date these rows were hand-verified against the primary source. */
 const VOD = "2026-07-25";
 /** WP248-PINNING turn verification date. */
 const WP248_VOD = "2026-08-01";
+/** ITEM 330 — UK GDPR mirror verification date. */
+const UK_VOD = "2026-08-01";
 
 /** Governing anchor labels. */
 const GDPR = "Regulation (EU) 2016/679 (GDPR)";
 const EDPB_2_2019 =
   "EDPB Guidelines 2/2019 on processing of personal data under Article 6(1)(b) GDPR";
+const UK_GDPR =
+  "Regulation (EU) 2016/679 as retained in UK law (UK GDPR), consolidated text at legislation.gov.uk";
 const EDPB_WP248 =
   "Article 29 Working Party WP248 rev.01, Guidelines on Data Protection Impact Assessment (DPIA) (EDPB-endorsed)";
 
@@ -432,6 +437,192 @@ export const DPIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     governing_anchor: EDPB_WP248,
     verified_on: WP248_VOD,
     primary_source_url: EDPB_WP248_URL,
+  }),
+
+  // ---- ITEM 330 — UK GDPR Art. 35 / 36 mirrors (citation accuracy only) -----
+  // Every quote below is a byte-exact substring of the approved corpus rows
+  // key='ukgdpr-art-35' / key='ukgdpr-art-36' (provision_texts, status
+  // 'approved', ingested Item 318). The UK text of Art. 35 is word-identical
+  // to the EU text except that the Commissioner replaces the supervisory
+  // authority; Art. 35(3)(a) does not cross-reference Art. 22 by number in
+  // either regime, so the UK Art. 22A-22D divergence (Item 326) does NOT
+  // change the DPIA trigger. These rows change the CITATION ONLY — no
+  // trigger, threshold or conclusion changes.
+  uk_dpia_when_required: R({
+    proposition_key: "uk_dpia_when_required",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(1)",
+    verbatim_quote:
+      "Where a type of processing in particular using new technologies, and taking into account the nature, scope, context and purposes of the processing, is likely to result in a high risk to the rights and freedoms of natural persons, the controller shall, prior to the processing, carry out an assessment of the impact of the envisaged processing operations on the protection of personal data.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_similar_operations: R({
+    proposition_key: "uk_dpia_similar_operations",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(1)",
+    verbatim_quote:
+      "A single assessment may address a set of similar processing operations that present similar high risks.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_dpo_advice: R({
+    proposition_key: "uk_dpia_dpo_advice",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(2)",
+    verbatim_quote:
+      "The controller shall seek the advice of the data protection officer, where designated, when carrying out a data protection impact assessment.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_consultation_of_data_subjects_35_9: R({
+    proposition_key: "uk_consultation_of_data_subjects_35_9",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(9)",
+    verbatim_quote:
+      "Where appropriate, the controller shall seek the views of data subjects or their representatives on the intended processing, without prejudice to the protection of commercial or public interests or the security of processing operations.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_prior_consultation_art_36: R({
+    proposition_key: "uk_prior_consultation_art_36",
+    citation: "UK GDPR Art. 36",
+    subsection: "UK GDPR Art. 36(1)",
+    verbatim_quote:
+      "The controller shall consult the Commissioner prior to processing where a data protection impact assessment under Article 35 indicates that the processing would result in a high risk in the absence of measures taken by the controller to mitigate the risk.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_prior_consultation_materials_art_36_3: R({
+    proposition_key: "uk_prior_consultation_materials_art_36_3",
+    citation: "UK GDPR Art. 36",
+    subsection: "UK GDPR Art. 36(3)",
+    verbatim_quote:
+      "When consulting the Commissioner pursuant to paragraph 1, the controller shall provide the Commissioner with:",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_mandatory_intro: R({
+    proposition_key: "uk_dpia_mandatory_intro",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(3)",
+    verbatim_quote:
+      "A data protection impact assessment referred to in paragraph 1 shall in particular be required in the case of:",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_mandatory_evaluation: R({
+    proposition_key: "uk_dpia_mandatory_evaluation",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(3)(a)",
+    verbatim_quote:
+      "a systematic and extensive evaluation of personal aspects relating to natural persons which is based on automated processing, including profiling, and on which decisions are based that produce legal effects concerning the natural person or similarly significantly affect the natural person;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_mandatory_special_categories: R({
+    proposition_key: "uk_dpia_mandatory_special_categories",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(3)(b)",
+    verbatim_quote:
+      "processing on a large scale of special categories of data referred to in Article 9(1), or of personal data relating to criminal convictions and offences referred to in Article 10; or",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_mandatory_public_monitoring: R({
+    proposition_key: "uk_dpia_mandatory_public_monitoring",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(3)(c)",
+    verbatim_quote:
+      "a systematic monitoring of a publicly accessible area on a large scale.",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_min_content_intro: R({
+    proposition_key: "uk_dpia_min_content_intro",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(7)",
+    verbatim_quote:
+      "The assessment shall contain at least:",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_content_description: R({
+    proposition_key: "uk_dpia_content_description",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(7)(a)",
+    verbatim_quote:
+      "a systematic description of the envisaged processing operations and the purposes of the processing, including, where applicable, the legitimate interest pursued by the controller;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_content_necessity: R({
+    proposition_key: "uk_dpia_content_necessity",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(7)(b)",
+    verbatim_quote:
+      "an assessment of the necessity and proportionality of the processing operations in relation to the purposes;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_content_risks: R({
+    proposition_key: "uk_dpia_content_risks",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(7)(c)",
+    verbatim_quote:
+      "an assessment of the risks to the rights and freedoms of data subjects referred to in paragraph 1; and",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_content_measures: R({
+    proposition_key: "uk_dpia_content_measures",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(7)(d)",
+    verbatim_quote:
+      "the measures envisaged to address the risks, including safeguards, security measures and mechanisms to ensure the protection of personal data and to demonstrate compliance with this Regulation taking into account the rights and legitimate interests of data subjects and other persons concerned.",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
+  uk_dpia_review_on_change: R({
+    proposition_key: "uk_dpia_review_on_change",
+    citation: "UK GDPR Art. 35",
+    subsection: "UK GDPR Art. 35(11)",
+    verbatim_quote:
+      "Where necessary, the controller shall carry out a review to assess if processing is performed in accordance with the data protection impact assessment at least when there is a change of the risk represented by processing operations.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
   }),
 };
 
