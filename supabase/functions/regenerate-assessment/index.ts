@@ -1,9 +1,9 @@
 // deploy-check RC-A — revision gate + version snapshotting + errata mode
 // regenerate-assessment: single client-initiated path for every run after the first.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { REVISIONS_ENABLED, REVISIONS_DISABLED_MESSAGE } from "../_shared/revision-gate.ts";
+import { REVISIONS_ENABLED, REVISIONS_DISABLED_MESSAGE } from "./_local/revision-gate.ts";
 import { invokeGated } from "../_shared/invoke-gated.ts";
-import { snapshotPriorReport } from "../_shared/report-versions.ts";
+import { snapshotPriorReport } from "./_local/report-versions.ts";
 import { writeActionLog } from "../_shared/write-action-log.ts";
 import { LOCKED_FIELDS_MAP } from "../_shared/locked-fields.ts";
 import { resolveEnumRef } from "../_shared/field-enums.ts";

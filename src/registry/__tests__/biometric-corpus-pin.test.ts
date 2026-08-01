@@ -276,8 +276,7 @@ describe.skipIf(!CAN_RUN)("biometric statutes (IL BIPA / TX CUBI / WA 19.375) â€
 // than editing a quote to make this pass.
 describe("RCW 19.373 (MHMDA) â€” live corpus pin", () => {
   it("every MHMDA duty row is verbatim against its approved corpus row", async () => {
-    const { BIOMETRIC_DUTY_ROWS } = await import(
-      "../../../supabase/functions/_shared/registry/biometric-verified-authorities"
+    const { BIOMETRIC_DUTY_ROWS } = await import("../../../supabase/functions/check-biometric-compliance/_local/registry/biometric-verified-authorities"
     );
     const rows = BIOMETRIC_DUTY_ROWS.filter((r) => r.statute_key === "us_wa_19373");
     expect(rows.length).toBeGreaterThanOrEqual(5);

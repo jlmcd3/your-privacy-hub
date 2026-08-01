@@ -45,7 +45,7 @@ import type { FactRow } from "../_shared/intake/fact-ledger.ts";
 import {
   CYBER_VERIFIED_AUTHORITIES,
   CYBER_VERIFIED_AUTHORITY_VERSION as _CYBER_VA_VERSION,
-} from "../_shared/registry/cyber-verified-authorities.ts";
+} from "./_local/registry/cyber-verified-authorities.ts";
 
 export const W21_CYBER_TURNC_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z";
 

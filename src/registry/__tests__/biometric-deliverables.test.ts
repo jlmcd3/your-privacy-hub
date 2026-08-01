@@ -27,19 +27,19 @@ import {
   BIOMETRIC_DUTY_ROWS,
   BIPA_PRA_CORPUS_STATUS,
   dutiesFor,
-} from "../../../supabase/functions/_shared/registry/biometric-verified-authorities";
+} from "../../../supabase/functions/check-biometric-compliance/_local/registry/biometric-verified-authorities";
 import {
   buildBiometricDeliverables,
   statutesInScope,
   type BiometricIntakeForDeliverables,
-} from "../../../supabase/functions/_shared/ltp/biometric-deliverables/build";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build";
 import {
   biometricCheckerContract,
   BIO_TRI,
   BIO_NOTICE,
   BIO_CONSENT_ARTIFACT,
   BIO_DISCLOSURE_BASES,
-} from "../../../supabase/functions/_shared/intake-contracts/biometric-checker";
+} from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 import { BIOMETRIC_GOLDEN } from "../../../supabase/functions/_shared/golden/biometric";
 import {
@@ -432,7 +432,7 @@ describe("Item 317 — contract guard", () => {
     const src = readFileSync(
       resolve(
         __dirname,
-        "../../../supabase/functions/_shared/ltp/biometric-deliverables/build.ts",
+        "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts",
       ),
       "utf8",
     );

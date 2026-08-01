@@ -20,7 +20,7 @@ import {
 } from "../_shared/grader/payload.ts";
 // R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
 import { matchFixtureSet } from "../_shared/golden/registry.ts";
-import { CONTRACT_BY_TOOL } from "../_shared/intake-contracts/registry.ts";
+import { CONTRACT_BY_TOOL } from "./_local/intake-contracts/registry.ts";
 // ITEM 325 — fixture-variant (Perfect/Messy) plumbing.
 import type { FixtureVariant } from "../_shared/quality/fixture-variant.ts";
 // GRADER-1 Tasks 2/3 — shared authoritative context block injected into
@@ -29,13 +29,13 @@ import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter over LLM findings.
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 // CV1-R2 T4c — counsel-voice auto-regen trigger predicate.
-import { isCounselVoiceRegenEligible, resolveEvalSourceRef } from "../_shared/grader/counsel-voice-regen.ts";
+import { isCounselVoiceRegenEligible, resolveEvalSourceRef } from "./_local/grader/counsel-voice-regen.ts";
 import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
 // GRADER-1 Task 4 — per-field evaluator for qc_r1_1.
 import {
   collectRationaleEntries,
   evaluateResolvedHedgePerField,
-} from "../_shared/grader/qc-r1-per-field.ts";
+} from "./_local/grader/qc-r1-per-field.ts";
 
 // R1d: shared TEST-STATES computations, imported for the QC-R1 deterministic
 // checks. Same module the cppa-risk and cppa-cyber generators re-export from,
@@ -61,7 +61,7 @@ import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
 // RC-REM-P2 — contract-driven intake generation + validation.
 import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
 import { validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
-import { renderContractPrompt } from "../_shared/intake-contracts/render.ts";
+import { renderContractPrompt } from "./_local/intake-contracts/render.ts";
 import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
 // QB-P22 item 2 — shared IR TEST-STATES/DEADLINES enrichment (matches
 // generate-ir-playbook so the grader sees the same enriched payload).
@@ -76,7 +76,7 @@ import { dpiaFrameworkContract } from "../_shared/intake-contracts/dpia-framewor
 import { liAssessmentStageBContract } from "../_shared/intake-contracts/li-assessment.ts";
 import { dpaGeneratorContract } from "../_shared/intake-contracts/dpa-generator.ts";
 import { irPlaybookContract } from "../_shared/intake-contracts/ir-playbook.ts";
-import { biometricCheckerContract } from "../_shared/intake-contracts/biometric-checker.ts";
+import { biometricCheckerContract } from "./_local/intake-contracts/biometric-checker.ts";
 
 // Tool-key → contract. The QL2 tool key is what generateIntakes receives
 // (e.g. "cppa-cyber"), not the contract's tool_type. Contract coverage set

@@ -82,7 +82,7 @@ describe("biometric statute registry — self-consistency", () => {
 // S2b-fix — enum-label → registry-row mapping CI. Guarantees each discrete
 // JURS enum entry the intake form now offers for CA / CO / NY resolves
 // into the expected registry jurisdiction via biometric-select.
-import { resolveJurisdictions } from "../../../supabase/functions/_shared/registry/biometric-select.ts";
+import { resolveJurisdictions } from "../../../supabase/functions/check-biometric-compliance/_local/registry/biometric-select.ts";
 
 describe("biometric selector — discrete enum-label mapping (S2b)", () => {
   const cases: Array<[string, string]> = [

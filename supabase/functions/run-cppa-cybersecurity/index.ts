@@ -1,5 +1,5 @@
 // qb8 build active
-import { applyCyberProsePass, CYBER_PROSE_VERSION } from "../_shared/prose/cyber-controls.ts";
+import { applyCyberProsePass, CYBER_PROSE_VERSION } from "./_local/prose/cyber-controls.ts";
 import { truncateAtSentenceBoundary, isAbbreviationFragment } from "../_shared/prose/segment.ts";
 
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
@@ -31,7 +31,7 @@ console.log(JSON.stringify({
   evt: "fact_ledger_loaded", fn: "run-cppa-cybersecurity",
   version: FACT_LEDGER_VERSION,
 }));
-import { generatorScoringRulesText } from "../_shared/cppa-cyber-bands.ts";
+import { generatorScoringRulesText } from "./_local/cppa-cyber-bands.ts";
 import { applyW6CyberFix, W6_CYBER_FIX_VERSION } from "./_w6_cyber_fix.ts";
 import { attachAndValidateCyberSlots, W9_CYBER_SLOTS_STAMP } from "./_w9_cyber_slots.ts";
 import { applyCyberBoilerplateGuard, CYBER_BOILER_VERSION } from "./_w17_cyber_boiler.ts";
@@ -43,7 +43,7 @@ import { applyW12CyberE1, W12_CYBER_E1_STAMP } from "./_w12_cyber_e1.ts";
 import {
   CYBER_VERIFIED_AUTHORITIES,
   CYBER_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/cyber-verified-authorities.ts";
+} from "./_local/registry/cyber-verified-authorities.ts";
 import {
   resolveByPropositionKey,
   registrySize as vaRegistrySize,

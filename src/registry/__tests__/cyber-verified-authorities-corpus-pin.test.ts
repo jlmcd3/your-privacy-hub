@@ -13,7 +13,7 @@
 // (PGHOST unset) — corpus-pin is a CI/dev-only guard.
 
 import { describe, it, expect } from "vitest";
-import { CYBER_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/cyber-verified-authorities.ts";
+import { CYBER_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
 
 /** Empty on entry (audit standing order). */
 const KNOWN_PARAPHRASED_KEYS = new Set<string>([]);

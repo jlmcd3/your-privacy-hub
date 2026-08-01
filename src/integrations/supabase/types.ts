@@ -3932,6 +3932,135 @@ export type Database = {
         }
         Relationships: []
       }
+      prose_document_plans: {
+        Row: {
+          approved: boolean
+          content_hash: string
+          created_at: string
+          id: string
+          library_schema_version: number
+          notes: string | null
+          plan: Json
+          product: string
+          provenance: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved?: boolean
+          content_hash: string
+          created_at?: string
+          id?: string
+          library_schema_version: number
+          notes?: string | null
+          plan: Json
+          product: string
+          provenance: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved?: boolean
+          content_hash?: string
+          created_at?: string
+          id?: string
+          library_schema_version?: number
+          notes?: string | null
+          plan?: Json
+          product?: string
+          provenance?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      prose_frame_sets: {
+        Row: {
+          approved: boolean
+          content_hash: string
+          created_at: string
+          frames: Json
+          id: string
+          library_schema_version: number
+          notes: string | null
+          product: string
+          provenance: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved?: boolean
+          content_hash: string
+          created_at?: string
+          frames: Json
+          id?: string
+          library_schema_version: number
+          notes?: string | null
+          product: string
+          provenance: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved?: boolean
+          content_hash?: string
+          created_at?: string
+          frames?: Json
+          id?: string
+          library_schema_version?: number
+          notes?: string | null
+          product?: string
+          provenance?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      prose_library_artifacts: {
+        Row: {
+          approved: boolean
+          byte_size: number
+          content_hash: string
+          created_at: string
+          id: string
+          kind: string
+          product: string
+          provenance: string
+          storage_bucket: string
+          storage_path: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved?: boolean
+          byte_size: number
+          content_hash: string
+          created_at?: string
+          id?: string
+          kind: string
+          product: string
+          provenance: string
+          storage_bucket?: string
+          storage_path: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved?: boolean
+          byte_size?: number
+          content_hash?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          product?: string
+          provenance?: string
+          storage_bucket?: string
+          storage_path?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       provision_texts: {
         Row: {
           approved_by: string | null

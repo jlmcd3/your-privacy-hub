@@ -1,0 +1,144 @@
+{
+  "product": "cppa-risk",
+  "version": "prose-plans-2026-08-01-item339",
+  "approved": false,
+  "provenance": {
+    "method": "report_keys",
+    "donors_total": 8,
+    "donors_with_text": 0,
+    "extracted_at": "2026-08-01",
+    "exemplars": [
+      "ir_playbook"
+    ]
+  },
+  "sections": [
+    {
+      "id": "assessment_summary",
+      "title": "Determination",
+      "arc_stage": "headline",
+      "lead": "determination",
+      "source_key": "assessment_summary",
+      "themes": [
+        "outcome",
+        "drivers",
+        "residual_uncertainty"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "scope_and_triggers",
+      "title": "Why this assessment is required",
+      "arc_stage": "scope",
+      "lead": "determination",
+      "source_key": "scope_and_triggers",
+      "themes": [
+        "trigger",
+        "thresholds",
+        "activities_in_scope"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "record_echo",
+      "title": "The record as the company stated it",
+      "arc_stage": "record",
+      "lead": "record",
+      "source_key": "normalised_intake",
+      "themes": [
+        "parties",
+        "data",
+        "recipients",
+        "retention",
+        "safeguards"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "risk_assessment_by_activity",
+      "title": "Risk analysis by activity",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "risk_assessment_by_activity",
+      "themes": [
+        "negative_impacts",
+        "safeguards_applied",
+        "benefits",
+        "weighing"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "exception_analysis",
+      "title": "Exceptions claimed",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "exception_analysis",
+      "themes": [
+        "claimed",
+        "record_support",
+        "unsupported"
+      ],
+      "required": false,
+      "status": "pending_review"
+    },
+    {
+      "id": "enforcement_context",
+      "title": "Regulatory expectations bearing on this activity",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "enforcement_context",
+      "themes": [
+        "duties_engaged",
+        "deadlines",
+        "submission"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "information_needed",
+      "title": "What the record does not yet state",
+      "arc_stage": "ask",
+      "lead": "record",
+      "source_key": "information_needed",
+      "themes": [
+        "silent_fields",
+        "hedged_answers",
+        "inconsistencies"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "priority_actions",
+      "title": "What to do next",
+      "arc_stage": "remedy",
+      "lead": "determination",
+      "source_key": "priority_actions",
+      "themes": [
+        "immediate",
+        "before_submission",
+        "ongoing"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "cross_tool_recommendations",
+      "title": "Related assessments",
+      "arc_stage": "close",
+      "lead": "determination",
+      "source_key": "cross_tool_recommendations",
+      "themes": [
+        "adjacent_obligations",
+        "counsel_reservation"
+      ],
+      "required": false,
+      "status": "pending_review"
+    }
+  ]
+}

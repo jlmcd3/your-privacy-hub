@@ -35,7 +35,7 @@ import {
   CYBER_CONTROL_SLUGS,
   cppaCybersecurityContract,
 } from "../../../supabase/functions/_shared/intake-contracts/cppa-cybersecurity";
-import { CYBER_AUDITOR_ENGAGEMENT } from "../../../src/pages/CPPACybersecurity.enums";
+import { CYBER_AUDITOR_ENGAGEMENT } from "../../pages/CPPACybersecurity.enums";
 
 const CORPUS = Object.values(CYBER_CORPUS_SNAPSHOT).join("\n\n").replace(/\s+/g, " ");
 

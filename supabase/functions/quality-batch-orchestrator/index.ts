@@ -44,13 +44,13 @@ import {
   createContract as _dcCreate,
   heartbeatContract as _dcHb,
   terminateContract as _dcTerm,
-} from "../_shared/delivery-contract.ts";
+} from "./_local/delivery-contract.ts";
 import {
   dcCreateBatchContract, dcHeartbeatBatchContract, dcTerminateBatchContract,
   type ContractDeps,
 } from "./_contract_hooks.ts";
 import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
-import { assertCreatedByIsRealUser, CreatedByGuardError } from "../_shared/harness/created-by-guard.ts";
+import { assertCreatedByIsRealUser, CreatedByGuardError } from "./_local/harness/created-by-guard.ts";
 
 
 export const BUILD_STAMP = "qbo-stage-b-blockb-declared-actual-count@2026-07-27T13:35:00Z";
@@ -382,8 +382,8 @@ export function applyStopRule(
 // payload — exposed so unit tests can assert the exact key set/values with no
 // DB, no network. `createdBy` MUST be the admin who started the batch so the
 // audit trail attributes child runs to that admin (never null).
-export { buildSeedRow } from "../_shared/quality/seed-row.ts";
-import { buildSeedRow } from "../_shared/quality/seed-row.ts";
+export { buildSeedRow } from "./_local/quality/seed-row.ts";
+import { buildSeedRow } from "./_local/quality/seed-row.ts";
 
 async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null; enginePath?: string | null } = {})
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {

@@ -19,7 +19,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { resolveEnumRef } from "../_shared/field-enums.ts";
-import { computeVariance, VARIANCE_SAMPLES_N } from "../_shared/ql3-variance.ts";
+import { computeVariance, VARIANCE_SAMPLES_N } from "./_local/ql3-variance.ts";
 import { validateIntake } from "../_shared/intake-contracts/validate.ts";
 import { cppaCybersecurityContract } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
 import { governanceContract } from "../_shared/intake-contracts/governance-assessment.ts";

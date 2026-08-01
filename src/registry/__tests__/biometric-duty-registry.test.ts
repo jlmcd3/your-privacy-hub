@@ -18,7 +18,7 @@ import {
   BIOMETRIC_DUTY_ROWS,
   BIOMETRIC_DUTY_VERSION,
   BIPA_PRA_CORPUS_STATUS,
-} from "../../../supabase/functions/_shared/registry/biometric-verified-authorities";
+} from "../../../supabase/functions/check-biometric-compliance/_local/registry/biometric-verified-authorities";
 import { BIOMETRIC_STATUTE_REGISTRY } from "../../../supabase/functions/_shared/registry/biometric-statute-registry";
 
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();

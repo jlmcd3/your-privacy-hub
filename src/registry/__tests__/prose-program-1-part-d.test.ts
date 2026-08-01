@@ -10,7 +10,7 @@ import {
 import {
   dedupeControls,
   pinpointHipaa,
-} from "../../../supabase/functions/_shared/prose/cyber-controls.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/cyber-controls.ts";
 import {
   ADM_DEFAULT_LABEL,
   ADM_REGIME_LABEL,

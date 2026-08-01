@@ -63,7 +63,7 @@ import { readAdmtScope, normalizeAdmtScopeShape } from "../_shared/admt-scope-co
 import {
   attachAdmtDeliverables,
   ADMT_DELIVERABLES_VERSION,
-} from "../_shared/ltp/admt-deliverables/build.ts";
+} from "./_local/ltp/admt-deliverables/build.ts";
 console.log(`[run-admt-checker] boot admt_deliverables=${ADMT_DELIVERABLES_VERSION}`);
 
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
