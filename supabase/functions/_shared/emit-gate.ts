@@ -380,6 +380,7 @@ export function runEmitGate(
   opts: EmitGateOptions = {},
 ): Record<string, unknown> | null | undefined {
   if (!report || typeof report !== "object") return report;
+  const degradedPaths: string[] = [];
   const gateReport: EmitGateReport = {
     version: EMIT_GATE_VERSION,
     tool: opts.tool ?? "unknown",
@@ -387,6 +388,7 @@ export function runEmitGate(
     prose_node_count: 0,
     findings: [],
   };
+
   try {
     const intakeRosterText = opts.intakeRoster
       ? extractIntakeRoster(opts.intakeRoster)
