@@ -1,0 +1,95 @@
+// ITEM 339 (PROSE PROGRAM 3 of 4) — registration DOCUMENT PLAN (fresh draft).
+//
+// The corpus holds NO registration donor rows, so nothing here is extracted.
+// This plan is drafted from the cppa-risk and ir_playbook plans as style
+// exemplars and is flagged as such in its provenance. Fourth in sequence; no
+// before/after pair yet.
+//
+// STATUS: pending_review / approved: false.
+
+import { DOCUMENT_PLAN_VERSION, type DocumentPlan } from "../plan.ts";
+
+export const REGISTRATION_PLAN: DocumentPlan = {
+  product: "registration",
+  version: DOCUMENT_PLAN_VERSION,
+  approved: false,
+  provenance: {
+    method: "draft",
+    donors_total: 0,
+    donors_with_text: 0,
+    extracted_at: "2026-08-01",
+    exemplars: ["cppa-risk", "ir_playbook"],
+  },
+  sections: [
+    {
+      id: "registration_determination",
+      title: "Determination",
+      arc_stage: "headline",
+      lead: "determination",
+      source_key: "registration_determination",
+      themes: ["outcome", "drivers", "residual_uncertainty"],
+      required: true,
+      status: "pending_review",
+    },
+    {
+      id: "threshold_analysis",
+      title: "Why registration is or is not required",
+      arc_stage: "scope",
+      lead: "determination",
+      source_key: "threshold_analysis",
+      themes: ["thresholds", "activities", "exclusions"],
+      required: true,
+      status: "pending_review",
+    },
+    {
+      id: "registrant_record",
+      title: "The registrant details as stated",
+      arc_stage: "record",
+      lead: "record",
+      source_key: "registrant_record",
+      themes: ["entity", "contacts", "representative", "activities"],
+      required: true,
+      status: "pending_review",
+    },
+    {
+      id: "filing_obligations",
+      title: "Filing obligations and deadlines",
+      arc_stage: "duty",
+      lead: "determination",
+      source_key: "filing_obligations",
+      themes: ["duties_engaged", "deadlines", "fees"],
+      required: true,
+      status: "pending_review",
+    },
+    {
+      id: "information_needed",
+      title: "What the record does not yet state",
+      arc_stage: "ask",
+      lead: "record",
+      source_key: "information_needed",
+      themes: ["silent_fields", "hedged_answers", "inconsistencies"],
+      required: true,
+      status: "pending_review",
+    },
+    {
+      id: "filing_steps",
+      title: "How to file",
+      arc_stage: "remedy",
+      lead: "determination",
+      source_key: "filing_steps",
+      themes: ["immediate", "before_filing", "after_filing"],
+      required: true,
+      status: "pending_review",
+    },
+    {
+      id: "closing",
+      title: "Reservation to counsel",
+      arc_stage: "close",
+      lead: "determination",
+      source_key: "closing",
+      themes: ["counsel_reservation"],
+      required: true,
+      status: "pending_review",
+    },
+  ],
+};
