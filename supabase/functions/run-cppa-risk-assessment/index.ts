@@ -57,7 +57,7 @@ import {
   isRetiredSurfacePath,
 } from "../_shared/ltp/composition-finalize.ts";
 
-import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
+import { computeScenarioSignature } from "./_local/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
 console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
 
@@ -140,7 +140,7 @@ import { freezeOpenItemsOnFirstRun, rewriteI3CompositionAsks } from "../_shared/
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { normalizeRiskV2 } from "./_qbp25_b3_pointers.ts";
-import { validateSourceFields } from "../_shared/source-fields-validator.ts";
+import { validateSourceFields } from "./_local/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
