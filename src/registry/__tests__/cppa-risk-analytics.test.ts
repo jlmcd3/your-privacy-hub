@@ -51,24 +51,13 @@ const DECISIONS = [
   "reserved_insufficient_record",
 ] as const;
 
-/**
- * Typography-only normalization. Same shape as the Items 298–304 corpus pins,
- * plus ONE documented addition: the canonical PDF hyphenates across line
- * breaks ("non- medical" in § 7152(a)(5)(H)), so a word-internal hyphen
- * followed by whitespace is rejoined. The rule requires a word character
- * immediately BEFORE the hyphen, so en/em dashes normalized to " - " (e.g.
- * the running page header) are untouched. Applied to BOTH sides.
- */
-function norm(s: string): string {
-  return String(s)
-    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
-    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
-    .replace(/[\u2013\u2014]/g, "-")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .replace(/(\w)-\s+(\w)/g, "$1-$2")
-    .trim();
-}
+// FLEET CONVENTION (Item 324 §OPEN-2 ruling, CEO-approved 2026-08-01): this
+// pin uses the SAME normalizers as cppa-risk-harm-catalogue-corpus-pin.test.ts
+// — imported, not copied (REUSE LAW). Hyphenated line-break artifacts drop the
+// line break and KEEP the hyphen ("non-\nmedical" -> "non-medical").
+// `normCorpus` is the corpus side; `norm` (typography only) is the
+// catalogue side.
+import { normTypography as norm, normCorpus } from "./helpers/corpus-normalize";
 
 /**
  * Sub-paragraph (D) carries a running page header mid-sentence in the
@@ -96,7 +85,7 @@ describe.skipIf(!CAN_RUN)("(a) § 7152(a)(5)(A)–(H) harm catalogue — corpus 
     );
     expect(out.trim().length, `corpus row ${HARM_CATALOGUE_CORPUS_KEY} absent or not approved`)
       .toBeGreaterThan(1000);
-    const corpus = norm(out);
+    const corpus = normCorpus(out);
 
     const failures: string[] = [];
     for (const entry of HARM_CATALOGUE) {
