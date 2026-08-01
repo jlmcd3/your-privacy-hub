@@ -4201,6 +4201,7 @@ export type Database = {
           current_quality_run_id: string | null
           current_tool_index: number
           declared_count: number | null
+          engine_path: string | null
           fixture_variant: string | null
           id: string
           instrument_version: string | null
@@ -4224,6 +4225,7 @@ export type Database = {
           current_quality_run_id?: string | null
           current_tool_index?: number
           declared_count?: number | null
+          engine_path?: string | null
           fixture_variant?: string | null
           id?: string
           instrument_version?: string | null
@@ -4247,6 +4249,7 @@ export type Database = {
           current_quality_run_id?: string | null
           current_tool_index?: number
           declared_count?: number | null
+          engine_path?: string | null
           fixture_variant?: string | null
           id?: string
           instrument_version?: string | null
@@ -5290,6 +5293,7 @@ export type Database = {
           conflict_count: number
           created_by: string | null
           cross_review_complete: boolean
+          engine_path: string | null
           error: string | null
           fixture_variant: string | null
           gpt_only_count: number
@@ -5334,6 +5338,7 @@ export type Database = {
           conflict_count?: number
           created_by?: string | null
           cross_review_complete?: boolean
+          engine_path?: string | null
           error?: string | null
           fixture_variant?: string | null
           gpt_only_count?: number
@@ -5378,6 +5383,7 @@ export type Database = {
           conflict_count?: number
           created_by?: string | null
           cross_review_complete?: boolean
+          engine_path?: string | null
           error?: string | null
           fixture_variant?: string | null
           gpt_only_count?: number

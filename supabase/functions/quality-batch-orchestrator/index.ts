@@ -385,7 +385,7 @@ export function applyStopRule(
 export { buildSeedRow } from "../_shared/quality/seed-row.ts";
 import { buildSeedRow } from "../_shared/quality/seed-row.ts";
 
-async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null } = {})
+async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null; enginePath?: string | null } = {})
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
   const db = admin();
   // (a) Compute run_number the same way run-quality-batch does at ~L2544.
@@ -407,6 +407,8 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
   }
   const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso, { pins });
   if (opts.variant) seed.fixture_variant = opts.variant;
+  // ITEM 335 — harness-only engine selector, propagated to the child run row.
+  if (opts.enginePath === "ltp") seed.engine_path = "ltp";
   if (campaignId) seed.campaign_id = campaignId; // QB-P9 linkage
   const { data: run, error: iErr } = await db.from("quality_runs")
     .insert(seed).select("id").single();
@@ -573,7 +575,10 @@ async function runUnit(runId: string) {
           normalizeToolVariants((run as any).tool_variants),
           normalizeVariant((run as any).fixture_variant),
         );
-        const inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, { variant: variantForTool });
+        const inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, {
+          variant: variantForTool,
+          enginePath: (run as any).engine_path ?? null,
+        });
         if (!inv.ok) {
           results.push({
             tool, quality_run_id: null, run_number: null,
@@ -719,7 +724,7 @@ async function finalizeIfDone(runId: string) {
   })());
 }
 
-async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown)
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -774,6 +779,8 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     declared_count: tools.length * batchSize, // §16.n born-state
     ...(variant ? { fixture_variant: variant } : {}),
     ...(toolVariants ? { tool_variants: toolVariants } : {}),
+    // ITEM 335 — harness-only engine selector (cppa-risk LTP measurement).
+    ...(String(enginePathRaw ?? "") === "ltp" ? { engine_path: "ltp" } : {}),
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
@@ -1201,7 +1208,7 @@ async function handler(req: Request) {
   if (isCron && body?.action === "start") {
     const owner = await resolveAdminOwner();
     if (!owner) return json({ error: "no admin owner available for internal start" }, 500);
-    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency);
+    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     try {
       await admin().from("admin_action_log").insert({
@@ -1246,7 +1253,7 @@ async function handler(req: Request) {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }
