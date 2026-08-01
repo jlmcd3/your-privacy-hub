@@ -156,7 +156,7 @@ export function parseRegisterPage(html: string): RegisterRow[] {
       provisionsRaw.map(normaliseProvision).filter((x): x is string => Boolean(x)),
     );
 
-    const topic_tags = dlValues(block, "topics-label", "topics-value");
+    const topic_tags = dlValues(block, "relevant-topics-label", "relevant-topics-value");
     const outcomes = dlValues(block, "outcome-label", "outcome-value");
 
     const pdfM = block.match(/href="(https:\/\/[^"]*\.pdf)"/i);
