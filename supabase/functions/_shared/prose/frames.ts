@@ -12,7 +12,10 @@
 //     registry at build time.
 // Anything else that looks like law fails the lint.
 
-export const FRAME_LIBRARY_VERSION = "prose-frames-2026-08-01-item338";
+import { legalPhrasingKeys } from "./legal-phrasings.ts";
+import { engineConclusionKeys } from "./engine-conclusions.ts";
+
+export const FRAME_LIBRARY_VERSION = "prose-frames-2026-08-01-item346";
 
 /** Placeholder types the realizer knows how to fill. */
 export type PlaceholderKind =
@@ -21,7 +24,10 @@ export type PlaceholderKind =
   | "list" // array of record values, rendered with natural joiners
   | "date"
   | "count"
-  | "cite"; // registry-only
+  | "cite" // registry-only: the verified-authority pinpoint
+  // ITEM 346 — the two non-record slot types of the CEO-authored structure.
+  | "legal" // pinned requirement phrasing, addressed by proposition key
+  | "conclusion"; // pinned engine-determination phrasing, addressed by determination key
 
 export interface FramePlaceholder {
   /** Token as it appears in the frame body, without braces. e.g. "ENTITY". */
@@ -119,6 +125,8 @@ export interface FrameLintFinding {
     | "unknown_placeholder"
     | "malformed_placeholder"
     | "undeclared_placeholder"
+    | "unknown_legal_key"
+    | "unknown_conclusion_key"
     | "empty_body";
   readonly detail: string;
 }
@@ -188,6 +196,18 @@ export function lintFrame(frame: Frame): FrameLintFinding[] {
     }
     if (p.kind === "cite" && !/^[a-z0-9_]+$/.test(p.source)) {
       push("unknown_placeholder", `${p.token}: cite source must be a registry proposition key`);
+    }
+    // ITEM 346 — a legal or conclusion slot may only address a PINNED row. A
+    // frame that names a key nobody authored would render silent forever; that
+    // is a library defect, not a record gap, so the lint refuses it.
+    if (p.kind === "legal" && !legalPhrasingKeys(frame.product).includes(p.source)) {
+      push("unknown_legal_key", `${p.token}: no pinned legal phrasing "${p.source}" for ${frame.product}`);
+    }
+    if (p.kind === "conclusion") {
+      const base = p.source.split("#")[0];
+      if (!engineConclusionKeys(frame.product).includes(base)) {
+        push("unknown_conclusion_key", `${p.token}: no pinned engine conclusion "${base}" for ${frame.product}`);
+      }
     }
   }
 
