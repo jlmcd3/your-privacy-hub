@@ -67,12 +67,13 @@ Deno.test("ITEM 284 F1: one predicate — exec summary and assessment summary ne
 
 Deno.test("ITEM 284 F1: predicate reports the no-present-benefit state as incomplete", () => {
   const plan = planOf(INTAKE);
-  const stripped: RenderPlan = {
+  const stripped = {
     ...plan,
-    factor_table: plan.factor_table.map((f: { kind: string }) =>
+    factor_table: plan.factor_table.map((f) =>
       f.kind === "benefit" ? { ...f, present_in_intake: false } : f
     ),
-  } as RenderPlan;
+  } as typeof plan;
+
   const c = assessRecordCompleteness(stripped);
   assertEquals(c.complete, false);
   assert(c.reasons.includes("no_present_benefit_factor"));
