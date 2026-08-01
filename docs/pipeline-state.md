@@ -7784,3 +7784,25 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **Files changed:** one migration; `supabase/functions/_shared/paraphrase-faithfulness.ts`; `supabase/functions/verification-scan/index.ts`; this ledger.
 
 **Disposition:** SHIPPED. Item 245 deploy hold unaffected.
+
+---
+
+## Item 333 — VERIFICATION QUEUE: UNSTICK 24 ROWS + DRAIN HARDENING (2026-08-01)
+
+**Verify-first findings (live data, before any change).**
+- Queue held 129 rows: 105 at `attempts=0`, **24 at `attempts=3`**. Errors: **14 × `http_546 WORKER_RESOURCE_LIMIT`**, **10 × `http_504 IDLE_TIMEOUT`** — infrastructure, not corpus.
+- Document sizes for the 24: min **15,829** chars, mean **47,953**, max **160,783**. **19 of 24** had a warm, non-expired `source_document_cache` entry keyed on `source_url`; **0 of 24** had `enforcement_actions.source_document_text` populated — so the existing `cached` mode (which reads that column) could never have covered them.
+- Root cause, from the code rather than the symptom: `verification-queue-drain` claimed up to **10 ids and passed them all to one `verification-scan` invocation**. Each row live-refetched and re-parsed its document (ignoring the warm cache) and then made two LLM calls at up to 60k chars each. One oversized document exhausted the worker, and **every id in that batch took an `attempts++` for a failure it did not cause** — the mechanism by which 24 rows reached the cap.
+
+**Changes.**
+1. `supabase/functions/verification-scan/index.ts` — `getDocument()` now consults `source_document_cache` (non-expired, `>= CACHED_MIN_DOC_CHARS`) **before** any live refetch, in every mode, reusing the stored `content_hash`. `cached` mode is unchanged. New `MAX_MODEL_DOC_CHARS = 40_000`: deterministic checks still run over the **full** document; only the two LLM payloads (`constrainedExtract`, `paraphraseFaithfulness`) receive `docForModel`.
+2. `supabase/functions/verification-queue-drain/index.ts` — rewritten. One `verification-scan` call **per row** (`batch_size: 1`), max 6 rows per run, `WALL_CLOCK_BUDGET_MS = 110_000` with un-tried rows released without penalty (`skipped_budget`). `attempts++` / `last_error` now attributed to the individual failing row.
+3. **Exhaustion policy (new, going forward).** A row reaching `attempts >= 3` is no longer parked in the queue. `retireExhausted()` writes a visible `verification_results` row (`check_name = 'queue_drain_exhausted'`, verdict `fail`, `evidence_text` = the preserved `last_error`, `notes` = retirement reason), sets `enforcement_actions.verification_status = 'failed'` (`memo_eligible = false`), and deletes the queue entry. No permanent silent holes.
+
+**Proof before the reset.** The single largest stuck document (160,783 chars, `a3cf40b0-…`) was re-run through the new path: **verified in 18.0s**, 15,254 haiku-in / 13,721 sonnet-in tokens, $0.0637 — previously a guaranteed `WORKER_RESOURCE_LIMIT`.
+
+**One-time reset.** `UPDATE verification_queue SET attempts = 0, last_error = NULL, in_flight_until = NULL WHERE attempts >= 3` — **24 rows**.
+
+**Before / after.** Queue **129 → 100** across five drain runs (drained 6, 6, 5, 6, 6; elapsed 63–115s per run, all inside budget). Rows at `attempts >= 3`: **24 → 0**. One row (`bb92ca62-…`) hit `WORKER_RESOURCE_LIMIT` once, took a **single** attributed `attempts++` instead of poisoning its five neighbours, and succeeded on the next run — the per-row isolation working as designed. Outcomes for the 39 rows processed in the last 30 minutes: 17 `verified`, 7 `requires_review`, 15 `failed` (genuine corpus/source verdicts, not infrastructure). Zero retirements were needed.
+
+**Disposition:** SHIPPED. Nothing under the Item 245 hold was touched.
