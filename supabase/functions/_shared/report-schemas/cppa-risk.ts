@@ -146,6 +146,10 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     // (a)(5), (a)(6), (a)(7)). Structured, deterministic; produced solely by
     // _shared/ltp/analytic-deliverables/build.ts.
     "activity_analytics",
+    // ITEM 341 — "Persuasive authority from EU practice". SEPARATE key by
+    // design: EU/EEA material is a different legal regime and must never be
+    // folded into the CPPA-scoped enforcement_context / enforcement_precedents.
+    "eu_persuasive_authority",
     "risk_assessment_by_activity",
 
     "risk_register",
@@ -201,6 +205,16 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
       "admt_disclosure_required",
       "corpus_enforcement_note",
       "narrative",
+    ],
+    // ITEM 341 — EU persuasive-authority envelope. Nested topic records pass
+    // through whole (serializer prunes the top level of an object key only).
+    eu_persuasive_authority: [
+      "section_title",
+      "version",
+      "status",
+      "framing",
+      "topics",
+      "information_needed",
     ],
   },
 
