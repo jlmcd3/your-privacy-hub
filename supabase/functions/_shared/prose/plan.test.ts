@@ -631,3 +631,21 @@ Deno.test("P4: the banner is reserved for record_insufficient", () => {
   }, { mentions: { primary: "Acme Ltd" } });
   assertEquals(insufficient.degraded, true);
 });
+
+Deno.test("P1: a connective inside a pinned clause is not a renderer join and needs no edge", () => {
+  const r = renderPlannedSection(analysis, {
+    section_id: "risk",
+    determination:
+      "This assessment records the processing as supportable only while the conditions below are met — it cannot treat those conditions as optional, because the conclusion rests on them",
+    statements: [
+      { id: "a", theme: "negative_impacts", sentence: "the record identifies unauthorised access", relation: "trigger_duty" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" } });
+
+  // no graph → the renderer made no causal join
+  assertEquals(r.connectives.length, 0);
+  // the pinned clause keeps its own "because" …
+  assertStringIncludes(r.text, "because the conclusion rests on them");
+  // … and the seam audit still passes, because that "because" is not a seam
+  assertEquals(auditSectionConnectives(r).findings, []);
+});

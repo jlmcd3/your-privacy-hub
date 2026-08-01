@@ -21,6 +21,7 @@ import { renderSectionFromFrames } from "../frame-render.ts";
 import { buildCppaRiskFrameValues } from "../frames/cppa-risk.values.ts";
 import type { SectionInput, SupportingStatement } from "../plan-render.ts";
 import { edge, LEAD_NODE, type ReasoningEdge, ReasoningGraph } from "../reasoning-graph.ts";
+import { resolveEngineConclusion } from "../engine-conclusions.ts";
 
 export const CPPA_RISK_COMPOSE_VERSION = "prose-compose-2026-08-01-item347";
 
@@ -85,9 +86,9 @@ export function composeCppaRisk(input: {
   const narrative = frameText("processing_narrative");
   const scope = frameText("scope_notes");
 
+  // The Determination section states the outcome and stops: the analytic
+  // operations belong to the analysis section and are not restated here.
   const summaryStatements: SupportingStatement[] = [];
-
-  // The consequence clause the ENGINE reached, as the first supporting move.
   if (narrative) {
     summaryStatements.push({
       id: "consequence",
@@ -95,50 +96,9 @@ export function composeCppaRisk(input: {
       sentence: narrative,
       relation: "consequence",
     });
-    // EDGE: the engine's own decision is the consequence of the opening
-    // analysis. Computed at `consequence.decision`.
+    // EDGE: the engine's own decision follows from the opening analysis.
+    // Computed at `consequence.decision`.
     edges.push(edge(LEAD_NODE, "consequence", "consequence", "consequence.decision"));
-  }
-
-  if (necessity) {
-    summaryStatements.push({
-      id: "necessity",
-      theme: "drivers",
-      sentence: necessity,
-      relation: "support",
-    });
-    // EDGE ONLY IF COMPUTED: the decision rules actually cite the necessity
-    // operation. No such rule id → no edge → no connective.
-    if (analytics.consequence.rule_ids.some((r) => /necess|minimis|minimiz/i.test(r))) {
-      edges.push(edge("consequence", "necessity", "support", "consequence.rule_ids"));
-    }
-  }
-
-  if (harms) {
-    // No engine edge from the necessity operation to the harm operation: they
-    // are independent § 7152 operations. Juxtaposition, no connective.
-    summaryStatements.push({
-      id: "harms",
-      theme: "drivers",
-      sentence: harms,
-      relation: "none",
-    });
-  }
-
-  if (benefits) {
-    summaryStatements.push({
-      id: "benefits",
-      theme: "drivers",
-      sentence: benefits,
-      relation: "factor_outcome",
-    });
-    // EDGE ONLY IF COMPUTED: the weighing operation names the harms it offsets.
-    const idx = analytics.weighing.findIndex((w) => w.offsetting_harm_ids.length > 0);
-    if (idx >= 0 && harms) {
-      edges.push(
-        edge("harms", "benefits", "factor_outcome", `weighing[${idx}].offsetting_harm_ids`),
-      );
-    }
   }
 
   const conditions = analytics.consequence.conditions;
@@ -215,17 +175,6 @@ export function composeCppaRisk(input: {
       );
     }
   }
-  if (narrative) {
-    riskStatements.push({
-      id: "risk_weighing",
-      theme: "weighing",
-      sentence: narrative,
-      relation: "consequence",
-    });
-    if (benefits) {
-      edges.push(edge("risk_benefits", "risk_weighing", "consequence", "consequence.decision"));
-    }
-  }
   if (riskStatements.length) {
     inputs["risk_assessment_by_activity"] = {
       section_id: "risk_assessment_by_activity",
@@ -247,12 +196,30 @@ export function composeCppaRisk(input: {
     ],
     information_needed: gapsNeeded,
   };
+  if (!gapsNeeded.length && !(input.inconsistencyFlags ?? []).length) {
+    inputs["information_needed"] = {
+      section_id: "information_needed",
+      determination_status: "not_owed",
+      statements: [{
+        id: "no_gaps",
+        theme: "silent_fields",
+        sentence:
+          "the record answers every point this assessment needs, and no item is outstanding",
+        relation: "none",
+      }],
+      information_needed: [],
+    };
+  }
 
   // ── WHAT TO DO NEXT (remedy) ─────────────────────────────────────────
-  if (narrative) {
+  const consequenceClause = resolveEngineConclusion(
+    "cppa-risk",
+    `consequence.${analytics.consequence.decision}`,
+  );
+  if (consequenceClause) {
     inputs["priority_actions"] = {
       section_id: "priority_actions",
-      determination: narrative,
+      determination: `On the record before it, this assessment ${consequenceClause}`,
       determination_status: "stated",
       statements: conditions.map((c, i) =>
         card(`cond_${i}`, "before_submission", "Condition on the decision", c)
