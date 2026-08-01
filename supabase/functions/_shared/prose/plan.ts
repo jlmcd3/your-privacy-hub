@@ -17,6 +17,8 @@
 export const DOCUMENT_PLAN_VERSION = "prose-plans-2026-08-01-item339";
 
 export type ArcStage =
+  /** Document-level determination, stated before anything else. */
+  | "headline"
   | "act"
   | "scope"
   | "record"
@@ -28,6 +30,7 @@ export type ArcStage =
   | "close";
 
 export const ARC_ORDER: readonly ArcStage[] = [
+  "headline",
   "act",
   "scope",
   "record",
@@ -41,6 +44,7 @@ export const ARC_ORDER: readonly ArcStage[] = [
 
 /** Sections whose whole job is to state an outcome. */
 export const OUTCOME_STAGES: ReadonlySet<ArcStage> = new Set<ArcStage>([
+  "headline",
   "scope",
   "analysis",
   "duty",
