@@ -7718,3 +7718,15 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **4. Tests.** New `src/registry/__tests__/ir-playbook-mixed-jurisdiction.test.ts` — mixed incidents produce two duty sets, no authority-wording bleed, regime-correct Chapter V citations (UK leg cites `UK GDPR Art. 44A(1)` and never the EU Commission). `__fixtures__/ir-corpus-snapshot.ts` extended with the approved `gdpr-art-44`, `gdpr-art-46`, `ukgdpr-art-44`, `-44a`, `-45a`, `-45b`, `-46` rows so the Item 312 verbatim pin covers the new anchors. Full registry suite: **396/396 passing, 31 files.**
 
 **Disposition:** SHIPPED (code) — Item 245 deploy hold unaffected. Fixes 4–5 of 5 remain open.
+
+## 329 — UK/EU FIX 4 of 5: `registration` — explicit combined EU+UK representative check (2026-08-01)
+
+**Dispatch:** UK/EU FIX 4 of 5. Confirmed not a correctness bug: `buildRepresentative(intake, "EU")` and `buildRepresentative(intake, "UK")` are evaluated independently and both paragraphs already render when both engage. The gap was clarity — the joint scenario was an emergent side effect of two independent evaluations plus unconditional concatenation, with no flag and no combined headline.
+
+**1. Additive change only.** `RegistrationDeliverables` gains `both_representatives_required: boolean` (true iff BOTH representative determinations reach `verdict: "engaged"`) and an optional `combined_representative_callout: string`, present only when the flag is true. The individual EU/UK evaluation logic in `buildRepresentative` is **unchanged** — no branch, no verdict, no wording touched.
+
+**2. Callout placement.** `buildNarrative` takes the callout as a new argument and pushes it into `parts` immediately **before** the `for (const r of reps)` loop, so it leads the representative section and the two individual paragraphs still follow in full. Text: both duties engaged; TWO separate representatives required — one established in a Member State where the relevant data subjects are (GDPR Art. 27(1), (3)) and one established in the United Kingdom (UK GDPR Art. 27(1), (3)); neither designation satisfies the other; a single entity may serve both roles only if separately established in each territory and separately designated in writing for each.
+
+**3. Tests.** `src/registry/__tests__/registration-deliverables.test.ts` — two new cases. (a) Both engaged (`markets_served: ["US-CA","DE","UK"]`): flag true, callout present, callout index in the narrative strictly precedes both `eu.label` and `uk.label` paragraphs, and both individual applications still appear. (b) Single-leg and establishment cases (EU-only markets, UK-only markets, `has_eu_establishment: true` with both markets): flag false, callout `undefined`, narrative does not contain "TWO separate representatives". No shipped renderer reads `representative_determinations` directly, so no viewer/PDF change was required. Full registry suite: **398/398 passing, 31 files**; `tsgo --noEmit` clean.
+
+**Disposition:** SHIPPED (code) — Item 245 deploy hold unaffected. Fix 5 of 5 remains open.
