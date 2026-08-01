@@ -45,7 +45,7 @@ export const CPPA_RISK_FRAMES: FrameSet = {
         "The company states that the activity involves {{TRIGGER_FACT}}, which is what brings it within {{CITE_TRIGGER:cite}}: that provision calls for {{REQ_TRIGGER:legal}}. " +
         "Against that requirement the record identifies {{MINIMISATION_COUNT}} element(s) it collects without treating them as necessary to the stated purpose, namely {{MINIMISATION_LIST:list}}. " +
         "The company has given a basis for the collection as a whole — it describes the purpose as {{PURPOSE_VERBATIM}} — but {{CITE_CATEGORIES:cite}} calls for {{REQ_CATEGORIES:legal}}, " +
-        "so on the elements above this assessment {{CONSEQ_NECESSITY:conclusion}}: it can describe the exposure those elements create, but it cannot {{BLOCKED_NECESSITY:conclusion}}.",
+        "so on the elements above this assessment {{CONSEQ_NECESSITY:conclusion}}{{BLOCKED_NECESSITY:conclusion}}.",
       placeholders: [
         { token: "ENTITY", kind: "text", source: "entity_name", required: true },
         { token: "ACTIVITY", kind: "text", source: "activity_name", required: true },
@@ -58,7 +58,9 @@ export const CPPA_RISK_FRAMES: FrameSet = {
         { token: "CITE_CATEGORIES", kind: "cite", source: "ra_content_categories", required: true },
         { token: "REQ_CATEGORIES", kind: "legal", source: "ra_content_categories", required: true },
         { token: "CONSEQ_NECESSITY", kind: "conclusion", source: "necessity_determination", required: true },
-        { token: "BLOCKED_NECESSITY", kind: "conclusion", source: "necessity_determination_blocked", required: true },
+        // Optional by design: a determination that blocks nothing has no pinned
+        // blocked clause, and the sentence ends after the consequence.
+        { token: "BLOCKED_NECESSITY", kind: "conclusion", source: "necessity_determination_blocked", required: false },
       ],
       provenance: {
         sample_report_id: null,
@@ -211,7 +213,7 @@ export const CPPA_RISK_FRAMES: FrameSet = {
         { token: "CITE_INITIATE", kind: "cite", source: "ra_content_initiate", required: true },
         { token: "REQ_INITIATE", kind: "legal", source: "ra_content_initiate", required: true },
         { token: "CONSEQ_DECISION", kind: "conclusion", source: "consequence_determination", required: true },
-        { token: "BLOCKED_DECISION", kind: "conclusion", source: "consequence_determination_blocked", required: true },
+        { token: "BLOCKED_DECISION", kind: "conclusion", source: "consequence_determination_blocked", required: false },
       ],
       provenance: {
         sample_report_id: "36220b11-2dca-48b9-92f1-368e8ede1ecb",
