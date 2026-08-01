@@ -7584,6 +7584,8 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 
 ---
 
+320-A. **[ITEM 336 (b) DISAMBIGUATION NOTE, 2026-08-01T15:20Z]** — this entry is hereafter cited as **"Item 320-A (framing addendum)"**. The ledger number 320 was used for this § 7156(a) framing addendum as well as for the processing-narrative fix folded into the same day's work; the annotation disambiguates the citation only. **Nothing is renumbered** — the ordinal below stays "320" and every existing cross-reference to Item 320 remains valid.
+
 320. **DONE (2026-08-01T06:50Z, ITEM 319 ADDENDUM — § 7156(a) RESERVED→DIRECTIVE POSTURE, ALL ENCODINGS)** — the dispatch was right that the framing was not confined to the Prompt-A template, and it undercounted: the posture was encoded in **FIVE** places, not four.
 
 **THE FOUR NAMED, ALL CHANGED.** (1) `CPPARiskRailEntries.ts` `comparable_set.coachLead` — "whether a difference matters is for you and your counsel to judge" → the any-divergence threshold stated plainly. (2) same file, `plainSummary` — "reserved to you and your counsel" → the recommendation, with the not-what-the-law-requires qualifier. (3) `CPPARiskAssessment.tsx` helper text under `has_secondary_uses` → same threshold, same qualifier, same closing counsel line. (4) `docs/CPPA-RISK-IMPLEMENTATION-SPEC-v1.md` § 2R.5 → rewritten as **default rule + one named, dated, exhaustively scoped exception**; the doctrine sentence ("reserved to the Company and its counsel… never green-lights") is retained verbatim as the governing default and explicitly extended to ADMT, DPIA, LIA, governance, IR-playbook, biometric, cyber and registration, with the carve-out stated as unextendable without separate CEO authorization.

@@ -76,7 +76,14 @@ export function secondaryRecommendation(
 ): SecondaryRecommendationResult {
   const keys = Object.keys(DIVERGENCE_DIMENSION_LABELS);
   const diverging = keys.filter((k) => divergence[k] === "Different");
-  const unresolved = keys.filter((k) => (divergence[k] || "Not sure") === "Not sure");
+  // ITEM 336 (a): anything that is neither "Same" nor "Different" — including a
+  // missing key and any malformed/unrecognized value — is UNRESOLVED. Before
+  // this fix an unrecognized value silently counted as "Same" and leaned the
+  // verdict toward bundling.
+  const unresolved = keys.filter((k) => {
+    const v = divergence[k];
+    return v !== "Same" && v !== "Different";
+  });
   const verdict: SecondaryVerdict = diverging.length > 0
     ? "separate"
     : unresolved.length > 0

@@ -136,12 +136,46 @@ function parseDate(s: string | undefined): string | null {
   return null;
 }
 
-function parseAmount(s: string | undefined): number | null {
+// ITEM 336 FIX 1 — locale-aware amount parsing.
+// GDPRhub carries BOTH conventions: "1,234.56" (anglophone) and "1.234,56" /
+// "3.500.000" (continental), plus space/NBSP thousands. The pre-fix parser
+// stripped commas and let parseFloat read the FIRST dot as a decimal point, so
+// "EUR 3.500.000" became 3.5. Rules:
+//   - both separators present -> the LAST one is the decimal separator
+//   - only commas / only dots  -> a single group of exactly 3 trailing digits
+//     with no other separator is ambiguous but read as THOUSANDS when the
+//     separator repeats, and as thousands for "1.500"-style values too
+//     (GDPRhub fines are never sub-unit-precise to a lone 3-digit fraction)
+//   - anything else -> decimal separator
+export function parseAmount(s: string | undefined): number | null {
   if (!s) return null;
-  const cleaned = s.replace(/[^\d.,]/g, "");
+  const cleaned = s.replace(/[\s\u00a0\u202f]/g, "").replace(/[^\d.,]/g, "");
   if (!cleaned) return null;
-  // GDPRhub uses comma thousands separators, dot decimal.
-  const n = parseFloat(cleaned.replace(/,/g, ""));
+
+  const lastDot = cleaned.lastIndexOf(".");
+  const lastComma = cleaned.lastIndexOf(",");
+  let normalized: string;
+
+  if (lastDot >= 0 && lastComma >= 0) {
+    // Mixed: the rightmost separator is the decimal point.
+    const decSep = lastDot > lastComma ? "." : ",";
+    const thouSep = decSep === "." ? "," : ".";
+    normalized = cleaned.split(thouSep).join("").replace(decSep, ".");
+  } else if (lastDot >= 0 || lastComma >= 0) {
+    const sep = lastDot >= 0 ? "." : ",";
+    const parts = cleaned.split(sep);
+    const tail = parts[parts.length - 1];
+    // Repeated separator, or a trailing group of exactly 3 digits => thousands.
+    if (parts.length > 2 || (tail.length === 3 && parts[0].length > 0)) {
+      normalized = parts.join("");
+    } else {
+      normalized = `${parts.slice(0, -1).join("")}.${tail}`;
+    }
+  } else {
+    normalized = cleaned;
+  }
+
+  const n = parseFloat(normalized);
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
@@ -149,11 +183,17 @@ function norm(s: string | null | undefined): string {
   return (s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+// ITEM 336 FIX (e) — containment only when the SHORTER string is >= 4 chars,
+// so short regulator codes ("AP" ⊂ "APD") no longer collide.
 function regulatorsMatch(a: string, b: string): boolean {
   const x = norm(a), y = norm(b);
   if (!x || !y) return false;
-  return x === y || x.includes(y) || y.includes(x);
+  if (x === y) return true;
+  const shorter = Math.min(x.length, y.length);
+  if (shorter < 4) return false;
+  return x.includes(y) || y.includes(x);
 }
+
 
 interface Lead {
   etid: string;

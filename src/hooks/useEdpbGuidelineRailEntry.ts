@@ -43,7 +43,7 @@ export function useEdpbGuidelineRailEntry(
       try {
         const { data } = await (supabase as any)
           .from("edpb_guidelines")
-          .select("guideline_ref, section_ref, body_text, status")
+          .select("guideline_ref, excerpt_text, status")
           .eq("guideline_ref", opts.guidelineRef)
           .eq("status", "final")
           .limit(200);
@@ -51,12 +51,12 @@ export function useEdpbGuidelineRailEntry(
         if (cancelled) return;
 
         const row = (data ?? []).find(
-          (r: any) => typeof r?.body_text === "string" && r.body_text.includes(opts.verbatimQuote)
+          (r: any) => typeof r?.excerpt_text === "string" && r.excerpt_text.includes(opts.verbatimQuote)
         );
 
         // Fall back to the pinned registry quote itself — it is verbatim by
         // construction, so the rail never shows a paraphrase.
-        setRegulationText(row?.body_text ?? opts.verbatimQuote);
+        setRegulationText(row?.excerpt_text ?? opts.verbatimQuote);
       } catch {
         if (!cancelled) setRegulationText(opts.verbatimQuote);
       } finally {

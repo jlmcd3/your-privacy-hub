@@ -573,7 +573,7 @@ export default function CPPARiskAssessment() {
       {
         citation: "11 CCR § 7156(a)",
         label:
-          "Multiple distinct uses reported — a separate risk assessment is recommended for each use that differs (comparable-set standard)",
+          "Multiple distinct uses reported — a separate risk assessment is recommended for each use that differs or has unresolved comparison dimensions (comparable-set standard)",
         triggered:
           hasSecondaryUses === "Yes — there are other uses" &&
           secondaryActivities.some((a) =>
