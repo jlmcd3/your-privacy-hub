@@ -131,8 +131,10 @@ export function renderSlotValue(value: unknown, opts: SlotRenderOptions = {}): s
 
   const coerced = coerceValue(value);
   let out: string;
+  let wasList = false;
   if (Array.isArray(coerced)) {
     out = joinNaturalList(coerced);
+    wasList = coerced.length > 1;
   } else if (coerced && typeof coerced === "object") {
     out = stringifyScalar(coerced);
   } else {
@@ -141,7 +143,7 @@ export function renderSlotValue(value: unknown, opts: SlotRenderOptions = {}): s
   if (!out) return "";
   out = humaniseEnum(out);
   if (Object.prototype.hasOwnProperty.call(adapter, out)) out = adapter[out];
-  return finish(out, opts);
+  return finish(out, { ...opts, midSentence: wasList ? false : opts.midSentence });
 }
 
 function finish(input: string, opts: SlotRenderOptions): string {
@@ -163,7 +165,9 @@ function finish(input: string, opts: SlotRenderOptions): string {
 
   // (4) seam preposition de-duplication.
   if (lastWord && SEAM_WORDS.includes(lastWord)) {
-    const re = new RegExp(`^${lastWord}\\s+`, "i");
+    // Drop the value's duplicate of the stem's trailing seam word, including a
+    // leading adverb before it ("Directly from account signup" after "… from").
+    const re = new RegExp(`^(?:\\S+\\s+){0,1}${lastWord}\\s+`, "i");
     if (re.test(out)) out = out.replace(re, "");
   }
 

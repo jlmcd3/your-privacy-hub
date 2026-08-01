@@ -79,8 +79,9 @@ export function isSentenceBoundary(text: string, endIdxExclusive: number): boole
   // "§ 7152(a)." style — a bare section symbol run is never terminal when a
   // pinpoint follows.
   if (/^§+\.?$/.test(tok)) return false;
-  // Ordinal/enumerator: "1." "(a)." "(iv)."
-  if (/^\(?[0-9ivxIVX]+\)?\.$/.test(tok)) return false;
+  // Parenthesised enumerator "(a)." "(iv)." or a single-digit list marker "1."
+  if (/^\([0-9ivxIVX]+\)\.$/.test(tok)) return false;
+  if (/^[0-9ivxIVX]\.$/.test(tok)) return false;
 
   // Look-ahead: a boundary is not a boundary when the next non-space char
   // continues the same citation or clause.

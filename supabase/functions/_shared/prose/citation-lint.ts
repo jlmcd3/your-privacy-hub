@@ -58,7 +58,9 @@ export function extractCitations(text: string): string[] {
       if (hit) found.add(hit);
     }
   }
-  return [...found];
+  // Drop hits subsumed by a longer hit ("Art. 44" inside "UK GDPR Art. 44").
+  const all = [...found];
+  return all.filter((a) => !all.some((b) => b !== a && b.includes(a)));
 }
 
 export interface CitationLintEvent {
