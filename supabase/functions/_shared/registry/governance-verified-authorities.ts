@@ -427,6 +427,220 @@ export const GOVERNANCE_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     primary_source_url: GDPR_URL,
   }),
 
+  // ======================================================================
+  // ITEM 327 — UK GDPR Chapter V (Arts. 44A, 45A, 45B, 46, 47, 47A)
+  // ----------------------------------------------------------------------
+  // SOURCE: public.provision_texts rows ukgdpr-art-44 / -44a / -45a / -45b /
+  // -46 / -47 / -47a (status='approved', jurisdiction='UK'; ingested at
+  // ledger item 318 from the King's Printer consolidated text). Every quote
+  // below was re-queried fresh on the verified-on date and is a byte-exact
+  // substring of its row; the pin test is
+  // src/registry/__tests__/governance-uk-transfers-corpus-pin.test.ts.
+  //
+  // WHY THESE ROWS EXIST: UK Chapter V is NOT the EU chapter re-branded.
+  //   * Art. 44 is OMITTED in UK law (Data (Use and Access) Act 2025, s.
+  //     142(1), Sch. 7 para. 2(1); S.I. 2026/82). The UK general principle
+  //     lives in Art. 44A. Citing Art. 44 for a UK transfer leg is wrong.
+  //   * UK adequacy is made by the Secretary of State under Art. 45A against
+  //     the Art. 45B "data protection test" — "not materially lower" than
+  //     the UK Regulation and the 2018 Act. That is a DIFFERENT benchmark
+  //     from the EU's essential-equivalence standard.
+  //   * UK Art. 46(1A)/(2) clause sets are those specified by the Secretary
+  //     of State (Art. 47A(1)) or issued by the Commissioner (s. 119A DPA
+  //     2018) — the IDTA and the Addendum — not Commission SCCs, and the
+  //     exporter must itself judge the Art. 46(6) test reasonably and
+  //     proportionately (Art. 46(7)).
+  // ======================================================================
+  uk_art_44_not_in_force: R({
+    proposition_key: "uk_art_44_not_in_force",
+    citation: "UK GDPR Art. 44",
+    subsection: "UK GDPR Art. 44 (omitted)",
+    verbatim_quote:
+      "There is no UK GDPR Article 44 in force; the UK Chapter V general principle must not be cited to Art. 44.",
+    depth_class: "section",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("44"),
+  }),
+  uk_transfers_general_principle: R({
+    proposition_key: "uk_transfers_general_principle",
+    citation: "UK GDPR Art. 44A",
+    subsection: "UK GDPR Art. 44A(1)",
+    verbatim_quote:
+      "A controller or processor may transfer personal data to a third country or an international organisation only if",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("44A"),
+  }),
+  uk_transfers_adequacy_route: R({
+    proposition_key: "uk_transfers_adequacy_route",
+    citation: "UK GDPR Art. 44A",
+    subsection: "UK GDPR Art. 44A(2)(a)",
+    verbatim_quote:
+      "is approved by regulations under Article 45A that are in force at the time of the transfer,",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("44A"),
+  }),
+  uk_transfers_safeguards_route: R({
+    proposition_key: "uk_transfers_safeguards_route",
+    citation: "UK GDPR Art. 44A",
+    subsection: "UK GDPR Art. 44A(2)(b)",
+    verbatim_quote:
+      "is made subject to appropriate safeguards (see Article 46), or",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("44A"),
+  }),
+  uk_transfers_art_49a_restriction: R({
+    proposition_key: "uk_transfers_art_49a_restriction",
+    citation: "UK GDPR Art. 44A",
+    subsection: "UK GDPR Art. 44A(3)",
+    verbatim_quote:
+      "A transfer may not be made in reliance on paragraph 2(b) or (c) if, or to the extent that, it would breach a restriction in regulations under Article 49A.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("44A"),
+  }),
+  uk_adequacy_regulations_power: R({
+    proposition_key: "uk_adequacy_regulations_power",
+    citation: "UK GDPR Art. 45A",
+    subsection: "UK GDPR Art. 45A(2)",
+    verbatim_quote:
+      "The Secretary of State may only make regulations under this Article approving transfers to a third country or international organisation if the Secretary of State considers that the data protection test is met in relation to the transfers (see Article 45B).",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("45A"),
+  }),
+  uk_adequacy_data_protection_test: R({
+    proposition_key: "uk_adequacy_data_protection_test",
+    citation: "UK GDPR Art. 45B",
+    subsection: "UK GDPR Art. 45B(1)",
+    verbatim_quote:
+      "the data protection test is met in relation to transfers of personal data to a third country or international organisation if the standard of the protection provided for data subjects with regard to general processing of personal data in the country or by the organisation is not materially lower than the standard of the protection provided for data subjects by or under",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("45B"),
+  }),
+  uk_adequacy_test_factors: R({
+    proposition_key: "uk_adequacy_test_factors",
+    citation: "UK GDPR Art. 45B",
+    subsection: "UK GDPR Art. 45B(2)",
+    verbatim_quote:
+      "In considering whether the data protection test is met in relation to transfers of personal data to a third country or international organisation, the Secretary of State must consider, among other things",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("45B"),
+  }),
+  uk_transfers_appropriate_safeguards: R({
+    proposition_key: "uk_transfers_appropriate_safeguards",
+    citation: "UK GDPR Art. 46",
+    subsection: "UK GDPR Art. 46(1A)",
+    verbatim_quote:
+      "A transfer of personal data to a third country or an international organisation by a controller or processor is made subject to appropriate safeguards only",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("46"),
+  }),
+  uk_transfers_exporter_own_assessment: R({
+    proposition_key: "uk_transfers_exporter_own_assessment",
+    citation: "UK GDPR Art. 46",
+    subsection: "UK GDPR Art. 46(1A)(a)(ii)",
+    verbatim_quote:
+      "the controller or processor, acting reasonably and proportionately, considers that the data protection test is met in relation to the transfer or that type of transfer (see paragraph 6), or",
+    depth_class: "clause",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("46"),
+  }),
+  uk_transfers_sos_clauses: R({
+    proposition_key: "uk_transfers_sos_clauses",
+    citation: "UK GDPR Art. 46",
+    subsection: "UK GDPR Art. 46(2)(c)",
+    verbatim_quote:
+      "standard data protection clauses specified in regulations made by the Secretary of State under Article 47A(1) and for the time being in force;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("46"),
+  }),
+  uk_transfers_commissioner_clauses: R({
+    proposition_key: "uk_transfers_commissioner_clauses",
+    citation: "UK GDPR Art. 46",
+    subsection: "UK GDPR Art. 46(2)(d)",
+    verbatim_quote:
+      "standard data protection clauses specified in a document issued (and not withdrawn) by the Commissioner for the purposes of this Article under section 119A of the 2018 Act and for the time being in force;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("46"),
+  }),
+  uk_transfers_bcr_mechanism: R({
+    proposition_key: "uk_transfers_bcr_mechanism",
+    citation: "UK GDPR Art. 46",
+    subsection: "UK GDPR Art. 46(2)(b)",
+    verbatim_quote:
+      "binding corporate rules approved in accordance with Article 47;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("46"),
+  }),
+  uk_transfers_data_protection_test: R({
+    proposition_key: "uk_transfers_data_protection_test",
+    citation: "UK GDPR Art. 46",
+    subsection: "UK GDPR Art. 46(6)",
+    verbatim_quote:
+      "the data protection test is met in relation to a transfer, or a type of transfer, of personal data if, after the transfer, the standard of the protection provided for the data subject with regard to that personal data by the safeguards required under paragraph 1A, and (where relevant) by other means, would not be materially lower than the standard of the protection provided for the data subject with regard to the personal data by or under",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("46"),
+  }),
+  uk_transfers_reasonable_and_proportionate: R({
+    proposition_key: "uk_transfers_reasonable_and_proportionate",
+    citation: "UK GDPR Art. 46",
+    subsection: "UK GDPR Art. 46(7)",
+    verbatim_quote:
+      "what is reasonable and proportionate is to be determined by reference to all the circumstances, or likely circumstances, of the transfer or type of transfer, including the nature and volume of the personal data transferred.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("46"),
+  }),
+  uk_bcr_commissioner_approval: R({
+    proposition_key: "uk_bcr_commissioner_approval",
+    citation: "UK GDPR Art. 47",
+    subsection: "UK GDPR Art. 47(1)",
+    verbatim_quote:
+      "The Commissioner shall approve binding corporate rules",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("47"),
+  }),
+  uk_standard_clauses_secretary_of_state: R({
+    proposition_key: "uk_standard_clauses_secretary_of_state",
+    citation: "UK GDPR Art. 47A",
+    subsection: "UK GDPR Art. 47A(1)",
+    verbatim_quote:
+      "The Secretary of State may by regulations specify standard data protection clauses which the Secretary of State considers are capable of securing that the data protection test set out in Article 46 is met in relation to transfers of personal data generally or in relation to a type of transfer specified in the regulations.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_327,
+    primary_source_url: UK_ART_URL("47A"),
+  }),
+
+
+
   // ---- EDPB Guidelines 2/2019 § 2.4 — Necessity limb ----------------------
   // Governance uses this for the DPIA necessity/proportionality assessment
   // (Art. 35(7)(b)) and for data-minimisation framing.
