@@ -104,23 +104,36 @@ export function renderPlannedSection(
     }
   }
 
+  // (1) CONCLUSION FIRST — an outcome section leads with its determination.
+  //     A record/action section has no determination to make: it leads with its
+  //     first statement and is NOT degraded for lacking one. Degradation is
+  //     reserved for a section that owes a determination and has none.
+  const hasDetermination = Boolean(input.determination?.trim());
+  const owesDetermination = section.lead === "determination";
+  const degraded = owesDetermination
+    ? !hasDetermination
+    : !hasDetermination && agg.sentences.length === 0;
+
+  const leadRaw = hasDetermination
+    ? input.determination!.trim()
+    : agg.sentences.length > 0 && !owesDetermination
+    ? agg.sentences[0]
+    : (opts.degradationSentence ?? DEFAULT_DEGRADATION);
+  const usedFirstStatement = !hasDetermination && !owesDetermination && agg.sentences.length > 0;
+  const rest = usedFirstStatement ? agg.sentences.slice(1) : agg.sentences;
+  const restRelations = usedFirstStatement ? relations.slice(1) : relations;
+
   // (4) REFERRING EXPRESSIONS — applied BEFORE joining, one tracker per major
   // section, so the connective layer never case-folds a legal name.
-  const mentioned = applyMentionRule(
-    [degradationLead(input, opts), ...agg.sentences],
-    opts.mentions,
-  );
-
-  // (1) CONCLUSION FIRST.
-  const degraded = !input.determination?.trim();
-  const lead = mentioned[0];
+  const mentioned = applyMentionRule([leadRaw, ...rest], opts.mentions);
+  const lead = upperFirst(mentioned[0]);
   const body = mentioned.slice(1);
 
   // (3) DETERMINISTIC CONNECTIVES.
   const occurrences = new Map<Relation, number>();
   let text = lead;
   body.forEach((s, i) => {
-    const rel = relations[i] ?? "none";
+    const rel = restRelations[i] ?? "none";
     const n = occurrences.get(rel) ?? 0;
     occurrences.set(rel, n + 1);
     text = joinWithConnective(text, s, rel, n);
@@ -140,10 +153,7 @@ export function renderPlannedSection(
   };
 }
 
-function degradationLead(input: SectionInput, opts: PlanRenderOptions): string {
-  return input.determination?.trim() ||
-    (opts.degradationSentence ?? DEFAULT_DEGRADATION);
-}
+const upperFirst = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 /** Length of the aggregated run starting at index i (mirrors aggregateFacts). */
 function runLengthAt(facts: readonly AtomicFact[], i: number): number {
