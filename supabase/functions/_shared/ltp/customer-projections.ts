@@ -30,9 +30,13 @@ export const INTERNAL_FORBIDDEN_TOKENS: readonly string[] = [
   "intake_ledger_refs",
   "guidance_refs",
   "source_table",
-  "jurisdiction_tag",
   "weight_note",
+  "epistemic_type",
+  "citation_binding_refs",
   "info_emit_gate_",
+  // NOTE: `jurisdiction_tag` is NOT forbidden — it carries a human
+  // jurisdiction label ("cppa-ca") on document_metadata and the citation
+  // ledger, both of which are customer-facing by contract.
 ];
 
 /**
