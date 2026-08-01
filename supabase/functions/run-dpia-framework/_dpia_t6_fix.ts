@@ -32,6 +32,7 @@
 // Fail-open: every helper wrapped in try/catch; availability never blocked.
 
 import {
+import { splitSentencesSafe } from "../_shared/prose/segment.ts";
   DPIA_VERIFIED_AUTHORITIES,
   DPIA_UNANCHORED_PROPOSITIONS,
   DPIA_VERIFIED_AUTHORITY_VERSION,
@@ -118,12 +119,12 @@ const NEUTRAL_DOWNGRADE =
 
 // Whole-sentence split that preserves boundaries; used for both classes so
 // the doctrine (item 84c) is enforced identically everywhere.
+// ITEM 337 (PROSE PROGRAM 1, Part A) — routed through the ONE shared
+// abbreviation-aware segmenter. The prior regex split after "Art.",
+// splicing the counsel hedge into the middle of citations
+// ("GDPR Art. <hedge> 35(11)").
 function splitSentences(s: string): string[] {
-  const out: string[] = [];
-  const re = /[^.!?]+[.!?]+|\S[^.!?]*$/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(s)) !== null) out.push(m[0]);
-  return out;
+  return splitSentencesSafe(s);
 }
 
 function rejoin(parts: string[]): string {

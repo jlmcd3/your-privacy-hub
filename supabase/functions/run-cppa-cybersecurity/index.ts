@@ -78,6 +78,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { truncateAtSentenceBoundary, isAbbreviationFragment } from "../_shared/prose/segment.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
@@ -1291,14 +1292,11 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     }
 
     // QB7-7 sentence-boundary truncation for FSOR commentary previews: never cut mid-sentence.
+    // ITEM 337 (PROSE PROGRAM 1, Part A) — abbreviation-aware truncation.
+    // The prior lastIndexOf(". ") cut after "Cal. Civ.", producing dangling
+    // "Civ." fragments and a {"text":"Civ."} next_steps entry.
     function truncateAtSentence(text: string | null | undefined, maxLen = 600): string | null {
-      if (!text) return text ?? null;
-      const t = String(text);
-      if (t.length <= maxLen) return t;
-      const window = t.slice(0, maxLen);
-      const lastBoundary = Math.max(window.lastIndexOf(". "), window.lastIndexOf("? "), window.lastIndexOf("! "));
-      if (lastBoundary > maxLen * 0.5) return window.slice(0, lastBoundary + 1);
-      return window + "…";
+      return truncateAtSentenceBoundary(text, maxLen);
     }
 
     function shapeFsorItem(r: any): any {
