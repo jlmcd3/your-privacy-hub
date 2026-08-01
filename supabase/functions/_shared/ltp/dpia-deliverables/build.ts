@@ -25,7 +25,7 @@ import type {
 } from "./types.ts";
 
 export const DPIA_DELIVERABLES_VERSION =
-  "dpia-analytic-deliverables-2026-07-31-item310";
+  "dpia-analytic-deliverables-2026-08-01-wp248";
 
 const NOT_STATED = "not stated on the record";
 
@@ -330,6 +330,8 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
   const f = facts(intake);
   const a = anchor("risks");
   const m = anchor("measures");
+  // WP248-PINNING (2026-08-01) — the severity appraisal is guidance-anchored.
+  const g = anchor("risk_severity");
   const out: RiskRegisterEntry[] = [];
 
   for (const spec of DPIA_RISK_SPECS) {
@@ -377,6 +379,9 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       residual_band,
       citation: a.citation || "GDPR Art. 35(7)(c)",
       authority_verbatim: [a.verbatim, m.verbatim].filter(Boolean).join(" "),
+      ...(g.verbatim
+        ? { guidance_citation: g.citation, guidance_verbatim: g.verbatim }
+        : {}),
       status: insufficient ? "record_insufficient" : "analysed",
       ...(insufficient
         ? {
