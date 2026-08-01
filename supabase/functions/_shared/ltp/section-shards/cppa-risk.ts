@@ -132,6 +132,8 @@ const projectMeta = (plan: RenderPlan): unknown => ({
   propositions: plan.propositions.length,
   factor_rows: plan.factor_table.length,
   citation_bindings: plan.citation_bindings.length,
+  // ITEM 354 — the engine factor tables live HERE, never on a customer key.
+  internal: internalFactorTables(plan),
 });
 
 // ---------------------------------------------------------------------
