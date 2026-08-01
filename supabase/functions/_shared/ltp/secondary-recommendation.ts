@@ -36,7 +36,7 @@ export const SECONDARY_ANCHOR_7156A = "11 CCR § 7156(a)";
  * operational recommendation, never a statement of what the law requires.
  */
 export const SECONDARY_RECOMMENDATION_DISCLAIMER =
-  "This is the tool's recommendation based on the comparison you recorded — not a determination of what the law requires, and not a substitute for legal advice.";
+  "The recommendation above is this tool's operational recommendation on the record as submitted — it is not a statement of what the law requires, is not legal advice, and does not replace review by qualified counsel.";
 
 export interface SecondaryActivityRow {
   readonly name: string;

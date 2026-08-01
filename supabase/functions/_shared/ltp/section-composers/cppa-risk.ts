@@ -31,7 +31,6 @@ import {
 import {
   DIVERGENCE_DIMENSION_LABELS,
   SECONDARY_ANCHOR_7156A,
-  SECONDARY_RECOMMENDATION_DISCLAIMER,
   secondaryRecommendation,
   secondaryRecommendationSentence,
   secondaryComparisonLines,
