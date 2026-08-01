@@ -37,7 +37,7 @@ const sb = createClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false },
 });
 
-async function sha256(text: string): Promise<string> {
+export async function sha256(text: string): Promise<string> {
   const buf = new TextEncoder().encode(text);
   const hash = await crypto.subtle.digest("SHA-256", buf);
   return Array.from(new Uint8Array(hash))
