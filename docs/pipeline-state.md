@@ -7918,3 +7918,20 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **SUITES.** vitest `src/registry` + `src/lib/__tests__` + `src/test` **888 passed / 7 failed** — the same 7 pre-existing failures (4 responsive font-size pins, `cppaRiskW9Slots`, 2 `cppa_cyber` sample-fixture shape pins), untouched. Guard file alone **9/9**.
 
 **Disposition:** COMPLETE — Item 324 § OPEN-3 closed. No engine, contract, fixture-value, or customer-facing change; Item 245 hold untouched.
+
+## Item 338 — CLOSES ITEM 324 § OPEN-2: ONE NORMALIZER, FLEET-WIDE HYPHEN CONVENTION (2026-08-01)
+
+**FLEET CONVENTION (CEO ruling, 2026-08-01) — binding on ALL corpus pins going forward:** for hyphenated line-break artifacts in ingested statutory PDFs, **drop the line break and KEEP the hyphen**. `"non-\nmedical"` → `"non-medical"`, **never** `"nonmedical"`. The hyphen is part of the word, not typesetting. This is the Item 324 approach; the Item 306 variant is retired.
+
+**REUSE LAW APPLIED.** Extracted the single source of truth to `src/registry/__tests__/helpers/corpus-normalize.ts`: `joinHyphenLineBreaks()`, `normTypography()`, and `normCorpus()` (= hyphen repair on the raw text first, then typography). Both pins now **import** it; neither carries a private copy.
+- `src/registry/__tests__/cppa-risk-harm-catalogue-corpus-pin.test.ts` (Item 324 pin) — local copies deleted, imports the helper.
+- `src/registry/__tests__/cppa-risk-analytics.test.ts` (Item 306 pin) — its second, divergent normalizer deleted; corpus side now `normCorpus(out)`, catalogue side `normTypography`.
+
+**NO CORPUS OR CATALOGUE EDIT.** `provision_texts` row `cppa-7152` is unmodified; no `harm-catalogue.ts` verbatim string was touched.
+
+**PIN RESULTS (both green against the unmodified corpus row, live PG):**
+- `cppa-risk-analytics.test.ts` — **24/24 passed** (incl. `(a) harm catalogue — corpus pin`).
+- `cppa-risk-harm-catalogue-corpus-pin.test.ts` — **8/8 passed** (incl. the (D) page-break-header halves assertion).
+- Combined: **32 passed / 0 failed.**
+
+**Disposition:** COMPLETE — Item 324 § OPEN-2 closed. Test-only change; no engine, contract, or customer-facing effect; Item 245 hold untouched.
