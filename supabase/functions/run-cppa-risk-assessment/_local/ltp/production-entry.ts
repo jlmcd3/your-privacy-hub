@@ -155,8 +155,8 @@ export async function runLtpProduction(args: LtpProductionArgs): Promise<{ ok: b
           base as Record<string, unknown>,
           { enabled: true, callerName: "run-cppa-risk-assessment" },
         );
-        if (stage.shipped_surface === "prose" && stage.prose) {
-          const merged = { ...base, ...(stage.prose as Record<string, unknown>) };
+        if (stage.shipped_surface === "2R" && stage.prose) {
+          const merged = { ...base, ...(stage.prose as unknown as Record<string, unknown>) };
           const sealedProse = seal(merged, rawIntake);
           const proseReport = await serializeCustomer(sealedProse.report);
           (proseReport as any)._engine_path = "ltp";
