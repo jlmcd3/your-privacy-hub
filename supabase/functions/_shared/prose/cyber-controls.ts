@@ -14,6 +14,8 @@
  * Deterministic. Pure. Never throws.
  */
 
+import { splitSentencesSafe } from "./segment.ts";
+
 export const CYBER_PROSE_VERSION = "prose-cyber-2026-08-01-item337";
 
 /** Bare-HIPAA → pinpointed, comparative-framed replacement. */
@@ -38,7 +40,7 @@ export function pinpointHipaa(text: string): { text: string; changed: number } {
   const src = String(text ?? "");
   if (!/HIPAA/i.test(src)) return { text: src, changed: 0 };
 
-  const out = src.split(/(?<=[.!?])\s+/).map((sentence) => {
+  const out = splitSentencesSafe(src).map((sentence) => {
     if (!/HIPAA/i.test(sentence)) return sentence;
     let s = sentence;
     if (/45\s*C\.?F\.?R\.?/i.test(s)) return s;
