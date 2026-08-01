@@ -60,7 +60,33 @@ export const ANCHOR_KEYS = {
   dpo_task_d: "art_39_1_d_cooperate_with_sa",
   dpo_task_e: "art_39_1_e_contact_point",
   dpo_risk_based: "art_39_2_risk_based_tasks",
+
+  // ── Chapter V — EU transfer rail ──────────────────────────────────
+  eu_transfers_principle: "transfers_general_principle",
+  eu_transfers_safeguards: "transfers_appropriate_safeguards",
+  eu_transfers_sccs: "transfers_scc_mechanism",
+  eu_transfers_bcrs: "transfers_bcr_mechanism",
+
+  // ── ITEM 327 — Chapter V UK transfer rail ─────────────────────────
+  uk_art44_omitted: "uk_art_44_not_in_force",
+  uk_transfers_principle: "uk_transfers_general_principle",
+  uk_transfers_adequacy_route: "uk_transfers_adequacy_route",
+  uk_transfers_safeguards_route: "uk_transfers_safeguards_route",
+  uk_transfers_art49a: "uk_transfers_art_49a_restriction",
+  uk_adequacy_power: "uk_adequacy_regulations_power",
+  uk_adequacy_test: "uk_adequacy_data_protection_test",
+  uk_adequacy_factors: "uk_adequacy_test_factors",
+  uk_transfers_safeguards: "uk_transfers_appropriate_safeguards",
+  uk_transfers_own_assessment: "uk_transfers_exporter_own_assessment",
+  uk_transfers_sos_clauses: "uk_transfers_sos_clauses",
+  uk_transfers_ico_clauses: "uk_transfers_commissioner_clauses",
+  uk_transfers_bcrs: "uk_transfers_bcr_mechanism",
+  uk_transfers_test: "uk_transfers_data_protection_test",
+  uk_transfers_proportionate: "uk_transfers_reasonable_and_proportionate",
+  uk_bcr_approval: "uk_bcr_commissioner_approval",
+  uk_sos_clauses_power: "uk_standard_clauses_secretary_of_state",
 } as const;
+
 
 export type AnchorKey = keyof typeof ANCHOR_KEYS;
 
