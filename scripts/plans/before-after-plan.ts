@@ -13,6 +13,8 @@
 
 import { CPPA_RISK_PLAN } from "../../supabase/functions/_shared/prose/plans/cppa-risk.plan.ts";
 import { DPIA_PLAN } from "../../supabase/functions/_shared/prose/plans/dpia.plan.ts";
+import { GOVERNANCE_PLAN } from "../../supabase/functions/_shared/prose/plans/governance.plan.ts";
+import { REGISTRATION_PLAN } from "../../supabase/functions/_shared/prose/plans/registration.plan.ts";
 import type { DocumentPlan } from "../../supabase/functions/_shared/prose/plan.ts";
 import {
   renderDocumentFromPlan,
@@ -24,6 +26,8 @@ import type { Relation } from "../../supabase/functions/_shared/prose/connective
 const PLANS: Record<string, DocumentPlan> = {
   "cppa-risk": CPPA_RISK_PLAN,
   dpia: DPIA_PLAN,
+  governance: GOVERNANCE_PLAN,
+  registration: REGISTRATION_PLAN,
 };
 
 const [product, id] = Deno.args;
@@ -74,13 +78,17 @@ function before(): string {
 // --- AFTER: the planned document -------------------------------------------
 // Facts are tagged with the plan's own themes, in the order the section
 // declares them. Relations come from a fixed table, never from a model.
-const RELATION_BY_POSITION: readonly Relation[] = [
-  "trigger_duty",
-  "addition",
-  "contrast",
-  "factor_outcome",
-  "consequence",
-];
+// Facts after the lead are additive unless the donor field is an outcome or a
+// safeguard. Nothing here is inferred at render time by a model.
+const MAX_STATEMENTS = 4;
+function relationFor(key: string, index: number): Relation {
+  if (index === 0) return "trigger_duty";
+  if (/safeguard|mitigat|control|exception/i.test(key)) return "contrast";
+  if (/recommend|action|next|remed/i.test(key)) return "consequence";
+  return "addition";
+}
+const DETERMINATION_KEY =
+  /^(overall_risk_level|status|outcome|conclusion|determination|required|result|verdict|.*_required|.*_status)$/i;
 
 function inputsFromDonor(): Record<string, SectionInput> {
   const out: Record<string, SectionInput> = {};
@@ -97,19 +105,20 @@ function inputsFromDonor(): Record<string, SectionInput> {
         .filter(([, v]) => v);
       // The determination is the donor's own outcome-bearing field where one
       // exists; otherwise the section degrades honestly.
-      const dIdx = entries.findIndex(([k]) =>
-        /status|outcome|conclusion|determination|required|result|verdict/i.test(k)
-      );
+      const dIdx = entries.findIndex(([k]) => DETERMINATION_KEY.test(k));
       if (dIdx >= 0 && s.lead === "determination") {
-        determination = `${label(entries[dIdx][0])}: ${trunc(entries[dIdx][1], 200)}`;
+        determination = `${entity} records ${label(entries[dIdx][0]).toLowerCase()} of ${
+          trunc(entries[dIdx][1], 200)
+        }`;
       }
       entries.forEach(([k, v], i) => {
-        if (i === dIdx) return;
+        if (i === dIdx || statements.length >= MAX_STATEMENTS) return;
+        if (/guidance_note|completion_guidance|version/i.test(k)) return;
         statements.push({
           theme: s.themes[Math.min(statements.length, s.themes.length - 1)],
           topic: k,
-          sentence: `the record states ${label(k).toLowerCase()} as ${trunc(v, 160)}`,
-          relation: RELATION_BY_POSITION[statements.length % RELATION_BY_POSITION.length],
+          sentence: `${label(k).toLowerCase()} on the record is ${trunc(v, 160)}`,
+          relation: relationFor(k, statements.length),
         });
       });
     } else {
