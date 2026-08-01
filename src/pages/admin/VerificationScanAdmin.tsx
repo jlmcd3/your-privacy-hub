@@ -31,6 +31,9 @@ type Health = {
   unverified: number;
   failed: number;
   requires_review: number;
+  // Item 334: the requires_review bucket split by cause.
+  review_corpus_defect: number;
+  review_genuine: number;
   memo_eligible: number;
   paraphrase_high: number;
   paraphrase_medium: number;
@@ -92,6 +95,8 @@ export default function VerificationScanAdmin() {
   const [refreshErr, setRefreshErr] = useState("");
   const [loading, setLoading] = useState(false);
   const pauseRef = useRef(false);
+  // Item 334: review queue defaults to genuine items only.
+  const [showCorpusDefects, setShowCorpusDefects] = useState(false);
 
   const loadHealth = useCallback(async () => {
     setLoading(true);
@@ -101,25 +106,34 @@ export default function VerificationScanAdmin() {
       const head = (q: any) => q.select("id", { count: "exact", head: true });
       const [
         total, verified, unverified, failed, req,
-        memo, ph, pm, pl, pf,
+        reqDefect, memo, ph, pm, pl, pf,
       ] = await Promise.all([
         head(ea()),
         head(ea()).eq("verification_status", "verified"),
         head(ea()).eq("verification_status", "unverified"),
         head(ea()).eq("verification_status", "failed"),
         head(ea()).eq("verification_status", "requires_review"),
+        // Item 334: mechanical corpus-quality rejects, separated from the
+        // genuine human-review queue.
+        head(ea())
+          .eq("verification_status", "requires_review")
+          .eq("review_reason", "corpus_defect_subject"),
         head(ea()).eq("memo_eligible", true),
         head(ea()).eq("verification_paraphrase_confidence", "high"),
         head(ea()).eq("verification_paraphrase_confidence", "medium"),
         head(ea()).eq("verification_paraphrase_confidence", "low"),
         head(ea()).eq("verification_paraphrase_confidence", "failed"),
       ]);
+      const reqTotal = req.count ?? 0;
+      const reqDefectCount = reqDefect.count ?? 0;
       setHealth({
         total: total.count ?? 0,
         verified: verified.count ?? 0,
         unverified: unverified.count ?? 0,
         failed: failed.count ?? 0,
-        requires_review: req.count ?? 0,
+        requires_review: reqTotal,
+        review_corpus_defect: reqDefectCount,
+        review_genuine: Math.max(0, reqTotal - reqDefectCount),
         memo_eligible: memo.count ?? 0,
         paraphrase_high: ph.count ?? 0,
         paraphrase_medium: pm.count ?? 0,
@@ -313,8 +327,24 @@ export default function VerificationScanAdmin() {
                 <Stat label="Memo-eligible" value={health.memo_eligible} sub={health.total ? `${Math.round((health.memo_eligible / health.total) * 100)}%` : "0%"} />
                 <Stat label="Pending" value={health.unverified} />
                 <Stat label="Failed" value={health.failed} />
-                <Stat label="Requires review" value={health.requires_review} />
+                {/* Item 334: default to genuine review items; corpus defects
+                    are mechanical rejects and shown only on request. */}
+                <Stat
+                  label={showCorpusDefects ? "Requires review (all)" : "Requires review"}
+                  value={showCorpusDefects ? health.requires_review : health.review_genuine}
+                  sub={showCorpusDefects
+                    ? `${health.review_genuine} genuine + ${health.review_corpus_defect} corpus defects`
+                    : `${health.review_corpus_defect} corpus defects hidden`}
+                />
               </div>
+              <label className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={showCorpusDefects}
+                  onChange={(e) => setShowCorpusDefects(e.target.checked)}
+                />
+                Include mechanical corpus defects (bad subject fields) in the review queue
+              </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mt-4">
                 <Stat label="Paraphrase: high" value={health.paraphrase_high} />
                 <Stat label="Paraphrase: medium" value={health.paraphrase_medium} />
