@@ -1,4 +1,5 @@
 // qb8 build active
+import { applyCyberProsePass, CYBER_PROSE_VERSION } from "../_shared/prose/cyber-controls.ts";
 import { truncateAtSentenceBoundary, isAbbreviationFragment } from "../_shared/prose/segment.ts";
 
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
@@ -1427,6 +1428,17 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     }
     report.controls = controlsOut;
+
+    // ITEM 337 (PROSE PROGRAM 1, Part D4) — deterministic control dedup onto
+    // the canonical § 7123(c) component (more severe status wins) and HIPAA
+    // pinpointing with comparative framing.
+    {
+      const cyberProse = applyCyberProsePass(report as Record<string, unknown>);
+      (report as any)._meta = {
+        ...((report as any)._meta || {}),
+        cyber_prose_pass: { version: CYBER_PROSE_VERSION, ...cyberProse },
+      };
+    }
 
     // Section-level FSOR commentary attached once at report level (not per
     // control) to avoid 18x duplication of the same agency text.
