@@ -128,7 +128,7 @@ function dlValues(block: string, labelClass: string, valueClass: string): string
 
 export function parseRegisterPage(html: string): RegisterRow[] {
   const rows: RegisterRow[] = [];
-  const parts = html.split('<div class="foss-decision-teaser">').slice(1);
+  const parts = html.split(/<div\s[^>]*class="foss-decision-teaser"[^>]*>/i).slice(1);
   for (const raw of parts) {
     const block = raw.split("<!--/ teaser -->")[0];
 
