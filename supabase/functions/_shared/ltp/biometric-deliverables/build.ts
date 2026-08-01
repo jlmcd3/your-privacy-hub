@@ -1373,6 +1373,34 @@ function buildDivergence(
     });
   }
 
+  // (g) the two Washington chapters, kept apart. This is an INTRA-state
+  // divergence: it fires whenever both WA authorities are on the page, even if
+  // Washington is the only jurisdiction named.
+  if (has("us_wa_19375") && has("us_wa_19373")) {
+    items.push({
+      key: "wa_two_chapters",
+      topic: "Washington regulates the same data twice, under two chapters with different triggers",
+      statutes: ["us_wa_19375", "us_wa_19373"],
+      positions: [
+        {
+          statute_short: "RCW 19.375",
+          citation: dutyRow("wa_19375.020_1_notice_consent").pinpoint,
+          standard: dutyRow("wa_19375.020_1_notice_consent").verbatim_quote,
+          position: "turns on enrolling a biometric identifier in a database for a commercial purpose, and exempts enrollment for a security purpose",
+        },
+        {
+          statute_short: "RCW 19.373 (MHMDA)",
+          citation: dutyRow("wa_19373.def_consumer_health_data").pinpoint,
+          standard: dutyRow("wa_19373.def_consumer_health_data").verbatim_quote,
+          position: "turns on the data identifying or inferring health status, has no security-purpose carve-out, and requires a separate and distinct consent to share",
+        },
+      ],
+      no_analogue_in: [],
+      record_consequence:
+        "These are two chapters, not two readings of one chapter. Clearing RCW 19.375 — because enrollment is for a security purpose, or because nothing is enrolled in a database — does not clear RCW 19.373, and vice versa. They are analysed and cited separately throughout this report, and neither answer should be read across to the other.",
+    });
+  }
+
   return items;
 }
 
@@ -1419,6 +1447,18 @@ function buildConsequence(
         citation: row.pinpoint,
         standard: row.verbatim_quote,
         mechanism: "Enforcement is by the attorney general, by action to recover a civil penalty. CUBI's operative text creates no private suit.",
+        reserved: null,
+        corpus_status: "in_corpus",
+      });
+    }
+    if (s.statute_key === "us_wa_19373") {
+      const row = dutyRow("wa_19373.090_cpa_enforcement");
+      exposure_surfaces.push({
+        ...s,
+        citation: row.pinpoint,
+        standard: row.verbatim_quote,
+        mechanism:
+          "A violation of the chapter is an unfair or deceptive act in trade or commerce and an unfair method of competition for purposes of applying the consumer protection act, chapter 19.86 RCW. Unlike RCW 19.375.030, this section reserves no enforcement to the attorney general alone, and chapter 19.86 RCW supplies a private action.",
         reserved: null,
         corpus_status: "in_corpus",
       });

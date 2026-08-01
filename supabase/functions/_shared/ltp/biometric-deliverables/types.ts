@@ -38,7 +38,13 @@ export interface Finding {
   information_needed?: string;
 }
 
-export type StatuteKey = "us_il_bipa" | "us_tx_cubi" | "us_wa_19375";
+// Item 323: RCW 19.373 (MHMDA) is a DISTINCT key from RCW 19.375. Two
+// Washington authorities, never merged into one combined statute entry.
+export type StatuteKey =
+  | "us_il_bipa"
+  | "us_tx_cubi"
+  | "us_wa_19375"
+  | "us_wa_19373";
 
 export interface StatuteRef {
   statute_key: StatuteKey;
