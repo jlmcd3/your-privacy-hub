@@ -57,13 +57,13 @@ _status: record_insufficient | connectives: none | emitted-vs-licensed: 0/0 | li
 
 ### What the record does not yet state
 
-The record answers every point this assessment needs, and no item is outstanding
+The record answers every point this assessment needs, and no item is outstanding.
 
 _status: not_owed | connectives: none | emitted-vs-licensed: 0/0 | lint: 0_
 
 ### What to do next
 
-On the record before it, this assessment records the processing as supportable only while the conditions set out below are met
+On the record before it, this assessment records the processing as supportable only while the conditions set out below are met.
 
 - Condition on the decision: Cease or justify collection of Approximate location derived from IP address, recorded as not necessary to the stated purpose (§ 7152(a)(2)).
 
