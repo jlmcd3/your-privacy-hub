@@ -4198,6 +4198,7 @@ export type Database = {
           current_quality_run_id: string | null
           current_tool_index: number
           declared_count: number | null
+          fixture_variant: string | null
           id: string
           instrument_version: string | null
           last_error: string | null
@@ -4206,6 +4207,7 @@ export type Database = {
           started_at: string
           status: string
           tool_results: Json
+          tool_variants: Json | null
           tools: string[]
         }
         Insert: {
@@ -4219,6 +4221,7 @@ export type Database = {
           current_quality_run_id?: string | null
           current_tool_index?: number
           declared_count?: number | null
+          fixture_variant?: string | null
           id?: string
           instrument_version?: string | null
           last_error?: string | null
@@ -4227,6 +4230,7 @@ export type Database = {
           started_at?: string
           status?: string
           tool_results?: Json
+          tool_variants?: Json | null
           tools: string[]
         }
         Update: {
@@ -4240,6 +4244,7 @@ export type Database = {
           current_quality_run_id?: string | null
           current_tool_index?: number
           declared_count?: number | null
+          fixture_variant?: string | null
           id?: string
           instrument_version?: string | null
           last_error?: string | null
@@ -4248,6 +4253,7 @@ export type Database = {
           started_at?: string
           status?: string
           tool_results?: Json
+          tool_variants?: Json | null
           tools?: string[]
         }
         Relationships: []
@@ -5200,6 +5206,7 @@ export type Database = {
           dimension_scores: Json | null
           doc_number: number
           error: string | null
+          fixture_variant: string | null
           gpt_dimension_scores: Json | null
           gpt_evaluation: Json | null
           gpt_overall_score: number | null
@@ -5221,6 +5228,7 @@ export type Database = {
           dimension_scores?: Json | null
           doc_number: number
           error?: string | null
+          fixture_variant?: string | null
           gpt_dimension_scores?: Json | null
           gpt_evaluation?: Json | null
           gpt_overall_score?: number | null
@@ -5242,6 +5250,7 @@ export type Database = {
           dimension_scores?: Json | null
           doc_number?: number
           error?: string | null
+          fixture_variant?: string | null
           gpt_dimension_scores?: Json | null
           gpt_evaluation?: Json | null
           gpt_overall_score?: number | null
@@ -5279,6 +5288,7 @@ export type Database = {
           created_by: string | null
           cross_review_complete: boolean
           error: string | null
+          fixture_variant: string | null
           gpt_only_count: number
           gpt_score_accuracy: number | null
           gpt_score_analysis: number | null
@@ -5322,6 +5332,7 @@ export type Database = {
           created_by?: string | null
           cross_review_complete?: boolean
           error?: string | null
+          fixture_variant?: string | null
           gpt_only_count?: number
           gpt_score_accuracy?: number | null
           gpt_score_analysis?: number | null
@@ -5365,6 +5376,7 @@ export type Database = {
           created_by?: string | null
           cross_review_complete?: boolean
           error?: string | null
+          fixture_variant?: string | null
           gpt_only_count?: number
           gpt_score_accuracy?: number | null
           gpt_score_analysis?: number | null
