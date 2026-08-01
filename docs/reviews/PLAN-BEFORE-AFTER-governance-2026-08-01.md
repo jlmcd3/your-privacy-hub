@@ -49,34 +49,34 @@ Developing
 
 ## AFTER — planned document (headline → scope → record → analysis → duty → ask → remedy → close)
 
-### Determination *(degraded — no determination on the record)*
+### Determination
 
-The record does not state enough for a determination in this section.
+Misfit Toys Logistics Ltd has established a solid compliance foundation — a formally appointed DPO, a tested incident response plan, annual mandatory training, active vendor DPAs, and cross-border tra …
 
-### What this review covers *(degraded — no determination on the record)*
+### What this review covers
 
-The record does not state enough for a determination in this section.
+The company records dpa status of All vendors, because tools on the record is Microsoft 365 / Copilot; Shopify Plus; ShipHero WMS. In addition, sector on the record is Logistics / e-commerce fulfilment. Further, org size on the record is 51-250. Separately, dpo status on the record is Yes, formally appointed DPO.
 
-### The programme as the organisation described it *(degraded — no determination on the record)*
+### The programme as the organisation described it
 
-The record does not state enough for a determination in this section.
+Training on the record is Severity: High; Domain Id: 5; Domain Name: Employee Training and Awareness; Current State: Annual mandatory employee privacy training is in place; the organisat …. In addition, vendor terms on the record is Severity: Medium; Domain Id: 3; Domain Name: Vendor Data Terms Compliance; Current State: Misfit Toys Logistics Ltd has executed Data Processing Agreements with …. Further, privacy notice on the record is Severity: High; Domain Id: 10; Domain Name: Privacy Notice Accuracy; Current State: The organisation has an up-to-date privacy policy; privacy notice coverage a …. Separately, subject rights on the record is Severity: High; Domain Id: 9; Domain Name: Data Subject Rights Integrity; Current State: The organisation has appointed a DPO and maintains a formal DPIA progra ….
 
-### Maturity analysis *(degraded — no determination on the record)*
+### Maturity analysis
 
-The record does not state enough for a determination in this section.
+The organisation has implemented foundational governance controls (DPO, incident response plan, vendor DPAs, annual training, cross-border transfer arrangements) but three High-severity gaps — unconfi …
 
-### Obligations this programme has to meet *(degraded — no determination on the record)*
+### The risks driving this rating
 
-The record does not state enough for a determination in this section.
+Risk: Privacy notice does not demonstrably satisfy GDPR Art. 13 and Art. 14 mandatory disclosure requirements; Domain: Privacy Notice Accuracy; Severity: High; Why Urgent: The organisation cannot conf …
 
 ### What the record does not yet state *(degraded — no determination on the record)*
 
 The record does not state enough for a determination in this section.
 
-### What to do next *(degraded — no determination on the record)*
+### What to do next
 
-The record does not state enough for a determination in this section.
+Owner: DPO; Action: Conduct a comprehensive audit of the current privacy notice against GDPR Art. 13(1)–(2) and Art. 14(1)–(2), confirming that all processing activities, lawful bases, retention perio …
 
-### Reservation to counsel *(degraded — no determination on the record)*
+### Reservation to counsel
 
-The record does not state enough for a determination in this section.
+This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.

@@ -1,8 +1,9 @@
 // ITEM 339 (PROSE PROGRAM 3 of 4) — governance DOCUMENT PLAN (reviewed set).
 //
 // Derived from the 14 governance donor rows (report_keys method), hand-
-// finished against the cppa-risk and ir_playbook plans. Third in sequence;
-// no before/after pair yet.
+// finished against the cppa-risk and ir_playbook plans, then corrected against
+// the live engine's report keys — source_key values are the keys the governance
+// engine actually emits, not extractor guesses.
 //
 // STATUS: pending_review / approved: false.
 
@@ -25,7 +26,7 @@ export const GOVERNANCE_PLAN: DocumentPlan = {
       title: "Determination",
       arc_stage: "headline",
       lead: "determination",
-      source_key: "governance_summary",
+      source_key: "executive_summary",
       themes: ["maturity_outcome", "drivers", "residual_uncertainty"],
       required: true,
       status: "pending_review",
@@ -35,7 +36,7 @@ export const GOVERNANCE_PLAN: DocumentPlan = {
       title: "What this review covers",
       arc_stage: "scope",
       lead: "determination",
-      source_key: "scope_of_review",
+      source_key: "organisation_profile",
       themes: ["jurisdictions", "programme_elements", "exclusions"],
       required: true,
       status: "pending_review",
@@ -45,7 +46,7 @@ export const GOVERNANCE_PLAN: DocumentPlan = {
       title: "The programme as the organisation described it",
       arc_stage: "record",
       lead: "record",
-      source_key: "programme_record",
+      source_key: "domain_findings",
       themes: ["accountability", "policies", "training", "vendor_management", "transfers"],
       required: true,
       status: "pending_review",
@@ -55,18 +56,18 @@ export const GOVERNANCE_PLAN: DocumentPlan = {
       title: "Maturity analysis",
       arc_stage: "analysis",
       lead: "determination",
-      source_key: "maturity_analysis",
+      source_key: "readiness_rationale",
       themes: ["strengths", "weaknesses", "evidence_quality"],
       required: true,
       status: "pending_review",
     },
     {
       id: "obligations_engaged",
-      title: "Obligations this programme has to meet",
+      title: "The risks driving this rating",
       arc_stage: "duty",
       lead: "determination",
-      source_key: "obligations_engaged",
-      themes: ["duties_engaged", "deadlines", "documentation"],
+      source_key: "top_three_risks",
+      themes: ["risks_engaged", "duties_engaged", "documentation"],
       required: true,
       status: "pending_review",
     },
@@ -85,7 +86,7 @@ export const GOVERNANCE_PLAN: DocumentPlan = {
       title: "What to do next",
       arc_stage: "remedy",
       lead: "determination",
-      source_key: "recommendations",
+      source_key: "immediate_actions",
       themes: ["immediate", "next_cycle", "ongoing"],
       required: true,
       status: "pending_review",
@@ -95,7 +96,7 @@ export const GOVERNANCE_PLAN: DocumentPlan = {
       title: "Reservation to counsel",
       arc_stage: "close",
       lead: "determination",
-      source_key: "closing",
+      source_key: "disclaimer",
       themes: ["counsel_reservation"],
       required: true,
       status: "pending_review",
