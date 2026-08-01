@@ -398,6 +398,35 @@ export const DPIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: EDPB_2_2019_URL,
   }),
+
+  // ---- WP248 rev.01 (Art. 29 WP, EDPB-endorsed) ------------------------------
+  // WP248-PINNING (2026-08-01) — both quotes are byte-exact contiguous
+  // substrings of APPROVED corpus rows in public.edpb_guidelines
+  // (guideline_ref='WP248 rev.01', status='final'):
+  //   high_risk_criteria_edpb_wp248 -> id 792b08dd-43b8-49e2-93bf-edd398d11adf
+  //   risk_severity_edpb_wp248      -> id b61c71f6-f03b-4eb7-a5ce-6e292f696bf5
+  high_risk_criteria_edpb_wp248: R({
+    proposition_key: "high_risk_criteria_edpb_wp248",
+    citation: "EDPB WP248 rev.01, § III.B (criteria for high risk)",
+    subsection: "EDPB WP248 rev.01, § III.B",
+    verbatim_quote:
+      "In general, the WP29 considers that the more criteria are met by the processing, the more likely it is to present a high risk to the rights and freedoms of data subjects, and therefore to require a DPIA, regardless of the measures which the controller envisages to adopt. However, in some cases, a data controller can consider that a processing meeting only one of these criteria requires a DPIA.",
+    depth_class: "subsection",
+    governing_anchor: EDPB_WP248,
+    verified_on: WP248_VOD,
+    primary_source_url: EDPB_WP248_URL,
+  }),
+  risk_severity_edpb_wp248: R({
+    proposition_key: "risk_severity_edpb_wp248",
+    citation: "EDPB WP248 rev.01, Annex 2 (criteria for an acceptable DPIA)",
+    subsection: "EDPB WP248 rev.01, Annex 2",
+    verbatim_quote:
+      "origin, nature, particularity and severity of the risks are appreciated (cf. recital 84) or, more specifically, for each risk (illegitimate access, undesired modification, and disappearance of data) from the perspective of the data subjects",
+    depth_class: "subsection",
+    governing_anchor: EDPB_WP248,
+    verified_on: WP248_VOD,
+    primary_source_url: EDPB_WP248_URL,
+  }),
 };
 
 /**
@@ -412,10 +441,12 @@ export const DPIA_UNANCHORED_PROPOSITIONS: readonly string[] = [
   // were removed from this list: Art. 36 was promoted into provision_texts
   // (key='gdpr-art-36', approved) in Item 300 and Art. 35(9) is inside the
   // approved gdpr-art-35 excerpt. Both now carry verbatim registry rows above.
+  // WP248-PINNING (2026-08-01) — "risk_severity_edpb_wp248" and
+  // "high_risk_criteria_edpb_wp248" removed: WP248 rev.01 is now in the
+  // approved edpb_guidelines corpus and both carry verbatim rows above.
   "dpo_designation_art_37_39",           // Arts. 37-39 not in approved P1 set
-  "risk_severity_edpb_wp248",            // WP248 not in P2 batch 1
-  "high_risk_criteria_edpb_wp248",       // WP248 not in P2 batch 1
 ];
+
 
 
 /** Keys where the row's verbatim_quote is a paraphrase rather than a corpus
