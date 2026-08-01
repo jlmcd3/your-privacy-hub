@@ -100,7 +100,10 @@ function fillOne(
       // VERBATIM LAW — record free text is reproduced exactly as the company
       // wrote it: no punctuation stripping, no case folding.
       const s = (Array.isArray(raw) ? joinNaturalList(raw) : String(raw)).trim();
-      const quote = opts.quoteFreeText !== false;
+      // A referring expression ("the company") is the renderer's own word for
+      // the entity, not a record quotation, so it is never quoted.
+      const isReferring = /^(the company|the business|the entity|it)$/i.test(s);
+      const quote = opts.quoteFreeText !== false && !isReferring;
       return quote ? `“${s.replace(/^["“”]|["“”]$/g, "")}”` : s;
     }
   }
@@ -171,7 +174,18 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
       }
     }
     const re = new RegExp(`\\{\\{${p.token}(?::[a-z_]+)?\\}\\}`, "g");
-    out = out.replace(re, replacement);
+    out = out.replace(re, (_m, ...args) => {
+      const offset = args[args.length - 2] as number;
+      const whole = args[args.length - 1] as string;
+      const after = whole.slice(offset + String(_m).length);
+      // An unquoted record value that ends in a full stop must not carry it
+      // into the middle of the frame's own sentence.
+      const midSentence = /^\s*[a-z(]/.test(after) || /^\s*(and|with|,)/.test(after);
+      if (midSentence && /[^”"]\.$/.test(replacement)) {
+        return replacement.replace(/\.$/, "");
+      }
+      return replacement;
+    });
   }
 
   // Any placeholder still standing was never declared — treat as silent.
