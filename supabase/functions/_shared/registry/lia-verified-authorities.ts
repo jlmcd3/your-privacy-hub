@@ -441,7 +441,166 @@ export const LIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD_311,
     primary_source_url: GDPR_URL,
   }),
+
+  // ======================================================================
+  // ITEM 326 — UK GDPR Chapter III Section 4A (Arts. 22A–22D) + Art. 6(1)(ea)
+  // ----------------------------------------------------------------------
+  // SOURCE: public.provision_texts rows ukgdpr-art-22 / -22a / -22b / -22c /
+  // -22d / -art-6 (status='approved', jurisdiction='UK'; ingested at ledger
+  // item 318 from the King's Printer consolidated text). Every quote below
+  // was re-queried fresh and is a byte-exact substring of its row; the pin
+  // test is src/registry/__tests__/lia-uk-art22-corpus-pin.test.ts.
+  //
+  // WHY THESE ROWS EXIST: EU Art. 22(1) is a prohibition-by-default. UK law
+  // is NOT the EU rule re-branded — Art. 22 is not in force, and ordinary
+  // (non-Article-9(1)) data defaults to PERMITTED subject to the Art. 22C
+  // safeguards. Citing EU Art. 22(1) for UK-scoped LIA output is an accuracy
+  // defect; these rows let the builder branch instead.
+  //
+  // ANNEX 1 SCOPE LIMIT (binding): Annex 1 is NOT in the corpus — there is no
+  // gdpr_articles or provision_texts row holding it (verified by direct query
+  // 2026-08-01). The rows below cite only that Art. 6(1)(ea) exists, that it
+  // is conditioned on Annex 1, and that Art. 22B(4) bars its use for a solely
+  // automated significant decision. NOTHING in this file, the builder, or the
+  // narrative may state, paraphrase, or evaluate an Annex 1 condition. See
+  // LIA_UNANCHORED_PROPOSITIONS → "uk_annex_1_recognised_li_conditions".
+  // ======================================================================
+  uk_art_22_substituted: R({
+    proposition_key: "uk_art_22_substituted",
+    citation: "UK GDPR Art. 22",
+    subsection: "UK GDPR Art. 22 (substituted)",
+    verbatim_quote:
+      "There is no UK GDPR Article 22 in force. The UK counterpart provisions are Articles 22A–22D.",
+    depth_class: "section",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22"),
+  }),
+  uk_art_22a_solely_automated_definition: R({
+    proposition_key: "uk_art_22a_solely_automated_definition",
+    citation: "UK GDPR Art. 22A",
+    subsection: "UK GDPR Art. 22A(1)(a)",
+    verbatim_quote:
+      "a decision is based solely on automated processing if there is no meaningful human involvement in the taking of the decision",
+    depth_class: "clause",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22A"),
+  }),
+  uk_art_22a_significant_decision_definition: R({
+    proposition_key: "uk_art_22a_significant_decision_definition",
+    citation: "UK GDPR Art. 22A",
+    subsection: "UK GDPR Art. 22A(1)(b)",
+    verbatim_quote:
+      "a decision is a significant decision, in relation to a data subject, if— (i) it produces a legal effect for the data subject, or (ii) it has a similarly significant effect for the data subject.",
+    depth_class: "clause",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22A"),
+  }),
+  uk_art_22a_profiling_consideration: R({
+    proposition_key: "uk_art_22a_profiling_consideration",
+    citation: "UK GDPR Art. 22A",
+    subsection: "UK GDPR Art. 22A(2)",
+    verbatim_quote:
+      "When considering whether there is meaningful human involvement in the taking of a decision, a person must consider, among other things, the extent to which the decision is reached by means of profiling.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22A"),
+  }),
+  uk_art_22b_special_category_restriction: R({
+    proposition_key: "uk_art_22b_special_category_restriction",
+    citation: "UK GDPR Art. 22B",
+    subsection: "UK GDPR Art. 22B(1)",
+    verbatim_quote:
+      "A significant decision based entirely or partly on processing described in Article 9(1) (processing of special categories of personal data) may not be taken based solely on automated processing, unless one of the following conditions is met.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22B"),
+  }),
+  uk_art_22b_recognised_li_bar: R({
+    proposition_key: "uk_art_22b_recognised_li_bar",
+    citation: "UK GDPR Art. 22B",
+    subsection: "UK GDPR Art. 22B(4)",
+    verbatim_quote:
+      "A significant decision may not be taken based solely on automated processing if the processing of personal data carried out by, or on behalf of, the decision-maker for the purposes of the decision is carried out entirely or partly in reliance on Article 6(1)(ea).",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22B"),
+  }),
+  uk_art_22c_safeguards_duty: R({
+    proposition_key: "uk_art_22c_safeguards_duty",
+    citation: "UK GDPR Art. 22C",
+    subsection: "UK GDPR Art. 22C(1)",
+    verbatim_quote:
+      "the controller must ensure that safeguards for the data subject\u2019s rights, freedoms and legitimate interests are in place which comply with paragraph 2 and any regulations under Article 22D(3).",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22C"),
+  }),
+  uk_art_22c_safeguard_measures: R({
+    proposition_key: "uk_art_22c_safeguard_measures",
+    citation: "UK GDPR Art. 22C",
+    subsection: "UK GDPR Art. 22C(2)",
+    verbatim_quote:
+      "The safeguards must consist of or include measures which— (a) provide the data subject with information about decisions described in paragraph 1 taken in relation to the data subject; (b) enable the data subject to make representations about such decisions; (c) enable the data subject to obtain human intervention on the part of the controller in relation to such decisions; (d) enable the data subject to contest such decisions.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22C"),
+  }),
+  uk_art_22d_safeguard_regulations: R({
+    proposition_key: "uk_art_22d_safeguard_regulations",
+    citation: "UK GDPR Art. 22D",
+    subsection: "UK GDPR Art. 22D(3)",
+    verbatim_quote:
+      "The Secretary of State may by regulations make the following types of provision about the safeguards required under Article 22C(1)—",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("22D"),
+  }),
+  uk_art_6_1_ea_recognised_li: R({
+    proposition_key: "uk_art_6_1_ea_recognised_li",
+    citation: "UK GDPR Art. 6",
+    subsection: "UK GDPR Art. 6(1)(ea)",
+    verbatim_quote:
+      "processing is necessary for the purposes of a recognised legitimate interest;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("6"),
+  }),
+  // POINTER ONLY. Quoted so the report can say the basis is conditioned on
+  // Annex 1 without saying what Annex 1 requires — Annex 1 is not in corpus.
+  uk_art_6_ea_annex_1_condition: R({
+    proposition_key: "uk_art_6_ea_annex_1_condition",
+    citation: "UK GDPR Art. 6",
+    subsection: "UK GDPR Art. 6(5)",
+    verbatim_quote:
+      "For the purposes of paragraph 1(ea), processing is necessary for the purposes of a recognised legitimate interest only if it meets a condition in Annex 1.",
+    depth_class: "subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("6"),
+  }),
+  uk_art_6_1_f_legitimate_interests: R({
+    proposition_key: "uk_art_6_1_f_legitimate_interests",
+    citation: "UK GDPR Art. 6",
+    subsection: "UK GDPR Art. 6(1)(f)",
+    verbatim_quote:
+      "processing is necessary for the purposes of the legitimate interests pursued by the controller or by a third party, except where such interests are overridden by the interests or fundamental rights and freedoms of the data subject which require protection of personal data, in particular where the data subject is a child.",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: VOD_326,
+    primary_source_url: UK_ART_URL("6"),
+  }),
 };
+
 
 /**
  * Propositions the LIA generator asserts today (or is expected to assert at the
