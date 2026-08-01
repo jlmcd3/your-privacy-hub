@@ -8393,3 +8393,70 @@ is honest, not a flattening defect. Narrative differentiation cannot be demonstr
 
 **Scope honoured.** Production-entry wiring + tests only. `run-cppa-risk-assessment` NOT deployed (cutover
 attempt #4). Item 245 hold untouched and still ACTIVE. Rollback path `git archive 4fe2e76c1 …` unchanged.
+
+---
+
+## ITEM 351 — T-M CUTOVER ATTEMPT #4 — **PHASE 2 FAILED, ROLLED BACK**
+
+**Outcome: cutover REVERTED. Item 245 hold REMAINS ACTIVE. Items 319–321 NOT marked deployed.**
+
+### PHASE 0 (passed)
+- Rollback path intact: `git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite`,
+  followed by the Item-348 re-application step (delete restored `*.test.ts` from the function dir — they live in
+  `tests/edge/run-cppa-risk-assessment/`; repoint four archived `../_shared/...` imports to their Item-348 `_local/`
+  homes: `ltp/pipeline.ts`, `ltp/retry-budget.ts`, `future-building/signature.ts`, `source-fields-validator.ts`).
+- Bundle sizes under cap: `_shared` 2.8 MB, `run-cppa-risk-assessment` 478 KB.
+- Suites green (998/998 vitest; LTP edge 369/380 with the 11 pre-existing failures).
+
+### PHASE 1 (executed)
+Swapped to the LTP orchestrator in enforce mode, stamp `ltp-risk-tm-cutover-item351@2026-08-01`. Real boot log:
+
+```
+2026-08-01T20:55:30Z INFO [run-cppa-risk-assessment] boot build_stamp=ltp-risk-tm-cutover-item351@2026-08-01
+2026-08-01T20:55:30Z INFO [cppa-risk] build active · core=3.10.3-w3-t4-inference-discipline · cppa-risk=r1b1.4-rca
+2026-08-01T20:55:30Z INFO {"evt":"entitlement_admin_bypass","product":"cppa_risk_assessment",...}
+```
+
+### PHASE 2 — live dual smoke (production function, real invocations)
+Rows: perfect `13e30d2f-4e45-4885-9dab-5ed630cc9403` (intake md5 `8a54d3b7953d94c5bfa6b9d3139df827`),
+messy `80037757-12bd-4d21-b56c-13593dfe9a31` (intake md5 `fa7e3af8e465f37eca1a659dcb035cf1`). Both `status=complete`.
+
+| surface | perfect md5 | messy md5 | verdict |
+|---|---|---|---|
+| `record_sufficiency` | `cf02e2928fa1707692d33ac955e7432f` | `cf02e2928fa1707692d33ac955e7432f` | **FAIL — byte-identical** |
+| `information_needed` | `985906ea7d434f6ff894723db5c25a7b` (n=3) | `8e703270fce6d2afb70301dfa86994ee` (n=4) | pass — differs |
+| `processing_narrative` | `d7241b7da788abc003f7f929b3725120` | `d7241b7da788abc003f7f929b3725120` | identical — permitted case (identical narrative operands, as in Item 350) |
+
+**FAILURE 1 — `record_sufficiency` does not differentiate.** Byte-identical on both records (verbatim, both):
+
+> "The record is not yet sufficient for the § 7152(a)(6) balancing frame. Meridian SaaS Inc has adequately documented 6 of the § 7152(a) elements listed below; 9 of these elements remain enumerated for your review. Each element is stated once, with its § 7152(a) pinpoint, in the order the record was assessed."
+> "We could not verify this item from the information provided; it is listed under information needed."
+> "Benefits to the business: present in the record as documented (11 CCR § 7152(a)(4))." … "ADMT governance policies and training: not applicable — automated decisionmaking technology is not in use per the record (11 CCR § 7152(a)(6)(A)(iv))." …
+
+**FAILURE 2 — perfect record self-contradicts.** Its `record_sufficiency` claims "9 of these elements remain
+enumerated" while its own `information_needed` enumerates only the reserved initiation decision. The Item 350 fix
+reached `information_needed` but NOT the `record_sufficiency` counter/prose, which still runs off the pre-fix
+presence view.
+
+**FAILURE 3 — internal emit-gate objects leak into `information_needed`.** Both records carry raw internal nodes
+in the customer array: `{"id":"info_emit_gate_disclaimer","topic":"disclaimer"}` and
+`{"id":"info_emit_gate_submission_summary","topic":"submission_summary"}`.
+
+Checks that PASSED: `information_needed` intact as an array and differing in content; the perfect record does NOT
+enumerate an operand it contains (no "sufficiency of the safeguards" — it appears only on the messy record, the
+Item 350 behaviour); named primary activity ("Free-tier account analytics") on both, including the incomplete one;
+`processing_narrative` non-empty, no raw JSON, no doubled punctuation; §7152 `activity_analytics` surface present
+with weighing / harm_causation / safeguard_map on both; prose libraries reachable with the deterministic
+(unapproved-library) path used without error.
+
+### ROLLBACK (executed immediately, no inline fixes)
+`git archive 4fe2e76c1 …` restore + Item-348 re-application (above), redeployed, live boot verified:
+
+```
+2026-08-01T20:58:37Z INFO [run-cppa-risk-assessment] boot build_stamp=ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z
+```
+
+### PHASE 3 — not reached
+Item 245 hold **ACTIVE**. Items 319–321 remain NOT DEPLOYED. Frontend panel publish still held.
+Next prerequisite: extend the Item 350 presence fix into the `record_sufficiency` renderer (counter + element list)
+and suppress emit-gate nodes from the customer-facing `information_needed` array.
