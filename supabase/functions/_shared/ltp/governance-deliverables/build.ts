@@ -16,12 +16,19 @@
  * risk-appropriateness.
  */
 import {
+  ADEQUACY_MECHANISMS,
   ADEQUATE_CADENCES,
   anchor,
   ART30_ELEMENTS,
   DEMONSTRABILITY_DUTIES,
+  EU_JURISDICTION,
   LARGE_SCALE_SIZES,
+  MECHANISM_REGIME,
   PUBLIC_AUTHORITY_SECTORS,
+  SAFEGUARD_MECHANISMS,
+  TRANSFER_NOT_OCCURRING,
+  TRANSFER_OCCURRING,
+  UK_JURISDICTION,
   UNDER_250_SIZES,
 } from "./elements.ts";
 import type {
@@ -33,11 +40,12 @@ import type {
   Finding,
   GovernanceDeliverables,
   MaturityTierAid,
+  TransferAnalysis,
   Verdict,
 } from "./types.ts";
 
 export const GOVERNANCE_DELIVERABLES_VERSION =
-  "governance-deliverables-item313-2026-07-31";
+  "governance-deliverables-item327-2026-08-01";
 
 // ── record helpers ───────────────────────────────────────────────────
 function get(root: unknown, path: string): unknown {
@@ -637,6 +645,279 @@ export function buildAccountabilityDetermination(
   };
 }
 
+
+// ─────────────────────────────────────────────────────────────────────
+// Op. 8 — Chapter V international transfers — ITEM 327
+//
+// DISTINCT-RAIL LAW: UK Chapter V is not the EU chapter re-branded.
+//   * UK Art. 44 is OMITTED (DUAA 2025, s. 142(1), Sch. 7 para. 2(1);
+//     S.I. 2026/82). The UK general principle is Art. 44A. A UK leg cited
+//     to Art. 44 is an accuracy defect, not a stylistic one.
+//   * UK adequacy is made by the Secretary of State under Art. 45A and
+//     tested under Art. 45B — "not materially lower" than the UK
+//     Regulation and the 2018 Act — not the EU essential-equivalence test.
+//   * UK Art. 46 clause sets are those specified by the Secretary of State
+//     (Art. 47A(1)) or issued by the Commissioner under s. 119A DPA 2018
+//     (the IDTA and the Addendum), and the exporter must itself judge the
+//     Art. 46(6) test reasonably and proportionately (Art. 46(7)).
+//
+// Branches off the RECORDED `jurisdictions` array and the RECORDED
+// `transfer_mechanism` / `transfer_status` values only — closed lexicons,
+// no semantic defaults. Unrecognised or absent values degrade under the
+// MANDATORY DEGRADATION LAW; they never pick a regime by guesswork.
+// ─────────────────────────────────────────────────────────────────────
+export function readTransferFacts(intake: unknown): {
+  jurisdictions: string[];
+  eu: boolean;
+  uk: boolean;
+  regime: TransferAnalysis["regime"];
+  transferStatus: string;
+  mechanism: string;
+  occurring: boolean | null;
+  mechanismRegime: TransferAnalysis["mechanism_regime"];
+} {
+  const jurisdictions = arr(get(intake, "jurisdictions"));
+  const eu = jurisdictions.includes(EU_JURISDICTION);
+  const uk = jurisdictions.includes(UK_JURISDICTION);
+  const regime: TransferAnalysis["regime"] = eu && uk
+    ? "dual"
+    : uk
+    ? "uk"
+    : eu
+    ? "eu"
+    : "not_engaged";
+  const transferStatus = str(get(intake, "transfer_status"));
+  const mechanismRaw = str(get(intake, "transfer_mechanism"));
+  const mechanism = mechanismRaw === "n/a" ? "" : mechanismRaw;
+  const occurring = TRANSFER_OCCURRING.includes(transferStatus)
+    ? true
+    : TRANSFER_NOT_OCCURRING.includes(transferStatus)
+    ? false
+    : null;
+  const mechanismRegime: TransferAnalysis["mechanism_regime"] = mechanism
+    ? (MECHANISM_REGIME[mechanism] ?? "unrecorded")
+    : "unrecorded";
+  return {
+    jurisdictions,
+    eu,
+    uk,
+    regime,
+    transferStatus,
+    mechanism,
+    occurring,
+    mechanismRegime,
+  };
+}
+
+export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
+  const f = readTransferFacts(intake);
+
+  const euPrinciple = anchor("eu_transfers_principle", "GDPR Art. 44");
+  const euSafeguards = anchor("eu_transfers_safeguards", "GDPR Art. 46(1)");
+  const euSccs = anchor("eu_transfers_sccs", "GDPR Art. 46(2)(c)");
+  const euBcrs = anchor("eu_transfers_bcrs", "GDPR Art. 46(2)(b)");
+
+  const ukOmitted = anchor("uk_art44_omitted", "UK GDPR Art. 44 (omitted)");
+  const ukPrinciple = anchor("uk_transfers_principle", "UK GDPR Art. 44A(1)");
+  const ukAdequacyRoute = anchor("uk_transfers_adequacy_route", "UK GDPR Art. 44A(2)(a)");
+  const ukSafeguardsRoute = anchor("uk_transfers_safeguards_route", "UK GDPR Art. 44A(2)(b)");
+  const ukAdequacyPower = anchor("uk_adequacy_power", "UK GDPR Art. 45A(2)");
+  const ukAdequacyTest = anchor("uk_adequacy_test", "UK GDPR Art. 45B(1)");
+  const ukSafeguards = anchor("uk_transfers_safeguards", "UK GDPR Art. 46(1A)");
+  const ukOwnAssessment = anchor("uk_transfers_own_assessment", "UK GDPR Art. 46(1A)(a)(ii)");
+  const ukSosClauses = anchor("uk_transfers_sos_clauses", "UK GDPR Art. 46(2)(c)");
+  const ukIcoClauses = anchor("uk_transfers_ico_clauses", "UK GDPR Art. 46(2)(d)");
+  const ukBcrs = anchor("uk_transfers_bcrs", "UK GDPR Art. 46(2)(b)");
+  const ukTest = anchor("uk_transfers_test", "UK GDPR Art. 46(6)");
+  const ukProportionate = anchor("uk_transfers_proportionate", "UK GDPR Art. 46(7)");
+  const ukSosPower = anchor("uk_sos_clauses_power", "UK GDPR Art. 47A(1)");
+
+  const citations_used: string[] = [];
+  const cite = (c: string) => {
+    if (c && !citations_used.includes(c)) citations_used.push(c);
+  };
+
+  // ── record fact ────────────────────────────────────────────────────
+  const factParts: string[] = [];
+  factParts.push(
+    f.jurisdictions.length
+      ? `The record states the jurisdictions in scope as ${f.jurisdictions.map((j) => `"${j}"`).join(", ")}.`
+      : "The record does not state which jurisdictions are in scope.",
+  );
+  factParts.push(
+    f.transferStatus && f.transferStatus !== "n/a"
+      ? `It records cross-border transfer status as "${f.transferStatus}".`
+      : "It does not record whether personal data is transferred outside the EEA or the United Kingdom.",
+  );
+  factParts.push(
+    f.mechanism
+      ? `It records the transfer mechanism in place as "${f.mechanism}".`
+      : "It records no transfer mechanism.",
+  );
+  const record_fact = factParts.join(" ");
+
+  // ── standard, per engaged rail ─────────────────────────────────────
+  let standard = "";
+  let citation = "";
+  let benchmark_citation = "";
+  let benchmark_verbatim = "";
+  const parts: string[] = [];
+
+  const euRail = () => {
+    cite(euPrinciple.citation);
+    parts.push(
+      `Under the EU chapter the general principle in Article 44 governs: "${euPrinciple.verbatim}" A transfer to a third country is lawful only on an adequacy decision, on Article 46 appropriate safeguards, or on an Article 49 derogation.`,
+    );
+    if (f.mechanism && SAFEGUARD_MECHANISMS.includes(f.mechanism)) {
+      cite(euSafeguards.citation);
+      parts.push(`Article 46(1) sets the safeguards route: "${euSafeguards.verbatim}"`);
+      if (/SCC/i.test(f.mechanism)) {
+        cite(euSccs.citation);
+        parts.push(`The recorded mechanism is the Commission clause set — Article 46(2)(c): "${euSccs.verbatim}"`);
+      }
+      if (/Binding Corporate Rules/i.test(f.mechanism)) {
+        cite(euBcrs.citation);
+        parts.push(`Binding corporate rules are an Article 46(2)(b) safeguard: "${euBcrs.verbatim}"`);
+      }
+    }
+  };
+
+  const ukRail = () => {
+    cite(ukPrinciple.citation);
+    cite(ukOmitted.citation);
+    parts.push(
+      `The UK chapter is a different body of law, not the EU chapter under another name. ${ukOmitted.verbatim} The operative UK general principle is Article 44A(1): "${ukPrinciple.verbatim}", and the condition is met only where the transfer is approved by adequacy regulations, is made subject to appropriate safeguards, or relies on a derogation — Article 44A(2)(a): "${ukAdequacyRoute.verbatim}"; Article 44A(2)(b): "${ukSafeguardsRoute.verbatim}"`,
+    );
+    if (f.mechanism && ADEQUACY_MECHANISMS.includes(f.mechanism)) {
+      cite(ukAdequacyPower.citation);
+      cite(ukAdequacyTest.citation);
+      parts.push(
+        `The recorded mechanism is an adequacy route, so the governing UK instrument is regulations made by the Secretary of State under Article 45A, not a Commission adequacy decision: "${ukAdequacyPower.verbatim}" The benchmark those regulations must satisfy is the Article 45B data protection test, which is not the EU essential-equivalence standard: "${ukAdequacyTest.verbatim}" this Regulation, Part 2 of the 2018 Act, and Parts 5 to 7 of that Act so far as relevant to general processing.`,
+      );
+      benchmark_citation = ukAdequacyTest.citation || "UK GDPR Art. 45B(1)";
+      benchmark_verbatim = ukAdequacyTest.verbatim;
+    }
+    if (f.mechanism && SAFEGUARD_MECHANISMS.includes(f.mechanism)) {
+      cite(ukSafeguards.citation);
+      cite(ukSosClauses.citation);
+      cite(ukIcoClauses.citation);
+      cite(ukSosPower.citation);
+      parts.push(
+        `The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer "${ukSafeguards.verbatim}" where the listed safeguards are provided and the exporter itself judges the data protection test met. The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) — Article 46(2)(c): "${ukSosClauses.verbatim}" — and those issued by the Commissioner under section 119A of the Data Protection Act 2018 — Article 46(2)(d): "${ukIcoClauses.verbatim}" The Secretary of State's power reads: "${ukSosPower.verbatim}"`,
+      );
+      if (/Binding Corporate Rules/i.test(f.mechanism)) {
+        cite(ukBcrs.citation);
+        parts.push(`Binding corporate rules take effect in UK law through Article 46(2)(b) — "${ukBcrs.verbatim}" — and are approved by the Commissioner, not by an EU supervisory authority.`);
+      }
+      cite(ukTest.citation);
+      cite(ukOwnAssessment.citation);
+      cite(ukProportionate.citation);
+      parts.push(
+        `The exporter carries its own assessment duty: Article 46(1A)(a)(ii) requires that "${ukOwnAssessment.verbatim}" and Article 46(6) fixes that test as whether, after the transfer, "${ukTest.verbatim}" this Regulation, Part 2 of the 2018 Act, and Parts 5 to 7 of that Act. Article 46(7) sets the standard of that judgement: "${ukProportionate.verbatim}"`,
+      );
+      if (!benchmark_citation) {
+        benchmark_citation = ukTest.citation || "UK GDPR Art. 46(6)";
+        benchmark_verbatim = ukTest.verbatim;
+      }
+    }
+  };
+
+  if (f.regime === "uk") {
+    standard = ukPrinciple.verbatim;
+    citation = ukPrinciple.citation || "UK GDPR Art. 44A(1)";
+    ukRail();
+  } else if (f.regime === "eu") {
+    standard = euPrinciple.verbatim;
+    citation = euPrinciple.citation || "GDPR Art. 44";
+    euRail();
+    if (!benchmark_citation) {
+      benchmark_citation = euSafeguards.citation || "GDPR Art. 46(1)";
+      benchmark_verbatim = euSafeguards.verbatim;
+    }
+  } else if (f.regime === "dual") {
+    standard = euPrinciple.verbatim;
+    citation = euPrinciple.citation || "GDPR Art. 44";
+    parts.push(
+      "The record puts both the EU and the UK chapter in scope. Each transfer leg is analysed under its own chapter; neither chapter's mechanism, benchmark or article numbering is carried across to the other.",
+    );
+    euRail();
+    ukRail();
+  } else {
+    parts.push(
+      "The record engages neither the EU nor the UK regime, so no Chapter V transfer analysis is performed here. US state privacy laws impose no Article 45/46-style transfer-mechanism requirement; any transfer exposure under another recorded framework is assessed under that framework's own provisions.",
+    );
+  }
+
+  // ── mechanism / regime coherence ───────────────────────────────────
+  let mechanism_regime_mismatch = false;
+  if (f.regime !== "not_engaged" && f.mechanism && f.mechanismRegime !== "unrecorded") {
+    if (f.mechanismRegime === "uk" && !f.uk) mechanism_regime_mismatch = true;
+    if (f.mechanismRegime === "eu" && !f.eu) mechanism_regime_mismatch = true;
+    if (mechanism_regime_mismatch) {
+      parts.push(
+        `The recorded mechanism "${f.mechanism}" belongs to the ${f.mechanismRegime === "uk" ? "UK" : "EU"} chapter, but the record does not put that chapter in scope. Either the jurisdictions or the mechanism is mis-recorded; the mechanism is not treated as validating a leg under the chapter that is in scope.`,
+      );
+    }
+  }
+
+  // ── verdict + degradation ──────────────────────────────────────────
+  let verdict: Verdict;
+  let status: TransferAnalysis["status"] = "analysed";
+  let information_needed: string | undefined;
+
+  if (f.regime === "not_engaged") {
+    verdict = f.jurisdictions.length ? "not_applicable" : "record_insufficient";
+    if (!f.jurisdictions.length) {
+      status = "record_insufficient";
+      information_needed =
+        "The jurisdictions in scope. Without them no Chapter V rail — EU or UK — can be identified, and no transfer mechanism can be assessed against the right benchmark.";
+    }
+  } else if (f.occurring === false) {
+    verdict = "not_applicable";
+    parts.push(
+      "The record states that all tools store data in the EEA or the United Kingdom, so on the record as it stands no restricted transfer is made and the mechanism question does not arise.",
+    );
+  } else if (f.occurring === null) {
+    verdict = "record_insufficient";
+    status = "record_insufficient";
+    information_needed =
+      "Whether personal data is transferred to, or accessible from, a third country, and if so which countries. Record that and the Chapter V analysis can be closed rather than stated as a rail.";
+  } else if (!f.mechanism) {
+    verdict = "not_satisfied";
+    parts.push(
+      "The record states that a restricted transfer is made but records no mechanism for it. On the record as it stands the transfer has no lawful route under the chapter identified above.",
+    );
+  } else if (mechanism_regime_mismatch) {
+    verdict = "partially_satisfied";
+    information_needed =
+      "Confirmation of which chapter each transfer leg runs under, and the mechanism actually executed for that leg — the recorded mechanism and the recorded jurisdictions belong to different chapters.";
+  } else {
+    verdict = "partially_satisfied";
+    information_needed =
+      "The executed instrument for each transfer leg — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.";
+  }
+
+  return {
+    key: "chapter_v_transfers",
+    label: "International transfers — Chapter V",
+    citation,
+    standard,
+    record_fact,
+    application: parts.join(" "),
+    verdict,
+    status,
+    regime: f.regime,
+    transfer_status: f.transferStatus,
+    mechanism: f.mechanism,
+    mechanism_regime: f.mechanismRegime,
+    mechanism_regime_mismatch,
+    benchmark_citation,
+    benchmark_verbatim,
+    citations_used,
+    ...(information_needed ? { information_needed } : {}),
+  };
+}
+
 /** DEMOTION LAW — turn a surviving maturity tier into a labelled aid. */
 export function demoteMaturityTier(tier: unknown): MaturityTierAid | undefined {
   const t = str(tier);
@@ -674,6 +955,7 @@ export function buildGovernanceDeliverables(
     dpo_determination: buildDpoDetermination(intake),
     risk_calibration_finding,
     review_and_update_finding,
+    transfer_analysis: buildTransferAnalysis(intake),
     maturity_tier_readability_aid: demoteMaturityTier(maturityTier),
   };
 }
@@ -700,6 +982,7 @@ export function attachGovernanceDeliverables(
     report.dpo_determination = built.dpo_determination;
     report.risk_calibration_finding = built.risk_calibration_finding;
     report.review_and_update_finding = built.review_and_update_finding;
+    report.transfer_analysis = built.transfer_analysis;
 
     // DEMOTION LAW — the tier can no longer be the headline conclusion.
     if (built.maturity_tier_readability_aid) {
@@ -719,6 +1002,9 @@ export function attachGovernanceDeliverables(
       dpo_verdict: built.dpo_determination.verdict,
       risk_calibration_verdict: built.risk_calibration_finding.verdict,
       review_verdict: built.review_and_update_finding.verdict,
+      transfer_regime: built.transfer_analysis.regime,
+      transfer_verdict: built.transfer_analysis.verdict,
+      transfer_mechanism_mismatch: built.transfer_analysis.mechanism_regime_mismatch,
       tier_demoted: Boolean(built.maturity_tier_readability_aid),
     };
   } catch (e) {
