@@ -12,6 +12,7 @@
 import { describe, expect, it } from "vitest";
 import { GOVERNANCE_CORPUS_SNAPSHOT } from "./__fixtures__/governance-corpus-snapshot";
 import { GOVERNANCE_ACCOUNTABILITY_AUTHORITIES } from "../../../supabase/functions/_shared/registry/governance-accountability-authorities";
+import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/governance-verified-authorities";
 import {
   ANCHOR_KEYS,
   ART30_ELEMENTS,
@@ -52,10 +53,17 @@ describe("ITEM 313 — corpus pins", () => {
     }
   });
 
+  // Item 327: `elements.ts` resolves against BOTH governance registries
+  // (accountability + verified), so the resolution surface asserted here is
+  // the same merged map the builder uses — not the accountability map alone.
   it("every anchor key the builder may cite resolves to a registry row", () => {
+    const MERGED = {
+      ...GOVERNANCE_VERIFIED_AUTHORITIES,
+      ...GOVERNANCE_ACCOUNTABILITY_AUTHORITIES,
+    };
     for (const key of Object.values(ANCHOR_KEYS)) {
       expect(
-        Object.prototype.hasOwnProperty.call(GOVERNANCE_ACCOUNTABILITY_AUTHORITIES, key),
+        Object.prototype.hasOwnProperty.call(MERGED, key),
         `${key} unresolved`,
       ).toBe(true);
     }

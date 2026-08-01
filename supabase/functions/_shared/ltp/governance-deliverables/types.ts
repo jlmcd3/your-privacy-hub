@@ -96,6 +96,33 @@ export interface MaturityTierAid {
   superseded_by: "accountability_determination";
 }
 
+/**
+ * ITEM 327 — Chapter V international-transfer analysis.
+ *
+ * DISTINCT-RAIL LAW: the EU and UK chapters are separate bodies of law with
+ * separate citations and separate benchmarks. UK Art. 44 is omitted; UK
+ * adequacy is tested against Art. 45B ("not materially lower"), not the EU
+ * essential-equivalence standard; UK Art. 46 clause sets come from the
+ * Secretary of State (Art. 47A(1)) or the Commissioner (s. 119A DPA 2018).
+ * A UK-scoped leg is never cited to the EU chapter, and vice versa.
+ */
+export interface TransferAnalysis extends Finding {
+  regime: "eu" | "uk" | "dual" | "not_engaged";
+  /** Recorded transfer_status, verbatim from the record. */
+  transfer_status: string;
+  /** Recorded transfer_mechanism, verbatim from the record. */
+  mechanism: string;
+  /** Which chapter the recorded mechanism belongs to. */
+  mechanism_regime: "uk" | "eu" | "both" | "unrecorded";
+  /** Recorded mechanism belongs to a chapter the record does not engage. */
+  mechanism_regime_mismatch: boolean;
+  /** The adequacy/safeguard benchmark actually applied, verbatim. */
+  benchmark_citation: string;
+  benchmark_verbatim: string;
+  /** Per-leg citations relied on, in walk order. */
+  citations_used: string[];
+}
+
 export interface GovernanceDeliverables {
   accountability_determination: AccountabilityDetermination;
   demonstrability_findings: DemonstrabilityFinding[];
@@ -104,5 +131,7 @@ export interface GovernanceDeliverables {
   dpo_determination: DpoDetermination;
   risk_calibration_finding: Finding;
   review_and_update_finding: Finding;
+  transfer_analysis: TransferAnalysis;
   maturity_tier_readability_aid?: MaturityTierAid;
 }
+

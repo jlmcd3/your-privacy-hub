@@ -60,7 +60,33 @@ export const ANCHOR_KEYS = {
   dpo_task_d: "art_39_1_d_cooperate_with_sa",
   dpo_task_e: "art_39_1_e_contact_point",
   dpo_risk_based: "art_39_2_risk_based_tasks",
+
+  // ── Chapter V — EU transfer rail ──────────────────────────────────
+  eu_transfers_principle: "transfers_general_principle",
+  eu_transfers_safeguards: "transfers_appropriate_safeguards",
+  eu_transfers_sccs: "transfers_scc_mechanism",
+  eu_transfers_bcrs: "transfers_bcr_mechanism",
+
+  // ── ITEM 327 — Chapter V UK transfer rail ─────────────────────────
+  uk_art44_omitted: "uk_art_44_not_in_force",
+  uk_transfers_principle: "uk_transfers_general_principle",
+  uk_transfers_adequacy_route: "uk_transfers_adequacy_route",
+  uk_transfers_safeguards_route: "uk_transfers_safeguards_route",
+  uk_transfers_art49a: "uk_transfers_art_49a_restriction",
+  uk_adequacy_power: "uk_adequacy_regulations_power",
+  uk_adequacy_test: "uk_adequacy_data_protection_test",
+  uk_adequacy_factors: "uk_adequacy_test_factors",
+  uk_transfers_safeguards: "uk_transfers_appropriate_safeguards",
+  uk_transfers_own_assessment: "uk_transfers_exporter_own_assessment",
+  uk_transfers_sos_clauses: "uk_transfers_sos_clauses",
+  uk_transfers_ico_clauses: "uk_transfers_commissioner_clauses",
+  uk_transfers_bcrs: "uk_transfers_bcr_mechanism",
+  uk_transfers_test: "uk_transfers_data_protection_test",
+  uk_transfers_proportionate: "uk_transfers_reasonable_and_proportionate",
+  uk_bcr_approval: "uk_bcr_commissioner_approval",
+  uk_sos_clauses_power: "uk_standard_clauses_secretary_of_state",
 } as const;
+
 
 export type AnchorKey = keyof typeof ANCHOR_KEYS;
 
@@ -197,3 +223,62 @@ export const ADEQUATE_CADENCES: readonly string[] = [
 ];
 
 export const RECORD_INSUFFICIENT = "record_insufficient" as const;
+
+// ─────────────────────────────────────────────────────────────────────
+// ITEM 327 — Chapter V jurisdiction + mechanism lexicons.
+//
+// Closed lexicons only: every string below is an exact option value from
+// `_shared/intake-contracts/governance-assessment.ts` (GOV_JURISDICTIONS,
+// TRANSFER_STATUS, TRANSFER_MECHANISM). No fuzzy matching, no semantic
+// defaults — an unrecognised value degrades, it never guesses a regime.
+// ─────────────────────────────────────────────────────────────────────
+
+export const EU_JURISDICTION = "EU (GDPR)";
+export const UK_JURISDICTION = "United Kingdom (UK GDPR)";
+
+/** transfer_status values that put a restricted transfer on the record. */
+export const TRANSFER_OCCURRING: readonly string[] = [
+  "Yes, US-based tools",
+  "Yes, other non-adequate countries",
+];
+/** transfer_status value that records no restricted transfer. */
+export const TRANSFER_NOT_OCCURRING: readonly string[] = [
+  "All tools store data in EU/UK",
+];
+
+export type TransferRegime = "eu" | "uk" | "dual" | "not_engaged";
+
+/**
+ * Which regime a recorded transfer_mechanism belongs to.
+ *   uk   — the mechanism exists only under UK Chapter V.
+ *   eu   — the mechanism exists only under EU Chapter V.
+ *   both — the label is regime-neutral on its face (BCRs; bare "Adequacy
+ *          decision"); the governing rail is fixed by the jurisdictions.
+ */
+export const MECHANISM_REGIME: Readonly<Record<string, "uk" | "eu" | "both">> = {
+  "UK IDTA": "uk",
+  "UK Addendum to EU SCCs": "uk",
+  "UK adequacy regulations": "uk",
+  "UK IDTA / Addendum": "uk",
+  "EU Standard Contractual Clauses (SCCs)": "eu",
+  "EU SCCs": "eu",
+  "Adequacy decision": "eu",
+  "Binding Corporate Rules": "both",
+  "Adequacy decision/regulations": "both",
+};
+
+/** Mechanisms that are Art. 46-family safeguards rather than adequacy. */
+export const SAFEGUARD_MECHANISMS: readonly string[] = [
+  "UK IDTA",
+  "UK Addendum to EU SCCs",
+  "UK IDTA / Addendum",
+  "EU Standard Contractual Clauses (SCCs)",
+  "EU SCCs",
+  "Binding Corporate Rules",
+];
+/** Mechanisms that are an adequacy route rather than an Art. 46 safeguard. */
+export const ADEQUACY_MECHANISMS: readonly string[] = [
+  "UK adequacy regulations",
+  "Adequacy decision",
+  "Adequacy decision/regulations",
+];
