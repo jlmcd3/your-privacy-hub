@@ -956,7 +956,16 @@ Return ONLY valid JSON of this exact shape:
 }`;
 }
 
-async function evaluateDocumentClaude(tool: string, intake: any, report: any): Promise<any> {
+// ITEM 325 — the grader payload header carries the fixture VARIANT alongside
+// the fixture set, so a Perfect vs Messy run is distinguishable in the graded
+// transcript itself, not only in the DB row. Null variant ⇒ byte-identical to
+// the pre-ITEM-325 header (legacy /admin/quality-batch behaviour unchanged).
+function stampVariant(fixtureSet: string | null, variant: FixtureVariant | null): string | null {
+  if (!variant) return fixtureSet;
+  return fixtureSet ? `${fixtureSet} [variant=${variant}]` : `[variant=${variant}]`;
+}
+
+async function evaluateDocumentClaude(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null): Promise<any> {
   // F3: deterministic checks scoped to this tool
   const applicableChecks = CHECKS.filter(c => !c.tools || c.tools.includes(tool));
   const detFindings = applicableChecks.map(c => {
@@ -975,7 +984,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   // QLB-F3: body-first, metadata-stripped, equal-budget grader payload.
   const family = familyForBatchTool(tool);
   const payload = family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
   if (payload.truncated) {
     console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=claude original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
@@ -1039,7 +1048,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
@@ -1051,7 +1060,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     // QLB-F3: same body-first payload + equal budget as Claude path.
     const family = familyForBatchTool(tool);
     const payload = family
-      ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
+      ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
       : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
     if (payload.truncated) {
       console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
@@ -1818,7 +1827,7 @@ async function runBatch(runId: string): Promise<void> {
   // Load run state
   const { data: runRow, error: runErr } = await admin
     .from("quality_runs")
-    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log")
+    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log, fixture_variant")
     .eq("id", runId).single();
   if (runErr || !runRow) {
     clearInterval(heartbeat);
@@ -1830,6 +1839,10 @@ async function runBatch(runId: string): Promise<void> {
   const batchSize: number = run.batch_size;
   const userId: string = run.user_id ?? run.created_by;
   const runNumber: number = run.run_number;
+  // ITEM 325 — fixture variant for this run ("perfect" | "messy" | null).
+  // null is the legacy unlabelled path used by /admin/quality-batch.
+  const fixtureVariant: FixtureVariant | null =
+    (run.fixture_variant === "perfect" || run.fixture_variant === "messy") ? run.fixture_variant : null;
 
   const state: PartialState = run.partial_state ?? emptyState();
   // Backfill held-out fields on resumed runs whose partial_state predates P-A.
@@ -2074,6 +2087,7 @@ async function runBatch(runId: string): Promise<void> {
           const { data: docRow } = await admin.from("quality_run_documents").insert({
             run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
             scenario_set: scenarioSet,
+            fixture_variant: fixtureVariant,
           }).select("id").single();
           if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
           docRowId = docRow.id;
@@ -2308,9 +2322,9 @@ async function runBatch(runId: string): Promise<void> {
 
       // Run Claude eval and GPT eval in parallel.
       const [claudeEval, gptResult] = await Promise.all([
-        withTimeout(evaluateDocumentClaude(tool, intake, reportData), EVALUATION_TIMEOUT_MS, "Claude eval")
+        withTimeout(evaluateDocumentClaude(tool, intake, reportData, fixtureVariant), EVALUATION_TIMEOUT_MS, "Claude eval")
           .catch(e => { console.warn("Claude eval failed:", e.message); return null; }),
-        withTimeout(evaluateDocumentGPT(tool, intake, reportData), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
+        withTimeout(evaluateDocumentGPT(tool, intake, reportData, fixtureVariant), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
           .catch(e => ({ eval: null as any, error: e.message })),
       ]);
 
