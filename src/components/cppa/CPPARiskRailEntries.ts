@@ -53,7 +53,8 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citation: "11 CCR § 7156(a)",
     citationUrl: CPPA_URL,
     plainSummary:
-      "One risk assessment can cover several processing activities only where they are similar and present similar risks to consumers\u2019 privacy. Whether your uses meet that standard is reserved to you and your counsel.",
+      "One risk assessment can cover several processing activities only where they are similar and present similar risks to consumers\u2019 privacy. This tool compares each additional use against the assessed activity on five dimensions and recommends a separate risk assessment where any one of them differs \u2014 a recommendation on your record, not a statement of what the law requires, and not a substitute for your counsel\u2019s review.",
+
     regulationText:
       "\u201CA business may conduct a single risk assessment for a comparable set of processing activities. A \u2018comparable set of processing activities\u2019 that can be addressed by a single risk assessment is a set of similar processing activities that present similar risks to consumers\u2019 privacy.\u201D\n\n\u00A7 7156(a)(1) example (excerpt) \u2014 \u201CBusiness E may use a single risk assessment for processing the personal information for the birthday mailing and November mailing across all stores because in each case it is collecting the same personal information in the same way for the purpose of sending coupons and age-appropriate toy lists to children, and this processing presents similar risks to consumers\u2019 privacy.\u201D",
     relatedCitations: [
@@ -61,7 +62,8 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7156(b)", label: "Using an assessment prepared for another purpose" },
     ],
     coachLead:
-      "List every other use the same data is put to, including the ones you would rather leave out, then set each one beside this activity on all five dimensions: the data, the people, the collection method, the purpose, and the privacy risk. Report the differences you find rather than smoothing them over \u2014 whether a difference matters is for you and your counsel to judge, not for this form. If a use does not line up, say so; that answer is as usable as a match.",
+      "List every other use the same data is put to, including the ones you would rather leave out, then set each one beside this activity on all five dimensions: the data, the people, the systems, the purpose, and the privacy risks and safeguards. Report the differences you find rather than smoothing them over \u2014 if any single dimension differs, this tool will recommend a separate risk assessment for that use, and if a dimension is unresolved it will recommend one unless you confirm the dimension is the same. If a use does not line up, say so; that answer is as usable as a match.",
+
     coachBody:
       "The standard is similarity of the activities and similarity of the privacy risks. Answer each comparison from what your records show; where you do not know, \u201CNot sure\u201D is the accurate answer and is recorded as such.",
     goodAnswer:
