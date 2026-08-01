@@ -419,9 +419,13 @@ export function runEmitGate(
         prose_nodes: leaves.length,
       }));
     } else {
-      for (const leaf of leavesToDegrade) degrade(leaf);
+      for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
       gateReport.degraded_count = leavesToDegrade.length;
     }
+    // ITEM 352 — internal gate rows never reach the customer array.
+    gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
+    if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;
+
   } catch (e) {
     gateReport.crashed = true;
     console.error(JSON.stringify({
