@@ -21,7 +21,7 @@ Deno.test("W15-CYBER-FL: BUILD_STAMP restamped (accepts w15/w16-hotfix/w17-boile
 });
 
 Deno.test("W15-CYBER-FL: index.ts imports fact-ledger and inserts pre-cyber-VA pass", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));
   assert(src.includes("../_shared/intake/fact-ledger.ts"), "fact-ledger import missing");
   assert(src.includes("buildFactLedger("), "buildFactLedger call missing");
   assert(src.includes("enforceLedger("), "enforceLedger call missing");

@@ -22,7 +22,7 @@ import { CPPA_RISK_SECTION_SHARDS } from "./section-shards/cppa-risk.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../report-schemas/cppa-risk.ts";
 import { RISK_CUT_RULINGS } from "./content/risk-surface-map.ts";
 
-const ASSEMBLER_PATH = new URL("./pass2-assembler.ts", import.meta.url);
+const ASSEMBLER_PATH = new URL("../../../../supabase/functions/_shared/ltp/pass2-assembler.ts", import.meta.url);
 
 function fixturePlan() {
   return derivePlan({

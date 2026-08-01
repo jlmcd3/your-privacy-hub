@@ -141,7 +141,7 @@ Deno.test("HF3 D — H2 flags 'the audit-cohort determination'", () => {
 });
 
 Deno.test("HF3 A — run-admt-checker source contains no 'Article 10/11' shorthand outside HF1/HF2 warning rules", async () => {
-  const src = await Deno.readTextFile(new URL("../run-admt-checker/index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-admt-checker/index.ts", import.meta.url));
   // Only permitted occurrences are inside the two lines that describe the ban itself
   // (CPPA-HF1 A2 and CPPA-HF2 E rulebook self-check). Everywhere else is a defect.
   const lines = src.split("\n");

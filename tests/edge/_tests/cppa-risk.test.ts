@@ -89,7 +89,7 @@ Deno.test("citation framework forbids § 7221(c)(5)", () => {
 });
 
 Deno.test("§ 7150(b) subsection strings flow from CITATION_REGISTRY (no hardcoded literals for (b)(4)/(b)(5)/(b)(6) content_detail assignments)", async () => {
-  const src = await Deno.readTextFile(new URL("../run-cppa-risk-assessment/index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   // No hardcoded subsection assignments for the three split triggers in content_detail prose.
   assert(!/Systematic-observation profiling trigger \(§ 7150\(b\)\(4\)\)/.test(src));
   assert(!/Sensitive-location profiling trigger \(§ 7150\(b\)\(5\)\)/.test(src));

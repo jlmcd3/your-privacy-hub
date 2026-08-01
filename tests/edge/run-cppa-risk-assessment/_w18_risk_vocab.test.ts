@@ -109,7 +109,7 @@ Deno.test("fail-open on malformed report", () => {
 });
 
 Deno.test("telemetry lands under report._meta.internal, no underscore-prefixed customer keys", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   // Vocab-scrub telemetry lives under _meta.internal.risk_vocab_scrub.
   assertStringIncludes(src, "internal.risk_vocab_scrub");
   // No `_w18_risk_vocab` written to a customer-surface key.

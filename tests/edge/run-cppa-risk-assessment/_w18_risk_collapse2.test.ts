@@ -274,7 +274,7 @@ Deno.test("W18 (f) telemetry-placement leak guard — new counters land under _m
 });
 
 Deno.test("W18 (g) index.ts source wires each newly covered slot", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   // Extended coverage call-sites present:
   assertStringIncludes(src, 'rewriteProseFields(\n        r.inconsistency_flags');
   assertStringIncludes(src, 'walkCiteFields(r.inconsistency_flags, ["regulatory_citation"])');

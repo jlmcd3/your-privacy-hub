@@ -175,7 +175,7 @@ Deno.test("REBUILD-LIA T2: STRENGTH_NOTES.insufficient copy replaced with comple
   // The exported STRENGTH_NOTES is defined inside runAssessment; assert the
   // canonical string appears verbatim in the module source, since it is the
   // user-facing display copy shipped in report_data.
-  const src = Deno.readTextFileSync(new URL("../run-li-assessment/index.ts", import.meta.url));
+  const src = Deno.readTextFileSync(new URL("../../../supabase/functions/run-li-assessment/index.ts", import.meta.url));
   assertStringIncludes(src, "The record as it stands does not yet establish a defensible legitimate-interest claim");
   assertStringIncludes(src, "the items listed under Information Needed would complete the record");
   // Old copy must be gone

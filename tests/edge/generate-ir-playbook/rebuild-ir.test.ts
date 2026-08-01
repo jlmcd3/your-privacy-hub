@@ -22,7 +22,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-const SRC_URL = new URL("./index.ts", import.meta.url);
+const SRC_URL = new URL("../../../supabase/functions/generate-ir-playbook/index.ts", import.meta.url);
 const SRC = await Deno.readTextFile(SRC_URL);
 
 // The INSTRUCTION_LEAK_RE regex is defined twice inside index.ts

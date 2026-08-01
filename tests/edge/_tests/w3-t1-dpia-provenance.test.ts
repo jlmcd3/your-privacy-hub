@@ -11,7 +11,7 @@
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 const idx = await Deno.readTextFile(
-  new URL("../run-dpia-framework/index.ts", import.meta.url),
+  new URL("../../../supabase/functions/run-dpia-framework/index.ts", import.meta.url),
 );
 
 Deno.test("W3-T1 · U1_SKELETON: processed_personal_data rows require source{intake_field,basis}", () => {
@@ -51,7 +51,7 @@ Deno.test("W3-T1 · _staging and _revision handling is untouched (regression gua
   // Both keys must still be recognised as metadata by the grader payload
   // builder — the W3-T1 change is additive and MUST NOT reach into either.
   const payload = Deno.readTextFileSync(
-    new URL("../_shared/grader/payload.ts", import.meta.url),
+    new URL("../../../supabase/functions/_shared/grader/payload.ts", import.meta.url),
   );
   assertStringIncludes(payload, `"_staging"`);
   assertStringIncludes(payload, `"_meta"`);
@@ -68,7 +68,7 @@ Deno.test("W3-T1 · BUILD_STAMP bumped to w3-t1 tag", () => {
 
 Deno.test("W3-T1 · DPIA golden fixtures assert source fields on enumerated rows", async () => {
   const golden = await Deno.readTextFile(
-    new URL("../_shared/golden/dpia.ts", import.meta.url),
+    new URL("../../../supabase/functions/_shared/golden/dpia.ts", import.meta.url),
   );
   // Every fixture must carry the two new assertions.
   const intakeFieldMatches = golden.match(/"row source\.intake_field present"/g) ?? [];

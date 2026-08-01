@@ -1,7 +1,7 @@
 // W3-T2 acceptance tests — LIA per-factor balancing objects.
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-const src = Deno.readTextFileSync(new URL("../run-li-assessment/index.ts", import.meta.url));
+const src = Deno.readTextFileSync(new URL("../../../supabase/functions/run-li-assessment/index.ts", import.meta.url));
 
 Deno.test("W3-T2: balancing_test schema declares factors[] with the four enum values and intake_evidence", () => {
   assertStringIncludes(src, "\"factors\":");
@@ -28,7 +28,7 @@ Deno.test("W3-T2: CROSS-READ + CANONICAL RECORD conventions still present alongs
 });
 
 Deno.test("W3-T2: BODY_FIELDS.lia now points at three_part_test (grader sees factors)", () => {
-  const payload = Deno.readTextFileSync(new URL("../_shared/grader/payload.ts", import.meta.url));
+  const payload = Deno.readTextFileSync(new URL("../../../supabase/functions/_shared/grader/payload.ts", import.meta.url));
   assertStringIncludes(payload, "\"three_part_test\"");
   // Legacy placeholder keys removed
   assert(!/"lia":\s*\[\s*"purpose",\s*"necessity",\s*"balancing"/.test(payload),
@@ -36,13 +36,13 @@ Deno.test("W3-T2: BODY_FIELDS.lia now points at three_part_test (grader sees fac
 });
 
 Deno.test("W3-T2: rubric context declares factor objects as designed output", () => {
-  const ctx = Deno.readTextFileSync(new URL("../_shared/grader/context.ts", import.meta.url));
+  const ctx = Deno.readTextFileSync(new URL("../../../supabase/functions/_shared/grader/context.ts", import.meta.url));
   assertStringIncludes(ctx, "LIA PER-FACTOR BALANCING OBJECTS (W3-T2");
   assertStringIncludes(ctx, "never deduct for the presence, shape, or enum values of the factors array");
 });
 
 Deno.test("W3-T2: goldens require factor names + intake_evidence anchors", () => {
-  const golden = Deno.readTextFileSync(new URL("../_shared/golden/lia.ts", import.meta.url));
+  const golden = Deno.readTextFileSync(new URL("../../../supabase/functions/_shared/golden/lia.ts", import.meta.url));
   assertStringIncludes(golden, "reasonable_expectations");
   assertStringIncludes(golden, "impact_severity");
   assertStringIncludes(golden, "intake_evidence");

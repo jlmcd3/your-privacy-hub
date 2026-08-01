@@ -23,13 +23,13 @@ import {
 } from "../_shared/verified-authority-resolver.ts";
 
 Deno.test("W15: BUILD_STAMP is w15-cyber-regwire@<iso> or w15-cyber-factledger@<iso>", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));
   const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
   assert(m && /^(w15-cyber-regwire|w15-cyber-factledger|w16-cyber-flfix|w17-cyber-boiler)@\d{4}-\d{2}-\d{2}T/.test(m[1]), `unexpected stamp: ${m?.[1]}`);
 });
 
 Deno.test("W15: index.ts imports cyber registry + resolver + injects VA block", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));
   assert(src.includes("cyber-verified-authorities.ts"), "registry import missing");
   assert(src.includes("resolveByPropositionKey"), "resolver import missing");
   assert(src.includes("buildCyberVerifiedAuthorityBlock"), "block builder missing");
@@ -61,7 +61,7 @@ Deno.test("W15: unknown proposition_key resolves to null (never fabricates)", ()
 });
 
 Deno.test("W15: system-context injection block names retention rule + § 7122(g)", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));
   // The rendered rules must state the retention anchor plainly.
   assert(src.includes("cyber_retention_5yr"), "block/rules must reference cyber_retention_5yr");
   assert(/§\s*7122\(g\)/.test(src), "block/rules must name § 7122(g)");

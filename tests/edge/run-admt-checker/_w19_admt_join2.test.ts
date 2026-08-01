@@ -209,7 +209,7 @@ Deno.test("W19: telemetry-placement leak-guard — walker respects _meta.interna
 });
 
 Deno.test("W19: source assertion — old meta-commentary string not authored in index.ts", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-admt-checker/index.ts", import.meta.url));
   assert(
     !src.includes("supply the missing intake dimensions and re-run"),
     "old meta-commentary phrase still authored in index.ts",

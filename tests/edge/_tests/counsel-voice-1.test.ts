@@ -225,8 +225,8 @@ Deno.test("COUNSEL-VOICE-1B: extractProseFromReport skips reserved keys", async 
 
 Deno.test("CV1-FF: DPA + IR rulebooks contain zero NOTE-FOR-LEGAL-REVIEW emission instructions", async () => {
   const files = [
-    new URL("../generate-dpa/index.ts", import.meta.url),
-    new URL("../generate-ir-playbook/index.ts", import.meta.url),
+    new URL("../../../supabase/functions/generate-dpa/index.ts", import.meta.url),
+    new URL("../../../supabase/functions/generate-ir-playbook/index.ts", import.meta.url),
   ];
   const badges = /NOTE FOR LEGAL REVIEW/i;
   // A line is an "instruction context" if it mentions the retired heading
@@ -280,7 +280,7 @@ Deno.test("CV1-ALL: E5 accepts named-fact anywhere in sentence", () => {
 // ─── CV1-R: residual sweep — emitter constants must not carry referral directives ───
 
 Deno.test("CV1-R: generate-report-pdf disclaimer constants have no counsel-referral directive", async () => {
-  const src = await Deno.readTextFile(new URL("../generate-report-pdf/index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/generate-report-pdf/index.ts", import.meta.url));
   // The "counsel-review" enum label + "counsel review recommended" tier
   // string (~L1034) is a schema-bound admin label kept per CV1-R decision
   // pending; strip that line before scanning body-text templates.
@@ -302,7 +302,7 @@ Deno.test("CV1-R: generate-report-pdf disclaimer constants have no counsel-refer
 });
 
 Deno.test("CV1-R: run-governance-assessment disclaimer constants have no counsel-referral directive", async () => {
-  const src = await Deno.readTextFile(new URL("../run-governance-assessment/index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-governance-assessment/index.ts", import.meta.url));
   // Rulebook lines describing what the generator MUST NOT emit are exempt,
   // as are role-roster labels ("Legal Counsel" as owner) per CV1-ALL T4.
   const scanned = src.split("\n").filter((l) =>

@@ -58,7 +58,7 @@ Deno.test("cyber fixture answer_targets use DOTTED ask-vocabulary paths", () => 
 // maturity" enum_ref. Prevents regressions where cyber open_items freeze
 // with input_spec bounded-narrative instead of the maturity re-select.
 Deno.test("cyber T_CLASS pins 18 controls.<slug> → cppa_cybersecurity:maturity", async () => {
-  const src = await Deno.readTextFile(new URL("../_shared/open-items.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/_shared/open-items.ts", import.meta.url));
   for (const slug of EXPECTED_ORDER) {
     const needle = `"controls.${slug}"`;
     assertStringIncludes(src, needle);
@@ -177,7 +177,7 @@ Deno.test("extra rules allow 'Insufficient basis to assess' as a readiness label
 });
 
 Deno.test("synthesis prompt schema includes 'Insufficient basis to assess' for readiness_level", async () => {
-  const src = await Deno.readTextFile(new URL("../run-cppa-cybersecurity/index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));
   assertStringIncludes(
     src,
     '"readiness_level": "Audit-Ready | Substantially Ready | Material Gaps | Critical Gaps | Insufficient basis to assess"',
@@ -185,7 +185,7 @@ Deno.test("synthesis prompt schema includes 'Insufficient basis to assess' for r
 });
 
 Deno.test("consistency-fix block applies the ≥6 insufficient-info threshold", async () => {
-  const src = await Deno.readTextFile(new URL("../run-cppa-cybersecurity/index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));
   assertStringIncludes(src, "INSUFFICIENT_THRESHOLD = 6");
   assertStringIncludes(src, '"Insufficient basis to assess"');
 });

@@ -46,7 +46,7 @@ Deno.test("W16 BUILD_STAMP advanced to w16-risk-collapsecov@ (or w18 successor)"
 });
 
 Deno.test("W16 (i) walker key-mismatch regression — scope_and_triggers is the schema key", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   // The wave-15 walker read scope_analysis first; W16 must read scope_and_triggers.
   assertStringIncludes(src, "r.scope_and_triggers ?? r.scope_analysis ?? r.trigger_analysis");
   assertStringIncludes(src, "triggered_activities_detail");
@@ -148,7 +148,7 @@ Deno.test("W16 (viii) telemetry placement — new counters land under _meta.inte
 });
 
 Deno.test("W16 leak-guard — index.ts does NOT write __va_prose_* to entries", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   assert(!/it\.__va_prose/.test(src));
   assert(!/activity\.__va_/.test(src));
 });

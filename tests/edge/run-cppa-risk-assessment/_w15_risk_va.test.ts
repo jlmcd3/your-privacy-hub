@@ -141,7 +141,7 @@ Deno.test("W15 (e) telemetry key placement — internal.risk_va lands under _met
 });
 
 Deno.test("W15 leak-guard — index.ts does NOT write __va_stamp / __va_stamp_unresolved to entries", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   assert(!/it\.__va_stamp\s*=/.test(src), "entries must not carry __va_stamp (customer-surface leak)");
   assert(!/it\.__va_stamp_unresolved\s*=/.test(src), "entries must not carry __va_stamp_unresolved");
   assert(!/it\.__va_collapse_flag\s*=/.test(src), "entries must not carry __va_collapse_flag");

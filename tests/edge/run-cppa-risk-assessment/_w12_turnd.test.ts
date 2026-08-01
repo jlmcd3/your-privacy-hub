@@ -17,7 +17,7 @@ import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.t
 import { applyW10RiskB1, W12_RISK_D2_STAMP } from "./_w10_risk_b1.ts";
 
 Deno.test("TURN D — BUILD_STAMP restamped (w15-risk-factledger/w15-risk-regwire supersedes w12-risk-turnd)", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
   assert(m && (m[1].startsWith("w15-risk-factledger@") || m[1].startsWith("w15-risk-regwire@") || m[1].startsWith("w12-risk-turnd@") || m[1].startsWith("w16-risk-flfix@") || m[1].startsWith("w16-risk-collapsecov@") || m[1].startsWith("w18-risk-collapsecov2@") || m[1].startsWith("w18-risk-vocabscrub@") || m[1].startsWith("w19-risk-turnb@") || m[1].startsWith("w20-risk-turnb@") || m[1].startsWith("w21-risk-turna@") || m[1].startsWith("w22-risk-turna@") || m[1].startsWith("w23-risk-turnb@") || m[1].startsWith("w24-risk-turna@") || m[1].startsWith("w24a-v3@") || m[1].startsWith("t7-risk-pilotfix@") || m[1].startsWith("t7-risk-pilotfix2@") || m[1].startsWith("band-realignment-t2a@") || m[1].startsWith("ltp-risk-")), `unexpected stamp: ${m?.[1]}`);
 });
@@ -108,7 +108,7 @@ Deno.test("D2: 'profiling is not performed' downgraded when intake asserts Yes",
 
 // ---- D3 regression: prompt cite doctrine ----
 Deno.test("D3: PRECISE DEFINITION CITES rule includes § 1798.140(ai) for third party", async () => {
-  const src = await Deno.readTextFile(new URL("./index.ts", import.meta.url));
+  const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
   assert(
     src.includes("§ 1798.140(ai) ('third party')"),
     "prompt must carry the third-party (ai) cite verbatim",
