@@ -1,9 +1,9 @@
 // verification-scan: per-row extraction + verification.
-// Modes: 'initial' | 'targeted' | 'sample'.
+// Modes: 'initial' | 'targeted' | 'sample' | 'cached'.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2/cors";
-import { fetchSourceDocument } from "../_shared/source-fetcher.ts";
+import { fetchSourceDocument, sha256 } from "../_shared/source-fetcher.ts";
 import {
   checkSubjectPresent,
   checkRegulatorPresent,
@@ -35,7 +35,9 @@ const PRICE = {
   sonnet_in: 3.0, sonnet_out: 15.0,
 };
 
-type Mode = "initial" | "targeted" | "sample";
+type Mode = "initial" | "targeted" | "sample" | "cached";
+
+const CACHED_MIN_DOC_CHARS = 200;
 
 // Placeholder-subject precheck. Skip corpus rows whose subject is a generic
 // placeholder before any fetch or LLM cost is incurred.
@@ -86,7 +88,34 @@ async function logResult(
   });
 }
 
-async function selectRows(mode: Mode, batchSize: number, startAfterId: string | null, targetIds: string[] | null) {
+async function selectRows(
+  mode: Mode,
+  batchSize: number,
+  startAfterId: string | null,
+  targetIds: string[] | null,
+  jurisdictionIn: string[] | null = null,
+) {
+  if (mode === "cached") {
+    // Rows that already carry a captured source document — no network refetch.
+    let q = sb
+      .from("enforcement_actions")
+      .select(
+        "id, regulator, subject, jurisdiction, decision_date, law, source_url, key_compliance_failure, fine_eur_equivalent, source_document_hash, source_document_text, source_document_fetched_at, verification_status",
+        { count: "exact" },
+      )
+      .eq("verification_status", "unverified")
+      .not("source_document_text", "is", null)
+      .order("id", { ascending: true })
+      .limit(batchSize);
+    if (jurisdictionIn && jurisdictionIn.length > 0) q = q.in("jurisdiction", jurisdictionIn);
+    if (startAfterId) q = q.gt("id", startAfterId);
+    const { data, count } = await q;
+    const all = data ?? [];
+    const rows = all.filter(
+      (r: any) => (r.source_document_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS,
+    );
+    return { rows, remaining: (count ?? 0) - all.length, scanned: all.length, lastScannedId: all.length ? all[all.length - 1].id : null };
+  }
   if (mode === "targeted") {
     if (!targetIds || targetIds.length === 0) return { rows: [], remaining: 0 };
     const { data } = await sb
@@ -121,7 +150,7 @@ async function selectRows(mode: Mode, batchSize: number, startAfterId: string | 
   return { rows: data ?? [], remaining: (count ?? 0) - (data?.length ?? 0) };
 }
 
-async function processRow(row: any) {
+async function processRow(row: any, mode: Mode = "initial") {
   const id = row.id as string;
   const prevHash = row.source_document_hash as string | null;
   const prevStatus = row.verification_status as string | null;
@@ -150,7 +179,21 @@ async function processRow(row: any) {
     };
   }
 
-  const fetched = await fetchSourceDocument(row.source_url ?? "");
+  // Swappable "get document text" step. Live fetch for initial/targeted/sample;
+  // cached mode reuses the already-captured source_document_text verbatim.
+  const getDocument = async () => {
+    if (mode === "cached") {
+      const text = (row.source_document_text ?? "") as string;
+      return {
+        status: "ok" as const,
+        content_text: text,
+        content_hash: await sha256(text),
+      };
+    }
+    return await fetchSourceDocument(row.source_url ?? "");
+  };
+
+  const fetched: any = await getDocument();
   const fetchCheck = checkSourceUrlResolves(fetched.status);
 
   // Drift detection
@@ -377,15 +420,20 @@ Deno.serve(async (req) => {
     const batch_size: number = Math.min(Math.max(body.batch_size ?? 10, 1), 50);
     const start_after_id: string | null = body.start_after_id ?? null;
     const target_ids: string[] | null = body.target_ids ?? null;
+    const jurisdiction_in: string[] | null = Array.isArray(body.jurisdiction_in) && body.jurisdiction_in.length > 0
+      ? body.jurisdiction_in as string[]
+      : null;
 
-    if (!["initial", "targeted", "sample"].includes(mode)) {
+    if (!["initial", "targeted", "sample", "cached"].includes(mode)) {
       return new Response(JSON.stringify({ error: "invalid_mode" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { rows, remaining } = await selectRows(mode, batch_size, start_after_id, target_ids);
+    const sel: any = await selectRows(mode, batch_size, start_after_id, target_ids, jurisdiction_in);
+    const rows = sel.rows;
+    const remaining = sel.remaining;
 
     let verified = 0, failed = 0, requires_review = 0, memo_eligible_after = 0;
     const tokens = { haiku_input: 0, haiku_output: 0, sonnet_input: 0, sonnet_output: 0 };
@@ -393,7 +441,7 @@ Deno.serve(async (req) => {
 
     for (const row of rows) {
       try {
-        const r = await processRow(row);
+        const r = await processRow(row, mode);
         if (r.verdict === "verified") verified++;
         else if (r.verdict === "requires_review") requires_review++;
         else failed++;
@@ -414,6 +462,8 @@ Deno.serve(async (req) => {
         });
       }
     }
+
+    if (mode === "cached" && sel.lastScannedId) last_id = sel.lastScannedId;
 
     // Recompute memo_eligible_after_batch as count of just-processed rows that ended eligible.
     if (last_id || (target_ids?.length ?? 0) > 0) {
@@ -449,7 +499,11 @@ Deno.serve(async (req) => {
       estimated_remaining: Math.max(remaining, 0),
       batch_cost_usd: Number(batch_cost_usd.toFixed(4)),
       estimated_cost_remaining_usd: Number(estimated_cost_remaining_usd.toFixed(2)),
-      next_batch_available: mode === "initial" ? rows.length === batch_size : false,
+      next_batch_available: mode === "initial"
+        ? rows.length === batch_size
+        : mode === "cached"
+          ? (sel.scanned ?? 0) === batch_size
+          : false,
       tokens_used: tokens,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
