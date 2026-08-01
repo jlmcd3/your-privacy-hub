@@ -25,6 +25,7 @@
 import type { RenderPlan } from "../render-plan/schema.ts";
 import { CPPA_RISK_SECTION_SHARDS, expectedEmissionForKey, type SectionShard, type ExpectedEmission } from "./section-shards/cppa-risk.ts";
 import { renderTemplate, assertCalibrationMatch } from "./pass2-render.ts";
+import { applyMethodologyNote } from "../prose/methodology.ts";
 import { FIRM_VARIANT_CLOSENESS_MAX } from "./content/pass2-templates.ts";
 import {
   evaluateOpeningHarvest,
@@ -581,6 +582,11 @@ function assembleCore(
     }
   }
 
+  // ITEM 337 (PROSE PROGRAM 1, Part C) — METHODOLOGY NARRATION OUT OF BODY.
+  // Methodology sentences are stripped from every narrative field and the
+  // canonical note is rendered ONCE at report.methodology_note.
+  const methodology = applyMethodologyNote(report as Record<string, unknown>, { always: true });
+
   const shipped_surface = evaluateShippedSurfaceGuard(report);
   const shipped_value_screen = evaluateShippedValueScreen(report, { mode: exitMode });
   // CP5-COHERENCE-PROSE — exec/balance coherence, ENFORCED at exit.
@@ -622,6 +628,7 @@ function assembleCore(
         shipped_value_screen,
         shipped_coherence,
         golden_shape,
+        methodology_note: methodology,
       },
       structural_completeness: structural,
       composition_shape: COMPOSITION_SHAPE_DECLARATION,
