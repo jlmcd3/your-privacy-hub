@@ -114,10 +114,12 @@ export default function VerificationScanAdmin() {
         head(ea()).eq("verification_status", "failed"),
         head(ea()).eq("verification_status", "requires_review"),
         // Item 334: mechanical corpus-quality rejects, separated from the
-        // genuine human-review queue.
+        // genuine human-review queue. Item 340: match the whole
+        // corpus_defect_* family (subject, subject_unrepairable, regulator).
         head(ea())
           .eq("verification_status", "requires_review")
-          .eq("review_reason", "corpus_defect_subject"),
+          .like("review_reason", "corpus_defect%"),
+
         head(ea()).eq("memo_eligible", true),
         head(ea()).eq("verification_paraphrase_confidence", "high"),
         head(ea()).eq("verification_paraphrase_confidence", "medium"),
