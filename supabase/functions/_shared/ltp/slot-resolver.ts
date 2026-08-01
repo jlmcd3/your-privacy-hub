@@ -252,6 +252,28 @@ export function resolveSlot(
     case "secondary_activity_list":          return ctx.secondary_activity_list ?? "";
     case "secondary_divergence_clause":      return ctx.secondary_divergence_clause ?? "";
     case "secondary_recommendation_clause": return ctx.secondary_recommendation_clause ?? "";
+    // ── ITEM 320 (PROMPT B) — ROOT FIX for the empty-render defect ──────
+    // The Item 244 (L1/L3/L5) and (E1 v2) slots were declared on
+    // SlotContext but never given a resolver case, so every one fell to
+    // `default: return ""`. Under FILL-OR-OMIT (pass2-render.ts, Item 235)
+    // a template whose required plan_slots resolve empty is OMITTED
+    // wholesale — which is why T.risk.processing_narrative (and the L3/L5/
+    // E1-v2 templates) rendered as nothing even though the composer had
+    // populated every ctx value. Passthrough cases restore them.
+    case "pi_categories_clause":             return ctx.pi_categories_clause ?? "";
+    case "sources_clause":                   return ctx.sources_clause ?? "";
+    case "i1_processing_purpose_clause":     return ctx.i1_processing_purpose_clause ?? "";
+    case "i6_vendors_clause":                return ctx.i6_vendors_clause ?? "";
+    case "i4_disclosure_mechanisms_clause":  return ctx.i4_disclosure_mechanisms_clause ?? "";
+    case "i2_retention_period_clause":       return ctx.i2_retention_period_clause ?? "";
+    case "i2_retention_criteria_clause":     return ctx.i2_retention_criteria_clause ?? "";
+    case "i2_deletion_clause":               return ctx.i2_deletion_clause ?? "";
+    case "i1b_min_pi_clause":                return ctx.i1b_min_pi_clause ?? "";
+    case "affirmed_count_clause":            return ctx.affirmed_count_clause ?? "";
+    case "gap_count_clause":                 return ctx.gap_count_clause ?? "";
+    case "engaged_prong_label":              return ctx.engaged_prong_label ?? "";
+    case "engaged_prong_posture_clause":     return ctx.engaged_prong_posture_clause ?? "";
+    case "non_engaged_prongs_inline":        return ctx.non_engaged_prongs_inline ?? "";
     default:
       return "";
   }
