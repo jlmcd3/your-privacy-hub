@@ -35,11 +35,7 @@ import {
   HARM_IDS,
 } from "../../../supabase/functions/_shared/ltp/analytic-deliverables/harm-catalogue";
 
-import {
-  joinHyphenLineBreaks,
-  normTypography as norm,
-  normCorpus,
-} from "./helpers/corpus-normalize";
+import { normTypography as norm, normCorpus } from "./helpers/corpus-normalize";
 
 const PAGE_HEADER = norm(
   "CA PRIVACY PROTECTION AGENCY – TEXT OF REGULATIONS " +
