@@ -35,26 +35,11 @@ import {
   HARM_IDS,
 } from "../../../supabase/functions/_shared/ltp/analytic-deliverables/harm-catalogue";
 
-/**
- * The canonical PDF breaks hyphenated compounds across lines (e.g.
- * "non-\nmedical" in sub-paragraph (H)). Drop the line break but KEEP the
- * hyphen — it is part of the word, not typesetting. Only applied to the
- * CORPUS side; the catalogue is never rewritten to match.
- */
-function joinHyphenLineBreaks(s: string): string {
-  return String(s).replace(/(\p{Ll}-)\s*\n\s*(\p{Ll})/gu, "$1$2");
-}
-
-/** Normalize typography only — curly quotes/dashes, NBSP, whitespace runs. */
-function norm(s: string): string {
-  return String(s)
-    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
-    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
-    .replace(/[\u2013\u2014]/g, "-")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+import {
+  joinHyphenLineBreaks,
+  normTypography as norm,
+  normCorpus,
+} from "./helpers/corpus-normalize";
 
 const PAGE_HEADER = norm(
   "CA PRIVACY PROTECTION AGENCY – TEXT OF REGULATIONS " +
@@ -78,7 +63,7 @@ async function loadCorpusRow(key: string): Promise<string | null> {
     maxBuffer: 32 * 1024 * 1024,
   });
   const body = out.trim();
-  return body ? norm(joinHyphenLineBreaks(body)) : null;
+  return body ? normCorpus(body) : null;
 }
 
 describe("§ 7152(a)(5)(A)–(H) harm catalogue — structural invariants", () => {
