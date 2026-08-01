@@ -147,6 +147,15 @@ export interface SectionRenderResult {
   readonly record_card: readonly RecordCardLine[];
   /** Every connective emitted, with the engine edge that licensed it. */
   readonly connectives: readonly ConnectiveUse[];
+  /**
+   * The JOIN SEAMS only — the section text with each statement's own body
+   * removed. The connective audit runs over this, because a connective inside
+   * a statement is part of an authored, pinned clause (an engine conclusion
+   * whose causal claim IS the determination), whereas a connective at a seam is
+   * a claim the RENDERER made about how two statements relate. Only the latter
+   * needs an edge.
+   */
+  readonly join_seams: string;
   readonly lint: readonly PlanRenderLintFinding[];
 }
 
@@ -347,8 +356,13 @@ export function renderPlannedSection(
     text = text ? `${text}\n\n${card}` : card;
   }
 
-  // Self-audit: any connective in the text that no edge licensed is a defect.
-  const audit = auditConnectives(stripRecordCard(text, record_card.length), connectives);
+  // Self-audit over the SEAMS: any connective the renderer inserted between
+  // two statements that no computed edge licensed is a defect.
+  const join_seams = seamsOf(
+    stripRecordCard(text, record_card.length),
+    [lead, ...body].filter(Boolean),
+  );
+  const audit = auditConnectives(join_seams, connectives);
   for (const f of audit.findings) {
     lint.push({
       rule: "unlicensed_connective",
@@ -371,8 +385,29 @@ export function renderPlannedSection(
     variants_used: agg.variants_used,
     record_card,
     connectives,
+    join_seams,
     lint,
   };
+}
+
+/**
+ * Removes each statement's own body from the rendered text, leaving the glue
+ * the renderer inserted between statements.
+ */
+function seamsOf(text: string, fragments: readonly string[]): string {
+  let out = text;
+  for (const f of fragments) {
+    const body = f.trim().replace(/^[A-Z]/, (c) => c.toLowerCase()).replace(/[.;]\s*$/, "");
+    if (body.length < 8) continue;
+    for (const variant of [body, body[0].toUpperCase() + body.slice(1)]) {
+      const at = out.indexOf(variant);
+      if (at >= 0) {
+        out = out.slice(0, at) + " \u2588 " + out.slice(at + variant.length);
+        break;
+      }
+    }
+  }
+  return out;
 }
 
 /** The record card is labeled data, not prose; it is out of scope for the audit. */
@@ -384,10 +419,7 @@ function stripRecordCard(text: string, cardLines: number): string {
 
 /** Convenience for tests and reports: audit a finished section render. */
 export function auditSectionConnectives(result: SectionRenderResult): ConnectiveAudit {
-  return auditConnectives(
-    stripRecordCard(result.text, result.record_card.length),
-    result.connectives,
-  );
+  return auditConnectives(result.join_seams, result.connectives);
 }
 
 const upperFirst = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
