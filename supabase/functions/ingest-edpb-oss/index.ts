@@ -67,6 +67,10 @@ function decodeEntities(s: string): string {
     .replace(/&rdquo;/g, "\u201d");
 }
 
+function absoluteUrl(href: string): string {
+  return href.startsWith("http") ? href : `https://www.edpb.europa.eu${href}`;
+}
+
 function uniq(xs: string[]): string[] {
   return Array.from(new Set(xs.filter((x) => x && x.length > 0)));
 }
@@ -159,7 +163,7 @@ export function parseRegisterPage(html: string): RegisterRow[] {
     const topic_tags = dlValues(block, "relevant-topics-label", "relevant-topics-value");
     const outcomes = dlValues(block, "outcome-label", "outcome-value");
 
-    const pdfM = block.match(/href="(https:\/\/[^"]*\.pdf)"/i);
+    const pdfM = block.match(/href="((?:https:\/\/[^"]*|\/[^"]*)\.pdf)"/i);
 
     rows.push({
       case_reference,
@@ -169,7 +173,7 @@ export function parseRegisterPage(html: string): RegisterRow[] {
       gdpr_provisions,
       topic_tags,
       outcomes,
-      decision_pdf_url: pdfM ? pdfM[1] : null,
+      decision_pdf_url: pdfM ? absoluteUrl(pdfM[1]) : null,
     });
   }
   return rows;
@@ -210,10 +214,10 @@ export function parseDigestIndex(html: string): DigestLink[] {
   const out: DigestLink[] = [];
   const seen = new Set<string>();
   const re =
-    /href="(https:\/\/www\.edpb\.europa\.eu\/documents\/support-pool-of-experts\/[^"]*one-stop-shop-case-digest[^"]*)"/gi;
+    /href="((?:https:\/\/www\.edpb\.europa\.eu)?\/documents\/support-pool-of-experts\/[^"]*one-stop-shop-case-digest[^"]*)"/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) !== null) {
-    const url = m[1];
+    const url = absoluteUrl(m[1]);
     if (seen.has(url)) continue;
     seen.add(url);
     out.push({ title: "", url, date: null });
@@ -299,12 +303,12 @@ Deno.serve(async (req) => {
           const titleM = page.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
           const title = titleM ? stripTags(titleM[1]) : link.url;
           const dateM = page.match(/<time[^>]*datetime="([^"T]+)/i);
-          const pdfM = page.match(/href="(https:\/\/[^"]*\.pdf)"/i);
+          const pdfM = page.match(/href="((?:https:\/\/[^"]*|\/[^"]*)\.pdf)"/i);
           const introM = page.match(
             /<div[^>]*(?:field--name-body|node__content)[^>]*>([\s\S]{0,6000}?)<\/div>/i,
           );
           const summary_text = introM ? stripTags(introM[1]).slice(0, 4000) : null;
-          const pdfUrl = pdfM ? pdfM[1] : null;
+          const pdfUrl = pdfM ? absoluteUrl(pdfM[1]) : null;
           const docText = pdfUrl && fetchPdfText ? await pdfToText(pdfUrl) : null;
 
           const provisions = uniq(
