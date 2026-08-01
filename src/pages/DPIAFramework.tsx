@@ -206,26 +206,39 @@ const DPIAFramework = () => {
       setActiveTemplateRef(k);
     }
   });
+  // WP248-PINNING (2026-08-01) — for the two WP248-anchored fields the right
+  // "law" column also surfaces verbatim edpb_guidelines text (sibling hook).
+  const wp248Entry = activeTemplateRef ? EDPB_DPIA_GUIDANCE[activeTemplateRef] : null;
+  const edpbRailOpts = wp248Entry?.verbatimPropositionKey
+    ? { guidelineRef: "WP248 rev.01", verbatimQuote: wp248Entry.guidance }
+    : null;
+  const { regulationText: edpbRegulationText } = useEdpbGuidelineRailEntry(edpbRailOpts);
+
   const templateRailEntry = useMemo(() => {
     if (!activeTemplateRef) return null;
     const g = EDPB_DPIA_GUIDANCE[activeTemplateRef];
     if (!g) return null;
+    const sourceLabel = g.sourceLabel ?? EDPB_DPIA_SOURCE.label;
+    const sourceUrl = g.sourceUrl ?? EDPB_DPIA_SOURCE.url;
     return {
-      fieldLabel: `EDPB DPIA template · § ${g.sectionRef}`,
-      citation: `EDPB DPIA template § ${g.sectionRef}`,
-      citationUrl: EDPB_DPIA_SOURCE.url,
+      fieldLabel: g.verbatimPropositionKey
+        ? `EDPB WP248 rev.01 · ${g.sectionTitle}`
+        : `EDPB DPIA template · § ${g.sectionRef}`,
+      citation: g.citation ?? `EDPB DPIA template § ${g.sectionRef}`,
+      citationUrl: sourceUrl,
       plainSummary: g.guidance,
-      regulationText: "",
+      regulationText: g.verbatimPropositionKey ? (edpbRegulationText ?? "") : "",
       templateGuidance: {
         sectionRef: g.sectionRef,
         sectionTitle: g.sectionTitle,
         guidance: g.guidance,
         paraRefs: g.paraRefs,
-        sourceLabel: EDPB_DPIA_SOURCE.label,
-        sourceUrl: EDPB_DPIA_SOURCE.url,
+        sourceLabel,
+        sourceUrl,
       },
     };
-  }, [activeTemplateRef]);
+  }, [activeTemplateRef, edpbRegulationText]);
+
 
   const dpiaEnforcementSignals = useGdprEnforcementSignals(
     ["special_categories", "dpia_absence", "international_transfer"],
