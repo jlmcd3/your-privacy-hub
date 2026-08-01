@@ -9275,3 +9275,44 @@ fix in `production-entry.ts` is necessary but not sufficient; the live env value
 confirmed at Phase 0 of the next attempt. The telemetry dual-write added in this item makes
 that gate self-reporting: if it fires, `_ltp.pass2r_skipped_reason` will say so on the row
 instead of the run silently shipping deterministic prose.
+
+## Item 355 — T-M CUTOVER ATTEMPT #6 — PHASE 2 FAILED, ROLLED BACK
+
+**PHASE 0 (green):** conformance suite 19 passed; Deno edge suite at baseline (2112 passed / 72 pre-existing failures); vitest 998 passed; `_shared` 2.8 MB / orchestrator 498 KB (under ~5 MB cap); `LTP_ENFORCE_ENABLED=1` confirmed; rollback path intact:
+`git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite`
+
+**PHASE 1:** swapped `run-cppa-risk-assessment` to `runLtpProduction`, enforce mode, build stamp `ltp-risk-tm-cutover-item355@2026-08-01`. Boot log (verbatim):
+```
+2026-08-01T23:02:40Z boot build_stamp=ltp-risk-tm-cutover-item355@2026-08-01
+2026-08-01T23:02:40Z boot ltp_mode=enforce composition_enforce=1 safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst
+2026-08-01T23:02:40Z boot engine_path=ltp cutover=T-M item=355 item245=RELEASED legacy_engine=item217-retained-not-called
+```
+
+**PHASE 2 — live dual smoke (fixtures a3550000-…-0001 perfect / …-0002 messy), FAILED.**
+Both runs completed on the LTP path (`_engine_path=ltp`, `engine_path=ltp`, status `complete`).
+Full Item 354 conformance suite run against the two live-persisted `report_data` payloads:
+```
+FAILED | 17 passed | 2 failed
+[item355-live][perfect-a073d9c5] surface key set matches the versioned contract => FAIL
+[item355-live][messy-bd458f0d] surface key set matches the versioned contract => FAIL
+```
+- **FAILURE 1 (blocking, contract):** live surface ships **34** keys against the versioned 32-key contract. Live-only keys on BOTH records: `_engine_path`, `risk_assessment_by_activity`. `contract-only: []` — nothing missing, two undeclared keys added by the production entry/persist path that the harness render does not produce. Harness-side green therefore did not predict the live surface: the contract fixture was derived from `assembleReport` output, not from the persisted payload.
+- **FAILURE 2 (blocking, Item 353 FAILURE 3 recurrence):** `shipped_surface = "deterministic"` on BOTH records, yet Pass-2R telemetry keys (`pass2r_skipped_reason`, `pass2r_attempt_rejections`, `pass2r_prose_rejected`) are **absent (null) on both** — silent fallback, which Item 354 defines as a finding, not a pass. Edge logs show Pass-2R model calls DID execute, but only AFTER persist-first wrote the deterministic surface:
+```
+23:04:08/23:04:10 ltp_production_persist_first … pass1_ok=true
+23:05:05 shutdown
+23:05:33 [ltp-pass2r-prose] callAnthropic elapsed=85092ms stop=end_turn output_tokens=4097
+23:05:45 [ltp-pass2r-prose] callAnthropic elapsed=94911ms stop=end_turn output_tokens=4627
+23:06:39 [ltp-pass2r-prose] callAnthropic elapsed=66362ms
+23:07:00 [ltp-pass2r-prose] callAnthropic elapsed=75627ms
+```
+Diagnosis to carry into the fix item: Pass-2R runs outside the persisted lifecycle (post-persist / post-shutdown), so its prose never reaches the shipped surface and its telemetry never lands.
+- All 17 other conformance checks PASSED on live output, including: no internal-forbidden tokens / no `info_emit_gate_*` on the customer surface; `risk_level` a human band and `overall_score` scalar; `risk_register`/`top_risks` customer-shaped; annotations title+citation only; `processing_narrative` non-empty and free of raw JSON and `[registry:` literals; no snake_case field-name subjects; `record_sufficiency` and `information_needed` differ between records; messy needs ≥ perfect (`information_needed` perfect=1, messy=2).
+
+**ROLLBACK (executed immediately, no inline fixes):** `git archive 4fe2e76c1 …` restore, Item-348 relocations re-applied (`pipeline.ts`, `retry-budget.ts`, `future-building/signature.ts`, `source-fields-validator.ts` → `./_local/…`), redeployed. Live boot verified:
+```
+2026-08-01T23:08:06Z boot build_stamp=ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z
+```
+Throwaway Phase-2 driver `item355-smoke` (hard-pinned to the two fixture IDs) deleted from the project and from the platform after use.
+
+**PHASE 3 NOT REACHED.** Item 245 hold **REMAINS ACTIVE**; Items 319–321 remain NOT DEPLOYED. Next critical path: (1) rebase the surface contract on the persisted payload and reconcile `_engine_path` / `risk_assessment_by_activity`; (2) make Pass-2R ship inside the persisted lifecycle or record an explicit rejection reason.
