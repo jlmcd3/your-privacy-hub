@@ -1559,6 +1559,7 @@ export type Database = {
           regulator_canonical: string | null
           regulator_profile_version: string | null
           regulatory_family: string[] | null
+          review_reason: string | null
           sector: string | null
           sector_extraction_method: string | null
           source_database: string | null
@@ -1631,6 +1632,7 @@ export type Database = {
           regulator_canonical?: string | null
           regulator_profile_version?: string | null
           regulatory_family?: string[] | null
+          review_reason?: string | null
           sector?: string | null
           sector_extraction_method?: string | null
           source_database?: string | null
@@ -1703,6 +1705,7 @@ export type Database = {
           regulator_canonical?: string | null
           regulator_profile_version?: string | null
           regulatory_family?: string[] | null
+          review_reason?: string | null
           sector?: string | null
           sector_extraction_method?: string | null
           source_database?: string | null
