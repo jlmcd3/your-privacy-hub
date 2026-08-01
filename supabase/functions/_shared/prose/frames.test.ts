@@ -142,3 +142,94 @@ Deno.test("F11 — an approved set renders; frame provenance is retained", () =>
   assertEquals(r.frame_id, "cppa-risk.record_echo.001");
   assert(r.rendered?.includes("AWS, Snowflake, and Zendesk"));
 });
+
+// ── ITEM 346 — THREE-SLOT-TYPE AND NO-FLATTENING GUARANTEES ────────────
+import { buildCppaRiskFrameValues } from "./frames/cppa-risk.values.ts";
+import { checkCoverage, collectCoverageAtoms } from "./frame-coverage.ts";
+import { CPPA_RISK_ENGINE_CONCLUSIONS, resolveEngineConclusion } from "./engine-conclusions.ts";
+import { CPPA_RISK_LEGAL_PHRASINGS } from "./legal-phrasings.ts";
+import { buildActivityAnalytics } from "../ltp/analytic-deliverables/build.ts";
+import { CPPA_RISK_GOLDEN } from "../golden/cppa-risk.ts";
+
+const SECTIONS_346 = [
+  "opening_analysis",
+  "processing_narrative",
+  "record_echo",
+  "scope_notes",
+  "necessity_analysis",
+  "harm_analysis",
+  "benefits_rationale",
+];
+
+function renderAll346(): string {
+  const intake = CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>;
+  const analytics = buildActivityAnalytics(intake)[0];
+  const { values } = buildCppaRiskFrameValues({ intake, analytics });
+  const approved: FrameSet = {
+    ...CPPA_RISK_FRAMES,
+    approved: true,
+    frames: CPPA_RISK_FRAMES.frames.map((f) => ({ ...f, status: "approved" as const })),
+  };
+  return SECTIONS_346
+    .map((s) => renderSectionFromFrames(approved, s, { values, contract: "cppa-risk" }).rendered ?? "")
+    .join("\n");
+}
+
+Deno.test("F12 — every section of the revised set renders on a COMPLETE record", () => {
+  const intake = CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>;
+  const analytics = buildActivityAnalytics(intake)[0];
+  const { values } = buildCppaRiskFrameValues({ intake, analytics });
+  const approved: FrameSet = {
+    ...CPPA_RISK_FRAMES,
+    approved: true,
+    frames: CPPA_RISK_FRAMES.frames.map((f) => ({ ...f, status: "approved" as const })),
+  };
+  for (const section of SECTIONS_346) {
+    const r = renderSectionFromFrames(approved, section, { values, contract: "cppa-risk" });
+    assert(r.rendered, `${section} omitted: ${r.missing_required.join(", ")}`);
+  }
+});
+
+Deno.test("F13 — NO FLATTENING: every composer atom survives into the framed render", () => {
+  const intake = CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>;
+  const analytics = buildActivityAnalytics(intake)[0];
+  const report = checkCoverage(collectCoverageAtoms({ analytics }), renderAll346(), {
+    clauseFor: (k) => resolveEngineConclusion("cppa-risk", k),
+  });
+  assert(report.total > 0);
+  assertEquals(report.findings.map((f) => `${f.atom.kind}@${f.atom.path}`), []);
+});
+
+Deno.test("F14 — cite slots resolve in a REVIEW render (no literal registry stub)", () => {
+  const text = renderAll346();
+  assert(text.includes("11 CCR §"), "no pinpoint resolved in the review render");
+  assert(!text.includes("[registry:"), "review render printed a literal registry stub");
+});
+
+Deno.test("F15 — legal and conclusion slots are PINNED data, never frame prose", () => {
+  for (const f of CPPA_RISK_FRAMES.frames) {
+    for (const p of f.placeholders) {
+      if (p.kind === "legal") {
+        assert(CPPA_RISK_LEGAL_PHRASINGS[p.source], `${f.id}: unpinned legal ${p.source}`);
+      }
+      if (p.kind === "conclusion" && !p.source.startsWith("@")) {
+        assert(
+          CPPA_RISK_ENGINE_CONCLUSIONS[p.source.split("#")[0]],
+          `${f.id}: unpinned conclusion ${p.source}`,
+        );
+      }
+    }
+  }
+  for (const row of Object.values(CPPA_RISK_LEGAL_PHRASINGS)) assertEquals(row.status, "pinned");
+  for (const row of Object.values(CPPA_RISK_ENGINE_CONCLUSIONS)) assertEquals(row.status, "pinned");
+});
+
+Deno.test("F16 — an engine determination with no pinned clause fails closed (silent, never invented)", () => {
+  assertEquals(resolveEngineConclusion("cppa-risk", "consequence.not_a_real_decision"), null);
+  assertEquals(resolveEngineConclusion("cppa-risk", "consequence.initiate#blocked"), null);
+});
+
+Deno.test("F17 — the revised set stays UNAPPROVED pending CEO sign-off", () => {
+  assertEquals(CPPA_RISK_FRAMES.approved, false);
+  assertEquals(frameSetRenderable(CPPA_RISK_FRAMES), false);
+});
