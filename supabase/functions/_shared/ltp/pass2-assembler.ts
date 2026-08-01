@@ -186,6 +186,9 @@ export interface ExitCheckTelemetry {
   };
   /** ITEM 241.1 — depth telemetry against the top-50 empirical quotas. */
   readonly golden_shape: GoldenShapeReport;
+  /** ITEM 337 Part C — methodology sentences stripped from body text. */
+  readonly methodology_note?: { readonly removed: number; readonly note_attached: boolean };
+
 }
 
 export interface StructuralCompletenessRow {
