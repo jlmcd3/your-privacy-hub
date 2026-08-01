@@ -7762,3 +7762,25 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **5. Known-not-clean.** The parent `quality_batch_runs` row stayed `status=running / phase=running_tool` after the child completed: the parent is finalized by the admin page's `poll` action, which is admin-JWT-only and not reachable from the agent shell (the internal cron path accepts `start` only). Child data is authoritative and complete. Variant was `null` (Perfect) — the internal `start` path does not accept `fixture_variant`; messy-variant runs must be launched from `/admin/final-test`. A temporary relay function (`item331-batch-trigger`) was deployed to reach the internal start path and has been deleted, with its `config.toml` entry removed.
 
 **Disposition:** SHIPPED (fixtures + verified run). Item 245 deploy hold unaffected.
+
+---
+
+## Item 332 — SECURITY: OWNER-UPDATE LOCKDOWN + PARAPHRASE JSON HARDENING (2026-08-01)
+
+**Dispatch:** two surgical CEO-approved fixes. No change to `run-cppa-risk-assessment` or anything under the Item 245 hold; no frontend publish this turn.
+
+**FIX 1 — `paid_assessment_tables_unrestricted_update` + `registration_orders_unrestricted_update` (both ERROR).**
+
+*Verify-first.* Searched all of `src/` and `supabase/functions/` for UPDATE paths against the affected tables. Result: the **only** client-side UPDATE is `src/pages/RegistrationMyFilings.tsx:74` setting `renewal_reminders_enabled`. Every other write (`generate-dpa`, `check-biometric-compliance`, `run-dpia-framework`, `create-registration-checkout`, `payments-webhook`, quality/replay harness) runs in an edge function under `service_role`, which bypasses RLS and column ACLs. Dynamic `from(table)` call sites (`useRefineMode`, `checkoutConfirmation`, `assertionRunner`, `stress/runners`, `RecentReportsCard`, `AdminSampleReports`) are reads/inserts only.
+
+*Migration.* For `li_assessments`, `governance_assessments`, `dpia_frameworks`, `dpa_documents`, `ir_playbooks`, `biometric_assessments`, `cppa_assessments`: dropped the owner `FOR ALL` policy and replaced it with owner `SELECT` / `INSERT` / `DELETE` policies (same `auth.uid() = user_id` qual), then `REVOKE UPDATE ... FROM anon, authenticated`. No client UPDATE path remains at either the policy or ACL layer. Existing `*_admin_delete` and service-role policies untouched. For `registration_orders`: dropped `Users update own orders limited`, created `registration_orders_owner_update_pref` (owner-scoped UPDATE), then `REVOKE UPDATE ... FROM anon, authenticated` and `GRANT UPDATE (renewal_reminders_enabled, updated_at) ... TO authenticated` — column-level ACL rather than a WITH CHECK expression, per SEC-2 memory (WITH CHECK cannot reference OLD).
+
+*Evidence.* `has_column_privilege('authenticated','registration_orders','renewal_reminders_enabled','UPDATE')` = **t**; `...'payment_status','UPDATE'` = **f**; `has_table_privilege('service_role', ...,'UPDATE')` = **t**. `information_schema.table_privileges` returns zero UPDATE grants to anon/authenticated on all eight tables.
+
+*Advisor.* Post-migration `security--run_security_scan` returns **63 linter findings**, all pre-existing `Security Definer View` / `Extension in Public` / `Public Can Execute SECURITY DEFINER Function` entries on the standing ignored list. No new findings introduced. Both ERROR findings marked fixed via `security--manage_security_finding`; scanner response: **"No security findings remain active."**
+
+**FIX 2 — `paraphrase_faithfulness` JSON parse hardening.** `supabase/functions/_shared/paraphrase-faithfulness.ts` gains `extractFirstJsonObject()`, a string- and escape-aware brace matcher that pulls the first well-formed top-level JSON object out of the model's text (handles the recorded `json_parse: Unexpected token 'L', "Looking at"...` prose-preface failures and fenced blocks). The Anthropic envelope parse and the payload parse are now separated so their errors are distinguishable (`envelope_parse:` vs `json_extract:` vs `json_parse:`). `supabase/functions/verification-scan/index.ts` now records `verdict = "uncertain"` (not `"fail"`) for `parse_error`, with the parse error preserved in `notes` — degrade honestly, never fabricate a pass/fail. Row-level `verification_status` behaviour is unchanged (`confidence === "failed"` still withholds `verified`). No other check's logic touched.
+
+**Files changed:** one migration; `supabase/functions/_shared/paraphrase-faithfulness.ts`; `supabase/functions/verification-scan/index.ts`; this ledger.
+
+**Disposition:** SHIPPED. Item 245 deploy hold unaffected.
