@@ -61,12 +61,16 @@ const GOLDEN_REPORT = () => ({
 });
 
 describe("W9-RISK-SLOTS golden presence", () => {
-  it("attestation_block renders identity from intake + § 7156 basis", () => {
+  it("attestation_block renders identity from intake + §§ 7156/7157 basis", () => {
     const ab = buildAttestationBlock(GOLDEN_INTAKE, GOLDEN_REPORT());
     expect(ab.certifying_executive_name).toBe("Alexandra Rivera");
     expect(ab.certifying_executive_title).toBe("Chief Privacy Officer");
     expect(ab.certifying_contact_email).toBe("arivera@golden.example");
-    expect(ab.statutory_basis).toMatch(/7156/);
+    // Item 338 re-pin (drift, not defect): WAVEB2-CLOSURE (item 157, commit
+    // 97a1629ff, 2026-07-27) intentionally re-anchored the attestation to
+    // § 7157(b)(5)/(c) and dropped § 7156(a) as unverified in provision_texts;
+    // the runtime validator already accepts either (/715[67]/).
+    expect(ab.statutory_basis).toMatch(/715[67]/);
     expect(ab.certification_statement.length).toBeGreaterThan(40);
     expect(["pending", "submitted", "not_required"]).toContain(ab.submission_status);
   });

@@ -115,13 +115,17 @@ describe("semantic typography utilities", () => {
     { cls: "text-label", expected: 12 },
     { cls: "text-label-caps", expected: 11, floor: 11 },
     { cls: "text-meta", expected: 13 },
-    { cls: "text-nav", expected: 14 },
+    // Item 338 re-pin (drift, not defect): the UX-1a fluid-typography retune
+    // (commits 3a56b3141 / 264cff76a, 2026-07-21) is the intended runtime —
+    // these four moved to 15px nav and clamp FLOORS of 18/25/32px, all above
+    // the 12px floor; the pins had kept the pre-UX-1a Brand v7 numbers.
+    { cls: "text-nav", expected: 15 },            // UX-1a: 0.9375rem
     { cls: "text-cta", expected: 15 },
     { cls: "text-body", expected: 16 },
-    { cls: "text-card-title", expected: 20 },     // clamp floor
-    { cls: "text-section-h2", expected: 26 },     // clamp floor
-    { cls: "text-page-h1", expected: 32 },        // clamp floor
-    { cls: "text-hero-h1", expected: 40 },        // clamp floor
+    { cls: "text-card-title", expected: 18 },     // clamp floor (18px → 20px)
+    { cls: "text-section-h2", expected: 25 },     // clamp floor (25px → 31px)
+    { cls: "text-page-h1", expected: 32 },        // clamp floor (32px → 44px)
+    { cls: "text-hero-h1", expected: 32 },        // clamp floor (32px → 44px)
   ];
 
   for (const { cls, expected, floor } of cases) {
