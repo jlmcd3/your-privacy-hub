@@ -1151,8 +1151,11 @@ async function runPipeline(assessment_id: string) {
         assembled.report as Record<string, unknown>,
         { enabled: true, callerName: "run-cppa-risk-assessment" },
       );
-      const merged = stage.shipped_surface === "prose" && stage.prose
-        ? { ...(assembled.report as Record<string, unknown>), ...(stage.prose as Record<string, unknown>) }
+      // PROMOTED VERBATIM from ltp-risk-doc-gen (the code graded green in the
+      // Item 335 baseline): the merge condition is byte-identical, so the
+      // customer path ships exactly the surface that was measured.
+      const merged = (stage.shipped_surface as string) === "prose" && (stage as { prose?: unknown }).prose
+        ? { ...(assembled.report as Record<string, unknown>), ...((stage as { prose?: unknown }).prose as Record<string, unknown>) }
         : (assembled.report as Record<string, unknown>);
       let finalReport = withMeta(merged, stage.shipped_surface, {
         pass2r_telemetry: stage.telemetry ?? null,
