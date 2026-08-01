@@ -52,6 +52,13 @@ const ABBREV_SET: ReadonlySet<string> = new Set(LEGAL_ABBREVIATIONS);
 /** A single capital letter followed by a period is an initial ("J. Smith"). */
 const INITIAL_RE = /^[A-Z]\.$/;
 
+/**
+ * Dotted initialism run — "U.S.", "C.F.", "C.F.R.", "N.V.". A period inside
+ * such a run is never a sentence boundary, even when the next character is a
+ * capital ("45 C.F.R. § 164.312").
+ */
+const DOTTED_INITIALISM_RE = /^(?:[A-Za-z]\.){2,}$/;
+
 /** Trailing token immediately before the boundary index. */
 function trailingToken(text: string, endIdxExclusive: number): string {
   let i = endIdxExclusive;
@@ -76,6 +83,9 @@ export function isSentenceBoundary(text: string, endIdxExclusive: number): boole
   const lower = tok.toLowerCase();
   if (ABBREV_SET.has(lower)) return false;
   if (INITIAL_RE.test(tok)) return false;
+  if (DOTTED_INITIALISM_RE.test(tok)) return false;
+  // A dotted initialism CONTINUES across the boundary: "45 C.F.|R. § 164".
+  if (/^(?:[A-Za-z]\.)+$/.test(tok) && /^\s*[A-Za-z]\./.test(text.slice(endIdxExclusive))) return false;
   // "§ 7152(a)." style — a bare section symbol run is never terminal when a
   // pinpoint follows.
   if (/^§+\.?$/.test(tok)) return false;
