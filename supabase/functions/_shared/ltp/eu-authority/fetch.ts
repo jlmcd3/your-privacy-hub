@@ -19,6 +19,10 @@
 import { EU_GUIDANCE_PINS } from "./pinned-guidance.ts";
 import { EU_TOPIC_RULES } from "./topics.ts";
 import type { EuAuthorityCorpus, EuVerifiedPrecedent } from "./types.ts";
+// ITEM 354 — enforcement surface gate. This is a cppa-risk precedent surface:
+// full memo bar + allow-list (eu_dpa / eea_dpa / uk_dpa), cppa excluded by the
+// named, dated CPPA-INCLUSION-GATE (2026-08-01).
+import { gateRow, GATE_COLUMNS } from "../../enforcement/surface-gate.ts";
 
 /** Minimal structural client type — avoids a hard SDK import here. */
 interface QueryClient {
@@ -84,7 +88,7 @@ export async function fetchEuAuthorityCorpus(
     // 3. VERIFIED enforcement rows only.
     const { data: enf } = await supabase
       .from("enforcement_actions")
-      .select("subject, regulator, jurisdiction, decision_date, law, violation, fine_eur, source_url, verification_status")
+      .select("subject, regulator, jurisdiction, decision_date, law, violation, fine_eur, source_url, " + GATE_COLUMNS)
       .eq("verification_status", "verified")
       .not("subject", "is", null)
       .not("source_url", "is", null)
@@ -93,6 +97,8 @@ export async function fetchEuAuthorityCorpus(
 
     const verified_enforcement: EuVerifiedPrecedent[] = [];
     for (const r of (enf ?? []) as Record<string, any>[]) {
+      // ITEM 354 surface gate — fail closed before any other consideration.
+      if (!gateRow(r, { product: "cppa-risk" }).allowed) continue;
       const subject = String(r.subject ?? "").trim();
       const source_url = String(r.source_url ?? "").trim();
       // A row without a named subject is a corpus defect, not a precedent.

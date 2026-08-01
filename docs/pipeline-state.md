@@ -8808,3 +8808,65 @@ Next prerequisites, in order: (1) render `risk_level`/`overall_score`/`risk_regi
 contracts on the LTP entry (no factor-table objects on customer surfaces); (2) emit the § 7156(a) directive
 section on the production path; (3) make Pass-2R actually ship (`shipped_surface = "2R"`) on the production
 entry, or state why deterministic is acceptable for release.
+
+---
+
+## ITEM 354 — ENFORCEMENT SURFACE GATING (CEO-approved; implements the Item 352 stratification memo)
+
+**Scope**: gate module + wiring of the enumerated enforcement/precedent surfaces. No other logic changes. Item 245 posture untouched (hold REMAINS ACTIVE; no cutover activity this item).
+
+### 1. Enumerated surfaces (verify-first sweep over `enforcement_actions` consumers)
+
+| # | Surface | Kind | Customer-facing? | Gated? |
+|---|---|---|---|---|
+| 1 | `get-enforcement-context` | edge fn (hub — feeds DPA, IR playbook, improvement kit, enrich-with-context) | YES | YES (per-caller `tool` → profile) |
+| 2 | `get-enforcement-archive` | edge fn (premium archive browse) | YES | YES (`preserved` profile) |
+| 3 | `_shared/ltp/eu-authority/fetch.ts` | LTP cppa-risk persuasive-authority corpus fetch | YES | YES (`cppa-risk` profile, full bar) |
+| 4 | `get-memo-eligible-with-freshness` | edge fn, memo-eligibility count only (no rows emitted) | no rows | n/a |
+| 5 | `_shared/pass-g/lia-candidate-index.ts` | static candidate index; enforcement tier **empty by finding** | no rows | n/a (already zero) |
+| 6 | `_shared/enforcement-figures-registry.ts` | pinned figures registry, not row retrieval | n/a | n/a |
+| 7 | ingestion / enrichment / verification / track3 functions (`enrich-enforcement`, `verification-scan`, `ingest-*`, `per-regulator-ingestion`, `batch-fetch-primary-sources`, `corpus-extract-candidates`, `repair-corpus-subjects`, …) | back-office writers | NO | n/a |
+| 8 | admin pages (`AdminOps`, `VerificationScanAdmin`, `CorpusExtractionAdmin`) | internal | NO | n/a |
+| 9 | frontend browse (`Enforcement.tsx`, `EnforcementActionDetail`, `EnforcementStats`, `useEnforcementSignals`, `BreachPrecedentMap`) | direct RLS reads, not function-mediated | YES | **not in this item's scope** (no frontend deploy authorised); flagged for a follow-up item |
+
+### 2. The bar, as enforced code
+
+`supabase/functions/_shared/enforcement/surface-gate.ts` — one shared implementation (REUSE LAW). A row surfaces only if:
+1. `verification_status = 'verified'`;
+2. document-backed — own `source_document_text` > 200 chars OR `source_document_cache` hit on `source_url` > 200 chars (SQL prefilter = `strat_has_document`, re-checked in memory);
+3. final instrument — `disposition_type` (or, absent that, `action_type`) ∈ {`administrative_fine`, `final_decision`, `settlement`, `consent_order`, `injunctive_relief`}; investigations, complaints, advisories and press summaries excluded;
+4. `authority_class` on the product allow-list.
+
+Enforcement is two-layer: `applyGateQuery()` (server-side prefilter) **and** `gateRow()/filterSurfaceRows()` on the returned rows. The SQL layer is an optimisation, never the sole enforcement point.
+
+### 3. Allow-list table
+
+| Product / profile | Allowed `authority_class` | Notes |
+|---|---|---|
+| `cppa-risk` (profile `cppa_risk`, full bar) | `eu_dpa`, `eea_dpa`, `uk_dpa` | persuasive context only |
+| `cppa-risk` | `cppa` — **EXCLUDED** | CPPA-INCLUSION-GATE (below) |
+| all other products (profile `preserved`) | unrestricted except the global cppa exclusion | current behaviour preserved (moderator `requires_review` rows stay hidden), routed through the same module |
+
+### 4. Named, dated gate
+
+**CPPA-INCLUSION-GATE (2026-08-01, CEO)** — `authority_class = 'cppa'` is excluded from every product allow-list pending EXPLICIT CEO inclusion. Same pattern as the §7156(a) carve-out: named and dated in the code comment at the head of `surface-gate.ts`; lifting it requires a CEO instruction naming this gate. A cppa row that is verified + document-backed + final still does not surface while the gate stands.
+
+### 5. Tests — `tests/edge/_shared/enforcement/surface-gate.test.ts`, 8/8 green
+
+- qualified `eu_dpa` row surfaces on cppa-risk;
+- verified + document-backed + final **cppa** row does NOT surface on cppa-risk (nor any product);
+- unverified / failed / requires_review / null-status rows never surface, for every class;
+- undocumented rows never surface, for every class; cache hit counts as document-backing;
+- non-final instruments (investigation, complaint, advisory_opinion, proposed_fine_reported_to_police, unknown, blank, null) never surface;
+- non-allow-listed classes rejected with `authority_class_not_allowed`;
+- **PINNED**: the 3 currently-unverified CPPA rows — `1484406d-4998-4866-881c-7c40a832278a` ("Invitation"), `9a9e74c6-3cef-4f75-ab11-28af2288a7e4` ("First Advisory"), `1203311c-d70b-4dc2-a963-5014c0fb0c53` ("Enforcement Advisory Highlighting Data Broker Registration") — non-surfacing on every product;
+- `preserved` profile keeps current behaviour for other products.
+
+### 6. Corpus impact (deterministic counts at gate time)
+
+- rows meeting verified + document-backed + final, all classes: **35**; of those, cppa: **0** (all 96 cppa rows are `requires_review` (93) or `unverified` (3), none document-backed).
+- verified by class: eu_dpa 170, us_federal_agency 14, court 3, other 2, uk_dpa 1.
+
+### 7. Deploys
+
+`get-enforcement-context`, `get-enforcement-archive` only. `_shared/ltp/eu-authority/fetch.ts` rides with its consumers' next deploy; no LTP function deployed this item.
