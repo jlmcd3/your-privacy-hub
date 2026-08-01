@@ -51,6 +51,15 @@
 
 import type { RenderPlan } from "../../render-plan/schema.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../../report-schemas/cppa-risk.ts";
+// ITEM 354 — customer-surface projections (rendering only; see the module header).
+import {
+  projectAnnotations,
+  internalFactorTables,
+  projectOverallScore,
+  projectRiskLevel,
+  projectRiskRegister,
+  projectTopRisks,
+} from "../customer-projections.ts";
 
 export const CPPA_RISK_SECTION_SHARDS_VERSION =
   "cppa-risk-section-shards-2026-07-28-tm3";
@@ -124,6 +133,8 @@ const projectMeta = (plan: RenderPlan): unknown => ({
   propositions: plan.propositions.length,
   factor_rows: plan.factor_table.length,
   citation_bindings: plan.citation_bindings.length,
+  // ITEM 354 — the engine factor tables live HERE, never on a customer key.
+  internal: internalFactorTables(plan),
 });
 
 // ---------------------------------------------------------------------
@@ -205,18 +216,21 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   },
 
   // ── Headline scores / risk band (deterministic from plan) ─────────
+  // ITEM 354 — CUSTOMER CONTRACT: rendered scalars. These keys previously
+  // projected the raw factor table (Item 353 Phase-2 FAILURE 1).
   {
     key: "overall_score",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "risk-level-map@overall_score" },
-    project: projectFactorTable,
-    note: "Derived by risk-level-map from factor_table weights.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@overall_score" },
+    project: projectOverallScore,
+    note: "Rendered scalar (number 0-100 or null). The LTP risk engine ships a band, not a score.",
   },
   {
     key: "risk_level",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "risk-level-map@risk_level" },
-    project: projectFactorTable,
-    note: "Derived by risk-level-map from factor_table weights.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@risk_level" },
+    project: projectRiskLevel,
+    note: "Rendered scalar band; finite mapping over the engine's aggregateBalance determination.",
   },
+
 
   // ── ENGINE-A HARVEST BINDINGS (subordinated to RenderPlan) ────────
   {
@@ -360,15 +374,17 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   },
   {
     key: "risk_register",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "risk-register-projection" },
-    project: (plan) => plan.factor_table.filter((r) => r.kind === "negative_impact"),
-    note: "Deterministic projection over negative-polarity factor rows.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@risk_register" },
+    // ITEM 354 — customer-shaped entries; factor rows stay in _meta.internal.
+    project: projectRiskRegister,
+    note: "Customer-shaped projection over negative-polarity factor rows (title/description/citation/status).",
   },
   {
     key: "top_risks",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "top-risks-ranking" },
-    project: (plan) => plan.factor_table,
-    note: "Deterministic rank over factor_table; no template composition.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@top_risks" },
+    // ITEM 354 — customer-shaped entries; documented impacts rank first.
+    project: projectTopRisks,
+    note: "Deterministic customer-shaped rank over negative-impact rows; no template composition.",
   },
   {
     key: "priority_actions",
@@ -469,8 +485,9 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   // ── Annotations / review / debug (deterministic from plan/validators) ─
   {
     key: "annotations",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "validator-annotations-projection" },
-    project: projectPropositionsByType("J"),
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@annotations" },
+    // ITEM 354 — customer-shaped; raw Type-J propositions are internal.
+    project: projectAnnotations,
   },
   {
     key: "requires_attorney_review",

@@ -225,6 +225,10 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     activity_analytics: ANALYTIC_ENTRY_KEYS,
     risk_assessment_by_activity: RISK_ENTRY_KEYS,
 
+    // ITEM 354 — risk_register was NOT entry-pruned, which let raw factor
+    // rows ship whole on the customer surface. It is now customer-shaped
+    // upstream AND pruned here (belt and braces).
+    risk_register: RISK_ENTRY_KEYS,
     top_risks: RISK_ENTRY_KEYS,
     priority_actions: RISK_ENTRY_KEYS,
     next_steps: RISK_ENTRY_KEYS,

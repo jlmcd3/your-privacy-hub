@@ -148,13 +148,32 @@ export async function runLtpProduction(args: LtpProductionArgs): Promise<{ ok: b
     }));
 
     // ---- PASS-2R. FALLBACK LAW: prose ships only when the stage accepts it.
+    // ITEM 354 (Item 353 Phase-2 FAILURE 3) — the stage was called WITHOUT
+    // `enforce`, so `runProsePassStage` ran in "observe" mode, where
+    // `enforceShips` is structurally false and `shipped_surface` is always
+    // "deterministic": Pass-2R could never ship. It now inherits the entry's
+    // enforce posture. Second defect closed here: a non-shipping 2R used to
+    // leave NO telemetry on the row (silent fallback). The skip/rejection
+    // reasons are now always persisted to `_ltp.pass2r_*`.
     if (!typeJ) {
       try {
         const stage = await runProsePassStage(
           p1.plan as never,
           base as Record<string, unknown>,
-          { enabled: true, callerName: "run-cppa-risk-assessment" },
+          { enabled: true, enforce: true, callerName: "run-cppa-risk-assessment" },
         );
+        const pass2rMeta = {
+          pass2r_telemetry: stage.telemetry ?? null,
+          pass2r_skipped_reason: stage.skipped_reason ?? null,
+          pass2r_attempt_rejections: stage.attempt_rejections ?? [],
+          pass2r_prose_rejected: stage.prose_rejected ? true : false,
+        };
+        console.log(JSON.stringify({
+          evt: "ltp_production_pass2r", fn: "run-cppa-risk-assessment",
+          shipped_surface: stage.shipped_surface,
+          skipped_reason: stage.skipped_reason ?? null,
+          attempt_rejections: (stage.attempt_rejections ?? []).length,
+        }));
         if (stage.shipped_surface === "2R" && stage.prose) {
           const merged = { ...base, ...(stage.prose as unknown as Record<string, unknown>) };
           const sealedProse = seal(merged, rawIntake);
@@ -164,13 +183,21 @@ export async function runLtpProduction(args: LtpProductionArgs): Promise<{ ok: b
             ...ltpMeta,
             shipped_surface: stage.shipped_surface,
             emit_gate_filtered: sealedProse.emit_gate_filtered,
-            pass2r_telemetry: stage.telemetry ?? null,
-            pass2r_skipped_reason: (stage as { skipped_reason?: string }).skipped_reason ?? null,
+            ...pass2rMeta,
           };
           await lifecycleUpdate(db, "cppa_assessments", assessmentId, {
             status: "complete",
             report_data: proseReport,
           }, { fn: "run-cppa-risk-assessment", phase: "ltp_pass2r" });
+        } else {
+          // DETERMINISTIC SHIP — record WHY 2R did not ship (never silent).
+          (detReport as any)._ltp = {
+            ...(detReport as any)._ltp,
+            ...pass2rMeta,
+          };
+          await lifecycleUpdate(db, "cppa_assessments", assessmentId, {
+            report_data: detReport,
+          }, { fn: "run-cppa-risk-assessment", phase: "ltp_pass2r_telemetry" });
         }
       } catch (e) {
         console.warn("[ltp-production-entry] pass2r failed (non-fatal):", (e as Error)?.message);
