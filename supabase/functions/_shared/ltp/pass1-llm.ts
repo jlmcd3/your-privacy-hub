@@ -42,6 +42,9 @@ import {
   PASS1_DERIVE_PROMPT_VERSION,
 } from "./content/pass1-derive-prompt.ts";
 import { evaluateCppaRiskGates } from "./gate-eval.ts";
+import { buildActivityAnalytics } from "./analytic-deliverables/build.ts";
+import { buildEuAuthoritySection } from "./eu-authority/build.ts";
+
 import { runGuideStage } from "./guide.ts";
 import {
   callAnthropicWithContinuation,
@@ -268,7 +271,18 @@ export function applySingleWriterInjection(
     weighing_frame: [],
     gate_outcomes,
     conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
+    // ITEM 344 (projection fix) — DETERMINISTIC_ONLY_PLAN_KEYS are owned by
+    // the single writer and MUST be seeded on the model path too. Omitting
+    // them here dropped § 7152 activity_analytics and the Item 341 EU
+    // persuasive-authority section from every model-path (shipped) report,
+    // while the shadow derive path kept them green.
+    activity_analytics: buildActivityAnalytics(input.intake ?? {}) as unknown as readonly Record<string, unknown>[],
+    eu_persuasive_authority: buildEuAuthoritySection(
+      input.intake ?? {},
+      input.eu_authority_corpus ?? null,
+    ) as unknown as Record<string, unknown>,
   };
+
 
   // Guide precedes validation by construction.
   const guide = runGuideStage(seed);
