@@ -45,7 +45,7 @@ export const CPPA_RISK_FRAMES: FrameSet = {
         "The company states that the activity involves {{TRIGGER_FACT}}, which is what brings it within {{CITE_TRIGGER:cite}}: that provision requires that {{REQ_TRIGGER:legal}}. " +
         "Against that requirement the record identifies {{MINIMISATION_COUNT}} element(s) it collects without treating them as necessary to the stated purpose, namely {{MINIMISATION_LIST:list}}. " +
         "The company has given a basis for the collection as a whole — it describes the purpose as {{PURPOSE_VERBATIM}} — but {{CITE_CATEGORIES:cite}} requires that {{REQ_CATEGORIES:legal}}, " +
-        "so on the elements above this assessment {{CONSEQ_NECESSITY:conclusion}}{{BLOCKED_NECESSITY:conclusion}}.",
+        "so on the elements above this assessment {{CONSEQ_NECESSITY:conclusion}} {{BLOCKED_NECESSITY:conclusion}}.",
       placeholders: [
         { token: "ENTITY", kind: "text", source: "entity_name", required: true },
         { token: "ACTIVITY", kind: "text", source: "activity_name", required: true },
@@ -227,7 +227,7 @@ export const CPPA_RISK_FRAMES: FrameSet = {
         "{{CITE_BENEFITS:cite}} requires that {{REQ_BENEFITS:legal}}, and {{CITE_GOAL:cite}} sets the exercise those benefits feed: {{REQ_GOAL:legal}}. " +
         "The benefits the record states, read one beneficiary class at a time, are: {{BENEFIT_LINES:list}}. " +
         "Weighed against the impacts remaining after the recorded safeguards, this assessment {{CONSEQ_WEIGHING:conclusion}}. " +
-        "{{CITE_INITIATE:cite}} requires that {{REQ_INITIATE:legal}}, and on this record the assessment {{CONSEQ_DECISION:conclusion}} — it can set out the exposure in full, but it cannot {{BLOCKED_DECISION:conclusion}}. " +
+        "{{CITE_INITIATE:cite}} requires that {{REQ_INITIATE:legal}}, and on this record the assessment {{CONSEQ_DECISION:conclusion}} {{BLOCKED_DECISION:conclusion}}. " +
         "That determination, and any judgment reserved to counsel, remains with the company.",
       placeholders: [
         { token: "CITE_BENEFITS", kind: "cite", source: "ra_content_benefits", required: true },
