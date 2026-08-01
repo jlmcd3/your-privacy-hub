@@ -9064,6 +9064,10 @@ export type Database = {
             Args: { p_dry_run?: boolean; p_source_group: string }
             Returns: number
           }
+      admin_fire_ingest_edpb_oss: {
+        Args: { p_max_pages?: number; p_mode?: string; p_start_page?: number }
+        Returns: number
+      }
       admin_fire_ingest_fsor: {
         Args: { p_fsor_package: string; p_source_url: string; p_units: Json }
         Returns: number
