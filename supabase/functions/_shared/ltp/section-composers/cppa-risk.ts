@@ -1241,7 +1241,19 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   // ITEM 243 defect 4 — ADMT-scoped rows resolve to RECORD_STATUS_CLAUSES[3]
   // when the G.q18.admt_consequence gate blocks; affirmed items lead the
   // enumeration per Item 244 (L5).
-  const factorsAffirmedFirst = [...plan.factor_table].sort((a, b) => {
+  //
+  // ITEM 352 — the enumerated-missing items are the CANONICAL NEEDS, not
+  // "every factor row that is not present". A factor row that is absent
+  // because the record is structurally silent on it is not an outstanding
+  // customer ask: § 7152(a) factual deficiencies are enumerated in the
+  // safeguard-gaps section with their own pinpoints (as the prose block
+  // above states), and the reserved judgments the customer must still
+  // resolve are exactly `information_needed`. Enumerating both here is what
+  // made the two surfaces disagree.
+  const enumeratedFactors = plan.factor_table.filter(
+    (f) => statusForFactor(f) !== RECORD_STATUS_CLAUSES[1],
+  );
+  const factorsAffirmedFirst = [...enumeratedFactors].sort((a, b) => {
     const sa = statusForFactor(a);
     const sb = statusForFactor(b);
     const rank = (s: string) =>
@@ -1256,8 +1268,19 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       __cite: { PINPOINT: f.anchor.pinpoint },
     },
   }));
-  return [affirmationsOpener, ...admtExplanation, prose, ...items];
+  // The missing side, rendered from the same needs set information_needed
+  // renders — same order, same labels, same count.
+  const missingItems = needs.map<TemplateInstance>((need) => ({
+    template_id: "T.risk.record_sufficiency.item",
+    ctx: {
+      element_label: need.label,
+      element_status_clause: RECORD_STATUS_CLAUSES[1],
+      __cite: { PINPOINT: need.pinpoint },
+    },
+  }));
+  return [affirmationsOpener, ...admtExplanation, prose, ...items, ...missingItems];
 }
+
 
 
 
