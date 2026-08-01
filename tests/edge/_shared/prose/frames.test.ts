@@ -2,7 +2,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { type Frame, type FrameSet, frameSetRenderable, lintFrame, lintFrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
 import { renderFrame, renderSectionFromFrames } from "../../../../supabase/functions/_shared/prose/frame-render.ts";
-import { CPPA_RISK_FRAMES } from "./frames/cppa-risk.frames.ts";
+import { CPPA_RISK_FRAMES } from "../../../../library/prose/load.ts";
 
 const base = (over: Partial<Frame>): Frame => ({
   id: "t.1",

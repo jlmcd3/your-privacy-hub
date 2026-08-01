@@ -36,10 +36,12 @@ import {
   ReasoningGraph,
 } from "../../../../supabase/functions/_shared/prose/reasoning-graph.ts";
 import type { FrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
-import { CPPA_RISK_PLAN } from "./plans/cppa-risk.plan.ts";
-import { DPIA_PLAN } from "./plans/dpia.plan.ts";
-import { GOVERNANCE_PLAN } from "./plans/governance.plan.ts";
-import { REGISTRATION_PLAN } from "./plans/registration.plan.ts";
+import {
+  CPPA_RISK_PLAN,
+  DPIA_PLAN,
+  GOVERNANCE_PLAN,
+  REGISTRATION_PLAN,
+} from "../../../../library/prose/load.ts";
 
 const section = (over: Partial<PlannedSection> = {}): PlannedSection => ({
   id: "s1",
