@@ -120,13 +120,19 @@ Deno.test("CHECK 1a (qc_r1_1): registry carries the signed resolution_source_fie
     `Row 1 (j.initiation_decision) MUST leave resolution_source_fields ` +
       `undefined (always-asking) per signed ${COURIER_252}.`,
   );
+  // ITEM 350 — SUPERSEDES the Ruling-B "always-asking" state for Row 3 ONLY.
+  // Ruling B rejected ITEM250's ["safeguards_summary"] because that key is a
+  // shadow-era fossil, not a contract field. `a6_safeguards` IS contract-real
+  // and pickLedger emits it, so the ask is resolvable; leaving it undefined
+  // told records that DO document safeguards the element was missing
+  // (Item 349 Phase-2 degradation-differentiation defect).
   assertEquals(
     safeguard.resolution_source_fields,
-    undefined,
-    `Row 3 (j.safeguard_sufficiency) MUST leave resolution_source_fields ` +
-      `undefined (always-asking; ITEM250 proposal REJECTED — safeguards_summary ` +
-      `is not a contract-real intake field) per signed ${COURIER_252}.`,
+    ["a6_safeguards"],
+    `Row 3 (j.safeguard_sufficiency) MUST carry ["a6_safeguards"] per ITEM 350 ` +
+      `(supersedes the Row-3 always-asking state in signed ${COURIER_252}).`,
   );
+
 });
 
 Deno.test("CHECK 1b (qc_r1_1): composer skips purpose-adequacy ask when i1_processing_purpose is populated; still asks otherwise", () => {
