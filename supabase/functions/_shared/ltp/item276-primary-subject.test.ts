@@ -62,6 +62,25 @@ function planFor(intake: Record<string, unknown>) {
   return derivePlan({ intake, report_data: {}, buildStamp: "item276@test" });
 }
 
+/**
+ * ITEM 321 — Pass-1 SHAPE LIFT (test scaffold only).
+ *
+ * Marks the selling/sharing applicability proposition engaged, which is
+ * what the Pass-1 model supplies in production. Nothing else is altered:
+ * the composers under test read the same plan they read on the live path.
+ */
+function pass1Like(plan: ReturnType<typeof planFor>) {
+  return {
+    ...plan,
+    propositions: plan.propositions.map((p) =>
+      p.conclusion_id === "r.applicability.selling_sharing"
+        ? { ...p, polarity: "positive" as const }
+        : p
+    ),
+  };
+}
+
+
 function ids(intake: Record<string, unknown>, section: string): string[] {
   return (composeSection(section, planFor(intake)) ?? []).map((i) => i.template_id);
 }
