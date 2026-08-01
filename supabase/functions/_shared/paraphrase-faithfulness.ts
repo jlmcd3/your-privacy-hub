@@ -189,14 +189,38 @@ ${truncated}`;
     };
   }
   let parsed: any;
+  let content = "";
   try {
     parsed = JSON.parse(text);
     usage = {
       input_tokens: parsed?.usage?.input_tokens ?? 0,
       output_tokens: parsed?.usage?.output_tokens ?? 0,
     };
-    const content = parsed?.content?.[0]?.text ?? "";
-    const jsonText = content.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+    content = parsed?.content?.[0]?.text ?? "";
+  } catch (e) {
+    return {
+      verdict: "parse_error",
+      supporting_quote: null,
+      concerns: null,
+      confidence: "failed",
+      parse_error: `envelope_parse: ${(e as Error).message}`,
+      usage,
+    };
+  }
+
+  // Item 332 FIX 2 — tolerate prose before/after the JSON object.
+  const jsonText = extractFirstJsonObject(content);
+  if (!jsonText) {
+    return {
+      verdict: "parse_error",
+      supporting_quote: null,
+      concerns: null,
+      confidence: "failed",
+      parse_error: `json_extract: no well-formed JSON object in model output: ${content.slice(0, 200)}`,
+      usage,
+    };
+  }
+  try {
     parsed = JSON.parse(jsonText);
   } catch (e) {
     return {
