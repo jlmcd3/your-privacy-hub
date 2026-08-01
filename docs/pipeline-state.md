@@ -7806,3 +7806,28 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **Before / after.** Queue **129 → 100** across five drain runs (drained 6, 6, 5, 6, 6; elapsed 63–115s per run, all inside budget). Rows at `attempts >= 3`: **24 → 0**. One row (`bb92ca62-…`) hit `WORKER_RESOURCE_LIMIT` once, took a **single** attributed `attempts++` instead of poisoning its five neighbours, and succeeded on the next run — the per-row isolation working as designed. Outcomes for the 39 rows processed in the last 30 minutes: 17 `verified`, 7 `requires_review`, 15 `failed` (genuine corpus/source verdicts, not infrastructure). Zero retirements were needed.
 
 **Disposition:** SHIPPED. Nothing under the Item 245 hold was touched.
+
+---
+
+## Item 334 — REVIEW-REASON SPLIT: MECHANICAL CORPUS REJECTS OUT OF THE HUMAN QUEUE (2026-08-01)
+
+**Mandate.** Four-team review (AI prompt experts / senior privacy lawyers / PhD computer scientists / English professors) unanimous on separating the signal and on the **ADDITIVE** mechanism: a nullable `review_reason` text column, **not** an enum change to `verification_status` (an enum change would touch the moderator surface and the signal-count exclusions for no added benefit).
+
+**Verify-first (live, pre-change).** `enforcement_actions`: 172 verified / 259 failed / 2,993 unverified / **2,261 requires_review**. Of the requires_review bucket, **1,430** had a failing `verification_results` row with `check_name = 'subject_quality_precheck'`.
+
+**1. Migration.** `ALTER TABLE public.enforcement_actions ADD COLUMN review_reason text` (nullable), a documenting `COMMENT`, and a partial index `idx_enforcement_actions_review_reason … WHERE review_reason IS NOT NULL`. No RLS/grant change — the column rides existing table policies.
+
+**2. Backfill.** Same migration, `EXISTS` join on `verification_results (check_name='subject_quality_precheck', verdict='fail')` scoped to `verification_status='requires_review'`: **1,430 rows** set to `review_reason = 'corpus_defect_subject'` (exact count, not rounded).
+
+**3. Going forward — `supabase/functions/verification-scan/index.ts`** (deployed):
+- `subject_quality_precheck` short-circuit now writes `review_reason: 'corpus_defect_subject'` alongside `requires_review`.
+- The `js_required` fetch routing and the terminal model-driven write both set `review_reason: 'verification_uncertain'` when the verdict is `requires_review`, and explicitly `null` otherwise — so a row that later verifies does not carry a stale reason.
+
+**4. Moderator surface — `src/pages/admin/VerificationScanAdmin.tsx`.** The health load now counts the corpus-defect subset separately; the "Requires review" stat **defaults to genuine items only** and reads `"N corpus defects hidden"`, with an explicit checkbox — *"Include mechanical corpus defects (bad subject fields) in the review queue"* — that switches to the all-in count and the `genuine + defects` breakdown. **`src/hooks/useEnforcementSignals.ts` was not touched**; signal counts are unchanged, as are the four public `.not("verification_status","eq","requires_review")` exclusions in `Enforcement.tsx`, `EnforcementStats.tsx`, `EnforcementActionDetail.tsx`, and `BreachPrecedentMap.tsx`.
+
+**Before / after — genuine review queue.** 2,261 undifferentiated → **831 genuine** (`review_reason IS NULL`) + **1,430 mechanical corpus defects**. A **63.2%** reduction in what a human moderator is asked to look at, with zero rows deleted or hidden from the corpus.
+
+**5. Upstream fix is a SEPARATE, FUTURE task.** This item labels the defect; it does not repair it. Re-extracting the 1,430 bad `subject` fields from their primary sources (and re-running verification on them) remains open, and **pairs with the GDPRhub "Unknown regulator" cleanup** — now measured at **92 rows** matching `regulator ILIKE '%unknown%'` (the 82-row figure predates the latest GDPRhub ingest). Both are corpus-extraction repairs against the same ingest generation and should be scoped as one pass.
+
+**Files changed:** migration (above); `supabase/functions/verification-scan/index.ts`; `src/pages/admin/VerificationScanAdmin.tsx`; this ledger.
+**Disposition:** SHIPPED (frontend not published this turn). Nothing under the Item 245 hold was touched.
