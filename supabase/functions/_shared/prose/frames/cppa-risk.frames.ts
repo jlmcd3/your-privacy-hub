@@ -162,6 +162,32 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       status: "pending_review",
     },
 
+    // ── 4b. NECESSITY ANALYSIS — every element's verdict survives ────────
+    {
+      id: "cppa-risk.necessity_analysis.001",
+      product: "cppa-risk",
+      section: "necessity_analysis",
+      body:
+        "{{CITE_CATEGORIES:cite}} calls for {{REQ_CATEGORIES:legal}}, which is the test each element of the collection set is read against for {{ACTIVITY}}. " +
+        "Taking the elements the record lists in turn: {{NECESSITY_LINES:list}}. " +
+        "The stated purpose those elements are measured against is {{PURPOSE_VERBATIM}}, reproduced from the record without alteration.",
+      placeholders: [
+        { token: "CITE_CATEGORIES", kind: "cite", source: "ra_content_categories", required: true },
+        { token: "REQ_CATEGORIES", kind: "legal", source: "ra_content_categories", required: true },
+        { token: "ACTIVITY", kind: "text", source: "activity_name", required: true },
+        { token: "NECESSITY_LINES", kind: "list", source: "necessity_lines", required: true },
+        { token: "PURPOSE_VERBATIM", kind: "text", source: "activity_purpose", required: true },
+      ],
+      provenance: {
+        sample_report_id: null,
+        tool_slug: "cppa_risk",
+        report_path: "risk_assessment_by_activity[0].necessity_analysis",
+        harvested_at: "2026-08-01",
+        origin: "draft",
+      },
+      status: "pending_review",
+    },
+
     // ── 5. HARM AND SAFEGUARD ANALYSIS — no flattening ───────────────────
     {
       id: "cppa-risk.harm_analysis.002",
