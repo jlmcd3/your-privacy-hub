@@ -7744,3 +7744,21 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **4. Tests.** 45 new tests: 17 live corpus pins (skipped without direct Postgres), UK labelling checks, "no Article 22 cross-reference" and EU/UK Art. 35(3)(a) textual-identity checks, regime-selector cases, and the invariance suite. Full registry suite: **443/443 passing, 32 files**.
 
 **Disposition:** SHIPPED (code) — Item 245 deploy hold unaffected. UK/EU fix series 1–5 COMPLETE.
+
+---
+
+## Item 331 — MESSY-DATA FIXTURES (all census tools) + cppa-risk END-TO-END BATCH (2026-08-01)
+
+**Dispatch:** author "Messy Data" fixtures for every product with a Perfect golden set, per the CEO definition (answered fields decent/adequate; coverage genuinely incomplete — optional and some conditionally-required fields blank or thin, NOT vague language everywhere), using the existing `fixture_variant` / `MESSY_BY_TOOL` mechanism from Item 325. Plus: run one full `/admin/final-test`-equivalent batch on cppa-risk to completion.
+
+**1. Fixtures.** `supabase/functions/_shared/golden/messy-registry.ts` populated (no second mechanism introduced). A `thinned()` helper derives each messy case from its Perfect baseline by dropping whole optional/conditional paths while leaving answered fields at full quality. 14 cases across 10 tools: cppa-admt, cppa-risk, cppa-cyber, governance, dpia, lia (thin + UK Art. 22), dpa-generator, ir-playbook (thin + mixed EU/UK), biometric-checker, registration (thin + both-representatives). `DEGRADATION_GUARDS` assert `record_insufficient` / `information_needed` surfaces instead of invented content. Circular ESM import resolved by importing golden sets directly rather than via `registry.ts`.
+
+**2. Named scenarios.** `ir-messy-mixed-eu-uk-parallel-duties` (Item 328 parallel duties; asserts both "the Commissioner" and "supervisory authority" legs plus the Art. 44A rail), `reg-messy-both-representatives-required` (Item 329 combined callout), `lia-messy-uk-art22-solely-automated` (Item 326 permitted-with-safeguards default, ANNEX 1 scope limit respected — no Annex 1 conditions evaluated anywhere).
+
+**3. Conformance.** `src/registry/__tests__/fixture-contract-matrix.test.ts` green for every tool × variant. Full registry suite: **452/452 passing, 32 files**.
+
+**4. cppa-risk end-to-end run.** Batch `95ae4e96-794a-4416-8ee4-f3b4c9caed4c` → quality run `17cf770d-4eb8-49cb-abc2-bb5dc8474de5` (run #183), batch_size 3, concurrency 1. Result: child run **complete**, 3/3 documents complete, zero document errors, `score_overall` **69.5** (per-doc 52.35 / 80.6 / 75.45), `gpt_score_overall` **86** (85 / 79 / 91), completed 13:44:56Z. Item 305's contract fix therefore holds under a real run, not just contract validation.
+
+**5. Known-not-clean.** The parent `quality_batch_runs` row stayed `status=running / phase=running_tool` after the child completed: the parent is finalized by the admin page's `poll` action, which is admin-JWT-only and not reachable from the agent shell (the internal cron path accepts `start` only). Child data is authoritative and complete. Variant was `null` (Perfect) — the internal `start` path does not accept `fixture_variant`; messy-variant runs must be launched from `/admin/final-test`. A temporary relay function (`item331-batch-trigger`) was deployed to reach the internal start path and has been deleted, with its `config.toml` entry removed.
+
+**Disposition:** SHIPPED (fixtures + verified run). Item 245 deploy hold unaffected.
