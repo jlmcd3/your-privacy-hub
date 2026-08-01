@@ -403,9 +403,13 @@ describe("Item 323 — RCW 19.373 (MHMDA) is ACTIVE, as a DISTINCT Washington au
 
   it("clearing the MHMDA predicate does not disturb the RCW 19.375 analysis", () => {
     const d = buildBiometricDeliverables({ ...PERFECT_MULTI(), wa_mhmda_health_inference: "No" });
-    const chapter375 = d.duty_findings.filter((f) => f.statute_key === "us_wa_19375");
-    expect(chapter375.length).toBeGreaterThan(0);
-    expect(chapter375.some((f) => f.verdict !== "not_applicable")).toBe(true);
+    const base = buildBiometricDeliverables(PERFECT_MULTI());
+    const only375 = (x: typeof d) =>
+      x.duty_findings.filter((f) => f.statute_key === "us_wa_19375");
+    expect(only375(d).length).toBeGreaterThan(0);
+    // The RCW 19.375 slice is byte-identical either way: the chapters do not
+    // read across to one another.
+    expect(only375(d)).toEqual(only375(base));
     const mh = d.duty_findings.filter(
       (f) => f.statute_key === "us_wa_19373" && f.key !== "wa_19373.080_geofence",
     );
