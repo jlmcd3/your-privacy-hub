@@ -582,7 +582,7 @@ export function readAdmJurisdictionFacts(intake: unknown): {
   return { jurisdictions, uk, eu, ukOnly: uk && !eu, regime };
 }
 
-export /**
+/**
  * ITEM 337 (PROSE PROGRAM 1, Part D3) — enum → prose. Body text NEVER carries
  * the raw token; the recorded defect glued "uk permitted_with_safeguards" into
  * the Annex-1 scope note.
