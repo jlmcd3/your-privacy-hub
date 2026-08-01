@@ -18,7 +18,7 @@ import {
   composeSection,
 } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
 import { fillOrOmitWeightNote, WEIGHT_NOTE_MAX_CHARS } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
-import type { RenderPlan } from "./types.ts";
+import type { RenderPlan } from "../../../../supabase/functions/_shared/ltp/types.ts";
 
 const INTAKE: Record<string, unknown> = {
   entity_name: "ClearPath Credit Solutions, Inc.",
