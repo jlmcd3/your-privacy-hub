@@ -572,7 +572,9 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
         },
       };
 
-  const rationaleParts = (activityLabel?: string): TemplateInstance[] => {
+  const rationaleParts = (
+    activityLabel?: string,
+  ): { parts: TemplateInstance[]; conclusion: TemplateInstance } => {
     const conclusion = balanceInstance(plan);
     const conclusionPart: TemplateInstance = activityLabel
       ? { template_id: conclusion.template_id, ctx: { ...conclusion.ctx, activity_label: activityLabel } }
@@ -580,14 +582,17 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
     // ITEM 284 (F2) — on an incomplete record the RABA narrative closes on
     // the provisional posture, never on a firm verdict.
     const provisional = provisionalPostureInstance(plan);
-    return [
-      recordStatusInstance(plan),
-      ...presentFactorLines(plan, "benefit"),
-      ...presentFactorLines(plan, "negative_impact"),
-      ...presentFactorLines(plan, "safeguard"),
-      conclusionPart,
-      ...(provisional ? [provisional] : []),
-    ];
+    return {
+      parts: [
+        recordStatusInstance(plan),
+        ...presentFactorLines(plan, "benefit"),
+        ...presentFactorLines(plan, "negative_impact"),
+        ...presentFactorLines(plan, "safeguard"),
+        conclusionPart,
+        ...(provisional ? [provisional] : []),
+      ],
+      conclusion: conclusionPart,
+    };
   };
 
   // ITEM 266 — HONEST CONSOLIDATION.
@@ -610,30 +615,40 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   // ITEM 284 (F2) — the RABA carrier stays the BALANCE conclusion even
   // though the provisional posture is appended after it in `parts`; the
   // carrier's ctx is what downstream consumers read for activity_label.
-  const carrierOf = (parts: TemplateInstance[]): TemplateInstance =>
-    [...parts].reverse().find((p) => p.template_id.startsWith("T.risk.balance.")) ??
-      parts[parts.length - 1];
+  // ITEM 321 (PROMPT D) — SUBJECT-NAMING FIX. The carrier is now the
+  // conclusion instance ITSELF rather than a template-id search for
+  // "T.risk.balance.*". On an INCOMPLETE record `balanceInstance` returns a
+  // non-balance frame (T.risk.summary.docs / insufficient), so the old
+  // search fell through to `parts[last]` — the provisional-posture line,
+  // which carries no `activity_label`. The Item-276 subject then silently
+  // vanished from exactly the reports (incomplete records) where naming the
+  // activity matters most. The conclusion instance is by construction the
+  // instance that received the activity_label, complete or not.
+  const carrierOf = (r: { parts: TemplateInstance[]; conclusion: TemplateInstance }): TemplateInstance =>
+    r.conclusion;
+
 
   const primaryName = primaryActivityName(plan);
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
     if (!insufficientRecord(plan)) {
-      const parts = rationaleParts(primaryName || undefined);
-      const c = carrierOf(parts);
+      const r = rationaleParts(primaryName || undefined);
+      const c = carrierOf(r);
       return [
-        { template_id: c.template_id, ctx: c.ctx, parts },
+        { template_id: c.template_id, ctx: c.ctx, parts: r.parts },
         liaLine,
       ];
     }
     return [];
   }
-  const parts = rationaleParts(primaryName || joinList(engaged.map(propLabel)));
-  const carrier = carrierOf(parts);
+  const r = rationaleParts(primaryName || joinList(engaged.map(propLabel)));
+  const carrier = carrierOf(r);
   return [
-    { template_id: carrier.template_id, ctx: carrier.ctx, parts },
+    { template_id: carrier.template_id, ctx: carrier.ctx, parts: r.parts },
     liaLine,
   ];
 }
+
 
 // ── ITEM 241.3 — Gap-driven four-move action composer ────────────────────
 //
