@@ -338,9 +338,10 @@ Deno.test("render: a record section leads with its first statement and is not de
     id: "record",
     title: "The record as stated",
     source_key: "record_echo",
-    arc: "record",
+    arc_stage: "record",
     lead: "record",
     themes: ["negative_impacts", "safeguards_applied"],
+    required: true,
     status: "approved",
   };
   const r = renderPlannedSection(recordSection, {
@@ -361,9 +362,10 @@ Deno.test("render: a record section with nothing on the record still degrades", 
     id: "record",
     title: "The record as stated",
     source_key: "record_echo",
-    arc: "record",
+    arc_stage: "record",
     lead: "record",
     themes: ["negative_impacts"],
+    required: true,
     status: "approved",
   };
   const r = renderPlannedSection(recordSection, { section_id: "record", statements: [] }, {
