@@ -42,9 +42,9 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       section: "opening_analysis",
       body:
         "This risk assessment is prepared for {{ENTITY}} to assess {{ACTIVITY}}. " +
-        "The company states that the activity involves {{TRIGGER_FACT}}, which is what brings it within {{CITE_TRIGGER:cite}}: that provision calls for {{REQ_TRIGGER:legal}}. " +
+        "The company states that the activity involves {{TRIGGER_FACT}}, which is what brings it within {{CITE_TRIGGER:cite}}: that provision requires that {{REQ_TRIGGER:legal}}. " +
         "Against that requirement the record identifies {{MINIMISATION_COUNT}} element(s) it collects without treating them as necessary to the stated purpose, namely {{MINIMISATION_LIST:list}}. " +
-        "The company has given a basis for the collection as a whole — it describes the purpose as {{PURPOSE_VERBATIM}} — but {{CITE_CATEGORIES:cite}} calls for {{REQ_CATEGORIES:legal}}, " +
+        "The company has given a basis for the collection as a whole — it describes the purpose as {{PURPOSE_VERBATIM}} — but {{CITE_CATEGORIES:cite}} requires that {{REQ_CATEGORIES:legal}}, " +
         "so on the elements above this assessment {{CONSEQ_NECESSITY:conclusion}}{{BLOCKED_NECESSITY:conclusion}}.",
       placeholders: [
         { token: "ENTITY", kind: "text", source: "entity_name", required: true },
@@ -80,8 +80,8 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       section: "processing_narrative",
       body:
         "For {{ACTIVITY}}, {{ENTITY}} records that it processes {{DATA_CATEGORIES:list}}, collected {{SOURCE_CLAUSE}} and retained for {{RETENTION_PERIOD}}, with {{VENDORS:list}} named as recipients. " +
-        "{{CITE_OPERATIONAL:cite}} calls for {{REQ_OPERATIONAL:legal}}, and the record answers each of those points on its own terms as set out above. " +
-        "The purpose those operations serve is recorded as {{PURPOSE_VERBATIM}}; {{CITE_PURPOSE:cite}} calls for {{REQ_PURPOSE:legal}}, which is the standard the stated purpose is read against in the analysis that follows.",
+        "{{CITE_OPERATIONAL:cite}} requires that {{REQ_OPERATIONAL:legal}}, and the record answers each of those points on its own terms as set out above. " +
+        "The purpose those operations serve is recorded as {{PURPOSE_VERBATIM}}; {{CITE_PURPOSE:cite}} requires that {{REQ_PURPOSE:legal}}, which is the standard the stated purpose is read against in the analysis that follows.",
       placeholders: [
         { token: "ACTIVITY", kind: "text", source: "activity_name", required: true },
         { token: "ENTITY", kind: "text", source: "entity_name", required: true },
@@ -139,9 +139,9 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       section: "scope_notes",
       body:
         "The subject of this assessment is {{ACTIVITY}}, fixed by the record and not widened here. " +
-        "{{CITE_TRIGGER:cite}} calls for {{REQ_TRIGGER:legal}}, and the record basis relied on for that is {{TRIGGER_FACT}}. " +
+        "{{CITE_TRIGGER:cite}} requires that {{REQ_TRIGGER:legal}}, and the record basis relied on for that is {{TRIGGER_FACT}}. " +
         "The recipients the record names for the activity are {{VENDORS:list}}. " +
-        "Where the record reports a second use of the same information, {{CITE_COMPARABLE:cite}} calls for {{REQ_COMPARABLE:legal}}, which is why {{SECONDARY_STATUS}} is recorded as the position on secondary use.",
+        "Where the record reports a second use of the same information, {{CITE_COMPARABLE:cite}} requires that {{REQ_COMPARABLE:legal}}, which is why {{SECONDARY_STATUS}} is recorded as the position on secondary use.",
       placeholders: [
         { token: "ACTIVITY", kind: "text", source: "activity_name", required: true },
         { token: "CITE_TRIGGER", kind: "cite", source: "ra_when_required", required: true },
@@ -168,7 +168,7 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       product: "cppa-risk",
       section: "necessity_analysis",
       body:
-        "{{CITE_CATEGORIES:cite}} calls for {{REQ_CATEGORIES:legal}}, which is the test each element of the collection set is read against for {{ACTIVITY}}. " +
+        "{{CITE_CATEGORIES:cite}} requires that {{REQ_CATEGORIES:legal}}, which is the test each element of the collection set is read against for {{ACTIVITY}}. " +
         "Taking the elements the record lists in turn: {{NECESSITY_LINES:list}}. " +
         "The stated purpose those elements are measured against is {{PURPOSE_VERBATIM}}, reproduced from the record without alteration.",
       placeholders: [
@@ -194,8 +194,8 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       product: "cppa-risk",
       section: "harm_analysis",
       body:
-        "{{CITE_IMPACTS:cite}} calls for {{REQ_IMPACTS:legal}}. On this record the impacts identified for {{ACTIVITY}} are, each with the source the record gives and the way the processing causes it: {{HARM_LINES:list}}. " +
-        "{{CITE_SAFEGUARDS:cite}} then calls for {{REQ_SAFEGUARDS:legal}}; the safeguards the record describes, and what remains after each of them, are: {{SAFEGUARD_LINES:list}}. " +
+        "{{CITE_IMPACTS:cite}} requires that {{REQ_IMPACTS:legal}}. On this record the impacts identified for {{ACTIVITY}} are, each with the source the record gives and the way the processing causes it: {{HARM_LINES:list}}. " +
+        "{{CITE_SAFEGUARDS:cite}} then requires that {{REQ_SAFEGUARDS:legal}}; the safeguards the record describes, and what remains after each of them, are: {{SAFEGUARD_LINES:list}}. " +
         "{{FLAG_LINES:list}}{{GAP_LINES:list}}",
       placeholders: [
         { token: "CITE_IMPACTS", kind: "cite", source: "ra_content_negative_impacts", required: true },
@@ -224,10 +224,10 @@ export const CPPA_RISK_FRAMES: FrameSet = {
       product: "cppa-risk",
       section: "benefits_rationale",
       body:
-        "{{CITE_BENEFITS:cite}} calls for {{REQ_BENEFITS:legal}}, and {{CITE_GOAL:cite}} sets the exercise those benefits feed: {{REQ_GOAL:legal}}. " +
+        "{{CITE_BENEFITS:cite}} requires that {{REQ_BENEFITS:legal}}, and {{CITE_GOAL:cite}} sets the exercise those benefits feed: {{REQ_GOAL:legal}}. " +
         "The benefits the record states, read one beneficiary class at a time, are: {{BENEFIT_LINES:list}}. " +
         "Weighed against the impacts remaining after the recorded safeguards, this assessment {{CONSEQ_WEIGHING:conclusion}}. " +
-        "{{CITE_INITIATE:cite}} calls for {{REQ_INITIATE:legal}}, and on this record the assessment {{CONSEQ_DECISION:conclusion}} — it can set out the exposure in full, but it cannot {{BLOCKED_DECISION:conclusion}}. " +
+        "{{CITE_INITIATE:cite}} requires that {{REQ_INITIATE:legal}}, and on this record the assessment {{CONSEQ_DECISION:conclusion}} — it can set out the exposure in full, but it cannot {{BLOCKED_DECISION:conclusion}}. " +
         "That determination, and any judgment reserved to counsel, remains with the company.",
       placeholders: [
         { token: "CITE_BENEFITS", kind: "cite", source: "ra_content_benefits", required: true },

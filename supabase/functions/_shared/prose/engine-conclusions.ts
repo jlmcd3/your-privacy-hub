@@ -65,19 +65,19 @@ export const CPPA_RISK_ENGINE_CONCLUSIONS: Record<string, EngineConclusion> = {
     "consequence.initiate_with_conditions",
     DEC,
     "records the processing as supportable only while the conditions set out below are met",
-    "— it can describe the exposure the record supports, but it cannot treat the conditions below as optional, because the conclusion rests on them",
+    " — it can describe the exposure the record supports, but it cannot treat the conditions below as optional, because the conclusion rests on them",
   ),
   "consequence.do_not_initiate_absent_change": C(
     "consequence.do_not_initiate_absent_change",
     DEC,
     "does not support initiating the processing as the record currently describes it",
-    "— it can describe the exposure the record supports, but it cannot conclude that the benefits outweigh the negative impacts, because the impacts remaining after the recorded safeguards are not offset on this record",
+    " — it can describe the exposure the record supports, but it cannot conclude that the benefits outweigh the negative impacts, because the impacts remaining after the recorded safeguards are not offset on this record",
   ),
   "consequence.reserved_insufficient_record": C(
     "consequence.reserved_insufficient_record",
     DEC,
     "cannot reach the weighing conclusion and reserves it",
-    "— it can describe the exposure the record supports, but it cannot complete the weighing the regulation calls for, or state whether the processing should be initiated",
+    " — it can describe the exposure the record supports, but it cannot complete the weighing the regulation calls for, or state whether the processing should be initiated",
   ),
 
   // ── Weighing sufficiency (§ 7152(a)(4)) ────────────────────────────
@@ -85,13 +85,13 @@ export const CPPA_RISK_ENGINE_CONCLUSIONS: Record<string, EngineConclusion> = {
     "weighing.benefit_not_stated",
     WEIGH,
     "cannot weigh benefits against the negative impacts it identifies",
-    "— it can describe the exposure the record supports, but it cannot conclude anything about whether the processing is justified, because one side of the comparison is absent from the record",
+    " — it can describe the exposure the record supports, but it cannot conclude anything about whether the processing is justified, because one side of the comparison is absent from the record",
   ),
   "weighing.benefit_generic": C(
     "weighing.benefit_generic",
     WEIGH,
     "cannot give the asserted benefit any weight as stated",
-    "— it can describe the exposure the record supports, but it cannot treat a generic benefit statement as an offset to a specific identified impact",
+    " — it can describe the exposure the record supports, but it cannot treat a generic benefit statement as an offset to a specific identified impact",
   ),
   "weighing.benefit_supported": C(
     "weighing.benefit_supported",
@@ -105,13 +105,13 @@ export const CPPA_RISK_ENGINE_CONCLUSIONS: Record<string, EngineConclusion> = {
     "necessity.minimisation_candidate",
     NEC,
     "records those elements as collected beyond what the stated purpose needs",
-    "— it can describe the exposure the record supports, but it cannot treat the current collection set as the minimum the purpose requires",
+    " — it can describe the exposure the record supports, but it cannot treat the current collection set as the minimum the purpose requires",
   ),
   "necessity.undetermined_on_the_record": C(
     "necessity.undetermined_on_the_record",
     NEC,
     "cannot determine whether the collection set is the minimum the purpose requires",
-    "— it can describe the exposure the record supports, but it cannot confirm that the information collected is limited to what the stated purpose needs",
+    " — it can describe the exposure the record supports, but it cannot confirm that the information collected is limited to what the stated purpose needs",
   ),
   "necessity.supported_as_necessary": C(
     "necessity.supported_as_necessary",
@@ -125,7 +125,7 @@ export const CPPA_RISK_ENGINE_CONCLUSIONS: Record<string, EngineConclusion> = {
     "record.insufficient_for_balancing",
     "record_sufficiency",
     "stops short of the balancing the regulation is directed at",
-    "— it can describe the exposure the record supports, but it cannot reach the balancing conclusion until the items listed for review are supplied",
+    " — it can describe the exposure the record supports, but it cannot reach the balancing conclusion until the items listed for review are supplied",
   ),
   "record.sufficient_for_balancing": C(
     "record.sufficient_for_balancing",
