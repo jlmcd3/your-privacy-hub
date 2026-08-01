@@ -16,6 +16,8 @@
 import {
   ALREADY_REQUIRED_LEXICON,
   ANCHOR_KEYS,
+  ANNEX_1_RESERVED_NOTE,
+  EU_JURISDICTION,
   CHILD_NO,
   CHILD_VULNERABLE_OPTIONS,
   CHILD_YES,
@@ -27,8 +29,12 @@ import {
   HARM_MATERIAL,
   NOTICE_ONLY_LEXICON,
   row,
+  UK_JURISDICTION,
 } from "./elements.ts";
 import type {
+  AdmDefaultPosition,
+  AdmRegime,
+  AutomatedDecisionFinding,
   ChildDetermination,
   ChildFactorFinding,
   ExpectationVerdict,
@@ -42,7 +48,7 @@ import type {
 } from "./types.ts";
 
 export const LIA_DELIVERABLES_VERSION =
-  "lia-analytic-deliverables-2026-07-31-item311";
+  "lia-analytic-deliverables-2026-08-01-item326";
 
 // ---------------------------------------------------------------------
 // Record readers (no I/O)
@@ -547,6 +553,177 @@ export function buildDetermination(
   };
 }
 
+
+// ---------------------------------------------------------------------
+// 5. Automated-decision analysis — ITEM 326
+//
+// EU Art. 22(1) and the UK Art. 22A–22D regime are NOT the same rule. The
+// EU default is prohibition-unless-excepted; the UK default, for data
+// outside Art. 9(1), is permitted-subject-to-the-Art.-22C-safeguards. This
+// builder branches off the RECORDED `jurisdictions` array only — same
+// exact-value membership pattern as `readIncidentFacts` in
+// ../ir-playbook-deliverables/build.ts. No semantic defaults.
+//
+// ANNEX 1 SCOPE LIMIT (binding): where Art. 6(1)(ea) is mentioned, the
+// builder emits ANNEX_1_RESERVED_NOTE verbatim and states nothing about
+// what Annex 1 requires. Annex 1 is not in corpus.
+// ---------------------------------------------------------------------
+export function readAdmJurisdictionFacts(intake: unknown): {
+  jurisdictions: string[];
+  uk: boolean;
+  eu: boolean;
+  ukOnly: boolean;
+  regime: AdmRegime;
+} {
+  const jurisdictions = arr(get(intake, "jurisdictions"));
+  const uk = jurisdictions.includes(UK_JURISDICTION);
+  const eu = jurisdictions.includes(EU_JURISDICTION);
+  const regime: AdmRegime = uk && eu ? "dual" : uk ? "uk" : eu ? "eu" : "not_engaged";
+  return { jurisdictions, uk, eu, ukOnly: uk && !eu, regime };
+}
+
+export function buildAutomatedDecisionAnalysis(
+  intake: unknown,
+): AutomatedDecisionFinding {
+  const f = readAdmJurisdictionFacts(intake);
+
+  const eu22 = anchor("eu_art_22_right");
+  const ukSubst = anchor("uk_art_22_substituted");
+  const uk22aSolely = anchor("uk_22a_solely_automated");
+  const uk22aSignificant = anchor("uk_22a_significant");
+  const uk22bSpecial = anchor("uk_22b_special_category");
+  const uk22bBar = anchor("uk_22b_recognised_li_bar");
+  const uk22cDuty = anchor("uk_22c_duty");
+  const uk22cMeasures = anchor("uk_22c_measures");
+  const ukEa = anchor("uk_6_1_ea");
+
+  const specialFlag = get(intake, "balancing_details.special_category_data");
+  const specialRecorded = specialFlag === true || specialFlag === false;
+  const specialYes = specialFlag === true;
+
+  // ── record fact ────────────────────────────────────────────────────
+  const factParts: string[] = [];
+  factParts.push(
+    f.jurisdictions.length
+      ? `The record states the jurisdictions in scope as ${
+        f.jurisdictions.map((j) => `"${j}"`).join(", ")
+      }.`
+      : "The record does not state which jurisdictions are in scope.",
+  );
+  factParts.push(
+    specialRecorded
+      ? `It records special-category data as ${specialYes ? "present" : "not present"} in this processing.`
+      : "It does not record whether special-category data is processed.",
+  );
+  factParts.push(
+    "It does not record whether any decision taken about the data subjects is a significant decision taken solely by automated means.",
+  );
+  const record_fact = factParts.join(" ");
+
+  // ── standard + application, per engaged regime ─────────────────────
+  let standard: string;
+  let standard_citation: string;
+  let supporting_verbatim = "";
+  let supporting_citation = "";
+  let default_position: AdmDefaultPosition;
+  const parts: string[] = [];
+
+  const euApplication =
+    "Under the EU regime the position is prohibition by default: a solely automated decision producing legal or similarly significant effects may not be taken unless one of the three exceptions in Article 22(2) applies. Legitimate interests is not one of those exceptions, so a favourable balance under Article 6(1)(f) does not authorise such a decision. Where this processing supports one, a separate Article 22 basis must be established before it is taken.";
+  const ukApplication =
+    "The UK regime is not the EU rule under another name. Article 22 is not in force; Articles 22A to 22D replace it. For personal data outside Article 9(1) the default is the reverse of the EU default: a significant decision may be taken solely by automated means, but the controller must have the Article 22C safeguards in place — information about the decision, the ability to make representations, human intervention on the controller's part, and the ability to contest the decision. Article 22A(1)(a) fixes the threshold question: there is no meaningful human involvement where the human step does not actually bear on the outcome.";
+  const ukBarApplication =
+    "Two UK-specific restrictions bite regardless of the balance struck below. First, Article 22B(1) restricts a significant decision based entirely or partly on Article 9(1) data: it may not be taken solely by automated means unless the explicit-consent or contract/law condition is met. Second, UK law adds a lawful basis the EU regime does not have — Article 6(1)(ea), the recognised legitimate interest — and Article 22B(4) then bars that basis from grounding a solely automated significant decision. A UK controller relying on Article 6(1)(ea) for the processing behind such a decision must move to a different basis for that decision.";
+
+  if (f.regime === "uk") {
+    standard = uk22cDuty.verbatim;
+    standard_citation = uk22cDuty.citation || "UK GDPR Art. 22C(1)";
+    supporting_verbatim = ukSubst.verbatim;
+    supporting_citation = ukSubst.citation || "UK GDPR Art. 22 (substituted)";
+    default_position = "permitted_with_safeguards";
+    parts.push(ukApplication, ukBarApplication);
+  } else if (f.regime === "eu") {
+    standard = eu22.verbatim;
+    standard_citation = eu22.citation || "GDPR Art. 22(1)";
+    default_position = "prohibited_unless_excepted";
+    parts.push(euApplication);
+  } else if (f.regime === "dual") {
+    standard = eu22.verbatim;
+    standard_citation = eu22.citation || "GDPR Art. 22(1)";
+    supporting_verbatim = uk22cDuty.verbatim;
+    supporting_citation = uk22cDuty.citation || "UK GDPR Art. 22C(1)";
+    default_position = "both_defaults_stated";
+    parts.push(
+      "The record puts both the EU and the UK regime in scope, and their defaults differ. Each leg is stated on its own terms; neither default is carried across to the other.",
+      euApplication,
+      ukApplication,
+      ukBarApplication,
+    );
+  } else {
+    standard = "";
+    standard_citation = "";
+    default_position = "not_applicable";
+    parts.push(
+      "The record engages neither the EU nor the UK regime, so no Article 22-family analysis is performed here. Automated decision-making under any other recorded framework is assessed under that framework's own provisions, not under Article 22.",
+    );
+  }
+
+  const ukEngaged = f.regime === "uk" || f.regime === "dual";
+  let special_category_restriction = false;
+  if (ukEngaged) {
+    if (specialYes) {
+      special_category_restriction = true;
+      parts.push(
+        `The record states that special-category data is processed, so Article 22B(1) is engaged on the record as it stands: "${uk22bSpecial.verbatim}"`,
+      );
+    } else if (specialRecorded) {
+      parts.push(
+        "The record states that no special-category data is processed, so the Article 22B(1) restriction is not engaged on the record as it stands.",
+      );
+    } else {
+      parts.push(
+        "The record does not state whether special-category data is processed, so whether the Article 22B(1) restriction is engaged is left open.",
+      );
+    }
+    // ANNEX 1 SCOPE LIMIT — pointer only, verbatim note, nothing further.
+    parts.push(ANNEX_1_RESERVED_NOTE);
+  }
+
+  const application = parts.join(" ");
+
+  // ── status ─────────────────────────────────────────────────────────
+  // MANDATORY DEGRADATION LAW: the LIA record carries no field stating
+  // whether a solely automated significant decision is taken, so the regime
+  // default is stated but the application to this processing is not closed.
+  let status: AutomatedDecisionFinding["status"] = "record_insufficient";
+  let information_needed: string | undefined =
+    "Whether any decision taken about these data subjects is a significant decision (legal or similarly significant effect) taken solely by automated means, and if so what human involvement bears on the outcome. Record that, and the Article 22-family analysis can be closed rather than stated as a default.";
+  if (f.regime === "not_engaged") {
+    status = f.jurisdictions.length ? "analysed" : "record_insufficient";
+    information_needed = f.jurisdictions.length
+      ? undefined
+      : "The jurisdictions in scope. Without them no Article 22-family regime can be identified.";
+  }
+
+  return {
+    standard,
+    standard_citation,
+    record_fact,
+    application,
+    regime: f.regime,
+    default_position,
+    recognised_li_barred: ukEngaged,
+    special_category_restriction,
+    safeguards_citation: ukEngaged ? (uk22cMeasures.citation || "UK GDPR Art. 22C(2)") : "",
+    safeguards_verbatim: ukEngaged ? uk22cMeasures.verbatim : "",
+    supporting_citation,
+    supporting_verbatim,
+    annex_1_reserved_note: ukEngaged ? ANNEX_1_RESERVED_NOTE : "",
+    status,
+    ...(information_needed ? { information_needed } : {}),
+  };
+}
+
 // ---------------------------------------------------------------------
 // Envelope + attach
 // ---------------------------------------------------------------------
@@ -564,6 +741,7 @@ export function buildLiaDeliverables(intake: unknown): LiaDeliverables {
       child_factor,
       public_authority_exclusion,
     ),
+    automated_decision_analysis: buildAutomatedDecisionAnalysis(intake),
   };
 }
 
@@ -577,6 +755,7 @@ export function attachLiaDeliverables(
     report.child_factor = built.child_factor;
     report.public_authority_exclusion = built.public_authority_exclusion;
     report.lia_determination = built.lia_determination;
+    report.automated_decision_analysis = built.automated_decision_analysis;
     return {
       version: LIA_DELIVERABLES_VERSION,
       ok: true,
@@ -585,6 +764,8 @@ export function attachLiaDeliverables(
       child: built.child_factor.determination,
       public_authority: built.public_authority_exclusion.determination,
       outcome: built.lia_determination.outcome,
+      adm_regime: built.automated_decision_analysis.regime,
+      adm_default: built.automated_decision_analysis.default_position,
       mitigations: built.lia_determination.mitigations.length,
       mitigations_counted: built.lia_determination.mitigations.filter((m) =>
         m.goes_beyond_gdpr_obligation
@@ -596,6 +777,7 @@ export function attachLiaDeliverables(
         built.child_factor,
         built.public_authority_exclusion,
         built.lia_determination,
+        built.automated_decision_analysis,
       ].filter((d) => d.status === "record_insufficient").length,
     };
   } catch (e) {
