@@ -17,8 +17,10 @@ import {
   type Pass2Template,
 } from "./content/pass2-templates.ts";
 import { resolveSlot, type SlotContext } from "./slot-resolver.ts";
+// ITEM 337 (PROSE PROGRAM 1, Part B) — TYPED SLOT RENDERING.
+import { renderSlotValue, collapseRenderArtifacts, adapterFor } from "../prose/slots.ts";
 
-export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-07-28-item240-cp4-percite";
+export const PASS2_RENDER_VERSION = "ltp-pass2-render-2026-08-01-item337-typed-slots";
 
 /**
  * ITEM 235 (T-M9.5) — FILL-OR-OMIT AT RENDER.
@@ -239,7 +241,21 @@ function substitutePlanSlots(
     const ctxVal = (ctx as Record<string, unknown>)[slot];
     const source: "ctx" | "plan" =
       typeof ctxVal === "string" && ctxVal.trim().length > 0 ? "ctx" : "plan";
-    const value = resolveSlot(plan, slot, ctx);
+    const rawValue = resolveSlot(plan, slot, ctx);
+    // ITEM 337 Part B — render the value through the shared typed-slot layer
+    // using the template text on either side of the token as the stem/next
+    // context (list joining, seam de-duplication, punctuation, case folding).
+    const at = out.indexOf(token);
+    const stem = at >= 0 ? out.slice(Math.max(0, at - 80), at) : "";
+    const next = at >= 0 ? out.slice(at + token.length, at + token.length + 20) : "";
+    const value = at >= 0
+      ? renderSlotValue(rawValue, {
+        stem,
+        next,
+        adapter: adapterFor(productContract(plan)),
+        isSentence: /_sentence$|_clause$|_note$/.test(slot),
+      })
+      : rawValue;
     const empty = value === "" || value === "no items on the record";
     if (empty) {
       missing++;
@@ -259,6 +275,13 @@ function substitutePlanSlots(
   return { text: out, resolved, missing, empty_slots, slot_telemetry };
 }
 
+
+/** Map a RenderPlan product id to a prose-adapter contract key. */
+function productContract(plan: RenderPlan): string {
+  const p = String((plan as { product?: string })?.product ?? "");
+  if (p.startsWith("cppa-risk")) return "cppa-risk";
+  return p;
+}
 
 function checkForbiddenTokens(text: string, errors: string[]): void {
   for (const t of PASS2_FORBIDDEN_TOKENS) {
@@ -344,6 +367,9 @@ export function renderTemplate(
       omit_reason: "interpolation_residue",
     };
   }
+
+  // ITEM 337 Part B — collapse doubled periods/spaces produced at slot seams.
+  text = collapseRenderArtifacts(text);
 
   if (text.length > tpl.max_chars) errors.push(`over_max_chars:${text.length}/${tpl.max_chars}`);
   if (/\{\{[a-z]+:[A-Z0-9_]+\}\}/i.test(text)) errors.push("leaked_slot_marker");

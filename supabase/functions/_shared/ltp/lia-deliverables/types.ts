@@ -185,6 +185,14 @@ export type AdmDefaultPosition =
 export interface AutomatedDecisionFinding extends AnalysisShape {
   readonly regime: AdmRegime;
   readonly default_position: AdmDefaultPosition;
+  /**
+   * ITEM 337 (PROSE PROGRAM 1, Part D3) — prose labels. No renderer may print
+   * the raw `regime` / `default_position` enum tokens into body text; the
+   * recorded defect was an Annex-1 scope note reading "uk
+   * permitted_with_safeguards". Renderers use these fields instead.
+   */
+  readonly regime_label: string;
+  readonly default_position_label: string;
   /** UK only: Art. 22B(4) bars grounding such a decision on Art. 6(1)(ea). */
   readonly recognised_li_barred: boolean;
   /** UK only: Art. 22B(1) restriction engaged by recorded Art. 9(1) data. */

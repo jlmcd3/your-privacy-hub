@@ -28,6 +28,8 @@
 //
 // Fail-open: every helper wrapped in try/catch; availability never blocked.
 
+import { splitSentencesSafe } from "../_shared/prose/segment.ts";
+
 import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
@@ -120,14 +122,12 @@ const NEUTRAL_DOWNGRADE =
 
 // Whole-sentence split that preserves boundaries; used for both classes so
 // the doctrine (item 84c) is enforced identically everywhere.
+// ITEM 337 (PROSE PROGRAM 1, Part A) — routed through the ONE shared
+// abbreviation-aware segmenter. The prior regex split after "Art.",
+// splicing the counsel hedge into the middle of citations
+// ("GDPR Art. <hedge> 35(11)").
 function splitSentences(s: string): string[] {
-  // Split on sentence-terminal punctuation followed by whitespace or EOL.
-  // Keeps the terminal punctuation attached to the preceding sentence.
-  const out: string[] = [];
-  const re = /[^.!?]+[.!?]+|\S[^.!?]*$/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(s)) !== null) out.push(m[0]);
-  return out;
+  return splitSentencesSafe(s);
 }
 
 function rejoin(parts: string[]): string {

@@ -48,6 +48,15 @@ const FINDING_ENTRY_KEYS = [
   "title",
 ] as const;
 
+const DEADLINE_TABLE_ENTRY_KEYS = [
+  "obligation",
+  "compliance_deadline",
+  "proposition_key",
+  "subsection",
+  "verbatim_quote",
+  "information_needed",
+] as const;
+
 const SCOPE_ANALYSIS_KEYS = [
   "is_admt",
   "is_admt_reasoning",
@@ -149,6 +158,11 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     "_meta",
   ],
   entries: {
+    // ITEM 337 (PROSE PROGRAM 1, Part D5) — deadline_table entries were
+    // previously unpruned, so the internal idempotency flags `_h6v2_ran` /
+    // `_w24_h6_ran` reached report JSON. Allow-listed to the builder's keys
+    // (see run-admt-checker/_w9_admt_slots.ts → buildDeadlineTable).
+    deadline_table: DEADLINE_TABLE_ENTRY_KEYS,
     notice_gaps: FINDING_ENTRY_KEYS,
     opt_out_gaps: FINDING_ENTRY_KEYS,
     access_gaps: FINDING_ENTRY_KEYS,

@@ -592,6 +592,57 @@ Deno.serve(async (req) => {
       (result_summary as any).registration_deliverables = deliverables;
       (result_summary as any).narrative = deliverables.narrative;
       (result_summary as any).deliverables_version = REGISTRATION_DELIVERABLES_VERSION;
+
+      // ── ITEM 337 (PROSE PROGRAM 1, Part D2) — CONTRADICTION GUARD ──────
+      // The jurisdiction matrix (`obligations_summary`) and the reasoned
+      // deliverables must never tell the customer two different things on the
+      // same page. Where the reasoned determination says the record does not
+      // support a conclusion, the reasoned output WINS: the matrix boolean is
+      // suppressed to `null` and the deciding question is named. The matrix is
+      // a lookup; the deliverable is the analysis.
+      try {
+        const dpoVerdict = (deliverables as any)?.dpo?.verdict;
+        const os = (result_summary as any).obligations_summary as any;
+        const contradictions: string[] = [];
+        if (os && dpoVerdict === "record_insufficient" && os.dpo_required === true) {
+          os.dpo_required = null;
+          os.dpo_condition = os.dpo_condition ||
+            "The Art. 37(1) branches cannot be evaluated on this record; the jurisdiction lookup alone does not establish the duty.";
+          os.dpo_trigger = null;
+          contradictions.push("dpo_required");
+        }
+        if (os && dpoVerdict === "not_engaged" && os.dpo_required === true) {
+          // A jurisdictional threshold (e.g. BDSG §38) may still bite where no
+          // Art. 37(1) branch is engaged — that is not a contradiction, but it
+          // must be stated rather than left implicit.
+          os.dpo_condition = os.dpo_condition ||
+            "No Art. 37(1) branch is engaged; the duty arises, if at all, from the national threshold named in the trigger.";
+        }
+        const rep = (deliverables as any)?.representatives;
+        for (
+          const [k, v] of [
+            ["eu_representative_required", rep?.eu?.status],
+            ["uk_representative_required", rep?.uk?.status],
+          ] as const
+        ) {
+          if (os && v === "record_insufficient" && os[k] === true) {
+            os[k] = null;
+            contradictions.push(k);
+          }
+        }
+        if (contradictions.length) {
+          (result_summary as any)._meta = {
+            ...((result_summary as any)._meta || {}),
+            matrix_contradictions_suppressed: contradictions,
+          };
+          if ((result_summary as any).dpo_precision && contradictions.includes("dpo_required")) {
+            (result_summary as any).dpo_precision.required = null;
+            (result_summary as any).dpo_precision.trigger = null;
+          }
+        }
+      } catch (e) {
+        console.warn("[run-registration-assessment] contradiction guard skipped:", (e as Error)?.message);
+      }
     } catch (e) {
       console.error("[run-registration-assessment] deliverables build failed:", (e as Error)?.message);
       (result_summary as any).registration_deliverables_error = {

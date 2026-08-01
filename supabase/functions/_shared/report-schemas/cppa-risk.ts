@@ -184,6 +184,8 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "information_needed",
     "disclaimer",
     "framework_disclaimer",
+    // ITEM 337 (PROSE PROGRAM 1, Part C) — single closing methodology note.
+    "methodology_note",
     "_meta",
   ],
   // LTP Wave-B item-136 CUT: scope_and_triggers.scope_notes pruned via

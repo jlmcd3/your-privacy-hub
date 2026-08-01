@@ -582,6 +582,28 @@ export function readAdmJurisdictionFacts(intake: unknown): {
   return { jurisdictions, uk, eu, ukOnly: uk && !eu, regime };
 }
 
+/**
+ * ITEM 337 (PROSE PROGRAM 1, Part D3) — enum → prose. Body text NEVER carries
+ * the raw token; the recorded defect glued "uk permitted_with_safeguards" into
+ * the Annex-1 scope note.
+ */
+export const ADM_REGIME_LABEL: Record<string, string> = {
+  uk: "the UK GDPR regime",
+  eu: "the EU GDPR regime",
+  dual: "both the EU and the UK GDPR regimes",
+  not_engaged: "no Article 22-family regime",
+};
+
+export const ADM_DEFAULT_LABEL: Record<string, string> = {
+  permitted_with_safeguards:
+    "permitted where the Article 22C safeguards are in place",
+  prohibited_unless_excepted:
+    "prohibited unless an Article 22(2) exception applies",
+  both_defaults_stated:
+    "governed by two different defaults, each stated on its own terms",
+  not_applicable: "not applicable on this record",
+};
+
 export function buildAutomatedDecisionAnalysis(
   intake: unknown,
 ): AutomatedDecisionFinding {
@@ -712,6 +734,8 @@ export function buildAutomatedDecisionAnalysis(
     application,
     regime: f.regime,
     default_position,
+    regime_label: ADM_REGIME_LABEL[f.regime],
+    default_position_label: ADM_DEFAULT_LABEL[default_position],
     recognised_li_barred: ukEngaged,
     special_category_restriction,
     safeguards_citation: ukEngaged ? (uk22cMeasures.citation || "UK GDPR Art. 22C(2)") : "",

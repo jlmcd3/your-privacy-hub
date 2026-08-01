@@ -8080,3 +8080,26 @@ No frontend publish. Dispositions unchanged:
 - **Item 245 — HOLD REMAINS IN FORCE.** The CEO release was scoped to a cutover that failed its own gate; production is back on Item-217.
 - **Items 319–321 — STILL BLOCKED** (not deployed).
 - Findings 1–5 above are reported to the CEO as blocking; each is a separate build turn, not an inline fix.
+
+---
+
+## ITEM 337 — PROSE PROGRAM 1 of 4: DETERMINISTIC FOUNDATIONS (2026-08-01)
+
+CEO-approved. Kills mechanical mangling across the fleet (DPA generator excluded). No deployment; Item 245 hold untouched.
+
+**A. Abbreviation-aware segmentation** — `_shared/prose/segment.ts` (`splitSentencesSafe`, `truncateAtSentenceBoundary`, `isAbbreviationFragment`). Hardened this turn for dotted initialism runs so "45 C.F.R. § 164.312" is never split after "C.F.".
+
+**B. Typed slot rendering** — `_shared/prose/slots.ts` (`renderSlotValue`, natural list joins, seam de-duplication, mid-sentence case folding, `collapseRenderArtifacts`); wired into `ltp/pass2-render.ts`.
+
+**C. Methodology narration out of body text** — `_shared/prose/methodology.ts`; `applyMethodologyNote` runs once at assembly and lands `report.methodology_note`.
+
+**D. Product-specific defects**
+- D1 **Hedge-as-value ban** (governance, dpia) — `_shared/prose/hedge-degrade.ts`. A rationale-class field holding ONLY the counsel hedge is cleared and degrades to a NAMED information-needed item (MANDATORY DEGRADATION LAW). Wired into `_gov_t6_fix.ts` and `_dpia_t6_fix.ts`; counter `hedge_only_degradations`.
+- D2 **Registration contradiction guard** — `run-registration-assessment/index.ts`. Where the reasoned deliverable is `record_insufficient` and the jurisdiction matrix asserts `true` (DPO, EU rep, UK rep), the REASONED output wins: the matrix boolean is suppressed to `null`, the deciding question is named, and `_meta.matrix_contradictions_suppressed` records the suppression.
+- D3 **LIA Annex-1 scope note** — `ADM_REGIME_LABEL` / `ADM_DEFAULT_LABEL` added to `lia-deliverables`; `regime_label` and `default_position_label` are now on the deliverable so no renderer can print "uk permitted_with_safeguards" into prose.
+- D4 **Cyber controls dedup + HIPAA pinpointing** — `_shared/prose/cyber-controls.ts`. Duplicate controls collapse onto their canonical § 7123(c) component with the SEVERER status winning (dedup never launders a gap); bare HIPAA mentions gain a 45 C.F.R. pinpoint and comparative framing, operative verbs stripped. Wired into `run-cppa-cybersecurity/index.ts` with `_meta.cyber_prose_pass` telemetry.
+- ADMT — internal flags pruned from deadline-table entries; `methodology_note` whitelisted in the cppa-risk and admt schemas.
+
+**E. Registry citation lint** — `_shared/prose/citation-lint.ts`, wired into `pass2-assembler.ts` behind an explicit `citationSupply` option (no supply = no-op, telemetry says so). Unsupplied or repealed cites degrade to the registry equivalent or to a named information-needed item.
+
+**Tests** — 992 vitest passed / 0 failed (68 files), including the new `src/registry/__tests__/prose-program-1-part-d.test.ts`; 17 Deno prose tests passed.

@@ -1,4 +1,7 @@
 // qb8 build active
+import { applyCyberProsePass, CYBER_PROSE_VERSION } from "../_shared/prose/cyber-controls.ts";
+import { truncateAtSentenceBoundary, isAbbreviationFragment } from "../_shared/prose/segment.ts";
+
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
@@ -755,16 +758,22 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       // QB-P25 CYBER — next_steps: coerce legacy strings into { text, owner, trigger }
       // and CAP at 3 items.
       const nsRaw = Array.isArray(r.next_steps) ? r.next_steps : [];
-      r.next_steps = nsRaw.slice(0, 3).map((s: any) => {
-        if (typeof s === "string") {
-          return { text: cleanSection(s), owner: "", trigger: "" };
-        }
-        return {
-          text: cleanSection(s?.text ?? ""),
-          owner: stripMd(s?.owner ?? ""),
-          trigger: stripMd(s?.trigger ?? ""),
-        };
-      });
+      r.next_steps = nsRaw
+        .map((s: any) => {
+          if (typeof s === "string") {
+            return { text: cleanSection(s), owner: "", trigger: "" };
+          }
+          return {
+            text: cleanSection(s?.text ?? ""),
+            owner: stripMd(s?.owner ?? ""),
+            trigger: stripMd(s?.trigger ?? ""),
+          };
+        })
+        // ITEM 337 (PROSE PROGRAM 1, Part A) — drop degenerate truncation
+        // residue such as the recorded {"text":"Civ."} entry.
+        .filter((s: any) => String(s?.text ?? "").trim().length > 0 && !isAbbreviationFragment(s.text))
+        .slice(0, 3);
+
     }
 
     function assembleControlsNarrative(controls: any[]): string {
@@ -1291,14 +1300,11 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     }
 
     // QB7-7 sentence-boundary truncation for FSOR commentary previews: never cut mid-sentence.
+    // ITEM 337 (PROSE PROGRAM 1, Part A) — abbreviation-aware truncation.
+    // The prior lastIndexOf(". ") cut after "Cal. Civ.", producing dangling
+    // "Civ." fragments and a {"text":"Civ."} next_steps entry.
     function truncateAtSentence(text: string | null | undefined, maxLen = 600): string | null {
-      if (!text) return text ?? null;
-      const t = String(text);
-      if (t.length <= maxLen) return t;
-      const window = t.slice(0, maxLen);
-      const lastBoundary = Math.max(window.lastIndexOf(". "), window.lastIndexOf("? "), window.lastIndexOf("! "));
-      if (lastBoundary > maxLen * 0.5) return window.slice(0, lastBoundary + 1);
-      return window + "…";
+      return truncateAtSentenceBoundary(text, maxLen);
     }
 
     function shapeFsorItem(r: any): any {
@@ -1422,6 +1428,17 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     }
     report.controls = controlsOut;
+
+    // ITEM 337 (PROSE PROGRAM 1, Part D4) — deterministic control dedup onto
+    // the canonical § 7123(c) component (more severe status wins) and HIPAA
+    // pinpointing with comparative framing.
+    {
+      const cyberProse = applyCyberProsePass(report as Record<string, unknown>);
+      (report as any)._meta = {
+        ...((report as any)._meta || {}),
+        cyber_prose_pass: { version: CYBER_PROSE_VERSION, ...cyberProse },
+      };
+    }
 
     // Section-level FSOR commentary attached once at report level (not per
     // control) to avoid 18x duplication of the same agency text.
