@@ -38,7 +38,8 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const LIA_VERIFIED_AUTHORITY_VERSION = "lia-va-w2-2026-07-31-item311";
+export const LIA_VERIFIED_AUTHORITY_VERSION = "lia-va-w2-2026-08-01-item326";
+
 
 /** Canonical published text URLs (official primary sources). */
 const GDPR_URL = "https://eur-lex.europa.eu/eli/reg/2016/679/oj";
