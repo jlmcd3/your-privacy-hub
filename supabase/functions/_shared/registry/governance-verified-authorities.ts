@@ -33,14 +33,20 @@ import type {
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
 export const GOVERNANCE_VERIFIED_AUTHORITY_VERSION =
-  "governance-va-w1-2026-07-25";
+  "governance-va-w2-2026-08-01-item327";
 
 const GDPR_URL = "https://eur-lex.europa.eu/eli/reg/2016/679/oj";
 const EDPB_2_2019_URL =
   "https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22019-processing-personal-data-under-article-61b_en";
 
 const VOD = "2026-07-25";
+/** ITEM 327 verified-on date — UK Chapter V rows, re-queried fresh. */
+const VOD_327 = "2026-08-01";
 const GDPR = "Regulation (EU) 2016/679 (GDPR)";
+const UK_GDPR =
+  "Regulation (EU) 2016/679 as it forms part of UK domestic law (UK GDPR)";
+const UK_ART_URL = (n: string) =>
+  `https://www.legislation.gov.uk/eur/2016/679/article/${n}`;
 const EDPB_2_2019 =
   "EDPB Guidelines 2/2019 on processing of personal data under Article 6(1)(b) GDPR";
 
