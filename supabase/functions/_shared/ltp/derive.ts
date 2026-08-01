@@ -22,6 +22,7 @@ import type {
 import { CPPA_RISK_CONCLUSIONS } from "../legal-test/cppa-risk-conclusions.ts";
 import { CPPA_RISK_FACTORS, WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
 import { evaluateCppaRiskGates } from "./gate-eval.ts";
+import { detectFactorPresence } from "./factor-presence.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 // ITEM 305 — the five per-activity analytic deliverables. SINGLE-WRITER:
 // derivePlan is the only caller; the assembler shard merely projects it.
@@ -143,18 +144,30 @@ function pickPropositions(bindings: readonly CitationBinding[], ledger: readonly
   });
 }
 
-export function pickFactorTable(): FactorTableEntry[] {
-  return CPPA_RISK_FACTORS.map((f) => ({
-    factor_id: f.id,
-    kind: f.kind,
-    jurisdiction_tag: f.jurisdiction_tag,
-    present_in_intake: false, // shadow-mode: presence detection is a Pass-1 model responsibility
-    intake_ledger_refs: [],
-    guidance_refs: f.guidance_refs ?? [],
-    anchor: f.anchor,
-    display_label: f.label,
-  }));
+/**
+ * ITEM 350 — presence is now DETERMINISTIC from contract-real intake
+ * operands (see `factor-presence.ts`). The prior unconditional
+ * `present_in_intake:false` made the sufficiency evaluator operand-blind,
+ * so every record produced the same all-elements-missing degradation
+ * regardless of what the customer supplied. The Pass-1 model overlay may
+ * still raise a row; this is the deterministic floor both entry paths share.
+ */
+export function pickFactorTable(intake?: Record<string, unknown> | null): FactorTableEntry[] {
+  return CPPA_RISK_FACTORS.map((f) => {
+    const presence = detectFactorPresence(f.id, intake ?? {});
+    return {
+      factor_id: f.id,
+      kind: f.kind,
+      jurisdiction_tag: f.jurisdiction_tag,
+      present_in_intake: presence.present,
+      intake_ledger_refs: presence.ledger_refs,
+      guidance_refs: f.guidance_refs ?? [],
+      anchor: f.anchor,
+      display_label: f.label,
+    };
+  });
 }
+
 
 
 export function derivePlan(input: DeriveInput): RenderPlan {
@@ -162,7 +175,7 @@ export function derivePlan(input: DeriveInput): RenderPlan {
     const ledger = pickLedger(input.intake ?? {});
     const bindings = pickCitationBindings();
     const propositions = pickPropositions(bindings, ledger);
-    const factor_table = pickFactorTable();
+    const factor_table = pickFactorTable(input.intake);
     const gate_outcomes = evaluateCppaRiskGates(input.intake ?? {});
     return {
       plan_version: "v1",

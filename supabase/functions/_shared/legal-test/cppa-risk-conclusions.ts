@@ -399,14 +399,16 @@ const RESERVED_CONCLUSIONS: readonly ConclusionSpec[] = [
     // ITEM 241.3 CONDITION 2 — reserved_to REVERTS to legal_counsel
     // (courier's external_auditor reassignment is NOT authorized).
     reserved_to: "legal_counsel",
-    // ITEM 252 (Ruling B signed, CEO 2026-07-29) — resolution_source_fields
-    // intentionally undefined per docs/courier/ITEM252-RULING-B-SIGNED-2026-07-29.md
-    // — always-asking. ITEM250's proposed ["safeguards_summary"] was
-    // REJECTED on controller verification: the field does not exist in
-    // _shared/intake-contracts/cppa-risk-assessment.ts (its LEDGER_KEYS
-    // entry is a shadow-era fossil), so pickLedger never emits the ledger
-    // row and the skip could never fire; population would green CHECK 1
-    // vacuously. Zero safeguard-related qc_r1_1 failures in the archive.
+    // ITEM 350 — resolution_source_fields POPULATED with the contract-real
+    // key `a6_safeguards`. ITEM 252 Ruling B left this undefined because the
+    // key ITEM 250 proposed (`safeguards_summary`) is a shadow-era fossil that
+    // does not exist in the contract; that reasoning does not reach
+    // `a6_safeguards`, which IS a live contract field emitted by pickLedger.
+    // Leaving it undefined made the § 7152(a)(6) ask unresolvable, so records
+    // that DO document safeguards were still told the element was missing
+    // (Item 349 Phase-2 defect). Counsel's sufficiency DETERMINATION remains
+    // reserved_to legal_counsel; only the record-completeness ask resolves.
+    resolution_source_fields: ["a6_safeguards"],
     compliance_guidance:
       "Counsel must record a reasoned sufficiency determination on the safeguards documented, attaching the determination to the specific safeguards enumerated in the record, and identifying any safeguard gap the balancing outcome must weigh under § 7152(a)(6).",
   },

@@ -44,6 +44,7 @@ import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from ".
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "./_local/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+import { resolveLtpIntake } from "../_shared/ltp/entry-intake.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -3395,7 +3396,9 @@ async function runPipeline(assessment_id: string) {
     // which the LEAK-PREV-P2 whitelist serializer strips. Never mutates
     // customer-visible surfaces. Fail-open in all paths.
     try {
-      const _ltpIntake = (row as any).intake_data ?? {};
+      // ITEM 350 — entry parity: production resolves intake through the SAME
+      // resolver the graded harness uses (era-normalization → flat contract keys).
+      const _ltpIntake = resolveLtpIntake((row as any).intake_data ?? {}).intake;
       const _ltpTelemetry = runLegalTestPipelineShadow({
         intake: _ltpIntake,
         report_data: report_data as any,
