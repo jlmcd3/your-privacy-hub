@@ -1,33 +1,33 @@
 /**
  * ITEM 335 — HARNESS-ONLY LTP DOCUMENT GENERATOR (cppa-risk).
  *
- * Purpose: let the shared quality-batch runner generate cppa-risk test
- * documents through the NEW LTP pipeline (Pass-1 -> assembleReport ->
- * Pass-2R) instead of invoking production `run-cppa-risk-assessment`, which
- * remains pinned to the Item-217 legacy engine by the Item 245 rollback hold.
+ * ITEM 357 REFACTOR: this harness no longer carries its own copy of the
+ * generation path. It calls the ONE shared module
+ * (`_shared/ltp/generate-cppa-risk.ts`), which owns entry-intake → Pass-1 →
+ * assembleReport → emit-gate → serialization → the final persisted payload.
+ * The harness is now pure plumbing: load row, call module, persist, run
+ * Pass-2R inside the awaited lifecycle, update.
  *
- * SCOPE GUARD: this function is reachable ONLY with the service-role bearer,
- * and is only ever called by
+ * SCOPE GUARD: reachable ONLY with the service-role bearer; called only by
  * run-quality-batch when a run row carries `engine_path = 'ltp'`. Nothing
- * customer-facing routes here. `run-cppa-risk-assessment` is untouched.
+ * customer-facing routes here.
  *
- * PERSIST-FIRST (fleet law): the deterministic report is written to the
- * cppa_assessments row BEFORE Pass-2R runs. Pass-2R output is folded in
- * afterwards; isolate death during 2R costs only the 2R telemetry.
+ * PERSIST-FIRST (fleet law): the deterministic payload is written BEFORE
+ * Pass-2R runs; Pass-2R then UPDATEs the row from inside the same awaited task.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { modelProvider } from "../_shared/ltp/replay/providers.ts";
-import { resolveLtpIntake } from "../_shared/ltp/entry-intake.ts";
-import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
-import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
-import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
-// ITEM 341 — EU persuasive-authority corpus (read-only; never throws).
-import { fetchEuAuthorityCorpus } from "../_shared/ltp/eu-authority/fetch.ts";
+import {
+  generateCppaRiskReport,
+  runCppaRiskPass2R,
+  CPPA_RISK_GENERATOR_STAMP,
+} from "../_shared/ltp/generate-cppa-risk.ts";
 
-const BUILD_STAMP = "ltp-risk-doc-gen-item335-2026-08-01";
+const BUILD_STAMP = "ltp-risk-doc-gen-item357-2026-08-01";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+console.log(`[ltp-risk-doc-gen] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP}`);
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -48,76 +48,36 @@ async function generate(assessmentId: string): Promise<void> {
 
     await db.from("cppa_assessments").update({ status: "processing" }).eq("id", assessmentId);
 
-    const era = resolveLtpIntake(row.intake_data ?? {});
-    // ITEM 341 — corpus for the EU persuasive-authority section. Null on any
-    // failure; the builder then states honestly that nothing is available.
-    const euCorpus = await fetchEuAuthorityCorpus(db);
-    const p1 = await modelProvider(
-      {
-        intake: era.intake,
-        report_data: {},
-        buildStamp: `${BUILD_STAMP}#${assessmentId}`,
-        eu_authority_corpus: euCorpus,
-      },
-      { callerName: "ltp-risk-doc-gen" },
-    );
-    const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });
-
-    // ---- PERSIST-FIRST: deterministic surface lands before any 2R call.
-    const deterministic: Record<string, unknown> = {
-      ...(assembled.report as Record<string, unknown>),
-      _engine_path: "ltp",
-      _ltp: {
-        build_stamp: BUILD_STAMP,
-        pass1_manifest: PASS1_MANIFEST,
-        pass2r_manifest: PASS2R_MANIFEST,
-        pass1_telemetry: {
-          ok: p1.telemetry.ok,
-          attempts: p1.telemetry.attempts,
-          write_around: p1.telemetry.write_around,
-          latency_ms: p1.telemetry.latency_ms,
-        },
-        assembler_telemetry: assembled.telemetry,
-        intake_era_normalization: era.telemetry,
-        shipped_surface: "deterministic",
-      },
+    const options = {
+      db,
+      buildStamp: BUILD_STAMP,
+      runId: assessmentId,
+      mode: "observe" as const,
+      pass1: "model" as const,
+      callerName: "ltp-risk-doc-gen",
     };
+    const gen = await generateCppaRiskReport(row.intake_data ?? {}, options);
+
+    // ---- PERSIST-FIRST: deterministic payload lands before any 2R call.
     await db.from("cppa_assessments").update({
       status: "complete",
-      report_data: deterministic,
+      report_data: gen.report,
     }).eq("id", assessmentId);
 
-    // ---- PASS-2R. FALLBACK LAW: prose only ships when the stage accepts it.
-    try {
-      const stage = await runProsePassStage(
-        p1.plan as never,
-        assembled.report as Record<string, unknown>,
-        { enabled: true, callerName: "ltp-risk-doc-gen" },
-      );
-      const shipped = stage.shipped_surface === "prose" && stage.prose
-        ? { ...(assembled.report as Record<string, unknown>), ...(stage.prose as Record<string, unknown>) }
-        : (assembled.report as Record<string, unknown>);
-      await db.from("cppa_assessments").update({
-        report_data: {
-          ...deterministic,
-          ...shipped,
-          _ltp: {
-            ...(deterministic._ltp as Record<string, unknown>),
-            shipped_surface: stage.shipped_surface,
-            pass2r_telemetry: stage.telemetry ?? null,
-            pass2r_skipped_reason: (stage as { skipped_reason?: string }).skipped_reason ?? null,
-          },
-        },
-      }).eq("id", assessmentId);
-    } catch (e) {
-      console.warn("[ltp-risk-doc-gen] pass2r failed (non-fatal):", (e as Error).message);
+    // ---- PASS-2R inside the awaited lifecycle; the UPDATE is part of the task.
+    const p2 = await runCppaRiskPass2R(gen, options);
+    if (p2.report) {
+      await db.from("cppa_assessments").update({ report_data: p2.report }).eq("id", assessmentId);
     }
+    console.log(JSON.stringify({
+      evt: "ltp_risk_doc_gen_complete", assessment_id: assessmentId,
+      shipped_surface: p2.shipped_surface, skipped_reason: p2.meta.pass2r_skipped_reason ?? null,
+    }));
   } catch (e) {
     const msg = (e as Error).message ?? String(e);
     console.error("[ltp-risk-doc-gen] fatal:", msg);
     try {
-      await createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } })
-        .from("cppa_assessments")
+      await db.from("cppa_assessments")
         .update({ status: "error", error_message: msg.slice(0, 500) })
         .eq("id", assessmentId);
     } catch { /* best effort */ }
