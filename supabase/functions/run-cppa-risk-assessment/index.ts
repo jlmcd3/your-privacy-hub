@@ -49,6 +49,12 @@ import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from ".
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+// T-M CUTOVER — LTP production orchestrator surfaces.
+import { modelProvider } from "../_shared/ltp/replay/providers.ts";
+import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
+import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
+import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
+import { fetchEuAuthorityCorpus } from "../_shared/ltp/eu-authority/fetch.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
