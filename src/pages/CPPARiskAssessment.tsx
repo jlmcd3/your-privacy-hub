@@ -563,19 +563,25 @@ export default function CPPARiskAssessment() {
         label: "Sensitive PI limit right must be offered",
         triggered: q15 === "Yes",
       },
-      // ITEM 275 BUILD 2(c) — comparable-set reactive line. Reserved framing:
-      // the tool never states that separate assessments ARE required.
+      // ITEM 275 BUILD 2(c) — comparable-set reactive line.
+      // ITEM 319 ADDENDUM — DIRECTIVE POSTURE. This is a FIFTH encoding of the
+      // same § 7156(a) call, not on the dispatch's list of four but visible on
+      // the same screen as the helper text and the rail, so it moves with them.
+      // Its trigger already matches the shipped threshold (any dimension
+      // "Different" or "Not sure"); only the framing changes. Still a
+      // recommendation, never "required" — see spec § 2R.5 exception.
       {
         citation: "11 CCR § 7156(a)",
         label:
-          "Multiple distinct uses reported — separate assessments may be required (comparable-set standard)",
+          "Multiple distinct uses reported — a separate risk assessment is recommended for each use that differs (comparable-set standard)",
         triggered:
           hasSecondaryUses === "Yes — there are other uses" &&
           secondaryActivities.some((a) =>
             Object.values(a.divergence ?? {}).some((v) => v === "Different" || v === "Not sure"),
           ),
-        note: "determination reserved to you and counsel",
+        note: "this tool's recommendation on your record, not a statement of what the law requires",
       },
+
     ];
     return items.filter((i) => i.triggered);
   }, [
