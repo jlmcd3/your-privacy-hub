@@ -1319,8 +1319,16 @@ export type DispatchResult =
   | { sourceTable: string; sourceRowId: string; invocation: Promise<any> }
   | { error: string };
 
+// ITEM 335 — harness-only engine selector. `enginePath === "ltp"` routes
+// cppa-risk test-document generation through the LTP pipeline
+// (ltp-risk-doc-gen: Pass-1 -> assembleReport -> Pass-2R) instead of the
+// production `run-cppa-risk-assessment`, which stays pinned to the Item-217
+// legacy engine by the Item 245 rollback hold. DEFAULT (undefined/"production")
+// preserves the existing behaviour byte-for-byte for every tool.
+export type EnginePath = "production" | "ltp";
+
 async function dispatchGeneration(
-  admin: Admin, tool: string, intake: any, userId: string,
+  admin: Admin, tool: string, intake: any, userId: string, enginePath: EnginePath = "production",
 ): Promise<DispatchResult> {
   try {
     if (tool === "cppa-admt") {
@@ -1332,7 +1340,9 @@ async function dispatchGeneration(
     if (tool === "cppa-risk") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      const invocation = invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id });
+      // ITEM 335 — harness/shadow engine selector (see EnginePath above).
+      const genFn = enginePath === "ltp" ? "ltp-risk-doc-gen" : "run-cppa-risk-assessment";
+      const invocation = invokeFn(genFn, { assessment_id: rec.id });
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "cppa-cyber") {
@@ -1827,7 +1837,7 @@ async function runBatch(runId: string): Promise<void> {
   // Load run state
   const { data: runRow, error: runErr } = await admin
     .from("quality_runs")
-    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log, fixture_variant")
+    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log, fixture_variant, engine_path")
     .eq("id", runId).single();
   if (runErr || !runRow) {
     clearInterval(heartbeat);
@@ -1843,6 +1853,9 @@ async function runBatch(runId: string): Promise<void> {
   // null is the legacy unlabelled path used by /admin/quality-batch.
   const fixtureVariant: FixtureVariant | null =
     (run.fixture_variant === "perfect" || run.fixture_variant === "messy") ? run.fixture_variant : null;
+  // ITEM 335 — harness-only engine path. Default "production" preserves
+  // existing behaviour; "ltp" only affects cppa-risk document generation.
+  const enginePath: EnginePath = run.engine_path === "ltp" ? "ltp" : "production";
 
   const state: PartialState = run.partial_state ?? emptyState();
   // Backfill held-out fields on resumed runs whose partial_state predates P-A.
@@ -2120,7 +2133,7 @@ async function runBatch(runId: string): Promise<void> {
             return;
           }
 
-          const dispatch = await dispatchGeneration(admin, tool, intake, userId);
+          const dispatch = await dispatchGeneration(admin, tool, intake, userId, enginePath);
           if ("error" in dispatch) {
             // QB-P14 item 3 — surface the seed/dispatch error verbatim (was
             // just "dispatch failed" with no reason).
@@ -2266,7 +2279,7 @@ async function runBatch(runId: string): Promise<void> {
             let reportData2: any = null;
             try {
               if (POLL_TOOLS.has(tool)) {
-                const d2 = await dispatchGeneration(admin, tool, intake, userId);
+                const d2 = await dispatchGeneration(admin, tool, intake, userId, enginePath);
                 if (d2) {
                   const outcome2 = await pollGenerationRow(admin, d2.sourceTable, d2.sourceRowId, POLL_DEADLINE_MS, { tool, log });
                   if (outcome2.status === "complete") reportData2 = outcome2.reportData;

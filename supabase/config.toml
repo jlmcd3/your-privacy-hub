@@ -242,3 +242,6 @@ verify_jwt = false
 
 
 
+
+[functions.ltp-risk-doc-gen]
+verify_jwt = false

@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-08-01T09:15Z (Item 330 — UK/EU FIX 5 of 5: `dpia` now cites UK GDPR Art. 35/36 and "the Commissioner" on a UK-only record. Citation accuracy only — 16 UK mirror rows pinned byte-exact to `ukgdpr-art-35`/`-36`; no trigger, threshold, band, verdict or determination changed, proven by a regime-invariance test. Registry suite 443/443.) Previously: 2026-08-01T08:27Z (Item 325 — `/admin/final-test` shipped: a separate CEO-ordered console route sharing ONE execution engine and ONE UI component with `/admin/quality-batch`, plus a per-tool Perfect/Messy fixture-variant toggle and a fleet-wide fixture × tool × variant CI contract matrix. Messy fixtures are not authored yet by design; a messy run is rejected by name. Legacy console behaviour verified unchanged. 2026-08-01T08:14Z (Item 324 — cppa-risk pinned-fixture contract parity restored: the three revision-contract fixtures carried none of the eight Item 305 required-always § 7152 operands, aborting every /admin/quality-batch run on cppa-risk at start; 24 violations → 0, 6/6 pinned intakes now validate. Dedicated § 7152(a)(5)(A)–(H) corpus pin and a permanent parity guard added, 12 new tests. vitest 820/827 — same 7 pre-existing failures. Previously: Item 323 — Washington My Health My Data Act (RCW 19.373) ingested, verified, and activated in the biometric product as a DISTINCT authority alongside RCW 19.375. Five sections approved in provision_texts; 11 duty rows added; the Item 317 absence guards flipped, not deleted. vitest 807/814 — the 7 failures are the pre-existing font-size and cppa-risk/cyber fixture pins, untouched.))
+**Last updated:** 2026-08-01T15:10Z (Item 335 — CEO-ordered fleet-wide Perfect-Data baseline: one quality batch per product across ALL 10 tools, 30/30 documents complete, 0 errored. cppa-risk was measured on the NEW LTP rebuild via a harness-only `engine_path='ltp'` option — 88.35 Claude / 87 GPT vs. the legacy run #183 baseline of 69.5 / 86. Item 245 hold untouched; `run-cppa-risk-assessment` unchanged.) Previously: 2026-08-01T09:15Z (Item 330 — UK/EU FIX 5 of 5: `dpia` now cites UK GDPR Art. 35/36 and "the Commissioner" on a UK-only record. Citation accuracy only — 16 UK mirror rows pinned byte-exact to `ukgdpr-art-35`/`-36`; no trigger, threshold, band, verdict or determination changed, proven by a regime-invariance test. Registry suite 443/443.) Previously: 2026-08-01T08:27Z (Item 325 — `/admin/final-test` shipped: a separate CEO-ordered console route sharing ONE execution engine and ONE UI component with `/admin/quality-batch`, plus a per-tool Perfect/Messy fixture-variant toggle and a fleet-wide fixture × tool × variant CI contract matrix. Messy fixtures are not authored yet by design; a messy run is rejected by name. Legacy console behaviour verified unchanged. 2026-08-01T08:14Z (Item 324 — cppa-risk pinned-fixture contract parity restored: the three revision-contract fixtures carried none of the eight Item 305 required-always § 7152 operands, aborting every /admin/quality-batch run on cppa-risk at start; 24 violations → 0, 6/6 pinned intakes now validate. Dedicated § 7152(a)(5)(A)–(H) corpus pin and a permanent parity guard added, 12 new tests. vitest 820/827 — same 7 pre-existing failures. Previously: Item 323 — Washington My Health My Data Act (RCW 19.373) ingested, verified, and activated in the biometric product as a DISTINCT authority alongside RCW 19.375. Five sections approved in provision_texts; 11 duty rows added; the Item 317 absence guards flipped, not deleted. vitest 807/814 — the 7 failures are the pre-existing font-size and cppa-risk/cyber fixture pins, untouched.))
 
 ---
 
@@ -7831,3 +7831,41 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 
 **Files changed:** migration (above); `supabase/functions/verification-scan/index.ts`; `src/pages/admin/VerificationScanAdmin.tsx`; this ledger.
 **Disposition:** SHIPPED (frontend not published this turn). Nothing under the Item 245 hold was touched.
+
+
+---
+
+## 335. **DONE (2026-08-01T15:10Z, ITEM 335 — FLEET-WIDE PERFECT-DATA BASELINE, ALL 10 TOOLS; cppa-risk MEASURED ON THE LTP REBUILD)**
+
+**Mandate (CEO).** One Perfect-variant quality batch per product through the `/admin/final-test` path for all ten tools, run to child-run completion. REPORT ONLY — no fixes, no tuning, no redispatch on results.
+
+**Engine routing (CEO decision, 2026-08-01).** cppa-risk must NOT be graded on the legacy engine. The shared batch runner generated cppa-risk documents by invoking production `run-cppa-risk-assessment`, which the Item 245 rollback pins to the Item-217 legacy build. This turn added a **harness-only engine selector**:
+
+- New `EnginePath = "production" | "ltp"` in `supabase/functions/run-quality-batch/index.ts`. **Default is `production`** — every tool's existing behaviour is byte-for-byte unchanged when the option is absent.
+- New nullable `engine_path` column on `quality_runs` and `quality_batch_runs`; plumbed orchestrator → `startRun` → batch row → `seedAndResume` → child run row → `dispatchGeneration`.
+- New internal function `supabase/functions/ltp-risk-doc-gen/index.ts` (service-role bearer only, never customer-facing): Pass-1 (`modelProvider`) → `assembleReport` → `runProsePassStage`, the same `_shared/ltp/*` modules `replay-cppa-risk-harness` uses, with **PERSIST-FIRST** (deterministic report written before any 2R call) and **FALLBACK LAW** (prose ships only when the 2R stage accepts it). Writes `status='complete'` + `report_data` onto the `cppa_assessments` row, so the generated LTP report flows into the normal `quality_runs` grading path exactly like any other tool's docs.
+- **`run-cppa-risk-assessment` was not modified. Nothing customer-facing changed. The Item 245 hold stays fully intact.** Provenance verified on all three docs: `report_data._engine_path='ltp'`, `_ltp.shipped_surface='deterministic'`.
+
+**Launch mechanism.** Temporary relay `t335-relay` (Item 331 pattern) converted an unauthenticated nonce-guarded call into the orchestrator's internal `start` path. **Deleted after the runs**, along with its `supabase/config.toml` entry.
+
+**Results — Perfect variant, batch_size 3 per tool, 30/30 docs complete, 0 docs errored, 0 run-level errors (all run `error` fields NULL).**
+
+| Tool | run id | run # | docs complete/total | docs errored | score_overall (per-doc) | gpt_score_overall (per-doc) | checks passed/total | checks failed |
+|---|---|---|---|---|---|---|---|---|
+| cppa-risk **(LTP)** | 9e2bf1c9-9c91-481d-ad67-ea0a7f576d73 | 184 | 3/3 | 0 | **88.35** (88.2, 88.5, 88.5) | **87** (85, 85, 90) | 45/51 | 6 |
+| cppa-admt | 07245576-fd03-40b9-9dd3-174a58671670 | 118 | 3/3 | 0 | 86.70 (89.0, 89.7, 81.8) | 91 (92, 96, 85) | 89/101 | 12 |
+| cppa-cyber | 281b51ef-1855-4833-aab5-aa91240b6f66 | 122 | 3/3 | 0 | 86.65 (90.3, 94.0, 75.9) | 90 (91, 88, 90) | 50/58 | 8 |
+| governance | 0a2e9966-078a-4186-a2ec-c2513b70f1f1 | 109 | 3/3 | 0 | 81.10 (76.2, 80.7, 86.5) | 86 (91, 77, 85) | 39/56 | 17 |
+| dpia | c1ffeada-87fc-4896-8f93-7f3fb58896a9 | 123 | 3/3 | 0 | 83.70 (83.8, 87.1, 80.3) | 87 (85, 88, 83) | 39/47 | 8 |
+| lia | 70aa81be-3b53-41e0-a0ba-83143fa55aa2 | 103 | 3/3 | 0 | 90.35 (89.7, 90.7, 89.8) | 84 (87, 73, 85) | 39/52 | 13 |
+| dpa-generator | f653c0d3-5f7a-412a-a514-d32355c597b5 | 92 | 3/3 | 0 | 90.15 (90.9, 91.6, 88.5) | 91 (93, 90, 87) | 43/48 | 5 |
+| ir-playbook | 7503e961-3f21-41e4-ba3c-fd9d3b6acfdc | 94 | 3/3 | 0 | 92.65 (94.0, 92.0, 91.4) | 92 (91, 94, 90) | 45/50 | 5 |
+| biometric-checker | 37efe29c-8117-4473-9ed0-856517d47cf2 | 86 | 3/3 | 0 | 91.45 (88.4, 93.0, 92.6) | 95 (99, 92, 91) | 25/32 | 7 |
+| registration | e880bf65-923a-4c29-bbbc-b407de1ec36c | 74 | 3/3 | 0 | 85.05 (86.4, 88.2, 80.4) | 88 (90, 85, 88) | 18/28 | 10 |
+
+**COMPARISON LINE (cppa-risk LTP vs. legacy baseline).** Run #183 (legacy production engine, Perfect, 3/3 docs): score_overall **69.5**, gpt **86**. Run #184 (LTP rebuild, Perfect, 3/3 docs): score_overall **88.35**, gpt **87**. Delta: **+18.85 Claude, +1 GPT**, with per-doc variance collapsing from the legacy spread to 88.2 / 88.5 / 88.5. **cppa-risk's line in this baseline measures the LTP rebuild, NOT production.** Production cppa-risk remains the Item-217 legacy engine under the Item 245 hold and was not measured this turn.
+
+**Known cosmetic caveat (unchanged).** Parent `quality_batch_runs` rows may remain `running` (admin-JWT-only finalizer); the child `quality_runs` rows above are authoritative and all read `complete`.
+
+**Files changed:** migration (`engine_path` on `quality_runs`, `quality_batch_runs`); `supabase/functions/ltp-risk-doc-gen/index.ts` (new); `supabase/functions/run-quality-batch/index.ts`; `supabase/functions/quality-batch-orchestrator/index.ts`; `supabase/config.toml`; this ledger. Temporary `t335-relay` created and deleted within the turn.
+**Disposition:** REPORT ONLY — no result-driven fixes, tuning, or redispatch. Nothing under the Item 245 hold was touched.
