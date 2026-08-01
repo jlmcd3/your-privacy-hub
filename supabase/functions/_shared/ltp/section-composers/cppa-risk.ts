@@ -632,22 +632,23 @@ function composeRiskByActivity(plan: RenderPlan): TemplateInstance[] {
   const engaged = engagedApplicability(plan);
   if (engaged.length === 0) {
     if (!insufficientRecord(plan)) {
-      const parts = rationaleParts(primaryName || undefined);
-      const c = carrierOf(parts);
+      const r = rationaleParts(primaryName || undefined);
+      const c = carrierOf(r);
       return [
-        { template_id: c.template_id, ctx: c.ctx, parts },
+        { template_id: c.template_id, ctx: c.ctx, parts: r.parts },
         liaLine,
       ];
     }
     return [];
   }
-  const parts = rationaleParts(primaryName || joinList(engaged.map(propLabel)));
-  const carrier = carrierOf(parts);
+  const r = rationaleParts(primaryName || joinList(engaged.map(propLabel)));
+  const carrier = carrierOf(r);
   return [
-    { template_id: carrier.template_id, ctx: carrier.ctx, parts },
+    { template_id: carrier.template_id, ctx: carrier.ctx, parts: r.parts },
     liaLine,
   ];
 }
+
 
 // ── ITEM 241.3 — Gap-driven four-move action composer ────────────────────
 //
