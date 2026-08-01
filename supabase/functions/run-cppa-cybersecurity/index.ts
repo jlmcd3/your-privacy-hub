@@ -756,16 +756,22 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       // QB-P25 CYBER — next_steps: coerce legacy strings into { text, owner, trigger }
       // and CAP at 3 items.
       const nsRaw = Array.isArray(r.next_steps) ? r.next_steps : [];
-      r.next_steps = nsRaw.slice(0, 3).map((s: any) => {
-        if (typeof s === "string") {
-          return { text: cleanSection(s), owner: "", trigger: "" };
-        }
-        return {
-          text: cleanSection(s?.text ?? ""),
-          owner: stripMd(s?.owner ?? ""),
-          trigger: stripMd(s?.trigger ?? ""),
-        };
-      });
+      r.next_steps = nsRaw
+        .map((s: any) => {
+          if (typeof s === "string") {
+            return { text: cleanSection(s), owner: "", trigger: "" };
+          }
+          return {
+            text: cleanSection(s?.text ?? ""),
+            owner: stripMd(s?.owner ?? ""),
+            trigger: stripMd(s?.trigger ?? ""),
+          };
+        })
+        // ITEM 337 (PROSE PROGRAM 1, Part A) — drop degenerate truncation
+        // residue such as the recorded {"text":"Civ."} entry.
+        .filter((s: any) => String(s?.text ?? "").trim().length > 0 && !isAbbreviationFragment(s.text))
+        .slice(0, 3);
+
     }
 
     function assembleControlsNarrative(controls: any[]): string {
