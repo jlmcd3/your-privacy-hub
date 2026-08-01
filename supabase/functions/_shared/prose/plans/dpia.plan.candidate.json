@@ -1,0 +1,152 @@
+{
+  "product": "dpia",
+  "donors_total": 36,
+  "donors_with_text": 0,
+  "method": "report_keys — inventory + lead types from report_data prose; ordering from the shared arc",
+  "sections": [
+    {
+      "label": "section_0_overview",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 33,
+        "determination": 3
+      },
+      "mean_position": 0
+    },
+    {
+      "label": "section_1_description",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 33,
+        "determination": 3
+      },
+      "mean_position": 0.091
+    },
+    {
+      "label": "section_2_analysis",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 35,
+        "determination": 1
+      },
+      "mean_position": 0.182
+    },
+    {
+      "label": "section_3_necessity_proportionality",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 33,
+        "determination": 3
+      },
+      "mean_position": 0.273
+    },
+    {
+      "label": "section_4_risk_management",
+      "arc_stage": "analysis",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.364
+    },
+    {
+      "label": "section_5_interested_parties",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 35,
+        "determination": 1
+      },
+      "mean_position": 0.455
+    },
+    {
+      "label": "section_6_conclusion",
+      "arc_stage": "close",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 34,
+        "determination": 2
+      },
+      "mean_position": 0.545
+    },
+    {
+      "label": "dpia_metadata",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.636
+    },
+    {
+      "label": "framework_disclaimer",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.727
+    },
+    {
+      "label": "gdpr_meta",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.818
+    },
+    {
+      "label": "jurisdiction_validation",
+      "arc_stage": "unclassified",
+      "donors": 36,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 36
+      },
+      "mean_position": 0.909
+    },
+    {
+      "label": "information_needed",
+      "arc_stage": "ask",
+      "donors": 34,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 34
+      },
+      "mean_position": 1
+    }
+  ],
+  "arc": [
+    "analysis",
+    "close",
+    "ask"
+  ],
+  "extracted_at": "2026-08-01"
+}

@@ -1,0 +1,106 @@
+{
+  "product": "governance",
+  "donors_total": 14,
+  "donors_with_text": 0,
+  "method": "report_keys — inventory + lead types from report_data prose; ordering from the shared arc",
+  "sections": [
+    {
+      "label": "disclaimer",
+      "arc_stage": "unclassified",
+      "donors": 14,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 14
+      },
+      "mean_position": 0
+    },
+    {
+      "label": "domain_findings",
+      "arc_stage": "unclassified",
+      "donors": 14,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 13,
+        "determination": 1
+      },
+      "mean_position": 0.143
+    },
+    {
+      "label": "interaction_effects",
+      "arc_stage": "unclassified",
+      "donors": 14,
+      "median_paragraphs": 3,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 14
+      },
+      "mean_position": 0.286
+    },
+    {
+      "label": "readiness_rationale",
+      "arc_stage": "unclassified",
+      "donors": 14,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 14
+      },
+      "mean_position": 0.429
+    },
+    {
+      "label": "immediate_actions",
+      "arc_stage": "act",
+      "donors": 14,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 11,
+        "determination": 3
+      },
+      "mean_position": 0.571
+    },
+    {
+      "label": "top_three_risks",
+      "arc_stage": "analysis",
+      "donors": 14,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 14
+      },
+      "mean_position": 0.714
+    },
+    {
+      "label": "information_needed",
+      "arc_stage": "ask",
+      "donors": 5,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "determination": 1,
+        "unclassified": 4
+      },
+      "mean_position": 0.857
+    },
+    {
+      "label": "executive_summary",
+      "arc_stage": "close",
+      "donors": 14,
+      "median_paragraphs": 1,
+      "lead_type": "unclassified",
+      "lead_counts": {
+        "unclassified": 14
+      },
+      "mean_position": 1
+    }
+  ],
+  "arc": [
+    "act",
+    "analysis",
+    "ask",
+    "close"
+  ],
+  "extracted_at": "2026-08-01"
+}
