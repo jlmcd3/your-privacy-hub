@@ -14,16 +14,9 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-// T-M CUTOVER ATTEMPT #4 (Item 351, 2026-08-01) — production generation path
-// is the LTP engine (Pass-1 -> assembleReport -> Pass-2R), now carrying the
-// Item 343 emit-gate fix, the Item 344 projection fix and the Item 348
-// slimmed shared tree. CEO released the Item 245 rollback hold for this
-// cutover, scoped to this function (frontend publish still held).
-export const BUILD_STAMP = "ltp-risk-tm-cutover-item351@2026-08-01";
+export const BUILD_STAMP = "ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
-console.log(`[run-cppa-risk-assessment] boot engine_path=ltp cutover=T-M item245=RELEASED legacy_engine=item217-retained-not-called rollback="git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite"`);
-// LTP is the customer path now: enforce, never shadow/observe routing.
-const LTP_MODE_BOOT = "enforce";
+const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
@@ -49,15 +42,8 @@ import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
 import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION } from "./_risk_cohort_date.ts";
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
-import { runLegalTestPipelineShadow, LTP_STAMP } from "./_local/ltp/pipeline.ts";
+import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
-import { resolveLtpIntake } from "../_shared/ltp/entry-intake.ts";
-// T-M CUTOVER — LTP production orchestrator surfaces.
-import { modelProvider } from "../_shared/ltp/replay/providers.ts";
-import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
-import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
-import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
-import { fetchEuAuthorityCorpus } from "../_shared/ltp/eu-authority/fetch.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -71,7 +57,7 @@ import {
   isRetiredSurfacePath,
 } from "../_shared/ltp/composition-finalize.ts";
 
-import { computeScenarioSignature } from "./_local/future-building/signature.ts";
+import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
 console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
 
@@ -154,7 +140,7 @@ import { freezeOpenItemsOnFirstRun, rewriteI3CompositionAsks } from "../_shared/
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { normalizeRiskV2 } from "./_qbp25_b3_pointers.ts";
-import { validateSourceFields } from "./_local/source-fields-validator.ts";
+import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -167,7 +153,7 @@ import {
   POST_LINT_LLM_BUDGET_MS,
   POST_LINT_LLM_CALL_TIMEOUT_MS,
   POST_LINT_PASS1_TIMEOUT_MS,
-} from "./_local/ltp/retry-budget.ts";
+} from "../_shared/ltp/retry-budget.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -924,312 +910,9 @@ function tryParseJson(text: string): any | null {
 }
 
 // ---------------------------------------------------------------------------
-// T-M CUTOVER (2026-08-01) — PRODUCTION PIPELINE = LTP ENGINE.
-//
-// Item 245's rollback hold was released by the CEO for this cutover. The
-// customer generation path below is the Legal Test Pipeline
-// (Pass-1 -> assembleReport -> Pass-2R), i.e. exactly the code graded green
-// in the Item 335 fleet baseline (run #184: 88.35 / GPT 87, zero doc errors)
-// against the legacy Item-217 baseline (run #183: 69.5 / GPT 86).
-//
-// Preserved seams (unchanged): caller verification, revision short-circuit,
-// entitlement, function-run accounting (HTTP entrypoint); intake contract
-// validation, PERSIST-FIRST ordering, run-meter + version retention written
-// BEFORE status:complete, LEAK-PREV-P1 emit-gate, LEAK-PREV-P2 whitelist
-// serializer, shipped surface/value guards, citation observation, and the
-// terminal error contract.
-//
-// ROLLBACK (mechanical repeat of the 2026-07-29 Item 245 restore):
-//   git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment \
-//     | tar -x -C . --overwrite
-// then redeploy. `runPipelineLegacyItem217` below is retained verbatim as the
-// in-tree record of the pre-cutover composer; it is not called.
+// Pipeline
 // ---------------------------------------------------------------------------
-
-/**
- * Shared emit safeguards. Runs the LEAK-PREV-P1 emit gate, the LEAK-PREV-P2
- * whitelist serializer, and the post-serializer shipped guards, in the same
- * order and with the same fail-open semantics as the pre-cutover engine.
- * Never throws.
- */
-async function applyEmitSafeguards(
-  reportIn: Record<string, unknown>,
-  intakeRoster: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
-  let report_data: any = reportIn;
-
-  try {
-    const { runEmitGate } = await import("../_shared/emit-gate.ts");
-    runEmitGate(report_data, { tool: "cppa_risk_assessment", intakeRoster });
-  } catch (e) {
-    console.warn("[run-cppa-risk-assessment] LEAK-PREV-P1 emit-gate failed (non-fatal):", (e as Error)?.message);
-  }
-
-  try {
-    const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-    const { CPPA_RISK_REPORT_SCHEMA } = await import("../_shared/report-schemas/cppa-risk.ts");
-    const { report: serialized, telemetry } = serializeCustomerReport(report_data, CPPA_RISK_REPORT_SCHEMA);
-    if (!telemetry.crashed) report_data = serialized as any;
-  } catch (e) {
-    console.warn("[run-cppa-risk-assessment] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
-  }
-
-  try {
-    const shippedEval = evaluateShippedSurfaceGuard(report_data);
-    const mode = currentEnforceMode(Deno.env);
-    report_data._meta = report_data._meta ?? {};
-    report_data._meta.internal = report_data._meta.internal ?? {};
-    report_data._meta.internal.shipped_surface_guard = {
-      build_stamp: BUILD_STAMP,
-      mode,
-      cut_violations: shippedEval.cut_violations,
-      unowned_paths: shippedEval.unowned_paths,
-      enforce_violation: mode === "enforce"
-        && (shippedEval.cut_violations.length > 0 || shippedEval.unowned_paths.length > 0),
-    };
-    console.log(JSON.stringify({
-      evt: "shipped_surface_guard_ran", fn: "run-cppa-risk-assessment",
-      build_stamp: BUILD_STAMP, mode,
-      cut_violation_count: shippedEval.cut_violations.length,
-      cut_violations: shippedEval.cut_violations,
-      unowned_paths: shippedEval.unowned_paths,
-    }));
-  } catch (e) {
-    console.warn("[run-cppa-risk-assessment] shipped_surface_guard failed (non-fatal):", (e as Error)?.message);
-  }
-
-  try {
-    if (Array.isArray(report_data.lint_warnings)) {
-      report_data.lint_warnings = report_data.lint_warnings.filter(
-        (w: any) => !isRetiredSurfacePath(w?.field),
-      );
-    }
-    const svsMode = currentEnforceMode(Deno.env);
-    const svsEval = evaluateShippedValueScreen(report_data, { mode: svsMode });
-    report_data._meta = report_data._meta ?? {};
-    report_data._meta.internal = report_data._meta.internal ?? {};
-    report_data._meta.internal.shipped_value_screen = {
-      build_stamp: BUILD_STAMP,
-      version: SHIPPED_VALUE_SCREEN_VERSION,
-      mode: svsEval.mode,
-      hits: svsEval.hits.map((h) => ({ kind: h.kind, match: h.match, path: h.path, context: h.context })),
-      enforce_violation: svsEval.enforce_violation,
-    };
-    console.log(JSON.stringify({
-      evt: "shipped_value_screen_ran", fn: "run-cppa-risk-assessment",
-      build_stamp: BUILD_STAMP, version: SHIPPED_VALUE_SCREEN_VERSION,
-      mode: svsEval.mode, hit_count: svsEval.hits.length,
-      enforce_violation: svsEval.enforce_violation,
-      hits: svsEval.hits.map((h) => ({ kind: h.kind, match: h.match, path: h.path })),
-    }));
-  } catch (e) {
-    console.warn("[run-cppa-risk-assessment] shipped_value_screen failed (non-fatal):", (e as Error)?.message);
-  }
-
-  return report_data;
-}
-
 async function runPipeline(assessment_id: string) {
-  const t0 = Date.now();
-  try {
-    const { data: row } = await supabase.from("cppa_assessments").select("*").eq("id", assessment_id).single();
-    if (!row) return;
-
-    const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-cppa-risk-assessment", phase: "pre_generation" });
-    if (!procWrite.ok) return;
-
-    // ── SEAM 1 — intake contract validation (unchanged).
-    const { intake: fiveStage, wasLegacyShimmed, bandResolution } = normaliseIntake(row.intake_data ?? {});
-    const validation = validateFiveStage(fiveStage, /* lenient */ wasLegacyShimmed);
-    if (!validation.ok) {
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
-        status: "error",
-        report_data: { error: "VALIDATION_FAILED", message: validation.message, field: validation.field },
-      }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_validation" });
-      return;
-    }
-
-    const rawIntake = ((row as any).intake_data ?? {}) as Record<string, unknown>;
-
-    // ── SEAM 2 — LTP GENERATION (Pass-1 -> assembleReport).
-    // ITEM 350 — the single LTP entry-intake resolver (same one the graded
-    // harness uses). Keeps harness/production RenderPlans deep-equal.
-    const era = resolveLtpIntake(rawIntake);
-    // ITEM 341 — EU persuasive-authority corpus. Null on any failure; the
-    // builder then states honestly that nothing qualifying is available.
-    const euCorpus = await fetchEuAuthorityCorpus(supabase);
-    const p1 = await modelProvider(
-      {
-        intake: era.intake,
-        report_data: {},
-        buildStamp: `${BUILD_STAMP}#${assessment_id}`,
-        eu_authority_corpus: euCorpus,
-      },
-      { callerName: "run-cppa-risk-assessment" },
-    );
-    const assembled = assembleReport(p1.plan, {}, {});
-    console.log(JSON.stringify({
-      evt: "ltp_pass1_complete", fn: "run-cppa-risk-assessment",
-      build_stamp: BUILD_STAMP, ok: p1.telemetry.ok, attempts: p1.telemetry.attempts,
-      latency_ms: p1.telemetry.latency_ms, elapsed_ms: Date.now() - t0,
-    }));
-
-    const ltpMeta = {
-      build_stamp: BUILD_STAMP,
-      engine_path: "ltp",
-      pass1_manifest: PASS1_MANIFEST,
-      pass2r_manifest: PASS2R_MANIFEST,
-      pass1_telemetry: {
-        ok: p1.telemetry.ok,
-        attempts: p1.telemetry.attempts,
-        write_around: p1.telemetry.write_around,
-        latency_ms: p1.telemetry.latency_ms,
-      },
-      assembler_telemetry: assembled.telemetry,
-      intake_era_normalization: era.telemetry,
-      shipped_surface: "deterministic" as string,
-    };
-
-    const withMeta = (base: Record<string, unknown>, shippedSurface: string, extra?: Record<string, unknown>) => {
-      const out: any = { ...base };
-      out._meta = {
-        ...((base as any)._meta ?? {}),
-        prompt_version: stampPromptVersion("cppa-risk-assessment", "ltp-risk-p2@2026-08-01-cutover"),
-        build_stamp: BUILD_STAMP,
-      };
-      out._meta.internal = {
-        ...((base as any)._meta?.internal ?? {}),
-        engine_path: "ltp",
-        ltp: { ...ltpMeta, shipped_surface: shippedSurface, ...(extra ?? {}) },
-        band_v1_to_v2_resolved: {
-          q1_revenue: bandResolution?.q1_v1_to_v2_resolved ?? null,
-          q2_consumers: bandResolution?.q2_v1_to_v2_resolved ?? null,
-        },
-        band_legacy_ambiguous: {
-          q1_revenue: !!bandResolution?.q1_legacy_ambiguous,
-          q2_consumers: !!bandResolution?.q2_legacy_ambiguous,
-        },
-      };
-      return out as Record<string, unknown>;
-    };
-
-    // ── SEAM 3 — metering + version retention, written BEFORE status:complete.
-    let deterministic = withMeta(assembled.report as Record<string, unknown>, "deterministic");
-    deterministic = freezeOpenItemsOnFirstRun(
-      deterministic as any,
-      (deterministic as any).information_needed,
-      "cppa_risk_assessment",
-      false,
-    ) as Record<string, unknown>;
-    await recordRunMeterAndVersion(supabase, {
-      toolType: "cppa_risk_assessment",
-      assessmentId: assessment_id,
-      userId: (row as any).user_id ?? null,
-      intake: rawIntake,
-      reportData: deterministic,
-    });
-
-    // ── SEAM 4 — PERSIST-FIRST: guarded deterministic surface lands before 2R.
-    const deterministicShipped = await applyEmitSafeguards(deterministic, rawIntake);
-    const firstWrite = await lifecycleUpdate(
-      supabase, "cppa_assessments", assessment_id,
-      { status: "complete", report_data: deterministicShipped },
-      { fn: "run-cppa-risk-assessment", phase: "terminal_complete_deterministic" },
-    );
-    if (!firstWrite.ok) {
-      await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
-        status: "error",
-        report_data: { error: "complete_write_failed", message: firstWrite.message },
-      }, { fn: "run-cppa-risk-assessment", phase: "terminal_fallback" });
-      return;
-    }
-    console.log(JSON.stringify({
-      evt: "persist_first_deterministic", fn: "run-cppa-risk-assessment",
-      build_stamp: BUILD_STAMP, elapsed_ms: Date.now() - t0,
-    }));
-
-    // ── SEAM 5 — PASS-2R. FALLBACK LAW: prose ships only when the stage accepts it.
-    let shippedFinal: Record<string, unknown> = deterministicShipped;
-    try {
-      const stage = await runProsePassStage(
-        p1.plan as never,
-        assembled.report as Record<string, unknown>,
-        { enabled: true, callerName: "run-cppa-risk-assessment" },
-      );
-      // PROMOTED VERBATIM from ltp-risk-doc-gen (the code graded green in the
-      // Item 335 baseline): the merge condition is byte-identical, so the
-      // customer path ships exactly the surface that was measured.
-      const merged = (stage.shipped_surface as string) === "prose" && (stage as { prose?: unknown }).prose
-        ? { ...(assembled.report as Record<string, unknown>), ...((stage as { prose?: unknown }).prose as Record<string, unknown>) }
-        : (assembled.report as Record<string, unknown>);
-      let finalReport = withMeta(merged, stage.shipped_surface, {
-        pass2r_telemetry: stage.telemetry ?? null,
-        pass2r_skipped_reason: (stage as { skipped_reason?: string }).skipped_reason ?? null,
-      });
-      finalReport = freezeOpenItemsOnFirstRun(
-        finalReport as any,
-        (finalReport as any).information_needed,
-        "cppa_risk_assessment",
-        false,
-      ) as Record<string, unknown>;
-      shippedFinal = await applyEmitSafeguards(finalReport, rawIntake);
-      const completeWrite = await lifecycleUpdate(
-        supabase, "cppa_assessments", assessment_id,
-        { status: "complete", report_data: shippedFinal },
-        { fn: "run-cppa-risk-assessment", phase: "terminal_complete" },
-      );
-      if (!completeWrite.ok) {
-        console.warn("[run-cppa-risk-assessment] 2R write failed; deterministic surface remains shipped:", completeWrite.message);
-        shippedFinal = deterministicShipped;
-      } else {
-        console.log(JSON.stringify({
-          evt: "report_data_final_persisted", fn: "run-cppa-risk-assessment",
-          build_stamp: BUILD_STAMP, shipped_surface: stage.shipped_surface,
-          completion_gate: REPORT_COMPLETION_GATE, elapsed_ms: Date.now() - t0,
-        }));
-      }
-    } catch (e) {
-      // Isolate death during 2R costs only the 2R telemetry — the
-      // deterministic report is already complete on the row.
-      console.warn("[run-cppa-risk-assessment] pass2r failed (non-fatal):", (e as Error)?.message);
-    }
-
-    // L2 — observe-only citation lint (never blocks, never mutates output).
-    try {
-      await observeCitations(
-        supabase,
-        "run-cppa-risk-assessment",
-        assessment_id,
-        JSON.stringify(shippedFinal),
-        [],
-      );
-    } catch (obsErr) {
-      console.error("[citation-observe] non-fatal:", String(obsErr));
-    }
-  } catch (e) {
-    console.error("run-cppa-risk-assessment ltp-cutover error:", e);
-    const isTimeout = e instanceof AnthropicTimeoutError
-      || (e instanceof Error && (e as any).code === "generation_timeout_330s");
-    try {
-      const { data: maybeCompleted } = await supabase
-        .from("cppa_assessments").select("status, report_data").eq("id", assessment_id).maybeSingle();
-      if ((maybeCompleted as any)?.status !== "complete") {
-        await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
-          status: "error",
-          report_data: isTimeout
-            ? { error: "generation_timeout_330s", evidence: (e as Error).message, elapsed_ms: (e as any).elapsedMs ?? null }
-            : { error: String(e) },
-        }, { fn: "run-cppa-risk-assessment", phase: "terminal_error_catch" });
-      }
-    } catch { /* ignore */ }
-    if (isTimeout) throw e;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Pipeline (LEGACY Item-217 composer — RETAINED, NOT CALLED. See rollback note.)
-// ---------------------------------------------------------------------------
-async function runPipelineLegacyItem217(assessment_id: string) {
   try {
     const { data: row } = await supabase.from("cppa_assessments").select("*").eq("id", assessment_id).single();
     if (!row) return;
@@ -3712,9 +3395,7 @@ async function runPipelineLegacyItem217(assessment_id: string) {
     // which the LEAK-PREV-P2 whitelist serializer strips. Never mutates
     // customer-visible surfaces. Fail-open in all paths.
     try {
-      // ITEM 350 — entry parity: production resolves intake through the SAME
-      // resolver the graded harness uses (era-normalization → flat contract keys).
-      const _ltpIntake = resolveLtpIntake((row as any).intake_data ?? {}).intake;
+      const _ltpIntake = (row as any).intake_data ?? {};
       const _ltpTelemetry = runLegalTestPipelineShadow({
         intake: _ltpIntake,
         report_data: report_data as any,
