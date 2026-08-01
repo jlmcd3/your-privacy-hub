@@ -37,6 +37,7 @@ import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
+import { consumeRiskPrefill } from "@/lib/riskIntakePrefill";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
@@ -862,6 +863,21 @@ export default function CPPARiskAssessment() {
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
+
+  // ITEM 321 (PROMPT C) — arriving from a § 7156(a) follow-up panel
+  // (?prefill=1): the recommended secondary activity becomes the PRIMARY
+  // activity of this new assessment. Consumed once, then cleared.
+  const prefillAppliedRef = useRef(false);
+  useEffect(() => {
+    if (searchParams.get("prefill") !== "1") return;
+    if (prefillAppliedRef.current) return;
+    prefillAppliedRef.current = true;
+    const pre = consumeRiskPrefill();
+    if (!pre) return;
+    setPrimaryActivityName(pre.primary_activity_name);
+    setPrimaryActivityPurpose(pre.primary_activity_purpose);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Auto-restore when arriving via "Continue" from My Reports (?resume=1).
   const autoResumedRef = useRef(false);

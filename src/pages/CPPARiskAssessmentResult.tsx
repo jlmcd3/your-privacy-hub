@@ -17,6 +17,9 @@ import WordConversionPromptButton from "@/components/WordConversionPromptButton"
 import { AdminOnly } from "@/components/AdminOnly";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
+// ITEM 321 (PROMPT C) — in-app follow-up actions for the § 7156(a) bundling
+// recommendation authored in Item 319.
+import SecondaryActivityFollowUps from "@/components/cppa/SecondaryActivityFollowUps";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import RunMeterBar from "@/components/RunMeterBar";
@@ -303,6 +306,13 @@ export default function CPPARiskAssessmentResult() {
 
             {isV3 && <RiskAssessmentReportV3 report={report as any} />}
             {isV4 && <RiskAssessmentReportV4 report={report as any} />}
+
+            {reportReady && (
+              <SecondaryActivityFollowUps
+                intake={(row as any)?.intake_data}
+                sourceAssessmentId={id}
+              />
+            )}
 
 
             {report?.accuracy_caveat && (
