@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-08-01T06:50Z (Item 320 — § 7156(a) reserved→directive posture applied to ALL encodings before any deploy. The dispatch named four; there were FIVE — a live reactive statutory-trigger line in CPPARiskAssessment.tsx (~L566) said "may be required / reserved to you and counsel" on the same screen as the helper text being fixed. Spec § 2R.5 rewritten as default-rule-plus-one-named-dated-exception, doctrine explicitly retained for every other product and determination. Copy on all five surfaces now states the shipped three-way verdict, including that an unresolved dimension is never a bundling green-light. Pinned by item319-addendum-copy-parity.test.ts (8 tests, incl. two doctrine-not-repealed pins). vitest 301/305, deno LTP 368/368. Still NOT deployed — Item 319 blockers stand.)
+**Last updated:** 2026-08-01T08:06Z (Item 323 — Washington My Health My Data Act (RCW 19.373) ingested, verified, and activated in the biometric product as a DISTINCT authority alongside RCW 19.375. Five sections approved in provision_texts; 11 duty rows added; the Item 317 absence guards flipped, not deleted. vitest 807/814 — the 7 failures are the pre-existing font-size and cppa-risk/cyber fixture pins, untouched.)
 
 ---
 
@@ -7597,3 +7597,26 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **SUITES.** vitest `src/test` **301 passed / 4 failed** (the 4 pre-existing responsive-font pins, untouched). Deno LTP **368 / 0** — unchanged, as this turn touched no backend logic; `secondary-recommendation.ts` and the composer were not modified, only consumed.
 
 **Disposition:** COMPLETE — folded in BEFORE the Prompt-D deploy, so nothing shipped out of sync. Deploy remains BLOCKED on the two blockers in Item 319 (CEO release of the Item 245 rollback hold for the engine cutover; disposition of the two open error-level security findings before frontend publish).
+
+## 323. ITEM 323 — MHMDA (RCW 19.373) BROUGHT INTO BIOMETRIC SCOPE (2026-08-01, BUILT / NOT DEPLOYED)
+
+**Authority:** CEO-authorized 2026-08-01, releasing the Item 314 scope gate that Item 317 had mechanically enforced.
+
+**1. Corpus (all `provision_texts`, `status='approved'`, `jurisdiction='US-WA'`, verbatim from `app.leg.wa.gov`, two independent pulls hash-compared):**
+- `wa-rcw-19-373-010-biometric-data` — RCW 19.373.010(4) "biometric data" + (8) "consumer health data" (incl. (8)(b)(ix) biometric data, and the (8)(c) IRB research exclusion). Promoted from `pending` only after re-pull confirmed the stored text.
+- `wa-rcw-19-373-020` — consumer health data privacy policy.
+- `wa-rcw-19-373-030` — collection and sharing consent.
+- `wa-rcw-19-373-080` — geofence restrictions.
+- `wa-rcw-19-373-090` — application of the consumer protection act.
+
+**2. Registry.** `biometric-verified-authorities.ts`: new statute key `us_wa_19373`, 11 duty rows (`wa_19373.*`) — two definitions, one exclusion, six duties/qualifiers, one enforcement row — each carrying a byte-exact `verbatim_quote` and its `corpus_key`.
+
+**3. Engine.** `ltp/biometric-deliverables/`: `us_wa_19373` added to `StatuteKey`/`STATUTES`; selecting Washington now puts BOTH chapters in scope as separate authorities; own identifier definition, own actor branch (anchored to § 010(8), NOT the RCW 19.375 "person" definition or its GLBA exclusion), own duty builder `buildWaMhmdaDuties` gated on the consumer-health-data predicate (geofencing excepted — it binds "any person"), own CPA enforcement surface, and a new intra-Washington divergence item `wa_two_chapters`. `SCOPE_GATED` is now empty.
+
+**4. Intake.** Five optional fields (`wa_mhmda_*`) added to the contract and to the existing Washington branch of `BiometricChecker.tsx`, under their own heading stating that RCW 19.373 is a separate chapter.
+
+**5. Guards FLIPPED, not deleted.** `biometric-duty-registry.test.ts` ("MHMD row is absent" → "MHMDA rows are present", plus a new never-merged pin), `biometric-corpus-pin.test.ts` ("stays OUT / pending" → "IN corpus / approved", plus a live byte-exact pin over every `us_wa_19373` row), `biometric-deliverables.test.ts` ("Item 317 — RCW 19.373 stays inert" → "Item 323 — RCW 19.373 is ACTIVE, as a DISTINCT authority", 8 tests incl. no-blended-citation, both enforcement surfaces present, geofence ungated, and RCW 19.375 findings byte-identical with and without the MHMDA answer).
+
+**6. Collateral.** Legacy `check-biometric-compliance/index.ts` MHMD block carried four wrong pinpoints (.040/.050/.060/.080 for consent-sale/geofence/rights/processors); corrected against the verified chapter TOC.
+
+**Disposition:** BUILT / NOT DEPLOYED — Item 245 rollback hold and the Item 319 blockers still stand.
