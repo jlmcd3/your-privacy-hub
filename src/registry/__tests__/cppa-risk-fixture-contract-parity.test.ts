@@ -16,7 +16,20 @@ import { validateIntake } from "../../../supabase/functions/_shared/intake-contr
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment";
 import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk";
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/cppa-risk-contract-fixtures";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry";
 
+// ── ITEM 337 (§ OPEN-3 of Item 324) — DERIVED REQUIRED-ALWAYS COVERAGE ──────
+// The list below is a HISTORICAL pin of the eight operands Item 305 added; it
+// stays for provenance. Coverage is no longer policed by any hand-maintained
+// list: the guard further down ENUMERATES `cppaRiskContract.fields` for
+// `required: "always"` and asserts every pinned intake — golden, revision-
+// contract, AND messy — supplies each derived key non-empty, naming the
+// missing key when it does not. A future contract addition therefore fails
+// here by name with no test edit.
+//
+// DERIVATION IS FOR DETECTION, NOT FILLING (Item 324 ruling): nothing here
+// generates or defaults a fixture value. Activity-specific data stays
+// authored; a new required-always key must be answered per fixture by a human.
 const ITEM_305_ALWAYS = [
   "a2_necessity_set",
   "a4_benefit_business",
@@ -73,6 +86,46 @@ describe("cppa-risk pinned fixtures — contract parity", () => {
         expect(row.cause.length, `${id} ${row.harm} cause too thin`).toBeGreaterThan(40);
       }
     }
+  });
+
+  // ── DERIVED GUARD ────────────────────────────────────────────────────────
+  it("required-always keys are derived from the contract, not a hand list", () => {
+    expect(alwaysKeys().length).toBeGreaterThanOrEqual(ITEM_305_ALWAYS.length);
+    for (const k of ITEM_305_ALWAYS) {
+      expect(alwaysKeys(), `contract lost required-always key ${k}`).toContain(k);
+    }
+  });
+
+  it("every pinned cppa-risk intake supplies every contract required-always key", () => {
+    const keys = alwaysKeys();
+    expect(keys.length).toBeGreaterThan(0);
+    const missing: string[] = [];
+    for (const [id, intake] of allPinnedIntakes()) {
+      for (const key of keys) {
+        for (const [where, value] of readContractPath(intake, key)) {
+          if (isEmptyValue(value)) missing.push(`${id} → ${where}`);
+        }
+      }
+    }
+    expect(missing, `missing/empty required-always fields:\n${missing.join("\n")}`).toEqual([]);
+  });
+
+  it("the derived guard covers all three pinned sets", () => {
+    const ids = allPinnedIntakes().map(([id]) => id);
+    expect(ids.length).toBe(
+      CPPA_RISK_GOLDEN.length + CPPA_RISK_CONTRACT_FIXTURES.length + MESSY_CPPA_RISK.length,
+    );
+    expect(CPPA_RISK_GOLDEN.length).toBeGreaterThan(0);
+    expect(CPPA_RISK_CONTRACT_FIXTURES.length).toBeGreaterThan(0);
+    expect(MESSY_CPPA_RISK.length).toBeGreaterThan(0);
+  });
+
+  it("the derived guard fails by NAME when a required-always key is unanswered", () => {
+    const key = alwaysKeys().find((k) => !k.includes("[]"))!;
+    const holed = { ...(CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>), [key]: "" };
+    const hits = readContractPath(holed, key).filter(([, v]) => isEmptyValue(v));
+    expect(hits.length).toBe(1);
+    expect(hits[0][0]).toBe(key);
   });
 
   it("the adversarial golden case supplies its ADMT conditional companions", () => {
