@@ -60,25 +60,28 @@ const ROW_FOR: Readonly<Record<string, string>> = {
   uk_art_6_1_f_legitimate_interests: "ukgdpr-art-6",
 };
 
-const HAS_DB = Boolean(process.env.PGHOST);
+const HAS_DB = !!process.env.PGHOST && !!process.env.PGDATABASE;
 const d = HAS_DB ? describe : describe.skip;
 
+/** Same psql transport as `uk-gdpr-corpus-pin.test.ts` — no pg dependency. */
 async function loadCorpus(): Promise<Record<string, string>> {
-  const { default: pg } = await import("pg");
-  const client = new pg.Client();
-  await client.connect();
-  try {
-    const keys = Array.from(new Set(Object.values(ROW_FOR)));
-    const res = await client.query(
-      "select provision_key, full_text from public.provision_texts where provision_key = any($1)",
-      [keys],
-    );
-    const out: Record<string, string> = {};
-    for (const r of res.rows) out[r.provision_key] = norm(r.full_text ?? "");
-    return out;
-  } finally {
-    await client.end();
+  const { execFileSync } = await import("node:child_process");
+  const keys = Array.from(new Set(Object.values(ROW_FOR)));
+  const sql =
+    "SELECT key || E'\\x1f' || verbatim_excerpt || E'\\x1e' " +
+    "FROM provision_texts WHERE status='approved' AND jurisdiction='UK' AND key = ANY(string_to_array($$" +
+    keys.join("|") +
+    "$$, '|'))";
+  const out = execFileSync("psql", ["-tAX", "-c", sql], {
+    encoding: "utf8",
+    maxBuffer: 32 * 1024 * 1024,
+  });
+  const corpus: Record<string, string> = {};
+  for (const rec of out.split("\x1e")) {
+    const [k, body] = rec.split("\x1f");
+    if (k && body) corpus[k.trim()] = norm(body);
   }
+  return corpus;
 }
 
 d("ITEM 326 — LIA UK Art. 22 registry rows are pinned to the corpus", () => {
