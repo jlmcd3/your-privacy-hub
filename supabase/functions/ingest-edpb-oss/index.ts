@@ -304,10 +304,13 @@ Deno.serve(async (req) => {
           const title = titleM ? stripTags(titleM[1]) : link.url;
           const dateM = page.match(/<time[^>]*datetime="([^"T]+)/i);
           const pdfM = page.match(/href="((?:https:\/\/[^"]*|\/[^"]*)\.pdf)"/i);
-          const introM = page.match(
-            /<div[^>]*(?:field--name-body|node__content)[^>]*>([\s\S]{0,6000}?)<\/div>/i,
-          );
-          const summary_text = introM ? stripTags(introM[1]).slice(0, 4000) : null;
+          const mainM = page.match(/<main[\s\S]*?<\/main>/i);
+          const mainText = mainM
+            ? stripTags(mainM[0].replace(/<script[\s\S]*?<\/script>/gi, ""))
+            : null;
+          const summary_text = mainText
+            ? mainText.replace(/^.*?Downloadable documents.*?Download\s*/i, "").slice(0, 4000)
+            : null;
           const pdfUrl = pdfM ? absoluteUrl(pdfM[1]) : null;
           const docText = pdfUrl && fetchPdfText ? await pdfToText(pdfUrl) : null;
 
