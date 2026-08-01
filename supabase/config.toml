@@ -243,8 +243,5 @@ verify_jwt = false
 
 
 
-[functions.t335-relay]
-verify_jwt = false
-
 [functions.ltp-risk-doc-gen]
 verify_jwt = false
