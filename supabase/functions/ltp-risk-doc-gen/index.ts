@@ -22,6 +22,8 @@ import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
 import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
 import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
 import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+// ITEM 341 — EU persuasive-authority corpus (read-only; never throws).
+import { fetchEuAuthorityCorpus } from "../_shared/ltp/eu-authority/fetch.ts";
 
 const BUILD_STAMP = "ltp-risk-doc-gen-item335-2026-08-01";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -47,8 +49,16 @@ async function generate(assessmentId: string): Promise<void> {
     await db.from("cppa_assessments").update({ status: "processing" }).eq("id", assessmentId);
 
     const era = normalizeEraIntake((row.intake_data ?? {}) as Record<string, unknown>);
+    // ITEM 341 — corpus for the EU persuasive-authority section. Null on any
+    // failure; the builder then states honestly that nothing is available.
+    const euCorpus = await fetchEuAuthorityCorpus(db);
     const p1 = await modelProvider(
-      { intake: era.intake, report_data: {}, buildStamp: `${BUILD_STAMP}#${assessmentId}` },
+      {
+        intake: era.intake,
+        report_data: {},
+        buildStamp: `${BUILD_STAMP}#${assessmentId}`,
+        eu_authority_corpus: euCorpus,
+      },
       { callerName: "ltp-risk-doc-gen" },
     );
     const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });

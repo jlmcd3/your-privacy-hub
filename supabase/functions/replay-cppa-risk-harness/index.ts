@@ -20,6 +20,8 @@ import { evaluateGtm } from "../_shared/ltp/replay/gtm-grader.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+// ITEM 341 — EU persuasive-authority corpus (read-only; null-safe).
+import { fetchEuAuthorityCorpus } from "../_shared/ltp/eu-authority/fetch.ts";
 import { MINED_PRESENCE_BAND, defaultSubstanceGateConfig }
   from "../_shared/ltp/replay/presence-band.ts";
 import { modelProvider } from "../_shared/ltp/replay/providers.ts";
@@ -135,10 +137,13 @@ async function processDoc(
       intake_data: era.intake,
       legacy_report: doc.report_data ?? undefined,
     };
+    // ITEM 341 — EU persuasive-authority corpus (read-only; null-safe).
+    const euCorpus = await fetchEuAuthorityCorpus(serviceClient());
     const p1 = await modelProvider({
       intake: replayDoc.intake_data,
       report_data: {},
       buildStamp: `${HARNESS_BUILD_STAMP}#${doc.id}`,
+      eu_authority_corpus: euCorpus,
     }, { callerName: "replay-cppa-risk-harness" });
 
     const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });

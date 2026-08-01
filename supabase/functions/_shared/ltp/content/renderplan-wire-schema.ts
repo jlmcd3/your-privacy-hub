@@ -222,7 +222,11 @@ export const RENDERPLAN_WIRE_SCHEMA = {
  * deliverables the deterministic engine owns. The projection check below
  * excludes these keys instead of widening the model contract.
  */
-export const DETERMINISTIC_ONLY_PLAN_KEYS: readonly string[] = ["activity_analytics"];
+export const DETERMINISTIC_ONLY_PLAN_KEYS: readonly string[] = [
+  "activity_analytics",
+  // ITEM 341 — corpus-pinned EU persuasive authority; never model-authored.
+  "eu_persuasive_authority",
+];
 
 /**
  * Shallow structural round-trip check used by the projection test: every
