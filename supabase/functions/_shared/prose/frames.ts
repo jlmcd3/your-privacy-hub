@@ -203,7 +203,12 @@ export function lintFrame(frame: Frame): FrameLintFinding[] {
     if (p.kind === "legal" && !legalPhrasingKeys(frame.product).includes(p.source)) {
       push("unknown_legal_key", `${p.token}: no pinned legal phrasing "${p.source}" for ${frame.product}`);
     }
-    if (p.kind === "conclusion") {
+    if (p.kind === "conclusion" && !p.source.startsWith("@")) {
+      // A bare source names a pinned determination directly. An "@path" source
+      // is INDIRECT: the engine writes the determination key at that value path
+      // and the realizer resolves it at render time, so there is nothing for
+      // the lint to check here beyond the resolver failing closed (the slot
+      // stays silent when the engine names a key nobody authored).
       const base = p.source.split("#")[0];
       if (!engineConclusionKeys(frame.product).includes(base)) {
         push("unknown_conclusion_key", `${p.token}: no pinned engine conclusion "${base}" for ${frame.product}`);

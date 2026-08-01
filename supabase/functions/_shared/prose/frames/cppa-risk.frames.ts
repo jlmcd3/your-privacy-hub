@@ -57,10 +57,10 @@ export const CPPA_RISK_FRAMES: FrameSet = {
         { token: "PURPOSE_VERBATIM", kind: "text", source: "activity_purpose", required: true },
         { token: "CITE_CATEGORIES", kind: "cite", source: "ra_content_categories", required: true },
         { token: "REQ_CATEGORIES", kind: "legal", source: "ra_content_categories", required: true },
-        { token: "CONSEQ_NECESSITY", kind: "conclusion", source: "necessity_determination", required: true },
+        { token: "CONSEQ_NECESSITY", kind: "conclusion", source: "@necessity_determination", required: true },
         // Optional by design: a determination that blocks nothing has no pinned
         // blocked clause, and the sentence ends after the consequence.
-        { token: "BLOCKED_NECESSITY", kind: "conclusion", source: "necessity_determination_blocked", required: false },
+        { token: "BLOCKED_NECESSITY", kind: "conclusion", source: "@necessity_determination_blocked", required: false },
       ],
       provenance: {
         sample_report_id: null,
@@ -235,11 +235,11 @@ export const CPPA_RISK_FRAMES: FrameSet = {
         { token: "CITE_GOAL", kind: "cite", source: "ra_goal", required: true },
         { token: "REQ_GOAL", kind: "legal", source: "ra_goal", required: true },
         { token: "BENEFIT_LINES", kind: "list", source: "benefit_lines", required: true },
-        { token: "CONSEQ_WEIGHING", kind: "conclusion", source: "weighing_determination", required: true },
+        { token: "CONSEQ_WEIGHING", kind: "conclusion", source: "@weighing_determination", required: true },
         { token: "CITE_INITIATE", kind: "cite", source: "ra_content_initiate", required: true },
         { token: "REQ_INITIATE", kind: "legal", source: "ra_content_initiate", required: true },
-        { token: "CONSEQ_DECISION", kind: "conclusion", source: "consequence_determination", required: true },
-        { token: "BLOCKED_DECISION", kind: "conclusion", source: "consequence_determination_blocked", required: false },
+        { token: "CONSEQ_DECISION", kind: "conclusion", source: "@consequence_determination", required: true },
+        { token: "BLOCKED_DECISION", kind: "conclusion", source: "@consequence_determination_blocked", required: false },
       ],
       provenance: {
         sample_report_id: "36220b11-2dca-48b9-92f1-368e8ede1ecb",

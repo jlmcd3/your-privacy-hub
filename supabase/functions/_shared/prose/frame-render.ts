@@ -148,7 +148,11 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
       }
     } else if (p.kind === "conclusion") {
       // SLOT TYPE 3 — the engine chose the key; the library supplies the words.
-      const key = String(opts.values?.[p.source] ?? p.source);
+      // "@path" = the engine wrote the determination key at that value path;
+      // a bare source names a pinned determination directly.
+      const key = p.source.startsWith("@")
+        ? String(opts.values?.[p.source.slice(1)] ?? "")
+        : p.source;
       const resolved = opts.resolveConclusion
         ? opts.resolveConclusion(key)
         : resolveEngineConclusion(frame.product, key);
