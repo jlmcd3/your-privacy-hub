@@ -189,6 +189,8 @@ export interface ExitCheckTelemetry {
   readonly golden_shape: GoldenShapeReport;
   /** ITEM 337 Part C — methodology sentences stripped from body text. */
   readonly methodology_note?: { readonly removed: number; readonly note_attached: boolean };
+  /** ITEM 337 Part E — registry citation lint over model-authored prose. */
+  readonly citation_lint?: unknown;
 
 }
 
@@ -666,6 +668,7 @@ function assembleCore(
         shipped_coherence,
         golden_shape,
         methodology_note: methodology,
+        citation_lint,
       },
       structural_completeness: structural,
       composition_shape: COMPOSITION_SHAPE_DECLARATION,
