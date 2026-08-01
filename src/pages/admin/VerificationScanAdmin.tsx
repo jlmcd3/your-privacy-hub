@@ -325,8 +325,24 @@ export default function VerificationScanAdmin() {
                 <Stat label="Memo-eligible" value={health.memo_eligible} sub={health.total ? `${Math.round((health.memo_eligible / health.total) * 100)}%` : "0%"} />
                 <Stat label="Pending" value={health.unverified} />
                 <Stat label="Failed" value={health.failed} />
-                <Stat label="Requires review" value={health.requires_review} />
+                {/* Item 334: default to genuine review items; corpus defects
+                    are mechanical rejects and shown only on request. */}
+                <Stat
+                  label={showCorpusDefects ? "Requires review (all)" : "Requires review"}
+                  value={showCorpusDefects ? health.requires_review : health.review_genuine}
+                  sub={showCorpusDefects
+                    ? `${health.review_genuine} genuine + ${health.review_corpus_defect} corpus defects`
+                    : `${health.review_corpus_defect} corpus defects hidden`}
+                />
               </div>
+              <label className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={showCorpusDefects}
+                  onChange={(e) => setShowCorpusDefects(e.target.checked)}
+                />
+                Include mechanical corpus defects (bad subject fields) in the review queue
+              </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mt-4">
                 <Stat label="Paraphrase: high" value={health.paraphrase_high} />
                 <Stat label="Paraphrase: medium" value={health.paraphrase_medium} />
