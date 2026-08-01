@@ -87,11 +87,13 @@ Deno.test("F8 — realizer quotes free text verbatim and joins lists naturally",
       retention_period: "24 months",
       vendors: ["AWS", "Snowflake"],
     },
-    resolveCite: () => null,
   });
   assert(r.rendered?.includes("“Syntara Corp.”"), r.rendered ?? "");
   assert(r.rendered?.includes("contact identifiers, device identifiers, and transaction history"));
-  assertEquals(r.cites_filled.length, 0);
+  // ITEM 346 — cite slots now resolve from the verified-authority registry by
+  // default; the review-render literal "[registry: ...]" defect is gone.
+  assert(r.rendered?.includes("11 CCR § 7152(a)(1)"), r.rendered ?? "");
+  assertEquals([...r.cites_filled], ["ra_content_operational", "ra_content_purpose"]);
 });
 
 Deno.test("F9 — FILL-OR-OMIT: a silent required placeholder degrades, never half-fills", () => {
@@ -112,9 +114,13 @@ Deno.test("F10 — CITE slots fill only from the caller's registry resolver", ()
       retention_period: "24 months",
       vendors: ["AWS", "Snowflake"],
     },
+    // A caller-supplied resolver overrides the registry default entirely, and a
+    // key it declines to answer leaves a REQUIRED cite silent — the frame then
+    // omits rather than half-fills.
     resolveCite: (k) => (k === "ra_content_purpose" ? "Cal. Code Regs. tit. 11, § 7152(a)(1)." : null),
   });
-  assert(r.rendered?.includes("§ 7152(a)(1)"));
+  assertEquals(r.rendered, null);
+  assertEquals([...r.missing_required], ["ra_content_operational"]);
   assertEquals([...r.cites_filled], ["ra_content_purpose"]);
 });
 
