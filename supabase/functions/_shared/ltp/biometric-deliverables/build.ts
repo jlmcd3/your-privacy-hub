@@ -1384,8 +1384,8 @@ function buildDivergence(
       positions: [
         {
           statute_short: "RCW 19.375",
-          citation: dutyRow("wa_19375.020_1_notice_consent").pinpoint,
-          standard: dutyRow("wa_19375.020_1_notice_consent").verbatim_quote,
+          citation: dutyRow("wa_19375.020_1_enrollment_notice_consent").pinpoint,
+          standard: dutyRow("wa_19375.020_1_enrollment_notice_consent").verbatim_quote,
           position: "turns on enrolling a biometric identifier in a database for a commercial purpose, and exempts enrollment for a security purpose",
         },
         {
