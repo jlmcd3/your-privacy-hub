@@ -351,7 +351,11 @@ export function renderPlannedSection(
     if (thisId) prevId = thisId;
   });
 
+  // A rendered sentence always closes; a bare lead must not trail open.
+  if (text && !/[.?!”"]\s*$/.test(text)) text = `${text}.`;
+
   if (record_card.length) {
+
     const card = record_card.map((l) => `- ${l.label}: ${l.value}`).join("\n");
     text = text ? `${text}\n\n${card}` : card;
   }
