@@ -497,19 +497,26 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 640,
   },
+  // ITEM 319 (PRIMARY ACTIVITY FEATURE, PROMPT A) — directive recommendation.
+  // The comparison is still shown in full; the recommendation is ADDITIVE and
+  // is framed as the tool's recommendation, never as a statutory requirement.
+  // Scope boundary: this template governs the secondary-activity bundling call
+  // ONLY. Primary-activity § 7152 analysis is untouched.
   "T.risk.scope.secondary_segmentation": {
     id: "T.risk.scope.secondary_segmentation",
-    text: "{{plan:entity_name}} also recorded {{plan:secondary_activity_count_phrase}} beyond the assessed activity: {{plan:secondary_activity_list}}. {{cite:PINPOINT_7156A}} permits a single risk assessment to cover more than one processing activity only for a comparable set — \u201ca set of similar processing activities that present similar risks to consumers\u2019 privacy.\u201d On the record as submitted, the comparison stands as follows: {{plan:secondary_divergence_clause}} This assessment addresses the assessed activity only. Whether any additional use falls within a comparable set with the assessed activity, or requires its own assessment, is a determination reserved to the Company and its counsel.",
+    text: "{{plan:entity_name}} also recorded {{plan:secondary_activity_count_phrase}} beyond the assessed activity: {{plan:secondary_activity_list}}. {{cite:PINPOINT_7156A}} permits a single risk assessment to cover more than one processing activity only for a comparable set — \u201ca set of similar processing activities that present similar risks to consumers\u2019 privacy.\u201d On the record as submitted, the comparison stands as follows: {{plan:secondary_divergence_clause}} {{plan:secondary_recommendation_clause}} This assessment addresses the assessed activity only. The recommendation above is this tool's operational recommendation on the record as submitted — it is not a statement of what the law requires, is not legal advice, and does not replace review by qualified counsel.",
     citation_slots: ["PINPOINT_7156A"],
     plan_slots: [
       "entity_name",
       "secondary_activity_count_phrase",
       "secondary_activity_list",
       "secondary_divergence_clause",
+      "secondary_recommendation_clause",
     ],
     intake_slots: [],
-    max_chars: 2400,
+    max_chars: 4000,
   },
+
 
   // ─────────────────────────────────────────────────────────────────
   // ITEM 244 CEO-approved wiring (2026-07-28). Every clause below is

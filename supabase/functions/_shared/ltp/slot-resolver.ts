@@ -121,6 +121,8 @@ export interface SlotContext {
   readonly secondary_activity_count_phrase?: string;
   readonly secondary_activity_list?: string;
   readonly secondary_divergence_clause?: string;
+  // ITEM 319 — directive comparable-set recommendation clause.
+  readonly secondary_recommendation_clause?: string;
 }
 
 
@@ -249,6 +251,7 @@ export function resolveSlot(
     case "secondary_activity_count_phrase":  return ctx.secondary_activity_count_phrase ?? "";
     case "secondary_activity_list":          return ctx.secondary_activity_list ?? "";
     case "secondary_divergence_clause":      return ctx.secondary_divergence_clause ?? "";
+    case "secondary_recommendation_clause": return ctx.secondary_recommendation_clause ?? "";
     default:
       return "";
   }

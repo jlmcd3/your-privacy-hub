@@ -118,9 +118,16 @@ Deno.test("ITEM 276: § 7156(a) segmentation item emits with reserved framing", 
   const text = renderedText(PRIMARY_INTAKE, "scope_and_triggers");
   assert(text.includes("marketing look-alike modelling"), "secondary use must be named");
   assert(text.includes("7156(a)"), "segmentation item must cite § 7156(a)");
+  // ITEM 319 (PROMPT A) — reserved framing replaced by a directive
+  // recommendation. The tool now recommends; it still never states the
+  // recommendation as a legal requirement.
   assert(
-    text.includes("reserved to the Company and its counsel"),
-    "tool must never green-light bundling",
+    text.includes("Recommended: conduct a separate risk assessment for"),
+    "segmentation item must carry a directive recommendation",
+  );
+  assert(
+    text.includes("is not legal advice"),
+    "recommendation must close with the not-legal-advice line",
   );
   // ITEM 276 RIDER — deliberate spec-of-test change: the standard clause must
   // quote the § 7156(a) DEFINITIONAL sentence (corpus row cppa-7156), not the
