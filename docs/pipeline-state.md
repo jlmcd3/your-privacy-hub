@@ -8033,3 +8033,50 @@ Full vitest: **67 files / 985 passed / 0 failed**. Deno: LTP shape/assembler/e2e
 ### LIVE-CORPUS SMOKE (read-only)
 
 A full-engagement record yields 6 topics, `authority_available`, 8 verbatim quotes, pattern counts on Art. 5/6/12/13/15/17/21, and 3 verified precedents per matching topic — with `automated_decision_making` correctly reporting **no** verified Art. 22 precedent rather than reaching.
+
+---
+
+## ITEM 342 — T-M CUTOVER ATTEMPTED → **SMOKE FAILED → ROLLED BACK** (2026-08-01)
+
+**Dispatch:** ITEM 245 RELEASE + T-M ENGINE CUTOVER (CEO-authorized, scoped to `run-cppa-risk-assessment` and the cppa-risk frontend publish).
+
+**CEO authorization, verbatim:** "The CEO has explicitly released the Item 245 rollback hold for the purpose of this cutover. This authorization is scoped to run-cppa-risk-assessment and the cppa-risk frontend publish described below — nothing else."
+
+### PHASE 0 — PRE-FLIGHT: PASSED
+
+| Run | Engine | score_overall | gpt_score_overall |
+|---|---|---|---|
+| #183 (legacy baseline) | Item-217 legacy | 69.50 | 86 |
+| #184 (Item 335, `engine_path: 'ltp'`) | LTP | 88.35 | 87 |
+
+Delta +18.85 (≫ the −5 blocking floor); zero document errors. Suites green: vitest **67 files / 985 passed / 0 failed**; Deno LTP/shape suites **377 passed / 0 failed**.
+Rollback path stated before cutover: `git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite`.
+
+### PHASE 1 — CUTOVER: LANDED
+
+Build stamp `ltp-risk-tm-cutover-item342@2026-08-01`, `ltp_mode=enforce`, boot log confirmed live at 2026-08-01T16:24Z. Seams preserved (intake contract, metering, PERSIST-FIRST, emit-gate, whitelist serializer, PDF, error handling).
+
+### PHASE 2 — LIVE DUAL SMOKE: **FAILED** (5 blocking findings)
+
+Perfect record `ea3d7354-43b4-4688-b2d5-fb569578e7b3`; messy record `885cab1d-7369-446e-a3aa-5cc546d462c6`. Both generated without HTTP error, but the customer surface failed required checks:
+
+1. **`information_needed` destroyed on the customer surface.** `emit-gate.ts:277` (`degrade()`) sets `parent.information_needed = true`. On the LTP shape the degraded leaves are ROOT-level prose, so the parent is the report root and the honest-degradation array (2 §7152(a)(6)/(a)(7) items on the graded run) is overwritten with the scalar `true`. Reproduced deterministically against the Item 335 doc #1 payload. Legacy shape never hit this because its degraded leaves are nested inside entries. **Shape/emit-gate wire defect — not an engine-analytics change.**
+2. **§ 7156(a) directive section absent.** No `7156(a)` string anywhere on either shipped report (Item 319 surface missing).
+3. **Five § 7152 analytic deliverables absent.** `activity_analytics` is not present on either smoke report — and is likewise absent from graded run #184, so the 88.35 grade was earned without this surface.
+4. **Raw JSON literals in prose.** `processing_narrative` renders `collects ["Contact identifiers (name, email, phone)","Device i…` — array serialization leaking into customer prose.
+5. **Perfect and messy outputs indistinguishable.** Identical `processing_narrative` (1,034 chars) and identical `record_sufficiency` opener on both records; the messy fixture did not measurably degrade differently.
+
+Soft flag (non-blocking): FSOR is referenced substantively on the customer surface ("FSOR filed under pre-modification (a)(5)(F) label…") — provenance commentary, not boilerplate leak, but worth a CEO view.
+
+Per dispatch ("if ANY check fails: execute the documented rollback immediately… do not iterate fixes on the live customer path"), no fixes were attempted.
+
+### ROLLBACK — EXECUTED AND CONFIRMED
+
+`git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite`, redeployed, cold-booted. Boot log 2026-08-01T16:29:36Z: `build_stamp=ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z`. Legacy Item-217 is serving the customer path. The Item 245 `bought_sold_shared_count` intake port lives in shared modules and survived the restore.
+
+### PHASE 3 / PHASE 4 — NOT EXECUTED
+
+No frontend publish. Dispositions unchanged:
+- **Item 245 — HOLD REMAINS IN FORCE.** The CEO release was scoped to a cutover that failed its own gate; production is back on Item-217.
+- **Items 319–321 — STILL BLOCKED** (not deployed).
+- Findings 1–5 above are reported to the CEO as blocking; each is a separate build turn, not an inline fix.
