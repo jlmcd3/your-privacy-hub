@@ -132,6 +132,13 @@ export interface RenderPlan {
    * `../ltp/analytic-deliverables/types.ts` → ActivityAnalytics[].
    */
   readonly activity_analytics?: readonly Record<string, unknown>[];
+  /**
+   * ITEM 341 — "Persuasive authority from EU practice" (cppa-risk only).
+   * Deterministic, corpus-pinned, separately labelled from the CPPA-scoped
+   * enforcement surfaces. Authoritative shape:
+   * `../ltp/eu-authority/types.ts` → EuAuthoritySection.
+   */
+  readonly eu_persuasive_authority?: Record<string, unknown>;
 }
 
 

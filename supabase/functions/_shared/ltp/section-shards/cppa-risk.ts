@@ -328,6 +328,18 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     note:
       "ITEM 305: necessity_analysis / harm_causation / safeguard_map / weighing / consequence, per assessed activity. Deterministic; the prose pass narrates it and may not alter it.",
   },
+  // ── ITEM 341 — EU persuasive authority (separately labelled) ─────
+  {
+    key: "eu_persuasive_authority",
+    owner: {
+      kind: "deterministic",
+      template_ids: ["deterministic"],
+      emitter: "_shared/ltp/eu-authority/build.ts (EDPB guidance pins + Art. 60 counts + VERIFIED enforcement)",
+    },
+    project: (plan) => (plan as unknown as { eu_persuasive_authority?: unknown }).eu_persuasive_authority,
+    note:
+      "ITEM 341: persuasive, non-binding EU/EEA material under its own heading. Never folded into enforcement_context / enforcement_precedents. Quotes are re-queried byte-exact at build time; unverified enforcement rows are inadmissible; an unmatched topic says so.",
+  },
   {
     key: "risk_assessment_by_activity",
 
@@ -646,6 +658,8 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   processing_narrative: "conditional",
   // ITEM 305 — always emitted: the builder degrades rather than omitting.
   activity_analytics: "always",
+  // ITEM 341 — always emitted: the builder degrades rather than omitting.
+  eu_persuasive_authority: "always",
 
   risk_assessment_by_activity: "conditional",
   risk_register: "conditional",
