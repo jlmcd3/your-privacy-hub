@@ -35,8 +35,9 @@
 //
 // Fail-open: every helper wrapped in try/catch; availability never blocked.
 
-import {
 import { splitSentencesSafe } from "../_shared/prose/segment.ts";
+
+import {
   GOVERNANCE_VERIFIED_AUTHORITIES,
   GOVERNANCE_UNANCHORED_PROPOSITIONS,
   GOVERNANCE_VERIFIED_AUTHORITY_VERSION,

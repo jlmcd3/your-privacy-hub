@@ -28,8 +28,9 @@
 //
 // Fail-open: every helper wrapped in try/catch; availability never blocked.
 
-import {
 import { splitSentencesSafe } from "../_shared/prose/segment.ts";
+
+import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
   LIA_VERIFIED_AUTHORITY_VERSION,
