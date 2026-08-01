@@ -1512,6 +1512,7 @@ export type Database = {
           action_type: string | null
           appeal_status: string | null
           appeal_status_extraction_method: string | null
+          authority_class: string | null
           biometric_related: boolean | null
           breach_related: boolean | null
           case_reference: string | null
@@ -1572,6 +1573,11 @@ export type Database = {
           statutory_provisions: string[] | null
           statutory_provisions_evidence: Json | null
           statutory_provisions_extraction_method: string | null
+          strat_date_parseable: boolean | null
+          strat_has_document: boolean | null
+          strat_subject_usable: boolean | null
+          strat_url_wellformed: boolean | null
+          stratified_at: string | null
           subject: string | null
           tool_relevance: string[] | null
           verification_deterministic_pass: boolean | null
@@ -1585,6 +1591,7 @@ export type Database = {
           action_type?: string | null
           appeal_status?: string | null
           appeal_status_extraction_method?: string | null
+          authority_class?: string | null
           biometric_related?: boolean | null
           breach_related?: boolean | null
           case_reference?: string | null
@@ -1645,6 +1652,11 @@ export type Database = {
           statutory_provisions?: string[] | null
           statutory_provisions_evidence?: Json | null
           statutory_provisions_extraction_method?: string | null
+          strat_date_parseable?: boolean | null
+          strat_has_document?: boolean | null
+          strat_subject_usable?: boolean | null
+          strat_url_wellformed?: boolean | null
+          stratified_at?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
           verification_deterministic_pass?: boolean | null
@@ -1658,6 +1670,7 @@ export type Database = {
           action_type?: string | null
           appeal_status?: string | null
           appeal_status_extraction_method?: string | null
+          authority_class?: string | null
           biometric_related?: boolean | null
           breach_related?: boolean | null
           case_reference?: string | null
@@ -1718,6 +1731,11 @@ export type Database = {
           statutory_provisions?: string[] | null
           statutory_provisions_evidence?: Json | null
           statutory_provisions_extraction_method?: string | null
+          strat_date_parseable?: boolean | null
+          strat_has_document?: boolean | null
+          strat_subject_usable?: boolean | null
+          strat_url_wellformed?: boolean | null
+          stratified_at?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
           verification_deterministic_pass?: boolean | null
