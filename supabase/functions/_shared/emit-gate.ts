@@ -264,6 +264,50 @@ function detectFindings(
 
 // ── Degradation ─────────────────────────────────────────────────────────
 
+/**
+ * ITEM 343 — LTP-SHAPE ARRAY PRESERVATION.
+ *
+ * On the LTP report shape the degraded prose leaves are ROOT-level strings,
+ * so `leaf.parent` IS the report root — where `information_needed` is the
+ * honest-degradation ARRAY of rows. The prior unconditional
+ * `obj.information_needed = true` clobbered that array with a scalar,
+ * destroying (in the Item 342 repro) the two §7152(a)(6)/(a)(7) rows.
+ *
+ * Contract:
+ *   - Array present  → PRESERVE it and APPEND one row naming the degraded
+ *     path. Never replaced by a scalar.
+ *   - Anything else  → legacy behavior, byte-identical: scalar `true`.
+ */
+function slugPath(path: string): string {
+  return String(path || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48) || "unspecified";
+}
+
+function markInformationNeeded(obj: Record<string, unknown>, leaf: LeafRef): void {
+  const existing = obj.information_needed;
+  if (!Array.isArray(existing)) {
+    // Legacy shape — unchanged.
+    obj.information_needed = true;
+    return;
+  }
+  const topic = slugPath(leaf.path);
+  const id = `info_emit_gate_${topic}`;
+  const already = existing.some(
+    (r) => r && typeof r === "object" && (r as Record<string, unknown>).id === id,
+  );
+  if (already) return;
+  existing.push({
+    id,
+    topic,
+    prompt: renderMessage("information.needed"),
+    source: "emit_gate",
+    path: leaf.path,
+  });
+}
+
 function degrade(leaf: LeafRef): void {
   const replacement = renderMessage("information.needed");
   if (Array.isArray(leaf.parent)) {
@@ -274,8 +318,9 @@ function degrade(leaf: LeafRef): void {
   obj[leaf.key as string] = replacement;
   // Additive structured flag — non-breaking. Consumers may key styling
   // on this without needing a literal string check.
-  obj.information_needed = true;
+  markInformationNeeded(obj, leaf);
 }
+
 
 // ── Public API ──────────────────────────────────────────────────────────
 
