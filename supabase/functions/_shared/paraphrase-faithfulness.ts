@@ -41,6 +41,46 @@ function substringMatch(doc: string, q: string): boolean {
   return !!q && doc.toLowerCase().includes(q.toLowerCase().trim());
 }
 
+// Item 332 FIX 2 — models sometimes preface their JSON with prose
+// ("Looking at the source document, ..."). Extract the first well-formed
+// top-level JSON object by brace matching (string- and escape-aware) rather
+// than assuming the whole response is JSON.
+export function extractFirstJsonObject(raw: string): string | null {
+  if (!raw) return null;
+  const text = raw.replace(/```(?:json)?/gi, "").trim();
+  let depth = 0;
+  let start = -1;
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start >= 0) {
+        const candidate = text.slice(start, i + 1);
+        try {
+          JSON.parse(candidate);
+          return candidate;
+        } catch {
+          start = -1;
+        }
+      }
+      if (depth < 0) depth = 0;
+    }
+  }
+  return null;
+}
+
 async function callAnthropic(apiKey: string, body: Record<string, unknown>) {
   let attempt = 0;
   const backoffs = [5_000, 20_000, 60_000];
@@ -149,14 +189,38 @@ ${truncated}`;
     };
   }
   let parsed: any;
+  let content = "";
   try {
     parsed = JSON.parse(text);
     usage = {
       input_tokens: parsed?.usage?.input_tokens ?? 0,
       output_tokens: parsed?.usage?.output_tokens ?? 0,
     };
-    const content = parsed?.content?.[0]?.text ?? "";
-    const jsonText = content.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+    content = parsed?.content?.[0]?.text ?? "";
+  } catch (e) {
+    return {
+      verdict: "parse_error",
+      supporting_quote: null,
+      concerns: null,
+      confidence: "failed",
+      parse_error: `envelope_parse: ${(e as Error).message}`,
+      usage,
+    };
+  }
+
+  // Item 332 FIX 2 — tolerate prose before/after the JSON object.
+  const jsonText = extractFirstJsonObject(content);
+  if (!jsonText) {
+    return {
+      verdict: "parse_error",
+      supporting_quote: null,
+      concerns: null,
+      confidence: "failed",
+      parse_error: `json_extract: no well-formed JSON object in model output: ${content.slice(0, 200)}`,
+      usage,
+    };
+  }
+  try {
     parsed = JSON.parse(jsonText);
   } catch (e) {
     return {

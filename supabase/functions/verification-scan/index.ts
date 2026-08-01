@@ -326,7 +326,9 @@ async function processRow(row: any, mode: Mode = "initial") {
   }
 
   await logResult(id, "paraphrase_faithfulness", "paraphrase", {
-    verdict: para.verdict === "parse_error" ? "fail" : "pass",
+    // Item 332 FIX 2 — a parse failure is not evidence of unfaithfulness.
+    // Record it honestly as `uncertain` with the parse error in notes.
+    verdict: para.verdict === "parse_error" ? "uncertain" : "pass",
     evidence_text: para.supporting_quote ?? undefined,
   }, {
     source_document_hash: docHash,
