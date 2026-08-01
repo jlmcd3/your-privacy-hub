@@ -104,25 +104,34 @@ export default function VerificationScanAdmin() {
       const head = (q: any) => q.select("id", { count: "exact", head: true });
       const [
         total, verified, unverified, failed, req,
-        memo, ph, pm, pl, pf,
+        reqDefect, memo, ph, pm, pl, pf,
       ] = await Promise.all([
         head(ea()),
         head(ea()).eq("verification_status", "verified"),
         head(ea()).eq("verification_status", "unverified"),
         head(ea()).eq("verification_status", "failed"),
         head(ea()).eq("verification_status", "requires_review"),
+        // Item 334: mechanical corpus-quality rejects, separated from the
+        // genuine human-review queue.
+        head(ea())
+          .eq("verification_status", "requires_review")
+          .eq("review_reason", "corpus_defect_subject"),
         head(ea()).eq("memo_eligible", true),
         head(ea()).eq("verification_paraphrase_confidence", "high"),
         head(ea()).eq("verification_paraphrase_confidence", "medium"),
         head(ea()).eq("verification_paraphrase_confidence", "low"),
         head(ea()).eq("verification_paraphrase_confidence", "failed"),
       ]);
+      const reqTotal = req.count ?? 0;
+      const reqDefectCount = reqDefect.count ?? 0;
       setHealth({
         total: total.count ?? 0,
         verified: verified.count ?? 0,
         unverified: unverified.count ?? 0,
         failed: failed.count ?? 0,
-        requires_review: req.count ?? 0,
+        requires_review: reqTotal,
+        review_corpus_defect: reqDefectCount,
+        review_genuine: Math.max(0, reqTotal - reqDefectCount),
         memo_eligible: memo.count ?? 0,
         paraphrase_high: ph.count ?? 0,
         paraphrase_medium: pm.count ?? 0,
