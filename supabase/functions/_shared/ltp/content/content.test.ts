@@ -53,27 +53,36 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     // ITEM 276 — primary-activity subject frames.
     "T.risk.exec.primary_subject_lead",
     "T.risk.information_needed.b_criterion_count",
+    // ITEM 244 (L3) — less-intrusive-alternatives line, § 7152(a)(2).
+    "T.risk.less_intrusive_alternatives.present",
+    "T.risk.less_intrusive_alternatives.silent",
     // T-M3 — next_steps per-step shape.
     "T.risk.next_step",
     // T-M3 — priority_actions per-action shape (owner-slot deadline_basis).
     "T.risk.priority_action",
     // ITEM 241.3 — GOLDEN four-move gap-driven action shape.
     "T.risk.priority_action.golden",
+    // ITEM 244 — processing-narrative frame (slot resolvers landed Item 320).
+    "T.risk.processing_narrative",
     // T-M3 — record_sufficiency per-item shape.
     "T.risk.record_sufficiency.item",
     // ITEM 241.3 — record_sufficiency flowing-prose lead-in (Golden §4.3).
     "T.risk.record_sufficiency.prose",
+    // ITEM 244 — record_sufficiency prose lead-in v2.
+    "T.risk.record_sufficiency.prose.v2",
     "T.risk.review_items",
     // T-M3 — inconsistency_flags per-entry shape.
     "T.risk.review_items.entry",
     // ITEM 241.3 — CP5 §3.2 customer-first section-opener templates.
+    // ITEM 276/319 — § 7156(a) comparable-set item (directive recommendation).
     "T.risk.scope.secondary_segmentation",
     "T.risk.section_opener.actions",
     "T.risk.section_opener.balance",
     "T.risk.section_opener.compliance_guidance",
     "T.risk.section_opener.executive_summary",
     "T.risk.section_opener.scope",
-
+    // ITEM 244 — scope opener v2.
+    "T.risk.section_opener.scope.v2",
     "T.risk.summary.activity_line",
     "T.risk.summary.aggregation_note",
     "T.risk.summary.docs",
@@ -84,6 +93,7 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     // ITEM 284 (F2) — provisional-posture frame for incomplete records.
     "T.risk.summary.provisional_posture",
   ];
+
   assertEquals(ids, expected);
 });
 
