@@ -228,3 +228,90 @@ describe("ITEM 310 — fixture unblock (Item 309 discipline)", () => {
     expect(built.art36_consultation.status).toBe("analysed");
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// WP248-PINNING (2026-08-01) — corpus pin for the two WP248 rev.01 rows.
+//
+// Pattern follows risk-verified-authorities-corpus-pin.test.ts: the DB half
+// is skipped without direct Postgres access; the shape/anchoring half always
+// runs so the pin cannot drift silently in CI.
+// ─────────────────────────────────────────────────────────────────────────
+const WP248_KEYS = ["high_risk_criteria_edpb_wp248", "risk_severity_edpb_wp248"] as const;
+
+function normWp(s: string): string {
+  return String(s)
+    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+describe("WP248-PINNING — registry rows", () => {
+  it("both WP248 propositions are anchored, not write-arounds", () => {
+    for (const key of WP248_KEYS) {
+      const r = DPIA_VERIFIED_AUTHORITIES[key];
+      expect(r, `missing registry row: ${key}`).toBeTruthy();
+      expect(r.verbatim_quote.length).toBeGreaterThan(80);
+      expect(r.subsection).toMatch(/^EDPB WP248 rev\.01/);
+      expect(r.governing_anchor).toMatch(/WP248 rev\.01/);
+      expect(r.primary_source_url).toBe(
+        "https://ec.europa.eu/newsroom/just/document.cfm?doc_id=47711",
+      );
+      expect(r.verified_on).toBe("2026-08-01");
+      expect(DPIA_UNANCHORED_PROPOSITIONS).not.toContain(key);
+    }
+  });
+
+  it("dpo_designation_art_37_39 stays unanchored (out of scope)", () => {
+    expect(DPIA_UNANCHORED_PROPOSITIONS).toContain("dpo_designation_art_37_39");
+    expect(DPIA_VERIFIED_AUTHORITIES.dpo_designation_art_37_39).toBeUndefined();
+  });
+
+  it("the exact shipped quotes are pinned byte-for-byte", () => {
+    expect(DPIA_VERIFIED_AUTHORITIES.high_risk_criteria_edpb_wp248.verbatim_quote).toBe(
+      "In general, the WP29 considers that the more criteria are met by the processing, the more likely it is to present a high risk to the rights and freedoms of data subjects, and therefore to require a DPIA, regardless of the measures which the controller envisages to adopt. However, in some cases, a data controller can consider that a processing meeting only one of these criteria requires a DPIA.",
+    );
+    expect(DPIA_VERIFIED_AUTHORITIES.risk_severity_edpb_wp248.verbatim_quote).toBe(
+      "origin, nature, particularity and severity of the risks are appreciated (cf. recital 84) or, more specifically, for each risk (illegitimate access, undesired modification, and disappearance of data) from the perspective of the data subjects",
+    );
+  });
+
+  it("the risk register consumes the WP248 severity anchor verbatim", () => {
+    const built = buildDpiaDeliverables(PERFECT!.intake);
+    expect(built.risk_register.length).toBeGreaterThan(0);
+    for (const r of built.risk_register) {
+      expect(r.guidance_citation).toBe(
+        DPIA_VERIFIED_AUTHORITIES.risk_severity_edpb_wp248.subsection,
+      );
+      expect(r.guidance_verbatim).toBe(
+        DPIA_VERIFIED_AUTHORITIES.risk_severity_edpb_wp248.verbatim_quote,
+      );
+    }
+  });
+});
+
+const WP248_CAN_RUN = !!process.env.PGHOST && !!process.env.PGDATABASE;
+
+describe.skipIf(!WP248_CAN_RUN)("WP248-PINNING — corpus pin (edpb_guidelines)", () => {
+  it("each quote is a contiguous substring of an approved WP248 corpus row", async () => {
+    const { execFileSync } = await import("node:child_process");
+    const out = execFileSync(
+      "psql",
+      [
+        "-tAX",
+        "-c",
+        "SELECT excerpt_text || E'\\x1e' FROM edpb_guidelines " +
+          "WHERE guideline_ref = 'WP248 rev.01' AND status = 'final'",
+      ],
+      { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 },
+    );
+    const rows = out.split("\x1e").map(normWp).filter(Boolean);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const key of WP248_KEYS) {
+      const q = normWp(DPIA_VERIFIED_AUTHORITIES[key].verbatim_quote);
+      expect(rows.some((body) => body.includes(q)), `${key} not found in WP248 corpus`).toBe(true);
+    }
+  });
+});
