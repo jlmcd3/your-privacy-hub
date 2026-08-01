@@ -64,13 +64,36 @@ export function citationsIn(node: unknown): string[] {
   return Array.from(new Set((text.match(CITE_RE) ?? []).map((c) => c.replace(/\s+/g, " ").trim())));
 }
 
+/** Structurally minimal view of the engine's per-activity analytics. */
 interface AnalyticsLike {
-  activity_name?: string;
-  necessity_analysis?: { element?: string; verdict?: string; information_needed?: string; status?: string }[];
-  harm_causation?: { harm_pinpoint?: string; harm_label?: string; information_needed?: string; status?: string }[];
-  safeguard_map?: { harm_id?: string; safeguard?: string; residual_band?: string; information_needed?: string; status?: string }[];
-  weighing?: { beneficiary_class?: string; sufficiency?: string; information_needed?: string; status?: string }[];
-  consequence?: { decision?: string; reasons?: string[]; conditions?: string[]; information_needed?: string };
+  readonly activity_name?: string;
+  readonly necessity_analysis?: readonly {
+    readonly element?: string;
+    readonly verdict?: string;
+    readonly information_needed?: string;
+  }[];
+  readonly harm_causation?: readonly {
+    readonly harm_pinpoint?: string;
+    readonly harm_label?: string;
+    readonly information_needed?: string;
+  }[];
+  readonly safeguard_map?: readonly {
+    readonly harm_id?: string;
+    readonly safeguard?: string;
+    readonly residual_band?: string;
+    readonly information_needed?: string;
+  }[];
+  readonly weighing?: readonly {
+    readonly beneficiary_class?: string;
+    readonly sufficiency?: string;
+    readonly information_needed?: string;
+  }[];
+  readonly consequence?: {
+    readonly decision?: string;
+    readonly reasons?: readonly string[];
+    readonly conditions?: readonly string[];
+    readonly information_needed?: string;
+  };
 }
 
 /**
