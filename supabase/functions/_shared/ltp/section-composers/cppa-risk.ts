@@ -25,6 +25,21 @@ import {
   CCPA_7150_B_1, CCPA_7150_B_2, CCPA_7150_B_3, CCPA_7150_B_4, CCPA_7150_B_5, CCPA_7150_B_6,
   CCPA_7150_B_LABELS,
 } from "../../openings/ccpa-7150-pin.ts";
+// ITEM 321 (PROMPT C) — the § 7156(a) bundling recommendation now lives in a
+// single browser-importable module so the in-app follow-up panel renders the
+// SAME verdict and the SAME prose as this report section. Do not re-inline it.
+import {
+  DIVERGENCE_DIMENSION_LABELS,
+  SECONDARY_ANCHOR_7156A,
+  SECONDARY_RECOMMENDATION_DISCLAIMER,
+  secondaryRecommendation,
+  secondaryRecommendationSentence,
+  secondaryComparisonLines,
+  parseSecondaryActivities,
+  type SecondaryActivityRow,
+} from "../secondary-recommendation.ts";
+
+export { secondaryRecommendation };
 
 export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item276-primary-subject";
 
@@ -283,22 +298,8 @@ function provisionalPostureInstance(plan: RenderPlan): TemplateInstance | null {
 // is absent from the ledger (every pre-Item-275 document), every composer
 // below falls through to its prior prong-derived behaviour byte-for-byte.
 
-/** § 7156(a) comparable-set dimensions, keyed as the Item-275 intake emits them. */
-const DIVERGENCE_DIMENSION_LABELS: Readonly<Record<string, string>> = {
-  data: "the personal information used",
-  purpose: "the purpose of the processing",
-  systems: "the systems, technology, and service providers used",
-  people: "the consumers whose information is processed",
-  risks: "the risks to consumers' privacy and the safeguards applied",
-};
-
-const SECONDARY_ANCHOR_7156A = "11 CCR § 7156(a)";
-
-interface SecondaryActivityRow {
-  readonly name: string;
-  readonly purpose: string;
-  readonly divergence: Readonly<Record<string, string>>;
-}
+// § 7156(a) comparable-set dimensions, anchor and row shape: see
+// ../secondary-recommendation.ts (ITEM 321 single source of truth).
 
 function primaryActivityName(plan: RenderPlan): string {
   return pickIntakeValue(plan, "primary_activity_name");
@@ -314,32 +315,7 @@ function primaryActivityPurpose(plan: RenderPlan): string {
  * degrades to an empty set rather than throwing.
  */
 function secondaryActivityRows(plan: RenderPlan): SecondaryActivityRow[] {
-  const raw = pickIntakeValue(plan, "secondary_activities");
-  if (!raw) return [];
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return [];
-  }
-  if (!Array.isArray(parsed)) return [];
-  const out: SecondaryActivityRow[] = [];
-  for (const r of parsed) {
-    if (!r || typeof r !== "object") continue;
-    const rec = r as Record<string, unknown>;
-    const name = typeof rec.name === "string" ? rec.name.trim() : "";
-    if (!name) continue;
-    const purpose = typeof rec.purpose === "string" ? rec.purpose.trim() : "";
-    const divergence: Record<string, string> = {};
-    const d = rec.divergence;
-    if (d && typeof d === "object") {
-      for (const [k, v] of Object.entries(d as Record<string, unknown>)) {
-        if (typeof v === "string" && v.trim()) divergence[k] = v.trim();
-      }
-    }
-    out.push({ name, purpose, divergence });
-  }
-  return out;
+  return parseSecondaryActivities(pickIntakeValue(plan, "secondary_activities"));
 }
 
 /** Dimensions answered "Not sure" across all secondary rows (deduplicated, registry order). */
@@ -1339,30 +1315,8 @@ function composeExceptionAnalysis(plan: RenderPlan): TemplateInstance[] {
 }
 
 
-/**
- * ITEM 319 (PROMPT A) — SHIPPED DIVERGENCE THRESHOLD.
- *
- * A dimension "diverges" ONLY when the record answers "Different". The
- * recommendation threshold is ANY-DIVERGENCE: one divergent dimension out of
- * the five § 7156(a)(1)-derived dimensions is enough to recommend a separate
- * risk assessment. Where nothing diverges but one or more dimensions are
- * unresolved ("Not sure"), the tool does NOT recommend bundling — it
- * recommends resolving the unresolved dimensions first. Locked by
- * `item319-secondary-recommendation.test.ts`; do not change silently.
- */
-export function secondaryRecommendation(
-  divergence: Readonly<Record<string, string>>,
-): { verdict: "single" | "separate" | "unresolved"; diverging: string[]; unresolved: string[] } {
-  const keys = Object.keys(DIVERGENCE_DIMENSION_LABELS);
-  const diverging = keys.filter((k) => divergence[k] === "Different");
-  const unresolved = keys.filter((k) => (divergence[k] || "Not sure") === "Not sure");
-  const verdict = diverging.length > 0
-    ? "separate"
-    : unresolved.length > 0
-      ? "unresolved"
-      : "single";
-  return { verdict, diverging, unresolved };
-}
+// ITEM 319 threshold (ANY-DIVERGENCE) and its prose now live in
+// ../secondary-recommendation.ts and are re-exported above.
 
 /**
  * ITEM 276 / ITEM 319 — § 7156(a) SECONDARY-USE SEGMENTATION ITEM.
@@ -1385,36 +1339,10 @@ function secondarySegmentationInstances(plan: RenderPlan): TemplateInstance[] {
     rows.map((r) => (r.purpose ? `${r.name} (${r.purpose})` : r.name)),
   );
   const clauses = rows.map((r) => {
-    const parts = Object.keys(DIVERGENCE_DIMENSION_LABELS).map((k) => {
-      const label = DIVERGENCE_DIMENSION_LABELS[k];
-      const answer = r.divergence[k] || "Not sure";
-      const verdict = answer === "Same"
-        ? "recorded as the same as the assessed activity"
-        : answer === "Different"
-          ? "recorded as different from the assessed activity"
-          : "not resolved on the record";
-      return `${label} — ${verdict}`;
-    });
+    const parts = secondaryComparisonLines(r).map((c) => `${c.label} — ${c.verdict}`);
     return `for ${r.name}: ${parts.join("; ")}`;
   });
-  const recommendations = rows.map((r) => {
-    const { verdict, diverging, unresolved } = secondaryRecommendation(r.divergence);
-    const labels = (keys: string[]) =>
-      joinList(keys.map((k) => DIVERGENCE_DIMENSION_LABELS[k]));
-    if (verdict === "separate") {
-      return `Recommended: conduct a separate risk assessment for ${r.name}. We recommend this because ${
-        diverging.length === 1 ? "one dimension of the comparison diverges" : `${diverging.length} dimensions of the comparison diverge`
-      } from the assessed activity — ${labels(diverging)}.`;
-    }
-    if (verdict === "unresolved") {
-      return `Recommended: resolve the open dimensions for ${r.name} before deciding. No dimension is recorded as different, but ${labels(unresolved)} ${
-        unresolved.length === 1 ? "is" : "are"
-      } unresolved on the record; we recommend a separate risk assessment for this activity unless ${
-        unresolved.length === 1 ? "that dimension is" : "those dimensions are"
-      } confirmed to be the same.`;
-    }
-    return `Recommended: ${r.name} can be addressed within this single assessment. We recommend this because none of the five comparison dimensions is recorded as differing from the assessed activity.`;
-  });
+  const recommendations = rows.map((r) => secondaryRecommendationSentence(r));
   return [{
     template_id: "T.risk.scope.secondary_segmentation",
     ctx: {
