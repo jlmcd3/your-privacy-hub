@@ -24,6 +24,8 @@ export interface FixtureShape {
   required: string[];
   /** For cppa_cyber: required control-array `key` values. */
   requiredControlKeys?: string[];
+  /** For cppa_cyber: required sub-keys inside the nested `profile` object. */
+  requiredProfileKeys?: string[];
   /** For cppa_risk: required sub-keys inside exceptions_intake / impact_intake. */
   requiredExceptionsKeys?: string[];
   requiredImpactKeys?: string[];
@@ -169,7 +171,15 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
   },
   cppa_cyber: {
     locator: { at: "insert.intake_data" },
-    required: ["company_name", "profile_industry", "profile_audit", "industry_sector", "profile", "controls"],
+    // Item 338 (drift, not defect): the engine's canonical cyber intake is
+    // `{ profile: { entity_name, industry, incidents_12mo, framework,
+    // last_audit }, controls: [] }` (run-cppa-cybersecurity/index.ts L293,
+    // commit 6d7bdb97d, 2026-07-24); `industry_sector` is only a legacy
+    // fallback and `company_name`/`profile_industry`/`profile_audit` are read
+    // nowhere. The flat keys are re-pinned as nested profile sub-keys, so
+    // coverage is not reduced.
+    required: ["profile", "controls"],
+    requiredProfileKeys: ["entity_name", "industry", "incidents_12mo", "framework", "last_audit"],
     requiredControlKeys: [
       "c1_auth",
       "c2_encryption",

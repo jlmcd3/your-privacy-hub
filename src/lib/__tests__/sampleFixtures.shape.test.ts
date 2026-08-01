@@ -49,6 +49,17 @@ describe("sample fixtures shape drift guard", () => {
       });
     }
 
+    if (shape.requiredProfileKeys) {
+      // Item 338: replaces the retired flat cyber keys — same coverage, at the
+      // nested location the engine actually reads.
+      it(`${label} — profile carries all required sub-keys`, () => {
+        const intake = readIntake(fixture) as any;
+        const profile = intake?.profile ?? {};
+        const missing = shape.requiredProfileKeys!.filter((k) => !(k in profile));
+        expect(missing, `missing profile keys for ${label}: ${missing.join(", ")}`).toEqual([]);
+      });
+    }
+
     if (shape.requiredExceptionsKeys) {
       it(`${label} — exceptions_intake carries all required exception keys`, () => {
         const intake = readIntake(fixture) as any;
