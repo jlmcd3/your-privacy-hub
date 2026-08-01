@@ -68,7 +68,9 @@ function fillOne(
       return renderSlotValue(raw, { adapter: adapterFor(opts.contract), midSentence: true });
     case "text":
     default: {
-      const s = renderSlotValue(raw, { adapter: adapterFor(opts.contract), midSentence: true }).trim();
+      // VERBATIM LAW — record free text is reproduced exactly as the company
+      // wrote it: no punctuation stripping, no case folding.
+      const s = (Array.isArray(raw) ? joinNaturalList(raw) : String(raw)).trim();
       const quote = opts.quoteFreeText !== false;
       return quote ? `“${s.replace(/^["“”]|["“”]$/g, "")}”` : s;
     }
