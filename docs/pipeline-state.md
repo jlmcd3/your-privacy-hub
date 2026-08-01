@@ -7670,3 +7670,21 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **Explicitly NOT claimed:** no batch was launched from either console (Item 245 hold + no-harness-invocation scope). The Messy path is verified only as far as its rejection message.
 
 **Disposition:** SHIPPED (platform) — Item 245 hold unaffected; messy fixture CONTENT remains open work.
+
+---
+
+## 326 — UK/EU FIX 1 of 5: `lia` — UK GDPR Art. 22-family branching (2026-08-01)
+
+**Problem.** `lia-verified-authorities.ts` carried only the EU Art. 22(1) row, so a UK-scoped LIA stated the EU default — prohibition-unless-excepted — for a jurisdiction whose Art. 22 is not in force. UK Arts. 22A–22D invert that default for non-Article-9(1) data.
+
+**1. Registry (12 new rows, all byte-exact from corpus, re-queried fresh).** `uk_art_22_substituted` (`ukgdpr-art-22`), `uk_art_22a_solely_automated_definition` / `_significant_decision_definition` / `_profiling_consideration` (`ukgdpr-art-22a`), `uk_art_22b_special_category_restriction` / `_recognised_li_bar` (`ukgdpr-art-22b`), `uk_art_22c_safeguards_duty` / `_safeguard_measures` (`ukgdpr-art-22c`), `uk_art_22d_safeguard_regulations` (`ukgdpr-art-22d`), `uk_art_6_1_ea_recognised_li` / `uk_art_6_ea_annex_1_condition` / `uk_art_6_1_f_legitimate_interests` (`ukgdpr-art-6`). Version → `lia-va-w2-2026-08-01-item326`.
+
+**2. ANNEX 1 SCOPE LIMIT (binding).** Annex 1 is not in the corpus (verified by direct query). `uk_annex_1_recognised_li_conditions` added to `LIA_UNANCHORED_PROPOSITIONS`. Output cites only that Art. 6(1)(ea) exists, that Art. 6(5) conditions it on Annex 1, and that Art. 22B(4) bars it for a solely automated significant decision — then emits `ANNEX_1_RESERVED_NOTE` verbatim and stops. No Annex 1 condition is stated, paraphrased, listed, or evaluated anywhere. A test asserts every Annex-bearing sentence in the narrative is a substring of that one note.
+
+**3. Branching.** `readAdmJurisdictionFacts` / `buildAutomatedDecisionAnalysis` in `ltp/lia-deliverables/build.ts`, reusing the exact-value `jurisdictions` membership pattern from `ir-playbook-deliverables/build.ts` — no semantic defaults. Regimes: `eu` (prohibited_unless_excepted) · `uk` (permitted_with_safeguards + Art. 22C(2) measures + Art. 22B restrictions) · `dual` (both defaults stated separately, neither carried across) · `not_engaged` (no Art. 22-family assertion). Attached as `automated_decision_analysis`; regime/default stamped on the envelope. Deliverables version → `lia-analytic-deliverables-2026-08-01-item326`.
+
+**4. Degradation.** The LIA record has no field stating whether a solely automated significant decision is taken, so status is `record_insufficient` with a named ask — the regime default is stated, the application to this processing is not closed.
+
+**5. Tests.** New `src/registry/__tests__/lia-uk-art22-corpus-pin.test.ts` — 22 passing (12 live-corpus verbatim pins via psql, Annex-1 scope-limit guards, EU/UK/dual/none branching, EU-leg no-UK-bleed assertion). Offline snapshot extended with `UK_GDPR_PROVISION_EXCERPTS` + EU Art. 22 so the Item 311 corpus pin covers the new anchors. Full registry suite: 352/352 passing, 29 files.
+
+**Disposition:** SHIPPED (code) — Item 245 deploy hold unaffected. Fixes 2–5 of 5 remain open.
