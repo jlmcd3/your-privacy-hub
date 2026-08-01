@@ -215,18 +215,22 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   },
 
   // ── Headline scores / risk band (deterministic from plan) ─────────
+  // ── Headline scores / risk band (deterministic from plan) ─────────
+  // ITEM 354 — CUSTOMER CONTRACT: rendered scalars. These keys previously
+  // projected the raw factor table (Item 353 Phase-2 FAILURE 1).
   {
     key: "overall_score",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "risk-level-map@overall_score" },
-    project: projectFactorTable,
-    note: "Derived by risk-level-map from factor_table weights.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@overall_score" },
+    project: projectOverallScore,
+    note: "Rendered scalar (number 0-100 or null). The LTP risk engine ships a band, not a score.",
   },
   {
     key: "risk_level",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "risk-level-map@risk_level" },
-    project: projectFactorTable,
-    note: "Derived by risk-level-map from factor_table weights.",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@risk_level" },
+    project: projectRiskLevel,
+    note: "Rendered scalar band; finite mapping over the engine's aggregateBalance determination.",
   },
+
 
   // ── ENGINE-A HARVEST BINDINGS (subordinated to RenderPlan) ────────
   {
