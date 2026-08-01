@@ -8,7 +8,7 @@
 
 **Leak-prevention phases apply to ALL products (CEO order 2026-07-25):** every product generator must adopt Phase 0 (customer-message catalog + FIELD_LABELS for its intake fields), Phase 1 (emit-gate wired pre-write), and Phase 2 (report schema + whitelist serializer) in its next T2 product-update turn; Phase 3 rides the next major turn thereafter. No product turn may be marked DONE without P0-P2 adoption or an explicit UNCORRECTABLE-style deviation ruling. Full scope in §8.
 
-**Last updated:** 2026-08-01T08:06Z (Item 323 — Washington My Health My Data Act (RCW 19.373) ingested, verified, and activated in the biometric product as a DISTINCT authority alongside RCW 19.375. Five sections approved in provision_texts; 11 duty rows added; the Item 317 absence guards flipped, not deleted. vitest 807/814 — the 7 failures are the pre-existing font-size and cppa-risk/cyber fixture pins, untouched.)
+**Last updated:** 2026-08-01T08:14Z (Item 324 — cppa-risk pinned-fixture contract parity restored: the three revision-contract fixtures carried none of the eight Item 305 required-always § 7152 operands, aborting every /admin/quality-batch run on cppa-risk at start; 24 violations → 0, 6/6 pinned intakes now validate. Dedicated § 7152(a)(5)(A)–(H) corpus pin and a permanent parity guard added, 12 new tests. vitest 820/827 — same 7 pre-existing failures. Previously: Item 323 — Washington My Health My Data Act (RCW 19.373) ingested, verified, and activated in the biometric product as a DISTINCT authority alongside RCW 19.375. Five sections approved in provision_texts; 11 duty rows added; the Item 317 absence guards flipped, not deleted. vitest 807/814 — the 7 failures are the pre-existing font-size and cppa-risk/cyber fixture pins, untouched.)
 
 ---
 
@@ -7620,3 +7620,29 @@ This includes 3 re-run documents that did NOT block in batch 2 — the outcome i
 **6. Collateral.** Legacy `check-biometric-compliance/index.ts` MHMD block carried four wrong pinpoints (.040/.050/.060/.080 for consent-sale/geofence/rights/processors); corrected against the verified chapter TOC.
 
 **Disposition:** BUILT / NOT DEPLOYED — Item 245 rollback hold and the Item 319 blockers still stand.
+
+---
+
+## 324. ITEM 324 — CPPA-RISK PINNED-FIXTURE CONTRACT PARITY + DEDICATED § 7152(a)(5) PIN (2026-08-01, BUILT / NOT DEPLOYED)
+
+**Courier:** `docs/courier/ITEM324-CPPA-RISK-FIXTURE-CONTRACT-PARITY-2026-08-01.md`.
+**Authority:** CEO-queued 2026-08-01, closing the Item 305 residue identified in `.lovable/plan-quality-batch-as-a-post-rebuild-product-quality-harness-find-2026-07-31.md` (Parts A/D).
+**Scope executed:** fixtures, tests, docs. NO engine change, NO contract change, NO corpus write, NO deploy, NO harness invocation.
+
+**0. Dispatch premises corrected on the record.** Two of the four stated gaps were already closed: `docs/courier/ITEM305-CPPA-RISK-REBUILD-2026-07-31.md` exists (retroactive, under Item 306), and `golden/cppa-risk.ts` already carried the Item 305 operand block. A harm-catalogue pin also already existed inside `cppa-risk-analytics.test.ts` — but not as a dedicated `*-corpus-pin.test.ts`, breaking the Items 298/307 convention. No duplicate Item 305 courier was written.
+
+**1. The real blocker.** `run-quality-batch` validates every pinned intake against `cppaRiskContract` before case 0 and aborts on any violation. The three `CPPA_RISK_CONTRACT_FIXTURES` carried none of the eight Item 305 `required: "always"` § 7152 operands — **24 violations, batch dead at start.** Fixed: each fixture received its OWN activity-specific operand block (Meridian Health triage / Solstice FinPay credit scoring / Aurora RetailWorks loyalty) — 3 necessity elements each incl. one deliberate `not necessary`, 3 source-and-cause-traced `(A)`–`(H)` harm pathways, 3 status-varied safeguards, four decision-specific `a4_benefit_*` narratives, named § 7152(a)(9) approver distinct from the certifier. No shared filler block: interchangeable harm text would be placeholder data wearing a "Perfect Data" label.
+
+**2. Adversarial-case conditional inconsistency — resolved by SUPPLYING.** `risk-consumer-boundary-adversarial` ran `q18_admt_use: "Yes"` with no `q19_admt_description`/`q20_admt_opt_out`/`i5_admt_logic`/`i5_admt_human_review`, surviving only because `validateIntake` does not evaluate `requiredWhen`. That case tests the § 1798.140(d)(1)(B) consumer-volume edge, not the conditional validator; companions authored, boundary values byte-unchanged, rationale comment in the fixture.
+
+**3. New tests (12, all passing).** `cppa-risk-harm-catalogue-corpus-pin.test.ts` (8) — dedicated live pin of all eight § 7152(a)(5)(A)–(H) verbatims against `provision_texts` row `cppa-7152` (8,051 chars, approved); (D) matched either side of the running page header with the excised span asserted to be EXACTLY that header; (H)'s `"non-\nmedical"` line break rejoined **keeping** the hyphen. Corpus row and catalogue strings both read-only — no pin was bent. `cppa-risk-fixture-contract-parity.test.ts` (4+1) — runs the batch's own validator over BOTH pinned sets, asserts all eight operands present, and asserts every harm pathway carries a tagged harm plus a source AND a cause over a length floor (the anti-recitation property Item 305 exists to enforce).
+
+**4. Drift caught by the new guard.** `q20_admt_opt_out` was first authored as `"Yes, with a documented process"` — not a member of `Q20_OPTS`; corrected to the verbatim `"Yes, with documented opt-out"`.
+
+**5. Result.** Batch validator executed over all six pinned intakes: **6/6 OK, 0 violations** — the `nextIdxSafe === 0` abort gate is cleared. vitest 820/827 (the 7 failures are the same pre-existing font-size and cyber fixture pins; +13 net-new passing).
+
+**Explicitly NOT claimed:** no `/admin/quality-batch` run was launched (Item 245 hold + no-harness-invocation scope), so "the batch completes" is asserted only as far as the start gate.
+
+**Open:** (i) controller green-light to launch the cppa-risk batch; (ii) two normalizers now cover the same corpus row (Item 306 rejoins to `nonmedical`, Item 324 keeps the hyphen) — flagged, not unilaterally retired; (iii) `REQUIRED_ALWAYS_FILLERS` covers only the pre-305 required-always set, so the durable fix is the parity guard, not the fixture data.
+
+**Disposition:** BUILT / NOT DEPLOYED — Item 245 hold stands.
