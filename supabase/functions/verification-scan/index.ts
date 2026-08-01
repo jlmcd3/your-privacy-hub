@@ -179,8 +179,13 @@ async function processRow(row: any, mode: Mode = "initial") {
     };
   }
 
-  // Swappable "get document text" step. Live fetch for initial/targeted/sample;
-  // cached mode reuses the already-captured source_document_text verbatim.
+  // Swappable "get document text" step.
+  //  - cached mode reuses the already-captured source_document_text verbatim;
+  //  - Item 333: every other mode now consults source_document_cache FIRST
+  //    (non-expired entry keyed by source_url) before a live refetch. The 24
+  //    queue rows stuck at attempts>=3 all had a warm cache entry but were
+  //    being refetched (and re-parsed) on every drain attempt, which is what
+  //    blew the worker memory/idle budget.
   const getDocument = async () => {
     if (mode === "cached") {
       const text = (row.source_document_text ?? "") as string;
@@ -188,9 +193,28 @@ async function processRow(row: any, mode: Mode = "initial") {
         status: "ok" as const,
         content_text: text,
         content_hash: await sha256(text),
+        fetched_from_cache: true,
       };
     }
-    return await fetchSourceDocument(row.source_url ?? "");
+    const url = (row.source_url ?? "") as string;
+    if (url) {
+      const { data: cached } = await sb
+        .from("source_document_cache")
+        .select("content_text, content_hash, expires_at")
+        .eq("source_url", url)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+      const text = (cached as any)?.content_text as string | undefined;
+      if (text && text.length >= CACHED_MIN_DOC_CHARS) {
+        return {
+          status: "ok" as const,
+          content_text: text,
+          content_hash: (cached as any).content_hash ?? (await sha256(text)),
+          fetched_from_cache: true,
+        };
+      }
+    }
+    return await fetchSourceDocument(url);
   };
 
   const fetched: any = await getDocument();
