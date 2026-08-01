@@ -8460,3 +8460,137 @@ with weighing / harm_causation / safeguard_map on both; prose libraries reachabl
 Item 245 hold **ACTIVE**. Items 319–321 remain NOT DEPLOYED. Frontend panel publish still held.
 Next prerequisite: extend the Item 350 presence fix into the `record_sufficiency` renderer (counter + element list)
 and suppress emit-gate nodes from the customer-facing `information_needed` array.
+
+---
+
+## Item 352 — CORPUS STRATIFICATION SWEEP (deterministic, $0, no model calls, no deploys)
+
+Scope executed: stratification map, `authority_class` classification, `action_type` field cleanup, CPPA
+count + options memo. **No product surface, enforcement_context, or precedent field was touched.**
+Item 245 posture untouched.
+
+### Schema added (migration)
+`enforcement_actions`: `authority_class text`, `strat_has_document bool`, `strat_url_wellformed bool`,
+`strat_subject_usable bool`, `strat_date_parseable bool`, `stratified_at timestamptz`;
+indexes `(authority_class)` and `(authority_class, verification_status, strat_has_document)`
+so campaign targeting is now an indexed query.
+
+Definitions (deterministic, no model calls):
+- `strat_has_document` = own `source_document_text` > 200 chars **OR** `source_document_cache` hit on `source_url` > 200 chars.
+- `strat_url_wellformed` = `source_url ~* '^https?://[^\s/]+\.[^\s/]+'`.
+- `strat_subject_usable` = existing precheck logic ported verbatim from `verification-scan`
+  (`isPlaceholderSubject`: non-null, ≥3 chars, not in the 22-term placeholder set).
+- `strat_date_parseable` = `decision_date IS NOT NULL` (column is typed `date`; unparseable values never land).
+
+### AUTHORITY CLASS — closed vocabulary, deterministic mapping
+Sources: `regulator_canonical`/`regulator`, `jurisdiction`, `source_database`. No model guessing;
+anything unmapped stays `unclassified` and is counted.
+
+| authority_class | rows |
+|---|---|
+| eu_dpa | 4228 |
+| ca_commissioner | 657 |
+| us_federal_agency | 245 |
+| us_state_ag | 179 |
+| **cppa** | **96** |
+| eea_dpa | 83 |
+| uk_dpa | 76 |
+| court | 50 |
+| other | 49 |
+| unclassified | 22 |
+| **total** | **5685** |
+
+### Readiness matrix (authority_class × capability)
+
+| class | n | has_doc | url_ok | subject_usable | date |
+|---|---|---|---|---|---|
+| eu_dpa | 4228 | 2239 | 4228 | 2982 | 3034 |
+| ca_commissioner | 657 | 0 | 657 | 6 | 0 |
+| us_federal_agency | 245 | 42 | 245 | 96 | 136 |
+| us_state_ag | 179 | 0 | 178 | 4 | 1 |
+| cppa | 96 | 0 | 96 | 3 | 0 |
+| eea_dpa | 83 | 1 | 83 | 75 | 78 |
+| uk_dpa | 76 | 1 | 76 | 27 | 38 |
+| court | 50 | 4 | 49 | 8 | 16 |
+| other | 49 | 0 | 49 | 16 | 19 |
+| unclassified | 22 | 10 | 22 | 12 | 12 |
+
+### Full count matrix (authority_class × verification_status × has-document)
+
+```
+ca_commissioner   requires_review  f   651      other             failed          f     7
+ca_commissioner   unverified       f     6      other             requires_review f    33
+court             failed           f     2      other             unverified      f     7
+court             requires_review  f    41      other             verified        f     2
+court             requires_review  t     1      uk_dpa            requires_review f    49
+court             unverified       f     3      uk_dpa            unverified      f    26
+court             verified         t     3      uk_dpa            verified        t     1
+cppa              requires_review  f    93      unclassified      failed          f     1
+cppa              unverified       f     3      unclassified      requires_review f    10
+eea_dpa           failed           t     1      unclassified      requires_review t    10
+eea_dpa           requires_review  f     3      unclassified      unverified      f     1
+eea_dpa           unverified       f    79      us_federal_agency failed          f     1
+eu_dpa            failed           f    26      us_federal_agency failed          t     7
+eu_dpa            failed           t   208      us_federal_agency requires_review f   141
+eu_dpa            requires_review  f   949      us_federal_agency requires_review t     1
+eu_dpa            requires_review  t    20      us_federal_agency unverified      f    61
+eu_dpa            unverified       f  1014      us_federal_agency unverified      t    20
+eu_dpa            unverified       t  1841      us_federal_agency verified        t    14
+eu_dpa            verified         t   170      us_state_ag       failed          f     2
+                                                us_state_ag       requires_review f   175
+                                                us_state_ag       unverified      f     2
+```
+
+Verified-with-document totals: eu_dpa 170, us_federal_agency 14, court 3, uk_dpa 1 — **188 rows total**.
+
+### Unclassified residue — 22 rows (all enumerated)
+`Unknown` (GDPRHub, EU) 5; `Unknown DPA` (CMS) 9 across Public Sector and Education (3), Comune di
+Monterotondo, Comune di Velletri, Comune di Coccaglio, Ministero della Cultura, Shop Owner, Sole Trader,
+EU (1); court-shaped abbreviations not in the pinned token list — `KHO`, `ACS`, `LG Düsseldorf`,
+`Ombudsman`, `OGH`, `AG Arnsberg` (1 each); `Gibson Dunn` (law-firm secondary source) 1.
+These are counted, not guessed at.
+
+### FIELD CLEANUP — action_type misuse
+3,143 rows held violation-category strings in `action_type` (`Insufficient %`,
+`Non-compliance with general data processing principles`, `Lack of appointment of data protection officer`).
+Each value was appended (deduped) to `violation_types` and `action_type` nulled.
+Post-state `action_type`: Investigation 136, Complaint 43, Unknown 30, Other 11, Fine 9,
+Advisory Opinion 5, multistate_settlement 1, court_of_appeals_ruling 1, NULL 5449.
+Spot-check: 962 rows now carry `Insufficient legal basis for data processing` in `violation_types`
+(matching the pre-migration `action_type` count for that value). True action types untouched.
+
+### CPPA CAVEAT — 96 rows flagged and counted, NOT wired anywhere
+`authority_class='cppa'` = 96 rows; 93 `requires_review`, 3 `unverified`; **0 verified**, **0 with a
+source document**, 3 with a usable subject, 0 with a parseable decision date.
+No code path was changed; the cppa-risk products continue to state that no CPPA corpus actions are supplied.
+
+#### Options memo (no implementation)
+**(a) What today's surfaces would do with verified CPPA rows.**
+`get-enforcement-context` selects from `enforcement_actions` filtered only by
+`verification_status != 'requires_review'`; it has no authority-class awareness. If CPPA rows were
+promoted to `verified`/`unverified` they would flow into `enforcement_context` and thence into the
+`enforcement_precedents` slots of cppa-risk (and dpia/dpa/ir-playbook, which share the same fetcher)
+automatically, on relevance keywords alone — i.e. today the gate is verification status, not authority.
+With the current corpus that path is empty because all 96 rows are `requires_review`; three rows sitting
+at `unverified` are already one status flip away from the surface, which is the live exposure to note.
+
+**(b) Gating options.**
+1. *Verified-only*: require `verification_status='verified'` AND `strat_has_document` AND a
+   40-char verbatim substring check (the Track-3 standard) before any CPPA row can render. Highest
+   evidentiary bar; currently yields zero rows, so the products' present statement stays true until the
+   verification campaign lands.
+2. *Final-decisions-only*: additionally require a disposition indicating a concluded action (order,
+   decision, settlement) and exclude notices/inquiries, so nothing preliminary reads as precedent.
+3. *Reserved framing*: allow CPPA rows to appear only in a distinctly-labelled, non-precedential
+   "CPPA activity to date" block that never feeds the balancing or determination logic — separates
+   informational value from legal weight.
+4. *Explicit authority allow-list*: add `authority_class` to the fetcher's filter so CPPA inclusion is an
+   affirmative, auditable switch rather than a side effect of a status change.
+
+**(c) Recommendation.** Adopt (4) as the mechanism and (1)+(2) as the content bar: add an explicit
+`authority_class` allow-list to `get-enforcement-context` — defaulting to CPPA **excluded** — so the
+three `unverified` rows cannot leak via a status edit; then admit CPPA rows only when verified,
+document-backed, verbatim-checked, and final. Option (3) is the fallback if the CEO wants CPPA visibility
+before the verification campaign completes. **No implementation this turn.**
+
+Spend: $0, no model calls, no deploys.
