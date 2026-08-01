@@ -933,7 +933,27 @@ async function runPipeline(assessment_id: string) {
       return;
     }
 
+    // ── ITEM 353 — T-M CUTOVER: LTP ORCHESTRATOR IS THE PRODUCTION ENGINE ──
+    // Enforce mode. The Item-217 legacy composer below is retained only as
+    // the documented rollback target (`git archive 4fe2e76c1 …`).
+    {
+      const _ltpOut = await runLtpProduction({
+        db: supabase,
+        assessmentId: assessment_id,
+        row: row as any,
+        buildStamp: BUILD_STAMP,
+        lifecycleUpdate: lifecycleUpdate as any,
+      });
+      console.log(JSON.stringify({
+        evt: "ltp_production_entry_returned", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, entry_stamp: LTP_PRODUCTION_ENTRY_STAMP,
+        ok: _ltpOut.ok, error: _ltpOut.error ?? null,
+      }));
+      return;
+    }
+
     // Corpus retrieval (parallel).
+
     const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations } = await retrieveCorpusContext(fiveStage);
 
     const today = new Date().toISOString().slice(0, 10);
