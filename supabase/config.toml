@@ -242,7 +242,3 @@ verify_jwt = false
 
 
 
-
-
-[functions.item331-batch-trigger]
-verify_jwt = false
