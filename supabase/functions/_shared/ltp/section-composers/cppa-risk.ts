@@ -220,7 +220,13 @@ export function assessRecordCompleteness(plan: RenderPlan): RecordCompleteness {
     reasons.push("documentation_gate_unresolved");
   }
   if (!anyPresentBenefit(plan)) reasons.push("no_present_benefit_factor");
-  if (composeInformationNeeded(plan).length > 0) reasons.push("information_needed_outstanding");
+  // ITEM 358 (FIX 1) — RESERVED-CLASS ITEMS MUST NOT GATE THE BAND.
+  // Only `missing_data` needs make the record incomplete. A reserved
+  // decision (§ 7152(a)(7) initiation decision) is rendered under
+  // information_needed labelled as reserved, but it is never a record gap:
+  // gating on it made "Insufficient basis" structurally unavoidable for
+  // every record, however complete (Item 357 §5).
+  if (missingDataNeeds(plan).length > 0) reasons.push("information_needed_outstanding");
   return { complete: reasons.length === 0, reasons };
 }
 
@@ -1191,7 +1197,7 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const affirmedCount = plan.factor_table.filter(
     (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[0],
   ).length;
-  const gapCount = needs.length;
+  const gapCount = needs.filter((n) => n.kind === "missing_data").length;
   const affirmationsOpener: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose.v2",
     ctx: {
@@ -1274,7 +1280,10 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
     template_id: "T.risk.record_sufficiency.item",
     ctx: {
       element_label: need.label,
-      element_status_clause: RECORD_STATUS_CLAUSES[1],
+      // ITEM 358 — a reserved decision is not labelled a deficiency.
+      element_status_clause: need.kind === "reserved_decision"
+        ? RESERVED_DECISION_STATUS_CLAUSE
+        : RECORD_STATUS_CLAUSES[1],
       __cite: { PINPOINT: need.pinpoint },
     },
   }));
