@@ -8103,3 +8103,42 @@ CEO-approved. Kills mechanical mangling across the fleet (DPA generator excluded
 **E. Registry citation lint** — `_shared/prose/citation-lint.ts`, wired into `pass2-assembler.ts` behind an explicit `citationSupply` option (no supply = no-op, telemetry says so). Unsupplied or repealed cites degrade to the registry equivalent or to a named information-needed item.
 
 **Tests** — 992 vitest passed / 0 failed (68 files), including the new `src/registry/__tests__/prose-program-1-part-d.test.ts`; 17 Deno prose tests passed.
+
+---
+
+## ITEM 338 — PROSE PROGRAM 2 of 4: FRAME HARVEST + LIBRARY (2026-08-01)
+
+CEO-approved. Replaces slot-into-stem assembly with a pinned library of narrative FRAMES harvested from the July quality-loop2 `sample_reports` corpus. **STYLE DONORS ONLY** — no fact, citation, or legal standard from those documents may reach a customer. Nothing deployed; Item 245 hold untouched; DPA generator excluded.
+
+**Pipeline (offline/compile-time, never imported by runtime)**
+- `scripts/frames/harvest-frames.mjs <tool> --write` — ALIGN (fixture values located in donor prose, exact + normalised, incl. comma-list members) → DE-FACT (typed placeholders: `{{ENTITY}}`, `{{RETENTION_PERIOD}}`, `{{DATA_CATEGORIES:list}}`, `{{SOURCE_CLAUSE}}` …) → STRIP LEGAL (any sentence carrying a citation, statutory quote, legal-standard paraphrase, or authority assertion is dropped or collapsed to a `{{CITE:proposition_key}}` slot).
+- `scripts/frames/lint-frames.ts` — offline lint report.
+- `scripts/frames/before-after.ts <sample_report_id>` — CEO sign-off pair.
+
+**Library**
+- `_shared/prose/frames.ts` — `Frame`/`FrameSet` types and `lintFrame`. HARD GATE rules: `hardcoded_citation`, `authority_assertion`, `legal_standard`, `malformed_placeholder`, `undeclared_placeholder`, `empty_body`. `frameSetRenderable()` is false unless the set is approved, every frame is approved, and the set is lint-clean.
+- `_shared/prose/frame-render.ts` — realizer extending the Item 337 typed slots. **VERBATIM LAW** (record free text quoted, never punctuation-stripped or case-folded), **REGISTRY-ONLY CITES** (re-queried at build time), **FILL-OR-OMIT** (a silent required placeholder degrades to the "not stated on the record" path with named information-needed items; never a half-filled frame).
+- `_shared/prose/frames/cppa-risk.frames.ts` — reviewed set, 4 frames, all `pending_review`, set `approved: false`.
+- `_shared/prose/frames/<tool>.candidates.json` — raw harvest, unreviewed, not imported by runtime.
+- `docs/design/PROSE-FRAME-LIBRARY.md` — reviewer guide with every frame, its placeholders, and its provenance.
+
+**Harvest counts (extracted / passed lint / failed lint / status)**
+
+| product | extracted | passed lint | failed lint | status |
+| --- | --- | --- | --- | --- |
+| cppa_risk | 150 | 89 | 61 | pending review |
+| dpia | 3162 | 3137 | 25 | pending review |
+| governance | 280 | 65 | 215 | pending review |
+| li_assessment | 511 | 508 | 3 | pending review |
+| cppa_admt | 736 | 502 | 234 | pending review |
+| cppa_cyber | 861 | 812 | 49 | pending review |
+| biometric | 1 | 1 | 0 | pending review |
+| ir_playbook | 0 | 0 | 0 | no alignable prose (73 donor rows, 454 leaves, none aligned to fixture values) |
+
+Failures are overwhelmingly `malformed_placeholder` (degenerate array-index tokens from the de-fact stage) — mechanically fixable in the frame-quality pass, and correctly blocked from review in the meantime. Residual `authority_assertion` (cyber 46, admt 2) and `legal_standard` (dpia 1) are the lint doing its job: those candidates are rejected, not smoothed.
+
+**First product (cppa-risk)** — 4 reviewed frames (`processing_narrative`, `record_echo`, `scope_notes`, `benefits_rationale`), lint-clean, provenance recorded per frame. BEFORE/AFTER pair on fixture `a7689621-63e6-42ad-90cc-7760e892eb6d` saved to `docs/reviews/FRAMES-BEFORE-AFTER-cppa-risk-2026-08-01.md`. Notable: `processing_narrative` renders as an OMISSION on that fixture because `i1_categories` is silent — FILL-OR-OMIT working as designed.
+
+**Tests** — 28 Deno prose tests pass (11 new in `frames.test.ts`), covering each hard-gate rule, the approval gate, verbatim quoting, list joining, registry-only cites, and the fill-or-omit degradation path.
+
+**NOT DONE / NEXT** — no renderer flipped; the cppa-risk sign-off is **pending** and must be recorded here before any flip. Frame-quality (LLM smoothing) pass, the fresh drafts for registration (no donor rows), and dpia/governance curation follow in sequence.
