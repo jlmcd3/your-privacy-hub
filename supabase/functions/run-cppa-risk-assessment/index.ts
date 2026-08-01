@@ -14,10 +14,9 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // Suppression telemetry lands at _meta.internal.risk_b1
 // .d2b1_reconciliation_suppressed_by_ledger (sequestered by the existing
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
-export const BUILD_STAMP = "ltp-risk-tm-cutover-item353@2026-08-01";
+export const BUILD_STAMP = "ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
-const LTP_MODE_BOOT = "enforce"; // ITEM 353 cutover — LTP is the production engine.
-console.log(`[run-cppa-risk-assessment] boot engine=ltp ltp_mode=${LTP_MODE_BOOT} cutover=item353`);
+const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
 console.log(`[run-cppa-risk-assessment] boot ltp_phase2=enforce_preview ltp_enforce_enabled=${Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "1" : "0"} subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
@@ -43,8 +42,7 @@ import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
 import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION } from "./_risk_cohort_date.ts";
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
-import { runLegalTestPipelineShadow, LTP_STAMP } from "./_local/ltp/pipeline.ts";
-import { runLtpProduction, LTP_PRODUCTION_ENTRY_STAMP } from "./_local/ltp/production-entry.ts";
+import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
 import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
 import {
   finalizeComposition,
@@ -59,7 +57,7 @@ import {
   isRetiredSurfacePath,
 } from "../_shared/ltp/composition-finalize.ts";
 
-import { computeScenarioSignature } from "./_local/future-building/signature.ts";
+import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
 console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
 
@@ -142,7 +140,7 @@ import { freezeOpenItemsOnFirstRun, rewriteI3CompositionAsks } from "../_shared/
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { normalizeRiskV2 } from "./_qbp25_b3_pointers.ts";
-import { validateSourceFields } from "./_local/source-fields-validator.ts";
+import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -155,7 +153,7 @@ import {
   POST_LINT_LLM_BUDGET_MS,
   POST_LINT_LLM_CALL_TIMEOUT_MS,
   POST_LINT_PASS1_TIMEOUT_MS,
-} from "./_local/ltp/retry-budget.ts";
+} from "../_shared/ltp/retry-budget.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -935,27 +933,7 @@ async function runPipeline(assessment_id: string) {
       return;
     }
 
-    // ── ITEM 353 — T-M CUTOVER: LTP ORCHESTRATOR IS THE PRODUCTION ENGINE ──
-    // Enforce mode. The Item-217 legacy composer below is retained only as
-    // the documented rollback target (`git archive 4fe2e76c1 …`).
-    {
-      const _ltpOut = await runLtpProduction({
-        db: supabase,
-        assessmentId: assessment_id,
-        row: row as any,
-        buildStamp: BUILD_STAMP,
-        lifecycleUpdate: lifecycleUpdate as any,
-      });
-      console.log(JSON.stringify({
-        evt: "ltp_production_entry_returned", fn: "run-cppa-risk-assessment",
-        build_stamp: BUILD_STAMP, entry_stamp: LTP_PRODUCTION_ENTRY_STAMP,
-        ok: _ltpOut.ok, error: _ltpOut.error ?? null,
-      }));
-      return;
-    }
-
     // Corpus retrieval (parallel).
-
     const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations } = await retrieveCorpusContext(fiveStage);
 
     const today = new Date().toISOString().slice(0, 10);
