@@ -8225,3 +8225,28 @@ injection | activity_analytics: absent | eu_persuasive_authority: absent | § 71
 
 **Scope.** `_shared/ltp/pass1-llm.ts` (seed keys + two imports) and one new test file. Nothing deployed; `run-cppa-risk-assessment` unchanged; **Item 245 hold untouched**.
 
+
+---
+
+## Item 345 — T-M CUTOVER ATTEMPT #2 (2026-08-01T18:31Z) — **HALTED AT PHASE 0, NO CUTOVER, NOTHING DEPLOYED**
+
+**Outcome.** The cutover was NOT attempted. Phase 0 is fail-closed and it failed. No swap to the LTP orchestrator, no build stamp `item345`, no smoke, no ledger release. **Item 245 hold REMAINS ACTIVE**; Items 319–321 remain NOT DEPLOYED. `run-cppa-risk-assessment` is untouched and still the legacy Item-217 engine.
+
+**Phase 0 findings.**
+1. **Item 343 — PASS.** Emit-gate degrade fix landed; `emit-gate.test.ts` + `emit-gate.item343.test.ts` **11 passed / 0 failed**; full LTP harness render shows `information_needed` array(3) → array(5) across 18 degradations.
+2. **Item 344 — PARTIAL, GATE FAILS.** Finding (b) fixed and finding (a) re-diagnosed; projection tests green (**LTP suites 21 passed / 0 failed**). BUT the ordered condition — *"Item 344's graded full-surface LTP run scoring at or above run #183's 69.5 baseline"* — **CANNOT BE SATISFIED: that run was never executed.** No graded score exists for an engine carrying the projection fix. The standing numbers are unchanged: **#184 = 88.35** (earned WITHOUT the § 7152 surface) and **#183 = 69.5** (legacy engine).
+3. **Blocking cause re-confirmed live this turn.** A fresh deploy of `ltp-risk-doc-gen` was rejected verbatim:
+
+```text
+Supabase rejected the edge function ltp-risk-doc-gen as too large: request entity too large.
+Lovable uploaded 10.9 MB of source for it. The ~5 MB cap applies to the bundle built server-side.
+Each function's upload is its own files plus every shared file under supabase/functions/.
+```
+
+   `supabase/functions/_shared` measures **11 MB on disk** while `ltp-risk-doc-gen`'s own directory is **6.5 KB**. The shared tree ALONE exceeds the cap, so function splitting cannot clear it. **No LTP engine carrying the Items 343/344 fixes can exist in the cloud**, which makes Phase 1 (swap + boot log) and Phase 2 (live dual smoke) physically unexecutable, not merely ungated.
+
+**Rollback path — VERIFIED INTACT.** `git cat-file -t 4fe2e76c1` → `commit`; `git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment` produces a **624,640-byte** archive. The Item-217 legacy engine is recoverable byte-for-byte. Nothing needed rolling back this turn because nothing was deployed.
+
+**Scope.** Ledger only. Zero code edits, zero deploys, zero database writes.
+
+**BLOCKER FOR CEO — SHARED-TREE SLIMMING IS NOW THE CRITICAL PATH.** Every remaining LTP milestone is behind it: the Item 344 graded batch, this cutover, the Item 340 cppa-risk shadow polish flag, and the Item 245 release. It is a standalone engineering turn (audit `supabase/functions/_shared/`, move single-consumer code into its owning function directory, relocate large static corpora/catalogues out of source into tables or Storage) and it is NOT in scope of any dispatch currently authorized. Attempt #3 should be dispatched only after the shared tree deploys under the cap and Item 344's graded run posts a score.
