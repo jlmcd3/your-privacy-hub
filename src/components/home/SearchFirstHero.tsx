@@ -102,7 +102,7 @@ export default function SearchFirstHero() {
                   California's privacy deadlines are here. Be audit-ready this week.
                 </h2>
                 <p className="text-blue-100 text-base md:text-lg mb-6 max-w-2xl">
-                  The CPPA's risk-assessment, cybersecurity-audit, and ADMT rules are live, with certifications due through 2027–2028. Start with the free Scope Checker, then generate the assessments that satisfy the record — cite-anchored to the final regulations and regulatory commentary.
+                  The CPPA's risk-assessment, cybersecurity-audit, and ADMT rules are live, with assessments due now and with certifications due through 2027–2028. Start with the free Scope Checker, then generate the assessments you or your clients need — cite-anchored to CA's final regulations and regulatory commentary, and referencing analogous GDPR decisions as persuasive authority.
                 </p>
                 <div className="inline-flex flex-col items-stretch gap-1">
                   <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start">
