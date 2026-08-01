@@ -1,23 +1,46 @@
 // src/components/dpia/EdpbDpiaGuidance.ts
-// Paraphrased completion guidance for the EDPB DPIA template, keyed by the
-// Explainer's section numbering (the template body uses letter sub-sections,
-// e.g. "1.1.a"; the Explainer and TOC use "1.1.1" — we key by the Explainer).
+// Completion guidance for the EDPB DPIA template, keyed by the Explainer's
+// section numbering (the template body uses letter sub-sections, e.g. "1.1.a";
+// the Explainer and TOC use "1.1.1" — we key by the Explainer).
 //
 // Source: EDPB "Template [2026] for DPIA — Explainer" v1.0 (10 Mar 2026).
 // NOTE: this is a PUBLIC-CONSULTATION DRAFT (consultation closed 9 Jun 2026);
-// the final text may differ. Guidance below is PARAPHRASED, not verbatim.
+// the final text may differ. Guidance below is PARAPHRASED, not verbatim —
+// EXCEPT entries that carry `verbatimPropositionKey`, whose `guidance` string
+// is the byte-exact `verbatim_quote` from the engine's verified-authority
+// registry (supabase/functions/_shared/registry/dpia-verified-authorities.ts,
+// WP248-PINNING 2026-08-01). Those entries are reused, never retyped.
+
+import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/dpia-verified-authorities";
 
 export const EDPB_DPIA_SOURCE = {
   label: "EDPB DPIA Template Explainer v1.0 (10 Mar 2026, public-consultation draft)",
   url: "https://www.edpb.europa.eu/public-consultations/edpb-dpia-template_en",
 };
 
+/** WP248 rev.01 rows reused verbatim from the engine registry. */
+const WP248_CRITERIA = DPIA_VERIFIED_AUTHORITIES.high_risk_criteria_edpb_wp248;
+const WP248_SEVERITY = DPIA_VERIFIED_AUTHORITIES.risk_severity_edpb_wp248;
+
+export const WP248_GUIDANCE_SOURCE = {
+  label: "EDPB (endorsed) Guidelines on DPIA (WP248 rev.01) — verbatim",
+  url: WP248_CRITERIA.primary_source_url,
+};
+
 export interface EdpbGuidanceEntry {
   sectionRef: string;     // Explainer numbering, e.g. "0.5"
   sectionTitle: string;
-  guidance: string;       // paraphrased plain-language guidance
+  guidance: string;       // paraphrased plain-language guidance, unless verbatimPropositionKey is set
   paraRefs: number[];     // Explainer paragraph numbers, for traceability
+  /** Registry proposition this entry reproduces verbatim (WP248-PINNING). */
+  verbatimPropositionKey?: string;
+  /** Pinpoint citation shown with a verbatim entry. */
+  citation?: string;
+  /** Source label/url override for verbatim entries. */
+  sourceLabel?: string;
+  sourceUrl?: string;
 }
+
 
 export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
   "0.1": {
@@ -55,13 +78,29 @@ export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
       "Capture the DPIA's own metadata: its version and change log; the team conducting it and their roles (a RACI matrix works well); the guidelines, standards and codes of conduct used; and the completion date plus the formal validation date (approval as complete by a responsible official). Decision-making and review methods should be documented, even if recorded outside this template.",
     paraRefs: [5, 6, 7, 10],
   },
+  // WP248-PINNING (2026-08-01) — verbatim, reused from the engine registry.
   "0.5.reasons": {
     sectionRef: "0.5",
     sectionTitle: "DPIA technical sheet — reasons to conduct",
-    guidance:
-      "Explain why the DPIA is being done; more than one reason may apply. It may be a legal obligation under Article 35(3) (systematic, extensive evaluation or profiling with significant effects; large-scale special-category or criminal-offence data; or large-scale systematic monitoring of a public area), required under national law or EDPB/national guidance (the WP248 criteria — scoring, automated decisions, sensitive data, large scale, dataset matching, vulnerable subjects, innovative technology), or simply necessary or beneficial (a DPO or data-subject recommendation, a code of conduct, or to manage risk and demonstrate accountability). It may also be an existing high-risk activity whose risk has changed.",
+    guidance: WP248_CRITERIA.verbatim_quote,
     paraRefs: [8],
+    verbatimPropositionKey: WP248_CRITERIA.proposition_key,
+    citation: WP248_CRITERIA.citation,
+    sourceLabel: WP248_GUIDANCE_SOURCE.label,
+    sourceUrl: WP248_CRITERIA.primary_source_url,
   },
+  // WP248-PINNING (2026-08-01) — § 4.1.c inherent-risk severity appraisal.
+  "4.1.c": {
+    sectionRef: "4.1.c",
+    sectionTitle: "Inherent risk assessment — severity appraisal",
+    guidance: WP248_SEVERITY.verbatim_quote,
+    paraRefs: [],
+    verbatimPropositionKey: WP248_SEVERITY.proposition_key,
+    citation: WP248_SEVERITY.citation,
+    sourceLabel: WP248_GUIDANCE_SOURCE.label,
+    sourceUrl: WP248_SEVERITY.primary_source_url,
+  },
+
   "0.5.scope": {
     sectionRef: "0.5",
     sectionTitle: "DPIA technical sheet — scope",

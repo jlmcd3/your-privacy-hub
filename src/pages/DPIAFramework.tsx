@@ -34,6 +34,8 @@ import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useEdpbGuidelineRailEntry } from "@/hooks/useEdpbGuidelineRailEntry";
+
 import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
@@ -206,26 +208,39 @@ const DPIAFramework = () => {
       setActiveTemplateRef(k);
     }
   });
+  // WP248-PINNING (2026-08-01) — for the two WP248-anchored fields the right
+  // "law" column also surfaces verbatim edpb_guidelines text (sibling hook).
+  const wp248Entry = activeTemplateRef ? EDPB_DPIA_GUIDANCE[activeTemplateRef] : null;
+  const edpbRailOpts = wp248Entry?.verbatimPropositionKey
+    ? { guidelineRef: "WP248 rev.01", verbatimQuote: wp248Entry.guidance }
+    : null;
+  const { regulationText: edpbRegulationText } = useEdpbGuidelineRailEntry(edpbRailOpts);
+
   const templateRailEntry = useMemo(() => {
     if (!activeTemplateRef) return null;
     const g = EDPB_DPIA_GUIDANCE[activeTemplateRef];
     if (!g) return null;
+    const sourceLabel = g.sourceLabel ?? EDPB_DPIA_SOURCE.label;
+    const sourceUrl = g.sourceUrl ?? EDPB_DPIA_SOURCE.url;
     return {
-      fieldLabel: `EDPB DPIA template · § ${g.sectionRef}`,
-      citation: `EDPB DPIA template § ${g.sectionRef}`,
-      citationUrl: EDPB_DPIA_SOURCE.url,
+      fieldLabel: g.verbatimPropositionKey
+        ? `EDPB WP248 rev.01 · ${g.sectionTitle}`
+        : `EDPB DPIA template · § ${g.sectionRef}`,
+      citation: g.citation ?? `EDPB DPIA template § ${g.sectionRef}`,
+      citationUrl: sourceUrl,
       plainSummary: g.guidance,
-      regulationText: "",
+      regulationText: g.verbatimPropositionKey ? (edpbRegulationText ?? "") : "",
       templateGuidance: {
         sectionRef: g.sectionRef,
         sectionTitle: g.sectionTitle,
         guidance: g.guidance,
         paraRefs: g.paraRefs,
-        sourceLabel: EDPB_DPIA_SOURCE.label,
-        sourceUrl: EDPB_DPIA_SOURCE.url,
+        sourceLabel,
+        sourceUrl,
       },
     };
-  }, [activeTemplateRef]);
+  }, [activeTemplateRef, edpbRegulationText]);
+
 
   const dpiaEnforcementSignals = useGdprEnforcementSignals(
     ["special_categories", "dpia_absence", "international_transfer"],
@@ -623,7 +638,7 @@ const DPIAFramework = () => {
             <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
             <Input placeholder="Other (specify)" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
           </div>
-          <div><Label>Existing safeguards</Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
+          <div data-rail-key='4.1.c' onFocus={() => handleTemplateRailFocus('4.1.c')}><Label>Existing safeguards <span className="text-xs text-muted-foreground font-mono">(§ 4.1.c — feeds the inherent-risk severity appraisal)</span></Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
           <div data-rail-key="transfers" onFocus={() => handleDpiaRailFocus("transfers")}><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–49 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
 
           {/* ── Jurisdiction resolver inputs (deterministic facts) ─────────── */}
