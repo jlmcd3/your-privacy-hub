@@ -436,6 +436,8 @@ async function processRow(row: any, mode: Mode = "initial") {
     last_source_fetch_at: new Date().toISOString(),
     verification_last_run_at: new Date().toISOString(),
     verification_status: status,
+    // Item 334: model-driven routings are genuine review items.
+    review_reason: status === "requires_review" ? "verification_uncertain" : null,
     verification_deterministic_pass: detPass,
     verification_paraphrase_confidence: para.confidence,
     memo_eligible: memoEligible,
