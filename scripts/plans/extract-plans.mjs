@@ -255,6 +255,12 @@ function fallbackFromReportKeys(tool, donors) {
       lead_counts: e.leads,
     }))
     .sort((a, b) => {
+      // A donor that already numbers its sections has stated its own order;
+      // honour it before falling back to the shared arc.
+      const na = numPrefix(a.label), nb = numPrefix(b.label);
+      if (na !== null && nb !== null && na !== nb) return na - nb;
+      if (na !== null && nb === null) return -1;
+      if (na === null && nb !== null) return 1;
       const d = ARC_ORDER.indexOf(a.arc_stage) - ARC_ORDER.indexOf(b.arc_stage);
       return d !== 0 ? d : a.label.localeCompare(b.label);
     })
@@ -282,6 +288,11 @@ function proseOf(v) {
   }
   return "";
 }
+
+const numPrefix = (l) => {
+  const m = l.match(/(?:^|_)section[_ ]?(\d+)/i) || l.match(/^(\d+)[._ ]/);
+  return m ? Number(m[1]) : null;
+};
 
 const median = (a) => (a.length ? [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)] : 0);
 const dominant = (o) => Object.entries(o).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "unclassified";
