@@ -36,7 +36,7 @@ const INTAKE: Record<string, unknown> = {
   primary_activity_purpose: "assessing applicant creditworthiness for personal loans",
 };
 
-const planOf = (intake: Record<string, unknown>): RenderPlan =>
+const planOf = (intake: Record<string, unknown>) =>
   derivePlan({ intake, report_data: { _meta: {} }, buildStamp: "item284-test@x" });
 
 const textOf = (instances: { readonly ctx: Record<string, unknown> }[]): string =>
