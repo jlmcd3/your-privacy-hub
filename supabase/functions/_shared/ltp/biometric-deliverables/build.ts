@@ -17,8 +17,13 @@
  * RESERVED-FRAMING LAW: 740 ILCS 14/20 is not in corpus. The builder may say
  * BIPA is enforced by private suit; every specific degrades.
  *
- * SCOPE GATE: RCW 19.373 (My Health My Data) is `status='pending'` by CEO
- * design. It is surfaced as a flag with no verdict field and is never read.
+ * ITEM 323 (CEO-authorized 2026-08-01): RCW 19.373 (My Health My Data Act) is
+ * IN SCOPE. It is built as a SECOND, DISTINCT Washington authority alongside
+ * RCW 19.375 — its own statute key, its own duty findings, its own enforcement
+ * surface, cited separately. The two are never merged into one combined
+ * "Washington biometric law" section: an organisation can trigger 19.375
+ * (enrollment of biometric identifiers for a commercial purpose), 19.373
+ * (biometric data that identifies or infers health status), or both.
  */
 
 import {
@@ -82,6 +87,14 @@ export interface BiometricIntakeForDeliverables {
   wa_enrolls_in_database?: string | null;
   wa_commercial_purpose?: string | null;
   wa_security_purpose_only?: string | null;
+
+  // Item 323 — RCW 19.373 (MHMDA) predicate and duty facts. Kept in their own
+  // block because they belong to a different Washington statute.
+  wa_mhmda_health_inference?: string | null;
+  wa_mhmda_privacy_policy_published?: string | null;
+  wa_mhmda_collection_consent?: string | null;
+  wa_mhmda_share_consent_separate?: string | null;
+  wa_mhmda_geofence_health_facility?: string | null;
 }
 
 // ── Small pure helpers ───────────────────────────────────────────────────────
@@ -123,6 +136,12 @@ const STATUTES: Record<StatuteKey, StatuteRef> = {
     statute_long: "Washington biometric identifiers chapter",
     jurisdiction: "Washington",
   },
+  us_wa_19373: {
+    statute_key: "us_wa_19373",
+    statute_short: "RCW 19.373 (MHMDA)",
+    statute_long: "Washington My Health My Data Act",
+    jurisdiction: "Washington",
+  },
 };
 
 /** Which of the three statutes the record actually puts in scope. */
@@ -136,7 +155,13 @@ export function statutesInScope(
   const out: StatuteRef[] = [];
   if (hit(["illinois", "bipa"])) out.push(STATUTES.us_il_bipa);
   if (hit(["texas", "cubi"])) out.push(STATUTES.us_tx_cubi);
-  if (hit(["washington"])) out.push(STATUTES.us_wa_19375);
+  // DISTINCT-AUTHORITY LAW (Item 323): naming Washington puts BOTH Washington
+  // statutes on the page as separate authorities. Whether each one's duties
+  // actually attach is decided by that statute's own predicate, not here.
+  if (hit(["washington"])) {
+    out.push(STATUTES.us_wa_19375);
+    out.push(STATUTES.us_wa_19373);
+  }
   return out;
 }
 
@@ -176,12 +201,21 @@ const TYPE_MATCH: Record<
     { match: /gait/i, within: true, why: "the definition is open-ended — \"other unique biological patterns or characteristics\" — and gait is measured automatically to identify an individual" },
     { match: /vein/i, within: true, why: "the definition is open-ended — \"other unique biological patterns or characteristics\"" },
   ],
+  us_wa_19373: [
+    { match: /facial/i, within: true, why: "imagery of the face from which an identifier template can be extracted is named" },
+    { match: /fingerprint|palm/i, within: true, why: "imagery of the fingerprint, hand, and palm is named" },
+    { match: /voice/i, within: true, why: "voice recordings from which an identifier template can be extracted are named" },
+    { match: /iris|retina/i, within: true, why: "imagery of the iris and retina is named" },
+    { match: /gait/i, within: true, why: "gait patterns or rhythms that contain identifying information are named expressly" },
+    { match: /vein/i, within: true, why: "vein patterns are named expressly" },
+  ],
 };
 
 const DEFINITION_ROW: Record<StatuteKey, string> = {
   us_il_bipa: "il_bipa.def_biometric_identifier",
   us_tx_cubi: "tx_cubi.def_biometric_identifier",
   us_wa_19375: "wa_19375.def_biometric_identifier",
+  us_wa_19373: "wa_19373.def_biometric_data",
 };
 
 function photographicSource(intake: BiometricIntakeForDeliverables): boolean | null {
