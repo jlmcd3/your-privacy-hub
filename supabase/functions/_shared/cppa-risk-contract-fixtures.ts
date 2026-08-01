@@ -56,6 +56,17 @@ export interface CppaRiskContractFixture {
 // and q3_sector are now closed enums per the contract — fixture values
 // below are verbatim members of PI_CATEGORIES / Q6_ACCESS_OPTS / SECTORS
 // respectively (source: src/pages/CPPARiskAssessment.tsx L96-116, L857).
+// ── ITEM 337 (§ OPEN-3 of Item 324) — THIS LIST IS VALUES, NOT COVERAGE ────
+// `REQUIRED_ALWAYS_FILLERS` is a shared block of AUTHORED answers for the
+// non-activity-specific required-always fields of these three revision-
+// contract fixtures. It is NOT the coverage contract and must never be read
+// as one. Coverage is DERIVED from `cppaRiskContract` itself by
+// `src/registry/__tests__/cppa-risk-fixture-contract-parity.test.ts`, which
+// enumerates every `required: "always"` key and asserts each pinned intake —
+// golden, revision-contract and messy — answers it non-empty, naming any
+// missing key. Adding a key here does not make it covered; answering it in
+// every fixture does. Activity-specific operands (§ 7152 a2/a4/a5/a9) stay
+// authored per fixture and are deliberately absent from this block.
 const REQUIRED_ALWAYS_FILLERS = {
   q5b_profiling_observation: "No",
   q6_right_know: "Online form with identity verification",
