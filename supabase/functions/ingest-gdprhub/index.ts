@@ -175,7 +175,9 @@ interface Lead {
 
 function buildLead(pageid: number, title: string, wikitext: string): Lead | null {
   const f = parseInfobox(wikitext);
-  const abbrev = f.DPA_Abbrevation || f.DPA_Abbreviation || "";
+  // Some pages put "CNIL (France)" in the abbreviation field; keep the bare
+  // abbreviation so regulator values stay consistent across the corpus.
+  const abbrev = (f.DPA_Abbrevation || f.DPA_Abbreviation || "").replace(/\s*\([^)]*\)\s*$/, "").trim();
   const jurisdiction = f.Jurisdiction || "";
   if (!abbrev || !jurisdiction) return null;
 
