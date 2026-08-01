@@ -184,6 +184,78 @@ export function carriedNumericEndpoints(
 }
 
 /**
+ * ITEM 358 (FIX 2a) — DETERMINISTIC DERIVED-TOKEN EXPANSION.
+ *
+ * Item 357 evidence: Pass-2R was rejected for ["250,000","1,000,000","24",
+ * "2026","07"] — every one of which the plan DOES carry, as a component of a
+ * plan-carried string:
+ *   • "250,000 to under 1,000,000"  (q2_consumers band label)
+ *   • "24 months rolling"           (i2_retention_period)
+ *   • "2026-07-30"                  (a9_approval_date)
+ * The whitelist compared prose numerals against ledger DISPLAY LABELS only
+ * ("I3 ca consumer band"), never the ledger VALUES, so quoting the record
+ * verbatim read as inventing a number.
+ *
+ * This expansion is CLOSED and purely mechanical over plan-carried strings:
+ *   (a) every numeral literally present in a carried string (this covers band
+ *       components and unit-stripped durations: "24 months" ⇒ "24");
+ *   (b) magnitude-word forms of a carried numeral ("1 million" ⇒ 1000000);
+ *   (c) components of a carried ISO date ("2026-07-30" ⇒ 2026 / 07 / 7 / 30)
+ *       and of a carried "Month D, YYYY" date.
+ * Nothing is computed, inferred or arithmetically produced. A numeral that is
+ * NOT derivable from a carried string stays rejected.
+ */
+const NUMERAL_SCAN_RE = /\d[\d,]*(?:\.\d+)?/g;
+const MAGNITUDE_RE = /(\d[\d,]*(?:\.\d+)?)\s*(thousand|million|billion)\b/gi;
+const ISO_DATE_RE = /\b(\d{4})-(\d{2})-(\d{2})\b/g;
+const MONTH_NAME_DATE_RE =
+  /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b/gi;
+const MONTH_NAME_DATE_RE_SINGLE =
+  /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})$/i;
+const MONTH_ORDINAL: Readonly<Record<string, number>> = {
+  january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+  july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+};
+const MAGNITUDE_FACTOR: Readonly<Record<string, number>> = {
+  thousand: 1e3, million: 1e6, billion: 1e9,
+};
+
+export function derivedNumericTokens(
+  carried: readonly string[],
+): ReadonlySet<string> {
+  const out = new Set<string>();
+  const add = (v: string | number) => {
+    const k = numKey(String(v));
+    if (k) out.add(k);
+  };
+  const addPadded = (n: number) => {
+    add(n);
+    add(String(n).padStart(2, "0"));
+  };
+  for (const raw of carried) {
+    const s = norm(raw);
+    for (const m of s.match(NUMERAL_SCAN_RE) ?? []) add(m);
+    for (const m of s.matchAll(MAGNITUDE_RE)) {
+      const base = Number(m[1].replace(/,/g, ""));
+      const factor = MAGNITUDE_FACTOR[m[2].toLowerCase()];
+      if (Number.isFinite(base) && factor) add(Math.round(base * factor));
+    }
+    for (const m of s.matchAll(ISO_DATE_RE)) {
+      add(m[1]);
+      addPadded(Number(m[2]));
+      addPadded(Number(m[3]));
+    }
+    for (const m of s.matchAll(MONTH_NAME_DATE_RE)) {
+      const mo = MONTH_ORDINAL[m[1].toLowerCase()];
+      if (mo) addPadded(mo);
+      addPadded(Number(m[2]));
+      add(m[3]);
+    }
+  }
+  return out;
+}
+
+/**
  * ITEM 287 / FIX 2 — ACRONYM DERIVED FORMS.
  *
  * The existing 2-6-cap acronym escape covers "ADMT" but not "ADMT's" or
@@ -327,16 +399,27 @@ export function validateNumericDateWhitelist(
   const haystack = wl.numerics.map(norm).join(" | ");
   // ITEM 287 FIX 1 — endpoints of plan-carried ranges are plan-carried values.
   const endpoints = carriedNumericEndpoints(wl.numerics);
+  // ITEM 358 FIX 2a — formatting-variant derivations of plan-carried values.
+  const derived = derivedNumericTokens(wl.numerics);
   const text = maskCitations(norm(proseOf(doc)));
   const bad: string[] = [];
 
   for (const d of text.match(DATE_WORD_RE) ?? []) {
-    if (!haystack.includes(norm(d)) && !bad.includes(d)) bad.push(d);
+    if (haystack.includes(norm(d))) continue;
+    // ITEM 358 FIX 2a — a carried ISO date renders as a carried word date.
+    const wd = norm(d).match(MONTH_NAME_DATE_RE_SINGLE);
+    if (wd) {
+      const mo = MONTH_ORDINAL[wd[1].toLowerCase()];
+      const dayOk = derived.has(numKey(wd[2])) || derived.has(numKey(String(Number(wd[2])).padStart(2, "0")));
+      if (mo && derived.has(numKey(String(mo).padStart(2, "0"))) && dayOk && derived.has(numKey(wd[3]))) continue;
+    }
+    if (!bad.includes(d)) bad.push(d);
   }
   for (const n of text.match(NUMERIC_RE) ?? []) {
     if (haystack.includes(n)) continue;
     if (haystack.includes(n.replace(/,/g, ""))) continue;
     if (endpoints.has(numKey(n))) continue;
+    if (derived.has(numKey(n))) continue;
     if (!bad.includes(n)) bad.push(n);
   }
 
@@ -726,6 +809,13 @@ const VERDICT_ENUM: readonly string[] = [
   "Insufficient basis",
 ];
 
+function rawLedgerValueStrings(plan: RenderPlan): string[] {
+  return plan.intake_ledger
+    .map((l) => (l.value === null || l.value === undefined ? "" : String(l.value)))
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function displayStrings(plan: RenderPlan): string[] {
   return plan.intake_ledger
     .map((l) => String(l.display ?? l.value ?? ""))
@@ -746,12 +836,9 @@ function entityBearingStrings(
   plan: RenderPlan,
   boundCtxValues: readonly unknown[],
 ): string[] {
-  const rawLedgerValues = plan.intake_ledger
-    .map((l) => (l.value === null || l.value === undefined ? "" : String(l.value)))
-    .map((s) => s.trim());
   return [
     ...displayStrings(plan),
-    ...rawLedgerValues,
+    ...rawLedgerValueStrings(plan),
     ...plan.factor_table.map((f) => String(f.weight_note ?? "")),
     ...plan.factor_table.map((f) => String(f.display_label ?? "")),
     ...plan.propositions.map((p) => String(p.display_label ?? "")),
@@ -775,6 +862,10 @@ export function buildPass2rWhitelist(
   const displays = displayStrings(plan);
   const numerics = [
     ...displays,
+    // ITEM 358 (FIX 2a) — the ledger VALUES are plan-carried facts. Before this
+    // the numeric whitelist saw only display LABELS ("I3 ca consumer band"), so
+    // quoting the record's own "250,000 to under 1,000,000" was rejected.
+    ...rawLedgerValueStrings(plan),
     ...plan.factor_table.map((f) => String(f.weight_note ?? "")),
     ...plan.citation_bindings.map((c) => c.pinpoint),
     ...(opts.deadline_literals ?? []),
