@@ -8690,3 +8690,121 @@ and `"Sufficiency of the safeguards: not present…(11 CCR § 7152(a)(6))."` —
 Item 245 hold: **ACTIVE** (untouched). `run-cppa-risk-assessment` live boot remains
 `ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z`. All three Item 351 Phase-2 findings
 are closed harness-side; cutover attempt #4 is unblocked pending a CEO-authorized queued item.
+
+---
+
+## ITEM 353 — T-M CUTOVER ATTEMPT #5 — **PHASE 2 FAILED, ROLLED BACK**
+
+**Outcome: cutover REVERTED. Item 245 hold REMAINS ACTIVE. Items 319–321 NOT marked deployed.**
+Frontend panel publish not attempted (held, per scope).
+
+### PHASE 0 (passed)
+- Rollback path intact and re-proved this turn:
+  `git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite`,
+  then the Item-348 re-application (delete restored `*.test.ts`; repoint four archived `../_shared/...`
+  imports to `./_local/...`: `ltp/pipeline.ts`, `ltp/retry-budget.ts`, `future-building/signature.ts`,
+  `source-fields-validator.ts`).
+- Bundles under cap: `_shared` 2.8 MB, `run-cppa-risk-assessment` 478 KB.
+- Suites green at baseline: Deno edge 2081 passed / 71 failed (identical pre-existing set, zero new);
+  vitest 69 files / 998 passed.
+
+### PHASE 1 (executed)
+`run-cppa-risk-assessment` swapped to the LTP production orchestrator
+(`_local/ltp/production-entry.ts` → `resolveLtpIntake` → Pass-1 `modelProvider` → `assembleReport` (enforce)
+→ persist-first → `runEmitGate` + `filterCustomerInformationNeeded` → `serializeCustomerReport` →
+Pass-2R `runProsePassStage`), stamp `ltp-risk-tm-cutover-item353@2026-08-01`. Live `?ping=1` verbatim:
+
+```
+{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-tm-cutover-item353@2026-08-01","ltp_mode":"enforce",
+ "ltp_version":"ltp-risk-p2","composition_enforce":"1","persist_first_retry":"retry-budget@2026-07-27-persistfirst",
+ "report_completion_gate":"final-status-and-report-data@2026-07-27-smoke-latency-rootcause",
+ "post_lint_llm_budget_ms":300000,"post_lint_llm_call_timeout_ms":120000,"post_lint_pass1_timeout_ms":240000,
+ "safe_finalize":"safe-finalize@2026-07-28-item217-repair-outside-guard"}
+```
+
+### PHASE 2 — live dual smoke (production function, real invocations)
+Rows (clones of the Item 350/351 fixtures, module `risk_assessment`):
+perfect `a3530001-0000-4000-8000-000000000353` (intake md5 `a073d9c5d0ee4d21e8547e6f866697e7`),
+messy `a3530002-0000-4000-8000-000000000353` (intake md5 `bd458f0d850a0c9013c8897ad37e66fd`).
+Both invoked over HTTP with a real authenticated caller; both returned `{"accepted":true,…}` and reached
+`status=complete` with `report_data` written.
+
+| surface | perfect md5 | messy md5 | verdict |
+|---|---|---|---|
+| `record_sufficiency` | `7e0405742071acbadf52eebc3fa89227` | `d1bb365493f8c4a97392dea3a8230a22` | **PASS — differs** |
+| `information_needed` | `fb562fb4102f763270bd350ab55c22ef` (n=1) | `637f8509a92b1c3ce19be0e877acde67` (n=2) | PASS — differs |
+| `processing_narrative` | `d7241b7da788abc003f7f929b3725120` | `d7241b7da788abc003f7f929b3725120` | identical — permitted case (identical narrative operands) |
+
+**Checks that PASSED (live):**
+- *Sufficiency ↔ information_needed agreement, both records.* Perfect: opener "…adequately documented 6 of
+  the § 7152(a) elements listed below; **1 of these elements remain enumerated for your review**", single
+  enumerated gap `"Decision whether to initiate the processing: not present in the record as documented
+  (11 CCR § 7152(a)(7))."`, and `information_needed` carries exactly that one item. Messy: "**2 of these
+  elements remain enumerated**", gaps `…§ 7152(a)(7)` + `"Sufficiency of the safeguards: not present in the
+  record as documented (11 CCR § 7152(a)(6))."`, and a two-item `information_needed` matching exactly.
+- *Honest degradation.* Perfect record does NOT enumerate "sufficiency of the safeguards" (it has
+  `a6_safeguards`); the messy record does. Records are distinguished.
+- *`information_needed` intact as an array* on the degraded record (n=2), no scalar clobber.
+- *No `info_emit_gate_*` identifier anywhere in either report* (whole-report sweep clean;
+  `_ltp.emit_gate_filtered = 0`; gate telemetry confined to `_meta.internal.emit_gate`).
+- *Named primary activity* ("Free-tier account analytics") on both records incl. the incomplete one.
+- *`processing_narrative`* non-empty, prose, no raw JSON, on both.
+- *Five § 7152 analytic deliverables present* on both: `activity_analytics[0]` carries
+  `necessity_analysis`, `weighing`, `harm_causation`, `safeguard_map`, `consequence`.
+
+**FAILURE 1 — RAW ENGINE STRUCTURES ON CUSTOMER SURFACES.** Three customer-facing keys ship raw internal
+factor-table objects instead of rendered values, on BOTH records:
+`risk_level` is a 16-element ARRAY (expected: a scalar band), and `overall_score` / `risk_register` are
+arrays of the same internal rows. Verbatim element (perfect record, `overall_score`):
+
+```
+{"kind":"benefit","anchor":{"pinpoint":"11 CCR § 7152(a)(4)","corpus_key":"cppa-7152"},
+ "factor_id":"benefit.business","weight_note":"Intake records that free-tier usage measurement tells the
+ engineering team which onboarding step free-tier accounts abandon, …","display_label":"Benefits to the
+ business","guidance_refs":[{"page_ref":"p. 35","anchor_hint":"identify benefits in specific, non-generic
+ terms; 'as applicable' allows differential stakeholder coverage","source_table":"cppa_fsor_commentary",
+ "authority_weight":"binding","regulation_citation":"11 CCR § 7152(a)(4)"}],"jurisdiction_tag":"cppa-ca",
+ "present_in_intake":true,"intake_ledger_refs":["L.a4_benefit_business","L.primary_activity_purpose"]}
+```
+
+`present_in_intake`, `factor_id`, `intake_ledger_refs`, `source_table` are internal engine identifiers and
+are on the customer surface — the "no internal leaks / no raw JSON in customer output" check fails, and the
+legacy contract for `risk_level` (scalar band) is broken by the LTP entry.
+
+**FAILURE 2 — § 7156(a) DIRECTIVE SECTION ABSENT.** The string `7156` appears in exactly one key on both
+reports — `eu_persuasive_authority` — and in no directive section. `scope_and_triggers` and `next_steps`
+carry no § 7156(a) line. Required Item 345/353 check (ii) not satisfied on the live customer path.
+
+**FAILURE 3 — PASS-2R DID NOT SHIP.** `_ltp.shipped_surface = "deterministic"` on BOTH records
+(`type_j_origin` null, `pass2r_manifest` present but unshipped). The cutover's purpose — Pass-2 as the
+shipped surface — is not met by the live production entry; the customer received the deterministic surface.
+
+### ROLLBACK (executed immediately, no inline fixes)
+`git archive 4fe2e76c1 supabase/functions/run-cppa-risk-assessment | tar -x -C . --overwrite`, restored
+`*.test.ts` deleted, the four archived `../_shared/...` imports repointed to their Item-348 `./_local/...`
+homes, redeployed. Live `?ping=1` after rollback, verbatim:
+
+```
+{"fn":"run-cppa-risk-assessment","build_stamp":"ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z",
+ "ltp_mode":"enforce","ltp_version":"ltp-risk-p2","composition_enforce":"1",
+ "persist_first_retry":"retry-budget@2026-07-27-persistfirst",
+ "report_completion_gate":"final-status-and-report-data@2026-07-27-smoke-latency-rootcause",
+ "post_lint_llm_budget_ms":300000,"post_lint_llm_call_timeout_ms":120000,"post_lint_pass1_timeout_ms":240000,
+ "safe_finalize":"safe-finalize@2026-07-28-item217-repair-outside-guard"}
+```
+
+`_local/ltp/production-entry.ts` remains on disk, unreferenced by the rolled-back `index.ts`, for the next
+attempt.
+
+### SMOKE-HARNESS NOTE (invocation route)
+No injected end-user session was available this turn, and `run-cppa-risk-assessment` is `verifyCaller("user")`
+gated. A single throwaway account (`item353-smoke@example.com`) was created, confirmed, granted the `admin`
+role for the duration of the two invocations, and had that role **revoked immediately after** the smoke
+(`delete from user_roles …` executed and verified). No service-role key was used or exposed.
+
+### PHASE 3 — not reached
+Item 245 hold **ACTIVE**. Items 319–321 remain **NOT DEPLOYED**. Frontend panel publish still held.
+Next prerequisites, in order: (1) render `risk_level`/`overall_score`/`risk_register` to their customer
+contracts on the LTP entry (no factor-table objects on customer surfaces); (2) emit the § 7156(a) directive
+section on the production path; (3) make Pass-2R actually ship (`shipped_surface = "2R"`) on the production
+entry, or state why deterministic is acceptable for release.
