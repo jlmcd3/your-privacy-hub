@@ -346,7 +346,7 @@ export function filterCustomerInformationNeeded(
 }
 
 
-function degrade(leaf: LeafRef): void {
+function degrade(leaf: LeafRef, degradedPaths: string[]): void {
   const replacement = renderMessage("information.needed");
   if (Array.isArray(leaf.parent)) {
     (leaf.parent as unknown[])[leaf.key as number] = replacement;
@@ -355,9 +355,11 @@ function degrade(leaf: LeafRef): void {
   const obj = leaf.parent as Record<string, unknown>;
   obj[leaf.key as string] = replacement;
   // Additive structured flag — non-breaking. Consumers may key styling
-  // on this without needing a literal string check.
-  markInformationNeeded(obj, leaf);
+  // on this without needing a literal string check. ITEM 352: on the LTP
+  // array shape this records internal telemetry only.
+  markInformationNeeded(obj, leaf, degradedPaths);
 }
+
 
 
 // ── Public API ──────────────────────────────────────────────────────────
