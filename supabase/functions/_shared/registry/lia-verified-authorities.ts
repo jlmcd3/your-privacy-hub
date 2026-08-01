@@ -54,12 +54,21 @@ const VOD = "2026-07-25";
 /** ITEM 311 verification date — EDPB 1/2024 + Recital 47 anchors. */
 const VOD_311 = "2026-07-31";
 
+/** ITEM 326 verification date — UK GDPR Arts. 22A–22D / Art. 6(1)(ea) anchors. */
+const VOD_326 = "2026-08-01";
+
 /** Governing anchor labels. */
 const GDPR = "Regulation (EU) 2016/679 (GDPR)";
+const UK_GDPR =
+  "UK GDPR (Regulation (EU) 2016/679 as retained and amended for the United Kingdom)";
+/** King's Printer consolidated UK GDPR article URL. */
+const UK_ART_URL = (n: string) =>
+  `https://www.legislation.gov.uk/eur/2016/679/article/${n}`;
 const EDPB_2_2019 =
   "EDPB Guidelines 2/2019 on processing of personal data under Article 6(1)(b) GDPR";
 const EDPB_1_2024 =
   "EDPB Guidelines 1/2024 on processing of personal data based on Article 6(1)(f) GDPR";
+
 
 const R = (r: VerifiedAuthorityRow): VerifiedAuthorityRow => r;
 
