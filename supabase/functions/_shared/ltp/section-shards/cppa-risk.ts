@@ -53,6 +53,7 @@ import type { RenderPlan } from "../../render-plan/schema.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../../report-schemas/cppa-risk.ts";
 // ITEM 354 — customer-surface projections (rendering only; see the module header).
 import {
+  projectAnnotations,
   internalFactorTables,
   projectOverallScore,
   projectRiskLevel,
@@ -484,8 +485,9 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   // ── Annotations / review / debug (deterministic from plan/validators) ─
   {
     key: "annotations",
-    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "validator-annotations-projection" },
-    project: projectPropositionsByType("J"),
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "customer-projections@annotations" },
+    // ITEM 354 — customer-shaped; raw Type-J propositions are internal.
+    project: projectAnnotations,
   },
   {
     key: "requires_attorney_review",

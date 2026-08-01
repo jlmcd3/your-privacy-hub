@@ -131,3 +131,25 @@ export function internalFactorTables(plan: RenderPlan): Record<string, unknown> 
     projection_version: CUSTOMER_PROJECTION_VERSION,
   };
 }
+
+/**
+ * CUSTOMER CONTRACT: structured-but-customer-shaped.
+ * ITEM 354 — `annotations` shipped raw Type-J proposition objects
+ * (`intake_ledger_refs`, `citation_binding_refs`, `epistemic_type`,
+ * `jurisdiction_tag`). Those are internal-forbidden; the customer-facing
+ * annotation is the label plus its pinpoint.
+ */
+export interface CustomerAnnotation {
+  readonly title: string;
+  readonly citation: string;
+}
+
+export function projectAnnotations(plan: RenderPlan): CustomerAnnotation[] {
+  return plan.propositions
+    .filter((p) => p.epistemic_type === "J")
+    .map((p) => ({
+      title: (p.display_label ?? "").trim(),
+      citation: p.anchor?.pinpoint ?? "",
+    }))
+    .filter((a) => a.title.length > 0);
+}
