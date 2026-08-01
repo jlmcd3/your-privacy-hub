@@ -31,6 +31,8 @@
 //
 // Fail-open: every helper wrapped in try/catch; availability never blocked.
 
+import { degradeHedgeOnlyValues, appendInformationNeeded } from "../_shared/prose/hedge-degrade.ts";
+
 import { splitSentencesSafe } from "../_shared/prose/segment.ts";
 
 import {
@@ -300,6 +302,12 @@ export function applyDpiaT6Fix(
   try {
     const intakeText = flattenIntake(opts?.intake ?? {});
     if (report && typeof report === "object") walk(report, intakeText, c, null);
+    // ITEM 337 (PROSE PROGRAM 1, Part D1) — the hedge is a qualifier, never a
+    // finding. A rationale field left holding ONLY the hedge degrades to a
+    // NAMED information-needed item (MANDATORY DEGRADATION LAW).
+    const hedgeDeg = degradeHedgeOnlyValues(report, [NEUTRAL_DOWNGRADE]);
+    appendInformationNeeded(report, hedgeDeg.items);
+    (c as unknown as Record<string, unknown>).hedge_only_degradations = hedgeDeg.degraded;
     // Telemetry — _meta.internal is preserved verbatim by the P2 serializer.
     try {
       const r = report as Record<string, unknown>;
