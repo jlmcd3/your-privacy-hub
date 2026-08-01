@@ -22,7 +22,7 @@ import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
-import { deriveEngagedStates, detectNonEngagedStateAssertions } from "../_shared/dpa-engaged-states.ts";
+import { deriveEngagedStates, detectNonEngagedStateAssertions } from "./_local/dpa-engaged-states.ts";
 import { ADVISORY_VOICE_RULES, hasCounselReferral } from "../_shared/advisory-voice.ts";
 
 const corsHeaders = {
@@ -74,7 +74,7 @@ import {
   EU_JURS, UK_JURS, US_JURS, CA_JURS,
   VALID_DOC_TYPES, JURISDICTION_ALIASES,
   normalizeJurisdiction, detectDocType,
-} from "../_shared/dpa-derivation.ts";
+} from "./_local/dpa-derivation.ts";
 
 
 // Sector-specific data category detection for US DPA module injection

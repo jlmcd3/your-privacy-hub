@@ -15,7 +15,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
-import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
+import { renderRegistryFor } from "./_local/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
@@ -26,7 +26,7 @@ import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import {
   buildBiometricDeliverables,
   type BiometricIntakeForDeliverables,
-} from "../_shared/ltp/biometric-deliverables/build.ts";
+} from "./_local/ltp/biometric-deliverables/build.ts";
 import {
   selectApplicableRows,
   resolveJurisdictions,
@@ -34,7 +34,7 @@ import {
   renderRegistryUnresolvedBlock,
   validateBiometricCitations,
   BIOMETRIC_REGISTRY_VERSION,
-} from "../_shared/registry/biometric-select.ts";
+} from "./_local/registry/biometric-select.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 

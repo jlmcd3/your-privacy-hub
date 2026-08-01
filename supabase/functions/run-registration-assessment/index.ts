@@ -8,11 +8,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   runRegistrationAssessment,
   type IntakeData,
-} from "../_shared/registration-engine.ts";
+} from "./_local/registration-engine.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
-import { buildRegistrationDeliverables, REGISTRATION_DELIVERABLES_VERSION } from "../_shared/ltp/registration-deliverables/build.ts";
+import { buildRegistrationDeliverables, REGISTRATION_DELIVERABLES_VERSION } from "./_local/ltp/registration-deliverables/build.ts";
 
 export const BUILD_STAMP = "r1-hds-conditional@2026-07-23T14:20:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);

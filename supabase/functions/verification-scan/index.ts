@@ -3,7 +3,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2/cors";
-import { fetchSourceDocument, sha256 } from "../_shared/source-fetcher.ts";
+import { fetchSourceDocument, sha256 } from "./_local/source-fetcher.ts";
 import {
   checkSubjectPresent,
   checkRegulatorPresent,
@@ -22,7 +22,7 @@ import {
 import {
   paraphraseFaithfulness,
   SONNET_MODEL_ID,
-} from "../_shared/paraphrase-faithfulness.ts";
+} from "./_local/paraphrase-faithfulness.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

@@ -4,7 +4,7 @@
 // validation. No third-party CAPTCHA. Logs are id/count only (no PII).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeadersFor, corsPreflight } from "../_shared/cors.ts";
+import { corsHeadersFor, corsPreflight } from "./_local/cors.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,

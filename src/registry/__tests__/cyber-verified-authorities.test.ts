@@ -15,7 +15,7 @@ import {
   CYBER_VERIFIED_AUTHORITIES,
   CYBER_VERIFIED_AUTHORITY_ROWS,
   CYBER_VERIFIED_AUTHORITY_VERSION,
-} from "../../../supabase/functions/_shared/registry/cyber-verified-authorities.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
 
 describe("cppa-cybersecurity verified-authority registry — row-shape contract", () => {
   it("stamps a non-empty version tag", () => {

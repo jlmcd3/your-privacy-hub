@@ -8,7 +8,7 @@
 // Run: deno test supabase/functions/run-registration-assessment/golden_engine_test.ts
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runRegistrationAssessment, type IntakeData } from "../_shared/registration-engine.ts";
+import { runRegistrationAssessment, type IntakeData } from "./_local/registration-engine.ts";
 import { REGISTRATION_GOLDEN } from "../_shared/golden/registration.ts";
 
 function get(id: string): IntakeData {

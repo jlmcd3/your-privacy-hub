@@ -11,7 +11,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { classify } from "../_shared/quality-backlog/classification-rules.ts";
+import { classify } from "./_local/quality-backlog/classification-rules.ts";
 
 const BUILD_STAMP = "classify-quality-findings@2026-07-24T07:18:44Z";
 

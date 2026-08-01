@@ -24,11 +24,11 @@ import {
   REGISTRATION_DUTY_AUTHORITIES,
   dutyRow,
   dutyRowsFor,
-} from "../../../supabase/functions/_shared/registry/registration-verified-authorities";
+} from "../../../supabase/functions/run-registration-assessment/_local/registry/registration-verified-authorities";
 import {
   buildRegistrationDeliverables,
   stateInScope,
-} from "../../../supabase/functions/_shared/ltp/registration-deliverables/build";
+} from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-deliverables/build";
 import { registrationContract } from "../../../supabase/functions/_shared/intake-contracts/registration-assessment";
 import { REGISTRATION_GOLDEN } from "../../../supabase/functions/_shared/golden/registration";
 

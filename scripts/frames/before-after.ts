@@ -10,7 +10,7 @@
 //
 //   deno run --allow-read --allow-env scripts/frames/before-after.ts
 
-import { CPPA_RISK_FRAMES } from "../../supabase/functions/_shared/prose/frames/cppa-risk.frames.ts";
+import { CPPA_RISK_FRAMES } from "../../library/prose/load.ts";
 import { buildCppaRiskFrameValues } from "../../supabase/functions/_shared/prose/frames/cppa-risk.values.ts";
 import { renderSectionFromFrames } from "../../supabase/functions/_shared/prose/frame-render.ts";
 import { buildActivityAnalytics } from "../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";

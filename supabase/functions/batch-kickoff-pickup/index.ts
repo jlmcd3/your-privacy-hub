@@ -30,7 +30,7 @@ import { exportBatchPdfs, makeLiveDeps } from "../_shared/qa-pdf-export.ts";
 import {
   assertStateMachineConformance,
   verifyStateMachine,
-} from "../_shared/harness/state-machine.ts";
+} from "./_local/harness/state-machine.ts";
 import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
 
 export const BUILD_STAMP = "qbp28-corrections-bundle-mode-assert@2026-07-27T06:10:00Z";

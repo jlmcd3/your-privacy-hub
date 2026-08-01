@@ -13,9 +13,9 @@
 //
 //   deno run --allow-read --allow-env scripts/plans/before-after-plan-v2.ts
 
-import { CPPA_RISK_PLAN } from "../../supabase/functions/_shared/prose/plans/cppa-risk.plan.ts";
+import { CPPA_RISK_PLAN, CPPA_RISK_FRAMES } from "../../library/prose/load.ts";
 import { composeCppaRisk } from "../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
-import { CPPA_RISK_FRAMES } from "../../supabase/functions/_shared/prose/frames/cppa-risk.frames.ts";
+
 import {
   auditSectionConnectives,
   renderDocumentFromPlan,

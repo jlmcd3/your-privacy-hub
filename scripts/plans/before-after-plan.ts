@@ -11,10 +11,12 @@
 // The plan is marked approved IN MEMORY ONLY. The on-disk plans stay
 // `approved: false` until the ledger records the sign-off.
 
-import { CPPA_RISK_PLAN } from "../../supabase/functions/_shared/prose/plans/cppa-risk.plan.ts";
-import { DPIA_PLAN } from "../../supabase/functions/_shared/prose/plans/dpia.plan.ts";
-import { GOVERNANCE_PLAN } from "../../supabase/functions/_shared/prose/plans/governance.plan.ts";
-import { REGISTRATION_PLAN } from "../../supabase/functions/_shared/prose/plans/registration.plan.ts";
+import {
+  CPPA_RISK_PLAN,
+  DPIA_PLAN,
+  GOVERNANCE_PLAN,
+  REGISTRATION_PLAN,
+} from "../../library/prose/load.ts";
 import type { DocumentPlan } from "../../supabase/functions/_shared/prose/plan.ts";
 import {
   renderDocumentFromPlan,

@@ -19,7 +19,7 @@
  * Content rules verified: descriptive/neutral, no legal conclusions,
  * banned word "gap" absent, exactly 6 pills per field.
  */
-import type { AssistedInputFieldConfig } from "../assistedInput";
+import type { AssistedInputFieldConfig } from ".";
 
 const processing_description: AssistedInputFieldConfig = {
   fieldId: "processing_description",

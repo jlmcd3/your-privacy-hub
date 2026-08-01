@@ -21,13 +21,13 @@ import {
 import {
   NOTICE_ELEMENT_SPECS,
   EXCEPTION_SPECS,
-} from "../../../supabase/functions/_shared/ltp/admt-deliverables/elements.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-deliverables/elements.ts";
 import {
   buildAdmtDeliverables,
   buildNoticeElementFindings,
   buildExceptionQualification,
   normalizeDetermination,
-} from "../../../supabase/functions/_shared/ltp/admt-deliverables/build.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-deliverables/build.ts";
 
 /** The five § 7220(c) element ids. Closed list — no sixth element exists. */
 const FIVE_ELEMENTS = [

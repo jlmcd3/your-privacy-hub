@@ -12,7 +12,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { writeActionLog } from "../_shared/write-action-log.ts";
-import { detectRedeployConflicts, summariseConflicts, OVERRIDE_TOKEN } from "../_shared/redeploy-gate.ts";
+import { detectRedeployConflicts, summariseConflicts, OVERRIDE_TOKEN } from "./_local/redeploy-gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
