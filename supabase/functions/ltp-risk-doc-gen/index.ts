@@ -18,7 +18,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { modelProvider } from "../_shared/ltp/replay/providers.ts";
-import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
+import { resolveLtpIntake } from "../_shared/ltp/entry-intake.ts";
 import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
 import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
 import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
@@ -48,7 +48,7 @@ async function generate(assessmentId: string): Promise<void> {
 
     await db.from("cppa_assessments").update({ status: "processing" }).eq("id", assessmentId);
 
-    const era = normalizeEraIntake((row.intake_data ?? {}) as Record<string, unknown>);
+    const era = resolveLtpIntake(row.intake_data ?? {});
     // ITEM 341 — corpus for the EU persuasive-authority section. Null on any
     // failure; the builder then states honestly that nothing is available.
     const euCorpus = await fetchEuAuthorityCorpus(db);

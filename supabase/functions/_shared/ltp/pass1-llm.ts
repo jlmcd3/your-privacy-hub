@@ -176,7 +176,7 @@ export function applySingleWriterInjection(
   const ledger = pickLedger(input.intake ?? {});
   const bindings = pickCitationBindings();
   const gate_outcomes = evaluateCppaRiskGates(input.intake ?? {});
-  const factorScaffold = pickFactorTable();
+  const factorScaffold = pickFactorTable(input.intake ?? {});
 
   // Preserve model-authored judgment overlays on factor_table
   // (weight_note + present_in_intake + intake_ledger_refs) keyed by factor_id.
