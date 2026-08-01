@@ -51,6 +51,14 @@
 
 import type { RenderPlan } from "../../render-plan/schema.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../../report-schemas/cppa-risk.ts";
+// ITEM 354 — customer-surface projections (rendering only; see the module header).
+import {
+  internalFactorTables,
+  projectOverallScore,
+  projectRiskLevel,
+  projectRiskRegister,
+  projectTopRisks,
+} from "../customer-projections.ts";
 
 export const CPPA_RISK_SECTION_SHARDS_VERSION =
   "cppa-risk-section-shards-2026-07-28-tm3";
