@@ -18,7 +18,7 @@
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
-} from "../verified-authority-resolver.ts";
+} from "../../../_shared/verified-authority-resolver.ts";
 
 export const CYBER_VERIFIED_AUTHORITY_VERSION = "cyber-va-w1-2026-07-24";
 

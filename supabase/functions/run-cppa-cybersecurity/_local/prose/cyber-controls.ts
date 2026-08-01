@@ -14,7 +14,7 @@
  * Deterministic. Pure. Never throws.
  */
 
-import { splitSentencesSafe } from "./segment.ts";
+import { splitSentencesSafe } from "../../../_shared/prose/segment.ts";
 
 export const CYBER_PROSE_VERSION = "prose-cyber-2026-08-01-item337";
 

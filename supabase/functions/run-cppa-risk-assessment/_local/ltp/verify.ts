@@ -11,7 +11,7 @@
  * to Wave B (this scaffold records the invocation surface and telemetry
  * shape only). Pure; never throws.
  */
-import type { RenderPlan, WeighingFrameEntry } from "../render-plan/schema.ts";
+import type { RenderPlan, WeighingFrameEntry } from "../../../_shared/render-plan/schema.ts";
 
 export interface VerifyResult {
   readonly enabled: boolean;

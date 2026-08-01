@@ -5,7 +5,7 @@
 // batch never enters run-quality-batch with 16 pinned intakes staged.
 // The pinned-rerun path deliberately sets batch_size == pins.length and
 // remains unaffected. Historical rows (no pins) unaffected.
-import { GRADER_CONTEXT_VERSION } from "../grader/context.ts";
+import { GRADER_CONTEXT_VERSION } from "../../../_shared/grader/context.ts";
 
 export function buildSeedRow(
   tool: string, batchSize: number, runNumber: number, createdBy: string, nowIso: string,

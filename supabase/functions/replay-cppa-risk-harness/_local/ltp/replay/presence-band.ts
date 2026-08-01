@@ -56,7 +56,7 @@
  *     (but above hard floor) flag `review_band_low` / `review_band_high`
  *     in metrics — NEVER hard failures.
  */
-import type { SubstanceGateConfig } from "./types.ts";
+import type { SubstanceGateConfig } from "../../../../_shared/ltp/replay/types.ts";
 
 export interface MinedPresenceBand {
   readonly hard_floor: number;

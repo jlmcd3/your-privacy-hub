@@ -10,7 +10,7 @@
 // lives in a per-tool scenario_guidance map alongside the caller. This
 // function emits ONLY the schema contract.
 
-import type { IntakeContract, IntakeField } from "./types.ts";
+import type { IntakeContract, IntakeField } from "../../../_shared/intake-contracts/types.ts";
 
 function fmtOptions(opts: readonly string[]): string {
   // JSON.stringify keeps quotes verbatim → the LLM cannot subtly re-word

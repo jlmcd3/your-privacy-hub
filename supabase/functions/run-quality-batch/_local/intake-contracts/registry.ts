@@ -9,15 +9,15 @@
 // ask-privacy, weekly-brief, custom-brief, trend-report, state-law) are absent
 // on purpose and fall through to their hand-typed intake descriptions.
 
-import type { IntakeContract } from "./types.ts";
-import { cppaAdmtContract } from "./cppa-admt.ts";
-import { cppaRiskContract } from "./cppa-risk-assessment.ts";
-import { cppaCybersecurityContract } from "./cppa-cybersecurity.ts";
-import { governanceContract } from "./governance-assessment.ts";
-import { dpiaFrameworkContract } from "./dpia-framework.ts";
-import { liAssessmentStageBContract } from "./li-assessment.ts";
-import { dpaGeneratorContract } from "./dpa-generator.ts";
-import { irPlaybookContract } from "./ir-playbook.ts";
+import type { IntakeContract } from "../../../_shared/intake-contracts/types.ts";
+import { cppaAdmtContract } from "../../../_shared/intake-contracts/cppa-admt.ts";
+import { cppaRiskContract } from "../../../_shared/intake-contracts/cppa-risk-assessment.ts";
+import { cppaCybersecurityContract } from "../../../_shared/intake-contracts/cppa-cybersecurity.ts";
+import { governanceContract } from "../../../_shared/intake-contracts/governance-assessment.ts";
+import { dpiaFrameworkContract } from "../../../_shared/intake-contracts/dpia-framework.ts";
+import { liAssessmentStageBContract } from "../../../_shared/intake-contracts/li-assessment.ts";
+import { dpaGeneratorContract } from "../../../_shared/intake-contracts/dpa-generator.ts";
+import { irPlaybookContract } from "../../../_shared/intake-contracts/ir-playbook.ts";
 import { biometricCheckerContract } from "./biometric-checker.ts";
 
 export const CONTRACT_BY_TOOL: Record<string, IntakeContract> = {

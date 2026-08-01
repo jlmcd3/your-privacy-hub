@@ -5,13 +5,13 @@
 // in the registries; products pick them up by name. No buildSystemContent change
 // needed. A tool with no manifest entry returns "" and is unaffected.
 
-import { renderIcoPenaltyFigures } from "../enforcement-figures-registry.ts";
+import { renderIcoPenaltyFigures } from "../../../_shared/enforcement-figures-registry.ts";
 import {
   renderPraByStatute,
   renderCubiSubsections,
   renderFdbrApplicability,
   renderBipaCitations,
-} from "./statutory-rules-registry.ts";
+} from "../../../_shared/registry/statutory-rules-registry.ts";
 
 export const PRODUCT_REGISTRY: Record<string, (() => string)[]> = {
   "biometric-checker": [

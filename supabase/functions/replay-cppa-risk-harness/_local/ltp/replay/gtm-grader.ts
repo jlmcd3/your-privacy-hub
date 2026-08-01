@@ -11,7 +11,7 @@
  *
  * ACTIVE IN OBSERVE/TELEMETRY ONLY until the register is CEO-ratified.
  */
-import type { PerDocResult } from "./types.ts";
+import type { PerDocResult } from "../../../../_shared/ltp/replay/types.ts";
 import {
   GTM_MATERIALITY_REGISTER_VERSION,
   lookupMateriality,

@@ -15,12 +15,12 @@
  *
  * Never throws; failures are captured on the envelope and never bubble up.
  */
-import { derivePlan } from "./derive.ts";
-import { runGuideStage } from "./guide.ts";
-import { chooseVariant, computeCloseness } from "./closeness.ts";
+import { derivePlan } from "../../../_shared/ltp/derive.ts";
+import { runGuideStage } from "../../../_shared/ltp/guide.ts";
+import { chooseVariant, computeCloseness } from "../../../_shared/ltp/closeness.ts";
 import { runVerifyStage } from "./verify.ts";
-import { validateRenderPlan } from "../render-plan/validators.ts";
-import { WEIGHING_TESTS } from "../factors/cppa-risk-factors.ts";
+import { validateRenderPlan } from "../../../_shared/render-plan/validators.ts";
+import { WEIGHING_TESTS } from "../../../_shared/factors/cppa-risk-factors.ts";
 
 export const LTP_STAMP = "ltp-risk-p2";
 

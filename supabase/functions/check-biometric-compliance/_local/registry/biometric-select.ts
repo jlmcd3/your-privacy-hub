@@ -7,7 +7,7 @@ import {
   BIOMETRIC_REGISTRY_JURISDICTIONS,
   BIOMETRIC_REGISTRY_VERSION,
   type BiometricStatuteRow,
-} from "./biometric-statute-registry.ts";
+} from "../../../_shared/registry/biometric-statute-registry.ts";
 
 export { BIOMETRIC_REGISTRY_VERSION };
 

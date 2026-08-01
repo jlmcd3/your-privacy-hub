@@ -4,7 +4,7 @@
 // (~L58) and inline option lists (TYPES / ORG / PURPOSE / JURS, L41–L44).
 // Post-ruling: no enrolledCount.
 
-import type { IntakeContract } from "./types.ts";
+import type { IntakeContract } from "../../../_shared/intake-contracts/types.ts";
 
 const TYPES = [
   "Facial geometry / facial recognition",
