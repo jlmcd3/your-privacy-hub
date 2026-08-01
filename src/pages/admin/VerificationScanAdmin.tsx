@@ -95,6 +95,8 @@ export default function VerificationScanAdmin() {
   const [refreshErr, setRefreshErr] = useState("");
   const [loading, setLoading] = useState(false);
   const pauseRef = useRef(false);
+  // Item 334: review queue defaults to genuine items only.
+  const [showCorpusDefects, setShowCorpusDefects] = useState(false);
 
   const loadHealth = useCallback(async () => {
     setLoading(true);
