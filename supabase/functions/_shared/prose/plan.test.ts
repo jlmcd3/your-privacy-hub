@@ -333,6 +333,46 @@ Deno.test("render: a section with no determination degrades honestly", () => {
   assertEquals(r.information_needed, ["retention period", "safeguards"]);
 });
 
+Deno.test("render: a record section leads with its first statement and is not degraded", () => {
+  const recordSection: PlanSection = {
+    id: "record",
+    title: "The record as stated",
+    source_key: "record_echo",
+    arc: "record",
+    lead: "record",
+    themes: ["negative_impacts", "safeguards_applied"],
+    status: "approved",
+  };
+  const r = renderPlannedSection(recordSection, {
+    section_id: "record",
+    statements: [
+      { theme: "negative_impacts", sentence: "the record reports unauthorised access", relation: "none" },
+      { theme: "safeguards_applied", sentence: "encryption at rest is described", relation: "addition" },
+    ],
+  }, { mentions: { primary: "Acme Ltd" } });
+  assertEquals(r.degraded, false);
+  assert(r.text.startsWith("The record reports unauthorised access"));
+  assertStringIncludes(r.text, "encryption at rest");
+  assertEquals(r.text.includes("does not state enough"), false);
+});
+
+Deno.test("render: a record section with nothing on the record still degrades", () => {
+  const recordSection: PlanSection = {
+    id: "record",
+    title: "The record as stated",
+    source_key: "record_echo",
+    arc: "record",
+    lead: "record",
+    themes: ["negative_impacts"],
+    status: "approved",
+  };
+  const r = renderPlannedSection(recordSection, { section_id: "record", statements: [] }, {
+    mentions: { primary: "Acme Ltd" },
+  });
+  assertEquals(r.degraded, true);
+  assertStringIncludes(r.text, "does not state enough");
+});
+
 Deno.test("render: statements whose theme the plan does not declare are reported, not silently placed", () => {
   const r = renderPlannedSection(analysis, {
     section_id: "risk",
