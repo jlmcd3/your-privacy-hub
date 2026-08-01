@@ -1171,6 +1171,15 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   // ITEM 244 (L5) — Affirmations block opener. Adequately-documented
   // items lead; gaps trail. Emitted BEFORE the legacy prose so the
   // customer reads the affirmative posture first.
+  //
+  // ITEM 352 — the GAP side of this opener, and the enumerated-missing
+  // items below it, now read the SAME canonical needs set that
+  // `information_needed` renders (`computeRecordNeeds`). Previously the
+  // gap count was "factor_table rows with present_in_intake=false", which
+  // counted registry rows that are structurally silent on the record and
+  // are not customer asks — producing the Item 351 self-contradiction
+  // ("8 of these elements remain enumerated" against a one-item
+  // information_needed array). Affirmed rows are unchanged.
   const admtBlocked = admtGateBlocked(plan);
   const statusForFactor = (f: FactorTableEntry) =>
     admtBlocked && isAdmtScoped(f.factor_id)
@@ -1178,12 +1187,11 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       : f.present_in_intake
         ? RECORD_STATUS_CLAUSES[0]
         : RECORD_STATUS_CLAUSES[1];
+  const needs = computeRecordNeeds(plan);
   const affirmedCount = plan.factor_table.filter(
     (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[0],
   ).length;
-  const gapCount = plan.factor_table.filter(
-    (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[1],
-  ).length;
+  const gapCount = needs.length;
   const affirmationsOpener: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose.v2",
     ctx: {
@@ -1195,6 +1203,7 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       gap_count_clause: `${gapCount}`,
     },
   };
+
   // BATCH 55b9f3a2 ADDENDUM (e) — ADMT-inapplicability explanation is
   // appended when q18=No AND q5b affirmative (record shows profiling
   // without ADMT-use). The clause distinguishes ADMT governance from
