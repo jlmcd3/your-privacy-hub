@@ -153,7 +153,7 @@ describe("ir-playbook — mixed EU + UK incident engages both regimes (Item 328)
 describe("ir-playbook — Chapter V framing is regime-correct (Item 302 watch item 2)", () => {
   it("the UK leg cites Art. 44A and never Art. 44 as operative authority", () => {
     const uk = buildTransferFraming(mixed, "uk");
-    expect(uk.citation).toBe("UK GDPR Art. 44A");
+    expect(uk.citation).toBe("UK GDPR Art. 44A(1)");
     expect(uk.omitted_article_note).toContain("no UK GDPR Article 44 in force");
     expect(uk.application).toContain("Article 44A(1)");
     expect(uk.application).toContain("Article 45B");
@@ -182,7 +182,7 @@ describe("ir-playbook — Chapter V framing is regime-correct (Item 302 watch it
     const d = buildIrPlaybookDeliverables(mixed);
     expect(d.notification_duties.map((x) => x.transfer_framing.citation)).toEqual([
       "GDPR Art. 44",
-      "UK GDPR Art. 44A",
+      "UK GDPR Art. 44A(1)",
     ]);
   });
 });
