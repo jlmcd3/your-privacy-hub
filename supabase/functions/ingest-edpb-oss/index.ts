@@ -24,7 +24,7 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
 
 const REGISTER_BASE =
-  "https://www.edpb.europa.eu/our-work-tools/consistency-findings/register-for-article-60-final-decisions_en";
+  "https://www.edpb.europa.eu/registers/register-of-final-one-stop-shop-decisions_en";
 const DIGEST_INDEX = "https://www.edpb.europa.eu/one-stop-shop-case-digests_en";
 const USER_AGENT =
   "EndUserPrivacy-EDPBOSSIngest/1.0 (+https://enduserprivacy.com; contact: support@enduserprivacy.com)";
@@ -253,6 +253,7 @@ Deno.serve(async (req) => {
     updated: 0,
     unchanged: 0,
     errors: [] as string[],
+    last_html_len: 0,
     next_page: null as number | null,
     done: false,
   };
@@ -349,6 +350,7 @@ Deno.serve(async (req) => {
         break;
       }
       stats.pages_walked++;
+      stats.last_html_len = html.length;
       const rows = parseRegisterPage(html);
       if (rows.length === 0) {
         stats.done = true;
