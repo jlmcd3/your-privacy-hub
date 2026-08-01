@@ -432,7 +432,7 @@ describe("Item 317 — contract guard", () => {
     const src = readFileSync(
       resolve(
         __dirname,
-        "../../../supabase/functions/_shared/ltp/biometric-deliverables/build.ts",
+        "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts",
       ),
       "utf8",
     );

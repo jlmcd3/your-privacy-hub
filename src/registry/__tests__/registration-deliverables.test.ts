@@ -461,7 +461,7 @@ describe("ITEM 316 — schedule-surface law", () => {
     const src = readFileSync(
       resolve(
         __dirname,
-        "../../../supabase/functions/_shared/ltp/registration-deliverables/build.ts",
+        "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-deliverables/build.ts",
       ),
       "utf8",
     );
