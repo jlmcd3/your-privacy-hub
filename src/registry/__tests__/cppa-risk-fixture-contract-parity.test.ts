@@ -41,6 +41,61 @@ const ITEM_305_ALWAYS = [
   "a9_approver_position",
 ] as const;
 
+const MESSY_CPPA_RISK = MESSY_BY_TOOL["cppa-risk"] ?? [];
+
+/** Every `required: "always"` key on the live contract, in contract order. */
+function alwaysKeys(): string[] {
+  return cppaRiskContract.fields
+    .filter((f) => f.required === "always")
+    .map((f) => f.key);
+}
+
+/** Mirrors validateIntake's isEmpty semantics. */
+function isEmptyValue(v: unknown): boolean {
+  if (v === "" || v === null || v === undefined) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === "object") return Object.keys(v as object).length === 0;
+  return false;
+}
+
+/**
+ * Resolve a contract key (dotted, with an optional terminal "[]" hop) against
+ * an intake, returning [displayPath, value] for every element it reaches.
+ * An empty array under an "[]" key yields no rows — the bare array key is
+ * itself required-always in the contract, so emptiness is caught there.
+ */
+function readContractPath(root: unknown, key: string): Array<[string, unknown]> {
+  const parts = key.split(".");
+  let frontier: Array<[string, unknown]> = [["", root]];
+  for (const raw of parts) {
+    const isArr = raw.endsWith("[]");
+    const seg = isArr ? raw.slice(0, -2) : raw;
+    const next: Array<[string, unknown]> = [];
+    for (const [path, node] of frontier) {
+      if (node === null || node === undefined || typeof node !== "object") continue;
+      const v = (node as Record<string, unknown>)[seg];
+      const p = path ? `${path}.${seg}` : seg;
+      if (isArr) {
+        if (Array.isArray(v)) v.forEach((el, i) => next.push([`${p}[${i}]`, el]));
+      } else {
+        next.push([p, v]);
+      }
+    }
+    frontier = next;
+  }
+  return frontier;
+}
+
+/** Golden + revision-contract + messy pinned intakes, id-labelled. */
+function allPinnedIntakes(): Array<[string, Record<string, unknown>]> {
+  return [
+    ...CPPA_RISK_GOLDEN.map((g) => [`golden:${g.id}`, g.intake as Record<string, unknown>] as [string, Record<string, unknown>]),
+    ...CPPA_RISK_CONTRACT_FIXTURES.map((f) => [`contract:${f.fixture_id}`, f.intake] as [string, Record<string, unknown>]),
+    ...MESSY_CPPA_RISK.map((m) => [`messy:${m.id}`, m.intake as Record<string, unknown>] as [string, Record<string, unknown>]),
+  ];
+}
+
 function fmt(v: { key: string; reason: string }[]): string {
   return v.map((x) => `${x.key}: ${x.reason}`).join("; ");
 }
