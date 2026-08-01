@@ -173,6 +173,8 @@ async function processRow(row: any, mode: Mode = "initial") {
     });
     await sb.from("enforcement_actions").update({
       verification_status: "requires_review",
+      // Item 334: mechanical corpus defect, NOT a genuine human-review item.
+      review_reason: "corpus_defect_subject",
       verification_deterministic_pass: false,
       memo_eligible: false,
       verification_last_run_at: new Date().toISOString(),
