@@ -223,3 +223,62 @@ export const ADEQUATE_CADENCES: readonly string[] = [
 ];
 
 export const RECORD_INSUFFICIENT = "record_insufficient" as const;
+
+// ─────────────────────────────────────────────────────────────────────
+// ITEM 327 — Chapter V jurisdiction + mechanism lexicons.
+//
+// Closed lexicons only: every string below is an exact option value from
+// `_shared/intake-contracts/governance-assessment.ts` (GOV_JURISDICTIONS,
+// TRANSFER_STATUS, TRANSFER_MECHANISM). No fuzzy matching, no semantic
+// defaults — an unrecognised value degrades, it never guesses a regime.
+// ─────────────────────────────────────────────────────────────────────
+
+export const EU_JURISDICTION = "EU (GDPR)";
+export const UK_JURISDICTION = "United Kingdom (UK GDPR)";
+
+/** transfer_status values that put a restricted transfer on the record. */
+export const TRANSFER_OCCURRING: readonly string[] = [
+  "Yes, US-based tools",
+  "Yes, other non-adequate countries",
+];
+/** transfer_status value that records no restricted transfer. */
+export const TRANSFER_NOT_OCCURRING: readonly string[] = [
+  "All tools store data in EU/UK",
+];
+
+export type TransferRegime = "eu" | "uk" | "dual" | "not_engaged";
+
+/**
+ * Which regime a recorded transfer_mechanism belongs to.
+ *   uk   — the mechanism exists only under UK Chapter V.
+ *   eu   — the mechanism exists only under EU Chapter V.
+ *   both — the label is regime-neutral on its face (BCRs; bare "Adequacy
+ *          decision"); the governing rail is fixed by the jurisdictions.
+ */
+export const MECHANISM_REGIME: Readonly<Record<string, "uk" | "eu" | "both">> = {
+  "UK IDTA": "uk",
+  "UK Addendum to EU SCCs": "uk",
+  "UK adequacy regulations": "uk",
+  "UK IDTA / Addendum": "uk",
+  "EU Standard Contractual Clauses (SCCs)": "eu",
+  "EU SCCs": "eu",
+  "Adequacy decision": "eu",
+  "Binding Corporate Rules": "both",
+  "Adequacy decision/regulations": "both",
+};
+
+/** Mechanisms that are Art. 46-family safeguards rather than adequacy. */
+export const SAFEGUARD_MECHANISMS: readonly string[] = [
+  "UK IDTA",
+  "UK Addendum to EU SCCs",
+  "UK IDTA / Addendum",
+  "EU Standard Contractual Clauses (SCCs)",
+  "EU SCCs",
+  "Binding Corporate Rules",
+];
+/** Mechanisms that are an adequacy route rather than an Art. 46 safeguard. */
+export const ADEQUACY_MECHANISMS: readonly string[] = [
+  "UK adequacy regulations",
+  "Adequacy decision",
+  "Adequacy decision/regulations",
+];
