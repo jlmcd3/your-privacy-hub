@@ -121,7 +121,12 @@ async function selectRows(
   jurisdictionIn: string[] | null = null,
 ) {
   if (mode === "cached") {
-    // Rows that already carry a captured source document — no network refetch.
+    // Rows eligible for a no-network verification pass. ITEM 366 (b): a row is
+    // eligible when it carries its OWN captured document (>= CACHED_MIN_DOC_CHARS)
+    // OR when public.source_document_cache holds a non-expired document of that
+    // size for its source_url. Previously the query hard-filtered on
+    // `source_document_text is not null`, so rows whose document lived only in
+    // the shared cache could never enter the sweep at all.
     let q = sb
       .from("enforcement_actions")
       .select(
@@ -129,24 +134,65 @@ async function selectRows(
         { count: "exact" },
       )
       .eq("verification_status", "unverified")
-      .not("source_document_text", "is", null)
       .order("id", { ascending: true })
       .limit(batchSize);
     if (jurisdictionIn && jurisdictionIn.length > 0) q = q.in("jurisdiction", jurisdictionIn);
     if (startAfterId) q = q.gt("id", startAfterId);
     const { data, count } = await q;
     const all = data ?? [];
-    const rows = all.filter(
-      (r: any) => (r.source_document_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS,
+
+    // Cache fallback: single batched lookup for every row lacking its own text.
+    const needCache = all.filter(
+      (r: any) => (r.source_document_text?.length ?? 0) < CACHED_MIN_DOC_CHARS && !!r.source_url,
     );
-    // ITEM 336 (c): short cached documents were skipped invisibly. Count them
-    // and surface their ids so the backlog is findable later. No status writes.
-    const skippedShortIds = all
-      .filter((r: any) => (r.source_document_text?.length ?? 0) < CACHED_MIN_DOC_CHARS)
-      .map((r: any) => r.id as string);
+    const cacheByUrl = new Map<string, { content_text: string; content_hash: string | null }>();
+    if (needCache.length > 0) {
+      const urls = Array.from(new Set(needCache.map((r: any) => r.source_url as string)));
+      const { data: cached } = await sb
+        .from("source_document_cache")
+        .select("source_url, content_text, content_hash, expires_at")
+        .in("source_url", urls)
+        .gt("expires_at", new Date().toISOString());
+      for (const c of (cached ?? []) as any[]) {
+        if ((c.content_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS) {
+          cacheByUrl.set(c.source_url, {
+            content_text: c.content_text,
+            content_hash: c.content_hash ?? null,
+          });
+        }
+      }
+    }
+
+    const rows: any[] = [];
+    const skippedShortIds: string[] = [];
+    let cacheFallbackUsed = 0;
+    for (const r of all as any[]) {
+      if ((r.source_document_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS) {
+        rows.push(r);
+        continue;
+      }
+      const hit = r.source_url ? cacheByUrl.get(r.source_url) : undefined;
+      if (hit) {
+        cacheFallbackUsed++;
+        rows.push({
+          ...r,
+          source_document_text: hit.content_text,
+          _document_from_shared_cache: true,
+          _cached_content_hash: hit.content_hash,
+        });
+        continue;
+      }
+      // ITEM 336 (c): no document on the row and none in the shared cache.
+      skippedShortIds.push(r.id as string);
+    }
     if (skippedShortIds.length > 0) {
       console.log(
-        `[verification-scan] cached mode skipped ${skippedShortIds.length} row(s) with source_document_text < ${CACHED_MIN_DOC_CHARS} chars: ${skippedShortIds.join(",")}`,
+        `[verification-scan] cached mode skipped ${skippedShortIds.length} row(s) with no document >= ${CACHED_MIN_DOC_CHARS} chars (own field or shared cache): ${skippedShortIds.join(",")}`,
+      );
+    }
+    if (cacheFallbackUsed > 0) {
+      console.log(
+        `[verification-scan] cached mode resolved ${cacheFallbackUsed} row(s) via source_document_cache fallback`,
       );
     }
     return {
@@ -155,8 +201,10 @@ async function selectRows(
       scanned: all.length,
       lastScannedId: all.length ? all[all.length - 1].id : null,
       skippedShortIds,
+      cacheFallbackUsed,
     };
   }
+
   if (mode === "targeted") {
     if (!targetIds || targetIds.length === 0) return { rows: [], remaining: 0 };
     const { data } = await sb
@@ -218,12 +266,14 @@ async function processRow(row: any, mode: Mode = "initial") {
     }).eq("id", id);
     return {
       verdict: "requires_review",
+      reason: "corpus_defect_subject",
       tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
     };
   }
 
   // Swappable "get document text" step.
-  //  - cached mode reuses the already-captured source_document_text verbatim;
+  //  - cached mode reuses the row's captured source_document_text verbatim, or
+  //    the shared-cache document attached by selectRows (Item 366 (b));
   //  - Item 333: every other mode now consults source_document_cache FIRST
   //    (non-expired entry keyed by source_url) before a live refetch. The 24
   //    queue rows stuck at attempts>=3 all had a warm cache entry but were
@@ -235,10 +285,11 @@ async function processRow(row: any, mode: Mode = "initial") {
       return {
         status: "ok" as const,
         content_text: text,
-        content_hash: await sha256(text),
+        content_hash: (row._cached_content_hash as string | null) ?? (await sha256(text)),
         fetched_from_cache: true,
       };
     }
+
     const url = (row.source_url ?? "") as string;
     if (url) {
       const { data: cached } = await sb
@@ -293,8 +344,10 @@ async function processRow(row: any, mode: Mode = "initial") {
     }).eq("id", id);
     return {
       verdict: next_status,
+      reason: `fetch_${fetched.reason ?? "unavailable"}`,
       tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
     };
+
   }
 
   const doc = fetched.content_text!;
@@ -328,8 +381,10 @@ async function processRow(row: any, mode: Mode = "initial") {
     }).eq("id", id);
     return {
       verdict: "failed",
+      reason: "deterministic_subject_and_regulator_absent",
       tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
     };
+
   }
 
   // Capture previous tier-A/B values for history
@@ -360,7 +415,7 @@ async function processRow(row: any, mode: Mode = "initial") {
       source_document_hash: docHash,
       last_source_fetch_at: new Date().toISOString(),
     }).eq("id", id);
-    return { verdict: "failed", tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 } };
+    return { verdict: "failed", reason: "extraction_fatal", tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 } };
   }
 
   if (extraction.parse_error) {
@@ -417,6 +472,28 @@ async function processRow(row: any, mode: Mode = "initial") {
   );
   const status =
     para.confidence === "failed" || !detPass ? "failed" : "verified";
+  // ITEM 366 (a): record WHY a row failed so the sweep ledger can carry a
+  // batch-level triage histogram instead of a bare failure count.
+  let failReason: string | null = null;
+  if (status === "failed") {
+    const failedChecks: string[] = [];
+    if (subjectCheck.verdict === "fail") failedChecks.push("subject");
+    if (regulatorCheck.verdict === "fail") failedChecks.push("regulator");
+    if (dateCheck.verdict === "fail") failedChecks.push("decision_date");
+    if (provCheck.verdict === "fail") failedChecks.push("statutory_provision");
+    if (amtCheck.verdict === "fail") failedChecks.push("fine_amount");
+    if (caseRefCheck.verdict === "fail") failedChecks.push("case_reference");
+    if (para.confidence === "failed") {
+      failReason = para.verdict === "parse_error"
+        ? "paraphrase_parse_error"
+        : "paraphrase_unfaithful";
+    } else {
+      failReason = failedChecks.length
+        ? `deterministic_fail:${failedChecks.join("+")}`
+        : "deterministic_fail:unattributed";
+    }
+  }
+
   const memoEligible =
     status === "verified" &&
     (para.confidence === "high" || para.confidence === "medium") &&
@@ -477,7 +554,7 @@ async function processRow(row: any, mode: Mode = "initial") {
     verification_last_run_at: new Date().toISOString(),
     verification_status: status,
     // Item 334: model-driven routings are genuine review items.
-    review_reason: status === "requires_review" ? "verification_uncertain" : null,
+    review_reason: (status as string) === "requires_review" ? "verification_uncertain" : null,
     verification_deterministic_pass: detPass,
     verification_paraphrase_confidence: para.confidence,
     memo_eligible: memoEligible,
@@ -485,7 +562,9 @@ async function processRow(row: any, mode: Mode = "initial") {
 
   return {
     verdict: status,
+    reason: failReason,
     tokens: {
+
       haiku_in: extraction.usage.input_tokens,
       haiku_out: extraction.usage.output_tokens,
       sonnet_in: para.usage.input_tokens,
@@ -614,6 +693,13 @@ Deno.serve(async (req) => {
         if (r.verdict === "verified") verified++;
         else if (r.verdict === "requires_review") requires_review++;
         else failed++;
+        // ITEM 366 (a): tally every non-verified outcome, not just thrown
+        // exceptions. Prefix keeps triage classes separable in the ledger.
+        if (r.verdict !== "verified") {
+          const key = `${r.verdict}:${(r as any).reason ?? "unspecified"}`;
+          failure_reasons[key] = (failure_reasons[key] ?? 0) + 1;
+        }
+
         tokens.haiku_input += r.tokens.haiku_in;
         tokens.haiku_output += r.tokens.haiku_out;
         tokens.sonnet_input += r.tokens.sonnet_in;
@@ -622,8 +708,9 @@ Deno.serve(async (req) => {
       } catch (e) {
         failed++;
         processed++;
-        const reason = ((e as Error).message ?? String(e)).slice(0, 120);
+        const reason = `exception:${((e as Error).message ?? String(e)).slice(0, 120)}`;
         failure_reasons[reason] = (failure_reasons[reason] ?? 0) + 1;
+
         last_id = row.id;
         await sb.from("verification_results").insert({
           enforcement_action_id: row.id,
@@ -665,7 +752,15 @@ Deno.serve(async (req) => {
     const estimated_cost_remaining_usd = per_row_avg * Math.max(remaining, 0);
 
     const cumulative_cost_usd = spent_before + batch_cost_usd;
+    // ITEM 366 (a): non-billed skips are triage data too — a row scanned with no
+    // document anywhere is a repair candidate, not a verification failure.
+    const skippedNoDoc = (sel.skippedShortIds ?? []).length;
+    if (skippedNoDoc > 0) failure_reasons["skipped:no_document_available"] = skippedNoDoc;
+    if ((sel.cacheFallbackUsed ?? 0) > 0) {
+      failure_reasons["info:resolved_via_shared_cache"] = sel.cacheFallbackUsed;
+    }
     if (sweep_id) {
+
       if (!halted_reason && cumulative_cost_usd >= budget_cap_usd) halted_reason = "budget_cap_reached";
       await sb.from("verification_sweep_ledger").insert({
         sweep_id,
