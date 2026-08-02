@@ -1,0 +1,104 @@
+{
+    "q3_sector": "Technology/SaaS",
+    "i1b_min_pi": "We collect only identifiers necessary to provision accounts and bill customers.",
+    "i6_vendors": "AWS (hosting), Stripe (billing), SendGrid (email).",
+    "q1_revenue": "$25M to under $50M",
+    "q9_opt_out": "Yes, prominently on homepage",
+    "entity_name": "Meridian SaaS Inc.",
+    "i4b_sources": "Directly from account signup and product telemetry.",
+    "company_name": "Meridian SaaS Inc.",
+    "q18_admt_use": "No",
+    "q2_consumers": "250,000 to under 1,000,000",
+    "a6_safeguards": [
+        {
+            "harm": "(A) Unauthorized access, destruction, use, modification, or disclosure",
+            "safeguard": "The analytics service account is scoped to the measurement views only, credentials rotate every 30 days, and exports are logged and reviewed weekly.",
+            "safeguard_status": "Implemented and tested"
+        },
+        {
+            "harm": "(C) Impairment of consumer control over personal information",
+            "safeguard": "The notice at collection is being amended to name IP-derived approximate location and the telemetry SDK default is being disabled.",
+            "safeguard_status": "Implemented and tested"
+        }
+    ],
+    "q5_sell_share": "No",
+    "q6_right_know": "Online form with identity verification",
+    "subject_anchor": "California consumers using the free tier",
+    "q7_right_delete": "Automated deletion with confirmation",
+    "a2_necessity_set": [
+        {
+            "element": "Account email address",
+            "necessity": "Necessary to the stated purpose",
+            "justification": "The email address is the account identifier used to authenticate the free-tier session that the usage measurement is attributed to; without it no measurement can be tied to an account."
+        },
+        {
+            "element": "Device identifier (cookie ID)",
+            "necessity": "Necessary to the stated purpose",
+            "justification": "The cookie ID distinguishes repeat sessions from first sessions, which is the measurement the activity exists to produce."
+        },
+        {
+            "element": "Approximate location derived from IP address",
+            "necessity": "Collected but not necessary to the stated purpose",
+            "justification": "Location is captured by the telemetry SDK's defaults and is not used in any usage-measurement output."
+        }
+    ],
+    "a5_harm_pathways": [
+        {
+            "harm": "(A) Unauthorized access, destruction, use, modification, or disclosure",
+            "cause": "An over-broad analytics service-account credential could be reused outside the measurement pipeline and export the joined table.",
+            "source": "The telemetry event store, which holds account email addresses joined to device identifiers, is readable by the analytics service account.",
+            "severity": "Moderate",
+            "likelihood": "Unlikely"
+        },
+        {
+            "harm": "(C) Impairment of consumer control over personal information",
+            "cause": "A consumer reading the notice cannot tell that IP-derived location is retained, so the opt-out choice is made on an incomplete description.",
+            "source": "The free-tier signup notice describes telemetry collection but does not name the derived approximate-location field.",
+            "severity": "Minimal",
+            "likelihood": "Possible"
+        }
+    ],
+    "a9_approval_date": "2026-07-30",
+    "a9_approver_name": "Priya Raman",
+    "q15_sensitive_pi": "No",
+    "q4_pi_categories": [
+        "Contact identifiers (name, email, phone)",
+        "Device identifiers (IP, cookies, device IDs)"
+    ],
+    "q8_right_correct": "Online self-service",
+    "a4_benefit_public": "No public benefit is claimed for this activity beyond the consumer benefit stated above.",
+    "q11_policy_review": "Within 12 months",
+    "has_secondary_uses": "No — this data is used for this activity only",
+    "q13_notice_content": "Yes, all three",
+    "q18b_admt_training": "No",
+    "a4_benefit_business": "Free-tier usage measurement tells the engineering team which onboarding step free-tier accounts abandon, which is the input to the quarterly onboarding rework decision.",
+    "a4_benefit_consumer": "Consumers reach a working configuration faster because the abandoned onboarding steps identified by this measurement are the ones rewritten first.",
+    "i2_retention_period": "24 months rolling",
+    "i3_ca_consumer_band": "100,000–1,000,000",
+    "q10_id_verification": "Documented verification process matching CPPA guidance",
+    "q14_employee_notice": "Yes",
+    "q6_right_know_multi": [
+        "Online form with identity verification"
+    ],
+    "a9_approver_position": "General Counsel",
+    "i9_has_existing_dpia": "No",
+    "secondary_activities": [
+    ],
+    "i1_processing_purpose": "Deliver core SaaS analytics functionality to enterprise customers with role-based access controls in place.",
+    "i2_retention_criteria": "Fixed period from collection",
+    "primary_activity_name": "Free-tier account analytics",
+    "q15b_under16_knowledge": "No — we do not knowingly process under-16 data",
+    "i8_certifying_exec_name": "Jane Doe",
+    "i4_disclosure_mechanisms": [
+        "Notice at Collection",
+        "Privacy policy"
+    ],
+    "i7_internal_contributors": "Privacy Officer; Head of Engineering; Data Platform Lead.",
+    "i8_certifying_exec_title": "Chief Privacy Officer",
+    "primary_activity_purpose": "We analyse free-tier account and device identifiers to measure product usage.",
+    "q12_notice_at_collection": "Yes, covers all collection points",
+    "sensitive_location_basis": "Not applicable — no sensitive-location processing",
+    "public_privacy_policy_url": "https://meridian.example/privacy",
+    "q5b_profiling_observation": "Yes — systematic observation of workers/students/applicants",
+    "a4_benefit_other_stakeholders": "Enterprise administrators who sponsor free-tier trials receive accurate seat-activation reporting instead of estimates when deciding whether to convert a trial."
+}
