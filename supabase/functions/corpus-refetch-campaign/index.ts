@@ -96,13 +96,21 @@ async function nextWork(limit: number, cohortPref: Cohort | "auto") {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const tok = req.headers.get("x-admin-token");
-  if (!tok || tok !== Deno.env.get("ADMIN_SECRET_TOKEN")) {
+  // Admin gate. Accepts the x-admin-token header, or the pg_cron shape used
+  // elsewhere in the fleet (`x-internal-cron: 1` + admin/service bearer).
+  const ADMIN = Deno.env.get("ADMIN_SECRET_TOKEN");
+  const bearer = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+  const okHeader = !!ADMIN && req.headers.get("x-admin-token") === ADMIN;
+  const okCron = req.headers.get("x-internal-cron") === "1" && (
+    (!!ADMIN && bearer === ADMIN) || bearer === (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "\u0000")
+  );
+  if (!okHeader && !okCron) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
 
   const body = await req.json().catch(() => ({}));
   const campaign_id: string = body.campaign_id ?? "item365-refetch-campaign";
