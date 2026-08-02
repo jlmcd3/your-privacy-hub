@@ -9955,3 +9955,86 @@ from all product surfaces pending the CEO's inclusion decision.
 - Closing report (stratification refresh, per-authority-class before/after,
   failure-reason distribution, CPPA slice package, analogy-gate headline metric)
   follows completion of the legs.
+
+---
+
+## Item 367 — CORPUS INGESTION: EDPB OSS BACKFILL, EMPTY-STUB / VERIFICATION-INTEGRITY AUDIT, EXISTING-DATA CORRECTIONS (2026-08-02)
+
+Scope guard honoured: no Leg 1/2/3 schedule changes, CPPA-INCLUSION-GATE untouched,
+no customer-facing surface changed, no new regulator ingestion pipelines built
+(Korea PIPC, Québec CAI, Texas AG, Switzerland FDPIC, Israel PPA, South Africa IR,
+CFPB all deferred to post-launch per CEO decision of 2026-08-02).
+
+### WS1 — EDPB One-Stop-Shop backlog (in flight)
+
+Found: `edpb_oss_decisions` holds 1,324 rows, of which 1,320 `doc_type='oss_decision'`
+were index stubs — `decision_pdf_url` present, `source_document_text` / `title` /
+`summary_text` all null.
+
+Built: `supabase/functions/edpb-oss-backfill` — batched fetch-and-extract over the
+known PDF links (unpdf text extraction), deriving `title` and `summary_text` from the
+document itself; `source_type` set to `regulator_primary` (EDPB's own Article 60
+register, not third-party commentary). Attempt counters, per-row `pdf_fetch_status`
+and `pdf_fetch_error` recorded so the queue is self-draining and auditable.
+
+Two real-world defects found during first live batches and fixed before scheduling:
+- europa.eu intermittently aborts the HTTP/2 body mid-transfer ("error reading a body
+  from connection"), which also surfaces downstream as `InvalidPDFException: Invalid
+  Root reference` on a truncated file. Fixed with a 3-attempt download+parse retry
+  with backoff. First post-fix batch: 10 selected → 9 extracted, 0 failed.
+- ~21% of the register (3/14 on a random sample; e.g. `fr_2021-06_decisionpublic.pdf`,
+  `lu_2023-03_decisionpublic_redacted_2.pdf`) are scanned image-only PDFs that yield
+  0 extractable characters. Retrying cannot help, so those rows are retired from the
+  queue with `pdf_fetch_status='image_only'` and `pdf_fetch_error='… OCR required'`.
+  OCR is a separate, unscheduled decision.
+
+Driver: pg_cron job `edpb-oss-backfill-every-3m`, 12 rows per run (~240/hour, full
+backlog ≈ 5–6 hours). Cost: $0 — deterministic fetch-and-extract, no model calls.
+
+Status at time of writing: 21 rows fully populated (text ≥200 chars + title +
+summary), 1 `image_only`, 3 `failed` (pre-retry-fix, will re-attempt), 2 `empty`
+(pre-fix labelling), 1,293 pending. `edpb_guidelines` (893 rows) untouched — the pin
+system works as intended.
+
+### WS2 — Empty-stub pattern + verification-integrity bug
+
+Australia (15 rows, `regulator ILIKE '%OAIC%'`) tiered by source:
+- `OAIC Register` → 9 rows → `source_type='regulator_primary'` (AustLII determinations).
+- `OAIC` → 6 rows → `source_type='regulator_press'` (oaic.gov.au media write-ups,
+  same tier as AEPD News / ICO News, therefore never analogy-citable).
+
+Backfill of the 9 register rows is BLOCKED AT SOURCE, reported rather than faked:
+AustLII's robots.txt allows generic crawlers (`User-agent: *` → `Allow: /`), but the
+site is behind Cloudflare bot protection and returns **HTTP 403** to every UA tried
+(bot UA, browser UA, both `classic.austlii.edu.au` and `www.austlii.edu.au`); the
+rendered-fetch route times out. The OAIC media URL for Vinomofo now 404s. These rows
+therefore stay contentless; recommend a post-launch manual/licensed-access route.
+
+Verification-integrity bug — scope reported before any blind fix:
+- 39 rows carry `verification_status='verified'` with **no** `source_document_hash`:
+  ANSPDCP/CMS 22, FTC 11, AEPD/CMS 3, OAIC 2, ANSPDCP (no source_database) 1.
+- Of those, 13 have no evidence anywhere (no hash, no raw_text ≥50 chars):
+  FTC 11, OAIC 2.
+- Only the 2 OAIC rows (Vinomofo `8d7a47f5-b48d-4e93-ad60-43848ff01350`, Australian
+  Clinical Labs `b8a4027d-f7b0-4ea3-8dfd-d91cf96da5cf`) additionally have
+  `verification_deterministic_pass = false` — i.e. marked verified while explicitly
+  failing the deterministic check. Those two were reverted to `unverified`,
+  `memo_eligible=false`, `review_reason='verified_without_document_evidence'`.
+- The other 37 pass deterministic checks against raw_text or a legacy path that did
+  not persist a hash. They are NOT reverted in this turn and NOT hidden behind a new
+  constraint — a `verified ⇒ hash present` DB trigger would have to be introduced with
+  a remediation pass for those 37, which is a separate authorised item. Flagged here
+  as an open corpus-integrity finding.
+
+### WS3 — Existing-data corrections
+
+- `CNPD` disambiguated by domain: 34 rows → `CNPD Luxembourg` /
+  `Commission nationale pour la protection des données (Luxembourg)` / jurisdiction
+  Luxembourg; 7 rows → `CNPD Portugal` /
+  `Comissão Nacional de Proteção de Dados (Portugal)` / jurisdiction Portugal.
+  Both remain `source_type='third_party_tracker'` (CMS-sourced), unchanged by design.
+- Stray SEC EDGAR row (Amazon 10-Q, `a24314f4-989d-4206-bad0-cce638c326d8`) mis-tagged
+  under CNPD: deleted.
+- Brazil ANPD row reclassified `authority_class` `court` → `other_regulator`
+  (`court` was factually wrong; `other_regulator` is the existing enum-equivalent
+  value in use for non-EEA/UK/US authorities).
