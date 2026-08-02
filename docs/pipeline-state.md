@@ -10113,3 +10113,13 @@ Observe-mode sample: `docs/reviews/ITEM368-POLISH-SAMPLE-cppa-risk-2026-08-02.md
   list. A pre-existing TS2322 typecheck failure in
   `tests/edge/_shared/render-plan/validators.lia.test.ts:237` is unrelated to
   the prose modules.
+
+---
+
+## Enforcement-schema reference audit (2026-08-02) — audit only, no schema change
+
+Exhaustive whole-repo reference search over all 80 `public.enforcement_actions` columns, plus the four "missing" product schemas, the ccpa-regime call-site sweep, and the fetched-but-dropped field gap report per product.
+
+Report: `docs/reviews/ITEM-ENFORCEMENT-SCHEMA-AUDIT-2026-08-02.md`.
+
+Headline: **no genuine zero-reference columns**. Only `strat_url_wellformed`, `strat_subject_usable`, `strat_date_parseable`, `stratified_at` have no reference outside the Item-352 migration that created them (and the generated `types.ts`); `strat_has_document` is live via `GATE_COLUMNS`. `src/pages/EnforcementActionDetail.tsx:73` selects `*`, so every column is transported on that route. admt and dpa-generator report schemas do exist (`_shared/report-schemas/admt.ts`, `dpa.ts`); registration has no schema file and zero enforcement coupling; biometric-checker has no whitelist serializer and persists raw retrieved rows. `preventive_measures` is fetched by all five context consumers and rendered by DPIA only. No code, migration, gate or surface changed.
