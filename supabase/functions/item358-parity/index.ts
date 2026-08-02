@@ -1,0 +1,106 @@
+/**
+ * ITEM 358 — TEMPORARY PARITY / LIVE-SMOKE DRIVER.
+ *
+ * Same pattern as the Item 357 `item357-parity` driver: creates the two smoke
+ * rows from the pinned fixtures, invokes the DEPLOYED
+ * `run-cppa-risk-assessment-v2` over HTTP with the internal service key, waits
+ * for the persisted payload, and returns the live `report_data` plus the v2
+ * Pass-2R telemetry for both records.
+ *
+ * DELETE AFTER THE ITEM 358 SMOKE. Nothing routes to it; it is not referenced
+ * by any UI surface.
+ */
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { runConformanceChecks, formatResults } from "../_shared/ltp/conformance/conformance-checks.ts";
+
+import PERFECT from "./perfect-a073d9c5.json" with { type: "json" };
+import MESSY from "./messy-bd458f0d.json" with { type: "json" };
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+
+const FIXTURES: Record<string, Record<string, unknown>> = {
+  "perfect-a073d9c5": PERFECT as Record<string, unknown>,
+  "messy-bd458f0d": MESSY as Record<string, unknown>,
+};
+
+async function ownerId(): Promise<string | null> {
+  const { data } = await supabase
+    .from("cppa_assessments")
+    .select("user_id")
+    .not("user_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  return (data as { user_id?: string } | null)?.user_id ?? null;
+}
+
+async function runOne(name: string, uid: string | null) {
+  const { data: ins, error: insErr } = await supabase
+    .from("cppa_assessments")
+    .insert({
+      user_id: uid,
+      status: "pending",
+      intake_data: { ...FIXTURES[name], _item358_smoke: name },
+    })
+    .select("id")
+    .single();
+  if (insErr || !ins) return { name, error: `insert: ${insErr?.message}` };
+  const id = (ins as { id: string }).id;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/run-cppa-risk-assessment-v2`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ assessment_id: id }),
+  });
+  const accepted = await res.json().catch(() => ({}));
+
+  let row: Record<string, unknown> | null = null;
+  for (let i = 0; i < 90; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const { data } = await supabase
+      .from("cppa_assessments")
+      .select("status, report_data, error_message")
+      .eq("id", id)
+      .single();
+    row = data as Record<string, unknown> | null;
+    const status = row?.status;
+    const meta = ((row?.report_data as Record<string, unknown> | null)?._meta ?? {}) as Record<string, unknown>;
+    const ltp = ((meta.internal as Record<string, unknown> | undefined)?.ltp ?? {}) as Record<string, unknown>;
+    if (status === "error") break;
+    if (status === "complete" && (ltp.shipped_surface === "2R" || ltp.pass2r_skipped_reason || (ltp.pass2r_attempt_rejections as unknown[] | undefined)?.length)) break;
+  }
+
+  const report = (row?.report_data ?? {}) as Record<string, unknown>;
+  const internal = (((report._meta as Record<string, unknown> | undefined)?.internal) ?? {}) as Record<string, unknown>;
+  const ltp = (internal.ltp ?? {}) as Record<string, unknown>;
+  const checks = runConformanceChecks(report);
+  return {
+    name,
+    assessment_id: id,
+    accepted,
+    status: row?.status ?? null,
+    error_message: row?.error_message ?? null,
+    top_level_keys: Object.keys(report).sort(),
+    top_level_key_count: Object.keys(report).length,
+    risk_level: report.risk_level,
+    overall_score: report.overall_score,
+    information_needed: report.information_needed,
+    record_sufficiency: report.record_sufficiency,
+    engine_path: internal.engine_path,
+    ltp_telemetry: ltp,
+    conformance: formatResults(name, checks),
+    conformance_failed: checks.filter((c) => !c.ok),
+  };
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const uid = await ownerId();
+  const out = [];
+  for (const name of Object.keys(FIXTURES)) out.push(await runOne(name, uid));
+  return new Response(JSON.stringify({ item: 358, results: out }, null, 2), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+});
