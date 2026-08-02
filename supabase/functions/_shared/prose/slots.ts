@@ -208,8 +208,9 @@ export const PROSE_ADAPTERS: Record<string, Record<string, string>> = {
     "third_party": "collection from third parties",
     "service_delivery": "delivering the service",
     "Deliver": "delivering the service",
-    "not_applicable": "not applicable on this record",
-    "insufficient_basis": "an insufficient basis on this record",
+    "not_applicable": "not applicable to the activity described",
+    "insufficient_basis": "an insufficient basis in the facts provided",
+
   },
 };
 
