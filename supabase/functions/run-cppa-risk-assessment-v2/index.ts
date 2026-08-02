@@ -12,10 +12,10 @@
  * `_shared/ltp/generate-cppa-risk.ts`. If a key needs to change on the
  * customer surface, it changes there — never here.
  *
- * ROUTING (ITEM 359): THIS IS THE LIVE CUSTOMER PATH. Legacy `run-cppa-risk-assessment`
- * remains the only customer path; the Item 245 posture is untouched. The
- * route-flip is a separate CEO-authorized step (see docs/pipeline-state.md,
- * Item 357 §5).
+ * ROUTING (ITEM 359): THIS IS THE LIVE CUSTOMER PATH. Every enumerated
+ * invocation site was flipped here; legacy `run-cppa-risk-assessment` stays
+ * deployed but unrouted for instant string-reversion. Item 245 hold RELEASED
+ * (CEO completion mandate, 2026-08-01/02).
  *
  * PASS-2R LIFECYCLE (Item 357 §2b, Item 287 pattern): the deterministic
  * payload persists first, then Pass-2R runs and UPDATEs the row from INSIDE
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
       generator_stamp: CPPA_RISK_GENERATOR_STAMP,
       ltp_mode: LTP_MODE,
       engine_path: "ltp",
-      routed: false,
+      routed: true,
     });
   }
 
