@@ -361,7 +361,17 @@ function composeExecutive(plan: RenderPlan): TemplateInstance[] {
   const acp = pluralActivityPhrase(n);
   const engagedLabels = engagedApplicability(plan).map(propLabel);
   const mode = aggregateBalance(plan);
-  if (mode === "insufficient" || engagedLabels.length === 0) {
+  // ITEM 358 (FIX 1, coherence corollary) — the exec summary may fall to the
+  // insufficient sentence ONLY when the shared completeness predicate says the
+  // record is insufficient. An empty engaged-applicability list is a MISSING
+  // SUBJECT LIST, not a record gap: when the customer named the primary
+  // activity, that name is the subject, and the exec must render the same mode
+  // the balance renders. Before this, a complete record whose applicability
+  // props resolved to no labels shipped "not sufficient to complete" against a
+  // firm balance — the exec/balance mismatch the exit coherence check then
+  // collapsed back to insufficient (masking Fix 1 entirely).
+  const noSubject = engagedLabels.length === 0 && !primaryName;
+  if (mode === "insufficient" || noSubject) {
     return [
       ...lead,
       { template_id: "T.risk.exec.insufficient", ctx: { activity_singplural_clause: singplural } },
