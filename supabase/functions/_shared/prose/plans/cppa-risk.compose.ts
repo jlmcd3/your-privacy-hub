@@ -1,29 +1,51 @@
-// ITEM 347 (DOCUMENT-PLAN REWORK) — cppa-risk COMPOSER.
+// ITEM 347 (DOCUMENT-PLAN REWORK) — cppa-risk COMPOSER,
+// REWORKED UNDER ITEM 363 (PROSE REVISION + NEW DOCUMENT PLAN).
 //
-// Joins the two halves of the program on one record:
-//   * the ITEM 346 FRAME SET supplies the sentences (record-verbatim slots,
-//     pinned registry-legal prose, pinned engine-conclusion clauses);
-//   * the ITEM 339 PLAN, reworked here, supplies the document shape
-//     (conclusion first, thematic grouping, referring expressions — all KEPT);
-//   * the ITEM 347 REASONING GRAPH supplies the only connectives that may be
-//     spoken, each traced to the engine structure that computed it.
+// Joins the halves of the program on one record:
+//   * the FRAME SET supplies the sentences (record-verbatim slots, pinned
+//     registry-legal prose, pinned engine-conclusion clauses);
+//   * the PLAN supplies the CEO-specified document shape;
+//   * the REASONING GRAPH supplies the only connectives that may be spoken.
 //
-// This file computes NOTHING about the law and NOTHING about the record. Every
-// relation below is read off an engine structure that already exists
-// (`consequence.rule_ids`, `safeguard_map[].harm_id`,
-// `weighing[].offsetting_harm_ids`, `consequence.conditions`) and carries that
-// path as its `basis`. Where the engine computed no relation, no edge is
-// created and the statements are juxtaposed plainly.
+// ITEM 363 CONTENT-OWNERSHIP RULE: each analytical point has ONE home. The
+// Determination section states the holding; General conclusions synthesises.
+// No sentence appears in both (enforced by the duplication lint).
+//
+// This file computes NOTHING about the law and NOTHING about the record.
 
 import type { ActivityAnalytics } from "../../ltp/analytic-deliverables/types.ts";
+import type { EuAuthoritySection } from "../../ltp/eu-authority/types.ts";
 import type { FrameSet } from "../frames.ts";
 import { renderSectionFromFrames } from "../frame-render.ts";
 import { buildCppaRiskFrameValues } from "../frames/cppa-risk.values.ts";
 import type { SectionInput, SupportingStatement } from "../plan-render.ts";
 import { edge, LEAD_NODE, type ReasoningEdge, ReasoningGraph } from "../reasoning-graph.ts";
-import { resolveEngineConclusion } from "../engine-conclusions.ts";
+import {
+  buildCorpusAnalogies,
+  type CorpusAnalogiesResult,
+  type FactorClass,
+} from "../analogies.ts";
+import { deriveRecordSummary, type RecordSummary } from "../record-summary.ts";
 
-export const CPPA_RISK_COMPOSE_VERSION = "prose-compose-2026-08-01-item347";
+export const CPPA_RISK_COMPOSE_VERSION = "prose-compose-2026-08-01-item363";
+
+/** Section ids of the Item 363 plan, in the CEO-specified order. */
+export const CPPA_RISK_SECTION_ORDER: readonly string[] = [
+  "executive_lead",
+  "record_card",
+  "determination",
+  "why_required",
+  "risk_analysis",
+  "corpus_analogies",
+  "general_conclusions",
+  "record_completeness_summary",
+  "what_to_do_next",
+];
+
+/** Minimum paragraphs per section the segmentation lint enforces. */
+export const CPPA_RISK_MIN_PARAGRAPHS: Readonly<Record<string, number>> = {
+  risk_analysis: 5,
+};
 
 export interface ComposeResult {
   readonly inputs: Record<string, SectionInput>;
@@ -32,7 +54,13 @@ export interface ComposeResult {
   readonly determinations: { necessity: string; weighing: string; consequence: string };
   /** Frame sections that produced no text (FILL-OR-OMIT), for the report. */
   readonly omitted_frames: readonly string[];
+  readonly analogies: CorpusAnalogiesResult;
+  readonly record_summary: RecordSummary;
 }
+
+/** Card values are joined with "; " — a value's own full stop would collide. */
+const tidy = (v: string) => v.replace(/[\s.;,]+$/, "");
+const joinCard = (xs: readonly string[]) => xs.map(tidy).filter(Boolean).join("; ");
 
 const label = (k: string) =>
   k.replace(/^[qi]\d+[a-z]?_/i, "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
@@ -50,12 +78,29 @@ function card(id: string, theme: string, labelText: string, value: string): Supp
   };
 }
 
+/** Which named factors of this report an analogy may attach to. */
+function liveFactors(analytics: ActivityAnalytics): FactorClass[] {
+  const out: FactorClass[] = ["minimisation", "initiation"];
+  if (analytics.harm_causation.length) out.push("impacts");
+  if (analytics.safeguard_map.length) out.push("safeguards");
+  if (analytics.weighing.length) out.push("weighing");
+  if (analytics.harm_causation.some((h) => /\(a\)\(5\)\(C\)/.test(String(h.harm_pinpoint)))) {
+    out.push("impairment");
+  }
+  return out;
+}
+
 export function composeCppaRisk(input: {
   intake: Record<string, unknown>;
   analytics: ActivityAnalytics;
   frames: FrameSet;
   inconsistencyFlags?: readonly string[];
   informationNeeded?: readonly string[];
+  /** Item 341 persuasive-authority section; the analogies read from it. */
+  euAuthority?: EuAuthoritySection | null;
+  /** Item 358 classification counts. Default: every open need is missing data. */
+  missingDataCount?: number;
+  reservedCount?: number;
 }): ComposeResult {
   const { intake, analytics, frames } = input;
   const { values, determinations } = buildCppaRiskFrameValues({
@@ -75,157 +120,191 @@ export function composeCppaRisk(input: {
     return r.rendered.trim();
   };
 
-  const entity = String(values.entity_name ?? "The company");
+  const entity = String(values["engine.entity_name"] ?? values.entity_name ?? "The company");
   const edges: ReasoningEdge[] = [];
-
-  // ── DETERMINATION (headline) ─────────────────────────────────────────
-  const opening = frameText("opening_analysis");
-  const necessity = frameText("necessity_analysis");
-  const harms = frameText("harm_analysis");
-  const benefits = frameText("benefits_rationale");
-  const narrative = frameText("processing_narrative");
-  const scope = frameText("scope_notes");
-
-  // The Determination section states the outcome and stops: the analytic
-  // operations belong to the analysis section and are not restated here.
-  const summaryStatements: SupportingStatement[] = [];
-  if (narrative) {
-    summaryStatements.push({
-      id: "consequence",
-      theme: "outcome",
-      sentence: narrative,
-      relation: "consequence",
-    });
-    // EDGE: the engine's own decision follows from the opening analysis.
-    // Computed at `consequence.decision`.
-    edges.push(edge(LEAD_NODE, "consequence", "consequence", "consequence.decision"));
-  }
-
-  const conditions = analytics.consequence.conditions;
-  const gapsNeeded = [
-    ...(input.informationNeeded ?? []),
-    ...analytics.necessity_analysis.map((n) => n.information_needed).filter(Boolean) as string[],
-    ...analytics.harm_causation.map((h) => h.information_needed).filter(Boolean) as string[],
-    ...analytics.weighing.map((w) => w.information_needed).filter(Boolean) as string[],
-  ];
-
   const inputs: Record<string, SectionInput> = {};
 
-  inputs["assessment_summary"] = {
-    section_id: "assessment_summary",
-    determination: opening ?? undefined,
-    determination_status: opening ? "stated" : "record_insufficient",
-    statements: summaryStatements,
-    information_needed: gapsNeeded,
+  const openNeeds = (values.gap_lines as string[]) ?? [];
+  const conditions = analytics.consequence.conditions ?? [];
+
+  // ── 0. EXECUTIVE LEAD ────────────────────────────────────────────────
+  const execLead = frameText("executive_lead");
+  inputs["executive_lead"] = {
+    section_id: "executive_lead",
+    determination: execLead ?? undefined,
+    determination_status: execLead ? "stated" : "record_insufficient",
+    statements: [],
   };
 
-  // ── WHY THIS ASSESSMENT IS REQUIRED (scope) ──────────────────────────
-  if (scope) {
-    inputs["scope_and_triggers"] = {
-      section_id: "scope_and_triggers",
-      determination: scope,
-      determination_status: "stated",
-      statements: [],
-    };
-  }
-
-  // ── THE RECORD AS THE COMPANY STATED IT (record card, no pseudo-sentences)
+  // ── 1. RECORD CARD ───────────────────────────────────────────────────
+  const cardLead = frameText("record_card_lead");
   const recordFields: Array<[string, string, string]> = [
-    ["parties", "entity_name", String(values.entity_name ?? "")],
-    ["parties", "q2_consumers", String(values.q2_consumers ?? "")],
-    ["data", "q4_pi_categories", (values.data_categories as string[] ?? []).join("; ")],
-    ["data", "i4b_sources", String(values.sources ?? "")],
-    ["recipients", "i6_vendors", (values.vendors as string[] ?? []).join("; ")],
-    ["retention", "i2_retention_period", String(values.retention_period ?? "")],
+    ["parties", "q2_consumers", tidy(String(values.q2_consumers ?? ""))],
+    ["data", "q4_pi_categories", joinCard((values.data_categories as string[]) ?? [])],
+    ["data", "i4b_sources", tidy(String(values.sources ?? ""))],
+    ["recipients", "i6_vendors", joinCard((values.i6_vendors as string[]) ?? [])],
+    ["retention", "i2_retention_period", tidy(String(values.retention_period ?? ""))],
     [
       "safeguards",
       "safeguards",
-      ((values["impact_intake.safeguards"] as string[]) ?? []).join("; "),
+      joinCard((values["impact_intake.safeguards"] as string[]) ?? []),
     ],
   ];
-  inputs["record_echo"] = {
-    section_id: "record_echo",
-    determination_status: "not_owed",
-    statements: recordFields
-      .filter(([, , v]) => v.trim())
-      .map(([theme, key, v]) => card(`rec_${key}`, theme, label(key), v)),
-  };
-
-  // ── RISK ANALYSIS BY ACTIVITY ────────────────────────────────────────
-  const riskStatements: SupportingStatement[] = [];
-  if (harms) {
-    riskStatements.push({
-      id: "risk_harms",
-      theme: "negative_impacts",
-      sentence: harms,
-      relation: "none",
-    });
-  }
-  if (benefits) {
-    riskStatements.push({
-      id: "risk_benefits",
-      theme: "benefits",
-      sentence: benefits,
-      relation: "factor_outcome",
-    });
-    const idx = analytics.weighing.findIndex((w) => w.offsetting_harm_ids.length > 0);
-    if (idx >= 0 && harms) {
-      edges.push(
-        edge("risk_harms", "risk_benefits", "factor_outcome", `weighing[${idx}].offsetting_harm_ids`),
-      );
-    }
-  }
-  if (riskStatements.length) {
-    inputs["risk_assessment_by_activity"] = {
-      section_id: "risk_assessment_by_activity",
-      determination: necessity ?? undefined,
-      determination_status: necessity ? "stated" : "record_insufficient",
-      statements: riskStatements,
-    };
-  }
-
-  // ── WHAT THE RECORD DOES NOT YET STATE (ask; owes no determination) ──
-  inputs["information_needed"] = {
-    section_id: "information_needed",
+  inputs["record_card"] = {
+    section_id: "record_card",
     determination_status: "not_owed",
     statements: [
-      ...gapsNeeded.map((g, i) => card(`gap_${i}`, "silent_fields", "Still needed", g)),
-      ...(input.inconsistencyFlags ?? []).map((f, i) =>
-        card(`flag_${i}`, "inconsistencies", "Reported, not resolved", f)
-      ),
+      ...(cardLead
+        ? [{
+          id: "card_lead",
+          theme: "lead_in",
+          topic: "lead_in",
+          sentence: cardLead,
+          relation: "none" as const,
+        }]
+        : []),
+      ...recordFields
+        .filter(([, , v]) => v.trim())
+        .map(([theme, key, v]) => card(`rec_${key}`, theme, label(key), v)),
     ],
-    information_needed: gapsNeeded,
   };
-  if (!gapsNeeded.length && !(input.inconsistencyFlags ?? []).length) {
-    inputs["information_needed"] = {
-      section_id: "information_needed",
-      determination_status: "not_owed",
-      statements: [{
-        id: "no_gaps",
-        theme: "silent_fields",
-        sentence:
-          "the record answers every point this assessment needs, and no item is outstanding",
-        relation: "none",
-      }],
-      information_needed: [],
-    };
+
+  // ── 2. DETERMINATION (owns the holding, and nothing else) ────────────
+  const holding = frameText("determination");
+  inputs["determination"] = {
+    section_id: "determination",
+    determination: holding ?? undefined,
+    determination_status: holding ? "stated" : "record_insufficient",
+    statements: [],
+    information_needed: openNeeds,
+  };
+
+  // ── 3. WHY THIS ASSESSMENT IS REQUIRED (statute first) ───────────────
+  const why = frameText("why_required");
+  inputs["why_required"] = {
+    section_id: "why_required",
+    determination: why ?? undefined,
+    determination_status: why ? "stated" : "record_insufficient",
+    statements: [],
+  };
+
+  // ── 4. RISK ANALYSIS — one paragraph per subsection ──────────────────
+  const minimisation = frameText("risk_minimisation");
+  const impacts = frameText("risk_impacts");
+  const safeguards = frameText("risk_safeguards");
+  const weighing = frameText("risk_weighing");
+  const initiation = frameText("risk_initiation");
+
+  const riskStatements: SupportingStatement[] = [];
+  const para = (
+    id: string,
+    theme: string,
+    sentence: string | null,
+    relation: SupportingStatement["relation"],
+  ) => {
+    if (sentence) {
+      riskStatements.push({ id, theme, topic: theme, sentence, relation, paragraph: true });
+    }
+  };
+  para("risk_impacts", "negative_impacts", impacts, "none");
+  para("risk_safeguards", "safeguards_residual", safeguards, "consequence");
+  para("risk_weighing", "weighing", weighing, "factor_outcome");
+  para("risk_initiation", "initiation", initiation, "none");
+
+  // Edges the ENGINE computed. They are recorded for the audit even though a
+  // paragraph break never speaks a connective.
+  if (analytics.safeguard_map.some((g) => g.harm_id)) {
+    edges.push(
+      edge("risk_impacts", "risk_safeguards", "consequence", "safeguard_map[].harm_id"),
+    );
+  }
+  const wIdx = analytics.weighing.findIndex((w) => w.offsetting_harm_ids.length > 0);
+  if (wIdx >= 0) {
+    edges.push(
+      edge(
+        "risk_safeguards",
+        "risk_weighing",
+        "factor_outcome",
+        `weighing[${wIdx}].offsetting_harm_ids`,
+      ),
+    );
   }
 
-  // ── WHAT TO DO NEXT (remedy) ─────────────────────────────────────────
-  const consequenceClause = resolveEngineConclusion(
-    "cppa-risk",
-    `consequence.${analytics.consequence.decision}`,
-  );
-  if (consequenceClause) {
-    inputs["priority_actions"] = {
-      section_id: "priority_actions",
-      determination: `On the record before it, this assessment ${consequenceClause}`,
-      determination_status: "stated",
-      statements: conditions.map((c, i) =>
-        card(`cond_${i}`, "before_submission", "Condition on the decision", c)
-      ),
-    };
-  }
+  inputs["risk_analysis"] = {
+    section_id: "risk_analysis",
+    determination: minimisation ?? undefined,
+    determination_status: minimisation ? "stated" : "record_insufficient",
+    statements: riskStatements,
+  };
+
+  // ── 5. CORPUS ANALOGIES ──────────────────────────────────────────────
+  const analogies = buildCorpusAnalogies({
+    section: input.euAuthority ?? null,
+    live_factors: liveFactors(analytics),
+  });
+  const [analogyLead, ...analogyRest] = analogies.paragraphs;
+  inputs["corpus_analogies"] = {
+    section_id: "corpus_analogies",
+    determination: analogyLead,
+    determination_status: "stated",
+    statements: analogyRest.map((p, i) => ({
+      id: `analogy_${i}`,
+      theme: i === 0 && analogies.framing.length > 1 ? "framing" : "analogy",
+      topic: `analogy_${i}`,
+      sentence: p,
+      relation: "none" as const,
+      paragraph: true,
+    })),
+  };
+
+  // ── 6. GENERAL CONCLUSIONS ───────────────────────────────────────────
+  const conclusions = frameText("general_conclusions");
+  inputs["general_conclusions"] = {
+    section_id: "general_conclusions",
+    determination: conclusions ?? undefined,
+    determination_status: conclusions ? "stated" : "record_insufficient",
+    statements: [],
+  };
+
+  // ── 7. RECORD COMPLETENESS AND RESIDUAL-RISK SUMMARY ─────────────────
+  const record_summary = deriveRecordSummary({
+    missing_data_count: input.missingDataCount ?? openNeeds.length,
+    reserved_count: input.reservedCount ?? 0,
+    conditions_count: conditions.length,
+    residual_bands: analytics.safeguard_map.map((g) => String(g.residual_band)),
+  });
+  inputs["record_completeness_summary"] = {
+    section_id: "record_completeness_summary",
+    determination_status: "not_owed",
+    statements: [
+      {
+        id: "summary_band",
+        theme: "completeness",
+        topic: "band",
+        sentence: record_summary.sentence,
+        relation: "none",
+      },
+      {
+        id: "summary_scope",
+        theme: "completeness",
+        topic: "scope_note",
+        sentence: record_summary.scope_note,
+        relation: "none",
+      },
+    ],
+  };
+
+  // ── 8. WHAT TO DO NEXT ───────────────────────────────────────────────
+  const next = frameText("what_to_do_next");
+  inputs["what_to_do_next"] = {
+    section_id: "what_to_do_next",
+    determination: next ?? undefined,
+    determination_status: next ? "stated" : "record_insufficient",
+    statements: conditions.map((c, i) =>
+      card(`cond_${i}`, "conditions", "Condition on the decision", c)
+    ),
+    information_needed: openNeeds,
+  };
 
   return {
     inputs,
@@ -233,5 +312,7 @@ export function composeCppaRisk(input: {
     entity,
     determinations,
     omitted_frames: omitted,
+    analogies,
+    record_summary,
   };
 }

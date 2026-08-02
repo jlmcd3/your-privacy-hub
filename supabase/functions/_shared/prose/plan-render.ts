@@ -35,6 +35,7 @@ import { type AtomicFact, aggregateFacts } from "./aggregate.ts";
 import { type Relation, connectiveFor, joinWithConnective } from "./connectives.ts";
 import { applyMentionRule, type MentionOptions } from "./mentions.ts";
 import { DOCUMENT_PLAN_VERSION, type DocumentPlan, type PlannedSection } from "./plan.ts";
+import { extractSpans, type RecordSpan } from "./span-tracking.ts";
 import {
   auditConnectives,
   type ConnectiveAudit,
@@ -71,6 +72,13 @@ export interface SupportingStatement {
   readonly kind?: "prose" | "record_card";
   readonly label?: string;
   readonly value?: string;
+  /**
+   * ITEM 363 — PARAGRAPH SEGMENTATION. A statement flagged `paragraph` opens a
+   * NEW paragraph rather than continuing the current one. A paragraph break is
+   * never a causal claim, so it takes no connective and needs no edge; the
+   * statement's proposed relation is not spoken across a break.
+   */
+  readonly paragraph?: boolean;
 }
 
 /** Whether the engine reached a determination for this section. */
@@ -156,11 +164,13 @@ export interface SectionRenderResult {
    * needs an edge.
    */
   readonly join_seams: string;
+  /** ITEM 363 — offsets of every record-derived span in `text`. */
+  readonly spans: readonly RecordSpan[];
   readonly lint: readonly PlanRenderLintFinding[];
 }
 
 const DEFAULT_DEGRADATION =
-  "The record does not state enough for a determination in this section.";
+  "The information provided does not go far enough to support a determination in this section.";
 
 // ---------------------------------------------------------------------------
 // RULE 6 / RULE 7 — statement hygiene
@@ -186,9 +196,13 @@ export function hasEllipsisTruncation(sentence: string): boolean {
 function lintStatementText(
   section_id: string,
   where: string,
-  text: string,
+  raw: string,
   out: PlanRenderLintFinding[],
 ): void {
+  // ITEM 363 — lint the CLEAN prose. Span sentinels carry a source path with
+  // them, and a source path is a field name; linting the marked string would
+  // report a field-name subject for every correctly attributed record value.
+  const text = extractSpans(raw).text;
   if (hasFieldNameSubject(text)) {
     out.push({
       rule: "field_name_subject",
@@ -279,11 +293,13 @@ export function renderPlannedSection(
   // engine related to what precedes it.
   const relations: Relation[] = [];
   const nodeIds: (string | undefined)[] = [];
+  const breaks: boolean[] = [];
   {
     let i = 0;
     for (const _ of agg.sentences) {
       relations.push(grouped[i]?.relation ?? "none");
       nodeIds.push(grouped[i]?.id);
+      breaks.push(grouped[i]?.paragraph === true);
       i += runLengthAt(facts, i);
     }
   }
@@ -315,6 +331,7 @@ export function renderPlannedSection(
   const rest = usedFirstStatement ? agg.sentences.slice(1) : agg.sentences;
   const restRelations = usedFirstStatement ? relations.slice(1) : relations;
   const restIds = usedFirstStatement ? nodeIds.slice(1) : nodeIds;
+  const restBreaks = usedFirstStatement ? breaks.slice(1) : breaks;
   const leadId = usedFirstStatement ? (nodeIds[0] ?? LEAD_NODE) : LEAD_NODE;
 
   // (4) REFERRING EXPRESSIONS — applied BEFORE joining, one tracker per major
@@ -331,6 +348,15 @@ export function renderPlannedSection(
   body.forEach((s, i) => {
     const proposed = restRelations[i] ?? "none";
     const thisId = restIds[i];
+
+    // PARAGRAPH SEGMENTATION — a break is a layout decision, never a claim.
+    if (restBreaks[i]) {
+      const opened = `${upperFirst(s.trim().replace(/[.;]\s*$/, ""))}.`;
+      text = text ? `${text}\n\n${opened}` : opened;
+      if (thisId) prevId = thisId;
+      return;
+    }
+
     const licensingEdge = opts.graph && thisId
       ? opts.graph.get(prevId, thisId, proposed)
       : null;
@@ -375,19 +401,31 @@ export function renderPlannedSection(
     });
   }
 
+  // ITEM 363 — TIGHTER GRAMMAR: an em dash always sits between spaces, even
+  // where a pinned clause's own leading space was trimmed at the slot seam.
+  const spaced = text.replace(/(\S)\u2014/g, "$1 \u2014").replace(/\u2014(\S)/g, "\u2014 $1");
+
+  // ITEM 363 — strip the tracking sentinels exactly once, at the end, and hand
+  // back the offsets the lint battery and the validators read.
+  const extracted = extractSpans(spaced);
+
   return {
     section_id: section.id,
     title: section.title,
-    text,
+    text: extracted.text,
+    spans: extracted.spans,
     degraded,
     determination_status: status,
-    information_needed: (input.information_needed ?? []).slice(),
+    information_needed: (input.information_needed ?? []).map((x) => extractSpans(String(x)).text),
     themes_rendered: section.themes.filter((t) =>
       grouped.some((s) => s.theme === t) || cardStatements.some((s) => s.theme === t)
     ),
     unplaced,
     variants_used: agg.variants_used,
-    record_card,
+    record_card: record_card.map((l) => ({
+      label: extractSpans(l.label).text,
+      value: extractSpans(l.value).text,
+    })),
     connectives,
     join_seams,
     lint,

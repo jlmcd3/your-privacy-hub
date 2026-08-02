@@ -1,18 +1,24 @@
 // ITEM 338 (PROSE PROGRAM 2 of 4) — FRAME REALIZER.
+// REVISED UNDER ITEM 363 (PROSE REVISION): quotation marks around
+// intake-derived values are REMOVED, and the guarantee they carried is moved
+// into machine-readable span tracking (./span-tracking.ts).
 //
-// Extends the Item 337 typed-slot realizer to render approved frames.
 // Rules that are not negotiable:
-//   * Record values are rendered VERBATIM. Free text is visibly quoted so a
-//     reader can always tell what the company said from what we wrote.
+//   * Record values are rendered VERBATIM. They are no longer visibly quoted;
+//     each one is wrapped in invisible span sentinels naming its source path,
+//     so the leak-prevention checks and the Pass-2R validators still identify
+//     record-derived text exactly. The methodology note telling the reader that
+//     company-provided facts are reproduced without alteration is retained.
 //   * {{CITE:key}} slots are filled ONLY by the caller's registry resolver,
 //     which re-queries the verified-authority row at build time.
 //   * FILL-OR-OMIT: if any required placeholder is silent on the record, the
 //     frame does not render half-filled — it degrades to the honest
-//     "not stated on the record" path (MANDATORY DEGRADATION LAW).
+//     "not stated in the information provided" path (MANDATORY DEGRADATION LAW).
 
 import { adapterFor, collapseRenderArtifacts, joinNaturalList, renderSlotValue } from "./slots.ts";
 import { resolveLegalPhrasing } from "./legal-phrasings.ts";
 import { resolveEngineConclusion } from "./engine-conclusions.ts";
+import { rec } from "./span-tracking.ts";
 import { RISK_VERIFIED_AUTHORITIES } from "../registry/risk-verified-authorities.ts";
 import {
   type Frame,
@@ -21,6 +27,7 @@ import {
   type FrameSet,
   frameSetRenderable,
 } from "./frames.ts";
+
 
 export const FRAME_RENDER_VERSION = FRAME_LIBRARY_VERSION;
 
@@ -57,7 +64,10 @@ export interface FrameRenderOptions {
   readonly resolveConclusion?: ConclusionResolver;
   /** Product contract for the Item 337 enum adapter. */
   readonly contract?: string;
-  /** Quote free-text record values. Default true. */
+  /**
+   * DEPRECATED under Item 363. Record values are never visibly quoted; the
+   * flag is retained so existing callers keep type-checking and is ignored.
+   */
   readonly quoteFreeText?: boolean;
 }
 
@@ -98,23 +108,38 @@ function fillOne(
     case "text":
     default: {
       // VERBATIM LAW — record free text is reproduced exactly as the company
-      // wrote it: no punctuation stripping, no case folding.
-      const s = (Array.isArray(raw) ? joinNaturalList(raw) : String(raw)).trim();
-      // A referring expression ("the company") is the renderer's own word for
-      // the entity, not a record quotation, so it is never quoted.
-      const isReferring = /^(the company|the business|the entity|it)$/i.test(s);
-      const quote = opts.quoteFreeText !== false && !isReferring;
-      return quote ? `“${s.replace(/^["“”]|["“”]$/g, "")}”` : s;
+      // wrote it: no punctuation stripping, no case folding. ITEM 363: and no
+      // quotation marks; the value is span-tracked instead (see markRecord).
+      return (Array.isArray(raw) ? joinNaturalList(raw) : String(raw)).trim();
     }
   }
+}
+
+/**
+ * ITEM 363 — record-derived slot kinds carry invisible span tracking. A
+ * referring expression ("the company") is the renderer's own word for the
+ * entity, not a record value, so it is never marked.
+ */
+const RECORD_KINDS = new Set(["text", "list", "count", "date", "enum"]);
+const REFERRING = /^(the company|the business|the entity|it)$/i;
+
+function markRecord(p: FramePlaceholder, value: string): string {
+  if (!value) return value;
+  if (!RECORD_KINDS.has(p.kind)) return value;
+  // `engine.*` sources are the ENGINE's own computed prose, not the company's
+  // words. They are never span-tracked (and any record spans they already
+  // carry inside them are preserved untouched).
+  if (p.source.startsWith("engine.")) return value;
+  if (REFERRING.test(value.trim())) return value;
+  return rec(value, p.source);
 }
 
 /** The honest path when a frame cannot be filled from the record. */
 export function notStatedOnTheRecord(items: readonly string[]): string {
   const list = joinNaturalList(items);
   return items.length
-    ? `Not stated on the record. To complete this section the record needs ${list}.`
-    : "Not stated on the record.";
+    ? `The information provided does not state this. To complete this section we need ${list}.`
+    : "The information provided does not state this.";
 }
 
 export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRenderResult {
@@ -179,12 +204,17 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
       const whole = args[args.length - 1] as string;
       const after = whole.slice(offset + String(_m).length);
       // An unquoted record value that ends in a full stop must not carry it
-      // into the middle of the frame's own sentence.
+      // into the middle of the frame's own sentence — EXCEPT where the stop
+      // belongs to a legal-name abbreviation (Inc., Corp., Ltd., LLC, S.A.),
+      // which a lawyer reads as part of the name itself.
       const midSentence = /^\s*[a-z(]/.test(after) || /^\s*(and|with|,)/.test(after);
-      if (midSentence && /[^”"]\.$/.test(replacement)) {
-        return replacement.replace(/\.$/, "");
-      }
-      return replacement;
+      const nameAbbrev =
+        /\b(?:Inc|Corp|Ltd|Co|LLC|LLP|PLC|S\.A|N\.V|GmbH|Pty|Pte|Cie|Jr|Sr|No)\.$/.test(replacement);
+      const trimmed = midSentence && !nameAbbrev && /[^”"]\.$/.test(replacement)
+        ? replacement.replace(/\.$/, "")
+        : replacement;
+
+      return markRecord(p, trimmed);
     });
   }
 
