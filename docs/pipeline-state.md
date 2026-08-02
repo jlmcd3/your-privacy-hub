@@ -9910,3 +9910,48 @@ Recorded, not fixed — outside the Item 362 scope.
 
 Prose frame/plan libraries REMAIN `approved: false`. Item 245 RELEASED, Item 359
 DEPLOYED, Items 319–321 DEPLOYED — unchanged by this item.
+
+---
+
+## Item 365 — CORPUS PROGRAM EXECUTION (three legs, cap $300) — IN FLIGHT (unattended)
+
+Infrastructure landed and self-driving. No product surfaces touched.
+CPPA-INCLUSION-GATE unchanged (Item 354): CPPA rows remain globally blocked
+from all product surfaces pending the CEO's inclusion decision.
+
+### Infrastructure
+- `public.corpus_refetch_ledger` (per-batch campaign ledger), `public.job_leases`
+  (single-flight lease for scheduled sweeps).
+- `_shared/enforcement/source-fetcher.ts` — consolidated hardened fetcher
+  (robots.txt respected, 7-day cache, per-domain failure counts).
+- `corpus-refetch-campaign` — Leg 2 driver. Binding class order:
+  cppa → eu_dpa → eea_dpa → uk_dpa → us_state_ag → us_federal_agency →
+  ca_commissioner → court → other; Cohort A before Cohort B. Window-scan
+  selection (25x batch) so completed/robots-blocked rows cannot pin the batch.
+- `verification-scan` — `resume: true` reads its own cursor from
+  `verification_sweep_ledger`, takes a `sweep:<id>` lease, wraps the cursor when
+  exhausted so rows documented later by Leg 2 are picked up. Per-row budget gate
+  unchanged and fail-closed.
+- `repair-corpus-subjects` — new `set: "A2"` pass: re-extraction over
+  `corpus_defect_subject_unrepairable` rows that NOW carry a document.
+  Degradation law unchanged: extract verbatim or flag, never invent.
+
+### Cron drivers (vault-bearer pattern, no secrets in source)
+- `item365-refetch-driver` — `*/2 * * * *` → corpus-refetch-campaign, limit 12.
+- `item355-cached-sweep-driver` — `*/2 * * * *` → verification-scan
+  (`mode: cached`, `resume: true`, `sweep_id: item355-cached-sweep`,
+  `batch_size: 12`, `budget_cap_usd: 120`).
+
+### Observed live
+- Refetch: 12 attempted / 9–10 fetched per batch; failures logged by domain and
+  reason (`robots_disallow`, `http_error`). Cohort A / cppa first, as ordered.
+- Leg 1 sweep: resumed from stored cursor unassisted; cumulative spend $7.04 of
+  the $120 cap; ~1,691 rows remaining; projected remaining cost ~$94.
+
+### Still open
+- Leg 3 (`item365-refetch-sweep`, cap $110) is deliberately NOT scheduled yet —
+  it starts once Leg 2 exhausts its population, so it does not double-bill rows
+  the Leg 1 sweep is already walking.
+- Closing report (stratification refresh, per-authority-class before/after,
+  failure-reason distribution, CPPA slice package, analogy-gate headline metric)
+  follows completion of the legs.
