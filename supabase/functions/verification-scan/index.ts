@@ -381,8 +381,10 @@ async function processRow(row: any, mode: Mode = "initial") {
     }).eq("id", id);
     return {
       verdict: "failed",
+      reason: "deterministic_subject_and_regulator_absent",
       tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
     };
+
   }
 
   // Capture previous tier-A/B values for history
