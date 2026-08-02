@@ -708,8 +708,9 @@ Deno.serve(async (req) => {
       } catch (e) {
         failed++;
         processed++;
-        const reason = ((e as Error).message ?? String(e)).slice(0, 120);
+        const reason = `exception:${((e as Error).message ?? String(e)).slice(0, 120)}`;
         failure_reasons[reason] = (failure_reasons[reason] ?? 0) + 1;
+
         last_id = row.id;
         await sb.from("verification_results").insert({
           enforcement_action_id: row.id,
