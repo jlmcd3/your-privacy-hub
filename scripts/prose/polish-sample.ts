@@ -58,9 +58,13 @@ const doc = renderDocumentFromPlan(plan, composed.inputs, {
 const rewrite = (call: { segment: { text: string } }) =>
   Promise.resolve(
     call.segment.text
+      // Connective tissue and rhythm only — no facts, numbers, names, dates.
       .replace(/\bIn addition,\s*/g, "Further, ")
-      .replace(/\bThat is because\b/g, "This follows because")
-      .replace(/\bIt is the case that\s*/g, ""),
+      .replace(/\bIt is the case that\s*/g, "")
+      .replace(/\bTaken together, this assessment establishes\b/g,
+        "Taken together, the assessment establishes")
+      .replace(/\bThat determination follows\b/g, "That determination therefore follows")
+      .replace(/\bThis is because\b/g, "That follows because"),
   );
 
 const res = await runSpanSafePolish(
