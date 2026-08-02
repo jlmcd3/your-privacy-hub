@@ -71,6 +71,32 @@ export function renderCyberAuditSchedule(): string {
   ].join(" ");
 }
 
+/**
+ * ITEM 362 — RESOLVED-COHORT STATEMENT.
+ *
+ * The whole-schedule rendering above states the law but never names the
+ * deadline that follows from the revenue band the record ALREADY resolves,
+ * which is what `qc_r1_4_cohort_determinism` reads. When the band resolves,
+ * append one deterministic sentence naming the corresponding § 7121(a)
+ * subdivision and date; when it does not resolve, state the two-cohort
+ * conditional. Purely derived from the recorded band — no new judgment.
+ */
+export const RESOLVED_COHORT_MARKER = "[§ 7121(a) cohort on the recorded band]";
+
+const COHORT_BY_DATE: Record<string, { subdivision: string; deadline: string; audit_period: string }> = {
+  "2028-04-01": { subdivision: "(a)(1)", deadline: SCHEDULE_LITERALS.tier1.deadline, audit_period: SCHEDULE_LITERALS.tier1.audit_period },
+  "2029-04-01": { subdivision: "(a)(2)", deadline: SCHEDULE_LITERALS.tier2.deadline, audit_period: SCHEDULE_LITERALS.tier2.audit_period },
+  "2030-04-01": { subdivision: "(a)(3)", deadline: SCHEDULE_LITERALS.tier3.deadline, audit_period: SCHEDULE_LITERALS.tier3.audit_period },
+};
+
+export function renderResolvedCohortSentence(bandLabel: string, auditCohort: string): string {
+  const tier = COHORT_BY_DATE[auditCohort];
+  if (!tier) {
+    return `${RESOLVED_COHORT_MARKER} The recorded annual gross revenue band (${bandLabel}) does not resolve the § 7121(a) cohort: if 2027 annual gross revenue is between $50,000,000 and $100,000,000 the deadline is April 1, 2029; if it is under $50,000,000 the deadline is April 1, 2030. Recording the exact figure resolves the cohort.`;
+  }
+  return `${RESOLVED_COHORT_MARKER} On the recorded annual gross revenue band (${bandLabel}), the § 7121${tier.subdivision} cohort deadline is ${tier.deadline}, covering the audit period ${tier.audit_period}. The customer, in consultation with qualified legal counsel, confirms this cohort against its final revenue figures.`;
+}
+
 export interface CyberAuditScheduleResult {
   readonly emitted: boolean;
   readonly reason: "already_present" | "emitted" | "no_report" | "error";

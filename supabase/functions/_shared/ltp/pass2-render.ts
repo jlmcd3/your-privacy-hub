@@ -289,6 +289,19 @@ function checkForbiddenTokens(text: string, errors: string[]): void {
   }
 }
 
+/**
+ * ITEM 362 — ensure a rendered prose item terminates as a sentence.
+ * Appends a full stop when the text ends on a word character (or a closing
+ * quote/bracket that follows one). Never touches text already terminated.
+ */
+export function ensureTerminalPunctuation(text: string): string {
+  const t = String(text ?? "").trimEnd();
+  if (!t) return t;
+  if (/[.!?:][")\]']?$/.test(t)) return t;
+  if (/[A-Za-z0-9)\]"'%]$/.test(t)) return `${t}.`;
+  return t;
+}
+
 /** ITEM 235 — check post-render text for interpolation residue. */
 function hasInterpolationResidue(text: string): string | null {
   for (const re of INTERPOLATION_RESIDUE_PATTERNS) {
@@ -369,7 +382,12 @@ export function renderTemplate(
   }
 
   // ITEM 337 Part B — collapse doubled periods/spaces produced at slot seams.
-  text = collapseRenderArtifacts(text);
+  // ITEM 362 — TERMINAL PUNCTUATION. A template that ENDS in a slot loses the
+  // value's terminal period in `finish()` (slots.ts strips trailing punctuation
+  // unless the slot is sentence-typed). The resulting long, unterminated item
+  // was then flagged `unterminated_sentence` by the emit gate and degraded to
+  // the information-needed placeholder — the run #186 `next_steps` defect.
+  text = ensureTerminalPunctuation(collapseRenderArtifacts(text));
 
   if (text.length > tpl.max_chars) errors.push(`over_max_chars:${text.length}/${tpl.max_chars}`);
   if (/\{\{[a-z]+:[A-Z0-9_]+\}\}/i.test(text)) errors.push("leaked_slot_marker");

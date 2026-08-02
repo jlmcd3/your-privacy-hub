@@ -9777,3 +9777,136 @@ report-only mandate.
 Prose frame/plan libraries REMAIN `approved: false` (deterministic renderer
 serving). Item 245 RELEASED, Item 359 DEPLOYED, Items 319–321 DEPLOYED — all
 unchanged by this snapshot.
+
+---
+
+## Item 362 — cppa-risk v2 SERIALIZER GAP: `submission_summary` + `next_steps`
+
+**Status: COMPLETE.** Root cause of run #186's 58.35 found and fixed in the
+shared module (`_shared/ltp/**`); legacy engine untouched.
+
+### Verify-first findings
+
+The Item 357 shared module DID carry the resolutions. Nothing was missing
+upstream. The surfaces were destroyed at the emit gate, plus one projection gap:
+
+1. **`e6_counsel_referral` on the sanctioned register.** `emit-gate.ts` runs the
+   grader E-checks per leaf and degrades any leaf carrying a counsel referral.
+   The § 7157/§ 7155 submission-and-retention text and the § 7121(a) phase-in
+   schedule both close with the STANDING design-law framing "The customer, in
+   consultation with qualified legal counsel, determines …" (Items 204 / 273).
+   The gate therefore degraded the whole `submission_summary` leaf to the
+   information-needed placeholder — taking the § 7120(b)(1)/(b)(2)(B) prong
+   postures and the cohort dates with it. That is what `qc_r1_2` / `qc_r1_3`
+   read.
+2. **`unterminated_sentence` on `next_steps`.** `prose/slots.ts::finish()`
+   strips a slot value's trailing period unless the slot is sentence-typed AND
+   template text follows. Templates that END in a slot therefore rendered
+   unterminated, and the gate degraded them to the same placeholder.
+3. **Cohort projection gap.** `cyber-audit-schedule.ts` states the law for all
+   three tiers (correct, Item 204) but never named the deadline that follows
+   from the ALREADY-RESOLVED revenue band — `qc_r1_4_cohort_determinism`.
+
+### Fixes (shared module only)
+
+- `_shared/emit-gate.ts` — `SANCTIONED_COUNSEL_REGISTER` + exported
+  `isSanctionedCounselRegister()`. e6 no longer degrades the deterministic
+  reserved-to-counsel register (disclaimer/attestation, § 7157/§ 7155,
+  § 7121(a) schedule, § 7152(a)(7) reserved decisions). Every other counsel
+  referral still degrades. e4/e5 untouched.
+- `_shared/ltp/pass2-render.ts` — `ensureTerminalPunctuation()` applied after
+  `collapseRenderArtifacts()` in `renderTemplate`. Appends a full stop only
+  when the assembled text ends on a word character.
+- `_shared/ltp/cyber-audit-schedule.ts` — `renderResolvedCohortSentence()`:
+  deterministic one-sentence projection of the resolved band onto its
+  § 7121(a)(1)/(2)/(3) subdivision, deadline and audit period; two-cohort
+  conditional when the band does not resolve. Marker
+  `[§ 7121(a) cohort on the recorded band]`. Corpus literals unchanged.
+- `_shared/ltp/pass2-assembler.ts` — `buildDefaultSubmissionSummary()` appends
+  the resolved-cohort sentence (fail-open) ahead of the § 7120(b) postures.
+- `run-cppa-risk-assessment-v2/index.ts` — ping now reports
+  `composition_enforce`, at parity with the legacy ping. The batch preflight
+  aborted with `composition_enforce_mismatch` (expected "1", actual `null`)
+  because v2 never reported the flag. Wiring only.
+
+### Evidence — local render of `perfect-a073d9c5` (deterministic, enforce)
+
+```
+{"evt":"emit_gate", "prose_nodes":91, "degraded_count":0, "findings_count":0}
+submission_summary … [§ 7121(a) cohort on the recorded band] On the recorded
+annual gross revenue band ($25M to under $50M), the § 7121(a)(3) cohort
+deadline is April 1, 2030, covering the audit period January 1, 2029, through
+January 1, 2030. … Submission postures under 11 CCR § 7120(b): …
+next_steps[0] "Complete the assessment record for decision whether to initiate
+  the processing — this element is a determination reserved to the business
+  under the regulation rather than a gap in the assessment record. …"
+next_steps[1] "Confirm Technical / architectural controls is documented in the
+  assessment record — present on the record; retain the supporting
+  documentation with the assessment file."
+risk_level Low; information_needed len 1
+```
+
+Placeholder count on both surfaces: 0.
+
+### Blocking tests
+
+`tests/edge/_shared/ltp/item362-serializer-gap.test.ts` — 9 passed / 0 failed:
+qc_r1_2 (§ 7120(b) present), qc_r1_3 (§ 7157(a)(1) + § 7155(c) present),
+qc_r1_4_cohort_determinism (§ 7121(a)(3) + April 1, 2030 on the resolved band),
+per-band cohort determinism incl. the indeterminate conditional, placeholder-free
+`next_steps` at `missing_data = 0`, terminal punctuation on every step, no
+emit-gate degradation, punctuation-helper unit cases, sanctioned-register
+recognition (and non-recognition of a model-authored referral).
+
+Conformance suite green: `item357-conformance` + `item358-reserved-band` +
+`item352-sufficiency-consistency` + `cyber-audit-schedule` = **29 passed / 0
+failed**.
+
+Regression baseline held: `tests/edge/_shared/ltp/` + `tests/edge/run-cppa-risk-assessment/`
+= 559 passed / 29 failed BOTH with and without the punctuation change —
+identical counts, so the 29 are the pre-existing stale-stamp / `methodology_note`
+registry failures, not regressions from this item.
+
+### Graded run through the DEPLOYED route
+
+Batch `5644398b-05c8-47bf-9bb0-cf0ce1c8cb03`, tool `cppa-risk`, batch_size 1,
+child run `3087e20c-4370-4547-8d52-a943d6d28139` (**run #187**), status
+`complete`. Deployed ping verified before dispatch:
+
+```
+{"fn":"run-cppa-risk-assessment-v2","build_stamp":"ltp-risk-v2-item359-routed@2026-08-02",
+ "generator_stamp":"generate-cppa-risk@2026-08-01-item357","ltp_mode":"enforce",
+ "composition_enforce":"1","engine_path":"ltp","routed":true}
+```
+
+| Run | Claude `score_overall` | GPT `gpt_score_overall` |
+| --- | --- | --- |
+| #185 (pre-cutover baseline) | 87.50 | 86 |
+| #186 (Item 361, the defect) | 58.35 | 82 |
+| **#187 (this item)** | **73.35** | **89** |
+
+The three Item-362 target checks (`qc_r1_2`, `qc_r1_3`, `qc_r1_4_cohort_determinism`)
+no longer appear among the failures. Remaining failures on #187, verbatim:
+
+- analysis / `rubric_generic_boilerplate` (fail 1, gpt 1): "The executive summary
+  appears to be generic and lacks specific insights related to Meridan SaaS Inc's
+  unique context…"
+- citation / `rubric_citation_misapplied` (fail 1, gpt 0): "The scope_and_triggers
+  section cites \"11 CCR § 7150(b)(4)\" as the engaged trigger, described as
+  \"using automated processing to infer or extrapolate a consumer's intelligence,
+  ability, aptitude, performance at work, economic situation, health…\""
+- hallucination / `rubric_unsupported_business_claim` (fail 3, gpt 0): "The
+  scope_and_triggers section states: \"This assessment is triggered under
+  **11 CCR § 7150(b)(4) — using automated processing based on systematic
+  observation in worker, student, or applicant contexts**\". The intake field
+  q5b_profiling_observation is \"Yes — systematic observation of workers/students/…\""
+- intelligence / `rubric_actionability` (fail 1, gpt 1): "Owner and deadline
+  missing for key actions such as recording decisions regarding processing
+  initiation and adequacy assessment… Specific ownership should be defined."
+
+Recorded, not fixed — outside the Item 362 scope.
+
+### Standing state unchanged
+
+Prose frame/plan libraries REMAIN `approved: false`. Item 245 RELEASED, Item 359
+DEPLOYED, Items 319–321 DEPLOYED — unchanged by this item.

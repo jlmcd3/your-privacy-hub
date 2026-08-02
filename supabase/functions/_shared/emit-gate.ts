@@ -179,12 +179,45 @@ function collectLeaves(
 
 // ── Detection ───────────────────────────────────────────────────────────
 
+/**
+ * ITEM 362 — SANCTIONED RESERVED-TO-COUNSEL REGISTER.
+ *
+ * The e6 grader check exists to catch MODEL-AUTHORED "consult your lawyer"
+ * body text. Several surfaces are DETERMINISTIC, corpus-derived, and
+ * deliberately reserved-to-customer-and-counsel by standing design law:
+ *   • the standard legal-advice disclaimer + attestation block,
+ *   • § 7157/§ 7155 submission-and-retention and the § 7121(a) phase-in
+ *     schedule ("The customer, in consultation with qualified legal
+ *     counsel, determines …" — Items 204 / 273),
+ *   • § 7152(a)(7) reserved-decision statements (Item 358 Fix 1).
+ *
+ * Item 361 run #186: the gate degraded `submission_summary` (and the
+ * disclaimer) to the information-needed placeholder because of this check,
+ * destroying the § 7120(b) prong postures and the § 7121(a) cohort dates
+ * the graders read. Sanctioned register text is exempt from e6 degradation;
+ * every other counsel referral still degrades.
+ */
+export const SANCTIONED_COUNSEL_REGISTER: readonly RegExp[] = [
+  /must be reviewed by qualified legal counsel before any operational use or reliance/i,
+  /must be reviewed and attested to by qualified legal counsel before operational reliance/i,
+  /the customer,\s*in consultation with qualified legal counsel,/i,
+  /reserv(?:es|ed)[^.]{0,120}\bto qualified legal counsel\b/i,
+  /reserved (?:decision|judgment)s? (?:are|is)\b[^.]{0,200}\bqualified counsel\b/i,
+  /qualified counsel should be consulted for further consideration of/i,
+];
+
+export function isSanctionedCounselRegister(s: string): boolean {
+  return SANCTIONED_COUNSEL_REGISTER.some((re) => re.test(s));
+}
+
 function detectFindings(
   leaf: LeafRef,
   intakeRosterText: string,
 ): EmitGateFinding[] {
   const s = leaf.value;
   const findings: EmitGateFinding[] = [];
+  const sanctioned = isSanctionedCounselRegister(s);
+
 
   // Reuse grader E-checks (E2..E6) on the single string. E1 sections not
   // applicable at leaf granularity.
@@ -196,6 +229,8 @@ function detectFindings(
   }
   for (const f of eChecks) {
     if (f.passed) continue;
+    // ITEM 362 — sanctioned deterministic register is never a leak.
+    if (f.check_id === "e6_counsel_referral" && sanctioned) continue;
     // Only the leak-relevant subset degrades a leaf. E2 heading skips /
     // E3 bracket / E5 bare close / E6 counsel referrals are not authored
     // by machinery per se; but if the leaf itself is a bare advisory close
