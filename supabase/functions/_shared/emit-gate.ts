@@ -229,6 +229,8 @@ function detectFindings(
   }
   for (const f of eChecks) {
     if (f.passed) continue;
+    // ITEM 362 — sanctioned deterministic register is never a leak.
+    if (f.check_id === "e6_counsel_referral" && sanctioned) continue;
     // Only the leak-relevant subset degrades a leaf. E2 heading skips /
     // E3 bracket / E5 bare close / E6 counsel referrals are not authored
     // by machinery per se; but if the leaf itself is a bare advisory close
