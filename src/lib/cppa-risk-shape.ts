@@ -105,7 +105,26 @@ export const LTP_SECTION_ORDER: readonly string[] = [
  * unrecognized shape is a defect, and it surfaces as an explicit error card
  * plus a console.error carrying this discriminator result.
  */
-export type CppaRiskShape = "ltp" | "v3" | "v4" | "unrecognized";
+export type CppaRiskShape = "prose9" | "ltp" | "v3" | "v4" | "unrecognized";
+
+/**
+ * ITEM 369 — prose-9 envelope discriminator. MIRROR of `hasProse9Document` in
+ * supabase/functions/_shared/report-contracts/cppa-risk-prose9.ts. Deno edge
+ * code cannot import from src/, so this is the sanctioned mirror; both the PDF
+ * exporter and this viewer MUST branch on this and nothing else.
+ */
+export const CPPA_RISK_PROSE9_SHAPE_VERSION = "cppa-risk-shape@2026-08-02-item369-prose9";
+
+export function hasProse9Document(report: any): boolean {
+  const d = report?.prose_document;
+  return (
+    !!d &&
+    typeof d === "object" &&
+    d.version === CPPA_RISK_PROSE9_SHAPE_VERSION &&
+    Array.isArray(d.sections) &&
+    d.sections.length > 0
+  );
+}
 
 export interface CppaRiskShapeResult {
   shape: CppaRiskShape;
@@ -120,10 +139,19 @@ export function describeCppaRiskShape(
   isV4: (r: any) => boolean,
 ): CppaRiskShapeResult {
   const obj = report && typeof report === "object" ? report : {};
-  const isLtp = isLtpRiskShape(report);
-  const isV3 = !isLtp && !!(obj.schema_version === "v3-part-a-part-b" && obj.part_a);
-  const v4 = !isLtp && !isV3 && isV4(report);
-  const shape: CppaRiskShape = isLtp ? "ltp" : isV3 ? "v3" : v4 ? "v4" : "unrecognized";
+  const isProse9 = hasProse9Document(report);
+  const isLtp = !isProse9 && isLtpRiskShape(report);
+  const isV3 = !isProse9 && !isLtp && !!(obj.schema_version === "v3-part-a-part-b" && obj.part_a);
+  const v4 = !isProse9 && !isLtp && !isV3 && isV4(report);
+  const shape: CppaRiskShape = isProse9
+    ? "prose9"
+    : isLtp
+      ? "ltp"
+      : isV3
+        ? "v3"
+        : v4
+          ? "v4"
+          : "unrecognized";
   return {
     shape,
     recognized: shape !== "unrecognized",
@@ -137,3 +165,4 @@ export function describeCppaRiskShape(
     topLevelKeys: Object.keys(obj).slice(0, 40),
   };
 }
+
