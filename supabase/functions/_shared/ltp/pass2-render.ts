@@ -387,7 +387,7 @@ export function renderTemplate(
   // unless the slot is sentence-typed). The resulting long, unterminated item
   // was then flagged `unterminated_sentence` by the emit gate and degraded to
   // the information-needed placeholder — the run #186 `next_steps` defect.
-  text = collapseRenderArtifacts(text);
+  text = ensureTerminalPunctuation(collapseRenderArtifacts(text));
 
   if (text.length > tpl.max_chars) errors.push(`over_max_chars:${text.length}/${tpl.max_chars}`);
   if (/\{\{[a-z]+:[A-Z0-9_]+\}\}/i.test(text)) errors.push("leaked_slot_marker");
