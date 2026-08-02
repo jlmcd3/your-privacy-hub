@@ -42,6 +42,7 @@ async function runOne(name: string, uid: string | null) {
     .insert({
       user_id: uid,
       status: "pending",
+      module: "risk_assessment",
       intake_data: { ...FIXTURES[name], _item358_smoke: name },
     })
     .select("id")
