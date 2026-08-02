@@ -562,7 +562,8 @@ async function processRow(row: any, mode: Mode = "initial") {
 
   return {
     verdict: status,
-    tokens: {
+    reason: failReason,
+
       haiku_in: extraction.usage.input_tokens,
       haiku_out: extraction.usage.output_tokens,
       sonnet_in: para.usage.input_tokens,
