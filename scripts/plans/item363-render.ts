@@ -108,14 +108,14 @@ const banner = doc.sections.filter((s) => s.degraded).map((s) => s.section_id);
 note(banner.length === 0, "degradation banner logic", banner.join(", "));
 
 // 4. No flattening — every engine determination reaches the prose.
-const atoms = collectCoverageAtoms(analytics, {
+const atoms = collectCoverageAtoms(analytics);
+const coverage = checkCoverage(atoms, doc.sections.map((s) => s.text).join("\n"), {
   clauseFor: (k: string) => resolveEngineConclusion("cppa-risk", k),
 });
-const coverage = checkCoverage(atoms, doc.sections.map((s) => s.text).join("\n"));
 note(
-  coverage.missing.length === 0,
+  coverage.ok,
   "no flattening (frame coverage)",
-  coverage.missing.slice(0, 6).join(" | "),
+  coverage.findings.slice(0, 6).map((f) => `${f.atom.path}=${f.atom.value}`).join(" | "),
 );
 
 // 5. Item 363 style battery.

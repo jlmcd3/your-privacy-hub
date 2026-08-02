@@ -7,8 +7,9 @@
       "id": "cppa-risk.executive_lead.001",
       "product": "cppa-risk",
       "section": "executive_lead",
-      "body": "This CPPA risk assessment addresses {{ENTITY}}'s {{ACTIVITY}}. On the record the company provided, the assessment finds {{BAND}}, subject to {{CONDITIONS}}.",
+      "body": "This {{TOOL}} addresses {{ENTITY}}'s {{ACTIVITY}}. On the record the company provided, the assessment finds {{BAND}}, subject to {{CONDITIONS}}.",
       "placeholders": [
+        { "token": "TOOL", "kind": "text", "source": "engine.tool_label", "required": true },
         { "token": "ENTITY", "kind": "text", "source": "engine.entity_name", "required": true },
         { "token": "ACTIVITY", "kind": "text", "source": "engine.activity_name", "required": true },
         { "token": "BAND", "kind": "text", "source": "engine.band_phrase", "required": true },
