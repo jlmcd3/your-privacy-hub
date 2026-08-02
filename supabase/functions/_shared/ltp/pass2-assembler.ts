@@ -84,7 +84,16 @@ function buildDefaultSubmissionSummary(plan: RenderPlan): string {
   // lead-in marking it a RELATED, SEPARATE obligation.
   const head = renderSubmissionAndRetention();
   const schedule = `${CYBER_AUDIT_SEPARATE_LEAD_IN}\n\n${renderCyberAuditSchedule()}`;
-  const base = `${head}\n\n${schedule}`;
+  let base = `${head}\n\n${schedule}`;
+  // ITEM 362 — project the RESOLVED cohort. The schedule states the law for
+  // all three tiers; this names the deadline that follows from the revenue
+  // band the record already resolves (qc_r1_4_cohort_determinism).
+  try {
+    const band = classifyRevenueBand(intakeFromLedger(plan).q1_revenue);
+    base = `${base}\n\n${renderResolvedCohortSentence(band.label, String(band.audit_cohort))}`;
+  } catch {
+    /* fail-open — never lose the schedule text on a band-classification crash */
+  }
   try {
     const intake = intakeFromLedger(plan);
     const outcomes = computeProngOutcomes(intake as Record<string, any>);
@@ -96,6 +105,7 @@ function buildDefaultSubmissionSummary(plan: RenderPlan): string {
     return base;
   }
 }
+
 
 
 /**
