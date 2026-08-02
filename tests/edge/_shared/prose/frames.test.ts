@@ -134,6 +134,9 @@ import { extractSpans } from "../../../../supabase/functions/_shared/prose/span-
 import { checkCoverage, collectCoverageAtoms } from "../../../../supabase/functions/_shared/prose/frame-coverage.ts";
 import { CPPA_RISK_ENGINE_CONCLUSIONS, resolveEngineConclusion } from "../../../../supabase/functions/_shared/prose/engine-conclusions.ts";
 import { CPPA_RISK_LEGAL_PHRASINGS } from "../../../../supabase/functions/_shared/prose/legal-phrasings.ts";
+import { composeCppaRisk } from "../../../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
+import { renderDocumentFromPlan } from "../../../../supabase/functions/_shared/prose/plan-render.ts";
+import { CPPA_RISK_PLAN } from "../../../../library/prose/load.ts";
 import { buildActivityAnalytics } from "../../../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../../../supabase/functions/_shared/golden/cppa-risk.ts";
 
@@ -171,9 +174,29 @@ Deno.test("F12 — every section of the revised set renders on a COMPLETE record
 });
 
 Deno.test("F13 — NO FLATTENING: every composer atom survives into the framed render", () => {
+  // ITEM 363 — coverage is judged on the WHOLE composed document, because the
+  // plan now owns surfaces the frames do not carry (the record card lines and
+  // the condition bullets). Frame-only coverage would report those as dropped
+  // while the customer plainly reads them.
   const intake = CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>;
   const analytics = buildActivityAnalytics(intake)[0];
-  const report = checkCoverage(collectCoverageAtoms({ analytics }), renderAll363(), {
+  const approvedFrames: FrameSet = {
+    ...CPPA_RISK_FRAMES,
+    approved: true,
+    frames: CPPA_RISK_FRAMES.frames.map((f) => ({ ...f, status: "approved" as const })),
+  };
+  const composed = composeCppaRisk({ intake, analytics, frames: approvedFrames });
+  const doc = renderDocumentFromPlan(
+    {
+      ...CPPA_RISK_PLAN,
+      approved: true,
+      sections: CPPA_RISK_PLAN.sections.map((x) => ({ ...x, status: "approved" as const })),
+    },
+    composed.inputs,
+    { mentions: { primary: composed.entity, shortForm: "the company" }, graph: composed.graph },
+  );
+  const text = doc.sections.map((x) => x.text).join("\n");
+  const report = checkCoverage(collectCoverageAtoms({ analytics }), text, {
     clauseFor: (k) => resolveEngineConclusion("cppa-risk", k),
   });
   assert(report.total > 0);
