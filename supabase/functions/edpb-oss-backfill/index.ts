@@ -35,13 +35,26 @@ function json(b: unknown, s = 200) {
   });
 }
 
+// europa.eu occasionally aborts the HTTP/2 body mid-transfer ("error reading a
+// body from connection"), which also surfaces later as an unreadable PDF
+// ("Invalid Root reference"). Both are transient, so retry the whole
+// download+parse a couple of times before recording a failure.
 async function pdfToText(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
-  if (!res.ok) throw new Error(`http_${res.status}`);
-  const buf = new Uint8Array(await res.arrayBuffer());
-  const doc = await getDocumentProxy(buf);
-  const { text } = await extractText(doc, { mergePages: true });
-  return String(text ?? "").replace(/\u0000/g, "").replace(/[ \t]+/g, " ").trim();
+  let lastErr: unknown = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+      if (!res.ok) throw new Error(`http_${res.status}`);
+      const buf = new Uint8Array(await res.arrayBuffer());
+      const doc = await getDocumentProxy(buf);
+      const { text } = await extractText(doc, { mergePages: true });
+      return String(text ?? "").replace(/\u0000/g, "").replace(/[ \t]+/g, " ").trim();
+    } catch (e) {
+      lastErr = e;
+      await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
 /**
@@ -131,11 +144,13 @@ Deno.serve(async (req) => {
     try {
       const text = await pdfToText(row.decision_pdf_url!);
       if (text.length < 200) {
+        // Scanned/image-only PDF (~21% of the register on a 14-row sample).
+        // Retrying cannot help — retire the row from the queue and record why.
         stats.empty_pdf++;
         await admin.from("edpb_oss_decisions").update({
-          pdf_fetch_attempts: row.pdf_fetch_attempts + 1,
-          pdf_fetch_status: "empty",
-          pdf_fetch_error: `extracted_len=${text.length}`,
+          pdf_fetch_attempts: MAX_ATTEMPTS,
+          pdf_fetch_status: "image_only",
+          pdf_fetch_error: `extracted_len=${text.length}; scanned PDF, OCR required`,
         }).eq("id", row.id);
         continue;
       }
