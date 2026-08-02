@@ -415,7 +415,7 @@ async function processRow(row: any, mode: Mode = "initial") {
       source_document_hash: docHash,
       last_source_fetch_at: new Date().toISOString(),
     }).eq("id", id);
-    return { verdict: "failed", tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 } };
+    return { verdict: "failed", reason: "extraction_fatal", tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 } };
   }
 
   if (extraction.parse_error) {
