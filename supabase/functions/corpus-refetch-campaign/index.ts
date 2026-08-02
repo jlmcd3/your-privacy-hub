@@ -52,12 +52,17 @@ function domainOf(url: string | null): string {
 }
 
 async function selectBatch(cohort: Cohort, authorityClass: string, limit: number) {
+  // Scan a WINDOW larger than the batch: rows whose documents already landed
+  // (or whose domain is robots-disallowed) must not pin the batch to the head
+  // of the id order, which would make every scheduled run re-scan the same
+  // finished rows and fetch almost nothing.
+  const window = Math.min(limit * 25, 500);
   let q = sb
     .from("enforcement_actions")
     .select("id, source_url, authority_class, source_document_text", { count: "exact" })
     .not("source_url", "is", null)
     .order("id", { ascending: true })
-    .limit(limit);
+    .limit(window);
 
   if (cohort === "A") {
     q = q.eq("review_reason", "corpus_defect_subject_unrepairable");
@@ -75,11 +80,18 @@ async function selectBatch(cohort: Cohort, authorityClass: string, limit: number
 
   const { data, count } = await q;
   // Rows that already carry a usable document need no fetch.
-  const rows = (data ?? []).filter(
+  const pending = (data ?? []).filter(
     (r: any) => (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS,
   );
-  return { rows, remaining_in_class: count ?? 0, scanned: (data ?? []).length };
+  const rows = pending.slice(0, limit);
+  return {
+    rows,
+    remaining_in_class: count ?? 0,
+    pending_in_window: pending.length,
+    scanned: (data ?? []).length,
+  };
 }
+
 
 /** Walk the binding class order until a class yields work. */
 async function nextWork(limit: number, cohortPref: Cohort | "auto") {
