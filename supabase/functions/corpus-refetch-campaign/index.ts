@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const work = await nextWork(limit, cohortPref);
+    const work = await nextWork(campaign_id, limit, cohortPref);
     if (!work) {
       if (!dry_run) await sb.rpc("release_job_lease" as any, { _key: lockKey });
       return new Response(
