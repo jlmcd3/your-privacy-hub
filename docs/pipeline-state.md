@@ -10038,3 +10038,78 @@ Verification-integrity bug — scope reported before any blind fix:
 - Brazil ANPD row reclassified `authority_class` `court` → `other_regulator`
   (`court` was factually wrong; `other_regulator` is the existing enum-equivalent
   value in use for non-EEA/UK/US authorities).
+
+---
+
+## ITEM 368 — NLG/PROSE HARDENING (cppa-risk) — 2026-08-02
+
+CEO-directed, team-reviewed. Targets the Item 363 prose system only
+(`supabase/functions/_shared/prose/`). Not touched: the approved cppa-risk row in
+`prose_document_plans`, the CPPA-INCLUSION-GATE, `PRODUCT_GATES` in
+`surface-gate.ts`, `corpus-refetch-campaign`, `item355-cached-sweep`.
+
+Full evidence: `docs/reviews/ITEM368-NLG-HARDENING-cppa-risk-2026-08-02.md`.
+Observe-mode sample: `docs/reviews/ITEM368-POLISH-SAMPLE-cppa-risk-2026-08-02.md`.
+
+### 1. Sentinel-balance hard fail
+
+- `span-tracking.ts`: new `UnbalancedSentinelError`, `SentinelDefect` and
+  `auditSentinels()`; `extractSpans()` now THROWS on the first malformed mark
+  instead of silently dropping it. `rec()` sentinel-strips the value and source
+  path so nesting can never be self-inflicted. Version →
+  `prose-span-tracking-2026-08-02-item368`.
+- `style-lint.ts`: 15th rule `unbalanced_sentinel`, raised per defect on any text
+  reaching the lint pre-extraction. Version →
+  `prose-style-lint-2026-08-02-item368`.
+
+### 2. Fuzz coverage
+
+- New `tests/edge/_shared/prose/span-fuzz.test.ts`: seeded xorshift generator,
+  seven adversarial sentence shapes (spans at sentence boundaries, adjacent
+  spans, record-card lines, quoted spans, segments straddling paragraph breaks),
+  five sentinel mutation operators. Properties: verbatim round-trip, no crash,
+  hard-fail on malformed marks, no false-clean on planted defects, and span
+  immutability against a hostile rewriter. ~2,500 generated cases.
+  Result: 6 passed / 0 failed.
+
+### 3. Reuse-law findings (reported, not changed)
+
+- **Pass-2R is NOT observe-only any more.** `run-cppa-risk-assessment-v2` passes
+  `mode: "enforce"`; `generate-cppa-risk.ts:275` forwards it; `pass2r-llm.ts`
+  requires `LTP_ENFORCE_ENABLED=1`, confirmed set by Item 358. On all-validators-
+  pass the model narrative ships as `shipped_surface: "2R"`. The comment at
+  `pass2r-llm.ts:22` is stale. Open item for CEO decision.
+- **Item 340 polish runner is inert and orphaned** — imported by nothing outside
+  its own tests; all 12 flags off.
+- **The Item 363 frame/plan pipeline is also not on the live path**:
+  `composeCppaRisk` / `renderDocumentFromPlan` / library loaders are imported
+  only by `scripts/` and `tests/`; `generate-cppa-risk.ts` imports none of them.
+
+### 4. Span-safe polish pass — SHIPPED OFF
+
+- New `_shared/prose/span-safe-polish.ts`. Structural guarantee: the rewriter is
+  handed only the plain-text segments BETWEEN extracted span offsets and its
+  output only replaces segments; span values are re-inserted verbatim from the
+  original `RecordSpan.value`. There is no code path that writes into a span
+  range, and rewriter output is sentinel-stripped. Proven by fuzz property P5
+  against a hostile rewriter.
+- Every candidate re-runs the FULL battery (14 Item 363 rules + the new
+  `unbalanced_sentinel`) across the whole document; any finding absent from the
+  deterministic baseline rejects it. Span loss/alteration also rejects. No
+  exemptions. Fallback law: rejection/throw/timeout ships deterministic text.
+- `SPAN_SAFE_POLISH_FLAGS["cppa-risk"] = { enabled: false, mode: "shadow" }`.
+  Nothing in the render path calls it. Before/after sample generated for CEO
+  review via `scripts/prose/polish-sample.ts`:
+  `sections=9 candidates=9 changed=1 accepted=9 shipped_polished=0`.
+
+### 5. Regression
+
+- Item 363 acceptance battery on `risk-saas-clean-tuning`: exit 0, 22 PASS / 0
+  FAIL, unchanged.
+- `deno test tests/edge/_shared/prose/`: 119 passed / 3 failed. The 3 are
+  pre-existing stale assertions (`frames.test.ts` F7/F17, `plan.test.ts`
+  "reviewed plans … not yet approved") that assert `approved === false`,
+  invalidated by Item 363's approval flip; left alone under the do-not-touch
+  list. A pre-existing TS2322 typecheck failure in
+  `tests/edge/_shared/render-plan/validators.lia.test.ts:237` is unrelated to
+  the prose modules.

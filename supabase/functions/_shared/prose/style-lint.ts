@@ -9,9 +9,9 @@
 // senior legal counsel with assistance from professional writers.
 
 import { BANNED_ANALOGY_PATTERNS, NO_ANALOGY_SENTENCE } from "./analogies.ts";
-import type { RecordSpan } from "./span-tracking.ts";
+import { auditSentinels, type RecordSpan } from "./span-tracking.ts";
 
-export const STYLE_LINT_VERSION = "prose-style-lint-2026-08-01-item363";
+export const STYLE_LINT_VERSION = "prose-style-lint-2026-08-02-item368";
 
 export type StyleRule =
   | "quoted_intake_value"
@@ -27,7 +27,9 @@ export type StyleRule =
   | "analogy_missing_why"
   | "analogy_missing_impact"
   | "analogy_outcome_predictive"
-  | "analogy_empty_sentence";
+  | "analogy_empty_sentence"
+  // ITEM 368(1) — structural span-sentinel defect on text that reached the lint.
+  | "unbalanced_sentinel";
 
 export interface StyleFinding {
   readonly rule: StyleRule;
@@ -235,6 +237,16 @@ export function lintDocumentStyle(
 
   for (const s of sections) {
     const text = s.text ?? "";
+
+    // ── RULE: sentinel balance (Item 368(1)) ────────────────────────────
+    // Any text reaching the lint pre-extraction must carry well-formed marks.
+    for (const d of auditSentinels(text)) {
+      out.push({
+        rule: "unbalanced_sentinel",
+        section_id: s.section_id,
+        detail: `${d.kind} at ${d.index}`,
+      });
+    }
 
     // ── RULE: no quotation marks around intake-derived values ───────────
     for (const q of quotedRegions(text)) {

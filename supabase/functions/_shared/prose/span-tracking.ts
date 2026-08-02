@@ -21,7 +21,7 @@
 // VERBATIM FIDELITY IS UNCHANGED: the value between the sentinels is the
 // company's own text, byte-for-byte. Only the visible delimiter is gone.
 
-export const SPAN_TRACKING_VERSION = "prose-span-tracking-2026-08-01-item363";
+export const SPAN_TRACKING_VERSION = "prose-span-tracking-2026-08-02-item368";
 
 export const SPAN_START = "\uE000";
 export const SPAN_SEP = "\uE002";
@@ -44,7 +44,11 @@ export interface RecordSpan {
  * around it; the sentinels never reach a reader.
  */
 export function rec(value: unknown, source: string): string {
-  const v = value === null || value === undefined ? "" : String(value);
+  // Sentinels are stripped from the value and the source path FIRST: a record
+  // value that itself contained a sentinel would otherwise nest and, under the
+  // Item 368(1) hard fail, blow up a render over data we can safely clean.
+  const v = (value === null || value === undefined ? "" : String(value)).replace(SENTINELS, "");
+  source = String(source ?? "").replace(SENTINELS, "");
   if (!v.trim()) return "";
   return `${SPAN_START}${source}${SPAN_SEP}${v}${SPAN_END}`;
 }
@@ -60,40 +64,115 @@ export function stripSpanMarks(text: string): string {
 }
 
 /**
+ * ITEM 368(1) — SENTINEL-BALANCE HARD FAIL.
+ *
+ * A malformed mark means the composer lost track of what the company wrote.
+ * Silently dropping it produces prose that LOOKS clean while the verbatim
+ * guarantee is gone — the worst possible failure for a legal deliverable.
+ * Extraction therefore throws; callers treat it as build-blocking.
+ */
+export class UnbalancedSentinelError extends Error {
+  readonly kind: SentinelDefect["kind"];
+  readonly index: number;
+  constructor(defect: SentinelDefect) {
+    super(`unbalanced span sentinel: ${defect.kind} at index ${defect.index}`);
+    this.name = "UnbalancedSentinelError";
+    this.kind = defect.kind;
+    this.index = defect.index;
+  }
+}
+
+export interface SentinelDefect {
+  readonly kind:
+    | "start_without_separator"
+    | "start_without_end"
+    | "separator_outside_span"
+    | "end_without_start"
+    | "nested_start";
+  readonly index: number;
+}
+
+/**
+ * Every structural sentinel defect in `text`, in order. Empty = well formed.
+ * Shared by `extractSpans` (which throws on the first) and the style lint
+ * (which reports them all on any text that reaches it pre-extraction).
+ */
+export function auditSentinels(text: string): SentinelDefect[] {
+  const src = String(text ?? "");
+  const defects: SentinelDefect[] = [];
+  let i = 0;
+  while (i < src.length) {
+    const ch = src[i];
+    if (ch === SPAN_SEP) {
+      defects.push({ kind: "separator_outside_span", index: i });
+      i += 1;
+      continue;
+    }
+    if (ch === SPAN_END) {
+      defects.push({ kind: "end_without_start", index: i });
+      i += 1;
+      continue;
+    }
+    if (ch !== SPAN_START) {
+      i += 1;
+      continue;
+    }
+    const sep = src.indexOf(SPAN_SEP, i + 1);
+    const end = src.indexOf(SPAN_END, i + 1);
+    if (sep === -1 || (end !== -1 && end < sep)) {
+      defects.push({ kind: "start_without_separator", index: i });
+      i += 1;
+      continue;
+    }
+    if (end === -1) {
+      defects.push({ kind: "start_without_end", index: i });
+      i += 1;
+      continue;
+    }
+    const nested = src.indexOf(SPAN_START, i + 1);
+    if (nested !== -1 && nested < end) {
+      defects.push({ kind: "nested_start", index: nested });
+      i += 1;
+      continue;
+    }
+    i = end + 1;
+  }
+  return defects;
+}
+
+/**
  * Strip the sentinels and return the clean prose plus the offsets of every
- * record-derived span within it. Unbalanced sentinels are dropped rather than
- * thrown on: a defective mark must never destroy a customer document.
+ * record-derived span within it.
+ *
+ * THROWS `UnbalancedSentinelError` on any malformed mark (Item 368(1)).
  */
 export function extractSpans(text: string): { text: string; spans: RecordSpan[] } {
   const src = String(text ?? "");
+  const defects = auditSentinels(src);
+  if (defects.length) throw new UnbalancedSentinelError(defects[0]);
+
   let out = "";
   const spans: RecordSpan[] = [];
   let i = 0;
   while (i < src.length) {
     const ch = src[i];
     if (ch !== SPAN_START) {
-      if (ch !== SPAN_END && ch !== SPAN_SEP) out += ch;
+      out += ch;
       i += 1;
       continue;
     }
     const sep = src.indexOf(SPAN_SEP, i + 1);
     const end = src.indexOf(SPAN_END, sep + 1);
-    if (sep === -1 || end === -1) {
-      i += 1;
-      continue;
-    }
     const source = src.slice(i + 1, sep);
     const inner = src.slice(sep + 1, end);
-    const cleanedInner = inner.replace(SENTINELS, "");
     const start = out.length;
-    out += cleanedInner;
-    if (cleanedInner) {
-      spans.push({ source, value: cleanedInner, start, end: out.length });
-    }
+    out += inner;
+    if (inner) spans.push({ source, value: inner, start, end: out.length });
     i = end + 1;
   }
   return { text: out, spans };
 }
+
 
 /** Convenience: every distinct record path referenced by a set of spans. */
 export function spanSources(spans: readonly RecordSpan[]): string[] {
