@@ -10,6 +10,7 @@
  * DELETE AFTER THE ITEM 358 SMOKE. Nothing routes to it; it is not referenced
  * by any UI surface.
  */
+import { runConformanceChecks, formatResults } from "../_shared/ltp/conformance/conformance-checks.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
@@ -61,6 +62,36 @@ async function runOne(name: string, uid: string | null) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const u = new URL(req.url);
+  const check = u.searchParams.get("check");
+  if (check) {
+    const ids = check.split(",");
+    const out = [];
+    for (const id of ids) {
+      const { data } = await supabase.from("cppa_assessments").select("status, report_data").eq("id", id).single();
+      const report = ((data as Record<string, unknown> | null)?.report_data ?? {}) as Record<string, unknown>;
+      const internal = (((report._meta as Record<string, unknown> | undefined)?.internal) ?? {}) as Record<string, unknown>;
+      const results = runConformanceChecks(report);
+      out.push({
+        id,
+        status: (data as Record<string, unknown> | null)?.status ?? null,
+        keys: Object.keys(report).sort(),
+        risk_level: report.risk_level,
+        overall_score: report.overall_score,
+        information_needed: report.information_needed,
+        record_sufficiency: report.record_sufficiency,
+        engine_path: internal.engine_path,
+        ltp: internal.ltp,
+        conformance: formatResults(id, results),
+        failed: results.filter((r) => !r.ok),
+      });
+    }
+    return new Response(JSON.stringify({ item: 358, check: out }, null, 2), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const uid = await ownerId();
   const out = [];
   for (const name of Object.keys(FIXTURES)) out.push(await runOne(name, uid));
