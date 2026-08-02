@@ -93,8 +93,10 @@ Deno.serve(async (req) => {
   }
 
   const uid = await ownerId();
+  const only = u.searchParams.get("only");
+  const names = only ? [only] : Object.keys(FIXTURES);
   const out = [];
-  for (const name of Object.keys(FIXTURES)) out.push(await runOne(name, uid));
+  for (const name of names) out.push(await runOne(name, uid));
   return new Response(JSON.stringify({ item: 358, results: out }, null, 2), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
