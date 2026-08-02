@@ -17,6 +17,12 @@
  *      Investigations, complaints, advisories and press summaries are NOT
  *      final instruments and never surface.
  *   4. authority_class on the explicit per-product allow-list below.
+ *   5. SOURCE-QUALITY GATE (2026-08-02, CEO) — `source_type` must be
+ *      'regulator_primary'. A regulator press item, a third-party tracker /
+ *      case wiki (GDPRhub, enforcementtracker) or a news / law-firm write-up
+ *      is somebody's description of a decision, not the decision. An
+ *      unclassified row (`source_type` null) fails closed. Additive: it
+ *      relaxes none of checks 1-4.
  *
  * ── NAMED, DATED GATE ────────────────────────────────────────────────────────
  * CPPA-INCLUSION-GATE (2026-08-01, CEO): `authority_class = 'cppa'` is
@@ -27,6 +33,14 @@
  * final still does NOT surface while this gate stands.
  * ─────────────────────────────────────────────────────────────────────────────
  */
+
+import {
+  type ClassifiableRow,
+  classifySourceType,
+  SOURCE_TYPES,
+  type SourceType,
+} from "./source-type.ts";
+export * from "./source-type.ts";
 
 /** Closed authority-class vocabulary (Item 352 stratification sweep). */
 export const AUTHORITY_CLASSES = [
@@ -83,6 +97,8 @@ export interface ProductGate {
   profile: GateProfile;
   /** null = no authority-class restriction beyond the global cppa exclusion. */
   allow_authority_classes: AuthorityClass[] | null;
+  /** SOURCE-QUALITY GATE — null = no source_type restriction (preserved). */
+  allow_source_types: SourceType[] | null;
 }
 
 /** Per-product allow-list table. */
@@ -91,11 +107,13 @@ export const PRODUCT_GATES: Record<string, ProductGate> = {
     product: "cppa-risk",
     profile: "cppa_risk",
     allow_authority_classes: ["eu_dpa", "eea_dpa", "uk_dpa"],
+    allow_source_types: ["regulator_primary"],
   },
   default: {
     product: "default",
     profile: "preserved",
     allow_authority_classes: null,
+    allow_source_types: null,
   },
 };
 
@@ -126,6 +144,8 @@ export interface GateRow {
   strat_has_document?: boolean | null;
   source_document_text?: string | null;
   source_url?: string | null;
+  source_type?: string | null;
+  source_database?: string | null;
   [k: string]: unknown;
 }
 
@@ -142,6 +162,7 @@ export type GateReason =
   | "not_document_backed"
   | "not_final_instrument"
   | "authority_class_not_allowed"
+  | "source_type_not_primary"
   | "cppa_inclusion_gate";
 
 const MIN_DOC_CHARS = 200;
@@ -172,6 +193,22 @@ export function isFinalInstrument(row: GateRow): boolean {
   return at ? FINAL_SET.has(at) : false;
 }
 
+/**
+ * SOURCE-QUALITY GATE (2026-08-02). Resolves the row's source_type, falling
+ * back to the deterministic classifier when the column was not selected.
+ * Unresolvable ⇒ null ⇒ fails closed.
+ */
+export function resolveSourceType(row: GateRow): SourceType | null {
+  const st = String(row.source_type ?? "").trim();
+  if (st) return (SOURCE_TYPES as readonly string[]).includes(st) ? (st as SourceType) : null;
+  if (row.source_database == null && row.source_url == null) return null;
+  return classifySourceType(row as ClassifiableRow);
+}
+
+export function isRegulatorPrimary(row: GateRow): boolean {
+  return resolveSourceType(row) === "regulator_primary";
+}
+
 export function gateRow(
   row: GateRow,
   opts: GateOptions = {},
@@ -191,6 +228,12 @@ export function gateRow(
     if (gate.allow_authority_classes && !gate.allow_authority_classes.includes(cls as AuthorityClass)) {
       return { allowed: false, reason: "authority_class_not_allowed" };
     }
+    if (gate.allow_source_types) {
+      const st = resolveSourceType(row);
+      if (!st || !gate.allow_source_types.includes(st)) {
+        return { allowed: false, reason: "source_type_not_primary" };
+      }
+    }
     return { allowed: true, reason: "ok" };
   }
 
@@ -201,6 +244,13 @@ export function gateRow(
   if (!isFinalInstrument(row)) return { allowed: false, reason: "not_final_instrument" };
   if (gate.allow_authority_classes && !gate.allow_authority_classes.includes(cls as AuthorityClass)) {
     return { allowed: false, reason: "authority_class_not_allowed" };
+  }
+  // SOURCE-QUALITY GATE — additive, last, and fail-closed.
+  if (gate.allow_source_types) {
+    const st = resolveSourceType(row);
+    if (!st || !gate.allow_source_types.includes(st)) {
+      return { allowed: false, reason: "source_type_not_primary" };
+    }
   }
   return { allowed: true, reason: "ok" };
 }
@@ -218,6 +268,7 @@ export function gateAudit(rows: GateRow[], opts: GateOptions = {}): Record<GateR
     not_document_backed: 0,
     not_final_instrument: 0,
     authority_class_not_allowed: 0,
+    source_type_not_primary: 0,
     cppa_inclusion_gate: 0,
   } as Record<GateReason, number>;
   for (const r of rows ?? []) out[gateRow(r, opts).reason]++;
@@ -226,7 +277,7 @@ export function gateAudit(rows: GateRow[], opts: GateOptions = {}): Record<GateR
 
 /** Columns every gated surface MUST select so the gate can evaluate a row. */
 export const GATE_COLUMNS =
-  "verification_status, disposition_type, action_type, authority_class, strat_has_document";
+  "verification_status, disposition_type, action_type, authority_class, strat_has_document, source_type, source_database";
 
 /**
  * SQL prefilter. Applies the gate's server-side portion to a PostgREST query
@@ -240,6 +291,7 @@ export function applyGateQuery<Q>(query: Q, product?: string | null): Q {
   q = q.or("authority_class.is.null,authority_class.neq.cppa");
   if (gate.profile === "preserved") {
     q = q.not("verification_status", "eq", "requires_review");
+    if (gate.allow_source_types) q = q.in("source_type", gate.allow_source_types);
     return q as Q;
   }
   q = q.eq("verification_status", "verified");
@@ -247,6 +299,9 @@ export function applyGateQuery<Q>(query: Q, product?: string | null): Q {
   q = q.in("disposition_type", FINAL_INSTRUMENTS as unknown as string[]);
   if (gate.allow_authority_classes) {
     q = q.in("authority_class", gate.allow_authority_classes);
+  }
+  if (gate.allow_source_types) {
+    q = q.in("source_type", gate.allow_source_types);
   }
   return q as Q;
 }

@@ -134,6 +134,11 @@ async function selectRows(
         { count: "exact" },
       )
       .eq("verification_status", "unverified")
+      // SOURCE-QUALITY GATE (2026-08-02): rows whose source can never be the
+      // regulator's own text (regulator news feeds, the GDPRhub wiki) are not
+      // citable even once verified, so they are excluded from the sweep's
+      // population and the spend goes to primary-source rows instead.
+      .not("source_type", "in", "(regulator_press,third_party_commentary)")
       .order("id", { ascending: true })
       .limit(batchSize);
     if (jurisdictionIn && jurisdictionIn.length > 0) q = q.in("jurisdiction", jurisdictionIn);
