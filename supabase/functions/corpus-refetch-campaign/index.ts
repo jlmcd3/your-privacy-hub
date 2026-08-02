@@ -118,16 +118,17 @@ async function selectBatch(
     remaining_in_class: count ?? 0,
     pending_in_window: pending.length,
     scanned: (data ?? []).length,
+    cursor,
   };
 }
 
 
 /** Walk the binding class order until a class yields work. */
-async function nextWork(limit: number, cohortPref: Cohort | "auto") {
+async function nextWork(campaignId: string, limit: number, cohortPref: Cohort | "auto") {
   const cohorts: Cohort[] = cohortPref === "auto" ? ["A", "B"] : [cohortPref];
   for (const cohort of cohorts) {
     for (const cls of CLASS_ORDER) {
-      const sel = await selectBatch(cohort, cls, limit);
+      const sel = await selectBatch(campaignId, cohort, cls, limit);
       if (sel.rows.length > 0) return { cohort, authorityClass: cls, ...sel };
     }
   }
