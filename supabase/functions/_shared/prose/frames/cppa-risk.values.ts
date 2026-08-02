@@ -243,11 +243,9 @@ export function buildCppaRiskFrameValues(input: {
     const parts: string[] = [];
     if (conditions.length) {
       parts.push(
-        `The determination stands only while ${conditionsPhrase} ${
-          pluralise(conditions.length, "is", "are")
-        } met, and ${
-          conditions.length === 1 ? "it is" : "they are"
-        } set out below in the order they bear on the decision.`,
+        conditions.length === 1
+          ? `The determination stands only while ${conditionsPhrase} is met, and that condition is set out below.`
+          : `The determination stands only while ${conditionsPhrase} are met, and they are set out below in the order they bear on the decision.`,
       );
     }
     if (openNeeds.length) {
