@@ -58,7 +58,7 @@ export const CPPA_RISK_ENGINE_CONCLUSIONS: Record<string, EngineConclusion> = {
   "consequence.initiate": C(
     "consequence.initiate",
     DEC,
-    "records the processing as supportable on the record before it",
+    "records the processing as supportable on the facts the company provided",
     null,
   ),
   "consequence.initiate_with_conditions": C(
@@ -96,7 +96,7 @@ export const CPPA_RISK_ENGINE_CONCLUSIONS: Record<string, EngineConclusion> = {
   "weighing.benefit_supported": C(
     "weighing.benefit_supported",
     WEIGH,
-    "carries the weighing through on the benefits the record states",
+    "carries the weighing through on the benefits the company states",
     null,
   ),
 

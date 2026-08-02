@@ -74,6 +74,9 @@ export const ATTRIBUTION_VERBS: readonly string[] = [
   "records",
   "record",
   "puts it",
+  "puts",
+  "traces",
+  "attributes to",
   "provides",
   "provide",
   "confirms",
@@ -101,7 +104,7 @@ function attributionRe(entity?: string): RegExp {
   ];
   if (entity && entity.trim()) subjects.unshift(escapeRe(entity.trim()));
   return new RegExp(
-    `\\b(?:${subjects.join("|")})\\b(?:'s)?[^.;:]{0,140}?\\b(?:${VERB_ALT})\\b`,
+    `\\b(?:${subjects.join("|")})\\b(?:'s)?[^.]{0,400}?\\b(?:${VERB_ALT})\\b`,
     "i",
   );
 }
@@ -153,8 +156,10 @@ export function splitSentences(text: string): Array<{ text: string; start: numbe
   while ((m = re.exec(src))) {
     const end = m.index + 1;
     const chunk = src.slice(start, end);
-    // Do not break inside a pinpoint such as "§ 7152(a)(2)." mid-clause.
-    if (/§\s*\d[\d().a-z]*$/i.test(chunk.trim())) continue;
+    // Do not break inside a pinpoint such as "§ 7152(a)(2)." when the clause
+    // plainly continues in lower case; a following capital IS a new sentence.
+    const nextCh = (src.slice(end).match(/\S/) ?? [""])[0];
+    if (/§\s*\d[\d().a-z]*$/i.test(chunk.trim()) && /[a-z]/.test(nextCh)) continue;
     out.push({ text: chunk.trim(), start });
     start = end;
     while (start < src.length && /\s/.test(src[start])) start++;

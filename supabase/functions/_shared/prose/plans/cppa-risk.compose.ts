@@ -58,6 +58,10 @@ export interface ComposeResult {
   readonly record_summary: RecordSummary;
 }
 
+/** Card values are joined with "; " — a value's own full stop would collide. */
+const tidy = (v: string) => v.replace(/[\s.;,]+$/, "");
+const joinCard = (xs: readonly string[]) => xs.map(tidy).filter(Boolean).join("; ");
+
 const label = (k: string) =>
   k.replace(/^[qi]\d+[a-z]?_/i, "").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 
@@ -135,15 +139,15 @@ export function composeCppaRisk(input: {
   // ── 1. RECORD CARD ───────────────────────────────────────────────────
   const cardLead = frameText("record_card_lead");
   const recordFields: Array<[string, string, string]> = [
-    ["parties", "q2_consumers", String(values.q2_consumers ?? "")],
-    ["data", "q4_pi_categories", ((values.data_categories as string[]) ?? []).join("; ")],
-    ["data", "i4b_sources", String(values.sources ?? "")],
-    ["recipients", "i6_vendors", ((values.i6_vendors as string[]) ?? []).join("; ")],
-    ["retention", "i2_retention_period", String(values.retention_period ?? "")],
+    ["parties", "q2_consumers", tidy(String(values.q2_consumers ?? ""))],
+    ["data", "q4_pi_categories", joinCard((values.data_categories as string[]) ?? [])],
+    ["data", "i4b_sources", tidy(String(values.sources ?? ""))],
+    ["recipients", "i6_vendors", joinCard((values.i6_vendors as string[]) ?? [])],
+    ["retention", "i2_retention_period", tidy(String(values.retention_period ?? ""))],
     [
       "safeguards",
       "safeguards",
-      ((values["impact_intake.safeguards"] as string[]) ?? []).join("; "),
+      joinCard((values["impact_intake.safeguards"] as string[]) ?? []),
     ],
   ];
   inputs["record_card"] = {
