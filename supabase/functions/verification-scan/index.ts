@@ -565,6 +565,7 @@ Deno.serve(async (req) => {
     if (sweep_id) {
       spent_before = await sweepSpentSoFar(sweep_id);
       if (spent_before >= budget_cap_usd) {
+        await releaseLease();
         return new Response(JSON.stringify({
           mode,
           sweep_id,
@@ -579,9 +580,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    const sel: any = await selectRows(mode, batch_size, start_after_id, target_ids, jurisdiction_in);
+    let sel: any = await selectRows(mode, batch_size, start_after_id, target_ids, jurisdiction_in);
+    // ITEM 365 — cursor wrap-around for the cron driver: once the cursor has
+    // walked past the end, rescan from the start so rows whose documents
+    // arrived later (Leg 2 refetch) are picked up. Cached mode only selects
+    // still-unverified rows, so a wrap can never re-bill finished work.
+    if (mode === "cached" && resume && start_after_id && (sel.scanned ?? 0) === 0) {
+      start_after_id = null;
+      sel = await selectRows(mode, batch_size, null, target_ids, jurisdiction_in);
+    }
     const rows = sel.rows;
     const remaining = sel.remaining;
+
 
     let verified = 0, failed = 0, requires_review = 0, memo_eligible_after = 0;
     const tokens = { haiku_input: 0, haiku_output: 0, sonnet_input: 0, sonnet_output: 0 };
