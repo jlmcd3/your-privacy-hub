@@ -21,7 +21,7 @@
 // VERBATIM FIDELITY IS UNCHANGED: the value between the sentinels is the
 // company's own text, byte-for-byte. Only the visible delimiter is gone.
 
-export const SPAN_TRACKING_VERSION = "prose-span-tracking-2026-08-01-item363";
+export const SPAN_TRACKING_VERSION = "prose-span-tracking-2026-08-02-item368";
 
 export const SPAN_START = "\uE000";
 export const SPAN_SEP = "\uE002";
@@ -44,7 +44,11 @@ export interface RecordSpan {
  * around it; the sentinels never reach a reader.
  */
 export function rec(value: unknown, source: string): string {
-  const v = value === null || value === undefined ? "" : String(value);
+  // Sentinels are stripped from the value and the source path FIRST: a record
+  // value that itself contained a sentinel would otherwise nest and, under the
+  // Item 368(1) hard fail, blow up a render over data we can safely clean.
+  const v = (value === null || value === undefined ? "" : String(value)).replace(SENTINELS, "");
+  source = String(source ?? "").replace(SENTINELS, "");
   if (!v.trim()) return "";
   return `${SPAN_START}${source}${SPAN_SEP}${v}${SPAN_END}`;
 }
