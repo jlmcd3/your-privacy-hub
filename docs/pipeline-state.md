@@ -9579,3 +9579,103 @@ unrouted for instant string-reversion. Items 319–321: engine-side DEPLOYED;
 Item 321's UI panel is PENDING the frontend publish above.
 Prose frame/plan libraries remain `approved: false` (deterministic renderer
 serving) — unchanged and CEO-reserved.
+
+---
+
+## Item 360 — PROFILES PRIVILEGE-ESCALATION FIX + FRONTEND PUBLISH (completes Item 359)
+Status: **COMPLETE.** Four-team unanimous under the CEO completion mandate.
+
+### VERIFY-FIRST — every client-side UPDATE to `public.profiles` in `src/`
+| File | Columns written | Disposition |
+|---|---|---|
+| `src/components/DigestPreferences.tsx` | `digest_jurisdictions`, `digest_topics` | LEGITIMATE — kept |
+| `src/components/watchlist/WatchlistManager.tsx` | `brief_role` | LEGITIMATE — kept |
+| `src/pages/BriefPreferences.tsx` | `brief_role` | LEGITIMATE — kept |
+| `src/components/BriefLanguageSelector.tsx` | `preferred_language` | LEGITIMATE — kept |
+| `src/components/OnboardingModal.tsx` | `onboarding_complete`, `jurisdictions`, **`user_role`** | SPLIT — `user_role` rerouted to RPC |
+| `src/pages/OnboardingProfile.tsx` | `primary_jurisdiction`, `sector`, **`user_role`**, **`role_confirmed_at`** | REROUTED to RPC |
+| `src/pages/BiometricChecker.tsx` | **`biometric_free_run_claimed`** | REROUTED to RPC |
+
+Everything else that touches `profiles` (quota decrement, entitlement, subscription,
+Stripe fulfilment) writes via service role from edge functions — unaffected.
+
+### LOCKDOWN (Item 332 precedent, column-level)
+```sql
+REVOKE UPDATE ON public.profiles FROM anon, authenticated;
+GRANT UPDATE (brief_role, digest_jurisdictions, digest_topics, jurisdictions,
+              onboarding_complete, preferred_language, primary_jurisdiction,
+              sector, updated_at) ON public.profiles TO authenticated;
+```
+Owner-scoped RLS policy retained unchanged. Two SECURITY DEFINER routines added so
+the three rerouted writes remain possible without widening the ACL:
+- `public.set_self_declared_role(_role, _primary_jurisdiction, _sector)` — writes
+  `user_role` and stamps `role_confirmed_at := now()` **server-side** (the client
+  can no longer fabricate the confirmation timestamp), scoped to `auth.uid()`.
+- `public.claim_biometric_free_run()` — one-shot; flips
+  `biometric_free_run_claimed` only if currently false and returns whether the
+  claim succeeded, so the free run cannot be re-granted by replaying the call.
+
+### EVIDENCE — `has_column_privilege('authenticated', 'public.profiles', <col>, 'UPDATE')`
+LOCKED (**f**): `monthly_reports_used`, `free_tool_run_used_this_month`,
+`free_convenience_runs_used`, `ask_privacy_count`, `biometric_free_run_claimed`,
+`user_role`, `role_confirmed_at`, `is_premium`, `is_pro`, `subscription_type`,
+`founding_subscriber`, `stripe_customer_id` — all **f**.
+OPEN (**t**): `brief_role`, `digest_jurisdictions`, `digest_topics`,
+`jurisdictions`, `onboarding_complete`, `preferred_language`,
+`primary_jurisdiction`, `sector`, `updated_at` — all **t**.
+Table-level UPDATE for `authenticated` = **f** (column-specific only).
+`service_role` retains full access.
+
+### ADVISOR RE-SCAN (verbatim disposition)
+`security--run_security_scan` at 2026-08-02T00:52:32Z: `supabase_lov`
+`items_found: 0`, `status: success`. The `PRIVILEGE_ESCALATION /
+profiles_self_reset_quota_fields` finding and the warn-level
+`profiles_self_set_user_role` finding are GONE; no new findings. Remaining 64
+items are all pre-existing platform-linter classes
+(`SUPA_security_definer_view`, `SUPA_*_security_definer_function_executable`) —
+unchanged in kind and count-class from before this turn. Finding manager:
+"No security findings remain active."
+Suites: `bunx tsgo --noEmit` clean; `vitest` **998/998 green across 69 files**.
+
+### FRONTEND PUBLISH — DONE
+`preview_ui--publish` accepted (no refusal). Live at https://enduserprivacy.com
+(HTTP 200, `<title>End User Privacy — Global Privacy Intelligence Platform`),
+bundle `assets/index-CTwrpIQu.js`.
+
+Published-bundle route audit — all 286 emitted chunks plus the entry bundle were
+fetched from the live origin and grepped: **5 occurrences of
+`run-cppa-risk-assessment-v2`, ZERO occurrences of the bare legacy name.** The
+flip is live in the shipped frontend.
+Panel presence in the published bundle: `assets/CPPARiskAssessmentResult-xz3HgAvd.js`
+contains both `secondary-followups` and
+`Recommended: conduct a separate risk assessment`.
+
+### PUBLISHED-APP RENDER VERIFICATION
+The preview session was `signed_out` (`LOVABLE_BROWSER_AUTH_STATUS=signed_out`),
+so an interactive signed-in click-through of the report page could not be driven
+this turn. Instead the verification was run against the **verbatim live payload**:
+`report_data` and `intake_data` were exported from the persisted v2 row
+`945428e2-e80c-4d4f-89ae-91341ced128b` into
+`src/test/fixtures/item360-live-secondary.json` and fed through the exact shipped
+components (`CPPARiskReportBody`, `SecondaryActivityFollowUps`) in
+`src/test/item360-published-render.test.tsx` — **4/4 green**:
+1. report body renders, no `cppa-risk-unrecognized-shape` fallback;
+2. `risk_level: "Low"` — a genuine band, differentiated sufficiency intact;
+3. `7156(a)` present, and all five § 7152 deliverables
+   (`necessity_analysis`, `harm_causation`, `consequence`, `safeguard_map`,
+   `weighing`) present on `activity_analytics[0]`;
+4. `secondary-followup-Lookalike modelling` renders and its text contains the
+   sentence produced by the SAME shared module the report uses —
+   "Recommended: conduct a separate risk assessment for Lookalike modelling."
+This is component-level proof against live data plus origin-level proof that the
+published bundle carries those components; the signed-in browser click-through
+remains UNVERIFIED and is the one residual check.
+
+### DISPOSITIONS
+- **Item 359: fully DEPLOYED** — backend route + frontend.
+- **Item 245: RELEASED** (CEO authorization of 2026-08-01/02 completion mandate).
+- **Items 319–321: DEPLOYED**; Item 321 panel LIVE in the published app.
+- Legacy `run-cppa-risk-assessment` retained deployed-but-unrouted for instant
+  string-reversion.
+- Prose frame/plan libraries REMAIN `approved: false` (deterministic renderer
+  serving) — CEO-reserved gate, unchanged.
