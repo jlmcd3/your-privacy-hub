@@ -121,6 +121,10 @@ Deno.serve(async (req) => {
       build_stamp: BUILD_STAMP,
       generator_stamp: CPPA_RISK_GENERATOR_STAMP,
       ltp_mode: LTP_MODE,
+      // ITEM 362 — parity with the legacy ping: the batch preflight reads
+      // `composition_enforce` and aborted with composition_enforce_mismatch
+      // (expected "1", actual null) because v2 never reported it.
+      composition_enforce: Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0",
       engine_path: "ltp",
       routed: true,
     });
