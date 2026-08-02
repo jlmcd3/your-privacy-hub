@@ -1628,6 +1628,7 @@ export type Database = {
           source_document_hash_at_ingest: string | null
           source_document_text: string | null
           source_quality: string | null
+          source_type: string | null
           source_url: string | null
           statutory_provisions: string[] | null
           statutory_provisions_evidence: Json | null
@@ -1709,6 +1710,7 @@ export type Database = {
           source_document_hash_at_ingest?: string | null
           source_document_text?: string | null
           source_quality?: string | null
+          source_type?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
           statutory_provisions_evidence?: Json | null
@@ -1790,6 +1792,7 @@ export type Database = {
           source_document_hash_at_ingest?: string | null
           source_document_text?: string | null
           source_quality?: string | null
+          source_type?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
           statutory_provisions_evidence?: Json | null

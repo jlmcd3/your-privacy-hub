@@ -17,6 +17,12 @@
  *      Investigations, complaints, advisories and press summaries are NOT
  *      final instruments and never surface.
  *   4. authority_class on the explicit per-product allow-list below.
+ *   5. SOURCE-QUALITY GATE (2026-08-02, CEO) — `source_type` must be
+ *      'regulator_primary'. A regulator press item, a third-party tracker /
+ *      case wiki (GDPRhub, enforcementtracker) or a news / law-firm write-up
+ *      is somebody's description of a decision, not the decision. An
+ *      unclassified row (`source_type` null) fails closed. Additive: it
+ *      relaxes none of checks 1-4.
  *
  * ── NAMED, DATED GATE ────────────────────────────────────────────────────────
  * CPPA-INCLUSION-GATE (2026-08-01, CEO): `authority_class = 'cppa'` is
@@ -27,6 +33,132 @@
  * final still does NOT surface while this gate stands.
  * ─────────────────────────────────────────────────────────────────────────────
  */
+
+/**
+ * CORPUS SOURCE-QUALITY CLASSIFICATION (2026-08-02, CEO-approved).
+ *
+ * A corpus row may point at (a) the authority's OWN ruling/decision, (b) the
+ * authority's press/news write-up of a ruling, (c) a third-party tracker or
+ * case database, or (d) third-party commentary/news. Only (a) is citable as
+ * enforcement authority; the others are somebody's description of a decision.
+ *
+ * Vocabulary is closed. `null` means NOT YET CLASSIFIED and fails closed
+ * everywhere it is consumed.
+ */
+
+export const SOURCE_TYPES = [
+  "regulator_primary",
+  "regulator_press",
+  "third_party_tracker",
+  "third_party_commentary",
+] as const;
+export type SourceType = (typeof SOURCE_TYPES)[number];
+
+/** Source labels that are explicitly the regulator's NEWS feed, not decisions. */
+export const REGULATOR_PRESS_SOURCES = new Set(["AEPD News", "ICO News"]);
+
+/** Community-edited case-summary wiki. Never the regulator's own text. */
+export const COMMENTARY_SOURCES = new Set(["GDPRhub", "GDPRHub", "Gibson Dunn"]);
+
+/** Canonicalise the GDPRhub casing duplication. */
+export function canonicalSourceDatabase(sourceDatabase?: string | null): string {
+  const s = String(sourceDatabase ?? "").trim();
+  return s.toLowerCase() === "gdprhub" ? "GDPRhub" : s;
+}
+
+/** Authority-owned / official-publisher domains observed in the corpus. */
+export const REGULATOR_DOMAINS = new Set<string>([
+  "aepd.es", "uodo.gov.pl", "orzeczenia.uodo.gov.pl", "orzeczenia.nsa.gov.pl",
+  "oipc.ab.ca", "dataprotection.ro", "garanteprivacy.it", "gpdp.it", "garante.it",
+  "ftc.gov", "priv.gc.ca", "naih.hu", "hhs.gov", "illinoisattorneygeneral.gov",
+  "dpa.gr", "cppa.ca.gov", "datatilsynet.dk", "ipc.on.ca", "decisions.ipc.on.ca",
+  "ico.org.uk", "uoou.gov.cz", "uoou.cz", "datatilsynet.no", "cnil.fr",
+  "dataprotectionauthority.be", "azop.hr", "autoriteitpersoonsgegevens.nl",
+  "dataprotection.gov.cy", "dataprotection.ie", "cnpd.public.lu",
+  "datenschutz-hamburg.de", "legifrance.gouv.fr", "autoriteprotectiondonnees.be",
+  "imy.se", "pdpc.gov.sg", "cpdp.bg", "ag.ny.gov", "personuvernd.is",
+  "tietosuoja.fi", "ris.bka.gv.at", "ip-rs.si", "datainspektionen.se",
+  "gegevensbeschermingsautoriteit.be", "baden-wuerttemberg.datenschutz.de",
+  "idpc.org.mt", "vdai.lrv.lt", "dsb.gv.at", "atg.wa.gov", "dataprotection.gov.sk",
+  "aki.ee", "portal.ct.gov", "edpb.europa.eu", "mass.gov", "datenschutz.hessen.de",
+  "doj.state.or.us", "dvi.gov.lv", "cnpd.pt", "datenschutz-berlin.de", "coag.gov",
+  "finlex.fi", "oaic.gov.au", "oag.ca.gov", "bfdi.bund.de", "lfd.niedersachsen.de",
+  "inforights.im", "texasattorneygeneral.gov", "datenschutz.saarland.de",
+  "oag.state.va.us", "datenschutz.sachsen.de", "cai.gouv.qc.ca", "privacy.ca.gov",
+  "lda.brandenburg.de", "in.gov", "faqs.in.gov", "dca.ca.gov", "island.is",
+  "poderjudicial.es", "myfloridalegal.com", "lda.bayern.de", "scamshield.gov.sg",
+  "ada.lt", "datenschutz.rlp.de", "legisquebec.gouv.qc.ca", "tech.gov.sg", "sec.gov",
+  "datenschutz.bremen.de", "datenschutzstelle.li", "pipc.go.kr", "anpd.gov.br",
+  "ca.gov",
+]);
+
+/** Third-party trackers, wikis and case databases. */
+export const TRACKER_DOMAINS = new Set<string>([
+  "gdprhub.eu", "zaftda.de", "enforcementtracker.com", "datenschutzarchiv.org",
+  "classic.austlii.edu.au", "360.lexisnexis.at", "gdprtoolkit.eu", "fragdenstaat.de",
+  "indd.adobe.com", "youtube.com", "twitter.com",
+]);
+
+/** Media / law-firm commentary domains. */
+export const COMMENTARY_DOMAINS = new Set<string>([
+  "heise.de", "cms-lawnow.com", "agplaw.com", "etrend.sk", "derstandard.at",
+  "irishlegal.com", "faz.net", "noe.orf.at", "pingdigital.de",
+  "theword.iuslaboris.com", "mz.de", "irishtimes.com", "cyprus-mail.com",
+  "independent.ie", "spiegel.de", "noyb.eu", "gvzh.com.mt", "eldiario.es",
+  "news.post.at", "irishexaminer.com", "gibsondunn.com", "hvg.hu", "sudinfo.be",
+  "handelsblatt.com",
+]);
+
+export function urlHost(url?: string | null): string {
+  const m = String(url ?? "").trim().toLowerCase()
+    .match(/^https?:\/\/(?:www\.)?([^/?#]+)/);
+  return m ? m[1] : "";
+}
+
+export function isRegulatorDomain(url?: string | null): boolean {
+  return REGULATOR_DOMAINS.has(urlHost(url));
+}
+
+export interface ClassifiableRow {
+  source_database?: string | null;
+  source_url?: string | null;
+  source_document_text?: string | null;
+  strat_has_document?: boolean | null;
+}
+
+/**
+ * Deterministic classifier — the exact rule set applied to the corpus in the
+ * 2026-08-02 sweep. No network, no inference.
+ */
+export function classifySourceType(row: ClassifiableRow): SourceType | null {
+  const db = canonicalSourceDatabase(row.source_database);
+  const host = urlHost(row.source_url);
+  if (REGULATOR_PRESS_SOURCES.has(db)) return "regulator_press";
+  if (COMMENTARY_SOURCES.has(db) || host === "gdprhub.eu") return "third_party_commentary";
+  if (!host) return null;
+  if (TRACKER_DOMAINS.has(host)) return "third_party_tracker";
+  if (COMMENTARY_DOMAINS.has(host)) return "third_party_commentary";
+  if (REGULATOR_DOMAINS.has(host)) {
+    // CMS is an aggregator: the regulator domain alone is not enough — the row
+    // must also carry the captured document, otherwise the link may be a
+    // CMS-authored summary page. Fail closed until a refetch confirms it.
+    if (db === "CMS") {
+      const hasDoc = (row.source_document_text ?? "").trim().length >= 200 ||
+        row.strat_has_document === true;
+      return hasDoc ? "regulator_primary" : "third_party_tracker";
+    }
+    return "regulator_primary";
+  }
+  return "third_party_tracker";
+}
+
+/** Source labels that can never yield a citable row — excluded from sweeps. */
+export const NON_PRIMARY_SOURCE_DATABASES = [
+  "AEPD News",
+  "ICO News",
+  "GDPRhub",
+  "GDPRHub",
+] as const;
 
 /** Closed authority-class vocabulary (Item 352 stratification sweep). */
 export const AUTHORITY_CLASSES = [
@@ -83,6 +215,8 @@ export interface ProductGate {
   profile: GateProfile;
   /** null = no authority-class restriction beyond the global cppa exclusion. */
   allow_authority_classes: AuthorityClass[] | null;
+  /** SOURCE-QUALITY GATE — null = no source_type restriction (preserved). */
+  allow_source_types: SourceType[] | null;
 }
 
 /** Per-product allow-list table. */
@@ -91,11 +225,13 @@ export const PRODUCT_GATES: Record<string, ProductGate> = {
     product: "cppa-risk",
     profile: "cppa_risk",
     allow_authority_classes: ["eu_dpa", "eea_dpa", "uk_dpa"],
+    allow_source_types: ["regulator_primary"],
   },
   default: {
     product: "default",
     profile: "preserved",
     allow_authority_classes: null,
+    allow_source_types: null,
   },
 };
 
@@ -126,6 +262,8 @@ export interface GateRow {
   strat_has_document?: boolean | null;
   source_document_text?: string | null;
   source_url?: string | null;
+  source_type?: string | null;
+  source_database?: string | null;
   [k: string]: unknown;
 }
 
@@ -142,6 +280,7 @@ export type GateReason =
   | "not_document_backed"
   | "not_final_instrument"
   | "authority_class_not_allowed"
+  | "source_type_not_primary"
   | "cppa_inclusion_gate";
 
 const MIN_DOC_CHARS = 200;
@@ -172,6 +311,22 @@ export function isFinalInstrument(row: GateRow): boolean {
   return at ? FINAL_SET.has(at) : false;
 }
 
+/**
+ * SOURCE-QUALITY GATE (2026-08-02). Resolves the row's source_type, falling
+ * back to the deterministic classifier when the column was not selected.
+ * Unresolvable ⇒ null ⇒ fails closed.
+ */
+export function resolveSourceType(row: GateRow): SourceType | null {
+  const st = String(row.source_type ?? "").trim();
+  if (st) return (SOURCE_TYPES as readonly string[]).includes(st) ? (st as SourceType) : null;
+  if (row.source_database == null && row.source_url == null) return null;
+  return classifySourceType(row as ClassifiableRow);
+}
+
+export function isRegulatorPrimary(row: GateRow): boolean {
+  return resolveSourceType(row) === "regulator_primary";
+}
+
 export function gateRow(
   row: GateRow,
   opts: GateOptions = {},
@@ -191,6 +346,12 @@ export function gateRow(
     if (gate.allow_authority_classes && !gate.allow_authority_classes.includes(cls as AuthorityClass)) {
       return { allowed: false, reason: "authority_class_not_allowed" };
     }
+    if (gate.allow_source_types) {
+      const st = resolveSourceType(row);
+      if (!st || !gate.allow_source_types.includes(st)) {
+        return { allowed: false, reason: "source_type_not_primary" };
+      }
+    }
     return { allowed: true, reason: "ok" };
   }
 
@@ -201,6 +362,13 @@ export function gateRow(
   if (!isFinalInstrument(row)) return { allowed: false, reason: "not_final_instrument" };
   if (gate.allow_authority_classes && !gate.allow_authority_classes.includes(cls as AuthorityClass)) {
     return { allowed: false, reason: "authority_class_not_allowed" };
+  }
+  // SOURCE-QUALITY GATE — additive, last, and fail-closed.
+  if (gate.allow_source_types) {
+    const st = resolveSourceType(row);
+    if (!st || !gate.allow_source_types.includes(st)) {
+      return { allowed: false, reason: "source_type_not_primary" };
+    }
   }
   return { allowed: true, reason: "ok" };
 }
@@ -218,6 +386,7 @@ export function gateAudit(rows: GateRow[], opts: GateOptions = {}): Record<GateR
     not_document_backed: 0,
     not_final_instrument: 0,
     authority_class_not_allowed: 0,
+    source_type_not_primary: 0,
     cppa_inclusion_gate: 0,
   } as Record<GateReason, number>;
   for (const r of rows ?? []) out[gateRow(r, opts).reason]++;
@@ -226,7 +395,7 @@ export function gateAudit(rows: GateRow[], opts: GateOptions = {}): Record<GateR
 
 /** Columns every gated surface MUST select so the gate can evaluate a row. */
 export const GATE_COLUMNS =
-  "verification_status, disposition_type, action_type, authority_class, strat_has_document";
+  "verification_status, disposition_type, action_type, authority_class, strat_has_document, source_type, source_database";
 
 /**
  * SQL prefilter. Applies the gate's server-side portion to a PostgREST query
@@ -240,6 +409,7 @@ export function applyGateQuery<Q>(query: Q, product?: string | null): Q {
   q = q.or("authority_class.is.null,authority_class.neq.cppa");
   if (gate.profile === "preserved") {
     q = q.not("verification_status", "eq", "requires_review");
+    if (gate.allow_source_types) q = q.in("source_type", gate.allow_source_types);
     return q as Q;
   }
   q = q.eq("verification_status", "verified");
@@ -247,6 +417,9 @@ export function applyGateQuery<Q>(query: Q, product?: string | null): Q {
   q = q.in("disposition_type", FINAL_INSTRUMENTS as unknown as string[]);
   if (gate.allow_authority_classes) {
     q = q.in("authority_class", gate.allow_authority_classes);
+  }
+  if (gate.allow_source_types) {
+    q = q.in("source_type", gate.allow_source_types);
   }
   return q as Q;
 }

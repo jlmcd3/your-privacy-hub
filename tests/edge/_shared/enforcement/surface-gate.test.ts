@@ -18,10 +18,41 @@ const base = {
   authority_class: "eu_dpa",
   source_document_text: "x".repeat(500),
   source_url: "https://example.test/doc",
+  source_type: "regulator_primary",
 };
 
 Deno.test("qualified eu_dpa row surfaces on cppa-risk", () => {
   assertEquals(gateRow(base, { product: "cppa-risk" }), { allowed: true, reason: "ok" });
+});
+
+Deno.test("SOURCE-QUALITY GATE: non-primary sources never surface on cppa-risk", () => {
+  for (const st of ["regulator_press", "third_party_tracker", "third_party_commentary", null, ""]) {
+    const g = gateRow({ ...base, source_type: st }, { product: "cppa-risk" });
+    assertEquals(g.allowed, false, String(st));
+    assertEquals(g.reason, "source_type_not_primary");
+  }
+});
+
+Deno.test("SOURCE-QUALITY GATE: falls back to the deterministic classifier", () => {
+  // GDPRhub wiki row, column not selected → classified, then blocked.
+  const wiki = {
+    ...base,
+    source_type: undefined,
+    source_database: "GDPRhub",
+    source_url: "https://gdprhub.eu/index.php?title=X",
+  };
+  assertEquals(gateRow(wiki, { product: "cppa-risk" }).reason, "source_type_not_primary");
+  // Regulator's own domain, non-CMS source → primary.
+  const primary = {
+    ...base,
+    source_type: undefined,
+    source_database: "AEPD",
+    source_url: "https://www.aepd.es/documento/ps-00123-2024.pdf",
+  };
+  assertEquals(gateRow(primary, { product: "cppa-risk" }).allowed, true);
+  // Regulator NEWS feed is press, never primary.
+  const press = { ...primary, source_database: "AEPD News" };
+  assertEquals(gateRow(press, { product: "cppa-risk" }).reason, "source_type_not_primary");
 });
 
 Deno.test("CPPA-INCLUSION-GATE: verified + document-backed + final cppa row does NOT surface on cppa-risk", () => {
