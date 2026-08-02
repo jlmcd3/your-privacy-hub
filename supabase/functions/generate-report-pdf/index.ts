@@ -1146,6 +1146,12 @@ function labelForIntakeFieldId(raw: unknown): string {
 
 // Dispatch on schema: v4 rows carry risk_assessment_by_activity; v3 rows carry part_a; legacy rows carry domains.
 function buildCPPARiskReportHTML(report: any, record: any): string {
+  // ITEM 369 — prose-9 envelope wins the dispatch when (and only when) it is
+  // present. The live path never sets `prose_document`, so live PDF output is
+  // byte-for-byte unaffected by this branch.
+  if (report && hasProse9Document(report)) {
+    return buildCPPARiskProse9HTML(report, record);
+  }
   // CP3 (Item 240) — LTP-shape detection. When the assembler is the body
   // source, executive_summary is a string, assessment_summary carries a
   // .narrative string, and narrative-list sections carry paragraph
@@ -1153,6 +1159,7 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
   if (report && isLtpRiskShape(report)) {
     return buildCPPARiskLtpHTML(report, record);
   }
+
   if (report && (Array.isArray(report.risk_assessment_by_activity) || (report.assessment_summary && typeof report.assessment_summary === "object"))) {
     return buildCPPARiskV4HTML(report, record);
   }
