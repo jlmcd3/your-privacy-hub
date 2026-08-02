@@ -11,6 +11,8 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
 import RiskAssessmentReportLTP from "@/components/cppa/RiskAssessmentReportLTP";
+import RiskAssessmentReportProse9 from "@/components/cppa/RiskAssessmentReportProse9";
+
 import { describeCppaRiskShape } from "@/lib/cppa-risk-shape";
 
 
@@ -32,9 +34,11 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
   // ITEM 274 — LTP shape wins the dispatch; V3/V4 remain for legacy rows.
   // ITEM 279 / ISSUE 12 — an unrecognized shape fails LOUD, never blank.
   const shapeResult = describeCppaRiskShape(report, isV4Report);
+  const isProse9 = shapeResult.shape === "prose9";
   const isLtp = shapeResult.shape === "ltp";
   const isV3 = shapeResult.shape === "v3";
   const isV4 = shapeResult.shape === "v4";
+
 
   if (!shapeResult.recognized) {
     // eslint-disable-next-line no-console
@@ -67,7 +71,7 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
 
   return (
     <div className="space-y-6 font-serif-text">
-      {!isLtp && !isV4 && (
+      {!isProse9 && !isLtp && !isV4 && (
 
         <section className="bg-slate-900 text-white rounded-lg p-8">
           <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
@@ -92,7 +96,9 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
         </section>
       )}
 
+      {isProse9 && <RiskAssessmentReportProse9 report={report as any} createdAt={createdAt} />}
       {isLtp && <RiskAssessmentReportLTP report={report as any} createdAt={createdAt} />}
+
       {isV3 && <RiskAssessmentReportV3 report={report as any} />}
       {isV4 && <RiskAssessmentReportV4 report={report as any} />}
 

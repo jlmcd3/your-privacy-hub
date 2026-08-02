@@ -10123,3 +10123,52 @@ Exhaustive whole-repo reference search over all 80 `public.enforcement_actions` 
 Report: `docs/reviews/ITEM-ENFORCEMENT-SCHEMA-AUDIT-2026-08-02.md`.
 
 Headline: **no genuine zero-reference columns**. Only `strat_url_wellformed`, `strat_subject_usable`, `strat_date_parseable`, `stratified_at` have no reference outside the Item-352 migration that created them (and the generated `types.ts`); `strat_has_document` is live via `GATE_COLUMNS`. `src/pages/EnforcementActionDetail.tsx:73` selects `*`, so every column is transported on that route. admt and dpa-generator report schemas do exist (`_shared/report-schemas/admt.ts`, `dpa.ts`); registration has no schema file and zero enforcement coupling; biometric-checker has no whitelist serializer and persists raw retrieved rows. `preventive_measures` is fetched by all five context consumers and rendered by DPIA only. No code, migration, gate or surface changed.
+
+---
+
+## Item 369 — Wiring Item 363 into production, PHASE 1+2 only (2026-08-02): BUILT AND PROVEN, NOT FLIPPED
+
+Report: `docs/reviews/ITEM369-WIRING-PROOF-2026-08-02.md`. Artifacts:
+`docs/reviews/item369/` (per-fixture after/before renders, persisted payloads,
+`lint-results.md`, `pdf-evidence.md`, `pdf-*.html`).
+
+**Confirmed gap:** before this item, no deployed function imported
+`composeCppaRisk`/`renderDocumentFromPlan`. Item 363's `approved:true` rows were
+read by nothing on any live path. `run-cppa-risk-assessment-v2` continues to
+serve the LTP/assembler payload; nothing was flipped in this item.
+
+**SHAPE DECISION — versioned additive contract, NOT a same-contract swap.**
+`record_card`, `risk_analysis` and `corpus_analogies` have no lossless home in
+the v1 contract (`risk_assessment_by_activity` is a per-activity array and
+would be type-broken by a record-level string). New
+`CPPA_RISK_PROSE9_SHAPE_VERSION = "cppa-risk-shape@2026-08-02-item369-prose9"`
+carried in an additive `report.prose_document` envelope
+(`_shared/report-contracts/cppa-risk-prose9.ts`), with five honestly-mappable
+v1 keys overlaid and all other keys carried over from the live baseline.
+`hasProse9Document()` is the single discriminator, mirrored in
+`src/lib/cppa-risk-shape.ts`. The flip is therefore a contract migration.
+
+**Built (all off the live path):** `generate-cppa-risk-item363-preview.ts`
+(`generateCppaRiskReportItem363Preview`, unreachable from any route/cron/webhook),
+`generate-report-pdf/prose9-html.ts` + dispatch branch,
+`src/components/cppa/RiskAssessmentReportProse9.tsx` + viewer dispatch branch.
+
+**Proof:** three fixtures (item350 perfect, item350 messy,
+`risk-saas-clean-tuning`). Envelope 9/9 sections in plan order on all three,
+17–19 tracked spans, overlays landed, carried-over keys intact, live baseline
+carries no `prose_document`. PDF evidence ALL PASS (non-blank 7.8k–9.4k chars,
+nine sections, no sentinel/JSON leakage, record card as a table). Viewer
+evidence 4/4 PASS including the R6 non-blank DOM check and a pin that LTP
+payloads still dispatch to the LTP renderer.
+
+**OPEN DEFECT (blocks any flip):** on the messy/degraded fixture the lint
+battery fails two rule classes — `banned_record_phrase` (record_card emits the
+placeholder "not stated on the record", 3 hits) and `attribution_missing`
+(3 values in `risk_analysis` not governed by an attribution verb on the
+degraded branch). Genuine Item 363 degraded-record defect, not a wiring defect;
+reported not fixed, per this item's build-and-prove scope.
+
+**NOT RUN:** the graded batch. `grade-single-assessment` / `run-quality-batch`
+are admin-JWT gated (`has_role`), and routing the preview entrypoint through
+the deployed harness is out of scope. No score against #187 (73.35/89) is
+claimed.
