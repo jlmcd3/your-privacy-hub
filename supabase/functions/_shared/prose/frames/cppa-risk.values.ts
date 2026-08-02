@@ -122,13 +122,16 @@ export function buildCppaRiskFrameValues(input: {
   const necessityLines = (() => {
     const groups = new Map<string, typeof analytics.necessity_analysis[number][]>();
     for (const n of analytics.necessity_analysis) {
-      const g = groups.get(n.asserted_status) ?? [];
+      const key = `${n.verdict}||${n.asserted_status}`;
+      const g = groups.get(key) ?? [];
       g.push(n);
-      groups.set(n.asserted_status, g);
+      groups.set(key, g);
     }
     const out: string[] = [];
     let first = true;
-    for (const [status, rows] of groups) {
+    for (const [key, rows] of groups) {
+      const [verdict, status] = key.split("||");
+      const c = clause(`necessity.${verdict}`);
       const els = joinNaturalList(
         rows.map((n) => rec(noTerminal(n.element), "necessity_analysis[].element")),
       );
@@ -137,9 +140,9 @@ export function buildCppaRiskFrameValues(input: {
       first = false;
       out.push(
         pick(status + rows.map((r) => r.element).join(""), [
-          `${subject} has identified ${els} as ${st}.`,
-          `${subject} describes ${els} as ${st}.`,
-          `${subject} reports the status of ${els} as ${st}.`,
+          `${subject} has identified ${els} as ${st}, and on that footing this assessment ${c}.`,
+          `${subject} describes ${els} as ${st}, and measured against the stated purpose this assessment ${c}.`,
+          `${subject} reports the status of ${els} as ${st}, so this assessment ${c}.`,
         ]),
       );
       for (const n of rows) {
