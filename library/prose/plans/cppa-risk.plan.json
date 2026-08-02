@@ -1,7 +1,7 @@
 {
   "product": "cppa-risk",
   "version": "prose-plans-2026-08-01-item363",
-  "approved": false,
+  "approved": true,
   "provenance": {
     "method": "draft",
     "donors_total": 8,
@@ -22,7 +22,7 @@
         "outcome"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "record_card",
@@ -39,7 +39,7 @@
         "safeguards"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "determination",
@@ -51,7 +51,7 @@
         "holding"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "why_required",
@@ -63,7 +63,7 @@
         "statute"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "risk_analysis",
@@ -79,7 +79,7 @@
         "initiation"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "corpus_analogies",
@@ -92,7 +92,7 @@
         "analogy"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "general_conclusions",
@@ -104,7 +104,7 @@
         "synthesis"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "record_completeness_summary",
@@ -116,7 +116,7 @@
         "completeness"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "what_to_do_next",
@@ -129,7 +129,9 @@
         "conditions"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     }
-  ]
+  ],
+  "approved_in_ledger_item": "Item 363",
+  "approved_on": "2026-08-02"
 }

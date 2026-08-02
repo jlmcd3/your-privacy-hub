@@ -1,7 +1,7 @@
 {
   "product": "cppa-risk",
   "version": "prose-frames-2026-08-01-item363",
-  "approved": false,
+  "approved": true,
   "frames": [
     {
       "id": "cppa-risk.executive_lead.001",
@@ -9,11 +9,36 @@
       "section": "executive_lead",
       "body": "This {{TOOL}} addresses {{ENTITY}}'s {{ACTIVITY}}. On the record the company provided, the assessment finds {{BAND}}, subject to {{CONDITIONS}}.",
       "placeholders": [
-        { "token": "TOOL", "kind": "text", "source": "engine.tool_label", "required": true },
-        { "token": "ENTITY", "kind": "text", "source": "engine.entity_name", "required": true },
-        { "token": "ACTIVITY", "kind": "text", "source": "engine.activity_name", "required": true },
-        { "token": "BAND", "kind": "text", "source": "engine.band_phrase", "required": true },
-        { "token": "CONDITIONS", "kind": "text", "source": "engine.conditions_phrase", "required": true }
+        {
+          "token": "TOOL",
+          "kind": "text",
+          "source": "engine.tool_label",
+          "required": true
+        },
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "engine.entity_name",
+          "required": true
+        },
+        {
+          "token": "ACTIVITY",
+          "kind": "text",
+          "source": "engine.activity_name",
+          "required": true
+        },
+        {
+          "token": "BAND",
+          "kind": "text",
+          "source": "engine.band_phrase",
+          "required": true
+        },
+        {
+          "token": "CONDITIONS",
+          "kind": "text",
+          "source": "engine.conditions_phrase",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -23,7 +48,7 @@
         "origin": "draft",
         "exemplars": []
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.record_card_lead.001",
@@ -31,9 +56,24 @@
       "section": "record_card_lead",
       "body": "{{ENTITY}} provided the facts set out below, and they are reproduced here without alteration. The company states that the activity assessed is {{ACTIVITY}} and that the purpose it serves is {{PURPOSE}}.",
       "placeholders": [
-        { "token": "ENTITY", "kind": "text", "source": "engine.entity_name", "required": true },
-        { "token": "ACTIVITY", "kind": "text", "source": "engine.activity_name", "required": true },
-        { "token": "PURPOSE", "kind": "text", "source": "engine.activity_purpose", "required": true }
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "engine.entity_name",
+          "required": true
+        },
+        {
+          "token": "ACTIVITY",
+          "kind": "text",
+          "source": "engine.activity_name",
+          "required": true
+        },
+        {
+          "token": "PURPOSE",
+          "kind": "text",
+          "source": "engine.activity_purpose",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": "a7689621-63e6-42ad-90cc-7760e892eb6d",
@@ -42,7 +82,7 @@
         "harvested_at": "2026-08-01",
         "origin": "harvest"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.determination.001",
@@ -50,10 +90,30 @@
       "section": "determination",
       "body": "{{CITE_GOAL:cite}} directs that {{REQ_GOAL:legal}}. On that footing, and on the facts the company has given, this assessment {{CONSEQ_DECISION:conclusion}}{{BLOCKED_DECISION:conclusion}}.",
       "placeholders": [
-        { "token": "CITE_GOAL", "kind": "cite", "source": "ra_goal", "required": true },
-        { "token": "REQ_GOAL", "kind": "legal", "source": "ra_goal", "required": true },
-        { "token": "CONSEQ_DECISION", "kind": "conclusion", "source": "@consequence_determination", "required": true },
-        { "token": "BLOCKED_DECISION", "kind": "conclusion", "source": "@consequence_determination_blocked", "required": false }
+        {
+          "token": "CITE_GOAL",
+          "kind": "cite",
+          "source": "ra_goal",
+          "required": true
+        },
+        {
+          "token": "REQ_GOAL",
+          "kind": "legal",
+          "source": "ra_goal",
+          "required": true
+        },
+        {
+          "token": "CONSEQ_DECISION",
+          "kind": "conclusion",
+          "source": "@consequence_determination",
+          "required": true
+        },
+        {
+          "token": "BLOCKED_DECISION",
+          "kind": "conclusion",
+          "source": "@consequence_determination_blocked",
+          "required": false
+        }
       ],
       "provenance": {
         "sample_report_id": "36220b11-2dca-48b9-92f1-368e8ede1ecb",
@@ -62,7 +122,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.why_required.001",
@@ -70,13 +130,48 @@
       "section": "why_required",
       "body": "{{CITE_TRIGGER:cite}} requires that {{REQ_TRIGGER:legal}}. Here, {{ACTIVITY}} involves what the company describes as {{TRIGGER_FACT}}, and that is what brings the activity within the provision. {{CITE_COMPARABLE:cite}} further requires that {{REQ_COMPARABLE:legal}}, and the company gives its position on secondary use of the same information as {{SECONDARY_STATUS}}.",
       "placeholders": [
-        { "token": "CITE_TRIGGER", "kind": "cite", "source": "ra_when_required", "required": true },
-        { "token": "REQ_TRIGGER", "kind": "legal", "source": "ra_when_required", "required": true },
-        { "token": "ACTIVITY", "kind": "text", "source": "engine.activity_name", "required": true },
-        { "token": "TRIGGER_FACT", "kind": "text", "source": "trigger_fact_verbatim", "required": true },
-        { "token": "CITE_COMPARABLE", "kind": "cite", "source": "ra_comparable_set", "required": true },
-        { "token": "REQ_COMPARABLE", "kind": "legal", "source": "ra_comparable_set", "required": true },
-        { "token": "SECONDARY_STATUS", "kind": "text", "source": "secondary_use_status", "required": true }
+        {
+          "token": "CITE_TRIGGER",
+          "kind": "cite",
+          "source": "ra_when_required",
+          "required": true
+        },
+        {
+          "token": "REQ_TRIGGER",
+          "kind": "legal",
+          "source": "ra_when_required",
+          "required": true
+        },
+        {
+          "token": "ACTIVITY",
+          "kind": "text",
+          "source": "engine.activity_name",
+          "required": true
+        },
+        {
+          "token": "TRIGGER_FACT",
+          "kind": "text",
+          "source": "trigger_fact_verbatim",
+          "required": true
+        },
+        {
+          "token": "CITE_COMPARABLE",
+          "kind": "cite",
+          "source": "ra_comparable_set",
+          "required": true
+        },
+        {
+          "token": "REQ_COMPARABLE",
+          "kind": "legal",
+          "source": "ra_comparable_set",
+          "required": true
+        },
+        {
+          "token": "SECONDARY_STATUS",
+          "kind": "text",
+          "source": "secondary_use_status",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": "2990f12a-0749-412a-b8b1-3f63c1a21f1e",
@@ -85,7 +180,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.risk_minimisation.001",
@@ -93,12 +188,42 @@
       "section": "risk_minimisation",
       "body": "{{CITE_CATEGORIES:cite}} requires that {{REQ_CATEGORIES:legal}}, and that is the test each element of the collection set is read against. {{NECESSITY_PARA}} Taken across those elements, the assessment identifies {{MINIMISATION_PHRASE}}, and on that basis it {{CONSEQ_NECESSITY:conclusion}}{{BLOCKED_NECESSITY:conclusion}}.",
       "placeholders": [
-        { "token": "CITE_CATEGORIES", "kind": "cite", "source": "ra_content_categories", "required": true },
-        { "token": "REQ_CATEGORIES", "kind": "legal", "source": "ra_content_categories", "required": true },
-        { "token": "NECESSITY_PARA", "kind": "text", "source": "engine.necessity_paragraph", "required": true },
-        { "token": "MINIMISATION_PHRASE", "kind": "text", "source": "engine.minimisation_phrase", "required": true },
-        { "token": "CONSEQ_NECESSITY", "kind": "conclusion", "source": "@necessity_determination", "required": true },
-        { "token": "BLOCKED_NECESSITY", "kind": "conclusion", "source": "@necessity_determination_blocked", "required": false }
+        {
+          "token": "CITE_CATEGORIES",
+          "kind": "cite",
+          "source": "ra_content_categories",
+          "required": true
+        },
+        {
+          "token": "REQ_CATEGORIES",
+          "kind": "legal",
+          "source": "ra_content_categories",
+          "required": true
+        },
+        {
+          "token": "NECESSITY_PARA",
+          "kind": "text",
+          "source": "engine.necessity_paragraph",
+          "required": true
+        },
+        {
+          "token": "MINIMISATION_PHRASE",
+          "kind": "text",
+          "source": "engine.minimisation_phrase",
+          "required": true
+        },
+        {
+          "token": "CONSEQ_NECESSITY",
+          "kind": "conclusion",
+          "source": "@necessity_determination",
+          "required": true
+        },
+        {
+          "token": "BLOCKED_NECESSITY",
+          "kind": "conclusion",
+          "source": "@necessity_determination_blocked",
+          "required": false
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -107,7 +232,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.risk_impacts.001",
@@ -115,9 +240,24 @@
       "section": "risk_impacts",
       "body": "{{CITE_IMPACTS:cite}} requires that {{REQ_IMPACTS:legal}}. {{HARM_PARA}}",
       "placeholders": [
-        { "token": "CITE_IMPACTS", "kind": "cite", "source": "ra_content_negative_impacts", "required": true },
-        { "token": "REQ_IMPACTS", "kind": "legal", "source": "ra_content_negative_impacts", "required": true },
-        { "token": "HARM_PARA", "kind": "text", "source": "engine.harm_paragraph", "required": true }
+        {
+          "token": "CITE_IMPACTS",
+          "kind": "cite",
+          "source": "ra_content_negative_impacts",
+          "required": true
+        },
+        {
+          "token": "REQ_IMPACTS",
+          "kind": "legal",
+          "source": "ra_content_negative_impacts",
+          "required": true
+        },
+        {
+          "token": "HARM_PARA",
+          "kind": "text",
+          "source": "engine.harm_paragraph",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": "36220b11-2dca-48b9-92f1-368e8ede1ecb",
@@ -126,7 +266,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.risk_safeguards.001",
@@ -134,9 +274,24 @@
       "section": "risk_safeguards",
       "body": "{{CITE_SAFEGUARDS:cite}} requires that {{REQ_SAFEGUARDS:legal}}. {{SAFEGUARD_PARA}}",
       "placeholders": [
-        { "token": "CITE_SAFEGUARDS", "kind": "cite", "source": "ra_content_safeguards", "required": true },
-        { "token": "REQ_SAFEGUARDS", "kind": "legal", "source": "ra_content_safeguards", "required": true },
-        { "token": "SAFEGUARD_PARA", "kind": "text", "source": "engine.safeguard_paragraph", "required": true }
+        {
+          "token": "CITE_SAFEGUARDS",
+          "kind": "cite",
+          "source": "ra_content_safeguards",
+          "required": true
+        },
+        {
+          "token": "REQ_SAFEGUARDS",
+          "kind": "legal",
+          "source": "ra_content_safeguards",
+          "required": true
+        },
+        {
+          "token": "SAFEGUARD_PARA",
+          "kind": "text",
+          "source": "engine.safeguard_paragraph",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": "36220b11-2dca-48b9-92f1-368e8ede1ecb",
@@ -145,7 +300,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.risk_weighing.001",
@@ -153,12 +308,42 @@
       "section": "risk_weighing",
       "body": "{{CITE_BENEFITS:cite}} requires that {{REQ_BENEFITS:legal}}, and {{CITE_GOAL:cite}} sets the exercise those benefits feed, namely that {{REQ_GOAL:legal}}. {{BENEFIT_PARA}} Weighed against the impacts remaining after the safeguards described above, this assessment {{CONSEQ_WEIGHING:conclusion}}.",
       "placeholders": [
-        { "token": "CITE_BENEFITS", "kind": "cite", "source": "ra_content_benefits", "required": true },
-        { "token": "REQ_BENEFITS", "kind": "legal", "source": "ra_content_benefits", "required": true },
-        { "token": "CITE_GOAL", "kind": "cite", "source": "ra_goal", "required": true },
-        { "token": "REQ_GOAL", "kind": "legal", "source": "ra_goal", "required": true },
-        { "token": "BENEFIT_PARA", "kind": "text", "source": "engine.benefit_paragraph", "required": true },
-        { "token": "CONSEQ_WEIGHING", "kind": "conclusion", "source": "@weighing_determination", "required": true }
+        {
+          "token": "CITE_BENEFITS",
+          "kind": "cite",
+          "source": "ra_content_benefits",
+          "required": true
+        },
+        {
+          "token": "REQ_BENEFITS",
+          "kind": "legal",
+          "source": "ra_content_benefits",
+          "required": true
+        },
+        {
+          "token": "CITE_GOAL",
+          "kind": "cite",
+          "source": "ra_goal",
+          "required": true
+        },
+        {
+          "token": "REQ_GOAL",
+          "kind": "legal",
+          "source": "ra_goal",
+          "required": true
+        },
+        {
+          "token": "BENEFIT_PARA",
+          "kind": "text",
+          "source": "engine.benefit_paragraph",
+          "required": true
+        },
+        {
+          "token": "CONSEQ_WEIGHING",
+          "kind": "conclusion",
+          "source": "@weighing_determination",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": "36220b11-2dca-48b9-92f1-368e8ede1ecb",
@@ -167,7 +352,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.risk_initiation.001",
@@ -175,8 +360,18 @@
       "section": "risk_initiation",
       "body": "{{CITE_INITIATE:cite}} requires that {{REQ_INITIATE:legal}}. The decision itself, and any judgment the company reserves to its counsel, remains with the company.",
       "placeholders": [
-        { "token": "CITE_INITIATE", "kind": "cite", "source": "ra_content_initiate", "required": true },
-        { "token": "REQ_INITIATE", "kind": "legal", "source": "ra_content_initiate", "required": true }
+        {
+          "token": "CITE_INITIATE",
+          "kind": "cite",
+          "source": "ra_content_initiate",
+          "required": true
+        },
+        {
+          "token": "REQ_INITIATE",
+          "kind": "legal",
+          "source": "ra_content_initiate",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -185,7 +380,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.general_conclusions.001",
@@ -193,8 +388,18 @@
       "section": "general_conclusions",
       "body": "Taken together, this assessment establishes {{SYNTHESIS}}. {{STRENGTHEN}}",
       "placeholders": [
-        { "token": "SYNTHESIS", "kind": "text", "source": "engine.synthesis_phrase", "required": true },
-        { "token": "STRENGTHEN", "kind": "text", "source": "engine.strengthen_phrase", "required": true }
+        {
+          "token": "SYNTHESIS",
+          "kind": "text",
+          "source": "engine.synthesis_phrase",
+          "required": true
+        },
+        {
+          "token": "STRENGTHEN",
+          "kind": "text",
+          "source": "engine.strengthen_phrase",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -203,7 +408,7 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "cppa-risk.what_to_do_next.001",
@@ -211,7 +416,12 @@
       "section": "what_to_do_next",
       "body": "The steps below follow from the determination above. {{ACTION_PARA}}",
       "placeholders": [
-        { "token": "ACTION_PARA", "kind": "text", "source": "engine.action_paragraph", "required": true }
+        {
+          "token": "ACTION_PARA",
+          "kind": "text",
+          "source": "engine.action_paragraph",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -220,7 +430,9 @@
         "harvested_at": "2026-08-01",
         "origin": "draft"
       },
-      "status": "pending_review"
+      "status": "approved"
     }
-  ]
+  ],
+  "approved_in_ledger_item": "Item 363",
+  "approved_on": "2026-08-02"
 }
