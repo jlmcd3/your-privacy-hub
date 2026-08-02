@@ -121,7 +121,12 @@ async function selectRows(
   jurisdictionIn: string[] | null = null,
 ) {
   if (mode === "cached") {
-    // Rows that already carry a captured source document — no network refetch.
+    // Rows eligible for a no-network verification pass. ITEM 366 (b): a row is
+    // eligible when it carries its OWN captured document (>= CACHED_MIN_DOC_CHARS)
+    // OR when public.source_document_cache holds a non-expired document of that
+    // size for its source_url. Previously the query hard-filtered on
+    // `source_document_text is not null`, so rows whose document lived only in
+    // the shared cache could never enter the sweep at all.
     let q = sb
       .from("enforcement_actions")
       .select(
@@ -129,24 +134,65 @@ async function selectRows(
         { count: "exact" },
       )
       .eq("verification_status", "unverified")
-      .not("source_document_text", "is", null)
       .order("id", { ascending: true })
       .limit(batchSize);
     if (jurisdictionIn && jurisdictionIn.length > 0) q = q.in("jurisdiction", jurisdictionIn);
     if (startAfterId) q = q.gt("id", startAfterId);
     const { data, count } = await q;
     const all = data ?? [];
-    const rows = all.filter(
-      (r: any) => (r.source_document_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS,
+
+    // Cache fallback: single batched lookup for every row lacking its own text.
+    const needCache = all.filter(
+      (r: any) => (r.source_document_text?.length ?? 0) < CACHED_MIN_DOC_CHARS && !!r.source_url,
     );
-    // ITEM 336 (c): short cached documents were skipped invisibly. Count them
-    // and surface their ids so the backlog is findable later. No status writes.
-    const skippedShortIds = all
-      .filter((r: any) => (r.source_document_text?.length ?? 0) < CACHED_MIN_DOC_CHARS)
-      .map((r: any) => r.id as string);
+    const cacheByUrl = new Map<string, { content_text: string; content_hash: string | null }>();
+    if (needCache.length > 0) {
+      const urls = Array.from(new Set(needCache.map((r: any) => r.source_url as string)));
+      const { data: cached } = await sb
+        .from("source_document_cache")
+        .select("source_url, content_text, content_hash, expires_at")
+        .in("source_url", urls)
+        .gt("expires_at", new Date().toISOString());
+      for (const c of (cached ?? []) as any[]) {
+        if ((c.content_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS) {
+          cacheByUrl.set(c.source_url, {
+            content_text: c.content_text,
+            content_hash: c.content_hash ?? null,
+          });
+        }
+      }
+    }
+
+    const rows: any[] = [];
+    const skippedShortIds: string[] = [];
+    let cacheFallbackUsed = 0;
+    for (const r of all as any[]) {
+      if ((r.source_document_text?.length ?? 0) >= CACHED_MIN_DOC_CHARS) {
+        rows.push(r);
+        continue;
+      }
+      const hit = r.source_url ? cacheByUrl.get(r.source_url) : undefined;
+      if (hit) {
+        cacheFallbackUsed++;
+        rows.push({
+          ...r,
+          source_document_text: hit.content_text,
+          _document_from_shared_cache: true,
+          _cached_content_hash: hit.content_hash,
+        });
+        continue;
+      }
+      // ITEM 336 (c): no document on the row and none in the shared cache.
+      skippedShortIds.push(r.id as string);
+    }
     if (skippedShortIds.length > 0) {
       console.log(
-        `[verification-scan] cached mode skipped ${skippedShortIds.length} row(s) with source_document_text < ${CACHED_MIN_DOC_CHARS} chars: ${skippedShortIds.join(",")}`,
+        `[verification-scan] cached mode skipped ${skippedShortIds.length} row(s) with no document >= ${CACHED_MIN_DOC_CHARS} chars (own field or shared cache): ${skippedShortIds.join(",")}`,
+      );
+    }
+    if (cacheFallbackUsed > 0) {
+      console.log(
+        `[verification-scan] cached mode resolved ${cacheFallbackUsed} row(s) via source_document_cache fallback`,
       );
     }
     return {
@@ -155,8 +201,10 @@ async function selectRows(
       scanned: all.length,
       lastScannedId: all.length ? all[all.length - 1].id : null,
       skippedShortIds,
+      cacheFallbackUsed,
     };
   }
+
   if (mode === "targeted") {
     if (!targetIds || targetIds.length === 0) return { rows: [], remaining: 0 };
     const { data } = await sb
