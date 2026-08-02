@@ -266,12 +266,14 @@ async function processRow(row: any, mode: Mode = "initial") {
     }).eq("id", id);
     return {
       verdict: "requires_review",
+      reason: "corpus_defect_subject",
       tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
     };
   }
 
   // Swappable "get document text" step.
-  //  - cached mode reuses the already-captured source_document_text verbatim;
+  //  - cached mode reuses the row's captured source_document_text verbatim, or
+  //    the shared-cache document attached by selectRows (Item 366 (b));
   //  - Item 333: every other mode now consults source_document_cache FIRST
   //    (non-expired entry keyed by source_url) before a live refetch. The 24
   //    queue rows stuck at attempts>=3 all had a warm cache entry but were
@@ -283,10 +285,11 @@ async function processRow(row: any, mode: Mode = "initial") {
       return {
         status: "ok" as const,
         content_text: text,
-        content_hash: await sha256(text),
+        content_hash: (row._cached_content_hash as string | null) ?? (await sha256(text)),
         fetched_from_cache: true,
       };
     }
+
     const url = (row.source_url ?? "") as string;
     if (url) {
       const { data: cached } = await sb
