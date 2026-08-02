@@ -37,7 +37,7 @@ export const PRODUCT_DISPATCH: Record<string, ProductDispatch> = {
   dpia_framework:       { table: "dpia_frameworks",        fn: "run-dpia-framework",        bodyKey: "dpia_id"       },
   ir_playbook:          { table: "ir_playbooks",           fn: "generate-ir-playbook",      bodyKey: "assessment_id" },
   biometric_checker:    { table: "biometric_assessments",  fn: "check-biometric-compliance",bodyKey: "assessment_id" },
-  cppa_risk_assessment: { table: "cppa_assessments",       fn: "run-cppa-risk-assessment",  bodyKey: "assessment_id" },
+  cppa_risk_assessment: { table: "cppa_assessments",       fn: "run-cppa-risk-assessment-v2",  bodyKey: "assessment_id" },
   cppa_cybersecurity:   { table: "cppa_assessments",       fn: "run-cppa-cybersecurity",    bodyKey: "assessment_id" },
   cppa_admt:            { table: "cppa_assessments",       fn: "run-admt-checker",          bodyKey: "assessment_id" },
   dpa_generator:        { table: "dpa_documents",          fn: "generate-dpa",              bodyKey: "document_id"   },

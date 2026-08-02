@@ -9487,3 +9487,95 @@ New blocking suite `tests/edge/_shared/ltp/item358-reserved-band.test.ts` 9/9 gr
 
 ### Item 245
 Hold REMAINS ACTIVE. No customer route flipped.
+
+---
+
+## ITEM 359 — THE ROUTE FLIP TO V2 (backend flipped & live; frontend publish BLOCKED)
+CEO authorization quoted: "CEO-authorized under the standing completion mandate"
+(2026-08-01/02). Rollback for this turn is **string-reversion only** — every
+change is a one-token function-name swap; legacy `run-cppa-risk-assessment`
+stays deployed and callable, unrouted.
+
+### PHASE 0 — gates
+- v2 ping (verbatim): `{"build_stamp":"ltp-risk-v2-item359-routed@2026-08-02","engine_path":"ltp","fn":"run-cppa-risk-assessment-v2","generator_stamp":"generate-cppa-risk@2026-08-01-item357","ltp_mode":"enforce","routed":true}` ⇒ `LTP_ENFORCE_ENABLED="1"` on the live v2 env (Gate 354-B).
+- Both functions deployed successfully (bundle cap respected): v2, legacy,
+  regenerate-assessment, payments-webhook, run-stress-job, run-quality-batch,
+  admin-quality-batch2-seed.
+- `deno test -A --no-check tests/edge` → **2112 passed / 73 failed / 5 ignored**,
+  byte-identical to the Item 358 baseline. ZERO new failures.
+- `bunx vitest run` → **69 files / 998 tests passed**. `tsgo --noEmit` clean.
+
+### PHASE 1 — FLIP (enumeration verified by repo-wide grep)
+| site | change |
+|---|---|
+| `_shared/generation-policy.ts` (PRODUCT_DISPATCH.cppa_risk_assessment) | → `-v2` |
+| `payments-webhook/index.ts` L771 (`cppa_risk_assessment`), L773 (`cppa_suite`) | → `-v2` |
+| `regenerate-assessment/index.ts` L75 | → `-v2` |
+| `run-stress-job/index.ts` L384 | → `-v2` |
+| `run-quality-batch/index.ts` L1344 (production branch), L1607, L1740 | → `-v2` |
+| `admin-quality-batch2-seed/index.ts` L56 | → `-v2` |
+| `_shared/ltp/mode-assert.ts` L19 (LTP_MANAGED_TOOL_TO_FN) | → `-v2` |
+| `_shared/enforcement/surface-gate.ts` | `-v2` ADDED to caller allow-list (legacy retained) |
+| `src/lib/stress/runners.ts` L616 | → `-v2` |
+| `src/lib/sampleFixtures.ts` L571 | → `-v2` |
+| `src/pages/admin/CPPAEvalHarness.tsx` L158 | → `-v2` |
+| `src/lib/tests/assertionTests.ts` L478 | → `-v2` |
+
+The client intake page (`src/pages/CPPARiskAssessment.tsx`) contains NO direct
+`functions.invoke` of the generator: it dispatches through ToolCheckoutModal →
+`payments-webhook` / `PRODUCT_DISPATCH`, both flipped. Remaining textual matches
+of the legacy name are justified and NOT invocations: rulebook source-file paths
+(`auto-apply-fixes`, `apply-quality-fix`, `consolidate-rulebook`), doc comments,
+`kick-wrapped-batch` runtime `target_fn` (DB-supplied), the surface-gate legacy
+allow-list entry, and `pass1-llm`/`pass2r-llm` default `callerName` fallbacks
+(v2 always passes `callerName = "run-cppa-risk-assessment-v2"` explicitly).
+
+v2 shell re-stamped `ltp-risk-v2-item359-routed@2026-08-02`, `routed: true`.
+
+### PHASE 2 — POST-FLIP LIVE SMOKE THROUGH THE REAL ROUTE
+Driver `item359-parity` (temporary, since deleted) dispatched via
+`PRODUCT_DISPATCH.cppa_risk_assessment` — i.e. the flipped map itself, not a
+hard-coded name. Every response reported `"dispatch_fn":"run-cppa-risk-assessment-v2"`.
+
+| record | assessment_id | keys | risk_level | information_needed | conformance |
+|---|---|---|---|---|---|
+| perfect-a073d9c5 | a088d3f1-fa32-46cd-be99-850974e16c0b | 33 | **Low** | 1 (reserved § 7152(a)(7)) | **20 passed / 0 failed** |
+| messy-bd458f0d | 7e28348c-8796-434e-9488-c40dd402a7fc | 33 | Insufficient basis | 2 | **19 passed / 0 failed** |
+| perfect + non-bundleable secondary | 945428e2-e80c-4d4f-89ae-91341ced128b | 33 | **Low** | 1 | **20 passed / 0 failed** |
+
+- §7156(a) present in all three payloads (`has_7156a = true`).
+- Five § 7152 analytic deliverables present on every `activity_analytics` row:
+  `necessity_analysis`, `harm_causation`, `consequence`, `safeguard_map`, `weighing`.
+- Differentiated sufficiency: `record_sufficiency` md5
+  perfect `7718172b868316a5a439d003ecc074fd` vs messy `89b9628bdf584d588beaf1f21094d985`;
+  `information_needed` md5 `ba90396a…` vs `8212cf51…`.
+- `_meta.internal.ltp.shipped_surface = "deterministic"` on all three with
+  recorded reason `pass2r_not_run_yet` (isolate shutdown mid-2R). Per Item 358
+  terms this is NOT a blocker; conformance passes with the reason recorded.
+- Secondary-activity record: recommendation module output verbatim —
+  "Recommended: conduct a separate risk assessment for Lookalike modelling. We
+  recommend this because one dimension of the comparison diverges from the
+  assessed activity — the purpose of the processing." The report carries the
+  activity in `activity_analytics` (2 rows) and the panel renders that same
+  sentence from the SAME shared module (`_shared/ltp/secondary-recommendation.ts`);
+  parity pinned by `src/test/item321-secondary-followups.test.tsx` (8/8 green).
+
+### FRONTEND PUBLISH — BLOCKED, NOT ATTEMPTED PAST THE GATE
+`preview_ui--publish` refused: 1 unresolved CRITICAL security finding
+(`supabase_lov / PRIVILEGE_ESCALATION / profiles_self_reset_quota_fields` —
+the `profiles` UPDATE policy does not guard `monthly_reports_used`,
+`free_tool_run_used_this_month`, `free_convenience_runs_used`,
+`ask_privacy_count`, `biometric_free_run_claimed`; a second warn-level finding
+covers `user_role` / `role_confirmed_at`). PRE-EXISTING, unrelated to Item 359,
+and outside this item's scope — NOT fixed without instruction. Consequence: the
+Item 321 SecondaryActivityFollowUps panel is NOT yet live in the published app;
+the published frontend continues to serve the pre-flip bundle. The backend route
+IS flipped and live.
+
+### Item 245
+**RELEASED** for the backend generation route (CEO completion mandate,
+2026-08-01/02). v2 is the live customer path; legacy remains deployed and
+unrouted for instant string-reversion. Items 319–321: engine-side DEPLOYED;
+Item 321's UI panel is PENDING the frontend publish above.
+Prose frame/plan libraries remain `approved: false` (deterministic renderer
+serving) — unchanged and CEO-reserved.

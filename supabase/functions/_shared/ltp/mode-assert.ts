@@ -16,7 +16,7 @@ const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Currently limited to cppa-risk per Risk-first rollout (LEGAL-TEST-PIPELINE §7);
 // additional tools are added ONLY when their LTP wiring lands in enforce mode.
 export const LTP_MANAGED_TOOL_TO_FN: Readonly<Record<string, string>> = Object.freeze({
-  "cppa-risk": "run-cppa-risk-assessment",
+  "cppa-risk": "run-cppa-risk-assessment-v2",
 });
 
 // Fleet-declared expected mode. Every LTP-managed tool MUST report this at

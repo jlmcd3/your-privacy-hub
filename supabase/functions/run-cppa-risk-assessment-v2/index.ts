@@ -12,10 +12,10 @@
  * `_shared/ltp/generate-cppa-risk.ts`. If a key needs to change on the
  * customer surface, it changes there — never here.
  *
- * ROUTING: nothing routes to this function. Legacy `run-cppa-risk-assessment`
- * remains the only customer path; the Item 245 posture is untouched. The
- * route-flip is a separate CEO-authorized step (see docs/pipeline-state.md,
- * Item 357 §5).
+ * ROUTING (ITEM 359): THIS IS THE LIVE CUSTOMER PATH. Every enumerated
+ * invocation site was flipped here; legacy `run-cppa-risk-assessment` stays
+ * deployed but unrouted for instant string-reversion. Item 245 hold RELEASED
+ * (CEO completion mandate, 2026-08-01/02).
  *
  * PASS-2R LIFECYCLE (Item 357 §2b, Item 287 pattern): the deterministic
  * payload persists first, then Pass-2R runs and UPDATEs the row from INSIDE
@@ -37,14 +37,14 @@ import {
 } from "../_shared/ltp/generate-cppa-risk.ts";
 
 const FN = "run-cppa-risk-assessment-v2";
-const BUILD_STAMP = "ltp-risk-v2-item358@2026-08-01";
+const BUILD_STAMP = "ltp-risk-v2-item359-routed@2026-08-02";
 const LTP_MODE = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} ltp_mode=${LTP_MODE} engine_path=ltp routed=false`);
+console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} ltp_mode=${LTP_MODE} engine_path=ltp routed=true`);
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
       generator_stamp: CPPA_RISK_GENERATOR_STAMP,
       ltp_mode: LTP_MODE,
       engine_path: "ltp",
-      routed: false,
+      routed: true,
     });
   }
 

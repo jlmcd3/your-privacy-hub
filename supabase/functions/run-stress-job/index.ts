@@ -381,8 +381,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         user_id: userId, module: "risk_assessment", status: "pending", intake_data: withNames(intake),
       }).select("id").single();
       if (error || !rec) throw new Error(`cppa-risk insert: ${error?.message}`);
-      await invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id })
-        .catch((e) => console.warn("[run-stress-job] run-cppa-risk-assessment trigger failed (will poll):", e));
+      await invokeFn("run-cppa-risk-assessment-v2", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-cppa-risk-assessment-v2 trigger failed (will poll):", e));
       await pollCppa(admin, rec.id);
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }

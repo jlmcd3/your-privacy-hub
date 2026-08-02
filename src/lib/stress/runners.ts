@@ -612,8 +612,8 @@ const runCppaRisk: Runner = async ({ userId, log }) => {
     .single();
   if (insErr || !rec) throw new Error(`insert: ${insErr?.message}`);
 
-  log(`Invoking run-cppa-risk-assessment (id ${rec.id})…`);
-  const { error: fnErr } = await supabase.functions.invoke("run-cppa-risk-assessment", {
+  log(`Invoking run-cppa-risk-assessment-v2 (id ${rec.id})…`);
+  const { error: fnErr } = await supabase.functions.invoke("run-cppa-risk-assessment-v2", {
     body: { assessment_id: rec.id },
   });
   if (fnErr) log(`Async generation started (background worker); polling for completion…`);
