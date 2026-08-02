@@ -752,7 +752,15 @@ Deno.serve(async (req) => {
     const estimated_cost_remaining_usd = per_row_avg * Math.max(remaining, 0);
 
     const cumulative_cost_usd = spent_before + batch_cost_usd;
+    // ITEM 366 (a): non-billed skips are triage data too — a row scanned with no
+    // document anywhere is a repair candidate, not a verification failure.
+    const skippedNoDoc = (sel.skippedShortIds ?? []).length;
+    if (skippedNoDoc > 0) failure_reasons["skipped:no_document_available"] = skippedNoDoc;
+    if ((sel.cacheFallbackUsed ?? 0) > 0) {
+      failure_reasons["info:resolved_via_shared_cache"] = sel.cacheFallbackUsed;
+    }
     if (sweep_id) {
+
       if (!halted_reason && cumulative_cost_usd >= budget_cap_usd) halted_reason = "budget_cap_reached";
       await sb.from("verification_sweep_ledger").insert({
         sweep_id,
