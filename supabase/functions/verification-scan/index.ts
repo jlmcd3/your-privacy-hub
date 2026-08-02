@@ -563,6 +563,7 @@ async function processRow(row: any, mode: Mode = "initial") {
   return {
     verdict: status,
     reason: failReason,
+    tokens: {
 
       haiku_in: extraction.usage.input_tokens,
       haiku_out: extraction.usage.output_tokens,
