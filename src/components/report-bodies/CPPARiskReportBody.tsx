@@ -71,7 +71,7 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
 
   return (
     <div className="space-y-6 font-serif-text">
-      {!isLtp && !isV4 && (
+      {!isProse9 && !isLtp && !isV4 && (
 
         <section className="bg-slate-900 text-white rounded-lg p-8">
           <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
@@ -96,7 +96,9 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
         </section>
       )}
 
+      {isProse9 && <RiskAssessmentReportProse9 report={report as any} createdAt={createdAt} />}
       {isLtp && <RiskAssessmentReportLTP report={report as any} createdAt={createdAt} />}
+
       {isV3 && <RiskAssessmentReportV3 report={report as any} />}
       {isV4 && <RiskAssessmentReportV4 report={report as any} />}
 
