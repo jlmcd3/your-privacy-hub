@@ -1481,7 +1481,12 @@ export type Database = {
           id: string
           lead_sa: string | null
           outcomes: string[]
+          pdf_fetch_attempts: number
+          pdf_fetch_error: string | null
+          pdf_fetch_status: string | null
+          pdf_fetched_at: string | null
           source_document_text: string | null
+          source_type: string | null
           source_url: string | null
           status: string
           subject: string | null
@@ -1502,7 +1507,12 @@ export type Database = {
           id?: string
           lead_sa?: string | null
           outcomes?: string[]
+          pdf_fetch_attempts?: number
+          pdf_fetch_error?: string | null
+          pdf_fetch_status?: string | null
+          pdf_fetched_at?: string | null
           source_document_text?: string | null
+          source_type?: string | null
           source_url?: string | null
           status?: string
           subject?: string | null
@@ -1523,7 +1533,12 @@ export type Database = {
           id?: string
           lead_sa?: string | null
           outcomes?: string[]
+          pdf_fetch_attempts?: number
+          pdf_fetch_error?: string | null
+          pdf_fetch_status?: string | null
+          pdf_fetched_at?: string | null
           source_document_text?: string | null
+          source_type?: string | null
           source_url?: string | null
           status?: string
           subject?: string | null
