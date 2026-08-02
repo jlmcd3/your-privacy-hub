@@ -108,12 +108,12 @@ const banner = doc.sections.filter((s) => s.degraded).map((s) => s.section_id);
 note(banner.length === 0, "degradation banner logic", banner.join(", "));
 
 // 4. No flattening — every engine determination reaches the prose.
-const atoms = collectCoverageAtoms(analytics);
+const atoms = collectCoverageAtoms({ analytics });
 const coverage = checkCoverage(atoms, doc.sections.map((s) => s.text).join("\n"), {
   clauseFor: (k: string) => resolveEngineConclusion("cppa-risk", k),
 });
 note(
-  coverage.ok,
+  coverage.ok && coverage.total > 0,
   "no flattening (frame coverage)",
   coverage.findings.slice(0, 6).map((f) => `${f.atom.path}=${f.atom.value}`).join(" | "),
 );
