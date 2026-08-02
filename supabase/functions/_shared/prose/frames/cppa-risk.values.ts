@@ -116,21 +116,44 @@ export function buildCppaRiskFrameValues(input: {
     (n) => n.verdict === "minimisation_candidate",
   );
 
-  // ── § 7152(a)(2) — one attributed sentence per element ────────────────
-  const necessityLines = analytics.necessity_analysis.map((n) => {
-    const el = rec(noTerminal(n.element), "necessity_analysis[].element");
-    const st = rec(noTerminal(n.asserted_status), "necessity_analysis[].asserted_status");
-    const c = clause(`necessity.${n.verdict}`);
-    const base = pick(n.element + n.asserted_status, [
-      `The company has identified ${el} as ${st}, and on that footing this assessment ${c}.`,
-      `It describes ${el} as ${st}, and measured against the stated purpose this assessment ${c}.`,
-      `The company reports ${el} as ${st}, so this assessment ${c}.`,
-      `It lists ${el} among the elements it collects and gives the status as ${st}, which leaves this assessment to ${c}.`,
-    ]);
-    return n.information_needed
-      ? `${base} To carry that element further we would need ${noTerminal(n.information_needed)}.`
-      : base;
-  });
+  // ── § 7152(a)(2) — elements GROUPED BY VERDICT, one sentence per group.
+  // Per-element repetition of the same conclusion clause is the artifact the
+  // CEO named; the group conclusion is stated once, by the frame, at the end.
+  const necessityLines = (() => {
+    const groups = new Map<string, typeof analytics.necessity_analysis[number][]>();
+    for (const n of analytics.necessity_analysis) {
+      const g = groups.get(n.asserted_status) ?? [];
+      g.push(n);
+      groups.set(n.asserted_status, g);
+    }
+    const out: string[] = [];
+    let first = true;
+    for (const [status, rows] of groups) {
+      const els = joinNaturalList(
+        rows.map((n) => rec(noTerminal(n.element), "necessity_analysis[].element")),
+      );
+      const st = rec(noTerminal(status), "necessity_analysis[].asserted_status");
+      const subject = first ? "The company" : "It";
+      first = false;
+      out.push(
+        pick(status + rows.map((r) => r.element).join(""), [
+          `${subject} has identified ${els} as ${st}.`,
+          `${subject} describes ${els} as ${st}.`,
+          `${subject} reports the status of ${els} as ${st}.`,
+        ]),
+      );
+      for (const n of rows) {
+        if (n.information_needed) {
+          out.push(
+            `To carry ${
+              rec(noTerminal(n.element), "necessity_analysis[].element")
+            } further we would need ${noTerminal(n.information_needed)}.`,
+          );
+        }
+      }
+    }
+    return out;
+  })();
 
   // ── § 7152(a)(5) — impacts, with source and causal path ───────────────
   const harmLines = analytics.harm_causation.map((h) => {
@@ -161,14 +184,16 @@ export function buildCppaRiskFrameValues(input: {
       : base;
   });
 
-  // ── § 7152(a)(4) + § 7154 — benefits, one beneficiary class at a time ─
-  const benefitLines = analytics.weighing.map((w) => {
+  // ── § 7152(a)(4) + § 7154 — benefits, one beneficiary class at a time.
+  // The weighing conclusion belongs to the frame's closing sentence, not to
+  // every line: repeating it per beneficiary is mechanical.
+  const benefitLines = analytics.weighing.map((w, i) => {
     const st = rec(noTerminal(w.benefit_statement), "weighing[].benefit_statement");
-    const c = clause(`weighing.${w.sufficiency}`);
+    const subject = i === 0 ? "The company" : "It";
     const base = pick(w.beneficiary_class + w.benefit_statement, [
-      `For ${w.beneficiary_class}, the company states the benefit as ${st}, and this assessment ${c}.`,
-      `The company puts the benefit to ${w.beneficiary_class} as ${st}, and on that statement this assessment ${c}.`,
-      `Turning to ${w.beneficiary_class}, the company gives the benefit as ${st}, which leaves this assessment to ${c}.`,
+      `For ${w.beneficiary_class}, ${subject.toLowerCase() === "it" ? "it" : "the company"} states the benefit as ${st}.`,
+      `${subject} puts the benefit to ${w.beneficiary_class} as ${st}.`,
+      `Turning to ${w.beneficiary_class}, ${subject.toLowerCase() === "it" ? "it" : "the company"} gives the benefit as ${st}.`,
     ]);
     const generic = w.generic_benefit_flag
       ? " The statement is generic in the terms the provision screens for."
