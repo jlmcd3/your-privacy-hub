@@ -51,18 +51,47 @@ function domainOf(url: string | null): string {
   }
 }
 
-async function selectBatch(cohort: Cohort, authorityClass: string, limit: number) {
+/**
+ * Persisted cursor per (campaign_id, cohort, authority_class): the highest
+ * `last_id` this campaign has already walked past for that combination.
+ * Without it every run re-scans from the head of the id order and retries the
+ * same permanently-unfetchable rows forever (Item 365 Leg 2 stall).
+ */
+async function cursorFor(campaignId: string, cohort: Cohort, authorityClass: string) {
+  const { data } = await sb
+    .from("corpus_refetch_ledger")
+    .select("last_id")
+    .eq("campaign_id", campaignId)
+    .eq("cohort", cohort)
+    .eq("authority_class", authorityClass)
+    .not("last_id", "is", null)
+    .order("last_id", { ascending: false })
+    .limit(1);
+  return (data?.[0]?.last_id as string | undefined) ?? null;
+}
+
+async function selectBatch(
+  campaignId: string,
+  cohort: Cohort,
+  authorityClass: string,
+  limit: number,
+) {
   // Scan a WINDOW larger than the batch: rows whose documents already landed
   // (or whose domain is robots-disallowed) must not pin the batch to the head
   // of the id order, which would make every scheduled run re-scan the same
   // finished rows and fetch almost nothing.
   const window = Math.min(limit * 25, 500);
+  const cursor = await cursorFor(campaignId, cohort, authorityClass);
   let q = sb
     .from("enforcement_actions")
     .select("id, source_url, authority_class, source_document_text", { count: "exact" })
     .not("source_url", "is", null)
     .order("id", { ascending: true })
     .limit(window);
+
+  if (cursor) q = q.gt("id", cursor);
+
+
 
   if (cohort === "A") {
     q = q.eq("review_reason", "corpus_defect_subject_unrepairable");
@@ -89,16 +118,17 @@ async function selectBatch(cohort: Cohort, authorityClass: string, limit: number
     remaining_in_class: count ?? 0,
     pending_in_window: pending.length,
     scanned: (data ?? []).length,
+    cursor,
   };
 }
 
 
 /** Walk the binding class order until a class yields work. */
-async function nextWork(limit: number, cohortPref: Cohort | "auto") {
+async function nextWork(campaignId: string, limit: number, cohortPref: Cohort | "auto") {
   const cohorts: Cohort[] = cohortPref === "auto" ? ["A", "B"] : [cohortPref];
   for (const cohort of cohorts) {
     for (const cls of CLASS_ORDER) {
-      const sel = await selectBatch(cohort, cls, limit);
+      const sel = await selectBatch(campaignId, cohort, cls, limit);
       if (sel.rows.length > 0) return { cohort, authorityClass: cls, ...sel };
     }
   }
@@ -146,7 +176,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const work = await nextWork(limit, cohortPref);
+    const work = await nextWork(campaign_id, limit, cohortPref);
     if (!work) {
       if (!dry_run) await sb.rpc("release_job_lease" as any, { _key: lockKey });
       return new Response(
@@ -237,6 +267,7 @@ Deno.serve(async (req) => {
         fetch_failed,
         skipped,
         remaining_in_class: work.remaining_in_class,
+        cursor_from: work.cursor,
         per_domain_failures: perDomainFailures,
         failure_reasons: failureReasons,
         last_id,
