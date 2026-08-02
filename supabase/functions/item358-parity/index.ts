@@ -12,7 +12,6 @@
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { runConformanceChecks, formatResults } from "../_shared/ltp/conformance/conformance-checks.ts";
 
 import PERFECT from "./perfect-a073d9c5.json" with { type: "json" };
 import MESSY from "./messy-bd458f0d.json" with { type: "json" };
@@ -57,43 +56,7 @@ async function runOne(name: string, uid: string | null) {
   });
   const accepted = await res.json().catch(() => ({}));
 
-  let row: Record<string, unknown> | null = null;
-  for (let i = 0; i < 90; i++) {
-    await new Promise((r) => setTimeout(r, 2000));
-    const { data } = await supabase
-      .from("cppa_assessments")
-      .select("status, report_data, error_message")
-      .eq("id", id)
-      .single();
-    row = data as Record<string, unknown> | null;
-    const status = row?.status;
-    const meta = ((row?.report_data as Record<string, unknown> | null)?._meta ?? {}) as Record<string, unknown>;
-    const ltp = ((meta.internal as Record<string, unknown> | undefined)?.ltp ?? {}) as Record<string, unknown>;
-    if (status === "error") break;
-    if (status === "complete" && (ltp.shipped_surface === "2R" || ltp.pass2r_skipped_reason || (ltp.pass2r_attempt_rejections as unknown[] | undefined)?.length)) break;
-  }
-
-  const report = (row?.report_data ?? {}) as Record<string, unknown>;
-  const internal = (((report._meta as Record<string, unknown> | undefined)?.internal) ?? {}) as Record<string, unknown>;
-  const ltp = (internal.ltp ?? {}) as Record<string, unknown>;
-  const checks = runConformanceChecks(report);
-  return {
-    name,
-    assessment_id: id,
-    accepted,
-    status: row?.status ?? null,
-    error_message: row?.error_message ?? null,
-    top_level_keys: Object.keys(report).sort(),
-    top_level_key_count: Object.keys(report).length,
-    risk_level: report.risk_level,
-    overall_score: report.overall_score,
-    information_needed: report.information_needed,
-    record_sufficiency: report.record_sufficiency,
-    engine_path: internal.engine_path,
-    ltp_telemetry: ltp,
-    conformance: formatResults(name, checks),
-    conformance_failed: checks.filter((c) => !c.ok),
-  };
+  return { name, assessment_id: id, accepted };
 }
 
 Deno.serve(async (req) => {
