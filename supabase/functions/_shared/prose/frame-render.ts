@@ -1,18 +1,24 @@
 // ITEM 338 (PROSE PROGRAM 2 of 4) — FRAME REALIZER.
+// REVISED UNDER ITEM 363 (PROSE REVISION): quotation marks around
+// intake-derived values are REMOVED, and the guarantee they carried is moved
+// into machine-readable span tracking (./span-tracking.ts).
 //
-// Extends the Item 337 typed-slot realizer to render approved frames.
 // Rules that are not negotiable:
-//   * Record values are rendered VERBATIM. Free text is visibly quoted so a
-//     reader can always tell what the company said from what we wrote.
+//   * Record values are rendered VERBATIM. They are no longer visibly quoted;
+//     each one is wrapped in invisible span sentinels naming its source path,
+//     so the leak-prevention checks and the Pass-2R validators still identify
+//     record-derived text exactly. The methodology note telling the reader that
+//     company-provided facts are reproduced without alteration is retained.
 //   * {{CITE:key}} slots are filled ONLY by the caller's registry resolver,
 //     which re-queries the verified-authority row at build time.
 //   * FILL-OR-OMIT: if any required placeholder is silent on the record, the
 //     frame does not render half-filled — it degrades to the honest
-//     "not stated on the record" path (MANDATORY DEGRADATION LAW).
+//     "not stated in the information provided" path (MANDATORY DEGRADATION LAW).
 
 import { adapterFor, collapseRenderArtifacts, joinNaturalList, renderSlotValue } from "./slots.ts";
 import { resolveLegalPhrasing } from "./legal-phrasings.ts";
 import { resolveEngineConclusion } from "./engine-conclusions.ts";
+import { rec } from "./span-tracking.ts";
 import { RISK_VERIFIED_AUTHORITIES } from "../registry/risk-verified-authorities.ts";
 import {
   type Frame,
@@ -21,6 +27,7 @@ import {
   type FrameSet,
   frameSetRenderable,
 } from "./frames.ts";
+
 
 export const FRAME_RENDER_VERSION = FRAME_LIBRARY_VERSION;
 
