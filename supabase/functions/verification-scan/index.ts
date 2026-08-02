@@ -687,7 +687,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    await releaseLease();
+
     return new Response(JSON.stringify({
+
       mode,
       sweep_id,
       batch_size,
