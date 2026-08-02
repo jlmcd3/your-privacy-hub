@@ -267,6 +267,7 @@ Deno.serve(async (req) => {
         fetch_failed,
         skipped,
         remaining_in_class: work.remaining_in_class,
+        cursor_from: work.cursor,
         per_domain_failures: perDomainFailures,
         failure_reasons: failureReasons,
         last_id,
