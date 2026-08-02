@@ -51,12 +51,37 @@ function domainOf(url: string | null): string {
   }
 }
 
-async function selectBatch(cohort: Cohort, authorityClass: string, limit: number) {
+/**
+ * Persisted cursor per (campaign_id, cohort, authority_class): the highest
+ * `last_id` this campaign has already walked past for that combination.
+ * Without it every run re-scans from the head of the id order and retries the
+ * same permanently-unfetchable rows forever (Item 365 Leg 2 stall).
+ */
+async function cursorFor(campaignId: string, cohort: Cohort, authorityClass: string) {
+  const { data } = await sb
+    .from("corpus_refetch_ledger")
+    .select("last_id")
+    .eq("campaign_id", campaignId)
+    .eq("cohort", cohort)
+    .eq("authority_class", authorityClass)
+    .not("last_id", "is", null)
+    .order("last_id", { ascending: false })
+    .limit(1);
+  return (data?.[0]?.last_id as string | undefined) ?? null;
+}
+
+async function selectBatch(
+  campaignId: string,
+  cohort: Cohort,
+  authorityClass: string,
+  limit: number,
+) {
   // Scan a WINDOW larger than the batch: rows whose documents already landed
   // (or whose domain is robots-disallowed) must not pin the batch to the head
   // of the id order, which would make every scheduled run re-scan the same
   // finished rows and fetch almost nothing.
   const window = Math.min(limit * 25, 500);
+  const cursor = await cursorFor(campaignId, cohort, authorityClass);
   let q = sb
     .from("enforcement_actions")
     .select("id, source_url, authority_class, source_document_text", { count: "exact" })
