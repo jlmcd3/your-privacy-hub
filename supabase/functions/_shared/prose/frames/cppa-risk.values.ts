@@ -250,6 +250,7 @@ export function buildCppaRiskFrameValues(input: {
 
     // Engine-normalised values and engine-composed prose. Never span-tracked
     // as company words (the record spans they contain are marked inside).
+    "engine.entity_name": s(intake.entity_name) || NOT_STATED,
     "engine.activity_name": analytics.activity_name,
     "engine.activity_purpose": analytics.activity_purpose,
     "engine.band_phrase": bandPhrase,
