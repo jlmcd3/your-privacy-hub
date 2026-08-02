@@ -1,9 +1,9 @@
 {
   "product": "cppa-risk",
-  "version": "prose-plans-2026-08-01-item339",
+  "version": "prose-plans-2026-08-01-item363",
   "approved": false,
   "provenance": {
-    "method": "report_keys",
+    "method": "draft",
     "donors_total": 8,
     "donors_with_text": 0,
     "extracted_at": "2026-08-01",
@@ -13,40 +13,25 @@
   },
   "sections": [
     {
-      "id": "assessment_summary",
-      "title": "Determination",
+      "id": "executive_lead",
+      "title": "About this assessment",
       "arc_stage": "headline",
       "lead": "determination",
-      "source_key": "assessment_summary",
+      "source_key": "executive_lead",
       "themes": [
-        "outcome",
-        "drivers",
-        "residual_uncertainty"
+        "outcome"
       ],
       "required": true,
       "status": "pending_review"
     },
     {
-      "id": "scope_and_triggers",
-      "title": "Why this assessment is required",
-      "arc_stage": "scope",
-      "lead": "determination",
-      "source_key": "scope_and_triggers",
-      "themes": [
-        "trigger",
-        "thresholds",
-        "activities_in_scope"
-      ],
-      "required": true,
-      "status": "pending_review"
-    },
-    {
-      "id": "record_echo",
-      "title": "The record as the company stated it",
+      "id": "record_card",
+      "title": "The facts the company provided",
       "arc_stage": "record",
       "lead": "record",
       "source_key": "normalised_intake",
       "themes": [
+        "lead_in",
         "parties",
         "data",
         "recipients",
@@ -57,87 +42,93 @@
       "status": "pending_review"
     },
     {
-      "id": "risk_assessment_by_activity",
-      "title": "Risk analysis by activity",
+      "id": "determination",
+      "title": "Determination",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "assessment_summary",
+      "themes": [
+        "holding"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "why_required",
+      "title": "Why this assessment is required",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "scope_and_triggers",
+      "themes": [
+        "statute"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "risk_analysis",
+      "title": "Risk analysis",
       "arc_stage": "analysis",
       "lead": "determination",
       "source_key": "risk_assessment_by_activity",
       "themes": [
+        "minimisation",
         "negative_impacts",
-        "safeguards_applied",
-        "benefits",
-        "weighing"
+        "safeguards_residual",
+        "weighing",
+        "initiation"
       ],
       "required": true,
       "status": "pending_review"
     },
     {
-      "id": "exception_analysis",
-      "title": "Exceptions claimed",
-      "arc_stage": "analysis",
-      "lead": "determination",
-      "source_key": "exception_analysis",
-      "themes": [
-        "claimed",
-        "record_support",
-        "unsupported"
-      ],
-      "required": false,
-      "status": "pending_review"
-    },
-    {
-      "id": "enforcement_context",
-      "title": "Regulatory expectations bearing on this activity",
+      "id": "corpus_analogies",
+      "title": "Comparable regulator decisions",
       "arc_stage": "duty",
       "lead": "determination",
-      "source_key": "enforcement_context",
+      "source_key": "eu_persuasive_authority",
       "themes": [
-        "duties_engaged",
-        "deadlines",
-        "submission"
+        "framing",
+        "analogy"
       ],
       "required": true,
       "status": "pending_review"
     },
     {
-      "id": "information_needed",
-      "title": "What the record does not yet state",
+      "id": "general_conclusions",
+      "title": "General conclusions",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "assessment_summary",
+      "themes": [
+        "synthesis"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "record_completeness_summary",
+      "title": "Record completeness and residual risk",
       "arc_stage": "ask",
       "lead": "record",
-      "source_key": "information_needed",
+      "source_key": "record_sufficiency",
       "themes": [
-        "silent_fields",
-        "hedged_answers",
-        "inconsistencies"
+        "completeness"
       ],
       "required": true,
       "status": "pending_review"
     },
     {
-      "id": "priority_actions",
+      "id": "what_to_do_next",
       "title": "What to do next",
       "arc_stage": "remedy",
       "lead": "determination",
       "source_key": "priority_actions",
       "themes": [
         "immediate",
-        "before_submission",
-        "ongoing"
+        "conditions"
       ],
       "required": true,
-      "status": "pending_review"
-    },
-    {
-      "id": "cross_tool_recommendations",
-      "title": "Related assessments",
-      "arc_stage": "close",
-      "lead": "determination",
-      "source_key": "cross_tool_recommendations",
-      "themes": [
-        "adjacent_obligations",
-        "counsel_reservation"
-      ],
-      "required": false,
       "status": "pending_review"
     }
   ]
