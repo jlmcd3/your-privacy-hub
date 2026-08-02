@@ -500,7 +500,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const mode: Mode = (body.mode as Mode) ?? "initial";
     const batch_size: number = Math.min(Math.max(body.batch_size ?? 10, 1), 50);
-    const start_after_id: string | null = body.start_after_id ?? null;
+    let start_after_id: string | null = body.start_after_id ?? null;
     const target_ids: string[] | null = body.target_ids ?? null;
     const jurisdiction_in: string[] | null = Array.isArray(body.jurisdiction_in) && body.jurisdiction_in.length > 0
       ? body.jurisdiction_in as string[]
@@ -509,7 +509,11 @@ Deno.serve(async (req) => {
     const budget_cap_usd: number = Number.isFinite(body.budget_cap_usd)
       ? Number(body.budget_cap_usd)
       : DEFAULT_BUDGET_CAP_USD;
-    const batch_index: number | null = Number.isFinite(body.batch_index) ? Number(body.batch_index) : null;
+    let batch_index: number | null = Number.isFinite(body.batch_index) ? Number(body.batch_index) : null;
+    // ITEM 365 — CRON RESUME DRIVER. With `resume: true` the invocation reads
+    // its own cursor from the sweep ledger, so a pg_cron job can drive the
+    // sweep to exhaustion (or to the cap) with no manual cursor passing.
+    const resume: boolean = body.resume === true;
 
     if (!["initial", "targeted", "sample", "cached"].includes(mode)) {
       return new Response(JSON.stringify({ error: "invalid_mode" }), {
@@ -518,6 +522,42 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ITEM 365 — single-flight lease. Scheduled invocations must never overlap
+    // and double-bill a row.
+    let leaseKey: string | null = null;
+    if (resume && sweep_id) {
+      leaseKey = `sweep:${sweep_id}`;
+      const { data: got } = await sb.rpc("try_acquire_job_lease" as any, {
+        _key: leaseKey,
+        _seconds: 900,
+        _holder: "verification-scan",
+      });
+      if (got !== true) {
+        return new Response(JSON.stringify({ sweep_id, skipped: "lease_held" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: lastBatch } = await sb
+        .from("verification_sweep_ledger")
+        .select("last_id, start_after_id, batch_index")
+        .eq("sweep_id", sweep_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lastBatch) {
+        start_after_id = (lastBatch as any).last_id ?? (lastBatch as any).start_after_id ?? start_after_id;
+        if (batch_index === null) {
+          batch_index = Number((lastBatch as any).batch_index ?? 0) + 1;
+        }
+      }
+    }
+    const releaseLease = async () => {
+      if (leaseKey) await sb.rpc("release_job_lease" as any, { _key: leaseKey });
+    };
+
+
+
     // Fail-closed budget gate: refuse to spend anything once the sweep's
     // recorded cumulative spend has reached the cap. Cursor is returned so the
     // sweep can be resumed after an explicit cap raise.
@@ -525,6 +565,7 @@ Deno.serve(async (req) => {
     if (sweep_id) {
       spent_before = await sweepSpentSoFar(sweep_id);
       if (spent_before >= budget_cap_usd) {
+        await releaseLease();
         return new Response(JSON.stringify({
           mode,
           sweep_id,
@@ -539,9 +580,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    const sel: any = await selectRows(mode, batch_size, start_after_id, target_ids, jurisdiction_in);
+    let sel: any = await selectRows(mode, batch_size, start_after_id, target_ids, jurisdiction_in);
+    // ITEM 365 — cursor wrap-around for the cron driver: once the cursor has
+    // walked past the end, rescan from the start so rows whose documents
+    // arrived later (Leg 2 refetch) are picked up. Cached mode only selects
+    // still-unverified rows, so a wrap can never re-bill finished work.
+    if (mode === "cached" && resume && start_after_id && (sel.scanned ?? 0) === 0) {
+      start_after_id = null;
+      sel = await selectRows(mode, batch_size, null, target_ids, jurisdiction_in);
+    }
     const rows = sel.rows;
     const remaining = sel.remaining;
+
 
     let verified = 0, failed = 0, requires_review = 0, memo_eligible_after = 0;
     const tokens = { haiku_input: 0, haiku_output: 0, sonnet_input: 0, sonnet_output: 0 };
@@ -637,7 +687,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    await releaseLease();
+
     return new Response(JSON.stringify({
+
       mode,
       sweep_id,
       batch_size,

@@ -106,17 +106,31 @@ async function extractSubject(doc: string): Promise<string | null> {
 
 // ---------------------------------------------------------------- SET A
 
-async function runSetA(batchSize: number, startAfterId: string | null, dryRun: boolean) {
+async function runSetA(
+  batchSize: number,
+  startAfterId: string | null,
+  dryRun: boolean,
+  // ITEM 365 LEG 2 — after the refetch campaign lands documents, the same Set-A
+  // re-extraction is re-run over the rows previously closed as
+  // `corpus_defect_subject_unrepairable`, restricted to rows that NOW carry a
+  // document. Degradation law unchanged: extract verbatim or flag, never invent.
+  reviewReason = "corpus_defect_subject",
+  requireDocument = false,
+) {
   let q = sb
     .from("enforcement_actions")
     .select(
       "id, subject, source_url, source_document_text, raw_text, legacy_summary_text",
       { count: "exact" },
     )
-    .eq("review_reason", "corpus_defect_subject")
+    .eq("review_reason", reviewReason)
     .order("id", { ascending: true })
     .limit(batchSize);
+  if (requireDocument) {
+    q = q.not("source_document_text", "is", null);
+  }
   if (startAfterId) q = q.gt("id", startAfterId);
+
   const { data, count, error } = await q;
   if (error) throw new Error(error.message);
   const rows = data ?? [];
@@ -384,9 +398,14 @@ Deno.serve(async (req) => {
     const batchSize = Math.min(Number(body.batch_size ?? 50), 100);
     const startAfterId = body.start_after_id ?? null;
     const dryRun = Boolean(body.dry_run);
+    // Set "A2" (Item 365): re-extraction pass over the previously unrepairable
+    // rows whose documents arrived in the Leg-2 refetch campaign.
     const out = set === "B"
       ? await runSetB(batchSize, startAfterId, dryRun)
-      : await runSetA(batchSize, startAfterId, dryRun);
+      : set === "A2"
+        ? await runSetA(batchSize, startAfterId, dryRun, "corpus_defect_subject_unrepairable", true)
+        : await runSetA(batchSize, startAfterId, dryRun);
+
     return new Response(JSON.stringify({ ok: true, dry_run: dryRun, ...out }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
