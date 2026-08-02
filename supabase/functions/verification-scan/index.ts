@@ -472,6 +472,28 @@ async function processRow(row: any, mode: Mode = "initial") {
   );
   const status =
     para.confidence === "failed" || !detPass ? "failed" : "verified";
+  // ITEM 366 (a): record WHY a row failed so the sweep ledger can carry a
+  // batch-level triage histogram instead of a bare failure count.
+  let failReason: string | null = null;
+  if (status === "failed") {
+    const failedChecks: string[] = [];
+    if (subjectCheck.verdict === "fail") failedChecks.push("subject");
+    if (regulatorCheck.verdict === "fail") failedChecks.push("regulator");
+    if (dateCheck.verdict === "fail") failedChecks.push("decision_date");
+    if (provCheck.verdict === "fail") failedChecks.push("statutory_provision");
+    if (amtCheck.verdict === "fail") failedChecks.push("fine_amount");
+    if (caseRefCheck.verdict === "fail") failedChecks.push("case_reference");
+    if (para.confidence === "failed") {
+      failReason = para.verdict === "parse_error"
+        ? "paraphrase_parse_error"
+        : "paraphrase_unfaithful";
+    } else {
+      failReason = failedChecks.length
+        ? `deterministic_fail:${failedChecks.join("+")}`
+        : "deterministic_fail:unattributed";
+    }
+  }
+
   const memoEligible =
     status === "verified" &&
     (para.confidence === "high" || para.confidence === "medium") &&
