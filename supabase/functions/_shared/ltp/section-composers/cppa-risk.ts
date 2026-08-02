@@ -1197,7 +1197,12 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
   const affirmedCount = plan.factor_table.filter(
     (f) => statusForFactor(f) === RECORD_STATUS_CLAUSES[0],
   ).length;
-  const gapCount = needs.filter((n) => n.kind === "missing_data").length;
+  // ITEM 358 — the opener counts every element "enumerated for your review",
+  // which is the whole canonical needs set (Item 352 consistency guard).
+  // Reserved decisions are enumerated with a reserved status clause rather
+  // than a deficiency clause; what Item 358 changes is what GATES the band
+  // (`assessRecordCompleteness`), not what the panel lists.
+  const gapCount = needs.length;
   const affirmationsOpener: TemplateInstance = {
     template_id: "T.risk.record_sufficiency.prose.v2",
     ctx: {
