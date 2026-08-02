@@ -599,6 +599,63 @@ export type Database = {
           },
         ]
       }
+      corpus_refetch_ledger: {
+        Row: {
+          attempted: number
+          authority_class: string | null
+          batch_index: number | null
+          campaign_id: string
+          cohort: string
+          created_at: string
+          failure_reasons: Json
+          fetch_failed: number
+          fetched_ok: number
+          halted_reason: string | null
+          id: string
+          last_id: string | null
+          per_domain_failures: Json
+          skipped: number
+          start_after_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempted?: number
+          authority_class?: string | null
+          batch_index?: number | null
+          campaign_id: string
+          cohort: string
+          created_at?: string
+          failure_reasons?: Json
+          fetch_failed?: number
+          fetched_ok?: number
+          halted_reason?: string | null
+          id?: string
+          last_id?: string | null
+          per_domain_failures?: Json
+          skipped?: number
+          start_after_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempted?: number
+          authority_class?: string | null
+          batch_index?: number | null
+          campaign_id?: string
+          cohort?: string
+          created_at?: string
+          failure_reasons?: Json
+          fetch_failed?: number
+          fetched_ok?: number
+          halted_reason?: string | null
+          id?: string
+          last_id?: string | null
+          per_domain_failures?: Json
+          skipped?: number
+          start_after_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       corpus_versions: {
         Row: {
           memo_eligible_count: number
@@ -2770,6 +2827,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_leases: {
+        Row: {
+          created_at: string
+          holder: string | null
+          lock_key: string
+          locked_until: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          holder?: string | null
+          lock_key: string
+          locked_until: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          holder?: string | null
+          lock_key?: string
+          locked_until?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       jurisdiction_audit_runs: {
         Row: {
@@ -9518,6 +9599,7 @@ export type Database = {
       prune_old_user_events: { Args: never; Returns: undefined }
       quality_runs_watchdog: { Args: never; Returns: Json }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
+      release_job_lease: { Args: { _key: string }; Returns: undefined }
       replay_harness_fetch_doc: {
         Args: { p_doc_id: string }
         Returns: {
@@ -9535,6 +9617,10 @@ export type Database = {
         Returns: undefined
       }
       stress_batch_watchdog: { Args: never; Returns: Json }
+      try_acquire_job_lease: {
+        Args: { _holder?: string; _key: string; _seconds: number }
+        Returns: boolean
+      }
       verify_admin_secret_token: { Args: { _token: string }; Returns: boolean }
     }
     Enums: {
