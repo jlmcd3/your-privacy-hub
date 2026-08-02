@@ -126,6 +126,10 @@ const REFERRING = /^(the company|the business|the entity|it)$/i;
 function markRecord(p: FramePlaceholder, value: string): string {
   if (!value) return value;
   if (!RECORD_KINDS.has(p.kind)) return value;
+  // `engine.*` sources are the ENGINE's own computed prose, not the company's
+  // words. They are never span-tracked (and any record spans they already
+  // carry inside them are preserved untouched).
+  if (p.source.startsWith("engine.")) return value;
   if (REFERRING.test(value.trim())) return value;
   return rec(value, p.source);
 }
