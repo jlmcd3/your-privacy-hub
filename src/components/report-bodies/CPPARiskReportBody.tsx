@@ -34,9 +34,11 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
   // ITEM 274 — LTP shape wins the dispatch; V3/V4 remain for legacy rows.
   // ITEM 279 / ISSUE 12 — an unrecognized shape fails LOUD, never blank.
   const shapeResult = describeCppaRiskShape(report, isV4Report);
+  const isProse9 = shapeResult.shape === "prose9";
   const isLtp = shapeResult.shape === "ltp";
   const isV3 = shapeResult.shape === "v3";
   const isV4 = shapeResult.shape === "v4";
+
 
   if (!shapeResult.recognized) {
     // eslint-disable-next-line no-console
