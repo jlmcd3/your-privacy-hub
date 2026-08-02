@@ -11,6 +11,8 @@ import {
   coerceNarrativeList,
   headerForSection,
 } from "../_shared/report-contracts/cppa-risk-shape.ts";
+import { hasProse9Document } from "../_shared/report-contracts/cppa-risk-prose9.ts";
+
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
