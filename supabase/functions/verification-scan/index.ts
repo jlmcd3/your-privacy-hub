@@ -344,8 +344,10 @@ async function processRow(row: any, mode: Mode = "initial") {
     }).eq("id", id);
     return {
       verdict: next_status,
+      reason: `fetch_${fetched.reason ?? "unavailable"}`,
       tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
     };
+
   }
 
   const doc = fetched.content_text!;
