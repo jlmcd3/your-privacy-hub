@@ -204,11 +204,16 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
       const whole = args[args.length - 1] as string;
       const after = whole.slice(offset + String(_m).length);
       // An unquoted record value that ends in a full stop must not carry it
-      // into the middle of the frame's own sentence.
+      // into the middle of the frame's own sentence — EXCEPT where the stop
+      // belongs to a legal-name abbreviation (Inc., Corp., Ltd., LLC, S.A.),
+      // which a lawyer reads as part of the name itself.
       const midSentence = /^\s*[a-z(]/.test(after) || /^\s*(and|with|,)/.test(after);
-      const trimmed = midSentence && /[^”"]\.$/.test(replacement)
+      const nameAbbrev =
+        /\b(?:Inc|Corp|Ltd|Co|LLC|LLP|PLC|S\.A|N\.V|GmbH|Pty|Pte|Cie|Jr|Sr|No)\.$/.test(replacement);
+      const trimmed = midSentence && !nameAbbrev && /[^”"]\.$/.test(replacement)
         ? replacement.replace(/\.$/, "")
         : replacement;
+
       return markRecord(p, trimmed);
     });
   }
