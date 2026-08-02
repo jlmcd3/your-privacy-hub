@@ -53,7 +53,7 @@ const MODULE_FOR: Partial<Record<ToolType, string>> = {
 };
 
 const RUNNER_FOR: Record<ToolType, { name: string; body: (id: string) => Record<string, unknown> }> = {
-  cppa_risk_assessment: { name: "run-cppa-risk-assessment", body: (id) => ({ assessment_id: id }) },
+  cppa_risk_assessment: { name: "run-cppa-risk-assessment-v2", body: (id) => ({ assessment_id: id }) },
   cppa_admt: { name: "run-admt-checker", body: (id) => ({ assessment_id: id }) },
   cppa_cybersecurity: { name: "run-cppa-cybersecurity", body: (id) => ({ assessment_id: id }) },
   governance_assessment: { name: "run-governance-assessment", body: (id) => ({ assessment_id: id }) },

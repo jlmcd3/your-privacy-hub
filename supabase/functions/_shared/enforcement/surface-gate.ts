@@ -105,6 +105,7 @@ const CPPA_RISK_TOOLS = new Set([
   "cppa_risk",
   "cppa-risk-assessment",
   "run-cppa-risk-assessment",
+  "run-cppa-risk-assessment-v2",
   "ltp-risk-doc-gen",
   "cppa-risk-doc",
 ]);

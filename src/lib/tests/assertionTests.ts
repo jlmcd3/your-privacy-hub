@@ -475,7 +475,7 @@ const CPPA_RISK_INPUT = { ...CPPA_RISK_VARIANTS[0] };
 export const CPPA_RISK_TEST: AssertionTest = {
   toolId: "cppa-risk",
   toolName: "CPPA Risk Assessment",
-  edgeFunction: "run-cppa-risk-assessment",
+  edgeFunction: "run-cppa-risk-assessment-v2",
   testInput: CPPA_RISK_INPUT,
   expectedSeconds: 120,
   pollConfig: { table: "cppa_assessments", successStatus: "complete", maxPolls: 120, intervalMs: 4000 },

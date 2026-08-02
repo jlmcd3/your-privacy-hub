@@ -155,7 +155,7 @@ export default function CPPAEvalHarness() {
         .select().single();
       if (insErr) throw insErr;
 
-      const { error: runErr } = await supabase.functions.invoke("run-cppa-risk-assessment", {
+      const { error: runErr } = await supabase.functions.invoke("run-cppa-risk-assessment-v2", {
         body: { assessment_id: row.id },
       });
       if (runErr) throw runErr;

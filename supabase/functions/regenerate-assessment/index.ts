@@ -72,7 +72,7 @@ const FN_MAP: Record<string, string> = {
   ir_playbook: "generate-ir-playbook",
   biometric_checker: "check-biometric-compliance",
   cppa_admt: "run-admt-checker",
-  cppa_risk_assessment: "run-cppa-risk-assessment",
+  cppa_risk_assessment: "run-cppa-risk-assessment-v2",
   cppa_cybersecurity: "run-cppa-cybersecurity",
 };
 

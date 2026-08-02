@@ -568,7 +568,7 @@ const F_CPPA_RISK_US: SampleFixture = {
         sensitive_location_basis: "Not applicable — no sensitive-location processing",
       },
     },
-    invoke: { fn: "run-cppa-risk-assessment", id_key: "assessment_id" },
+    invoke: { fn: "run-cppa-risk-assessment-v2", id_key: "assessment_id" },
     poll: { table: "cppa_assessments", terminal: ["complete", "failed", "error"], max: 60, interval_ms: 4000 },
   },
 };

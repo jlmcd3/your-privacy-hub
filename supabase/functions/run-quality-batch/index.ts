@@ -1341,7 +1341,7 @@ async function dispatchGeneration(
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
       // ITEM 335 — harness/shadow engine selector (see EnginePath above).
-      const genFn = enginePath === "ltp" ? "ltp-risk-doc-gen" : "run-cppa-risk-assessment";
+      const genFn = enginePath === "ltp" ? "ltp-risk-doc-gen" : "run-cppa-risk-assessment-v2";
       const invocation = invokeFn(genFn, { assessment_id: rec.id });
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
@@ -1604,7 +1604,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
     if (tool === "cppa-risk") {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id }).catch(() => {});
+      invokeFn("run-cppa-risk-assessment-v2", { assessment_id: rec.id }).catch(() => {});
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id, reportData: await poll("cppa_assessments", rec.id) };
     }
     if (tool === "cppa-cyber") {
@@ -1737,7 +1737,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
 
 async function generateProposedFix(tool: string, checkId: string, dimension: string, evidence: string[]): Promise<{ fix: string; location: string }> {
   const toolToEdgeFn: Record<string, string> = {
-    "cppa-admt": "run-admt-checker", "cppa-risk": "run-cppa-risk-assessment",
+    "cppa-admt": "run-admt-checker", "cppa-risk": "run-cppa-risk-assessment-v2",
     "cppa-cyber": "run-cppa-cybersecurity", "lia": "run-li-assessment",
     "dpia": "run-dpia-framework", "governance": "run-governance-assessment",
     "dpa-generator": "generate-dpa", "ir-playbook": "generate-ir-playbook",

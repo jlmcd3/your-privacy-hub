@@ -768,9 +768,9 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv, eventId?: s
         ir_playbook: "generate-ir-playbook",
         biometric_checker: "check-biometric-compliance",
         cppa_admt: "run-admt-checker",
-        cppa_risk_assessment: "run-cppa-risk-assessment",
+        cppa_risk_assessment: "run-cppa-risk-assessment-v2",
         cppa_cybersecurity: "run-cppa-cybersecurity",
-        cppa_suite: "run-cppa-risk-assessment",
+        cppa_suite: "run-cppa-risk-assessment-v2",
       };
       const fn = fnMap[tool_type];
       if (fn) {
