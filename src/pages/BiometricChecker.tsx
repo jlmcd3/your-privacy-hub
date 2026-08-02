@@ -194,11 +194,15 @@ export default function BiometricChecker() {
     if (!access.user) { setAuthModalOpen(true); return; }
     if (access.isPremium) { handleGenerate(); return; }
     if (biometricFreeRunAvailable) {
-      await supabase.from("profiles").update({ biometric_free_run_claimed: true } as any).eq("id", access.user.id);
+      // ITEM 360 — the quota column is service-role-only; claim it atomically
+      // through the security-definer routine (returns false if already used).
+      const { data: claimed } = await (supabase as any).rpc("claim_biometric_free_run");
       setBiometricFreeRunAvailable(false);
-      handleGenerate();
+      if (claimed === true) { handleGenerate(); return; }
+      setCheckoutOpen(true);
       return;
     }
+
     setCheckoutOpen(true);
   };
 

@@ -65,16 +65,24 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
   const finish = async () => {
     setSaving(true);
     setSaveError(null);
-    // Save role to `user_role` (verified column). Do NOT overwrite `industry`.
+    // Save role via the security-definer routine (ITEM 360: `user_role` is a
+    // service-role-only column). Do NOT overwrite `industry`.
     // Set `onboarding_complete` only when the write succeeds.
-    const { error } = await (supabase as any)
-      .from("profiles")
-      .update({
-        onboarding_complete: true,
-        user_role: role,
-        jurisdictions,
-      })
-      .eq("id", userId);
+    const { error: roleErr } = await (supabase as any).rpc("set_self_declared_role", {
+      _role: role || null,
+      _primary_jurisdiction: null,
+      _sector: null,
+    });
+    const { error } = roleErr
+      ? { error: roleErr }
+      : await (supabase as any)
+          .from("profiles")
+          .update({
+            onboarding_complete: true,
+            jurisdictions,
+          })
+          .eq("id", userId);
+
     setSaving(false);
     if (error) {
       // Keep the modal open, preserve selections, announce via role="alert".

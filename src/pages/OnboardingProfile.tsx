@@ -60,15 +60,14 @@ export default function OnboardingProfile() {
     if (!user) return;
     setSaving(true);
     setError("");
-    const { error: updateErr } = await supabase
-      .from("profiles")
-      .update({
-        user_role: role || null,
-        primary_jurisdiction: jurisdiction.trim() || null,
-        sector: sector || null,
-        role_confirmed_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+    // ITEM 360 — user_role / role_confirmed_at are service-role-only columns.
+    // The declaration goes through a security-definer routine that stamps the
+    // confirmation time server-side so it cannot be fabricated.
+    const { error: updateErr } = await (supabase as any).rpc("set_self_declared_role", {
+      _role: role || null,
+      _primary_jurisdiction: jurisdiction.trim() || null,
+      _sector: sector || null,
+    });
     if (updateErr) {
       setError(updateErr.message);
       setSaving(false);
@@ -80,10 +79,12 @@ export default function OnboardingProfile() {
   const handleSkip = async () => {
     if (!user) return;
     setSaving(true);
-    const { error: updateErr } = await supabase
-      .from("profiles")
-      .update({ role_confirmed_at: new Date().toISOString() })
-      .eq("id", user.id);
+    const { error: updateErr } = await (supabase as any).rpc("set_self_declared_role", {
+      _role: null,
+      _primary_jurisdiction: null,
+      _sector: null,
+    });
+
     if (updateErr) {
       setError(updateErr.message);
       setSaving(false);

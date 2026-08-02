@@ -9343,6 +9343,7 @@ export type Database = {
           sector: string
         }[]
       }
+      claim_biometric_free_run: { Args: never; Returns: boolean }
       claim_enforcement_for_enrichment: {
         Args: { _limit: number; _target_version: number }
         Returns: {
@@ -9524,6 +9525,14 @@ export type Database = {
           intake_data: Json
           report_data: Json
         }[]
+      }
+      set_self_declared_role: {
+        Args: {
+          _primary_jurisdiction?: string
+          _role: string
+          _sector?: string
+        }
+        Returns: undefined
       }
       stress_batch_watchdog: { Args: never; Returns: Json }
       verify_admin_secret_token: { Args: { _token: string }; Returns: boolean }
