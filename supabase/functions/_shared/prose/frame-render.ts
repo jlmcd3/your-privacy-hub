@@ -64,7 +64,10 @@ export interface FrameRenderOptions {
   readonly resolveConclusion?: ConclusionResolver;
   /** Product contract for the Item 337 enum adapter. */
   readonly contract?: string;
-  /** Quote free-text record values. Default true. */
+  /**
+   * DEPRECATED under Item 363. Record values are never visibly quoted; the
+   * flag is retained so existing callers keep type-checking and is ignored.
+   */
   readonly quoteFreeText?: boolean;
 }
 
@@ -105,23 +108,34 @@ function fillOne(
     case "text":
     default: {
       // VERBATIM LAW — record free text is reproduced exactly as the company
-      // wrote it: no punctuation stripping, no case folding.
-      const s = (Array.isArray(raw) ? joinNaturalList(raw) : String(raw)).trim();
-      // A referring expression ("the company") is the renderer's own word for
-      // the entity, not a record quotation, so it is never quoted.
-      const isReferring = /^(the company|the business|the entity|it)$/i.test(s);
-      const quote = opts.quoteFreeText !== false && !isReferring;
-      return quote ? `“${s.replace(/^["“”]|["“”]$/g, "")}”` : s;
+      // wrote it: no punctuation stripping, no case folding. ITEM 363: and no
+      // quotation marks; the value is span-tracked instead (see markRecord).
+      return (Array.isArray(raw) ? joinNaturalList(raw) : String(raw)).trim();
     }
   }
+}
+
+/**
+ * ITEM 363 — record-derived slot kinds carry invisible span tracking. A
+ * referring expression ("the company") is the renderer's own word for the
+ * entity, not a record value, so it is never marked.
+ */
+const RECORD_KINDS = new Set(["text", "list", "count", "date", "enum"]);
+const REFERRING = /^(the company|the business|the entity|it)$/i;
+
+function markRecord(p: FramePlaceholder, value: string): string {
+  if (!value) return value;
+  if (!RECORD_KINDS.has(p.kind)) return value;
+  if (REFERRING.test(value.trim())) return value;
+  return rec(value, p.source);
 }
 
 /** The honest path when a frame cannot be filled from the record. */
 export function notStatedOnTheRecord(items: readonly string[]): string {
   const list = joinNaturalList(items);
   return items.length
-    ? `Not stated on the record. To complete this section the record needs ${list}.`
-    : "Not stated on the record.";
+    ? `The information provided does not state this. To complete this section we need ${list}.`
+    : "The information provided does not state this.";
 }
 
 export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRenderResult {
@@ -188,10 +202,10 @@ export function renderFrame(frame: Frame, opts: FrameRenderOptions): FrameRender
       // An unquoted record value that ends in a full stop must not carry it
       // into the middle of the frame's own sentence.
       const midSentence = /^\s*[a-z(]/.test(after) || /^\s*(and|with|,)/.test(after);
-      if (midSentence && /[^”"]\.$/.test(replacement)) {
-        return replacement.replace(/\.$/, "");
-      }
-      return replacement;
+      const trimmed = midSentence && /[^”"]\.$/.test(replacement)
+        ? replacement.replace(/\.$/, "")
+        : replacement;
+      return markRecord(p, trimmed);
     });
   }
 
