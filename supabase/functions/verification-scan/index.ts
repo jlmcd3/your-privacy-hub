@@ -693,6 +693,13 @@ Deno.serve(async (req) => {
         if (r.verdict === "verified") verified++;
         else if (r.verdict === "requires_review") requires_review++;
         else failed++;
+        // ITEM 366 (a): tally every non-verified outcome, not just thrown
+        // exceptions. Prefix keeps triage classes separable in the ledger.
+        if (r.verdict !== "verified") {
+          const key = `${r.verdict}:${(r as any).reason ?? "unspecified"}`;
+          failure_reasons[key] = (failure_reasons[key] ?? 0) + 1;
+        }
+
         tokens.haiku_input += r.tokens.haiku_in;
         tokens.haiku_output += r.tokens.haiku_out;
         tokens.sonnet_input += r.tokens.sonnet_in;
