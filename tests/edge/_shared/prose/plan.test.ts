@@ -348,7 +348,7 @@ Deno.test("render: a section with no determination degrades honestly", () => {
     information_needed: ["retention period", "safeguards"],
   }, { mentions: { primary: "Acme Ltd" } });
   assertEquals(r.degraded, true);
-  assertStringIncludes(r.text, "does not state enough");
+  assertStringIncludes(r.text, "does not go far enough");
   assertEquals(r.information_needed, ["retention period", "safeguards"]);
 });
 
@@ -373,7 +373,7 @@ Deno.test("render: a record section leads with its first statement and is not de
   assertEquals(r.degraded, false);
   assert(r.text.startsWith("The record reports unauthorised access"));
   assertStringIncludes(r.text.toLowerCase(), "encryption at rest");
-  assertEquals(r.text.includes("does not state enough"), false);
+  assertEquals(r.text.includes("does not go far enough"), false);
 });
 
 Deno.test("render: a record section with nothing on the record still degrades", () => {
@@ -391,7 +391,7 @@ Deno.test("render: a record section with nothing on the record still degrades", 
     mentions: { primary: "Acme Ltd" },
   });
   assertEquals(r.degraded, true);
-  assertStringIncludes(r.text, "does not state enough");
+  assertStringIncludes(r.text, "does not go far enough");
 });
 
 Deno.test("render: statements whose theme the plan does not declare are reported, not silently placed", () => {

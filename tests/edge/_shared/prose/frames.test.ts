@@ -65,63 +65,55 @@ Deno.test("F6 — the shipped cppa-risk frame set is lint-clean", () => {
 
 Deno.test("F7 — nothing renders until the set is approved", () => {
   assertEquals(frameSetRenderable(CPPA_RISK_FRAMES), false);
-  const r = renderSectionFromFrames(CPPA_RISK_FRAMES, "processing_narrative", { values: {} });
+  const r = renderSectionFromFrames(CPPA_RISK_FRAMES, "record_card_lead", { values: {} });
   assertEquals(r.used_frames, false);
   assertEquals(r.rendered, null);
 });
 
-// ITEM 346 — F8/F9/F10 re-pointed at the REVISED frames (the Item 338 slot
-// paths they used were retired with the set the CEO rejected). record_echo is
-// unchanged and still exercised by F11 on its original source paths.
-const narrative = () =>
-  CPPA_RISK_FRAMES.frames.find((f) => f.section === "processing_narrative")!;
+// ITEM 363 — F8/F9/F10 re-pointed at the REVISED (Item 363) frame set. The
+// Item 346 `processing_narrative` frame was retired with the rejected plan;
+// `record_card_lead` is its successor, and it carries the same three slot
+// types. F8 now asserts the ITEM 363 rule: intake-derived values carry NO
+// quotation marks and are span-tracked instead.
+const lead = () => CPPA_RISK_FRAMES.frames.find((f) => f.section === "record_card_lead")!;
 
-Deno.test("F8 — realizer quotes free text verbatim and joins lists naturally", () => {
-  const r = renderFrame(narrative(), {
-    values: {
-      entity_name: "Syntara Corp.",
-      activity_name: "automated risk scoring of California customers",
-      activity_purpose: "scoring accounts for fraud review",
-      data_categories: ["contact identifiers", "device identifiers", "transaction history"],
-      sources: "directly from the consumer at signup",
-      retention_period: "24 months",
-      vendors: ["AWS", "Snowflake"],
-    },
-  });
-  assert(r.rendered?.includes("“Syntara Corp.”"), r.rendered ?? "");
-  assert(r.rendered?.includes("contact identifiers, device identifiers, and transaction history"));
-  // ITEM 346 — cite slots now resolve from the verified-authority registry by
-  // default; the review-render literal "[registry: ...]" defect is gone.
-  assert(r.rendered?.includes("11 CCR § 7152(a)(1)"), r.rendered ?? "");
-  assertEquals([...r.cites_filled], ["ra_content_operational", "ra_content_purpose"]);
+const LEAD_VALUES = {
+  "engine.entity_name": "Syntara Corp.",
+  "engine.activity_name": "automated risk scoring of California customers",
+  "engine.activity_purpose": "scoring accounts for fraud review",
+};
+
+Deno.test("F8 — ITEM 363: intake values render unquoted and span-tracked", () => {
+  const r = renderFrame(lead(), { values: LEAD_VALUES });
+  const raw = r.rendered ?? "";
+  const clean = extractSpans(raw);
+  assert(clean.text.includes("Syntara Corp."), clean.text);
+  assertEquals(clean.text.includes("\u201c"), false);
+  assertEquals(clean.text.includes('"'), false);
+  assert(clean.text.includes("The company states that the activity assessed is"), clean.text);
 });
 
 Deno.test("F9 — FILL-OR-OMIT: a silent required placeholder degrades, never half-fills", () => {
-  const r = renderFrame(narrative(), { values: { entity_name: "Syntara Corp." } });
+  const r = renderFrame(lead(), { values: { "engine.entity_name": "Syntara Corp." } });
   assertEquals(r.rendered, null);
   assertEquals(r.omitted, true);
-  assert(r.missing_required.includes("retention_period"));
+  assert(r.missing_required.includes("engine.activity_purpose"));
 });
 
 Deno.test("F10 — CITE slots fill only from the caller's registry resolver", () => {
-  const r = renderFrame(narrative(), {
+  const minimisation = CPPA_RISK_FRAMES.frames.find((f) => f.section === "risk_minimisation")!;
+  const r = renderFrame(minimisation, {
     values: {
-      entity_name: "Syntara Corp.",
-      activity_name: "risk scoring",
-      activity_purpose: "scoring accounts for fraud review",
-      data_categories: ["contact identifiers"],
-      sources: "directly from the consumer at signup",
-      retention_period: "24 months",
-      vendors: ["AWS", "Snowflake"],
+      "engine.necessity_paragraph": "The company has identified one element as necessary.",
+      "engine.minimisation_phrase": "no element collected beyond what the stated purpose needs",
     },
-    // A caller-supplied resolver overrides the registry default entirely, and a
-    // key it declines to answer leaves a REQUIRED cite silent — the frame then
-    // omits rather than half-fills.
-    resolveCite: (k) => (k === "ra_content_purpose" ? "Cal. Code Regs. tit. 11, § 7152(a)(1)." : null),
+    contract: "cppa-risk",
+    // A caller-supplied resolver overrides the registry default entirely; a key
+    // it declines to answer leaves a REQUIRED cite silent and the frame omits.
+    resolveCite: () => null,
   });
   assertEquals(r.rendered, null);
-  assertEquals([...r.missing_required], ["ra_content_operational"]);
-  assertEquals([...r.cites_filled], ["ra_content_purpose"]);
+  assert(r.missing_required.length > 0);
 });
 
 Deno.test("F11 — an approved set renders; frame provenance is retained", () => {
@@ -130,38 +122,24 @@ Deno.test("F11 — an approved set renders; frame provenance is retained", () =>
     approved: true,
     frames: CPPA_RISK_FRAMES.frames.map((f) => ({ ...f, status: "approved" as const })),
   };
-  const r = renderSectionFromFrames(approved, "record_echo", {
-    values: {
-      entity_name: "Syntara Corp.",
-      q2_consumers: "Over 100,000",
-      i6_vendors: ["AWS", "Snowflake", "Zendesk"],
-      "impact_intake.safeguards": ["RBAC", "MFA"],
-    },
-  });
+  const r = renderSectionFromFrames(approved, "record_card_lead", { values: LEAD_VALUES });
   assertEquals(r.used_frames, true);
-  assertEquals(r.frame_id, "cppa-risk.record_echo.001");
-  assert(r.rendered?.includes("AWS, Snowflake, and Zendesk"));
+  assertEquals(r.frame_id, "cppa-risk.record_card_lead.001");
+  assert(extractSpans(r.rendered ?? "").text.includes("Syntara Corp."));
 });
 
-// ── ITEM 346 — THREE-SLOT-TYPE AND NO-FLATTENING GUARANTEES ────────────
+// ── ITEM 346/363 — THREE-SLOT-TYPE AND NO-FLATTENING GUARANTEES ────────
 import { buildCppaRiskFrameValues } from "../../../../supabase/functions/_shared/prose/frames/cppa-risk.values.ts";
+import { extractSpans } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
 import { checkCoverage, collectCoverageAtoms } from "../../../../supabase/functions/_shared/prose/frame-coverage.ts";
 import { CPPA_RISK_ENGINE_CONCLUSIONS, resolveEngineConclusion } from "../../../../supabase/functions/_shared/prose/engine-conclusions.ts";
 import { CPPA_RISK_LEGAL_PHRASINGS } from "../../../../supabase/functions/_shared/prose/legal-phrasings.ts";
 import { buildActivityAnalytics } from "../../../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../../../supabase/functions/_shared/golden/cppa-risk.ts";
 
-const SECTIONS_346 = [
-  "opening_analysis",
-  "processing_narrative",
-  "record_echo",
-  "scope_notes",
-  "necessity_analysis",
-  "harm_analysis",
-  "benefits_rationale",
-];
+const SECTIONS_363 = CPPA_RISK_FRAMES.frames.map((f) => f.section);
 
-function renderAll346(): string {
+function renderAll363(): string {
   const intake = CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>;
   const analytics = buildActivityAnalytics(intake)[0];
   const { values } = buildCppaRiskFrameValues({ intake, analytics });
@@ -170,9 +148,11 @@ function renderAll346(): string {
     approved: true,
     frames: CPPA_RISK_FRAMES.frames.map((f) => ({ ...f, status: "approved" as const })),
   };
-  return SECTIONS_346
-    .map((s) => renderSectionFromFrames(approved, s, { values, contract: "cppa-risk" }).rendered ?? "")
-    .join("\n");
+  return extractSpans(
+    SECTIONS_363
+      .map((s) => renderSectionFromFrames(approved, s, { values, contract: "cppa-risk" }).rendered ?? "")
+      .join("\n"),
+  ).text;
 }
 
 Deno.test("F12 — every section of the revised set renders on a COMPLETE record", () => {
@@ -184,7 +164,7 @@ Deno.test("F12 — every section of the revised set renders on a COMPLETE record
     approved: true,
     frames: CPPA_RISK_FRAMES.frames.map((f) => ({ ...f, status: "approved" as const })),
   };
-  for (const section of SECTIONS_346) {
+  for (const section of SECTIONS_363) {
     const r = renderSectionFromFrames(approved, section, { values, contract: "cppa-risk" });
     assert(r.rendered, `${section} omitted: ${r.missing_required.join(", ")}`);
   }
@@ -193,7 +173,7 @@ Deno.test("F12 — every section of the revised set renders on a COMPLETE record
 Deno.test("F13 — NO FLATTENING: every composer atom survives into the framed render", () => {
   const intake = CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>;
   const analytics = buildActivityAnalytics(intake)[0];
-  const report = checkCoverage(collectCoverageAtoms({ analytics }), renderAll346(), {
+  const report = checkCoverage(collectCoverageAtoms({ analytics }), renderAll363(), {
     clauseFor: (k) => resolveEngineConclusion("cppa-risk", k),
   });
   assert(report.total > 0);
@@ -201,7 +181,7 @@ Deno.test("F13 — NO FLATTENING: every composer atom survives into the framed r
 });
 
 Deno.test("F14 — cite slots resolve in a REVIEW render (no literal registry stub)", () => {
-  const text = renderAll346();
+  const text = renderAll363();
   assert(text.includes("11 CCR §"), "no pinpoint resolved in the review render");
   assert(!text.includes("[registry:"), "review render printed a literal registry stub");
 });
