@@ -89,6 +89,10 @@ async function selectBatch(
     .order("id", { ascending: true })
     .limit(window);
 
+  if (cursor) q = q.gt("id", cursor);
+
+
+
   if (cohort === "A") {
     q = q.eq("review_reason", "corpus_defect_subject_unrepairable");
   } else {
