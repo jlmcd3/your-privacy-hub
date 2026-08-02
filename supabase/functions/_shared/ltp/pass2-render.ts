@@ -289,6 +289,19 @@ function checkForbiddenTokens(text: string, errors: string[]): void {
   }
 }
 
+/**
+ * ITEM 362 — ensure a rendered prose item terminates as a sentence.
+ * Appends a full stop when the text ends on a word character (or a closing
+ * quote/bracket that follows one). Never touches text already terminated.
+ */
+export function ensureTerminalPunctuation(text: string): string {
+  const t = String(text ?? "").trimEnd();
+  if (!t) return t;
+  if (/[.!?:][")\]']?$/.test(t)) return t;
+  if (/[A-Za-z0-9)\]"'%]$/.test(t)) return `${t}.`;
+  return t;
+}
+
 /** ITEM 235 — check post-render text for interpolation residue. */
 function hasInterpolationResidue(text: string): string | null {
   for (const re of INTERPOLATION_RESIDUE_PATTERNS) {
