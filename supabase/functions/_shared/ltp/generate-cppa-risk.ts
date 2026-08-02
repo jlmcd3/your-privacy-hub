@@ -43,6 +43,7 @@ import { fetchEuAuthorityCorpus } from "./eu-authority/fetch.ts";
 import { runEmitGate, filterCustomerInformationNeeded } from "../emit-gate.ts";
 import { serializeCustomerReport } from "../report-serialize.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../report-schemas/cppa-risk.ts";
+import { computeRecordNeeds } from "./section-composers/cppa-risk.ts";
 
 export const CPPA_RISK_GENERATOR_STAMP = "generate-cppa-risk@2026-08-01-item357";
 
@@ -214,7 +215,23 @@ export async function generateCppaRiskReport(
     assemblerTelemetry = assembled.telemetry;
   }
 
+  // ITEM 358 (FIX 1) — needs classification telemetry. The conformance suite
+  // reads this to assert the band law: zero `missing_data` needs ⇒ a genuine
+  // band, never "Insufficient basis". Reserved decisions do not gate.
+  let recordNeeds: Record<string, unknown> = { missing_data: null, reserved_decision: null };
+  if (plan && !typeJOrigin) {
+    try {
+      const needs = computeRecordNeeds(plan as never);
+      recordNeeds = {
+        missing_data: needs.filter((n) => n.kind === "missing_data").length,
+        reserved_decision: needs.filter((n) => n.kind === "reserved_decision").length,
+        reserved_need_ids: needs.filter((n) => n.kind === "reserved_decision").map((n) => n.need_id),
+      };
+    } catch { /* fail-open: telemetry only */ }
+  }
+
   const ltpMeta: Record<string, unknown> = {
+    record_needs: recordNeeds,
     build_stamp: options.buildStamp,
     generator_stamp: CPPA_RISK_GENERATOR_STAMP,
     engine_path: "ltp",

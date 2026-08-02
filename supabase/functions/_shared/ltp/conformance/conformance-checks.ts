@@ -86,6 +86,21 @@ export function runConformanceChecks(report: Record<string, unknown>): CheckResu
     `overall_score=${JSON.stringify(report.overall_score)}`,
   );
 
+  // ── ITEM 358 (FIX 1) BAND LAW ─────────────────────────────────────
+  // Reserved-class items (canonically the § 7152(a)(7) initiation decision)
+  // are determinations reserved to the customer, not absent record data, and
+  // must never gate the band. A record with ZERO `missing_data` needs must
+  // therefore render a genuine band.
+  const recordNeeds = (ltp.record_needs ?? {}) as Record<string, unknown>;
+  if (typeof recordNeeds.missing_data === "number" && recordNeeds.missing_data === 0) {
+    ok(
+      "zero missing_data needs renders a genuine band, never 'Insufficient basis'",
+      report.risk_level !== "Insufficient basis",
+      `missing_data=0 but risk_level=${JSON.stringify(report.risk_level)} (reserved=${JSON.stringify(recordNeeds.reserved_decision)})`,
+    );
+  }
+
+
   for (const key of ["risk_register", "top_risks"]) {
     const rows = report[key] as Record<string, unknown>[] | undefined;
     const shaped = Array.isArray(rows) && rows.length > 0 &&

@@ -9409,3 +9409,81 @@ function is itself a complete rollback of this turn's production surface.
 
 ### Item 245
 Hold REMAINS ACTIVE. No customer route was flipped.
+
+---
+
+## ITEM 358 — TWO PRE-FLIP FIXES ON THE V2 PATH (engine + prose calibration)
+Legacy, routing, and the Item 245 posture: UNTOUCHED. V2 build stamp
+`ltp-risk-v2-item358@2026-08-01`, generator `generate-cppa-risk@2026-08-01-item357`.
+
+### Gate 354-B — enforce flag on the LIVE v2 env (verbatim)
+`GET run-cppa-risk-assessment-v2?ping=1` →
+`{"fn":"run-cppa-risk-assessment-v2","build_stamp":"ltp-risk-v2-item358@2026-08-01","generator_stamp":"generate-cppa-risk@2026-08-01-item357","ltp_mode":"enforce","engine_path":"ltp","routed":false}`
+`ltp_mode=enforce` ⇒ `LTP_ENFORCE_ENABLED="1"` is present on the deployed v2 function.
+Boot log: `[run-cppa-risk-assessment-v2] boot build_stamp=ltp-risk-v2-item358@2026-08-01 generator=generate-cppa-risk@2026-08-01-item357 ltp_mode=enforce engine_path=ltp routed=false`
+
+### FIX 1 — reserved-class items no longer gate the band
+`_shared/ltp/section-composers/cppa-risk.ts`: needs carry a `RecordNeedKind` of
+`missing_data` | `reserved_decision`. `j.initiation_decision` (§ 7152(a)(7)) is
+the sole canonical reserved item in the needs taxonomy (verified by enumeration:
+it is the only need with no `resolution_source_fields`). `assessRecordCompleteness`
+and `insufficientRecord` gate on `missing_data` ONLY; reserved items still render
+in `information_needed` with the reserved framing, unchanged.
+Also fixed an `exec_balance_mode_mismatch` coherence collapse: the executive
+summary now follows `aggregateBalance` when the record is complete.
+
+### FIX 2 — Pass-2R calibration
+- `_shared/ltp/pass2r-validators.ts`: `derivedNumericTokens` deterministically
+  expands the plan whitelist with band-label components ("250,000 to under
+  1 million" → "250,000", "1,000,000"), unit-stripped durations ("24 months" →
+  "24"), and date components of plan-carried dates, plus raw ledger value
+  strings. Non-derivable tokens stay rejected. `conflicting_verdict_stated`
+  kept strict.
+- `_shared/ltp/content/pass2r-prose-prompt.ts` (`v2026-08-01-item358`): prose
+  must carry engine verdict tokens verbatim, and statutory pinpoints exactly as
+  plan-carried (subdivision included) — the validator was NOT loosened for
+  citations.
+
+### LIVE V2 SMOKE (deployed v2, service-key driver `item358-parity`, since deleted)
+| record | assessment_id | keys | risk_level | overall_score | shipped_surface | reason |
+|---|---|---|---|---|---|---|
+| perfect-a073d9c5 | 691bbcc9-738e-4123-a572-98e9c939899b | 33 | **Low** | null | deterministic | prose_rejected |
+| messy-bd458f0d | ec6aa53d-f7b9-44a6-ae9b-508f67c5e308 | 33 | Insufficient basis | null | deterministic | pass2r_not_run_yet (isolate wall-clock shutdown mid-2R) |
+| messy-bd458f0d (re-run) | 12c7cf05-7541-4509-b4e4-2830dc1ad7ff | 33 | Insufficient basis | null | deterministic | prose_rejected |
+
+FIX 1 CONFIRMED LIVE: the complete record renders a genuine band (**Low**, from
+severity Moderate / likelihood Possible under Rule 4 of `risk-level-map.ts`) with
+the reserved § 7152(a)(7) item still listed in `information_needed` (1 entry,
+labelled reserved). The degraded record still gates to "Insufficient basis" on
+its genuine `missing_data` gap (§ 7152(a)(6) safeguard sufficiency; 2 entries).
+Differentiation intact: `record_sufficiency` md5 7718172b… vs 89b9628b…;
+`information_needed` md5 ba90396a… vs 8212cf51….
+
+FIX 2 EVIDENCE — the Item 357 numeric/date rejection class is GONE. No
+`number_or_date_not_in_plan` on any live attempt. Remaining rejections:
+- perfect: a1 `conflicting_verdict_stated`; a2 `citation_not_plan_carried` +
+  `part3_requests_stated_fact`; a3 `entity_not_in_plan`.
+- messy re-run: a1 `entity_not_in_plan` + `conflicting_verdict_stated`;
+  a2/a3 `conflicting_verdict_stated`.
+2R therefore does not ship on the merits; per the item's terms this is NOT a
+blocker — the deterministic fallback ships with a recorded reason on every run.
+
+### CONFORMANCE (Item 357 suite, run against the LIVE persisted payloads)
+- perfect: **PASSED | 20 passed | 0 failed** (includes the new check
+  "zero missing_data needs renders a genuine band, never 'Insufficient basis'").
+- messy: **PASSED | 19 passed | 0 failed** (band check N/A — it has missing_data).
+- messy re-run: **PASSED | 19 passed | 0 failed**.
+
+### Suites
+`deno test -A --no-check tests/edge` → 2112 passed / 73 failed / 5 ignored.
+Baseline `git archive f3c2400a1` (end of Item 357), identical command →
+2103 passed / 73 failed / 5 ignored. Failure-ID diff: **ZERO new, zero fixed**.
+(The "12 failures" figure in Item 357 was the narrower `tests/edge/_shared/ltp/`
+scope; 73 is the full `tests/edge` scope.)
+New blocking suite `tests/edge/_shared/ltp/item358-reserved-band.test.ts` 9/9 green.
+
+### Rollback
+`git archive 4fe2e76c1 …` intact. V2 carries no traffic.
+
+### Item 245
+Hold REMAINS ACTIVE. No customer route flipped.

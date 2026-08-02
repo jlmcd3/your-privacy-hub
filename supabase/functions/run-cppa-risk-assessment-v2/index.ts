@@ -37,7 +37,7 @@ import {
 } from "../_shared/ltp/generate-cppa-risk.ts";
 
 const FN = "run-cppa-risk-assessment-v2";
-const BUILD_STAMP = "ltp-risk-v2-item357@2026-08-01";
+const BUILD_STAMP = "ltp-risk-v2-item358@2026-08-01";
 const LTP_MODE = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
