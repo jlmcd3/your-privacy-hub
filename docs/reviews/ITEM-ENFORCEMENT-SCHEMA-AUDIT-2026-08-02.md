@@ -51,7 +51,7 @@ The `select("*")` at `src/pages/EnforcementActionDetail.tsx:73` is the single mo
 | call site | line | request | current reachability |
 |---|---|---|---|
 | `supabase/functions/run-cppa-cybersecurity/index.ts` | 346–359 | `tool:"CPPA", regime:"ccpa", jurisdictions:["California","United States","US-CA"], breach:true, limit:6` | **live** and reached; returns empty under CPPA-INCLUSION-GATE |
-| `supabase/functions/generate-improvement-kit/index.ts` | 222–229 | `regime:"ccpa", jurisdictions:["California","US-CA","United States"], limit:3` | live; per-item, fail-open — items are silently omitted when no cited row returns, so the gate makes the enforcement line永 absent rather than erroring |
+| `supabase/functions/generate-improvement-kit/index.ts` | 222–229 | `regime:"ccpa", jurisdictions:["California","US-CA","United States"], limit:3` | live; per-item, fail-open — items are silently omitted when no cited row returns, so the gate makes the enforcement line permanently absent rather than erroring |
 | `supabase/functions/run-cppa-risk-assessment/index.ts` | 486–487 | `regime:"ccpa", jurisdictions:["California","US-CA","United States"], limit:8` | **legacy function, no longer routed** — Item 359 flipped all 12 invocation sites to `run-cppa-risk-assessment-v2`. Dead call site |
 | `supabase/functions/_shared/ltp/eu-authority/fetch.ts:91` | — | direct `enforcement_actions` query (not via the context service) selecting `subject, regulator, jurisdiction, decision_date, law, violation, fine_eur, source_url` + `GATE_COLUMNS` | **live on the v2 cppa-risk path** — this is the EU/EEA persuasive-authority pool, deliberately *not* a ccpa query (`PRODUCT_GATES["cppa-risk"]` is EU/EEA/UK only) |
 
