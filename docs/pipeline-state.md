@@ -9679,3 +9679,101 @@ remains UNVERIFIED and is the one residual check.
   string-reversion.
 - Prose frame/plan libraries REMAIN `approved: false` (deterministic renderer
   serving) — CEO-reserved gate, unchanged.
+
+---
+
+## Item 361 — FLEET ACCEPTANCE BATCH (deployed-as-designed snapshot)
+
+**Status: COMPLETE — REPORT ONLY.** No fixes, no tuning, no redispatch. Batch
+run id `928ec4c7-732e-4708-8530-d1849643b47d`, orchestrator build stamp
+`qbo-stage-b-blockb-declared-actual-count@2026-07-27T13:35:00Z`, dispatched
+`action:start`, `batch_size: 1`, all 10 tools, `fixture_variant: perfect` for
+every tool. Batch reached `status: complete / phase: done`, all 10 child runs
+`status: complete`, all 10 documents `status: complete`. Zero run-level errors,
+so no retries were consumed.
+
+| Tool | Run # | Doc status | score_overall | gpt_score_overall | Checks passed | Checks failed |
+|---|---|---|---|---|---|---|
+| cppa-risk | 186 | complete | 58.35 | 82 | 9 | 6 |
+| cppa-admt | 119 | complete | 86.80 | 83 | 30 | 4 |
+| cppa-cyber | 123 | complete | 89.90 | 95 | 18 | 1 |
+| governance | 110 | complete | 89.80 | 87 | 14 | 3 |
+| dpia | 124 | complete | 84.30 | 85 | 11 | 4 |
+| lia | 104 | complete | 91.95 | 84 | 13 | 5 |
+| dpa-generator | 93 | complete | 91.50 | 94 | 14 | 2 |
+| ir-playbook | 95 | complete | 93.50 | 81 | 15 | 2 |
+| biometric-checker | 87 | complete | 90.10 | 97 | 9 | 1 |
+| registration | 75 | complete | 89.05 | 93 | 6 | 3 |
+
+### cppa-risk engine provenance (run #186)
+
+Verbatim from `quality_run_documents.report_data._meta.internal.ltp`:
+
+- `engine_path`: `ltp`
+- `build_stamp`: `ltp-risk-v2-item359-routed@2026-08-02`
+- `generator_stamp`: `generate-cppa-risk@2026-08-01-item357`
+- `mode`: `enforce`; `pass1_mode`: `model`
+- `shipped_surface`: `deterministic`
+- `emit_gate_filtered`: 0
+- `record_needs`: `{ missing_data: 0, reserved_decision: 1, reserved_need_ids: ["need.j.initiation_decision"] }`
+- customer surface `risk_level`: `Low`; `_engine_path` absent from the customer
+  surface (sunk to `_meta.internal` per Item 357).
+
+This confirms the row was produced by the DEPLOYED v2 route
+(`run-cppa-risk-assessment-v2`), enforce mode, Item 359 flip stamp.
+
+### Failed findings, grouped by dimension (verbatim sample evidence)
+
+**accuracy**
+- cppa-risk #186 `qc_r1_2_spi_prong_utilization` (high): "§ 7120(b)(2)(B) not referenced in submission_summary despite resolved M4 (resolved_not_applicable)"
+- cppa-risk #186 `qc_r1_3_50pct_prong_utilization` (high): "§ 7120(b)(1) not referenced in submission_summary despite resolved M5 (resolved_not_met)"
+- cppa-risk #186 `qc_r1_4_cohort_determinism` (critical): "resolved band $25M to under $50M requires § 7121(a) cohort April 1, 2030 (ISO or long form) in submission_summary; not stated"
+
+**citation** (`rubric_citation_misapplied`, high, unless noted)
+- cppa-risk #186: "The scope_and_triggers section states: \"This assessment is triggered under **11 CCR § 7150(b)(4) — using automated processing based on systematic observation in worker, student, or applicant contexts**\". The intake field q5b_profiling_observation says \"Yes — systematic observation of workers/st…"
+- cppa-admt #119: "Multiple findings cite broad range citations like \"11 CCR §§ 7200–7222\" where specific verified pinpoints exist and should be used. For example, the anti-retaliation access-response finding cites \"11 CCR §§ 7200–7222\" when 11 CCR § 7222(b)(4) is the correct pinpoint…"
+- governance #110: "In the data_submission domain, the report cites \"GDPR Art. 5(1)(b) (data minimisation)\" but Art. 5(1)(b) is the purpose limitation principle, not data minimisation — data minimisation is Art. 5(1)(c). The parenthetical explanation directly contradicts the cited provision."
+- dpia #124: "The report's completion_guidance in section_1 states: 'Confirm the Art. 14 GDPR transparency notice mechanism — since portal event data is not provided directly by the data subject as a voluntary submission but is observed from portal interactions, Art. 14 transparency obligations apply.' Yet the …"
+- lia #104: "Article 6(11) UK GDPR is cited correctly as supporting marketing effectiveness under legitimate interests, aligning with recent amendments."
+- registration #75: "The DPO determination cites \"GDPR Art. 37(1)(a)\", \"GDPR Art. 37(1)(b)\", and \"GDPR Art. 37(1)(c)\" rather than \"UK GDPR Art. 37(1)(a/b/c)\". Since the organisation is UK-established, serves only UK markets, and has no EU establishment (has_eu_establishment: false), the operative statute is the UK GDPR…"
+
+**hallucination**
+- cppa-admt #119 `rubric_internal_reasoning_leak` (high): "The access outcome/sole-factor finding contains an apparent internal-reasoning fragment: \"The human-review qualification is The intake did not include enough detail on access outcome sole factor to support a specific finding. Provide the missing details and refresh the assessment.on this record (see…"
+- dpia #124 `rubric_internal_reasoning_leak` (high): "The phrase 'The organisation should confirm whether the described position applies here.' appears verbatim at least seven times throughout the document, including in contexts where it is orphaned or duplicated (e.g., in section_6_conclusion.justification…)"
+- dpia #124 `rubric_unsupported_business_claim` (high, fail_count 2): "The report states 'Central administration is outside the EU' in multiple places (e.g. 'Acme Health SA's central administration is outside the EU and no EU establishment of the controller takes the decisions on the purposes and means of this processing under Art. 4(16)(a)'). The intake does not state…"
+- governance #110 `rubric_unsupported_business_claim` (high): "The privacy_notice finding assigns ownership to \"the informal privacy lead\" — the intake records \"dpo_status\": \"Yes, formal DPO\" and never mentions an \"informal privacy lead.\"…"
+- lia #104 `e6_counsel_referral` (high, fail_count 2): "body-text counsel referral: \"The specific conditions in Annex 1 are outside this tool's current corpus and are not assessed here; whether any Annex 1 condition is met is reserved to review by qualified counsel. uk permitted_with_safeguards the UK GDPR regime permitted where the Article 22C safeguard…"
+- dpa-generator #93 `rubric_unsupported_business_claim` (high): "Section 3.4.2 states: \"Financial and payment data (including, without limitation, payment card information, bank account details, transaction records, and billing information).\" The intake specifies \"Financial / payment data\" as a category but does not enumerate payment card information, bank accoun…"
+- ir-playbook #95 `rubric_unsupported_business_claim` (high): "The document assumes the controller's awareness timestamp without explicit record confirmation, 'Provisional deadline anchor throughout this playbook is the discovery timestamp of 2026-07-31T01:17:40.412Z, treated as concurrent with controller awareness pending confirmation.'"
+
+**analysis** (`rubric_generic_boilerplate`, medium)
+- cppa-risk #186: "The priority_actions entries repeat near-identical phrasing across multiple items: \"document each of the listed § 7152(a)(5) negative-impact categories on the assessment record with the specificity the subsection requires complete and retain the assessment record by December 31, 2027\"…"
+- cppa-admt #119: "The report contains detailed analysis specific to the intake, such as the exception reasoning for the hiring/admission exception and human review qualification."
+- cppa-cyber #123: "The secure development and coding practices control is recorded as Documented, partially implemented (score 68)."
+- governance #110: "The document specifically addresses the gaps in Meridian SaaS Inc.'s compliance, such as the unspecific DPIA scope and the lacking data-handling verification for Microsoft 365 / Copilot."
+- lia #104: "The analysis often cites sections from guidelines without specifically tying them to unique aspects of the intake beyond general references to marketing and analytics."
+- dpa-generator #93: "The document relies heavily on standard provisions and definitions that are common for DPAs, such as processing on instructions, confidentiality, and security obligations…"
+- biometric-checker #87: "The recommendations provided (e.g., executing written releases, publishing retention policies) are generally applicable to any organization dealing with employee biometric data under BIPA, and not specifically tailored with unique considerations for Prairie Warehousing Co."
+- registration #75: "Whether a data protection officer must be designated cannot be determined on this record. No branch is affirmatively engaged, but GDPR Art. 37(1)(b), GDPR Art. 37(1)(c) cannot be evaluated on this record, so a negative conclusion would be unsafe."
+
+**intelligence** (`rubric_actionability`, medium)
+- cppa-risk #186: "The next_steps array contains only: \"We could not verify this item from the information provided; it is listed under information needed.\" repeated twice. This provides no actionable guidance on what specific next steps the compliance team should take. Similarly, submission_summary is also just a pla…"
+- cppa-admt #119: "The report provides clear action items, such as documenting the hiring/admission exception qualification record and implementing an opt-out mechanism."
+- lia #104: "Recommendations are present but lack definitive owners or specific steps for taking action, such as specifying responsible roles for implementing the measures discussed."
+- ir-playbook #95: "The document lacks actionable steps in parts, for instance where it defers deadline recalculations without a clear method outlined…"
+- registration #75: "The DPO determination correctly identifies that Art. 37(1)(b) and (c) cannot be evaluated, but the \"information_needed\" entries are sparse… For a Heal…"
+
+### Reconciliation note (recorded, not fixed)
+
+`quality_check_results` yields 29 distinct failing check rows; the run-level
+`checks_failed` counters sum to 31. The two-row delta sits on dpia #124 (4 vs 3
+rows) and lia #104 (5 vs 4 rows), both of which carry a check with
+`fail_count = 2` — the counters appear to count per-failure while the results
+table aggregates per check_id. Recorded as an observation only, per the
+report-only mandate.
+
+### Standing state unchanged
+
+Prose frame/plan libraries REMAIN `approved: false` (deterministic renderer
+serving). Item 245 RELEASED, Item 359 DEPLOYED, Items 319–321 DEPLOYED — all
+unchanged by this snapshot.
