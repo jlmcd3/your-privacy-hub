@@ -398,9 +398,14 @@ Deno.serve(async (req) => {
     const batchSize = Math.min(Number(body.batch_size ?? 50), 100);
     const startAfterId = body.start_after_id ?? null;
     const dryRun = Boolean(body.dry_run);
+    // Set "A2" (Item 365): re-extraction pass over the previously unrepairable
+    // rows whose documents arrived in the Leg-2 refetch campaign.
     const out = set === "B"
       ? await runSetB(batchSize, startAfterId, dryRun)
-      : await runSetA(batchSize, startAfterId, dryRun);
+      : set === "A2"
+        ? await runSetA(batchSize, startAfterId, dryRun, "corpus_defect_subject_unrepairable", true)
+        : await runSetA(batchSize, startAfterId, dryRun);
+
     return new Response(JSON.stringify({ ok: true, dry_run: dryRun, ...out }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
