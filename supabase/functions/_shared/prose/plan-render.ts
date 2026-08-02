@@ -401,9 +401,13 @@ export function renderPlannedSection(
     });
   }
 
+  // ITEM 363 — TIGHTER GRAMMAR: an em dash always sits between spaces, even
+  // where a pinned clause's own leading space was trimmed at the slot seam.
+  const spaced = text.replace(/(\S)\u2014/g, "$1 \u2014").replace(/\u2014(\S)/g, "\u2014 $1");
+
   // ITEM 363 — strip the tracking sentinels exactly once, at the end, and hand
   // back the offsets the lint battery and the validators read.
-  const extracted = extractSpans(text);
+  const extracted = extractSpans(spaced);
 
   return {
     section_id: section.id,
