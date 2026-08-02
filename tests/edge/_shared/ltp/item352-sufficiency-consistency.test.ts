@@ -58,15 +58,24 @@ async function md5(s: string): Promise<string> {
   return encodeHex(new Uint8Array(await crypto.subtle.digest("MD5", new TextEncoder().encode(s))));
 }
 
-/** Items the sufficiency prose enumerates as MISSING (closed status clause). */
+/**
+ * Items the sufficiency prose enumerates as OUTSTANDING (closed status
+ * clauses). ITEM 358: an outstanding element is enumerated either as missing
+ * record data or as a decision reserved to the customer; both are "enumerated
+ * for your review" and both must match `information_needed` one-for-one.
+ */
 const MISSING_CLAUSE = "not present in the record as documented";
+const RESERVED_CLAUSE =
+  "reserved to you for decision under the regulation; not a deficiency in the record as documented";
 function enumeratedMissing(report: Record<string, unknown>): string[] {
   const raw = report.record_sufficiency;
   const lines = Array.isArray(raw) ? raw.map(asText) : [asText(raw)];
   const out: string[] = [];
   for (const line of lines) {
-    const idx = line.indexOf(`: ${MISSING_CLAUSE}`);
-    if (idx > 0) out.push(line.slice(0, idx).trim());
+    for (const clause of [RESERVED_CLAUSE, MISSING_CLAUSE]) {
+      const idx = line.indexOf(`: ${clause}`);
+      if (idx > 0) { out.push(line.slice(0, idx).trim()); break; }
+    }
   }
   return out;
 }
