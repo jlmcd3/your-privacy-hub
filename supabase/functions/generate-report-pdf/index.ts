@@ -12,6 +12,8 @@ import {
   headerForSection,
 } from "../_shared/report-contracts/cppa-risk-shape.ts";
 import { hasProse9Document } from "../_shared/report-contracts/cppa-risk-prose9.ts";
+import { buildCPPARiskProse9HTML } from "./prose9-html.ts";
+
 
 
 const supabase = createClient(
