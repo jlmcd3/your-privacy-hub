@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
+import ReportDisclaimer from "@/components/ReportDisclaimer";
 import BackLink from "@/components/dashboard/BackLink";
 import { CybersecurityReportBody } from "./CPPACybersecurityResult";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
@@ -133,9 +134,7 @@ function RiskReportBody({ row }: { row: any }) {
         </section>
       )}
 
-      <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-        <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> This compliance framework report does not constitute legal advice; additional information may be required to confirm findings against your specific facts.
-      </section>
+      <ReportDisclaimer />
     </div>
   );
 }

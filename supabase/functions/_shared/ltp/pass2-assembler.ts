@@ -23,6 +23,7 @@
  */
 
 import type { RenderPlan } from "../render-plan/schema.ts";
+import { REPORT_DISCLAIMER } from "../report-disclaimer.ts";
 import { CPPA_RISK_SECTION_SHARDS, expectedEmissionForKey, type SectionShard, type ExpectedEmission } from "./section-shards/cppa-risk.ts";
 import { renderTemplate, assertCalibrationMatch } from "./pass2-render.ts";
 import { applyMethodologyNote } from "../prose/methodology.ts";
@@ -737,8 +738,7 @@ export function buildTypeJWriteAroundBody(input: {
     submission_summary: renderCyberAuditSchedule(),
     risk_level: "reserved",
     overall_score: null,
-    disclaimer:
-      "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.",
+    disclaimer: REPORT_DISCLAIMER,
     framework_disclaimer: disclosure,
     accuracy_caveat: disclosure,
     domains: [],

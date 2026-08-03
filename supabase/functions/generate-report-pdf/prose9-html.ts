@@ -27,10 +27,6 @@ export function buildCPPARiskProse9HTML(report: any, record: any): string {
     ? report.assessment_summary
     : {};
   const orgName = summary.company_name || record?.intake_data?.org_context?.company_name || "";
-  const disclaimer = typeof report.disclaimer === "string"
-    ? report.disclaimer
-    : "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.";
-
   const paras = (t: string) =>
     String(t)
       .split(/\n{2,}/)
@@ -64,6 +60,5 @@ export function buildCPPARiskProse9HTML(report: any, record: any): string {
       ${report.risk_level ? `<p class="band">Risk determination: <strong>${escHtml(report.risk_level)}</strong></p>` : ""}
     </header>
     ${sections}
-    <section class="disclaimer"><p><em>${escHtml(disclaimer)}</em></p></section>
   `;
 }

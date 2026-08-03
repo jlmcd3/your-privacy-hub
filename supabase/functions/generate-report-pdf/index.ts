@@ -4,6 +4,7 @@
 export const BUILD_STAMP = "generate-report-pdf-item271-replay-review@2026-07-30T06:30:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { applyUniversalDisclaimerHtml } from "../_shared/report-disclaimer.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
 import {
@@ -2734,6 +2735,8 @@ Deno.serve(async (req) => {
     }
 
     const attachmentName = makeAttachmentName(tool_type, generatedAt);
+
+    html = applyUniversalDisclaimerHtml(html);
 
     const pdfBytes = await generatePDF(html, attachmentName.replace(".pdf", ""));
 

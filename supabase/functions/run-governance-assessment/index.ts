@@ -1,5 +1,6 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
@@ -825,9 +826,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     enforcement_meta: { attempted: false, skipped: "stress_run" },
     annotations: [],
     lint_warnings: [],
-    disclaimer: hasEuUk
-      ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. Findings should be validated against your organisation's authoritative records before operational reliance."
-      : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. Findings should be validated against your organisation's authoritative records before operational reliance.",
+    disclaimer: REPORT_DISCLAIMER,
   };
   applyTimelineForm(report);
   return report;
@@ -1316,15 +1315,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         })),
         ...lintViolations,
       ]),
-      disclaimer: (() => {
-        const _juris = (intake?.jurisdictions || []) as string[];
-        const _hasEuUk = intake?.eu_uk_data === true
-          || String(intake?.eu_uk_data || "").toLowerCase() === "yes"
-          || _juris.some((j: string) => ["EU", "GB", "UK"].includes(String(j).toUpperCase()));
-        return _hasEuUk
-          ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. Findings should be validated against your organisation's authoritative records before operational reliance."
-          : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. Findings should be validated against your organisation's authoritative records before operational reliance.";
-      })(),
+      disclaimer: REPORT_DISCLAIMER,
     };
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).

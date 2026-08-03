@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ReportDisclaimer from "@/components/ReportDisclaimer";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -390,6 +391,7 @@ export default function RegistrationAssessmentResult() {
               </CardContent>
             </Card>
           </div>
+          <ReportDisclaimer />
         </PageContainer>
       </main>
       <Footer />

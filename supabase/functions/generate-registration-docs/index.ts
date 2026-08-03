@@ -8,6 +8,7 @@
 // the existing generate-report-pdf function on download.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withReportDisclaimer } from "../_shared/report-disclaimer.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
@@ -527,13 +528,8 @@ Deno.serve(async (req) => {
             if (lint.violations.length) notes.push(`Lint: ${lint.violations.map((v) => v.code).join(", ")}`);
           }
 
-          // Append standard legal disclaimer to every generated document.
-          const DISCLAIMER =
-            "\n\n---\n\nLEGAL DISCLAIMER: This document is generated for informational purposes only and " +
-            "does not constitute legal advice. Data-protection registration and record-keeping obligations " +
-            "vary by jurisdiction and change over time. Confirm current requirements with the relevant " +
-            "supervisory authority before filing or relying on this document; further clarification is advisable.";
-          const contentWithDisclaimer = cleaned + DISCLAIMER;
+          // Universal EUP report disclaimer — exactly once, at the very end.
+          const contentWithDisclaimer = withReportDisclaimer(cleaned);
 
 
           // Edit C — INSERT IMMEDIATELY (no post-loop batch).

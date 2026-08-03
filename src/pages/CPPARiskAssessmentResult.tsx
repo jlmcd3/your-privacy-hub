@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
+import ReportDisclaimer from "@/components/ReportDisclaimer";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
@@ -607,11 +608,9 @@ export default function CPPARiskAssessmentResult() {
             )}
 
 
-            <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-              <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> This compliance framework report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.
-            </section>
-
             <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />
+
+            <ReportDisclaimer />
 
 
             <div className="flex gap-2 flex-wrap">
