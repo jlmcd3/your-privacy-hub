@@ -30,6 +30,23 @@ const COMMON_HEADERS: Record<string, string> = {
 const BLOCKED_STATUS_CODES = [403, 429, 451];
 const MAX_PDF_CHARS = 50_000;
 const FETCH_TIMEOUT_MS = 30_000;
+/**
+ * Hosts that reliably need longer than the default. The Polish decisions
+ * portal server-renders a full decision (60k+ chars) and routinely takes
+ * 30-45s on a cold document.
+ */
+const HOST_TIMEOUT_MS: Record<string, number> = {
+  "orzeczenia.uodo.gov.pl": 42_000,
+};
+
+function hostTimeoutMs(url: string): number {
+  try {
+    return HOST_TIMEOUT_MS[new URL(url).hostname] ?? FETCH_TIMEOUT_MS;
+  } catch {
+    return FETCH_TIMEOUT_MS;
+  }
+}
+
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -226,12 +243,30 @@ async function pdfToText(bytes: Uint8Array): Promise<string> {
   return joined.slice(0, MAX_PDF_CHARS).trim();
 }
 
+/**
+ * URLs that point at a binary asset (image, stylesheet, script) can never
+ * yield a decision document. Ingestion occasionally captured gallery
+ * thumbnails instead of the article link; those rows must be retired rather
+ * than retried forever.
+ */
+export const ASSET_URL_RE =
+  /\.(jpe?g|png|gif|webp|bmp|svg|ico|css|js|mp4|mp3|zip|woff2?|ttf)(\?|#|$)/i;
+
+export function isAssetUrl(url: string): boolean {
+  return ASSET_URL_RE.test(String(url ?? ""));
+}
+
 export async function fetchSourceDocument(
   url: string,
 ): Promise<FetcherResult> {
   if (!url || !/^https?:\/\//i.test(url)) {
     return { status: "fail", reason: "invalid_url" };
   }
+  if (isAssetUrl(url)) {
+    // Pre-flight: no network call, no cache write — permanently unusable.
+    return { status: "skipped", reason: "asset_url" };
+  }
+
 
   // 1. Cache
   try {
@@ -265,7 +300,7 @@ export async function fetchSourceDocument(
   for (let i = 0; i < backoffs.length; i++) {
     if (backoffs[i]) await new Promise((r) => setTimeout(r, backoffs[i]));
     try {
-      res = await fetchWithUaStrategy(url);
+      res = await fetchWithUaStrategy(url, hostTimeoutMs(url));
       if (res.status >= 500) {
         lastErr = new Error(`HTTP ${res.status}`);
         continue;

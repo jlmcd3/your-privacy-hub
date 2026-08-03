@@ -136,11 +136,27 @@ const PASS_B_MAX_ATTEMPTS = 3;
 // so lifting it is the single biggest lever on Pass B completion time.
 const PASS_B_PER_HOST_DEFAULT = 2;
 const PASS_B_PER_HOST_OVERRIDES: Record<string, number> = {
+  // All three UODO hostnames are the same bottleneck population; the
+  // `/decyzje/` paths were rewritten to the orzeczenia decisions portal.
   "uodo.gov.pl": 12,
+  "www.uodo.gov.pl": 12,
+  "orzeczenia.uodo.gov.pl": 12,
 };
+
 const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
-const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
+const TERMINAL_REASONS = [
+  "robots_disallow",
+  "http_404",
+  "http_410",
+  "invalid_url",
+  "asset_url",
+  "unsupported_content_type",
+];
+/** Asset URLs (thumbnails, css, js) can never yield a decision document. */
+const ASSET_URL_RE =
+  /\.(jpe?g|png|gif|webp|bmp|svg|ico|css|js|mp4|mp3|zip|woff2?|ttf)(\?|#|$)/i;
+
 
 /**
  * Deterministic shard of a row id, so N workers can run concurrently over
@@ -172,8 +188,10 @@ async function selectPassB(limit: number, shard: number, shardCount: number) {
   const pending = (data ?? []).filter(
     (r: any) =>
       (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS &&
+      !ASSET_URL_RE.test(String(r.source_url ?? "")) &&
       (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
+
 
   // Bucket rows by host, respecting per-host caps.
   const buckets = new Map<string, any[]>();
