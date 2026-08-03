@@ -1056,7 +1056,6 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${Object.keys(scope).length ? `<section class="section"><h2>Scope Confirmation</h2>
       <p><span class="label">In scope:</span> ${text(scope.in_scope)}</p>
@@ -1077,7 +1076,6 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1576,7 +1574,6 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <section class="section"><h2>Cover — Assessment Record</h2>
       <p><span class="label">Business legal name:</span> ${fillIn(cover.business_legal_name, "[FILL IN]")}</p>
       <p><span class="label">Processing activity:</span> ${text(cover.activity_name)}</p>
@@ -1656,7 +1653,6 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
          ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
          <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
          ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}`}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1785,7 +1781,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     ${orgName ? `<p style="margin-top:6px;font-size:11px;color:#93b5c6;">Prepared for: <strong>${escHtml(orgName)}</strong></p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice. This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be validated against your organization's authoritative records before operational reliance.</div>
+    <div class="notice"><span class="label">This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${scorecardBlock}
     ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
@@ -1801,7 +1797,6 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     ${dedupedFsorBlock || renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1933,7 +1928,7 @@ function buildADMTReportHTML(report: any, record: any): string {
     ${orgName ? `<p class="prepared-for">Prepared for: ${escHtml(orgName)}</p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is provided to support your review. Findings should be validated against your organization's authoritative records before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
+    <div class="notice">Findings should be validated against your organization's authoritative records before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
     ${scopeBlock}
     ${priorityBlock}
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
@@ -2093,11 +2088,6 @@ function buildRegistrationReportHTML(record: any): string {
 </div>
 <h1>Registration Assessment</h1>
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
-<p style="font-size:11px;color:#5c6d7a;border:1px solid #dde5ea;padding:8px 12px;border-radius:4px;margin-bottom:1.5rem;">
-  Not legal advice. This document is provided to support your organization's compliance review.
-  It does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.
-</p>
-
 <h2>Recommended Jurisdictions</h2>
 <div style="margin-bottom:16px;">${codeBadges}</div>
 <div style="display:flex;gap:20px;margin-bottom:20px;font-size:12px;flex-wrap:wrap;">
@@ -2122,7 +2112,6 @@ ${jurisdictionCards || "<p style='color:#5c6d7a;font-size:12px;'>No jurisdiction
 
 <footer>
   Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com ·
-  This assessment is a starting framework based on your inputs and is not legal advice.
   Validate all findings against your organization's authoritative records before operational reliance.
 </footer>
 </body>
