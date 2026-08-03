@@ -153,6 +153,26 @@ async function runGenerator(
     return { sourceRowId: data.id, resultUrl: fix.result_url_pattern.replace("{id}", data.id) };
   }
 
+  // -- Registration (synchronous single call) ------------------------------
+  // run-registration-assessment persists to `registration_assessments` and
+  // returns { assessment_id, shareable_token, ... }. The result route is
+  // token-addressed (/registration-manager/result/:token), so the row id
+  // drives source_row_id while the token drives the result URL.
+  if (fix.tool_slug === "registration") {
+    const body = { ...((f.invoke_body as Record<string, unknown>) ?? {}), user_id: userId };
+    log("▶ Invoking run-registration-assessment...");
+    const { data, error } = await supabase.functions.invoke("run-registration-assessment", { body });
+    if (error || !data?.assessment_id) {
+      throw new Error(`generator: ${error?.message || data?.error || "no assessment_id"}`);
+    }
+    log(`✅ id=${data.assessment_id} token=${data.shareable_token ?? "—"}`);
+    return {
+      sourceRowId: data.assessment_id,
+      resultUrl: fix.result_url_pattern.replace("{id}", data.shareable_token ?? data.assessment_id),
+    };
+  }
+
+
   // -- RoPA --------------------------------------------------------------
   if (fix.tool_slug === "ropa") {
     const clientId = await getOrCreatePersonalClient(userId);
