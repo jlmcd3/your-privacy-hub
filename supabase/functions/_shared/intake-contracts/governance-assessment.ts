@@ -41,6 +41,22 @@ export const GOV_SPECIAL_CATS = [
 
 const YES_NO = ["Yes", "No"] as const;
 
+// GOVERNANCE UPGRADE — remediation menus (mirrored in the deliverables
+// registry at _shared/ltp/governance-deliverables/elements.ts).
+const REMEDIATION_PRIORITY = [
+  "Critical — remediate now",
+  "High — remediate this quarter",
+  "Medium — remediate this year",
+  "Low — monitor",
+] as const;
+const VALIDATION_METHOD = [
+  "Documentary evidence review",
+  "Control re-test by a second reviewer",
+  "Internal audit sample",
+  "External audit or assurance report",
+  "Management sign-off against the artifact",
+] as const;
+
 // Radio option groups from steps 3–5
 const PRIVACY_POLICY = [
   "Yes, current (reviewed in last 12 months)",
@@ -202,6 +218,13 @@ export const governanceContract: IntakeContract = {
     { key: "processing_scope", kind: "narrative", required: "optional" },
     { key: "processing_context", kind: "narrative", required: "optional" },
     { key: "processing_purposes", kind: "narrative", required: "optional" },
+    // ── GOVERNANCE UPGRADE additions ──────────────────────────────────
+    // Remediation defaults. Optional by design: a blank field produces a
+    // record_insufficient remediation record, never an invented plan.
+    { key: "remediation_default_owner", kind: "text", required: "optional" },
+    { key: "remediation_default_target_date", kind: "text", required: "optional" },
+    { key: "remediation_default_priority", kind: "enum", required: "optional", options: REMEDIATION_PRIORITY },
+    { key: "remediation_default_validation_method", kind: "enum", required: "optional", options: VALIDATION_METHOD },
   ],
 };
 
@@ -213,4 +236,5 @@ export const GOVERNANCE_INLINE_LISTS = {
   TRAINING_AI_COVERAGE, TOOL_INSTRUCTION, DPA_STATUS, DPA_ART28,
   TRANSFER_STATUS, TRANSFER_MECHANISM, TECHNICAL_CONTROLS,
   TECHNICAL_CONTROLS_LIST, DSR_CAPABILITY, DSR_RIGHTS_TESTED, INVENTORY_AUDIT, REVIEW_CADENCE,
+  REMEDIATION_PRIORITY, VALIDATION_METHOD,
 };

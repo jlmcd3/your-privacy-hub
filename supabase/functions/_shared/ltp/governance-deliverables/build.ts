@@ -987,7 +987,15 @@ export function readRemediationIntake(intake: unknown): {
   byKey: Record<string, Partial<RemediationInput>>;
   byDomain: Record<string, Partial<RemediationInput>>;
 } {
-  const defaults = readRemediationEntry(get(intake, "remediation_defaults"));
+  const nested = readRemediationEntry(get(intake, "remediation_defaults"));
+  // Flat intake keys are the form's own shape; the nested object wins when both
+  // are present, because it is what a caller supplying a plan sends.
+  const defaults: Partial<RemediationInput> = {
+    accountable_owner: nested.accountable_owner || str(get(intake, "remediation_default_owner")),
+    target_date: nested.target_date || str(get(intake, "remediation_default_target_date")),
+    priority: nested.priority || str(get(intake, "remediation_default_priority")),
+    validation_method: nested.validation_method || str(get(intake, "remediation_default_validation_method")),
+  };
   const byKey: Record<string, Partial<RemediationInput>> = {};
   const byDomain: Record<string, Partial<RemediationInput>> = {};
   const rows = get(intake, "remediation_plan");
