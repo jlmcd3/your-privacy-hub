@@ -42,6 +42,22 @@ const CHILD_DATA_SUBJECT_OPTS = ["Yes", "No", "Unknown"] as const;
 const PUBLIC_AUTHORITY_OPTS = ["Yes", "No"] as const;
 const PUBLIC_TASK_OPTS = ["Yes", "No", "Not applicable"] as const;
 
+// UPGRADE-4 additions — ICO three-part-arc inputs and the attestation close.
+// All optional so legacy rows continue to validate.
+const BENEFICIARY_OPTS = [
+  "Our business", "The individuals whose data is processed", "A third party",
+  "Our business and the individuals", "Our business and a third party",
+] as const;
+const RELATIONSHIP_CATEGORY_OPTS = [
+  "Customer", "Employee", "Prospect", "Member of the public — no relationship",
+] as const;
+const OPT_OUT_AVAILABLE_OPTS = [
+  "Yes — unconditional, on request, with no consequence",
+  "Yes — but conditional or subject to review",
+  "No opt-out is available",
+] as const;
+const DPO_REVIEWED_OPTS = ["Yes", "No", "Planned"] as const;
+
 
 /** Stage A — the row inserted at preview time (LIAssessment.tsx ~L158). */
 export const liAssessmentStageAContract: IntakeContract = {
@@ -92,11 +108,17 @@ export const liAssessmentStageBContract: IntakeContract = {
       options: PUBLIC_AUTHORITY_OPTS },
     { key: "purpose_details.public_task_processing",   kind: "enum",       required: "optional",
       options: PUBLIC_TASK_OPTS },
+    // UPGRADE-4 — the specific benefit and who receives it.
+    { key: "purpose_details.specific_benefit",         kind: "narrative",  required: "optional" },
+    { key: "purpose_details.beneficiary",              kind: "enum",       required: "optional",
+      options: BENEFICIARY_OPTS },
 
 
     // necessity_details
     { key: "necessity_details",                        kind: "structured", required: "always" },
     { key: "necessity_details.alternatives",           kind: "narrative",  required: "always" },
+    // UPGRADE-4 — why each listed alternative is inadequate.
+    { key: "necessity_details.alternatives_rationale", kind: "narrative",  required: "optional" },
     { key: "necessity_details.why_consent_not_used",   kind: "narrative",  required: "optional" },
     { key: "necessity_details.data_minimised",         kind: "narrative",  required: "optional" },
     // Branch-gated: `showAnalyticsBranch ? value : null`. hiddenValue null.
@@ -127,6 +149,13 @@ export const liAssessmentStageBContract: IntakeContract = {
 
     { key: "balancing_details.opt_out_mechanism",            kind: "narrative",  required: "always" },
     { key: "balancing_details.special_category_data",        kind: "boolean",    required: "optional" },
+    // UPGRADE-4 — balancing inputs stated rather than inferred.
+    { key: "balancing_details.relationship_category",        kind: "enum",       required: "optional", options: RELATIONSHIP_CATEGORY_OPTS },
+    { key: "balancing_details.scale_approx",                 kind: "text",       required: "optional" },
+    { key: "balancing_details.frequency",                    kind: "text",       required: "optional" },
+    { key: "balancing_details.duration",                     kind: "text",       required: "optional" },
+    { key: "balancing_details.potential_harms",              kind: "string-array", required: "optional" },
+    { key: "balancing_details.opt_out_available",            kind: "enum",       required: "optional", options: OPT_OUT_AVAILABLE_OPTS },
     // Branch-gated leaves.
     { key: "balancing_details.statutory_restrictions",       kind: "structured", required: "conditional",
       requiredWhen: "processing engages the marketing branch (showMarketingBranch === true)",
@@ -135,6 +164,16 @@ export const liAssessmentStageBContract: IntakeContract = {
       requiredWhen: "processing engages the employment branch (showEmploymentBranch === true)",
       hiddenValue: "" /* stored value when gated off is literal null */ },
     { key: "balancing_details.additional_context",           kind: "narrative",  required: "optional" },
+
+    // UPGRADE-4 — attestation close. Persisted to li_assessments.attestation.
+    { key: "attestation",                     kind: "structured",   required: "optional" },
+    { key: "attestation.dpo_reviewed",        kind: "enum",         required: "optional", options: DPO_REVIEWED_OPTS },
+    { key: "attestation.dpo_reviewer",        kind: "text",         required: "optional" },
+    { key: "attestation.dpo_review_date",     kind: "text",         required: "optional" },
+    { key: "attestation.approver_name",       kind: "text",         required: "optional" },
+    { key: "attestation.approver_position",   kind: "text",         required: "optional" },
+    { key: "attestation.approval_date",       kind: "text",         required: "optional" },
+    { key: "attestation.review_triggers",     kind: "string-array", required: "optional" },
 
     { key: "stage",                 kind: "text", required: "always" },        // "submitted"
     { key: "preview_assessment_id", kind: "text", required: "always" },

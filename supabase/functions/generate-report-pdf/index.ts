@@ -142,7 +142,93 @@ function buildReportMetaLine(opts: {
 
 
 
+// UPGRADE-4 (ITEM 3/7) — the ICO three-part-arc deliverables, rendered in arc
+// order (purpose → necessity → balancing) and closed by the attestation block.
+// Placed after the three-part test and before the authority exhibit, which in
+// turn sits before the universal disclaimer.
+function buildLiaUpgrade4HTML(report: any): string {
+  const S = (v: unknown) => sanitizeNarrative(String(v ?? ""));
+  const statusLabel = (s: unknown) =>
+    ({ record_sufficient: "Record sufficient", record_partial: "Record partial", record_insufficient: "Record insufficient" } as Record<string, string>)[String(s ?? "")] ??
+    String(s ?? "").replace(/_/g, " ");
+  const head = (title: string, f: any) => {
+    if (!f) return "";
+    const bits = [f.verdict ? String(f.verdict).replace(/_/g, " ") : "", f.status ? statusLabel(f.status) : ""].filter(Boolean).join(" · ");
+    return `<h3>${S(title)}${bits ? ` <span class="label">— ${S(bits)}</span>` : ""}</h3>`;
+  };
+  const finding = (title: string, f: any, extra = "") => {
+    if (!f) return "";
+    return `<div class="section">${head(title, f)}
+${f.standard ? `<p class="meta"><em>${S(f.standard)}</em>${f.standard_citation ? ` — ${S(f.standard_citation)}` : ""}</p>` : ""}
+${f.record_fact ? `<p class="meta">${S(f.record_fact)}</p>` : ""}
+${f.application ? `<p>${S(f.application)}</p>` : ""}
+${extra}
+${f.cumulative_note ? `<p>${S(f.cumulative_note)}</p>` : ""}
+${f.information_needed ? `<p class="meta"><em>Information needed — ${S(f.information_needed)}</em></p>` : ""}
+${(f.citation || f.supporting_citation) ? `<p class="meta">Authority: ${S(f.citation || f.supporting_citation)}</p>` : ""}</div>`;
+  };
+
+
+  const il = report?.interest_legitimacy;
+  const bb = report?.benefit_and_beneficiary;
+  const ac = report?.alternatives_considered;
+  const rel = report?.relationship_with_individual;
+  const sfd = report?.scale_frequency_duration;
+  const ph = report?.potential_harms;
+  const oof = report?.opt_out_feasibility;
+  const att = report?.attestation_block;
+  if (!il && !bb && !ac && !rel && !sfd && !ph && !oof && !att) return "";
+
+  const purpose = (il || bb)
+    ? `<h2>Purpose — Is the interest legitimate?</h2>
+${finding("Legitimacy of the interest", il, Array.isArray(il?.sub_tests) && il.sub_tests.length
+        ? `<ul>${il.sub_tests.map((t: any) => `<li><strong>${S(t?.label)}</strong>${t?.verdict ? ` — ${S(String(t.verdict).replace(/_/g, " "))}` : ""}${t?.reasoning ? `: ${S(t.reasoning)}` : ""}</li>`).join("")}</ul>`
+        : "")}
+${finding("Benefit and beneficiary", bb, [
+        bb?.benefit ? `<p><span class="label">Benefit:</span> ${S(bb.benefit)}</p>` : "",
+        Array.isArray(bb?.beneficiary_labels ?? bb?.beneficiaries) && (bb.beneficiary_labels ?? bb.beneficiaries).length ? `<p><span class="label">Beneficiaries:</span> ${S((bb.beneficiary_labels ?? bb.beneficiaries).join(", "))}</p>` : "",
+      ].join(""))}`
+    : "";
+
+  const necessity = ac
+    ? `<h2>Necessity — Were less intrusive options ruled out?</h2>
+${finding("Alternatives considered", ac, Array.isArray(ac?.alternatives) && ac.alternatives.length
+        ? `<ul>${ac.alternatives.map((a: any) => `<li><strong>${S(a?.alternative)}</strong>${a?.why_inadequate ? ` — ${S(a.why_inadequate)}` : ""}</li>`).join("")}</ul>`
+        : "")}`
+    : "";
+
+  const balancing = (rel || sfd || ph || oof)
+    ? `<h2>Balancing — The individual's side of the scale</h2>
+${finding("Relationship with the individual", rel, rel?.category ? `<p><span class="label">Category:</span> ${S(rel.category_label || rel.category)}</p>` : "")}
+${finding("Scale, frequency and duration", sfd, Array.isArray(sfd?.dimensions) && sfd.dimensions.length
+        ? `<ul>${sfd.dimensions.map((dm: any) => `<li><strong>${S(dm?.label)}:</strong> ${S(dm?.recorded || statusLabel(dm?.status))}</li>`).join("")}</ul>`
+        : "")}
+${finding("Potential harms", ph, Array.isArray(ph?.harms) && ph.harms.length
+        ? `<ul>${ph.harms.map((h: any) => `<li><strong>${S(h?.harm)}</strong>${h?.severity ? ` — ${S(h.severity)}` : ""}${h?.bearing_on_balance ? `: ${S(h.bearing_on_balance)}` : ""}</li>`).join("")}</ul>`
+        : "")}
+${finding("Opt-out feasibility", oof, [
+        oof?.feasibility ? `<p><span class="label">Feasibility:</span> ${S(oof.feasibility)}</p>` : "",
+        oof?.mechanism ? `<p><span class="label">Mechanism:</span> ${S(oof.mechanism)}</p>` : "",
+      ].join(""))}`
+    : "";
+
+  const attestation = att
+    ? `<h2>Attestation and Review</h2>
+<div class="section">
+${att?.text ? `<p>${S(att.text)}</p>` : ""}
+${att?.dpo_review?.reviewer ? `<p><span class="label">DPO review — who:</span> ${S(att.dpo_review.reviewer)}</p>` : ""}
+${att?.dpo_review?.review_date ? `<p><span class="label">DPO review — when:</span> ${S(att.dpo_review.review_date)}</p>` : ""}
+${Array.isArray(att?.approvers) && att.approvers.length ? `<p><span class="label">Approved by:</span> ${S(att.approvers.map((a: any) => [a?.name, a?.position].filter(Boolean).join(", ")).join("; "))}${att.approval_date ? ` (${S(att.approval_date)})` : ""}</p>` : ""}
+${Array.isArray(att?.review_triggers) && att.review_triggers.length ? `<p class="label">Re-review triggers${att.triggers_are_default ? " (standard set)" : ""}:</p><ul>${att.review_triggers.map((t: string) => `<li>${S(t)}</li>`).join("")}</ul>` : ""}
+${att?.information_needed ? `<p class="meta"><em>Information needed — ${S(att.information_needed)}</em></p>` : ""}
+</div>`
+    : "";
+
+  return [purpose, necessity, balancing, attestation].filter(Boolean).join("\n");
+}
+
 function buildLIReportHTML(report: any, assessment: any): string {
+
   const d = report.three_part_test || {};
   const overall = report.three_part_test?.overall_assessment || {};
   const docRecs = report.documentation_recommendations || {};
@@ -180,6 +266,8 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 .meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
 .label { font-weight:bold; text-transform:uppercase; font-size:11px;
   letter-spacing:0.05em; color:#5c6d7a; }
+${AUTHORITY_EXHIBIT_CSS}
+
 @media print {
   /* Prevent orphan section headings at page breaks */
   h1, h2, h3, h4, h5, h6,
@@ -296,8 +384,11 @@ ${fineLine}</div>`;
       }).join("");
     return `<h2>Enforcement Precedents Cited</h2>${items}`;
   })()}
+${buildLiaUpgrade4HTML(report)}
 <p class="meta">${escHtml(report.data_currency_note || "")}</p>
+${renderAuthorityExhibitHtml(report?.authority_exhibit)}
 </div></div></body></html>`;
+
 }
 
 function buildGovernanceReportHTML(report: any, assessment: any): string {

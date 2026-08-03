@@ -153,6 +153,26 @@ const LIAssessmentIntake = () => {
   const [safeguardsOther, setSafeguardsOther] = useState("");
   const [additionalContext, setAdditionalContext] = useState("");
 
+  // UPGRADE-4 (ITEM 2) — fields the new Purpose / Necessity / Balancing
+  // deliverables and the attestation block read. All optional, so legacy rows
+  // continue to validate.
+  const [specificBenefit, setSpecificBenefit] = useState("");
+  const [beneficiary, setBeneficiary] = useState("");
+  const [alternativesRationale, setAlternativesRationale] = useState("");
+  const [relationshipCategory, setRelationshipCategory] = useState("");
+  const [scaleApprox, setScaleApprox] = useState("");
+  const [frequency, setFrequency] = useState("");
+  const [duration, setDuration] = useState("");
+  const [potentialHarms, setPotentialHarms] = useState<string[]>([]);
+  const [optOutAvailable, setOptOutAvailable] = useState("");
+  const [dpoReviewed, setDpoReviewed] = useState("");
+  const [dpoReviewer, setDpoReviewer] = useState("");
+  const [dpoReviewDate, setDpoReviewDate] = useState("");
+  const [approverName, setApproverName] = useState("");
+  const [approverPosition, setApproverPosition] = useState("");
+  const [approvalDate, setApprovalDate] = useState("");
+  const [reviewTriggers, setReviewTriggers] = useState<string[]>([]);
+
   // Adaptive branches
   const [statutoryRestrictions, setStatutoryRestrictions] = useState(""); // shown for marketing / advertising
   const [pseudonymisationOptions, setPseudonymisationOptions] = useState(""); // shown for analytics / research
@@ -169,6 +189,9 @@ const LIAssessmentIntake = () => {
     reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
     statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
     collectionContext, childrenDataSubjects, controllerIsPublicAuthority, publicTaskProcessing, additionalMitigations,
+    specificBenefit, beneficiary, alternativesRationale, relationshipCategory,
+    scaleApprox, frequency, duration, potentialHarms, optOutAvailable,
+    dpoReviewed, dpoReviewer, dpoReviewDate, approverName, approverPosition, approvalDate, reviewTriggers,
   }), [
     id, interestHolder, interestType, statedPurpose, alternatives, whyConsentNotUsed, dataMinimised,
     reasonableExpectation, vulnerableSubjects, potentialHarm, safeguards, optOutMechanism,
@@ -176,6 +199,9 @@ const LIAssessmentIntake = () => {
     reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
     statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
     collectionContext, childrenDataSubjects, controllerIsPublicAuthority, publicTaskProcessing, additionalMitigations,
+    specificBenefit, beneficiary, alternativesRationale, relationshipCategory,
+    scaleApprox, frequency, duration, potentialHarms, optOutAvailable,
+    dpoReviewed, dpoReviewer, dpoReviewDate, approverName, approverPosition, approvalDate, reviewTriggers,
   ]);
   const initialLiaRef = useMemo(() => JSON.stringify({ ...draftPayload, assessment_id: id }), [id]);
   const touched = useMemo(() => JSON.stringify(draftPayload) !== initialLiaRef, [draftPayload, initialLiaRef]);
@@ -223,6 +249,22 @@ const LIAssessmentIntake = () => {
     S(d.controllerIsPublicAuthority, setControllerIsPublicAuthority);
     S(d.publicTaskProcessing, setPublicTaskProcessing);
     S(d.additionalMitigations, setAdditionalMitigations);
+    S(d.specificBenefit, setSpecificBenefit);
+    S(d.beneficiary, setBeneficiary);
+    S(d.alternativesRationale, setAlternativesRationale);
+    S(d.relationshipCategory, setRelationshipCategory);
+    S(d.scaleApprox, setScaleApprox);
+    S(d.frequency, setFrequency);
+    S(d.duration, setDuration);
+    A(d.potentialHarms, setPotentialHarms);
+    S(d.optOutAvailable, setOptOutAvailable);
+    S(d.dpoReviewed, setDpoReviewed);
+    S(d.dpoReviewer, setDpoReviewer);
+    S(d.dpoReviewDate, setDpoReviewDate);
+    S(d.approverName, setApproverName);
+    S(d.approverPosition, setApproverPosition);
+    S(d.approvalDate, setApprovalDate);
+    A(d.reviewTriggers, setReviewTriggers);
   };
 
 
@@ -300,9 +342,10 @@ const LIAssessmentIntake = () => {
       // Stage B
       stated_purpose: statedPurpose,
       alternatives_considered: alternatives,
-      purpose_details: { interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther, controller_is_public_authority: controllerIsPublicAuthority, public_task_processing: publicTaskProcessing },
+      purpose_details: { specific_benefit: specificBenefit, beneficiary, interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther, controller_is_public_authority: controllerIsPublicAuthority, public_task_processing: publicTaskProcessing },
       necessity_details: {
         alternatives,
+        alternatives_rationale: alternativesRationale,
         why_consent_not_used: whyConsentNotUsed,
         data_minimised: dataMinimised,
         pseudonymisation_options: showAnalyticsBranch ? pseudonymisationOptions : null,
@@ -320,10 +363,25 @@ const LIAssessmentIntake = () => {
         safeguards_other: safeguardsOther,
         additional_mitigations: additionalMitigations,
         opt_out_mechanism: optOutMechanism,
+        opt_out_available: optOutAvailable,
+        relationship_category: relationshipCategory,
+        scale_approx: scaleApprox,
+        frequency,
+        duration,
+        potential_harms: potentialHarms,
         special_category_data: hasSpecialCategory,
         statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
         employment_safeguards: showEmploymentBranch ? employmentSafeguards : null,
         additional_context: additionalContext,
+      },
+      attestation: {
+        dpo_reviewed: dpoReviewed,
+        dpo_reviewer: dpoReviewer,
+        dpo_review_date: dpoReviewDate,
+        approver_name: approverName,
+        approver_position: approverPosition,
+        approval_date: approvalDate,
+        review_triggers: reviewTriggers,
       },
       stage: "submitted",
       // Tie back to the preview row for analytics
@@ -457,6 +515,26 @@ const LIAssessmentIntake = () => {
             <Textarea value={statedPurpose} onChange={(e) => setStatedPurpose(e.target.value)} className="mt-2" rows={3} />
           </div>
 
+          {/* UPGRADE-4 — benefit and beneficiary */}
+          <div>
+            <Label className="text-base">What specific benefit does this processing deliver?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Name the outcome, not the activity — what changes because this processing happens.</p>
+            <Textarea value={specificBenefit} onChange={(e) => setSpecificBenefit(e.target.value)} className="mt-2" rows={2}
+              placeholder="e.g. Chargeback losses on new accounts fall because high-risk signups are held before activation." />
+          </div>
+
+          <div>
+            <Label className="text-base">Who receives that benefit?</Label>
+            <select value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              <option>Our business</option>
+              <option>The individuals whose data is processed</option>
+              <option>A third party</option>
+              <option>Our business and the individuals</option>
+              <option>Our business and a third party</option>
+            </select>
+          </div>
+
           {showMarketingBranch && (
             <div className="border-l-2 border-amber-300 pl-4">
               <Label className="text-base">Are there sector or jurisdiction-specific restrictions? *</Label>
@@ -481,6 +559,14 @@ const LIAssessmentIntake = () => {
             <Label className="text-base">What alternatives have you considered? *</Label>
             <Textarea value={alternatives} onChange={(e) => setAlternatives(e.target.value)} className="mt-2" rows={3}
               placeholder="e.g. We considered consent but it would yield insufficient coverage because…" />
+          </div>
+
+          {/* UPGRADE-4 — reason each alternative is inadequate */}
+          <div>
+            <Label className="text-base">For each alternative, why would it not achieve the purpose?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Take them one at a time, on separate lines. State what outcome each alternative would fail to deliver.</p>
+            <Textarea value={alternativesRationale} onChange={(e) => setAlternativesRationale(e.target.value)} className="mt-2" rows={3}
+              placeholder={"Aggregate reporting — would not identify the individual account to hold\nManual review only — would not run at signup volume"} />
           </div>
 
           <div>
@@ -515,6 +601,19 @@ const LIAssessmentIntake = () => {
             <h2 className="font-serif">Balancing test</h2>
             <p className="text-xs font-mono text-muted-foreground -mt-2">Art. 6(1)(f) GDPR — interests or fundamental rights · Recital 47 — reasonable expectations of data subjects</p>
             <p className="text-sm text-muted-foreground">Do data subjects' interests, rights and freedoms override yours?</p>
+          </div>
+
+          {/* UPGRADE-4 — relationship category, stated rather than inferred */}
+          <div>
+            <Label className="text-base">What is your relationship with these individuals?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Recital 47 weighs reasonable expectations against the relationship. Name it here rather than leaving it to be derived.</p>
+            <select value={relationshipCategory} onChange={(e) => setRelationshipCategory(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              <option>Customer</option>
+              <option>Employee</option>
+              <option>Prospect</option>
+              <option>Member of the public — no relationship</option>
+            </select>
           </div>
 
           <div>
@@ -575,6 +674,43 @@ const LIAssessmentIntake = () => {
             <Textarea value={potentialHarmDetail} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Optional: what specific harms did you consider (financial, reputational, autonomy, distress…)?" className="mt-2" rows={2} />
           </div>
 
+          {/* UPGRADE-4 — how large, how often, how long */}
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-base">Approximately how many people?</Label>
+              <input value={scaleApprox} onChange={(e) => setScaleApprox(e.target.value)} placeholder="e.g. ~40,000 signups a year" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+            <div>
+              <Label className="text-base">How often does it run?</Label>
+              <input value={frequency} onChange={(e) => setFrequency(e.target.value)} placeholder="e.g. at every signup, in real time" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+            <div>
+              <Label className="text-base">How long is the data held for this purpose?</Label>
+              <input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 24 months from the score" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+          </div>
+
+          {/* UPGRADE-4 — harms as separate items, feeding the balance directly */}
+          <div>
+            <Label className="text-base">Which harms could this processing cause? (select all that apply)</Label>
+            <div className="mt-2">
+              <Pills
+                options={[
+                  "Financial loss",
+                  "Discrimination or unfair treatment",
+                  "Reputational damage",
+                  "Loss of autonomy or control over data",
+                  "Distress or intrusion",
+                  "Exclusion from a service",
+                  "Physical safety risk",
+                  "Identity theft or fraud exposure",
+                ]}
+                value={potentialHarms}
+                onChange={setPotentialHarms}
+              />
+            </div>
+          </div>
+
           <div>
             <Label className="text-base">Which safeguards are in place? (select all that apply)</Label>
             <div className="mt-2">
@@ -613,6 +749,17 @@ const LIAssessmentIntake = () => {
             <Textarea value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} className="mt-2" rows={3} />
           </div>
 
+          {/* UPGRADE-4 — availability, separate from the mechanism */}
+          <div>
+            <Label className="text-base">Is an opt-out available to individuals?</Label>
+            <select value={optOutAvailable} onChange={(e) => setOptOutAvailable(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              <option>Yes — unconditional, on request, with no consequence</option>
+              <option>Yes — but conditional or subject to review</option>
+              <option>No opt-out is available</option>
+            </select>
+          </div>
+
           <div>
             <Label className="text-base">How can data subjects object or opt out? *</Label>
             <AssistedInput
@@ -639,6 +786,71 @@ const LIAssessmentIntake = () => {
               />
             </div>
           )}
+        </section>
+
+        {/* UPGRADE-4 — attestation and review (house pattern) */}
+        <section className="bg-card border rounded-lg p-6 space-y-5">
+          <div>
+            <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 04</span>
+            <h2 className="font-serif">Attestation and review</h2>
+            <p className="text-sm text-muted-foreground">Who reviewed and approved this assessment, and what would cause you to run it again.</p>
+          </div>
+
+          <div>
+            <Label className="text-base">Has the data protection function reviewed this assessment?</Label>
+            <select value={dpoReviewed} onChange={(e) => setDpoReviewed(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Planned</option>
+            </select>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-base">Reviewer</Label>
+              <input value={dpoReviewer} onChange={(e) => setDpoReviewer(e.target.value)} placeholder="Name of the DPO or the person discharging that function" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+            <div>
+              <Label className="text-base">Date of review</Label>
+              <input type="date" value={dpoReviewDate} onChange={(e) => setDpoReviewDate(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-base">Approved by</Label>
+              <input value={approverName} onChange={(e) => setApproverName(e.target.value)} placeholder="Name" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+            <div>
+              <Label className="text-base">Title</Label>
+              <input value={approverPosition} onChange={(e) => setApproverPosition(e.target.value)} placeholder="Role and approving authority" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+            <div>
+              <Label className="text-base">Date of approval</Label>
+              <input type="date" value={approvalDate} onChange={(e) => setApprovalDate(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-base">What would trigger a re-review? (select all that apply)</Label>
+            <p className="text-xs text-muted-foreground mt-1">A standard set is applied in the report. Anything you add here is recorded alongside it.</p>
+            <div className="mt-2">
+              <Pills
+                options={[
+                  "A change in the purpose of the processing",
+                  "A change in the categories of data used",
+                  "A new category of data subject",
+                  "A change of processor or recipient",
+                  "New or amended regulatory guidance",
+                  "An objection or complaint from a data subject",
+                  "A personal data breach affecting this processing",
+                ]}
+                value={reviewTriggers}
+                onChange={setReviewTriggers}
+              />
+            </div>
+          </div>
         </section>
 
         <section className="bg-card border rounded-lg p-6">

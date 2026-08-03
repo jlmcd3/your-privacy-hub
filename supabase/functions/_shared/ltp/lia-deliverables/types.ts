@@ -211,3 +211,191 @@ export interface AutomatedDecisionFinding extends AnalysisShape {
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// UPGRADE-4 — ICO three-part-arc deliverables.
+//
+// The ICO LIA template arc (Purpose -> Necessity -> Balancing -> close)
+// stays the narrative spine. These findings slot into it and obey the same
+// three laws as the ITEM 311 set above: ANALYSIS SHAPE, DEGRADATION, and
+// SINGLE-WRITER (build-upgrade4.ts is the only producer).
+// ─────────────────────────────────────────────────────────────────────
+
+export type SubVerdict = "met" | "not_met" | "undetermined_on_the_record";
+
+// ── Purpose stage (a) — interest legitimacy, three cumulative sub-tests ──
+export interface InterestLegitimacySubTest {
+  readonly id: "lawful" | "clearly_articulated" | "real_and_present";
+  readonly label: string;
+  readonly verdict: SubVerdict;
+  /** The standard run over the record fact — never a recitation. */
+  readonly reasoning: string;
+  readonly information_needed?: string;
+}
+
+export type InterestLegitimacyVerdict =
+  | "legitimate_interest_established"
+  | "legitimate_interest_not_established"
+  | "undetermined_on_the_record";
+
+export interface InterestLegitimacyFinding extends AnalysisShape {
+  readonly verdict: InterestLegitimacyVerdict;
+  /** All three EDPB 1/2024 conditions, each verdicted separately. */
+  readonly sub_tests: readonly InterestLegitimacySubTest[];
+  readonly cumulative_note: string;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+// ── Purpose stage (b) — benefit and beneficiary ──────────────────────
+export type BeneficiaryClass = "business" | "individual" | "third_party";
+
+export interface BenefitAndBeneficiaryFinding extends AnalysisShape {
+  /** The specific benefit as the record states it. Empty where absent. */
+  readonly benefit: string;
+  readonly beneficiaries: readonly BeneficiaryClass[];
+  readonly beneficiary_labels: readonly string[];
+  /** True where the stated benefit is generic rather than specific. */
+  readonly benefit_is_generic: boolean;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+// ── Necessity stage (c) — alternatives considered ────────────────────
+export interface AlternativeConsidered {
+  /** The alternative as the record names it. */
+  readonly alternative: string;
+  /** Why the record says it is inadequate. Empty where the record is silent. */
+  readonly why_inadequate: string;
+  readonly rationale_recorded: boolean;
+}
+
+export interface AlternativesConsideredFinding extends AnalysisShape {
+  readonly alternatives: readonly AlternativeConsidered[];
+  readonly count_with_rationale: number;
+  readonly consent_addressed: boolean;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+// ── Balancing stage (d) — relationship with the individual ───────────
+export type RelationshipCategory =
+  | "customer"
+  | "employee"
+  | "prospect"
+  | "public"
+  | "undetermined_on_the_record";
+
+export interface RelationshipFinding extends AnalysisShape {
+  readonly category: RelationshipCategory;
+  readonly category_label: string;
+  /** True where the record NAMES the category rather than it being derived. */
+  readonly explicitly_recorded: boolean;
+  /** True where the category carries a recognised power imbalance. */
+  readonly power_imbalance: boolean;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+// ── Balancing stage (e) — scale, frequency, duration ─────────────────
+export interface ScaleDimension {
+  readonly id: "scale" | "frequency" | "duration";
+  readonly label: string;
+  readonly recorded: string;
+  readonly status: DeliverableStatus;
+}
+
+export interface ScaleFrequencyDurationFinding extends AnalysisShape {
+  readonly dimensions: readonly ScaleDimension[];
+  readonly dimensions_recorded: number;
+  readonly large_scale_indicated: boolean;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+// ── Balancing stage (f) — potential harms, structured ────────────────
+export type HarmSeverity = "negligible" | "limited" | "significant" | "severe" | "unstated";
+
+export interface PotentialHarm {
+  readonly harm: string;
+  readonly severity: HarmSeverity;
+  /** How this harm bears on the balance — never a generic risk sentence. */
+  readonly bearing_on_balance: string;
+}
+
+export interface PotentialHarmsFinding extends AnalysisShape {
+  readonly harms: readonly PotentialHarm[];
+  readonly worst_case_severity: HarmSeverity;
+  readonly material_weight_against_controller: boolean;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+// ── Balancing stage (g) — opt-out feasibility ────────────────────────
+export type OptOutFeasibility =
+  | "unconditional_opt_out_available"
+  | "conditional_opt_out_available"
+  | "no_opt_out_available"
+  | "undetermined_on_the_record";
+
+export interface OptOutFeasibilityFinding extends AnalysisShape {
+  readonly feasibility: OptOutFeasibility;
+  readonly mechanism: string;
+  /** True where the opt-out goes beyond what the GDPR already requires. */
+  readonly counts_as_mitigation: boolean;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+// ── Close — attestation block (house pattern: risk / admt) ───────────
+export interface LiaApprover {
+  readonly name: string;
+  readonly position: string;
+}
+
+export interface LiaDpoReview {
+  readonly reviewed: boolean;
+  readonly reviewer: string;
+  readonly review_date: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+export interface LiaAttestationBlock {
+  readonly text: string;
+  readonly attested: boolean;
+  readonly dpo_review: LiaDpoReview;
+  readonly approvers: readonly LiaApprover[];
+  readonly approval_date: string;
+  readonly review_triggers: readonly string[];
+  readonly triggers_are_default: boolean;
+  readonly citation: string;
+  readonly authority_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
+export interface LiaUpgrade4Deliverables {
+  readonly interest_legitimacy: InterestLegitimacyFinding;
+  readonly benefit_and_beneficiary: BenefitAndBeneficiaryFinding;
+  readonly alternatives_considered: AlternativesConsideredFinding;
+  readonly relationship_with_individual: RelationshipFinding;
+  readonly scale_frequency_duration: ScaleFrequencyDurationFinding;
+  readonly potential_harms: PotentialHarmsFinding;
+  readonly opt_out_feasibility: OptOutFeasibilityFinding;
+  readonly attestation_block: LiaAttestationBlock;
+}

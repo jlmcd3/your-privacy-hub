@@ -899,14 +899,36 @@ async function runAssessment(assessment_id: string, assessment: any, opts?: { re
       return lines.join("\n");
     })();
 
+    // ── UPGRADE-4 ITEM 3 — CORPUS INTO THE ANALYSIS ────────────────────
+    // Runtime-resolved statutory text (gdpr-art-6-1-f and its supporting
+    // provisions) plus the pin-verified EDPB 1/2024 excerpts. Approved rows
+    // are quotable; everything else is named citation-only. Fail-open: on
+    // any error the block is omitted and the prompt is unchanged.
+    let liaCorpus: import("../_shared/ltp/lia-corpus.ts").LiaCorpus | null = null;
+    let liaCorpusLawBlock = "";
+    try {
+      const { fetchLiaCorpus, buildLiaCorpusLawBlock } = await import("../_shared/ltp/lia-corpus.ts");
+      liaCorpus = await fetchLiaCorpus(supabase);
+      liaCorpusLawBlock = buildLiaCorpusLawBlock(liaCorpus);
+      console.log(JSON.stringify({
+        evt: "_lia_corpus", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+        version: liaCorpus.version, resolved: liaCorpus.resolved_count,
+        approved: liaCorpus.approved_count, guidance_verified: liaCorpus.guidance_verified_count,
+      }));
+    } catch (e) {
+      console.warn("[run-li-assessment] LIA corpus fetch failed (non-fatal):", (e as Error)?.message);
+    }
+
     const analysisInjected = [
       engagedFrameworksBlock,
       (isEu || isUk) ? gdprCitations : "",
       enforcementContextStr ? `ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):\n${enforcementContextStr}` : "",
       (isEu || isUk) && gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
+      (isEu || isUk) ? liaCorpusLawBlock : "",
       ukGuidanceFraming,
       liaTestStatesBlock,
     ].filter(Boolean).join("\n\n");
+
 
     const analysisSystemBlocks = buildSystemContent({
       toolModule: LIA_ANALYSIS_TOOL_MODULE,
@@ -1640,6 +1662,27 @@ Return JSON:
       console.warn("[run-li-assessment] ITEM-311 deliverables failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── UPGRADE-4 ITEM 1 — ICO THREE-PART-ARC DELIVERABLES ─────────────
+    // Purpose (interest_legitimacy, benefit_and_beneficiary), necessity
+    // (alternatives_considered), balancing (relationship_with_individual,
+    // scale_frequency_duration, potential_harms, opt_out_feasibility), close
+    // (attestation_block). Deterministic, built from the full persisted row.
+    // Fail-open.
+    try {
+      const { attachLiaUpgrade4 } = await import("../_shared/ltp/lia-deliverables/build-upgrade4.ts");
+      const umeta = attachLiaUpgrade4(
+        reportData as Record<string, unknown>,
+        assessment as unknown as Record<string, unknown>,
+      );
+      const _m = ((reportData as any)._meta ??= {});
+      (_m.internal ??= {}).lia_upgrade4 = umeta;
+      console.log(JSON.stringify({ evt: "_lia_upgrade4", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...umeta }));
+    } catch (e) {
+      console.warn("[run-li-assessment] UPGRADE-4 deliverables failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     const guarded = guardInformationNeeded(reportData, liaIntakeObject, "li_assessment");
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
@@ -1716,6 +1759,69 @@ Return JSON:
     } catch (e) {
       console.warn("[run-li-assessment] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── UPGRADE-4 ITEM 3 — AUTHORITY EXHIBIT (table of authorities) ────
+    // Built from the citations THIS report actually emits; excerpts come only
+    // from approved corpus rows and pin-verified EDPB 1/2024 excerpts. Placed
+    // at the end of the body, before the universal disclaimer. Fail-open.
+    try {
+      const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const { liaCorpusProvisionsForExhibit } = await import("../_shared/ltp/lia-corpus.ts");
+      const cited = new Set<string>();
+      const walkCites = (v: unknown): void => {
+        if (typeof v === "string") {
+          for (const m of v.matchAll(/(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+(?:\([a-z0-9]+\))*/gi)) {
+            cited.add(m[0].replace(/\s+/g, " ").trim());
+          }
+          for (const m of v.matchAll(/EDPB\s+Guidelines\s+1\/2024[^,;.)\]]*/gi)) {
+            cited.add(m[0].replace(/\s+/g, " ").trim());
+          }
+          return;
+        }
+        if (Array.isArray(v)) { for (const x of v) walkCites(x); return; }
+        if (v && typeof v === "object") {
+          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+            if (k === "_meta" || k === "_staging") continue;
+            walkCites(x);
+          }
+        }
+      };
+      walkCites(reportData);
+      // This is the resumed isolate: the corpus resolved for the analysis pass
+      // lives in the other isolate, so it is re-resolved here. Same closed-set
+      // resolver, same pin verification — approved rows only.
+      const { fetchLiaCorpus } = await import("../_shared/ltp/lia-corpus.ts");
+      const exhibitCorpus = await fetchLiaCorpus(supabase);
+      const exhibit = buildAuthorityExhibit(
+        [...cited],
+        liaCorpusProvisionsForExhibit(exhibitCorpus),
+      );
+
+      (reportData as any).authority_exhibit = exhibit;
+      console.log(JSON.stringify({
+        evt: "lia_authority_exhibit_attached", fn: "run-li-assessment",
+        entries: exhibit.entries.length,
+        pin_verified: exhibit.entries.filter((e) => e.pin_verified).length,
+      }));
+    } catch (axErr) {
+      console.warn("[run-li-assessment] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
+    }
+
+    // ── UPGRADE-4 ITEM 4 — BOILERPLATE REPETITION CAP (2026-08-03) ─────
+
+    // Runs AFTER the two emitters that produce the repeated literals
+    // (_lia_t6_fix's NEUTRAL_DOWNGRADE and the emit gate's
+    // "information.needed" replacement) and BEFORE the P2 serializer, so
+    // the cap applies to exactly what ships. Telemetry rides
+    // `_meta.internal.lia_boilerplate_cap`. Fail-open.
+    try {
+      const { applyLiaBoilerplateCap } = await import("./_lia_boilerplate_cap.ts");
+      applyLiaBoilerplateCap(reportData as any);
+    } catch (e) {
+      console.warn("[run-li-assessment] boilerplate cap post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
     // Whitelist top-level keys; internal telemetry survives via

@@ -1,0 +1,1 @@
+ALTER TABLE public.li_assessments ADD COLUMN IF NOT EXISTS attestation jsonb NOT NULL DEFAULT '{}'::jsonb;
