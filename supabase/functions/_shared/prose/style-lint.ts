@@ -11,7 +11,7 @@
 import { BANNED_ANALOGY_PATTERNS, NO_ANALOGY_SENTENCE } from "./analogies.ts";
 import { auditSentinels, type RecordSpan } from "./span-tracking.ts";
 
-export const STYLE_LINT_VERSION = "prose-style-lint-2026-08-02-item368";
+export const STYLE_LINT_VERSION = "prose-style-lint-2026-08-03-item370";
 
 export type StyleRule =
   | "quoted_intake_value"
@@ -29,7 +29,10 @@ export type StyleRule =
   | "analogy_outcome_predictive"
   | "analogy_empty_sentence"
   // ITEM 368(1) — structural span-sentinel defect on text that reached the lint.
-  | "unbalanced_sentinel";
+  | "unbalanced_sentinel"
+  // ITEM 370 — prose-engine hardening.
+  | "repeated_boilerplate"
+  | "merge_artifact";
 
 export interface StyleFinding {
   readonly rule: StyleRule;
