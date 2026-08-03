@@ -217,7 +217,6 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Assessment Summary</h2>
 <div class="section">
 <span class="strength strength-${(overall.argument_strength || "uncertain").toLowerCase()}">Argument strength: ${overall.argument_strength || "Uncertain"}</span>
@@ -297,7 +296,6 @@ ${fineLine}</div>`;
     return `<h2>Enforcement Precedents Cited</h2>${items}`;
   })()}
 <p class="meta">${escHtml(report.data_currency_note || "")}</p>
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 </div></div></body></html>`;
 }
 
@@ -340,7 +338,6 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
     <tr>
@@ -436,7 +433,6 @@ ${recommendedHtml}</div>`;
   })()}
 <h2>Cross-Domain Considerations</h2>
 <p>${escHtml(report.interaction_effects || "")}</p>
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 </div></div></body></html>`;
 }
 
@@ -922,10 +918,6 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
   <div class="body">
-    <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
-      This document is provided to support your organization's compliance review.
-      It does not create an attorney-client relationship. Findings should be
-      validated against your organization's authoritative records before operational reliance.`}</div>
     ${calloutHtml}
     ${opts.htmlPrefix ?? ""}
     ${sectionsHtml}
@@ -1254,7 +1246,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${buildReportMetaLine({ generatedAt: record?.created_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
     ${opening ? `<section><div class="opening">${para(opening)}</div></section>` : ""}
     ${exec ? `<section><h2>${text(headerForSection("executive_summary", "Executive Summary"))}</h2>${para(exec)}</section>` : ""}
     ${(summaryNarr || summary.company_name || summary.assessment_date || summary.overall_risk_level) ? `<section><h2>${text(headerForSection("assessment_summary", "Assessment Summary"))}</h2>
@@ -1274,7 +1265,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("information_needed", "Items for Your Review", infoNeeded)}
     ${listSection("record_sufficiency", "Record Sufficiency", recordSuf)}
     ${submission ? `<section><h2>${text(headerForSection("submission_summary", "Submission Summary"))}</h2>${para(submission)}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.build_stamp ? ` · build ${text(meta.build_stamp)}` : ""}</div>
   </div>
 </div></body></html>`;
@@ -1355,7 +1345,6 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.")}</div>
 
     <section><h2>Assessment Summary</h2>
       ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
@@ -1461,7 +1450,6 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
       ${xrec.cybersecurity_audit_rationale ? `<div class="card"><h3>Cybersecurity audit ${xrec.cybersecurity_audit ? "(recommended)" : ""}</h3>${para(xrec.cybersecurity_audit_rationale)}</div>` : ""}
     </section>` : ""}
 
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.")}</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.assessment_version ? ` · v${text(meta.assessment_version)}` : ""}</div>
   </div>
 </div></body></html>`;
