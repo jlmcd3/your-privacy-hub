@@ -31,3 +31,28 @@ export function withReportDisclaimer(body: string): string {
   const stripped = String(body ?? "").split(REPORT_DISCLAIMER).join("").replace(/\s*---\s*$/, "");
   return stripped.replace(/\s+$/, "") + reportDisclaimerText();
 }
+
+const DISCLAIMER_BLOCK =
+  /<(div|section|p|footer)\b[^>]*>(?:(?!<\1\b)[\s\S])*?<\/\1>/gi;
+
+const DISCLAIMER_SIGNAL =
+  /not legal advice|legal advice|attorney-client|attorney–client|legal counsel|qualified counsel|informational purposes|educational purposes only/i;
+
+/**
+ * Final HTML normalizer for every PDF/HTML report builder: strips any prior
+ * in-report legal disclaimer block, then appends the universal disclaimer as
+ * the final element of the document body — exactly once.
+ */
+export function applyUniversalDisclaimerHtml(html: string): string {
+  let out = String(html ?? "");
+  out = out.replace(DISCLAIMER_BLOCK, (block) => {
+    const text = block.replace(/<[^>]+>/g, " ");
+    if (!DISCLAIMER_SIGNAL.test(text)) return block;
+    // Never strip a block that carries substantive report content.
+    if (text.replace(/\s+/g, " ").trim().length > 900) return block;
+    return "";
+  });
+  const tail = reportDisclaimerHtml();
+  if (/<\/body>/i.test(out)) return out.replace(/<\/body>/i, `${tail}\n</body>`);
+  return out + tail;
+}
