@@ -793,8 +793,6 @@ interface TextReportOpts {
   text: string;
   showJurisdictionChip?: boolean;
   callout?: { kind: "warn" | "muted"; title?: string; html: string };
-  /** Optional override for the standard "Not legal advice" disclaimer block. */
-  disclaimerHtml?: string;
   /**
    * PDF-1: pre-body HTML block rendered verbatim (unescaped) BEFORE section
    * parsing. Use this for renderer-owned metadata blocks (IR playbook
@@ -1205,9 +1203,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const exceptions = coerceNarrativeList(report.exception_analysis);
   const infoNeeded = coerceNarrativeList(report.information_needed);
   const recordSuf = coerceNarrativeList(report.record_sufficiency);
-  const disclaimer = typeof report.disclaimer === "string"
-    ? report.disclaimer
-    : "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.";
   const generatedDate = new Date(record?.created_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -2567,7 +2562,6 @@ Deno.serve(async (req) => {
         metaLine: `${metaLine}${orgNameForPdf ? ` · Prepared for: ${orgNameForPdf}` : ""}`,
         text,
         showJurisdictionChip: true,
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This biometric compliance assessment is generated for informational purposes only. Biometric data obligations vary by jurisdiction, sector, and specific processing context — applicability determinations (including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing) depend on facts named in each jurisdiction and should be validated against your organization's authoritative records before operational reliance. This document does not create an attorney-client relationship and does not constitute legal advice.`,
         // BIPA risk callout branch retired 2026-07-14
         callout: undefined,
       });
@@ -2623,7 +2617,6 @@ Deno.serve(async (req) => {
         text: stripBodyHtml(record.playbook_text || ""),
         showJurisdictionChip: false,
         callout: { kind: "muted", html: calloutText },
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be validated against your organization's authoritative records and the current statutory text before reliance during a live incident.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "dpa_generator") {
@@ -2645,7 +2638,6 @@ Deno.serve(async (req) => {
         metaLine: frameworkLabel ? `${generatedLine} · ${frameworkLabel}` : generatedLine,
         text: record.document_text || "",
         showJurisdictionChip: false,
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs. It is not a negotiated agreement and must not be executed without independent legal review. It does not create an attorney-client relationship.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_risk") {
