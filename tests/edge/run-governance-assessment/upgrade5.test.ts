@@ -50,14 +50,14 @@ const rich = {
   remediation_defaults: {
     accountable_owner: "Head of Privacy",
     target_date: "2026-12-31",
-    priority: "medium",
+    priority: "Medium — remediate this year",
   },
   remediation_plan: [
     {
       finding_key: "record_of_processing",
       accountable_owner: "Records Manager",
       target_date: "2026-09-30",
-      priority: "high",
+      priority: "High — remediate this quarter",
       validation_method: "Sample testing of the record against live systems",
     },
   ],
@@ -122,14 +122,14 @@ Deno.test("per-finding remediation overrides the recorded defaults", () => {
   const r = buildRemediationRecord("record_of_processing", "records_of_processing", rich);
   assertEquals(r.accountable_owner, "Records Manager");
   assertEquals(r.target_date, "2026-09-30");
-  assertEquals(r.priority, "high");
+  assertEquals(r.priority, "High — remediate this quarter");
   assertEquals(r.validation_method_source, "recorded");
   assertEquals(r.status, "analysed");
 
   const fallback = buildRemediationRecord("training", "demonstrability", rich);
   assertEquals(fallback.accountable_owner, "Head of Privacy");
   assertEquals(fallback.target_date, "2026-12-31");
-  assertEquals(fallback.priority, "medium");
+  assertEquals(fallback.priority, "Medium — remediate this year");
   assertEquals(fallback.validation_method_source, "default");
   assertEquals(fallback.status, "analysed");
 });
