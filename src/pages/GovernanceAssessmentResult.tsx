@@ -321,6 +321,12 @@ const GovernanceAssessmentResult = () => {
                 </section>
               )}
 
+              {/* GOVERNANCE UPGRADE — generalised control walk + remediation */}
+              <GovernanceTrackerFindings
+                findings={(report as any)?.domain_element_findings}
+                remediationPlan={(report as any)?.remediation_plan}
+              />
+
               {/* Ten Domains — Domain Findings (handles Record OR Array shape) */}
               {report?.domain_findings &&
                 typeof report.domain_findings === "object" &&
