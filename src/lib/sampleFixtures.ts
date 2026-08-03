@@ -1094,6 +1094,69 @@ const F_REGISTRATION_US: SampleFixture = {
   },
 };
 
+// --- Registration / multi-state data broker (SAMPLE-REPORTS PARITY) -------
+const F_REGISTRATION_BROKER_US: SampleFixture = {
+  tool_slug: "registration",
+  variant: "broker_multistate",
+  title: "Registration Assessment — Multi-State Data Broker",
+  scenario_summary:
+    "Meridian Analytics, Inc., a US consumer-data analytics SaaS that sells and shares consumer personal information built from large-scale systematic profiling for ad-targeting segments, covers roughly 500,000 consumers across California, Colorado, Vermont, Texas, and Oregon and serves EU customers from the United States with no EU establishment.",
+  source_table: "registration_assessments",
+  result_url_pattern: "/registration-manager/result/{id}",
+  fixture: {
+    invoke_body: {
+      intake_data: {
+        organization_name: "Meridian Analytics, Inc.",
+        is_public_authority: false,
+        organization_country: "US",
+        organization_size: "medium",
+        industry: "AdTech / MarTech",
+        email: "privacy@meridian-analytics.example",
+        employee_count: 240,
+        annual_revenue_usd: 61500000,
+        data_subjects_count: 500000,
+        role: "controller",
+        processes_personal_data: true,
+        processes_special_categories: false,
+        processes_children_data: false,
+        large_scale_monitoring: true,
+        uses_ai_systems: true,
+        ai_high_risk: false,
+        ai_general_purpose_provider: false,
+        cross_border_transfers: true,
+        acts_as_data_broker: true,
+        sells_or_shares_personal_info: true,
+        processes_biometrics_for_id: false,
+        // ITEM 316 — data-broker threshold limbs.
+        collects_data_not_directly_from_individuals: true,
+        has_direct_relationship_with_data_subjects: false,
+        sells_or_licenses_brokered_data: true,
+        brokered_data_individual_count: 500000,
+        brokered_data_revenue_share_pct: 68,
+        data_broker_exemption_claimed: "none",
+        filing_contact_details_ready: true,
+        filing_opt_out_mechanism_documented: true,
+        filing_minors_data_practices_documented: false,
+        has_eu_establishment: false,
+        has_uk_establishment: false,
+        markets_served: [
+          "US-CA",
+          "US-CO",
+          "US-VT",
+          "US-TX",
+          "US-OR",
+          "DE",
+          "FR",
+          "IE",
+          "NL",
+        ],
+      },
+    },
+  },
+};
+
+
+
 export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_LIA_UK,
   F_DPIA_EU,
