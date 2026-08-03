@@ -13,6 +13,36 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { buildRegistrationDeliverables, REGISTRATION_DELIVERABLES_VERSION } from "./_local/ltp/registration-deliverables/build.ts";
+import { serializeCustomerReport } from "../_shared/report-serialize.ts";
+import { REGISTRATION_REPORT_SCHEMA } from "../_shared/report-schemas/registration.ts";
+
+/**
+ * LEAK-PREV-P2 — whitelist serialization of the customer report.
+ * FAIL-OPEN: a serializer defect must never block a customer report, so any
+ * crash or throw logs and returns the unserialized report unchanged.
+ * `_meta` is restored verbatim (the serializer reduces it to `.internal`, but
+ * this product's `_meta` is an internal channel that downstream readers such
+ * as generate-report-pdf depend on).
+ */
+function serializeCustomer(report: Record<string, unknown>): Record<string, unknown> {
+  try {
+    const originalMeta = report._meta;
+    const { report: serialized, telemetry } = serializeCustomerReport(
+      report as never,
+      REGISTRATION_REPORT_SCHEMA,
+    );
+    if (!telemetry.crashed) {
+      const out = serialized as Record<string, unknown>;
+      if (originalMeta && typeof originalMeta === "object") {
+        out._meta = { ...(originalMeta as Record<string, unknown>), ...(out._meta as Record<string, unknown>) };
+      }
+      return out;
+    }
+  } catch (e) {
+    console.warn("[run-registration-assessment] serializer failed (non-fatal):", (e as Error)?.message);
+  }
+  return report;
+}
 
 export const BUILD_STAMP = "r1-hds-conditional@2026-07-23T14:20:00Z";
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
@@ -652,6 +682,9 @@ Deno.serve(async (req) => {
     }
 
     // 4. Persist
+    // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
+    // assembled report immediately before the write (fail-open).
+    const customer_result_summary = serializeCustomer(result_summary as Record<string, unknown>);
     let row;
     const persistPayload = {
       intake_data: intake,
@@ -662,7 +695,7 @@ Deno.serve(async (req) => {
       email: intake.email,
       recommended_jurisdictions: codes,
       confidence_tier: engineOutput.confidence,
-      result_summary,
+      result_summary: customer_result_summary,
       status: "completed",
       user_id: userId,
       client_id: clientId,
@@ -695,7 +728,7 @@ Deno.serve(async (req) => {
         shareable_token: row.shareable_token,
         confidence: engineOutput.confidence,
         recommended_jurisdictions: codes,
-        result_summary,
+        result_summary: customer_result_summary,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
