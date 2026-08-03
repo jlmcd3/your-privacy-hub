@@ -682,6 +682,9 @@ Deno.serve(async (req) => {
     }
 
     // 4. Persist
+    // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
+    // assembled report immediately before the write (fail-open).
+    const customer_result_summary = serializeCustomer(result_summary as Record<string, unknown>);
     let row;
     const persistPayload = {
       intake_data: intake,
@@ -692,7 +695,7 @@ Deno.serve(async (req) => {
       email: intake.email,
       recommended_jurisdictions: codes,
       confidence_tier: engineOutput.confidence,
-      result_summary,
+      result_summary: customer_result_summary,
       status: "completed",
       user_id: userId,
       client_id: clientId,
