@@ -133,7 +133,14 @@ async function selectRows(
         "id, regulator, subject, jurisdiction, decision_date, law, source_url, key_compliance_failure, fine_eur_equivalent, source_document_hash, source_document_text, source_document_fetched_at, verification_status",
         { count: "exact" },
       )
-      .eq("verification_status", "unverified")
+      // PASS A REQUEUE (2026-08-03): a row is swept when it is still
+      // unverified OR when it carries `resweep_pending` — the flag set on the
+      // ~2,000 rows whose document was recovered from row text / shared cache
+      // by Pass A. Those rows already hold a terminal status recorded when the
+      // sweep had NO document for them, so they must be judged again now that
+      // one exists. The flag is cleared per row after processing, so a row can
+      // never be re-billed twice for the same hydration.
+      .or("verification_status.eq.unverified,resweep_pending.is.true")
       // SOURCE-QUALITY GATE (2026-08-02): rows whose source can never be the
       // regulator's own text (regulator news feeds, the GDPRhub wiki) are not
       // citable even once verified, so they are excluded from the sweep's
