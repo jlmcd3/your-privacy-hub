@@ -13,6 +13,7 @@ import {
   headerForSection,
 } from "../_shared/report-contracts/cppa-risk-shape.ts";
 import { hasProse9Document } from "../_shared/report-contracts/cppa-risk-prose9.ts";
+import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 import { buildCPPARiskProse9HTML } from "./prose9-html.ts";
 
 
@@ -1669,6 +1670,47 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   const annotations = Array.isArray(report?.annotations) ? report.annotations : [];
   const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
 
+  // ITEM 371 — concluding determinations (readiness first, independence second),
+  // in the house determination shape: determination + basis + what must change
+  // now + legal exposure.
+  const READINESS_LABELS: Record<string, string> = {
+    ready: "Ready for the Article 9 cybersecurity audit",
+    ready_subject_to_named_remediation: "Ready subject to the named remediation",
+    not_ready: "Not ready",
+    record_insufficient: "Record insufficient to determine readiness",
+  };
+  const VERDICT_LABELS: Record<string, string> = {
+    satisfied: "\u00a7 7122 independence conditions satisfied",
+    partially_satisfied: "\u00a7 7122 independence conditions partially satisfied",
+    not_satisfied: "\u00a7 7122 independence conditions not satisfied",
+    not_applicable: "Not applicable on this record",
+    record_insufficient: "Record insufficient to determine independence",
+  };
+  const rd = report?.readiness_determination;
+  const ind = report?.independence_determination;
+  const blocking = Array.isArray(rd?.blocking_components) ? rd.blocking_components : [];
+  const unassessable = Array.isArray(rd?.unassessable_components) ? rd.unassessable_components : [];
+  const unsatisfied = Array.isArray(ind?.unsatisfied_conditions) ? ind.unsatisfied_conditions : [];
+  const readinessHtml = rd
+    ? `<section class="section"><h2>Readiness Determination</h2><article class="determination">
+      <p class="verdict">Determination: ${text(READINESS_LABELS[String(rd.conclusion)] || rd.conclusion)}</p>
+      ${rd.headline ? `<p>${text(rd.headline)}</p>` : ""}
+      ${rd.reasoning ? `<p><span class="label">Basis:</span> ${text(rd.reasoning)}</p>` : ""}
+      ${blocking.length ? `<p class="label">What must change now</p><ul>${blocking.map((b: any) => `<li>${text(b?.label)}${b?.reason ? ` \u2014 ${text(b.reason)}` : ""}</li>`).join("")}</ul>` : ""}
+      ${unassessable.length ? `<p class="label">Legal exposure \u2014 components an auditor cannot assess on this record</p><ul>${unassessable.map((u: any) => `<li>${text(u?.label)}${u?.information_needed ? ` \u2014 ${text(u.information_needed)}` : ""}</li>`).join("")}</ul>` : ""}
+      ${Array.isArray(rd.citations) && rd.citations.length ? `<p class="score">${rd.citations.map((c: any) => text(c)).join(" \u00b7 ")}</p>` : ""}
+    </article></section>`
+    : "";
+  const independenceHtml = ind
+    ? `<section class="section"><h2>Independence Determination</h2><article class="determination">
+      <p class="verdict">Determination: ${text(VERDICT_LABELS[String(ind.verdict)] || ind.verdict)}</p>
+      ${ind.summary ? `<p><span class="label">Basis:</span> ${text(ind.summary)}</p>` : ""}
+      ${(ind.auditor_type || ind.engagement_status) ? `<p class="score">Auditor on the record: ${text(ind.auditor_type || "unknown")}${ind.engagement_status ? ` \u00b7 ${text(ind.engagement_status)}` : ""}</p>` : ""}
+      ${unsatisfied.length ? `<p class="label">What must change now</p><ul>${unsatisfied.map((c: any) => `<li>${text(typeof c === "string" ? c : c?.label)}</li>`).join("")}</ul><p class="label">Legal exposure</p><p>An audit completed without satisfying every \u00a7 7122 condition is not a compliant Article 9 cybersecurity audit, and the \u00a7 7124 certification submitted on its basis would misstate completion.</p>` : ""}
+    </article></section>`
+    : "";
+  const determinationsBlock = `${readinessHtml}${independenceHtml}`;
+
   // Collect FSOR refs across all controls, dedupe by citation+url, cap at 8.
   const fsorMap = new Map<string, any>();
   for (const c of controls) {
@@ -1768,6 +1810,9 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .status-neutral { background:#f3f4f6; color:var(--muted); }
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
+  .determination { border:1px solid var(--border); border-left:4px solid var(--navy); border-radius:0 10px 10px 0; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
+  .determination .verdict { font-weight:700; color:var(--navy); }
+  ${AUTHORITY_EXHIBIT_CSS}
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
@@ -1797,6 +1842,8 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     ${dedupedFsorBlock || renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
+    ${determinationsBlock}
+    ${renderAuthorityExhibitHtml(report?.authority_exhibit)}
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
