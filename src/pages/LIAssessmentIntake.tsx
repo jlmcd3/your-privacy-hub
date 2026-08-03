@@ -109,8 +109,10 @@ const LIAssessmentIntake = () => {
   // over its section entry; blurring back to the section restores it.
   const [activeFieldRailKey, setActiveFieldRailKey] = useState<string | null>(null);
   const focusField = (key: string) => () => setActiveFieldRailKey(key);
-  const liaRailEntry =
-    (activeFieldRailKey ? LIA_RAIL[activeFieldRailKey] ?? null : null) ?? sectionRailEntry;
+  const fieldRailEntry = activeFieldRailKey
+    ? (LIA_RAIL as Record<string, RailEntry | undefined>)[activeFieldRailKey]
+    : undefined;
+  const liaRailEntry = fieldRailEntry ?? sectionRailEntry;
 
   const handleRailFocus = (section: "purpose" | "necessity" | "balancing") => {
     setActiveRailSection(section);
