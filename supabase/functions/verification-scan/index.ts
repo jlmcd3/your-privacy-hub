@@ -39,8 +39,8 @@ type Mode = "initial" | "targeted" | "sample" | "cached";
 
 // Cached verification sweep: hard budget cap (USD of model spend) tracked in
 // public.verification_sweep_ledger so the sweep is resumable and idempotent
-// across invocations. Default matches the CEO-approved cap.
-const DEFAULT_BUDGET_CAP_USD = 120;
+// across invocations. Default matches the CEO-approved cap ($250).
+const DEFAULT_BUDGET_CAP_USD = 250;
 
 function costOf(t: { haiku_in: number; haiku_out: number; sonnet_in: number; sonnet_out: number }): number {
   return (t.haiku_in / 1e6) * PRICE.haiku_in +
