@@ -133,6 +133,11 @@ const CYBER_SCHEMA_GUARDS = [
   { kind: "must_include" as const, pattern: "\"evidence\"", label: "control.evidence present" },
   { kind: "must_include" as const, pattern: "\"differentiator\"", label: "control.differentiator present" },
   { kind: "must_include" as const, pattern: "\"rank\"", label: "control.rank present" },
+  // ITEM 371 — the two concluding determinations wired in Items 1-3, plus the
+  // "Appendix - Authorities Cited" exhibit, must survive serialization.
+  { kind: "must_include" as const, pattern: "\"readiness_determination\"", label: "readiness determination present" },
+  { kind: "must_include" as const, pattern: "\"independence_determination\"", label: "independence determination present" },
+  { kind: "must_include" as const, pattern: "\"authority_exhibit\"", label: "authority exhibit present" },
 ];
 
 export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
