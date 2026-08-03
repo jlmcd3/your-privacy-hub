@@ -217,7 +217,6 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Assessment Summary</h2>
 <div class="section">
 <span class="strength strength-${(overall.argument_strength || "uncertain").toLowerCase()}">Argument strength: ${overall.argument_strength || "Uncertain"}</span>
@@ -297,7 +296,6 @@ ${fineLine}</div>`;
     return `<h2>Enforcement Precedents Cited</h2>${items}`;
   })()}
 <p class="meta">${escHtml(report.data_currency_note || "")}</p>
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 </div></div></body></html>`;
 }
 
@@ -340,7 +338,6 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
     <tr>
@@ -436,7 +433,6 @@ ${recommendedHtml}</div>`;
   })()}
 <h2>Cross-Domain Considerations</h2>
 <p>${escHtml(report.interaction_effects || "")}</p>
-<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 </div></div></body></html>`;
 }
 
@@ -797,8 +793,6 @@ interface TextReportOpts {
   text: string;
   showJurisdictionChip?: boolean;
   callout?: { kind: "warn" | "muted"; title?: string; html: string };
-  /** Optional override for the standard "Not legal advice" disclaimer block. */
-  disclaimerHtml?: string;
   /**
    * PDF-1: pre-body HTML block rendered verbatim (unescaped) BEFORE section
    * parsing. Use this for renderer-owned metadata blocks (IR playbook
@@ -922,10 +916,6 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
   <div class="body">
-    <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
-      This document is provided to support your organization's compliance review.
-      It does not create an attorney-client relationship. Findings should be
-      validated against your organization's authoritative records before operational reliance.`}</div>
     ${calloutHtml}
     ${opts.htmlPrefix ?? ""}
     ${sectionsHtml}
@@ -1066,7 +1056,6 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${Object.keys(scope).length ? `<section class="section"><h2>Scope Confirmation</h2>
       <p><span class="label">In scope:</span> ${text(scope.in_scope)}</p>
@@ -1087,7 +1076,6 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1213,9 +1201,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const exceptions = coerceNarrativeList(report.exception_analysis);
   const infoNeeded = coerceNarrativeList(report.information_needed);
   const recordSuf = coerceNarrativeList(report.record_sufficiency);
-  const disclaimer = typeof report.disclaimer === "string"
-    ? report.disclaimer
-    : "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.";
   const generatedDate = new Date(record?.created_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -1254,7 +1239,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${buildReportMetaLine({ generatedAt: record?.created_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
     ${opening ? `<section><div class="opening">${para(opening)}</div></section>` : ""}
     ${exec ? `<section><h2>${text(headerForSection("executive_summary", "Executive Summary"))}</h2>${para(exec)}</section>` : ""}
     ${(summaryNarr || summary.company_name || summary.assessment_date || summary.overall_risk_level) ? `<section><h2>${text(headerForSection("assessment_summary", "Assessment Summary"))}</h2>
@@ -1274,7 +1258,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("information_needed", "Items for Your Review", infoNeeded)}
     ${listSection("record_sufficiency", "Record Sufficiency", recordSuf)}
     ${submission ? `<section><h2>${text(headerForSection("submission_summary", "Submission Summary"))}</h2>${para(submission)}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(disclaimer)}</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.build_stamp ? ` · build ${text(meta.build_stamp)}` : ""}</div>
   </div>
 </div></body></html>`;
@@ -1355,7 +1338,6 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.")}</div>
 
     <section><h2>Assessment Summary</h2>
       ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
@@ -1461,7 +1443,6 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
       ${xrec.cybersecurity_audit_rationale ? `<div class="card"><h3>Cybersecurity audit ${xrec.cybersecurity_audit ? "(recommended)" : ""}</h3>${para(xrec.cybersecurity_audit_rationale)}</div>` : ""}
     </section>` : ""}
 
-    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.")}</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.assessment_version ? ` · v${text(meta.assessment_version)}` : ""}</div>
   </div>
 </div></body></html>`;
@@ -1593,7 +1574,6 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <section class="section"><h2>Cover — Assessment Record</h2>
       <p><span class="label">Business legal name:</span> ${fillIn(cover.business_legal_name, "[FILL IN]")}</p>
       <p><span class="label">Processing activity:</span> ${text(cover.activity_name)}</p>
@@ -1673,7 +1653,6 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
          ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
          <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
          ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}`}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1802,7 +1781,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     ${orgName ? `<p style="margin-top:6px;font-size:11px;color:#93b5c6;">Prepared for: <strong>${escHtml(orgName)}</strong></p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice. This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be validated against your organization's authoritative records before operational reliance.</div>
+    <div class="notice"><span class="label">This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${scorecardBlock}
     ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
@@ -1818,7 +1797,6 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     ${dedupedFsorBlock || renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1950,7 +1928,7 @@ function buildADMTReportHTML(report: any, record: any): string {
     ${orgName ? `<p class="prepared-for">Prepared for: ${escHtml(orgName)}</p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is provided to support your review. Findings should be validated against your organization's authoritative records before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
+    <div class="notice">Findings should be validated against your organization's authoritative records before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
     ${scopeBlock}
     ${priorityBlock}
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
@@ -2110,11 +2088,6 @@ function buildRegistrationReportHTML(record: any): string {
 </div>
 <h1>Registration Assessment</h1>
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
-<p style="font-size:11px;color:#5c6d7a;border:1px solid #dde5ea;padding:8px 12px;border-radius:4px;margin-bottom:1.5rem;">
-  Not legal advice. This document is provided to support your organization's compliance review.
-  It does not create an attorney-client relationship. Findings should be validated against your organization's authoritative records before operational reliance.
-</p>
-
 <h2>Recommended Jurisdictions</h2>
 <div style="margin-bottom:16px;">${codeBadges}</div>
 <div style="display:flex;gap:20px;margin-bottom:20px;font-size:12px;flex-wrap:wrap;">
@@ -2139,7 +2112,6 @@ ${jurisdictionCards || "<p style='color:#5c6d7a;font-size:12px;'>No jurisdiction
 
 <footer>
   Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com ·
-  This assessment is a starting framework based on your inputs and is not legal advice.
   Validate all findings against your organization's authoritative records before operational reliance.
 </footer>
 </body>
@@ -2579,7 +2551,6 @@ Deno.serve(async (req) => {
         metaLine: `${metaLine}${orgNameForPdf ? ` · Prepared for: ${orgNameForPdf}` : ""}`,
         text,
         showJurisdictionChip: true,
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This biometric compliance assessment is generated for informational purposes only. Biometric data obligations vary by jurisdiction, sector, and specific processing context — applicability determinations (including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing) depend on facts named in each jurisdiction and should be validated against your organization's authoritative records before operational reliance. This document does not create an attorney-client relationship and does not constitute legal advice.`,
         // BIPA risk callout branch retired 2026-07-14
         callout: undefined,
       });
@@ -2635,7 +2606,6 @@ Deno.serve(async (req) => {
         text: stripBodyHtml(record.playbook_text || ""),
         showJurisdictionChip: false,
         callout: { kind: "muted", html: calloutText },
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be validated against your organization's authoritative records and the current statutory text before reliance during a live incident.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "dpa_generator") {
@@ -2657,7 +2627,6 @@ Deno.serve(async (req) => {
         metaLine: frameworkLabel ? `${generatedLine} · ${frameworkLabel}` : generatedLine,
         text: record.document_text || "",
         showJurisdictionChip: false,
-        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs. It is not a negotiated agreement and must not be executed without independent legal review. It does not create an attorney-client relationship.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_risk") {
