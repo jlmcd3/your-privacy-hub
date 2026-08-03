@@ -272,6 +272,25 @@ export function deriveComponentCitations(
   return out;
 }
 
+// ── runtime-hydrated registry (no static text) ───────────────────────────
+/**
+ * Live registry. EMPTY until `resolveCyberAuthorities` hydrates it from the
+ * corpus during a generation run. Consumers import this binding; because the
+ * object is mutated in place there is never a compiled-in copy of the text.
+ */
+export const CYBER_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {};
+
+/** Rows of the live registry (empty before hydration). */
+export function cyberAuthorityRows(): VerifiedAuthorityRow[] {
+  return Object.values(CYBER_VERIFIED_AUTHORITIES);
+}
+
+/** Replace the live registry's contents with `next` (in place). */
+export function hydrateCyberRegistry(next: VerifiedAuthorityRegistry): void {
+  for (const k of Object.keys(CYBER_VERIFIED_AUTHORITIES)) delete CYBER_VERIFIED_AUTHORITIES[k];
+  for (const [k, v] of Object.entries(next)) CYBER_VERIFIED_AUTHORITIES[k] = v;
+}
+
 // ── the resolver ─────────────────────────────────────────────────────────
 export interface CyberAuthoritySource {
   version: string;
@@ -385,6 +404,8 @@ export async function resolveCyberAuthorities(
     };
     registry[loc.proposition_key] = row;
   }
+
+  hydrateCyberRegistry(registry);
 
   const components = derive7123Components(provisions["cppa-7123"]?.excerpt ?? "");
   if (components.length !== 18) degraded = true;

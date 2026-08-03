@@ -43,18 +43,24 @@ import { applyW12CyberE1, W12_CYBER_E1_STAMP } from "./_w12_cyber_e1.ts";
 import {
   CYBER_VERIFIED_AUTHORITIES,
   CYBER_VERIFIED_AUTHORITY_VERSION,
+  resolveCyberAuthorities,
+  buildCyberLawBlock,
+  type CyberAuthoritySource,
 } from "./_local/registry/cyber-verified-authorities.ts";
 import {
   resolveByPropositionKey,
   registrySize as vaRegistrySize,
 } from "../_shared/verified-authority-resolver.ts";
 
-function buildCyberVerifiedAuthorityBlock(): string {
-  const rows = Object.values(CYBER_VERIFIED_AUTHORITIES);
+// ITEM 371 — the registry is re-sourced from `provision_texts` at generation
+// time; this block is built per run from the resolved rows, never from a
+// compiled-in copy.
+function buildCyberVerifiedAuthorityBlock(source: CyberAuthoritySource): string {
+  const rows = Object.values(source.registry);
   const lines = rows.map((r) =>
     `- [${r.proposition_key}] ${r.subsection} — "${r.verbatim_quote.replace(/\s+/g, " ").slice(0, 260)}"`
   );
-  return `VERIFIED-AUTHORITY REGISTRY (${CYBER_VERIFIED_AUTHORITY_VERSION}, ${rows.length} rows — SINGLE SOURCE OF TRUTH FOR CPPA-CYBER CITATIONS; wired W15 CYBER-REGISTRY-WIRING):
+  return `VERIFIED-AUTHORITY REGISTRY (${source.version}, ${rows.length} rows — SINGLE SOURCE OF TRUTH FOR CPPA-CYBER CITATIONS; wired W15 CYBER-REGISTRY-WIRING):
 Every citation this report emits SHOULD be REGISTRY-STAMPED, never authored from recall. When a finding, control, top-risk, next-step, remediation, or crosswalk surface asserts a proposition covered by a row below, emit "proposition_key": "<key>" on that entry. The resolver deterministically stamps citation, subsection, and verbatim_quote onto the entry post-generation; you write the prose around the stamped pinpoint and NEVER type a "§" or "11 CCR" token yourself for a registry-covered proposition.
 
 RETENTION-ANCHOR RULE (WAVE-15 REMEDY): The FIVE-YEAR audit-record retention rule anchors to 11 CCR § 7122(g) (proposition_key "cyber_retention_5yr"), NEVER § 7123(e). Any retention claim that would otherwise cite § 7123(e) must carry proposition_key "cyber_retention_5yr" and be resolved to § 7122(g). This complements the existing § 7122(g) SCOPE NOTE rule.
@@ -65,12 +71,11 @@ Row shape shown as "[proposition_key] pinpoint — verbatim quote":
 ${lines.join("\n")}
 `;
 }
-const CYBER_VERIFIED_AUTHORITY_BLOCK = buildCyberVerifiedAuthorityBlock();
 console.log(JSON.stringify({
-  evt: "cyber_va_registry_loaded", fn: "run-cppa-cybersecurity",
+  evt: "cyber_va_registry_runtime_sourced", fn: "run-cppa-cybersecurity",
   build_stamp: BUILD_STAMP,
   va_version: CYBER_VERIFIED_AUTHORITY_VERSION,
-  va_rows: vaRegistrySize(CYBER_VERIFIED_AUTHORITIES),
+  note: "registry hydrated per run from provision_texts (cppa-7120..7124)",
 }));
 
 function boundedErr(e: unknown, max = 2000): string {
@@ -484,7 +489,19 @@ async function runAssessment(assessment_id: string): Promise<void> {
     const cyberInjectedParts = [cyberTestStatesBlock];
     if (cyberFsorAnchorBlock) cyberInjectedParts.push(cyberFsorAnchorBlock);
     if (cyberDeadlineBlock) cyberInjectedParts.push(cyberDeadlineBlock);
-    cyberInjectedParts.push(CYBER_VERIFIED_AUTHORITY_BLOCK);
+    // ITEM 371 — re-source §§ 7120-7124 from the corpus for THIS run; the law
+    // block supplied to the model is corpus verbatim text + plain_requirements.
+    const cyberAuthoritySource = await resolveCyberAuthorities(supabase);
+    console.log(JSON.stringify({
+      evt: "cyber_va_registry_resolved", fn: "run-cppa-cybersecurity",
+      va_version: cyberAuthoritySource.version,
+      va_rows: vaRegistrySize(cyberAuthoritySource.registry),
+      components: cyberAuthoritySource.components.length,
+      degraded: cyberAuthoritySource.degraded,
+      unresolved: cyberAuthoritySource.unresolved.slice(0, 8),
+    }));
+    cyberInjectedParts.push(buildCyberLawBlock(cyberAuthoritySource));
+    cyberInjectedParts.push(buildCyberVerifiedAuthorityBlock(cyberAuthoritySource));
     const cyberInjected = cyberInjectedParts.join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
