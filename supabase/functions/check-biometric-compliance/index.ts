@@ -2046,7 +2046,28 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] guardInformationNeeded failed (non-fatal):", e);
     }
 
-
+    // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
+    // assembled report in place, immediately before the report_data write.
+    // FAIL-OPEN: any serializer crash or throw logs and leaves the report
+    // unserialized — a serializer defect must never block a customer report.
+    // `_meta` is restored verbatim (internal channel read downstream).
+    try {
+      const { report: serialized, telemetry } = serializeCustomerReport(
+        report_data as Record<string, unknown>,
+        BIOMETRIC_REPORT_SCHEMA,
+      );
+      if (!telemetry.crashed && serialized && typeof serialized === "object") {
+        const s = serialized as Record<string, unknown>;
+        const orig = report_data as Record<string, unknown>;
+        if (orig._meta && typeof orig._meta === "object") {
+          s._meta = { ...(orig._meta as Record<string, unknown>), ...(s._meta as Record<string, unknown>) };
+        }
+        for (const k of Object.keys(orig)) if (!(k in s)) delete orig[k];
+        Object.assign(orig, s);
+      }
+    } catch (e) {
+      console.warn("[check-biometric-compliance] serializer failed (non-fatal):", (e as Error)?.message);
+    }
 
 
     let savedId: string | null = null;
