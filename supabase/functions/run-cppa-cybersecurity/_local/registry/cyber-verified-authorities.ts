@@ -53,7 +53,8 @@ export interface CyberAuthorityLocator {
  * Locators only — no statutory text. Each row's `verbatim_quote` is cut from
  * the corpus at runtime between `starts_with` and `ends_with`.
  */
-export const CYBER_AUTHORITY_  { proposition_key: "cyber_audit_required", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(a)", provision_key: "cppa-7120", path: "a", starts_with: "Every business whose process", ends_with: "plete a cybersecurity audit." },
+export const CYBER_AUTHORITY_LOCATORS: readonly CyberAuthorityLocator[] = [
+  { proposition_key: "cyber_audit_required", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(a)", provision_key: "cppa-7120", path: "a", starts_with: "Every business whose process", ends_with: "plete a cybersecurity audit." },
   { proposition_key: "cyber_threshold_significant_risk", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(b)", provision_key: "cppa-7120", path: "b", starts_with: "A business's processing of c", ends_with: "ny of the following is true:" },
   { proposition_key: "cyber_threshold_gross_rev", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(b)(1)", provision_key: "cppa-7120", path: "b(1)", starts_with: "The business meets the thres", ends_with: " preceding calendar year; or" },
   { proposition_key: "cyber_threshold_250k_or_50k_spi", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(b)(2)", provision_key: "cppa-7120", path: "b(2)", starts_with: "The business meets the thres", ends_with: ", subdivision (d)(1)(A); and" },
