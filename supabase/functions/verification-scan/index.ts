@@ -735,6 +735,23 @@ Deno.serve(async (req) => {
       }
     }
 
+    // PASS A REQUEUE: clear the resweep flag for every row this batch actually
+    // resolved (processed rows + rows skipped for having no document at all).
+    // A mid-batch halt leaves the untouched rows flagged, so they return on the
+    // next run instead of being silently dropped.
+    if (mode === "cached") {
+      const settledIds = [
+        ...rows.slice(0, processed).map((r: any) => r.id as string),
+        ...((sel.skippedShortIds ?? []) as string[]),
+      ];
+      if (settledIds.length > 0) {
+        await sb
+          .from("enforcement_actions")
+          .update({ resweep_pending: false })
+          .in("id", settledIds);
+      }
+    }
+
     // Only advance the cursor past skipped-short rows when the whole selected
     // window was actually processed; a mid-batch halt must not skip work.
     if (mode === "cached" && sel.lastScannedId && !halted_reason && processed === rows.length) {
