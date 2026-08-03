@@ -30,6 +30,23 @@ const COMMON_HEADERS: Record<string, string> = {
 const BLOCKED_STATUS_CODES = [403, 429, 451];
 const MAX_PDF_CHARS = 50_000;
 const FETCH_TIMEOUT_MS = 30_000;
+/**
+ * Hosts that reliably need longer than the default. The Polish decisions
+ * portal server-renders a full decision (60k+ chars) and routinely takes
+ * 30-45s on a cold document.
+ */
+const HOST_TIMEOUT_MS: Record<string, number> = {
+  "orzeczenia.uodo.gov.pl": 42_000,
+};
+
+function hostTimeoutMs(url: string): number {
+  try {
+    return HOST_TIMEOUT_MS[new URL(url).hostname] ?? FETCH_TIMEOUT_MS;
+  } catch {
+    return FETCH_TIMEOUT_MS;
+  }
+}
+
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
