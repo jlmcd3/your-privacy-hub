@@ -152,6 +152,10 @@ function shardOf(id: string, shardCount: number): number {
   return (Number.isFinite(n) ? n : 0) % shardCount;
 }
 
+function hostCap(host: string): number {
+  return PASS_B_PER_HOST_OVERRIDES[host] ?? PASS_B_PER_HOST_DEFAULT;
+}
+
 async function selectPassB(limit: number, shard: number, shardCount: number) {
   const { data } = await sb
     .from("enforcement_actions")
@@ -171,17 +175,18 @@ async function selectPassB(limit: number, shard: number, shardCount: number) {
       (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
 
-
-  // Round-robin the window by host, capped per host per run.
+  // Round-robin the window by host, capped per host per run. Hosts with higher
+  // overrides (e.g. uodo.gov.pl) get more slots while still interleaving.
   const buckets = new Map<string, any[]>();
   for (const r of pending) {
     const h = domainOf(r.source_url);
     const b = buckets.get(h) ?? [];
-    if (b.length < PASS_B_PER_HOST_PER_RUN) b.push(r);
+    if (b.length < hostCap(h)) b.push(r);
     buckets.set(h, b);
   }
+  const maxCap = Math.max(PASS_B_PER_HOST_DEFAULT, ...Object.values(PASS_B_PER_HOST_OVERRIDES));
   const rows: any[] = [];
-  for (let i = 0; i < PASS_B_PER_HOST_PER_RUN && rows.length < limit; i++) {
+  for (let i = 0; i < maxCap && rows.length < limit; i++) {
     for (const b of buckets.values()) {
       if (b[i] && rows.length < limit) rows.push(b[i]);
     }
