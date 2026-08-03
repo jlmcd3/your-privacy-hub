@@ -13,6 +13,7 @@
 // Deno. PDF rendering uses the configured PDF service.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { REPORT_DISCLAIMER, reportDisclaimerHtml } from "../_shared/report-disclaimer.ts";
 import {
   Document,
   Packer,
@@ -597,6 +598,7 @@ function buildHtml(d: AssembledData): string {
 
   <p class="footer-note" style="margin-top: 32px;">This record was last reviewed on ${escapeHtml(d.settings.documentDate)}. Maintained in compliance with Article 30 GDPR obligations. Review recommended at least annually or upon any material change to processing activities.</p>
 
+  ${reportDisclaimerHtml()}
   </div></div>
 </body>
 </html>`;
@@ -793,6 +795,8 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           ),
           p(""),
           p("Signature: _______________________________   Date: _____________"),
+          p(""),
+          p(REPORT_DISCLAIMER, { size: 16 }),
         ],
       },
     ],
@@ -892,6 +896,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
     ["Activity", "Data", "Destination", "Mechanism", "Basis"],
     ...transfers.map((t) => [t.activity, t.data, t.destination, t.mechanism, t.basis]),
   ]);
+  XLSX.utils.sheet_add_aoa(transferSheet, [[], [REPORT_DISCLAIMER]], { origin: -1 });
   XLSX.utils.book_append_sheet(wb, transferSheet, "Transfers");
 
   const out = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
