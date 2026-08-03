@@ -307,6 +307,18 @@ const MESSY_LIA_THIN = thinned("lia", {
     "balancing_details.statutory_restrictions",
     "balancing_details.employment_safeguards",
     "balancing_details.additional_context",
+    // UPGRADE-4 — keep the messy variant thin against the new deliverables so
+    // it continues to exercise honest degradation rather than the analysed path.
+    "purpose_details.specific_benefit",
+    "purpose_details.beneficiary",
+    "necessity_details.alternatives_rationale",
+    "balancing_details.relationship_category",
+    "balancing_details.scale_approx",
+    "balancing_details.frequency",
+    "balancing_details.duration",
+    "balancing_details.potential_harms",
+    "balancing_details.opt_out_available",
+    "attestation",
   ],
 });
 
