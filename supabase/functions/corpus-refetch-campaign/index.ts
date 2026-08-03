@@ -141,6 +141,9 @@ async function selectPassB(limit: number) {
     .from("enforcement_actions")
     .select("id, source_url, authority_class, source_document_text, refetch_attempts")
     .not("source_url", "is", null)
+    // Server-side narrowing keeps the window dense: without it most of the
+    // 400-row window is already-hydrated rows and Pass B starves.
+    .or("strat_has_document.is.false,strat_has_document.is.null")
     .lt("refetch_attempts", PASS_B_MAX_ATTEMPTS)
     .order("refetch_attempts", { ascending: true })
     .order("refetch_last_attempt_at", { ascending: true, nullsFirst: true })
