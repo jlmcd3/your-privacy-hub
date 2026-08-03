@@ -96,7 +96,7 @@ Deno.test("SHAPE-LAW fields survive serialization", () => {
     },
   };
 
-  const out = serializeCustomerReport(report, ADMT_REPORT_SCHEMA) as Record<string, any>;
+  const out = serializeCustomerReport(report, ADMT_REPORT_SCHEMA).report as Record<string, any>;
 
   assertEquals(out.determination.lawfulness.finding, "F");
   assertEquals(out.determination.exposure.statement, "E");

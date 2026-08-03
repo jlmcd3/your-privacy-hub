@@ -236,7 +236,6 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     "consolidated_notice_analysis",
     "aggregate_access_response",
     "risk_assessment_obligation",
-    "enforcement_context",
     // UPGRADE-3 — analytic deliverables (§§ 7220-7222), rendered
     // lawfulness-first ahead of enforcement exposure.
     "determination",
@@ -244,6 +243,7 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     "exception_identification",
     "exception_qualification",
     "access_readiness_findings",
+    "enforcement_context",
     // UPGRADE-3 ITEM 5 — table of authorities, rendered before the disclaimer.
     "authority_exhibit",
     // generator-added public surfaces
