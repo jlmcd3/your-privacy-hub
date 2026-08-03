@@ -136,7 +136,17 @@ const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
 const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
 
-async function selectPassB(limit: number) {
+/**
+ * Deterministic shard of a row id, so N workers can run concurrently over
+ * disjoint slices of the same ordered window without coordinating.
+ * uuids are hex, so the last nibble is a uniform 0-15 value.
+ */
+function shardOf(id: string, shardCount: number): number {
+  const n = parseInt(String(id).replace(/[^0-9a-f]/gi, "").slice(-6) || "0", 16);
+  return (Number.isFinite(n) ? n : 0) % shardCount;
+}
+
+async function selectPassB(limit: number, shard: number, shardCount: number) {
   const { data } = await sb
     .from("enforcement_actions")
     .select("id, source_url, authority_class, source_document_text, refetch_attempts")
@@ -147,11 +157,14 @@ async function selectPassB(limit: number) {
     .lt("refetch_attempts", PASS_B_MAX_ATTEMPTS)
     .order("refetch_attempts", { ascending: true })
     .order("refetch_last_attempt_at", { ascending: true, nullsFirst: true })
-    .limit(PASS_B_WINDOW);
+    .limit(PASS_B_WINDOW * (shardCount > 1 ? shardCount : 1));
 
   const pending = (data ?? []).filter(
-    (r: any) => (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS,
+    (r: any) =>
+      (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS &&
+      (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
+
 
   // Round-robin the window by host, capped per host per run.
   const buckets = new Map<string, any[]>();
@@ -215,9 +228,15 @@ Deno.serve(async (req) => {
   const cohortPref: Cohort | "auto" = body.cohort === "A" || body.cohort === "B" ? body.cohort : "auto";
   const dry_run: boolean = body.dry_run === true;
   const pass_b: boolean = body.mode === "pass_b";
+  // Pass B sharding: N concurrent workers each own a disjoint slice of the
+  // residual population (by row-id hash), so the per-host cap applies per
+  // worker and total throughput scales with the worker count.
+  const shard_count: number = Math.min(Math.max(Number(body.shard_count ?? 1), 1), 8);
+  const shard: number = Math.min(Math.max(Number(body.shard ?? 0), 0), shard_count - 1);
 
   // Single-flight: the cron driver fires on a schedule and must never overlap.
-  const lockKey = `refetch:${campaign_id}`;
+  // Each shard is its own flight — they touch disjoint rows.
+  const lockKey = `refetch:${campaign_id}${shard_count > 1 ? `:s${shard}/${shard_count}` : ""}`;
   if (!dry_run) {
     const { data: got } = await sb.rpc("try_acquire_job_lease" as any, {
       _key: lockKey,
@@ -225,7 +244,7 @@ Deno.serve(async (req) => {
       _holder: "corpus-refetch-campaign",
     });
     if (got !== true) {
-      return new Response(JSON.stringify({ campaign_id, skipped: "lease_held" }), {
+      return new Response(JSON.stringify({ campaign_id, shard, skipped: "lease_held" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -233,8 +252,9 @@ Deno.serve(async (req) => {
 
   try {
     const work = pass_b
-      ? { cohort: "B" as Cohort, authorityClass: "pass_b_multi_host", ...(await selectPassB(limit)) }
+      ? { cohort: "B" as Cohort, authorityClass: "pass_b_multi_host", ...(await selectPassB(limit, shard, shard_count)) }
       : await nextWork(campaign_id, limit, cohortPref);
+
     if (!work || work.rows.length === 0) {
       if (!dry_run) await sb.rpc("release_job_lease" as any, { _key: lockKey });
       return new Response(
