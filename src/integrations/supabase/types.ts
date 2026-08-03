@@ -1595,6 +1595,7 @@ export type Database = {
           decision_date: string | null
           disposition_type: string | null
           disposition_type_extraction_method: string | null
+          doc_source: string | null
           dpa_related: boolean | null
           enrichment_version: number | null
           etid: string | null
@@ -1677,6 +1678,7 @@ export type Database = {
           decision_date?: string | null
           disposition_type?: string | null
           disposition_type_extraction_method?: string | null
+          doc_source?: string | null
           dpa_related?: boolean | null
           enrichment_version?: number | null
           etid?: string | null
@@ -1759,6 +1761,7 @@ export type Database = {
           decision_date?: string | null
           disposition_type?: string | null
           disposition_type_extraction_method?: string | null
+          doc_source?: string | null
           dpa_related?: boolean | null
           enrichment_version?: number | null
           etid?: string | null
