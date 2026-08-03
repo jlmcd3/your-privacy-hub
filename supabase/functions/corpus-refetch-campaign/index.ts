@@ -370,6 +370,10 @@ Deno.serve(async (req) => {
       const url = row.source_url as string;
       const dom = domainOf(url);
       const rowStart = Date.now();
+      // Pass B bookkeeping: every row records its own outcome so the attempt
+      // counter can retire it or hand it back for a later retry.
+      let rowOk = false;
+      let rowReason: string | null = null;
       try {
         // Per-row hard cap: the shared fetcher's own retry ladder can exceed
         // the whole-run budget on a single unresponsive host.
