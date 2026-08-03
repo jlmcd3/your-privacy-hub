@@ -1631,10 +1631,14 @@ export type Database = {
           primary_source_url_discovered_at: string | null
           provisions_normalized: string[]
           raw_text: string | null
+          refetch_attempts: number
+          refetch_last_attempt_at: string | null
+          refetch_last_error: string | null
           regulator: string
           regulator_canonical: string | null
           regulator_profile_version: string | null
           regulatory_family: string[] | null
+          resweep_pending: boolean
           review_reason: string | null
           sector: string | null
           sector_extraction_method: string | null
@@ -1714,10 +1718,14 @@ export type Database = {
           primary_source_url_discovered_at?: string | null
           provisions_normalized?: string[]
           raw_text?: string | null
+          refetch_attempts?: number
+          refetch_last_attempt_at?: string | null
+          refetch_last_error?: string | null
           regulator: string
           regulator_canonical?: string | null
           regulator_profile_version?: string | null
           regulatory_family?: string[] | null
+          resweep_pending?: boolean
           review_reason?: string | null
           sector?: string | null
           sector_extraction_method?: string | null
@@ -1797,10 +1805,14 @@ export type Database = {
           primary_source_url_discovered_at?: string | null
           provisions_normalized?: string[]
           raw_text?: string | null
+          refetch_attempts?: number
+          refetch_last_attempt_at?: string | null
+          refetch_last_error?: string | null
           regulator?: string
           regulator_canonical?: string | null
           regulator_profile_version?: string | null
           regulatory_family?: string[] | null
+          resweep_pending?: boolean
           review_reason?: string | null
           sector?: string | null
           sector_extraction_method?: string | null
