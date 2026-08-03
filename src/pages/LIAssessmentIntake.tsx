@@ -114,6 +114,7 @@ const LIAssessmentIntake = () => {
 
   const handleRailFocus = (section: "purpose" | "necessity" | "balancing") => {
     setActiveRailSection(section);
+    setActiveFieldRailKey(null);
   };
   useScrollActiveRail((k) => {
     if (k === "purpose" || k === "necessity" || k === "balancing") {
@@ -445,7 +446,7 @@ const LIAssessmentIntake = () => {
         {/* Purpose */}
         <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0 space-y-6">
-        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="purpose" onFocus={() => handleRailFocus("purpose")}>
+        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="purpose" onFocusCapture={() => handleRailFocus("purpose")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 01</span>
             <h2 className="font-serif">Purpose test</h2>
@@ -527,13 +528,13 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">What specific benefit does this processing deliver?</Label>
             <p className="text-xs text-muted-foreground mt-1">Name the outcome, not the activity — what changes because this processing happens.</p>
-            <Textarea value={specificBenefit} onChange={(e) => setSpecificBenefit(e.target.value)} className="mt-2" rows={2}
+            <Textarea value={specificBenefit} onFocusCapture={focusField("specific_benefit")} onChange={(e) => setSpecificBenefit(e.target.value)} className="mt-2" rows={2}
               placeholder="e.g. Chargeback losses on new accounts fall because high-risk signups are held before activation." />
           </div>
 
           <div>
             <Label className="text-base">Who receives that benefit?</Label>
-            <select value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={beneficiary} onFocusCapture={focusField("beneficiary")} onChange={(e) => setBeneficiary(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>
               <option>Our business</option>
               <option>The individuals whose data is processed</option>
@@ -555,7 +556,7 @@ const LIAssessmentIntake = () => {
         </section>
 
         {/* Necessity */}
-        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="necessity" onFocus={() => handleRailFocus("necessity")}>
+        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="necessity" onFocusCapture={() => handleRailFocus("necessity")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 02</span>
             <h2 className="font-serif">Necessity test</h2>
@@ -573,7 +574,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">For each alternative, why would it not achieve the purpose?</Label>
             <p className="text-xs text-muted-foreground mt-1">Take them one at a time, on separate lines. State what outcome each alternative would fail to deliver.</p>
-            <Textarea value={alternativesRationale} onChange={(e) => setAlternativesRationale(e.target.value)} className="mt-2" rows={3}
+            <Textarea value={alternativesRationale} onFocusCapture={focusField("alternatives_rationale")} onChange={(e) => setAlternativesRationale(e.target.value)} className="mt-2" rows={3}
               placeholder={"Aggregate reporting — would not identify the individual account to hold\nManual review only — would not run at signup volume"} />
           </div>
 
@@ -603,7 +604,7 @@ const LIAssessmentIntake = () => {
         </section>
 
         {/* Balancing */}
-        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="balancing" onFocus={() => handleRailFocus("balancing")}>
+        <section className="bg-card border rounded-lg p-6 space-y-5" data-rail-key="balancing" onFocusCapture={() => handleRailFocus("balancing")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 03</span>
             <h2 className="font-serif">Balancing test</h2>
@@ -615,7 +616,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">What is your relationship with these individuals?</Label>
             <p className="text-xs text-muted-foreground mt-1">Recital 47 weighs reasonable expectations against the relationship. Name it here rather than leaving it to be derived.</p>
-            <select value={relationshipCategory} onChange={(e) => setRelationshipCategory(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={relationshipCategory} onFocusCapture={focusField("relationship_category")} onChange={(e) => setRelationshipCategory(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>
               <option>Customer</option>
               <option>Employee</option>
@@ -679,7 +680,7 @@ const LIAssessmentIntake = () => {
               <option>Significant — discrimination, financial loss, reputational damage</option>
               <option>Severe — physical safety, identity theft, loss of livelihood</option>
             </select>
-            <Textarea value={potentialHarmDetail} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Optional: what specific harms did you consider (financial, reputational, autonomy, distress…)?" className="mt-2" rows={2} />
+            <Textarea value={potentialHarmDetail} onFocusCapture={focusField("potential_harms")} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Optional: what specific harms did you consider (financial, reputational, autonomy, distress…)?" className="mt-2" rows={2} />
           </div>
 
           {/* UPGRADE-4 — how large, how often, how long */}
@@ -760,7 +761,7 @@ const LIAssessmentIntake = () => {
           {/* UPGRADE-4 — availability, separate from the mechanism */}
           <div>
             <Label className="text-base">Is an opt-out available to individuals?</Label>
-            <select value={optOutAvailable} onChange={(e) => setOptOutAvailable(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={optOutAvailable} onFocusCapture={focusField("opt_out_available")} onChange={(e) => setOptOutAvailable(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>
               <option>Yes — unconditional, on request, with no consequence</option>
               <option>Yes — but conditional or subject to review</option>
