@@ -136,7 +136,17 @@ const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
 const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
 
-async function selectPassB(limit: number) {
+/**
+ * Deterministic shard of a row id, so N workers can run concurrently over
+ * disjoint slices of the same ordered window without coordinating.
+ * uuids are hex, so the last nibble is a uniform 0-15 value.
+ */
+function shardOf(id: string, shardCount: number): number {
+  const n = parseInt(String(id).replace(/[^0-9a-f]/gi, "").slice(-6) || "0", 16);
+  return (Number.isFinite(n) ? n : 0) % shardCount;
+}
+
+async function selectPassB(limit: number, shard: number, shardCount: number) {
   const { data } = await sb
     .from("enforcement_actions")
     .select("id, source_url, authority_class, source_document_text, refetch_attempts")
@@ -147,11 +157,14 @@ async function selectPassB(limit: number) {
     .lt("refetch_attempts", PASS_B_MAX_ATTEMPTS)
     .order("refetch_attempts", { ascending: true })
     .order("refetch_last_attempt_at", { ascending: true, nullsFirst: true })
-    .limit(PASS_B_WINDOW);
+    .limit(PASS_B_WINDOW * (shardCount > 1 ? shardCount : 1));
 
   const pending = (data ?? []).filter(
-    (r: any) => (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS,
+    (r: any) =>
+      (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS &&
+      (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
+
 
   // Round-robin the window by host, capped per host per run.
   const buckets = new Map<string, any[]>();
