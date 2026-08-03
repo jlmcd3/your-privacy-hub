@@ -19,12 +19,19 @@ import {
   ADEQUACY_MECHANISMS,
   ADEQUATE_CADENCES,
   anchor,
+  ART30_CONTROL_QUESTIONS,
   ART30_ELEMENTS,
+  CONTROL_QUESTIONS,
+  DEFAULT_VALIDATION_METHOD,
   DEMONSTRABILITY_DUTIES,
+  DOMAIN_LABELS,
+  DOMAIN_TRACKER,
+  DUTY_CONTROL_QUESTIONS,
   EU_JURISDICTION,
   LARGE_SCALE_SIZES,
   MECHANISM_REGIME,
   PUBLIC_AUTHORITY_SECTORS,
+  REMEDIATION_PRIORITIES,
   SAFEGUARD_MECHANISMS,
   TRANSFER_NOT_OCCURRING,
   TRANSFER_OCCURRING,
@@ -36,10 +43,14 @@ import type {
   Art30ElementFinding,
   Art30ExemptionDetermination,
   DemonstrabilityFinding,
+  DomainElementFinding,
   DpoDetermination,
   Finding,
   GovernanceDeliverables,
+  GovernanceDomain,
   MaturityTierAid,
+  RemediationPriority,
+  RemediationRecord,
   TransferAnalysis,
   Verdict,
 } from "./types.ts";
@@ -933,6 +944,304 @@ export function demoteMaturityTier(tier: unknown): MaturityTierAid | undefined {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// GOVERNANCE UPGRADE ITEM 2 — remediation records.
+//
+// A remediation record attaches to EVERY adverse finding. It is read from the
+// record, never invented: a missing owner, date or priority produces a
+// `record_insufficient` remediation record naming exactly what is missing.
+// The validation method is the one field that may fall back to the standard
+// menu, and when it does the fallback is disclosed on the record itself.
+// ─────────────────────────────────────────────────────────────────────
+const ADVERSE_VERDICTS: readonly Verdict[] = [
+  "not_satisfied",
+  "partially_satisfied",
+  "record_insufficient",
+];
+
+export function isAdverse(verdict: Verdict): boolean {
+  return ADVERSE_VERDICTS.includes(verdict);
+}
+
+interface RemediationInput {
+  accountable_owner: string;
+  target_date: string;
+  priority: string;
+  validation_method: string;
+}
+
+function readRemediationEntry(v: unknown): Partial<RemediationInput> & { finding_key?: string; domain?: string } {
+  if (!v || typeof v !== "object") return {};
+  const o = v as Record<string, unknown>;
+  return {
+    finding_key: str(o.finding_key),
+    domain: str(o.domain),
+    accountable_owner: str(o.accountable_owner),
+    target_date: str(o.target_date),
+    priority: str(o.priority),
+    validation_method: str(o.validation_method),
+  };
+}
+
+export function readRemediationIntake(intake: unknown): {
+  defaults: Partial<RemediationInput>;
+  byKey: Record<string, Partial<RemediationInput>>;
+  byDomain: Record<string, Partial<RemediationInput>>;
+} {
+  const nested = readRemediationEntry(get(intake, "remediation_defaults"));
+  // Flat intake keys are the form's own shape; the nested object wins when both
+  // are present, because it is what a caller supplying a plan sends.
+  const defaults: Partial<RemediationInput> = {
+    accountable_owner: nested.accountable_owner || str(get(intake, "remediation_default_owner")),
+    target_date: nested.target_date || str(get(intake, "remediation_default_target_date")),
+    priority: nested.priority || str(get(intake, "remediation_default_priority")),
+    validation_method: nested.validation_method || str(get(intake, "remediation_default_validation_method")),
+  };
+  const byKey: Record<string, Partial<RemediationInput>> = {};
+  const byDomain: Record<string, Partial<RemediationInput>> = {};
+  const rows = get(intake, "remediation_plan");
+  if (Array.isArray(rows)) {
+    for (const raw of rows) {
+      const e = readRemediationEntry(raw);
+      if (e.finding_key) byKey[e.finding_key] = e;
+      else if (e.domain) byDomain[e.domain] = e;
+    }
+  }
+  return { defaults, byKey, byDomain };
+}
+
+function normalisePriority(v: string): RemediationPriority {
+  return (REMEDIATION_PRIORITIES as readonly string[]).includes(v)
+    ? (v as RemediationPriority)
+    : "unspecified";
+}
+
+export function buildRemediationRecord(
+  findingKey: string,
+  domain: GovernanceDomain,
+  intake: unknown,
+): RemediationRecord {
+  const { defaults, byKey, byDomain } = readRemediationIntake(intake);
+  const src = byKey[findingKey] ?? byDomain[domain] ?? {};
+
+  const accountable_owner = src.accountable_owner || defaults.accountable_owner || "";
+  const target_date = src.target_date || defaults.target_date || "";
+  const priorityRaw = src.priority || defaults.priority || "";
+  const priority = normalisePriority(priorityRaw);
+  const recordedMethod = src.validation_method || defaults.validation_method || "";
+
+  const missing: string[] = [];
+  if (!accountable_owner) missing.push("the accountable owner (name or role)");
+  if (!target_date) missing.push("the target date");
+  if (priority === "unspecified") missing.push("the remediation priority");
+
+  return {
+    finding_key: findingKey,
+    domain,
+    accountable_owner,
+    target_date,
+    priority,
+    validation_method: recordedMethod || DEFAULT_VALIDATION_METHOD,
+    validation_method_source: recordedMethod ? "recorded" : "default",
+    status: missing.length > 0 ? "record_insufficient" : "analysed",
+    ...(missing.length > 0
+      ? {
+        information_needed:
+          `Supply ${missing.join(", ")} for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.`,
+      }
+      : {}),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// GOVERNANCE UPGRADE ITEM 1 — the generalised domain element findings.
+//
+// Every deliverable is projected into the same tracker record across every
+// assessed domain. SINGLE-WRITER: this projection reads the findings the
+// builders above already produced; it never re-decides a verdict.
+// ─────────────────────────────────────────────────────────────────────
+function answerFor(intake: unknown, keys: readonly string[]): string {
+  const parts = keys
+    .map((k) => {
+      const v = get(intake, k);
+      const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
+      return unanswered(text) ? "" : `${k} = ${text}`;
+    })
+    .filter(Boolean);
+  return parts.length > 0 ? parts.join("; ") : "The record does not answer this control question.";
+}
+
+function evidenceFor(intake: unknown, keys: readonly string[]): string {
+  const present = keys.filter((k) => {
+    const v = get(intake, k);
+    const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
+    return !unanswered(text);
+  });
+  return present.length > 0
+    ? `Record fields reviewed: ${present.join(", ")}.`
+    : "No record content addresses this control.";
+}
+
+/** Intake keys consulted for each non-duty, non-Art. 30 finding. */
+const FINDING_ANSWER_KEYS: Record<string, readonly string[]> = {
+  accountability_determination: ["privacy_policy", "inventory_audit", "dpia_status", "training_status", "dpa_status", "technical_controls", "incident_response", "dsr_capability"],
+  art30_5_exemption: ["org_size", "data_categories", "special_category", "special_categories_list"],
+  dpo_designation_trigger: ["dpo_status", "sector", "org_size", "data_categories"],
+  dpo_position_independence: ["dpo_status", "additional_context"],
+  dpo_task_coverage: ["dpo_status", "dpia_status", "training_status"],
+  risk_calibration: ["processing_nature", "processing_scope", "processing_context", "processing_purposes", "technical_controls"],
+  review_and_update: ["measures_review_cadence", "measures_last_review_date"],
+  chapter_v_transfers: ["jurisdictions", "transfer_status", "transfer_mechanism"],
+};
+
+function toDomainFinding(
+  base: Finding,
+  domain: GovernanceDomain,
+  control_question: string,
+  answerKeys: readonly string[],
+  intake: unknown,
+): DomainElementFinding {
+  const tracker = DOMAIN_TRACKER[domain];
+  // SHAPE LAW — a projected finding always carries all four parts. Where the
+  // source builder left the application empty (record_insufficient), the
+  // projection states the honest reason rather than leaving a blank part.
+  const application = base.application ||
+    `The record carries nothing that can be applied to this standard, so no conclusion is reached on the merits. ${
+      base.information_needed ?? "The missing content must be supplied before this control can be tested."
+    }`;
+  const finding: DomainElementFinding = {
+    ...base,
+    application,
+    domain,
+    domain_label: DOMAIN_LABELS[domain],
+    regulator_expectation: tracker.regulator_expectation,
+    control_question,
+    customer_answer: answerFor(intake, answerKeys),
+    evidence_reviewed: evidenceFor(intake, answerKeys),
+  };
+  if (isAdverse(base.verdict)) {
+    finding.remediation = buildRemediationRecord(base.key, domain, intake);
+  }
+  return finding;
+}
+
+export function buildDomainElementFindings(
+  intake: unknown,
+  parts: {
+    accountability: AccountabilityDetermination;
+    demonstrability: DemonstrabilityFinding[];
+    art30: Art30ElementFinding[];
+    art30Exemption: Art30ExemptionDetermination;
+    dpo: DpoDetermination;
+    riskCalibration: Finding;
+    review: Finding;
+    transfers: TransferAnalysis;
+  },
+): DomainElementFinding[] {
+  const out: DomainElementFinding[] = [];
+
+  // Headline accountability determination, expressed as a tracker row.
+  out.push(toDomainFinding(
+    {
+      key: "accountability_determination",
+      label: "Accountability — demonstrability and appropriateness",
+      citation: parts.accountability.citation,
+      standard: [parts.accountability.standard_demonstrability, parts.accountability.standard_appropriateness]
+        .filter(Boolean).join(" "),
+      record_fact: parts.accountability.unevidenced_duties.length > 0
+        ? `The record leaves ${parts.accountability.unevidenced_duties.length} accountability ${parts.accountability.unevidenced_duties.length === 1 ? "duty" : "duties"} unevidenced: ${parts.accountability.unevidenced_duties.join("; ")}.`
+        : "Every accountability duty on the record is evidenced by a named artifact.",
+      application: parts.accountability.reasoning,
+      verdict: parts.accountability.verdict,
+      status: parts.accountability.status,
+      ...(parts.accountability.information_needed
+        ? { information_needed: parts.accountability.information_needed }
+        : {}),
+    },
+    "accountability",
+    CONTROL_QUESTIONS.accountability_determination,
+    FINDING_ANSWER_KEYS.accountability_determination,
+    intake,
+  ));
+
+  // Evidence-of-compliance duties.
+  for (const d of parts.demonstrability) {
+    const duty = DEMONSTRABILITY_DUTIES.find((x) => x.key === d.key);
+    out.push(toDomainFinding(
+      d,
+      "demonstrability",
+      DUTY_CONTROL_QUESTIONS[d.key] ??
+        `Can the organisation produce the artifact that evidences this duty: ${d.evidencing_artifact}?`,
+      duty ? [duty.intake_key] : [],
+      intake,
+    ));
+  }
+
+  // Records of processing — element walk plus the exemption determination.
+  for (const el of parts.art30) {
+    const def = ART30_ELEMENTS.find((x) => x.element === el.element);
+    out.push(toDomainFinding(
+      el,
+      "records_of_processing",
+      ART30_CONTROL_QUESTIONS[el.element] ?? `Does the record cover ${el.label.toLowerCase()}?`,
+      def?.evidence_keys ?? [],
+      intake,
+    ));
+  }
+  out.push(toDomainFinding(
+    parts.art30Exemption,
+    "records_of_processing",
+    CONTROL_QUESTIONS.art30_5_exemption,
+    FINDING_ANSWER_KEYS.art30_5_exemption,
+    intake,
+  ));
+
+  // Data protection officer — three sub-findings, never a boolean.
+  for (const sub of [parts.dpo.designation_trigger, parts.dpo.position_and_independence, parts.dpo.task_coverage]) {
+    out.push(toDomainFinding(
+      sub,
+      "dpo",
+      CONTROL_QUESTIONS[sub.key] ?? sub.label,
+      FINDING_ANSWER_KEYS[sub.key] ?? ["dpo_status"],
+      intake,
+    ));
+  }
+
+  out.push(toDomainFinding(
+    parts.riskCalibration,
+    "risk_calibration",
+    CONTROL_QUESTIONS.risk_calibration,
+    FINDING_ANSWER_KEYS.risk_calibration,
+    intake,
+  ));
+
+  out.push(toDomainFinding(
+    parts.review,
+    "review_and_update",
+    CONTROL_QUESTIONS.review_and_update,
+    FINDING_ANSWER_KEYS.review_and_update,
+    intake,
+  ));
+
+  out.push(toDomainFinding(
+    parts.transfers,
+    "international_transfers",
+    CONTROL_QUESTIONS.chapter_v_transfers,
+    FINDING_ANSWER_KEYS.chapter_v_transfers,
+    intake,
+  ));
+
+  return out;
+}
+
+/** The remediation table that closes each domain section, in walk order. */
+export function buildRemediationPlan(findings: DomainElementFinding[]): RemediationRecord[] {
+  return findings
+    .map((f) => f.remediation)
+    .filter((r): r is RemediationRecord => Boolean(r));
+}
+
+
+// ─────────────────────────────────────────────────────────────────────
 // Composite builder + attach
 // ─────────────────────────────────────────────────────────────────────
 export function buildGovernanceDeliverables(
@@ -942,20 +1251,37 @@ export function buildGovernanceDeliverables(
   const demonstrability_findings = buildDemonstrabilityFindings(intake);
   const risk_calibration_finding = buildRiskCalibrationFinding(intake);
   const review_and_update_finding = buildReviewAndUpdateFinding(intake);
-  return {
-    accountability_determination: buildAccountabilityDetermination(
-      intake,
-      demonstrability_findings,
-      risk_calibration_finding,
-      review_and_update_finding,
-    ),
+  const accountability_determination = buildAccountabilityDetermination(
+    intake,
     demonstrability_findings,
-    art30_element_findings: buildArt30ElementFindings(intake),
-    art30_exemption_determination: buildArt30ExemptionDetermination(intake),
-    dpo_determination: buildDpoDetermination(intake),
     risk_calibration_finding,
     review_and_update_finding,
-    transfer_analysis: buildTransferAnalysis(intake),
+  );
+  const art30_element_findings = buildArt30ElementFindings(intake);
+  const art30_exemption_determination = buildArt30ExemptionDetermination(intake);
+  const dpo_determination = buildDpoDetermination(intake);
+  const transfer_analysis = buildTransferAnalysis(intake);
+  const domain_element_findings = buildDomainElementFindings(intake, {
+    accountability: accountability_determination,
+    demonstrability: demonstrability_findings,
+    art30: art30_element_findings,
+    art30Exemption: art30_exemption_determination,
+    dpo: dpo_determination,
+    riskCalibration: risk_calibration_finding,
+    review: review_and_update_finding,
+    transfers: transfer_analysis,
+  });
+  return {
+    accountability_determination,
+    demonstrability_findings,
+    art30_element_findings,
+    art30_exemption_determination,
+    dpo_determination,
+    risk_calibration_finding,
+    review_and_update_finding,
+    transfer_analysis,
+    domain_element_findings,
+    remediation_plan: buildRemediationPlan(domain_element_findings),
     maturity_tier_readability_aid: demoteMaturityTier(maturityTier),
   };
 }
@@ -983,6 +1309,9 @@ export function attachGovernanceDeliverables(
     report.risk_calibration_finding = built.risk_calibration_finding;
     report.review_and_update_finding = built.review_and_update_finding;
     report.transfer_analysis = built.transfer_analysis;
+    // GOVERNANCE UPGRADE — generalised tracker walk + remediation component.
+    report.domain_element_findings = built.domain_element_findings;
+    report.remediation_plan = built.remediation_plan;
 
     // DEMOTION LAW — the tier can no longer be the headline conclusion.
     if (built.maturity_tier_readability_aid) {
@@ -1005,6 +1334,10 @@ export function attachGovernanceDeliverables(
       transfer_regime: built.transfer_analysis.regime,
       transfer_verdict: built.transfer_analysis.verdict,
       transfer_mechanism_mismatch: built.transfer_analysis.mechanism_regime_mismatch,
+      domain_findings_total: built.domain_element_findings.length,
+      domain_findings_analysed: built.domain_element_findings.filter((f) => f.status === "analysed").length,
+      remediation_records: built.remediation_plan.length,
+      remediation_incomplete: built.remediation_plan.filter((r) => r.status === "record_insufficient").length,
       tier_demoted: Boolean(built.maturity_tier_readability_aid),
     };
   } catch (e) {

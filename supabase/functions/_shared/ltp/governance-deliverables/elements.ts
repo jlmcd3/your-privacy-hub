@@ -282,3 +282,145 @@ export const ADEQUACY_MECHANISMS: readonly string[] = [
   "Adequacy decision",
   "Adequacy decision/regulations",
 ];
+
+// ─────────────────────────────────────────────────────────────────────
+// GOVERNANCE UPGRADE (product 5) — ICO Data Protection Audit Framework
+// tracker metadata.
+//
+// TEMPLATE-GUIDANCE LAW: the framework supplies the SHAPE of the tracker
+// record (control question, regulator expectation, evidence reviewed,
+// remediation). It is never asserted as corpus authority, never cited as
+// law, and never quoted. The legal standard in every finding continues to
+// come from the pinned statutory registries above.
+// ─────────────────────────────────────────────────────────────────────
+import type { GovernanceDomain } from "./types.ts";
+
+export const ICO_FRAMEWORK_LABEL = "ICO Data Protection Audit Framework (Oct 2024)";
+export const ICO_FRAMEWORK_URL =
+  "https://ico.org.uk/for-organisations/advice-and-services/audits/data-protection-audit-framework/";
+
+export const DOMAIN_LABELS: Record<GovernanceDomain, string> = {
+  accountability: "Accountability and governance",
+  demonstrability: "Evidence of compliance",
+  records_of_processing: "Records of processing activities",
+  dpo: "Data protection officer",
+  risk_calibration: "Risk calibration of measures",
+  review_and_update: "Review and update of measures",
+  international_transfers: "International transfers",
+};
+
+/** Per-domain toolkit reference and the expectation an auditor tests against. */
+export const DOMAIN_TRACKER: Record<
+  GovernanceDomain,
+  { toolkit: string; regulator_expectation: string }
+> = {
+  accountability: {
+    toolkit: "Accountability and governance toolkit",
+    regulator_expectation:
+      "An auditor expects a single, owned governance framework whose outputs can be produced on request, rather than a set of practices that exist only in the knowledge of individuals.",
+  },
+  demonstrability: {
+    toolkit: "Accountability and governance toolkit — evidence tracker",
+    regulator_expectation:
+      "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+  },
+  records_of_processing: {
+    toolkit: "Records management and security toolkit — ROPA tracker",
+    regulator_expectation:
+      "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+  },
+  dpo: {
+    toolkit: "Accountability and governance toolkit — DPO tracker",
+    regulator_expectation:
+      "An auditor expects the designation decision, the reporting line, the resourcing and the conflict-of-interests position to be documented, not inferred from a job title.",
+  },
+  risk_calibration: {
+    toolkit: "Risk and DPIA toolkit",
+    regulator_expectation:
+      "An auditor expects the measure set to be justified against the recorded nature, scope, context and purposes of the processing, so that proportionality can be tested rather than asserted.",
+  },
+  review_and_update: {
+    toolkit: "Accountability and governance toolkit — review tracker",
+    regulator_expectation:
+      "An auditor expects a defined review cycle with executed reviews on file, and evidence that the reviews produced changes where the processing changed.",
+  },
+  international_transfers: {
+    toolkit: "International transfers toolkit",
+    regulator_expectation:
+      "An auditor expects each transfer route to be mapped to a named mechanism belonging to the chapter that actually governs it, with the underlying assessment on file.",
+  },
+};
+
+/**
+ * The specific control question each non-Art. 30, non-duty finding tests.
+ * Keyed on the finding key emitted by the builder.
+ */
+export const CONTROL_QUESTIONS: Record<string, string> = {
+  accountability_determination:
+    "Can the organisation demonstrate, from artifacts it holds today, that its processing complies with the Regulation and that its measures are appropriate to its risk?",
+  art30_5_exemption:
+    "Does the organisation qualify for the small-enterprise exemption from the record duty, and has each defeating condition been tested?",
+  dpo_designation_trigger:
+    "Has the organisation tested whether designation of a data protection officer is mandatory, independently of whether one has been appointed?",
+  dpo_position_independence:
+    "Is the officer involved in good time, resourced, reporting to the highest management level, free from instructions, and free of conflicting duties?",
+  dpo_task_coverage:
+    "Which of the statutory officer tasks are actually performed, and how is that recorded?",
+  risk_calibration:
+    "Are the technical and organisational measures calibrated to the recorded nature, scope, context and purposes of the processing?",
+  review_and_update:
+    "Are the measures reviewed on a defined cycle, and has the most recent review actually been carried out?",
+  chapter_v_transfers:
+    "Is every cross-border transfer covered by a mechanism belonging to the chapter that governs it, with the required assessment on file?",
+};
+
+/** The remediation priority menu offered on intake. */
+export const REMEDIATION_PRIORITIES: readonly string[] = [
+  "Critical — remediate now",
+  "High — remediate this quarter",
+  "Medium — remediate this year",
+  "Low — monitor",
+];
+
+/** The standard validation-method menu offered on intake. */
+export const VALIDATION_METHODS: readonly string[] = [
+  "Documentary evidence review",
+  "Control re-test by a second reviewer",
+  "Internal audit sample",
+  "External audit or assurance report",
+  "Management sign-off against the artifact",
+];
+
+/** Applied when the record names no validation method for an adverse finding. */
+export const DEFAULT_VALIDATION_METHOD = "Documentary evidence review";
+
+/** Control question per accountability duty (DEMONSTRABILITY_DUTIES key). */
+export const DUTY_CONTROL_QUESTIONS: Record<string, string> = {
+  transparency_notice:
+    "Is there a dated privacy notice covering current processing, and can its review history be produced?",
+  record_of_processing:
+    "Is the record of processing activities maintained, approved, and producible to the supervisory authority?",
+  dpia_programme:
+    "Has every high-risk processing activity been assessed before it began, with the residual-risk conclusion signed off?",
+  training:
+    "Can training completion be evidenced by role, with dates and the version of the content delivered?",
+  processor_contracts:
+    "Is every processor engaged under a written contract, and have those contracts been reviewed against the mandatory clauses?",
+  security_measures:
+    "Is the control inventory evidenced by configuration records and a recent effectiveness test?",
+  incident_response:
+    "Can the organisation evidence its ability to detect, record and notify a personal data breach within the statutory period?",
+  data_subject_rights:
+    "Has the rights-request process been tested end to end across vendors, with response times recorded?",
+};
+
+/** Control question per Art. 30(1) element letter. */
+export const ART30_CONTROL_QUESTIONS: Record<string, string> = {
+  a: "Does the record name the controller, any representative, and the data protection officer, with contact details?",
+  b: "Does the record state the purposes of each processing activity in its own terms?",
+  c: "Does the record describe the categories of data subjects and of personal data?",
+  d: "Does the record list the categories of recipients to whom personal data has been or will be disclosed?",
+  e: "Does the record identify third-country transfers and the safeguards relied on?",
+  f: "Does the record state the envisaged time limits for erasure of each category?",
+  g: "Does the record give a general description of the technical and organisational security measures?",
+};

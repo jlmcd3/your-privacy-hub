@@ -32,6 +32,70 @@ export interface Finding {
   information_needed?: string;
 }
 
+/**
+ * GOVERNANCE UPGRADE (product 5) — the assessed governance domains.
+ * Every deliverable belongs to exactly one of them, and every domain is
+ * walked with the same tracker record.
+ */
+export type GovernanceDomain =
+  | "accountability"
+  | "demonstrability"
+  | "records_of_processing"
+  | "dpo"
+  | "risk_calibration"
+  | "review_and_update"
+  | "international_transfers";
+
+export type RemediationPriority =
+  | "Critical — remediate now"
+  | "High — remediate this quarter"
+  | "Medium — remediate this year"
+  | "Low — monitor"
+  | "unspecified";
+
+/**
+ * GOVERNANCE UPGRADE ITEM 2 — the shared remediation record attached to every
+ * ADVERSE finding. Degrades honestly: where the record carries no owner, date
+ * or priority, the record is emitted with `record_insufficient` status and a
+ * named `information_needed` rather than an invented plan.
+ */
+export interface RemediationRecord {
+  finding_key: string;
+  domain: GovernanceDomain;
+  accountable_owner: string;
+  target_date: string;
+  priority: RemediationPriority;
+  validation_method: string;
+  /** Whether the validation method came from the record or the standard menu. */
+  validation_method_source: "recorded" | "default";
+  status: FindingStatus;
+  information_needed?: string;
+}
+
+/**
+ * GOVERNANCE UPGRADE ITEM 1 — the generalised per-domain finding.
+ *
+ * The house SHAPE-LAW finding (standard → record fact → application → verdict,
+ * honest degradation) PLUS the two extra fields the ICO Data Protection Audit
+ * Framework trackers carry: the regulator expectation and the control question
+ * actually tested. The ICO framing is TEMPLATE GUIDANCE ONLY — it is never
+ * asserted as corpus authority and never quoted as law.
+ */
+export interface DomainElementFinding extends Finding {
+  domain: GovernanceDomain;
+  domain_label: string;
+  /** What a regulator looks for on this control (audit-framework framing). */
+  regulator_expectation: string;
+  /** The specific control question this finding tests. */
+  control_question: string;
+  /** The customer's own answer, verbatim from the record. */
+  customer_answer: string;
+  /** What record content was reviewed to reach the verdict. */
+  evidence_reviewed: string;
+  /** Present on adverse findings only. */
+  remediation?: RemediationRecord;
+}
+
 /** Op. 2 — Art. 5(2)/24(1) demonstrability: which artifact evidences the duty. */
 export interface DemonstrabilityFinding extends Finding {
   duty: string;
@@ -132,6 +196,15 @@ export interface GovernanceDeliverables {
   risk_calibration_finding: Finding;
   review_and_update_finding: Finding;
   transfer_analysis: TransferAnalysis;
+  /**
+   * GOVERNANCE UPGRADE ITEM 1 — the generalised tracker walk across every
+   * assessed domain. `art30_element_findings` is retained alongside it for
+   * backward compatibility; the Art. 30 rows appear in both, carrying
+   * `domain: "records_of_processing"` here.
+   */
+  domain_element_findings: DomainElementFinding[];
+  /** GOVERNANCE UPGRADE ITEM 2 — every remediation record, in walk order. */
+  remediation_plan: RemediationRecord[];
   maturity_tier_readability_aid?: MaturityTierAid;
 }
 

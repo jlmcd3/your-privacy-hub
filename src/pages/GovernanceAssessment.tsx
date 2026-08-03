@@ -147,6 +147,11 @@ const GovernanceAssessment = () => {
   const [processingScope, setProcessingScope] = useState("");
   const [processingContext, setProcessingContext] = useState("");
   const [processingPurposes, setProcessingPurposes] = useState("");
+  // GOVERNANCE UPGRADE — remediation defaults applied to adverse findings.
+  const [remediationOwner, setRemediationOwner] = useState("");
+  const [remediationTargetDate, setRemediationTargetDate] = useState("");
+  const [remediationPriority, setRemediationPriority] = useState("");
+  const [remediationValidationMethod, setRemediationValidationMethod] = useState("");
 
 
   const orgSizeNum = useMemo(() => {
@@ -238,6 +243,18 @@ const GovernanceAssessment = () => {
     processing_scope: processingScope,
     processing_context: processingContext,
     processing_purposes: processingPurposes,
+    // GOVERNANCE UPGRADE — remediation defaults (flat keys + the object the
+    // deliverables builder reads). Never invented: blank stays blank.
+    remediation_default_owner: remediationOwner,
+    remediation_default_target_date: remediationTargetDate,
+    remediation_default_priority: remediationPriority,
+    remediation_default_validation_method: remediationValidationMethod,
+    remediation_defaults: {
+      accountable_owner: remediationOwner,
+      target_date: remediationTargetDate,
+      priority: remediationPriority,
+      validation_method: remediationValidationMethod,
+    },
 
   });
 
@@ -349,6 +366,10 @@ const GovernanceAssessment = () => {
     S(d.additional_context, setAdditionalContext);
     S(d.measures_review_cadence, setMeasuresReviewCadence);
     S(d.measures_last_review_date, setMeasuresLastReviewDate);
+    S(d.remediation_default_owner, setRemediationOwner);
+    S(d.remediation_default_target_date, setRemediationTargetDate);
+    S(d.remediation_default_priority, setRemediationPriority);
+    S(d.remediation_default_validation_method, setRemediationValidationMethod);
     S(d.processing_nature, setProcessingNature);
     S(d.processing_scope, setProcessingScope);
     S(d.processing_context, setProcessingContext);
@@ -692,6 +713,28 @@ const GovernanceAssessment = () => {
                   <Label htmlFor="processing_purposes">Q16g: Purposes of the processing</Label>
                   <p className="text-xs text-muted-foreground mt-1">Why the data is processed, stated specifically enough to test necessity against.</p>
                   <textarea id="processing_purposes" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingPurposes} onChange={(e) => setProcessingPurposes(e.target.value)} />
+                </div>
+              </div>
+              {/* GOVERNANCE UPGRADE — remediation defaults. Applied to every
+                  adverse finding unless a finding-specific entry overrides them.
+                  Left blank, the report says so rather than inventing a plan. */}
+              <div className="pt-2 border-t space-y-4">
+                <div>
+                  <Label htmlFor="remediation_default_owner">Q17a: Who is accountable for remediation?</Label>
+                  <p className="text-xs text-muted-foreground mt-1">A name or a role. This is applied to each adverse finding unless you record a different owner for one.</p>
+                  <Input id="remediation_default_owner" className="mt-2" value={remediationOwner} onChange={(e) => setRemediationOwner(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="remediation_default_target_date">Q17b: Default target date for remediation</Label>
+                  <Input id="remediation_default_target_date" type="date" className="mt-2" value={remediationTargetDate} onChange={(e) => setRemediationTargetDate(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Q17c: Default remediation priority</Label>
+                  <div className="mt-2"><Radio name="rem_priority" options={["Critical — remediate now", "High — remediate this quarter", "Medium — remediate this year", "Low — monitor"]} value={remediationPriority} onChange={setRemediationPriority} /></div>
+                </div>
+                <div>
+                  <Label>Q17d: How will remediation be validated?</Label>
+                  <div className="mt-2"><Radio name="rem_validation" options={["Documentary evidence review", "Control re-test by a second reviewer", "Internal audit sample", "External audit or assurance report", "Management sign-off against the artifact"]} value={remediationValidationMethod} onChange={setRemediationValidationMethod} /></div>
                 </div>
               </div>
             </>

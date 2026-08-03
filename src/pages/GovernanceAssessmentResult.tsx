@@ -26,6 +26,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
 import GovernanceDomainV2Fields from "@/components/reports/GovernanceDomainV2Fields";
+import GovernanceTrackerFindings from "@/components/reports/GovernanceTrackerFindings";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { CheckCircle2 } from 'lucide-react';
 
@@ -319,6 +320,12 @@ const GovernanceAssessmentResult = () => {
                   </ol>
                 </section>
               )}
+
+              {/* GOVERNANCE UPGRADE — generalised control walk + remediation */}
+              <GovernanceTrackerFindings
+                findings={(report as any)?.domain_element_findings}
+                remediationPlan={(report as any)?.remediation_plan}
+              />
 
               {/* Ten Domains — Domain Findings (handles Record OR Array shape) */}
               {report?.domain_findings &&
