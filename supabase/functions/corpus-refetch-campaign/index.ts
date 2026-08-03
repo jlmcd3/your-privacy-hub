@@ -140,7 +140,18 @@ const PASS_B_PER_HOST_OVERRIDES: Record<string, number> = {
 };
 const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
-const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
+const TERMINAL_REASONS = [
+  "robots_disallow",
+  "http_404",
+  "http_410",
+  "invalid_url",
+  "asset_url",
+  "unsupported_content_type",
+];
+/** Asset URLs (thumbnails, css, js) can never yield a decision document. */
+const ASSET_URL_RE =
+  /\.(jpe?g|png|gif|webp|bmp|svg|ico|css|js|mp4|mp3|zip|woff2?|ttf)(\?|#|$)/i;
+
 
 /**
  * Deterministic shard of a row id, so N workers can run concurrently over
