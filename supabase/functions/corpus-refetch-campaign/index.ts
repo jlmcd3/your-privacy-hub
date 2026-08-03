@@ -131,7 +131,13 @@ async function selectBatch(
 // and retryable, and round-robins across hosts so one heavy domain
 // (uodo.gov.pl holds 665 of the residual rows) cannot monopolise a run.
 const PASS_B_MAX_ATTEMPTS = 3;
-const PASS_B_PER_HOST_PER_RUN = 2;
+// Default per-host cap keeps us polite; uodo.gov.pl is a government host
+// with a permissive robots.txt and holds ~40% of the residual doc-less rows,
+// so lifting it is the single biggest lever on Pass B completion time.
+const PASS_B_PER_HOST_DEFAULT = 2;
+const PASS_B_PER_HOST_OVERRIDES: Record<string, number> = {
+  "uodo.gov.pl": 6,
+};
 const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
 const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
