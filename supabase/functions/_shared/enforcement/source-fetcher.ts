@@ -308,6 +308,15 @@ export async function fetchSourceDocument(
   //     row's remaining attempts against a permanently blocked origin.
   if (WAYBACK_RECOVERABLE.includes(live.reason ?? "") && !isWaybackUrl(url)) {
     const archived = await fetchAndParse(waybackUrl(url));
+    console.log(JSON.stringify({
+      evt: "archive_fallback",
+      url,
+      live_reason: live.reason,
+      live_status: live.http_status,
+      archive_status: archived.status,
+      archive_reason: archived.reason,
+      chars: archived.content_text?.length ?? 0,
+    }));
     if (archived.status === "ok") {
       const result: FetcherResult = { ...archived, from_archive: true };
       // Cache under the ORIGINAL url so downstream lookups resolve normally.
