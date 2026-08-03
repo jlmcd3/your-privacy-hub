@@ -21,6 +21,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { LIA_RAIL } from "@/components/lia/LIARailEntries";
 import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -102,7 +103,14 @@ const LIAssessmentIntake = () => {
     ],
   } : null;
 
-  const { entry: liaRailEntry } = useGdprRailEntry(liaRailOpts);
+  const { entry: sectionRailEntry } = useGdprRailEntry(liaRailOpts);
+
+  // UPGRADE-4 ITEM 5 — per-field rail. A focused Upgrade-4 field takes the rail
+  // over its section entry; blurring back to the section restores it.
+  const [activeFieldRailKey, setActiveFieldRailKey] = useState<string | null>(null);
+  const focusField = (key: string) => () => setActiveFieldRailKey(key);
+  const liaRailEntry =
+    (activeFieldRailKey ? LIA_RAIL[activeFieldRailKey] ?? null : null) ?? sectionRailEntry;
 
   const handleRailFocus = (section: "purpose" | "necessity" | "balancing") => {
     setActiveRailSection(section);
