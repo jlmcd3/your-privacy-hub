@@ -1,5 +1,6 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
@@ -1578,7 +1579,7 @@ Return JSON:
       console.error("[LIA] Stage 3 parse failed even with repair. Length:", docsText.length);
       docRecs = {
         recommended_documentation: [],
-        disclaimer: "This is not legal advice."
+        disclaimer: REPORT_DISCLAIMER
       };
     }
 
@@ -1602,7 +1603,7 @@ Return JSON:
       annotations: (() => { try { return Array.isArray(analysis?.annotations) ? analysis.annotations : []; } catch { return []; } })(),
       information_needed: Array.isArray((analysis as any)?.information_needed) ? (analysis as any).information_needed : [],
       documentation_recommendations: docRecs,
-      disclaimer: "This report helps your organisation identify areas for further review. It does not constitute legal advice. Confirm the specific facts in the record (purpose, necessity, and balancing evidence) before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions; further clarification is advisable.",
+      disclaimer: REPORT_DISCLAIMER,
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`,
       _meta: { prompt_version: stampPromptVersion("li-assessment", "r1b2.1-rcb"), chunked_generation: true },
       build_stamp: BUILD_STAMP,
