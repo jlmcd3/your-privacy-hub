@@ -226,12 +226,30 @@ async function pdfToText(bytes: Uint8Array): Promise<string> {
   return joined.slice(0, MAX_PDF_CHARS).trim();
 }
 
+/**
+ * URLs that point at a binary asset (image, stylesheet, script) can never
+ * yield a decision document. Ingestion occasionally captured gallery
+ * thumbnails instead of the article link; those rows must be retired rather
+ * than retried forever.
+ */
+export const ASSET_URL_RE =
+  /\.(jpe?g|png|gif|webp|bmp|svg|ico|css|js|mp4|mp3|zip|woff2?|ttf)(\?|#|$)/i;
+
+export function isAssetUrl(url: string): boolean {
+  return ASSET_URL_RE.test(String(url ?? ""));
+}
+
 export async function fetchSourceDocument(
   url: string,
 ): Promise<FetcherResult> {
   if (!url || !/^https?:\/\//i.test(url)) {
     return { status: "fail", reason: "invalid_url" };
   }
+  if (isAssetUrl(url)) {
+    // Pre-flight: no network call, no cache write — permanently unusable.
+    return { status: "skipped", reason: "asset_url" };
+  }
+
 
   // 1. Cache
   try {
