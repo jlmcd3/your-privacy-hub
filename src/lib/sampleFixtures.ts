@@ -1174,6 +1174,7 @@ export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_EU_NOTICE,
   F_REGISTRATION_EU,
   F_REGISTRATION_US,
+  F_REGISTRATION_BROKER_US,
   // WS6 v2.1 supplemental-capture variants (9 total, one per wired family)
   F_LIA_UK_SUPP,
   F_DPIA_EU_SUPP,
