@@ -25,7 +25,6 @@ import WordConversionPromptButton from "@/components/WordConversionPromptButton"
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
 import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
@@ -146,7 +145,6 @@ export default function BiometricCheckerResult() {
             )}
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
             {/* bipaCallout render site retired 2026-07-14 */}
-            <ToolDisclaimer addition="Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction." />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
