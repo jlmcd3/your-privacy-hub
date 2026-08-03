@@ -175,6 +175,15 @@ async function selectPassB(limit: number, shard: number, shardCount: number) {
       (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
 
+  // Bucket rows by host, respecting per-host caps.
+  const buckets = new Map<string, any[]>();
+  for (const r of pending) {
+    const h = domainOf(r.source_url);
+    const b = buckets.get(h) ?? [];
+    if (b.length < hostCap(h)) b.push(r);
+    buckets.set(h, b);
+  }
+
   // Fill overridden hosts first (they are the bottleneck), but keep at least
   // PASS_B_RESERVED_NON_OVERRIDDEN slots for other hosts so a single domain
   // cannot starve the rest of the batch.
