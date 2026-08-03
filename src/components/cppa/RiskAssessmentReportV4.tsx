@@ -649,10 +649,6 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
         </section>
       )}
 
-      {/* Disclaimer */}
-      {report.document_metadata?.disclaimer && (
-        <p className="text-xs text-muted-foreground italic">{report.document_metadata.disclaimer}</p>
-      )}
     </div>
   );
 }

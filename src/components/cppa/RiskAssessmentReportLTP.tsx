@@ -121,10 +121,6 @@ export default function RiskAssessmentReportLTP({
     report?.document_metadata && typeof report.document_metadata === "object"
       ? report.document_metadata
       : {};
-  const disclaimer =
-    typeof report?.disclaimer === "string" && report.disclaimer.trim()
-      ? report.disclaimer
-      : "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.";
   const opening = coerceNarrativeScalar(report?.opening_summary);
   const summaryNarrative = coerceNarrativeScalar(summary.narrative);
   const scope = report?.scope_and_triggers ?? report?.scope_confirmation;
@@ -142,10 +138,6 @@ export default function RiskAssessmentReportLTP({
           </p>
         )}
       </header>
-
-      <div className="border-l-4 border-primary bg-muted/50 rounded-r-md px-4 py-2.5 text-xs mt-4">
-        <span className="font-bold">Not legal advice.</span> {disclaimer}
-      </div>
 
       {opening && (
         <div data-section="opening_summary" className="italic text-primary mt-4">
@@ -231,9 +223,6 @@ export default function RiskAssessmentReportLTP({
         value={report?.submission_summary}
       />
 
-      <div className="border-l-4 border-primary bg-muted/50 rounded-r-md px-4 py-2.5 text-xs mt-6">
-        <span className="font-bold">Not legal advice.</span> {disclaimer}
-      </div>
       {meta.build_stamp && (
         <p className="text-[10px] text-muted-foreground text-center mt-3">
           build {String(meta.build_stamp)}

@@ -107,11 +107,6 @@ export default function RiskAssessmentReportProse9({
         </section>
       ))}
 
-      {typeof report?.disclaimer === "string" && report.disclaimer.trim() && (
-        <section className="text-sm italic text-muted-foreground border-t pt-4">
-          {report.disclaimer}
-        </section>
-      )}
     </div>
   );
 }
