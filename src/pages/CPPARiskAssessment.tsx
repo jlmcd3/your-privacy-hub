@@ -395,6 +395,13 @@ export default function CPPARiskAssessment() {
   const [a4BenefitConsumer, setA4BenefitConsumer] = useState("");
   const [a4BenefitOtherStakeholders, setA4BenefitOtherStakeholders] = useState("");
   const [a4BenefitPublic, setA4BenefitPublic] = useState("");
+  // UPGRADE-2 (ITEM 4) — the record fact that supports each stated benefit.
+  // § 7152(a)(4) benefits are weighed, not asserted; without a supporting
+  // fact the weighing reserves rather than concluding.
+  const [a4BenefitBusinessFact, setA4BenefitBusinessFact] = useState("");
+  const [a4BenefitConsumerFact, setA4BenefitConsumerFact] = useState("");
+  const [a4BenefitOtherStakeholdersFact, setA4BenefitOtherStakeholdersFact] = useState("");
+  const [a4BenefitPublicFact, setA4BenefitPublicFact] = useState("");
   // UPGRADE-2 (ITEM 4) — the pathway triple (data / actor / route) and the
   // per-safeguard residual-risk statement required by § 7152(a)(5)-(6).
   const [a5HarmPathways, setA5HarmPathways] = useState<{ harm: string; data_involved: string; actor: string; source: string; cause: string; likelihood: string; severity: string }[]>([
@@ -712,6 +719,10 @@ export default function CPPARiskAssessment() {
     a4_benefit_consumer: a4BenefitConsumer.trim(),
     a4_benefit_other_stakeholders: a4BenefitOtherStakeholders.trim(),
     a4_benefit_public: a4BenefitPublic.trim(),
+    a4_benefit_business_fact: a4BenefitBusinessFact.trim(),
+    a4_benefit_consumer_fact: a4BenefitConsumerFact.trim(),
+    a4_benefit_other_stakeholders_fact: a4BenefitOtherStakeholdersFact.trim(),
+    a4_benefit_public_fact: a4BenefitPublicFact.trim(),
     a5_harm_pathways: a5HarmPathways.filter((r) => r.harm),
     a6_safeguards: a6Safeguards.filter((r) => r.harm && (r.safeguard.trim() || r.safeguard_status)),
     a9_approver_name: a9ApproverName.trim(),
@@ -734,6 +745,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, exceptionClaims, impactData,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
+    a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
     a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
     assertions,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
@@ -1831,9 +1843,13 @@ export default function CPPARiskAssessment() {
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>A-4: Benefits of this processing, stated specifically for each group <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="A-4 · Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
                   <div className="mt-2 space-y-2">
                     <Textarea rows={2} value={a4BenefitBusiness} onChange={(e) => setA4BenefitBusiness(e.target.value)} placeholder="Benefit to the business — specific outcome, not 'improving our service'." />
+                    <Textarea rows={2} value={a4BenefitBusinessFact} onChange={(e) => setA4BenefitBusinessFact(e.target.value)} placeholder="Record fact supporting the business benefit — what in the record shows it." />
                     <Textarea rows={2} value={a4BenefitConsumer} onChange={(e) => setA4BenefitConsumer(e.target.value)} placeholder="Benefit to the consumer — specific outcome the consumer receives." />
+                    <Textarea rows={2} value={a4BenefitConsumerFact} onChange={(e) => setA4BenefitConsumerFact(e.target.value)} placeholder="Record fact supporting the consumer benefit — what in the record shows it." />
                     <Textarea rows={2} value={a4BenefitOtherStakeholders} onChange={(e) => setA4BenefitOtherStakeholders(e.target.value)} placeholder="Benefit to other stakeholders — or state that none applies." />
+                    <Textarea rows={2} value={a4BenefitOtherStakeholdersFact} onChange={(e) => setA4BenefitOtherStakeholdersFact(e.target.value)} placeholder="Record fact supporting the other-stakeholder benefit — or leave blank if none is claimed." />
                     <Textarea rows={2} value={a4BenefitPublic} onChange={(e) => setA4BenefitPublic(e.target.value)} placeholder="Benefit to the public — or state that none applies." />
+                    <Textarea rows={2} value={a4BenefitPublicFact} onChange={(e) => setA4BenefitPublicFact(e.target.value)} placeholder="Record fact supporting the public benefit — or leave blank if none is claimed." />
                   </div>
                 </div>
 

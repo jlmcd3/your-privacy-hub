@@ -374,6 +374,13 @@ export const cppaRiskContract: IntakeContract = {
     { key: "a4_benefit_other_stakeholders", kind: "narrative",  required: "always", askEligible: true },
     { key: "a4_benefit_public",             kind: "narrative",  required: "always", askEligible: true },
 
+    // UPGRADE-2 (ITEM 4) — § 7152(a)(4) supporting record facts. Optional so
+    // legacy rows keep validating; without them the weighing reserves.
+    { key: "a4_benefit_business_fact",           kind: "narrative", required: "optional", askEligible: true },
+    { key: "a4_benefit_consumer_fact",           kind: "narrative", required: "optional", askEligible: true },
+    { key: "a4_benefit_other_stakeholders_fact", kind: "narrative", required: "optional", askEligible: true },
+    { key: "a4_benefit_public_fact",             kind: "narrative", required: "optional", askEligible: true },
+
     { key: "a5_harm_pathways",              kind: "structured", required: "always" },
     { key: "a5_harm_pathways[].harm",       kind: "enum",       required: "always",
       options: HARM_PATHWAY_OPTS },
