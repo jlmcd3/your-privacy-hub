@@ -308,7 +308,7 @@ export default function CPPACybersecurity() {
           <h2 className="">Organization Profile</h2>
           <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7123 — cybersecurity audit scope and components; § 7124 — annual certification requirement</p>
           <RequiredLegend />
-          <div>
+          <div data-rail-key="entity_name" onFocus={() => focusRail('entity_name')}>
             <Label>Entity name<Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report)</span></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.entity_name} onChange={(e) => setProfile({ ...profile, entity_name: e.target.value })} placeholder="e.g., Acme Retail, Inc." autoComplete="organization" />
           </div>
@@ -316,14 +316,14 @@ export default function CPPACybersecurity() {
             <Label>Industry sector<Req /></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
           </div>
-          <div>
+          <div data-rail-key="incidents_12mo" onFocus={() => focusRail('incidents_12mo')}>
             <Label>Reportable security incidents in last 12 months<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incidents_12mo} onChange={(e) => setProfile({ ...profile, incidents_12mo: e.target.value })}>
               <option value="">Select…</option>
               <option>None</option><option>1</option><option>2–5</option><option>More than 5</option>
             </select>
           </div>
-          <div>
+          <div data-rail-key="framework" onFocus={() => focusRail('framework')}>
             <Label>Primary security framework in use<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.framework} onChange={(e) => setProfile({ ...profile, framework: e.target.value })}>
               <option value="">Select…</option>
