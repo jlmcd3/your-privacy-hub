@@ -1020,7 +1020,7 @@ const F_REGISTRATION_EU: SampleFixture = {
   scenario_summary:
     "North Pole Manual Mining Ltd (medium manufacturer) is established in Ireland and markets across IE/DE/FR/UK. Cross-border transfers to a US processor; no biometric identity, no data-broker registration.",
   source_table: "registration_assessments",
-  result_url_pattern: "/registration/assessment/result/{id}",
+  result_url_pattern: "/registration-manager/result/{id}",
   fixture: {
     invoke_body: {
       intake_data: {
