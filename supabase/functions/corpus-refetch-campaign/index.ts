@@ -141,7 +141,20 @@ const PASS_B_PER_HOST_OVERRIDES: Record<string, number> = {
   "uodo.gov.pl": 12,
   "www.uodo.gov.pl": 12,
   "orzeczenia.uodo.gov.pl": 12,
+  // Largest remaining regulator_primary populations. hhs.gov answers 403 to
+  // every non-browser client and is recovered through the archive fallback,
+  // which is cheap and rate-limit friendly.
+  "www.hhs.gov": 8,
+  "www.aepd.es": 8,
+  "www.dataprotection.gov.cy": 6,
 };
+
+/**
+ * Analogy eligibility requires a primary regulator source, so trackers and
+ * third-party commentary must never consume Pass B fetch slots.
+ */
+const PASS_B_ELIGIBLE_SOURCE_TYPES = ["regulator_primary", "regulator_press"];
+
 
 const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
@@ -175,11 +188,15 @@ function hostCap(host: string): number {
 async function selectPassB(limit: number, shard: number, shardCount: number) {
   const { data } = await sb
     .from("enforcement_actions")
-    .select("id, source_url, authority_class, source_document_text, refetch_attempts")
+    .select(
+      "id, source_url, authority_class, source_type, source_document_text, refetch_attempts",
+    )
     .not("source_url", "is", null)
     // Server-side narrowing keeps the window dense: without it most of the
     // 400-row window is already-hydrated rows and Pass B starves.
     .or("strat_has_document.is.false,strat_has_document.is.null")
+    // Trackers/commentary are not analogy-eligible — never spend fetch slots.
+    .in("source_type", PASS_B_ELIGIBLE_SOURCE_TYPES)
     .lt("refetch_attempts", PASS_B_MAX_ATTEMPTS)
     .order("refetch_attempts", { ascending: true })
     .order("refetch_last_attempt_at", { ascending: true, nullsFirst: true })
