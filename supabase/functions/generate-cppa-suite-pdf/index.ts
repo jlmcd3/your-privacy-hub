@@ -7,6 +7,7 @@
 // for the (risk_id, cyber_id) pair.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { reportDisclaimerHtml } from "../_shared/report-disclaimer.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -215,10 +216,7 @@ function buildHTML(riskRow: any, cyberRow: any) {
   ${riskRow ? renderRisk(riskRow) : ""}
   ${cyberRow ? `<div class="page-break"></div>${renderCyber(cyberRow)}` : ""}
 
-  <div class="notice">
-    <strong>Not legal advice.</strong> This report does not constitute legal advice.
-    Findings should be validated against your organization's authoritative records and, where applicable, an independent CPPA cybersecurity auditor's assessment before operational reliance.
-  </div>
+  ${reportDisclaimerHtml()}
 </div>
 </body></html>`;
 }
