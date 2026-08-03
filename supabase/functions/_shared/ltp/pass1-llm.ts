@@ -42,7 +42,7 @@ import {
   PASS1_DERIVE_PROMPT_VERSION,
 } from "./content/pass1-derive-prompt.ts";
 import { evaluateCppaRiskGates } from "./gate-eval.ts";
-import { buildActivityAnalytics } from "./analytic-deliverables/build.ts";
+import { buildActivityAnalytics, buildAttestation } from "./analytic-deliverables/build.ts";
 import { buildEuAuthoritySection } from "./eu-authority/build.ts";
 
 import { runGuideStage } from "./guide.ts";
@@ -118,12 +118,19 @@ export interface Pass1Result {
 }
 
 function fillUserTemplate(input: DeriveInput): string {
-  return PASS1_DERIVE_USER_TEMPLATE
+  // UPGRADE-2 (ITEM 2) — the §§ 7150-7157 corpus law block is appended to the
+  // user prompt when the caller resolved it. Absent, Pass-1 runs exactly as
+  // before (honest degradation, never a fabricated quote).
+  const lawBlock = (input as unknown as { corpus_law_block?: unknown }).corpus_law_block;
+  const filled = PASS1_DERIVE_USER_TEMPLATE
     .replace("{intake_json}", JSON.stringify(input.intake ?? {}))
     .replace("{conclusion_inventory}", JSON.stringify(CPPA_RISK_CONCLUSIONS))
     .replace("{factor_registry}", JSON.stringify(CPPA_RISK_FACTORS))
     .replace("{gate_registry}", JSON.stringify(CPPA_RISK_GATES))
     .replace("{response_schema}", JSON.stringify(RENDERPLAN_WIRE_SCHEMA));
+  return typeof lawBlock === "string" && lawBlock.trim().length > 0
+    ? `${filled}\n\n${lawBlock}`
+    : filled;
 }
 
 /**
@@ -277,6 +284,7 @@ export function applySingleWriterInjection(
     // persuasive-authority section from every model-path (shipped) report,
     // while the shadow derive path kept them green.
     activity_analytics: buildActivityAnalytics(input.intake ?? {}) as unknown as readonly Record<string, unknown>[],
+    attestation: buildAttestation(input.intake ?? {}) as unknown as Record<string, unknown>,
     eu_persuasive_authority: buildEuAuthoritySection(
       input.intake ?? {},
       input.eu_authority_corpus ?? null,

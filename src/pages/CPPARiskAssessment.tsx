@@ -395,15 +395,19 @@ export default function CPPARiskAssessment() {
   const [a4BenefitConsumer, setA4BenefitConsumer] = useState("");
   const [a4BenefitOtherStakeholders, setA4BenefitOtherStakeholders] = useState("");
   const [a4BenefitPublic, setA4BenefitPublic] = useState("");
-  const [a5HarmPathways, setA5HarmPathways] = useState<{ harm: string; source: string; cause: string; likelihood: string; severity: string }[]>([
-    { harm: "", source: "", cause: "", likelihood: "", severity: "" },
+  // UPGRADE-2 (ITEM 4) — the pathway triple (data / actor / route) and the
+  // per-safeguard residual-risk statement required by § 7152(a)(5)-(6).
+  const [a5HarmPathways, setA5HarmPathways] = useState<{ harm: string; data_involved: string; actor: string; source: string; cause: string; likelihood: string; severity: string }[]>([
+    { harm: "", data_involved: "", actor: "", source: "", cause: "", likelihood: "", severity: "" },
   ]);
-  const [a6Safeguards, setA6Safeguards] = useState<{ harm: string; safeguard: string; safeguard_status: string }[]>([
-    { harm: "", safeguard: "", safeguard_status: "" },
+  const [a6Safeguards, setA6Safeguards] = useState<{ harm: string; safeguard: string; safeguard_status: string; residual: string }[]>([
+    { harm: "", safeguard: "", safeguard_status: "", residual: "" },
   ]);
   const [a9ApproverName, setA9ApproverName] = useState("");
   const [a9ApproverPosition, setA9ApproverPosition] = useState("");
   const [a9ApprovalDate, setA9ApprovalDate] = useState("");
+  // § 7152(a)(8) — who provided the information in the assessment.
+  const [a8InformationProviders, setA8InformationProviders] = useState("");
   const [i4bSources, setI4bSources] = useState("");          // § 7152(a)(3) sources of the PI
 
   // TURN 1b — CPPA-STANDARD-SETTER intake additions:
@@ -713,6 +717,7 @@ export default function CPPARiskAssessment() {
     a9_approver_name: a9ApproverName.trim(),
     a9_approver_position: a9ApproverPosition.trim(),
     a9_approval_date: a9ApprovalDate,
+    a8_information_providers: a8InformationProviders.trim(),
     // Improvement Kit (Doc N R1): parallel assertions map, only when
     // the flag is on AND at least one designated field carries an
     // entry. Absent key = legacy semantics.
@@ -729,7 +734,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, exceptionClaims, impactData,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
-    a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate,
+    a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
     assertions,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
 
@@ -1847,6 +1852,8 @@ export default function CPPARiskAssessment() {
                           <option value="">Select the statutory impact category…</option>
                           {HARM_PATHWAY_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
+                        <Textarea rows={2} value={row.data_involved} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, data_involved: e.target.value } : r))} placeholder="Data involved — the specific elements exposed on this pathway." />
+                        <Textarea rows={2} value={row.actor} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, actor: e.target.value } : r))} placeholder="Actor — who or what acts on the data (internal team, vendor, attacker, the model itself)." />
                         <Textarea rows={2} value={row.source} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, source: e.target.value } : r))} placeholder="Source of the impact (e.g. third-party ad partners receiving segment data)." />
                         <Textarea rows={2} value={row.cause} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, cause: e.target.value } : r))} placeholder="Cause — what about this processing produces the impact." />
                         <div className="grid gap-2 md:grid-cols-2">
@@ -1871,7 +1878,7 @@ export default function CPPARiskAssessment() {
                     ))}
                   </div>
                   <div className="mt-2 flex gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => setA5HarmPathways((r) => [...r, { harm: "", source: "", cause: "", likelihood: "", severity: "" }])}>Add impact</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setA5HarmPathways((r) => [...r, { harm: "", data_involved: "", actor: "", source: "", cause: "", likelihood: "", severity: "" }])}>Add impact</Button>
                     {a5HarmPathways.length > 1 && (
                       <Button type="button" variant="ghost" size="sm" onClick={() => setA5HarmPathways((r) => r.slice(0, -1))}>Remove last</Button>
                     )}
@@ -1902,11 +1909,12 @@ export default function CPPARiskAssessment() {
                           <option value="">Implementation status…</option>
                           {SAFEGUARD_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
+                        <Textarea rows={2} value={row.residual} onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, residual: e.target.value } : r))} placeholder="Residual risk — what remains after this safeguard is in place." />
                       </div>
                     ))}
                   </div>
                   <div className="mt-2 flex gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => setA6Safeguards((r) => [...r, { harm: "", safeguard: "", safeguard_status: "" }])}>Add safeguard</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setA6Safeguards((r) => [...r, { harm: "", safeguard: "", safeguard_status: "", residual: "" }])}>Add safeguard</Button>
                     {a6Safeguards.length > 1 && (
                       <Button type="button" variant="ghost" size="sm" onClick={() => setA6Safeguards((r) => r.slice(0, -1))}>Remove last</Button>
                     )}
@@ -1921,7 +1929,11 @@ export default function CPPARiskAssessment() {
                     <input className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApproverPosition} onChange={(e) => setA9ApproverPosition(e.target.value)} placeholder="Approver position" />
                     <input type="date" className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApprovalDate} onChange={(e) => setA9ApprovalDate(e.target.value)} />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Legal counsel who provided legal advice is excluded from this record by § 7152(a)(9).</p>
+                  <div className="mt-3">
+                    <Label>Who provided the information in this assessment? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(8))</span></Label>
+                    <Textarea className="mt-2" rows={2} value={a8InformationProviders} onChange={(e) => setA8InformationProviders(e.target.value)} placeholder="Names and positions of the people who supplied the facts recorded here. Exclude legal counsel who provided legal advice." />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Legal counsel who provided legal advice is excluded from this record by § 7152(a)(8)-(9).</p>
                 </div>
               </div>
             </>

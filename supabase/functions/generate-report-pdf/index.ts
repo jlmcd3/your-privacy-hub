@@ -1183,6 +1183,114 @@ function isLtpRiskShape(report: any): boolean {
  * assembler-emitted section renders non-blank; omitted sections
  * degrade gracefully (no <section> element written).
  */
+
+// UPGRADE-2 — PDF twin of src/components/cppa/RiskAnalyticDeliverables.tsx.
+// Renders the six § 7152(a) structured deliverables in statutory order, then
+// the § 7152(a)(8)-(9) attestation block. Order and labels are kept in lockstep
+// with the screen renderer so the two surfaces never diverge.
+const RISK_BENEFICIARY_LABELS: Record<string, string> = {
+  business: "The business",
+  consumer: "Consumers",
+  other_stakeholders: "Other stakeholders",
+  public: "The public",
+};
+const RISK_VERDICT_LABELS: Record<string, string> = {
+  supported_as_necessary: "Necessary on the record",
+  minimisation_candidate: "Not shown necessary — minimisation candidate",
+  undetermined_on_the_record: "Record insufficient",
+};
+const RISK_DECISION_LABELS: Record<string, string> = {
+  initiate: "Initiate the processing",
+  initiate_with_modifications: "Initiate with modifications",
+  restrict: "Restrict the processing",
+  prohibit: "Do not initiate the processing",
+  reserved_insufficient_record: "Reserved — the record is insufficient to decide",
+};
+const RISK_OUTWEIGH_LABELS: Record<string, string> = {
+  benefits_outweigh: "Benefits outweigh the negative impacts",
+  impacts_outweigh: "Negative impacts outweigh the benefits",
+  close_balance: "Close balance",
+  undetermined_on_the_record: "Undetermined on the record",
+};
+
+function buildCPPARiskDeliverablesHTML(report: any): string {
+  const t = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+  const lab = (m: Record<string, string>, v: any) => t(m[String(v ?? "")] ?? String(v ?? "").replace(/_/g, " "));
+  const f = (k: string, v: any) =>
+    v === undefined || v === null || v === "" ? "" : `<p><span class="label">${t(k)}:</span> ${t(v)}</p>`;
+  const raw = (k: string, v: string) => (v ? `<p><span class="label">${t(k)}:</span> ${v}</p>` : "");
+  const note = (v: any) => (v ? `<p class="muted"><em>${t(v)}</em></p>` : "");
+  const rows = Array.isArray(report?.activity_analytics) ? report.activity_analytics : [];
+  if (rows.length === 0) return "";
+
+  const body = rows.map((a: any, i: number) => {
+    const nec = Array.isArray(a?.necessity_analysis) ? a.necessity_analysis : [];
+    const ben = Array.isArray(a?.benefits) ? a.benefits : [];
+    const harm = Array.isArray(a?.harm_causation) ? a.harm_causation : [];
+    const safe = Array.isArray(a?.safeguard_map) ? a.safeguard_map : [];
+    const weigh = Array.isArray(a?.weighing) ? a.weighing : [];
+    const cons = a?.consequence;
+    return `<div class="card">
+      <h3>${t(a?.activity_name || `Activity ${i + 1}`)}</h3>
+      ${f("Purpose", a?.activity_purpose)}
+      ${nec.length ? `<h4>§ 7152(a)(2) — Is each element of personal information necessary?</h4>${nec.map((n: any) => `<div class="sub">
+        ${f("Element", n?.element)}${f("Purpose served", n?.purpose_served)}
+        ${raw("Verdict", lab(RISK_VERDICT_LABELS, n?.verdict))}${f("Why", n?.justification)}${note(n?.information_needed)}
+      </div>`).join("")}` : ""}
+      ${ben.length ? `<h4>§ 7152(a)(4) — Benefits, by beneficiary</h4>${ben.map((b: any) => `<div class="sub">
+        ${raw("Beneficiary", lab(RISK_BENEFICIARY_LABELS, b?.beneficiary_class))}${f("Benefit", b?.benefit)}
+        ${f("Supporting record fact", b?.supporting_record_fact)}${note(b?.information_needed)}
+      </div>`).join("")}` : ""}
+      ${harm.length ? `<h4>§ 7152(a)(5) — Negative impacts: source, cause and pathway</h4>${harm.map((h: any) => `<div class="sub">
+        ${f("Harm", `${h?.harm_label ?? ""} (${h?.harm_pinpoint ?? ""})`)}
+        ${h?.harm_verbatim ? `<blockquote>${t(h.harm_verbatim)}</blockquote>` : ""}
+        ${f("Data involved", h?.data_involved)}${f("Actor", h?.actor)}${f("Pathway", h?.pathway)}
+        ${f("Source", h?.source)}${f("Cause", h?.cause)}${note(h?.information_needed)}
+      </div>`).join("")}` : ""}
+      ${safe.length ? `<h4>§ 7152(a)(6) — Safeguards and the risk that remains</h4>${safe.map((s: any) => `<div class="sub">
+        ${f("Safeguard", s?.safeguard)}
+        ${f("Impacts addressed", Array.isArray(s?.harm_ids) ? s.harm_ids.join(", ") : s?.harm_id)}
+        ${f("Residual risk", s?.residual_statement)}${note(s?.information_needed)}
+      </div>`).join("")}` : ""}
+      ${weigh.length ? `<h4>§ 7152(a) · § 7154(a) — The weighing</h4>${weigh.map((w: any) => `<div class="sub">
+        ${raw("Beneficiary", lab(RISK_BENEFICIARY_LABELS, w?.beneficiary_class))}
+        ${f("The case for", w?.case_for)}${f("The case against", w?.case_against)}
+        ${raw("Determination", lab(RISK_OUTWEIGH_LABELS, w?.outweigh_determination))}
+        ${f("Reasoning", w?.reasoning)}${note(w?.information_needed)}
+      </div>`).join("")}` : ""}
+      ${cons ? `<h4>§ 7152(a)(7) — Consequence</h4><div class="sub">
+        ${raw("Decision", lab(RISK_DECISION_LABELS, cons?.decision))}
+        ${Array.isArray(cons?.reasons) && cons.reasons.length ? `<ul>${cons.reasons.map((r: any) => `<li>${t(r)}</li>`).join("")}</ul>` : ""}
+        ${Array.isArray(cons?.modifications) && cons.modifications.length ? `<p class="label">Modifications</p><ul>${cons.modifications.map((m: any) => `<li>${t(m?.modification)} — <em>addresses:</em> ${t(m?.addresses_risk)}</li>`).join("")}</ul>` : ""}
+        ${note(cons?.information_needed)}
+      </div>` : ""}
+    </div>`;
+  }).join("");
+
+  return `<section><h2>The § 7152(a) analysis, activity by activity</h2>${body}</section>`;
+}
+
+function buildCPPARiskAttestationHTML(report: any): string {
+  const t = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+  const b = report?.attestation_block;
+  if (!b || typeof b !== "object") return "";
+  const providers = Array.isArray(b.information_providers) ? b.information_providers : [];
+  const approvers = Array.isArray(b.approvers) ? b.approvers : [];
+  const hasAny = providers.length || approvers.length || b.review_date || b.approval_date ||
+    b.approval_authority_requirement || b.text;
+  if (!hasAny) return "";
+  return `<section><h2>Who provided the information, and who reviewed and approved this assessment</h2>
+    <p><span class="label">Information providers (§ 7152(a)(8)):</span> ${providers.length ? t(providers.join("; ")) : "Not stated on the record"}</p>
+    ${b.legal_counsel_excluded ? `<p class="muted">Legal counsel is excluded from this list, as § 7152(a)(8) requires.</p>` : ""}
+    <p><span class="label">Date reviewed:</span> ${t(b.review_date || "Not stated on the record")}</p>
+    <p><span class="label">Date approved:</span> ${t(b.approval_date || "Not stated on the record")}</p>
+    <p><span class="label">Approvers (§ 7152(a)(9)):</span> ${approvers.length ? t(approvers.map((a: any) => `${a?.name ?? ""} — ${a?.position ?? ""}`).join("; ")) : "Not stated on the record"}</p>
+    ${b.approval_authority_requirement ? `<p>${t(b.approval_authority_requirement)}</p>` : ""}
+    ${b.text ? `<p>${t(b.text)}</p>` : ""}
+    ${b.information_needed ? `<p class="muted"><em>${t(b.information_needed)}</em></p>` : ""}
+  </section>`;
+}
+
 function buildCPPARiskLtpHTML(report: any, record: any): string {
   const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
   const para = (v: string) => `<p>${text(v).replace(/\n+/g, "</p><p>")}</p>`;
@@ -1231,6 +1339,12 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   .card { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
   .label { font-weight:700; color:var(--navy); }
   .opening { font-size:12pt; color:var(--navy); font-style:italic; margin-bottom:14px; }
+  h3 { color:var(--navy); font-size:14px; margin:14px 0 6px; }
+  h4 { color:var(--navy); font-size:12px; margin:12px 0 4px; }
+  .sub { border-left:2px solid var(--border); padding-left:10px; margin-bottom:8px; }
+  .muted { color:var(--muted); font-size:10px; }
+  blockquote { border-left:2px solid var(--border); margin:4px 0 4px 10px; padding-left:10px; color:var(--muted); font-size:10px; }
+  ${AUTHORITY_EXHIBIT_CSS}
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
@@ -1252,6 +1366,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("scope_and_triggers", "Scope & Triggers", scopeTrig || scopeConf)}
     ${listSection("processing_narrative", "How the business processes personal information", processingNarrative)}
     ${listSection("risk_assessment_by_activity", "Risk Assessment by Activity", activityPara)}
+    ${buildCPPARiskDeliverablesHTML(report)}
     ${listSection("exception_analysis", "Exception Analysis", exceptions)}
     ${listSection("priority_actions", "Priority Actions", priority)}
     ${listSection("next_steps", "Next Steps", nextSteps)}
@@ -1259,6 +1374,8 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("information_needed", "Items for Your Review", infoNeeded)}
     ${listSection("record_sufficiency", "Record Sufficiency", recordSuf)}
     ${submission ? `<section><h2>${text(headerForSection("submission_summary", "Submission Summary"))}</h2>${para(submission)}</section>` : ""}
+    ${buildCPPARiskAttestationHTML(report)}
+    ${renderAuthorityExhibitHtml(report?.authority_exhibit)}
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.build_stamp ? ` · build ${text(meta.build_stamp)}` : ""}</div>
   </div>
 </div></body></html>`;

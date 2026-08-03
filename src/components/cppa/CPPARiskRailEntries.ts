@@ -661,5 +661,55 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7152(a)(3)", label: "Operational elements of the processing" },
     ],
   },
+
+  // UPGRADE-2 (ITEM 5) — rail entries for the three new § 7152(a) intake
+  // fields. Every regulationText below is a byte-exact substring of corpus
+  // row cppa-7152 (provision_texts.verbatim_excerpt, status approved).
+  a5_harm_pathway_triple: {
+    fieldLabel: "A-5: Data involved, actor, and pathway for each impact",
+    citation: "11 CCR \u00a7 7152(a)(5)",
+    citationUrl: CPPA_URL,
+    plainSummary: "For each negative impact, the assessment must identify its sources and causes. Recording the data involved, the actor who acts on it, and the route between them makes the source-and-cause statement traceable instead of conclusory.",
+    regulationText: "negative impacts to consumers\u2019 privacy associated with the\nprocessing. The business must identify the sources and causes of these\nnegative impacts.",
+    coachLead: "Three separate facts: which data, which actor, which route.",
+    coachBody: "Write each as its own answer. The data field names elements, not categories; the actor names who or what acts; the route names the step in the processing that connects them. Merging the three into one sentence hides whichever one is missing.",
+    goodAnswer: "\u201CData: home address history. Actor: the screening vendor\u2019s support team. Pathway: bulk export to a shared drive during dispute handling.\u201D \u2014 three answers, each independently checkable.",
+    commonMistake: "Naming the harm again in place of the pathway. The impact category is already recorded above; this asks how it would actually happen.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7152(a)(6)", label: "Safeguards addressing the impact" },
+    ],
+  },
+
+  a6_residual: {
+    fieldLabel: "A-6: Residual risk after the safeguard",
+    citation: "11 CCR \u00a7 7152(a)(6)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Safeguards are recorded against the negative impacts they address. Stating what remains after the safeguard is what lets the weighing reach a determination rather than assume the impact is eliminated.",
+    regulationText: "(6) Identify and document in a risk assessment report any safeguards that\nthe business plans to implement for the processing, such as safeguards to\naddress the negative impacts identified in subsection (a)(5).",
+    coachLead: "State what is still exposed once this safeguard is running.",
+    coachBody: "Answer in terms of the same impact, reduced: who is still affected, in what circumstances, and how often. \u201CRisk eliminated\u201D is only accurate if the pathway itself is closed \u2014 if it is, say which step removes it.",
+    goodAnswer: "\u201CExport is limited to two named staff, so the exposure narrows to those accounts; a credential compromise still reaches the full address history.\u201D \u2014 the reduction and the remainder, both stated.",
+    commonMistake: "Repeating the safeguard in different words. This field is the leftover, not a second description of the control.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7152(a)(5)", label: "Negative impacts" },
+      { citation: "11 CCR \u00a7 7154", label: "Goal of a risk assessment" },
+    ],
+  },
+
+  a8_information_providers: {
+    fieldLabel: "Who provided the information in this assessment?",
+    citation: "11 CCR \u00a7 7152(a)(8)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The assessment must record the individuals who provided the information it relies on, except legal counsel who provided legal advice. This is a separate record from the review-and-approval entry under subsection (a)(9).",
+    regulationText: "(8) Identify and document in a risk assessment report the individuals who\nprovided the information for the risk assessment, except for legal counsel\nwho provided legal advice.",
+    coachLead: "Name people and positions, not departments.",
+    coachBody: "One line per person: name, position, and which part of the record they supplied. A team name cannot be asked a follow-up question, which is what this record exists to enable.",
+    goodAnswer: "\u201CR. Alvarez, Staff Data Engineer \u2014 retention and deletion mechanics; T. Okafor, Fraud Operations Manager \u2014 review workflow.\u201D \u2014 attributable, scoped answers.",
+    commonMistake: "Including counsel who advised on the legal analysis. Subsection (a)(8) excludes legal counsel who provided legal advice.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7152(a)(9)", label: "Review and approval record" },
+    ],
+  },
+
 };
 

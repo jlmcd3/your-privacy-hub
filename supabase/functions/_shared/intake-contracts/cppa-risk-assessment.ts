@@ -377,6 +377,10 @@ export const cppaRiskContract: IntakeContract = {
     { key: "a5_harm_pathways",              kind: "structured", required: "always" },
     { key: "a5_harm_pathways[].harm",       kind: "enum",       required: "always",
       options: HARM_PATHWAY_OPTS },
+    // UPGRADE-2 (ITEM 4) — § 7152(a)(5) pathway triple: what data, what actor,
+    // what route. These feed harm_causation[] directly.
+    { key: "a5_harm_pathways[].data_involved", kind: "narrative", required: "always", askEligible: true },
+    { key: "a5_harm_pathways[].actor",      kind: "narrative",  required: "always", askEligible: true },
     { key: "a5_harm_pathways[].source",     kind: "narrative",  required: "always", askEligible: true },
     { key: "a5_harm_pathways[].cause",      kind: "narrative",  required: "always", askEligible: true },
     { key: "a5_harm_pathways[].likelihood", kind: "enum",       required: "always",
@@ -391,6 +395,9 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: "a safeguard row is present", askEligible: true },
     { key: "a6_safeguards[].safeguard_status", kind: "enum",    required: "conditional",
       requiredWhen: "a safeguard row is present", options: SAFEGUARD_STATUS_OPTS },
+    // UPGRADE-2 (ITEM 4) — § 7152(a)(6) residual risk after the safeguard.
+    { key: "a6_safeguards[].residual", kind: "narrative",  required: "conditional",
+      requiredWhen: "a safeguard row is present", askEligible: true },
 
     // § 7152(a)(9) — review-and-approval record. Distinct from the
     // i8_certifying_exec_* pair (the person who CERTIFIES the submission);
@@ -399,6 +406,9 @@ export const cppaRiskContract: IntakeContract = {
     { key: "a9_approver_name",     kind: "text", required: "always" },
     { key: "a9_approver_position", kind: "text", required: "always" },
     { key: "a9_approval_date",     kind: "date", required: "optional" },
+    // UPGRADE-2 (ITEM 4) — § 7152(a)(8) information providers. Legal counsel
+    // who provided legal advice is excluded from this record.
+    { key: "a8_information_providers", kind: "narrative", required: "always", askEligible: true },
   ],
 
 };

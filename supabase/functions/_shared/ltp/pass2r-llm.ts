@@ -254,6 +254,8 @@ export async function runPass2r(
     perAttemptTimeoutMs?: number;
     stageCeilingMs?: number;
     maxAttempts?: number;
+    /** UPGRADE-2 (ITEM 2) — §§ 7150-7157 corpus law block appended to the prompt. */
+    corpusLawBlock?: string;
   } = {},
 ): Promise<Pass2rResult> {
   const t0 = Date.now();
@@ -273,7 +275,10 @@ export async function runPass2r(
     deadline_literals: ctx.deadline_literals,
   });
 
-  const baseUser = fillPass2rUser(locked, wl);
+  const filledUser = fillPass2rUser(locked, wl);
+  const baseUser = opts.corpusLawBlock && opts.corpusLawBlock.trim().length > 0
+    ? `${filledUser}\n\n${opts.corpusLawBlock}`
+    : filledUser;
   const details: Pass2rAttemptDetail[] = [];
   let lastValidation: Pass2rValidationResult | null = null;
   let lastRejectedDoc: Pass2rProseDocument | null = null;
@@ -424,6 +429,8 @@ export interface ProsePassStageOptions {
   readonly remainingBudgetMs?: number;
   readonly call?: Pass2rCallFn;
   readonly callerName?: string;
+  /** UPGRADE-2 (ITEM 2) — §§ 7150-7157 corpus law block for prompt assembly. */
+  readonly corpusLawBlock?: string;
 }
 
 export interface ProsePassStageResult {
@@ -516,7 +523,7 @@ export async function runProsePassStage(
       close_outcome: ctx?.close_outcome,
       registry_keys: ctx?.registry_keys ?? contentBearingRegistryKeys(deterministicReport),
       deadline_literals: ctx?.deadline_literals,
-    }, { mode, call: opts.call, callerName: opts.callerName });
+    }, { mode, call: opts.call, callerName: opts.callerName, corpusLawBlock: opts.corpusLawBlock });
   } catch (e) {
     // FALLBACK LAW — an adapter throw is still a deterministic ship.
     return skipped(

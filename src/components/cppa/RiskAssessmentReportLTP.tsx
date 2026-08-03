@@ -11,6 +11,12 @@ import {
   coerceNarrativeScalar,
   headerForSection,
 } from "@/lib/cppa-risk-shape";
+import {
+  RiskAnalyticDeliverables,
+  RiskAttestationBlock,
+} from "@/components/cppa/RiskAnalyticDeliverables";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
+
 
 /** Renders `**bold**` spans inline; everything else is plain text. */
 function InlineText({ value }: { value: string }) {
@@ -191,6 +197,9 @@ export default function RiskAssessmentReportLTP({
         fallbackTitle="Risk Assessment by Activity"
         value={report?.risk_assessment_by_activity}
       />
+      {/* UPGRADE-2 — the six § 7152(a) structured deliverables, in statutory order. */}
+      <RiskAnalyticDeliverables analytics={report?.activity_analytics} />
+
       <ListSection
         sectionKey="exception_analysis"
         fallbackTitle="Exception Analysis"
@@ -223,6 +232,12 @@ export default function RiskAssessmentReportLTP({
         value={report?.submission_summary}
       />
 
+      {/* UPGRADE-2 — § 7152(a)(8)-(9) attestation, at the END of the body. */}
+      <RiskAttestationBlock block={report?.attestation_block} />
+
+      {/* ITEM 371 — authorities cited, after the body, before the disclaimer. */}
+      <AuthorityExhibit exhibit={report?.authority_exhibit} />
+
       {meta.build_stamp && (
         <p className="text-[10px] text-muted-foreground text-center mt-3">
           build {String(meta.build_stamp)}
@@ -231,3 +246,4 @@ export default function RiskAssessmentReportLTP({
     </div>
   );
 }
+

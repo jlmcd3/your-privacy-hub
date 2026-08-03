@@ -33,7 +33,7 @@
  * are OPTIONAL — the LTP-shape wire carries strings.
  */
 
-export const CPPA_RISK_SHAPE_VERSION = "cppa-risk-shape@2026-07-28-item244-wired-headers-l1";
+export const CPPA_RISK_SHAPE_VERSION = "cppa-risk-shape@2026-08-03-upgrade2-deliverables";
 
 /**
  * ITEM 244 (E3) — CUSTOMER-FIRST SECTION HEADERS. Shared header map;
@@ -63,6 +63,8 @@ export const CPPA_RISK_HEADER_MAP: Readonly<Record<string, string>> = {
   exception_analysis: "Where the record admits a reserved exception",
   record_sufficiency: "How complete the record is against § 7152(a)",
   information_needed: "Items for your review",
+  // UPGRADE-2 — § 7152(a) deliverables + attestation.
+  activity_analytics: "The § 7152(a) analysis, activity by activity",
   submission_summary: "How to submit and retain this assessment",
 };
 

@@ -86,6 +86,10 @@ const base = {
   a5_harm_pathways: [
     {
       harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+      data_involved:
+        "Account email addresses joined to device cookie identifiers and IP-derived approximate location in the telemetry event store.",
+      actor:
+        "Any holder of the analytics service-account credential, including an engineer outside the measurement team who inherits it.",
       source:
         "The telemetry event store, which holds account email addresses joined to device identifiers, is readable by the analytics service account.",
       cause:
@@ -95,6 +99,10 @@ const base = {
     },
     {
       harm: "(C) Impairment of consumer control over personal information",
+      data_involved:
+        "IP-derived approximate location retained against the free-tier account record.",
+      actor:
+        "The business itself, through the signup notice it publishes to free-tier consumers.",
       source:
         "The free-tier signup notice describes telemetry collection but does not name the derived approximate-location field.",
       cause:
@@ -109,14 +117,20 @@ const base = {
       safeguard:
         "The analytics service account is scoped to the measurement views only, credentials rotate every 30 days, and exports are logged and reviewed weekly.",
       safeguard_status: "Implemented and tested",
+      residual:
+        "Scoping narrows the exposure to the measurement views, but a compromise of the rotated credential inside its 30-day window still reaches the joined email-to-device table.",
     },
     {
       harm: "(C) Impairment of consumer control over personal information",
       safeguard:
         "The notice at collection is being amended to name IP-derived approximate location and the telemetry SDK default is being disabled.",
       safeguard_status: "Implemented and tested",
+      residual:
+        "Consumers who enrolled before the amended notice published made their opt-out choice on the earlier description, and that cohort remains affected until the retained location field is purged.",
     },
   ],
+  a8_information_providers:
+    "Devin Cho, Staff Analytics Engineer — telemetry pipeline scope and retention; Marta Lindqvist, Free-Tier Product Manager — purpose and onboarding decision use; Sam Ovitt, Security Engineer — service-account controls.",
   a9_approver_name: "Priya Raman",
   a9_approver_position: "General Counsel",
   a9_approval_date: "2026-07-30",
