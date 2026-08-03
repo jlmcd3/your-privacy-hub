@@ -13,6 +13,8 @@ export type FetcherResult = {
   http_status?: number;
   reason?: string;
   fetched_from_cache?: boolean;
+  /** True when the body came from the Wayback Machine, not the live origin. */
+  from_archive?: boolean;
 };
 
 const IDENTIFYING_UA =
@@ -293,37 +295,90 @@ export async function fetchSourceDocument(
     return { status: "skipped", reason: "robots_disallow" };
   }
 
-  // 3. HTTP GET with retries
+  const live = await fetchAndParse(url);
+  if (live.status === "ok") {
+    await cacheDocument(url, live);
+    return live;
+  }
+
+  // 3b. Archive fallback. Several regulator hosts (notably www.hhs.gov) now
+  //     answer 403 to every non-browser client, and some pages 404/500 after a
+  //     site migration. The Wayback Machine holds the original document, so a
+  //     single archived attempt recovers the record instead of burning the
+  //     row's remaining attempts against a permanently blocked origin.
+  if (WAYBACK_RECOVERABLE.includes(live.reason ?? "") && !isWaybackUrl(url)) {
+    const archived = await fetchAndParse(waybackUrl(url));
+    console.log(JSON.stringify({
+      evt: "archive_fallback",
+      url,
+      live_reason: live.reason,
+      live_status: live.http_status,
+      archive_status: archived.status,
+      archive_reason: archived.reason,
+      chars: archived.content_text?.length ?? 0,
+    }));
+    if (archived.status === "ok") {
+      const result: FetcherResult = { ...archived, from_archive: true };
+      // Cache under the ORIGINAL url so downstream lookups resolve normally.
+      await cacheDocument(url, result);
+      return result;
+    }
+  }
+
+  return live;
+}
+
+/** Reasons where an archived copy is worth one extra attempt. */
+const WAYBACK_RECOVERABLE = ["http_error", "fetch_error", "empty_content"];
+
+function isWaybackUrl(url: string): boolean {
+  return /(^|\/\/)web\.archive\.org\//i.test(url);
+}
+
+function waybackUrl(url: string): string {
+  // `id_` returns the raw archived payload without the Wayback banner/rewrites.
+  return `https://web.archive.org/web/2024id_/${url}`;
+}
+
+async function cacheDocument(url: string, r: FetcherResult): Promise<void> {
+  if (r.status !== "ok" || !r.content_text || r.fetched_from_cache) return;
+  try {
+    await sb.from("source_document_cache").upsert(
+      {
+        source_url: url,
+        content_hash: r.content_hash,
+        content_text: r.content_text,
+        content_type: r.content_type ?? "text/html",
+        fetched_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+      },
+      { onConflict: "source_url" },
+    );
+  } catch {
+    // ignore cache write failure
+  }
+}
+
+/** HTTP GET with retries + content extraction. Never throws. */
+async function fetchAndParse(url: string): Promise<FetcherResult> {
   const backoffs = [0, 1_000, 4_000, 16_000];
-  let lastErr: unknown = null;
   let res: Response | null = null;
   for (let i = 0; i < backoffs.length; i++) {
     if (backoffs[i]) await new Promise((r) => setTimeout(r, backoffs[i]));
     try {
       res = await fetchWithUaStrategy(url, hostTimeoutMs(url));
-      if (res.status >= 500) {
-        lastErr = new Error(`HTTP ${res.status}`);
-        continue;
-      }
+      if (res.status >= 500) continue;
       break;
-    } catch (e) {
-      lastErr = e;
+    } catch {
+      res = null;
       continue;
     }
   }
   if (!res) {
-    return {
-      status: "fail",
-      reason: "fetch_error",
-      http_status: 0,
-    };
+    return { status: "fail", reason: "fetch_error", http_status: 0 };
   }
   if (res.status >= 400) {
-    return {
-      status: "fail",
-      reason: "http_error",
-      http_status: res.status,
-    };
+    return { status: "fail", reason: "http_error", http_status: res.status };
   }
 
   const ct = (res.headers.get("content-type") || "").toLowerCase();
@@ -331,12 +386,12 @@ export async function fetchSourceDocument(
   let contentTypeShort = "text/html";
 
   try {
-    if (ct.includes("application/pdf") || url.toLowerCase().endsWith(".pdf")) {
+    if (ct.includes("application/pdf") || /\.pdf(\?|#|$)/i.test(url)) {
       contentTypeShort = "application/pdf";
       const buf = new Uint8Array(await res.arrayBuffer());
       try {
         contentText = await pdfToText(buf);
-      } catch (e) {
+      } catch {
         return {
           status: "skipped",
           reason: "pdf_parse_failed",
@@ -380,30 +435,12 @@ export async function fetchSourceDocument(
     };
   }
 
-  const hash = await sha256(contentText);
-
-  // Cache write (best-effort)
-  try {
-    await sb.from("source_document_cache").upsert(
-      {
-        source_url: url,
-        content_hash: hash,
-        content_text: contentText,
-        content_type: contentTypeShort,
-        fetched_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
-      },
-      { onConflict: "source_url" },
-    );
-  } catch {
-    // ignore cache write failure
-  }
-
   return {
     status: "ok",
     content_text: contentText,
-    content_hash: hash,
+    content_hash: await sha256(contentText),
     content_type: contentTypeShort,
     fetched_from_cache: false,
   };
 }
+
