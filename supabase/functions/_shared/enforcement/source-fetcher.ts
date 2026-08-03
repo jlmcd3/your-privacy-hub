@@ -83,39 +83,113 @@ async function fetchWithUaStrategy(
 }
 
 
-// Very small robots.txt parser. We honour Disallow rules for our UA or "*".
-// On any error/timeout we fail-open (allow).
+// PASS B (2026-08-03) — RFC 9309 robots.txt matcher.
+//
+// The previous parser produced false `robots_disallow` verdicts, which is a
+// large share of the stranded doc-less population:
+//   (1) it ignored `Allow:` entirely, so `Disallow: /` + `Allow: /decyzje/`
+//       (the shape uodo.gov.pl and several DPAs publish) blocked everything;
+//   (2) it had no wildcard support, so `Disallow: /*?print` was treated as a
+//       literal prefix and matched nothing, while `Disallow: /*` matched
+//       nothing either;
+//   (3) it accumulated Disallow lines from EVERY group whose header happened
+//       to precede them, instead of selecting one group;
+//   (4) it re-fetched robots.txt for every single URL on the same host.
+//
+// RFC 9309 semantics implemented here: pick the most specific matching group
+// (our UA name, else `*`), support `*` and `$`, and let the LONGEST matching
+// rule win, with Allow beating Disallow on an equal-length tie. Fail-open on
+// any error or timeout, per the original contract. Decisions are memoised per
+// origin for the lifetime of the isolate.
+type RobotsRule = { allow: boolean; pattern: string };
+const robotsCache = new Map<string, RobotsRule[] | null>();
+
+function robotsPatternToRegex(pattern: string): RegExp {
+  let src = "";
+  for (const ch of pattern) {
+    if (ch === "*") src += ".*";
+    else if (ch === "$") src += "$";
+    else src += ch.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+  }
+  return new RegExp("^" + src);
+}
+
+/** Effective length of a rule for RFC 9309 longest-match precedence. */
+function ruleLength(pattern: string): number {
+  return pattern.replace(/\$$/, "").length;
+}
+
+function parseRobots(text: string): RobotsRule[] {
+  const groups: Array<{ agents: string[]; rules: RobotsRule[] }> = [];
+  let current: { agents: string[]; rules: RobotsRule[] } | null = null;
+  let expectingAgents = false;
+
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.replace(/#.*/, "").trim();
+    if (!line) continue;
+    const m = line.match(/^(User-agent|Disallow|Allow)\s*:\s*(.*)$/i);
+    if (!m) continue;
+    const key = m[1].toLowerCase();
+    const val = m[2].trim();
+
+    if (key === "user-agent") {
+      if (!current || !expectingAgents) {
+        current = { agents: [], rules: [] };
+        groups.push(current);
+        expectingAgents = true;
+      }
+      if (val) current.agents.push(val.toLowerCase());
+      continue;
+    }
+    if (!current) continue;
+    expectingAgents = false;
+    // An empty Disallow value means "allow everything" and carries no rule.
+    if (!val) continue;
+    current.rules.push({ allow: key === "allow", pattern: val });
+  }
+
+  const ua = IDENTIFYING_UA.split("/")[0].toLowerCase(); // "eup-verification-scanner"
+  const specific = groups.filter((g) => g.agents.some((a) => a !== "*" && ua.includes(a)));
+  const wildcard = groups.filter((g) => g.agents.includes("*"));
+  const chosen = specific.length > 0 ? specific : wildcard;
+  return chosen.flatMap((g) => g.rules);
+}
+
+async function robotsRulesFor(origin: string): Promise<RobotsRule[] | null> {
+  if (robotsCache.has(origin)) return robotsCache.get(origin) ?? null;
+  let rules: RobotsRule[] | null = null;
+  try {
+    const res = await fetchWithTimeout(
+      `${origin}/robots.txt`,
+      { headers: { ...COMMON_HEADERS, "User-Agent": IDENTIFYING_UA } },
+      5_000,
+    );
+    // 4xx/5xx robots.txt means "no restrictions known" — fail open.
+    rules = res.ok ? parseRobots(await res.text()) : null;
+  } catch {
+    rules = null;
+  }
+  robotsCache.set(origin, rules);
+  return rules;
+}
+
 async function robotsAllows(targetUrl: string): Promise<boolean> {
   try {
     const u = new URL(targetUrl);
-    const robotsUrl = `${u.origin}/robots.txt`;
-    const res = await fetchWithTimeout(
-      robotsUrl,
-      { headers: { "User-Agent": IDENTIFYING_UA } },
-      5_000,
-    );
-    if (!res.ok) return true;
+    const rules = await robotsRulesFor(u.origin);
+    if (!rules || rules.length === 0) return true;
 
-    const text = await res.text();
-    const lines = text.split(/\r?\n/);
-    let applies = false;
-    const disallows: string[] = [];
-    for (const raw of lines) {
-      const line = raw.replace(/#.*/, "").trim();
-      if (!line) continue;
-      const m = line.match(/^(User-agent|Disallow|Allow)\s*:\s*(.*)$/i);
-      if (!m) continue;
-      const key = m[1].toLowerCase();
-      const val = m[2].trim();
-      if (key === "user-agent") {
-        applies =
-          val === "*" ||
-          val.toLowerCase().includes("eup-verification-scanner");
-      } else if (key === "disallow" && applies && val) {
-        disallows.push(val);
+    const path = u.pathname + (u.search ?? "");
+    let best: { allow: boolean; len: number } | null = null;
+    for (const rule of rules) {
+      if (!robotsPatternToRegex(rule.pattern).test(path)) continue;
+      const len = ruleLength(rule.pattern);
+      if (!best || len > best.len || (len === best.len && rule.allow)) {
+        best = { allow: rule.allow, len };
       }
     }
-    return !disallows.some((rule) => u.pathname.startsWith(rule));
+    return best ? best.allow : true;
+
   } catch {
     return true;
   }
