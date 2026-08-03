@@ -1936,6 +1936,42 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-cppa-cybersecurity] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 371 — AUTHORITY EXHIBIT (table of authorities) ──────────
+    // Built from the citations THIS report actually emits, excerpted only from
+    // approved corpus rows; anything else renders citation-only. Fail-open.
+    try {
+      const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const cited = new Set<string>();
+      const walk = (v: unknown): void => {
+        if (typeof v === "string") {
+          for (const m of v.matchAll(/(?:\d+\s*CCR|Cal\.\s*Civ\.\s*Code|GDPR)[^,;.)\]]*?\u00a7+\s*[\d.]+(?:\([a-z0-9]+\))*/gi)) {
+            cited.add(m[0].replace(/\s+/g, " ").trim());
+          }
+          return;
+        }
+        if (Array.isArray(v)) { for (const x of v) walk(x); return; }
+        if (v && typeof v === "object") {
+          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+            if (k === "_meta" || k === "_staging") continue;
+            walk(x);
+          }
+        }
+      };
+      walk(report);
+      const provisions = Object.values(cyberAuthoritySource.provisions)
+        .filter((pr) => pr.status === "approved" && pr.excerpt)
+        .map((pr) => ({ key: pr.key, citation: pr.citation, verbatim_excerpt: String(pr.excerpt), status: pr.status }));
+      const exhibit = buildAuthorityExhibit([...cited], provisions);
+      (report as any).authority_exhibit = exhibit;
+      console.log(JSON.stringify({
+        evt: "cyber_authority_exhibit_attached", fn: "run-cppa-cybersecurity",
+        entries: exhibit.entries.length,
+        pin_verified: exhibit.entries.filter((e) => e.pin_verified).length,
+      }));
+    } catch (axErr) {
+      console.warn("[run-cppa-cybersecurity] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
+    }
+
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
     // Whitelist emit: only schema-declared keys reach the customer. On
     // serializer crash, ship the report unchanged so availability is
