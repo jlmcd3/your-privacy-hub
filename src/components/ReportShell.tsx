@@ -13,7 +13,7 @@
 
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
+import ReportDisclaimer from "@/components/ReportDisclaimer";
 
 export interface ReportShellProps {
   /** Page title shown inside the navy cover */
@@ -139,26 +139,11 @@ export default function ReportShell({
 
       {/* Body */}
       <div className="px-6 py-6 sm:px-8 sm:py-8 space-y-5">
-        {/* Top legal disclaimer */}
-        <div className="border-l-4 border-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.08)] rounded-r-md px-4 py-3">
-          <p className="text-[12px] leading-relaxed text-foreground">
-            <span className="font-semibold text-brand-navy">{topDisclaimerLead}</span>{" "}
-            {topDisclaimer ?? (
-              <>
-                This document is a starting point for your organisation's compliance
-                work, not a finished or authoritative compliance document. Validate
-                findings against your authoritative records before operational reliance;
-                additional information may be required.
-              </>
-            )}
-          </p>
-        </div>
-
         {callout}
 
         {children}
 
-        <ToolDisclaimer addition={disclaimerAddition} />
+        <ReportDisclaimer />
 
         <div className="pt-2">
           <Link
