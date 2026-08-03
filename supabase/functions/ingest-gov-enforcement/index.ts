@@ -440,6 +440,15 @@ Return this JSON object:
   }
 }
 
+// Asset extensions that can never be an enforcement document. Markdown image
+// syntax (`![alt](src)`) previously slipped through the link extractor, which
+// is how the UODO (il.gov.pl) ingest stored thumbnail JPEG paths as
+// `source_url` with the image alt-text as `violation`. Both guards below —
+// the `!`-prefix check and this extension list — are required: some hosts
+// emit bare links to assets too.
+const ASSET_URL_RE =
+  /\.(jpe?g|png|gif|webp|svg|bmp|ico|tiff?|mp4|mp3|wav|avi|mov|css|js|woff2?|ttf|eot|zip|rar)(?:$|[?#])/i;
+
 // Extract markdown links + nearby date as candidate actions
 function extractActions(markdown: string, src: typeof SOURCES[number]) {
   const out: Array<{ title: string; url: string; date: string | null }> = [];
@@ -447,12 +456,21 @@ function extractActions(markdown: string, src: typeof SOURCES[number]) {
   const linkRe = /\[([^\]]{8,200})\]\((https?:\/\/[^\s)]+)\)/g;
   let m: RegExpExecArray | null;
   while ((m = linkRe.exec(markdown)) !== null) {
+    // Skip markdown IMAGE syntax `![alt](src)` — the `[` is preceded by `!`.
+    if (m.index > 0 && markdown[m.index - 1] === "!") continue;
+
     const title = m[1].trim();
     const href = m[2];
+    // Skip links whose target is a static asset (thumbnails, stylesheets…).
+    if (ASSET_URL_RE.test(href)) continue;
+    // Skip alt-text-shaped titles left behind by image-to-markdown converters.
+    if (/^Image\s+\d+\s*:/i.test(title)) continue;
+
     // Only keep links that look like enforcement actions on the regulator's domain
     const host = new URL(href).hostname;
     const expectedHost = new URL(src.url).hostname;
     if (!host.includes(expectedHost.split(".").slice(-2).join("."))) continue;
+
 
     // Look for a date within 200 chars surrounding the match
     const ctx = markdown.slice(Math.max(0, m.index - 200), m.index + 200);
