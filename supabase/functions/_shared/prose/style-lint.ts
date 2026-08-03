@@ -420,6 +420,40 @@ export function lintDocumentStyle(
       }
     }
 
+    // ── RULE A (Item 370): repeated boilerplate ─────────────────────────
+    // Collected here on the same prose walk the duplication rule uses; the
+    // document-wide tally is evaluated after every section is seen.
+    for (const sent of sentences) {
+      if (isStructuralLine(lineAt(text, sent.start))) continue;
+      if (CARD_LINE.test(sent.text)) continue;
+      const key = normalizeForRepetition(sent.text);
+      if (wordCount(key) < REPEATED_BOILERPLATE_MIN_WORDS) continue;
+      const tally = repeatTally.get(key) ??
+        { count: 0, sections: [] as string[], sample: sent.text };
+      tally.count += 1;
+      if (!tally.sections.includes(s.section_id)) tally.sections.push(s.section_id);
+      repeatTally.set(key, tally);
+    }
+
+    // ── RULE B (Item 370): template merge artifacts ─────────────────────
+    for (const rx of [MERGE_COLLISION, MERGE_DOUBLED_STEM]) {
+      const re = new RegExp(rx.source, rx.flags);
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text))) {
+        // Index of the capitalised second token inside the match.
+        const rel = m[0].search(/[ \t][A-Z]/);
+        const second = m.index + (rel >= 0 ? rel + 1 : 0);
+        if (isTitleOpener(text, second)) continue;
+        out.push({
+          rule: "merge_artifact",
+          section_id: s.section_id,
+          detail: `template merge artifact "${m[0]}" at ${m.index}`,
+        });
+      }
+    }
+
+
+
     // ── RULE: paragraph segmentation ────────────────────────────────────
     const min = opts.min_paragraphs?.[s.section_id];
     if (min) {
