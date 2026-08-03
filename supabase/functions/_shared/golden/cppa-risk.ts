@@ -90,7 +90,7 @@ const base = {
   a4_benefit_other_stakeholders_fact:
     "Enterprise administrators receive seat-activation counts drawn from measured free-tier activity rather than sampled estimates, as recorded in the trial reporting specification.",
   a4_benefit_public_fact:
-    "The measurement outputs are internal and are not published, so no public-facing outcome is recorded."
+    "The measurement outputs are internal and are not published, so no public-facing outcome is recorded.",
   a5_harm_pathways: [
     {
       harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
