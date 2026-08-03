@@ -1,9 +1,83 @@
 // Pure presentational body for Legitimate Interest Assessment (LIA) reports.
 // Extracted from LIAssessmentResult so sample pages render the same UI.
+//
+// UPGRADE-4 — the ICO three-part arc (Purpose → Necessity → Balancing) is the
+// narrative spine. The eleven Upgrade-4 findings render inside their stage, in
+// arc order, followed by the attestation block and then the shared authority
+// exhibit, which sits immediately before the universal disclaimer supplied by
+// ReportShell.
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 import { AlertTriangle, Ban, ClipboardList } from 'lucide-react';
+
+// ── UPGRADE-4 shared finding chrome ───────────────────────────────────
+const STATUS_TONE: Record<string, string> = {
+  record_sufficient: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
+  record_partial: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
+  record_insufficient: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+};
+const statusLabel = (s?: string) =>
+  ({ record_sufficient: "Record sufficient", record_partial: "Record partial", record_insufficient: "Record insufficient" } as Record<string, string>)[s || ""] ??
+  String(s || "").replace(/_/g, " ");
+
+const FindingCard = ({ title, finding, children }: { title: string; finding?: any; children?: React.ReactNode }) => {
+  if (!finding) return null;
+  return (
+    <div className="bg-card border rounded-lg p-5">
+      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+        <h3 className="font-body text-display-card font-semibold">{title}</h3>
+        <div className="flex items-center gap-2">
+          {finding.verdict && (
+            <span className={`px-2 py-1 text-xs rounded ${verdictColor(String(finding.verdict))}`}>
+              {verdictLabel(String(finding.verdict))}
+            </span>
+          )}
+          {finding.status && (
+            <span className={`px-2 py-1 text-xs rounded ${STATUS_TONE[finding.status] || STATUS_TONE.record_insufficient}`}>
+              {statusLabel(finding.status)}
+            </span>
+          )}
+        </div>
+      </div>
+      {finding.standard && (
+        <blockquote className="text-xs text-muted-foreground border-l-2 border-primary/40 pl-3 mb-2 italic">
+          {finding.standard}
+          {finding.standard_citation && <span className="not-italic"> — {finding.standard_citation}</span>}
+        </blockquote>
+      )}
+      {finding.record_fact && <p className="text-sm text-muted-foreground mb-2">{finding.record_fact}</p>}
+      {finding.application && <p className="text-sm text-foreground mb-2">{finding.application}</p>}
+      {finding.analysis && <p className="text-sm text-foreground mb-2">{finding.analysis}</p>}
+      {children}
+      {finding.cumulative_note && <p className="text-sm text-muted-foreground mt-2">{finding.cumulative_note}</p>}
+      {finding.information_needed && (
+        <p className="text-xs text-muted-foreground mt-2 italic">Information needed — {finding.information_needed}</p>
+      )}
+      {(finding.supporting_citation || finding.citation) && (
+        <p className="text-xs text-muted-foreground mt-2">Authority: {finding.citation || finding.supporting_citation}</p>
+      )}
+
+    </div>
+  );
+};
+
+const KeyValueRows = ({ rows }: { rows: [string, any][] }) => {
+  const present = rows.filter(([, v]) => v != null && String(v).trim() !== "");
+  if (present.length === 0) return null;
+  return (
+    <dl className="text-sm mt-1 space-y-1">
+      {present.map(([k, v]) => (
+        <div key={k} className="flex gap-2">
+          <dt className="font-medium text-muted-foreground min-w-[10rem]">{k}</dt>
+          <dd className="text-foreground">{String(v)}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+};
+
 
 const strengthColor = (s: string) => {
   const v = (s || "").toLowerCase();
@@ -133,6 +207,105 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
         <TestCard title="Balancing Test" test={report?.three_part_test?.balancing_test} annotations={report?.annotations} precedents={precs} isUk={isUk} />
       </section>
 
+      {/* UPGRADE-4 — PURPOSE STAGE */}
+      {(report?.interest_legitimacy || report?.benefit_and_beneficiary) && (
+        <section className="space-y-4">
+          <h2 className="font-body text-display-card font-semibold">Purpose — Is the interest legitimate?</h2>
+          <FindingCard title="Legitimacy of the interest" finding={report?.interest_legitimacy}>
+            {Array.isArray(report?.interest_legitimacy?.sub_tests) && report.interest_legitimacy.sub_tests.length > 0 && (
+              <ul className="space-y-2 mt-2">
+                {report.interest_legitimacy.sub_tests.map((t: any, i: number) => (
+                  <li key={t?.id ?? i} className="border-l-2 border-slate-300 dark:border-slate-600 pl-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium">{t?.label}</span>
+                      {t?.verdict && <span className={`px-1.5 py-0.5 text-[10px] rounded ${verdictColor(String(t.verdict))}`}>{verdictLabel(String(t.verdict))}</span>}
+                    </div>
+                    {t?.reasoning && <p className="text-sm text-muted-foreground mt-0.5">{t.reasoning}</p>}
+                    {t?.information_needed && <p className="text-xs text-muted-foreground mt-0.5 italic">{t.information_needed}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </FindingCard>
+          <FindingCard title="Benefit and beneficiary" finding={report?.benefit_and_beneficiary}>
+            <KeyValueRows
+              rows={[
+                ["Benefit", report?.benefit_and_beneficiary?.benefit],
+                ["Beneficiaries", (report?.benefit_and_beneficiary?.beneficiary_labels || report?.benefit_and_beneficiary?.beneficiaries || []).join(", ")],
+              ]}
+            />
+          </FindingCard>
+        </section>
+      )}
+
+      {/* UPGRADE-4 — NECESSITY STAGE */}
+      {report?.alternatives_considered && (
+        <section className="space-y-4">
+          <h2 className="font-body text-display-card font-semibold">Necessity — Were less intrusive options ruled out?</h2>
+          <FindingCard title="Alternatives considered" finding={report?.alternatives_considered}>
+            {Array.isArray(report?.alternatives_considered?.alternatives) && report.alternatives_considered.alternatives.length > 0 && (
+              <ul className="space-y-2 mt-2">
+                {report.alternatives_considered.alternatives.map((a: any, i: number) => (
+                  <li key={i} className="border-l-2 border-slate-300 dark:border-slate-600 pl-3">
+                    <p className="text-sm font-medium">{a?.alternative}</p>
+                    {a?.why_inadequate && <p className="text-sm text-muted-foreground mt-0.5">{a.why_inadequate}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </FindingCard>
+        </section>
+      )}
+
+      {/* UPGRADE-4 — BALANCING STAGE */}
+      {(report?.relationship_with_individual || report?.scale_frequency_duration || report?.potential_harms || report?.opt_out_feasibility) && (
+        <section className="space-y-4">
+          <h2 className="font-body text-display-card font-semibold">Balancing — The individual's side of the scale</h2>
+          <FindingCard title="Relationship with the individual" finding={report?.relationship_with_individual}>
+            <KeyValueRows
+              rows={[
+                ["Category", report?.relationship_with_individual?.category_label || report?.relationship_with_individual?.category],
+                ["Recorded in the record", report?.relationship_with_individual?.explicitly_recorded ? "Yes" : "No"],
+              ]}
+            />
+          </FindingCard>
+          <FindingCard title="Scale, frequency and duration" finding={report?.scale_frequency_duration}>
+            {Array.isArray(report?.scale_frequency_duration?.dimensions) && (
+              <ul className="space-y-1 mt-2">
+                {report.scale_frequency_duration.dimensions.map((d: any, i: number) => (
+                  <li key={d?.id ?? i} className="text-sm">
+                    <span className="font-medium">{d?.label}: </span>
+                    <span className="text-muted-foreground">{d?.recorded || statusLabel(d?.status)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </FindingCard>
+          <FindingCard title="Potential harms" finding={report?.potential_harms}>
+            {Array.isArray(report?.potential_harms?.harms) && report.potential_harms.harms.length > 0 && (
+              <ul className="space-y-2 mt-2">
+                {report.potential_harms.harms.map((h: any, i: number) => (
+                  <li key={i} className="border-l-2 border-slate-300 dark:border-slate-600 pl-3">
+                    <p className="text-sm font-medium">{h?.harm}{h?.severity ? ` — ${h.severity}` : ""}</p>
+                    {h?.bearing_on_balance && <p className="text-sm text-muted-foreground mt-0.5">{h.bearing_on_balance}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </FindingCard>
+          <FindingCard title="Opt-out feasibility" finding={report?.opt_out_feasibility}>
+            <KeyValueRows
+              rows={[
+                ["Feasibility", report?.opt_out_feasibility?.feasibility],
+                ["Mechanism", report?.opt_out_feasibility?.mechanism],
+              ]}
+            />
+          </FindingCard>
+        </section>
+      )}
+
+
+
       {Array.isArray(overall?.blocking_issues) && overall.blocking_issues.length > 0 && (
         <section className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded-lg p-5">
           <h3 className="font-body text-display-card font-semibold text-red-800 dark:text-red-300 mb-3"><Ban aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Blocking Issues — Resolve Before Relying on Legitimate Interest</h3>
@@ -201,6 +374,40 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
         </p>
         <Button asChild><Link to="/dpia-framework">Open Impact Assessment Builder →</Link></Button>
       </section>
+
+      {/* UPGRADE-4 — ATTESTATION (close of the body) */}
+      {report?.attestation_block && (
+        <section className="bg-card border rounded-lg p-6">
+          <h2 className="font-body text-display-card font-semibold mb-3">Attestation and Review</h2>
+          {report.attestation_block.text && (
+            <p className="text-sm text-foreground mb-3">{report.attestation_block.text}</p>
+          )}
+          <KeyValueRows
+            rows={[
+              ["DPO review — who", report.attestation_block.dpo_review?.reviewer],
+              ["DPO review — when", report.attestation_block.dpo_review?.review_date],
+              ["Approved by", (report.attestation_block.approvers || []).map((a: any) => [a?.name, a?.position].filter(Boolean).join(", ")).join("; ")],
+              ["Date of approval", report.attestation_block.approval_date],
+            ]}
+          />
+          {Array.isArray(report.attestation_block.review_triggers) && report.attestation_block.review_triggers.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium mb-1">Re-review triggers{report.attestation_block.triggers_are_default ? " (standard set)" : ""}</p>
+              <ul className="list-disc pl-5 text-sm space-y-1">
+                {report.attestation_block.review_triggers.map((t: string, i: number) => <li key={i}>{t}</li>)}
+              </ul>
+            </div>
+          )}
+          {report.attestation_block.information_needed && (
+            <p className="text-xs text-muted-foreground mt-3 italic">Information needed — {report.attestation_block.information_needed}</p>
+          )}
+
+        </section>
+      )}
+
+      {/* UPGRADE-4 — AUTHORITY EXHIBIT, immediately before the universal disclaimer */}
+      <AuthorityExhibit exhibit={report?.authority_exhibit} />
+
     </div>
   );
 }

@@ -746,6 +746,9 @@ Deno.serve(async (req) => {
           "purpose_details",
           "necessity_details",
           "balancing_details",
+          // UPGRADE-4 ITEM 2 — attestation block (who reviewed, who approved,
+          // re-review triggers). Backed by li_assessments.attestation jsonb.
+          "attestation",
           "stage",
           "client_id",
         ]);

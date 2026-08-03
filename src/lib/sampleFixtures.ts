@@ -66,10 +66,17 @@ const F_LIA_UK: SampleFixture = {
         interest_type: "Health and safety / vital interests of workers",
         interest_statement:
           "Real-time detection of medical events and unauthorised zone entry to prevent fatalities and serious injury.",
+        // UPGRADE-4 — benefit and beneficiary
+        specific_benefit:
+          "Underground medical events and restricted-zone entries are detected within seconds rather than at the next scheduled check-in, so evacuation and medic dispatch begin before a worker becomes unresponsive.",
+        beneficiary: "Our business and the individuals",
       },
       necessity_details: {
         alternatives:
           "Scheduled check-ins; zone sensors only; voluntary opt-in — each rejected as insufficient to meet the safety objective.",
+        // UPGRADE-4 — why each alternative is inadequate
+        alternatives_rationale:
+          "Scheduled supervisor check-ins — would not detect a cardiac or heat event occurring between rounds, which is the exact window the fatality data shows.\nZone sensors without physiological data — would not detect any medical event at all, only unauthorised entry.\nVoluntary opt-in telemetry — would leave the highest-risk workers unmonitored through selection bias, defeating the safety objective.",
         why_consent_not_used:
           "Workers are in a clear power imbalance with the employer; consent could not be freely given for safety monitoring that is uniformly applied across all underground shifts.",
         data_minimised:
@@ -95,12 +102,40 @@ const F_LIA_UK: SampleFixture = {
         opt_out_mechanism:
           "Workers may request reassignment to surface roles without detriment; medical exemptions handled by occupational health.",
         special_category_data: true,
+        // UPGRADE-4 — balancing inputs stated rather than inferred
+        relationship_category: "Employee",
+        scale_approx: "Approximately 480 underground shift workers across three UK sites",
+        frequency: "Continuous during underground shifts; approximately 9 hours per worker per shift, 4 shifts per week",
+        duration: "Raw telemetry retained 90 days; aggregate safety metrics 12 months",
+        potential_harms: [
+          "Loss of autonomy or control over data",
+          "Distress or intrusion",
+          "Discrimination or unfair treatment",
+          "Exclusion from a service",
+        ],
+        opt_out_available: "Yes — but conditional or subject to review",
         employment_safeguards:
           "Works-council agreement signed; no individual-level data shared with line managers; safety-only purpose written into the employment-handbook addendum.",
         statutory_restrictions:
           "Mines Regulations 2014; Health and Safety at Work etc. Act 1974; UK GDPR Art. 9(2)(b) employment-law condition for health data.",
         additional_context:
           "Strong safety justification (vital interests of workers in a hazardous environment); proportionate technical safeguards; works-council oversight; explicit purpose limitation prevents secondary use.",
+      },
+      // UPGRADE-4 — attestation close
+      attestation: {
+        dpo_reviewed: "Yes",
+        dpo_reviewer: "Rudy Rangifer, Chief Privacy Officer",
+        dpo_review_date: "2026-06-11",
+        approver_name: "Marta Kowalczyk",
+        approver_position: "Director of Underground Operations",
+        approval_date: "2026-06-18",
+        review_triggers: [
+          "A change in the purpose of the processing",
+          "A change in the categories of data used",
+          "An objection or complaint from a data subject",
+          "A personal data breach affecting this processing",
+          "New or amended regulatory guidance",
+        ],
       },
     },
     invoke: { fn: "run-li-assessment", id_key: "assessment_id" },

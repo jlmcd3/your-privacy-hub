@@ -3324,6 +3324,7 @@ export type Database = {
       li_assessments: {
         Row: {
           alternatives_considered: string | null
+          attestation: Json
           balancing_details: Json | null
           client_id: string | null
           created_at: string | null
@@ -3358,6 +3359,7 @@ export type Database = {
         }
         Insert: {
           alternatives_considered?: string | null
+          attestation?: Json
           balancing_details?: Json | null
           client_id?: string | null
           created_at?: string | null
@@ -3392,6 +3394,7 @@ export type Database = {
         }
         Update: {
           alternatives_considered?: string | null
+          attestation?: Json
           balancing_details?: Json | null
           client_id?: string | null
           created_at?: string | null
