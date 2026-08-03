@@ -28,7 +28,49 @@ export const LIA_GOLDEN: GoldenCase[] = [
     id: "lia-uk-analytics-tuning",
     tool: "lia",
     set: "tuning",
-    intake: { ...base },
+    // UPGRADE-4: the perfect tuning cases carry the ICO three-part-arc inputs
+    // and the attestation close, so the seven upgrade-4 deliverables exercise
+    // the analysed path rather than the record_insufficient scaffold.
+    intake: {
+      ...base,
+      purpose_details: {
+        ...base.purpose_details,
+        specific_benefit:
+          "Funnel-step attribution shows which of the six marketing landing pages loses visitors before the enquiry form, so spend is moved off the pages that do not convert instead of being increased across all of them.",
+        beneficiary: "Our business",
+      },
+      necessity_details: {
+        ...base.necessity_details,
+        alternatives_rationale:
+          "Aggregated third-party analytics — reports session totals per page but carries no step-to-step attribution, so it cannot show where in the funnel a visitor leaves.\nServer-log analysis alone — records requests but not in-page interactions, so form-abandonment is invisible.\nVisitor surveys — response rates below 2% on the marketing site, which is not a representative basis for reallocating spend.",
+      },
+      balancing_details: {
+        ...base.balancing_details,
+        relationship_category: "Member of the public — no relationship",
+        scale_approx: "Approximately 42,000 unique website visitors per month across the UK marketing site",
+        frequency: "Continuous during each site session; typically one to three sessions per visitor per month",
+        duration: "Event-level behavioural data retained 13 months; aggregate funnel metrics 24 months",
+        potential_harms: [
+          "Loss of autonomy or control over data",
+          "Distress or intrusion",
+        ],
+        opt_out_available: "Yes — unconditional, on request, with no consequence",
+      },
+      attestation: {
+        dpo_reviewed: "Yes",
+        dpo_reviewer: "Priya Raghunathan, Data Protection Officer",
+        dpo_review_date: "2026-05-14",
+        approver_name: "Tom Ellery",
+        approver_position: "Head of Marketing",
+        approval_date: "2026-05-21",
+        review_triggers: [
+          "A change in the purpose of the processing",
+          "A change in the categories of data used",
+          "An objection or complaint from a data subject",
+          "New or amended regulatory guidance",
+        ],
+      },
+    },
     assertions: [
       { kind: "must_include", pattern: "legitimate interest|Article\\s*6\\(1\\)\\(f\\)", flags: "i", label: "LI basis named" },
       // W3-T2: per-factor balancing objects with intake_evidence.
@@ -37,6 +79,9 @@ export const LIA_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "impact_severity", label: "factor: impact_severity present" },
       { kind: "must_include", pattern: "\"factor\"\\s*:\\s*\"safeguards\"", label: "factor: safeguards present" },
       { kind: "must_include", pattern: "intake_evidence", label: "factors carry intake_evidence anchors" },
+      // UPGRADE-4 — presence only (verdict strings are model-dependent).
+      { kind: "must_include", pattern: "interest_legitimacy", label: "upgrade-4: interest_legitimacy present" },
+      { kind: "must_include", pattern: "attestation_block", label: "upgrade-4: attestation_block present" },
     ],
   },
   {
@@ -52,12 +97,59 @@ export const LIA_GOLDEN: GoldenCase[] = [
       relationship_type: "Existing customer",
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Detect and prevent payment fraud.",
+      purpose_details: {
+        ...base.purpose_details,
+        interest_holder: "Helios Payments and the merchants whose settlements it processes",
+        interest_type: "Fraud prevention on the payments book",
+        interest_statement: "Identify fraudulent card transactions before settlement funds leave the merchant account.",
+        specific_benefit:
+          "Fraudulent authorisations are held before settlement, so the merchant does not carry the chargeback loss and the cardholder is not debited for a transaction they did not make.",
+        beneficiary: "Our business and the individuals",
+      },
+      necessity_details: {
+        ...base.necessity_details,
+        alternatives:
+          "Scheme-level fraud flags alone; manual review of every transaction above a value threshold — both tested and rejected.",
+        alternatives_rationale:
+          "Scheme-level fraud flags alone — carry no merchant-specific transaction history, so first-party fraud patterns on a known merchant stream are not detected.\nManual review above a value threshold — delays legitimate settlement by two working days, which defeats same-day settlement rather than merely costing more.\nPost-settlement recovery — the funds have already left the account, so the loss is realised before any control operates.",
+      },
+      balancing_details: {
+        ...base.balancing_details,
+        relationship_category: "Customer",
+        scale_approx: "Approximately 3.1 million card transactions per month across 8,400 merchant accounts",
+        frequency: "Every card authorisation is scored in real time, continuously",
+        duration: "Transaction scores retained 24 months; confirmed-fraud case records 6 years",
+        potential_harms: [
+          "Financial loss",
+          "Exclusion from a service",
+          "Loss of autonomy or control over data",
+        ],
+        opt_out_available: "No opt-out is available",
+      },
+      attestation: {
+        dpo_reviewed: "Yes",
+        dpo_reviewer: "Anneke Verhoeven, Group Data Protection Officer",
+        dpo_review_date: "2026-04-09",
+        approver_name: "Lars Bergqvist",
+        approver_position: "Chief Risk Officer",
+        approval_date: "2026-04-16",
+        review_triggers: [
+          "A change in the purpose of the processing",
+          "A change in the categories of data used",
+          "A material change to the fraud-scoring model",
+          "An objection or complaint from a data subject",
+          "New or amended regulatory guidance",
+        ],
+      },
     },
     assertions: [
       { kind: "must_include", pattern: "necessity", flags: "i", label: "necessity assessed" },
       { kind: "must_include", pattern: "reasonable_expectations", label: "factor: reasonable_expectations present" },
       { kind: "must_include", pattern: "impact_severity", label: "factor: impact_severity present" },
       { kind: "must_include", pattern: "intake_evidence", label: "factors carry intake_evidence anchors" },
+      // UPGRADE-4 — presence only (verdict strings are model-dependent).
+      { kind: "must_include", pattern: "interest_legitimacy", label: "upgrade-4: interest_legitimacy present" },
+      { kind: "must_include", pattern: "attestation_block", label: "upgrade-4: attestation_block present" },
     ],
   },
   {
