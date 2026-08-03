@@ -49,12 +49,13 @@ Deno.test("W3-T2: goldens require factor names + intake_evidence anchors", () =>
 });
 
 Deno.test("W3-T2: BUILD_STAMP bumped", () => {
-  // C1-d supersedes the R-TURN-3 pin; either stamp lineage is acceptable so
-  // long as it is not the pre-W3-T2 baseline.
+  // C1-d supersedes the R-TURN-3 pin, and the Upgrade-4 lineage (lia-*)
+  // supersedes both; any of them is acceptable so long as the stamp is not
+  // the pre-W3-T2 baseline.
   const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
   assert(m, "BUILD_STAMP export not found");
   assertEquals(
-    /^(r-turn-3-eu-product-fixes|c1-[a-z]-)/.test(m![1]),
+    /^(r-turn-3-eu-product-fixes|c1-[a-z]-|lia-(t6fix|upgrade4)@)/.test(m![1]),
     true,
     `unexpected BUILD_STAMP: ${m![1]}`,
   );
