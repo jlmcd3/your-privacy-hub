@@ -198,6 +198,80 @@ function lineAt(text: string, index: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// ITEM 370 — PROSE-SURFACE SCOPING (shared by RULE A)
+// ---------------------------------------------------------------------------
+
+/**
+ * Structural lines the engine never treats as prose: record-card rows, bullet
+ * and enum labels, table rows, headings, and bare citation lines. Deliberate
+ * repetition on those surfaces is structure, not boilerplate, so RULE A must
+ * not see them.
+ */
+function isStructuralLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return true;
+  if (CARD_LINE.test(line)) return true;
+  if (/^[-•*]\s/.test(t)) return true; // bullets / enum labels
+  if (/^\d+[.)]\s/.test(t)) return true; // numbered enum labels
+  if (/^#{1,6}\s/.test(t)) return true; // headings
+  if (t.includes("|")) return true; // table rows
+  if (/^[A-Za-z][A-Za-z .'-]{0,60}:\s/.test(t) && t.split(/\s+/).length <= 12) return true; // "Label: value"
+  if (/^(?:see\s+)?(?:§|cal\.|cf\.)/i.test(t)) return true; // bare citation lines
+  return false;
+}
+
+/** RULE A normalization: case-folded, whitespace-collapsed, terminal punctuation stripped. */
+export function normalizeForRepetition(s: string): string {
+  return s
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2010-\u2015]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/[.!?;:,\s]+$/, "")
+    .trim()
+    .toLowerCase();
+}
+
+const wordCount = (s: string) => s.split(/\s+/).filter(Boolean).length;
+
+/** RULE A thresholds, named so the tests and the report agree. */
+export const REPEATED_BOILERPLATE_MIN_WORDS = 8;
+export const REPEATED_BOILERPLATE_MIN_COUNT = 3;
+
+// ---------------------------------------------------------------------------
+// ITEM 370 — RULE B PATTERNS (template-splice determiner collisions)
+// ---------------------------------------------------------------------------
+
+/**
+ * A lower-case determiner immediately followed by a capitalised sentence-start
+ * article, demonstrative or pronoun — the signature of two templates spliced
+ * mid-sentence ("… is an The intake did not include …"). Conservative by
+ * construction: the second token must be one of a closed set of sentence
+ * openers, and a quoted or italicised proper-noun title is exempted below.
+ */
+const MERGE_COLLISION =
+  /\b(a|an|the|this|that|these|those)[ \t]+(The|This|That|These|Those|A|An|It|We|Its|Their)\b/g;
+
+/** Doubled sentence stems: "This is an The", "It is a This". */
+const MERGE_DOUBLED_STEM =
+  /\b(?:This|That|It)\s+(?:is|was)\s+(?:a|an|the)[ \t]+(?:The|This|That|These|Those|A|An|It|We)\b/g;
+
+/**
+ * A capitalised "The" that opens a quoted or italicised title is legitimate
+ * ("the “The Times” report"). Exempt the collision when the second token is
+ * immediately preceded by a quote or emphasis marker, or sits inside quotes.
+ */
+function isTitleOpener(text: string, secondTokenIndex: number): boolean {
+  const before = text.slice(Math.max(0, secondTokenIndex - 2), secondTokenIndex);
+  if (/["'“”‘’*_]\s?$/.test(before)) return true;
+  const head = text.slice(0, secondTokenIndex);
+  const openQuotes = (head.match(/[“"]/g) ?? []).length;
+  return openQuotes % 2 === 1; // an unbalanced opening quote precedes it
+}
+
+
+
+// ---------------------------------------------------------------------------
 // THE BATTERY
 // ---------------------------------------------------------------------------
 
