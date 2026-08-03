@@ -309,7 +309,105 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "\"exception_qualification\"", flags: "", label: "deliverable 2 present" },
       { kind: "must_include", pattern: "\"determination\"", flags: "", label: "deliverable 3 present" },
       { kind: "must_not_include", pattern: "record_insufficient", flags: "", label: "no insufficient-record notice element on a complete record" },
+      // UPGRADE-3 — new deliverables present on the Perfect record.
+      { kind: "must_include", pattern: "\"exception_identification\"", flags: "", label: "§7220(c)(2)(B) identification duty present" },
+      { kind: "must_include", pattern: "\"access_readiness_findings\"", flags: "", label: "§7222 access readiness present" },
+      { kind: "must_include", pattern: "7222", flags: "", label: "§7222 anchored" },
+      { kind: "must_include", pattern: "\"authority_exhibit\"", flags: "", label: "authority exhibit attached" },
+    ],
+  },
+  // ─────────────────────────────────────────────────────────────────────
+  // UPGRADE-3 — "Messy Data" counterpart. The record is thin in exactly the
+  // places § 7222 tests: no published notice text, no access-readiness
+  // answers, no logic/outcome disclosure. The deliverables must degrade to
+  // record_insufficient rather than assert readiness the record cannot carry.
+  {
+    id: "admt-hr-messy-record",
+    tool: "cppa-admt",
+    set: "tuning",
+    intake: {
+      organization_name: "Northgate Staffing LLC",
+      system_name: "ShiftRank",
+      system_type: "Ranking / recommender",
+      system_description:
+        "ShiftRank orders applicants for warehouse shift roles. Nobody here can say exactly what it weighs; the vendor set it up.",
+      decision_domains: ["Hiring or admission decisions"],
+      human_review: "Unsure",
+      training_data_use: "Unsure",
+      profiling_use: "Yes",
+      admt_system_count: "1",
+      third_party_admt: "Vendor tool, contract not on file",
+      ca_consumer_count: "9000",
+
+      notice_delivery: ["We have not yet provided a Pre-use Notice"],
+      notice_has_specific_purpose: "We have not yet created a Pre-use Notice",
+      notice_purpose_text: "",
+      notice_has_opt_out_desc: "No",
+      notice_has_access_desc: "Not yet",
+      notice_has_anti_retaliation: "Not yet",
+      notice_has_how_it_works: "No",
+      notice_has_alternative_process: "No",
+      // No published notice exists — nothing to test the § 7220(c) bar against.
+      notice_full_text: "",
+
+      opt_out_exception:
+        "Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination",
+      opt_out_methods: [],
+      opt_out_link_title: "",
+      opt_out_no_cookie_banner: "Cookie banner is currently our only method (gap)",
+      opt_out_no_account_required: "Account is currently required (gap)",
+      opt_out_confirmation_mechanism: "",
+      opt_out_appeal_process: "",
+      opt_out_15_day_process: "",
+      opt_out_fairness_doc: "",
+
+      access_submission_methods: "",
+      access_verification_process: "",
+      access_logic_disclosure: "",
+      access_outcome_disclosure: "",
+      access_response_timeline: "Our process is not yet defined",
+      access_trade_secret_policy: "",
+      // § 7222 readiness unanswered / negative — the record_insufficient driver.
+      access_readiness: {
+        b1_purpose_ready: "Unsure",
+        b1_purpose_process: "",
+        b2_logic_ready: "No — we cannot produce this today",
+        b2_logic_process: "",
+        b3_output_use_ready: "Unsure",
+        b3_output_use_process: "",
+        b3_outcome_ready: "",
+        b3_outcome_process: "",
+        b3_human_role_ready: "",
+        b3_human_role_process: "",
+      },
+
+      affected_population_band: "Unsure",
+      role_roster: [],
+
+      admt_detail: {
+        vendor_status: "Unsure",
+        vendor_docs: ["None on file"],
+        model_types: ["Ranking / recommender"],
+        decision_effects: ["Ranking"],
+        decision_cadence: "Repeated",
+        sole_factor: "One of many factors",
+        solely_advertising: "No",
+        appeal_reviewer_role: "",
+        appeal_trained: "Unsure",
+        appeal_authority_overturn: "Unsure",
+        appeal_step_count: "",
+        sole_use_attestation: "Unsure",
+        nondiscrimination_testing: "No testing performed",
+      },
+    },
+    assertions: [
+      { kind: "must_include", pattern: "\"access_readiness_findings\"", flags: "", label: "§7222 section still emitted on a thin record" },
+      { kind: "must_include", pattern: "record_insufficient", flags: "", label: "thin record degrades rather than asserts" },
+      { kind: "must_include", pattern: "\"authority_exhibit\"", flags: "", label: "authority exhibit attached" },
+      // Honesty guard: an unevidenced record must not be described as ready.
+      { kind: "must_not_include", pattern: "\"verdict\"\\s*:\\s*\"ready\"", flags: "", label: "no readiness verdict without evidence" },
     ],
   },
 ];
+
 
