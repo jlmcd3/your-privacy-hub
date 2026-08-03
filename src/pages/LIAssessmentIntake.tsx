@@ -702,7 +702,7 @@ const LIAssessmentIntake = () => {
           {/* UPGRADE-4 — harms as separate items, feeding the balance directly */}
           <div>
             <Label className="text-base">Which harms could this processing cause? (select all that apply)</Label>
-            <div className="mt-2">
+            <div className="mt-2" onFocusCapture={focusField("potential_harms")}>
               <Pills
                 options={[
                   "Financial loss",
@@ -844,7 +844,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">What would trigger a re-review? (select all that apply)</Label>
             <p className="text-xs text-muted-foreground mt-1">A standard set is applied in the report. Anything you add here is recorded alongside it.</p>
-            <div className="mt-2">
+            <div className="mt-2" onFocusCapture={focusField("attestation_review_triggers")}>
               <Pills
                 options={[
                   "A change in the purpose of the processing",
