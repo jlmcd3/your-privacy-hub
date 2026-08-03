@@ -123,6 +123,60 @@ async function selectBatch(
 }
 
 
+// ─── PASS B (2026-08-03) — HOST-BUCKETED RESIDUAL REFETCH ────────────────────
+// Leg 2's cursor is a one-way watermark per (cohort, authority_class): a row it
+// walked past can never be re-selected, so every transient failure (timeout,
+// 429, the robots false-positives fixed in the shared fetcher) was stranded.
+// Pass B replaces the cursor with an attempt counter, which is self-advancing
+// and retryable, and round-robins across hosts so one heavy domain
+// (uodo.gov.pl holds 665 of the residual rows) cannot monopolise a run.
+const PASS_B_MAX_ATTEMPTS = 3;
+const PASS_B_PER_HOST_PER_RUN = 2;
+const PASS_B_WINDOW = 400;
+/** Reasons that will never resolve on a retry — retire the row immediately. */
+const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
+
+async function selectPassB(limit: number) {
+  const { data } = await sb
+    .from("enforcement_actions")
+    .select("id, source_url, authority_class, source_document_text, refetch_attempts")
+    .not("source_url", "is", null)
+    // Server-side narrowing keeps the window dense: without it most of the
+    // 400-row window is already-hydrated rows and Pass B starves.
+    .or("strat_has_document.is.false,strat_has_document.is.null")
+    .lt("refetch_attempts", PASS_B_MAX_ATTEMPTS)
+    .order("refetch_attempts", { ascending: true })
+    .order("refetch_last_attempt_at", { ascending: true, nullsFirst: true })
+    .limit(PASS_B_WINDOW);
+
+  const pending = (data ?? []).filter(
+    (r: any) => (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS,
+  );
+
+  // Round-robin the window by host, capped per host per run.
+  const buckets = new Map<string, any[]>();
+  for (const r of pending) {
+    const h = domainOf(r.source_url);
+    const b = buckets.get(h) ?? [];
+    if (b.length < PASS_B_PER_HOST_PER_RUN) b.push(r);
+    buckets.set(h, b);
+  }
+  const rows: any[] = [];
+  for (let i = 0; i < PASS_B_PER_HOST_PER_RUN && rows.length < limit; i++) {
+    for (const b of buckets.values()) {
+      if (b[i] && rows.length < limit) rows.push(b[i]);
+    }
+  }
+  return {
+    rows,
+    remaining_in_class: pending.length,
+    pending_in_window: pending.length,
+    scanned: (data ?? []).length,
+    cursor: null as string | null,
+    hosts_in_batch: new Set(rows.map((r) => domainOf(r.source_url))).size,
+  };
+}
+
 /** Walk the binding class order until a class yields work. */
 async function nextWork(campaignId: string, limit: number, cohortPref: Cohort | "auto") {
   const cohorts: Cohort[] = cohortPref === "auto" ? ["A", "B"] : [cohortPref];
@@ -134,6 +188,7 @@ async function nextWork(campaignId: string, limit: number, cohortPref: Cohort | 
   }
   return null;
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -159,6 +214,7 @@ Deno.serve(async (req) => {
   const limit: number = Math.min(Math.max(Number(body.limit ?? 12), 1), 40);
   const cohortPref: Cohort | "auto" = body.cohort === "A" || body.cohort === "B" ? body.cohort : "auto";
   const dry_run: boolean = body.dry_run === true;
+  const pass_b: boolean = body.mode === "pass_b";
 
   // Single-flight: the cron driver fires on a schedule and must never overlap.
   const lockKey = `refetch:${campaign_id}`;
@@ -176,8 +232,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const work = await nextWork(campaign_id, limit, cohortPref);
-    if (!work) {
+    const work = pass_b
+      ? { cohort: "B" as Cohort, authorityClass: "pass_b_multi_host", ...(await selectPassB(limit)) }
+      : await nextWork(campaign_id, limit, cohortPref);
+    if (!work || work.rows.length === 0) {
       if (!dry_run) await sb.rpc("release_job_lease" as any, { _key: lockKey });
       return new Response(
         JSON.stringify({ campaign_id, done: true, message: "population_exhausted" }),
@@ -315,6 +373,10 @@ Deno.serve(async (req) => {
       const url = row.source_url as string;
       const dom = domainOf(url);
       const rowStart = Date.now();
+      // Pass B bookkeeping: every row records its own outcome so the attempt
+      // counter can retire it or hand it back for a later retry.
+      let rowOk = false;
+      let rowReason: string | null = null;
       try {
         // Per-row hard cap: the shared fetcher's own retry ladder can exceed
         // the whole-run budget on a single unresponsive host.
@@ -335,14 +397,17 @@ Deno.serve(async (req) => {
             })
             .eq("id", row.id);
           fetched_ok++;
+          rowOk = true;
         } else if (res.status === "skipped") {
           skipped++;
           const reason = res.reason ?? "skipped";
+          rowReason = reason;
           failureReasons[reason] = (failureReasons[reason] ?? 0) + 1;
           perDomainFailures[dom] = (perDomainFailures[dom] ?? 0) + 1;
         } else {
           fetch_failed++;
           const reason = res.reason ?? `http_${res.http_status ?? 0}`;
+          rowReason = reason;
           failureReasons[reason] = (failureReasons[reason] ?? 0) + 1;
           perDomainFailures[dom] = (perDomainFailures[dom] ?? 0) + 1;
         }
@@ -352,6 +417,7 @@ Deno.serve(async (req) => {
         const reason = msg === "row_time_cap"
           ? "row_time_cap"
           : `driver_error:${msg}`.slice(0, 120);
+        rowReason = reason;
         failureReasons[reason] = (failureReasons[reason] ?? 0) + 1;
         perDomainFailures[dom] = (perDomainFailures[dom] ?? 0) + 1;
         console.warn(JSON.stringify({
@@ -362,6 +428,24 @@ Deno.serve(async (req) => {
           elapsed_ms: Date.now() - rowStart,
         }));
       }
+
+      // Attempt bookkeeping replaces the one-way watermark: a success clears
+      // the counter, a terminal reason retires the row, and anything else
+      // leaves it eligible for a later pass until MAX_ATTEMPTS.
+      const attemptsNow = rowOk
+        ? 0
+        : TERMINAL_REASONS.includes(rowReason ?? "")
+        ? PASS_B_MAX_ATTEMPTS
+        : (row.refetch_attempts ?? 0) + 1;
+      await sb
+        .from("enforcement_actions")
+        .update({
+          refetch_attempts: attemptsNow,
+          refetch_last_error: rowOk ? null : rowReason,
+          refetch_last_attempt_at: new Date().toISOString(),
+        })
+        .eq("id", row.id);
+
       last_id = row.id;
       attempted++;
       // Checkpoint BEFORE the polite delay so a kill during the sleep still
