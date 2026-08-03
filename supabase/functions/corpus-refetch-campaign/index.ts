@@ -123,6 +123,57 @@ async function selectBatch(
 }
 
 
+// ─── PASS B (2026-08-03) — HOST-BUCKETED RESIDUAL REFETCH ────────────────────
+// Leg 2's cursor is a one-way watermark per (cohort, authority_class): a row it
+// walked past can never be re-selected, so every transient failure (timeout,
+// 429, the robots false-positives fixed in the shared fetcher) was stranded.
+// Pass B replaces the cursor with an attempt counter, which is self-advancing
+// and retryable, and round-robins across hosts so one heavy domain
+// (uodo.gov.pl holds 665 of the residual rows) cannot monopolise a run.
+const PASS_B_MAX_ATTEMPTS = 3;
+const PASS_B_PER_HOST_PER_RUN = 2;
+const PASS_B_WINDOW = 400;
+/** Reasons that will never resolve on a retry — retire the row immediately. */
+const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
+
+async function selectPassB(limit: number) {
+  const { data } = await sb
+    .from("enforcement_actions")
+    .select("id, source_url, authority_class, source_document_text, refetch_attempts")
+    .not("source_url", "is", null)
+    .lt("refetch_attempts", PASS_B_MAX_ATTEMPTS)
+    .order("refetch_attempts", { ascending: true })
+    .order("refetch_last_attempt_at", { ascending: true, nullsFirst: true })
+    .limit(PASS_B_WINDOW);
+
+  const pending = (data ?? []).filter(
+    (r: any) => (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS,
+  );
+
+  // Round-robin the window by host, capped per host per run.
+  const buckets = new Map<string, any[]>();
+  for (const r of pending) {
+    const h = domainOf(r.source_url);
+    const b = buckets.get(h) ?? [];
+    if (b.length < PASS_B_PER_HOST_PER_RUN) b.push(r);
+    buckets.set(h, b);
+  }
+  const rows: any[] = [];
+  for (let i = 0; i < PASS_B_PER_HOST_PER_RUN && rows.length < limit; i++) {
+    for (const b of buckets.values()) {
+      if (b[i] && rows.length < limit) rows.push(b[i]);
+    }
+  }
+  return {
+    rows,
+    remaining_in_class: pending.length,
+    pending_in_window: pending.length,
+    scanned: (data ?? []).length,
+    cursor: null as string | null,
+    hosts_in_batch: new Set(rows.map((r) => domainOf(r.source_url))).size,
+  };
+}
+
 /** Walk the binding class order until a class yields work. */
 async function nextWork(campaignId: string, limit: number, cohortPref: Cohort | "auto") {
   const cohorts: Cohort[] = cohortPref === "auto" ? ["A", "B"] : [cohortPref];
@@ -134,6 +185,7 @@ async function nextWork(campaignId: string, limit: number, cohortPref: Cohort | 
   }
   return null;
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
