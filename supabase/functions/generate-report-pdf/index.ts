@@ -2040,6 +2040,63 @@ function buildADMTReportHTML(report: any, record: any): string {
     </ul>${ec.aggregate_exposure_note ? `<p>${text(ec.aggregate_exposure_note)}</p>` : ""}</section>`;
   })() : "";
 
+  // ── UPGRADE-3 (ADMT) — SHAPE-LAW deliverables, lawfulness rendered first ──
+  const shapeRows = (f: any) => [
+    ["Standard", f?.standard],
+    ["What the record shows", f?.record_fact ?? f?.process_on_the_record],
+    ["Application", f?.application],
+    ["Why", f?.why],
+    ["Information needed", f?.information_needed],
+  ].filter(([, v]) => typeof v === "string" && v.trim().length > 0)
+    .map(([l, v]) => `<p><span class="label">${escHtml(String(l))}:</span> ${text(String(v))}</p>`).join("");
+
+  const verdictLabel = (v: any) => typeof v === "string" && v ? String(v).replace(/_/g, " ") : "";
+
+  const elementArticle = (f: any) => `<article class="control">
+      <div class="control-head">
+        <h3>${text(f?.element_label || f?.finding_id || "")}${verdictLabel(f?.verdict) ? `<span class="status status-neutral">${escHtml(verdictLabel(f?.verdict))}</span>` : ""}</h3>
+        ${f?.citation ? `<span class="score">${text(f.citation)}</span>` : ""}
+      </div>
+      ${f?.element_verbatim ? `<p><em>${text(f.element_verbatim)}</em></p>` : ""}
+      ${f?.published_text ? `<p><span class="label">Your published words:</span> ${text(f.published_text)}</p>` : ""}
+      ${shapeRows(f)}
+    </article>`;
+
+  const lawfulnessBlock = report?.determination?.lawfulness ? (() => {
+    const l = report.determination.lawfulness;
+    return `<section class="section"><h2>Lawfulness Determination</h2>
+      ${l.finding ? `<p>${text(l.finding)}</p>` : ""}
+      ${l.citation ? `<p><span class="label">Authority:</span> ${text(l.citation)}</p>` : ""}
+      ${l.information_needed ? `<p><span class="label">Information needed:</span> ${text(l.information_needed)}</p>` : ""}
+    </section>`;
+  })() : "";
+
+  const noticeTestingBlock = (() => {
+    const list = Array.isArray(report?.notice_element_findings) ? report.notice_element_findings : [];
+    const ex = report?.exception_identification;
+    if (!list.length && !ex) return "";
+    return `<section class="section"><h2>Pre-Use Notice — element by element (§ 7220)</h2>${list.map(elementArticle).join("")}${ex ? elementArticle(ex) : ""}</section>`;
+  })();
+
+  const exceptionBlock = (() => {
+    const list = Array.isArray(report?.exception_qualification) ? report.exception_qualification : [];
+    if (!list.length) return "";
+    return `<section class="section"><h2>Opt-Out Exceptions — condition by condition (§ 7221)</h2>${list.map((e: any) => `<article class="control">
+      <div class="control-head">
+        <h3>${text(e?.exception_label || "")}${verdictLabel(e?.qualifies) ? `<span class="status status-neutral">${escHtml(verdictLabel(e?.qualifies))}</span>` : ""}</h3>
+        ${e?.citation ? `<span class="score">${text(e.citation)}</span>` : ""}
+      </div>
+      ${(Array.isArray(e?.conditions) ? e.conditions : []).map((c: any) => `<p><span class="label">${text(c?.condition_verbatim || c?.condition_id || "")}</span> — ${escHtml(verdictLabel(c?.verdict))}${c?.evidence_on_the_record ? ` ${text(c.evidence_on_the_record)}` : ""}${c?.why ? ` ${text(c.why)}` : ""}${c?.information_needed ? ` <em>Information needed: ${text(c.information_needed)}</em>` : ""}</p>`).join("")}
+      ${e?.information_needed ? `<p><span class="label">Information needed:</span> ${text(e.information_needed)}</p>` : ""}
+    </article>`).join("")}</section>`;
+  })();
+
+  const accessReadinessBlock = (() => {
+    const list = Array.isArray(report?.access_readiness_findings) ? report.access_readiness_findings : [];
+    if (!list.length) return "";
+    return `<section class="section"><h2>Access Rights — explanation readiness (§ 7222)</h2>${list.map(elementArticle).join("")}</section>`;
+  })();
+
   const priorityBlock = Array.isArray(report?.priority_actions) && report.priority_actions.length
     ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a.replace(/^(\s*\d+[.)]\s*)+/, ""))}</li>`).join("")}</ol></section>`
     : "";
@@ -2080,6 +2137,7 @@ function buildADMTReportHTML(report: any, record: any): string {
   .status-neutral { background:#f3f4f6; color:var(--muted); }
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
+  ${AUTHORITY_EXHIBIT_CSS}
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
@@ -2098,8 +2156,13 @@ function buildADMTReportHTML(report: any, record: any): string {
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
     ${gapSection("Opt-Out Rights (§ 7221)", report?.opt_out_gaps ?? [])}
     ${gapSection("Access Rights (§ 7222)", report?.access_gaps ?? [])}
+    ${lawfulnessBlock}
+    ${noticeTestingBlock}
+    ${exceptionBlock}
+    ${accessReadinessBlock}
     ${enfBlock}
     ${riskNote}
+    ${renderAuthorityExhibitHtml(report?.authority_exhibit)}
     <div class="footer">EndUserPrivacy.com · CPPA ADMT Compliance Assessment (Module 3) · 11 CCR Article 11 · <a href="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf">Official text</a></div>
   </div>
 </div></body></html>`;
