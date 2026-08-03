@@ -665,6 +665,21 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   // UPGRADE-2 (ITEM 5) — rail entries for the three new § 7152(a) intake
   // fields. Every regulationText below is a byte-exact substring of corpus
   // row cppa-7152 (provision_texts.verbatim_excerpt, status approved).
+  a4_benefit_supporting_fact: {
+    fieldLabel: "A-4: Record fact supporting each stated benefit",
+    citation: "11 CCR \u00a7 7152(a)(4)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The benefits of the processing are weighed against its negative impacts. A benefit that rests on nothing in the record cannot carry weight in that weighing, so each stated benefit is paired with the fact that shows it.",
+    regulationText: "(4) Identify the benefits to the business, the consumer, other stakeholders,\nand the public from the processing of the personal information, as\napplicable. The benefits must not be identified in generic terms, such as\n\u201Cimproving our service.\u201D",
+    coachLead: "Point at something already in the record, not at the benefit restated.",
+    coachBody: "Name the artefact, measurement, or decision the benefit shows up in: a report that cites the figures, a decision record that used them, a measured change after the processing began. If nothing in the record shows the benefit, leave this blank rather than paraphrasing the claim \u2014 the weighing will reserve, which is the accurate outcome.",
+    goodAnswer: "\u201CThe quarterly rostering decision record cites the queue-volume figures this processing produces, and shifts were re-allocated on that basis in the last two cycles.\u201D",
+    commonMistake: "Repeating the benefit in different words. A restatement is still an assertion; the field asks what makes the assertion checkable.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7152(a)", label: "Benefits weighed against negative impacts" },
+    ],
+  },
+
   a5_harm_pathway_triple: {
     fieldLabel: "A-5: Data involved, actor, and pathway for each impact",
     citation: "11 CCR \u00a7 7152(a)(5)",

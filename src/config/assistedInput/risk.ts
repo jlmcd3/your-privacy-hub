@@ -122,6 +122,18 @@ const a8_information_providers: AssistedInputFieldConfig = {
   ],
 };
 
+const a4_benefit_supporting_fact: AssistedInputFieldConfig = {
+  fieldId: "a4_benefit_supporting_fact",
+  pills: [
+    { id: "decision_record", label: "Cited in a decision record", snippet: "Cited in a decision record" },
+    { id: "measured_change", label: "Measured change after the processing began", snippet: "Measured change after the processing began" },
+    { id: "reporting_output", label: "Appears in a recurring reporting output", snippet: "Appears in a recurring reporting output" },
+    { id: "contract_spec", label: "Recorded in a contract or specification", snippet: "Recorded in a contract or specification" },
+    { id: "consumer_facing", label: "Visible to the consumer in the product", snippet: "Visible to the consumer in the product" },
+    { id: "not_recorded", label: "Not recorded anywhere at present", snippet: "Not recorded anywhere at present" },
+  ],
+};
+
 export const RISK_PILOT_ASSISTED_INPUT: Readonly<
   Record<string, AssistedInputFieldConfig>
 > = Object.freeze({
