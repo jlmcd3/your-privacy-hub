@@ -1,74 +1,77 @@
-// CYBER-REGISTRY-WIRING (2026-07-24) — corpus-pin CI for CYBER registry.
+// ITEM 371 (2026-08-03) — CORPUS-PIN CI FOR THE CYBER AUTHORITY RESOLVER.
 //
-// For every row in CYBER_VERIFIED_AUTHORITIES, assert that its `verbatim_quote`
-// appears (after light normalization) as a substring of the corpus text
-// stored in `public.cppa_authorities.full_text` for the same citation,
-// status='current'.
+// The hand-transcribed registry is retired. The resolver re-sources
+// §§ 7120–7124 from `public.provision_texts` at generation time, so this pin
+// test asserts BYTE-EXACT agreement between what the resolver returns and the
+// DB row: every resolved `verbatim_quote` must be a contiguous substring of the
+// approved corpus excerpt for its provision (after the resolver's own
+// normalization, which is the same normalization applied to the corpus here).
 //
-// Authoring rule: KNOWN_PARAPHRASED_KEYS is EMPTY on entry — every cyber row
-// must pass corpus-pin from the first commit. A proposition that cannot
-// carry an exact contiguous corpus substring is EXCLUDED, never paraphrased.
-//
-// The test is skipped when the sandbox has no direct Postgres access
-// (PGHOST unset) — corpus-pin is a CI/dev-only guard.
+// Runs against the live corpus over the Data API. Skipped when the sandbox has
+// no network/credentials — corpus-pin is a CI/dev-only guard.
 
-import { describe, it, expect } from "vitest";
-import { CYBER_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
+import { describe, it, expect, beforeAll } from "vitest";
+import {
+  CYBER_AUTHORITY_LOCATORS,
+  CYBER_COMPONENT_LABELS,
+  resolveCyberAuthorities,
+  normalizeCorpusText,
+  derive7123Components,
+  type CyberAuthoritySource,
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
+import { makeCorpusProvisionClient, loadCyberProvisionRows } from "./corpus-client";
 
-/** Empty on entry (audit standing order). */
-const KNOWN_PARAPHRASED_KEYS = new Set<string>([]);
+let rows: Record<string, any> | null = null;
+let source: CyberAuthoritySource | null = null;
 
-function norm(s: string): string {
-  return String(s)
-    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
-    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
-    .replace(/[\u2013\u2014]/g, "-")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+beforeAll(async () => {
+  rows = await loadCyberProvisionRows();
+  if (rows) source = await resolveCyberAuthorities(makeCorpusProvisionClient(rows) as any);
+}, 60_000);
 
-const CAN_RUN = !!process.env.PGHOST && !!process.env.PGDATABASE;
+describe("CYBER authority resolver — corpus-pin", () => {
+  it("resolves every locator byte-exactly out of the DB row", () => {
+    if (!source || !rows) return; // corpus unreachable — guard skipped
+    expect(source.unresolved).toEqual([]);
+    expect(Object.keys(source.registry).length).toBe(CYBER_AUTHORITY_LOCATORS.length);
 
-describe.skipIf(!CAN_RUN)("CYBER verified-authority registry — corpus-pin (allow-list)", () => {
-  it("audits every row against cppa_authorities.full_text", async () => {
-    const { execFileSync } = await import("node:child_process");
-    const citations = [...new Set(Object.values(CYBER_VERIFIED_AUTHORITIES).map((r) => r.citation))];
-    const sql =
-      "SELECT citation || E'\\x1f' || full_text || E'\\x1e' " +
-      "FROM cppa_authorities WHERE status='current' AND citation = ANY(string_to_array($$" +
-      citations.join("|") + "$$, '|'))";
-    const out = execFileSync("psql", ["-tAX", "-c", sql], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
-    const corpus: Record<string, string> = {};
-    for (const rec of out.split("\x1e")) {
-      const [cit, body] = rec.split("\x1f");
-      if (cit && body) corpus[cit.trim()] = norm(body);
+    const failures: string[] = [];
+    for (const [key, row] of Object.entries(source.registry)) {
+      const loc = CYBER_AUTHORITY_LOCATORS.find((l) => l.proposition_key === key)!;
+      const corpus = normalizeCorpusText(String(rows[loc.provision_key]?.verbatim_excerpt ?? ""));
+      if (!corpus.includes(row.verbatim_quote)) failures.push(`${key} (${row.subsection})`);
     }
+    expect(
+      failures,
+      `Resolved quotes not found verbatim in the corpus row:\n  ${failures.join("\n  ")}`,
+    ).toEqual([]);
+  });
 
-    const shouldPassButFailed: string[] = [];
-    const listedButPassed: string[] = [];
-
-    for (const [key, row] of Object.entries(CYBER_VERIFIED_AUTHORITIES)) {
-      const body = corpus[row.citation] ?? "";
-      const q = norm(row.verbatim_quote);
-      const passes = body.length > 0 && body.includes(q);
-
-      if (!passes && !KNOWN_PARAPHRASED_KEYS.has(key)) {
-        shouldPassButFailed.push(`${key} (${row.citation})`);
-      }
-      if (passes && KNOWN_PARAPHRASED_KEYS.has(key)) {
-        listedButPassed.push(key);
-      }
+  it("serves no text at all when a provision is unapproved (no stale fallback)", async () => {
+    if (!rows) return;
+    const degradedRows = JSON.parse(JSON.stringify(rows));
+    degradedRows["cppa-7123"].status = "pending";
+    const degraded = await resolveCyberAuthorities(makeCorpusProvisionClient(degradedRows) as any);
+    expect(degraded.degraded).toBe(true);
+    expect(degraded.pending_notice).toBeTruthy();
+    expect(degraded.components.length).toBe(0);
+    for (const row of Object.values(degraded.registry)) {
+      expect(row.citation.includes("7123")).toBe(false);
     }
+  });
 
-    expect(
-      shouldPassButFailed,
-      `Rows failed corpus-pin — fix the quote (paraphrasing is prohibited):\n  ${shouldPassButFailed.join("\n  ")}`,
-    ).toEqual([]);
-
-    expect(
-      listedButPassed,
-      `These keys now PASS corpus-pin — remove them from KNOWN_PARAPHRASED_KEYS:\n  ${listedButPassed.join("\n  ")}`,
-    ).toEqual([]);
-  }, 30_000);
+  it("derives exactly the eighteen § 7123(c) components from the corpus", () => {
+    if (!source || !rows) return;
+    expect(source.components.length).toBe(18);
+    for (let n = 1; n <= 18; n++) {
+      expect(source.components[n - 1].citation).toBe(`11 CCR § 7123(c)(${n})`);
+    }
+    expect(Object.keys(source.componentCitations).length).toBe(18);
+    for (const label of CYBER_COMPONENT_LABELS) {
+      expect(source.componentCitations[label]).toMatch(/^11 CCR § 7123\(c\)\(\d+\)$/);
+    }
+    // and the derivation is a pure function of the corpus row
+    const again = derive7123Components(String(rows["cppa-7123"].verbatim_excerpt));
+    expect(again.map((c) => c.verbatim)).toEqual(source.components.map((c) => c.verbatim));
+  });
 });
