@@ -12,7 +12,8 @@ function sub(text: string, path: string): string {
   if (!m) throw new Error("subsection not found: " + path);
   const start = m.index + m[0].length;
   const rest = t.slice(start);
-  const next = /\s\([a-z]\)\s/.exec(rest);
+  const nextLetter = String.fromCharCode(path.charCodeAt(0) + 1);
+  const next = new RegExp(`\\s\\(${nextLetter}\\)\\s`).exec(rest);
   let body = next ? rest.slice(0, next.index) : rest;
   body = body.replace(/\s*Note:\s*Authority cited:.*$/s, "").trim();
   return body;
