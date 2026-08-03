@@ -687,15 +687,15 @@ const LIAssessmentIntake = () => {
           <div className="grid sm:grid-cols-3 gap-4">
             <div>
               <Label className="text-base">Approximately how many people?</Label>
-              <input value={scaleApprox} onChange={(e) => setScaleApprox(e.target.value)} placeholder="e.g. ~40,000 signups a year" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={scaleApprox} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setScaleApprox(e.target.value)} placeholder="e.g. ~40,000 signups a year" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">How often does it run?</Label>
-              <input value={frequency} onChange={(e) => setFrequency(e.target.value)} placeholder="e.g. at every signup, in real time" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={frequency} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setFrequency(e.target.value)} placeholder="e.g. at every signup, in real time" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">How long is the data held for this purpose?</Label>
-              <input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 24 months from the score" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={duration} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 24 months from the score" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
           </div>
 
@@ -818,7 +818,7 @@ const LIAssessmentIntake = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-base">Reviewer</Label>
-              <input value={dpoReviewer} onChange={(e) => setDpoReviewer(e.target.value)} placeholder="Name of the DPO or the person discharging that function" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={dpoReviewer} onFocusCapture={focusField("attestation_dpo_review")} onChange={(e) => setDpoReviewer(e.target.value)} placeholder="Name of the DPO or the person discharging that function" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">Date of review</Label>
@@ -829,7 +829,7 @@ const LIAssessmentIntake = () => {
           <div className="grid sm:grid-cols-3 gap-4">
             <div>
               <Label className="text-base">Approved by</Label>
-              <input value={approverName} onChange={(e) => setApproverName(e.target.value)} placeholder="Name" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={approverName} onFocusCapture={focusField("attestation_approver")} onChange={(e) => setApproverName(e.target.value)} placeholder="Name" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">Title</Label>
