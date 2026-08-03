@@ -26,7 +26,7 @@ import { detectFactorPresence } from "./factor-presence.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 // ITEM 305 — the five per-activity analytic deliverables. SINGLE-WRITER:
 // derivePlan is the only caller; the assembler shard merely projects it.
-import { buildActivityAnalytics } from "./analytic-deliverables/build.ts";
+import { buildActivityAnalytics, buildAttestation } from "./analytic-deliverables/build.ts";
 // ITEM 341 — EU persuasive-authority section (separately labelled; never
 // folded into the CPPA-scoped enforcement surfaces). Corpus is fetched by
 // the caller (eu-authority/fetch.ts) and passed in; the builder is pure and
@@ -191,6 +191,8 @@ export function derivePlan(input: DeriveInput): RenderPlan {
       conservative_write_around: { triggered: false, disclosure: "silent+telemetry" },
       // ITEM 305 — deterministic per-activity analytic deliverables.
       activity_analytics: buildActivityAnalytics(input.intake ?? {}) as unknown as readonly Record<string, unknown>[],
+      // UPGRADE-2 — § 7152(a)(8)-(9) attestation, report-level.
+      attestation: buildAttestation(input.intake ?? {}) as unknown as Record<string, unknown>,
       // ITEM 341 — persuasive EU authority, separately labelled.
       eu_persuasive_authority: buildEuAuthoritySection(
         input.intake ?? {},
@@ -213,6 +215,8 @@ export function derivePlan(input: DeriveInput): RenderPlan {
       conservative_write_around: { triggered: true, reason: `derive_error:${(e as Error)?.message ?? "?"}`, disclosure: "silent+telemetry" },
       // ITEM 305 — degraded envelope; never omitted, never invented.
       activity_analytics: buildActivityAnalytics({}) as unknown as readonly Record<string, unknown>[],
+      // UPGRADE-2 — degraded attestation; emitted, never invented.
+      attestation: buildAttestation({}) as unknown as Record<string, unknown>,
       // ITEM 341 — degraded envelope; emitted, never invented.
       eu_persuasive_authority: buildEuAuthoritySection({}, null) as unknown as Record<string, unknown>,
 

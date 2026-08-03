@@ -83,6 +83,57 @@ const i7_external_consultees: AssistedInputFieldConfig = {
   ],
 };
 
+// UPGRADE-2 (ITEM 4) — pill sets for the new § 7152(a)(5)/(6)/(8) fields.
+// Descriptive and neutral: each pill names a category of fact, never a
+// conclusion and never a favourable answer.
+const a5_actor: AssistedInputFieldConfig = {
+  fieldId: "a5_actor",
+  pills: [
+    { id: "internal_staff", label: "Internal staff with system access", snippet: "Internal staff with system access" },
+    { id: "service_provider", label: "Service provider or contractor", snippet: "Service provider or contractor" },
+    { id: "third_party_recipient", label: "Third-party recipient", snippet: "Third-party recipient" },
+    { id: "external_attacker", label: "External attacker", snippet: "External attacker" },
+    { id: "automated_system", label: "Automated system or model itself", snippet: "Automated system or model itself" },
+    { id: "consumer_facing", label: "Consumer-facing interface", snippet: "Consumer-facing interface" },
+  ],
+};
+
+const a6_residual: AssistedInputFieldConfig = {
+  fieldId: "a6_residual",
+  pills: [
+    { id: "narrower_population", label: "Exposure narrowed to a smaller group", snippet: "Exposure narrowed to a smaller group" },
+    { id: "shorter_window", label: "Exposure limited to a shorter time window", snippet: "Exposure limited to a shorter time window" },
+    { id: "detect_not_prevent", label: "Detected after the fact rather than prevented", snippet: "Detected after the fact rather than prevented" },
+    { id: "depends_on_vendor", label: "Depends on a third party performing as contracted", snippet: "Depends on a third party performing as contracted" },
+    { id: "credential_compromise", label: "Remains reachable on credential compromise", snippet: "Remains reachable on credential compromise" },
+    { id: "unchanged", label: "Impact substantially unchanged", snippet: "Impact substantially unchanged" },
+  ],
+};
+
+const a8_information_providers: AssistedInputFieldConfig = {
+  fieldId: "a8_information_providers",
+  pills: [
+    { id: "privacy_lead", label: "Privacy lead / DPO", snippet: "Privacy lead / DPO" },
+    { id: "security_lead", label: "CISO / Security lead", snippet: "CISO / Security lead" },
+    { id: "business_owner", label: "Business owner of the activity", snippet: "Business owner of the activity" },
+    { id: "engineering", label: "Engineering owner", snippet: "Engineering owner" },
+    { id: "data_science", label: "Data-science / model owner", snippet: "Data-science / model owner" },
+    { id: "vendor_manager", label: "Vendor or procurement manager", snippet: "Vendor or procurement manager" },
+  ],
+};
+
+const a4_benefit_supporting_fact: AssistedInputFieldConfig = {
+  fieldId: "a4_benefit_supporting_fact",
+  pills: [
+    { id: "decision_record", label: "Cited in a decision record", snippet: "Cited in a decision record" },
+    { id: "measured_change", label: "Measured change after the processing began", snippet: "Measured change after the processing began" },
+    { id: "reporting_output", label: "Appears in a recurring reporting output", snippet: "Appears in a recurring reporting output" },
+    { id: "contract_spec", label: "Recorded in a contract or specification", snippet: "Recorded in a contract or specification" },
+    { id: "consumer_facing", label: "Visible to the consumer in the product", snippet: "Visible to the consumer in the product" },
+    { id: "not_recorded", label: "Not recorded anywhere at present", snippet: "Not recorded anywhere at present" },
+  ],
+};
+
 export const RISK_PILOT_ASSISTED_INPUT: Readonly<
   Record<string, AssistedInputFieldConfig>
 > = Object.freeze({
@@ -92,4 +143,7 @@ export const RISK_PILOT_ASSISTED_INPUT: Readonly<
   i5_admt_human_review,
   i7_internal_contributors,
   i7_external_consultees,
+  a5_actor,
+  a6_residual,
+  a8_information_providers,
 });

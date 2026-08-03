@@ -42,6 +42,15 @@ import { PASS1_MANIFEST } from "./pass1-llm.ts";
 import { fetchEuAuthorityCorpus } from "./eu-authority/fetch.ts";
 import { runEmitGate, filterCustomerInformationNeeded } from "../emit-gate.ts";
 import { serializeCustomerReport } from "../report-serialize.ts";
+// UPGRADE-2 (ITEMS 2+3) — runtime §§ 7150-7157 corpus + shared authority exhibit.
+import {
+  fetchRiskCorpus,
+  buildRiskCorpusLawBlock,
+  riskCorpusProvisionsForExhibit,
+  EMPTY_RISK_CORPUS,
+  type RiskCorpus,
+} from "./risk-corpus.ts";
+import { buildAuthorityExhibit } from "../report-exhibits/authority-exhibit.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../report-schemas/cppa-risk.ts";
 import { computeRecordNeeds } from "./section-composers/cppa-risk.ts";
 
@@ -66,6 +75,8 @@ export interface GenerateCppaRiskOptions {
   readonly pass2rCall?: any;
   /** Set false to skip Pass-2R entirely (records an explicit reason). */
   readonly pass2rEnabled?: boolean;
+  /** UPGRADE-2 — pre-resolved §§ 7150-7157 corpus (test seam; else fetched from db). */
+  readonly riskCorpus?: RiskCorpus;
 }
 
 export interface GenerateCppaRiskResult {
@@ -131,13 +142,53 @@ function attachInternal(
   return report;
 }
 
+/**
+ * UPGRADE-2 (ITEM 3) — attach the table of authorities built from the
+ * citations the report ACTUALLY emits. Excerpts come only from approved
+ * corpus rows; every other citation renders citation-only. Fail-open.
+ */
+function attachAuthorityExhibit(
+  report: Record<string, unknown>,
+  corpus: RiskCorpus | null | undefined,
+): void {
+  try {
+    const cited = new Set<string>();
+    const walk = (v: unknown): void => {
+      if (typeof v === "string") {
+        for (const m of v.matchAll(/(?:\d+\s*CCR|Cal\.\s*Civ\.\s*Code|GDPR)[^,;.)\]]*?\u00a7+\s*[\d.]+(?:\([a-z0-9]+\))*/gi)) {
+          cited.add(m[0].replace(/\s+/g, " ").trim());
+        }
+        return;
+      }
+      if (Array.isArray(v)) { for (const x of v) walk(x); return; }
+      if (v && typeof v === "object") {
+        for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+          if (k === "_meta" || k === "_staging" || k === "authority_exhibit") continue;
+          walk(x);
+        }
+      }
+    };
+    walk(report);
+    report.authority_exhibit = buildAuthorityExhibit(
+      [...cited],
+      riskCorpusProvisionsForExhibit(corpus) as never,
+    ) as unknown as Record<string, unknown>;
+  } catch (e) {
+    console.warn("[generate-cppa-risk] authority exhibit failed (non-fatal):", (e as Error)?.message);
+  }
+}
+
 /** Finalize an assembled body into the exact persisted payload. */
 export function finalizeCppaRiskPayload(
   base: Record<string, unknown>,
   ltpMeta: Record<string, unknown>,
   rawIntake: unknown,
+  riskCorpus?: RiskCorpus | null,
 ): { report: Record<string, unknown>; emit_gate_filtered: number } {
   const sealed = seal({ ...base }, rawIntake);
+  // The exhibit is attached BEFORE serialization so the schema allow-list
+  // governs it like every other customer surface.
+  attachAuthorityExhibit(sealed.report, riskCorpus);
   const serialized = serializeCustomer(sealed.report);
   const report = attachInternal(serialized, {
     ...ltpMeta,
@@ -155,6 +206,16 @@ export async function generateCppaRiskReport(
   const pass1Mode: Pass1Mode = options.pass1 ?? "model";
   const runId = options.runId ?? "no-run-id";
   const era = resolveLtpIntake(rawIntake);
+
+  // UPGRADE-2 (ITEM 2) — resolve the governing chapter once per run.
+  let riskCorpus: RiskCorpus = options.riskCorpus ?? EMPTY_RISK_CORPUS;
+  if (!options.riskCorpus && options.db) {
+    try {
+      riskCorpus = await fetchRiskCorpus(options.db);
+    } catch (e) {
+      console.warn("[generate-cppa-risk] risk corpus fetch failed (non-fatal):", (e as Error)?.message);
+    }
+  }
 
   let euCorpus = options.euCorpus;
   if (euCorpus === undefined && options.db) {
@@ -184,6 +245,8 @@ export async function generateCppaRiskReport(
         report_data: {},
         buildStamp: `${options.buildStamp}#${runId}`,
         eu_authority_corpus: euCorpus,
+        // UPGRADE-2 (ITEM 2) — corpus law block into Pass-1 prompt assembly.
+        corpus_law_block: buildRiskCorpusLawBlock(riskCorpus),
       } as never,
       { callerName: options.callerName ?? "generate-cppa-risk" },
     );
@@ -248,9 +311,15 @@ export async function generateCppaRiskReport(
     pass2r_skipped_reason: typeJOrigin ? "type_j_write_around" : "pass2r_not_run_yet",
     pass2r_attempt_rejections: [],
     pass2r_prose_rejected: false,
+    risk_corpus: {
+      version: riskCorpus.version,
+      resolved: riskCorpus.resolved_count,
+      approved: riskCorpus.approved_count,
+      spine_requirements: riskCorpus.spine_requirements.length,
+    },
   };
 
-  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake);
+  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus);
   return { report, base, plan, ltpMeta, typeJOrigin, rawIntake };
 }
 
@@ -273,6 +342,11 @@ export async function runCppaRiskPass2R(
   options: GenerateCppaRiskOptions,
 ): Promise<Pass2RResult> {
   const enforce = (options.mode ?? "enforce") === "enforce";
+  // UPGRADE-2 — the same corpus that governed Pass-1 governs the 2R re-finalize.
+  let riskCorpus: RiskCorpus = options.riskCorpus ?? EMPTY_RISK_CORPUS;
+  if (!options.riskCorpus && options.db) {
+    try { riskCorpus = await fetchRiskCorpus(options.db); } catch { /* fail-open */ }
+  }
   if (gen.typeJOrigin || !gen.plan) {
     return {
       report: null,
@@ -293,6 +367,8 @@ export async function runCppaRiskPass2R(
         enabled: options.pass2rEnabled !== false,
         enforce,
         callerName: options.callerName ?? "generate-cppa-risk",
+        // UPGRADE-2 (ITEM 2) — same corpus law block into Pass-2R.
+        corpusLawBlock: buildRiskCorpusLawBlock(riskCorpus),
         ...(options.pass2rCall ? { call: options.pass2rCall } : {}),
       } as never,
     );
@@ -310,6 +386,7 @@ export async function runCppaRiskPass2R(
         merged,
         { ...gen.ltpMeta, shipped_surface: "2R", ...meta },
         gen.rawIntake,
+        riskCorpus,
       );
       return { report, shipped_surface: "2R", meta };
     }
@@ -317,6 +394,7 @@ export async function runCppaRiskPass2R(
       gen.base,
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
+      riskCorpus,
     );
     return { report, shipped_surface: "deterministic", meta };
   } catch (e) {
@@ -330,6 +408,7 @@ export async function runCppaRiskPass2R(
       gen.base,
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
+      riskCorpus,
     );
     return { report, shipped_surface: "deterministic", meta };
   }

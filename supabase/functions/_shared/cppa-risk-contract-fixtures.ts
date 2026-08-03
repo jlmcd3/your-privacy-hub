@@ -171,9 +171,21 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
       "Referring primary-care practices receive a routing outcome for each patient they refer, so they know which pathway their patient entered without telephoning the service.",
     a4_benefit_public:
       "No public benefit is claimed for this activity beyond the patient benefit stated above.",
+    a4_benefit_business_fact:
+      "The rostering decision record for each month cites the queue-volume figures produced by this routing, and clinician shifts were re-allocated on that basis in the last two cycles.",
+    a4_benefit_consumer_fact:
+      "Urgent-pathway patients were contacted the same day in 94% of cases last quarter, against a single-queue median wait of three days before routing was introduced.",
+    a4_benefit_other_stakeholders_fact:
+      "Each referring practice receives the routing outcome through the referral portal; practices logged 41% fewer status telephone calls after that feed was enabled.",
+    a4_benefit_public_fact:
+      "The service is not publicly funded and its routing outputs are not published, so no public-facing outcome is recorded.",
     a5_harm_pathways: [
       {
         harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        data_involved:
+          "Questionnaire answers about mental-health symptoms joined to patient names in the triage response store.",
+        actor:
+          "Any holder of the routing service credential, including staff outside the triage pipeline who inherit it.",
         source:
           "The triage response store holds questionnaire answers about mental-health symptoms joined to patient names, and is readable by the routing service account.",
         cause:
@@ -183,6 +195,10 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
       },
       {
         harm: "(G) Reputational harms",
+        data_involved:
+          "The routing outcome naming the clinical pathway, together with the patient's callback telephone number.",
+        actor:
+          "The triage callback agent, speaking to whoever answers the shared household line.",
         source:
           "The routing outcome names the clinical pathway a patient entered, and the callback is placed to a telephone number the patient may share with a household.",
         cause:
@@ -192,6 +208,10 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
       },
       {
         harm: "(H) Psychological harms",
+        data_involved:
+          "Imported mood-diary free text stored alongside the triage responses.",
+        actor:
+          "Clinical reviewers who open the triage record for an unrelated routing decision.",
         source:
           "The imported mood-diary free text sits in the same record as the triage responses and is visible to reviewers who open the record.",
         cause:
@@ -205,21 +225,29 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
         harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
         safeguard:
           "The routing service account is scoped to the routing views only, credentials rotate every 30 days, and every export from the response store is logged and reviewed weekly.",
+        residual:
+          "Scoping and rotation narrow the exposure to the routing views; a credential compromised inside its 30-day window still reaches the symptom-to-name join.",
         safeguard_status: "Implemented and tested",
       },
       {
         harm: "(G) Reputational harms",
         safeguard:
           "Callback scripts identify the caller by the practice name only and confirm the patient's identity before any clinical content is discussed.",
+        residual:
+          "Practice-name-only scripts remove the pathway disclosure at the point of answer; a household member who overhears the identity confirmation still learns the patient is engaged with the service.",
         safeguard_status: "Implemented, not tested",
       },
       {
         harm: "(H) Psychological harms",
         safeguard:
           "The mood-diary field is being removed from the triage record view and excluded from the account sync.",
+        residual:
+          "Until the reviewer view is partitioned, the diary text remains visible on every triage record a reviewer opens.",
         safeguard_status: "Planned, not yet implemented",
       },
     ],
+    a8_information_providers:
+      "Dr. Amara Sethi, Clinical Operations Lead — triage routing workflow and callback practice; Jonas Reilly, Platform Engineer — response-store access and export controls; Kim Hara, Patient Experience Manager — mood-diary import scope.",
     a9_approver_name: "Dr. Helena Voss",
     a9_approver_position: "Chief Medical Officer",
     a9_approval_date: "2026-07-30",
@@ -302,9 +330,21 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
       "The sponsoring bank that funds the credit line receives a consistent, documented basis for each decision when it audits the portfolio.",
     a4_benefit_public:
       "No public benefit is claimed for this activity beyond the applicant benefit stated above.",
+    a4_benefit_business_fact:
+      "The portfolio pricing model is rebuilt each quarter from the observed default rates of scored cohorts, and that rebuild record is the pricing basis of record.",
+    a4_benefit_consumer_fact:
+      "Median time to decision is under two minutes in the application session, and every decline notice names the affordability input that drove it.",
+    a4_benefit_other_stakeholders_fact:
+      "The sponsoring bank's quarterly portfolio audit draws its decision sample from the stored score and reason codes for each application.",
+    a4_benefit_public_fact:
+      "The credit line is privately funded and no decision output is published or shared with any public body, so no public-facing outcome is recorded.",
     a5_harm_pathways: [
       {
         harm: "(B) Unlawful discrimination on protected characteristics",
+        data_involved:
+          "Application-time device and location features used as model inputs, and the resulting decline decision.",
+        actor:
+          "The scoring model itself, applied automatically at application time.",
         source:
           "The model's behavioural signals include application-time device and location features that correlate with residential area.",
         cause:
@@ -314,6 +354,10 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
       },
       {
         harm: "(E) Economic harms",
+        data_involved:
+          "The applicant's bureau match, affordability figures, and the score derived from them.",
+        actor:
+          "The automated decisioning service that sets the outcome and the priced rate.",
         source:
           "The score sets both the accept/decline outcome and the interest rate offered to an accepted applicant.",
         cause:
@@ -323,6 +367,10 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
       },
       {
         harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        data_involved:
+          "Applicant financial figures joined to identity fields and precise geolocation in the feature store.",
+        actor:
+          "Any holder of the analytics credential with read access beyond the scoring pipeline.",
         source:
           "The scoring feature store holds applicant financial figures joined to identity fields and precise geolocation.",
         cause:
@@ -336,21 +384,29 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
         harm: "(B) Unlawful discrimination on protected characteristics",
         safeguard:
           "Decline rates are tested quarterly across proxy cohorts and the model is blocked from release when a cohort disparity exceeds the documented tolerance.",
+        residual:
+          "Quarterly proxy testing catches cohort disparity between releases; disparity arising inside a release window persists until the next test.",
         safeguard_status: "Implemented, not tested",
       },
       {
         harm: "(E) Economic harms",
         safeguard:
           "Every decline is reviewable by an underwriter on request, and an applicant may submit corrected affordability figures for a re-score.",
+        residual:
+          "Underwriter review corrects individual errors on request; applicants who do not contest a decline remain priced on the original score.",
         safeguard_status: "Implemented and tested",
       },
       {
         harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
         safeguard:
           "The feature store is segmented from the analytics estate, access is granted per-role with 30-day rotation, and exports are logged.",
+        residual:
+          "Credential scoping limits routine access to the scoring pipeline; a compromised credential still reaches the joined financial and geolocation table.",
         safeguard_status: "Implemented and tested",
       },
     ],
+    a8_information_providers:
+      "Marcus Adeyemi is recorded separately as approver. Information was provided by: Lena Fusco, Head of Credit Risk — score use and pricing; Owen Tran, Model Engineer — feature construction and bureau matching; Rita Bassey, Fair Lending Analyst — proxy-cohort testing.",
     a9_approver_name: "Marcus Adeyemi",
     a9_approver_position: "General Counsel",
     a9_approval_date: "2026-07-30",
@@ -427,9 +483,21 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
       "Participating brand suppliers receive category-level redemption reporting for the promotions they fund, without receiving member-level data.",
     a4_benefit_public:
       "No public benefit is claimed for this activity beyond the member benefit stated above.",
+    a4_benefit_business_fact:
+      "Incremental margin from personalised offers is reported monthly and is the line item the loyalty discount budget is drawn from.",
+    a4_benefit_consumer_fact:
+      "Members can open each offer in the app and see the purchase categories that generated it; redemption on personalised offers runs materially above the general circular.",
+    a4_benefit_other_stakeholders_fact:
+      "Suppliers receive category-level redemption reports only; the reporting pipeline carries no member identifier, as recorded in the supplier reporting specification.",
+    a4_benefit_public_fact:
+      "The programme is a private retail loyalty scheme and none of its outputs are published, so no public-facing outcome is recorded.",
     a5_harm_pathways: [
       {
         harm: "(C) Impairment of consumer control over personal information",
+        data_involved:
+          "Precise in-store geolocation collected by the app and retained against the member record.",
+        actor:
+          "The business itself, through the enrolment notice it publishes to members.",
         source:
           "The loyalty enrolment notice describes purchase-history personalisation but does not name the precise in-store geolocation the app collects.",
         cause:
@@ -439,6 +507,10 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
       },
       {
         harm: "(E) Economic harms",
+        data_involved:
+          "Itemised purchase history and the offer-depth score derived from it.",
+        actor:
+          "The offer-selection engine that assigns discount depth automatically.",
         source:
           "Offer selection sets which members see a discount and at what depth.",
         cause:
@@ -448,6 +520,10 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
       },
       {
         harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        data_involved:
+          "Member identity joined to itemised purchase history and store-visit records in the personalisation store.",
+        actor:
+          "Any holder of the shared reporting credential operating outside the personalisation pipeline.",
         source:
           "The personalisation store holds member identity joined to itemised purchase history and store-visit records.",
         cause:
@@ -461,21 +537,29 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
         harm: "(C) Impairment of consumer control over personal information",
         safeguard:
           "The enrolment notice is being amended to name in-store geolocation, and the app's location permission is being reduced to coarse store-level resolution.",
+        residual:
+          "Until the amended notice publishes and the permission is reduced, members continue to enrol without knowing precise in-store position is retained.",
         safeguard_status: "Planned, not yet implemented",
       },
       {
         harm: "(E) Economic harms",
         safeguard:
           "A floor discount is applied to every enrolled member regardless of score, and offer depth distribution is reviewed monthly.",
+        residual:
+          "The floor discount removes the worst outcome for thin-history members; a depth difference between thick- and thin-history members remains.",
         safeguard_status: "Implemented and tested",
       },
       {
         harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
         safeguard:
           "Reporting reads from an aggregated view with no member identifiers; the member-level store is reachable only by the personalisation service account.",
+        residual:
+          "Reporting-credential scoping limits routine access; an export by a credential holder acting within scope is not prevented, only logged.",
         safeguard_status: "Implemented and tested",
       },
     ],
+    a8_information_providers:
+      "Tomas Beck, Loyalty Product Lead — enrolment notice and offer selection; Yuki Sano, Mobile Engineer — location permission and collection scope; Aisha Bello, Retail Analytics Manager — personalisation store access.",
     a9_approver_name: "Denise Okafor",
     a9_approver_position: "SVP, Legal and Compliance",
     a9_approval_date: "2026-07-30",

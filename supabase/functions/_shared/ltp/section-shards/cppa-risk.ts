@@ -184,7 +184,23 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
   {
     key: "attestation_block",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "attestation-block-composer" },
-    project: (_plan) => ({ text: ATTESTATION_TEXT, attested: false }),
+    // UPGRADE-2 — § 7152(a)(8)-(9): the block now also carries the
+    // deterministic attestation record derived from intake (information
+    // providers with legal counsel excluded, review/approval dates,
+    // approver names + positions, approval-authority requirement).
+    project: (plan) => ({
+      text: ATTESTATION_TEXT,
+      attested: false,
+      ...(((plan as unknown as { attestation?: Record<string, unknown> }).attestation) ?? {}),
+    }),
+  },
+  {
+    // ITEM 371 / UPGRADE-2 — table of authorities. The shard emits the empty
+    // envelope; it is populated at finalize time from the citations the
+    // report actually emits, excerpted only from approved corpus rows.
+    key: "authority_exhibit",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "_shared/report-exhibits/authority-exhibit.ts" },
+    project: (_plan) => ({ entries: [] }),
   },
   {
     key: "disclaimer",
@@ -656,6 +672,7 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   schema_version: "always",
   document_metadata: "always",
   attestation_block: "always",
+  authority_exhibit: "always",
   disclaimer: "always",
   framework_disclaimer: "always",
   accuracy_caveat: "always",

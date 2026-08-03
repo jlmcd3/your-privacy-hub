@@ -28,6 +28,7 @@ export const CPPA_RISK_HEADER_MAP: Readonly<Record<string, string>> = {
   strengthen_items: "Where the record is strong and how to keep it strong",
   exception_analysis: "Where the record admits a reserved exception",
   record_sufficiency: "How complete the record is against § 7152(a)",
+  activity_analytics: "The § 7152(a) analysis, activity by activity",
   information_needed: "Items for your review",
   submission_summary: "How to submit and retain this assessment",
 };

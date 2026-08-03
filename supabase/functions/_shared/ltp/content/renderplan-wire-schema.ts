@@ -226,6 +226,8 @@ export const DETERMINISTIC_ONLY_PLAN_KEYS: readonly string[] = [
   "activity_analytics",
   // ITEM 341 — corpus-pinned EU persuasive authority; never model-authored.
   "eu_persuasive_authority",
+  // UPGRADE-2 — § 7152(a)(8)-(9) attestation; deterministic, never model-authored.
+  "attestation",
 ];
 
 /**

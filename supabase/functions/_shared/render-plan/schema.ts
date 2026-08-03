@@ -139,6 +139,12 @@ export interface RenderPlan {
    * `../ltp/eu-authority/types.ts` → EuAuthoritySection.
    */
   readonly eu_persuasive_authority?: Record<string, unknown>;
+  /**
+   * UPGRADE-2 — § 7152(a)(8)-(9) attestation block (cppa-risk only).
+   * Deterministic; authoritative shape
+   * `../ltp/analytic-deliverables/types.ts` → Attestation.
+   */
+  readonly attestation?: Record<string, unknown>;
 }
 
 

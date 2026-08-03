@@ -64,6 +64,7 @@ const ANALYTIC_ENTRY_KEYS = [
   "activity_purpose",
   "is_primary",
   "necessity_analysis",
+  "benefits",
   "harm_causation",
   "safeguard_map",
   "weighing",
@@ -74,14 +75,21 @@ const ANALYTIC_ENTRY_KEYS = [
   "information_needed",
   // necessity_analysis[]
   "element",
+  "purpose_served",
   "asserted_status",
   "verdict",
   "justification",
+  // benefits[]
+  "benefit",
+  "supporting_record_fact",
   // harm_causation[]
   "harm_id",
   "harm_pinpoint",
   "harm_label",
   "harm_verbatim",
+  "data_involved",
+  "actor",
+  "pathway",
   "source",
   "cause",
   "likelihood",
@@ -89,10 +97,16 @@ const ANALYTIC_ENTRY_KEYS = [
   "inherent_band",
   // safeguard_map[]
   "safeguard",
+  "harm_ids",
   "safeguard_status",
   "residual_band",
+  "residual_statement",
   // weighing[]
   "beneficiary_class",
+  "case_for",
+  "case_against",
+  "outweigh_determination",
+  "reasoning",
   "benefit_statement",
   "generic_benefit_flag",
   "offsetting_harm_ids",
@@ -102,15 +116,49 @@ const ANALYTIC_ENTRY_KEYS = [
   "rule_ids",
   "reasons",
   "conditions",
+  "modifications",
+  "modification",
+  "addresses_risk",
   "approver_name",
   "approver_position",
   "approval_date",
   "approval_recorded",
 ] as const;
 
+// UPGRADE-2 — allow-listed keys inside the report-level `attestation_block`.
+const ATTESTATION_BLOCK_KEYS = [
+  "text",
+  "attested",
+  "information_providers",
+  "legal_counsel_excluded",
+  "review_date",
+  "approval_date",
+  "approvers",
+  "name",
+  "position",
+  "approval_authority_requirement",
+  "citation",
+  "status",
+  "information_needed",
+] as const;
+
+
+// ITEM 371 / UPGRADE-2 — allow-listed keys inside `authority_exhibit`.
+const AUTHORITY_EXHIBIT_KEYS = [
+  "version",
+  "heading",
+  "entries",
+  "citation",
+  "as_cited",
+  "authority_class",
+  "corpus_key",
+  "excerpt",
+  "pin_verified",
+  "note",
+] as const;
 
 export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-w1-2026-07-26-ltp-waveb-summary",
+  version: "rs-w2-2026-08-03-upgrade2-deliverables",
   tool: "cppa_risk_assessment",
   topLevel: [
     // core presentation (from Result page + V4)
@@ -124,6 +172,8 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "assessment_summary",
     "submission_summary",
     "attestation_block",
+    // ITEM 371 / UPGRADE-2 — table of authorities, rendered before the disclaimer.
+    "authority_exhibit",
     "document_metadata",
     // ITEM 290 — RETIRED FOR TRACK 2 (single-key scope emission): the LTP
     // emitters no longer produce `scope_confirmation`. The key is RETAINED in
@@ -223,6 +273,8 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
   entries: {
     // ITEM 305 — analytic-deliverable envelope key set.
     activity_analytics: ANALYTIC_ENTRY_KEYS,
+    attestation_block: ATTESTATION_BLOCK_KEYS,
+    authority_exhibit: AUTHORITY_EXHIBIT_KEYS,
     risk_assessment_by_activity: RISK_ENTRY_KEYS,
 
     // ITEM 354 — risk_register was NOT entry-pruned, which let raw factor

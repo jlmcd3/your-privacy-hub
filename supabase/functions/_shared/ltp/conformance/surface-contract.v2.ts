@@ -18,7 +18,7 @@
  *   - `_engine_path` — telemetry. RELOCATED to `_meta.internal.engine_path`.
  *     Never a top-level customer key. Enforced by INTERNAL_TOP_LEVEL_FORBIDDEN.
  *
- * Declared keys: 33.
+ * Declared keys: 34 (UPGRADE-2 added `authority_exhibit`).
  *
  * Contract kinds:
  *   "prose"      — rendered-prose string (or array of prose strings/blocks)
@@ -44,6 +44,8 @@ export const CPPA_RISK_SURFACE_CONTRACT: readonly SurfaceContractEntry[] = [
   { key: "schema_version", kind: "scalar", types: ["string"] },
   { key: "document_metadata", kind: "shaped", types: ["object"], note: "tool / render_plan_version / build_stamp / jurisdiction_tag (human label)." },
   { key: "attestation_block", kind: "shaped", types: ["object"] },
+  // ITEM 371 / UPGRADE-2 — table of authorities.
+  { key: "authority_exhibit", kind: "shaped", types: ["object"] },
   { key: "disclaimer", kind: "prose", types: ["string"] },
   { key: "framework_disclaimer", kind: "prose", types: ["string"] },
   { key: "accuracy_caveat", kind: "prose", types: ["string"] },
