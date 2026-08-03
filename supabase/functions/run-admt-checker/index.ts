@@ -112,6 +112,12 @@ console.log(JSON.stringify({
 }));
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  buildAdmtCorpusLawBlock,
+  EMPTY_ADMT_CORPUS,
+  fetchAdmtCorpus,
+  admtCorpusProvisionsForExhibit,
+} from "../_shared/ltp/admt-corpus.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
@@ -683,11 +689,30 @@ Deno.serve(async (req) => {
     verifyCppaDeadlineDrift(supabase, "admt");
     const admtDeadlineBlock = await buildCppaDeadlineBlock(supabase, "admt");
 
+    // ── UPGRADE-3 ITEM 5 — CORPUS INTO THE ANALYSIS (§§ 7001, 7220-7222).
+    // Runtime provision-store resolution, cyber/risk precedent. Fail-open:
+    // an unresolved corpus degrades the block to citation-only, never aborts.
+    let admtCorpus = EMPTY_ADMT_CORPUS;
+    try {
+      admtCorpus = await fetchAdmtCorpus(supabase);
+      console.log(JSON.stringify({
+        evt: "admt_corpus_resolved", fn: "run-admt-checker",
+        version: admtCorpus.version, resolved: admtCorpus.resolved_count,
+        approved: admtCorpus.approved_count,
+        access_requirements: admtCorpus.access_requirements.length,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ADMT corpus resolution failed (non-fatal):", (e as Error)?.message);
+    }
+    const admtCorpusBlock = buildAdmtCorpusLawBlock(admtCorpus);
+
     const authoritiesBlock = `REGULATION AUTHORITIES:
 ${authBlock}
 
 COMPLIANCE DEADLINES:
 ${deadlineBlock}${admtDeadlineBlock ? `\n\n${admtDeadlineBlock}` : ""}${admtFsorAnchorBlock ? `\n\n${admtFsorAnchorBlock}` : ""}
+
+${admtCorpusBlock}
 
 ${ADMT_VERIFIED_AUTHORITY_BLOCK}`;
 
@@ -2625,6 +2650,41 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+
+    // ── UPGRADE-3 ITEM 5 — AUTHORITY EXHIBIT (table of authorities) ──
+    // Built from the citations THIS report actually emits, excerpted only
+    // from approved corpus rows; anything else renders citation-only. It is
+    // placed at the end of the report, immediately before the universal
+    // disclaimer, on screen and in the PDF. Fail-open.
+    try {
+      const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const cited = new Set<string>();
+      const walk = (v: unknown): void => {
+        if (typeof v === "string") {
+          for (const m of v.matchAll(/(?:\d+\s*CCR|Cal\.\s*Civ\.\s*Code)[^,;.)\]]*?\u00a7+\s*[\d.]+(?:\([a-z0-9]+\))*/gi)) {
+            cited.add(m[0].replace(/\s+/g, " ").trim());
+          }
+          return;
+        }
+        if (Array.isArray(v)) { for (const x of v) walk(x); return; }
+        if (v && typeof v === "object") {
+          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+            if (k === "_meta" || k === "_staging") continue;
+            walk(x);
+          }
+        }
+      };
+      walk(report);
+      const exhibit = buildAuthorityExhibit([...cited], admtCorpusProvisionsForExhibit(admtCorpus));
+      (report as any).authority_exhibit = exhibit;
+      console.log(JSON.stringify({
+        evt: "admt_authority_exhibit_attached", fn: "run-admt-checker",
+        entries: exhibit.entries.length,
+        pin_verified: exhibit.entries.filter((e) => e.pin_verified).length,
+      }));
+    } catch (axErr) {
+      console.warn("[run-admt-checker] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
+    }
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ─────────
     // Replaces the C1 blacklist strip with a WHITELIST: only schema-

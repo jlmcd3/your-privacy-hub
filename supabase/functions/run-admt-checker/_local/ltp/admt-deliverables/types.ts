@@ -40,6 +40,15 @@ export type NoticeVerdict =
   | "insufficient_record";
 
 // ── 1. § 7220(c) notice elements ─────────────────────────────────────
+//
+// UPGRADE-3 ITEM 1 — SHAPE-LAW form. A notice element is no longer an
+// assertion of the bar the regulation sets; it is a TEST of the business's
+// own captured notice words against that bar:
+//
+//   standard      → what the cited provision requires (from the corpus)
+//   record_fact   → the notice's OWN words, as captured from the business
+//   application   → the standard applied to those words
+//   verdict       → the result of that application
 export interface NoticeElementFinding {
   readonly element_id: NoticeElementId;
   readonly element_label: string;
@@ -48,14 +57,55 @@ export interface NoticeElementFinding {
   /** VERBATIM § 7220(c) text for the element, from the verified registry. */
   readonly element_verbatim: string;
   readonly citation: string;
+  /** SHAPE-LAW step 1 — the bar the cited provision sets, in plain terms. */
+  readonly standard: string;
+  /** SHAPE-LAW step 2 — the notice's own words, quoted from the record. */
+  readonly record_fact: string;
+  /** SHAPE-LAW step 3 — the standard applied to those words. */
+  readonly application: string;
   /** The business's own published pre-use notice text for this element. */
   readonly published_text: string;
+  /** Where `record_fact` came from: transcribed element text, the full
+   *  published notice the business supplied, or an absence assertion. */
+  readonly record_source:
+    | "element_text"
+    | "published_notice_text"
+    | "absence_assertion"
+    | "none";
   readonly verdict: NoticeVerdict;
   /** Why the verdict — reasons over the record, never invention. */
   readonly why: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
 }
+
+// ── 1b. § 7220(c)(2)(B) exception-IDENTIFICATION duty ────────────────
+//
+// UPGRADE-3 ITEM 1 — distinct from the opt-out MECHANISM analysis in
+// element c2_optout. (c)(2)(B) imposes a separate disclosure duty: where the
+// business relies on a § 7221(b) exception other than human appeal, the
+// notice must NAME the specific exception relied upon. A business can have a
+// perfectly adequate opt-out description and still breach this duty.
+export interface ExceptionIdentificationFinding {
+  readonly finding_id: "c2B_exception_identification";
+  readonly citation: string;
+  /** VERBATIM § 7220(c)(2)(B) text, from the verified registry. */
+  readonly element_verbatim: string;
+  readonly standard: string;
+  readonly record_fact: string;
+  readonly application: string;
+  /** The § 7221(b) exception the record shows the business relying on. */
+  readonly exception_relied_upon: string;
+  readonly verdict:
+    | "satisfied"
+    | "not_satisfied"
+    | "not_applicable"
+    | "insufficient_record";
+  readonly why: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
 
 // ── 2. § 7221(b) exception qualification ─────────────────────────────
 export type ConditionVerdict =
@@ -120,8 +170,50 @@ export interface Determination {
   readonly separation_repairs: number;
 }
 
+// ── 4. § 7222 — access-rights readiness (UPGRADE-3 ITEM 3) ───────────
+//
+// § 7222(b) enumerates the plain-language explanations a business must be
+// able to give a consumer who exercises the right to access ADMT. Each is a
+// testable element: can this business produce it on request, and by what
+// process? SHAPE-LAW findings; DEGRADATION LAW applies unchanged.
+export type AccessElementId =
+  | "b1_purpose"
+  | "b2_logic"
+  | "b3_output_use"
+  | "b3_outcome"
+  | "b3_human_role";
+
+export type AccessVerdict =
+  | "ready"
+  | "partially_ready"
+  | "not_ready"
+  /** DEGRADATION LAW: the record neither shows readiness nor denies it. */
+  | "insufficient_record";
+
+export interface AccessReadinessFinding {
+  readonly element_id: AccessElementId;
+  readonly element_label: string;
+  readonly citation: string;
+  /** provision_texts key the element is drawn from (cppa-7222). */
+  readonly corpus_key: string;
+  /** VERBATIM § 7222(b) text for this element, from the verified registry. */
+  readonly element_verbatim: string;
+  readonly standard: string;
+  readonly record_fact: string;
+  readonly application: string;
+  /** The business's stated process for producing this explanation. */
+  readonly process_on_the_record: string;
+  readonly verdict: AccessVerdict;
+  readonly why: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
 export interface AdmtDeliverables {
   readonly notice_element_findings: readonly NoticeElementFinding[];
+  readonly exception_identification: ExceptionIdentificationFinding;
   readonly exception_qualification: readonly ExceptionQualificationEntry[];
+  readonly access_readiness_findings: readonly AccessReadinessFinding[];
   readonly determination: Determination;
 }
+

@@ -135,6 +135,27 @@ const ACCESS_RESPONSE_TIMELINE_OPTS = [
   "Our process is not yet defined",
 ] as const;
 
+// UPGRADE-3 ITEM 3 — readiness + process pair for each § 7222(b) element.
+export const ACCESS_READINESS_ELEMENT_IDS = [
+  "b1_purpose",
+  "b2_logic",
+  "b3_output_use",
+  "b3_outcome",
+  "b3_human_role",
+] as const;
+
+export const ACCESS_READINESS_OPTS = [
+  "Yes \u2014 we can produce this today",
+  "Partially \u2014 we can produce some of it",
+  "No \u2014 we cannot produce this today",
+  "Unsure",
+] as const;
+
+const ACCESS_READINESS_KEYS = ACCESS_READINESS_ELEMENT_IDS.flatMap((id) => [
+  { key: `access_readiness.${id}_ready`, kind: "enum" as const, required: "optional" as const, options: ACCESS_READINESS_OPTS },
+  { key: `access_readiness.${id}_process`, kind: "text" as const, required: "optional" as const },
+]);
+
 export const cppaAdmtContract: IntakeContract = {
   tool_type: "cppa_admt",
   table: "admt_runs",
@@ -229,6 +250,15 @@ export const cppaAdmtContract: IntakeContract = {
     // (c) § 7221(b)(2) condition evidence.
     { key: "admt_detail.sole_use_attestation",      kind: "enum", required: "optional", options: ADMT_SOLE_USE_ATTESTATION_OPTS },
     { key: "admt_detail.nondiscrimination_testing", kind: "enum", required: "optional", options: ADMT_NONDISCRIM_TESTING_OPTS },
+
+    // UPGRADE-3 ITEM 1 — the whole published pre-use notice, verbatim. The
+    // § 7220(c) element findings TEST the business's own words against the
+    // standard; without it those findings degrade to record_insufficient.
+    { key: "notice_full_text", kind: "narrative", required: "optional" },
+
+    // UPGRADE-3 ITEM 3 — § 7222(b) explanation readiness, element by element.
+    { key: "access_readiness", kind: "structured", required: "optional" },
+    ...ACCESS_READINESS_KEYS,
   ],
 };
 

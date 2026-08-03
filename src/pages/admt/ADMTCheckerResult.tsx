@@ -11,6 +11,13 @@ import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ReportShell from "@/components/ReportShell";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
+import {
+  AdmtAccessReadinessSection,
+  AdmtExceptionSection,
+  AdmtLawfulnessSection,
+  AdmtNoticeTestingSection,
+} from "@/components/admt/AdmtDeliverableSections";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
 
@@ -623,6 +630,17 @@ export default function ADMTCheckerResult() {
           </section>
         )}
 
+        {/* UPGRADE-3 ITEM 4 — LAWFULNESS FIRST. The § 7220/7221/7222
+            determination is presented ahead of enforcement exposure; exposure
+            is a consequence of the finding, not the finding itself. */}
+        <AdmtLawfulnessSection determination={report.determination} />
+        <AdmtNoticeTestingSection
+          findings={report.notice_element_findings}
+          exceptionIdentification={report.exception_identification}
+        />
+        <AdmtExceptionSection entries={report.exception_qualification} />
+        <AdmtAccessReadinessSection findings={report.access_readiness_findings} />
+
         {report.enforcement_context && (
           <section className="font-serif-text space-y-3">
             <h3 className="font-body text-display-card font-semibold">Enforcement Exposure</h3>
@@ -863,6 +881,10 @@ export default function ADMTCheckerResult() {
         )}
 
 
+
+        {/* UPGRADE-3 ITEM 5 — table of authorities, immediately before the
+            universal report disclaimer rendered by ReportShell. */}
+        <AuthorityExhibit exhibit={report.authority_exhibit} />
 
         <p className="text-xs text-muted-foreground italic">
           All citations refer to the California Privacy Protection Agency's final regulations (11 CCR Article 11). Official text:{" "}

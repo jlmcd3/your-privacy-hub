@@ -467,4 +467,84 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     commonMistake:
       "Treating a vendor's marketing claim of fairness as your testing record. The obligation sits with the business using the ADMT.",
   },
+
+  // ── UPGRADE-3 — new intake fields (§ 7220 notice text, § 7222 readiness) ──
+  notice_full_text: {
+    coachLead: "Paste the notice as consumers actually see it, not a summary of it.",
+    coachBody: "Your report quotes these words back and tests each element against the standard. A paraphrase cannot be tested; the finding degrades to a record shortfall.",
+    fieldLabel: "Published Pre-use Notice, in full",
+    citation: "11 CCR § 7220(c)",
+    plainSummary:
+      "The pre-use notice must give the consumer the specific purpose, the right to opt out and how to submit it, the right to access ADMT and how to submit it, that the business cannot retaliate, and a plain-language explanation of how the ADMT works.",
+    regulationText:
+      "A business that uses automated decisionmaking technology for a significant decision concerning a consumer must provide a Pre-use Notice that includes the information set forth in subsections (c)(1) through (c)(5).",
+    goodAnswer:
+      "The complete notice text copied from the page where it is published, headings included.",
+    commonMistake:
+      "Pasting the general privacy policy instead of the pre-use notice, or describing the notice rather than reproducing it.",
+  },
+  access_readiness: {
+    coachLead: "Answer for what you can produce today, not for what you intend to build.",
+    coachBody: "Each § 7222(b) element is tested separately. A readiness claim without a process behind it reads as partial, because there is nothing to perform on the day a request arrives.",
+    fieldLabel: "Access-request explanation readiness",
+    citation: "11 CCR § 7222(b)",
+    plainSummary:
+      "On a verified access request the business must explain the specific purpose the ADMT was used for, its logic including assumptions and limitations, the output and how it was used, the outcome for the consumer, and the role any human played.",
+    regulationText:
+      "A business that receives a verifiable consumer request to access automated decisionmaking technology must provide the consumer with the information set forth in subsection (b).",
+    goodAnswer:
+      "Element-by-element answers naming the record each explanation is drawn from and who assembles it.",
+    commonMistake:
+      "Answering yes across the board because the data exists somewhere. The question is whether it can be assembled into an explanation within the response window.",
+  },
+  access_readiness_b1_purpose: {
+    coachLead: "Say whether you can state the purpose as it applied to that one consumer.",
+    coachBody: "The consumer is entitled to the specific purpose, not the programme description. If your record only holds a programme-level purpose, say so.",
+    fieldLabel: "Readiness — specific purpose (§ 7222(b)(1))",
+    citation: "11 CCR § 7222(b)(1)",
+    plainSummary: "The business must explain the specific purpose for which it used the ADMT with respect to that consumer.",
+    regulationText: "The specific purpose for which the business used the automated decisionmaking technology with respect to the consumer.",
+    goodAnswer: "\u201cYes \u2014 the decision log records the rubric and role the applicant was screened against.\u201d",
+    commonMistake: "Offering the marketing purpose of the tool rather than the purpose it served for that person.",
+  },
+  access_readiness_b2_logic: {
+    coachLead: "Say whether your explanation covers assumptions and limitations, not just inputs.",
+    coachBody: "Logic that omits what the model assumes, or what it cannot show, does not let the consumer understand how their information produced the output.",
+    fieldLabel: "Readiness — logic, assumptions, limitations (§ 7222(b)(2))",
+    citation: "11 CCR § 7222(b)(2)",
+    plainSummary: "The explanation must let the consumer understand how their personal information was processed to generate the output about them, including the ADMT's assumptions and limitations.",
+    regulationText: "The logic of the automated decisionmaking technology, including key parameters that affect the output of the automated decisionmaking technology, and how those parameters were applied to the consumer.",
+    goodAnswer: "\u201cPartially \u2014 we can list the ranking factors, but our record does not carry the model's stated limitations.\u201d",
+    commonMistake: "Treating a trade-secret withholding as an answer. Withholding narrows what you disclose; it does not remove the duty to explain.",
+  },
+  access_readiness_b3_output_use: {
+    coachLead: "Say whether you can state the output and the weight it carried.",
+    coachBody: "The consumer is entitled to know what the tool produced and how that fed the decision, including whether other factors mattered.",
+    fieldLabel: "Readiness — output and its use (§ 7222(b)(3))",
+    citation: "11 CCR § 7222(b)(3)",
+    plainSummary: "The explanation must state the output the ADMT produced for the consumer and how the business used it in making the significant decision.",
+    regulationText: "The output of the automated decisionmaking technology with respect to the consumer, and how the business used the output to make the significant decision.",
+    goodAnswer: "\u201cYes \u2014 the case record stores the score, the band, and the reviewer's note on how it was weighed.\u201d",
+    commonMistake: "Storing the outcome but not the output, which leaves half the element unanswerable.",
+  },
+  access_readiness_b3_outcome: {
+    coachLead: "Say whether the outcome, and any planned reuse of the output, are retrievable.",
+    coachBody: "Where the output will be reused for a later significant decision, the consumer is entitled to know that too.",
+    fieldLabel: "Readiness — outcome for the consumer (§ 7222(b)(3))",
+    citation: "11 CCR § 7222(b)(3)",
+    plainSummary: "The explanation must state the outcome of the decisionmaking process for the consumer, and how the business plans to use any retained output.",
+    regulationText: "The outcome of the decisionmaking process with respect to the consumer, including how the business plans to use the output if it plans to use it for a future significant decision.",
+    goodAnswer: "\u201cYes \u2014 outcome and any retention-for-reuse flag are both written to the decision record.\u201d",
+    commonMistake: "Reporting the outcome while staying silent on reuse of the retained score.",
+  },
+  access_readiness_b3_human_role: {
+    coachLead: "Say whether you can describe what the human actually did.",
+    coachBody: "This element bites where a human took part but not in the qualifying way. Recording a reviewer's name is not a description of their role.",
+    fieldLabel: "Readiness — role of any human (§ 7222(b)(3))",
+    citation: "11 CCR § 7222(b)(3)",
+    plainSummary: "Where a human was involved in a way that does not meet the § 7001(e)(1) standard, the explanation must state what that human's role was.",
+    regulationText: "The role of any human involvement in the decisionmaking process with respect to the consumer.",
+    goodAnswer: "\u201cYes \u2014 the audit trail records who reviewed, what they saw, and whether they altered the outcome.\u201d",
+    commonMistake: "Describing a sign-off step as review when the person could not change the decision.",
+  },
 };
