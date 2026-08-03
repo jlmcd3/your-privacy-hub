@@ -14,4 +14,5 @@ export const TOOL_ROUTE: Record<string, string> = {
   ropa: "/ropa-builder",
   us_notice: "/us-notice-builder",
   eu_notice: "/eu-global-notice-builder",
+  registration: "/registration-manager/start",
 };
