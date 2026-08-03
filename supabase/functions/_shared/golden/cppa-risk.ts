@@ -83,6 +83,14 @@ const base = {
     "Enterprise administrators who sponsor free-tier trials receive accurate seat-activation reporting instead of estimates when deciding whether to convert a trial.",
   a4_benefit_public:
     "No public benefit is claimed for this activity beyond the consumer benefit stated above.",
+  a4_benefit_business_fact:
+    "The quarterly onboarding rework decision record cites the step-abandonment figures produced by this measurement, and two steps were rewritten on that basis last quarter.",
+  a4_benefit_consumer_fact:
+    "The two onboarding steps rewritten after the last measurement cycle are the two with the highest recorded abandonment, and completion on both rose afterwards.",
+  a4_benefit_other_stakeholders_fact:
+    "Enterprise administrators receive seat-activation counts drawn from measured free-tier activity rather than sampled estimates, as recorded in the trial reporting specification.",
+  a4_benefit_public_fact:
+    "The measurement outputs are internal and are not published, so no public-facing outcome is recorded."
   a5_harm_pathways: [
     {
       harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",

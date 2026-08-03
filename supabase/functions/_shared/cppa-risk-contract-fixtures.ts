@@ -171,6 +171,14 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
       "Referring primary-care practices receive a routing outcome for each patient they refer, so they know which pathway their patient entered without telephoning the service.",
     a4_benefit_public:
       "No public benefit is claimed for this activity beyond the patient benefit stated above.",
+    a4_benefit_business_fact:
+      "The rostering decision record for each month cites the queue-volume figures produced by this routing, and clinician shifts were re-allocated on that basis in the last two cycles.",
+    a4_benefit_consumer_fact:
+      "Urgent-pathway patients were contacted the same day in 94% of cases last quarter, against a single-queue median wait of three days before routing was introduced.",
+    a4_benefit_other_stakeholders_fact:
+      "Each referring practice receives the routing outcome through the referral portal; practices logged 41% fewer status telephone calls after that feed was enabled.",
+    a4_benefit_public_fact:
+      "The service is not publicly funded and its routing outputs are not published, so no public-facing outcome is recorded.",
     a5_harm_pathways: [
       {
         harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
@@ -322,6 +330,14 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
       "The sponsoring bank that funds the credit line receives a consistent, documented basis for each decision when it audits the portfolio.",
     a4_benefit_public:
       "No public benefit is claimed for this activity beyond the applicant benefit stated above.",
+    a4_benefit_business_fact:
+      "The portfolio pricing model is rebuilt each quarter from the observed default rates of scored cohorts, and that rebuild record is the pricing basis of record.",
+    a4_benefit_consumer_fact:
+      "Median time to decision is under two minutes in the application session, and every decline notice names the affordability input that drove it.",
+    a4_benefit_other_stakeholders_fact:
+      "The sponsoring bank's quarterly portfolio audit draws its decision sample from the stored score and reason codes for each application.",
+    a4_benefit_public_fact:
+      "The credit line is privately funded and no decision output is published or shared with any public body, so no public-facing outcome is recorded.",
     a5_harm_pathways: [
       {
         harm: "(B) Unlawful discrimination on protected characteristics",
@@ -467,6 +483,14 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
       "Participating brand suppliers receive category-level redemption reporting for the promotions they fund, without receiving member-level data.",
     a4_benefit_public:
       "No public benefit is claimed for this activity beyond the member benefit stated above.",
+    a4_benefit_business_fact:
+      "Incremental margin from personalised offers is reported monthly and is the line item the loyalty discount budget is drawn from.",
+    a4_benefit_consumer_fact:
+      "Members can open each offer in the app and see the purchase categories that generated it; redemption on personalised offers runs materially above the general circular.",
+    a4_benefit_other_stakeholders_fact:
+      "Suppliers receive category-level redemption reports only; the reporting pipeline carries no member identifier, as recorded in the supplier reporting specification.",
+    a4_benefit_public_fact:
+      "The programme is a private retail loyalty scheme and none of its outputs are published, so no public-facing outcome is recorded.",
     a5_harm_pathways: [
       {
         harm: "(C) Impairment of consumer control over personal information",
