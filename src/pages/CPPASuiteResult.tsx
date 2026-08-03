@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
+import ReportDisclaimer from "@/components/ReportDisclaimer";
 import BackLink from "@/components/dashboard/BackLink";
 import { CybersecurityReportBody } from "./CPPACybersecurityResult";
 import PDFDownloadButton from "@/components/PDFDownloadButton";

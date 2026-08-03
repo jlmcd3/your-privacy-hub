@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
+import ReportDisclaimer from "@/components/ReportDisclaimer";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
