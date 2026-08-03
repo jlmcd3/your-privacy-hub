@@ -81,6 +81,21 @@ Deno.test("ITEM 1: report schema declares the upgrade-4 deliverable keys", () =>
   for (const k of ["three_part_test", "lia_determination", "reasonable_expectations"]) {
     assert(keys.has(k), `missing top-level key ${k}`);
   }
+  for (
+    const k of [
+      "interest_legitimacy",
+      "benefit_and_beneficiary",
+      "alternatives_considered",
+      "relationship_with_individual",
+      "scale_frequency_duration",
+      "potential_harms",
+      "opt_out_feasibility",
+      "attestation_block",
+      "authority_exhibit",
+    ]
+  ) {
+    assert(keys.has(k), `missing upgrade-4 top-level key ${k}`);
+  }
   assert(/^rs-lia-/.test(LIA_REPORT_SCHEMA.version), "schema version must stay in the rs-lia lineage");
 });
 
