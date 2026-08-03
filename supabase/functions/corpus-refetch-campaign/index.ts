@@ -394,14 +394,17 @@ Deno.serve(async (req) => {
             })
             .eq("id", row.id);
           fetched_ok++;
+          rowOk = true;
         } else if (res.status === "skipped") {
           skipped++;
           const reason = res.reason ?? "skipped";
+          rowReason = reason;
           failureReasons[reason] = (failureReasons[reason] ?? 0) + 1;
           perDomainFailures[dom] = (perDomainFailures[dom] ?? 0) + 1;
         } else {
           fetch_failed++;
           const reason = res.reason ?? `http_${res.http_status ?? 0}`;
+          rowReason = reason;
           failureReasons[reason] = (failureReasons[reason] ?? 0) + 1;
           perDomainFailures[dom] = (perDomainFailures[dom] ?? 0) + 1;
         }
@@ -411,6 +414,7 @@ Deno.serve(async (req) => {
         const reason = msg === "row_time_cap"
           ? "row_time_cap"
           : `driver_error:${msg}`.slice(0, 120);
+        rowReason = reason;
         failureReasons[reason] = (failureReasons[reason] ?? 0) + 1;
         perDomainFailures[dom] = (perDomainFailures[dom] ?? 0) + 1;
         console.warn(JSON.stringify({
