@@ -1061,7 +1061,7 @@ const F_REGISTRATION_US: SampleFixture = {
   scenario_summary:
     "Busted Sled Solutions, Inc. (small AdTech firm) sells/shares personal information across California, Colorado, and Virginia. No EU/UK establishment; no biometric identification.",
   source_table: "registration_assessments",
-  result_url_pattern: "/registration/assessment/result/{id}",
+  result_url_pattern: "/registration-manager/result/{id}",
   fixture: {
     invoke_body: {
       intake_data: {
