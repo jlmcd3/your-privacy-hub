@@ -22,6 +22,7 @@ import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { LIA_RAIL } from "@/components/lia/LIARailEntries";
+import type { RailEntry } from "@/components/intake/RailEntry";
 import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
