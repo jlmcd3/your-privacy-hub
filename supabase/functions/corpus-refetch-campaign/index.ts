@@ -131,7 +131,13 @@ async function selectBatch(
 // and retryable, and round-robins across hosts so one heavy domain
 // (uodo.gov.pl holds 665 of the residual rows) cannot monopolise a run.
 const PASS_B_MAX_ATTEMPTS = 3;
-const PASS_B_PER_HOST_PER_RUN = 2;
+// Default per-host cap keeps us polite; uodo.gov.pl is a government host
+// with a permissive robots.txt and holds ~40% of the residual doc-less rows,
+// so lifting it is the single biggest lever on Pass B completion time.
+const PASS_B_PER_HOST_DEFAULT = 2;
+const PASS_B_PER_HOST_OVERRIDES: Record<string, number> = {
+  "uodo.gov.pl": 12,
+};
 const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
 const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_url"];
@@ -144,6 +150,10 @@ const TERMINAL_REASONS = ["robots_disallow", "http_404", "http_410", "invalid_ur
 function shardOf(id: string, shardCount: number): number {
   const n = parseInt(String(id).replace(/[^0-9a-f]/gi, "").slice(-6) || "0", 16);
   return (Number.isFinite(n) ? n : 0) % shardCount;
+}
+
+function hostCap(host: string): number {
+  return PASS_B_PER_HOST_OVERRIDES[host] ?? PASS_B_PER_HOST_DEFAULT;
 }
 
 async function selectPassB(limit: number, shard: number, shardCount: number) {
@@ -165,21 +175,46 @@ async function selectPassB(limit: number, shard: number, shardCount: number) {
       (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
 
-
-  // Round-robin the window by host, capped per host per run.
+  // Bucket rows by host, respecting per-host caps.
   const buckets = new Map<string, any[]>();
   for (const r of pending) {
     const h = domainOf(r.source_url);
     const b = buckets.get(h) ?? [];
-    if (b.length < PASS_B_PER_HOST_PER_RUN) b.push(r);
+    if (b.length < hostCap(h)) b.push(r);
     buckets.set(h, b);
   }
+
+  // Fill overridden hosts first (they are the bottleneck), but keep at least
+  // PASS_B_RESERVED_NON_OVERRIDDEN slots for other hosts so a single domain
+  // cannot starve the rest of the batch.
+  const PASS_B_RESERVED_NON_OVERRIDDEN = 2;
+  const allBuckets = Array.from(buckets.entries());
+  const overriddenHosts = allBuckets
+    .filter(([h]) => hostCap(h) > PASS_B_PER_HOST_DEFAULT)
+    .sort((a, b) => hostCap(b[0]) - hostCap(a[0]));
+  const otherHosts = allBuckets.filter(
+    ([h]) => hostCap(h) <= PASS_B_PER_HOST_DEFAULT,
+  );
+
   const rows: any[] = [];
-  for (let i = 0; i < PASS_B_PER_HOST_PER_RUN && rows.length < limit; i++) {
-    for (const b of buckets.values()) {
+  const otherSlots = Math.min(PASS_B_RESERVED_NON_OVERRIDDEN, limit);
+  let overrideBudget = limit - otherSlots;
+
+  // Phase 1: fill overridden hosts up to their cap, respecting the budget.
+  for (const [host, b] of overriddenHosts) {
+    const cap = hostCap(host);
+    const take = Math.min(cap, overrideBudget, b.length);
+    for (let i = 0; i < take; i++) rows.push(b[i]);
+    overrideBudget -= take;
+  }
+
+  // Phase 2: fill reserved/other slots with round-robin across non-overridden hosts.
+  for (let i = 0; i < PASS_B_PER_HOST_DEFAULT && rows.length < limit; i++) {
+    for (const [, b] of otherHosts) {
       if (b[i] && rows.length < limit) rows.push(b[i]);
     }
   }
+
   return {
     rows,
     remaining_in_class: pending.length,
