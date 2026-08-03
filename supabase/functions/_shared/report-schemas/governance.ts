@@ -21,7 +21,7 @@
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-governance-w1-2026-07-25",
+  version: "rs-governance-w2-2026-08-04-upgrade5",
   tool: "governance_assessment",
   topLevel: [
     // Core assembly (governance terminal reportData)
@@ -53,6 +53,11 @@ export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
     "dpo_determination",
     "risk_calibration_finding",
     "review_and_update_finding",
+    "transfer_analysis",
+    // GOVERNANCE UPGRADE — ICO Audit Framework tracker walk + remediation.
+    "domain_element_findings",
+    "remediation_plan",
+
 
     "interaction_effects",
     "dpia_scope",
