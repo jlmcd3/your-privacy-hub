@@ -36,7 +36,7 @@ const DISCLAIMER_BLOCK =
   /<(div|section|p|footer)\b[^>]*>(?:(?!<\1\b)[\s\S])*?<\/\1>/gi;
 
 const DISCLAIMER_SIGNAL =
-  /not legal advice|legal advice|attorney-client|attorney–client|legal counsel|qualified counsel|informational purposes|educational purposes only/i;
+  /not legal advice|does not constitute legal advice|attorney[-\u2013]client|informational purposes only|educational purposes only|not a substitute for legal (?:counsel|advice)|starting point for your organisation|starting template/i;
 
 /**
  * Final HTML normalizer for every PDF/HTML report builder: strips any prior
