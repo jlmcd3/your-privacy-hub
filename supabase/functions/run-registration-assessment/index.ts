@@ -728,7 +728,7 @@ Deno.serve(async (req) => {
         shareable_token: row.shareable_token,
         confidence: engineOutput.confidence,
         recommended_jurisdictions: codes,
-        result_summary,
+        result_summary: customer_result_summary,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
