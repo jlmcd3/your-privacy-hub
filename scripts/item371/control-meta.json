@@ -1,0 +1,110 @@
+[
+ {
+  "key": "c1_auth",
+  "label": "C1: Authentication",
+  "plain": "Authentication of users seeking access to personal information, including multi-factor authentication, phishing-resistant MFA for employees and contractors, and strong password practices. The password element applies only if the business actually uses passwords.",
+  "note": "Authentication failures — weak or missing MFA, shared credentials, excessive access — appear in the majority of breach enforcement actions in the corpus."
+ },
+ {
+  "key": "c2_encryption",
+  "label": "C2: Encryption of personal information",
+  "plain": "Encryption of personal information both at rest and in transit. The Agency declined to mandate a specific encryption standard, preserving flexibility across business types and scenarios.",
+  "note": null
+ },
+ {
+  "key": "c3_account_access",
+  "label": "C3: Account management and access controls",
+  "plain": "Least-privilege access, limiting and monitoring privileged accounts, restricting access to personal information to those who need it, and restricting physical access to personal information. The final regulations expanded scope to account- and application-level configuration.",
+  "note": null
+ },
+ {
+  "key": "c4_inventory",
+  "label": "C4: Inventory and management of personal information and systems",
+  "plain": "A current inventory of personal information, data flows, hardware, and software. Scope extends to every system through which personal information is processed or accessible, including cloud and third-party systems the business does not own or operate.",
+  "note": null
+ },
+ {
+  "key": "c5_secure_config",
+  "label": "C5: Secure configuration of hardware and software",
+  "plain": "Hardening of systems, patch management, change management, and masking of sensitive personal information where appropriate, for both on-premises and cloud environments.",
+  "note": null
+ },
+ {
+  "key": "c6_vuln_mgmt",
+  "label": "C6: Vulnerability scanning and penetration testing",
+  "plain": "Internal and external vulnerability scans, penetration testing, and processes for vulnerability disclosure and reporting — such as bug-bounty and ethical-hacking programs.",
+  "note": "Unpatched known vulnerabilities are cited in a significant share of breach enforcement actions, including major fines for failure to remediate known CVEs within reasonable timeframes."
+ },
+ {
+  "key": "c7_audit_logs",
+  "label": "C7: Audit-log management",
+  "plain": "Centralized storage, retention, and monitoring of audit logs to support detection of unauthorized activity and post-incident analysis.",
+  "note": null
+ },
+ {
+  "key": "c8_network_mon",
+  "label": "C8: Network monitoring and defenses",
+  "plain": "Defenses to detect unauthorized access, use, modification, destruction, or disclosure of personal information. Bot-, intrusion-detection and intrusion-prevention tools are examples, not mandates — the component evaluates whether detection and defense are present and effective.",
+  "note": null
+ },
+ {
+  "key": "c9_anti_malware",
+  "label": "C9: Antivirus and anti-malware protections",
+  "plain": "Deployment and maintenance of antivirus and anti-malware solutions across endpoints and servers that process personal information.",
+  "note": null
+ },
+ {
+  "key": "c10_segmentation",
+  "label": "C10: Segmentation of an information system",
+  "plain": "Segmentation of information systems — for example via properly configured firewalls, routers, and switches — to isolate systems processing personal information and limit the blast radius of a compromise.",
+  "note": null
+ },
+ {
+  "key": "c11_port_protocol",
+  "label": "C11: Port and protocol management and protection",
+  "plain": "Limitation and control of ports, services, and protocols to reduce attack surface. Added as a distinct component in the final regulations.",
+  "note": null
+ },
+ {
+  "key": "c12_awareness",
+  "label": "C12: Cybersecurity awareness",
+  "plain": "How the business maintains current knowledge of evolving cybersecurity threats and appropriate countermeasures. The final regulations split awareness from training — a robust training program may not satisfy this component on its own.",
+  "note": null
+ },
+ {
+  "key": "c13_training",
+  "label": "C13: Cybersecurity education and training",
+  "plain": "Training for employees, independent contractors, and anyone granted access to the business's information systems — at onboarding, annually, and/or following a personal-information security breach.",
+  "note": null
+ },
+ {
+  "key": "c14_secure_dev",
+  "label": "C14: Secure development and coding practices",
+  "plain": "Secure coding standards, code reviews, and security testing as part of the software development lifecycle.",
+  "note": null
+ },
+ {
+  "key": "c15_third_party",
+  "label": "C15: Oversight of service providers, contractors, and third parties",
+  "plain": "Oversight of vendors and contractors to ensure they meet the business's cybersecurity program obligations. Because scope expressly reaches third-party environments, this intersects with nearly every technical component.",
+  "note": "Third-party vendor breaches are a leading source of PI exposure; regulators have held businesses liable for incidents caused by inadequately vetted service providers."
+ },
+ {
+  "key": "c16_retention",
+  "label": "C16: Retention schedules and proper disposal of personal information",
+  "plain": "Retention schedules and secure disposal of personal information no longer needed — by shredding, erasing, or otherwise rendering it unreadable. Schedules should be scoped to California personal information and sensitive personal information, not just general records.",
+  "note": null
+ },
+ {
+  "key": "c17_incident",
+  "label": "C17: Security-incident response management",
+  "plain": "The incident response program — documented procedures, response capabilities, and testing — plus a review of actual security incidents during the audit period, including breach notifications sent to California consumers or agencies.",
+  "note": "Absence of an incident response plan, or failure to follow one, is cited as an aggravating factor in enforcement across multiple jurisdictions."
+ },
+ {
+  "key": "c18_continuity",
+  "label": "C18: Business-continuity and disaster-recovery planning",
+  "plain": "Business-continuity and disaster-recovery plans, data-recovery capabilities, and backups, plus testing of those capabilities to ensure availability of personal information during disruptions.",
+  "note": null
+ }
+]

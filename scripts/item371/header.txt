@@ -1,0 +1,26 @@
+// COACHING CONTENT RULE — coaching describes the SHAPE of a complete answer
+// (dimensions, specificity, separateness). It NEVER describes the CONTENT of a
+// compliant answer (what facts satisfy the law, what answer "passes").
+// goodAnswer examples are clearly fictional and illustrate FORM, never a template.
+// Voice: imperative, active, plain subject-verb-object, one idea per sentence,
+// specific over vague, no ornamental legalese. Layered: coachLead = one line an
+// expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+// ENUMERATED-FIELD ADDENDUM — for selects, radios, and pills, coaching explains
+// WHAT FACTS DETERMINE the accurate choice and WHAT EVIDENCE to check. It never
+// recommends an option, never suggests claiming an exemption, and never implies
+// which selection is favourable. goodAnswer shows a FICTIONAL determination —
+// facts mapped to a selection — illustrating method, not a preferred outcome.
+
+// src/components/cppa/CPPACyberRailEntries.ts
+// StatuteRail entries for the CPPA Cybersecurity Audit Readiness tool (Module 2).
+//
+// GENERATED — do not hand-edit `regulationText`. Every regulationText below is a
+// BYTE-EXACT contiguous substring of the approved `public.provision_texts`
+// corpus excerpt for the cited provision (cppa-7122 / cppa-7123 / cppa-7124),
+// after the resolver's normalization. Regenerate with
+// `npx tsx scripts/item371/gen-cyber-rail.ts`; the pin is enforced by
+// src/registry/__tests__/cyber-rail-corpus-pin.test.ts.
+
+import type { RailEntry } from "@/components/intake/StatuteRail";
+
+const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";

@@ -1,7 +1,10 @@
 // RC-B B5 — Provision store. CLOSED-SET rule: verbatim excerpt renders ONLY
 // when status='approved'. Unknown keys auto-insert a pending row and render
 // citation-only + "provision text pending verification".
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Type-only shim. The Deno runtime erases type imports, and the app-side
+// tsconfig cannot resolve the esm.sh specifier, so the two call shapes this
+// module actually uses are declared structurally instead.
+type SupabaseClient = { from: (table: string) => any };
 
 export interface ProvisionRenderResult {
   key: string;

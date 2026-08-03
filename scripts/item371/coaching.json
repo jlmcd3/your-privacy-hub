@@ -1,0 +1,110 @@
+{
+  "c1_auth": {
+    "coachLead": "Name the authentication factors, who they cover, and where passwords still stand alone.",
+    "coachBody": "A complete answer separates the MFA method from the population it reaches and states whether the method resists phishing. Where passwords remain, say what the strength and reuse rules are and which systems enforce them.",
+    "goodAnswer": "A logistics firm records: hardware-key MFA for the 40 administrators, app-push MFA for the 900 office staff, SMS fallback still live on the legacy warehouse portal, and password rules enforced by the directory but not by that portal.",
+    "commonMistake": "Reporting 'MFA enabled' as one fact. The component asks separately about phishing resistance and about passwords, so one undifferentiated claim leaves both untested."
+  },
+  "c2_encryption": {
+    "coachLead": "State at-rest and in-transit separately, each with its estate and its exceptions.",
+    "coachBody": "The component names two states of data, so a complete answer answers twice. For each, name the mechanism, the systems it covers, and the stores or channels it does not reach yet.",
+    "goodAnswer": "A marketplace records: at rest, disk and column encryption across the primary databases and object storage, excluding an on-premises reporting replica; in transit, TLS 1.2+ on all external endpoints, with two internal batch transfers still unencrypted.",
+    "commonMistake": "Answering 'everything is encrypted.' Without the two states named and the exceptions listed, the auditor cannot distinguish full coverage from partial coverage."
+  },
+  "c3_account_access": {
+    "coachLead": "Cover four things: least privilege, privileged accounts, account creation, and physical access.",
+    "coachBody": "This component has four limbs and a complete answer touches each. Name how privileges are scoped and revoked, how privileged accounts are limited and monitored, how new accounts are approved, and how physical access to personal information is restricted.",
+    "goodAnswer": "A clinic group records: role-based access reviewed quarterly, 12 privileged accounts under just-in-time elevation with session recording, joiner-mover-leaver tickets required for account creation, and badge-controlled access to the two rooms holding paper records.",
+    "commonMistake": "Answering only for logical access. Physical restriction of personal information sits inside the same component, and its absence reads as an unassessed limb rather than a strong control."
+  },
+  "c4_inventory": {
+    "coachLead": "Say what the inventory covers, how current it is, and how it is kept current.",
+    "coachBody": "Distinguish the personal-information inventory from the hardware and software inventory. For each, state the refresh mechanism and date, and whether third-party and cloud systems that can access personal information are inside it.",
+    "goodAnswer": "A retailer records: a data map refreshed at each quarterly review, last completed in March, covering 31 systems including two processors' platforms; an asset inventory synced nightly from cloud configuration, with no coverage of retail-store point-of-sale hardware.",
+    "commonMistake": "Treating a one-time mapping exercise as an inventory. A stale map is evidence of an inventory that once existed, not of one that is maintained."
+  },
+  "c5_secure_config": {
+    "coachLead": "Name the hardening baseline, the patch clocks, and the change gate.",
+    "coachBody": "A complete answer names the standard configurations are measured against, the timeframes patches are held to by severity, and the process that stops an undocumented change. Where masking of sensitive personal information applies, say where it is applied by default.",
+    "goodAnswer": "A payments firm records: CIS Level 1 baselines enforced by configuration policy with drift alerting, critical patches inside 14 days and high inside 30, change advisory approval required for production, and account numbers masked by default in the support console.",
+    "commonMistake": "Citing a patching policy without the timeframes it commits to. The audit assesses what is implemented, and an undated commitment cannot be tested against the evidence."
+  },
+  "c6_vuln_mgmt": {
+    "coachLead": "Separate scanning from penetration testing from disclosure intake.",
+    "coachBody": "Give cadence and coverage for internal and external scanning, the date and scope of the last penetration test, and the route by which an outside researcher reports a vulnerability. Remediation timeframes belong here too.",
+    "goodAnswer": "A SaaS provider records: authenticated weekly scans across production and staging, an external penetration test of the customer-facing application completed in February, no test of the internal network, and a published security contact routed to the on-call queue.",
+    "commonMistake": "Folding penetration testing into scanning. They are named separately in the component, and an automated scan does not evidence a test."
+  },
+  "c7_audit_logs": {
+    "coachLead": "State what is logged, where it is centralised, how long it is kept, and who reviews it.",
+    "coachBody": "The component names centralised storage, retention, and monitoring together. A complete answer covers all three plus the systems whose logs never reach the central store.",
+    "goodAnswer": "A lender records: application, infrastructure, and identity logs shipped to one platform with 400-day retention, alert rules reviewed monthly by the security team, and the legacy loan-origination system writing only to local disk.",
+    "commonMistake": "Answering 'we log everything.' Retention period and review are separate limbs of the component, and log volume is not evidence of either."
+  },
+  "c8_network_mon": {
+    "coachLead": "Name the detection technologies, what they watch, and whether data-loss prevention is among them.",
+    "coachBody": "The component lists detection and prevention technologies and data-loss prevention as distinct items. Say which are deployed, across which environments, and who acts on the alerts.",
+    "goodAnswer": "A media company records: intrusion detection and flow-log analysis across the three production accounts routed to a 24/7 provider, and data-loss prevention deployed only on email, with no coverage of endpoint egress.",
+    "commonMistake": "Naming a firewall as network monitoring. A control that blocks by rule is not the same as one that detects anomalous activity, and the component asks about detection."
+  },
+  "c9_anti_malware": {
+    "coachLead": "Name the product, the device classes it runs on, and the classes it does not.",
+    "coachBody": "The shortest component still needs an estate. Say which endpoints, servers, and environments carry the agent, how coverage is measured, and where exclusions sit.",
+    "goodAnswer": "A distributor records: an endpoint-protection agent on all 1,200 laptops and all Windows servers, coverage verified from the inventory each month at 98%, with the Linux build fleet deliberately excluded and compensated by image immutability.",
+    "commonMistake": "Reporting deployment without a coverage measurement. Unmeasured coverage cannot distinguish a 98% estate from a 60% one."
+  },
+  "c10_segmentation": {
+    "coachLead": "Describe the boundaries, what each isolates, and how the rules are verified.",
+    "coachBody": "A complete answer names the zones or network boundaries, states which of them isolate systems processing personal information, and says how the rule sets are reviewed. Flat networks are a legitimate answer when stated plainly.",
+    "goodAnswer": "A hospitality group records: production, corporate, and guest networks separated by firewall with default-deny between them, the personal-information data tier in private subnets reachable only from the application tier, and rule sets reviewed twice a year.",
+    "commonMistake": "Claiming segmentation because separate cloud accounts exist. Account boundaries without enforced network rules are an organisational split, not a segmentation control."
+  },
+  "c11_port_protocol": {
+    "coachLead": "State the default posture, the approved exceptions, and who reviews them.",
+    "coachBody": "Say whether the estate is deny-by-default, where approved ports and protocols are recorded, and how the exception list is kept from growing unreviewed. Legacy protocols still in use belong in the answer.",
+    "goodAnswer": "A utility records: deny-by-default security groups with 34 registered exceptions held in the configuration repository, quarterly recertification of the list, and one legacy plaintext file-transfer service still open to a single partner.",
+    "commonMistake": "Answering with a tool name only. The component is about limitation and control, so the posture and the exception process are the substance."
+  },
+  "c12_awareness": {
+    "coachLead": "Describe how threat knowledge is acquired and refreshed — not how staff are trained.",
+    "coachBody": "Awareness and training are separate components. Here, name the intelligence sources, who consumes them, the cadence, and what changes as a result.",
+    "goodAnswer": "A bank records: sector intelligence feeds reviewed weekly by the security team, a monthly threat briefing to engineering leadership, and two control changes in the last year traced to that intake.",
+    "commonMistake": "Reusing the training answer here. The final regulations split awareness from training, so a strong training programme leaves this component unevidenced."
+  },
+  "c13_training": {
+    "coachLead": "Name the audiences, the trigger points, and the completion rates.",
+    "coachBody": "The component names employees, contractors, and any other personnel with system access, and identifies onboarding, annual, and post-breach timings. A complete answer covers every audience and every trigger it uses, with the measured completion.",
+    "goodAnswer": "A staffing firm records: onboarding training within five days and annual refreshers for all 400 employees at 96% completion, contractors covered only where badged, and no post-incident training after the phishing incident in October.",
+    "commonMistake": "Reporting only employee training. Contractors and other personnel with system access are named in the component, and their omission is a coverage gap, not a detail."
+  },
+  "c14_secure_dev": {
+    "coachLead": "Name the standard, the review gate, and the security testing in the pipeline.",
+    "coachBody": "Say what secure-coding standard is followed, whether code review is enforced or advisory, and which automated security tests run before release. Where the business does not develop software, say so plainly.",
+    "goodAnswer": "A ticketing platform records: an internal secure-coding standard derived from an industry top-ten list, two-reviewer approval enforced by branch protection, static analysis and dependency scanning blocking on high findings, and no dynamic testing in the pipeline.",
+    "commonMistake": "Marking the component not applicable because development is outsourced. Outsourced development remains inside the programme and moves the question into third-party oversight rather than out of scope."
+  },
+  "c15_third_party": {
+    "coachLead": "State how vendors are tiered, what diligence each tier gets, and how ongoing oversight happens.",
+    "coachBody": "A complete answer covers entry diligence, contract terms, and continuing monitoring, and states how many vendors sit in each tier. The component reaches service providers, contractors, and third parties alike.",
+    "goodAnswer": "A pharmacy chain records: 22 vendors with access to personal information tiered by data sensitivity, security review and contractual terms required before onboarding for the top two tiers, annual reassessment for tier one only, and no ongoing monitoring of tier three.",
+    "commonMistake": "Treating a signed contract as oversight. The component asks how compliance is ensured, which is a continuing activity rather than a document on file."
+  },
+  "c16_retention": {
+    "coachLead": "State the schedule's coverage, its enforcement mechanism, and the disposal method.",
+    "coachBody": "Say whether the schedule reaches personal information and sensitive personal information specifically, what enforces deletion at the end of a period, and how records are rendered unreadable. Backups and archives belong in the answer.",
+    "goodAnswer": "A subscription business records: a retention schedule covering nine categories of personal information with automated lifecycle deletion in the primary stores, manual quarterly purge in the analytics warehouse, and backups aged out at 35 days rather than deleted on request.",
+    "commonMistake": "Pointing to a records-retention policy written for corporate documents. The component is about personal information, and a general schedule that never names it does not reach the control."
+  },
+  "c17_incident": {
+    "coachLead": "Cover the documented plan, the last test, and the incidents in the audit period.",
+    "coachBody": "Three separate facts complete this component: that predetermined procedures exist and where, when response capabilities were last exercised and how, and what actually happened during the period, including any notifications sent.",
+    "goodAnswer": "A software vendor records: an incident response plan with severity tiers and role assignments held in the runbook repository, a tabletop exercise on a ransomware scenario in September, and two incidents in the period, one of which triggered notification to affected consumers.",
+    "commonMistake": "Describing the plan and stopping. The component expressly reaches the handling of incidents that occurred, so a period with unexamined incidents leaves the larger half of the answer missing."
+  },
+  "c18_continuity": {
+    "coachLead": "Name the objectives, the backup regime, and the date of the last successful restore.",
+    "coachBody": "State recovery-time and recovery-point objectives for the systems processing personal information, how backups are taken and isolated, and when a restore was last proven rather than assumed.",
+    "goodAnswer": "A logistics operator records: four-hour recovery time and fifteen-minute recovery point for the order platform, immutable daily backups in a separate account, a full restore drill completed in June, and no tested recovery path for the reporting warehouse.",
+    "commonMistake": "Citing backup frequency as recovery capability. Until a restore has been performed and timed, the recovery objective is a target rather than a demonstrated control."
+  }
+}

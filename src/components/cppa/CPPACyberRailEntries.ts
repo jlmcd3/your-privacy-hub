@@ -13,353 +13,344 @@
 
 // src/components/cppa/CPPACyberRailEntries.ts
 // StatuteRail entries for the CPPA Cybersecurity Audit Readiness tool (Module 2).
-// Citations from the final 11 CCR § 7123(c)(1)–(18) cybersecurity program components.
+//
+// GENERATED — do not hand-edit `regulationText`. Every regulationText below is a
+// BYTE-EXACT contiguous substring of the approved `public.provision_texts`
+// corpus excerpt for the cited provision (cppa-7122 / cppa-7123 / cppa-7124),
+// after the resolver's normalization. Regenerate with
+// `npx tsx scripts/item371/gen-cyber-rail.ts`; the pin is enforced by
+// src/registry/__tests__/cyber-rail-corpus-pin.test.ts.
 
 import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 
 export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
+  entity_name: {
+    fieldLabel: "Entity name",
+    citation: "11 CCR § 7124(d)(1)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The annual certification submitted to the Agency must carry the business's name and a point of contact. The name recorded here is the one the readiness report and any downstream certification will carry, so it should be the legal entity that owes the audit duty.",
+    regulationText: "The business's name and point of contact for the business, including the contact's name, phone number, and email address.",
+    coachLead: "Give the legal entity that owes the audit duty, not the trading brand.",
+    coachBody: "The name should match the registered entity that meets the revenue and processing thresholds. Where a group files separately, the subsidiary under audit is the entity, not the parent.",
+    goodAnswer: "A retail group whose California operations sit in a separate incorporated subsidiary records that subsidiary's registered name, with the consumer-facing brand noted nowhere in this field.",
+    commonMistake: "Recording the marketing brand. The certification is an entity-level filing, so a brand name leaves the filer ambiguous.",
+  },
   profile_industry: {
     fieldLabel: "Industry sector",
-    citation: "11 CCR § 7122",
+    citation: "11 CCR § 7123(b)(1)",
     citationUrl: CPPA_URL,
-    plainSummary: "The cybersecurity audit must assess controls in the context of the business's specific processing activities and risk environment. Industry sector shapes the threat landscape and which components are most material.",
-    regulationText: "The audit must evaluate the cybersecurity program in light of the business's size, complexity, and the nature and scope of its processing activities.",
-    coachLead: "Select the sector whose systems this audit covers.",
-    coachBody: "Sector shapes the threats and expectations the gap analysis weighs. In a multi-line business, pick the line whose systems are in scope.",
-    goodAnswer: "A healthcare-services subsidiary under audit selects healthcare — even though the parent is a private-equity firm.",
-    commonMistake: "Selecting the parent's sector. That pulls the wrong enforcement context into all eighteen control findings.",
+    plainSummary: "The audit assesses the cybersecurity program against the business's size and complexity and the nature and scope of its processing activities. Sector is the shorthand that carries that context into every component finding.",
+    regulationText: "The business's establishment, implementation, and maintenance of its cybersecurity program, including the related written documentation thereof (e.g., policies and procedures), that is appropriate to the business's size and complexity and the nature and scope of its processing activities, taking into account the state of the art and cost of implementing the components of a cybersecurity program",
+    coachLead: "Name the sector of the operations under audit, not of the corporate group.",
+    coachBody: "Sector sets the threat context the component findings are weighed against. In a multi-line business, the line whose systems are in scope is the one that belongs here.",
+    goodAnswer: "A healthcare-services subsidiary owned by a private-equity firm records healthcare, because the systems in scope are the clinical-scheduling platform rather than the parent's finance stack.",
+    commonMistake: "Recording the parent's sector. That pulls the wrong threat context into all eighteen component findings.",
+  },
+  incidents_12mo: {
+    fieldLabel: "Reportable security incidents in last 12 months",
+    citation: "11 CCR § 7123(c)(17)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The audit expressly reaches security incidents that occurred during the audit period, including how they were handled and any notifications made. The count recorded here sets how much of that history the assessment examines.",
+    regulationText: "How the business manages its responses to security incidents (i.e., its incident response management). (A) For the purposes of subsection (17), \"security incident\" means an occurrence that actually or imminently jeopardizes the confidentiality, integrity, or availability of the business's information system or the personal information the system processes, stores, or transmits, or that constitutes a violation or imminent threat of violation of the business's cybersecurity program; unauthorized access, destruction, use, modification, or disclosure of personal information; or unauthorized activity resulting in the loss of availability of personal information is a security incident. (B) The business's incident response management includes: (i) The business's documentation of predetermined instructions or procedures to detect, respond to, limit the consequences of, and recover from malicious attacks against its information system (i.e., the business's incident response plan); and (ii) How the business tests its incident-response capabilities; and",
+    coachLead: "Count incidents the business actually declared, using its own incident definition.",
+    coachBody: "The number should come from the incident register, not from memory, and should follow whatever severity threshold the business's plan uses. Near-misses and unconfirmed alerts belong outside the count if the plan treats them that way.",
+    goodAnswer: "A software vendor's register shows eleven raised tickets, of which two crossed the severity threshold that triggers the response plan; it records two and keeps the other nine as alert volume.",
+    commonMistake: "Counting every security alert. An inflated count and a zeroed count fail the same way — neither is traceable to the register the auditor will read.",
+  },
+  framework: {
+    fieldLabel: "Primary security framework in use",
+    citation: "11 CCR § 7123(f)",
+    citationUrl: CPPA_URL,
+    plainSummary: "A business may leverage an audit, assessment, or evaluation prepared for another purpose toward this Article's requirement, provided it meets every element alone or with supplementation. The primary framework recorded here is the baseline the assessment measures supplementation against.",
+    regulationText: "A business may utilize a cybersecurity audit, assessment, or evaluation that it has prepared for another purpose, provided that it meets all of the requirements of this Article, either on its own or through supplementation. For example, a business may have engaged in an audit that uses the National Institute of Standards and Technology Cybersecurity Framework 2.0 and meets all of the requirements of this Article.",
+    coachLead: "Name the framework the programme is actually operated against day to day.",
+    coachBody: "This is the framework that governs control design, not the one the business aspires to. Where controls are run informally against no published framework, that is the accurate answer and it changes only the supplementation analysis.",
+    goodAnswer: "A logistics operator maintains an ISO 27001 statement of applicability that drives its control set, while an unfinished NIST CSF mapping sits in a spreadsheet; it records ISO 27001 as primary.",
+    commonMistake: "Naming the framework a certification project is heading towards. § 7123(f) leverage turns on work already prepared, so an in-flight programme yields no evidence to supplement.",
   },
   profile_audit: {
     fieldLabel: "Last independent security audit",
-    citation: "11 CCR § 7124",
+    citation: "11 CCR § 7122(a)",
     citationUrl: CPPA_URL,
-    plainSummary: "Covered businesses must certify completion of a cybersecurity audit to the CPPA by April 1 following each year an audit is required (first deadlines April 1, 2028 / 2029 / 2030 by 2026 revenue tier). The audit must be performed by a qualified, objective, independent professional.",
-    regulationText: "Each year a business is required to complete a cybersecurity audit, a member of its executive management must submit a written certification of completion to the Agency.",
-    enforcementNote: "The certification is signed under penalty of perjury by an executive with direct responsibility for cybersecurity audit compliance. A prior audit aligned to a recognized framework (e.g., NIST CSF 2.0) may be leveraged toward the requirement under § 7123(f) if all Article 9 elements are met, alone or with supplementation.",
-    coachLead: "Count independent audits only — internal reviews don't qualify.",
-    coachBody: "§ 7124 means audits by qualified, independent professionals. Select the most recent one that meets that bar. A self-assessment counts as none.",
-    goodAnswer: "A company runs annual internal reviews, but its last external audit was 2023. It selects 2023 — the internal reviews don't count.",
-    commonMistake: "Counting a SOC 2 readiness self-assessment as an audit. Independence is what qualifies it.",
+    plainSummary: "The audit must be performed by a qualified, objective, independent professional using procedures and standards accepted in the profession of auditing. Only work meeting that bar counts as an independent audit for this field.",
+    regulationText: "Every business required to complete a cybersecurity audit pursuant to this Article must do so using a qualified, objective, independent professional (\"auditor\") using procedures and standards accepted in the profession of auditing, such as procedures and standards provided or adopted by the American Institute of Certified Public Accountants, the Public Company Accountability Oversight Board, the Information Systems Audit and Control Association, or the International Organization for Standardization.",
+    enforcementNote: "The § 7124 certification is signed under penalty of perjury by an executive who meets § 7124(c), and includes an attestation that the business made no attempt to influence the auditor's decisions or assessments.",
+    coachLead: "Date the most recent audit performed by someone independent of the programme.",
+    coachBody: "Independence is what qualifies the work, whether the auditor is internal or external. A self-assessment or a readiness review run by the team that operates the controls sits outside the definition.",
+    goodAnswer: "A firm runs quarterly internal control reviews by its own security team and last engaged an outside audit firm in 2023; it records 2023, and the internal reviews carry no weight in this field.",
+    commonMistake: "Counting a readiness self-assessment as an audit. Independence, not rigour, is the qualifying attribute in § 7122(a).",
+  },
+  in_scope_frameworks: {
+    fieldLabel: "Frameworks in scope for this audit",
+    citation: "11 CCR § 7123(f)",
+    citationUrl: CPPA_URL,
+    plainSummary: "A business may utilise a cybersecurity audit, assessment, or evaluation it prepared for another purpose toward the § 7123 requirement — provided the prior work meets every element of this Article, alone or through supplementation. The frameworks recorded here name what the assessment treats as available for that leverage.",
+    regulationText: "A business may utilize a cybersecurity audit, assessment, or evaluation that it has prepared for another purpose, provided that it meets all of the requirements of this Article, either on its own or through supplementation. For example, a business may have engaged in an audit that uses the National Institute of Standards and Technology Cybersecurity Framework 2.0 and meets all of the requirements of this Article.",
+    coachLead: "List only frameworks whose work-product the auditor can open.",
+    coachBody: "Each framework named should have a report, letter, or set of workpapers behind it. A framework that will contribute no evidence weakens the scope justification rather than strengthening it.",
+    goodAnswer: "A payments processor names SOC 2, backed by an annual report on file, and PCI DSS, backed by an attestation of compliance; it leaves out NIST CSF because no assessed evidence against that framework exists.",
+    commonMistake: "Listing every framework the team has mentioned. § 7123(f) permits leverage only where the prior work meets the Article's elements, so unbacked entries invite a supplementation finding.",
+  },
+  audit_scope_rationale: {
+    fieldLabel: "Audit scope rationale",
+    citation: "11 CCR § 7123(b)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The audit must assess the programme's establishment, implementation, and maintenance as appropriate to the business's size and complexity, each applicable component in subsection (c), and how compliance with the programme is implemented and enforced. The rationale recorded here is what the scope memo carries forward.",
+    regulationText: "The cybersecurity audit must assess: (1) The business's establishment, implementation, and maintenance of its cybersecurity program, including the related written documentation thereof (e.g., policies and procedures), that is appropriate to the business's size and complexity and the nature and scope of its processing activities, taking into account the state of the art and cost of implementing the components of a cybersecurity program; and (2) Each of the components of a cybersecurity program listed in subsection (c) that the auditor deems applicable to the business's information system. (3) How the business implements and enforces compliance with its cybersecurity program as described in subsection (b)(1), the applicable components in subsection (c), and any additional components as set forth in subsection (d).",
+    coachLead: "Give three things: what is in scope, what is out and why, and what any prior audit is supplemented with.",
+    coachBody: "Name systems and processing activities rather than departments. Where a prior framework audit is leveraged under § 7123(f), the components the supplementation covers should be named individually.",
+    goodAnswer: "A healthcare SaaS writes: in scope, the multi-tenant production estate and customer-facing application; out of scope, internal HR systems, which process no consumer personal information; leveraging the 2026 SOC 2 Type II and supplementing for retention and segmentation, which that report does not test directly.",
+    commonMistake: "Writing 'company-wide' and stopping. A boundary claim is not a scope memo, and it leaves exclusions and supplementation unstated.",
+  },
+  auditor_engagement_status: {
+    fieldLabel: "Auditor engagement status",
+    citation: "11 CCR § 7122(a)(2)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The auditor may be internal or external but must exercise objective and impartial judgment, must be free from influence by the business, and must not participate in activities the audit may assess — including writing procedures, preparing documents, making programme recommendations, or implementing the programme.",
+    regulationText: "The auditor may be internal or external to the business but must exercise objective and impartial judgment on all issues within the scope of the cybersecurity audit, must be free to make decisions and assessments without influence by the business being audited, including the business's owners, managers, or employees; and must not participate in activities that may compromise the auditor's independence. For example, the auditor must not participate in business activities that the auditor may assess in the current or subsequent cybersecurity audits, including developing procedures, preparing the business's documents, making recommendations regarding the business's cybersecurity program (separate from articulating audit findings), or implementing or maintaining the business's cybersecurity program.",
+    enforcementNote: "Where an internal auditor is used, § 7122(a)(3) additionally requires the highest-ranking auditor to report to an executive without direct responsibility for the cybersecurity programme, who also sets that auditor's evaluation and compensation.",
+    coachLead: "Describe the auditor's relationship to the programme, not their competence.",
+    coachBody: "The determining facts are who employs the auditor, whether they have built or maintained any part of the programme, and — if internal — who they report to and who sets their compensation.",
+    goodAnswer: "A manufacturer's internal audit lead has never authored a security procedure and reports to the general counsel rather than the CISO; the facts recorded reflect an internal auditor with a reporting line outside the programme.",
+    commonMistake: "Treating a well-credentialed consultant as independent when the same firm wrote the policies. Participation in the work under review is what § 7122(a)(2) disqualifies.",
+  },
+  prior_audit_scope: {
+    fieldLabel: "Prior audit scope",
+    citation: "11 CCR § 7122(g)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The business and the auditor must retain all documents relevant to each cybersecurity audit for at least five years after completion. What the last audit covered, and whether its record survives, determines how much of it can be leveraged now.",
+    regulationText: "The business and the auditor must retain all documents relevant to each cybersecurity audit for a minimum of five (5) years after completion of the cybersecurity audit.",
+    coachLead: "Say what the last audit covered, when, and where its papers live now.",
+    coachBody: "Period, scope boundary, and the location of the report and workpapers are three separate facts. Where the papers are gone or were never held, saying so is more useful than an optimistic description of coverage.",
+    goodAnswer: "A distributor records a FY2025 SOC 2 Type II over the production estate, with report, sampling worksheets, and management letter held in the governance system, and notes that the 2022 penetration-test workpapers were lost in a vendor transition.",
+    commonMistake: "Describing scope without saying whether the evidence still exists. Five-year retention is the operative duty, and unretained work cannot be leveraged or re-examined.",
   },
   c1_auth: {
     fieldLabel: "C1: Authentication",
     citation: "11 CCR § 7123(c)(1)",
     citationUrl: CPPA_URL,
     plainSummary: "Authentication of users seeking access to personal information, including multi-factor authentication, phishing-resistant MFA for employees and contractors, and strong password practices. The password element applies only if the business actually uses passwords.",
-    regulationText: "The audit must assess the business's authentication and password practices for persons who access personal information, to the extent applicable to the business's information systems.",
+    regulationText: "Authentication, including: (A) Multi-factor authentication (including multi-factor authentication that is resistant to phishing attacks for employees, independent contractors, and any other personnel, service providers, and contractors); and (B) If the business uses passwords or passphrases, strong unique passwords or passphrases (e.g., passwords that are at least eight characters in length, not on the business's disallowed list of commonly used passwords, and not reused).",
     enforcementNote: "Authentication failures — weak or missing MFA, shared credentials, excessive access — appear in the majority of breach enforcement actions in the corpus.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    coachLead: "Name the authentication factors, who they cover, and where passwords still stand alone.",
+    coachBody: "A complete answer separates the MFA method from the population it reaches and states whether the method resists phishing. Where passwords remain, say what the strength and reuse rules are and which systems enforce them.",
+    goodAnswer: "A logistics firm records: hardware-key MFA for the 40 administrators, app-push MFA for the 900 office staff, SMS fallback still live on the legacy warehouse portal, and password rules enforced by the directory but not by that portal.",
+    commonMistake: "Reporting 'MFA enabled' as one fact. The component asks separately about phishing resistance and about passwords, so one undifferentiated claim leaves both untested.",
   },
   c2_encryption: {
     fieldLabel: "C2: Encryption of personal information",
     citation: "11 CCR § 7123(c)(2)",
     citationUrl: CPPA_URL,
     plainSummary: "Encryption of personal information both at rest and in transit. The Agency declined to mandate a specific encryption standard, preserving flexibility across business types and scenarios.",
-    regulationText: "The audit must assess the business's use of encryption to protect personal information at rest and in transit, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Encryption of personal information, at rest and in transit.",
+    coachLead: "State at-rest and in-transit separately, each with its estate and its exceptions.",
+    coachBody: "The component names two states of data, so a complete answer answers twice. For each, name the mechanism, the systems it covers, and the stores or channels it does not reach yet.",
+    goodAnswer: "A marketplace records: at rest, disk and column encryption across the primary databases and object storage, excluding an on-premises reporting replica; in transit, TLS 1.2+ on all external endpoints, with two internal batch transfers still unencrypted.",
+    commonMistake: "Answering 'everything is encrypted.' Without the two states named and the exceptions listed, the auditor cannot distinguish full coverage from partial coverage.",
   },
   c3_account_access: {
     fieldLabel: "C3: Account management and access controls",
     citation: "11 CCR § 7123(c)(3)",
     citationUrl: CPPA_URL,
     plainSummary: "Least-privilege access, limiting and monitoring privileged accounts, restricting access to personal information to those who need it, and restricting physical access to personal information. The final regulations expanded scope to account- and application-level configuration.",
-    regulationText: "The audit must assess the business's account management and access controls, including privileged-account limits and restrictions on physical access to personal information, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Account management and access controls, including: (A) Restricting each person's, account's, or application's privileges and access to personal information to what is necessary for that person, account, or application to perform their duties. For example: (i) If the person is an employee, independent contractor, or any other personnel, restricting their privileges and access to personal information to what is necessary to perform the respective job functions of each individual, and revoking their privileges and access when their job functions no longer require them, including when their employment or contract is terminated; (ii) If the person is a service provider or contractor, restricting their privileges and access to personal information to what is necessary for the specific business purpose(s) set forth in, and in compliance with, the written contract between the business and the service provider or contractor required by the CCPA and section 7051; and (iii) Restricting the privileges and access of third parties to whom the business sells or shares personal information to the personal information that is necessary for the limited and specified purpose(s) set forth within the contract between the business and the third party required by the CCPA and section 7053. (B) Restricting the number of privileged accounts, restricting those privileged accounts' access functions to only those necessary to perform the account-holder's job, restricting the use of privileged accounts to when they are necessary to perform functions, and using a privileged-access management solution (e.g., to ensure just-in-time temporary assignment of privileged access). (C) Restricting and monitoring the creation of new accounts for employees, independent contractors, or other personnel; service providers or contractors; and privileged accounts, and ensuring that the accounts' access and privileges are limited as set forth in subsections (c)(3)(A) and (B). (D) Restricting and monitoring physical access to personal information (e.g., through the use of badges, secure physical file locations, and enforcement of clean-desk policies).",
+    coachLead: "Cover four things: least privilege, privileged accounts, account creation, and physical access.",
+    coachBody: "This component has four limbs and a complete answer touches each. Name how privileges are scoped and revoked, how privileged accounts are limited and monitored, how new accounts are approved, and how physical access to personal information is restricted.",
+    goodAnswer: "A clinic group records: role-based access reviewed quarterly, 12 privileged accounts under just-in-time elevation with session recording, joiner-mover-leaver tickets required for account creation, and badge-controlled access to the two rooms holding paper records.",
+    commonMistake: "Answering only for logical access. Physical restriction of personal information sits inside the same component, and its absence reads as an unassessed limb rather than a strong control.",
   },
   c4_inventory: {
     fieldLabel: "C4: Inventory and management of personal information and systems",
     citation: "11 CCR § 7123(c)(4)",
     citationUrl: CPPA_URL,
     plainSummary: "A current inventory of personal information, data flows, hardware, and software. Scope extends to every system through which personal information is processed or accessible, including cloud and third-party systems the business does not own or operate.",
-    regulationText: "The audit must assess the business's inventory and management of personal information and of the systems that process or can access it, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Inventory and management of personal information and the business's information system, including: (A) Personal information inventories (e.g., maps and flows identifying where personal information is stored, and how it can be accessed) and the classification and tagging of personal information (e.g., how personal information is tagged and how those tags are used to control the use and disclosure of personal information); (B) Hardware and software inventories, and the use of allowlisting (i.e., discrete lists of authorized hardware and software to control what is permitted to connect to and execute on the business's information system); and (C) Hardware and software approval processes, and preventing the connection of unauthorized hardware and devices to the business's information system.",
+    coachLead: "Say what the inventory covers, how current it is, and how it is kept current.",
+    coachBody: "Distinguish the personal-information inventory from the hardware and software inventory. For each, state the refresh mechanism and date, and whether third-party and cloud systems that can access personal information are inside it.",
+    goodAnswer: "A retailer records: a data map refreshed at each quarterly review, last completed in March, covering 31 systems including two processors' platforms; an asset inventory synced nightly from cloud configuration, with no coverage of retail-store point-of-sale hardware.",
+    commonMistake: "Treating a one-time mapping exercise as an inventory. A stale map is evidence of an inventory that once existed, not of one that is maintained.",
   },
   c5_secure_config: {
     fieldLabel: "C5: Secure configuration of hardware and software",
     citation: "11 CCR § 7123(c)(5)",
     citationUrl: CPPA_URL,
     plainSummary: "Hardening of systems, patch management, change management, and masking of sensitive personal information where appropriate, for both on-premises and cloud environments.",
-    regulationText: "The audit must assess the business's secure configuration of hardware and software, including patch and change management, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Secure configuration of hardware and software, including: (A) Software updates and upgrades; (B) Securing on-premises and cloud-based environments; (C) Masking (i.e., systematically removing or replacing with symbols such as asterisks or bullets) the sensitive personal information set forth in Civil Code section 1798.145, subdivisions (ae)(1)(A) and (B) and other personal information as appropriate by default in applications; (D) Security patch management (e.g., receiving systematic notifications of security-related software updates and upgrades; and identifying, deploying, and verifying their implementation); and (E) Change management (i.e., processes and procedures to ensure that changes to information system(s) do not undermine existing safeguards).",
+    coachLead: "Name the hardening baseline, the patch clocks, and the change gate.",
+    coachBody: "A complete answer names the standard configurations are measured against, the timeframes patches are held to by severity, and the process that stops an undocumented change. Where masking of sensitive personal information applies, say where it is applied by default.",
+    goodAnswer: "A payments firm records: CIS Level 1 baselines enforced by configuration policy with drift alerting, critical patches inside 14 days and high inside 30, change advisory approval required for production, and account numbers masked by default in the support console.",
+    commonMistake: "Citing a patching policy without the timeframes it commits to. The audit assesses what is implemented, and an undated commitment cannot be tested against the evidence.",
   },
   c6_vuln_mgmt: {
     fieldLabel: "C6: Vulnerability scanning and penetration testing",
     citation: "11 CCR § 7123(c)(6)",
     citationUrl: CPPA_URL,
     plainSummary: "Internal and external vulnerability scans, penetration testing, and processes for vulnerability disclosure and reporting — such as bug-bounty and ethical-hacking programs.",
-    regulationText: "The audit must assess the business's vulnerability scanning, penetration testing, and vulnerability disclosure and reporting processes, to the extent applicable.",
+    regulationText: "Internal and external vulnerability scans, penetration testing, and vulnerability disclosure and reporting (e.g., bug bounty and ethical hacking programs).",
     enforcementNote: "Unpatched known vulnerabilities are cited in a significant share of breach enforcement actions, including major fines for failure to remediate known CVEs within reasonable timeframes.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    coachLead: "Separate scanning from penetration testing from disclosure intake.",
+    coachBody: "Give cadence and coverage for internal and external scanning, the date and scope of the last penetration test, and the route by which an outside researcher reports a vulnerability. Remediation timeframes belong here too.",
+    goodAnswer: "A SaaS provider records: authenticated weekly scans across production and staging, an external penetration test of the customer-facing application completed in February, no test of the internal network, and a published security contact routed to the on-call queue.",
+    commonMistake: "Folding penetration testing into scanning. They are named separately in the component, and an automated scan does not evidence a test.",
   },
   c7_audit_logs: {
     fieldLabel: "C7: Audit-log management",
     citation: "11 CCR § 7123(c)(7)",
     citationUrl: CPPA_URL,
     plainSummary: "Centralized storage, retention, and monitoring of audit logs to support detection of unauthorized activity and post-incident analysis.",
-    regulationText: "The audit must assess the business's collection, retention, protection, and review of audit logs, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Audit-log management, including the centralized storage, retention, and monitoring of logs.",
+    coachLead: "State what is logged, where it is centralised, how long it is kept, and who reviews it.",
+    coachBody: "The component names centralised storage, retention, and monitoring together. A complete answer covers all three plus the systems whose logs never reach the central store.",
+    goodAnswer: "A lender records: application, infrastructure, and identity logs shipped to one platform with 400-day retention, alert rules reviewed monthly by the security team, and the legacy loan-origination system writing only to local disk.",
+    commonMistake: "Answering 'we log everything.' Retention period and review are separate limbs of the component, and log volume is not evidence of either.",
   },
   c8_network_mon: {
     fieldLabel: "C8: Network monitoring and defenses",
     citation: "11 CCR § 7123(c)(8)",
     citationUrl: CPPA_URL,
     plainSummary: "Defenses to detect unauthorized access, use, modification, destruction, or disclosure of personal information. Bot-, intrusion-detection and intrusion-prevention tools are examples, not mandates — the component evaluates whether detection and defense are present and effective.",
-    regulationText: "The audit must assess the business's monitoring of networks and systems to detect threats and anomalous activity, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Network monitoring and defenses, including the deployment of: (A) Technologies, such as bot-detection, intrusion-detection, and intrusion-prevention, which a business may use to detect unsuccessful login attempts, monitor the activity of authorized users, and detect and prevent unauthorized access, destruction, use, modification, or disclosure of personal information; or unauthorized activity resulting in the loss of availability of personal information; and (B) Data-loss-prevention systems (e.g., software to detect and prevent unauthorized access, use, or disclosure of personal information).",
+    coachLead: "Name the detection technologies, what they watch, and whether data-loss prevention is among them.",
+    coachBody: "The component lists detection and prevention technologies and data-loss prevention as distinct items. Say which are deployed, across which environments, and who acts on the alerts.",
+    goodAnswer: "A media company records: intrusion detection and flow-log analysis across the three production accounts routed to a 24/7 provider, and data-loss prevention deployed only on email, with no coverage of endpoint egress.",
+    commonMistake: "Naming a firewall as network monitoring. A control that blocks by rule is not the same as one that detects anomalous activity, and the component asks about detection.",
   },
   c9_anti_malware: {
     fieldLabel: "C9: Antivirus and anti-malware protections",
     citation: "11 CCR § 7123(c)(9)",
     citationUrl: CPPA_URL,
     plainSummary: "Deployment and maintenance of antivirus and anti-malware solutions across endpoints and servers that process personal information.",
-    regulationText: "The audit must assess the business's deployment and maintenance of antivirus and anti-malware protections, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Antivirus and antimalware protections.",
+    coachLead: "Name the product, the device classes it runs on, and the classes it does not.",
+    coachBody: "The shortest component still needs an estate. Say which endpoints, servers, and environments carry the agent, how coverage is measured, and where exclusions sit.",
+    goodAnswer: "A distributor records: an endpoint-protection agent on all 1,200 laptops and all Windows servers, coverage verified from the inventory each month at 98%, with the Linux build fleet deliberately excluded and compensated by image immutability.",
+    commonMistake: "Reporting deployment without a coverage measurement. Unmeasured coverage cannot distinguish a 98% estate from a 60% one.",
   },
   c10_segmentation: {
     fieldLabel: "C10: Segmentation of an information system",
     citation: "11 CCR § 7123(c)(10)",
     citationUrl: CPPA_URL,
     plainSummary: "Segmentation of information systems — for example via properly configured firewalls, routers, and switches — to isolate systems processing personal information and limit the blast radius of a compromise.",
-    regulationText: "The audit must assess segmentation of the business's information systems, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Segmentation of an information system (e.g., via properly configured firewalls, routers, switches).",
+    coachLead: "Describe the boundaries, what each isolates, and how the rules are verified.",
+    coachBody: "A complete answer names the zones or network boundaries, states which of them isolate systems processing personal information, and says how the rule sets are reviewed. Flat networks are a legitimate answer when stated plainly.",
+    goodAnswer: "A hospitality group records: production, corporate, and guest networks separated by firewall with default-deny between them, the personal-information data tier in private subnets reachable only from the application tier, and rule sets reviewed twice a year.",
+    commonMistake: "Claiming segmentation because separate cloud accounts exist. Account boundaries without enforced network rules are an organisational split, not a segmentation control.",
   },
   c11_port_protocol: {
     fieldLabel: "C11: Port and protocol management and protection",
     citation: "11 CCR § 7123(c)(11)",
     citationUrl: CPPA_URL,
     plainSummary: "Limitation and control of ports, services, and protocols to reduce attack surface. Added as a distinct component in the final regulations.",
-    regulationText: "The audit must assess the business's management and protection of ports, services, and protocols, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Limitation and control of ports, services, and protocols.",
+    coachLead: "State the default posture, the approved exceptions, and who reviews them.",
+    coachBody: "Say whether the estate is deny-by-default, where approved ports and protocols are recorded, and how the exception list is kept from growing unreviewed. Legacy protocols still in use belong in the answer.",
+    goodAnswer: "A utility records: deny-by-default security groups with 34 registered exceptions held in the configuration repository, quarterly recertification of the list, and one legacy plaintext file-transfer service still open to a single partner.",
+    commonMistake: "Answering with a tool name only. The component is about limitation and control, so the posture and the exception process are the substance.",
   },
   c12_awareness: {
     fieldLabel: "C12: Cybersecurity awareness",
     citation: "11 CCR § 7123(c)(12)",
     citationUrl: CPPA_URL,
     plainSummary: "How the business maintains current knowledge of evolving cybersecurity threats and appropriate countermeasures. The final regulations split awareness from training — a robust training program may not satisfy this component on its own.",
-    regulationText: "The audit must assess how the business maintains awareness of evolving cybersecurity threats and countermeasures, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Cybersecurity awareness, including how the business maintains current knowledge of changing cybersecurity threats and countermeasures.",
+    coachLead: "Describe how threat knowledge is acquired and refreshed — not how staff are trained.",
+    coachBody: "Awareness and training are separate components. Here, name the intelligence sources, who consumes them, the cadence, and what changes as a result.",
+    goodAnswer: "A bank records: sector intelligence feeds reviewed weekly by the security team, a monthly threat briefing to engineering leadership, and two control changes in the last year traced to that intake.",
+    commonMistake: "Reusing the training answer here. The final regulations split awareness from training, so a strong training programme leaves this component unevidenced.",
   },
   c13_training: {
     fieldLabel: "C13: Cybersecurity education and training",
     citation: "11 CCR § 7123(c)(13)",
     citationUrl: CPPA_URL,
     plainSummary: "Training for employees, independent contractors, and anyone granted access to the business's information systems — at onboarding, annually, and/or following a personal-information security breach.",
-    regulationText: "The audit must assess the business's cybersecurity education and training for personnel with access to personal information or systems, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Cybersecurity education and training, including training for each employee, independent contractor, and any other personnel to whom the business provides access to its information system (e.g., when their employment or contract begins, annually thereafter, and after a personal information security breach, as described in Civil Code section 1798.150).",
+    coachLead: "Name the audiences, the trigger points, and the completion rates.",
+    coachBody: "The component names employees, contractors, and any other personnel with system access, and identifies onboarding, annual, and post-breach timings. A complete answer covers every audience and every trigger it uses, with the measured completion.",
+    goodAnswer: "A staffing firm records: onboarding training within five days and annual refreshers for all 400 employees at 96% completion, contractors covered only where badged, and no post-incident training after the phishing incident in October.",
+    commonMistake: "Reporting only employee training. Contractors and other personnel with system access are named in the component, and their omission is a coverage gap, not a detail.",
   },
   c14_secure_dev: {
     fieldLabel: "C14: Secure development and coding practices",
     citation: "11 CCR § 7123(c)(14)",
     citationUrl: CPPA_URL,
     plainSummary: "Secure coding standards, code reviews, and security testing as part of the software development lifecycle.",
-    regulationText: "The audit must assess the business's secure development and coding practices across the software development lifecycle, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Secure development and coding best practices, including code-reviews and testing.",
+    coachLead: "Name the standard, the review gate, and the security testing in the pipeline.",
+    coachBody: "Say what secure-coding standard is followed, whether code review is enforced or advisory, and which automated security tests run before release. Where the business does not develop software, say so plainly.",
+    goodAnswer: "A ticketing platform records: an internal secure-coding standard derived from an industry top-ten list, two-reviewer approval enforced by branch protection, static analysis and dependency scanning blocking on high findings, and no dynamic testing in the pipeline.",
+    commonMistake: "Marking the component not applicable because development is outsourced. Outsourced development remains inside the programme and moves the question into third-party oversight rather than out of scope.",
   },
   c15_third_party: {
     fieldLabel: "C15: Oversight of service providers, contractors, and third parties",
     citation: "11 CCR § 7123(c)(15)",
     citationUrl: CPPA_URL,
     plainSummary: "Oversight of vendors and contractors to ensure they meet the business's cybersecurity program obligations. Because scope expressly reaches third-party environments, this intersects with nearly every technical component.",
-    regulationText: "The audit must assess the business's oversight of service providers, contractors, and third parties that access or process personal information, to the extent applicable.",
+    regulationText: "Oversight of service providers, contractors, and third parties to ensure compliance with sections 7051 and 7053.",
     enforcementNote: "Third-party vendor breaches are a leading source of PI exposure; regulators have held businesses liable for incidents caused by inadequately vetted service providers.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    coachLead: "State how vendors are tiered, what diligence each tier gets, and how ongoing oversight happens.",
+    coachBody: "A complete answer covers entry diligence, contract terms, and continuing monitoring, and states how many vendors sit in each tier. The component reaches service providers, contractors, and third parties alike.",
+    goodAnswer: "A pharmacy chain records: 22 vendors with access to personal information tiered by data sensitivity, security review and contractual terms required before onboarding for the top two tiers, annual reassessment for tier one only, and no ongoing monitoring of tier three.",
+    commonMistake: "Treating a signed contract as oversight. The component asks how compliance is ensured, which is a continuing activity rather than a document on file.",
   },
   c16_retention: {
     fieldLabel: "C16: Retention schedules and proper disposal of personal information",
     citation: "11 CCR § 7123(c)(16)",
     citationUrl: CPPA_URL,
     plainSummary: "Retention schedules and secure disposal of personal information no longer needed — by shredding, erasing, or otherwise rendering it unreadable. Schedules should be scoped to California personal information and sensitive personal information, not just general records.",
-    regulationText: "The audit must assess the business's retention schedules and secure disposal of personal information when it is no longer needed, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Retention schedules and proper disposal of personal information no longer required to be retained, by (A) shredding, (B) erasing, or (C) otherwise modifying the personal information in those records to make it unreadable or undecipherable through any means.",
+    coachLead: "State the schedule's coverage, its enforcement mechanism, and the disposal method.",
+    coachBody: "Say whether the schedule reaches personal information and sensitive personal information specifically, what enforces deletion at the end of a period, and how records are rendered unreadable. Backups and archives belong in the answer.",
+    goodAnswer: "A subscription business records: a retention schedule covering nine categories of personal information with automated lifecycle deletion in the primary stores, manual quarterly purge in the analytics warehouse, and backups aged out at 35 days rather than deleted on request.",
+    commonMistake: "Pointing to a records-retention policy written for corporate documents. The component is about personal information, and a general schedule that never names it does not reach the control.",
   },
   c17_incident: {
     fieldLabel: "C17: Security-incident response management",
     citation: "11 CCR § 7123(c)(17)",
     citationUrl: CPPA_URL,
     plainSummary: "The incident response program — documented procedures, response capabilities, and testing — plus a review of actual security incidents during the audit period, including breach notifications sent to California consumers or agencies.",
-    regulationText: "The audit must assess the business's security-incident response management, including documented procedures, testing, and review of incidents during the period, to the extent applicable.",
+    regulationText: "How the business manages its responses to security incidents (i.e., its incident response management). (A) For the purposes of subsection (17), \"security incident\" means an occurrence that actually or imminently jeopardizes the confidentiality, integrity, or availability of the business's information system or the personal information the system processes, stores, or transmits, or that constitutes a violation or imminent threat of violation of the business's cybersecurity program; unauthorized access, destruction, use, modification, or disclosure of personal information; or unauthorized activity resulting in the loss of availability of personal information is a security incident. (B) The business's incident response management includes: (i) The business's documentation of predetermined instructions or procedures to detect, respond to, limit the consequences of, and recover from malicious attacks against its information system (i.e., the business's incident response plan); and (ii) How the business tests its incident-response capabilities; and",
     enforcementNote: "Absence of an incident response plan, or failure to follow one, is cited as an aggravating factor in enforcement across multiple jurisdictions.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    coachLead: "Cover the documented plan, the last test, and the incidents in the audit period.",
+    coachBody: "Three separate facts complete this component: that predetermined procedures exist and where, when response capabilities were last exercised and how, and what actually happened during the period, including any notifications sent.",
+    goodAnswer: "A software vendor records: an incident response plan with severity tiers and role assignments held in the runbook repository, a tabletop exercise on a ransomware scenario in September, and two incidents in the period, one of which triggered notification to affected consumers.",
+    commonMistake: "Describing the plan and stopping. The component expressly reaches the handling of incidents that occurred, so a period with unexamined incidents leaves the larger half of the answer missing.",
   },
   c18_continuity: {
     fieldLabel: "C18: Business-continuity and disaster-recovery planning",
     citation: "11 CCR § 7123(c)(18)",
     citationUrl: CPPA_URL,
     plainSummary: "Business-continuity and disaster-recovery plans, data-recovery capabilities, and backups, plus testing of those capabilities to ensure availability of personal information during disruptions.",
-    regulationText: "The audit must assess the business's business-continuity and disaster-recovery planning, including backups and testing, to the extent applicable.",
-    coachLead: "Name the tool, the scope it covers, and the exceptions.",
-    coachBody:
-      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
-    goodAnswer:
-      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
-    commonMistake:
-      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
+    regulationText: "Business-continuity and disaster-recovery plans, including data-recovery capabilities and backups.",
+    coachLead: "Name the objectives, the backup regime, and the date of the last successful restore.",
+    coachBody: "State recovery-time and recovery-point objectives for the systems processing personal information, how backups are taken and isolated, and when a restore was last proven rather than assumed.",
+    goodAnswer: "A logistics operator records: four-hour recovery time and fifteen-minute recovery point for the order platform, immutable daily backups in a separate account, a full restore drill completed in June, and no tested recovery path for the reporting warehouse.",
+    commonMistake: "Citing backup frequency as recovery capability. Until a restore has been performed and timed, the recovery objective is a target rather than a demonstrated control.",
   },
-
-  // TURN 3 RETROFIT — intake-rail parity for three new scope + evidence fields.
-  // Corpus consulted:
-  //   • cppa_authorities row id=1e296c7f-e5d0-443c-b139-e2439d3c1890 (citation
-  //     "11 CCR § 7122") — subsection (a) auditor qualifications; (g) five-year
-  //     document retention. Anchors evidence-availability and audit-scope.
-  //   • cppa_authorities row id=1aee5b20-705a-4c50-8795-ed37d89f81ea (citation
-  //     "11 CCR § 7123") — subsection (b) audit scope discipline; (f) leveraging
-  //     prior audits with supplementation. Anchors in_scope_frameworks and
-  //     audit_scope_rationale.
-
-  in_scope_frameworks: {
-    fieldLabel: "Frameworks in scope for this audit",
-    citation: "11 CCR § 7123(f)",
-    citationUrl: CPPA_URL,
-    plainSummary:
-      "A business may use a cybersecurity audit, assessment, or evaluation it prepared for another purpose (for example, a NIST CSF 2.0 audit) toward the § 7123 requirement — provided the prior work meets every Article 9 element, alone or with supplementation. The frameworks you record here name what the assessment considers 'in scope' for that leverage.",
-    regulationText:
-      "A business may utilize a cybersecurity audit, assessment, or evaluation that it has prepared for another purpose, provided that it meets all of the requirements of this Article, either on its own or through supplementation. For example, a business may have engaged in an audit that uses the National Institute of Standards and Technology Cybersecurity Framework 2.0 and meets all of the requirements of this Article.",
-    coachLead: "Select every framework whose evidence the auditor will actually rely on.",
-    coachBody:
-      "Pick only frameworks whose work-product you can produce (report, letter, workpapers). If a framework will not contribute evidence, leave it out — over-selecting suggests coverage the § 7123(f) supplementation test cannot support.",
-    goodAnswer:
-      "A payments processor selects SOC 2 (annual report on file) and PCI DSS (attestation of compliance) because both produce workpapers the auditor can leverage; it does not select NIST CSF because it has no assessed evidence against that framework.",
-    commonMistake:
-      "Selecting every framework the team has ever mentioned. § 7123(f) permits leverage only where the prior work meets the Article's elements — unbacked selections weaken the scope justification.",
-  },
-
-  audit_scope_rationale: {
-    fieldLabel: "Audit scope rationale",
-    citation: "11 CCR § 7123(b)",
-    citationUrl: CPPA_URL,
-    plainSummary:
-      "The audit must assess the cybersecurity program in light of the business's size, complexity, and the nature and scope of its processing activities. The rationale you record here is what the audit's scope memo carries forward — what is covered, what is deliberately excluded, and how any prior framework is supplemented under § 7123(f).",
-    regulationText:
-      "The cybersecurity audit must assess: (1) The business's establishment, implementation, and maintenance of its cybersecurity program, including the related written documentation thereof (e.g., policies and procedures), that is appropriate to the business's size and complexity and the nature and scope of its processing activities, taking into account the state of the art and cost of implementing the components of a cybersecurity program; and (2) Each of the components of a cybersecurity program listed in subsection (c) that the auditor deems applicable to the business's information system.",
-    coachLead: "State what is in, what is out, and (if leveraging a prior audit) how you supplement.",
-    coachBody:
-      "Name the systems and processing activities in scope, the ones intentionally excluded (with reason), and — where a prior framework audit is being leveraged under § 7123(f) — the components the supplementation covers. Vague coverage claims leave the scope memo unreviewable.",
-    goodAnswer:
-      "A healthcare SaaS writes: 'In scope: multi-tenant production estate and the customer-facing web app. Out of scope: internal HR systems (no PI processing). Leverages 2026 SOC 2 Type II; supplements for retention (§ 7123(c)(16)) and segmentation (§ 7123(c)(10)) which SOC 2 does not test directly.'",
-    commonMistake:
-      "Leaving the rationale as 'company-wide.' Company-wide is a boundary claim, not a scope memo — the auditor still has to name systems, exclusions, and supplementation.",
-  },
-
   evidence_availability: {
     fieldLabel: "Evidence available (per component)",
     citation: "11 CCR § 7122(g)",
     citationUrl: CPPA_URL,
-    plainSummary:
-      "The business and its auditor must retain all documents relevant to each cybersecurity audit for at least five years after completion. The evidence types you check here name what the auditor can test today — a maturity claim without evidence forces an insufficient-basis finding.",
-    regulationText:
-      "The business and the auditor must retain all documents relevant to each cybersecurity audit for a minimum of five (5) years after completion of the cybersecurity audit.",
-    enforcementNote:
-      "ISO 19011 evidence typing (documentary, testimonial, observation, analytical) is the profession-standard method the § 7122(a) auditor is expected to apply. Selecting 'None on file' converts a self-rated maturity into an insufficient-basis finding — accurate, not adverse.",
-    coachLead: "Tick only the artefacts the auditor can hand a reviewer today.",
-    coachBody:
-      "Select every evidence type the business already has on file for this component. If nothing exists yet, select 'None on file' — the assessment prefers an honest insufficient-basis finding to a maturity claim the auditor cannot test.",
-    goodAnswer:
-      "For its authentication component, a SaaS ticks Policy / procedure document, Runbook / SOP, and Sample log / report — each corresponds to a file it can hand the auditor. It leaves Screenshot / config export unticked because the export capability has not yet been built.",
-    commonMistake:
-      "Ticking every evidence type to signal preparedness. If the auditor asks for the file and it does not exist, the maturity claim collapses; accuracy protects the readiness score.",
+    plainSummary: "The business and its auditor must retain all documents relevant to each cybersecurity audit for at least five years after completion. The evidence types recorded per component name what the auditor can test today.",
+    regulationText: "The business and the auditor must retain all documents relevant to each cybersecurity audit for a minimum of five (5) years after completion of the cybersecurity audit.",
+    enforcementNote: "ISO 19011 evidence typing — documentary, testimonial, observation, analytical — is the profession-standard method a § 7122(a) auditor applies. Recording that nothing is on file converts a self-rated maturity into an insufficient-basis finding, which is accurate rather than adverse.",
+    coachLead: "Record only artefacts that exist today and could be handed over unedited.",
+    coachBody: "Each evidence type should correspond to a file already on hand for this specific component. Where nothing exists, the honest absence produces a defensible insufficient-basis finding instead of an untestable maturity claim.",
+    goodAnswer: "For its authentication component, a SaaS records a policy document, a runbook, and a sample access-review report — three files it can produce — and records no configuration export, because that capability has not been built.",
+    commonMistake: "Claiming every evidence type to signal preparedness. If the auditor asks for the file and it does not exist, the maturity claim collapses with it.",
+  },
+  cyber_certification: {
+    fieldLabel: "Annual certification to the Agency (§ 7124)",
+    citation: "11 CCR § 7124(c)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Each year an audit is required, the business must submit a written certification to the Agency by April 1 of the following year, via the Agency's website. The signer must be an executive-management member who is directly responsible for cybersecurity-audit compliance, has sufficient knowledge of the audit, and has authority to submit it. The submission carries the business's name and contact, a statement that the audit was completed, the audit period by month and year, an electronically signed attestation under penalty of perjury that the signer meets § 7124(c) and that the business made no attempt to influence the auditor, and the signer's name, title, and date.",
+    regulationText: "The written certification must be completed by a member of the business's executive management team who: (1) Is directly responsible for the business's cybersecurity-audit compliance; (2) Has sufficient knowledge of the business's cybersecurity audit to provide accurate information; and (3) Has the authority to submit the business's certification to the Agency.",
+    enforcementNote: "The attestation is made under penalty of perjury under California law, and expressly covers non-interference with the auditor's decisions and assessments as well as the accuracy of the submission.",
+    coachLead: "Identify the signer and the audit period before the audit closes, not after.",
+    coachBody: "Three facts settle readiness for the certification: which executive meets all three § 7124(c) conditions, the months the audit covers, and who owns the April 1 submission date. Each is a person or a date, not a policy.",
+    goodAnswer: "A retailer's programme records that its Chief Information Security Officer is the § 7124(c) signer, the audit period runs March through December 2027, and the privacy office owns the April 1, 2028 submission in the compliance calendar.",
+    commonMistake: "Assuming general counsel or the chief executive can sign by default. § 7124(c) turns on direct responsibility for audit compliance and sufficient knowledge of the audit, which is a factual test about one named person.",
   },
 };

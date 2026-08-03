@@ -1,0 +1,103 @@
+[
+ {
+  "key": "entity_name",
+  "textRef": "7124d1",
+  "fieldLabel": "Entity name",
+  "citation": "11 CCR § 7124(d)(1)",
+  "plainSummary": "The annual certification submitted to the Agency must carry the business's name and a point of contact. The name recorded here is the one the readiness report and any downstream certification will carry, so it should be the legal entity that owes the audit duty.",
+  "coachLead": "Give the legal entity that owes the audit duty, not the trading brand.",
+  "coachBody": "The name should match the registered entity that meets the revenue and processing thresholds. Where a group files separately, the subsidiary under audit is the entity, not the parent.",
+  "goodAnswer": "A retail group whose California operations sit in a separate incorporated subsidiary records that subsidiary's registered name, with the consumer-facing brand noted nowhere in this field.",
+  "commonMistake": "Recording the marketing brand. The certification is an entity-level filing, so a brand name leaves the filer ambiguous."
+ },
+ {
+  "key": "profile_industry",
+  "textRef": "7123b1",
+  "fieldLabel": "Industry sector",
+  "citation": "11 CCR § 7123(b)(1)",
+  "plainSummary": "The audit assesses the cybersecurity program against the business's size and complexity and the nature and scope of its processing activities. Sector is the shorthand that carries that context into every component finding.",
+  "coachLead": "Name the sector of the operations under audit, not of the corporate group.",
+  "coachBody": "Sector sets the threat context the component findings are weighed against. In a multi-line business, the line whose systems are in scope is the one that belongs here.",
+  "goodAnswer": "A healthcare-services subsidiary owned by a private-equity firm records healthcare, because the systems in scope are the clinical-scheduling platform rather than the parent's finance stack.",
+  "commonMistake": "Recording the parent's sector. That pulls the wrong threat context into all eighteen component findings."
+ },
+ {
+  "key": "incidents_12mo",
+  "textRef": "7123c17",
+  "fieldLabel": "Reportable security incidents in last 12 months",
+  "citation": "11 CCR § 7123(c)(17)",
+  "plainSummary": "The audit expressly reaches security incidents that occurred during the audit period, including how they were handled and any notifications made. The count recorded here sets how much of that history the assessment examines.",
+  "coachLead": "Count incidents the business actually declared, using its own incident definition.",
+  "coachBody": "The number should come from the incident register, not from memory, and should follow whatever severity threshold the business's plan uses. Near-misses and unconfirmed alerts belong outside the count if the plan treats them that way.",
+  "goodAnswer": "A software vendor's register shows eleven raised tickets, of which two crossed the severity threshold that triggers the response plan; it records two and keeps the other nine as alert volume.",
+  "commonMistake": "Counting every security alert. An inflated count and a zeroed count fail the same way — neither is traceable to the register the auditor will read."
+ },
+ {
+  "key": "framework",
+  "textRef": "7123f",
+  "fieldLabel": "Primary security framework in use",
+  "citation": "11 CCR § 7123(f)",
+  "plainSummary": "A business may leverage an audit, assessment, or evaluation prepared for another purpose toward this Article's requirement, provided it meets every element alone or with supplementation. The primary framework recorded here is the baseline the assessment measures supplementation against.",
+  "coachLead": "Name the framework the programme is actually operated against day to day.",
+  "coachBody": "This is the framework that governs control design, not the one the business aspires to. Where controls are run informally against no published framework, that is the accurate answer and it changes only the supplementation analysis.",
+  "goodAnswer": "A logistics operator maintains an ISO 27001 statement of applicability that drives its control set, while an unfinished NIST CSF mapping sits in a spreadsheet; it records ISO 27001 as primary.",
+  "commonMistake": "Naming the framework a certification project is heading towards. § 7123(f) leverage turns on work already prepared, so an in-flight programme yields no evidence to supplement."
+ },
+ {
+  "key": "profile_audit",
+  "textRef": "7122a_chapeau",
+  "fieldLabel": "Last independent security audit",
+  "citation": "11 CCR § 7122(a)",
+  "plainSummary": "The audit must be performed by a qualified, objective, independent professional using procedures and standards accepted in the profession of auditing. Only work meeting that bar counts as an independent audit for this field.",
+  "enforcementNote": "The § 7124 certification is signed under penalty of perjury by an executive who meets § 7124(c), and includes an attestation that the business made no attempt to influence the auditor's decisions or assessments.",
+  "coachLead": "Date the most recent audit performed by someone independent of the programme.",
+  "coachBody": "Independence is what qualifies the work, whether the auditor is internal or external. A self-assessment or a readiness review run by the team that operates the controls sits outside the definition.",
+  "goodAnswer": "A firm runs quarterly internal control reviews by its own security team and last engaged an outside audit firm in 2023; it records 2023, and the internal reviews carry no weight in this field.",
+  "commonMistake": "Counting a readiness self-assessment as an audit. Independence, not rigour, is the qualifying attribute in § 7122(a)."
+ },
+ {
+  "key": "in_scope_frameworks",
+  "textRef": "7123f",
+  "fieldLabel": "Frameworks in scope for this audit",
+  "citation": "11 CCR § 7123(f)",
+  "plainSummary": "A business may utilise a cybersecurity audit, assessment, or evaluation it prepared for another purpose toward the § 7123 requirement — provided the prior work meets every element of this Article, alone or through supplementation. The frameworks recorded here name what the assessment treats as available for that leverage.",
+  "coachLead": "List only frameworks whose work-product the auditor can open.",
+  "coachBody": "Each framework named should have a report, letter, or set of workpapers behind it. A framework that will contribute no evidence weakens the scope justification rather than strengthening it.",
+  "goodAnswer": "A payments processor names SOC 2, backed by an annual report on file, and PCI DSS, backed by an attestation of compliance; it leaves out NIST CSF because no assessed evidence against that framework exists.",
+  "commonMistake": "Listing every framework the team has mentioned. § 7123(f) permits leverage only where the prior work meets the Article's elements, so unbacked entries invite a supplementation finding."
+ },
+ {
+  "key": "audit_scope_rationale",
+  "textRef": "7123b",
+  "fieldLabel": "Audit scope rationale",
+  "citation": "11 CCR § 7123(b)",
+  "plainSummary": "The audit must assess the programme's establishment, implementation, and maintenance as appropriate to the business's size and complexity, each applicable component in subsection (c), and how compliance with the programme is implemented and enforced. The rationale recorded here is what the scope memo carries forward.",
+  "coachLead": "Give three things: what is in scope, what is out and why, and what any prior audit is supplemented with.",
+  "coachBody": "Name systems and processing activities rather than departments. Where a prior framework audit is leveraged under § 7123(f), the components the supplementation covers should be named individually.",
+  "goodAnswer": "A healthcare SaaS writes: in scope, the multi-tenant production estate and customer-facing application; out of scope, internal HR systems, which process no consumer personal information; leveraging the 2026 SOC 2 Type II and supplementing for retention and segmentation, which that report does not test directly.",
+  "commonMistake": "Writing 'company-wide' and stopping. A boundary claim is not a scope memo, and it leaves exclusions and supplementation unstated."
+ },
+ {
+  "key": "auditor_engagement_status",
+  "textRef": "7122a2",
+  "fieldLabel": "Auditor engagement status",
+  "citation": "11 CCR § 7122(a)(2)",
+  "plainSummary": "The auditor may be internal or external but must exercise objective and impartial judgment, must be free from influence by the business, and must not participate in activities the audit may assess — including writing procedures, preparing documents, making programme recommendations, or implementing the programme.",
+  "enforcementNote": "Where an internal auditor is used, § 7122(a)(3) additionally requires the highest-ranking auditor to report to an executive without direct responsibility for the cybersecurity programme, who also sets that auditor's evaluation and compensation.",
+  "coachLead": "Describe the auditor's relationship to the programme, not their competence.",
+  "coachBody": "The determining facts are who employs the auditor, whether they have built or maintained any part of the programme, and — if internal — who they report to and who sets their compensation.",
+  "goodAnswer": "A manufacturer's internal audit lead has never authored a security procedure and reports to the general counsel rather than the CISO; the facts recorded reflect an internal auditor with a reporting line outside the programme.",
+  "commonMistake": "Treating a well-credentialed consultant as independent when the same firm wrote the policies. Participation in the work under review is what § 7122(a)(2) disqualifies."
+ },
+ {
+  "key": "prior_audit_scope",
+  "textRef": "7122g",
+  "fieldLabel": "Prior audit scope",
+  "citation": "11 CCR § 7122(g)",
+  "plainSummary": "The business and the auditor must retain all documents relevant to each cybersecurity audit for at least five years after completion. What the last audit covered, and whether its record survives, determines how much of it can be leveraged now.",
+  "coachLead": "Say what the last audit covered, when, and where its papers live now.",
+  "coachBody": "Period, scope boundary, and the location of the report and workpapers are three separate facts. Where the papers are gone or were never held, saying so is more useful than an optimistic description of coverage.",
+  "goodAnswer": "A distributor records a FY2025 SOC 2 Type II over the production estate, with report, sampling worksheets, and management letter held in the governance system, and notes that the 2022 penetration-test workpapers were lost in a vendor transition.",
+  "commonMistake": "Describing scope without saying whether the evidence still exists. Five-year retention is the operative duty, and unretained work cannot be leveraged or re-examined."
+ }
+]
