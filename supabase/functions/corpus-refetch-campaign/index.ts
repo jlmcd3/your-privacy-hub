@@ -179,40 +179,30 @@ async function selectPassB(limit: number, shard: number, shardCount: number) {
   // PASS_B_RESERVED_NON_OVERRIDDEN slots for other hosts so a single domain
   // cannot starve the rest of the batch.
   const PASS_B_RESERVED_NON_OVERRIDDEN = 2;
-  const overriddenHosts = Array.from(buckets.entries()).filter(
-    ([h]) => hostCap(h) > PASS_B_PER_HOST_DEFAULT,
-  );
-  const otherHosts = Array.from(buckets.entries()).filter(
+  const allBuckets = Array.from(buckets.entries());
+  const overriddenHosts = allBuckets
+    .filter(([h]) => hostCap(h) > PASS_B_PER_HOST_DEFAULT)
+    .sort((a, b) => hostCap(b[0]) - hostCap(a[0]));
+  const otherHosts = allBuckets.filter(
     ([h]) => hostCap(h) <= PASS_B_PER_HOST_DEFAULT,
   );
 
   const rows: any[] = [];
+  const otherSlots = Math.min(PASS_B_RESERVED_NON_OVERRIDDEN, limit);
+  let overrideBudget = limit - otherSlots;
 
-  // Phase 1: take one row from every host so no host is entirely skipped.
-  for (const [, b] of [...overriddenHosts, ...otherHosts]) {
-    if (b[0] && rows.length < limit) rows.push(b[0]);
-  }
-
-  // Phase 2: fill overridden hosts up to their cap, leaving reserved slots.
-  const maxOverrideFill = Math.max(0, limit - PASS_B_RESERVED_NON_OVERRIDDEN);
-  for (const [host, b] of overriddenHosts) {
-    for (let i = 1; i < b.length && rows.length < maxOverrideFill; i++) {
-      rows.push(b[i]);
-    }
-  }
-
-  // Phase 3: fill remaining slots with round-robin across non-overridden hosts.
-  for (let i = 1; i < PASS_B_PER_HOST_DEFAULT && rows.length < limit; i++) {
-    for (const [, b] of otherHosts) {
-      if (b[i] && rows.length < limit) rows.push(b[i]);
-    }
-  }
-
-  // Phase 4: if any slots still remain, top up overridden hosts further.
+  // Phase 1: fill overridden hosts up to their cap, respecting the budget.
   for (const [host, b] of overriddenHosts) {
     const cap = hostCap(host);
-    for (let i = hostCap(host) > PASS_B_PER_HOST_DEFAULT ? b.length : 0; i < b.length && rows.length < limit; i++) {
-      rows.push(b[i]);
+    const take = Math.min(cap, overrideBudget, b.length);
+    for (let i = 0; i < take; i++) rows.push(b[i]);
+    overrideBudget -= take;
+  }
+
+  // Phase 2: fill reserved/other slots with round-robin across non-overridden hosts.
+  for (let i = 0; i < PASS_B_PER_HOST_DEFAULT && rows.length < limit; i++) {
+    for (const [, b] of otherHosts) {
+      if (b[i] && rows.length < limit) rows.push(b[i]);
     }
   }
 
