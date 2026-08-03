@@ -311,6 +311,11 @@ export function lintDocumentStyle(
 
   const verbSequence: string[] = [];
   const seenSentences = new Map<string, string>();
+  // RULE A tally: normalized sentence → occurrences + the sections it appears in.
+  const repeatTally = new Map<
+    string,
+    { count: number; sections: string[]; sample: string }
+  >();
 
   for (const s of sections) {
     const text = s.text ?? "";
@@ -436,6 +441,7 @@ export function lintDocumentStyle(
     }
 
     // ── RULE B (Item 370): template merge artifacts ─────────────────────
+    const mergeSeen = new Set<number>();
     for (const rx of [MERGE_COLLISION, MERGE_DOUBLED_STEM]) {
       const re = new RegExp(rx.source, rx.flags);
       let m: RegExpExecArray | null;
@@ -444,6 +450,8 @@ export function lintDocumentStyle(
         const rel = m[0].search(/[ \t][A-Z]/);
         const second = m.index + (rel >= 0 ? rel + 1 : 0);
         if (isTitleOpener(text, second)) continue;
+        if (mergeSeen.has(second)) continue; // the two patterns overlap
+        mergeSeen.add(second);
         out.push({
           rule: "merge_artifact",
           section_id: s.section_id,
@@ -471,6 +479,19 @@ export function lintDocumentStyle(
     // ── RULES: the analogy section ──────────────────────────────────────
     if (opts.analogy_section_id && s.section_id === opts.analogy_section_id) {
       out.push(...lintAnalogySection(s, opts.analogy_count ?? 0));
+    }
+  }
+
+  // ── RULE A (Item 370): repeated boilerplate, document-wide tally ──────
+  for (const [, t] of repeatTally) {
+    if (t.count < REPEATED_BOILERPLATE_MIN_COUNT) continue;
+    for (const sectionId of t.sections) {
+      out.push({
+        rule: "repeated_boilerplate",
+        section_id: sectionId,
+        detail:
+          `boilerplate sentence repeated ${t.count} times across ${t.sections.join(", ")}: "${t.sample}"`,
+      });
     }
   }
 
