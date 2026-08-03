@@ -15,8 +15,9 @@ import BreachPrecedentMap from "@/components/cppa/BreachPrecedentMap";
 import { useCitationVerification } from "@/hooks/useCitationVerification";
 import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
 import { readinessColor, controlStatusColor } from "@/pages/CPPACybersecurityResult.helpers";
-import { AlertTriangle } from 'lucide-react';
 import { CYBER_BANDS, isCyberGapStatus, type CyberStatus } from "@/lib/cppaCyberBands";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
+
 
 export function CybersecurityReportBody({ row, hideHeader = false }: { row: any; hideHeader?: boolean }) {
   const report = row?.report_data || {};
@@ -409,9 +410,123 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
         </section>
       )}
 
-      <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-        <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> This compliance framework report does not constitute legal or security advice. Findings should be validated against your organization's authoritative records and security posture before operational reliance.
-      </section>
+      {/* ITEM 371 — CONCLUDING DETERMINATIONS (readiness first, independence second). */}
+      {report?.readiness_determination && (
+        <section className="bg-card border rounded-lg p-6">
+          <h2 className="font-body text-display-card font-semibold mb-1">Readiness Determination</h2>
+          <p className="text-xs text-muted-foreground mb-3">
+            11 CCR §§ 7120–7124 · the report's concluding determination
+          </p>
+          <p className="font-medium">
+            Determination: {readinessLabel(report.readiness_determination.conclusion)}
+          </p>
+          {report.readiness_determination.headline && (
+            <p className="mt-2 text-sm">{report.readiness_determination.headline}</p>
+          )}
+          {report.readiness_determination.reasoning && (
+            <>
+              <p className="mt-4 text-sm font-semibold">Basis</p>
+              <p className="text-sm">{report.readiness_determination.reasoning}</p>
+            </>
+          )}
+          {Array.isArray(report.readiness_determination.blocking_components) &&
+            report.readiness_determination.blocking_components.length > 0 && (
+            <>
+              <p className="mt-4 text-sm font-semibold">What must change now</p>
+              <ul className="list-disc pl-5 text-sm space-y-1">
+                {report.readiness_determination.blocking_components.map((b: any, i: number) => (
+                  <li key={i}><span className="font-medium">{b?.label}</span>{b?.reason ? ` — ${b.reason}` : ""}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {Array.isArray(report.readiness_determination.unassessable_components) &&
+            report.readiness_determination.unassessable_components.length > 0 && (
+            <>
+              <p className="mt-4 text-sm font-semibold">Legal exposure — components an auditor cannot assess on this record</p>
+              <ul className="list-disc pl-5 text-sm space-y-1">
+                {report.readiness_determination.unassessable_components.map((u: any, i: number) => (
+                  <li key={i}><span className="font-medium">{u?.label}</span>{u?.information_needed ? ` — ${u.information_needed}` : ""}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {Array.isArray(report.readiness_determination.citations) &&
+            report.readiness_determination.citations.length > 0 && (
+            <p className="mt-4 text-xs font-mono text-muted-foreground">
+              {report.readiness_determination.citations.join(" · ")}
+            </p>
+          )}
+        </section>
+      )}
+
+      {report?.independence_determination && (
+        <section className="bg-card border rounded-lg p-6">
+          <h2 className="font-body text-display-card font-semibold mb-1">Independence Determination</h2>
+          <p className="text-xs text-muted-foreground mb-3">
+            11 CCR § 7122 — auditor qualification, objectivity, and independence
+          </p>
+          <p className="font-medium">
+            Determination: {verdictLabel(report.independence_determination.verdict)}
+          </p>
+          {report.independence_determination.summary && (
+            <>
+              <p className="mt-4 text-sm font-semibold">Basis</p>
+              <p className="text-sm">{report.independence_determination.summary}</p>
+            </>
+          )}
+          {(report.independence_determination.auditor_type ||
+            report.independence_determination.engagement_status) && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Auditor on the record: {report.independence_determination.auditor_type || "unknown"}
+              {report.independence_determination.engagement_status
+                ? ` · ${report.independence_determination.engagement_status}`
+                : ""}
+            </p>
+          )}
+          {Array.isArray(report.independence_determination.unsatisfied_conditions) &&
+            report.independence_determination.unsatisfied_conditions.length > 0 && (
+            <>
+              <p className="mt-4 text-sm font-semibold">What must change now</p>
+              <ul className="list-disc pl-5 text-sm space-y-1">
+                {report.independence_determination.unsatisfied_conditions.map((c: any, i: number) => (
+                  <li key={i}>{typeof c === "string" ? c : c?.label}</li>
+                ))}
+              </ul>
+              <p className="mt-4 text-sm font-semibold">Legal exposure</p>
+              <p className="text-sm">
+                An audit completed without satisfying every § 7122 condition is not a compliant Article 9
+                cybersecurity audit, and the § 7124 certification submitted on its basis would misstate completion.
+              </p>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* ITEM 371 — table of authorities; last report element before the universal disclaimer. */}
+      <AuthorityExhibit exhibit={report?.authority_exhibit} />
     </div>
   );
 }
+
+function readinessLabel(conclusion: string): string {
+  switch (conclusion) {
+    case "ready": return "Ready for the Article 9 cybersecurity audit";
+    case "ready_subject_to_named_remediation": return "Ready subject to the named remediation";
+    case "not_ready": return "Not ready";
+    case "record_insufficient": return "Record insufficient to determine readiness";
+    default: return conclusion || "—";
+  }
+}
+
+function verdictLabel(verdict: string): string {
+  switch (verdict) {
+    case "satisfied": return "§ 7122 independence conditions satisfied";
+    case "partially_satisfied": return "§ 7122 independence conditions partially satisfied";
+    case "not_satisfied": return "§ 7122 independence conditions not satisfied";
+    case "not_applicable": return "Not applicable on this record";
+    case "record_insufficient": return "Record insufficient to determine independence";
+    default: return verdict || "—";
+  }
+}
+

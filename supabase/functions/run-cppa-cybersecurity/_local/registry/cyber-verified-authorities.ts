@@ -1,476 +1,395 @@
-// CYBER-REGISTRY-WIRING (2026-07-24) — cppa-cybersecurity verified-authority registry.
+// ITEM 371 (2026-08-03) — CPPA-CYBER VERIFIED-AUTHORITY RESOLVER.
 //
-// Authored per the CYBER-REGISTRY-AUTHORING dispatch on the exact pattern of
-// admt-verified-authorities.ts and risk-verified-authorities.ts (same row shape,
-// same resolver contract).
+// RETIREMENT OF THE HAND-TRANSCRIBED REGISTRY: this module used to carry
+// hand-transcribed § 7120–7124 text dated 2026-07-24. The authoritative text
+// now lives in `provision_texts` (keys cppa-7120 … cppa-7124, status
+// 'approved'). This file is a THIN RESOLVER: at generation time it fetches the
+// approved rows, cuts each proposition's quote out of the corpus text with a
+// stable locator (subsection path + first/last phrase), derives
+// COMPONENT_CITATIONS and the eighteen-component § 7123(c) model from the
+// corpus enumeration, and — if any row is unapproved or a locator no longer
+// matches — degrades honestly to citation-only with a pending notice.
 //
-// AUTHORING RULE (audit standing order): every row MUST pass corpus-pin from
-// the first commit. Any proposition that cannot carry an exact contiguous
-// substring of cppa_authorities.full_text (status='current') is EXCLUDED,
-// never paraphrased, never labelled verbatim. KNOWN_PARAPHRASED_KEYS is
-// therefore EMPTY on entry.
-//
-// Coverage: 11 CCR §§ 7120–7124 (Article 9 — Cybersecurity Audits).
-//   § 7120 applicability/thresholds; § 7121 timing; § 7122 auditor
-//   independence; § 7123 scope (incl. eighteen per-component rows for
-//   (c)(1)–(c)(18)); § 7124 certification/submission.
+// THERE IS NO STALE FALLBACK COPY. A row that cannot be re-sourced from the
+// corpus is omitted from the registry; nothing is served from memory.
 
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
 } from "../../../_shared/verified-authority-resolver.ts";
+import {
+  resolveProvisionForRender,
+  PROVISION_PENDING_NOTICE,
+} from "../../../_shared/provision-store.ts";
 
-export const CYBER_VERIFIED_AUTHORITY_VERSION = "cyber-va-w1-2026-07-24";
+export const CYBER_VERIFIED_AUTHORITY_VERSION = "cyber-va-w2-corpus-2026-08-03";
 
 const CCR_URL =
   "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
-const VOD = "2026-07-24";
 const ART9 = "11 CCR Art. 9 (Cybersecurity Audits)";
 
-const R = (r: VerifiedAuthorityRow): VerifiedAuthorityRow => r;
+export const CYBER_PROVISION_KEYS = [
+  "cppa-7120",
+  "cppa-7121",
+  "cppa-7122",
+  "cppa-7123",
+  "cppa-7124",
+] as const;
 
-export const CYBER_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
-  cyber_audit_required: R({
-    proposition_key: "cyber_audit_required",
-    citation: "11 CCR \u00a7 7120",
-    subsection: "11 CCR \u00a7 7120(a)",
-    verbatim_quote: "Every business whose processing of consumers’ personal information presents\nsignificant risk to consumers’ security as set forth in subsection (b) must\ncomplete a cybersecurity audit.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_threshold_significant_risk: R({
-    proposition_key: "cyber_threshold_significant_risk",
-    citation: "11 CCR \u00a7 7120",
-    subsection: "11 CCR \u00a7 7120(b)",
-    verbatim_quote: "A business’s processing of consumers’ personal information presents\nsignificant risk to consumers’ security if any of the following is true:",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_threshold_gross_rev: R({
-    proposition_key: "cyber_threshold_gross_rev",
-    citation: "11 CCR \u00a7 7120",
-    subsection: "11 CCR \u00a7 7120(b)(1)",
-    verbatim_quote: "The business meets the threshold set forth in Civil Code section 1798.140,\nsubdivision (d)(1)(C), in the preceding calendar year; or",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_threshold_250k_or_50k_spi: R({
-    proposition_key: "cyber_threshold_250k_or_50k_spi",
-    citation: "11 CCR \u00a7 7120",
-    subsection: "11 CCR \u00a7 7120(b)(2)",
-    verbatim_quote: "The business meets the threshold set forth in Civil Code section 1798.140,\nsubdivision (d)(1)(A); and",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_first_audit_deadline: R({
-    proposition_key: "cyber_first_audit_deadline",
-    citation: "11 CCR \u00a7 7121",
-    subsection: "11 CCR \u00a7 7121(a)",
-    verbatim_quote: "A business must complete its first cybersecurity audit report no later than:",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_recurring_cadence: R({
-    proposition_key: "cyber_recurring_cadence",
-    citation: "11 CCR \u00a7 7121",
-    subsection: "11 CCR \u00a7 7121(b)",
-    verbatim_quote: "After April 1, 2030, if on January 1 of one year, a business meets the criteria of\nsection 7120 for the preceding year, the business must complete a\ncybersecurity audit that covers the next 12 months, and the business must\ncomplete its cybersecurity audit report for that period by April 1 of the\nfollowing year.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_auditor_qualified_independent: R({
-    proposition_key: "cyber_auditor_qualified_independent",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(a)",
-    verbatim_quote: "Every business required to complete a cybersecurity audit pursuant to this\nArticle must do so using a qualified, objective, independent professional\n(“auditor”) using procedures and standards accepted in the profession of\nauditing,",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_auditor_knowledge: R({
-    proposition_key: "cyber_auditor_knowledge",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(a)(1)",
-    verbatim_quote: "To be qualified, an auditor must have knowledge of cybersecurity and how\nto audit a business’s cybersecurity program.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_auditor_impartial: R({
-    proposition_key: "cyber_auditor_impartial",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(a)(2)",
-    verbatim_quote: "The auditor may be internal or external to the business but must exercise\nobjective and impartial judgment on all issues within the scope of the\ncybersecurity audit,",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_internal_reporting_line: R({
-    proposition_key: "cyber_internal_reporting_line",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(a)(3)",
-    verbatim_quote: "If a business uses an internal auditor, to maintain the auditor’s\nindependence, the highest-ranking auditor must report directly to a\nmember of the business’s executive management team who does not\nhave direct responsibility for the business’s cybersecurity program.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_business_disclose: R({
-    proposition_key: "cyber_business_disclose",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(c)",
-    verbatim_quote: "The business must make good-faith efforts to disclose to the auditor all facts\nrelevant to the cybersecurity audit and must not misrepresent any fact\nrelevant to the cybersecurity audit.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_evidence_over_attestation: R({
-    proposition_key: "cyber_evidence_over_attestation",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(d)",
-    verbatim_quote: "No finding of any cybersecurity audit may rely primarily on assertions or\nattestations by the business’s management.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_report_to_exec: R({
-    proposition_key: "cyber_report_to_exec",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(f)",
-    verbatim_quote: "The cybersecurity audit report must be provided to a member of the business’s\nexecutive management team who has direct responsibility for the business’s\ncybersecurity program.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_retention_5yr: R({
-    proposition_key: "cyber_retention_5yr",
-    citation: "11 CCR \u00a7 7122",
-    subsection: "11 CCR \u00a7 7122(g)",
-    verbatim_quote: "The business and the auditor must retain all documents relevant to each\ncybersecurity audit for a minimum of five (5) years after completion of the\ncybersecurity audit.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_scope_protects_pi: R({
-    proposition_key: "cyber_scope_protects_pi",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(a)",
-    verbatim_quote: "The cybersecurity audit must assess how the business’s cybersecurity\nprogram: protects personal information from unauthorized access, destruction,\nuse, modification, or disclosure; and protects against unauthorized activity\nresulting in the loss of availability of personal information.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_scope_assess_program: R({
-    proposition_key: "cyber_scope_assess_program",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(b)",
-    verbatim_quote: "The cybersecurity audit must assess:",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_components_chapeau: R({
-    proposition_key: "cyber_components_chapeau",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)",
-    verbatim_quote: "The cybersecurity audit must assess the following components, if applicable:",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c1_authentication: R({
-    proposition_key: "cyber_c1_authentication",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(1)",
-    verbatim_quote: "Authentication, including:",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c2_encryption: R({
-    proposition_key: "cyber_c2_encryption",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(2)",
-    verbatim_quote: "Encryption of personal information, at rest and in transit.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c3_access_controls: R({
-    proposition_key: "cyber_c3_access_controls",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(3)",
-    verbatim_quote: "Account management and access controls, including:",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c4_inventory: R({
-    proposition_key: "cyber_c4_inventory",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(4)",
-    verbatim_quote: "Inventory and management of personal information and the business’s\ninformation system, including:",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c5_secure_config: R({
-    proposition_key: "cyber_c5_secure_config",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(5)",
-    verbatim_quote: "Secure configuration of hardware and software, including:",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c6_vuln_pentest: R({
-    proposition_key: "cyber_c6_vuln_pentest",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(6)",
-    verbatim_quote: "Internal and external vulnerability scans, penetration testing, and\nvulnerability disclosure and reporting",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c7_audit_logs: R({
-    proposition_key: "cyber_c7_audit_logs",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(7)",
-    verbatim_quote: "Audit-log management, including the centralized storage, retention, and\nmonitoring of logs.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c8_network_monitoring: R({
-    proposition_key: "cyber_c8_network_monitoring",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(8)",
-    verbatim_quote: "Network monitoring and defenses, including the deployment of:",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c9_antivirus: R({
-    proposition_key: "cyber_c9_antivirus",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(9)",
-    verbatim_quote: "Antivirus and antimalware protections.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c10_segmentation: R({
-    proposition_key: "cyber_c10_segmentation",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(10)",
-    verbatim_quote: "Segmentation of an information system",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c11_ports: R({
-    proposition_key: "cyber_c11_ports",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(11)",
-    verbatim_quote: "Limitation and control of ports, services, and protocols.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c12_awareness: R({
-    proposition_key: "cyber_c12_awareness",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(12)",
-    verbatim_quote: "Cybersecurity awareness, including how the business maintains current\nknowledge of changing cybersecurity threats and countermeasures.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c13_training: R({
-    proposition_key: "cyber_c13_training",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(13)",
-    verbatim_quote: "Cybersecurity education and training, including training for each\nemployee, independent contractor, and any other personnel to whom the\nbusiness provides access to its information system",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c14_secure_dev: R({
-    proposition_key: "cyber_c14_secure_dev",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(14)",
-    verbatim_quote: "Secure development and coding best practices, including code-reviews\nand testing.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c15_third_party_oversight: R({
-    proposition_key: "cyber_c15_third_party_oversight",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(15)",
-    verbatim_quote: "Oversight of service providers, contractors, and third parties to ensure\ncompliance with sections 7051 and 7053.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c16_retention_disposal: R({
-    proposition_key: "cyber_c16_retention_disposal",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(16)",
-    verbatim_quote: "Retention schedules and proper disposal of personal information no\nlonger required to be retained,",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c17_incident_response: R({
-    proposition_key: "cyber_c17_incident_response",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(17)",
-    verbatim_quote: "How the business manages its responses to security incidents (i.e., its\nincident response management).",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_c18_bcdr: R({
-    proposition_key: "cyber_c18_bcdr",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(c)(18)",
-    verbatim_quote: "Business-continuity and disaster-recovery plans, including data-recovery\ncapabilities and backups.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_scope_additional_components: R({
-    proposition_key: "cyber_scope_additional_components",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(d)",
-    verbatim_quote: "Nothing in this section prohibits a cybersecurity audit from assessing\ncomponents of a cybersecurity program that are not set forth in subsections\n(b) or (c).",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_report_contents_chapeau: R({
-    proposition_key: "cyber_report_contents_chapeau",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(e)",
-    verbatim_quote: "The cybersecurity audit report must:",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_report_gaps: R({
-    proposition_key: "cyber_report_gaps",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(e)(3)",
-    verbatim_quote: "Identify and describe in detail the status of any gaps or weaknesses of the\npolicies and procedures in subsection (b)(1), the applicable components in\nsubsection (c), and any additional component assessed in accordance with\nsubsection (d),",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_report_signed_attestation: R({
-    proposition_key: "cyber_report_signed_attestation",
-    citation: "11 CCR \u00a7 7123",
-    subsection: "11 CCR \u00a7 7123(e)(8)",
-    verbatim_quote: "Include a statement that is signed and dated by the highest-ranking\nauditor that certifies that they completed an independent review of the\nbusiness’s cybersecurity program and information system,",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_cert_required: R({
-    proposition_key: "cyber_cert_required",
-    citation: "11 CCR \u00a7 7124",
-    subsection: "11 CCR \u00a7 7124(a)",
-    verbatim_quote: "Each calendar year that a business is required to complete a cybersecurity\naudit pursuant to this Article, it must submit to the Agency a written\ncertification that the business completed the cybersecurity audit as required\nby this Article.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_cert_by_april1: R({
-    proposition_key: "cyber_cert_by_april1",
-    citation: "11 CCR \u00a7 7124",
-    subsection: "11 CCR \u00a7 7124(b)",
-    verbatim_quote: "The business must submit the certification no later than April 1 following any\nyear that the business is required to complete a cybersecurity audit.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_cert_by_exec: R({
-    proposition_key: "cyber_cert_by_exec",
-    citation: "11 CCR \u00a7 7124",
-    subsection: "11 CCR \u00a7 7124(c)",
-    verbatim_quote: "The written certification must be completed by a member of the business’s\nexecutive management team who:",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_cert_portal_and_attest: R({
-    proposition_key: "cyber_cert_portal_and_attest",
-    citation: "11 CCR \u00a7 7124",
-    subsection: "11 CCR \u00a7 7124(d)",
-    verbatim_quote: "The written certification must be completed and submitted to the Agency via\nits website at https://cppa.ca.gov/.",
-    depth_class: "subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-  cyber_cert_attestation_text: R({
-    proposition_key: "cyber_cert_attestation_text",
-    citation: "11 CCR \u00a7 7124",
-    subsection: "11 CCR \u00a7 7124(d)(4)",
-    verbatim_quote: "I attest\nthat I meet the requirements of California Code of Regulations, Title 11,\nsection 7124, subsection (c), to submit this certification.",
-    depth_class: "sub_subsection",
-    governing_anchor: ART9,
-    verified_on: VOD,
-    primary_source_url: CCR_URL,
-  }),
-};
+export interface CyberAuthorityLocator {
+  proposition_key: string;
+  citation: string;
+  subsection: string;
+  provision_key: string;
+  /** Subsection path within the provision, e.g. "a" or "c(17)". */
+  path: string;
+  /** First 28 normalized characters of the quote inside that subsection. */
+  starts_with: string;
+  /** Last 28 normalized characters of the quote inside that subsection. */
+  ends_with: string;
+}
 
-export const CYBER_VERIFIED_AUTHORITY_ROWS: VerifiedAuthorityRow[] =
-  Object.values(CYBER_VERIFIED_AUTHORITIES);
+/**
+ * Locators only — no statutory text. Each row's `verbatim_quote` is cut from
+ * the corpus at runtime between `starts_with` and `ends_with`.
+ */
+export const CYBER_AUTHORITY_LOCATORS: readonly CyberAuthorityLocator[] = [
+  { proposition_key: "cyber_audit_required", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(a)", provision_key: "cppa-7120", path: "a", starts_with: "Every business whose process", ends_with: "plete a cybersecurity audit." },
+  { proposition_key: "cyber_threshold_significant_risk", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(b)", provision_key: "cppa-7120", path: "b", starts_with: "A business's processing of c", ends_with: "ny of the following is true:" },
+  { proposition_key: "cyber_threshold_gross_rev", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(b)(1)", provision_key: "cppa-7120", path: "b(1)", starts_with: "The business meets the thres", ends_with: " preceding calendar year; or" },
+  { proposition_key: "cyber_threshold_250k_or_50k_spi", citation: "11 CCR § 7120", subsection: "11 CCR § 7120(b)(2)", provision_key: "cppa-7120", path: "b(2)", starts_with: "The business meets the thres", ends_with: ", subdivision (d)(1)(A); and" },
+  { proposition_key: "cyber_first_audit_deadline", citation: "11 CCR § 7121", subsection: "11 CCR § 7121(a)", provision_key: "cppa-7121", path: "a", starts_with: "A business must complete its", ends_with: " audit report no later than:" },
+  { proposition_key: "cyber_recurring_cadence", citation: "11 CCR § 7121", subsection: "11 CCR § 7121(b)", provision_key: "cppa-7121", path: "b", starts_with: "After April 1, 2030, if on J", ends_with: "ril 1 of the following year." },
+  { proposition_key: "cyber_auditor_qualified_independent", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(a)", provision_key: "cppa-7122", path: "a", starts_with: "Every business required to c", ends_with: " the profession of auditing," },
+  { proposition_key: "cyber_auditor_knowledge", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(a)(1)", provision_key: "cppa-7122", path: "a(1)", starts_with: "To be qualified, an auditor ", ends_with: "ess's cybersecurity program." },
+  { proposition_key: "cyber_auditor_impartial", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(a)(2)", provision_key: "cppa-7122", path: "a(2)", starts_with: "The auditor may be internal ", ends_with: " of the cybersecurity audit," },
+  { proposition_key: "cyber_internal_reporting_line", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(a)(3)", provision_key: "cppa-7122", path: "a(3)", starts_with: "If a business uses an intern", ends_with: "ess's cybersecurity program." },
+  { proposition_key: "cyber_business_disclose", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(c)", provision_key: "cppa-7122", path: "c", starts_with: "The business must make good-", ends_with: " to the cybersecurity audit." },
+  { proposition_key: "cyber_evidence_over_attestation", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(d)", provision_key: "cppa-7122", path: "d", starts_with: "No finding of any cybersecur", ends_with: "y the business's management." },
+  { proposition_key: "cyber_report_to_exec", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(f)", provision_key: "cppa-7122", path: "f", starts_with: "The cybersecurity audit repo", ends_with: "ess's cybersecurity program." },
+  { proposition_key: "cyber_retention_5yr", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(g)", provision_key: "cppa-7122", path: "g", starts_with: "The business and the auditor", ends_with: " of the cybersecurity audit." },
+  { proposition_key: "cyber_scope_protects_pi", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(a)", provision_key: "cppa-7123", path: "a", starts_with: "The cybersecurity audit must", ends_with: "ity of personal information." },
+  { proposition_key: "cyber_scope_assess_program", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(b)", provision_key: "cppa-7123", path: "b", starts_with: "The cybersecurity audit must", ends_with: "rsecurity audit must assess:" },
+  { proposition_key: "cyber_components_chapeau", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)", provision_key: "cppa-7123", path: "c", starts_with: "The cybersecurity audit must", ends_with: "g components, if applicable:" },
+  { proposition_key: "cyber_c1_authentication", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(1)", provision_key: "cppa-7123", path: "c(1)", starts_with: "Authentication, including:", ends_with: "Authentication, including:" },
+  { proposition_key: "cyber_c2_encryption", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(2)", provision_key: "cppa-7123", path: "c(2)", starts_with: "Encryption of personal infor", ends_with: "ion, at rest and in transit." },
+  { proposition_key: "cyber_c3_access_controls", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(3)", provision_key: "cppa-7123", path: "c(3)", starts_with: "Account management and acces", ends_with: " access controls, including:" },
+  { proposition_key: "cyber_c4_inventory", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(4)", provision_key: "cppa-7123", path: "c(4)", starts_with: "Inventory and management of ", ends_with: "formation system, including:" },
+  { proposition_key: "cyber_c5_secure_config", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(5)", provision_key: "cppa-7123", path: "c(5)", starts_with: "Secure configuration of hard", ends_with: "are and software, including:" },
+  { proposition_key: "cyber_c6_vuln_pentest", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(6)", provision_key: "cppa-7123", path: "c(6)", starts_with: "Internal and external vulner", ends_with: "ity disclosure and reporting" },
+  { proposition_key: "cyber_c7_audit_logs", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(7)", provision_key: "cppa-7123", path: "c(7)", starts_with: "Audit-log management, includ", ends_with: "ion, and monitoring of logs." },
+  { proposition_key: "cyber_c8_network_monitoring", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(8)", provision_key: "cppa-7123", path: "c(8)", starts_with: "Network monitoring and defen", ends_with: "including the deployment of:" },
+  { proposition_key: "cyber_c9_antivirus", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(9)", provision_key: "cppa-7123", path: "c(9)", starts_with: "Antivirus and antimalware pr", ends_with: "and antimalware protections." },
+  { proposition_key: "cyber_c10_segmentation", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(10)", provision_key: "cppa-7123", path: "c(10)", starts_with: "Segmentation of an informati", ends_with: "ion of an information system" },
+  { proposition_key: "cyber_c11_ports", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(11)", provision_key: "cppa-7123", path: "c(11)", starts_with: "Limitation and control of po", ends_with: "ts, services, and protocols." },
+  { proposition_key: "cyber_c12_awareness", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(12)", provision_key: "cppa-7123", path: "c(12)", starts_with: "Cybersecurity awareness, inc", ends_with: "threats and countermeasures." },
+  { proposition_key: "cyber_c13_training", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(13)", provision_key: "cppa-7123", path: "c(13)", starts_with: "Cybersecurity education and ", ends_with: "ss to its information system" },
+  { proposition_key: "cyber_c14_secure_dev", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(14)", provision_key: "cppa-7123", path: "c(14)", starts_with: "Secure development and codin", ends_with: "ng code-reviews and testing." },
+  { proposition_key: "cyber_c15_third_party_oversight", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(15)", provision_key: "cppa-7123", path: "c(15)", starts_with: "Oversight of service provide", ends_with: "with sections 7051 and 7053." },
+  { proposition_key: "cyber_c16_retention_disposal", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(16)", provision_key: "cppa-7123", path: "c(16)", starts_with: "Retention schedules and prop", ends_with: "ger required to be retained," },
+  { proposition_key: "cyber_c17_incident_response", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(17)", provision_key: "cppa-7123", path: "c(17)", starts_with: "How the business manages its", ends_with: "cident response management)." },
+  { proposition_key: "cyber_c18_bcdr", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(18)", provision_key: "cppa-7123", path: "c(18)", starts_with: "Business-continuity and disa", ends_with: "ry capabilities and backups." },
+  { proposition_key: "cyber_scope_additional_components", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(d)", provision_key: "cppa-7123", path: "d", starts_with: "Nothing in this section proh", ends_with: "h in subsections (b) or (c)." },
+  { proposition_key: "cyber_report_contents_chapeau", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(e)", provision_key: "cppa-7123", path: "e", starts_with: "The cybersecurity audit repo", ends_with: "rsecurity audit report must:" },
+  { proposition_key: "cyber_report_gaps", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(e)(3)", provision_key: "cppa-7123", path: "e(3)", starts_with: "Identify and describe in det", ends_with: "ordance with subsection (d)," },
+  { proposition_key: "cyber_report_signed_attestation", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(e)(8)", provision_key: "cppa-7123", path: "e(8)", starts_with: "Include a statement that is ", ends_with: "gram and information system," },
+  { proposition_key: "cyber_cert_required", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(a)", provision_key: "cppa-7124", path: "a", starts_with: "Each calendar year that a bu", ends_with: "as required by this Article." },
+  { proposition_key: "cyber_cert_by_april1", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(b)", provision_key: "cppa-7124", path: "b", starts_with: "The business must submit the", ends_with: "plete a cybersecurity audit." },
+  { proposition_key: "cyber_cert_by_exec", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(c)", provision_key: "cppa-7124", path: "c", starts_with: "The written certification mu", ends_with: "ecutive management team who:" },
+  { proposition_key: "cyber_cert_portal_and_attest", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(d)", provision_key: "cppa-7124", path: "d", starts_with: "The written certification mu", ends_with: "ite at https://cppa.ca.gov/." },
+  { proposition_key: "cyber_cert_attestation_text", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(d)(4)", provision_key: "cppa-7124", path: "d(4)", starts_with: "I attest that I meet the req", ends_with: "o submit this certification." },
+];
+
+// ── corpus text handling ─────────────────────────────────────────────────
+/** Normalization used for every corpus cut: quotes folded, whitespace collapsed. */
+export function normalizeCorpusText(s: string): string {
+  return String(s ?? "")
+    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+    .replace(/\u00a0/g, " ")
+    .replace(/[\s\f]+/g, " ")
+    .trim();
+}
+
+/** Top-level "(a)"-style subsections of a provision's verbatim excerpt. */
+export function topSubsections(text: string): Map<string, string> {
+  const out = new Map<string, string>();
+  let label: string | null = null;
+  let buf: string[] = [];
+  for (const raw of String(text ?? "").replace(/\f/g, "").split("\n")) {
+    const m = /^\(([a-z])\)[ \t]*(.*)$/.exec(raw);
+    if (m) {
+      if (label) out.set(label, buf.join("\n"));
+      label = m[1];
+      buf = [m[2]];
+    } else if (label) {
+      buf.push(raw);
+    }
+  }
+  if (label) out.set(label, buf.join("\n"));
+  return out;
+}
+
+/** The n-th numbered child "(n)" of a subsection block. */
+export function numberedChild(block: string, n: number): string | null {
+  const start = new RegExp(`(?:^|\\n)[ \\t\\f]*\\(${n}\\)[ \\t]+`, "g").exec(block);
+  if (!start) return null;
+  const from = start.index + start[0].length;
+  const nextRe = new RegExp(`(?:^|\\n)[ \\t\\f]*\\(${n + 1}\\)[ \\t]+`, "g");
+  nextRe.lastIndex = from;
+  const next = nextRe.exec(block);
+  return block.slice(from, next ? next.index : undefined);
+}
+
+/** Resolve a "a" / "c(17)" path to its normalized corpus text. */
+export function textAtPath(excerpt: string, path: string): string | null {
+  const m = /^([a-z])(?:\((\d+)\))?$/.exec(path);
+  if (!m) return null;
+  const subs = topSubsections(excerpt);
+  let block = subs.get(m[1]);
+  if (block == null) return null;
+  if (m[2]) {
+    const child = numberedChild(block, Number(m[2]));
+    if (child == null) return null;
+    block = child;
+  }
+  return normalizeCorpusText(block);
+}
+
+/** Cut the located quote out of a subsection's normalized text. */
+export function cutQuote(subsectionText: string, loc: CyberAuthorityLocator): string | null {
+  const start = subsectionText.indexOf(loc.starts_with);
+  if (start < 0) return null;
+  const endIdx = subsectionText.indexOf(loc.ends_with, start);
+  if (endIdx < 0) return null;
+  return subsectionText.slice(start, endIdx + loc.ends_with.length);
+}
+
+// ── the eighteen § 7123(c) components ────────────────────────────────────
+export interface DerivedCyberComponent {
+  number: number;
+  citation: string;
+  verbatim: string;
+}
+
+/** Derive the eighteen enumerated components from the cppa-7123 corpus row. */
+export function derive7123Components(excerpt: string): DerivedCyberComponent[] {
+  const subs = topSubsections(excerpt);
+  const c = subs.get("c");
+  if (!c) return [];
+  const out: DerivedCyberComponent[] = [];
+  for (let n = 1; n <= 18; n++) {
+    const child = numberedChild(c, n);
+    if (child == null) break;
+    out.push({
+      number: n,
+      citation: `11 CCR \u00a7 7123(c)(${n})`,
+      verbatim: normalizeCorpusText(child),
+    });
+  }
+  return out;
+}
+
+/**
+ * COMPONENT_CITATIONS — canonical report control label → § 7123(c)(N).
+ * The labels are the product's canonical control names; the CITATIONS are
+ * derived from the corpus enumeration, so a change in the statute's ordering
+ * cannot silently mis-anchor a control.
+ */
+export const CYBER_COMPONENT_LABELS: readonly string[] = [
+  "Authentication",
+  "Encryption of personal information",
+  "Account management and access controls",
+  "Inventory and management of personal information and systems",
+  "Secure configuration of hardware and software",
+  "Vulnerability scanning and penetration testing",
+  "Audit-log management",
+  "Network monitoring and defenses",
+  "Antivirus and anti-malware protections",
+  "Segmentation of an information system",
+  "Port and protocol management and protection",
+  "Cybersecurity awareness",
+  "Cybersecurity education and training",
+  "Secure development and coding practices",
+  "Oversight of service providers, contractors, and third parties",
+  "Retention schedules and proper disposal of personal information",
+  "Security-incident response management",
+  "Business-continuity and disaster-recovery planning",
+];
+
+export function deriveComponentCitations(
+  components: readonly DerivedCyberComponent[],
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const comp of components) {
+    const label = CYBER_COMPONENT_LABELS[comp.number - 1];
+    if (label) out[label] = comp.citation;
+  }
+  return out;
+}
+
+// ── runtime-hydrated registry (no static text) ───────────────────────────
+/**
+ * Live registry. EMPTY until `resolveCyberAuthorities` hydrates it from the
+ * corpus during a generation run. Consumers import this binding; because the
+ * object is mutated in place there is never a compiled-in copy of the text.
+ */
+export const CYBER_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {};
+
+/** Rows of the live registry (empty before hydration). */
+export function cyberAuthorityRows(): VerifiedAuthorityRow[] {
+  return Object.values(CYBER_VERIFIED_AUTHORITIES);
+}
+
+/** Replace the live registry's contents with `next` (in place). */
+export function hydrateCyberRegistry(next: VerifiedAuthorityRegistry): void {
+  for (const k of Object.keys(CYBER_VERIFIED_AUTHORITIES)) delete CYBER_VERIFIED_AUTHORITIES[k];
+  for (const [k, v] of Object.entries(next)) CYBER_VERIFIED_AUTHORITIES[k] = v;
+}
+
+// ── the resolver ─────────────────────────────────────────────────────────
+export interface CyberAuthoritySource {
+  version: string;
+  /** Registry of rows re-sourced from the corpus (may be partial when degraded). */
+  registry: VerifiedAuthorityRegistry;
+  provisions: Record<string, {
+    key: string;
+    citation: string;
+    status: string;
+    excerpt: string | null;
+    plain_requirements: unknown[] | null;
+  }>;
+  components: DerivedCyberComponent[];
+  componentCitations: Record<string, string>;
+  /** True when any provision was unapproved or any locator failed to match. */
+  degraded: boolean;
+  /** Rendered when degraded — never replaced by a stale copy. */
+  pending_notice: string | null;
+  unresolved: string[];
+  /** Provision keys whose text may be supplied to the model. */
+  allowed_citation_keys: string[];
+}
+
+/** Minimal client surface used here (kept structural so tests can fake it). */
+export interface ProvisionClient {
+  from: (table: string) => unknown;
+}
+
+export async function resolveCyberAuthorities(
+  supabase: ProvisionClient,
+): Promise<CyberAuthoritySource> {
+  const provisions: CyberAuthoritySource["provisions"] = {};
+  let degraded = false;
+
+  for (const key of CYBER_PROVISION_KEYS) {
+    // deno-lint-ignore no-explicit-any
+    const r = await resolveProvisionForRender(supabase as any, key, key.replace("cppa-", "11 CCR \u00a7 "));
+    provisions[key] = {
+      key,
+      citation: r.citation,
+      status: r.status,
+      excerpt: r.excerpt ?? null,
+      plain_requirements: (r.plain_requirements as unknown[]) ?? null,
+    };
+    if (r.status !== "approved" || !r.excerpt) degraded = true;
+  }
+
+  const registry: VerifiedAuthorityRegistry = {};
+  const unresolved: string[] = [];
+  for (const loc of CYBER_AUTHORITY_LOCATORS) {
+    const excerpt = provisions[loc.provision_key]?.excerpt;
+    const block = excerpt ? textAtPath(excerpt, loc.path) : null;
+    const quote = block ? cutQuote(block, loc) : null;
+    if (!quote) {
+      unresolved.push(loc.proposition_key);
+      degraded = true;
+      continue;
+    }
+    const row: VerifiedAuthorityRow = {
+      proposition_key: loc.proposition_key,
+      citation: loc.citation,
+      subsection: loc.subsection,
+      verbatim_quote: quote,
+      depth_class: /\(\d+\)$/.test(loc.subsection) ? "sub_subsection" : "subsection",
+      governing_anchor: ART9,
+      verified_on: new Date().toISOString().slice(0, 10),
+      primary_source_url: CCR_URL,
+    };
+    registry[loc.proposition_key] = row;
+  }
+
+  hydrateCyberRegistry(registry);
+
+  const components = derive7123Components(provisions["cppa-7123"]?.excerpt ?? "");
+  if (components.length !== 18) degraded = true;
+
+  return {
+    version: CYBER_VERIFIED_AUTHORITY_VERSION,
+    registry,
+    provisions,
+    components,
+    componentCitations: deriveComponentCitations(components),
+    degraded,
+    pending_notice: degraded ? PROVISION_PENDING_NOTICE : null,
+    unresolved,
+    allowed_citation_keys: Object.values(provisions)
+      .filter((p) => p.status === "approved" && p.excerpt)
+      .map((p) => p.citation),
+  };
+}
+
+/**
+ * The law block supplied to the model: verbatim corpus excerpts plus the
+ * corpus `plain_requirements`. Nothing outside these keys may be cited.
+ */
+export function buildCyberLawBlock(source: CyberAuthoritySource): string {
+  const parts: string[] = [];
+  parts.push(
+    `CORPUS LAW BLOCK (${source.version}) — the ONLY statutory text you may rely on. ` +
+    "Every \u00a7 citation you emit must be to one of the sections reproduced below; " +
+    "a citation to any other section is a defect and is rejected.",
+  );
+  for (const key of CYBER_PROVISION_KEYS) {
+    const p = source.provisions[key];
+    if (!p) continue;
+    if (p.status !== "approved" || !p.excerpt) {
+      parts.push(`\n[${key}] ${p.citation} — ${PROVISION_PENDING_NOTICE} Cite the section, quote nothing.`);
+      continue;
+    }
+    parts.push(`\n[${key}] ${p.citation} — VERBATIM CORPUS TEXT:\n${p.excerpt}`);
+    const reqs = Array.isArray(p.plain_requirements) ? p.plain_requirements : [];
+    if (reqs.length) {
+      parts.push(
+        `Plain requirements (corpus-derived, ${reqs.length}):\n` +
+        reqs.map((r, i) => `  ${i + 1}. ${typeof r === "string" ? r : JSON.stringify(r)}`).join("\n"),
+      );
+    }
+  }
+  if (source.degraded) {
+    parts.push(
+      `\nDEGRADED SOURCE NOTICE: ${source.pending_notice} Where text is unavailable, cite the section ` +
+      "and state plainly that the verbatim text is pending verification. NEVER reconstruct it from memory.",
+    );
+  }
+  return parts.join("\n");
+}
+
+/** Citations the report may emit, derived from the resolved corpus rows. */
+export function allowedCyberCitations(source: CyberAuthoritySource): Set<string> {
+  const out = new Set<string>();
+  for (const p of Object.values(source.provisions)) {
+    if (p.status === "approved" && p.excerpt) out.add(p.citation);
+  }
+  for (const row of Object.values(source.registry)) out.add(row.citation);
+  for (const c of source.components) out.add(c.citation);
+  return out;
+}
+
+/** True when `citation`'s section is among the corpus-supplied sections. */
+export function isAllowedCyberCitation(citation: string, allowed: Set<string>): boolean {
+  const m = /(\d+)\s*CCR\s*\u00a7+\s*([\d.]+)/.exec(String(citation || ""));
+  if (!m) return true; // non-CCR citations are governed by their own checks
+  const base = `${m[1]} CCR \u00a7 ${m[2]}`;
+  for (const a of allowed) if (a.replace(/\s+/g, " ").startsWith(base)) return true;
+  return false;
+}

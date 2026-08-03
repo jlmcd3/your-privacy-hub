@@ -47,7 +47,10 @@ const CYBER_ENTRY_KEYS = [
 ] as const;
 
 export const CPPA_CYBER_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-w1-2026-07-25",
+  // ITEM 371 W2 — wires the parked readiness/independence determinations and
+  // the shared authority exhibit onto the customer surface.
+  version: "rs-cppa-cyber-w2-2026-08-03",
+
   tool: "cppa_cybersecurity",
   topLevel: [
     // core presentation
@@ -58,6 +61,9 @@ export const CPPA_CYBER_REPORT_SCHEMA: ReportSchema = {
     "top_risks",
     "next_steps",
     "citation_ledger",
+    "readiness_determination",
+    "independence_determination",
+    "authority_exhibit",
     "annotations",
     "enforcement_context",
     "enforcement_precedents",
@@ -87,6 +93,9 @@ export const CPPA_CYBER_FRONTEND_READ_PATHS: readonly string[] = [
   "top_risks",
   "next_steps",
   "citation_ledger",
+  "readiness_determination",
+  "independence_determination",
+  "authority_exhibit",
   "annotations",
   "enforcement_context",
   "enforcement_precedents",
