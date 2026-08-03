@@ -1093,8 +1093,16 @@ function toDomainFinding(
   intake: unknown,
 ): DomainElementFinding {
   const tracker = DOMAIN_TRACKER[domain];
+  // SHAPE LAW — a projected finding always carries all four parts. Where the
+  // source builder left the application empty (record_insufficient), the
+  // projection states the honest reason rather than leaving a blank part.
+  const application = base.application ||
+    `The record carries nothing that can be applied to this standard, so no conclusion is reached on the merits. ${
+      base.information_needed ?? "The missing content must be supplied before this control can be tested."
+    }`;
   const finding: DomainElementFinding = {
     ...base,
+    application,
     domain,
     domain_label: DOMAIN_LABELS[domain],
     regulator_expectation: tracker.regulator_expectation,
