@@ -136,7 +136,7 @@ const PASS_B_MAX_ATTEMPTS = 3;
 // so lifting it is the single biggest lever on Pass B completion time.
 const PASS_B_PER_HOST_DEFAULT = 2;
 const PASS_B_PER_HOST_OVERRIDES: Record<string, number> = {
-  "uodo.gov.pl": 6,
+  "uodo.gov.pl": 12,
 };
 const PASS_B_WINDOW = 400;
 /** Reasons that will never resolve on a retry — retire the row immediately. */
