@@ -1,0 +1,26 @@
+[
+ {
+  "key": "evidence_availability",
+  "textRef": "7122g",
+  "fieldLabel": "Evidence available (per component)",
+  "citation": "11 CCR § 7122(g)",
+  "plainSummary": "The business and its auditor must retain all documents relevant to each cybersecurity audit for at least five years after completion. The evidence types recorded per component name what the auditor can test today.",
+  "enforcementNote": "ISO 19011 evidence typing — documentary, testimonial, observation, analytical — is the profession-standard method a § 7122(a) auditor applies. Recording that nothing is on file converts a self-rated maturity into an insufficient-basis finding, which is accurate rather than adverse.",
+  "coachLead": "Record only artefacts that exist today and could be handed over unedited.",
+  "coachBody": "Each evidence type should correspond to a file already on hand for this specific component. Where nothing exists, the honest absence produces a defensible insufficient-basis finding instead of an untestable maturity claim.",
+  "goodAnswer": "For its authentication component, a SaaS records a policy document, a runbook, and a sample access-review report — three files it can produce — and records no configuration export, because that capability has not been built.",
+  "commonMistake": "Claiming every evidence type to signal preparedness. If the auditor asks for the file and it does not exist, the maturity claim collapses with it."
+ },
+ {
+  "key": "cyber_certification",
+  "textRef": "7124c",
+  "fieldLabel": "Annual certification to the Agency (§ 7124)",
+  "citation": "11 CCR § 7124(c)",
+  "plainSummary": "Each year an audit is required, the business must submit a written certification to the Agency by April 1 of the following year, via the Agency's website. The signer must be an executive-management member who is directly responsible for cybersecurity-audit compliance, has sufficient knowledge of the audit, and has authority to submit it. The submission carries the business's name and contact, a statement that the audit was completed, the audit period by month and year, an electronically signed attestation under penalty of perjury that the signer meets § 7124(c) and that the business made no attempt to influence the auditor, and the signer's name, title, and date.",
+  "enforcementNote": "The attestation is made under penalty of perjury under California law, and expressly covers non-interference with the auditor's decisions and assessments as well as the accuracy of the submission.",
+  "coachLead": "Identify the signer and the audit period before the audit closes, not after.",
+  "coachBody": "Three facts settle readiness for the certification: which executive meets all three § 7124(c) conditions, the months the audit covers, and who owns the April 1 submission date. Each is a person or a date, not a policy.",
+  "goodAnswer": "A retailer's programme records that its Chief Information Security Officer is the § 7124(c) signer, the audit period runs March through December 2027, and the privacy office owns the April 1, 2028 submission in the compliance calendar.",
+  "commonMistake": "Assuming general counsel or the chief executive can sign by default. § 7124(c) turns on direct responsibility for audit compliance and sufficient knowledge of the audit, which is a factual test about one named person."
+ }
+]

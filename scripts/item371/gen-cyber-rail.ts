@@ -70,6 +70,7 @@ async function main() {
     "7124a": sub(t7124, "a"),
     "7124c": sub(t7124, "c"),
     "7124d1": nested(t7124, "d", 1),
+    "7123c17": comps[16].verbatim,
   };
 
   const out: string[] = [];
