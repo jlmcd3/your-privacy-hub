@@ -425,6 +425,24 @@ Deno.serve(async (req) => {
           elapsed_ms: Date.now() - rowStart,
         }));
       }
+
+      // Attempt bookkeeping replaces the one-way watermark: a success clears
+      // the counter, a terminal reason retires the row, and anything else
+      // leaves it eligible for a later pass until MAX_ATTEMPTS.
+      const attemptsNow = rowOk
+        ? 0
+        : TERMINAL_REASONS.includes(rowReason ?? "")
+        ? PASS_B_MAX_ATTEMPTS
+        : (row.refetch_attempts ?? 0) + 1;
+      await sb
+        .from("enforcement_actions")
+        .update({
+          refetch_attempts: attemptsNow,
+          refetch_last_error: rowOk ? null : rowReason,
+          refetch_last_attempt_at: new Date().toISOString(),
+        })
+        .eq("id", row.id);
+
       last_id = row.id;
       attempted++;
       // Checkpoint BEFORE the polite delay so a kill during the sleep still
