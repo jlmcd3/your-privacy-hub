@@ -18,6 +18,8 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderRegistryFor } from "./_local/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { serializeCustomerReport } from "../_shared/report-serialize.ts";
+import { BIOMETRIC_REPORT_SCHEMA } from "../_shared/report-schemas/biometric.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
