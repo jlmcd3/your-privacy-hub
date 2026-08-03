@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FileText, ArrowLeft, Download, Mail, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
+import ReportDisclaimer from "@/components/ReportDisclaimer";
 import CopyButton from "@/components/CopyButton";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
@@ -284,9 +284,7 @@ export default function RegistrationDocuments() {
             </div>
           )}
 
-          <div className="mt-8">
-            <RegistrationDisclaimer variant="compact" />
-          </div>
+          <ReportDisclaimer />
         </div>
       </PageContainer>
       </main>
