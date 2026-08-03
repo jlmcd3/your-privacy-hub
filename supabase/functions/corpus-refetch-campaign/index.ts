@@ -228,9 +228,15 @@ Deno.serve(async (req) => {
   const cohortPref: Cohort | "auto" = body.cohort === "A" || body.cohort === "B" ? body.cohort : "auto";
   const dry_run: boolean = body.dry_run === true;
   const pass_b: boolean = body.mode === "pass_b";
+  // Pass B sharding: N concurrent workers each own a disjoint slice of the
+  // residual population (by row-id hash), so the per-host cap applies per
+  // worker and total throughput scales with the worker count.
+  const shard_count: number = Math.min(Math.max(Number(body.shard_count ?? 1), 1), 8);
+  const shard: number = Math.min(Math.max(Number(body.shard ?? 0), 0), shard_count - 1);
 
   // Single-flight: the cron driver fires on a schedule and must never overlap.
-  const lockKey = `refetch:${campaign_id}`;
+  // Each shard is its own flight — they touch disjoint rows.
+  const lockKey = `refetch:${campaign_id}${shard_count > 1 ? `:s${shard}/${shard_count}` : ""}`;
   if (!dry_run) {
     const { data: got } = await sb.rpc("try_acquire_job_lease" as any, {
       _key: lockKey,
@@ -238,7 +244,7 @@ Deno.serve(async (req) => {
       _holder: "corpus-refetch-campaign",
     });
     if (got !== true) {
-      return new Response(JSON.stringify({ campaign_id, skipped: "lease_held" }), {
+      return new Response(JSON.stringify({ campaign_id, shard, skipped: "lease_held" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -246,8 +252,9 @@ Deno.serve(async (req) => {
 
   try {
     const work = pass_b
-      ? { cohort: "B" as Cohort, authorityClass: "pass_b_multi_host", ...(await selectPassB(limit)) }
+      ? { cohort: "B" as Cohort, authorityClass: "pass_b_multi_host", ...(await selectPassB(limit, shard, shard_count)) }
       : await nextWork(campaign_id, limit, cohortPref);
+
     if (!work || work.rows.length === 0) {
       if (!dry_run) await sb.rpc("release_job_lease" as any, { _key: lockKey });
       return new Response(
