@@ -211,6 +211,7 @@ Deno.serve(async (req) => {
   const limit: number = Math.min(Math.max(Number(body.limit ?? 12), 1), 40);
   const cohortPref: Cohort | "auto" = body.cohort === "A" || body.cohort === "B" ? body.cohort : "auto";
   const dry_run: boolean = body.dry_run === true;
+  const pass_b: boolean = body.mode === "pass_b";
 
   // Single-flight: the cron driver fires on a schedule and must never overlap.
   const lockKey = `refetch:${campaign_id}`;
@@ -228,8 +229,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const work = await nextWork(campaign_id, limit, cohortPref);
-    if (!work) {
+    const work = pass_b
+      ? { cohort: "B" as Cohort, authorityClass: "pass_b_multi_host", ...(await selectPassB(limit)) }
+      : await nextWork(campaign_id, limit, cohortPref);
+    if (!work || work.rows.length === 0) {
       if (!dry_run) await sb.rpc("release_job_lease" as any, { _key: lockKey });
       return new Response(
         JSON.stringify({ campaign_id, done: true, message: "population_exhausted" }),
