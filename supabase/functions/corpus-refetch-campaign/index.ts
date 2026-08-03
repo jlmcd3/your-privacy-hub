@@ -183,8 +183,10 @@ async function selectPassB(limit: number, shard: number, shardCount: number) {
   const pending = (data ?? []).filter(
     (r: any) =>
       (r.source_document_text?.length ?? 0) < MIN_DOC_CHARS &&
+      !ASSET_URL_RE.test(String(r.source_url ?? "")) &&
       (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
+
 
   // Bucket rows by host, respecting per-host caps.
   const buckets = new Map<string, any[]>();
