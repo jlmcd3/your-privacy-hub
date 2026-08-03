@@ -175,22 +175,47 @@ async function selectPassB(limit: number, shard: number, shardCount: number) {
       (shardCount <= 1 || shardOf(r.id, shardCount) === shard),
   );
 
-  // Round-robin the window by host, capped per host per run. Hosts with higher
-  // overrides (e.g. uodo.gov.pl) get more slots while still interleaving.
-  const buckets = new Map<string, any[]>();
-  for (const r of pending) {
-    const h = domainOf(r.source_url);
-    const b = buckets.get(h) ?? [];
-    if (b.length < hostCap(h)) b.push(r);
-    buckets.set(h, b);
-  }
-  const maxCap = Math.max(PASS_B_PER_HOST_DEFAULT, ...Object.values(PASS_B_PER_HOST_OVERRIDES));
+  // Fill overridden hosts first (they are the bottleneck), but keep at least
+  // PASS_B_RESERVED_NON_OVERRIDDEN slots for other hosts so a single domain
+  // cannot starve the rest of the batch.
+  const PASS_B_RESERVED_NON_OVERRIDDEN = 2;
+  const overriddenHosts = Array.from(buckets.entries()).filter(
+    ([h]) => hostCap(h) > PASS_B_PER_HOST_DEFAULT,
+  );
+  const otherHosts = Array.from(buckets.entries()).filter(
+    ([h]) => hostCap(h) <= PASS_B_PER_HOST_DEFAULT,
+  );
+
   const rows: any[] = [];
-  for (let i = 0; i < maxCap && rows.length < limit; i++) {
-    for (const b of buckets.values()) {
+
+  // Phase 1: take one row from every host so no host is entirely skipped.
+  for (const [, b] of [...overriddenHosts, ...otherHosts]) {
+    if (b[0] && rows.length < limit) rows.push(b[0]);
+  }
+
+  // Phase 2: fill overridden hosts up to their cap, leaving reserved slots.
+  const maxOverrideFill = Math.max(0, limit - PASS_B_RESERVED_NON_OVERRIDDEN);
+  for (const [host, b] of overriddenHosts) {
+    for (let i = 1; i < b.length && rows.length < maxOverrideFill; i++) {
+      rows.push(b[i]);
+    }
+  }
+
+  // Phase 3: fill remaining slots with round-robin across non-overridden hosts.
+  for (let i = 1; i < PASS_B_PER_HOST_DEFAULT && rows.length < limit; i++) {
+    for (const [, b] of otherHosts) {
       if (b[i] && rows.length < limit) rows.push(b[i]);
     }
   }
+
+  // Phase 4: if any slots still remain, top up overridden hosts further.
+  for (const [host, b] of overriddenHosts) {
+    const cap = hostCap(host);
+    for (let i = hostCap(host) > PASS_B_PER_HOST_DEFAULT ? b.length : 0; i < b.length && rows.length < limit; i++) {
+      rows.push(b[i]);
+    }
+  }
+
   return {
     rows,
     remaining_in_class: pending.length,
