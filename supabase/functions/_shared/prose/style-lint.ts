@@ -11,7 +11,7 @@
 import { BANNED_ANALOGY_PATTERNS, NO_ANALOGY_SENTENCE } from "./analogies.ts";
 import { auditSentinels, type RecordSpan } from "./span-tracking.ts";
 
-export const STYLE_LINT_VERSION = "prose-style-lint-2026-08-02-item368";
+export const STYLE_LINT_VERSION = "prose-style-lint-2026-08-03-item370";
 
 export type StyleRule =
   | "quoted_intake_value"
@@ -29,7 +29,10 @@ export type StyleRule =
   | "analogy_outcome_predictive"
   | "analogy_empty_sentence"
   // ITEM 368(1) — structural span-sentinel defect on text that reached the lint.
-  | "unbalanced_sentinel";
+  | "unbalanced_sentinel"
+  // ITEM 370 — prose-engine hardening.
+  | "repeated_boilerplate"
+  | "merge_artifact";
 
 export interface StyleFinding {
   readonly rule: StyleRule;
@@ -195,6 +198,80 @@ function lineAt(text: string, index: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// ITEM 370 — PROSE-SURFACE SCOPING (shared by RULE A)
+// ---------------------------------------------------------------------------
+
+/**
+ * Structural lines the engine never treats as prose: record-card rows, bullet
+ * and enum labels, table rows, headings, and bare citation lines. Deliberate
+ * repetition on those surfaces is structure, not boilerplate, so RULE A must
+ * not see them.
+ */
+function isStructuralLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return true;
+  if (CARD_LINE.test(line)) return true;
+  if (/^[-•*]\s/.test(t)) return true; // bullets / enum labels
+  if (/^\d+[.)]\s/.test(t)) return true; // numbered enum labels
+  if (/^#{1,6}\s/.test(t)) return true; // headings
+  if (t.includes("|")) return true; // table rows
+  if (/^[A-Za-z][A-Za-z .'-]{0,60}:\s/.test(t) && t.split(/\s+/).length <= 12) return true; // "Label: value"
+  if (/^(?:see\s+)?(?:§|cal\.|cf\.)/i.test(t)) return true; // bare citation lines
+  return false;
+}
+
+/** RULE A normalization: case-folded, whitespace-collapsed, terminal punctuation stripped. */
+export function normalizeForRepetition(s: string): string {
+  return s
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2010-\u2015]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/[.!?;:,\s]+$/, "")
+    .trim()
+    .toLowerCase();
+}
+
+const wordCount = (s: string) => s.split(/\s+/).filter(Boolean).length;
+
+/** RULE A thresholds, named so the tests and the report agree. */
+export const REPEATED_BOILERPLATE_MIN_WORDS = 8;
+export const REPEATED_BOILERPLATE_MIN_COUNT = 3;
+
+// ---------------------------------------------------------------------------
+// ITEM 370 — RULE B PATTERNS (template-splice determiner collisions)
+// ---------------------------------------------------------------------------
+
+/**
+ * A lower-case determiner immediately followed by a capitalised sentence-start
+ * article, demonstrative or pronoun — the signature of two templates spliced
+ * mid-sentence ("… is an The intake did not include …"). Conservative by
+ * construction: the second token must be one of a closed set of sentence
+ * openers, and a quoted or italicised proper-noun title is exempted below.
+ */
+const MERGE_COLLISION =
+  /\b(a|an|the|this|that|these|those)[ \t]+(The|This|That|These|Those|A|An|It|We|Its|Their)\b/g;
+
+/** Doubled sentence stems: "This is an The", "It is a This". */
+const MERGE_DOUBLED_STEM =
+  /\b(?:This|That|It)\s+(?:is|was)\s+(?:a|an|the)[ \t]+(?:The|This|That|These|Those|A|An|It|We)\b/g;
+
+/**
+ * A capitalised "The" that opens a quoted or italicised title is legitimate
+ * ("the “The Times” report"). Exempt the collision when the second token is
+ * immediately preceded by a quote or emphasis marker, or sits inside quotes.
+ */
+function isTitleOpener(text: string, secondTokenIndex: number): boolean {
+  const before = text.slice(Math.max(0, secondTokenIndex - 2), secondTokenIndex);
+  if (/["'“”‘’*_]\s?$/.test(before)) return true;
+  const head = text.slice(0, secondTokenIndex);
+  const openQuotes = (head.match(/[“"]/g) ?? []).length;
+  return openQuotes % 2 === 1; // an unbalanced opening quote precedes it
+}
+
+
+
+// ---------------------------------------------------------------------------
 // THE BATTERY
 // ---------------------------------------------------------------------------
 
@@ -234,6 +311,11 @@ export function lintDocumentStyle(
 
   const verbSequence: string[] = [];
   const seenSentences = new Map<string, string>();
+  // RULE A tally: normalized sentence → occurrences + the sections it appears in.
+  const repeatTally = new Map<
+    string,
+    { count: number; sections: string[]; sample: string }
+  >();
 
   for (const s of sections) {
     const text = s.text ?? "";
@@ -343,6 +425,43 @@ export function lintDocumentStyle(
       }
     }
 
+    // ── RULE A (Item 370): repeated boilerplate ─────────────────────────
+    // Collected here on the same prose walk the duplication rule uses; the
+    // document-wide tally is evaluated after every section is seen.
+    for (const sent of sentences) {
+      if (isStructuralLine(lineAt(text, sent.start))) continue;
+      if (CARD_LINE.test(sent.text)) continue;
+      const key = normalizeForRepetition(sent.text);
+      if (wordCount(key) < REPEATED_BOILERPLATE_MIN_WORDS) continue;
+      const tally = repeatTally.get(key) ??
+        { count: 0, sections: [] as string[], sample: sent.text };
+      tally.count += 1;
+      if (!tally.sections.includes(s.section_id)) tally.sections.push(s.section_id);
+      repeatTally.set(key, tally);
+    }
+
+    // ── RULE B (Item 370): template merge artifacts ─────────────────────
+    const mergeSeen = new Set<number>();
+    for (const rx of [MERGE_COLLISION, MERGE_DOUBLED_STEM]) {
+      const re = new RegExp(rx.source, rx.flags);
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text))) {
+        // Index of the capitalised second token inside the match.
+        const rel = m[0].search(/[ \t][A-Z]/);
+        const second = m.index + (rel >= 0 ? rel + 1 : 0);
+        if (isTitleOpener(text, second)) continue;
+        if (mergeSeen.has(second)) continue; // the two patterns overlap
+        mergeSeen.add(second);
+        out.push({
+          rule: "merge_artifact",
+          section_id: s.section_id,
+          detail: `template merge artifact "${m[0]}" at ${m.index}`,
+        });
+      }
+    }
+
+
+
     // ── RULE: paragraph segmentation ────────────────────────────────────
     const min = opts.min_paragraphs?.[s.section_id];
     if (min) {
@@ -360,6 +479,19 @@ export function lintDocumentStyle(
     // ── RULES: the analogy section ──────────────────────────────────────
     if (opts.analogy_section_id && s.section_id === opts.analogy_section_id) {
       out.push(...lintAnalogySection(s, opts.analogy_count ?? 0));
+    }
+  }
+
+  // ── RULE A (Item 370): repeated boilerplate, document-wide tally ──────
+  for (const [, t] of repeatTally) {
+    if (t.count < REPEATED_BOILERPLATE_MIN_COUNT) continue;
+    for (const sectionId of t.sections) {
+      out.push({
+        rule: "repeated_boilerplate",
+        section_id: sectionId,
+        detail:
+          `boilerplate sentence repeated ${t.count} times across ${t.sections.join(", ")}: "${t.sample}"`,
+      });
     }
   }
 
