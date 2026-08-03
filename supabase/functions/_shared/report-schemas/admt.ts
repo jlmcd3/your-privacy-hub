@@ -120,8 +120,102 @@ const ENFORCEMENT_CONTEXT_KEYS = [
   "citation",
 ] as const;
 
+// UPGRADE-3 — SHAPE-LAW deliverable entry keys (§§ 7220-7222).
+const NOTICE_ELEMENT_ENTRY_KEYS = [
+  "element_id",
+  "element_label",
+  "proposition_keys",
+  "element_verbatim",
+  "citation",
+  "standard",
+  "record_fact",
+  "application",
+  "published_text",
+  "record_source",
+  "verdict",
+  "why",
+  "status",
+  "information_needed",
+] as const;
+
+const EXCEPTION_QUALIFICATION_ENTRY_KEYS = [
+  "proposition_key",
+  "exception_label",
+  "citation",
+  "claimed_on_the_record",
+  "conditions",
+  "condition_id",
+  "condition_verbatim",
+  "verdict",
+  "why",
+  "evidence_on_the_record",
+  "qualifies",
+  "status",
+  "information_needed",
+] as const;
+
+const EXCEPTION_IDENTIFICATION_KEYS = [
+  "finding_id",
+  "citation",
+  "element_verbatim",
+  "standard",
+  "record_fact",
+  "application",
+  "exception_relied_upon",
+  "verdict",
+  "why",
+  "status",
+  "information_needed",
+] as const;
+
+const ACCESS_READINESS_ENTRY_KEYS = [
+  "element_id",
+  "element_label",
+  "citation",
+  "corpus_key",
+  "element_verbatim",
+  "standard",
+  "record_fact",
+  "application",
+  "process_on_the_record",
+  "verdict",
+  "why",
+  "status",
+  "information_needed",
+] as const;
+
+const DETERMINATION_KEYS = [
+  "activity_id",
+  "activity_name",
+  "lawfulness",
+  "exposure",
+  "finding",
+  "statement",
+  "basis_element_ids",
+  "basis_exception_keys",
+  "citation",
+  "status",
+  "information_needed",
+  "source",
+  "separation_repairs",
+] as const;
+
+// ITEM 371 / UPGRADE-3 — allow-listed keys inside `authority_exhibit`.
+const AUTHORITY_EXHIBIT_KEYS = [
+  "version",
+  "heading",
+  "entries",
+  "citation",
+  "as_cited",
+  "authority_class",
+  "corpus_key",
+  "excerpt",
+  "pin_verified",
+  "note",
+] as const;
+
 export const ADMT_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-w1-2026-07-25",
+  version: "rs-w2-2026-08-03-upgrade3",
   tool: "cppa_admt",
   topLevel: [
     // core presentation
@@ -142,7 +236,16 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     "consolidated_notice_analysis",
     "aggregate_access_response",
     "risk_assessment_obligation",
+    // UPGRADE-3 — analytic deliverables (§§ 7220-7222), rendered
+    // lawfulness-first ahead of enforcement exposure.
+    "determination",
+    "notice_element_findings",
+    "exception_identification",
+    "exception_qualification",
+    "access_readiness_findings",
     "enforcement_context",
+    // UPGRADE-3 ITEM 5 — table of authorities, rendered before the disclaimer.
+    "authority_exhibit",
     // generator-added public surfaces
     "information_needed",
     "annotations",
@@ -158,6 +261,7 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     "_meta",
   ],
   entries: {
+
     // ITEM 337 (PROSE PROGRAM 1, Part D5) — deadline_table entries were
     // previously unpruned, so the internal idempotency flags `_h6v2_ran` /
     // `_w24_h6_ran` reached report JSON. Allow-listed to the builder's keys
@@ -173,6 +277,11 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     annotations: FINDING_ENTRY_KEYS,
     citation_ledger: FINDING_ENTRY_KEYS,
     enforcement_precedents: FINDING_ENTRY_KEYS,
+    // UPGRADE-3 — analytic deliverables.
+    notice_element_findings: NOTICE_ELEMENT_ENTRY_KEYS,
+    exception_qualification: EXCEPTION_QUALIFICATION_ENTRY_KEYS,
+    access_readiness_findings: ACCESS_READINESS_ENTRY_KEYS,
+    authority_exhibit: AUTHORITY_EXHIBIT_KEYS,
   },
   objects: {
     scope_analysis: SCOPE_ANALYSIS_KEYS,
@@ -180,7 +289,10 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     aggregate_access_response: AGGREGATE_ACCESS_KEYS,
     risk_assessment_obligation: RISK_ASSESSMENT_OBLIGATION_KEYS,
     enforcement_context: ENFORCEMENT_CONTEXT_KEYS,
+    determination: DETERMINATION_KEYS,
+    exception_identification: EXCEPTION_IDENTIFICATION_KEYS,
   },
+
 };
 
 // Frontend-read paths — derived by static scan of
@@ -234,4 +346,28 @@ export const ADMT_FRONTEND_READ_PATHS: readonly string[] = [
   "enforcement_context.penalty_per_violation_intentional",
   "enforcement_context.penalty_per_violation_unintentional",
   "enforcement_context.penalty_statutory_basis",
+  // UPGRADE-3 — analytic deliverables read by the Result page.
+  "determination.lawfulness.finding",
+  "determination.lawfulness.citation",
+  "determination.lawfulness.status",
+  "determination.lawfulness.information_needed",
+  "determination.exposure.statement",
+  "determination.exposure.citation",
+  "determination.exposure.status",
+  "determination.exposure.information_needed",
+  "notice_element_findings",
+  "exception_identification.citation",
+  "exception_identification.element_verbatim",
+  "exception_identification.standard",
+  "exception_identification.record_fact",
+  "exception_identification.application",
+  "exception_identification.exception_relied_upon",
+  "exception_identification.verdict",
+  "exception_identification.why",
+  "exception_identification.status",
+  "exception_identification.information_needed",
+  "exception_qualification",
+  "access_readiness_findings",
+  "authority_exhibit.heading",
+  "authority_exhibit.entries",
 ];

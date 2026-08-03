@@ -13,7 +13,7 @@ import { BUILD_STAMP } from "../../../supabase/functions/run-admt-checker/index.
 
 Deno.test("W15-ADMT-FL: BUILD_STAMP restamped (accepts w15, w16-hotfix, or w19 fallback-join variants)", () => {
   assert(
-    /^(w15-admt-factledger|w19-admt-turna|w20-admt-turna|w16-admt-flfix|w19-admt-fallbackjoin2|w23-admt-turna|w24-admt-attr|w24-admt-audit|w24-admt-h6|w25-admt-sanitizer|w26-admt-citation-audit|h7-admt-blanket-range|h7b-admt-citation-relabel|h6-admt-governing-anchor)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w15-admt-factledger|w19-admt-turna|w20-admt-turna|w16-admt-flfix|w19-admt-fallbackjoin2|w23-admt-turna|w24-admt-attr|w24-admt-audit|w24-admt-h6|w25-admt-sanitizer|w26-admt-citation-audit|h7-admt-blanket-range|h7b-admt-citation-relabel|h6-admt-governing-anchor|w27-admt-upgrade3)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });

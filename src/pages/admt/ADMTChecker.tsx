@@ -248,6 +248,9 @@ export default function ADMTChecker() {
   const [noticeHasAntiRetaliation, setNoticeHasAntiRetaliation] = useState("");
   const [noticeHasHowItWorks, setNoticeHasHowItWorks] = useState("");
   const [noticeHasAlternativeProcess, setNoticeHasAlternativeProcess] = useState("");
+  // UPGRADE-3 ITEM 1 — the ACTUAL published pre-use notice, pasted whole.
+  // § 7220(c) elements are TESTED against these words, not asserted about.
+  const [noticeFullText, setNoticeFullText] = useState("");
 
   // Step 3
   const [optOutException, setOptOutException] = useState("");
@@ -269,6 +272,9 @@ export default function ADMTChecker() {
   const [accessOutcomeDisclosure, setAccessOutcomeDisclosure] = useState("");
   const [accessResponseTimeline, setAccessResponseTimeline] = useState("");
   const [accessTradeSecretPolicy, setAccessTradeSecretPolicy] = useState("");
+  // UPGRADE-3 ITEM 3 — § 7222(b) explanation-readiness (five elements).
+  const [accessReadiness, setAccessReadiness] = useState<Record<string, string>>({});
+  const setAR = (k: string, v: string) => setAccessReadiness((p) => ({ ...p, [k]: v }));
 
   // Article 11 detail fields (G1–G7) — kept in one nested object to avoid per-field bookkeeping.
   // ITEM 308 — element-by-element transcription of the published pre-use notice.
@@ -377,6 +383,7 @@ export default function ADMTChecker() {
       notice_has_specific_purpose: noticeHasSpecificPurpose,
       notice_purpose_text: noticePurposeText,
       notice_element_text: noticeElementText,
+      notice_full_text: noticeFullText,
       notice_has_opt_out_desc: noticeHasOptOutDesc,
       notice_has_access_desc: noticeHasAccessDesc,
       notice_has_anti_retaliation: noticeHasAntiRetaliation,
@@ -396,6 +403,7 @@ export default function ADMTChecker() {
       access_outcome_disclosure: accessOutcomeDisclosure,
       access_response_timeline: accessResponseTimeline,
       access_trade_secret_policy: accessTradeSecretPolicy,
+      access_readiness: accessReadiness,
       ca_consumer_count: caConsumerCount,
       third_party_admt: thirdPartyAdmt,
       admt_system_count: admtSystemCount,
@@ -410,13 +418,13 @@ export default function ADMTChecker() {
     [
       organizationName, systemName, systemType, systemDescription, decisionDomains, humanReview,
       trainingDataUse, profilingUse, noticeDelivery, noticeHasSpecificPurpose,
-      noticePurposeText, noticeElementText, noticeHasOptOutDesc, noticeHasAccessDesc,
+      noticePurposeText, noticeElementText, noticeFullText, noticeHasOptOutDesc, noticeHasAccessDesc,
       noticeHasAntiRetaliation, noticeHasHowItWorks, noticeHasAlternativeProcess,
       optOutException, optOutMethods, optOutLinkTitle, optOutNoCookieBanner,
       optOutNoAccountRequired, optOutConfirmationMechanism, optOutAppealProcess,
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
-      accessTradeSecretPolicy,
+      accessTradeSecretPolicy, accessReadiness,
       caConsumerCount, thirdPartyAdmt, admtSystemCount, affectedPopulationBand, roleRoster, optOut15DayProcess, optOutServiceProviderNotice, adv,
     ],
   );
@@ -478,6 +486,7 @@ export default function ADMTChecker() {
     if (typeof d.notice_has_specific_purpose === "string") setNoticeHasSpecificPurpose(d.notice_has_specific_purpose);
     if (typeof d.notice_purpose_text === "string") setNoticePurposeText(d.notice_purpose_text);
     if (d.notice_element_text && typeof d.notice_element_text === "object") setNoticeElementText(d.notice_element_text as Record<string, string>);
+    if (typeof d.notice_full_text === "string") setNoticeFullText(d.notice_full_text);
     if (typeof d.notice_has_opt_out_desc === "string") setNoticeHasOptOutDesc(d.notice_has_opt_out_desc);
     if (typeof d.notice_has_access_desc === "string") setNoticeHasAccessDesc(d.notice_has_access_desc);
     if (typeof d.notice_has_anti_retaliation === "string") setNoticeHasAntiRetaliation(d.notice_has_anti_retaliation);
@@ -497,6 +506,7 @@ export default function ADMTChecker() {
     if (typeof d.access_outcome_disclosure === "string") setAccessOutcomeDisclosure(d.access_outcome_disclosure);
     if (typeof d.access_response_timeline === "string") setAccessResponseTimeline(d.access_response_timeline);
     if (typeof d.access_trade_secret_policy === "string") setAccessTradeSecretPolicy(d.access_trade_secret_policy);
+    if (d.access_readiness && typeof d.access_readiness === "object") setAccessReadiness(d.access_readiness as Record<string, string>);
     if (typeof d.ca_consumer_count === "string") setCaConsumerCount(d.ca_consumer_count);
     if (typeof d.third_party_admt === "string") setThirdPartyAdmt(d.third_party_admt);
     if (typeof d.opt_out_15_day_process === "string") setOptOut15DayProcess(d.opt_out_15_day_process);
@@ -1098,6 +1108,25 @@ export default function ADMTChecker() {
                     )}
                   </div>
 
+                  {/* UPGRADE-3 ITEM 1 — the whole published notice, verbatim.
+                      Where an element is not transcribed below, the report
+                      locates the relevant passage in this text and tests it. */}
+                  <div className="border-l-4 border-brand-teal/60 pl-4 py-2 rounded-r bg-muted/30">
+                    <Label className="text-[12px] font-semibold" data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}>
+                      Paste your published Pre-use Notice in full
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1 mb-2">
+                      Paste the notice exactly as consumers see it. Your report quotes these words back and tests each § 7220(c) element against them. Leave blank if you have not published a notice yet — the report will say so rather than assume.
+                    </p>
+                    <Textarea
+                      rows={8}
+                      value={noticeFullText}
+                      onChange={(e) => setNoticeFullText(e.target.value)}
+                      data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}
+                      placeholder="Paste the complete text of your published pre-use notice here…"
+                    />
+                  </div>
+
                   {/* ITEM 308 — published pre-use notice text, element by element.
                       Without the actual words, § 7220(c) adequacy can only be asserted. */}
                   <div className="border-l-4 border-brand-teal/60 pl-4 py-2 rounded-r bg-muted/30">
@@ -1465,6 +1494,48 @@ export default function ADMTChecker() {
                   <p className="text-sm text-muted-foreground">
                     Consumers have the right to request information about your use of ADMT with respect to them (§ 7222). Unlike opt-out, access requests require identity verification. You must respond within 45 days.
                   </p>
+
+                  {/* UPGRADE-3 ITEM 3 — § 7222(b) explanation readiness. */}
+                  <div className="border-l-4 border-brand-teal/60 pl-4 py-2 rounded-r bg-muted/30">
+                    <p className="text-[12px] font-semibold mb-1" data-rail-key="access_readiness" onFocus={() => focus("access_readiness")}>
+                      Can you produce each required explanation on request?
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      § 7222(b) enumerates what the consumer is entitled to be told. For each element, say whether you can produce it today and by what process. Where you cannot, your report records the shortfall rather than assuming readiness.
+                    </p>
+                    <div className="space-y-4">
+                      {[
+                        ["b1_purpose", "The specific purpose you used the ADMT for, as to that consumer (§ 7222(b)(1))"],
+                        ["b2_logic", "The logic of the ADMT, including its assumptions and limitations (§ 7222(b)(2))"],
+                        ["b3_output_use", "The output produced, and how you used it in the decision (§ 7222(b)(3))"],
+                        ["b3_outcome", "The outcome of the decisionmaking process for that consumer (§ 7222(b)(3))"],
+                        ["b3_human_role", "The role any human played in the decisionmaking process (§ 7222(b)(3))"],
+                      ].map(([k, label]) => (
+                        <div key={k}>
+                          <Label className="text-[12px]" data-rail-key={`access_readiness_${k}`} onFocus={() => focus(`access_readiness_${k}`)}>{label}</Label>
+                          <div className="mt-1">
+                            <Radio
+                              name={`ar_${k}`}
+                              options={[
+                                "Yes — we can produce this today",
+                                "Partially — we can produce some of it",
+                                "No — we cannot produce this today",
+                                "Unsure",
+                              ]}
+                              value={accessReadiness[`${k}_ready`] || ""}
+                              onChange={(v) => setAR(`${k}_ready`, v)}
+                            />
+                          </div>
+                          <input
+                            className="mt-2 w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
+                            value={accessReadiness[`${k}_process`] || ""}
+                            onChange={(e) => setAR(`${k}_process`, e.target.value)}
+                            placeholder="By what process? e.g. case handler pulls the model run record from the decision log"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
                   <div>
                     <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>

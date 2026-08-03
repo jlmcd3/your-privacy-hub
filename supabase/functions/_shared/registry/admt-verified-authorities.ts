@@ -280,6 +280,20 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: CCR_URL,
   }),
+  // UPGRADE-3 ITEM 1 — the (c)(2)(B) exception-IDENTIFICATION duty, distinct
+  // from the (c)(2) opt-out mechanism description above.
+  notice_exception_identification: R({
+    proposition_key: "notice_exception_identification",
+    citation: "11 CCR § 7220",
+    subsection: "11 CCR § 7220(c)(2)(B)",
+    verbatim_quote:
+      "If the business is not required to provide the ability to opt-out because it is relying upon another exception set forth in section 7221, subsection (b), the business must identify the specific exception it is relying upon.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-03",
+    primary_source_url: CCR_URL,
+  }),
+
   notice_access: R({
     proposition_key: "notice_access",
     citation: "11 CCR § 7220",
@@ -405,6 +419,42 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: CCR_URL,
   }),
+  // UPGRADE-3 ITEM 3 — the remaining § 7222(b) explanation elements, so the
+  // access-readiness findings test every element the regulation enumerates.
+  access_purpose: R({
+    proposition_key: "access_purpose",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(b)(1)",
+    verbatim_quote:
+      "The specific purpose for which the business used ADMT with respect to the consumer. The business must not describe the purpose in generic terms, such as \u201Cto improve our services.\u201D",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-03",
+    primary_source_url: CCR_URL,
+  }),
+  access_output_use: R({
+    proposition_key: "access_output_use",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(b)(3)",
+    verbatim_quote:
+      "how the business used the output of the ADMT to make a significant decision with respect to the consumer",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-03",
+    primary_source_url: CCR_URL,
+  }),
+  access_human_role: R({
+    proposition_key: "access_human_role",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(b)(3)",
+    verbatim_quote:
+      "to the extent that a human was part of the decisionmaking process in a manner that does not meet the requirements of \u201Chuman involvement\u201D in section 7001, subsection (e)(1), what that human\u2019s role was in the decisionmaking process",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-03",
+    primary_source_url: CCR_URL,
+  }),
+
   // ---- Consumer-request response timeline (§ 7021) --------------------------
   // W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (2026-07-26): section-level pinpoint
   // to 11 CCR § 7021 ("Timelines for Responding to Requests to Delete, Requests
