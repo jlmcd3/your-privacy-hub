@@ -65,6 +65,16 @@ export interface RegistrationIntakeForDeliverables {
   filing_contact_details_ready?: boolean | null;
   filing_opt_out_mechanism_documented?: boolean | null;
   filing_minors_data_practices_documented?: boolean | null;
+  // Filing-readiness coverage fix (2026-08-04) — CA § 1798.99.82(b)(2)(B)
+  // metrics and TX § 510.005(b)(2-a) rights-instructions link.
+  filing_metrics_documented?: boolean | null;
+  filing_rights_instructions_documented?: boolean | null;
+
+  // Attestation intake (optional). No date is computed from these.
+  approved_by_name?: string | null;
+  approved_by_title?: string | null;
+  approval_date?: string | null;
+  next_review_due?: string | null;
 
   [k: string]: unknown;
 }
