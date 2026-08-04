@@ -20,6 +20,7 @@ import {
   REGISTRATION_DUTY_VERSION,
 } from "../../registry/registration-verified-authorities.ts";
 import type {
+  Attestation,
   CorpusPendingFlag,
   DpoDetermination,
   FilingReadiness,
@@ -991,5 +992,6 @@ export function buildRegistrationDeliverables(
       corpus_pending,
       combined_representative_callout,
     ),
+    attestation: buildRegistrationAttestation(intake),
   };
 }
