@@ -1559,6 +1559,39 @@ ${ADVISORY_VOICE_RULES}`;
       console.warn("[generate-dpa] format-checks failed non-fatal:", (e as Error).message);
     }
 
+    // ── DPA-ANNEX (Master Spec §4.11) — deterministic Art. 28(3) ─────
+    // clause-coverage checklist, rendered as a short annex at the end of
+    // the document (after the signature blocks, before the universal
+    // disclaimer, which is applied at the render/PDF layer). Clause
+    // citations and requirement text come from provision-store
+    // (`gdpr-art-28`); nothing here is model-asserted, and the contract
+    // text is never modified to force coverage.
+    let clause_coverage: Record<string, unknown> | null = null;
+    let art28Provision: { key?: string; status?: string; citation?: string | null; excerpt?: string | null } | null = null;
+    const applyArt28Annex = async (contractText: string): Promise<string> => {
+      try {
+        const { resolveProvisionForRender } = await import("../_shared/provision-store.ts");
+        const { checkArt28Coverage, renderArt28CoverageAnnex } = await import("../_shared/dpa-clause-coverage.ts");
+        if (!art28Provision) {
+          art28Provision = await resolveProvisionForRender(supabase as unknown as { from: (t: string) => any }, "gdpr-art-28");
+        }
+        if (!art28Provision?.excerpt) {
+          clause_coverage = null;
+          console.warn("[generate-dpa] DPA-ANNEX skipped — gdpr-art-28 excerpt unavailable");
+          return contractText;
+        }
+        const coverage = checkArt28Coverage(contractText, art28Provision);
+        const annex = renderArt28CoverageAnnex(coverage);
+        clause_coverage = coverage as unknown as Record<string, unknown>;
+        console.log(`[generate-dpa] DPA-ANNEX present=${coverage.present_count} absent=${coverage.absent_count}`);
+        return annex ? `${contractText.replace(/\s+$/, "")}\n\n${annex}` : contractText;
+      } catch (e) {
+        console.warn("[generate-dpa] DPA-ANNEX failed (non-fatal):", (e as Error)?.message);
+        return contractText;
+      }
+    };
+    dpa_text = await applyArt28Annex(dpa_text);
+
     const buildReportData = () => ({
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
@@ -1568,6 +1601,7 @@ ${ADVISORY_VOICE_RULES}`;
         ? (parsed as any).information_needed
         : [],
       deterministic_checks,
+      clause_coverage,
       generated_at: new Date().toISOString(),
       // QB-P25 Item 3 — grader-invisible drafting record (stripped by
       // METADATA_KEYS in _shared/grader/payload.ts and by _RESERVED_KEYS
@@ -1575,6 +1609,7 @@ ${ADVISORY_VOICE_RULES}`;
       _drafting_record: parsedDraftingRecord,
       _meta: { prompt_version: stampPromptVersion("dpa", "r1b2.3-cv1-ff-2026-07-19") },
     });
+
     let report_data: ReturnType<typeof buildReportData> = buildReportData();
 
 
