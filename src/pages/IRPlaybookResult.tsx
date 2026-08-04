@@ -170,7 +170,10 @@ export default function IRPlaybookResult() {
                 authority exhibit. The exhibit belongs to this artifact only and
                 sits immediately before the universal disclaimer, which
                 ReportShell renders as the final element. */}
-            <StandingPlaybookView playbook={(row?.report_data as any)?.standing_playbook} />
+            <StandingPlaybookView
+              playbook={(row?.report_data as any)?.standing_playbook}
+              edpbTemplate={(row?.report_data as any)?.content_owner_mapping?.edpb_template}
+            />
             <AuthorityExhibit exhibit={(row?.report_data as any)?.authority_exhibit} />
 
             {/* ITEM 369-IR — ARTIFACT B: blank forms, no exhibit, no analysis. */}
