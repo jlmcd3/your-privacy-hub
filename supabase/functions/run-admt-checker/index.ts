@@ -140,6 +140,7 @@ import { observeCitations } from "../_shared/citation-observe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { normalizeQbp25A3 } from "./_qbp25_a3_normalize.ts";
 import { verifyCitationPairs, buildParagraphIndex } from "../_shared/citation-pair-verifier.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -503,12 +504,12 @@ async function callAnthropic(
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: currentGenerationModel(),
       max_tokens: maxTokens,
       system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(900_000),
+    signal: AbortSignal.timeout(generationTimeoutMs(currentGenerationModel(), 900_000)),
   });
   if (!res.ok) {
     const t = await res.text();
@@ -561,7 +562,7 @@ function tryParseJson(text: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] run-admt-checker build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-admt-checker] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -2743,7 +2744,7 @@ Return this JSON structure exactly:
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
-      report_data: report,
+      report_data: stampGenerationModel(report),
       updated_at: new Date().toISOString(),
     }, { fn: "run-admt-checker", phase: "terminal_complete" });
     if (!completeWrite.ok) {
@@ -2779,4 +2780,4 @@ Return this JSON structure exactly:
   })());
 
   return json({ accepted: true, assessment_id }, 202);
-});
+}));

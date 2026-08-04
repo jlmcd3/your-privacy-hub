@@ -46,6 +46,8 @@ const DPIA_HALF_MAX_TOKENS = 24_000;
 import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
 // RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
 import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTerminal } from "./reliability.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS: per-unit spend/latency metering
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
@@ -1469,7 +1471,11 @@ async function selfInvokeUnit(dpia_id: string, unit: UnitId): Promise<void> {
           "Authorization": `Bearer ${SERVICE_KEY}`,
           "x-internal-unit": "1",
         },
-        body: JSON.stringify({ dpia_id, unit }),
+        // MODEL A/B HARNESS: every unit of a DPIA does its own model call in a
+        // fresh invocation. Without re-sending the ambient generation model the
+        // self-invoke resets to the default and an A/B run silently generates
+        // both sides on claude-sonnet-4-6.
+        body: JSON.stringify({ dpia_id, unit, generation_model: currentGenerationModel() }),
         signal: AbortSignal.timeout(20_000),
       });
       if (r.ok) return;
@@ -1572,15 +1578,26 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
   }
   try {
     const r = await dpiaWithRetry(() => callAnthropicWithContinuation({
-      model: "claude-sonnet-4-6",
+      model: currentGenerationModel(),
       system: systemBlocks,
       user: userPrompt,
       maxTokens: UNIT_MAX_TOKENS[unit],
       label: `run-dpia-framework:unit:${unit}`,
     }), { label: `dpia:unit:${unit}` });
     const elapsedMs = Date.now() - startedMs;
+    // MODEL A/B HARNESS: per-unit spend/latency metering so the pair table can
+    // aggregate tokens + latency per side. Fire-and-forget; never blocks.
+    recordApiUsage({
+      function_name: "run-dpia-framework",
+      product: "dpia_framework",
+      model: currentGenerationModel(),
+      input_tokens: (r as any).inputTokens ?? null,
+      output_tokens: r.outputTokens ?? null,
+      duration_ms: elapsedMs,
+      source_row_id: dpia_id,
+    });
     // Telemetry line (courier §10) — extractable from edge-function logs.
-    console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length} continued=${r.continued} cont_retried=${r.contRetried ?? false}`);
+    console.log(`[run-dpia-framework] stage=unit:${unit} elapsed=${elapsedMs}ms model=${currentGenerationModel()} output_tokens=${r.outputTokens ?? "?"} stop_reason=${r.stopReason ?? "?"} chars=${r.text.length} continued=${r.continued} cont_retried=${r.contRetried ?? false}`);
     // r1b2.3 fix (c): durable telemetry passed into every failure write.
     const callTelemetry: FailTelemetry = {
       stop_reason: r.stopReason,
@@ -1694,7 +1711,7 @@ async function runStitch(dpia_id: string): Promise<void> {
           const repairPrompt = `The following residual_risk_assessment entries from a DPIA are incomplete. Return ONLY a JSON object of the form {"residual_risk_assessment":[...]} containing the SAME entries in the SAME order, completing the listed missing fields for each. Do not change fields that are already populated. Missing fields per entry:\n\n${JSON.stringify(deficient.map((d: any) => ({ index: d.i, entry: d.e, missing_fields: d.missing })), null, 2)}`;
           const systemBlocks = buildSystemBlocksForUnit(shared);
           const repair = await dpiaWithRetry(() => callAnthropicWithContinuation({
-            model: "claude-sonnet-4-6",
+            model: currentGenerationModel(),
             system: systemBlocks,
             user: repairPrompt,
             maxTokens: Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 0.5),
@@ -2513,7 +2530,7 @@ async function runStitch(dpia_id: string): Promise<void> {
 
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
-      report_data: reportData,
+      report_data: stampGenerationModel(reportData),
       updated_at: new Date().toISOString(),
     }, { fn: "run-dpia-framework", phase: "terminal_complete" });
     if (!completeWrite.ok) {
@@ -2650,7 +2667,7 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 // Entry point.
 // ─────────────────────────────────────────────────────────────────────────────
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] run-dpia-framework build active · core=${PROMPT_CORE_VERSION} · dpia=${STAMP} · build_stamp=${BUILD_STAMP}`);
   console.log(JSON.stringify({ evt: "dpia_build_stamp", build_stamp: BUILD_STAMP }));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -2737,4 +2754,4 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "DPIA framework generation failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-});
+}));

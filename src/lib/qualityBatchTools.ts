@@ -40,3 +40,19 @@ export const QUALITY_BATCH2_TOOLS: QualityBatch2Tool[] = [
   { key: "dpia_framework", label: "DPIA Framework", seedable: false },
   { key: "li_assessment", label: "LIA (Legitimate Interests)", seedable: false },
 ];
+
+// MODEL A/B HARNESS (dispatch 1) — mirrors
+// supabase/functions/_shared/generation-model.ts. Kept in sync by hand; the
+// allowlist is small and change-controlled.
+export const DEFAULT_GENERATION_MODEL = "claude-sonnet-4-6";
+export const AB_ALT_GENERATION_MODEL = "claude-fable-5";
+
+export const GENERATION_MODEL_SLUG: Record<string, string> = {
+  [DEFAULT_GENERATION_MODEL]: "sonnet46",
+  [AB_ALT_GENERATION_MODEL]: "fable5",
+};
+
+export function generationModelSlug(model: string | null | undefined): string {
+  if (!model) return GENERATION_MODEL_SLUG[DEFAULT_GENERATION_MODEL];
+  return GENERATION_MODEL_SLUG[model] ?? model.replace(/[^a-z0-9]+/gi, "").slice(0, 16).toLowerCase();
+}

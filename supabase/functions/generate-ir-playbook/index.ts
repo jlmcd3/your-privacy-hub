@@ -35,6 +35,7 @@ import {
   renderIrTestStatesBlock as _renderIrTestStatesBlockShared,
   type IrBody as _IrBodyShared,
 } from "../_shared/ir/test-states.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
@@ -589,7 +590,7 @@ function renderIrTestStatesBlock(body: Body): string {
   return _renderIrTestStatesBlockShared(body as unknown as _IrBodyShared);
 }
 
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] generate-ir-playbook build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[generate-ir-playbook] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -1049,13 +1050,13 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
               "content-type": "application/json",
             },
             body: JSON.stringify({
-              model: "claude-sonnet-4-6",
+              model: currentGenerationModel(),
               max_tokens: maxTokens,
               stream: true,
               system: systemPayload,
               messages,
             }),
-            signal: AbortSignal.timeout(timeoutMs),
+            signal: AbortSignal.timeout(generationTimeoutMs(currentGenerationModel(), timeoutMs)),
           });
           if (!res.ok) {
             const errText = await res.text();
@@ -1780,7 +1781,7 @@ let playbook_text = lint.clean;
           deterministic_checks: ir_deterministic_checks,
           generated_at: new Date().toISOString(),
           build_stamp: BUILD_STAMP,
-          _meta: { prompt_version: stampPromptVersion("ir-playbook", IR_VERSION) },
+          _meta: { prompt_version: stampPromptVersion("ir-playbook", IR_VERSION), generation_model: currentGenerationModel() },
         };
         try {
           const guarded = guardInformationNeeded(
@@ -1959,4 +1960,4 @@ let playbook_text = lint.clean;
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

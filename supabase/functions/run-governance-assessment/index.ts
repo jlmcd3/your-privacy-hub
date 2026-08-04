@@ -33,6 +33,8 @@ import {
   isRecommendedActionV2Valid,
   isRegulatoryBasisV2Valid,
 } from "./_qbp25_b1_v2.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS dispatch 1 — per-call spend/latency metering
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -359,13 +361,20 @@ async function callAnthropic(model: string, system: string | SystemBlock[], user
       "content-type": "application/json",
     },
     body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(timeoutMs),
+    signal: AbortSignal.timeout(generationTimeoutMs(model, timeoutMs)),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
   const text = d.content?.[0]?.text || "";
   const elapsed = Date.now() - startedAt;
   const usage = d.usage || {};
+  recordApiUsage({
+    function_name: "run-governance-assessment", product: "governance_assessment", model,
+    input_tokens: usage.input_tokens ?? null, output_tokens: usage.output_tokens ?? null,
+    cache_read_tokens: usage.cache_read_input_tokens ?? null,
+    cache_creation_tokens: usage.cache_creation_input_tokens ?? null,
+    duration_ms: elapsed, source_row_id: currentSourceRowId(),
+  });
   console.log(`[run-governance-assessment] stage=callAnthropic model=${model} elapsed=${elapsed}ms stop=${d.stop_reason ?? null} chars=${text.length} cache_read=${usage.cache_read_input_tokens ?? 0} cache_create=${usage.cache_creation_input_tokens ?? 0}`);
   return text;
 }
@@ -835,7 +844,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 
 // BUILD_STAMP is exported at file top (line 8); do not redeclare.
 
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] run-governance-assessment build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
   console.log(JSON.stringify({ evt: "gov_build_stamp", build_stamp: BUILD_STAMP }));
   console.log("[run-governance-assessment] qb7 build active · doc-y-2b");
@@ -996,7 +1005,7 @@ Additional context (user narrative — treat per R1b2 rule 2d ADDITIONAL_CONTEXT
     const domainResultsArray = await Promise.all(
       DOMAIN_DEFINITIONS.map(async (domain) => {
         const model = (domain.escalate && needsHigherQuality)
-          ? "claude-sonnet-4-6"
+          ? currentGenerationModel()
           : "claude-haiku-4-5-20251001";
         const userPrompt = `DOMAIN ${domain.id}: ${domain.name}
 
@@ -1228,7 +1237,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     async function runSynthesis(extra: string): Promise<any> {
       const finalUser = extra ? `${synthesisUserBase}\n\n${extra}` : synthesisUserBase;
-      const synthesisText = await callAnthropic("claude-sonnet-4-6", synthesisSystem, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+      const synthesisText = await callAnthropic(currentGenerationModel(), synthesisSystem, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       try {
         const m = synthesisText.match(/\{[\s\S]*\}/);
         if (m) return JSON.parse(m[0]);
@@ -1512,7 +1521,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     const completeWrite = await lifecycleUpdate(supabase, "governance_assessments", assessment_id, {
       status: "complete",
-      report_data: reportData,
+      report_data: stampGenerationModel(reportData),
       dpia_scope: dpiaScope,
       updated_at: new Date().toISOString(),
     }, { fn: "run-governance-assessment", phase: "terminal_complete" });
@@ -1580,4 +1589,4 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     return new Response(JSON.stringify({ error: "Assessment failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-});
+}));

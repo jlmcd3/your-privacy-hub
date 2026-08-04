@@ -223,6 +223,7 @@ function stripComponentCite(s: string | undefined | null): string {
 }
 
 async function callAnthropic(system: string | SystemBlock[], user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
+  const __t0 = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -231,17 +232,25 @@ async function callAnthropic(system: string | SystemBlock[], user: string, maxTo
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: currentGenerationModel(),
       max_tokens: maxTokens,
       system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(900_000),
+    signal: AbortSignal.timeout(generationTimeoutMs(currentGenerationModel(), 900_000)),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
   const text = d.content?.[0]?.text || "";
   const stopReason: string | null = d.stop_reason ?? null;
+  recordApiUsage({
+    function_name: "run-cppa-cybersecurity", product: "cppa_cybersecurity",
+    model: currentGenerationModel(),
+    input_tokens: d.usage?.input_tokens ?? null, output_tokens: d.usage?.output_tokens ?? null,
+    cache_read_tokens: d.usage?.cache_read_input_tokens ?? null,
+    cache_creation_tokens: d.usage?.cache_creation_input_tokens ?? null,
+    duration_ms: Date.now() - __t0, source_row_id: currentSourceRowId(),
+  });
   console.log(`[run-cppa-cybersecurity] gen done stop=${stopReason} chars=${text.length}`);
   return { text, stopReason };
 }
@@ -314,6 +323,8 @@ const COMPONENT_CITATIONS: Record<string, string> = {
 export { computeCyberTestStates, renderCyberTestStatesBlock } from "../_shared/cppa-test-states.ts";
 export type { TestStateEntry } from "../_shared/cppa-test-states.ts";
 import { computeCyberTestStates, renderCyberTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS dispatch 1 — per-call spend/latency metering
 
 
 async function runAssessment(assessment_id: string): Promise<void> {
@@ -1986,7 +1997,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     }
 
 
-    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: report, obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
+    const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: stampGenerationModel(report), obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_fallback: complete-write failed: ${(completeWrite.message ?? "unknown").slice(0, 1500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
     }
@@ -2028,7 +2039,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
   }
 }
 
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] run-cppa-cybersecurity build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
   console.log(JSON.stringify({ evt: "cyber_build_stamp", build_stamp: BUILD_STAMP }));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -2090,4 +2101,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

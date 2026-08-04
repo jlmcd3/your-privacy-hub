@@ -41,6 +41,7 @@ import {
   type Pass2rValidatorMode,
   type Pass2rWhitelist,
 } from "./pass2r-validators.ts";
+import { currentGenerationModel, generationTimeoutMs } from "../generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 export const PASS2R_LLM_STAMP = "ltp-pass2r-llm-2026-07-30-item278";
 export const PASS2R_MODEL = "claude-sonnet-4-6";
@@ -213,14 +214,14 @@ const defaultCall: Pass2rCallFn = async (args) => {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("missing_ANTHROPIC_API_KEY");
   const res = await callAnthropicWithContinuation({
-    model: PASS2R_MODEL,
+    model: currentGenerationModel(),
     system: args.system,
     user: args.user,
     maxTokens: PASS2R_MAX_TOKENS,
     label: "ltp-pass2r-prose",
     callerName: args.callerName,
     product: "cppa-risk-assessment",
-    timeoutMs: args.timeoutMs,
+    timeoutMs: generationTimeoutMs(currentGenerationModel(), args.timeoutMs),
     abortSignal: args.signal,
   });
   return { text: res.text };

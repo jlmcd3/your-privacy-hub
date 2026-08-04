@@ -77,6 +77,7 @@ import { liAssessmentStageBContract } from "../_shared/intake-contracts/li-asses
 import { dpaGeneratorContract } from "../_shared/intake-contracts/dpa-generator.ts";
 import { irPlaybookContract } from "../_shared/intake-contracts/ir-playbook.ts";
 import { biometricCheckerContract } from "./_local/intake-contracts/biometric-checker.ts";
+import { DEFAULT_GENERATION_MODEL, currentGenerationModel, withGenerationModel, resolveGenerationModel, generationTimeoutMs } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 // Tool-key → contract. The QL2 tool key is what generateIntakes receives
 // (e.g. "cppa-cyber"), not the contract's tool_type. Contract coverage set
@@ -282,12 +283,42 @@ function tryParse(t: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
+// MODEL A/B HARNESS (dispatch 1) — PRODUCT generators only. The ambient
+// generation model is attached to calls to these functions and to NOTHING
+// else: grader, rubric, cross-review, and editorial helpers invoked through
+// invokeFn (ask-privacy, generate-weekly-brief, …) are deliberately absent
+// so the A/B parameter can never reach a graded/pinned call path.
+export const AB_GENERATION_FUNCTIONS: ReadonlySet<string> = new Set([
+  "run-admt-checker",
+  "run-cppa-risk-assessment",
+  "run-cppa-risk-assessment-v2",
+  "run-cppa-cybersecurity",
+  "run-li-assessment",
+  "run-dpia-framework",
+  "run-governance-assessment",
+  "generate-ir-playbook",
+  "check-biometric-compliance",
+  // NOTE: run-registration-assessment is deterministic — it makes no model
+  // call — so there is nothing to A/B and it stays off this list (verified:
+  // no Anthropic/OpenAI call site in its index.ts). generate-dpa is excluded
+  // by standing ruling; RoPA makes no model calls either.
+]);
+
 async function invokeFn(name: string, body: unknown): Promise<any> {
+  const model = currentGenerationModel();
+  const payload = AB_GENERATION_FUNCTIONS.has(name) && body && typeof body === "object"
+    ? { ...(body as Record<string, unknown>), generation_model: model }
+    : body;
+  // Item 4 — the alternate model runs longer per call; give its dispatch leg
+  // the wider window. The default model's 240s dispatch timeout is unchanged.
+  const dispatchTimeoutMs = AB_GENERATION_FUNCTIONS.has(name)
+    ? generationTimeoutMs(model, 240_000)
+    : 240_000;
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SERVICE_KEY}` },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(240_000),
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(dispatchTimeoutMs),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`${name} ${r.status}: ${JSON.stringify(d).slice(0, 200)}`);
@@ -1824,7 +1855,23 @@ function emptyState(): PartialState {
 }
 
 
+// MODEL A/B HARNESS (dispatch 1) — the child run row carries the generation
+// model this run must use (NULL on legacy batches ⇒ the default model). Read
+// it once and make it ambient for the whole run so invokeFn can attach it to
+// every PRODUCT generator call. Grader/rubric calls do NOT go through invokeFn
+// and are unaffected (see tests/edge/_tests/model-ab-grader-pin.test.ts).
 async function runBatch(runId: string): Promise<void> {
+  const bootstrap = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+  let model = DEFAULT_GENERATION_MODEL;
+  try {
+    const { data } = await bootstrap.from("quality_runs")
+      .select("generation_model").eq("id", runId).maybeSingle();
+    if ((data as any)?.generation_model) model = resolveGenerationModel((data as any).generation_model);
+  } catch { /* legacy row / missing column — default model */ }
+  return await withGenerationModel(model, () => runBatchInner(runId));
+}
+
+async function runBatchInner(runId: string): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const upd = (data: any) => admin.from("quality_runs").update(data).eq("id", runId);
 

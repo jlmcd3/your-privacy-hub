@@ -51,6 +51,7 @@ import {
 } from "./_contract_hooks.ts";
 import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
 import { assertCreatedByIsRealUser, CreatedByGuardError } from "./_local/harness/created-by-guard.ts";
+import { DEFAULT_GENERATION_MODEL, AB_ALT_GENERATION_MODEL } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 
 export const BUILD_STAMP = "qbo-stage-b-blockb-declared-actual-count@2026-07-27T13:35:00Z";
@@ -385,7 +386,7 @@ export function applyStopRule(
 export { buildSeedRow } from "./_local/quality/seed-row.ts";
 import { buildSeedRow } from "./_local/quality/seed-row.ts";
 
-async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null; enginePath?: string | null } = {})
+async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null; enginePath?: string | null; generationModel?: string | null; abPairId?: string | null } = {})
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
   const db = admin();
   // (a) Compute run_number the same way run-quality-batch does at ~L2544.
@@ -407,6 +408,11 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
   }
   const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso, { pins });
   if (opts.variant) seed.fixture_variant = opts.variant;
+  // MODEL A/B HARNESS (dispatch 1) — the child run carries the generation
+  // model it must use and the pair it belongs to. Both stay NULL on legacy
+  // (non-A/B) batches, which then run on the default model as before.
+  if (opts.generationModel) seed.generation_model = opts.generationModel;
+  if (opts.abPairId) seed.ab_pair_id = opts.abPairId;
   // ITEM 335 — harness-only engine selector, propagated to the child run row.
   if (opts.enginePath === "ltp") seed.engine_path = "ltp";
   if (campaignId) seed.campaign_id = campaignId; // QB-P9 linkage
@@ -562,6 +568,14 @@ async function runUnit(runId: string) {
         toolStateForBatch = ((camp as any)?.tool_state ?? {}) as Record<string, { batch_size?: number }>;
       }
       const perToolSizes: Record<string, number> = {};
+      // MODEL A/B HARNESS (dispatch 1) — when ab_models is on, each tool is
+      // dispatched TWICE against the same pinned fixtures: once per model.
+      // The two child runs share an ab_pair_id so results/export can present
+      // them side by side. Off ⇒ [null] ⇒ byte-identical legacy dispatch.
+      const abModels = (run as any).ab_models === true;
+      const modelsForWave: (string | null)[] = abModels
+        ? [DEFAULT_GENERATION_MODEL, AB_ALT_GENERATION_MODEL]
+        : [null];
       for (let i = 0; i < d.tools.length; i++) {
         const tool = d.tools[i];
         if (i > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
@@ -575,36 +589,48 @@ async function runUnit(runId: string) {
           normalizeToolVariants((run as any).tool_variants),
           normalizeVariant((run as any).fixture_variant),
         );
-        const inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, {
-          variant: variantForTool,
-          enginePath: (run as any).engine_path ?? null,
-        });
-        if (!inv.ok) {
-          results.push({
-            tool, quality_run_id: null, run_number: null,
-            final_status: "dispatch_failed", score_overall: null,
-            gpt_score_overall: null, error: inv.err, batch_size: size,
+        const abPairId = abModels ? crypto.randomUUID() : null;
+        let inv: { ok: true; runId: string; runNumber: number } | { ok: false; err: string } | null = null;
+        for (let m = 0; m < modelsForWave.length; m++) {
+          const genModel = modelsForWave[m];
+          if (m > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
+          inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, {
+            variant: variantForTool,
+            enginePath: (run as any).engine_path ?? null,
+            generationModel: genModel,
+            abPairId,
           });
-          await log(runId, `Dispatch failed for ${tool} (batch_size=${size}): ${inv.err}`, { level: "error", tool });
-        } else {
-          results.push({
-            tool,
-            quality_run_id: inv.runId,
-            run_number: inv.runNumber,
-            final_status: "in_flight",
-            score_overall: null,
-            gpt_score_overall: null,
-            error: null,
-            dispatched_at: new Date().toISOString(),
-            batch_size: size,
-          } as InFlightEntry & Record<string, unknown>);
-          await log(runId, `Dispatched ${tool} (batch_size=${size}) → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
+          const modelLabel = genModel ? ` [model=${genModel}]` : "";
+          if (!inv.ok) {
+            results.push({
+              tool, quality_run_id: null, run_number: null,
+              final_status: "dispatch_failed", score_overall: null,
+              gpt_score_overall: null, error: inv.err, batch_size: size,
+              generation_model: genModel, ab_pair_id: abPairId,
+            });
+            await log(runId, `Dispatch failed for ${tool} (batch_size=${size})${modelLabel}: ${inv.err}`, { level: "error", tool });
+          } else {
+            results.push({
+              tool,
+              quality_run_id: inv.runId,
+              run_number: inv.runNumber,
+              final_status: "in_flight",
+              score_overall: null,
+              gpt_score_overall: null,
+              error: null,
+              dispatched_at: new Date().toISOString(),
+              batch_size: size,
+              generation_model: genModel,
+              ab_pair_id: abPairId,
+            } as InFlightEntry & Record<string, unknown>);
+            await log(runId, `Dispatched ${tool} (batch_size=${size})${modelLabel} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
+          }
         }
         nextIdx += 1;
         await db.from("quality_batch_runs").update({
           tool_results: results,
           current_tool_index: nextIdx,
-          current_quality_run_id: inv.ok ? inv.runId : (run as any).current_quality_run_id,
+          current_quality_run_id: inv && inv.ok ? inv.runId : (run as any).current_quality_run_id,
         }).eq("id", runId);
       }
       // QB-P12 — if every dispatch in this wave failed, refund the wave's
@@ -636,6 +662,14 @@ async function runUnit(runId: string) {
         if (!e || e.final_status !== "in_flight") continue;
         const t = termByRun.get(e.quality_run_id);
         if (!t) continue;
+        // MODEL A/B HARNESS — carry the dispatch-time A/B fields (and
+        // batch_size) forward; the terminal rewrite must not drop them or the
+        // pair linkage disappears from the results view and the export.
+        const abCarry = {
+          batch_size: e.batch_size ?? null,
+          generation_model: e.generation_model ?? null,
+          ab_pair_id: e.ab_pair_id ?? null,
+        };
         if (t.stalled) {
           results[i] = {
             tool: t.tool,
@@ -645,6 +679,7 @@ async function runUnit(runId: string) {
             score_overall: null,
             gpt_score_overall: null,
             error: `child heartbeat stale > ${CHILD_STALL_MS / 60000}min`,
+            ...abCarry,
           };
           await log(runId, `${t.tool} stalled — advancing`, { level: "warn", tool: t.tool });
         } else {
@@ -656,6 +691,7 @@ async function runUnit(runId: string) {
             score_overall: t.snapshot.score_overall,
             gpt_score_overall: t.snapshot.gpt_score_overall,
             error: t.snapshot.error,
+            ...abCarry,
           };
           await log(
             runId,
@@ -724,7 +760,7 @@ async function finalizeIfDone(runId: string) {
   })());
 }
 
-async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown)
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -777,6 +813,10 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     instrument_version: GRADER_CONTEXT_VERSION, // MC-S1b Task 4
     concurrency, // QB-P7
     declared_count: tools.length * batchSize, // §16.n born-state
+    // MODEL A/B HARNESS (dispatch 1). ON ⇒ every tool is dispatched once per
+    // model on the SAME pinned fixtures. declared_count stays the per-model
+    // document count; the batch simply produces two runs per tool.
+    ab_models: abModelsRaw === true,
     ...(variant ? { fixture_variant: variant } : {}),
     ...(toolVariants ? { tool_variants: toolVariants } : {}),
     // ITEM 335 — harness-only engine selector (cppa-risk LTP measurement).
@@ -784,7 +824,7 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
-  await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}, concurrency=${concurrency}`);
+  await log(row.id, `Batch created: ${tools.length} tool(s), batch_size=${batchSize}, concurrency=${concurrency}${abModelsRaw === true ? ` — A/B models ON (${DEFAULT_GENERATION_MODEL} vs ${AB_ALT_GENERATION_MODEL})` : ""}`);
   await dcCreateBatchContract(CONTRACT_DEPS, row.id, { origin: "startRun", tools, batch_size: batchSize, concurrency });
   // @ts-ignore
   EdgeRuntime.waitUntil(selfInvoke(row.id));
@@ -1208,7 +1248,7 @@ async function handler(req: Request) {
   if (isCron && body?.action === "start") {
     const owner = await resolveAdminOwner();
     if (!owner) return json({ error: "no admin owner available for internal start" }, 500);
-    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path);
+    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     try {
       await admin().from("admin_action_log").insert({
@@ -1253,7 +1293,7 @@ async function handler(req: Request) {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }

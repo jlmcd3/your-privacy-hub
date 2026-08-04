@@ -11,6 +11,7 @@
 // block completion — fire-and-forget discipline.
 
 import { invokeGated } from "./invoke-gated.ts";
+import { DEFAULT_GENERATION_MODEL, generationModelSlug } from "./generation-model.ts";
 
 // Map from run-quality-batch tool slug → generate-report-pdf tool_type.
 // Every one of the 9 run-quality-batch slugs has a PDF renderer in
@@ -41,15 +42,27 @@ export type QaDocRow = {
   doc_number: number;
   source_row_id: string;
   source_table: string | null;
+  /** MODEL A/B HARNESS — model that generated this doc (null on legacy runs). */
+  generation_model?: string | null;
 };
 
 /**
  * Pure builder — extracted so tests can assert the file_name shape without a DB.
  * Pattern: <tool>-doc<doc_number>-<first 8 chars of source_row_id>.pdf
  */
-export function buildQaFileName(tool: string, docNumber: number, sourceRowId: string): string {
+export function buildQaFileName(
+  tool: string,
+  docNumber: number,
+  sourceRowId: string,
+  generationModel?: string | null,
+): string {
   const short = (sourceRowId || "").replace(/-/g, "").slice(0, 8) || "unknown";
-  return `${tool}-doc${docNumber}-${short}.pdf`;
+  // A/B pairs must be distinguishable inside one zip. Legacy / default-model
+  // docs keep the historical filename byte-for-byte.
+  const suffix = generationModel && generationModel !== DEFAULT_GENERATION_MODEL
+    ? `-${generationModelSlug(generationModel)}`
+    : "";
+  return `${tool}-doc${docNumber}-${short}${suffix}.pdf`;
 }
 
 async function logPdfExportRun(
@@ -145,7 +158,7 @@ export async function exportBatchPdfs(
       if (!pdfUrl) throw new Error("no pdf_url in generate-report-pdf response");
       const bytes = await deps.downloadPdf(pdfUrl);
       if (!bytes || bytes.length === 0) throw new Error("empty pdf bytes");
-      const file_name = buildQaFileName(d.tool, d.doc_number, d.source_row_id);
+      const file_name = buildQaFileName(d.tool, d.doc_number, d.source_row_id, d.generation_model);
       const ins = await deps.insertExport({
         batch_id: batchId,
         tool: d.tool,
@@ -197,9 +210,23 @@ export function makeLiveDeps(admin: any): ExportDeps {
       if (runIds.length === 0) return [];
       const { data: docs } = await admin
         .from("quality_run_documents")
-        .select("tool, doc_number, source_row_id, source_table")
+        .select("tool, doc_number, source_row_id, source_table, run_id")
         .in("run_id", runIds);
-      return (docs ?? []) as QaDocRow[];
+      // MODEL A/B HARNESS — attach each doc's generation model (from its child
+      // run row) so paired documents get distinct filenames in the zip.
+      const modelByRun = new Map<string, string | null>();
+      try {
+        const { data: runs } = await admin
+          .from("quality_runs").select("id, generation_model").in("id", runIds);
+        for (const r of runs ?? []) modelByRun.set((r as any).id, (r as any).generation_model ?? null);
+      } catch { /* legacy schema — filenames stay unsuffixed */ }
+      return (docs ?? []).map((d: any) => ({
+        tool: d.tool,
+        doc_number: d.doc_number,
+        source_row_id: d.source_row_id,
+        source_table: d.source_table,
+        generation_model: modelByRun.get(d.run_id) ?? null,
+      })) as QaDocRow[];
     },
     // FF-1 T1: pass maxBodyChars=0 so the full response (including a signed URL
     // longer than 500 chars) is preserved for JSON.parse.

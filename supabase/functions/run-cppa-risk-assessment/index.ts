@@ -210,6 +210,7 @@ export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from ".
 export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
 import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 
 // POSTBATCH-1 — deterministic post-generation fallback for TEST-STATES leakage
@@ -895,8 +896,8 @@ async function callModel(
   timeoutMs?: number,
 ): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
-    model: "claude-sonnet-4-6",
-    system, user, maxTokens, label, timeoutMs,
+    model: currentGenerationModel(),
+    system, user, maxTokens, label, timeoutMs: generationTimeoutMs(currentGenerationModel(), timeoutMs),
   });
   return { text: r.text, stopReason: r.stopReason };
 }

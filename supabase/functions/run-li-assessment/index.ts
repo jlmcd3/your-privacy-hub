@@ -36,6 +36,8 @@ import { LIA_VERIFIED_AUTHORITIES } from "../_shared/registry/lia-verified-autho
 
 // RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
 import { withUpstreamRetry, heartbeat as liaHeartbeat, ensureTerminalFnRun as liaEnsureTerminal } from "./reliability.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS dispatch 1 — per-call spend/latency metering
 
 
 
@@ -86,6 +88,7 @@ async function callAnthropic(
   timeoutMs: number = 720_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
+  const __t0 = Date.now();
   // RUNTIME-1 (c): bounded retry on transient upstream failures (connection
   // reset, 5xx, 429, socket hang up, network) — never on 4xx-non-transient.
   return await withUpstreamRetry(async () => {
@@ -102,12 +105,19 @@ async function callAnthropic(
         system: systemPrompt,
         messages: [{ role: "user", content: userContent }],
       }),
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: AbortSignal.timeout(generationTimeoutMs(model, timeoutMs)),
     });
     if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
     const data = await res.json();
     const text = data.content?.[0]?.text || "";
     const stopReason: string | null = data.stop_reason ?? null;
+    recordApiUsage({
+      function_name: "run-li-assessment", product: "li_assessment", model,
+      input_tokens: data.usage?.input_tokens ?? null, output_tokens: data.usage?.output_tokens ?? null,
+      cache_read_tokens: data.usage?.cache_read_input_tokens ?? null,
+      cache_creation_tokens: data.usage?.cache_creation_input_tokens ?? null,
+      duration_ms: Date.now() - __t0, source_row_id: currentSourceRowId(),
+    });
     console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
     return { text, stopReason };
   }, { label: `lia:callAnthropic:${model}` });
@@ -610,7 +620,7 @@ function ensureReferenceCategoryCaveat(report: any): any {
 }
 
 
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] run-li-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-li-assessment] qb7 qb7r build active");
   if (req.method === "OPTIONS") {
@@ -685,7 +695,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Failed to start assessment." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-});
+}));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Heavy generation logic (previously inline in Deno.serve). Moved verbatim so
@@ -1103,7 +1113,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
 
     async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
-      return await callAnthropic("claude-sonnet-4-6", analysisSystemBlocks, finalUser, maxTokens);
+      return await callAnthropic(currentGenerationModel(), analysisSystemBlocks, finalUser, maxTokens);
     }
 
     const t2Start = Date.now();
@@ -1599,10 +1609,10 @@ Return JSON:
 }`;
 
     const t3Start = Date.now();
-    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
+    let docsStage = await callAnthropic(currentGenerationModel(), docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
     if (docsStage.stopReason === "max_tokens") {
       console.warn(`[LIA] Stage 3 truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
+      docsStage = await callAnthropic(currentGenerationModel(), docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
       if (docsStage.stopReason === "max_tokens") {
         console.error("[LIA] Stage 3 truncated_output after retry — failing run");
         throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");
@@ -1889,7 +1899,7 @@ Return JSON:
 
     const completeWrite = await lifecycleUpdate(supabase, "li_assessments", assessment_id, {
       status: "complete",
-      report_data: reportData,
+      report_data: stampGenerationModel(reportData),
       updated_at: new Date().toISOString(),
     }, { fn: "run-li-assessment", phase: "terminal_complete" });
     if (!completeWrite.ok) {

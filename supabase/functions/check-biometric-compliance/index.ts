@@ -37,6 +37,7 @@ import {
   validateBiometricCitations,
   BIOMETRIC_REGISTRY_VERSION,
 } from "./_local/registry/biometric-select.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
@@ -1369,7 +1370,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
   }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
 
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] check-biometric-compliance build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
   console.log(JSON.stringify({ evt: "bio_build_stamp", build_stamp: BUILD_STAMP }));
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -1536,7 +1537,7 @@ Deno.serve(async (req) => {
 
 
     const isStressRun = body.stress_run === true;
-    const model = isStressRun ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6";
+    const model = isStressRun ? "claude-haiku-4-5-20251001" : currentGenerationModel();
     const maxTokens = isStressRun ? 6500 : PRODUCT_MAX_OUTPUT_TOKENS;
 
     const prompt = `You are a biometric privacy compliance analyst. Analyse the biometric data processing described below and produce a structured compliance assessment for each jurisdiction.
@@ -1812,7 +1813,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
               "content-type": "application/json",
             },
             body: JSON.stringify({
-              model: "claude-sonnet-4-6",
+              model: currentGenerationModel(),
               max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
               system: "You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these automated-lint defects silently and without meta-commentary: " + details,
               messages: [
@@ -1940,7 +1941,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
               "content-type": "application/json",
             },
             body: JSON.stringify({
-              model: "claude-sonnet-4-6",
+              model: currentGenerationModel(),
               max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
               system: `You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these post-lint TEST-STATES gate defects silently and without meta-commentary: ${details}`,
               messages: [
@@ -2033,7 +2034,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       divergence_analysis: biometric_deliverables.divergence_analysis,
       consequence_determination: biometric_deliverables.consequence_determination,
       biometric_deliverables,
-      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION, deliverables_version: biometric_deliverables.version },
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance", "r1b2.1-rcb"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION, deliverables_version: biometric_deliverables.version, generation_model: model },
     };
 
 
@@ -2273,5 +2274,5 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));
 
