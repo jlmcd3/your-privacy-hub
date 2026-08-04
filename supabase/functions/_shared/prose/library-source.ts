@@ -150,7 +150,14 @@ async function verify(
     alarm(kind, product, "hash_mismatch", detail);
     throw new ProseLibraryUnavailableError(kind, product, "hash_mismatch", detail);
   }
-  return row.payload;
+  // CHANGE CONTROL — APPROVAL LIVES ONLY IN THE DATABASE COLUMN.
+  //
+  // The authored payload no longer carries an operative `approved` field (it
+  // carries `seed_default_approved`, used only when seeding inserts a new
+  // row). The renderable gates read `payload.approved`, so the row's column —
+  // the record of the CEO's sign-off act — is overlaid here, AFTER the hash
+  // check, so content integrity is still verified against what was stored.
+  return { ...(row.payload as Record<string, unknown>), approved: row.approved };
 }
 
 export async function loadFrameSet(
