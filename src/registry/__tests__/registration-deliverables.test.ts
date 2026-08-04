@@ -53,6 +53,8 @@ const CA_VT_BROKER = {
   filing_contact_details_ready: true,
   filing_opt_out_mechanism_documented: true,
   filing_minors_data_practices_documented: true,
+  filing_metrics_documented: true,
+  filing_rights_instructions_documented: true,
   has_eu_establishment: false,
   has_uk_establishment: false,
   large_scale_monitoring: true,
