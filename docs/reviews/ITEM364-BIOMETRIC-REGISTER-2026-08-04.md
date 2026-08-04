@@ -4,6 +4,34 @@ Date: 2026-08-04
 Register: CEO-approved PART A specification (A1–A9), unchanged.
 Scope: PROSE ONLY. No schema, deliverable-logic, or determination change.
 
+## WHAT YOU ARE APPROVING
+
+Two database rows for the Biometric product flip from `approved: false` to `approved: true`:
+
+1. **The document plan** — `prose_document_plans` / `biometric`, content hash
+   `80c9c7d2…9340`. This is the blueprint for how every future Biometric
+   compliance report is composed: its thesis, the order of its sections, the
+   register each section must be written in, its sentence discipline, and the
+   worked exemplars the engine imitates.
+2. **The frame set** — `prose_frame_sets` / `biometric`, content hash
+   `44581f7d…fee33`. These are the pre-written counsel-voice patterns the
+   document uses to state what the customer's record does not yet say.
+
+**What changes for customers.** Once both rows are approved, every *newly
+generated* Biometric report is composed to the plan and speaks through the
+frames. Reports already stored in a customer's account are untouched and read
+exactly as before.
+
+**What does not change.** Determinations, verdicts, scoring, schemas, statutory
+quotes, and the universal disclaimer are not touched by the flip. Only the way
+the prose is written changes.
+
+**How to revert.** Set either row back to `approved: false`. The product returns
+to today's prose on the very next report. No code change and no deployment.
+
+**Before you decide.** Read the BEFORE→AFTER exemplar pairs in this packet, then
+read the first Biometric report generated after approval.
+
 ## Artifacts
 
 | Artifact | Path | Row | Approved |
