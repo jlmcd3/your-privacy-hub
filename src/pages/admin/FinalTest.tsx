@@ -13,13 +13,19 @@
 // name rather than silently falling back to the perfect set.
 
 import { QualityConsole } from "@/components/admin/quality-console/QualityConsole";
+import { RedeployPanel } from "@/components/admin/RedeployPanel";
 
 export default function FinalTest() {
   return (
-    <QualityConsole
-      title="Final Test"
-      caption="quality-batch-orchestrator · variant-aware"
-      showVariants
-    />
+    <div className="space-y-6 pb-12">
+      <QualityConsole
+        title="Final Test"
+        caption="quality-batch-orchestrator · variant-aware"
+        showVariants
+      />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <RedeployPanel />
+      </div>
+    </div>
   );
 }
