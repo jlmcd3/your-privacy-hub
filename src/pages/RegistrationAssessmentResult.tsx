@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import ReportDisclaimer from "@/components/ReportDisclaimer";
+import AttestationBlock from "@/components/report/AttestationBlock";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -391,6 +393,8 @@ export default function RegistrationAssessmentResult() {
               </CardContent>
             </Card>
           </div>
+          <AttestationBlock attestation={(summary as any)?.registration_deliverables?.attestation} />
+          <AuthorityExhibit exhibit={(summary as any)?.authority_exhibit} />
           <ReportDisclaimer />
         </PageContainer>
       </main>
