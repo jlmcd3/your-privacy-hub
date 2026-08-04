@@ -197,7 +197,10 @@ export function governanceCorpusProvisionsForExhibit(
     .filter((p) => p.status === "approved" && p.verbatim_excerpt)
     .map((p) => ({
       key: p.key,
-      citation: p.citation,
+      // Corpus citations carry a source suffix — "GDPR Art. 24 (Regulation (EU)
+      // 2016/679, CELEX 32016R0679)". The exhibit matches on the citation as it
+      // appears in the report, so the suffix is trimmed here.
+      citation: p.citation.split(" (")[0].trim() || p.citation,
       verbatim_excerpt: p.verbatim_excerpt,
       status: "approved",
     }));
