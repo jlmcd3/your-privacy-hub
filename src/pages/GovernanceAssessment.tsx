@@ -173,36 +173,37 @@ const GovernanceAssessment = () => {
 
   const stepValid = (): string | null => {
     if (step === 1) {
-      if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
+      if (!organizationName.trim()) return "Name the organisation this assessment covers.";
       if (!sector || !orgSize || !jurisdictions.length || !euUkData || (!tools.length && !otherTool.trim()))
-        return "Please answer all gateway questions.";
+        return "Answer every question in this section — sector, size, jurisdictions, EU/UK data, and at least one technology tool.";
     }
     if (step === 2) {
-      if (!dataCategories.length || !specialCategory) return "Please complete the data profile.";
+      if (!dataCategories.length || !specialCategory) return "Select the categories of personal data you process and answer the special-category question.";
       if (specialCategory === "Yes" && !specialCategoriesList.length) return "Select which special categories apply.";
     }
     if (step === 3) {
-      if (!privacyPolicy || !dpiaStatus || !incidentResponse) return "Please complete all required questions.";
-      if (showDpoQ && !dpoStatus) return "Please answer the DPO question.";
-      if (!dsrCapability) return "Please answer the data subject rights question (Q12).";
-      if (!inventoryAudit) return "Please answer the inventory / shadow-tool audit question (Q13).";
-      if (dpiaStatus.startsWith("Yes") && !dpiaAiCoverage) return "Please answer the DPIA AI-coverage follow-up (Q10a).";
-      if (privacyPolicy.startsWith("Yes") && !privacyNoticeCoverage) return "Please answer the privacy-notice coverage follow-up (Q8a).";
+      if (!privacyPolicy || !dpiaStatus || !incidentResponse) return "Answer the privacy notice, DPIA, and incident-response questions.";
+      if (showDpoQ && !dpoStatus) return "Answer whether a data protection officer or equivalent is designated.";
+      if (!dsrCapability) return "Answer whether you can fulfil data subject rights across your vendors.";
+      if (!inventoryAudit) return "Answer whether your tool inventory is audited for unauthorised tools.";
+      if (dpiaStatus.startsWith("Yes") && !dpiaAiCoverage) return "Answer whether your DPIAs cover your current AI and high-risk tools.";
+      if (privacyPolicy.startsWith("Yes") && !privacyNoticeCoverage) return "Answer whether your published notice describes all current processing.";
     }
     if (step === 4) {
-      if (!trainingStatus || !toolInstruction) return "Please complete training questions.";
-      if (!technicalControls) return "Please answer the technical controls question (Q16).";
-      if (trainingStatus.startsWith("Yes") && !trainingAiCoverage) return "Please answer the training AI-coverage follow-up (Q14a).";
+      if (!trainingStatus || !toolInstruction) return "Answer the training and tool-instruction questions.";
+      if (!technicalControls) return "Answer whether technical controls, not only policy, restrict what reaches your tools.";
+      if (trainingStatus.startsWith("Yes") && !trainingAiCoverage) return "Answer whether training covers AI tools and data-submission risk.";
     }
     if (step === 5 && showStep5) {
-      if (!dpaStatus || !transferStatus) return "Please complete transfer questions.";
+      if (!dpaStatus || !transferStatus) return "Answer the processor-contract and cross-border transfer questions.";
       if ((dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors") && !dpaArt28Verified)
-        return "Please answer the Art. 28(3) verification follow-up (Q17a).";
+        return "Answer whether those contracts have been verified against the Art. 28(3) clauses.";
       if ((transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries") && !transferMechanism)
-        return "Please answer the transfer-mechanism follow-up (Q18a).";
+        return "Name the transfer mechanism in place for those transfers.";
     }
     return null;
   };
+
 
   const next = () => {
     const err = stepValid();
@@ -601,27 +602,31 @@ const GovernanceAssessment = () => {
           <RequiredLegend />
           {step === 1 && (
             <>
-              <h2 className="">Gateway Questions</h2>
+              <h2 className="">Scope and footprint</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">GDPR Art. 3 — territorial scope · Art. 4(1) — personal data definition</p>
+              <p className="text-sm text-muted-foreground">This section fixes the perimeter the report is written inside: which entity is assessed, which regimes reach it, and which systems touch personal data. Every later finding is measured against this boundary.</p>
               <div>
                 <Label htmlFor="org">Organisation being assessed<Req /></Label>
-                <input id="org" type="text" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. Acme Retail Ltd" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" />
-                <p className="text-meta text-muted-foreground mt-1">The organisation whose privacy programme this assessment evaluates.</p>
+                <p className="text-meta text-muted-foreground mt-1">The legal entity whose privacy programme this assessment evaluates — not the group, unless the group is the entity under review.</p>
+                <input id="org" type="text" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="Legal entity name" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" />
               </div>
               <div>
-                <Label>Q1: Primary sector<Req /></Label>
-                <select value={sector} onChange={(e) => setSector(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
-                  <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
+                <Label htmlFor="gov_sector">Primary sector<Req /></Label>
+                <p className="text-meta text-muted-foreground mt-1">The sector of the operations being assessed. It sets the risk context the findings are weighed against.</p>
+                <select id="gov_sector" value={sector} onChange={(e) => setSector(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                  <option value="">Select…</option>{SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <Label>Q2: Number of employees<Req /></Label>
-                <select value={orgSize} onChange={(e) => setOrgSize(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
-                  <option value="">Select…</option>{SIZES.map((s) => <option key={s}>{s}</option>)}
+                <Label htmlFor="gov_size">Number of employees<Req /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Headcount of the entity under assessment. Size affects which accountability expectations the report applies.</p>
+                <select id="gov_size" value={orgSize} onChange={(e) => setOrgSize(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                  <option value="">Select…</option>{SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <Label>Q3: Jurisdictions where you operate or process personal data<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3 GDPR)</span></Label>
+                <Label>Jurisdictions where you operate or process personal data<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3 GDPR)</span></Label>
+                <p className="text-meta text-muted-foreground mt-1">Answer from where your data subjects are, not from where you are incorporated. Art. 3(2) reaches organisations with no European establishment at all.</p>
                 <div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
                 {jurisdictions.includes("California (CCPA/CPRA)") && (
                   <p className="mt-2 text-xs text-muted-foreground">
@@ -630,27 +635,33 @@ const GovernanceAssessment = () => {
                 )}
               </div>
               <div>
-                <Label>Q4: Do you process personal data of EU or UK residents?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3(2) GDPR — extra-territorial scope)</span></Label>
+                <Label>Do you process personal data of EU or UK residents?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3(2) GDPR — extra-territorial scope)</span></Label>
+                <p className="text-meta text-muted-foreground mt-1">Offering goods or services to people in the EU or UK, or monitoring their behaviour, brings you in scope regardless of where the business sits.</p>
                 <div className="mt-2"><Radio name="euuk" options={["Yes", "No"]} value={euUkData} onChange={(v) => setEuUkData(v as any)} /></div>
               </div>
               <div>
-                <Label>Q5: Technology tools that process personal data<Req /></Label>
+                <Label>Technology tools that process personal data<Req /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Select what is actually in use, including tools adopted by individual teams. Anything omitted here is outside every finding in the report.</p>
                 <div className="mt-2"><Pills options={TOOLS} value={tools} onChange={setTools} /></div>
-                <Input placeholder="Other (specify)" value={otherTool} onChange={(e) => setOtherTool(e.target.value)} className="mt-2" />
+                <Input placeholder="Other tool" value={otherTool} onChange={(e) => setOtherTool(e.target.value)} className="mt-2" />
               </div>
             </>
+
           )}
 
           {step === 2 && (
             <>
-              <h2 className="">Data and Processing Profile</h2>
+              <h2 className="">Data and processing profile</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 4(1) — personal data · Art. 9 — special categories · Art. 6(1) — lawful basis</p>
+              <p className="text-sm text-muted-foreground">This section establishes what the programme actually holds. The record of processing in the report is built from these categories, and special categories change which duties attach.</p>
               <div>
-                <Label>Q6: Categories of personal data processed<Req /></Label>
+                <Label>Categories of personal data processed<Req /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Include data that exists in the systems and data you derive. An enrichment segment is processing just as much as a form field.</p>
                 <div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div>
               </div>
               <div>
-                <Label>Q7: Do you process health, biometric, or other special category data?<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR)</span> <EnforcementSignalIcon signalKey="special_categories" signals={govEnforcementSignals} /></Label>
+                <Label>Do you process health, biometric, or other special category data?<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR)</span> <EnforcementSignalIcon signalKey="special_categories" signals={govEnforcementSignals} /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Data that reveals a special category counts, even where it was never asked for. Processing without an Art. 9(2) condition is prohibited outright, not balanced.</p>
                 <div className="mt-2"><Radio name="spec" options={["Yes", "No"]} value={specialCategory} onChange={(v) => setSpecialCategory(v as any)} /></div>
                 {specialCategory === "Yes" && (
                   <div className="mt-3"><Label>Which categories?</Label><div className="mt-2"><Pills options={SPECIAL_CATS} value={specialCategoriesList} onChange={setSpecialCategoriesList} /></div></div>
@@ -661,113 +672,158 @@ const GovernanceAssessment = () => {
 
           {step === 3 && (
             <>
-              <h2 className="">Governance Infrastructure</h2>
+              <h2 className="">Governance infrastructure</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 5(2) — accountability · Art. 24 — controller responsibility · Art. 37 — DPO designation</p>
-              <div><Label>Q8: Documented privacy policy/notice<Req /> <DefPopover termKey="gdpr_transparency" /></Label><div className="mt-2"><Radio name="pp" options={["Yes, current (reviewed in last 12 months)", "Yes, but outdated", "No"]} value={privacyPolicy} onChange={setPrivacyPolicy} /></div></div>
+              <p className="text-sm text-muted-foreground">This section establishes whether the accountability machinery exists: transparency, a designated owner, impact assessment, breach response, rights fulfilment, and an inventory. These become the report's core accountability findings.</p>
+              <div><Label>Documented privacy policy or notice<Req /> <DefPopover termKey="gdpr_transparency" /></Label>
+                <p className="text-meta text-muted-foreground mt-1">A published notice that reflects current processing. A notice reviewed more than a year ago is treated as outdated.</p>
+                <div className="mt-2"><Radio name="pp" options={["Yes, current (reviewed in last 12 months)", "Yes, but outdated", "No"]} value={privacyPolicy} onChange={setPrivacyPolicy} /></div></div>
               {privacyPolicy.startsWith("Yes") && (
-                <div><Label>Q8a: Does your published privacy notice describe all current processing activities, recipients, international transfers, retention periods, and data-subject rights for your tools?<Req /> <DefPopover termKey="gdpr_transparency" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 13–14 GDPR)</span></Label><div className="mt-2"><Radio name="pncov" options={["Yes — notice covers all current activities, transfers, retention, and rights", "Partially — some activities or tools not yet reflected", "No — notice not updated for current tools", "Unsure"]} value={privacyNoticeCoverage} onChange={setPrivacyNoticeCoverage} /></div></div>
+                <div><Label>Does your published notice describe all current processing, recipients, international transfers, retention periods, and rights?<Req /> <DefPopover termKey="gdpr_transparency" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 13–14 GDPR)</span></Label>
+                  <p className="text-meta text-muted-foreground mt-1">Arts. 13–14 list each element separately. A notice missing one element is incomplete even where the rest is accurate.</p>
+                  <div className="mt-2"><Radio name="pncov" options={["Yes — notice covers all current activities, transfers, retention, and rights", "Partially — some activities or tools not yet reflected", "No — notice not updated for current tools", "Unsure"]} value={privacyNoticeCoverage} onChange={setPrivacyNoticeCoverage} /></div></div>
               )}
               
-              {showDpoQ && (<div><Label>Q9: Designated DPO or equivalent?<Req /> <DefPopover termKey="gdpr_dpo" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 37–39 GDPR)</span> <EnforcementSignalIcon signalKey="dpo_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
-              <div><Label>Q10: Has any DPIA been conducted?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpia" options={["Yes, multiple DPIAs completed", "Yes, one DPIA completed", "No, none conducted", "Unsure"]} value={dpiaStatus} onChange={setDpiaStatus} /></div></div>
+              {showDpoQ && (<div><Label>Is a data protection officer or equivalent designated?<Req /> <DefPopover termKey="gdpr_dpo" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 37–39 GDPR)</span> <EnforcementSignalIcon signalKey="dpo_absence" signals={govEnforcementSignals} /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Arts. 38–39 test the position, not the title: reporting line, resourcing, and freedom from conflicting duties.</p>
+                <div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
+              <div><Label>Has any data protection impact assessment been conducted?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Count completed assessments, not planned ones. Art. 35 requires the assessment before the processing begins.</p>
+                <div className="mt-2"><Radio name="dpia" options={["Yes, multiple DPIAs completed", "Yes, one DPIA completed", "No, none conducted", "Unsure"]} value={dpiaStatus} onChange={setDpiaStatus} /></div></div>
               {dpiaStatus.startsWith("Yes") && (
-                <div><Label>Q10a: Do your DPIAs specifically cover your current AI / high-risk tools?<Req /> <DefPopover termKey="gdpr_dpia" /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpia_ai" options={["Yes — all AI/high-risk tools assessed", "Some covered", "No — not for AI tools", "Unsure"]} value={dpiaAiCoverage} onChange={setDpiaAiCoverage} /></div></div>
+                <div><Label>Do those assessments cover your current AI and high-risk tools?<Req /> <DefPopover termKey="gdpr_dpia" /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label>
+                  <p className="text-meta text-muted-foreground mt-1">An assessment written before a tool was adopted does not cover it. Check the dates against the deployment dates.</p>
+                  <div className="mt-2"><Radio name="dpia_ai" options={["Yes — all AI/high-risk tools assessed", "Some covered", "No — not for AI tools", "Unsure"]} value={dpiaAiCoverage} onChange={setDpiaAiCoverage} /></div></div>
               )}
-              <div><Label>Q11: Incident response plan covering personal data breaches<Req /> <DefPopover termKey="gdpr_breach_notification" /> <span className="text-xs text-muted-foreground font-mono">(Art. 33 GDPR — 72 hours)</span> <EnforcementSignalIcon signalKey="breach_notification" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="ir" options={["Yes, tested in last 12 months", "Yes, but not tested", "Documented but informal", "No"]} value={incidentResponse} onChange={setIncidentResponse} /></div></div>
-              <div><Label>Q12: Can you fulfil data subject rights (access, erasure, portability, rectification) across your external/cloud vendors?<Req /> <DefPopover termKey="gdpr_data_subject_rights" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 12, 15–20 GDPR)</span></Label><div className="mt-2"><Radio name="dsr" options={["Yes — documented and tested across all vendors", "Documented but not tested", "Ad hoc / not documented", "No process in place", "Unsure"]} value={dsrCapability} onChange={setDsrCapability} /></div>
+              <div><Label>Incident response plan covering personal data breaches<Req /> <DefPopover termKey="gdpr_breach_notification" /> <span className="text-xs text-muted-foreground font-mono">(Art. 33 GDPR — 72 hours)</span> <EnforcementSignalIcon signalKey="breach_notification" signals={govEnforcementSignals} /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Art. 33 runs 72 hours from awareness. An untested plan and a tested plan answer different questions about whether that clock can be met.</p>
+                <div className="mt-2"><Radio name="ir" options={["Yes, tested in last 12 months", "Yes, but not tested", "Documented but informal", "No"]} value={incidentResponse} onChange={setIncidentResponse} /></div></div>
+              <div><Label>Can you fulfil access, erasure, portability, and rectification requests across your external and cloud vendors?<Req /> <DefPopover termKey="gdpr_data_subject_rights" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 12, 15–20 GDPR)</span></Label>
+                <p className="text-meta text-muted-foreground mt-1">The duty runs to data held by processors too. Answer on whether a request has actually been carried end to end, not on whether a procedure exists.</p>
+                <div className="mt-2"><Radio name="dsr" options={["Yes — documented and tested across all vendors", "Documented but not tested", "Ad hoc / not documented", "No process in place", "Unsure"]} value={dsrCapability} onChange={setDsrCapability} /></div>
                 {dsrCapability === "Yes — documented and tested across all vendors" && (
                   <div className="mt-3"><Label>Which rights have you tested end-to-end?</Label><div className="mt-2"><Pills options={["Access","Erasure","Portability","Rectification"]} value={dsrRightsTested} onChange={setDsrRightsTested} /></div></div>
                 )}
               </div>
-              <div><Label>Q13: Is your tool/processing inventory periodically audited for unauthorised ("shadow") tools, with a formal approval process for new tools?<Req /> <DefPopover termKey="gdpr_accountability" /> <span className="text-xs text-muted-foreground font-mono">(Art. 24 GDPR)</span></Label><div className="mt-2"><Radio name="inv" options={["Yes — audited + formal approval process", "Inventory exists, no formal audit/approval", "No formal inventory", "Unsure"]} value={inventoryAudit} onChange={setInventoryAudit} /></div></div>
+              <div><Label>Is your tool and processing inventory audited for unauthorised tools, with an approval route for new ones?<Req /> <DefPopover termKey="gdpr_accountability" /> <span className="text-xs text-muted-foreground font-mono">(Art. 24 GDPR)</span></Label>
+                <p className="text-meta text-muted-foreground mt-1">Two separate facts: whether the inventory is checked against reality, and whether adopting a new tool passes through a gate.</p>
+                <div className="mt-2"><Radio name="inv" options={["Yes — audited + formal approval process", "Inventory exists, no formal audit/approval", "No formal inventory", "Unsure"]} value={inventoryAudit} onChange={setInventoryAudit} /></div></div>
+
             </>
           )}
 
           {step === 4 && (
             <>
-              <h2 className="">Training and Technical Controls</h2>
+              <h2 className="">Measures, training and remediation</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 5(2) — accountability · Art. 32 — security of processing · Art. 32(4) — staff training obligation</p>
-              <div><Label>Q14: Privacy / data protection training<Req /></Label><div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
+              <p className="text-sm text-muted-foreground">This section establishes what is actually running — the measures, who they reach, and how they are kept current. It also sets the defaults the report applies to every remediation action it generates.</p>
+              <div><Label>Privacy and data protection training<Req /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Answer on coverage and cadence together: who receives it, and how often. Art. 32(4) is about staff processing only on instructions, which training is how you deliver.</p>
+                <div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
               {trainingStatus.startsWith("Yes") && (
-                <div><Label>Q14a: Does training specifically cover prohibited use of AI tools and data-submission risk? <span className="text-xs text-muted-foreground font-mono">(Art. 32(4) GDPR)</span></Label><div className="mt-2"><Radio name="train_ai" options={["Yes — explicitly covers AI tools", "Generally covers data handling", "No — not AI-specific", "Unsure"]} value={trainingAiCoverage} onChange={setTrainingAiCoverage} /></div></div>
+                <div><Label>Does training cover prohibited use of AI tools and data-submission risk? <span className="text-xs text-muted-foreground font-mono">(Art. 32(4) GDPR)</span></Label>
+                  <p className="text-meta text-muted-foreground mt-1">General data-handling training and tool-specific training are different things. Answer on what the material actually names.</p>
+                  <div className="mt-2"><Radio name="train_ai" options={["Yes — explicitly covers AI tools", "Generally covers data handling", "No — not AI-specific", "Unsure"]} value={trainingAiCoverage} onChange={setTrainingAiCoverage} /></div></div>
               )}
-              <div><Label>Q15: Instruction on what data may/may not be submitted to external technology tools<Req /></Label><div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
-              <div><Label>Q16: Technical controls — not just policy — preventing prohibited personal data being submitted to your AI/cloud tools?<Req /> <DefPopover termKey="gdpr_security_measures" /> <span className="text-xs text-muted-foreground font-mono">(Art. 32(1)(b) GDPR)</span></Label><div className="mt-2"><Radio name="tc" options={["Yes — DLP/content filtering actively enforced", "Partial — some tools or categories", "No — policy and training only", "Unsure"]} value={technicalControls} onChange={setTechnicalControls} /></div>
+              <div><Label>Instruction on what data may and may not be submitted to external technology tools<Req /></Label>
+                <p className="text-meta text-muted-foreground mt-1">A written prohibition and verbal guidance evidence differently. Answer on what a reviewer could be shown.</p>
+                <div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
+              <div><Label>Do technical controls, not only policy, stop prohibited personal data reaching your AI and cloud tools?<Req /> <DefPopover termKey="gdpr_security_measures" /> <span className="text-xs text-muted-foreground font-mono">(Art. 32(1)(b) GDPR)</span></Label>
+                <p className="text-meta text-muted-foreground mt-1">Art. 32 tests what is implemented. An approved policy with nothing enforcing it is a plan, not a measure.</p>
+                <div className="mt-2"><Radio name="tc" options={["Yes — DLP/content filtering actively enforced", "Partial — some tools or categories", "No — policy and training only", "Unsure"]} value={technicalControls} onChange={setTechnicalControls} /></div>
                 {(technicalControls === "Yes — DLP/content filtering actively enforced" || technicalControls.startsWith("Partial")) && (
                   <div className="mt-3"><Label>Which controls are in place?</Label><div className="mt-2"><Pills options={["DLP rules","Content filtering","Endpoint upload restrictions","Prompt-injection detection","Approval workflow"]} value={technicalControlsList} onChange={setTechnicalControlsList} /></div></div>
                 )}
               </div>
               {/* ITEM 313 — Art. 24(1): risk-calibration factors + the review-and-update sentence. */}
               <div className="pt-2 border-t space-y-4">
+                <p className="text-sm text-muted-foreground">Art. 24(1) calibrates the measures against the nature, scope, context and purposes of the processing, and requires them to be reviewed and updated. The four descriptions below are what the report calibrates its findings against; left blank, it records that the calibration factors were not stated.</p>
                 <div>
-                  <Label>Q16b: How often is the technical and organisational measure set reviewed? <span className="text-xs text-muted-foreground font-mono">(Art. 24(1) GDPR — "Those measures shall be reviewed and updated where necessary")</span></Label>
+                  <Label>How often is the set of technical and organisational measures reviewed? <span className="text-xs text-muted-foreground font-mono">(Art. 24(1) GDPR — "Those measures shall be reviewed and updated where necessary")</span></Label>
+                  <p className="text-meta text-muted-foreground mt-1">A defined cadence and a review that happens on change are different answers. Choose the one the organisation actually operates.</p>
                   <div className="mt-2"><Radio name="review_cadence" options={["Annually or more often", "Every 1–2 years", "Less often than every 2 years", "On material change only", "No defined cadence", "Unsure"]} value={measuresReviewCadence} onChange={setMeasuresReviewCadence} /></div>
                 </div>
                 <div>
-                  <Label htmlFor="measures_last_review_date">Q16c: Date the measures were last reviewed</Label>
+                  <Label htmlFor="measures_last_review_date">Date the measures were last reviewed</Label>
+                  <p className="text-meta text-muted-foreground mt-1">Optional. Left blank, the report cannot test currency and says the review date was not recorded.</p>
                   <Input id="measures_last_review_date" type="date" className="mt-2" value={measuresLastReviewDate} onChange={(e) => setMeasuresLastReviewDate(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="processing_nature">Q16d: Nature of the processing <span className="text-xs text-muted-foreground font-mono">(Art. 24(1) GDPR)</span></Label>
-                  <p className="text-xs text-muted-foreground mt-1">What is done to the data — collection, profiling, monitoring, automated decisions, disclosure.</p>
-                  <textarea id="processing_nature" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingNature} onChange={(e) => setProcessingNature(e.target.value)} />
+                  <Label htmlFor="processing_nature">Nature of the processing <span className="text-xs text-muted-foreground font-mono">(Art. 24(1) GDPR)</span></Label>
+                  <p className="text-xs text-muted-foreground mt-1">What is done to the data — collection, profiling, monitoring, automated decisions, disclosure. State each operation separately rather than as one summary.</p>
+                  <textarea id="processing_nature" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingNature} onChange={(e) => setProcessingNature(e.target.value)} placeholder="Two or three sentences" />
                 </div>
                 <div>
-                  <Label htmlFor="processing_scope">Q16e: Scope of the processing</Label>
-                  <p className="text-xs text-muted-foreground mt-1">How much, how many data subjects, how often, over what geography and retention period.</p>
-                  <textarea id="processing_scope" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingScope} onChange={(e) => setProcessingScope(e.target.value)} />
+                  <Label htmlFor="processing_scope">Scope of the processing</Label>
+                  <p className="text-xs text-muted-foreground mt-1">How much, how many data subjects, how often, over what geography and retention period. Numbers make the scope testable; adjectives do not.</p>
+                  <textarea id="processing_scope" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingScope} onChange={(e) => setProcessingScope(e.target.value)} placeholder="Two or three sentences" />
                 </div>
                 <div>
-                  <Label htmlFor="processing_context">Q16f: Context of the processing</Label>
-                  <p className="text-xs text-muted-foreground mt-1">The relationship with the data subjects, their expectations, any imbalance of power, vulnerability.</p>
-                  <textarea id="processing_context" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingContext} onChange={(e) => setProcessingContext(e.target.value)} />
+                  <Label htmlFor="processing_context">Context of the processing</Label>
+                  <p className="text-xs text-muted-foreground mt-1">The relationship with the data subjects, what they expect, any imbalance of power, any vulnerability. Employees and anonymous visitors sit in different contexts.</p>
+                  <textarea id="processing_context" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingContext} onChange={(e) => setProcessingContext(e.target.value)} placeholder="Two or three sentences" />
                 </div>
                 <div>
-                  <Label htmlFor="processing_purposes">Q16g: Purposes of the processing</Label>
-                  <p className="text-xs text-muted-foreground mt-1">Why the data is processed, stated specifically enough to test necessity against.</p>
-                  <textarea id="processing_purposes" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingPurposes} onChange={(e) => setProcessingPurposes(e.target.value)} />
+                  <Label htmlFor="processing_purposes">Purposes of the processing</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Why the data is processed, stated specifically enough to test necessity against. "Business purposes" cannot be tested; a named purpose can.</p>
+                  <textarea id="processing_purposes" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={processingPurposes} onChange={(e) => setProcessingPurposes(e.target.value)} placeholder="Two or three sentences" />
                 </div>
               </div>
               {/* GOVERNANCE UPGRADE — remediation defaults. Applied to every
                   adverse finding unless a finding-specific entry overrides them.
                   Left blank, the report says so rather than inventing a plan. */}
               <div className="pt-2 border-t space-y-4">
+                <p className="text-sm text-muted-foreground">These four defaults are applied to every adverse finding in the remediation plan. Left blank, the report records each action as unowned, undated, and unvalidated rather than inventing a plan for you.</p>
                 <div>
-                  <Label htmlFor="remediation_default_owner">Q17a: Who is accountable for remediation?</Label>
-                  <p className="text-xs text-muted-foreground mt-1">A name or a role. This is applied to each adverse finding unless you record a different owner for one.</p>
-                  <Input id="remediation_default_owner" className="mt-2" value={remediationOwner} onChange={(e) => setRemediationOwner(e.target.value)} />
+                  <Label htmlFor="remediation_default_owner">Who is accountable for remediation?</Label>
+                  <p className="text-xs text-muted-foreground mt-1">A single standing role a reviewer can locate months later. Applied to each adverse finding unless one carries its own owner.</p>
+                  <Input id="remediation_default_owner" className="mt-2" value={remediationOwner} onChange={(e) => setRemediationOwner(e.target.value)} placeholder="Role or name" />
                 </div>
                 <div>
-                  <Label htmlFor="remediation_default_target_date">Q17b: Default target date for remediation</Label>
+                  <Label htmlFor="remediation_default_target_date">Default target date for remediation</Label>
+                  <p className="text-xs text-muted-foreground mt-1">A real calendar date, ideally aligned to an existing planning cycle. Left blank, actions carry no review horizon.</p>
                   <Input id="remediation_default_target_date" type="date" className="mt-2" value={remediationTargetDate} onChange={(e) => setRemediationTargetDate(e.target.value)} />
                 </div>
                 <div>
-                  <Label>Q17c: Default remediation priority</Label>
+                  <Label>Default remediation priority</Label>
+                  <p className="text-xs text-muted-foreground mt-1">A sequencing label for your own plan, not a statutory severity. Individual findings can be raised above the default.</p>
                   <div className="mt-2"><Radio name="rem_priority" options={["Critical — remediate now", "High — remediate this quarter", "Medium — remediate this year", "Low — monitor"]} value={remediationPriority} onChange={setRemediationPriority} /></div>
                 </div>
                 <div>
-                  <Label>Q17d: How will remediation be validated?</Label>
+                  <Label>How will remediation be validated?</Label>
+                  <p className="text-xs text-muted-foreground mt-1">The evidence step: what artefact proves the action was done, and who inspects it. Left blank, the plan closes on assertion alone.</p>
                   <div className="mt-2"><Radio name="rem_validation" options={["Documentary evidence review", "Control re-test by a second reviewer", "Internal audit sample", "External audit or assurance report", "Management sign-off against the artifact"]} value={remediationValidationMethod} onChange={setRemediationValidationMethod} /></div>
                 </div>
               </div>
+
             </>
 
           )}
 
           {step === 5 && showStep5 && (
             <>
-              <h2 className="">Transfer and Compliance</h2>
+              <h2 className="">Processors and international transfers</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 28 — processor contracts · Arts. 44–49 — international transfers · Art. 46(2)(c) — SCCs</p>
-              <div><Label>Q17: DPAs signed with relevant vendors<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
+              <p className="text-sm text-muted-foreground">This section establishes coverage across your supply chain. Each processor and each transfer route is a separate duty, so the report counts them rather than generalising from the largest vendor.</p>
+              <div><Label>Data processing agreements signed with relevant vendors<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Answer from a counted vendor list. The duty attaches per processor, so the uncovered vendor is the finding.</p>
+                <div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
               {(dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors") && (
-                <div><Label>Q17a: Have those DPAs been verified against the Art. 28(3) mandatory clauses? <DefPopover termKey="gdpr_processor_contract" /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpa28" options={["Yes — verified", "Partially", "Not verified", "Unsure"]} value={dpaArt28Verified} onChange={setDpaArt28Verified} /></div></div>
+                <div><Label>Have those agreements been verified against the Art. 28(3) mandatory clauses? <DefPopover termKey="gdpr_processor_contract" /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label>
+                  <p className="text-meta text-muted-foreground mt-1">Art. 28(3) names eight required clauses. A signed vendor template is not verification until someone has read it against that list.</p>
+                  <div className="mt-2"><Radio name="dpa28" options={["Yes — verified", "Partially", "Not verified", "Unsure"]} value={dpaArt28Verified} onChange={setDpaArt28Verified} /></div></div>
               )}
-              <div><Label>Q18: Cross-border transfers outside EU/UK<Req /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–46 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
+              <div><Label>Cross-border transfers outside the EU or UK<Req /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–46 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label>
+                <p className="text-meta text-muted-foreground mt-1">Remote support access and cloud backups are transfers too, not only where data is primarily stored.</p>
+                <div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
               {(transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries") && (
-                <div><Label>Q18a: Which transfer mechanism is in place for those transfers? <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">{transferMechCite}</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="xfermech" options={transferMechOptions} value={transferMechanism} onChange={setTransferMechanism} /></div></div>
+                <div><Label>Which transfer mechanism is in place for those transfers? <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">{transferMechCite}</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label>
+                  <p className="text-meta text-muted-foreground mt-1">Chapter V asks which mechanism carries each route. Where routes rely on different mechanisms, answer for the one covering most of them and note the rest in additional context.</p>
+                  <div className="mt-2"><Radio name="xfermech" options={transferMechOptions} value={transferMechanism} onChange={setTransferMechanism} /></div></div>
               )}
             </>
           )}
+
 
           {/* R1a: optional catch-all rendered on the final input step (before the summary). */}
           {!summaryStep && step === totalSteps - 1 && (

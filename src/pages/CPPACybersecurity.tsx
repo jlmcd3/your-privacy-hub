@@ -194,13 +194,14 @@ export default function CPPACybersecurity() {
 
   const handlePurchase = () => {
     if (!allComplete) {
-      toast({ title: "Required", description: "Please complete the profile (entity, industry, incidents, framework, last audit).", variant: "destructive" });
+      toast({ title: "Required", description: "Complete the organization profile: entity name, industry, incidents, framework, and last audit.", variant: "destructive" });
       return;
     }
     notifyUnassessed();
     if (!user) { setAuthGateOpen(true); return; }
     setCheckoutOpen(true);
   };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -305,40 +306,59 @@ export default function CPPACybersecurity() {
         >
         <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
-          <h2 className="">Organization Profile</h2>
-          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7123 — cybersecurity audit scope and components; § 7124 — annual certification requirement</p>
+          <h2 className="">Organization profile</h2>
+          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7123 — cybersecurity audit scope and components · § 7124 — annual certification requirement</p>
+          <p className="text-sm text-muted-foreground">These five facts set the audit perimeter. They name the entity that owes the duty, the threat context each component finding is weighed against, and the audit history the readiness report starts from.</p>
           <RequiredLegend />
           <div data-rail-key="entity_name" onFocus={() => focusRail('entity_name')}>
-            <Label>Entity name<Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report)</span></Label>
-            <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.entity_name} onChange={(e) => setProfile({ ...profile, entity_name: e.target.value })} placeholder="e.g., Acme Retail, Inc." autoComplete="organization" />
+            <Label htmlFor="cyber_entity_name">Entity name<Req /></Label>
+            <p className="text-xs text-muted-foreground mt-1">The legal entity that owes the audit duty — this name carries onto the report and any downstream certification.</p>
+            <input id="cyber_entity_name" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.entity_name} onChange={(e) => setProfile({ ...profile, entity_name: e.target.value })} placeholder="Legal entity name" autoComplete="organization" />
           </div>
           <div data-rail-key="profile_industry" onFocus={() => focusRail('profile_industry')}>
-            <Label>Industry sector<Req /></Label>
-            <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
+            <Label htmlFor="cyber_industry">Industry sector<Req /></Label>
+            <p className="text-xs text-muted-foreground mt-1">The sector of the operations in scope, which sets the threat context the eighteen component findings are read against.</p>
+            <input id="cyber_industry" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="Sector" />
           </div>
           <div data-rail-key="incidents_12mo" onFocus={() => focusRail('incidents_12mo')}>
-            <Label>Reportable security incidents in last 12 months<Req /></Label>
-            <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incidents_12mo} onChange={(e) => setProfile({ ...profile, incidents_12mo: e.target.value })}>
+            <Label htmlFor="cyber_incidents">Reportable security incidents in the last 12 months<Req /></Label>
+            <p className="text-xs text-muted-foreground mt-1">Count from the incident register, using the severity threshold your response plan applies. § 7123(c)(17) reaches incidents in the audit period.</p>
+            <select id="cyber_incidents" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incidents_12mo} onChange={(e) => setProfile({ ...profile, incidents_12mo: e.target.value })}>
               <option value="">Select…</option>
-              <option>None</option><option>1</option><option>2–5</option><option>More than 5</option>
+              <option value="None">None</option>
+              <option value="1">1</option>
+              <option value="2–5">2–5</option>
+              <option value="More than 5">More than 5</option>
             </select>
           </div>
           <div data-rail-key="framework" onFocus={() => focusRail('framework')}>
-            <Label>Primary security framework in use<Req /></Label>
-            <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.framework} onChange={(e) => setProfile({ ...profile, framework: e.target.value })}>
+            <Label htmlFor="cyber_framework">Primary security framework in use<Req /></Label>
+            <p className="text-xs text-muted-foreground mt-1">The framework the program is actually run against today, not one the organization intends to adopt.</p>
+            <select id="cyber_framework" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.framework} onChange={(e) => setProfile({ ...profile, framework: e.target.value })}>
               <option value="">Select…</option>
-              <option>NIST CSF</option><option>ISO 27001</option><option>SOC 2</option><option>HITRUST</option><option>PCI DSS</option><option>None / informal</option><option>Other</option>
+              <option value="NIST CSF">NIST CSF</option>
+              <option value="ISO 27001">ISO 27001</option>
+              <option value="SOC 2">SOC 2</option>
+              <option value="HITRUST">HITRUST</option>
+              <option value="PCI DSS">PCI DSS</option>
+              <option value="None / informal">None / informal</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div data-rail-key="profile_audit" onFocus={() => focusRail('profile_audit')}>
-            <Label>Last independent security audit<Req /></Label>
-            <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.last_audit} onChange={(e) => setProfile({ ...profile, last_audit: e.target.value })}>
+            <Label htmlFor="cyber_last_audit">Last independent security audit<Req /></Label>
+            <p className="text-xs text-muted-foreground mt-1">An audit performed by someone outside the team that runs the program. Internal self-review is not an independent audit for this purpose.</p>
+            <select id="cyber_last_audit" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.last_audit} onChange={(e) => setProfile({ ...profile, last_audit: e.target.value })}>
               <option value="">Select…</option>
-              <option>Within 12 months</option><option>12–24 months ago</option><option>Over 24 months ago</option><option>Never</option>
+              <option value="Within 12 months">Within 12 months</option>
+              <option value="12–24 months ago">12–24 months ago</option>
+              <option value="Over 24 months ago">Over 24 months ago</option>
+              <option value="Never">Never</option>
             </select>
           </div>
           <div data-rail-key="in_scope_frameworks" onFocus={() => focusRail('in_scope_frameworks')}>
-            <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional — select every framework whose evidence you intend to leverage under § 7123(f))</span></Label>
+            <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+            <p className="text-xs text-muted-foreground mt-1">Select every framework whose existing evidence you intend to leverage under § 7123(f). Left blank, the report treats the audit as standing alone and credits no prior framework work.</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {CYBER_IN_SCOPE_FRAMEWORKS.map((opt) => {
                 const selected = profile.in_scope_frameworks.includes(opt);
@@ -354,31 +374,35 @@ export default function CPPACybersecurity() {
             </div>
           </div>
           <div data-rail-key="audit_scope_rationale" onFocus={() => focusRail('audit_scope_rationale')}>
-            <Label>Audit scope rationale <span className="text-xs text-muted-foreground font-normal">(optional — explain what the audit covers and, if leveraging a prior framework under § 7123(f), how it supplements)</span></Label>
-            <Textarea rows={3} value={profile.audit_scope_rationale} onChange={(e) => setProfile({ ...profile, audit_scope_rationale: e.target.value })} className="mt-2" placeholder="e.g., Audit covers the SaaS production estate; leverages last year's SOC 2 Type II, supplemented for § 7123(c) components not covered by SOC 2 (segmentation, retention)." />
+            <Label htmlFor="cyber_scope_rationale">Audit scope rationale <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+            <p className="text-xs text-muted-foreground mt-1">Say what the audit covers and, where you lean on a prior framework under § 7123(f), how this audit supplements it. Left blank, the report records no stated scope and cannot justify leveraging prior work.</p>
+            <Textarea id="cyber_scope_rationale" rows={3} value={profile.audit_scope_rationale} onChange={(e) => setProfile({ ...profile, audit_scope_rationale: e.target.value })} className="mt-2" placeholder="Two or three sentences" />
           </div>
           {/* ITEM 315 — § 7122 auditor-engagement status. Feeds the
               independence determination; § 7122(a)(3) turns on the internal
               auditor's reporting line, which no prior field captured. */}
           <div data-rail-key="auditor_engagement_status" onFocus={() => focusRail('auditor_engagement_status')}>
-            <Label>Auditor engagement status <span className="text-xs text-muted-foreground font-normal">(optional — § 7122 requires a qualified, objective, independent auditor; internal auditors must report to an executive without responsibility for the cybersecurity program)</span></Label>
-            <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.auditor_engagement_status} onChange={(e) => setProfile({ ...profile, auditor_engagement_status: e.target.value })}>
+            <Label htmlFor="cyber_auditor_status">Auditor engagement status <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+            <p className="text-xs text-muted-foreground mt-1">§ 7122 requires a qualified, objective, independent auditor; an internal auditor must report to an executive who carries no responsibility for the cybersecurity program. Left blank, the report records the independence position as undetermined.</p>
+            <select id="cyber_auditor_status" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.auditor_engagement_status} onChange={(e) => setProfile({ ...profile, auditor_engagement_status: e.target.value })}>
               <option value="">Select…</option>
-              {CYBER_AUDITOR_ENGAGEMENT.map((opt) => <option key={opt}>{opt}</option>)}
+              {CYBER_AUDITOR_ENGAGEMENT.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
           <div data-rail-key="prior_audit_scope" onFocus={() => focusRail('prior_audit_scope')}>
-            <Label>Prior audit scope <span className="text-xs text-muted-foreground font-normal">(optional — what the last audit covered; § 7122(g) requires five-year retention of all documents relevant to each audit)</span></Label>
-            <Textarea rows={3} value={profile.prior_audit_scope} onChange={(e) => setProfile({ ...profile, prior_audit_scope: e.target.value })} className="mt-2" placeholder="e.g., FY2025 SOC 2 Type II covering the production estate; report, sampling worksheets, and management letter retained in the GRC system." />
+            <Label htmlFor="cyber_prior_scope">Prior audit scope <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+            <p className="text-xs text-muted-foreground mt-1">What the last audit covered and where its records are held — § 7122(g) requires five-year retention of everything relevant to each audit. Left blank, the report makes no retention finding.</p>
+            <Textarea id="cyber_prior_scope" rows={3} value={profile.prior_audit_scope} onChange={(e) => setProfile({ ...profile, prior_audit_scope: e.target.value })} className="mt-2" placeholder="Two or three sentences" />
           </div>
 
         </section>
 
+
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="">18 Cybersecurity Program Components</h2>
+            <h2 className="">The eighteen cybersecurity program components</h2>
             <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7123(c)(1)–(18) — enumerated program components</p>
-            <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated program components.</p>
+            <p className="text-sm text-muted-foreground mt-1">Each component becomes one finding in the readiness report. Rate what is running today; a component left unrated is reported as insufficient information rather than as a shortfall.</p>
           </div>
 
           {CONTROLS.map((c, i) => (
@@ -397,19 +421,22 @@ export default function CPPACybersecurity() {
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Maturity<Req /></Label>
-                  <select data-rail-key={c.key} onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
+                  <Label className="text-xs" htmlFor={`maturity_${c.key}`}>Maturity<Req /></Label>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Rate coverage as deployed today, not as designed or planned.</p>
+                  <select id={`maturity_${c.key}`} data-rail-key={c.key} onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
                     <option value="">Select…</option>
-                    {MATURITY.map((m) => <option key={m}>{m}</option>)}
+                    {MATURITY.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
                 <div>
-                  <Label className="text-xs">Notes (optional)</Label>
-                  <Textarea rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tools, scope, exceptions…" />
+                  <Label className="text-xs" htmlFor={`notes_${c.key}`}>Notes <span className="font-normal text-muted-foreground">(optional)</span></Label>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Name the tool, the estate it covers, and any carve-out. Left blank, the finding rests on the rating alone.</p>
+                  <Textarea id={`notes_${c.key}`} rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tool, scope, exceptions" />
                 </div>
               </div>
               <div className="mt-3">
-                <Label className="text-xs">Evidence available (optional) <span className="text-xs text-muted-foreground font-normal">— tick every artefact the auditor can test</span></Label>
+                <Label className="text-xs">Evidence available <span className="font-normal text-muted-foreground">(optional)</span></Label>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Select every artefact an auditor could test for this component. Left blank, the evidence checklist records nothing on file for it.</p>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {CYBER_EVIDENCE_OPTS.map((opt) => {
                     const selected = (evidence[c.key] || []).includes(opt);
@@ -424,6 +451,7 @@ export default function CPPACybersecurity() {
                   })}
                 </div>
               </div>
+
               {c.key === "c1_auth" && (
                 <FscrCallout
                   citation="11 CCR § 7123(c)(1)"
@@ -436,7 +464,7 @@ export default function CPPACybersecurity() {
 
         <div className="bg-card border rounded-lg p-6 flex justify-end flex-wrap gap-3">
           {isSuite ? (
-            <Button onClick={() => { if (!allComplete) { toast({ title: "Required", description: "Please complete the profile (entity, industry, incidents, framework, last audit).", variant: "destructive" }); return; } notifyUnassessed(); if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
+            <Button onClick={() => { if (!allComplete) { toast({ title: "Required", description: "Complete the organization profile: entity name, industry, incidents, framework, and last audit.", variant: "destructive" }); return; } notifyUnassessed(); if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
               Purchase CPPA Suite (${suitePricing.price})
             </Button>
           ) : (
