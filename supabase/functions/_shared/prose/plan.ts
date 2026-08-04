@@ -81,6 +81,23 @@ export interface PlanProvenance {
   readonly exemplars?: readonly string[];
 }
 
+/**
+ * ITEM 364 — REGISTER PROPAGATION.
+ * An EXEMPLAR PAIR pins one BEFORE passage taken from the product's own live
+ * output beside the AFTER passage the register asks for. Pairs are review
+ * material and prose shape only: the AFTER text may not introduce a fact, a
+ * citation, or a legal standard that the BEFORE text did not already carry.
+ */
+export interface ExemplarPair {
+  readonly id: string;
+  /** Section id (or report path) the passage was taken from. */
+  readonly section_id: string;
+  readonly before: string;
+  readonly after: string;
+  /** Why the AFTER reads better — the register rule the pair demonstrates. */
+  readonly note: string;
+}
+
 export interface DocumentPlan {
   readonly product: string;
   readonly version: string;
@@ -89,7 +106,11 @@ export interface DocumentPlan {
   readonly approved_in_ledger_item?: string;
   readonly provenance: PlanProvenance;
   readonly sections: readonly PlannedSection[];
+  /** The document's controlling sentence — what the whole report argues. */
+  readonly thesis?: string;
+  readonly exemplar_pairs?: readonly ExemplarPair[];
 }
+
 
 // ---------------------------------------------------------------------------
 // LINT
@@ -102,7 +123,9 @@ export type PlanLintRule =
   | "empty_plan"
   | "missing_themes"
   | "unknown_arc_stage"
-  | "legal_content_in_title";
+  | "legal_content_in_title"
+  | "legal_content_in_thesis"
+  | "exemplar_pair_incomplete";
 
 export interface PlanLintFinding {
   readonly rule: PlanLintRule;
@@ -176,8 +199,29 @@ export function lintPlan(plan: DocumentPlan): PlanLintFinding[] {
     }
   }
 
+  // ITEM 364 — the thesis is shape, not law: it says what the document argues,
+  // never what the law requires.
+  if (plan.thesis && LEGAL_IN_TITLE.some((re) => re.test(plan.thesis!))) {
+    out.push({
+      rule: "legal_content_in_thesis",
+      detail: `thesis carries legal content: ${plan.thesis}`,
+    });
+  }
+
+  for (const pair of plan.exemplar_pairs ?? []) {
+    if (!pair.before.trim() || !pair.after.trim() || !pair.note.trim()) {
+      out.push({
+        rule: "exemplar_pair_incomplete",
+        section_id: pair.section_id,
+        detail: `exemplar pair ${pair.id} must carry a before, an after, and a note`,
+      });
+    }
+  }
+
   return out;
 }
+
+
 
 /**
  * A product renders through its plan only when the plan is approved, every

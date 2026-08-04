@@ -1,25 +1,26 @@
 {
   "product": "dpia",
-  "version": "prose-plans-2026-08-01-item339",
+  "version": "prose-plans-2026-08-04-item364",
   "approved": false,
   "provenance": {
-    "method": "report_keys",
+    "method": "draft",
     "donors_total": 36,
-    "donors_with_text": 0,
-    "extracted_at": "2026-08-01",
+    "donors_with_text": 1,
+    "extracted_at": "2026-08-04",
     "exemplars": [
-      "ir_playbook",
       "cppa-risk"
     ]
   },
+  "thesis": "On the record this organisation gave, the assessment states what the processing is, what it decides, what carries the decision, and what the organisation must still put on the record before anyone signs it.",
   "sections": [
     {
       "id": "section_0_overview",
-      "title": "Determination",
+      "title": "About this assessment",
       "arc_stage": "headline",
       "lead": "determination",
       "source_key": "section_0_overview",
       "themes": [
+        "lead_in",
         "outcome",
         "reasons_required",
         "residual_uncertainty"
@@ -29,11 +30,12 @@
     },
     {
       "id": "section_1_description",
-      "title": "The processing as the organisation described it",
+      "title": "The facts the organisation provided",
       "arc_stage": "record",
       "lead": "record",
       "source_key": "section_1_description",
       "themes": [
+        "parties",
         "nature",
         "scope",
         "context",
@@ -66,7 +68,8 @@
         "necessity",
         "alternatives_considered",
         "data_minimisation",
-        "rights"
+        "rights",
+        "weighing"
       ],
       "required": true,
       "status": "pending_review"
@@ -86,6 +89,31 @@
       "status": "pending_review"
     },
     {
+      "id": "corpus_analogies",
+      "title": "Comparable regulator decisions",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "enforcement_precedents",
+      "themes": [
+        "framing",
+        "analogy"
+      ],
+      "required": false,
+      "status": "pending_review"
+    },
+    {
+      "id": "general_conclusions",
+      "title": "General conclusions",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "executive_summary",
+      "themes": [
+        "synthesis"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
       "id": "information_needed",
       "title": "What the record does not yet state",
       "arc_stage": "ask",
@@ -94,7 +122,8 @@
       "themes": [
         "silent_fields",
         "hedged_answers",
-        "inconsistencies"
+        "inconsistencies",
+        "completeness"
       ],
       "required": true,
       "status": "pending_review"
@@ -122,10 +151,34 @@
       "themes": [
         "outcome_restated",
         "actions",
+        "accountability",
         "counsel_reservation"
       ],
       "required": true,
       "status": "pending_review"
+    }
+  ],
+  "exemplar_pairs": [
+    {
+      "id": "xp-dpia-1",
+      "section_id": "section_0_overview",
+      "before": "No third-party processors are identified on the current record. If processors are engaged (e.g. cloud hosting, analytics platform), a data processing agreement must be in place for each. The organisation should confirm whether the described position applies here. ]",
+      "after": "The record names no processor. If hosting or analytics work is done by someone outside the organisation, that arrangement belongs on the record, and the assessment cannot close until it is there.",
+      "note": "Removes the stock hedge and the stray bracket, drops the parenthetical list into the sentence, and ends on a short clause that lands."
+    },
+    {
+      "id": "xp-dpia-2",
+      "section_id": "section_3_necessity_proportionality",
+      "before": "However, necessity under data minimisation and the balancing test requires that the processing be the least intrusive effective option — not merely that one alternative was rejected. The record does not yet resolve whether further minimisation within portal-event data (e.g. processing event types rather than full event sequences, or applying pseudonymisation at point of ingest) was considered. Documenting the specific minimisation choices made at the data-model level — which portal-event fields are collected, which are discarded, and why — would strengthen the necessity case and complete the analysis.",
+      "after": "Rejecting one alternative is not the test. The organisation must show that no less intrusive option would have worked. Here the record stops short: it does not say whether narrower event data, or pseudonymisation at ingest, was weighed and set aside. Name the fields kept, name the fields dropped, and say why. That is what turns a colorable case into a documented one.",
+      "note": "Determination first, then the record, then the ask. Breaks one 60-word chain into four sentences of varying length and strips the stacked em-dash asides."
+    },
+    {
+      "id": "xp-dpia-3",
+      "section_id": "section_6_conclusion",
+      "before": "[TO COMPLETE — DD/MM/YYYY, sign-off by the accountable controller representative as complete]",
+      "after": "No one has signed this assessment yet. The record names no approver, no title, and no date, so nothing here has been accepted by the organisation as its own position.",
+      "note": "Degraded-record register: the silence is stated as a finding in the document's own voice rather than shipped as a form placeholder."
     }
   ]
 }

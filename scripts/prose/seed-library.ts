@@ -15,6 +15,7 @@ import { contentHash, PROSE_LIBRARY_SCHEMA_VERSION } from "../../supabase/functi
 const ITEMS = [
   { table: "prose_frame_sets", column: "frames", product: "cppa-risk", rel: "frames/cppa-risk.frames.json" },
   { table: "prose_document_plans", column: "plan", product: "cppa-risk", rel: "plans/cppa-risk.plan.json" },
+  { table: "prose_frame_sets", column: "frames", product: "dpia", rel: "frames/dpia.frames.json" },
   { table: "prose_document_plans", column: "plan", product: "dpia", rel: "plans/dpia.plan.json" },
   { table: "prose_document_plans", column: "plan", product: "governance", rel: "plans/governance.plan.json" },
   { table: "prose_document_plans", column: "plan", product: "registration", rel: "plans/registration.plan.json" },

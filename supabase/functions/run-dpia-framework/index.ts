@@ -213,7 +213,15 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "STATE-ONCE (REBUILD-DPIA T7b): each determination and contradiction appears in FULL exactly once, in its designated home section. Later references from other sections are one-line pointers to that home section, never restatements.",
     "SECTION 6 NAMES ITS BLOCKERS IN ADVOCATE-DRAFTER VOICE (REBUILD-DPIA T7d): where approval or conditional approval turns on specific missing inputs, section_6_conclusion NAMES each blocker constructively with its completion path — 'the specific Art. 46 safeguard is the remaining verdict-blocking item; recording the transfer instrument completes it' — NEVER 'cannot approve' or clearance-verdict phrasing.",
     "GDPR-CITES DEDUPE (REBUILD-DPIA T7e): gdpr_meta.gdprCites values are deterministically deduplicated exact-string, order-preserving. Never emit the same cite twice in that array.",
+    // ─── ITEM 364 — REGISTER (Item 363 register, propagated to DPIA) ───────
+    "REGISTER — SENTENCE ORDER: within every narrative string, state the determination first, then the facts on the record that carry it, then what remains to be recorded. Never open with scaffolding ('This section considers…', 'It should be noted that…'); open with the position.",
+    "REGISTER — DICTION: write plain professional English. Banned entirely: 'leverage', 'utilize'/'utilise', 'robust', 'comprehensive', 'holistic', 'seamless', 'best-in-class', 'in order to', 'it should be noted', 'it is important to note', 'as such', 'going forward'. Use at most one intensifier ('very', 'highly', 'significantly', 'substantially', 'particularly') per paragraph.",
+    "REGISTER — CADENCE: vary sentence length. In any narrative string of three or more sentences, at least one sentence must run 14 words or fewer, and no four consecutive sentences may be within three words of the same length. Never stack more than two asides (em-dash pairs or trailing comma clauses) in one sentence.",
+    "REGISTER — NO REPEATED SCAFFOLD: a stock hedge such as 'The organisation should confirm whether the described position applies here' may appear AT MOST ONCE in the entire document. Where the same gap recurs, state it once in its home section and point to it thereafter. Never leave an unbalanced bracket, a doubled sentence, or a merge artifact in a narrative string.",
+    "REGISTER — DEGRADED RECORD: where the record is silent, say so in the document's own voice as a finding — 'The record names no processor.' — and then say what putting it on the record would settle. Do not emit a bare form placeholder as the whole of a narrative field, and do not restate the same silence in more than one section.",
+    "REGISTER — ACCOUNTABILITY FIELDS: for assessment_team and validation_approval, where the organisation has not named a preparer, an approver, a title, a date, or the basis of sign-off, write the silence as a short finding in the same register. Never invent a name, a role, or a date.",
   ].join("\n\n"),
+
 
   languageVariant: "american",
 };

@@ -197,6 +197,12 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   estimated_launch_date: "estimated launch date",
   estimated_end_date: "estimated end date",
   dpia_team: "DPIA team roster",
+  // ITEM 364 — DPIA accountability fields added by the structural program.
+  dpia_prepared_by: "who prepared this assessment",
+  dpia_approved_by_name: "who approved this assessment",
+  dpia_approved_by_title: "the approver's role",
+  dpia_approval_date: "the date this assessment was approved",
+  dpia_signoff_basis: "what the sign-off rests on",
   reference_materials: "reference materials",
   reasons_to_conduct: "reasons for conducting the DPIA",
   dpia_scope_note: "DPIA scope note",
