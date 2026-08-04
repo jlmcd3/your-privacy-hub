@@ -91,7 +91,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q1_revenue: {
-    fieldLabel: "Q1: Annual gross revenue",
+    fieldLabel: "Annual gross revenue",
     citation: "Cal. Civ. Code § 1798.140(ag)(1)",
     citationUrl: CPPA_URL,
     plainSummary: "A 'business' subject to CCPA/CPRA includes any for-profit entity doing business in California with annual gross revenues exceeding $25 million. This threshold applies regardless of how much California consumer data you process. The revenue band you select also determines your first cybersecurity-audit deadline under 11 CCR § 7121(a): >$100M → April 1, 2028; $50M–$100M → April 1, 2029; <$50M → April 1, 2030.",
@@ -108,7 +108,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q5c_share_revenue_50pct: {
-    fieldLabel: "Q5c: 50%-or-more of annual revenue from selling or sharing PI",
+    fieldLabel: "50%-or-more of annual revenue from selling or sharing PI",
     citation: "Cal. Civ. Code § 1798.140(d)(1)(C)",
     citationUrl: CPPA_URL,
     plainSummary: "Deriving 50% or more of annual revenue from selling or sharing consumers' personal information carries two independent consequences: (1) covered-business status under Cal. Civ. Code § 1798.140(d)(1)(C) attaches regardless of revenue size or consumer count; and (2) the same 50%-revenue prong is a standalone cybersecurity-audit trigger under 11 CCR § 7120(b)(1), meaning the audit obligation attaches without any consumer-count threshold.",
@@ -124,7 +124,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q15c_spi_volume: {
-    fieldLabel: "Q15c: Sensitive PI of 50,000 or more consumers",
+    fieldLabel: "Sensitive PI of 50,000 or more consumers",
     citation: "11 CCR § 7120(b)(2)(B)",
     citationUrl: CPPA_URL,
     plainSummary: "Processing the sensitive personal information of 50,000 or more consumers in the preceding calendar year is a standalone cybersecurity-audit trigger under 11 CCR § 7120(b)(2)(B), independent of the general 250,000-consumer trigger in § 7120(b)(2)(A). It fires only when the § 1798.140(d)(1)(A) revenue-based covered-business test is also met (i.e. annual gross revenues > $25M).",
@@ -143,7 +143,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
 
 
   q2_consumers: {
-    fieldLabel: "Q2: Number of California consumers processed annually",
+    fieldLabel: "Number of California consumers processed annually",
     citation: "Cal. Civ. Code § 1798.140(d)(1)(B)",
     citationUrl: CPPA_URL,
     plainSummary: "A business that annually buys, sells, or shares the personal information of 100,000 or more California consumers or households satisfies the § 1798.140(d)(1)(B) covered-business prong, independent of the (d)(1)(A) revenue prong. BAND-REALIGNMENT (2026-07-26): the V2 band vocabulary aligns each option to the statutory 100,000 / 250,000 / 1,000,000 lines so the count prong and the § 7120(b)(2)(A) 250,000-consumer audit prong can be evaluated verbatim.",
@@ -159,7 +159,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q3_sector: {
-    fieldLabel: "Q3: Primary business sector",
+    fieldLabel: "Primary business sector",
     citation: "11 CCR § 7150(a)",
     citationUrl: CPPA_URL,
     plainSummary: "A risk assessment is required before beginning any processing of personal information that presents significant risk to consumer privacy. The CPPA's regulations identify specific categories of processing — including by sector — that trigger this requirement.",
@@ -174,7 +174,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q4_pi_categories: {
-    fieldLabel: "Q4: Categories of personal information processed",
+    fieldLabel: "Categories of personal information processed",
     citation: "11 CCR § 7152(a)(2)",
     citationUrl: CPPA_URL,
     plainSummary: "The risk assessment must identify the specific categories of personal information involved in the processing. Eight categories are classified as sensitive PI under Cal. Civ. Code § 1798.140(ae) and trigger additional harm analysis requirements.",
@@ -190,7 +190,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q5_sell_share: {
-    fieldLabel: "Q5: Sell or share PI for cross-context behavioural advertising",
+    fieldLabel: "Sell or share PI for cross-context behavioural advertising",
     citation: "Cal. Civ. Code §§ 1798.120, 1798.135(a)",
     citationUrl: CPPA_URL,
     plainSummary: "Businesses that sell or share PI must provide a 'Do Not Sell or Share My Personal Information' link on their homepage. Selling or sharing PI is also one of the six categories of processing that triggers the CPPA's risk assessment requirement.",
@@ -207,7 +207,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q9_opt_out: {
-    fieldLabel: "Q9: Right to Opt-Out — Do Not Sell or Share link",
+    fieldLabel: "Right to Opt-Out — Do Not Sell or Share link",
     citation: "Cal. Civ. Code §§ 1798.120, 1798.135(a)",
     citationUrl: CPPA_URL,
     plainSummary: "If your business sells or shares PI, you must provide a clearly visible 'Do Not Sell or Share My Personal Information' link on your homepage. The link must be conspicuous — footer-only placement may not satisfy the requirement.",
@@ -223,7 +223,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q10_verification: {
-    fieldLabel: "Q10: Identity verification for consumer rights requests",
+    fieldLabel: "Identity verification for consumer rights requests",
     citation: "11 CCR §§ 7060–7062",
     citationUrl: CPPA_URL,
     plainSummary: "Businesses must verify the identity of consumers making rights requests before responding. The verification process must be proportionate to the sensitivity of the information requested and must not create barriers to exercising rights.",
@@ -239,7 +239,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q15_sensitive_pi: {
-    fieldLabel: "Q15: Do you process any sensitive personal information?",
+    fieldLabel: "Do you process any sensitive personal information?",
     citation: "Cal. Civ. Code § 1798.140(ae)",
     citationUrl: CPPA_URL,
     plainSummary: "Sensitive PI is a defined category that includes health data, biometrics, genetic data, precise geolocation, racial/ethnic origin, religious beliefs, union membership, sexual orientation, and citizenship status. Processing sensitive PI triggers the right to limit use and additional harm analysis in the risk assessment.",
@@ -255,7 +255,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q18_admt: {
-    fieldLabel: "Q18: Do you use ADMT for decisions with significant effects on consumers?",
+    fieldLabel: "Automated decisionmaking for decisions with significant effects",
     citation: "11 CCR § 7001(e)",
     citationUrl: CPPA_URL,
     plainSummary: "ADMT means technology that processes PI and uses computation to replace or substantially replace human decision-making. It includes AI, ML, and profiling. It does NOT include infrastructure (firewalls, databases, spreadsheets) that doesn't replace human decisions. ADMT use triggers a mandatory risk assessment under §§ 7150(b)(3) and 7150(b)(6).",
@@ -272,7 +272,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   i1_purpose: {
-    fieldLabel: "I-1: Specific processing purpose",
+    fieldLabel: "Specific processing purpose",
     citation: "11 CCR § 7152(a)(1)",
     citationUrl: CPPA_URL,
     plainSummary: "The risk assessment must state the specific purpose of the processing. Generic descriptions — 'to improve services', 'for security', 'analytics' — are explicitly insufficient. You must describe what the processing does, who it affects, and what business outcome it achieves.",
@@ -291,7 +291,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   i2_retention: {
-    fieldLabel: "I-2: Retention period and criteria",
+    fieldLabel: "Retention period and criteria",
     citation: "11 CCR § 7152(a)(3)(B)",
     citationUrl: CPPA_URL,
     plainSummary: "The assessment must state how long each category of personal information will be retained, or the criteria used to determine the retention period. You must state a specific period or a specific determinable criterion — 'as long as necessary' is not sufficient.",
@@ -306,7 +306,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   i5_admt: {
-    fieldLabel: "I-5: ADMT specifics",
+    fieldLabel: "Automated decisionmaking specifics",
     citation: "11 CCR § 7152(a)(3)(G)",
     citationUrl: CPPA_URL,
     plainSummary: "When the processing involves ADMT for significant decisions, the risk assessment must describe: the logic of the ADMT system, the training data sources, fairness/bias testing, and the human review process. All four elements are required.",
@@ -323,7 +323,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   i9_dpia: {
-    fieldLabel: "I-9: Existing GDPR DPIA or other PIA",
+    fieldLabel: "Existing data protection impact assessment",
     citation: "11 CCR § 7156(b)",
     citationUrl: CPPA_URL,
     plainSummary: "A prior GDPR DPIA or other PIA can be cross-referenced in the CPPA risk assessment. It does not substitute — the CPPA requires § 7152(a)(1)–(9) elements whether or not a prior assessment exists. However, cross-referencing reduces duplication and speeds completion.",
@@ -448,7 +448,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q5b_profiling: {
-    fieldLabel: "Q5b: Profiling via systematic observation / sensitive location",
+    fieldLabel: "Profiling via systematic observation / sensitive location",
     citation: "11 CCR § 7150(b)(4)",
     citationUrl: CPPA_URL,
     plainSummary: "A risk assessment is independently required where a business profiles consumers acting as job applicants, employees, students, or independent contractors based on systematic observation, or profiles consumers based on their presence in a sensitive location. This is separate from selling/sharing or ADMT use.",
@@ -464,7 +464,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q15b_under16: {
-    fieldLabel: "Q15b: Actual knowledge of under-16 processing",
+    fieldLabel: "Actual knowledge of under-16 processing",
     citation: "11 CCR § 7001(bbb)",
     citationUrl: CPPA_URL,
     plainSummary: "The 2026 regulations make all personal information of a consumer under 16 sensitive personal information where the business has actual knowledge of the consumer's age. Requesting age, or willfully disregarding it, is treated as actual knowledge. Processing under-16 data therefore engages the sensitive-PI risk-assessment trigger.",
@@ -480,7 +480,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   q18b_admt_training: {
-    fieldLabel: "Q21: Training ADMT / facial / emotion / biometric",
+    fieldLabel: "Training automated decisionmaking or recognition technology",
     citation: "11 CCR § 7150(b)(5)",
     citationUrl: CPPA_URL,
     plainSummary: "Processing personal information to train automated decisionmaking technology for significant decisions, or to train facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification or profiling technology, independently requires a risk assessment — separate from deploying ADMT against consumers.",
@@ -496,7 +496,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   i1b_min_pi: {
-    fieldLabel: "I-1b: Minimum PI necessary",
+    fieldLabel: "Minimum PI necessary",
     citation: "11 CCR § 7152(a)(2)",
     citationUrl: CPPA_URL,
     plainSummary: "The risk assessment must identify the minimum personal information necessary to achieve the processing purpose. This reflects the CCPA's data-minimisation requirement: a business may only collect and process what is reasonably necessary and proportionate to the disclosed purpose.",
@@ -515,7 +515,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   i4b_sources: {
-    fieldLabel: "I-4b: Sources of the personal information",
+    fieldLabel: "Sources of the personal information",
     citation: "11 CCR § 7152(a)(3)",
     citationUrl: CPPA_URL,
     plainSummary: "The operational elements of the processing must identify the sources of the personal information — for example collected directly from the consumer, passively observed, generated or inferred by the business, or obtained from third parties such as data brokers, advertising partners, or affiliates.",
@@ -531,7 +531,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   i6_recipients: {
-    fieldLabel: "I-6: Recipients of the personal information",
+    fieldLabel: "Recipients of the personal information",
     citation: "11 CCR § 7152(a)(3)(F)",
     citationUrl: CPPA_URL,
     plainSummary: "The assessment must identify the recipients of the personal information and the purpose of each disclosure. The recipient's category matters: a service provider or contractor is bound by contract to the business's purposes, whereas disclosure to a third party for its own use is a sale or share that carries opt-out and additional assessment obligations.",
@@ -605,7 +605,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   // id 30d841cf-02af-4aca-aae3-51a08aab7820 (agency response on § 7150(b)(5)
   // sensitive-location scope).
   sensitive_location_basis: {
-    fieldLabel: "Q5d: Sensitive-location processing basis",
+    fieldLabel: "Sensitive-location processing basis",
     citation: "11 CCR § 7150(b)(5)",
     citationUrl: CPPA_URL,
     plainSummary:
@@ -666,7 +666,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   // fields. Every regulationText below is a byte-exact substring of corpus
   // row cppa-7152 (provision_texts.verbatim_excerpt, status approved).
   a4_benefit_supporting_fact: {
-    fieldLabel: "A-4: Record fact supporting each stated benefit",
+    fieldLabel: "Record fact supporting each stated benefit",
     citation: "11 CCR \u00a7 7152(a)(4)",
     citationUrl: CPPA_URL,
     plainSummary: "The benefits of the processing are weighed against its negative impacts. A benefit that rests on nothing in the record cannot carry weight in that weighing, so each stated benefit is paired with the fact that shows it.",
@@ -681,7 +681,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   a5_harm_pathway_triple: {
-    fieldLabel: "A-5: Data involved, actor, and pathway for each impact",
+    fieldLabel: "Data involved, actor, and pathway for each impact",
     citation: "11 CCR \u00a7 7152(a)(5)",
     citationUrl: CPPA_URL,
     plainSummary: "For each negative impact, the assessment must identify its sources and causes. Recording the data involved, the actor who acts on it, and the route between them makes the source-and-cause statement traceable instead of conclusory.",
@@ -696,7 +696,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   a6_residual: {
-    fieldLabel: "A-6: Residual risk after the safeguard",
+    fieldLabel: "Residual risk after the safeguard",
     citation: "11 CCR \u00a7 7152(a)(6)",
     citationUrl: CPPA_URL,
     plainSummary: "Safeguards are recorded against the negative impacts they address. Stating what remains after the safeguard is what lets the weighing reach a determination rather than assume the impact is eliminated.",
