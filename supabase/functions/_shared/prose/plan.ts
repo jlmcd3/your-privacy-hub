@@ -199,8 +199,29 @@ export function lintPlan(plan: DocumentPlan): PlanLintFinding[] {
     }
   }
 
+  // ITEM 364 — the thesis is shape, not law: it says what the document argues,
+  // never what the law requires.
+  if (plan.thesis && LEGAL_IN_TITLE.some((re) => re.test(plan.thesis!))) {
+    out.push({
+      rule: "legal_content_in_thesis",
+      detail: `thesis carries legal content: ${plan.thesis}`,
+    });
+  }
+
+  for (const pair of plan.exemplar_pairs ?? []) {
+    if (!pair.before.trim() || !pair.after.trim() || !pair.note.trim()) {
+      out.push({
+        rule: "exemplar_pair_incomplete",
+        section_id: pair.section_id,
+        detail: `exemplar pair ${pair.id} must carry a before, an after, and a note`,
+      });
+    }
+  }
+
   return out;
 }
+
+
 
 /**
  * A product renders through its plan only when the plan is approved, every
