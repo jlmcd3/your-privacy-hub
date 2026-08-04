@@ -965,7 +965,7 @@ export function registrationReviewTriggers(intake: I): string[] {
     .filter((x): x is string => Boolean(x));
   const amendment = engaged.length
     ? `Amendment of any data-broker registration statute named in this assessment (${engaged.join("; ")}).`
-    : "Amendment of any registration or designation statute in force in the jurisdictions assessed here. No US state data-broker statute was in scope on this record, so none is named.";
+    : "Amendment of any registration or designation statute in force in the jurisdictions assessed here. No US state data-broker statute was in scope here, so none is named.";
   return [
     amendment,
     "A change in the organisation's own facts that moves it across a statutory applicability threshold, in either direction.",
