@@ -34,6 +34,8 @@ import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/r
 
 export const EDPB_DPIA_SOURCE = {
   label: "EDPB DPIA Template Explainer v1.0 (adopted 10 March 2026)",
+  // The adopted v1.0 document has no separate canonical EDPB permalink; it is
+  // published on (and reached via) this template page.
   url: "https://www.edpb.europa.eu/public-consultations/template-for-data-protection-impact-assessment_en",
 };
 
