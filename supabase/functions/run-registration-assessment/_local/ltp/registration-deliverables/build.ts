@@ -20,6 +20,7 @@ import {
   REGISTRATION_DUTY_VERSION,
 } from "../../registry/registration-verified-authorities.ts";
 import type {
+  Attestation,
   CorpusPendingFlag,
   DpoDetermination,
   FilingReadiness,
@@ -65,6 +66,16 @@ export interface RegistrationIntakeForDeliverables {
   filing_contact_details_ready?: boolean | null;
   filing_opt_out_mechanism_documented?: boolean | null;
   filing_minors_data_practices_documented?: boolean | null;
+  // Filing-readiness coverage fix (2026-08-04) — CA § 1798.99.82(b)(2)(B)
+  // metrics and TX § 510.005(b)(2-a) rights-instructions link.
+  filing_metrics_documented?: boolean | null;
+  filing_rights_instructions_documented?: boolean | null;
+
+  // Attestation intake (optional). No date is computed from these.
+  approved_by_name?: string | null;
+  approved_by_title?: string | null;
+  approval_date?: string | null;
+  next_review_due?: string | null;
 
   [k: string]: unknown;
 }
@@ -572,12 +583,19 @@ const FILING_ITEM_MAP: Record<string, Array<{ item: string; intake_key: string |
     { item: "Name and primary physical, email and website addresses of the data broker", intake_key: "filing_contact_details_ready" },
     { item: "How a consumer may exercise deletion and opt-out rights", intake_key: "filing_opt_out_mechanism_documented" },
     { item: "Whether the data broker collects the personal information of minors", intake_key: "filing_minors_data_practices_documented" },
+    // COVERAGE FIX (2026-08-04): § 1798.99.82(b)(2)(B) requires the metrics
+    // compiled under § 1798.99.85(a)(1)-(2). The list previously omitted it.
+    { item: "The metrics compiled pursuant to paragraphs (1) and (2) of subdivision (a) of Section 1798.99.85", intake_key: "filing_metrics_documented" },
   ],
   "US-OR": [
     { item: "Name, street address, telephone number, primary website and electronic mail address", intake_key: "filing_contact_details_ready" },
   ],
   "US-TX": [
     { item: "Legal name, contact person, physical address, e-mail, telephone and website", intake_key: "filing_contact_details_ready" },
+    // COVERAGE FIX (2026-08-04): § 510.005(b)(2-a) requires a link to a page
+    // giving consumers prominently displayed instructions on exercising their
+    // rights under § 541.051. The list previously omitted it.
+    { item: "Link to a page providing consumers with prominently displayed instructions on exercising their rights under Section 541.051", intake_key: "filing_rights_instructions_documented" },
   ],
   "US-VT": [
     { item: "Name and primary physical, e-mail and Internet addresses of the data broker", intake_key: "filing_contact_details_ready" },
@@ -876,6 +894,54 @@ function buildNarrative(
   return { overview, determination: parts.join("\n\n") };
 }
 
+// ── Attestation ─────────────────────────────────────────────────────────────
+//
+// Registration status is not stable over time: it changes when a statute is
+// amended, when an applicability threshold moves, or when the organisation
+// begins serving a new jurisdiction. Those are the review triggers named here.
+// SCHEDULE-SURFACE LAW holds: no date is computed, including the review date.
+
+function str(v: unknown): string | null {
+  const s = typeof v === "string" ? v.trim() : "";
+  return s.length > 0 ? s : null;
+}
+
+const REGISTRATION_REVIEW_TRIGGERS: string[] = [
+  "Amendment of any data-broker registration statute named in this assessment (Cal. Civ. Code §§ 1798.99.80–.86; 9 V.S.A. §§ 2430, 2446; Tex. Bus. & Com. Code §§ 510.001–.005; ORS 646A.593).",
+  "A change in the organisation's own facts that moves it across a statutory applicability threshold, in either direction.",
+  "Entry into, or exit from, any jurisdiction not assessed here — including any new state data-broker registry.",
+  "Any change to the organisation's establishment position in the Union or the United Kingdom bearing on the Art. 27 representative determinations.",
+];
+
+export function buildRegistrationAttestation(intake: I): Attestation {
+  const name = str(intake.approved_by_name);
+  const title = str(intake.approved_by_title);
+  const date = str(intake.approval_date);
+  const review = str(intake.next_review_due);
+
+  const missing: string[] = [];
+  if (!name) missing.push("the name of the person approving this assessment");
+  if (!title) missing.push("that person's role or title");
+  if (!date) missing.push("the date of approval");
+  if (!review) missing.push("the date this assessment is next due for review");
+
+  const statement = missing.length === 0
+    ? `${name}, ${title}, approved this registration assessment on ${date}. It is next due for review on ${review}, or earlier on any of the triggers below.`
+    : `This registration assessment has not been recorded as approved: the record does not state ${missing.join(", ")}. The assessment stands as analysis only until an accountable person is named and the approval recorded.`;
+
+  return {
+    heading: "Approval and review",
+    approved_by_name: name,
+    approved_by_title: title,
+    approval_date: date,
+    next_review_due: review,
+    review_triggers: REGISTRATION_REVIEW_TRIGGERS,
+    statement,
+    status: missing.length === 0 ? "analysed" : "record_insufficient",
+    ...(missing.length ? { information_needed: missing.join("; ") } : {}),
+  };
+}
+
 // ── Entry point ─────────────────────────────────────────────────────────────
 
 export function buildRegistrationDeliverables(
@@ -926,5 +992,6 @@ export function buildRegistrationDeliverables(
       corpus_pending,
       combined_representative_callout,
     ),
+    attestation: buildRegistrationAttestation(intake),
   };
 }

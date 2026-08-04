@@ -681,6 +681,58 @@ Deno.serve(async (req) => {
       };
     }
 
+    // ── AUTHORITY EXHIBIT (Registration hardening, 2026-08-04) ──────────
+    // Table of authorities built from the citations this report actually
+    // emits. Entries and excerpts come ONLY from the corpus-pinned duty
+    // registry — nothing here is free-typed. Rendered at the end of the
+    // report, immediately before the universal disclaimer. Fail-open.
+    try {
+      const { buildAuthorityExhibit, baseSection } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const { REGISTRATION_DUTY_AUTHORITIES } = await import(
+        "./_local/registry/registration-verified-authorities.ts"
+      );
+      const cited = new Set<string>();
+      const walkCites = (v: unknown): void => {
+        if (typeof v === "string") return;
+        if (Array.isArray(v)) { for (const x of v) walkCites(x); return; }
+        if (v && typeof v === "object") {
+          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+            if (k === "_meta" || k === "_staging") continue;
+            if ((k === "citation" || k === "window_citation" || k === "fee_citation") && typeof x === "string" && x.trim()) {
+              cited.add(x.trim());
+            } else if (k === "citations" && Array.isArray(x)) {
+              for (const c of x) if (typeof c === "string" && c.trim()) cited.add(c.trim());
+            } else {
+              walkCites(x);
+            }
+          }
+        }
+      };
+      walkCites((result_summary as any).registration_deliverables ?? {});
+      const seenBase = new Set<string>();
+      const provisions = REGISTRATION_DUTY_AUTHORITIES.flatMap((r) => {
+        const base = baseSection(r.citation);
+        if (seenBase.has(base)) return [];
+        seenBase.add(base);
+        return [{
+          key: r.corpus_key,
+          citation: base,
+          verbatim_excerpt: r.verbatim_quote,
+          status: "approved",
+        }];
+      });
+      const exhibit = buildAuthorityExhibit([...cited], provisions);
+      (result_summary as any).authority_exhibit = exhibit;
+      console.log(JSON.stringify({
+        evt: "registration_authority_exhibit_attached",
+        fn: "run-registration-assessment",
+        entries: exhibit.entries.length,
+        pin_verified: exhibit.entries.filter((e) => e.pin_verified).length,
+      }));
+    } catch (axErr) {
+      console.warn("[run-registration-assessment] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
+    }
+
     // 4. Persist
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report immediately before the write (fail-open).

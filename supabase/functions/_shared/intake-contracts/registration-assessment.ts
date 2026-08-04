@@ -164,6 +164,16 @@ export const registrationContract: IntakeContract = {
     { key: "filing_contact_details_ready",                kind: "boolean", required: "optional" },
     { key: "filing_opt_out_mechanism_documented",         kind: "boolean", required: "optional" },
     { key: "filing_minors_data_practices_documented",     kind: "boolean", required: "optional" },
+    // Hardening 2026-08-04 — filing items added to close the CA metrics and
+    // TX rights-instructions coverage gaps in the filing-readiness deliverable.
+    { key: "filing_metrics_documented",                   kind: "boolean", required: "optional" },
+    { key: "filing_rights_instructions_documented",       kind: "boolean", required: "optional" },
+
+    // ── Attestation intake (2026-08-04) — optional accountability record ──
+    { key: "approved_by_name",  kind: "text", required: "optional" },
+    { key: "approved_by_title", kind: "text", required: "optional" },
+    { key: "approval_date",     kind: "text", required: "optional" },
+    { key: "next_review_due",   kind: "text", required: "optional" },
 
     // ── Step 3 — establishment & markets ────────────────────────────────
     { key: "has_eu_establishment", kind: "boolean", required: "optional" },

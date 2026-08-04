@@ -32,6 +32,7 @@ import {
   dutyRow,
 } from "../../registry/biometric-verified-authorities.ts";
 import type {
+  Attestation,
   BiometricDeliverables,
   BiometricNarrative,
   ConsequenceDetermination,
@@ -52,6 +53,11 @@ export const BIOMETRIC_DELIVERABLES_VERSION =
 
 export interface BiometricIntakeForDeliverables {
   orgName?: string | null;
+  // Attestation intake (optional).
+  approved_by_name?: string | null;
+  approved_by_title?: string | null;
+  approval_date?: string | null;
+  next_review_due?: string | null;
   biometricTypes?: string[] | null;
   orgType?: string | null;
   purpose?: string | null;
@@ -1580,6 +1586,57 @@ function buildNarrative(
 // declaring — explicitly — that nothing is being held back.
 const SCOPE_GATED: ScopeGatedCorpusFlag[] = [];
 
+// ── Attestation ─────────────────────────────────────────────────────────────
+//
+// Biometric duty positions move when a statute is amended and when the
+// organisation begins processing a NEW MODALITY (a face-geometry programme
+// extended to voiceprints, for example, engages different definitional limbs).
+// Those are the review triggers named here. Absent approver data the block
+// degrades honestly rather than printing an empty signature line.
+
+function attStr(v: unknown): string | null {
+  const s = typeof v === "string" ? v.trim() : "";
+  return s.length > 0 ? s : null;
+}
+
+const BIOMETRIC_REVIEW_TRIGGERS: string[] = [
+  "Amendment of any biometric statute named in this assessment (740 ILCS 14; Tex. Bus. & Com. Code § 503.001; RCW 19.375; RCW 19.373).",
+  "Collection or generation of a biometric modality not assessed here — a new identifier type engages the definitional limbs afresh in each statute.",
+  "A change in the jurisdictions in which biometric identifiers are collected, stored or transmitted.",
+  "Any change to the notice, written-release, retention-schedule, disclosure or safeguard practices the duty findings rest on.",
+];
+
+export function buildBiometricAttestation(
+  intake: BiometricIntakeForDeliverables,
+): Attestation {
+  const name = attStr((intake as Record<string, unknown>).approved_by_name);
+  const title = attStr((intake as Record<string, unknown>).approved_by_title);
+  const date = attStr((intake as Record<string, unknown>).approval_date);
+  const review = attStr((intake as Record<string, unknown>).next_review_due);
+
+  const missing: string[] = [];
+  if (!name) missing.push("the name of the person approving this assessment");
+  if (!title) missing.push("that person's role or title");
+  if (!date) missing.push("the date of approval");
+  if (!review) missing.push("the date this assessment is next due for review");
+
+  const statement = missing.length === 0
+    ? `${name}, ${title}, approved this biometric compliance assessment on ${date}. It is next due for review on ${review}, or earlier on any of the triggers below.`
+    : `This biometric compliance assessment has not been recorded as approved: the record does not state ${missing.join(", ")}. The assessment stands as analysis only until an accountable person is named and the approval recorded.`;
+
+  return {
+    heading: "Approval and review",
+    approved_by_name: name,
+    approved_by_title: title,
+    approval_date: date,
+    next_review_due: review,
+    review_triggers: BIOMETRIC_REVIEW_TRIGGERS,
+    statement,
+    status: missing.length === 0 ? "analysed" : "record_insufficient",
+    ...(missing.length ? { information_needed: missing.join("; ") } : {}),
+  };
+}
+
 export function buildBiometricDeliverables(
   intake: BiometricIntakeForDeliverables,
 ): BiometricDeliverables {
@@ -1617,5 +1674,6 @@ export function buildBiometricDeliverables(
     consequence_determination,
     narrative,
     scope_gated: SCOPE_GATED,
+    attestation: buildBiometricAttestation(intake),
   };
 }

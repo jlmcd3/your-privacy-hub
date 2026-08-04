@@ -205,4 +205,25 @@ export interface BiometricDeliverables {
   narrative: BiometricNarrative;
   /** Corpus that exists but is deliberately not in product scope. */
   scope_gated: ScopeGatedCorpusFlag[];
+  /** Shared accountability attestation (Biometric hardening, 2026-08-04). */
+  attestation: Attestation;
+}
+
+/**
+ * SHARED ATTESTATION PATTERN. Named approver, title, approval date and next
+ * review date, plus the product-appropriate triggers that force an earlier
+ * review. HONEST DEGRADATION: absent approver data the attestation is
+ * `record_insufficient` and names what is missing rather than printing an
+ * empty signature block as though the assessment had been approved.
+ */
+export interface Attestation {
+  heading: string;
+  approved_by_name: string | null;
+  approved_by_title: string | null;
+  approval_date: string | null;
+  next_review_due: string | null;
+  review_triggers: string[];
+  statement: string;
+  status: FindingStatus;
+  information_needed?: string;
 }

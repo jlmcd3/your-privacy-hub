@@ -38,7 +38,7 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
       "Illinois courts have construed BIPA's 'scan of face geometry' broadly enough to cover facial-recognition-derived templates extracted from uploaded photographs (Rosenbach, Cothron). Facebook (Meta) and TikTok have each settled BIPA class actions for north of $650M each.",
     coachLead: "Select what the system captures and computes — templates count.",
     coachBody: "BIPA's list is specific: retina or iris, fingerprint, voiceprint, hand and face geometry. Templates computed from them are covered too. Read the vendor's technical docs, not the product name.",
-    goodAnswer: "A 'photo-based clock-in' product computes face-geometry templates. Select facial geometry — the template is the biometric identifier, kept photos or not.",
+    goodAnswer: "A 'photo-based clock-in' product computes face-geometry templates. The template itself is the biometric identifier, whether or not the source photographs are kept.",
     commonMistake: "Treating template systems as 'not biometric' because raw images are deleted. The template is the regulated identifier.",
   },
 

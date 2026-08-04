@@ -155,6 +155,12 @@ export const biometricCheckerContract: IntakeContract = {
     { key: "wa_mhmda_collection_consent", kind: "enum", required: "optional", options: TRI },
     { key: "wa_mhmda_share_consent_separate", kind: "enum", required: "optional", options: TRI },
     { key: "wa_mhmda_geofence_health_facility", kind: "enum", required: "optional", options: TRI },
+
+    // ── Attestation intake (2026-08-04) — optional accountability record ──
+    { key: "approved_by_name",  kind: "text", required: "optional" },
+    { key: "approved_by_title", kind: "text", required: "optional" },
+    { key: "approval_date",     kind: "text", required: "optional" },
+    { key: "next_review_due",   kind: "text", required: "optional" },
   ],
 };
 

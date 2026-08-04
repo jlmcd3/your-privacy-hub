@@ -1,5 +1,5 @@
 // LEAK-PREV-P2 — Biometric Compliance customer-report schema.
-// Version: rs-biometric-w1-2026-08-03
+// Version: rs-biometric-w2-2026-08-04
 //
 // DERIVATION (read, not guessed): the persisted `report_data` object in
 // supabase/functions/check-biometric-compliance/index.ts is built at L2008
@@ -25,7 +25,7 @@
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const BIOMETRIC_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-biometric-w1-2026-08-03",
+  version: "rs-biometric-w2-2026-08-04",
   // matches the toolType used for metering/guards in check-biometric-compliance
   tool: "biometric_checker",
   topLevel: [
@@ -47,6 +47,9 @@ export const BIOMETRIC_REPORT_SCHEMA: ReportSchema = {
     "biometric_deliverables",
     // added by guardInformationNeeded (index.ts L2043)
     "information_needed",
+    // hardening 2026-08-04 — shared table of authorities (attestation rides
+    // inside the deliverables object, which is already allow-listed)
+    "authority_exhibit",
     // internal channel — preserved verbatim by the caller's finalization step
     "_meta",
   ],
@@ -70,5 +73,6 @@ export const BIOMETRIC_EMITTED_TOP_LEVEL: readonly string[] = [
   "consequence_determination",
   "biometric_deliverables",
   "information_needed",
+  "authority_exhibit",
   "_meta",
 ];

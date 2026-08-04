@@ -13,6 +13,8 @@ import BackLink from "@/components/dashboard/BackLink";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
+import AttestationBlock from "@/components/report/AttestationBlock";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
@@ -161,6 +163,8 @@ export default function BiometricCheckerResult() {
                 <AnnotationCallout annotations={(row?.report_data as any)?.annotations} />
               </div>
             )}
+            <AttestationBlock attestation={(report as any)?.biometric_deliverables?.attestation} />
+            <AuthorityExhibit exhibit={(report as any)?.authority_exhibit} />
             </div>
           </ReportShell>
         )}
