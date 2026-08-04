@@ -76,7 +76,8 @@ export const BIPA_PRA_CORPUS_STATUS = {
   permitted_characterisation:
     "BIPA is enforced by private suit rather than solely by a regulator.",
   reserved:
-    "Damages amounts, negligence/recklessness tiers, fee-shifting, per-scan accrual, and any amendment history are NOT available on this record and must degrade to record_insufficient.",
+    "Damages amounts, negligence/recklessness tiers, fee-shifting, per-scan accrual, and any amendment history are NOT in the verified corpus and must degrade to record_insufficient.",
+
 } as const;
 
 export const BIOMETRIC_DUTY_ROWS: readonly BiometricDutyRow[] = [
