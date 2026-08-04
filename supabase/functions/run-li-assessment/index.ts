@@ -2,6 +2,7 @@
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { enforceStorageLimitationCrossRead } from './_lia_storage_limitation.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
 // LIA-REGISTRY-WIRING (2026-07-25): registry-first citation post-pass + LEAK-PREV P0/P1/P2 (schema rs-lia-w1-2026-07-25).
