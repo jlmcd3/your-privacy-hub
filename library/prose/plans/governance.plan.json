@@ -1,7 +1,8 @@
 {
   "product": "governance",
   "version": "prose-plans-2026-08-01-item339",
-  "approved": false,
+  "seed_default_approved": false,
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
   "provenance": {
     "method": "report_keys",
     "donors_total": 14,

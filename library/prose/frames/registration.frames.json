@@ -1,7 +1,8 @@
 {
   "product": "registration",
   "version": "prose-frames-2026-08-04-item364-d3",
-  "approved": false,
+  "seed_default_approved": false,
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
   "frames": [
     {
       "id": "registration-gap-threshold-limb",
@@ -9,8 +10,18 @@
       "section": "threshold_analysis",
       "body": "One limb of the {{STATE}} definition has nothing in the record to test it against. A definition is met or missed limb by limb, so an unevidenced limb leaves the answer unresolved rather than negative. Say what {{ENTITY}} actually does on that limb and the definition resolves either way.",
       "placeholders": [
-        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true },
-        { "token": "STATE", "kind": "text", "source": "state_name", "required": true }
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "organization_name",
+          "required": true
+        },
+        {
+          "token": "STATE",
+          "kind": "text",
+          "source": "state_name",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -18,7 +29,9 @@
         "report_path": "determinations[].threshold",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["lia-gap-interest-legitimacy"]
+        "exemplars": [
+          "lia-gap-interest-legitimacy"
+        ]
       },
       "status": "pending_review"
     },
@@ -28,7 +41,12 @@
       "section": "threshold_analysis",
       "body": "Whether {{ENTITY}} deals with these people directly is not stated. Two of the state definitions turn on that single question, and they turn opposite ways depending on the answer. It is one sentence to supply and it decides the definition.",
       "placeholders": [
-        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "organization_name",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -36,7 +54,9 @@
         "report_path": "determinations[].threshold.limbs",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-threshold-limb"]
+        "exemplars": [
+          "registration-gap-threshold-limb"
+        ]
       },
       "status": "pending_review"
     },
@@ -52,7 +72,9 @@
         "report_path": "determinations[].threshold.exclusion_claimed",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-threshold-limb"]
+        "exemplars": [
+          "registration-gap-threshold-limb"
+        ]
       },
       "status": "pending_review"
     },
@@ -62,7 +84,12 @@
       "section": "overview",
       "body": "The markets {{ENTITY}} serves are not set out. Registration duties are territorial before they are anything else, so an unstated market list limits this assessment to the places already named. Listing the markets brings the rest into scope.",
       "placeholders": [
-        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "organization_name",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -70,7 +97,9 @@
         "report_path": "narrative.overview",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["lia-gap-interest-legitimacy"]
+        "exemplars": [
+          "lia-gap-interest-legitimacy"
+        ]
       },
       "status": "pending_review"
     },
@@ -80,8 +109,18 @@
       "section": "representative_determinations",
       "body": "Whether {{ENTITY}} is established in {{TERRITORY}} is not stated. Establishment is the first fork in the representative analysis, and both branches below it lead somewhere different. Answer it and the designation question answers itself.",
       "placeholders": [
-        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true },
-        { "token": "TERRITORY", "kind": "text", "source": "territory", "required": true }
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "organization_name",
+          "required": true
+        },
+        {
+          "token": "TERRITORY",
+          "kind": "text",
+          "source": "territory",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -89,7 +128,9 @@
         "report_path": "representative_determinations",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-markets-served"]
+        "exemplars": [
+          "registration-gap-markets-served"
+        ]
       },
       "status": "pending_review"
     },
@@ -105,7 +146,9 @@
         "report_path": "representative_determinations[].exemption_analysis",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-establishment"]
+        "exemplars": [
+          "registration-gap-establishment"
+        ]
       },
       "status": "pending_review"
     },
@@ -115,7 +158,12 @@
       "section": "dpo_determination",
       "body": "One of the three designation branches cannot be evaluated from what {{ENTITY}} supplied. A branch that is unevaluable is not a branch that fails, so no negative conclusion is drawn here. Fill in the missing detail and the branch resolves.",
       "placeholders": [
-        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "organization_name",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -123,7 +171,9 @@
         "report_path": "dpo_determination.findings",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-threshold-limb"]
+        "exemplars": [
+          "registration-gap-threshold-limb"
+        ]
       },
       "status": "pending_review"
     },
@@ -139,7 +189,9 @@
         "report_path": "filing_readiness",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-threshold-limb"]
+        "exemplars": [
+          "registration-gap-threshold-limb"
+        ]
       },
       "status": "pending_review"
     },
@@ -149,7 +201,12 @@
       "section": "schedules",
       "body": "The statute states a window and this assessment restates it, and stops there. Turning a window into a date for {{ENTITY}} depends on facts about the organisation's own year that belong to counsel, not to a generator. Read the window against the calendar with someone who can take responsibility for the answer.",
       "placeholders": [
-        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+        {
+          "token": "ENTITY",
+          "kind": "text",
+          "source": "organization_name",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -157,7 +214,9 @@
         "report_path": "schedules",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-filing-readiness"]
+        "exemplars": [
+          "registration-gap-filing-readiness"
+        ]
       },
       "status": "pending_review"
     },
@@ -173,7 +232,9 @@
         "report_path": "schedules",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-schedule-surface"]
+        "exemplars": [
+          "registration-gap-schedule-surface"
+        ]
       },
       "status": "pending_review"
     },
@@ -183,7 +244,12 @@
       "section": "corpus_pending",
       "body": "{{TOPIC}} is recorded here and left open. The provisions that would settle it are listed with this flag, and their operative text is not yet in this product's verified corpus. Answering without that text would be assertion rather than analysis. Until it is in corpus the question stays live; nothing here should be read as a finding that no duty arises.",
       "placeholders": [
-        { "token": "TOPIC", "kind": "text", "source": "corpus_pending.topic", "required": true }
+        {
+          "token": "TOPIC",
+          "kind": "text",
+          "source": "corpus_pending.topic",
+          "required": true
+        }
       ],
       "provenance": {
         "sample_report_id": null,
@@ -191,7 +257,9 @@
         "report_path": "corpus_pending",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-threshold-limb"]
+        "exemplars": [
+          "registration-gap-threshold-limb"
+        ]
       },
       "status": "pending_review"
     },
@@ -207,7 +275,9 @@
         "report_path": "attestation",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-filing-readiness"]
+        "exemplars": [
+          "registration-gap-filing-readiness"
+        ]
       },
       "status": "pending_review"
     },
@@ -223,7 +293,9 @@
         "report_path": "attestation.next_review_due",
         "harvested_at": "2026-08-04",
         "origin": "draft",
-        "exemplars": ["registration-gap-attestation"]
+        "exemplars": [
+          "registration-gap-attestation"
+        ]
       },
       "status": "pending_review"
     }

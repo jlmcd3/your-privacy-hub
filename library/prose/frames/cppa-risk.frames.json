@@ -1,7 +1,8 @@
 {
   "product": "cppa-risk",
   "version": "prose-frames-2026-08-01-item363",
-  "approved": true,
+  "seed_default_approved": false,
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
   "frames": [
     {
       "id": "cppa-risk.executive_lead.001",
