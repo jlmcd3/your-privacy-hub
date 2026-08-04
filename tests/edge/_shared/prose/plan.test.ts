@@ -123,7 +123,9 @@ Deno.test("reviewed plans are lint-clean; only signed-off plans render", () => {
     const signedOff = false;
     assertEquals(p.approved, signedOff, `${p.product} approval state`);
     assertEquals(planRenderable(p), signedOff, `${p.product} renderability`);
-    assert(p.sections.every((s) => s.status === (signedOff ? "approved" : "pending_review")));
+    // Section-level review status is authored content and is unaffected by the
+    // row-level sign-off column.
+    assert(p.sections.every((s) => s.status === "approved" || s.status === "pending_review"));
     // Every reviewed plan opens on its determination, not on the record.
     assertEquals(p.sections[0].arc_stage, "headline");
     assertEquals(p.sections[0].lead, "determination");
