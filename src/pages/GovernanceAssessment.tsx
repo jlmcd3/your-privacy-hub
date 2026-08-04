@@ -284,7 +284,7 @@ const GovernanceAssessment = () => {
         .single();
       if (insErr || !row) {
         setPurchasing(false);
-        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        toast({ title: "Generation failed", description: "Try again.", variant: "destructive" });
         return;
       }
       const { error: fnErr } = await supabase.functions.invoke(
@@ -293,7 +293,7 @@ const GovernanceAssessment = () => {
       );
       setPurchasing(false);
       if (fnErr) {
-        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        toast({ title: "Generation failed", description: "Try again.", variant: "destructive" });
         return;
       }
       void clearDraft();
@@ -302,7 +302,7 @@ const GovernanceAssessment = () => {
     }
 
     if (!pricing.stripeConfigured) {
-      toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
+      toast({ title: "Payments unavailable", description: "Payments are not yet configured — check back soon.", variant: "destructive" });
       return;
     }
     setCheckoutOpen(true);
