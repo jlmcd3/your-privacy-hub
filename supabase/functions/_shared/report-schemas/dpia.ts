@@ -1,5 +1,5 @@
 // LEAK-PREV-P2 — DPIA customer-report schema.
-// Version: rs-dpia-w1-2026-07-25
+// Version: rs-dpia-w2-2026-08-05-upgrade6
 //
 // Top-level allow-list derived from run-dpia-framework/index.ts assembler
 // (`reportData.<key> = ...`) and DPIAFrameworkResult.tsx / src/components/dpia
@@ -13,11 +13,21 @@
 // would risk dropping a legitimate model-emitted field. Top-level whitelist
 // alone is sufficient to enforce "unknown-key-cannot-ship" at the section
 // granularity that has ever been reviewed.
+//
+// DPIA UPGRADE (ITEM 6): the two new structural fields ride INSIDE existing
+// section objects — `section_0_overview.assessment_team` (EDPB template v1.0
+// § 0.5 para 6) and `section_6_conclusion.validation_approval` (§ 0.5 para 10).
+// They are therefore covered by the existing `section_0_overview` /
+// `section_6_conclusion` top-level allow-list entries, and nested pruning
+// stays undeclared for the reason above: declaring `objects` for those two
+// sections now would start dropping legitimate model-emitted section keys that
+// have never been enumerated. `authority_exhibit` is new at the TOP level and
+// is allow-listed explicitly below (house pattern, matching governance).
 
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const DPIA_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-dpia-w1-2026-07-25",
+  version: "rs-dpia-w2-2026-08-05-upgrade6",
   tool: "dpia_framework",
   topLevel: [
     // Section objects (canonical EDPB structure)
@@ -41,6 +51,9 @@ export const DPIA_REPORT_SCHEMA: ReportSchema = {
     "proportionality",
     "risk_register",
     "art36_consultation",
+    // DPIA UPGRADE ITEM 4 — shared authority exhibit (renders at the end of the
+    // body, immediately before the universal disclaimer).
+    "authority_exhibit",
 
     // Cross-cutting arrays / bookkeeping
     "annotations",
