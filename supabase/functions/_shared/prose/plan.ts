@@ -125,6 +125,8 @@ export type PlanLintRule =
   | "unknown_arc_stage"
   | "legal_content_in_title"
   | "legal_content_in_thesis"
+  | "register_defect_in_thesis"
+  | "register_defect_in_exemplar"
   | "exemplar_pair_incomplete";
 
 export interface PlanLintFinding {
