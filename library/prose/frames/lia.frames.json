@@ -77,7 +77,7 @@
       "id": "lia-gap-relationship-with-individual",
       "product": "lia",
       "section": "relationship_with_individual",
-      "body": "The record does not say what the people whose data is used are to {{ENTITY}}. Whether they are customers, employees, or members of the public who have never dealt with the organisation changes what they can be expected to anticipate, and expectation is one of the heaviest weights in this part of the analysis. Until that is stated, the balance is being struck without knowing who is standing on the other side of it.",
+      "body": "The record does not say who these people are to {{ENTITY}}. Whether they are customers, employees, or members of the public who have never dealt with the organisation changes what they can be expected to anticipate, and expectation is one of the heaviest weights in this part of the analysis. Until that is stated, the balance is being struck without knowing who is standing on the other side of it.",
       "placeholders": [
         { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
       ],
