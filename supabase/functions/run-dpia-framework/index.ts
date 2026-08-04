@@ -2351,6 +2351,12 @@ async function runStitch(dpia_id: string): Promise<void> {
     // section_0_overview.assessment_team (EDPB template v1.0 § 0.5 para 6) and
     // section_6_conclusion.validation_approval (§ 0.5 para 10). Single writer,
     // deterministic, honest degradation when intake lacks them. Fail-open.
+    //
+    // ITEM 374 FIX 1(a): the builder's per-surface status is captured here and
+    // handed to frame substitution below, so an approved GAP frame can never
+    // land on a surface the builder ANALYSED from the record.
+    let dpiaSurfaceStatuses: Record<string, string> | undefined;
+    let dpiaFrameSet: unknown = null;
     try {
       const { attachDpiaAttestation } = await import("../_shared/ltp/dpia-deliverables/attestation.ts");
       const ameta = attachDpiaAttestation(
@@ -2359,10 +2365,19 @@ async function runStitch(dpia_id: string): Promise<void> {
       );
       const _am = ((reportData as any)._meta ??= {});
       (_am.internal ??= {}).dpia_attestation = ameta;
+      dpiaSurfaceStatuses = {
+        assessment_team: String((ameta as any)?.team_status ?? ""),
+        prepared_by: String((ameta as any)?.team_status ?? ""),
+        validation_approval: String((ameta as any)?.validation_status ?? ""),
+        approval_date: String((ameta as any)?.validation_status ?? ""),
+        signoff_basis: String((ameta as any)?.validation_status ?? ""),
+
+      };
       console.log(JSON.stringify({ evt: "_dpia_attestation", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...ameta }));
     } catch (e) {
       console.warn("[run-dpia-framework] DPIA attestation attach failed (non-fatal):", (e as Error)?.message);
     }
+
 
 
     // ── DPIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ─────
@@ -2427,6 +2442,7 @@ async function runStitch(dpia_id: string): Promise<void> {
         "../_shared/prose/frame-substitution.ts"
       );
       const frameSet = await loadApprovedFrameSet(supabase, "dpia");
+      dpiaFrameSet = frameSet;
       const orgName =
         (reportData as any)?.org_context?.company_name ??
         (dpiaIntake as any)?.organization_name ??
@@ -2440,7 +2456,18 @@ async function runStitch(dpia_id: string): Promise<void> {
           "dpia_metadata.document_name":
             (reportData as any)?.dpia_metadata?.document_name ?? null,
         },
+        // ITEM 374 FIX 1(a)/(b) — DPIA-only, opt-in. A gap atom never lands on
+        // a surface the attestation builder analysed, and substitution never
+        // writes into a structured leaf. Omitting these two options leaves the
+        // other nine products byte-identical.
+        surfaceStatuses: dpiaSurfaceStatuses,
+        structuredLeafKeys: [
+          "name", "role", "approved_by_name", "approved_by_title",
+          "approval_date", "status", "citation", "template_ref",
+          "risk_id", "rule_id", "likelihood", "severity",
+        ],
       });
+
       console.log(JSON.stringify({ evt: "dpia_frame_substitution", fn: "run-dpia-framework", ...counters }));
     } catch (e) {
       console.warn("[run-dpia-framework] frame substitution failed (non-fatal):", (e as Error)?.message);
@@ -2503,6 +2530,47 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] enforcement tag gate failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 374 FIX 1(d) — SINGLE-WRITER RE-ASSERTION ─────────────────
+    // `assessment_team` and `validation_approval` are documented as
+    // single-writer surfaces owned by dpia-deliverables/attestation.ts. In
+    // batch 646e3bf3 the emit gate degraded both leaves AFTER the builder had
+    // written them, and frame substitution then stamped the approved gap atom
+    // over an analysed roster. The builder is re-asserted here, after every
+    // prose pass, so its output is what ships. Fail-open.
+    try {
+      const { attachDpiaAttestation } = await import("../_shared/ltp/dpia-deliverables/attestation.ts");
+      const rmeta = attachDpiaAttestation(
+        reportData as Record<string, unknown>,
+        (dpiaIntake ?? {}) as Record<string, unknown>,
+      );
+      const _rm = ((reportData as any)._meta ??= {});
+      (_rm.internal ??= {}).dpia_attestation_reassert = rmeta;
+      console.log(JSON.stringify({ evt: "_dpia_attestation_reassert", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...rmeta }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] attestation re-assert failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 374 DELIVERABLE 2 — CROSS-SURFACE CONSISTENCY CHECK ───────
+    // Deterministic, model-agnostic. Runs after every prose pass and before
+    // the authority exhibit / determination / disclaimer, so the document the
+    // reader receives agrees with the record it was built from. Telemetry
+    // rides `_meta.internal.dpia_csc`. Fail-open.
+    try {
+      const { attachDpiaCsc } = await import("../_shared/ltp/dpia-csc.ts");
+      const csc = attachDpiaCsc(reportData as Record<string, unknown>, {
+        intake: dpiaIntake ?? {},
+        frameSet: dpiaFrameSet,
+      });
+      console.log(JSON.stringify({
+        evt: "dpia_csc", fn: "run-dpia-framework", build_stamp: BUILD_STAMP,
+        version: csc.version, violations: csc.violations.length, repairs: csc.repairs,
+        checks: csc.violations.map((v) => v.check_id),
+      }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] cross-surface consistency check failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     // ── DPIA UPGRADE ITEM 4 — AUTHORITY EXHIBIT ────────────────────────
     // Table of authorities built from the citations THIS report emits.
@@ -2562,7 +2630,11 @@ async function runStitch(dpia_id: string): Promise<void> {
         organizationName:
           (dpiaIntake as any)?.organization_name ??
           (reportData as any)?.org_context?.company_name ?? null,
+        // ITEM 374 FIX 2 — the record itself, so a category the intake answers
+        // is never enumerated as a missing foundation.
+        intake: dpiaIntake ?? {},
       });
+
       if (determination) {
         (reportData as any).determination = determination;
         console.log(JSON.stringify({
