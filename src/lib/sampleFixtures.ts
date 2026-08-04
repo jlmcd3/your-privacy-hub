@@ -859,6 +859,11 @@ const F_ROPA_EU: SampleFixture = {
         transfer_mechanism: "No third-country transfer",
         retention_period: "Visitor log: 24 months for HSE reporting; CCTV: 30 days",
         security_measures: "Badge data on-site only; CCTV recorded to encrypted NVR; access restricted to security team.",
+        activity_owner: "Bryn Halloway, Group Security Manager",
+        collection_sources:
+          "Directly from visitors at the gatehouse kiosk; host employee details from the HR directory; vehicle registrations from the barrier ANPR unit.",
+        processing_operations: ["collection", "recording", "storage", "consultation", "erasure"],
+        related_assessments: [],
       },
       {
         activity_name: "Supplier Vetting and KYS",
@@ -873,7 +878,13 @@ const F_ROPA_EU: SampleFixture = {
         transfer_mechanism: "No third-country transfer",
         retention_period: "Duration of supplier relationship plus 7 years",
         security_measures: "Sanctions results access-controlled; supplier records in dedicated KYS platform; quarterly access reviews.",
+        activity_owner: "Ines Carrow, Head of Procurement",
+        collection_sources:
+          "From supplier onboarding submissions; Companies House and equivalent registers; the sanctions-screening vendor's data feed.",
+        processing_operations: ["collection", "recording", "organisation", "storage", "retrieval", "consultation", "combination", "erasure"],
+        related_assessments: [],
       },
+
     ],
     invoke: { fn: "generate-ropa-document", format: "pdf" },
   },
