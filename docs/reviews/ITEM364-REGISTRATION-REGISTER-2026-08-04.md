@@ -5,6 +5,34 @@ Scope honoured: PROSE ONLY. No schema, deliverable, determination-logic, or
 structural change. Verdict vocabulary (`registrable` / `not_registrable` /
 `conditional` / `record_insufficient`) untouched.
 
+## WHAT YOU ARE APPROVING
+
+Two database rows for the Registration product flip from `approved: false` to `approved: true`:
+
+1. **The document plan** — `prose_document_plans` / `registration`, content hash
+   `b7fc6c4f…e12e`. This is the blueprint for how every future Registration
+   assessment is composed: its thesis, the order of its sections, the register
+   each section must be written in, its sentence discipline, and the worked
+   exemplars the engine imitates.
+2. **The frame set** — `prose_frame_sets` / `registration`, content hash
+   `2caef3ee…2201`. These are the pre-written counsel-voice patterns the
+   document uses to state what the customer's record does not yet say.
+
+**What changes for customers.** Once both rows are approved, every *newly
+generated* Registration assessment is composed to the plan and speaks through
+the frames. Reports already stored in a customer's account are untouched and
+read exactly as before.
+
+**What does not change.** Determinations, verdicts, scoring, schemas, statutory
+quotes, and the universal disclaimer are not touched by the flip. Only the way
+the prose is written changes.
+
+**How to revert.** Set either row back to `approved: false`. The product returns
+to today's prose on the very next report. No code change and no deployment.
+
+**Before you decide.** Read the BEFORE→AFTER exemplar pairs in this packet, then
+read the first Registration assessment generated after approval.
+
 ## What changed
 
 1. **A6 diction sweep (the defect that started the dispatch).** The register's
