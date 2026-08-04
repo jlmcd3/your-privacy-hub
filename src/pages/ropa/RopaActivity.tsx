@@ -10,6 +10,8 @@ import { useRopaSessionParam, withSession } from "@/lib/ropaSession";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
 import { getPersonalDataExamplesForSector } from "@/data/ropa-personal-data-examples";
+import WhyWeAsk from "@/components/intake/WhyWeAsk";
+
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
