@@ -9,8 +9,13 @@
 import type { FrameSet } from "../../supabase/functions/_shared/prose/frames.ts";
 import type { DocumentPlan } from "../../supabase/functions/_shared/prose/plan.ts";
 
+// CHANGE CONTROL — the artifacts carry `seed_default_approved`, never an
+// operative `approved`. Approval is a database column (the record of the CEO's
+// sign-off act); these file-backed constants therefore always materialise as
+// UNAPPROVED. Tests that need a renderable set approve a copy in memory.
 async function read<T>(rel: string): Promise<T> {
-  return JSON.parse(await Deno.readTextFile(new URL(rel, import.meta.url))) as T;
+  const raw = JSON.parse(await Deno.readTextFile(new URL(rel, import.meta.url)));
+  return { ...raw, approved: false } as T;
 }
 
 export const CPPA_RISK_FRAMES = await read<FrameSet>("./frames/cppa-risk.frames.json");
