@@ -21,6 +21,7 @@ const RAIL_SETS: Record<string, string> = {
   "src/components/dpia/DPIARailEntries.ts": "dpia",
   "src/components/lia/LIARailEntries.ts": "lia",
   "src/components/governance/GovernanceRailEntries.ts": "governance",
+  "src/components/ir/IRPlaybookRailEntries.ts": "ir_playbook",
   // research sets are reference pages (no intake) — exempt from goodAnswer rules
 };
 

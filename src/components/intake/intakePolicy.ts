@@ -31,6 +31,9 @@ export const INTAKE_POLICY: Record<string, IntakePolicy> = {
 
   // No-rail tools — commercial/logistical/time-critical intake
   dpa:          { rail: false, goodAnswer: false }, // contract intake
-  ir_playbook:  { rail: false, goodAnswer: false }, // live incident — speed over law
+  // ITEM 369-IR: the STANDING-PLAYBOOK intake is written PRE-incident, at
+  // leisure, so the "speed over law" reasoning that justified rail:false no
+  // longer applies. The blank incident worksheet needs no intake at all.
+  ir_playbook:  { rail: true,  goodAnswer: true  },
   registration: { rail: false, goodAnswer: false }, // order/fulfilment flow
 };
