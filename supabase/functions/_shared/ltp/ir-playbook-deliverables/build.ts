@@ -668,15 +668,38 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
       "The Article 33(5) record must carry the facts, the effects and the remedial action taken. The remedial-action limb is not closed by containment alone and must be completed with the actions and their evidence before the record can be said to enable the supervisory authority to verify compliance.",
   };
 
+  // ITEM 369-IR LEG 2 — re-key the SAME element analysis onto the EDPB
+  // Art. 33 template's field structure. Mapping layer only: no value is
+  // re-derived here, and any template field the record does not answer is
+  // carried through as an explicitly blank labelled field.
+  const edpb_template = mapContentOwnerToEdpbTemplate(
+    elements,
+    {
+      org: f.org,
+      cause: f.cause,
+      dataTypes: f.dataTypes,
+      affectedCount: f.affectedCount,
+      recordCount: f.recordCount,
+      subjectCount: f.subjectCount,
+      awareness: f.awareness,
+      jurisdictions: f.jurisdictions,
+      processorInvolved: f.processorInvolved,
+      processorName: f.processorName,
+    },
+    phased.map((p) => p.element),
+  );
+
   return {
     elements,
     phasing,
     documentation,
+    edpb_template,
     status: elements.every((e) => e.status === "analysed") && phasing.status === "analysed" && documentation.status === "analysed"
       ? "analysed"
       : "record_insufficient",
   };
 }
+
 
 // ---------------------------------------------------------------------
 // Composite builder + attach
