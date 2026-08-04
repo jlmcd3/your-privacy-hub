@@ -258,6 +258,13 @@ const MESSY_GOVERNANCE = thinned("governance", {
     "measures_last_review_date",
     "processing_context",
     "processing_purposes",
+    // GOVERNANCE UPGRADE — remediation defaults absent, so the messy variant
+    // exercises honest degradation (record_insufficient remediation record)
+    // instead of an invented plan.
+    "remediation_default_owner",
+    "remediation_default_target_date",
+    "remediation_default_priority",
+    "remediation_default_validation_method",
   ],
 });
 
