@@ -14,6 +14,20 @@ const DRAFTING_RECORD_GUARDS = [
   { kind: "must_not_include" as const, pattern: "clause_deviations", label: "drafting-record private field name absent from body" },
 ];
 
+// DPA-ANNEX (Master Spec §4.11) — every DPA must carry the deterministic
+// Art. 28(3) clause-coverage annex. Assertions check PRESENCE and the
+// deterministic keys (clause letters + the status vocabulary), never the
+// verdict contents: an honest "Absent" is a passing annex.
+const CLAUSE_COVERAGE_ANNEX_GUARDS = [
+  { kind: "must_include" as const, pattern: "ANNEX — ARTICLE 28\\(3\\) CLAUSE-COVERAGE CHECKLIST", label: "clause-coverage annex rendered" },
+  { kind: "must_include" as const, pattern: "Art\\. 28\\(3\\) — chapeau", label: "annex covers the 28(3) chapeau" },
+  { kind: "must_include" as const, pattern: "Art\\. 28\\(3\\)\\(a\\)", label: "annex covers clause (a)" },
+  { kind: "must_include" as const, pattern: "Art\\. 28\\(3\\)\\(h\\)", label: "annex covers clause (h)" },
+  { kind: "must_include" as const, pattern: "Art\\. 28\\(3\\) — second subparagraph", label: "annex covers the instruction-infringement notice" },
+  { kind: "must_include" as const, pattern: "\\b(Present|Absent)\\b", label: "annex carries present/absent verdicts" },
+];
+
+
 
 export const DPA_GOLDEN: GoldenCase[] = [
   {
@@ -37,6 +51,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "Module\\s+Two", flags: "i", label: "correct SCC module label" },
       { kind: "must_not_include", pattern: "Modules?\\s*1\\s*and\\s*2", flags: "i", label: "no Module 1+2 conflation" },
       ...DRAFTING_RECORD_GUARDS,
+      ...CLAUSE_COVERAGE_ANNEX_GUARDS,
     ],
   },
   {
@@ -58,6 +73,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
       { kind: "must_not_include", pattern: "no adequacy decision.*between the EU and the UK", flags: "i",
         label: "no false adequacy denial" },
       ...DRAFTING_RECORD_GUARDS,
+      ...CLAUSE_COVERAGE_ANNEX_GUARDS,
     ],
   },
   {
@@ -79,6 +95,7 @@ export const DPA_GOLDEN: GoldenCase[] = [
     assertions: [
       { kind: "must_include", pattern: "biometric", flags: "i", label: "biometric acknowledged" },
       ...DRAFTING_RECORD_GUARDS,
+      ...CLAUSE_COVERAGE_ANNEX_GUARDS,
     ],
   },
 ];

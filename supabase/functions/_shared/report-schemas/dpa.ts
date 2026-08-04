@@ -18,7 +18,7 @@
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const DPA_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-dpa-w1-2026-07-25",
+  version: "rs-dpa-w2-2026-08-04",
   tool: "dpa",
   topLevel: [
     // Core DPA payload
@@ -28,6 +28,9 @@ export const DPA_REPORT_SCHEMA: ReportSchema = {
     "annotations",
     "information_needed",
     "deterministic_checks",
+    // DPA-ANNEX (Master Spec §4.11) — deterministic Art. 28(3)
+    // clause-coverage checklist metadata backing the rendered annex.
+    "clause_coverage",
     "lint_warnings",
     // Enforcement injection
     "enforcement_precedents",
@@ -36,6 +39,7 @@ export const DPA_REPORT_SCHEMA: ReportSchema = {
     "dpa_id",
     "prompt_version",
     "build_stamp",
+
     // Meta bucket (serializer reduces to `_meta.internal` only)
     "_meta",
     // Revision-mode bookkeeping (data-only, non-prose)
