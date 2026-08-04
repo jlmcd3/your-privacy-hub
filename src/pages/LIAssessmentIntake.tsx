@@ -286,7 +286,7 @@ const LIAssessmentIntake = () => {
       const { data, error } = await supabase.functions.invoke("get-preview-li-assessment", { body: { id } });
       const row = (data as any)?.row;
       if (error || !row) {
-        toast({ title: "Couldn't load preview", description: "Please start again.", variant: "destructive" });
+        toast({ title: "Couldn't load preview", description: "Start again from step 1.", variant: "destructive" });
         navigate("/li-assessment");
         return;
       }
@@ -320,8 +320,8 @@ const LIAssessmentIntake = () => {
     if (!interestHolder) return "Tell us whose interest is being served.";
     if (!interestType) return "Tell us what type of interest this is.";
     if (!interestStatement.trim()) return "Describe, in your own words, the legitimate interest you're relying on.";
-    if (interestHolder === "Other (describe below)" && !interestHolderOther.trim()) return "Please specify whose interest is being served.";
-    if (interestType === "Other (describe below)" && !interestTypeOther.trim()) return "Please specify the type of interest.";
+    if (interestHolder === "Other (describe below)" && !interestHolderOther.trim()) return "Name whose interest is being served.";
+    if (interestType === "Other (describe below)" && !interestTypeOther.trim()) return "Name the type of interest.";
     if (!statedPurpose.trim()) return "Describe how you'd state this purpose to data subjects.";
     if (!alternatives.trim()) return "Describe alternatives you've considered.";
     if (!reasonableExpectation) return "Tell us whether data subjects would reasonably expect this.";
@@ -455,6 +455,7 @@ const LIAssessmentIntake = () => {
             <h2 className="font-serif">Purpose test</h2>
             <p className="text-xs font-mono text-muted-foreground -mt-2">Art. 6(1)(f) GDPR — legitimate interests · Recital 47 — what constitutes legitimate interest</p>
             <p className="text-sm text-muted-foreground">Is the interest legitimate, specific and present?</p>
+            <p className="text-sm text-muted-foreground mt-2">This stage establishes the purpose section of your assessment — the interest being pursued, who holds it, and the benefit it delivers.</p>
           </div>
 
           <div>
@@ -469,7 +470,7 @@ const LIAssessmentIntake = () => {
               <option>Other (describe below)</option>
             </select>
             {interestHolder === "Other (describe below)" && (
-              <input value={interestHolderOther} onChange={(e) => setInterestHolderOther(e.target.value)} placeholder="Whose interest? e.g. a named third party, a political campaign…" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={interestHolderOther} onChange={(e) => setInterestHolderOther(e.target.value)} placeholder="Name the party or organisation" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             )}
           </div>
 
@@ -487,14 +488,14 @@ const LIAssessmentIntake = () => {
               <option>Other (describe below)</option>
             </select>
             {interestType === "Other (describe below)" && (
-              <input value={interestTypeOther} onChange={(e) => setInterestTypeOther(e.target.value)} placeholder="Describe the type of interest in your own words" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={interestTypeOther} onChange={(e) => setInterestTypeOther(e.target.value)} placeholder="Short description" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             )}
           </div>
 
           <div>
             <Label className="text-base">In your own words, what is the legitimate interest you're relying on? *</Label>
-            <p className="text-xs text-muted-foreground mt-1">The interest itself — e.g. "informing local voters about a candidate," "preventing payment fraud" — not how you'd word it in a notice.</p>
-            <Textarea value={interestStatement} onChange={(e) => setInterestStatement(e.target.value)} className="mt-2" rows={3} />
+            <p className="text-xs text-muted-foreground mt-1">State the interest you are pursuing and why it matters now. Left vague, the balancing section has no specific interest to weigh and the assessment reads as inconclusive.</p>
+            <Textarea value={interestStatement} onFocusCapture={focusField("interest_statement")} onChange={(e) => setInterestStatement(e.target.value)} className="mt-2" rows={3} placeholder="One or two sentences" />
           </div>
 
           {/* ITEM 311 — Art. 6(1)(f) second subparagraph. Decided before the
@@ -524,7 +525,8 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">How would you state this purpose to data subjects in a privacy notice? *</Label>
-            <Textarea value={statedPurpose} onChange={(e) => setStatedPurpose(e.target.value)} className="mt-2" rows={3} />
+            <p className="text-xs text-muted-foreground mt-1">Plain language, active voice, same scope as the interest above. This wording is quoted in the transparency analysis, so a narrower sentence here shows processing you have not disclosed.</p>
+            <Textarea value={statedPurpose} onFocusCapture={focusField("stated_purpose")} onChange={(e) => setStatedPurpose(e.target.value)} className="mt-2" rows={3} placeholder="One or two sentences" />
           </div>
 
           {/* UPGRADE-4 — benefit and beneficiary */}
@@ -532,7 +534,7 @@ const LIAssessmentIntake = () => {
             <Label className="text-base">What specific benefit does this processing deliver?</Label>
             <p className="text-xs text-muted-foreground mt-1">Name the outcome, not the activity — what changes because this processing happens.</p>
             <Textarea value={specificBenefit} onFocusCapture={focusField("specific_benefit")} onChange={(e) => setSpecificBenefit(e.target.value)} className="mt-2" rows={2}
-              placeholder="e.g. Chargeback losses on new accounts fall because high-risk signups are held before activation." />
+              placeholder="One sentence" />
           </div>
 
           <div>
@@ -551,9 +553,9 @@ const LIAssessmentIntake = () => {
             <div className="border-l-2 border-amber-300 pl-4">
               <Label className="text-base">Are there sector or jurisdiction-specific restrictions? *</Label>
               <p className="text-xs text-muted-foreground mb-2">
-                e.g. ePrivacy / PECR consent for electronic marketing, German UWG rules, child-directed restrictions.
+                Rules that sit on top of Article 6(1)(f) for this activity — ePrivacy or PECR consent for electronic marketing, national unfair-competition rules, restrictions on marketing to children. Left blank, the report cannot confirm the sector overlay was considered.
               </p>
-              <Textarea value={statutoryRestrictions} onChange={(e) => setStatutoryRestrictions(e.target.value)} rows={2} />
+              <Textarea value={statutoryRestrictions} onChange={(e) => setStatutoryRestrictions(e.target.value)} rows={2} placeholder="One line per restriction" />
             </div>
           )}
         </section>
@@ -565,12 +567,14 @@ const LIAssessmentIntake = () => {
             <h2 className="font-serif">Necessity test</h2>
             <p className="text-xs font-mono text-muted-foreground -mt-2">Art. 6(1)(f) GDPR — processing must be necessary · EDPB WP29 Opinion 06/2014 — necessity standard</p>
             <p className="text-sm text-muted-foreground">Is processing necessary, and is the data minimum?</p>
+            <p className="text-sm text-muted-foreground mt-2">This stage establishes the necessity section — the alternatives you tested and the limits you set on the data used.</p>
           </div>
 
           <div>
             <Label className="text-base">What alternatives have you considered? *</Label>
-            <Textarea value={alternatives} onChange={(e) => setAlternatives(e.target.value)} className="mt-2" rows={3}
-              placeholder="e.g. We considered consent but it would yield insufficient coverage because…" />
+            <p className="text-xs text-muted-foreground mt-1">List every route you tested, one per line — including the ones rejected quickly. A single alternative rarely evidences that this processing is the least intrusive option available.</p>
+            <Textarea value={alternatives} onFocusCapture={focusField("alternatives")} onChange={(e) => setAlternatives(e.target.value)} className="mt-2" rows={3}
+              placeholder="One alternative per line" />
           </div>
 
           {/* UPGRADE-4 — reason each alternative is inadequate */}
@@ -578,19 +582,21 @@ const LIAssessmentIntake = () => {
             <Label className="text-base">For each alternative, why would it not achieve the purpose?</Label>
             <p className="text-xs text-muted-foreground mt-1">Take them one at a time, on separate lines. State what outcome each alternative would fail to deliver.</p>
             <Textarea value={alternativesRationale} onFocusCapture={focusField("alternatives_rationale")} onChange={(e) => setAlternativesRationale(e.target.value)} className="mt-2" rows={3}
-              placeholder={"Aggregate reporting — would not identify the individual account to hold\nManual review only — would not run at signup volume"} />
+              placeholder={"One alternative per line, then the shortfall"} />
           </div>
 
           <div>
             <Label className="text-base">Why isn't consent appropriate here?</Label>
-            <Textarea value={whyConsentNotUsed} onChange={(e) => setWhyConsentNotUsed(e.target.value)} className="mt-2" rows={2}
-              placeholder="Optional — strengthens the necessity record." />
+            <p className="text-xs text-muted-foreground mt-1">Consent must be freely given, specific, informed and unambiguous — name the element that cannot be met here. Left blank, the necessity section notes that the consent route was not examined.</p>
+            <Textarea value={whyConsentNotUsed} onFocusCapture={focusField("why_consent_not_used")} onChange={(e) => setWhyConsentNotUsed(e.target.value)} className="mt-2" rows={2}
+              placeholder="Two or three sentences" />
           </div>
 
           <div>
             <Label className="text-base">How have you minimised the data used?</Label>
-            <Textarea value={dataMinimised} onChange={(e) => setDataMinimised(e.target.value)} className="mt-2" rows={2}
-              placeholder="e.g. We only use the last 12 months of purchase data, no demographic enrichment." />
+            <p className="text-xs text-muted-foreground mt-1">Name what you excluded as well as what you kept — fields dropped, windows shortened, enrichment declined. Without exclusions, the minimisation finding rests on an assertion the report cannot verify.</p>
+            <Textarea value={dataMinimised} onFocusCapture={focusField("data_minimised")} onChange={(e) => setDataMinimised(e.target.value)} className="mt-2" rows={2}
+              placeholder="Two or three sentences" />
           </div>
 
           {showAnalyticsBranch && (
@@ -613,6 +619,7 @@ const LIAssessmentIntake = () => {
             <h2 className="font-serif">Balancing test</h2>
             <p className="text-xs font-mono text-muted-foreground -mt-2">Art. 6(1)(f) GDPR — interests or fundamental rights · Recital 47 — reasonable expectations of data subjects</p>
             <p className="text-sm text-muted-foreground">Do data subjects' interests, rights and freedoms override yours?</p>
+            <p className="text-sm text-muted-foreground mt-2">This stage establishes the balancing section — expectations, impact, safeguards, and the right to object weighed against the interest.</p>
           </div>
 
           {/* UPGRADE-4 — relationship category, stated rather than inferred */}
@@ -638,7 +645,8 @@ const LIAssessmentIntake = () => {
               <option>Unlikely — this would surprise most data subjects</option>
               <option>No — we have no relationship with these individuals; they would not expect this</option>
             </select>
-            <Textarea value={reasonableExpectationDetail} onChange={(e) => setReasonableExpectationDetail(e.target.value)} placeholder="Optional: briefly, why would (or wouldn't) they expect it?" className="mt-2" rows={2} />
+            <p className="text-xs text-muted-foreground mt-2">Give the reasoning behind that answer — the terms they accepted, the sector norm, the visibility of the control. The selection alone is a conclusion; the balancing section weighs the evidence for it.</p>
+            <Textarea value={reasonableExpectationDetail} onFocusCapture={focusField("reasonable_expectation_detail")} onChange={(e) => setReasonableExpectationDetail(e.target.value)} placeholder="Two or three sentences" className="mt-2" rows={2} />
           </div>
 
           {/* ITEM 311 — Recital 47 turns on the relationship and the time and
@@ -646,7 +654,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">When and in what setting was this data collected?</Label>
             <p className="text-xs text-muted-foreground mt-1">Recital 47 asks what the individual could expect <em>at the time and in the context of collection</em>. Describe the moment and the relationship — not what your notice says.</p>
-            <Textarea value={collectionContext} onChange={(e) => setCollectionContext(e.target.value)} placeholder="e.g. collected at account opening in the branch, and at each transaction the customer initiates" className="mt-2" rows={3} />
+            <Textarea value={collectionContext} onFocusCapture={focusField("collection_context")} onChange={(e) => setCollectionContext(e.target.value)} placeholder="Describe each occasion" className="mt-2" rows={3} />
           </div>
 
           <div>
@@ -670,7 +678,7 @@ const LIAssessmentIntake = () => {
               />
             </div>
             {vulnerableSubjects.includes("Other") && (
-              <input value={vulnerableSubjectsOther} onChange={(e) => setVulnerableSubjectsOther(e.target.value)} placeholder="Describe the other vulnerable group(s)" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={vulnerableSubjectsOther} onChange={(e) => setVulnerableSubjectsOther(e.target.value)} placeholder="Name the group" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             )}
           </div>
 
@@ -683,22 +691,23 @@ const LIAssessmentIntake = () => {
               <option>Significant — discrimination, financial loss, reputational damage</option>
               <option>Severe — physical safety, identity theft, loss of livelihood</option>
             </select>
-            <Textarea value={potentialHarmDetail} onFocusCapture={focusField("potential_harms")} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Optional: what specific harms did you consider (financial, reputational, autonomy, distress…)?" className="mt-2" rows={2} />
+            <p className="text-xs text-muted-foreground mt-2">Describe the harms you considered and who would bear them. A severity label with no pathway behind it gives the balance nothing to weigh on the individual’s side.</p>
+            <Textarea value={potentialHarmDetail} onFocusCapture={focusField("potential_harms")} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Two or three sentences" className="mt-2" rows={2} />
           </div>
 
           {/* UPGRADE-4 — how large, how often, how long */}
           <div className="grid sm:grid-cols-3 gap-4">
             <div>
               <Label className="text-base">Approximately how many people?</Label>
-              <input value={scaleApprox} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setScaleApprox(e.target.value)} placeholder="e.g. ~40,000 signups a year" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={scaleApprox} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setScaleApprox(e.target.value)} placeholder="Approximate number" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">How often does it run?</Label>
-              <input value={frequency} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setFrequency(e.target.value)} placeholder="e.g. at every signup, in real time" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={frequency} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setFrequency(e.target.value)} placeholder="How often" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">How long is the data held for this purpose?</Label>
-              <input value={duration} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 24 months from the score" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={duration} onFocusCapture={focusField("scale_frequency_duration")} onChange={(e) => setDuration(e.target.value)} placeholder="Period" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
           </div>
 
@@ -725,7 +734,8 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">Which safeguards are in place? (select all that apply)</Label>
-            <div className="mt-2">
+            <p className="text-xs text-muted-foreground mt-1">Select only what protects this processing today. Planned measures belong in the next field with their status stated.</p>
+            <div className="mt-2" onFocusCapture={focusField("safeguards")}>
               <Pills
                 options={[
                   "Encryption at rest and in transit",
@@ -742,7 +752,7 @@ const LIAssessmentIntake = () => {
               />
             </div>
             {safeguards.includes("Other") && (
-              <input value={safeguardsOther} onChange={(e) => setSafeguardsOther(e.target.value)} placeholder="Describe the other safeguard(s) in place" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={safeguardsOther} onChange={(e) => setSafeguardsOther(e.target.value)} placeholder="Name the safeguard" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             )}
           </div>
 
@@ -752,13 +762,13 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">What measures have you added specifically to reduce the impact on individuals?</Label>
             <p className="text-xs text-muted-foreground mt-1">Only measures that go beyond what the GDPR already requires of you can shift the balance. Encryption, access control and retention limits are obligations, not mitigations.</p>
-            <Textarea value={additionalMitigations} onChange={(e) => setAdditionalMitigations(e.target.value)} placeholder="e.g. an unconditional opt-out from profiling that we are not required to offer" className="mt-2" rows={3} />
+            <Textarea value={additionalMitigations} onFocusCapture={focusField("additional_mitigations")} onChange={(e) => setAdditionalMitigations(e.target.value)} placeholder="One measure per line" className="mt-2" rows={3} />
           </div>
 
           <div>
             <Label className="text-base">Anything else about this processing we should weigh?</Label>
-            <p className="text-xs text-muted-foreground mt-1">Context, constraints, or specifics the questions above didn't capture — in your own words. Optional, but it sharpens the assessment.</p>
-            <Textarea value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} className="mt-2" rows={3} />
+            <p className="text-xs text-muted-foreground mt-1">Sector rules, a pending change, a prior complaint, a dependency on a processor. Left blank, the report records that nothing further was raised for consideration.</p>
+            <Textarea value={additionalContext} onFocusCapture={focusField("additional_context")} onChange={(e) => setAdditionalContext(e.target.value)} className="mt-2" rows={3} placeholder="Optional" />
           </div>
 
           {/* UPGRADE-4 — availability, separate from the mechanism */}
@@ -774,21 +784,23 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">How can data subjects object or opt out? *</Label>
-            <AssistedInput
-              className="mt-2"
-              value={optOutMechanism}
-              onChange={setOptOutMechanism}
-              pills={ASSISTED_INPUT_REGISTRY.optOutMechanism.pills}
-              placeholder="e.g. One-click unsubscribe in every email, account-level toggle, privacy@ inbox monitored within 7 days."
-            />
+            <p className="text-xs text-muted-foreground mt-1">Give the route, the effort it costs the individual, and how quickly processing stops. A channel with no service standard is not a facilitated right to object.</p>
+            <div onFocusCapture={focusField("opt_out_mechanism")}>
+              <AssistedInput
+                className="mt-2"
+                value={optOutMechanism}
+                onChange={setOptOutMechanism}
+                pills={ASSISTED_INPUT_REGISTRY.optOutMechanism.pills}
+                placeholder="Route, effort, response time"
+              />
+            </div>
           </div>
 
           {showEmploymentBranch && (
             <div className="border-l-2 border-amber-300 pl-4">
               <Label className="text-base">What safeguards address the employment power imbalance?</Label>
               <p className="text-xs text-muted-foreground mb-2">
-                Regulators expect proportionate safeguards: works council consultation, transparency, no covert monitoring,
-                limits on use against the employee.
+                The employment relationship carries an imbalance of power, so regulators expect proportionate safeguards: works-council consultation, advance transparency, no covert monitoring, and limits on use against the employee. Left blank, the balancing section treats the imbalance as unaddressed.
               </p>
               <AssistedInput
                 className="mt-2"
@@ -801,11 +813,12 @@ const LIAssessmentIntake = () => {
         </section>
 
         {/* UPGRADE-4 — attestation and review (house pattern) */}
-        <section className="bg-card border rounded-lg p-6 space-y-5">
+        <section className="bg-card border rounded-lg p-6 space-y-5" onFocusCapture={() => { setActiveFieldRailKey("attestation_block"); }}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 04</span>
             <h2 className="font-serif">Attestation and review</h2>
             <p className="text-sm text-muted-foreground">Who reviewed and approved this assessment, and what would cause you to run it again.</p>
+            <p className="text-sm text-muted-foreground mt-2">This stage establishes the attestation section. Without sign-off, your assessment states on its face that it commits no one.</p>
           </div>
 
           <div>
@@ -821,7 +834,7 @@ const LIAssessmentIntake = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-base">Reviewer</Label>
-              <input value={dpoReviewer} onFocusCapture={focusField("attestation_dpo_review")} onChange={(e) => setDpoReviewer(e.target.value)} placeholder="Name of the DPO or the person discharging that function" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={dpoReviewer} onFocusCapture={focusField("attestation_dpo_review")} onChange={(e) => setDpoReviewer(e.target.value)} placeholder="Full name" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">Date of review</Label>
@@ -836,7 +849,7 @@ const LIAssessmentIntake = () => {
             </div>
             <div>
               <Label className="text-base">Title</Label>
-              <input value={approverPosition} onChange={(e) => setApproverPosition(e.target.value)} placeholder="Role and approving authority" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+              <input value={approverPosition} onChange={(e) => setApproverPosition(e.target.value)} placeholder="Job title" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             </div>
             <div>
               <Label className="text-base">Date of approval</Label>
