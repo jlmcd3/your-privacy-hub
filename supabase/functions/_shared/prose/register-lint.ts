@@ -12,6 +12,7 @@
 
 export type RegisterLintRule =
   | "banned_word"
+  | "banned_phrase"
   | "intensifier_density"
   | "machine_scaffold"
   | "orphan_bracket"
