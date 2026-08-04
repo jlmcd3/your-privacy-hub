@@ -687,7 +687,7 @@ Deno.serve(async (req) => {
     // registry — nothing here is free-typed. Rendered at the end of the
     // report, immediately before the universal disclaimer. Fail-open.
     try {
-      const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const { buildAuthorityExhibit, baseSection } = await import("../_shared/report-exhibits/authority-exhibit.ts");
       const { REGISTRATION_DUTY_AUTHORITIES } = await import(
         "./_local/registry/registration-verified-authorities.ts"
       );
@@ -711,7 +711,7 @@ Deno.serve(async (req) => {
       walkCites((result_summary as any).registration_deliverables ?? {});
       const seenBase = new Set<string>();
       const provisions = REGISTRATION_DUTY_AUTHORITIES.flatMap((r) => {
-        const base = r.citation.replace(/\s+/g, " ").trim();
+        const base = baseSection(r.citation);
         if (seenBase.has(base)) return [];
         seenBase.add(base);
         return [{
