@@ -123,7 +123,9 @@ export type PlanLintRule =
   | "empty_plan"
   | "missing_themes"
   | "unknown_arc_stage"
-  | "legal_content_in_title";
+  | "legal_content_in_title"
+  | "legal_content_in_thesis"
+  | "exemplar_pair_incomplete";
 
 export interface PlanLintFinding {
   readonly rule: PlanLintRule;
