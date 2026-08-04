@@ -328,28 +328,28 @@ export default function ADMTChecker() {
 
   const stepValid = (): string | null => {
     if (step === 1) {
-      if (!organizationName.trim()) return "Please tell us which organization is running this assessment.";
-      if (!systemName.trim()) return "Please name your ADMT system.";
+      if (!organizationName.trim()) return "Name the organization running this assessment.";
+      if (!systemName.trim()) return "Name the ADMT system.";
       if (!systemDescription || systemDescription.length < 30)
-        return "Please describe what the system does (at least 30 characters).";
+        return "Describe what the system does — at least 30 characters.";
       if (!decisionDomains.length)
-        return "Please select the significant decision domain(s) this system affects.";
-      if (!humanReview) return "Please describe the human review process for this system's outputs.";
+        return "Select the decision domains this system affects.";
+      if (!humanReview) return "Describe the human review applied to this system's outputs.";
     }
     if (step === 2) {
-      if (!noticeDelivery.length) return "Please indicate how you deliver the Pre-use Notice.";
-      if (!noticeHasSpecificPurpose) return "Please answer whether your notice states a specific purpose.";
+      if (!noticeDelivery.length) return "Select how the Pre-use Notice reaches consumers.";
+      if (!noticeHasSpecificPurpose) return "Answer whether the notice states a specific purpose.";
       if (noticeHasSpecificPurpose === "Yes" && !noticePurposeText.trim())
-        return "Please paste or describe your specific purpose statement.";
-      if (!noticeHasOptOutDesc) return "Please answer whether your notice describes the opt-out right.";
-      if (!noticeHasAccessDesc) return "Please answer whether your notice describes the access right.";
+        return "Provide the specific purpose statement as published.";
+      if (!noticeHasOptOutDesc) return "Answer whether the notice describes the opt-out right.";
+      if (!noticeHasAccessDesc) return "Answer whether the notice describes the access right.";
       if (!noticeHasAntiRetaliation)
-        return "Please answer whether your notice includes the anti-retaliation statement.";
-      if (!noticeHasHowItWorks) return "Please answer whether your notice explains how the ADMT works.";
+        return "Answer whether the notice includes the anti-retaliation statement.";
+      if (!noticeHasHowItWorks) return "Answer whether the notice explains how the ADMT works.";
     }
     if (step === 3) {
       if (!optOutException)
-        return "Please select whether you are providing an opt-out right or relying on an exception.";
+        return "Select either an opt-out right or the exception relied on.";
       if (provideOptOut && optOutMethods.length < 2)
         return "You must provide at least two designated opt-out methods (§ 7221(c)).";
       if (
@@ -357,23 +357,24 @@ export default function ADMTChecker() {
         optOutMethods.includes("Interactive online form linked from the Pre-use Notice") &&
         !optOutLinkTitle.trim()
       )
-        return "Please provide the title of your opt-out link (§ 7221(c)(1)).";
+        return "Give the title of the opt-out link (§ 7221(c)(1)).";
       if (provideOptOut && !optOutConfirmationMechanism)
-        return "Please describe how consumers can confirm their opt-out was processed (§ 7221(h)).";
+        return "Describe how a consumer confirms an opt-out was processed (§ 7221(h)).";
       if (optOutException.startsWith("Human appeal") && !optOutAppealProcess.trim())
-        return "Please describe your human appeal process in detail (§ 7221(b)(1)).";
+        return "Describe the human appeal process (§ 7221(b)(1)).";
       if ((optOutException.startsWith("Hiring") || optOutException.startsWith("Work")) && !optOutFairnessDoc.trim())
-        return "Please describe your fairness/non-discrimination testing documentation (§ 7221(b)(2)-(3)).";
+        return "Describe the non-discrimination testing documentation (§ 7221(b)(2)-(3)).";
     }
     if (step === 4) {
-      if (!accessSubmissionMethods.trim()) return "Please describe how consumers can submit access requests.";
+      if (!accessSubmissionMethods.trim()) return "Describe how consumers submit access requests.";
       if (!accessVerificationProcess.trim())
-        return "Please describe your identity verification process for access requests.";
+        return "Describe the identity verification applied to access requests.";
       if (!accessLogicDisclosure.trim())
-        return "Please describe what logic information you disclose in access responses.";
+        return "Describe the logic information disclosed in access responses.";
       if (!accessOutcomeDisclosure.trim())
-        return "Please describe what outcome information you disclose in access responses.";
-      if (!accessResponseTimeline) return "Please confirm your response timeline.";
+        return "Describe the outcome information disclosed in access responses.";
+      if (!accessResponseTimeline) return "Select the response timeline.";
+
     }
     return null;
   };
@@ -748,7 +749,7 @@ export default function ADMTChecker() {
                       value={systemName}
                       onChange={(e) => setSystemName(e.target.value)}
                       data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
-                      placeholder="e.g. Loan Approval Engine, Resume Screening Tool, Fraud Score Model"
+                      placeholder="e.g. Loan Approval Engine"
                     />
                   </div>
 
@@ -758,7 +759,7 @@ export default function ADMTChecker() {
                       className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                       value={systemType}
                       onChange={(e) => setSystemType(e.target.value)}
-                      placeholder="e.g. ML model, rules-based engine, third-party vendor API"
+                      placeholder="e.g. ML classifier"
                     />
                   </div>
 
@@ -775,7 +776,7 @@ export default function ADMTChecker() {
                       value={systemDescription}
                       onChange={(e) => setSystemDescription(e.target.value)}
                       data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
-                      placeholder='e.g. "A gradient-boosted model that scores loan applications 0–100 based on credit history, income, and debt ratio. Scores below 40 are automatically declined without human review."'
+                      placeholder="Two or three sentences"
                     />
                   </div>
 
@@ -1130,7 +1131,7 @@ export default function ADMTChecker() {
                           value={noticePurposeText}
                           onChange={(e) => setNoticePurposeText(e.target.value)}
                           data-rail-key="notice_specific_purpose" onFocus={() => focus("notice_specific_purpose")}
-                          placeholder="Paste the exact text from your Pre-use Notice here…"
+                          placeholder="Paste the exact text"
                         />
                       </div>
                     )}
@@ -1151,7 +1152,7 @@ export default function ADMTChecker() {
                       value={noticeFullText}
                       onChange={(e) => setNoticeFullText(e.target.value)}
                       data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}
-                      placeholder="Paste the complete text of your published pre-use notice here…"
+                      placeholder="Paste the full notice text"
                     />
                   </div>
 
@@ -1183,7 +1184,7 @@ export default function ADMTChecker() {
                             onChange={(e) => setNET(k, e.target.value)}
                             data-rail-key="notice_element_text"
                             onFocus={() => focus("notice_element_text")}
-                            placeholder="Paste the exact wording from your published notice…"
+                            placeholder="Paste the exact wording"
                           />
                         </div>
                       ))}
@@ -1331,7 +1332,7 @@ export default function ADMTChecker() {
                           <div><Label className="text-[12px]">Authority to overturn?</Label><div className="mt-1"><Radio name="ap_auth" options={["Yes", "No"]} value={adv.appeal_authority_overturn || ""} onChange={(v) => setA("appeal_authority_overturn", v)} /></div></div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <div><Label className="text-[12px]" data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")}>Steps from decision to human reviewer</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_step_count || ""} onChange={(e) => setA("appeal_step_count", e.target.value)} data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")} placeholder="e.g. 2 (submit form → reviewer decides)" /></div>
+                          <div><Label className="text-[12px]" data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")}>Steps from decision to human reviewer</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_step_count || ""} onChange={(e) => setA("appeal_step_count", e.target.value)} data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")} placeholder="e.g. 2" /></div>
                         </div>
                         <div>
                           <Label className="text-[12px]">What may the consumer submit on appeal? (select all)</Label>
@@ -1399,7 +1400,7 @@ export default function ADMTChecker() {
                         </div>
                         <div>
                           <Label className="text-[12px]">Outcome distribution / false-positive &amp; false-negative rates by group</Label>
-                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="One line per group, or attach as an Exhibit" />
+                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="One line per group" />
                         </div>
                       </div>
                     </div>
@@ -1424,7 +1425,7 @@ export default function ADMTChecker() {
                         </div>
                         {optOutMethods.length > 0 && optOutMethods.length < 2 && (
                           <p className="text-xs text-destructive mt-2">
-                            <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> § 7221(c) requires at least two designated methods. Please add another method.
+                            <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> § 7221(c) requires at least two designated methods. Add another method.
                           </p>
                         )}
                       </div>
@@ -1477,7 +1478,7 @@ export default function ADMTChecker() {
                             value={optOut15DayProcess}
                             onChange={(e) => setOptOut15DayProcess(e.target.value)}
                             data-rail-key="optout_15_day_process" onFocus={() => focus("optout_15_day_process")}
-                            placeholder="A few sentences: who receives it, what they do, by when, and who else is told"
+                            placeholder="A few sentences"
                           />
 
                         </div>
@@ -1618,7 +1619,7 @@ export default function ADMTChecker() {
                       value={accessLogicDisclosure}
                       onChange={(e) => setAccessLogicDisclosure(e.target.value)}
                       data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
-                      placeholder="What you disclose, then what you withhold"
+                      placeholder="Disclosed first, then withheld"
                     />
                   </div>
 
@@ -1635,7 +1636,7 @@ export default function ADMTChecker() {
                       value={accessOutcomeDisclosure}
                       onChange={(e) => setAccessOutcomeDisclosure(e.target.value)}
                       data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}
-                      placeholder="What you disclose, then what you withhold"
+                      placeholder="Disclosed first, then withheld"
                     />
                   </div>
 
@@ -1677,7 +1678,7 @@ export default function ADMTChecker() {
                         value={accessTradeSecretPolicy}
                         onChange={(e) => setAccessTradeSecretPolicy(e.target.value)}
                         data-rail-key="access_trade_secret_policy" onFocus={() => focus("access_trade_secret_policy")}
-                        placeholder="One category per line, each with its ground"
+                        placeholder="One category per line"
                       />
                     </div>
 
