@@ -69,6 +69,7 @@ describe.skipIf(!CAN_RUN)("prose seed — live upsert over an approved row", () 
     });
 
     const script = [
+      `drop table if exists pg_temp.scratch_plans;`,
       `create temp table scratch_plans (
          product text not null,
          version int not null,
