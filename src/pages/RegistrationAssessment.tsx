@@ -575,6 +575,35 @@ export default function RegistrationAssessment() {
                         ))}
                       </div>
                     </div>
+
+                    <div className="space-y-3 border-t pt-4">
+                      <Label className="text-base">Approval and review (optional)</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Naming an approver turns the assessment into an accountability record. Left blank, the report says the approval was not recorded rather than printing an empty signature line.
+                      </p>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-sm">Approved by (name)</Label>
+                          <Input value={intake.approved_by_name}
+                            onChange={(e) => setIntake({ ...intake, approved_by_name: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm">Role or title</Label>
+                          <Input value={intake.approved_by_title}
+                            onChange={(e) => setIntake({ ...intake, approved_by_title: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm">Date of approval</Label>
+                          <Input type="date" value={intake.approval_date}
+                            onChange={(e) => setIntake({ ...intake, approval_date: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm">Next review due</Label>
+                          <Input type="date" value={intake.next_review_due}
+                            onChange={(e) => setIntake({ ...intake, next_review_due: e.target.value })} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
