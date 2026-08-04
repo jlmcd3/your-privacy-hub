@@ -76,7 +76,7 @@ export const EU_JURISDICTION = "EU (GDPR)";
  * stated, paraphrased, listed, or evaluated anywhere downstream.
  */
 export const ANNEX_1_RESERVED_NOTE =
-  "Article 6(1)(ea) is available only where processing meets a condition in Annex 1. The specific conditions in Annex 1 are outside this tool's current corpus and are not assessed here; whether any Annex 1 condition is met is reserved to review by qualified counsel.";
+  "Article 6(1)(ea) is available only where processing meets a condition in Annex 1. The specific conditions in Annex 1 are outside this tool's current corpus and are not assessed here; whether any Annex 1 condition is met is reserved to qualified legal counsel.";
 
 /** Intake option strings that indicate children are among the data subjects. */
 export const CHILD_VULNERABLE_OPTIONS: readonly string[] = [
