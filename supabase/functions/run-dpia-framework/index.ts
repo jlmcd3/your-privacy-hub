@@ -1759,6 +1759,19 @@ async function runStitch(dpia_id: string): Promise<void> {
       ...(staging.units.u5?.keys ?? {}),
     };
 
+    // ── BUILD-STAMP PROOF (Item 375) ───────────────────────────────────────
+    // Written unconditionally into every document so a stale deploy can never
+    // silently masquerade as a test of new code.
+    try {
+      const _bm = ((reportData as any)._meta ??= {});
+      (_bm.internal ??= {}).dpia_pipeline_stamp = DPIA_PIPELINE_STAMP;
+      console.log(JSON.stringify({
+        evt: "dpia_pipeline_stamp", fn: "run-dpia-framework",
+        dpia_pipeline_stamp: DPIA_PIPELINE_STAMP, build_stamp: BUILD_STAMP,
+      }));
+    } catch { /* never fatal */ }
+
+
     // ── QB8-8(a) residual completeness check (repair pass) ─────────────────
     try {
       const requiredResidualFields = ["residual_likelihood", "residual_risk_level", "additional_measures"];
