@@ -127,11 +127,20 @@ export const GOVERNANCE_GOLDEN: GoldenCase[] = [
         "Clinical-outcome benchmarking, readmission-risk cohort reporting, and contractual service-level reporting to the commissioning trust. No secondary research use and no onward sale.",
       additional_context:
         "DPO reports to the CEO and also owns the information-security function, which is under review as a possible Art. 38(6) conflict.",
+      // GOVERNANCE UPGRADE — remediation defaults (ICO tracker columns). Every
+      // adverse finding inherits these unless a finding-specific entry exists.
+      remediation_default_owner: "Head of Information Governance",
+      remediation_default_target_date: "2026-12-31",
+      remediation_default_priority: "High — remediate this quarter",
+      remediation_default_validation_method: "Internal audit sample",
     },
     assertions: [
       { kind: "must_include", pattern: "Article 5\\(2\\)|Art\\. 5\\(2\\)", flags: "i", label: "accountability standard cited" },
       { kind: "must_include", pattern: "Article 30|Art\\. 30", flags: "i", label: "Art. 30 record duty reached" },
       { kind: "must_not_include", pattern: "Critical = no controls in place", label: "inline non-statutory severity scale not restated as the conclusion" },
+      // GOVERNANCE UPGRADE — presence only. Never assert a verdict string.
+      { kind: "must_include", pattern: "domain_element_findings", label: "ICO tracker element findings emitted" },
+      { kind: "must_include", pattern: "remediation_plan", label: "remediation plan emitted" },
       ...V2_ANTI_HEDGE_GUARDS,
     ],
   },
