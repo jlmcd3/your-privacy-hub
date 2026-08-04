@@ -38,6 +38,9 @@ import { useEdpbGuidelineRailEntry } from "@/hooks/useEdpbGuidelineRailEntry";
 
 import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
+import { DPIA_RAIL } from "@/components/dpia/DPIARailEntries";
+import { CountryPicker } from "@/components/dpia/CountryPicker";
+import { GERMAN_LAENDER } from "@/components/dpia/countries";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
@@ -194,8 +197,20 @@ const DPIAFramework = () => {
   const dpiaRailOpts = activeRailField ? dpiaRailConfigs[activeRailField] : null;
   const { entry: dpiaRailEntry } = useGdprRailEntry(dpiaRailOpts);
 
+  // INTAKE GOLD STANDARD (register v1.2, G12) — the rail is the tutor. Fields
+  // with no statute/template rail of their own now surface the DPIA coaching
+  // entries, which were authored but never wired to the surface.
+  const [activeLocalRailKey, setActiveLocalRailKey] = useState<string | null>(null);
+  const localRailEntry = activeLocalRailKey ? (DPIA_RAIL[activeLocalRailKey] ?? null) : null;
+  const handleLocalRailFocus = (key: string) => {
+    setActiveRailField(null);
+    setActiveTemplateRef(null);
+    setActiveLocalRailKey(key);
+  };
+
   const handleDpiaRailFocus = (field: "trigger" | "legal_basis" | "transfers") => {
     setActiveTemplateRef(null);
+    setActiveLocalRailKey(null);
     setActiveRailField(field);
   };
 
@@ -203,17 +218,26 @@ const DPIAFramework = () => {
   // Explainer paraphrase registry — no GDPR article fetch, no verbatim block.
   const handleTemplateRailFocus = (sectionRef: string) => {
     setActiveRailField(null);
+    setActiveLocalRailKey(null);
     setActiveTemplateRef(sectionRef);
   };
+
   useScrollActiveRail((k) => {
     if (k === "trigger" || k === "legal_basis" || k === "transfers") {
       setActiveTemplateRef(null);
+      setActiveLocalRailKey(null);
       setActiveRailField(k);
     } else if (EDPB_DPIA_GUIDANCE[k]) {
       setActiveRailField(null);
+      setActiveLocalRailKey(null);
       setActiveTemplateRef(k);
+    } else if (DPIA_RAIL[k]) {
+      setActiveRailField(null);
+      setActiveTemplateRef(null);
+      setActiveLocalRailKey(k);
     }
   });
+
   // WP248-PINNING (2026-08-01) — for the two WP248-anchored fields the right
   // "law" column also surfaces verbatim edpb_guidelines text (sibling hook).
   const wp248Entry = activeTemplateRef ? EDPB_DPIA_GUIDANCE[activeTemplateRef] : null;
@@ -579,7 +603,7 @@ const DPIAFramework = () => {
 
         <BenchLayout
           toolType="dpia"
-          railEntry={templateRailEntry ?? dpiaRailEntry}
+          railEntry={templateRailEntry ?? dpiaRailEntry ?? localRailEntry}
           defaultSourceUrl="https://eur-lex.europa.eu/eli/reg/2016/679/oj"
           coachingOpenByDefault={
             !!activeRailField &&
@@ -598,39 +622,98 @@ const DPIAFramework = () => {
           />
           <RequiredLegend />
 
+          {/* ═══ STAGE 1 — WHAT & WHO ══════════════════════════════════ */}
+          <div className="pt-1 pb-2 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">1 · What you are doing, and who is doing it</span>
+            <p className="text-meta text-muted-foreground mt-1">This stage establishes the activity your assessment is about and the organisation accountable for it.</p>
+          </div>
 
-          <div className="flex items-center gap-2 pt-1 pb-1 border-b">
-            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">1 · What are you doing?</span>
-          </div>
           <div>
-            <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Art. 35 GDPR — Data Protection Impact Assessment · Recitals 84, 89–90 — when a DPIA is mandatory</p>
-            <Label htmlFor="org">Organisation being assessed<Req /></Label>
-            <Input id="org" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. Acme Retail Ltd" className="mt-2" />
-            <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this DPIA documents.</p>
+            <Label htmlFor="org">Which organisation is this assessment for?<Req /></Label>
+            <Input id="org" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="Acme Retail Ltd" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">The organisation that decides why and how the data is used. That name appears throughout your assessment as the accountable party.</p>
           </div>
-          <div>
-            <Label>Name this processing activity<Req /></Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Employee location monitoring via mobile app" className="mt-2" />
+
+          <div data-rail-key="name" onFocus={() => handleLocalRailFocus("name")}>
+            <Label>What do you call this processing activity?<Req /></Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Employee location monitoring" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">One activity, named the way your organisation refers to it. A good answer names the processing rather than the project — the population and the method usually make it clear. This name is fixed once you generate, and everything else stays editable across your revision runs.</p>
           </div>
-          <div>
-            <Label>Describe the processing activity in detail<Req /></Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe: what data is collected, how it is used, who has access, where it is stored." className="mt-2 min-h-32" />
-            <IntakeGuidance className="mt-2">If this activity serves more than one purpose or use case, set each one out clearly and separately (number them, or a short paragraph each) — each purpose is analysed and reported on individually. For each, cover what data is involved, why it's needed, who can access it, where it's stored, and how long it's kept.</IntakeGuidance>
-            <p className="text-xs text-muted-foreground mt-1">Min 100 characters.</p>
+
+          <div data-rail-key="description" onFocus={() => handleLocalRailFocus("description")}>
+            <Label>What happens to the data, step by step?<Req /></Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="At least 100 characters" className="mt-2 min-h-32" />
+            <p className="text-meta text-muted-foreground mt-1">Walk the data through the system: what is collected and from whom, what happens at each step, who can see it, where it is stored, and how long it is kept. A strong answer uses numbers and names rather than adjectives — "a location ping every five minutes during rostered shifts, stored 90 days in EU-hosted storage, visible to two rostering managers". This description is the factual base for every risk the assessment analyses, so anything missing here cannot be analysed later (Art. 35(7)(a)).</p>
+            <IntakeGuidance className="mt-2">If this activity serves more than one purpose or use case, set each one out clearly and separately (number them, or a short paragraph each) — each purpose is analysed and reported on individually.</IntakeGuidance>
           </div>
-          <div>
-            <Label>What is the purpose of this processing?<Req /></Label>
+
+          <div data-rail-key="purpose" onFocus={() => handleLocalRailFocus("purpose")}>
+            <Label>Why are you doing this?<Req /></Label>
             <Textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-1">Be specific. Vague purposes weaken both the legal basis and the DPIA.</p>
+            <p className="text-meta text-muted-foreground mt-1">The outcome the processing exists to achieve. A strong answer gives one purpose per paragraph and, for each, what data it needs and how long that data is kept — "(1) shift-attendance verification, ping data, 90 days; (2) route planning, aggregated paths only, 12 months". Each purpose you state is tested separately for necessity, so a bundled purpose produces a weaker analysis of all of them.</p>
           </div>
-          <div className="flex items-center gap-2 pt-2 pb-1 border-b">
-            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">2 · What data, whose, how much, how long?</span>
+
+          <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
+            <summary className="px-4 py-3 text-sm text-[hsl(var(--brand-navy))]">
+              <span className="font-semibold">Add the administrative details</span>
+              <span className="block text-meta font-normal text-muted-foreground mt-1">Answering the next seven lets your assessment identify the controller, the timeline and the reason it was carried out. Skipped, each of them is recorded as open.</span>
+            </summary>
+            <div className="px-4 pb-4 pt-3 border-t space-y-4">
+              <div data-rail-key='0.1' onFocus={() => handleTemplateRailFocus('0.1')}>
+                <Label>Who is the contact point for this processing?</Label>
+                <Input value={controllerContact} onChange={(e) => setControllerContact(e.target.value)} placeholder="Head of Operations, Dublin" className="mt-2" />
+                <p className="text-meta text-muted-foreground mt-1">The unit, main establishment or representative answerable for this activity, and how to reach them. Where two organisations decide the purposes together, name both and say what each is responsible for. Skipped, your assessment records the contact point as not stated.</p>
+              </div>
+              <div data-rail-key='0.1' onFocus={() => handleTemplateRailFocus('0.1')}>
+                <Label>Who is your data protection officer?</Label>
+                <Input value={dpoInfo} onChange={(e) => setDpoInfo(e.target.value)} placeholder="Name and email" className="mt-2" />
+                <p className="text-meta text-muted-foreground mt-1">Contact details only. Whether the officer has advised on this assessment belongs in the consultation questions at stage 4. Skipped, your assessment records that no officer is identified on the record.</p>
+              </div>
+              <div data-rail-key='0.3' onFocus={() => handleTemplateRailFocus('0.3')}>
+                <Label>Which version of this processing are you assessing?</Label>
+                <Input value={processingVersion} onChange={(e) => setProcessingVersion(e.target.value)} placeholder="v2 — added a step" className="mt-2" />
+                <p className="text-meta text-muted-foreground mt-1">The internal name or version you use in your record of processing, plus a short note of what has changed since the last one. It lets a reader tell which version of the activity was assessed. Skipped, your assessment records no version history.</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div data-rail-key='0.4' onFocus={() => handleTemplateRailFocus('0.4')}>
+                  <Label>When does the processing start?</Label>
+                  <Input type="date" value={launchDate} onChange={(e) => setLaunchDate(e.target.value)} className="mt-2" />
+                  <p className="text-meta text-muted-foreground mt-1">An assessment is carried out before the processing begins, so this date shows the sequence. Skipped, your assessment records the start date as open.</p>
+                </div>
+                <div data-rail-key='0.4' onFocus={() => handleTemplateRailFocus('0.4')}>
+                  <Label>When does it end, if it is temporary?</Label>
+                  <Input value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="Date or condition" className="mt-2" />
+                  <p className="text-meta text-muted-foreground mt-1">A date, or the condition that ends it — for example the close of a pilot. Ongoing processing needs no answer here. Skipped, your assessment records the activity as open-ended.</p>
+                </div>
+              </div>
+              <div data-rail-key='0.5.reasons' onFocus={() => handleTemplateRailFocus('0.5.reasons')}>
+                <Label>Why are you carrying out this assessment?</Label>
+                <p className="text-meta text-muted-foreground mt-1 mb-2">Every reason that applies. Some make an assessment a legal requirement, others make it advisable — recording which applies to you shows the reader why the document exists. Skipped, your assessment records the reason as open.</p>
+                <Pills options={REASONS_TO_CONDUCT} value={reasonsToConduct} onChange={setReasonsToConduct} />
+              </div>
+              <div data-rail-key="dpia_scope_note" onFocus={() => handleLocalRailFocus("dpia_scope_note")}>
+                <Label>What does this assessment cover, and what does it leave out?</Label>
+                <Textarea value={dpiaScopeNote} onChange={(e) => setDpiaScopeNote(e.target.value)} className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">The boundary of the assessment. A strong answer states both sides — "covers location capture, storage and rostering use; excludes the payroll integration, which has its own assessment". Naming the exclusions shows they were a considered decision rather than an oversight. Skipped, your assessment records the scope as open.</p>
+              </div>
+            </div>
+          </details>
+
+          {/* ═══ STAGE 2 — DATA & FLOWS ════════════════════════════════ */}
+          <div className="pt-2 pb-2 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">2 · The data, the people, and where it flows</span>
+            <p className="text-meta text-muted-foreground mt-1">This stage establishes what data is involved, whose it is, how long you hold it and where it travels — the facts the risk analysis works on.</p>
           </div>
-          <div data-rail-key="trigger" onFocus={() => handleDpiaRailFocus("trigger")}><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 — special categories trigger Art. 35(3)(b))</span> <EnforcementSignalIcon signalKey="special_categories" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
+
+          <div data-rail-key="trigger" onFocus={() => handleDpiaRailFocus("trigger")}>
+            <Label>What kinds of data does this involve?<Req /> <DefPopover termKey="gdpr_special_categories" /> <EnforcementSignalIcon signalKey="special_categories" signals={dpiaEnforcementSignals} /></Label>
+            <div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div>
+            <p className="text-meta text-muted-foreground mt-1">Every category the activity touches, including anything collected but rarely used. Health and biometric data are treated as special categories and need a second legal basis, which appears at stage 3 once you name them (Art. 9).</p>
+          </div>
           {dpiaTriggers.length > 0 && (
             <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-1.5">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wide">
-                <Zap aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> DPIA triggers detected from your data categories <EnforcementSignalIcon signalKey="dpia_absence" signals={dpiaEnforcementSignals} />
+                <Zap aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Assessment triggers found in the data you named <EnforcementSignalIcon signalKey="dpia_absence" signals={dpiaEnforcementSignals} />
               </p>
               {dpiaTriggers.map((item) => (
                 <div key={item.citation} className="flex items-start gap-2">
@@ -644,144 +727,162 @@ const DPIAFramework = () => {
               ))}
             </div>
           )}
-          <div><Label>Who are the data subjects?<Req /> <DefPopover termKey="gdpr_personal_data" /></Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
-          <div><Label>Volume and frequency<Req /></Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
-          <div><Label>Retention period<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 5(1)(e) — storage limitation)</span></Label><Input value={retentionPeriod} onChange={(e) => setRetentionPeriod(e.target.value)} placeholder="e.g. Deleted 90 days after each verification event; no central template stored" className="mt-2" /></div>
-          <div className="flex items-center gap-2 pt-2 pb-1 border-b">
-            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">3 · Who else touches the data, and what protects it?</span>
+          <div data-rail-key="data_subjects" onFocus={() => handleLocalRailFocus("data_subjects")}>
+            <Label>Whose data is it?<Req /> <DefPopover termKey="gdpr_personal_data" /></Label>
+            <Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="UK and Irish employees" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">The people the data is about, how many of them, and anything that makes them harder placed to object — children, staff, patients. A strong answer reads "around 250 delivery drivers employed in the UK and Ireland, all adults, plus roughly 40 agency staff". Your assessment weighs harm against this population, so a vaguer answer produces a vaguer severity finding.</p>
           </div>
-          <div>
-            <Label>Third-party processors</Label>
-            <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
-            <Input placeholder="Other (specify)" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
+          <div data-rail-key="volume_frequency" onFocus={() => handleLocalRailFocus("volume_frequency")}>
+            <Label>How much data, and how often?<Req /></Label>
+            <Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="250 staff, every 5 minutes" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">One answer with two parts: the scale and the cadence. A complete answer carries both as numbers — "around 250 staff, one location ping every five minutes during shifts, roughly 24,000 records a day". Scale and cadence are what decide whether the processing counts as large-scale or as systematic monitoring, and adjectives cannot be measured against those thresholds (Art. 35(3)).</p>
           </div>
-          <div data-rail-key='4.1.c' onFocus={() => handleTemplateRailFocus('4.1.c')}><Label>Existing safeguards <span className="text-xs text-muted-foreground font-mono">(§ 4.1.c — feeds the inherent-risk severity appraisal)</span></Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
-          <div data-rail-key="transfers" onFocus={() => handleDpiaRailFocus("transfers")}><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–49 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
+          <div data-rail-key="retention_period" onFocus={() => handleLocalRailFocus("retention_period")}>
+            <Label>How long do you keep the data, and why that long?<Req /></Label>
+            <Input value={retentionPeriod} onChange={(e) => setRetentionPeriod(e.target.value)} placeholder="24 months, then deleted" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">The period, the reason for it, and what happens when it ends. A strong answer ties the number to something — "24 months, matching our audit cycle, then automatic deletion; aggregated figures with no identifiers are kept indefinitely". Your assessment tests whether the period is longer than the purpose needs, which it can only do when a reason is on the record (Art. 5(1)(e)).</p>
+          </div>
+          <div data-rail-key="transfers" onFocus={() => handleDpiaRailFocus("transfers")}>
+            <Label>Which privacy laws apply to this processing?<Req /> <DefPopover termKey="gdpr_international_transfer" /> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label>
+            <div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
+            <p className="text-meta text-muted-foreground mt-1">Every regime the activity reaches — where the people are, where your organisation is, and where the data ends up. Your assessment analyses the transfer rules of each regime you name here (Arts. 44–49).</p>
+          </div>
 
-          {/* ── Jurisdiction resolver inputs (deterministic facts) ─────────── */}
           <div className="border rounded-lg p-4 bg-slate-50/50 dark:bg-slate-900/30 space-y-3">
-            <p className="text-sm font-semibold text-[hsl(var(--brand-navy))]">Establishment & transfer facts</p>
-            <p className="text-xs text-muted-foreground">These structured fields drive deterministic supervisory-authority, OSS, and transfer-mechanism resolution. The report cites authorities and instruments from these inputs only — never from the model.</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs">Controller country (ISO-2)</Label>
-                <Input value={controllerCountry} onChange={(e) => setControllerCountry(e.target.value.toUpperCase().slice(0, 2))} placeholder="DE, IE, FR, UK…" className="mt-1" />
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold text-[hsl(var(--brand-navy))]">Does the data leave the EEA or the UK?</Label>
+              <button type="button" onClick={() => setTransferFlows([...transferFlows, { importer: "", destination: "", originRegime: "EU", dpfCertified: false, ukExtensionCertified: false }])} className="text-xs underline text-brand-teal-text">+ Add a transfer</button>
+            </div>
+            <p className="text-meta text-muted-foreground">One entry for each organisation outside the EEA or the UK that receives the data, including your own group companies and your suppliers' data centres. Your assessment names the transfer safeguard for each entry from what you record here. With none recorded, your assessment states that no cross-border transfer is on the record. Data that stays inside the EEA needs no entry.</p>
+            {transferFlows.map((f, i) => (
+              <div key={i} className="mt-2 grid grid-cols-1 md:grid-cols-6 gap-2 items-end border rounded p-2 bg-background">
+                <div className="md:col-span-2"><Label className="text-xs">Who receives the data?</Label><Input value={f.importer} onChange={(e) => { const n = [...transferFlows]; n[i].importer = e.target.value; setTransferFlows(n); }} placeholder="Acme Inc" className="mt-1" /></div>
+                <div><Label className="text-xs">Which country?</Label><CountryPicker id={`flow-dest-${i}`} value={f.destination} onChange={(v) => { const n = [...transferFlows]; n[i].destination = v; setTransferFlows(n); }} emptyLabel="Country" className="mt-1 w-full h-10 px-2 rounded-md border border-input bg-background text-sm" /></div>
+                <div><Label className="text-xs">Sent from</Label><select value={f.originRegime} onChange={(e) => { const n = [...transferFlows]; n[i].originRegime = e.target.value as "EU"|"UK"; setTransferFlows(n); }} className="mt-1 w-full h-10 px-2 rounded-md border border-input bg-background text-sm"><option value="EU">EU</option><option value="UK">UK</option></select></div>
+                <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={f.dpfCertified} onChange={(e) => { const n = [...transferFlows]; n[i].dpfCertified = e.target.checked; setTransferFlows(n); }} /> Certified under the EU–US Data Privacy Framework</label>
+                <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={f.ukExtensionCertified} onChange={(e) => { const n = [...transferFlows]; n[i].ukExtensionCertified = e.target.checked; setTransferFlows(n); }} /> Certified under the UK extension to that framework</label>
+                <button type="button" onClick={() => setTransferFlows(transferFlows.filter((_, j) => j !== i))} className="text-xs text-red-600 underline md:col-span-6 text-right">remove</button>
               </div>
-              {controllerCountry === "DE" && (
-                <div>
-                  <Label className="text-xs">German Land</Label>
-                  <select value={controllerLand} onChange={(e) => setControllerLand(e.target.value)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                    <option value="">Select…</option>
-                    {["Baden-Württemberg","Bavaria","Berlin","Brandenburg","Bremen","Hamburg","Hesse","Lower Saxony","Mecklenburg-Vorpommern","North Rhine-Westphalia","Rhineland-Palatinate","Saarland","Saxony","Saxony-Anhalt","Schleswig-Holstein","Thuringia"].map((l) => <option key={l}>{l}</option>)}
-                  </select>
-                </div>
-              )}
+            ))}
+          </div>
+
+          <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
+            <summary className="px-4 py-3 text-sm text-[hsl(var(--brand-navy))]">
+              <span className="font-semibold">Add detail about suppliers, systems and further uses</span>
+              <span className="block text-meta font-normal text-muted-foreground mt-1">Answering the next seven lets your assessment analyse your supply chain, your systems and your secondary uses instead of recording each as open.</span>
+            </summary>
+            <div className="px-4 pb-4 pt-3 border-t space-y-4">
               <div>
-                <Label className="text-xs">Sector</Label>
-                <select value={controllerSector} onChange={(e) => setControllerSector(e.target.value as any)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="">Select…</option>
-                  <option value="private">Private</option>
-                  <option value="public">Public (Land-level)</option>
-                  <option value="federal-public">Federal public body</option>
-                  <option value="telecom">Telecom</option>
-                  <option value="postal">Postal</option>
-                </select>
+                <Label>Which suppliers handle the data for you?</Label>
+                <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
+                <Input placeholder="Another supplier" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
+                <p className="text-meta text-muted-foreground mt-1">Any organisation that processes the data on your instructions, including hosting and support providers. Skipped, your assessment records the supply chain as open.</p>
+              </div>
+              <div data-rail-key='0.2' onFocus={() => handleTemplateRailFocus('0.2')}>
+                <Label>What is each supplier responsible for?</Label>
+                <ExhibitTextarea value={processorObligations} onChange={setProcessorObligations} placeholder="One supplier per line" className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">Each supplier and sub-supplier in the chain and the task it performs — "Acme Hosting: EU storage and backup; no access to identifiable records". Naming the obligations lets your assessment test whether the chain is defined; skipped, it records the obligations as open.</p>
+              </div>
+              <div data-rail-key='1.1.c' onFocus={() => handleTemplateRailFocus('1.1.c')}>
+                <Label>Do you use the data for anything beyond the main purpose?</Label>
+                <Textarea value={secondaryUses} onChange={(e) => setSecondaryUses(e.target.value)} className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">Any further use — analytics, product improvement, training a model — and why it fits with the purpose the data was collected for. A strong answer connects the two: "aggregated route statistics for capacity planning, which uses no identifiers and serves the same operational purpose". Skipped, your assessment records further uses as open (Art. 6(4)).</p>
+              </div>
+              <div data-rail-key='1.1.d' onFocus={() => handleTemplateRailFocus('1.1.d')}>
+                <Label>What is the wider context of this processing?</Label>
+                <Textarea value={natureScopeContext} onChange={(e) => setNatureScopeContext(e.target.value)} className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">Your relationship with the people involved and what they would reasonably expect — how far the processing extends in place and time, and whether it is routine in your sector. A strong answer might read "staff are told at hire and monthly thereafter; comparable monitoring is standard in logistics; the app runs only during shifts". Skipped, your assessment records the context as open.</p>
+              </div>
+              <div data-rail-key='1.2' onFocus={() => handleTemplateRailFocus('1.2')}>
+                <Label>How does the processing work from end to end?</Label>
+                <Textarea value={functionalDescription} onChange={(e) => setFunctionalDescription(e.target.value)} className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">The life of the data in sequence: collection, use, storage, sharing, deletion. A strong answer follows one record all the way through, naming the system at each hop. Skipped, your assessment records the data flow as open.</p>
+              </div>
+              <div data-rail-key='1.3' onFocus={() => handleTemplateRailFocus('1.3')}>
+                <Label>Which systems and infrastructure support it?</Label>
+                <AssistedInput
+                  className="mt-2"
+                  useExhibit
+                  value={supportingAssets}
+                  onChange={setSupportingAssets}
+                  pills={ASSISTED_INPUT_REGISTRY.supportingAssets.pills}
+                  placeholder="One system per line"
+                />
+                <p className="text-meta text-muted-foreground mt-1">Applications, databases, devices, hosting and any supplier systems in the chain. A long list can be sent to an exhibit annex so it does not crowd the body of the report. Skipped, your assessment records the supporting systems as open.</p>
               </div>
               <div>
-                <Label className="text-xs">Central administration country (for OSS)</Label>
-                <Input value={centralAdminCountry} onChange={(e) => setCentralAdminCountry(e.target.value.toUpperCase().slice(0, 2))} placeholder="DE, IE, CH, US…" className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs">EU establishment with decision authority</Label>
-                <Input value={euDecisionEstablishment} onChange={(e) => setEuDecisionEstablishment(e.target.value.toUpperCase().slice(0, 2))} placeholder="ISO-2, or blank if none" className="mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs">Statutory retention record type</Label>
-                <Input value={retentionRecordType} onChange={(e) => setRetentionRecordType(e.target.value)} placeholder="payroll, accounting, …" className="mt-1" />
+                <Label>Is there a statutory retention rule for these records?</Label>
+                <Input value={retentionRecordType} onChange={(e) => setRetentionRecordType(e.target.value)} placeholder="payroll" className="mt-2" />
+                <p className="text-meta text-muted-foreground mt-1">The record type where a national law sets the retention period — payroll or accounting records, for instance. Naming the type lets your assessment resolve the statutory minimum rather than treating your period as freely chosen. Skipped, your assessment records no statutory retention rule.</p>
               </div>
             </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Third-country transfer flows</Label>
-                <button type="button" onClick={() => setTransferFlows([...transferFlows, { importer: "", destination: "", originRegime: "EU", dpfCertified: false, ukExtensionCertified: false }])} className="text-xs underline text-brand-teal-text">+ Add flow</button>
-              </div>
-              {transferFlows.length === 0 && <p className="text-xs text-muted-foreground mt-1">No transfers added. EEA-internal flows do not need a Chapter V mechanism.</p>}
-              {transferFlows.map((f, i) => (
-                <div key={i} className="mt-2 grid grid-cols-1 md:grid-cols-6 gap-2 items-end border rounded p-2 bg-background">
-                  <div className="md:col-span-2"><Label className="text-xs">Importer entity</Label><Input value={f.importer} onChange={(e) => { const n = [...transferFlows]; n[i].importer = e.target.value; setTransferFlows(n); }} className="mt-1" /></div>
-                  <div><Label className="text-xs">Destination (ISO-2)</Label><Input value={f.destination} onChange={(e) => { const n = [...transferFlows]; n[i].destination = e.target.value.toUpperCase().slice(0,2); setTransferFlows(n); }} className="mt-1" /></div>
-                  <div><Label className="text-xs">Origin</Label><select value={f.originRegime} onChange={(e) => { const n = [...transferFlows]; n[i].originRegime = e.target.value as "EU"|"UK"; setTransferFlows(n); }} className="mt-1 w-full h-10 px-2 rounded-md border border-input bg-background text-sm"><option value="EU">EU</option><option value="UK">UK</option></select></div>
-                  <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={f.dpfCertified} onChange={(e) => { const n = [...transferFlows]; n[i].dpfCertified = e.target.checked; setTransferFlows(n); }} /> EU-US DPF</label>
-                  <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={f.ukExtensionCertified} onChange={(e) => { const n = [...transferFlows]; n[i].ukExtensionCertified = e.target.checked; setTransferFlows(n); }} /> UK Extension</label>
-                  <button type="button" onClick={() => setTransferFlows(transferFlows.filter((_, j) => j !== i))} className="text-xs text-red-600 underline md:col-span-6 text-right">remove</button>
-                </div>
-              ))}
-            </div>
+          </details>
+
+          {/* ═══ STAGE 3 — LEGAL BASIS ═════════════════════════════════ */}
+          <div className="pt-2 pb-2 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">3 · The legal basis, and why the processing is necessary</span>
+            <p className="text-meta text-muted-foreground mt-1">This stage establishes the lawful basis you rely on, whether the processing is necessary for the purpose, and which authority oversees you.</p>
           </div>
-          <div className="flex items-center gap-2 pt-2 pb-1 border-b">
-            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">4 · Is it lawful and necessary?</span>
-          </div>
+
           <div>
-            <Label>Legal basis proposed<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 6(1) GDPR — six lawful bases)</span></Label>
+            <Label>Which lawful basis do you rely on?<Req /></Label>
             <select value={legalBasis} data-rail-key="legal_basis" onChange={(e) => setLegalBasis(e.target.value)} onFocus={() => handleDpiaRailFocus("legal_basis")} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
-              <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
+              <option value="">Not answered</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
+            <p className="text-meta text-muted-foreground mt-1">One of the six bases in the law, and the one you would actually defend. Consent has to be freely given, which is hard to show where the people involved work for you; legitimate interest asks you to weigh your interest against theirs. Your assessment analyses the basis you name here and no other (Art. 6(1)).</p>
           </div>
           {hasSpecialCategory && (
             <div>
-              <Label>Article 9(2) condition for special-category data<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 9(2) — required in addition to the Art. 6 basis)</span></Label>
+              <p className="text-meta text-muted-foreground mb-2">You named health or biometric data, which the law treats as special. Processing it lawfully needs a second condition on top of the basis above.</p>
+              <Label>Which condition allows you to use health or biometric data?<Req /></Label>
               <select value={article9Condition} onChange={(e) => setArticle9Condition(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
-                <option value="">Select…</option>{ARTICLE_9_CONDITIONS.map((c) => <option key={c}>{c}</option>)}
+                <option value="">Not answered</option>{ARTICLE_9_CONDITIONS.map((c) => <option key={c}>{c}</option>)}
               </select>
-              <p className="text-xs text-muted-foreground mt-1">You selected a special category (health/medical or biometric data). Article 6 alone is not a sufficient legal basis — a separate Article 9(2) condition is required.</p>
+              <p className="text-meta text-muted-foreground mt-1">Employment-law and explicit-consent conditions are the common ones in a workplace setting. Your assessment records this condition alongside the lawful basis (Art. 9(2)).</p>
             </div>
           )}
           <div>
-            <Label>Necessity, proportionality & alternatives considered<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
-            <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} placeholder="Why is this processing necessary for the purpose, and what less-intrusive alternatives did you consider and why were they rejected?" className="mt-2 min-h-24" />
-            <IntakeGuidance className="mt-2">Take each alternative you considered in turn and say plainly why it was rejected. Listing them separately lets the assessment weigh each one — a single general statement can't be.</IntakeGuidance>
+            <Label>Why is this processing necessary, and what else did you consider?<Req /></Label>
+            <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} className="mt-2 min-h-24" />
+            <p className="text-meta text-muted-foreground mt-1">Why the purpose cannot reasonably be met with less data or a lighter method, and what less intrusive options you looked at. A strong answer takes each option in turn: "manual shift sign-in was tested for six months and left 18% of shifts unverified, so it does not achieve the purpose". Your assessment compares the options you record here; a single general statement leaves it nothing to compare (Art. 35(7)(b)).</p>
           </div>
 
-          {/* ITEM 310 — alternatives actually considered, per processing operation.
-              Feeds the deterministic least-intrusive-means test (Art. 35(7)(b)). */}
           <div>
             <div className="flex items-center justify-between">
-              <Label>Alternatives considered and rejected <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
+              <Label>Which alternatives did you reject, and why?</Label>
               <button
                 type="button"
                 onClick={() => setAlternativesConsidered([...alternativesConsidered, { processing_operation: "", alternative: "", rejection_reason: "" }])}
                 className="text-xs underline text-brand-teal-text"
-              >+ Add alternative</button>
+              >+ Add an alternative</button>
             </div>
-            {alternativesConsidered.length === 0 && (
-              <p className="text-xs text-muted-foreground mt-1">None recorded. Without at least one alternative and the reason it was rejected, the assessment cannot run the least-intrusive-means comparison and will record the point as open.</p>
-            )}
+            <p className="text-meta text-muted-foreground mt-1">One entry per option you looked at and set aside. A reason that says the alternative was slower or dearer does not establish necessity — the reason has to say why it would not achieve the purpose. Without at least one alternative and its rejection reason, the assessment cannot run the least-intrusive-means comparison and will record the point as open.</p>
             {alternativesConsidered.map((a, i) => (
               <div key={i} className="grid md:grid-cols-3 gap-2 mt-2 p-3 rounded-md border bg-muted/20">
                 <div>
-                  <Label className="text-xs">Processing operation</Label>
+                  <Label className="text-xs">Which part of the processing?</Label>
                   <Input
                     value={a.processing_operation}
                     onChange={(e) => { const n = [...alternativesConsidered]; n[i].processing_operation = e.target.value; setAlternativesConsidered(n); }}
-                    placeholder="Leave blank for the primary activity"
+                    placeholder="Blank for the whole"
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Alternative considered</Label>
+                  <Label className="text-xs">What was the alternative?</Label>
                   <Input
                     value={a.alternative}
                     onChange={(e) => { const n = [...alternativesConsidered]; n[i].alternative = e.target.value; setAlternativesConsidered(n); }}
-                    placeholder="e.g. aggregated data only"
+                    placeholder="Aggregated data only"
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Why it was rejected</Label>
+                  <Label className="text-xs">Why did it not work?</Label>
                   <Input
                     value={a.rejection_reason}
                     onChange={(e) => { const n = [...alternativesConsidered]; n[i].rejection_reason = e.target.value; setAlternativesConsidered(n); }}
-                    placeholder="Why it would not achieve the purpose"
+                    placeholder="Misses 18% of shifts"
                     className="mt-1"
                   />
                 </div>
@@ -792,192 +893,199 @@ const DPIAFramework = () => {
                 >remove</button>
               </div>
             ))}
-            <IntakeGuidance className="mt-2">A rejection reason that says the alternative was less useful, slower or more expensive does not establish necessity — say why it would not achieve the purpose.</IntakeGuidance>
           </div>
 
 
-          {/* Optional EDPB-aligned depth — collapsed by default, feeds the generator when filled */}
-          <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
-            <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Fuller description detail (EDPB-aligned)</summary>
-            <div className="px-4 pb-4 pt-3 border-t space-y-4">
-              <div data-rail-key='1.1.c' onFocus={() => handleTemplateRailFocus('1.1.c')}>
-                <Label>Secondary or compatible uses <span className="text-xs text-muted-foreground font-mono">(§ 1.1.c)</span></Label>
-                <Textarea value={secondaryUses} onChange={(e) => setSecondaryUses(e.target.value)} placeholder="Any further uses of the data beyond the primary purpose, and why they are compatible with it (Art. 6(4))." className="mt-2 min-h-16" />
+
+          <div className="border rounded-lg p-4 bg-slate-50/50 dark:bg-slate-900/30 space-y-3">
+            <p className="text-sm font-semibold text-[hsl(var(--brand-navy))]">Where your organisation sits</p>
+            <p className="text-meta text-muted-foreground">Where decisions about this processing are made determines which authority oversees you and whether one authority can handle the whole file. Your assessment names the authority and the transfer safeguards from these answers only.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div data-rail-key="controller_country" onFocus={() => handleLocalRailFocus("controller_country")}>
+                <Label className="text-xs">Where is your organisation established?</Label>
+                <CountryPicker id="controller-country" value={controllerCountry} onChange={setControllerCountry} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                <p className="text-meta text-muted-foreground mt-1">The country your organisation operates from. Skipped, your assessment cannot name a supervisory authority and records the point as open.</p>
               </div>
-              <div data-rail-key='1.1.d' onFocus={() => handleTemplateRailFocus('1.1.d')}>
-                <Label>Nature, scope &amp; context of the processing <span className="text-xs text-muted-foreground font-mono">(§ 1.1.d)</span></Label>
-                <Textarea value={natureScopeContext} onChange={(e) => setNatureScopeContext(e.target.value)} placeholder="Nature (what you do with the data), scope (extent — volume, geography, duration), and context (relationship with data subjects and their expectations)." className="mt-2 min-h-16" />
+              {controllerCountry === "DE" && (
+                <div>
+                  <Label className="text-xs">Which German state (Land) is your organisation based in?</Label>
+                  <select value={controllerLand} onChange={(e) => setControllerLand(e.target.value)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                    <option value="">Not answered</option>
+                    {GERMAN_LAENDER.map((l) => <option key={l}>{l}</option>)}
+                  </select>
+                  <p className="text-meta text-muted-foreground mt-1">Germany has a separate authority for each state, so the state decides which one oversees you. Skipped, your assessment names the federal position only.</p>
+                </div>
+              )}
+              <div>
+                <Label className="text-xs">What kind of organisation is it?</Label>
+                <select value={controllerSector} onChange={(e) => setControllerSector(e.target.value as any)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="">Not answered</option>
+                  <option value="private">A private company</option>
+                  <option value="public">A public body (state or regional)</option>
+                  <option value="federal-public">A national government body</option>
+                  <option value="telecom">A telecoms provider</option>
+                  <option value="postal">A postal provider</option>
+                </select>
+                <p className="text-meta text-muted-foreground mt-1">Some sectors answer to a specialist regulator rather than the general one. Skipped, your assessment treats the sector as open.</p>
               </div>
-              <div data-rail-key='1.2' onFocus={() => handleTemplateRailFocus('1.2')}>
-                <Label>Functional description <span className="text-xs text-muted-foreground font-mono">(§ 1.2)</span></Label>
-                <Textarea value={functionalDescription} onChange={(e) => setFunctionalDescription(e.target.value)} placeholder="How the processing works end to end: the data lifecycle from collection through use, storage, sharing and deletion." className="mt-2 min-h-16" />
+              <div data-rail-key="central_administration_country" onFocus={() => handleLocalRailFocus("central_administration_country")}>
+                <Label className="text-xs">Where are decisions about this processing made?</Label>
+                <CountryPicker id="central-admin-country" value={centralAdminCountry} onChange={setCentralAdminCountry} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                <p className="text-meta text-muted-foreground mt-1">The place where your organisation decides what the processing is for and how it runs — not the largest office. Where that place is in Europe, one lead authority can handle the whole file. Skipped, your assessment falls back to the country above (Art. 4(16)(a)).</p>
               </div>
-              <div data-rail-key='1.3' onFocus={() => handleTemplateRailFocus('1.3')}>
-                <Label>Means of processing, supporting assets &amp; architecture <span className="text-xs text-muted-foreground font-mono">(§ 1.3 — can be sent to an Exhibit annex)</span></Label>
-                <AssistedInput
-                  className="mt-2"
-                  useExhibit
-                  value={supportingAssets}
-                  onChange={setSupportingAssets}
-                  pills={ASSISTED_INPUT_REGISTRY.supportingAssets.pills}
-                  placeholder="IT systems, infrastructure, applications and sub-processor systems that support the processing."
-                />
-              </div>
-              <div data-rail-key='1.4' onFocus={() => handleTemplateRailFocus('1.4')}>
-                <Label>Approved codes of conduct / certifications <span className="text-xs text-muted-foreground font-mono">(§ 1.4)</span></Label>
-                <Input value={codesOfConduct} onChange={(e) => setCodesOfConduct(e.target.value)} placeholder="e.g. an approved Art. 40 code of conduct or Art. 42 certification, if any." className="mt-2" />
+              <div data-rail-key="eu_decision_establishment_country" onFocus={() => handleLocalRailFocus("eu_decision_establishment_country")}>
+                <Label className="text-xs">Does a European office make those decisions instead?</Label>
+                <CountryPicker id="eu-decision-country" value={euDecisionEstablishment} onChange={setEuDecisionEstablishment} emptyLabel="No — decisions are made elsewhere" className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                <p className="text-meta text-muted-foreground mt-1">For groups run from outside Europe: a European office counts only where it genuinely decides the purposes and can put them into effect, not where it carries out head-office instructions. Left as no, your assessment treats the place above as the deciding one.</p>
               </div>
             </div>
-          </details>
+          </div>
+
+          {/* ═══ STAGE 4 — RISKS & SAFEGUARDS ══════════════════════════ */}
+          <div className="pt-2 pb-2 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">4 · What protects the data, and who has been consulted</span>
+            <p className="text-meta text-muted-foreground mt-1">This stage establishes the measures already in place and the advice you have taken — together they set the residual risk your assessment reports.</p>
+          </div>
+
+          <div data-rail-key='4.1.c' onFocus={() => handleTemplateRailFocus('4.1.c')}>
+            <Label>What already protects this data?</Label>
+            <div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div>
+            <p className="text-meta text-muted-foreground mt-1">Measures that are live today, not ones you plan to add. Each one lowers the severity your assessment appraises for the risks it identifies; a measure not recorded here is not counted.</p>
+          </div>
 
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
-            <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Compliance measures (EDPB-aligned)</summary>
+            <summary className="px-4 py-3 text-sm text-[hsl(var(--brand-navy))]">
+              <span className="font-semibold">Add your protective measures in detail</span>
+              <span className="block text-meta font-normal text-muted-foreground mt-1">Answering the next five lets your assessment analyse why each kind of data is needed, how you keep it accurate, how people exercise their rights, and what is built into the design. Skipped, each is recorded as open.</span>
+            </summary>
             <div className="px-4 pb-4 pt-3 border-t space-y-4">
               <div data-rail-key='2.2.a' onFocus={() => handleTemplateRailFocus('2.2.a')}>
-                <Label>Data minimisation — why each category is necessary <span className="text-xs text-muted-foreground font-mono">(§ 2.2.a)</span></Label>
-                <Textarea value={dataMinimisationJustification} onChange={(e) => setDataMinimisationJustification(e.target.value)} placeholder="For each category of data, why it is adequate, relevant and limited to what is necessary (Art. 5(1)(c))." className="mt-2 min-h-16" />
+                <Label>Why is each kind of data you collect needed?</Label>
+                <Textarea value={dataMinimisationJustification} onChange={(e) => setDataMinimisationJustification(e.target.value)} className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">Take the categories you named at stage 2 and give the reason each one is there — "vehicle registration is needed to match a ping to a shift; home address is not collected". Your assessment tests each category against its stated reason; skipped, it records the minimisation position as open (Art. 5(1)(c)).</p>
               </div>
+
               <div data-rail-key='2.2.b' onFocus={() => handleTemplateRailFocus('2.2.b')}>
-                <Label>Data quality measures <span className="text-xs text-muted-foreground font-mono">(§ 2.2.b)</span></Label>
+                <Label>How do you keep the data accurate and up to date?</Label>
                 <AssistedInput
                   className="mt-2"
                   value={dataQualityMeasures}
                   onChange={setDataQualityMeasures}
                   pills={ASSISTED_INPUT_REGISTRY.dataQualityMeasures.pills}
-                  placeholder="How you keep data accurate and up to date, and correct or erase inaccuracies (Art. 5(1)(d))."
+                  placeholder="One measure per line"
                 />
+                <p className="text-meta text-muted-foreground mt-1">The checks that catch wrong data and the route by which it is corrected or erased. A strong answer names the check and its frequency — "staff records reconciled against the HR system each month; drivers can flag an incorrect shift in the app". Skipped, your assessment records data quality as open (Art. 5(1)(d)).</p>
               </div>
               <div data-rail-key='2.3.b' onFocus={() => handleTemplateRailFocus('2.3.b')}>
-                <Label>Measures supporting data subjects' rights <span className="text-xs text-muted-foreground font-mono">(§ 2.3.b)</span></Label>
+                <Label>How can people exercise their rights over this data?</Label>
                 <AssistedInput
                   className="mt-2"
                   value={dataSubjectRightsMechanisms}
                   onChange={setDataSubjectRightsMechanisms}
                   pills={ASSISTED_INPUT_REGISTRY.dataSubjectRightsMechanisms.pills}
-                  placeholder="How data subjects exercise access, rectification, erasure, restriction, portability and objection — and how you handle those requests (Arts. 12–22)."
+                  placeholder="One route per line"
                 />
+                <p className="text-meta text-muted-foreground mt-1">How someone asks for a copy, a correction, deletion, or objects — and how you handle the request once it arrives. A strong answer names the route and the deadline: "requests to privacy@ are logged and answered within one month". Skipped, your assessment records the rights mechanisms as open (Arts. 12–22).</p>
               </div>
               <div data-rail-key='2.3.d' onFocus={() => handleTemplateRailFocus('2.3.d')}>
-                <Label>Data protection by design &amp; by default <span className="text-xs text-muted-foreground font-mono">(§ 2.3.d)</span></Label>
+                <Label>What protections are built into the design?</Label>
                 <AssistedInput
                   className="mt-2"
                   value={dpByDesignMeasures}
                   onChange={setDpByDesignMeasures}
                   pills={ASSISTED_INPUT_REGISTRY.dpByDesignMeasures.pills}
-                  placeholder="Measures built into the design — pseudonymisation, minimisation and access restriction by default (Art. 25)."
+                  placeholder="One measure per line"
                 />
+                <p className="text-meta text-muted-foreground mt-1">Protection that the system applies by default rather than by policy — identifiers stripped at collection, access closed unless granted, tracking off outside shifts. Skipped, your assessment records the design measures as open (Art. 25).</p>
+              </div>
+              <div data-rail-key='1.4' onFocus={() => handleTemplateRailFocus('1.4')}>
+                <Label>Do you follow an approved code of conduct or hold a certification?</Label>
+                <Input value={codesOfConduct} onChange={(e) => setCodesOfConduct(e.target.value)} placeholder="Name of the scheme" className="mt-2" />
+                <p className="text-meta text-muted-foreground mt-1">Formally approved schemes only — an approved code of conduct or a certification issued under the regulation. General standards you follow internally belong with your design measures above. Skipped, your assessment records that none is on the record (Arts. 40, 42).</p>
               </div>
             </div>
           </details>
 
           <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
-            <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Consultation (DPO &amp; data subjects)</summary>
+            <summary className="px-4 py-3 text-sm text-[hsl(var(--brand-navy))]">
+              <span className="font-semibold">Add the advice you have taken</span>
+              <span className="block text-meta font-normal text-muted-foreground mt-1">Answering the next two lets your assessment record the officer's advice and the views of the people affected. Skipped, both are recorded as open, and the law treats the second as a step that needs explaining.</span>
+            </summary>
             <div className="px-4 pb-4 pt-3 border-t space-y-4">
               <div data-rail-key='5.1' onFocus={() => handleTemplateRailFocus('5.1')}>
-                <Label>DPO advice <span className="text-xs text-muted-foreground font-mono">(§ 5.1)</span></Label>
-                <Textarea value={dpoAdvice} onChange={(e) => setDpoAdvice(e.target.value)} placeholder="Has the DPO been consulted on this DPIA, and what is their advice / opinion? (Art. 35(2))" className="mt-2 min-h-16" />
+                <Label>What has your data protection officer advised?</Label>
+                <Textarea value={dpoAdvice} onChange={(e) => setDpoAdvice(e.target.value)} className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">The advice given on this assessment, and what you did with it. A strong answer records both sides — "the officer advised limiting tracking to rostered hours; this was adopted before launch". Where you departed from the advice, your reason belongs here too. Skipped, your assessment records the officer's advice as open (Art. 35(2)).</p>
               </div>
-              <div data-rail-key='5.2' onFocus={() => handleTemplateRailFocus('5.2')}>
-                <Label>Views of data subjects or their representatives <span className="text-xs text-muted-foreground font-mono">(§ 5.2)</span></Label>
+              <div data-rail-key="data_subjects_views" onFocus={() => handleLocalRailFocus("data_subjects_views")}>
+                <Label>Have you asked the people affected what they think?</Label>
                 <select value={dataSubjectsViewsSought} onChange={(e) => setDataSubjectsViewsSought(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
-                  <option value="">Have you sought data subjects' views? (Art. 35(9))</option>
+                  <option value="">Not answered</option>
                   <option value="Yes — views sought">Yes — views sought</option>
                   <option value="No — not sought">No — not sought</option>
                   <option value="Planned">Planned but not yet done</option>
                   <option value="Not appropriate — justified">Not appropriate (with justification)</option>
                 </select>
-                <Textarea value={dataSubjectsViews} onChange={(e) => setDataSubjectsViews(e.target.value)} placeholder="If sought: how, and what views were obtained. If not: why it is not appropriate (Art. 35(9))." className="mt-2 min-h-16" />
+                <Textarea value={dataSubjectsViews} onChange={(e) => setDataSubjectsViews(e.target.value)} className="mt-2 min-h-16" />
+                <p className="text-meta text-muted-foreground mt-1">Where views were sought: how you asked and what came back. Where they were not: why asking is not appropriate. A strong answer shows the effect — "consulted the works council in March; two objections about out-of-hours tracking led to tracking being limited to rostered shifts". Consultation is the expected course and not consulting is what needs a reason, so silence here is recorded as an unexplained omission (Art. 35(9)).</p>
               </div>
             </div>
           </details>
 
-          <details className="rounded-md border bg-muted/20 [&>summary]:cursor-pointer">
-            <summary className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Optional · Administrative details (EDPB Section 0)</summary>
-            <div className="px-4 pb-4 pt-3 border-t space-y-4">
-              <div data-rail-key='0.1' onFocus={() => handleTemplateRailFocus('0.1')}>
-                <Label>Controller — main establishment / point of contact</Label>
-                <Input value={controllerContact} onChange={(e) => setControllerContact(e.target.value)} placeholder="Main establishment or representative, and the contact point for this processing" className="mt-2" />
-                <p className="text-meta text-muted-foreground mt-1">EDPB §0.1: identify the controller's responsible unit, main establishment or representative, and the DPO. For joint controllers, define each party's obligations.</p>
-              </div>
-              <div data-rail-key='0.1' onFocus={() => handleTemplateRailFocus('0.1')}>
-                <Label>DPO contact details, if applicable</Label>
-                <Input value={dpoInfo} onChange={(e) => setDpoInfo(e.target.value)} placeholder="DPO name / contact, or note if none is designated" className="mt-2" />
-                <p className="text-meta text-muted-foreground mt-1">Contact details only — the DPO's advice on this DPIA goes in the optional Consultation section above.</p>
-              </div>
-              <div data-rail-key='0.2' onFocus={() => handleTemplateRailFocus('0.2')}>
-                <Label>Processors / sub-processors — obligations &amp; tasks</Label>
-                <ExhibitTextarea value={processorObligations} onChange={setProcessorObligations} placeholder="For each processor / sub-processor, define their obligations and tasks." className="mt-2 min-h-16" />
-                <p className="text-meta text-muted-foreground mt-1">EDPB §0.2: list every processor and sub-processor in the chain and define each one's obligations unequivocally.</p>
-              </div>
-              <div data-rail-key='0.3' onFocus={() => handleTemplateRailFocus('0.3')}>
-                <Label>Processing — current version / change history</Label>
-                <Input value={processingVersion} onChange={(e) => setProcessingVersion(e.target.value)} placeholder="e.g. v2 — added biometric step in Q1 2026" className="mt-2" />
-                <p className="text-meta text-muted-foreground mt-1">EDPB §0.3: the internal name (from your RoPA) plus a short history of past changes to the processing.</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div data-rail-key='0.4' onFocus={() => handleTemplateRailFocus('0.4')}>
-                  <Label>Estimated launch date</Label>
-                  <Input type="date" value={launchDate} onChange={(e) => setLaunchDate(e.target.value)} className="mt-2" />
-                </div>
-                <div data-rail-key='0.4' onFocus={() => handleTemplateRailFocus('0.4')}>
-                  <Label>Estimated end date / expiry (if temporary)</Label>
-                  <Input value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="Date or expiry condition; leave blank if ongoing" className="mt-2" />
-                </div>
-              </div>
-              <div data-rail-key='0.5' onFocus={() => handleTemplateRailFocus('0.5')}>
-                <Label>DPIA team / roles (RACI)</Label>
-                <Input value={dpiaTeam} onChange={(e) => setDpiaTeam(e.target.value)} placeholder="Who is Responsible, Accountable, Consulted, Informed for this DPIA" className="mt-2" />
-                <p className="text-meta text-muted-foreground mt-1">EDPB §0.5: the team conducting the DPIA and their roles / responsibilities.</p>
-              </div>
-              <div data-rail-key='0.5.team' onFocus={() => handleTemplateRailFocus('0.5.team')}>
-                <Label>Who prepared this DPIA (names and roles)</Label>
-                <Textarea value={dpiaPreparedBy} onChange={(e) => setDpiaPreparedBy(e.target.value)} placeholder={"One person per line, name and role together \u2014 e.g.\nA. Okonjo \u2014 Privacy Counsel (Responsible)\nD. Dasher \u2014 DPO (Accountable)"} className="mt-2 min-h-20" />
-                <p className="text-meta text-muted-foreground mt-1">EDPB \u00a70.5 \u00b66: the people who conducted this DPIA and the role each held. Optional.</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
-                  <Label>Approved by \u2014 name</Label>
-                  <Input value={dpiaApprovedByName} onChange={(e) => setDpiaApprovedByName(e.target.value)} placeholder="Responsible official who approved the DPIA as complete" className="mt-2" />
-                </div>
-                <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
-                  <Label>Approved by \u2014 title</Label>
-                  <Input value={dpiaApprovedByTitle} onChange={(e) => setDpiaApprovedByTitle(e.target.value)} placeholder="e.g. Managing Director" className="mt-2" />
-                </div>
-              </div>
-              <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
-                <Label>Date of formal approval</Label>
-                <Input type="date" value={dpiaApprovalDate} onChange={(e) => setDpiaApprovalDate(e.target.value)} className="mt-2" />
-                <p className="text-meta text-muted-foreground mt-1">EDPB \u00a70.5 \u00b610: the formal validation date, distinct from the date the document was completed. Optional.</p>
-              </div>
-              <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
-                <Label>Basis for sign-off</Label>
-                <Textarea value={dpiaSignoffBasis} onChange={(e) => setDpiaSignoffBasis(e.target.value)} placeholder="What the approval rests on: the sections reviewed, the residual-risk position accepted, and any condition attached." className="mt-2 min-h-16" />
-              </div>
-              <div data-rail-key='0.5' onFocus={() => handleTemplateRailFocus('0.5')}>
-                <Label>Guidelines / standards used</Label>
-                <Input value={referenceMaterials} onChange={(e) => setReferenceMaterials(e.target.value)} placeholder="e.g. EDPB DPIA template, WP248 rev.01, ISO 29134" className="mt-2" />
-              </div>
-              <div data-rail-key='0.5.reasons' onFocus={() => handleTemplateRailFocus('0.5.reasons')}>
-                <Label>Reasons for conducting this DPIA</Label>
-                <p className="text-meta text-muted-foreground mt-1 mb-2">EDPB §0.5: select every reason that applies — a DPIA may be a legal obligation, required by guidance, or simply beneficial.</p>
-                <Pills options={REASONS_TO_CONDUCT} value={reasonsToConduct} onChange={setReasonsToConduct} />
-              </div>
-              <div data-rail-key='0.5.scope' onFocus={() => handleTemplateRailFocus('0.5.scope')}>
-                <Label>Scope of this DPIA — what's in and what's out</Label>
-                <Textarea value={dpiaScopeNote} onChange={(e) => setDpiaScopeNote(e.target.value)} placeholder="State what this assessment covers, what it deliberately excludes, and why." className="mt-2 min-h-16" />
-              </div>
-              <div data-rail-key='0.5.publication' onFocus={() => handleTemplateRailFocus('0.5.publication')}>
-                <Label>Will the DPIA be published or shared externally?</Label>
-                <select value={publicationIntent} onChange={(e) => setPublicationIntent(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
-                  <option value="">Select…</option>
-                  <option>No</option>
-                  <option>Yes — published</option>
-                  <option>Yes — shared externally</option>
-                </select>
-                <p className="text-meta text-muted-foreground mt-1">EDPB §0.5: note publication / sharing intent; withhold sensitive security detail if you publish.</p>
-              </div>
+          {/* ═══ STAGE 5 — SIGN-OFF ════════════════════════════════════ */}
+          <div className="pt-2 pb-2 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">5 · Who prepared this, and who approves it</span>
+            <p className="text-meta text-muted-foreground mt-1">This stage establishes the accountability record: the people behind the assessment and the official who accepts it as complete. Without entries here your assessment names no one and records the attestation as incomplete.</p>
+          </div>
+
+          <div data-rail-key="dpia_prepared_by" onFocus={() => handleLocalRailFocus("dpia_prepared_by")}>
+            <Label>Who prepared this assessment?</Label>
+            <Textarea value={dpiaPreparedBy} onChange={(e) => setDpiaPreparedBy(e.target.value)} placeholder="One person per line" className="mt-2 min-h-20" />
+            <p className="text-meta text-muted-foreground mt-1">Each person and the role they held, one per line — "A. Okonjo — Privacy Counsel; R. Lindqvist — Head of Platform Engineering; D. Dasher — data protection officer". A department name records no one. Left empty, your assessment states that the team who prepared it is not identified and marks the record insufficient on that point (Art. 35(7)).</p>
+          </div>
+          <div data-rail-key='0.5' onFocus={() => handleTemplateRailFocus('0.5')}>
+            <Label>Who is responsible, accountable, consulted and informed?</Label>
+            <Input value={dpiaTeam} onChange={(e) => setDpiaTeam(e.target.value)} placeholder="Names against each role" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">A formal split of responsibility where your organisation uses one: who owns the work, who answers for it, who was asked, who was told. Skipped, your assessment relies on the names above alone.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div data-rail-key="dpia_approval" onFocus={() => handleLocalRailFocus("dpia_approval")}>
+              <Label>Who approves this assessment as complete?</Label>
+              <Input value={dpiaApprovedByName} onChange={(e) => setDpiaApprovedByName(e.target.value)} placeholder="M. Ferrante" className="mt-2" />
+              <p className="text-meta text-muted-foreground mt-1">The official who can accept the remaining risk for your organisation. Left empty, your assessment records it as not formally validated.</p>
             </div>
-          </details>
+            <div data-rail-key="dpia_approval" onFocus={() => handleLocalRailFocus("dpia_approval")}>
+              <Label>What is that person's title?</Label>
+              <Input value={dpiaApprovedByTitle} onChange={(e) => setDpiaApprovedByTitle(e.target.value)} placeholder="Managing Director" className="mt-2" />
+              <p className="text-meta text-muted-foreground mt-1">The capacity they approve in — it is what shows they had the authority. Left empty, your assessment lists the title as outstanding.</p>
+            </div>
+          </div>
+          <div data-rail-key="dpia_approval" onFocus={() => handleLocalRailFocus("dpia_approval")}>
+            <Label>When was it formally approved?</Label>
+            <Input type="date" value={dpiaApprovalDate} onChange={(e) => setDpiaApprovalDate(e.target.value)} className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">The date approval was given, which is a separate event from the day the document was finished. Left empty, your assessment lists the approval date as outstanding.</p>
+          </div>
+          <div data-rail-key="dpia_signoff_basis" onFocus={() => handleLocalRailFocus("dpia_signoff_basis")}>
+            <Label>What does the approval rest on?</Label>
+            <Textarea value={dpiaSignoffBasis} onChange={(e) => setDpiaSignoffBasis(e.target.value)} className="mt-2 min-h-16" />
+            <p className="text-meta text-muted-foreground mt-1">The reasoning behind the signature: which sections were reviewed, which remaining risks were accepted, and any condition attached. A strong answer is specific — "sections 3 and 4 reviewed on 12 April 2026; two moderate residual risks accepted; conditional on the 30-day deletion job being verified in production before launch". "Approved subject to compliance" records no decision. Left empty, your assessment lists the basis for sign-off as outstanding.</p>
+          </div>
+          <div data-rail-key='0.5' onFocus={() => handleTemplateRailFocus('0.5')}>
+            <Label>Which guidance or standards did you follow?</Label>
+            <Input value={referenceMaterials} onChange={(e) => setReferenceMaterials(e.target.value)} placeholder="ISO 29134" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">Any template, regulator guidance or standard you worked from. Skipped, your assessment records the reference materials as open.</p>
+          </div>
+          <div data-rail-key='0.5.publication' onFocus={() => handleTemplateRailFocus('0.5.publication')}>
+            <Label>Will you publish or share this assessment?</Label>
+            <select value={publicationIntent} onChange={(e) => setPublicationIntent(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Not answered</option>
+              <option>No</option>
+              <option>Yes — published</option>
+              <option>Yes — shared externally</option>
+            </select>
+            <p className="text-meta text-muted-foreground mt-1">Publishing an assessment builds trust, and it is worth holding back detailed security information if you do. Skipped, your assessment records the publication intent as open.</p>
+          </div>
+
         </form>
         </BenchLayout>
 
