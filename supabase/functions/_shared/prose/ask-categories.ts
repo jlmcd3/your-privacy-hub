@@ -67,7 +67,7 @@ const RULES: readonly CategoryRule[] = [
   {
     id: "legal_basis",
     label: "the lawful basis relied on for each purpose",
-    re: /\b(lawful\s+basis|legal\s+basis|legal[_\s-]?basis|article\s*6|art\.?\s*6\b|legitimate\s+interest|consent\b)/i,
+    re: /\b(lawful\s+basis|legal\s+basis|legal[_\s-]?basis|article\s*6|art\.?\s*6\b|legitimate[\s-]?interests?(?:\s+assessment)?|lia\b|consent\b)/i,
   },
   {
     id: "transfers",
