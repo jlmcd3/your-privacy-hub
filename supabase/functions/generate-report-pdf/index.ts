@@ -2675,7 +2675,7 @@ Deno.serve(async (req) => {
     // SEC-1b: sign-only mode — return a fresh short-TTL (600s) signed URL for
     // an already-rendered cached PDF. Never persists the URL. Never renders.
     if (mode === "sign-only") {
-      const folder = `reports/${table}/${assessment_id}`;
+      const folder = `reports/${table}/${assessment_id}${artifactPathSuffix}`;
       const { data: existing } = await supabase.storage
         .from("assessment-reports")
         .list(folder, { limit: 10, sortBy: { column: "created_at", order: "desc" } });
@@ -2816,7 +2816,7 @@ Deno.serve(async (req) => {
     // Skip cache when `force=true`.
     if (!force) {
       try {
-        const folder = `reports/${table}/${assessment_id}`;
+        const folder = `reports/${table}/${assessment_id}${artifactPathSuffix}`;
         const { data: existing } = await supabase.storage
           .from("assessment-reports")
           .list(folder, { limit: 10, sortBy: { column: "created_at", order: "desc" } });
@@ -3088,7 +3088,7 @@ Deno.serve(async (req) => {
 
     let pdfUrl: string | null = null;
     if (pdfBytes) {
-      const storagePath = `reports/${table}/${assessment_id}/${attachmentName}`;
+      const storagePath = `reports/${table}/${assessment_id}${artifactPathSuffix}/${attachmentName}`;
       const { error: storageError } = await supabase.storage
         .from("assessment-reports")
         .upload(storagePath, pdfBytes, {
