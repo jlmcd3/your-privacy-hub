@@ -119,6 +119,12 @@ const DPIAFramework = () => {
   const [launchDate, setLaunchDate] = useState("");                      // 0.4 estimated launch date
   const [endDate, setEndDate] = useState("");                            // 0.4 estimated end date / expiry
   const [dpiaTeam, setDpiaTeam] = useState("");                          // 0.5 team / RACI
+  // DPIA UPGRADE ITEM 2 — EDPB template v1.0 § 0.5 ¶6 and ¶10. All optional.
+  const [dpiaPreparedBy, setDpiaPreparedBy] = useState("");              // 0.5 ¶6 who prepared
+  const [dpiaApprovedByName, setDpiaApprovedByName] = useState("");      // 0.5 ¶10 approver
+  const [dpiaApprovedByTitle, setDpiaApprovedByTitle] = useState("");    // 0.5 ¶10 title
+  const [dpiaApprovalDate, setDpiaApprovalDate] = useState("");          // 0.5 ¶10 date
+  const [dpiaSignoffBasis, setDpiaSignoffBasis] = useState("");          // 0.5 ¶10 basis
   const [referenceMaterials, setReferenceMaterials] = useState("");      // 0.5 guidelines / standards
   const [reasonsToConduct, setReasonsToConduct] = useState<string[]>([]);// 0.5 reasons (multi-select)
   const [dpiaScopeNote, setDpiaScopeNote] = useState("");                // 0.5 scope in/out
@@ -332,6 +338,11 @@ const DPIAFramework = () => {
     estimated_launch_date: launchDate,
     estimated_end_date: endDate,
     dpia_team: dpiaTeam,
+    dpia_prepared_by: dpiaPreparedBy,
+    dpia_approved_by_name: dpiaApprovedByName,
+    dpia_approved_by_title: dpiaApprovedByTitle,
+    dpia_approval_date: dpiaApprovalDate,
+    dpia_signoff_basis: dpiaSignoffBasis,
     reference_materials: referenceMaterials,
     reasons_to_conduct: reasonsToConduct,
     dpia_scope_note: dpiaScopeNote,
@@ -367,7 +378,8 @@ const DPIAFramework = () => {
     organizationName, name, description, purpose, dataCategories, dataSubjects, volume,
     processors, otherProcessor, safeguards, jurisdictions, legalBasis, article9Condition,
     necessityProportionality, retentionPeriod, controllerContact, dpoInfo, processorObligations,
-    processingVersion, launchDate, endDate, dpiaTeam, referenceMaterials, reasonsToConduct,
+    processingVersion, launchDate, endDate, dpiaTeam, dpiaPreparedBy, dpiaApprovedByName,
+    dpiaApprovedByTitle, dpiaApprovalDate, dpiaSignoffBasis, referenceMaterials, reasonsToConduct,
     dpiaScopeNote, publicationIntent, secondaryUses, natureScopeContext, functionalDescription,
     supportingAssets, codesOfConduct, dataMinimisationJustification, dataQualityMeasures,
     dataSubjectRightsMechanisms, dpByDesignMeasures, dpoAdvice, dataSubjectsViewsSought,
@@ -411,6 +423,11 @@ const DPIAFramework = () => {
     S(d.estimated_launch_date, setLaunchDate);
     S(d.estimated_end_date, setEndDate);
     S(d.dpia_team, setDpiaTeam);
+    S(d.dpia_prepared_by, setDpiaPreparedBy);
+    S(d.dpia_approved_by_name, setDpiaApprovedByName);
+    S(d.dpia_approved_by_title, setDpiaApprovedByTitle);
+    S(d.dpia_approval_date, setDpiaApprovalDate);
+    S(d.dpia_signoff_basis, setDpiaSignoffBasis);
     S(d.reference_materials, setReferenceMaterials);
     A(d.reasons_to_conduct, setReasonsToConduct);
     S(d.dpia_scope_note, setDpiaScopeNote);
@@ -911,6 +928,30 @@ const DPIAFramework = () => {
                 <Label>DPIA team / roles (RACI)</Label>
                 <Input value={dpiaTeam} onChange={(e) => setDpiaTeam(e.target.value)} placeholder="Who is Responsible, Accountable, Consulted, Informed for this DPIA" className="mt-2" />
                 <p className="text-meta text-muted-foreground mt-1">EDPB §0.5: the team conducting the DPIA and their roles / responsibilities.</p>
+              </div>
+              <div data-rail-key='0.5.team' onFocus={() => handleTemplateRailFocus('0.5.team')}>
+                <Label>Who prepared this DPIA (names and roles)</Label>
+                <Textarea value={dpiaPreparedBy} onChange={(e) => setDpiaPreparedBy(e.target.value)} placeholder={"One person per line, name and role together \u2014 e.g.\nA. Okonjo \u2014 Privacy Counsel (Responsible)\nD. Dasher \u2014 DPO (Accountable)"} className="mt-2 min-h-20" />
+                <p className="text-meta text-muted-foreground mt-1">EDPB \u00a70.5 \u00b66: the people who conducted this DPIA and the role each held. Optional.</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
+                  <Label>Approved by \u2014 name</Label>
+                  <Input value={dpiaApprovedByName} onChange={(e) => setDpiaApprovedByName(e.target.value)} placeholder="Responsible official who approved the DPIA as complete" className="mt-2" />
+                </div>
+                <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
+                  <Label>Approved by \u2014 title</Label>
+                  <Input value={dpiaApprovedByTitle} onChange={(e) => setDpiaApprovedByTitle(e.target.value)} placeholder="e.g. Managing Director" className="mt-2" />
+                </div>
+              </div>
+              <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
+                <Label>Date of formal approval</Label>
+                <Input type="date" value={dpiaApprovalDate} onChange={(e) => setDpiaApprovalDate(e.target.value)} className="mt-2" />
+                <p className="text-meta text-muted-foreground mt-1">EDPB \u00a70.5 \u00b610: the formal validation date, distinct from the date the document was completed. Optional.</p>
+              </div>
+              <div data-rail-key='0.5.validation' onFocus={() => handleTemplateRailFocus('0.5.validation')}>
+                <Label>Basis for sign-off</Label>
+                <Textarea value={dpiaSignoffBasis} onChange={(e) => setDpiaSignoffBasis(e.target.value)} placeholder="What the approval rests on: the sections reviewed, the residual-risk position accepted, and any condition attached." className="mt-2 min-h-16" />
               </div>
               <div data-rail-key='0.5' onFocus={() => handleTemplateRailFocus('0.5')}>
                 <Label>Guidelines / standards used</Label>
