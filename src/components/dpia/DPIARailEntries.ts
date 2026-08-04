@@ -51,4 +51,46 @@ export const DPIA_RAIL: Record<string, RailEntry> = {
     commonMistake:
       "Merging purposes into one sentence. Bundled purposes produce a bundled — and weaker — necessity analysis for every one of them.",
   },
+  dpia_prepared_by: {
+    fieldLabel: "Who prepared this DPIA",
+    citation: "GDPR Art. 35(7)",
+    plainSummary:
+      "The people who did the work, and the role each held. EDPB DPIA template v1.0 (adopted 10 March 2026) \u00a7 0.5 \u00b66.",
+    regulationText: "\u2026",
+    coachLead: "Name people and roles, one per line.",
+    coachBody:
+      "A name on its own leaves the reader guessing at authority. Pair every name with the role it acted in \u2014 who ran the assessment, who supplied the technical facts, who was consulted. A RACI split works well where responsibilities were formally allocated.",
+    goodAnswer:
+      "\u201CA. Okonjo \u2014 Privacy Counsel (Responsible); R. Lindqvist \u2014 Head of Platform Engineering (Consulted); D. Dasher \u2014 DPO (Accountable).\u201D \u2014 one line per person, name and role together.",
+    commonMistake:
+      "Naming a department instead of people. \u201CThe Privacy Team\u201D records no one; the accountability field asks who actually conducted the assessment.",
+  },
+  dpia_approval: {
+    fieldLabel: "Formal approval of this DPIA",
+    citation: "GDPR Art. 35(7)",
+    plainSummary:
+      "The responsible official who approved the assessment as complete, their title, and the date. EDPB DPIA template v1.0 (adopted 10 March 2026) \u00a7 0.5 \u00b610.",
+    regulationText: "\u2026",
+    coachLead: "Approval is a person with authority, a title, and a date.",
+    coachBody:
+      "The official who signs off is the one who can accept the residual-risk position on the organisation's behalf \u2014 typically a Managing Director, CEO or equivalent. All three parts belong on the record together; a date without a name, or a name without a capacity, is not an approval.",
+    goodAnswer:
+      "\u201CM. Ferrante, Managing Director, 14 April 2026.\u201D \u2014 the person, the capacity they approved in, the date they did it.",
+    commonMistake:
+      "Recording the day the document was finished as though it were the approval date. Completion and formal validation are two separate events, and the template asks for both.",
+  },
+  dpia_signoff_basis: {
+    fieldLabel: "Basis for sign-off",
+    citation: "GDPR Art. 35(7)",
+    plainSummary:
+      "What the approval rests on \u2014 what was reviewed and what risk position was accepted.",
+    regulationText: "\u2026",
+    coachLead: "State what was reviewed and what residual risk was accepted.",
+    coachBody:
+      "The basis is the reasoning behind the signature: which sections the official read, which residual risks they accepted, and any condition attached to proceeding. Conditions belong here in specific terms, tied to the measure that satisfies them.",
+    goodAnswer:
+      "\u201CApproval rests on Sections 3 and 4 as reviewed on 12 April 2026, acceptance of two moderate residual risks, and the condition that the 30-day raw-frame deletion job is verified in production before launch.\u201D",
+    commonMistake:
+      "Writing \u201Capproved subject to compliance with GDPR.\u201D That restates the obligation and records no decision \u2014 the basis has to name the risks the official actually accepted.",
+  },
 };
