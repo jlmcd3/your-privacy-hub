@@ -32,6 +32,7 @@ import {
   dutyRow,
 } from "../../registry/biometric-verified-authorities.ts";
 import type {
+  Attestation,
   BiometricDeliverables,
   BiometricNarrative,
   ConsequenceDetermination,
