@@ -1496,7 +1496,7 @@ export function shouldResurrect(opts: {
   return opts.nowMs - t > RESURRECT_STALE_MS;
 }
 
-async function resurrectGenerator(
+export async function resurrectGenerator(
   tool: string, sourceRowId: string,
 ): Promise<{ ok: boolean; detail: string }> {
   const fn = RESUMABLE_GENERATOR_FN[tool];
@@ -1510,7 +1510,10 @@ async function resurrectGenerator(
         "Authorization": `Bearer ${SERVICE_KEY}`,
         "apikey": SERVICE_KEY,
       },
-      body: JSON.stringify({ [idKey]: sourceRowId }),
+      // MODEL A/B HARNESS — the resurrected chain MUST continue on the run's
+      // ambient generation model; omitting it silently fell back to the
+      // default and produced mixed-model documents in the alternate arm.
+      body: JSON.stringify({ [idKey]: sourceRowId, generation_model: currentGenerationModel() }),
       signal: AbortSignal.timeout(20_000),
     });
     return { ok: r.ok, detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status}: ${(await r.text()).slice(0, 200)}` };

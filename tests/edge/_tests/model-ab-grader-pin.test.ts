@@ -31,18 +31,28 @@ Deno.test("grader/rubric model strings are literals, not the A/B model", () => {
 });
 
 Deno.test("currentGenerationModel() is never used at a grader call site", () => {
-  // The only permitted use in this function is inside invokeFn (dispatch).
+  // Exactly two permitted uses: invokeFn (dispatch) and resurrectGenerator
+  // (re-invoking a stalled resumable generator on the run's ambient model).
   const uses = [...SRC.matchAll(/currentGenerationModel\(\)/g)].length;
-  assertEquals(uses, 1, "currentGenerationModel() must be referenced exactly once (invokeFn)");
+  assertEquals(uses, 2, "currentGenerationModel() must be referenced exactly twice (invokeFn, resurrectGenerator)");
   const invokeFnBody = SRC.slice(
     SRC.indexOf("async function invokeFn("),
     SRC.indexOf("interface Check {"),
   );
   assert(
     invokeFnBody.includes("currentGenerationModel()"),
-    "the single currentGenerationModel() use is not inside invokeFn",
+    "the invokeFn use of currentGenerationModel() is missing",
+  );
+  const resurrectBody = SRC.slice(
+    SRC.indexOf("export async function resurrectGenerator("),
+    SRC.indexOf("async function pollGenerationRow("),
+  );
+  assert(
+    resurrectBody.includes("currentGenerationModel()"),
+    "resurrectGenerator must attach the ambient generation model",
   );
 });
+
 
 Deno.test("A/B dispatch allowlist contains product generators only", () => {
   const block = SRC.slice(
