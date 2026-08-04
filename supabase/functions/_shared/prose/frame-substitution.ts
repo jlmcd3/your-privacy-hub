@@ -54,20 +54,31 @@ export const INFO_NEEDED_LITERAL =
 export const NEUTRAL_DOWNGRADE_LITERAL =
   "The organisation should confirm whether the described position applies here.";
 
-/** Hardcoded cap pools — replaced here so the cap becomes a true backstop. */
+/**
+ * Hardcoded cap pools — replaced here so the cap becomes a true backstop.
+ * ITEM 372 r2 (3): the DPIA cap's pools were rewritten off "on the record";
+ * BOTH the retired and the current sentences are listed, so a document
+ * carrying either form is still substituted.
+ */
 export const CAP_POOL_SENTENCES: readonly string[] = [
   "The record as it stands does not resolve this point; it is carried in the information needed list.",
   "This point is unresolved on the present record and appears among the items of information needed.",
+  "This point is unresolved and appears among the items of information needed.",
   "The information supplied does not settle this item; see the information needed list.",
   "This item remains open on the record and is tracked under information needed.",
+  "This item is still open and is tracked under information needed.",
   "The record does not yet answer this point; it is listed with the other information needed.",
   "No answer to this point appears in the record; it is carried under information needed.",
+  "No answer to this point appears in the material supplied; it is carried under information needed.",
   "This point is not resolved by the material supplied and sits in the information needed list.",
   "Whether the described position applies here is not settled by the record.",
+  "Whether the described position applies here is not settled by the material supplied.",
   "The record does not establish that the described position applies here.",
   "It remains to be confirmed whether the described position holds in this case.",
   "The described position is stated without support in the record for this case.",
+  "The described position is stated without support for this case.",
   "Nothing in the record confirms that the described position applies here.",
+  "Nothing supplied confirms that the described position applies here.",
 ];
 
 /** Absence scaffolds emitted by the frame realizer's fill-or-omit path. */
@@ -88,15 +99,33 @@ export const CONTROLLED_LITERALS: readonly string[] = [
 // These assert nothing, add no fact and no advice, and keep the reader pointed
 // at the information-needed list. They exist so the old pool sentences can be
 // removed everywhere, not only where the register has coverage.
+//
+// ITEM 372 SECOND CORRECTION ROUND (3) — the pool was six sentences long and
+// off-register: "on the record" is courtroom idiom the register refuses (see
+// BANNED_PHRASES in register-lint.ts), and six variants across ~20 degraded
+// leaves meant every sentence recurred three or four times. The pool is now
+// sixteen register-clean variants, and `register-lint.ts` lints it directly
+// through `lintScaffoldPool` so an off-register sentence cannot be added back
+// without the battery failing.
 // ---------------------------------------------------------------------------
 
-const GENERIC_ABSENCE: readonly string[] = [
+export const GENERIC_ABSENCE: readonly string[] = [
   "The record does not settle this point, and it is carried in the information needed list.",
-  "Nothing written down here answers this, so the point stays open on the record.",
+  "Nothing supplied answers this, so the point stays open.",
   "This turns on a fact the record does not supply; it is listed with the information needed.",
   "The material provided leaves this unresolved, and it is tracked as information needed.",
-  "No part of the record reaches this question, so it remains open.",
-  "What would answer this is absent from the record, and the point is listed as information needed.",
+  "No part of the material reaches this question, so it remains open.",
+  "What would answer this is absent, and the point is listed as information needed.",
+  "The record is silent here, and the question is carried forward.",
+  "This is not established by anything supplied, and it sits in the information needed list.",
+  "The documents provided do not reach this point.",
+  "Whether this holds cannot be determined from what has been supplied.",
+  "No supporting entry was provided, so the question is left where it stands.",
+  "The intake does not describe this, and the point is listed as information needed.",
+  "This remains unanswered by the material and is tracked with the other open questions.",
+  "Nothing in the material provided speaks to this.",
+  "The point is open, and it is carried in the information needed list.",
+  "The supplied material stops short of this question.",
 ];
 
 // ---------------------------------------------------------------------------
@@ -287,6 +316,12 @@ function walk(
     const obj = node as Record<string, unknown>;
     for (const k of Object.keys(obj).sort()) {
       if (k === "_meta" || k === "_staging") continue; // never rewrite internal telemetry
+      // ITEM 372 r2 (2) — the fixed disclaimer surfaces are system-supplied
+      // boilerplate, not prose leaves. When the emit gate degraded one of them
+      // this pass rewrote it into a gap atom, and the legacy top-of-document
+      // banner then rendered that atom as the document's first line. Those two
+      // keys are left exactly as the system wrote them.
+      if (k === "framework_disclaimer" || k === "disclaimer") continue;
       obj[k] = walk(obj[k], path ? `${path}.${k}` : k, sel, opts, c, scaffoldIndex);
     }
     return obj;

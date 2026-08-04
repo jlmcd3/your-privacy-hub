@@ -11,7 +11,12 @@
 // Nothing here is generated, inferred, or scored: this module composes, it does
 // not decide. Prose only, never a table.
 
-export const DETERMINATION_VERSION = "det-w1-2026-08-04-item372";
+import {
+  hasPlaceholderToken,
+  rollUpAskCategories,
+} from "../prose/ask-categories.ts";
+
+export const DETERMINATION_VERSION = "det-w2-2026-08-05-item372r2";
 export const DETERMINATION_HEADING = "Determination";
 
 export interface DeterminationBlock {
@@ -23,7 +28,7 @@ export interface DeterminationBlock {
   missing_foundations: string[];
 }
 
-const MAX_FOUNDATIONS = 8;
+const MAX_FOUNDATIONS = 6;
 
 function firstSentences(text: string, n: number): string {
   const parts = String(text ?? "")
@@ -83,28 +88,40 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
   const paragraphs: string[] = [];
 
   // 1 — what the assessment reaches, in the document's own words where it has
-  // them, and from the identity facts where it does not.
-  const summary = firstSentences(asText(report.executive_summary), 3);
+  // them, and from the identity facts where it does not. A summary sentence
+  // carrying a completion placeholder is NOT the document's own words — it is
+  // the record's wreckage — so it is dropped rather than quoted here.
+  const summarySentences = firstSentences(asText(report.executive_summary), 3)
+    .split(/(?<=[.!?])\s+(?=[A-Z(“"'])/)
+    .filter((s) => s.trim() && !hasPlaceholderToken(s));
+  const summary = summarySentences.join(" ").trim();
   if (summary) {
     paragraphs.push(summary);
   } else if (controller || activity) {
-    const subject = activity ? `${activity}` : "the processing described below";
+    const subject = activity && !hasPlaceholderToken(activity)
+      ? activity
+      : "the processing described below";
     paragraphs.push(
-      controller
+      controller && !hasPlaceholderToken(controller)
         ? `This assessment covers ${subject}, carried out by ${controller}.`
         : `This assessment covers ${subject}.`,
     );
   }
 
   // 2 — the missing foundations, enumerated.
+  //
+  // ITEM 372 SECOND CORRECTION ROUND (1) — CATEGORY ROLL-UP. The asks surface
+  // holds field-level entries written for a table, and on a degraded record
+  // those entries carry the record's wreckage with them ("DD/MM/YYYY", a bare
+  // "[TO COMPLETE — …]" tag, a raw field name). Stitching them into the
+  // document's first paragraph made it read as a form. The paragraph now
+  // enumerates CATEGORIES drawn from a closed set of authored counsel-language
+  // labels, so a placeholder token cannot reach it by construction.
   const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
-  const foundations: string[] = [];
-  for (const a of asks) {
-    const d = typeof a === "string" ? a : asText((a as { dimensions?: unknown })?.dimensions);
-    const cleaned = decapitalize(d);
-    if (cleaned && !foundations.includes(cleaned)) foundations.push(cleaned);
-    if (foundations.length >= MAX_FOUNDATIONS) break;
-  }
+  const categories = rollUpAskCategories(asks, MAX_FOUNDATIONS);
+  const foundations: string[] = categories
+    .map((c) => decapitalize(c.label))
+    .filter((label) => label && !hasPlaceholderToken(label));
 
   if (foundations.length) {
     const count = numberWord(foundations.length);
@@ -127,14 +144,19 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
         ? "Until those entries are written down, the risks this assessment records stand where it found them, and no one can sign it. The assessment is a draft."
         : "This assessment is a draft, and no one can sign it while an entry it depends on is still open.",
     );
-  } else if (decision) {
+  } else if (decision && !hasPlaceholderToken(decision)) {
     paragraphs.push(`The decision recorded is: ${decision}.`);
   }
 
   // 4 — what the reader should do with the rest of the document.
   paragraphs.push("The sections that follow set out each point, why it matters, and what closes it.");
 
-  const cleaned = paragraphs.map((p) => p.replace(/\s+/g, " ").trim()).filter(Boolean);
+  // FINAL GUARD (item 372 r2 §1) — the determination NEVER emits a placeholder
+  // token. Anything that still carries one is dropped rather than shipped.
+  const cleaned = paragraphs
+    .map((p) => p.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .filter((p) => !hasPlaceholderToken(p));
   if (!cleaned.length) return null;
 
   return {

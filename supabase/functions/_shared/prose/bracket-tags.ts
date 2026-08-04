@@ -28,9 +28,18 @@ import { INFO_NEEDED_LITERAL } from "./frame-substitution.ts";
 
 export const BRACKET_TAG_VERSION = "bracket-tags-2026-08-04-item372";
 
-/** `[TO COMPLETE — …]`, `[TO BE ASSESSED — …]`, and the bare forms. */
+/**
+ * `[TO COMPLETE — …]`, `[TO BE ASSESSED — …]`, and the bare forms.
+ *
+ * ITEM 372 r2 (8) — RESIDUAL BRACKET. One tag survived the Method-2 sweep in
+ * the CEO batch because the sweep only knew the four authored spellings. The
+ * model also emits `[TBD]`, `[PLACEHOLDER]`, `[SPECIFY …]`, `[AWAITING …]`,
+ * `[NOT PROVIDED]`, and bare date masks (`[DD/MM/YYYY]`, `[XX]`). All of them
+ * are the same object — an unfilled slot — so all of them route through the
+ * same lift-into-`information_needed` path rather than shipping inside prose.
+ */
 export const BRACKET_TAG_RE =
-  /\[\s*(?:TO\s+COMPLETE|TO\s+BE\s+ASSESSED|TO\s+BE\s+COMPLETED|INSERT)\b[^\][]*\]/gi;
+  /\[\s*(?:TO\s+COMPLETE|TO\s+BE\s+(?:ASSESSED|COMPLETED|DETERMINED|CONFIRMED|PROVIDED|SPECIFIED|SUPPLIED)|NOT\s+(?:YET\s+)?(?:PROVIDED|SPECIFIED|ASSESSED|DETERMINED|KNOWN)|AWAITING|PENDING|INSERT|SPECIFY|PLACEHOLDER|TBD|TBC|X{2,}|DD\/MM\/YYYY|MM\/DD\/YYYY|YYYY-MM-DD)\b[^\][]*\]/gi;
 
 /** Keys whose values are structural asks already, and are left alone. */
 const SKIP_KEYS = new Set(["_meta", "_staging", "information_needed", "open_items"]);

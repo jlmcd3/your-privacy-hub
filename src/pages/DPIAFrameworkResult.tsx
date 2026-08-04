@@ -220,7 +220,10 @@ const DPIAFrameworkResult = () => {
           </div>
         )}
 
-        <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions} topDisclaimer={report.framework_disclaimer ?? report.disclaimer}>
+        {/* ITEM 372 r2 (2) — legacy top-of-document disclaimer banner suppressed;
+            the determination block opens the report and the universal
+            disclaimer closes it. */}
+        <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions}>
           {(() => {
             const infoNeeded = (report as any)?.information_needed;
             return meter ? (

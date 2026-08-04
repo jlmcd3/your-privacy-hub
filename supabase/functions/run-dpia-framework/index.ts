@@ -2380,6 +2380,51 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] boilerplate cap post-pass failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 372 r2 (7) — INFERRED-DATA GENERALISATION ─────────────────
+    // A row stamped `source.basis = "inferred"` is a row the intake does not
+    // enumerate. Any specific examples hanging off it ("e.g. …", "such as …")
+    // are removed unless the intake itself contains them, so an inferred row
+    // states its category and its basis and claims nothing further. Fail-open.
+    try {
+      const { applyInferredGeneralisation } = await import(
+        "../_shared/prose/inferred-generalisation.ts"
+      );
+      const ig = applyInferredGeneralisation(reportData as any, dpiaIntake);
+      console.log(JSON.stringify({ evt: "dpia_inferred_generalisation", fn: "run-dpia-framework", ...ig }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] inferred generalisation failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 372 r2 (6) — BARE ADVISORY CLOSE ──────────────────────────
+    // An advisory close must name what is to be clarified. Where the leaf's
+    // path maps to a counsel-language category the close names it; where it
+    // does not, the bare close is dropped rather than shipped as a content-
+    // free instruction. Fail-open.
+    try {
+      const { applyAdvisoryCloseRepair } = await import(
+        "../_shared/prose/advisory-close-repair.ts"
+      );
+      const ac = applyAdvisoryCloseRepair(reportData as any);
+      console.log(JSON.stringify({ evt: "dpia_advisory_close_repair", fn: "run-dpia-framework", ...ac }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] advisory close repair failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 372 r2 (4) — ENFORCEMENT TAG CITE-OR-STRIP ────────────────
+    // A tag renders only if the item it names renders. Ids that reach the
+    // annotations / precedent surfaces are kept; every other tag is removed
+    // from prose, so the reader never meets a pointer to nothing. Fail-open.
+    try {
+      const { applyEnforcementTagGate } = await import(
+        "../_shared/prose/enforcement-tag-gate.ts"
+      );
+      const et = applyEnforcementTagGate(reportData as any);
+      console.log(JSON.stringify({ evt: "dpia_enforcement_tag_gate", fn: "run-dpia-framework", ...et }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] enforcement tag gate failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── DPIA UPGRADE ITEM 4 — AUTHORITY EXHIBIT ────────────────────────
     // Table of authorities built from the citations THIS report emits.
     // Excerpts come only from approved corpus rows; everything else is
