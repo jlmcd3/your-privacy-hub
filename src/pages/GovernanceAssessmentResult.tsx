@@ -14,6 +14,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import WordConversionPromptButton from "@/components/WordConversionPromptButton";
 import ReportShell from "@/components/ReportShell";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
 
