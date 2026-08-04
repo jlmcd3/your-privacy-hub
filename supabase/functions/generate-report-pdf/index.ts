@@ -2541,7 +2541,15 @@ Deno.serve(async (req) => {
     const callerRaw = await verifyCaller(req);
     const caller = callerRaw.ok ? callerRaw : { ok: true, userId: null as string | null, internal: false };
 
-    const { tool_type, assessment_id, user_email, user_name, result_url, force, mode, result_id } = await req.json();
+    const { tool_type, assessment_id, user_email, user_name, result_url, force, mode, result_id, artifact } = await req.json();
+
+    // ITEM 369-IR LEG 1 — the IR playbook ships TWO files from one run. The
+    // artifact selector is IR-only; every other tool_type ignores it and its
+    // storage layout, cache key and response are unchanged.
+    const irArtifact: "standing_playbook" | "incident_worksheet" =
+      artifact === "incident_worksheet" ? "incident_worksheet" : "standing_playbook";
+    const artifactPathSuffix = tool_type === "ir_playbook" ? `/${irArtifact}` : "";
+
 
     // ── ITEM 271: admin-only replay-harness export path ──────────────────
     // Renders a harness `assembled_report` through the SAME shipped
