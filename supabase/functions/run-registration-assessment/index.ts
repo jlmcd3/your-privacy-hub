@@ -733,7 +733,27 @@ Deno.serve(async (req) => {
       console.warn("[run-registration-assessment] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
     }
 
+    // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
+    // Fleet parity: replaces any degraded-leaf fallback literal with the
+    // registration register's approved gap atoms before serialization.
+    try {
+      const { applyFrameSubstitution, loadApprovedFrameSet } = await import(
+        "../_shared/prose/frame-substitution.ts"
+      );
+      const frameSet = await loadApprovedFrameSet(supabase, "registration");
+      const counters = applyFrameSubstitution(result_summary as Record<string, unknown>, {
+        product: "registration",
+        frameSet,
+        contract: "registration_assessment",
+        values: { organization_name: (intake as any)?.organization_name ?? null },
+      });
+      console.log(JSON.stringify({ evt: "registration_frame_substitution", fn: "run-registration-assessment", ...counters }));
+    } catch (e) {
+      console.warn("[run-registration-assessment] frame substitution failed (non-fatal):", (e as Error)?.message);
+    }
+
     // 4. Persist
+
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report immediately before the write (fail-open).
     const customer_result_summary = serializeCustomer(result_summary as Record<string, unknown>);

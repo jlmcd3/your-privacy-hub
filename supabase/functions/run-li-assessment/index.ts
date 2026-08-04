@@ -1831,7 +1831,31 @@ Return JSON:
       console.warn("[run-li-assessment] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
     }
 
+    // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
+    // Runs after the emit gate and BEFORE the cap, so the LIA register's
+    // approved gap atoms land on degraded leaves and the cap is a backstop.
+    try {
+      const { applyFrameSubstitution, loadApprovedFrameSet } = await import(
+        "../_shared/prose/frame-substitution.ts"
+      );
+      const frameSet = await loadApprovedFrameSet(supabase, "lia");
+      const counters = applyFrameSubstitution(reportData as any, {
+        product: "lia",
+        frameSet,
+        contract: "li_assessment",
+        values: {
+          organization_name:
+            (liaIntakeObject as any)?.organization_name ??
+            (reportData as any)?.organization_name ?? null,
+        },
+      });
+      console.log(JSON.stringify({ evt: "lia_frame_substitution", fn: "run-li-assessment", ...counters }));
+    } catch (e) {
+      console.warn("[run-li-assessment] frame substitution failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── UPGRADE-4 ITEM 4 — BOILERPLATE REPETITION CAP (2026-08-03) ─────
+
 
     // Runs AFTER the two emitters that produce the repeated literals
     // (_lia_t6_fix's NEUTRAL_DOWNGRADE and the emit gate's
