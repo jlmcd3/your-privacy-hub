@@ -44,6 +44,7 @@ Deno.test("BIOMETRIC: sample pass-through drops only internal keys", () => {
     consequence_determination: { verdict: "engaged" },
     biometric_deliverables: { version: "v1" },
     information_needed: [],
+    authority_exhibit: { version: "ax-w1-2026-08-03", heading: "Appendix — Authorities Cited", entries: [] },
     _meta: { prompt_version: "p1", build_stamp: "b1" },
     // internal key that must never ship
     _scratch_debug: { pass: 1 },
