@@ -81,6 +81,23 @@ export interface PlanProvenance {
   readonly exemplars?: readonly string[];
 }
 
+/**
+ * ITEM 364 — REGISTER PROPAGATION.
+ * An EXEMPLAR PAIR pins one BEFORE passage taken from the product's own live
+ * output beside the AFTER passage the register asks for. Pairs are review
+ * material and prose shape only: the AFTER text may not introduce a fact, a
+ * citation, or a legal standard that the BEFORE text did not already carry.
+ */
+export interface ExemplarPair {
+  readonly id: string;
+  /** Section id (or report path) the passage was taken from. */
+  readonly section_id: string;
+  readonly before: string;
+  readonly after: string;
+  /** Why the AFTER reads better — the register rule the pair demonstrates. */
+  readonly note: string;
+}
+
 export interface DocumentPlan {
   readonly product: string;
   readonly version: string;
@@ -89,7 +106,11 @@ export interface DocumentPlan {
   readonly approved_in_ledger_item?: string;
   readonly provenance: PlanProvenance;
   readonly sections: readonly PlannedSection[];
+  /** The document's controlling sentence — what the whole report argues. */
+  readonly thesis?: string;
+  readonly exemplar_pairs?: readonly ExemplarPair[];
 }
+
 
 // ---------------------------------------------------------------------------
 // LINT
