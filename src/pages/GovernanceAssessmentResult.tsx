@@ -474,6 +474,11 @@ const GovernanceAssessmentResult = () => {
                 precedents={report?.enforcement_precedents}
                 context="Enforcement signals from regulators in your jurisdictions and sector — context for the top three risks above."
               />
+
+              {/* GOVERNANCE UPGRADE ITEM 5 — table of authorities, last in the
+                  body and immediately before the universal disclaimer that
+                  ReportShell renders. */}
+              <AuthorityExhibit exhibit={report?.authority_exhibit} />
             </div>
           )}
           </div>
