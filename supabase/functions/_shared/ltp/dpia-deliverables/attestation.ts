@@ -92,10 +92,22 @@ export function parseTeamRoster(text: string): DpiaTeamMember[] {
     .map((s) => s.replace(/^[\s\-*\u2022]+/, "").trim())
     .filter((s) => s.length > 0)
     .map((line) => {
-      const m = line.match(/^(.*?)\s*(?:\u2014|--|\u2013|\s-\s|:|\()\s*(.+?)\)?$/);
-      if (m && m[1].trim() && m[2].trim()) {
-        return { name: m[1].trim(), role: m[2].trim().replace(/[.,;]$/, "") };
+      // ITEM 374 DEFECT 3 — the old pattern ended `(.+?)\)?$`, so a role that
+      // legitimately ENDS in a parenthetical ("Privacy Counsel (Responsible)")
+      // lost its closing bracket and rendered unbalanced. The trailing bracket
+      // is now stripped only when the delimiter that opened the role WAS "(",
+      // i.e. when the role carries one more ")" than it has "(".
+      const m = line.match(/^(.*?)\s*(\u2014|--|\u2013|\s-\s|:|\()\s*(.+)$/);
+      if (m && m[1].trim() && m[3].trim()) {
+        let role = m[3].trim().replace(/[.,;]$/, "");
+        const opens = (role.match(/\(/g) ?? []).length;
+        const closes = (role.match(/\)/g) ?? []).length;
+        if (m[2] === "(" && closes === opens + 1 && role.endsWith(")")) {
+          role = role.slice(0, -1).trim();
+        }
+        return { name: m[1].trim(), role };
       }
+
       return { name: line.replace(/[.,;]$/, ""), role: "" };
     });
 }

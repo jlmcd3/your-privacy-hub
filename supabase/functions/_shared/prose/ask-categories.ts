@@ -188,3 +188,82 @@ export function rollUpAskCategories(
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// ITEM 374 FIX 2 — CATEGORY → INTAKE-KEY MAP (DPIA contract keys).
+//
+// THE DEFECT
+// ----------
+// The determination enumerated categories rolled up from the asks surface with
+// no reference to the record. Both arms of batch 646e3bf3 therefore named "the
+// legal identity of the controller" and "who prepared this assessment and who
+// has approved it" as MISSING FOUNDATIONS on records that supply
+// `controller_contact`, `dpia_prepared_by`, `dpia_approved_by_name`,
+// `dpia_approved_by_title` and `dpia_approval_date`.
+//
+// THE RULE
+// --------
+// A category is emitted as a missing foundation only when at least ONE of its
+// mapped intake keys is empty. A category with NO mapped key is never
+// suppressed — absence of a mapping is not evidence the record answers it.
+// Keys are read from the DPIA intake contract (`dpia-framework.ts`).
+// ---------------------------------------------------------------------------
+
+export const ASK_CATEGORY_INTAKE_KEYS: Readonly<Record<string, readonly string[]>> = {
+  accountability_owner: [
+    "dpia_prepared_by",
+    "dpia_team",
+    "dpia_approved_by_name",
+    "dpia_approved_by_title",
+    "dpia_approval_date",
+    "dpia_signoff_basis",
+  ],
+  dpo: ["dpo_info", "dpo_advice"],
+  consultation: ["data_subjects_views_sought", "data_subjects_views"],
+  retention: ["retention_period"],
+  special_category: ["article_9_condition"],
+  legal_basis: ["legal_basis_proposed"],
+  transfers: ["transfer_flows"],
+  processors: ["third_party_processors", "processor_obligations"],
+  security: ["existing_safeguards", "dp_by_design_measures"],
+  rights: ["data_subject_rights_mechanisms"],
+  risk_measures: ["existing_safeguards"],
+  necessity: ["necessity_proportionality", "data_minimisation_justification"],
+  scope_description: ["description", "purpose", "functional_description"],
+  volume: ["volume_frequency"],
+  timing: ["estimated_launch_date"],
+  identity: ["organization_name", "controller_contact"],
+  // transparency + unspecified: deliberately unmapped — no single intake key
+  // answers them, so they are never suppressed by this filter.
+};
+
+/** True when the intake value at `key` carries something. */
+export function intakeKeyFilled(intake: unknown, key: string): boolean {
+  if (!intake || typeof intake !== "object") return false;
+  const v = (intake as Record<string, unknown>)[key];
+  if (v === null || v === undefined) return false;
+  if (typeof v === "string") return v.trim().length > 0 && !hasPlaceholderToken(v);
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === "object") return Object.keys(v as object).length > 0;
+  return String(v).trim().length > 0;
+}
+
+/**
+ * True when the record actually answers everything this category covers — i.e.
+ * every mapped intake key is filled. Unmapped categories always return false.
+ */
+export function categoryAnsweredByRecord(categoryId: string, intake: unknown): boolean {
+  const keys = ASK_CATEGORY_INTAKE_KEYS[categoryId];
+  if (!keys || keys.length === 0) return false;
+  return keys.every((k) => intakeKeyFilled(intake, k));
+}
+
+/** Drop categories the record actually answers. Pure; no intake → no change. */
+export function filterCategoriesAgainstRecord<T extends AskCategory>(
+  categories: readonly T[],
+  intake: unknown,
+): T[] {
+  if (!intake || typeof intake !== "object") return [...categories];
+  return categories.filter((c) => !categoryAnsweredByRecord(c.id, intake));
+}
+

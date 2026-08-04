@@ -153,6 +153,18 @@ export function sectionCandidates(path: string): string[] {
   return out;
 }
 
+/**
+ * ITEM 374 FIX 1(a) — deliverable statuses that mean "this surface was
+ * ANALYSED from the record". A gap/absence atom must never land on such a
+ * surface: the record supplied the fact, and the frame would contradict it.
+ */
+export const ANALYSED_STATUSES: ReadonlySet<string> = new Set([
+  "analysed",
+  "analyzed",
+  "attested",
+  "complete",
+]);
+
 export interface FrameSubstitutionOptions {
   readonly product: string;
   readonly frameSet: FrameSet | null | undefined;
@@ -165,7 +177,22 @@ export interface FrameSubstitutionOptions {
    * product's report key and its authored frame section differ.
    */
   readonly sectionAliases?: Record<string, string>;
+  /**
+   * ITEM 374 FIX 1(a) — OPT-IN, per product. Frame-section key → the owning
+   * deliverable's status. When a leaf's surface resolves to a key whose status
+   * is in ANALYSED_STATUSES, this pass leaves the leaf exactly as it found it.
+   * Omitted (the default, and the state of the other nine products this
+   * dispatch) → behaviour is byte-identical to before.
+   */
+  readonly surfaceStatuses?: Record<string, string>;
+  /**
+   * ITEM 374 FIX 1(b) — OPT-IN, per product. Object keys whose STRING values
+   * are structured leaves, not prose: `name`, `role`, dates, enums,
+   * identifiers. Substitution never writes into them. Omitted → default [].
+   */
+  readonly structuredLeafKeys?: readonly string[];
 }
+
 
 export interface FrameSubstitutionCounters {
   version: string;
@@ -181,6 +208,16 @@ export interface FrameSubstitutionCounters {
   /** frame ids used, in order of first use */
   frames_used: string[];
   frame_set_available: boolean;
+  /**
+   * ITEM 374 FIX 1(a) — occurrences left untouched because the owning
+   * deliverable reports an analysed/attested status for that surface.
+   */
+  gated_by_status: number;
+  /**
+   * ITEM 374 FIX 1(b) — occurrences left untouched because the leaf is a
+   * structured (non-prose) leaf: a name, a role, a date, an enum.
+   */
+  gated_structured: number;
   crashed: boolean;
 }
 
@@ -194,9 +231,12 @@ function emptyCounters(product: string): FrameSubstitutionCounters {
     literals_remaining: 0,
     frames_used: [],
     frame_set_available: false,
+    gated_by_status: 0,
+    gated_structured: 0,
     crashed: false,
   };
 }
+
 
 interface Selector {
   bySection: Map<string, Frame[]>;
@@ -258,6 +298,28 @@ function renderAtomFor(
   return null;
 }
 
+/**
+ * ITEM 374 FIX 1(a) — true when the leaf's surface belongs to a deliverable
+ * that reports an analysed/attested status. Opt-in: no `surfaceStatuses`, no
+ * gate, so every other product's behaviour is unchanged.
+ */
+export function surfaceIsAnalysed(
+  path: string,
+  opts: Pick<FrameSubstitutionOptions, "surfaceStatuses" | "sectionAliases">,
+): boolean {
+  const statuses = opts.surfaceStatuses;
+  if (!statuses) return false;
+  const aliases = opts.sectionAliases ?? {};
+  for (const key of sectionCandidates(path)) {
+    for (const k of [key, aliases[key]]) {
+      if (!k) continue;
+      const st = statuses[k];
+      if (typeof st === "string" && ANALYSED_STATUSES.has(st.trim().toLowerCase())) return true;
+    }
+  }
+  return false;
+}
+
 function replaceInString(
   s: string,
   path: string,
@@ -267,6 +329,13 @@ function replaceInString(
   scaffoldIndex: { n: number },
 ): string {
   let out = s;
+  if (surfaceIsAnalysed(path, opts)) {
+    for (const literal of CONTROLLED_LITERALS) {
+      if (out.includes(literal)) c.gated_by_status += out.split(literal).length - 1;
+    }
+    return out;
+  }
+
   for (const literal of CONTROLLED_LITERALS) {
     if (!out.includes(literal)) continue;
     let cursor = 0;
@@ -322,7 +391,22 @@ function walk(
       // banner then rendered that atom as the document's first line. Those two
       // keys are left exactly as the system wrote them.
       if (k === "framework_disclaimer" || k === "disclaimer") continue;
+      // ITEM 374 FIX 1(b) — structured leaves are not prose. `members[].name`,
+      // `members[].role`, dates, enums and identifiers are the deliverable
+      // builder's structured output; a register atom written into one of them
+      // is a category error, and shipped as Dr. R. Lindqvist's "role".
+      if (
+        typeof obj[k] === "string" &&
+        (opts.structuredLeafKeys ?? []).includes(k)
+      ) {
+        for (const literal of CONTROLLED_LITERALS) {
+          const hits = (obj[k] as string).split(literal).length - 1;
+          if (hits) c.gated_structured += hits;
+        }
+        continue;
+      }
       obj[k] = walk(obj[k], path ? `${path}.${k}` : k, sel, opts, c, scaffoldIndex);
+
     }
     return obj;
   }

@@ -12,11 +12,13 @@
 // not decide. Prose only, never a table.
 
 import {
+  filterCategoriesAgainstRecord,
   hasPlaceholderToken,
   rollUpAskCategories,
 } from "../prose/ask-categories.ts";
 
-export const DETERMINATION_VERSION = "det-w2-2026-08-05-item372r2";
+export const DETERMINATION_VERSION = "det-w2-2026-08-05-item374";
+
 export const DETERMINATION_HEADING = "Determination";
 
 export interface DeterminationBlock {
@@ -69,6 +71,15 @@ export interface DeterminationInput {
   readonly report: any;
   /** Controller name, when the caller knows it from the run row. */
   readonly organizationName?: string | null;
+  /**
+   * ITEM 374 FIX 2 — the intake this report was built from. When supplied, a
+   * rolled-up ask category whose mapped intake keys are ALL filled is not
+   * enumerated as a missing foundation: the record supplies it, and naming it
+   * as missing is a false statement about the record. Omitted → previous
+   * behaviour exactly.
+   */
+  readonly intake?: unknown;
+
 }
 
 export function buildDeterminationBlock(input: DeterminationInput): DeterminationBlock | null {
@@ -117,11 +128,20 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
   // document's first paragraph made it read as a form. The paragraph now
   // enumerates CATEGORIES drawn from a closed set of authored counsel-language
   // labels, so a placeholder token cannot reach it by construction.
+  //
+  // ITEM 374 FIX 2 — the roll-up runs UNCAPPED, is then filtered against the
+  // record (a category every mapped intake key answers is not missing), and
+  // only then capped. Capping first would have let a suppressed category
+  // crowd out a genuine one.
   const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
-  const categories = rollUpAskCategories(asks, MAX_FOUNDATIONS);
+  const categories = filterCategoriesAgainstRecord(
+    rollUpAskCategories(asks, Number.MAX_SAFE_INTEGER),
+    input?.intake,
+  ).slice(0, MAX_FOUNDATIONS);
   const foundations: string[] = categories
     .map((c) => decapitalize(c.label))
     .filter((label) => label && !hasPlaceholderToken(label));
+
 
   if (foundations.length) {
     const count = numberWord(foundations.length);
