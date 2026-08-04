@@ -222,9 +222,18 @@ export function extractProseFromReport(report: unknown, budget = 200_000): strin
       if (!trimmed) return;
       // Structured enum token / machine slug — never reader-facing prose.
       if (_ENUM_TOKEN_RE.test(trimmed)) return;
+      // ITEM 369 DEFECT 2 — SCAN-SURFACE SCOPING. Short structured values
+      // ("uk", "the UK GDPR regime", "permitted where …" fragments) are
+      // field values, not prose leaves. When such values were scanned they
+      // concatenated into one apparent sentence and produced phantom e6
+      // evidence. A genuine prose leaf either terminates as a sentence or
+      // runs to at least four words.
+      const words = trimmed.split(/\s+/).length;
+      if (words < 4 && !/[.!?]$/.test(trimmed)) return;
       let t = trimmed.slice(0, Math.max(0, remaining));
       // Terminate the leaf so sentence splitting cannot span two leaves.
       if (!/[.!?:;]$/.test(t)) t += ".";
+
       parts.push(t);
       remaining -= t.length + 1;
       return;

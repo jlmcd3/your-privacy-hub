@@ -2313,6 +2313,36 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
+    // A7 order: prose → validators → frame substitution → cap → disclaimer.
+    // The emit gate has just written its fallback literal into every degraded
+    // leaf; this pass replaces those literals with the DPIA register's
+    // approved gap atoms, selected by the surface the leaf sits on. The cap
+    // below therefore becomes a true backstop. Fail-open.
+    try {
+      const { applyFrameSubstitution, loadApprovedFrameSet } = await import(
+        "../_shared/prose/frame-substitution.ts"
+      );
+      const frameSet = await loadApprovedFrameSet(supabase, "dpia");
+      const orgName =
+        (reportData as any)?.org_context?.company_name ??
+        (dpiaIntake as any)?.organization_name ??
+        (reportData as any)?.organization_name ?? null;
+      const counters = applyFrameSubstitution(reportData as any, {
+        product: "dpia",
+        frameSet,
+        contract: "dpia_framework",
+        values: {
+          "org_context.company_name": orgName,
+          "dpia_metadata.document_name":
+            (reportData as any)?.dpia_metadata?.document_name ?? null,
+        },
+      });
+      console.log(JSON.stringify({ evt: "dpia_frame_substitution", fn: "run-dpia-framework", ...counters }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] frame substitution failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── DPIA UPGRADE ITEM 5 — BOILERPLATE REPETITION CAP ───────────────
     // Runs AFTER the two emitters that produce the repeated literals
     // (_dpia_t6_fix's NEUTRAL_DOWNGRADE and the emit gate's

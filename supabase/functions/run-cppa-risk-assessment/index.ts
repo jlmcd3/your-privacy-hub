@@ -3192,6 +3192,30 @@ async function runPipeline(assessment_id: string) {
       console.warn("[run-cppa-risk-assessment] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
+    // A7 order: prose → validators → frame substitution → cap → disclaimer.
+    // Replaces the gate's fallback literal (and the hardcoded cap pool
+    // sentences) with cppa-risk register atoms where the surface has one, and
+    // with neutral absence scaffolds elsewhere. Fail-open.
+    try {
+      const { applyFrameSubstitution, loadApprovedFrameSet } = await import(
+        "../_shared/prose/frame-substitution.ts"
+      );
+      const frameSet = await loadApprovedFrameSet(supabase, "cppa-risk");
+      const counters = applyFrameSubstitution(report_data as any, {
+        product: "cppa-risk",
+        frameSet,
+        contract: "cppa_risk_assessment",
+        values: {
+          "engine.entity_name":
+            ((row as any).intake_data ?? {}).organization_name ?? null,
+        },
+      });
+      console.log(JSON.stringify({ evt: "risk_frame_substitution", fn: "run-cppa-risk-assessment", ...counters }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] frame substitution failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── T7-RISK-OPENING-PARAGRAPH-PILOT (2026-07-25) ─────────────────
     // Deterministic opening_summary slot per docs/design/OPENING-PARAGRAPH-DESIGN.md.
     // The model NEVER writes this slot; we OVERWRITE it here (post emit-gate,

@@ -706,7 +706,44 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
   };
 }
 
+// ITEM 369 DEFECT 3(a) — JURISDICTION-SCOPED DPO CITATION LABEL.
+// The corpus carries both regimes. A UK-only organisation was being told its
+// DPO duty arises under "GDPR Art. 37(1)" — the wrong instrument. The label is
+// now driven by the regime the determination actually applied: UK GDPR where
+// the record places the organisation in the United Kingdom and NOT in the
+// Union; GDPR otherwise. Deterministic, no new facts.
+export function dpoRegimeLabel(intake: I): "GDPR" | "UK GDPR" {
+  const markets = Array.isArray(intake.markets_served) ? intake.markets_served : [];
+  const uk = intake.has_uk_establishment === true ||
+    (intake.organization_country || "") === "UK" ||
+    (intake.organization_country || "") === "GB" ||
+    markets.includes("UK") || markets.includes("GB");
+  const eu = intake.has_eu_establishment === true ||
+    markets.includes("EU") || markets.includes("EEA");
+  return uk && !eu ? "UK GDPR" : "GDPR";
+}
+
+/** Re-label a corpus citation string for the regime actually applied. */
+function regimeCite(citation: string, regime: "GDPR" | "UK GDPR"): string {
+  if (regime === "GDPR") return citation;
+  return citation.replace(/\bUK GDPR\b/g, "GDPR").replace(/\bGDPR\b/g, "UK GDPR");
+}
+
 function buildDpo(intake: I): DpoDetermination {
+  const regime = dpoRegimeLabel(intake);
+  const art = `${regime} Art. 37(1)`;
+  // ITEM 369 DEFECT 3(c) — shape-only. Where the record states an industry,
+  // the information-needed ask may say why the answer matters in that
+  // context. It asserts nothing about the organisation and reaches no
+  // conclusion; it only frames the question already being asked.
+  const industry = typeof intake.industry === "string" && intake.industry.trim()
+    ? intake.industry.trim()
+    : null;
+  const contextFor = (branch: string): string =>
+    industry
+      ? ` The record states the organisation operates in ${industry}; ${branch} is assessed against that activity, so the answer determines whether the branch is reached at all.`
+      : "";
+
   const branches: Array<{
     key: string;
     label: string;
@@ -716,7 +753,7 @@ function buildDpo(intake: I): DpoDetermination {
   }> = [
     {
       key: "dpo_trigger_public_authority",
-      label: "Art. 37(1)(a) — public authority or body",
+      label: `${art}(a) — public authority or body`,
       met: tri(intake.is_public_authority),
       fact: yn(tri(intake.is_public_authority),
         "The record states the organisation is a public authority or body.",
@@ -729,7 +766,7 @@ function buildDpo(intake: I): DpoDetermination {
     },
     {
       key: "dpo_trigger_regular_systematic_monitoring",
-      label: "Art. 37(1)(b) — regular and systematic monitoring on a large scale",
+      label: `${art}(b) — regular and systematic monitoring on a large scale`,
       met: tri(intake.large_scale_monitoring),
       fact: yn(tri(intake.large_scale_monitoring),
         "The record states the organisation carries out large-scale monitoring of data subjects.",
@@ -742,7 +779,7 @@ function buildDpo(intake: I): DpoDetermination {
     },
     {
       key: "dpo_trigger_special_categories",
-      label: "Art. 37(1)(c) — large-scale special-category or criminal-offence data",
+      label: `${art}(c) — large-scale special-category or criminal-offence data`,
       met: tri(intake.processes_special_categories),
       fact: yn(tri(intake.processes_special_categories),
         "The record states the organisation processes special categories of personal data.",
@@ -760,13 +797,13 @@ function buildDpo(intake: I): DpoDetermination {
     return {
       key: b.key,
       label: b.label,
-      citation: row.citation,
+      citation: regimeCite(row.citation, regime),
       standard: row.verbatim_quote,
       record_fact: b.fact,
       application: b.why(b.met),
       verdict: b.met === true ? "engaged" : b.met === false ? "not_engaged" : "record_insufficient",
       status: b.met === null ? "record_insufficient" : "analysed",
-      ...(b.met === null ? { information_needed: b.label } : {}),
+      ...(b.met === null ? { information_needed: `${b.label}${contextFor(b.label)}` } : {}),
     };
   });
 
@@ -782,12 +819,12 @@ function buildDpo(intake: I): DpoDetermination {
   return {
     verdict,
     headline: engaged.length
-      ? `A data protection officer must be designated: ${engaged.length} of the three Art. 37(1) branches is engaged by the facts recorded.`
+      ? `A data protection officer must be designated: ${engaged.length} of the three ${art} branches is engaged by the facts recorded.`
       : unknown.length
-      ? "Whether a data protection officer must be designated cannot be determined from the facts recorded."
-      : "No Art. 37(1) branch is engaged by the facts recorded, so designation is not mandatory.",
+      ? `Whether a data protection officer must be designated cannot be determined from the facts recorded.`
+      : `No ${art} branch is engaged by the facts recorded, so designation is not mandatory.`,
     reasoning: engaged.length
-      ? `Art. 37(1) is disjunctive: one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached.`
+      ? `${art} is disjunctive: one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached.`
       : unknown.length
       ? `No branch is affirmatively engaged, but ${unknown.map((f) => f.citation).join(", ")} cannot be evaluated from the facts recorded, so a negative conclusion would be unsafe.`
       : "Each of the three branches was evaluated against the record and none is engaged. Voluntary designation remains available and is often prudent.",
@@ -908,12 +945,35 @@ function str(v: unknown): string | null {
   return s.length > 0 ? s : null;
 }
 
-const REGISTRATION_REVIEW_TRIGGERS: string[] = [
-  "Amendment of any data-broker registration statute named in this assessment (Cal. Civ. Code §§ 1798.99.80–.86; 9 V.S.A. §§ 2430, 2446; Tex. Bus. & Com. Code §§ 510.001–.005; ORS 646A.593).",
-  "A change in the organisation's own facts that moves it across a statutory applicability threshold, in either direction.",
-  "Entry into, or exit from, any jurisdiction not assessed here — including any new state data-broker registry.",
-  "Any change to the organisation's establishment position in the Union or the United Kingdom bearing on the Art. 27 representative determinations.",
-];
+// ITEM 369 DEFECT 3(b) — TRIGGERS SCOPED TO THE STATUTES ACTUALLY ENGAGED.
+// The list previously named all four US data-broker statutes even where the
+// assessment concluded no US regime applied. The amendment trigger now names
+// only the statutes this assessment reached; where none were reached it reads
+// as a general statute-amendment trigger for the jurisdictions assessed and
+// names no statute.
+const STATE_BROKER_STATUTE: Record<string, string> = {
+  "US-CA": "Cal. Civ. Code §§ 1798.99.80–.86",
+  "US-VT": "9 V.S.A. §§ 2430, 2446",
+  "US-TX": "Tex. Bus. & Com. Code §§ 510.001–.005",
+  "US-OR": "ORS 646A.593",
+};
+
+export function registrationReviewTriggers(intake: I): string[] {
+  const engaged = STATE_SPECS
+    .filter((s) => stateInScope(intake, s.code))
+    .map((s) => STATE_BROKER_STATUTE[s.code])
+    .filter((x): x is string => Boolean(x));
+  const amendment = engaged.length
+    ? `Amendment of any data-broker registration statute named in this assessment (${engaged.join("; ")}).`
+    : "Amendment of any registration or designation statute in force in the jurisdictions assessed here. No US state data-broker statute was in scope on this record, so none is named.";
+  return [
+    amendment,
+    "A change in the organisation's own facts that moves it across a statutory applicability threshold, in either direction.",
+    "Entry into, or exit from, any jurisdiction not assessed here — including any new state data-broker registry.",
+    "Any change to the organisation's establishment position in the Union or the United Kingdom bearing on the Art. 27 representative determinations.",
+  ];
+}
+
 
 export function buildRegistrationAttestation(intake: I): Attestation {
   const name = str(intake.approved_by_name);
@@ -937,7 +997,7 @@ export function buildRegistrationAttestation(intake: I): Attestation {
     approved_by_title: title,
     approval_date: date,
     next_review_due: review,
-    review_triggers: REGISTRATION_REVIEW_TRIGGERS,
+    review_triggers: registrationReviewTriggers(intake),
     statement,
     status: missing.length === 0 ? "analysed" : "record_insufficient",
     ...(missing.length ? { information_needed: missing.join("; ") } : {}),

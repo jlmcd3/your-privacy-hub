@@ -18,6 +18,12 @@ import {
   splitSentences,
 } from "../advisory-voice.ts";
 import { REPORT_DISCLAIMER } from "../report-disclaimer.ts";
+// ITEM 369 DEFECT 2 — SANCTIONED REGISTER PARITY. The emit gate already
+// exempts a closed register of sanctioned counsel-reservation phrasings (e.g.
+// the LIA Annex-1 "…is reserved to qualified legal counsel."). The grader's e6
+// did not honour it, so a sentence the gate sanctions still failed the grade.
+// READ-ONLY IMPORT — emit-gate.ts is not modified.
+import { isSanctionedCounselRegister } from "../emit-gate.ts";
 
 /**
  * UNIVERSAL DISCLAIMER EXEMPTION — the CEO-locked REPORT_DISCLAIMER constant
@@ -32,6 +38,7 @@ function isUniversalDisclaimerSentence(sentence: string): boolean {
   if (DISCLAIMER_SENTENCES.includes(s)) return true;
   return s.length >= 20 && REPORT_DISCLAIMER.includes(s);
 }
+
 
 export type FormatFinding = {
   check_id: string;
@@ -506,6 +513,13 @@ function checkE6(
       // REPORT_DISCLAIMER is sanctioned boilerplate, not a model-authored
       // referral; byte-match against the imported constant only.
       if (isUniversalDisclaimerSentence(s)) continue;
+      // ITEM 369 DEFECT 2 — SANCTIONED REGISTER PARITY. Exactly parallel to
+      // the disclaimer exemption above: phrasings the emit gate sanctions
+      // (closed register in emit-gate.ts) are not model-authored referrals.
+      // A genuine referral ("consult legal counsel before proceeding") does
+      // not match the register and still fails.
+      if (isSanctionedCounselRegister(s)) continue;
+
       // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
       // privilege guidance stays. Sentences matching opts.exemptRe skip.
       if (opts.exemptRe && opts.exemptRe.test(s)) continue;

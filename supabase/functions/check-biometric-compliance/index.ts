@@ -2090,6 +2090,25 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
     }
 
+    // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
+    // Fleet parity: the biometric register's approved gap atoms replace any
+    // degraded-leaf fallback literal before serialization. Fail-open.
+    try {
+      const { applyFrameSubstitution, loadApprovedFrameSet } = await import(
+        "../_shared/prose/frame-substitution.ts"
+      );
+      const frameSet = await loadApprovedFrameSet(supabase, "biometric");
+      const counters = applyFrameSubstitution(report_data as Record<string, unknown>, {
+        product: "biometric",
+        frameSet,
+        contract: "biometric_compliance",
+        values: { organization_name: (body as any)?.organization_name ?? null },
+      });
+      console.log(JSON.stringify({ evt: "biometric_frame_substitution", fn: "check-biometric-compliance", ...counters }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] frame substitution failed (non-fatal):", (e as Error)?.message);
+    }
+
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report in place, immediately before the report_data write.
     // FAIL-OPEN: any serializer crash or throw logs and leaves the report
