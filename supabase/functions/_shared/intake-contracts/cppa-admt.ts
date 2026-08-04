@@ -190,7 +190,6 @@ export const cppaAdmtContract: IntakeContract = {
       requiredWhen: 'opt_out_exception starts with "Human appeal exception"' },
     { key: "opt_out_fairness_doc",          kind: "narrative",  required: "optional" },
     { key: "opt_out_15_day_process",        kind: "narrative",  required: "optional" },
-    { key: "opt_out_service_provider_notice", kind: "narrative", required: "optional" },
 
     { key: "access_submission_methods",   kind: "narrative", required: "always" },
     { key: "access_verification_process", kind: "narrative", required: "always" },

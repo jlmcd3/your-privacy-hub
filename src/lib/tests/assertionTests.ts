@@ -871,7 +871,6 @@ const ADMT_INPUT = {
   opt_out_appeal_process: "",
   opt_out_fairness_doc: "",
   opt_out_15_day_process: "",
-  opt_out_service_provider_notice: "",
   access_submission_methods: "Online form and designated email address",
   access_verification_process: "Match to account credentials plus a one-time email code",
   access_logic_disclosure: "We explain the categories of data used and the general logic of the score.",

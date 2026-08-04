@@ -170,7 +170,6 @@ const MESSY_CPPA_ADMT = thinned("cppa-admt", {
     "opt_out_appeal_process",
     "opt_out_fairness_doc",
     "opt_out_15_day_process",
-    "opt_out_service_provider_notice",
     "access_trade_secret_policy",
     "third_party_admt",
     "admt_system_count",

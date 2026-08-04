@@ -182,6 +182,28 @@ const Pills = ({
   </div>
 );
 
+// Progressive disclosure for optional clusters. The value line states, in plain
+// words, what the report does NOT say if the cluster is left closed.
+function OptionalCluster({ title, valueLine, children }: { title: string; valueLine: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-t pt-6 mt-6">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <Label className="text-base font-semibold">{title} <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+          <p className="text-xs text-muted-foreground mt-1 max-w-2xl">{valueLine}</p>
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={() => setOpen((o) => !o)}>
+          {open ? "Hide" : `Add ${title.toLowerCase()}`}
+        </Button>
+      </div>
+      {open && <div className="mt-4 space-y-4">{children}</div>}
+    </div>
+  );
+}
+
+
+
 export default function ADMTChecker() {
   useToolStartedOnInteraction("cppa_admt");
   const { user } = useAuth();
@@ -263,7 +285,6 @@ export default function ADMTChecker() {
   const [optOutFairnessDoc, setOptOutFairnessDoc] = useState("");
   // Step 3 additions
   const [optOut15DayProcess, setOptOut15DayProcess] = useState("");
-  const [optOutServiceProviderNotice, setOptOutServiceProviderNotice] = useState("");
 
   // Step 4
   const [accessSubmissionMethods, setAccessSubmissionMethods] = useState("");
@@ -412,7 +433,6 @@ export default function ADMTChecker() {
       role_roster: roleRoster,
       // prior_access_requests_12mo removed (RC-P6).
       opt_out_15_day_process: optOut15DayProcess,
-      opt_out_service_provider_notice: optOutServiceProviderNotice,
       admt_detail: adv,
     }),
     [
@@ -425,7 +445,7 @@ export default function ADMTChecker() {
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy, accessReadiness,
-      caConsumerCount, thirdPartyAdmt, admtSystemCount, affectedPopulationBand, roleRoster, optOut15DayProcess, optOutServiceProviderNotice, adv,
+      caConsumerCount, thirdPartyAdmt, admtSystemCount, affectedPopulationBand, roleRoster, optOut15DayProcess, adv,
     ],
   );
 
@@ -686,6 +706,8 @@ export default function ADMTChecker() {
                  <h2 className="font-serif text-xl">Step 1 · Does the ADMT law apply to you?</h2>
                  <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> whether this system makes a <em>significant decision</em> with no meaningful human involvement — the two things that trigger California's ADMT rules.</p>
                  <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR §§ 7001(e), 7001(ddd), 7200(a)</p>
+                 <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the applicability determination at the front of your report — the finding that decides whether every obligation in §§ 7220–7222 reaches this system at all.</p>
+
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Complete one assessment per ADMT system. If you use multiple ADMT systems for significant decisions, run the checker once per system. Each system requires its own pre-use notice, opt-out mechanism, and access right process.
@@ -759,52 +781,38 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label>
-                      Approximate number of California consumers this system processes decisions for annually
+                      Are you using any third-party tools or APIs that make, or materially contribute to, this decision? <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Used to estimate regulatory exposure. Required when CPPA requests documentation. Ranges are acceptable.
-                    </p>
-                    <input
-                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
-                      value={caConsumerCount}
-                      onChange={(e) => setCaConsumerCount(e.target.value)}
-                      placeholder="e.g. 50,000–100,000 annually"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>
-                      Are you using any third-party tools or APIs that make or materially contribute to this decision? (optional)
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      The CPPA treats you as the "business" responsible for ADMT compliance even when using vendor tools (e.g. a credit scoring API, a resume screening SaaS, a fraud detection service). List any third-party systems involved.
+                      You remain the responsible business even when the decision runs on someone else's model. Name each third-party system involved; answering opens the vendor questions.
                     </p>
                     <ExhibitTextarea
                       className="mt-2"
                       rows={2}
                       value={thirdPartyAdmt}
                       onChange={setThirdPartyAdmt}
-                      placeholder="e.g. FICO Score API for credit decisioning; HireVue for candidate screening; Sardine for fraud detection"
+                      placeholder="One system per line"
                     />
                   </div>
 
+
                   {thirdPartyAdmt.trim() && !isExhibit(thirdPartyAdmt) && (
-                    <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}>
-                      <p className="text-[11px] italic text-muted-foreground">You're seeing this because you listed a third-party ADMT system above.</p>
-                      <p className="text-[12px] font-semibold">Vendor / downstream-recipient detail</p>
-                      <p className="text-[12px] text-muted-foreground">You remain the CCPA-responsible "business." If a vendor makes ADMT trained on personal information available to you for significant decisions, the vendor must supply all facts you need for your own risk assessment (§ 7150(b)(6) / § 7153).</p>
+                    <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>
+                      <p className="text-[11px] italic text-muted-foreground">You're seeing this because you named a third-party ADMT system above.</p>
+                      <p className="text-[12px] font-semibold">Vendor and downstream-recipient detail</p>
+                      <p className="text-[12px] text-muted-foreground">You remain the responsible business. Where a vendor makes ADMT trained on personal information available to you for significant decisions, the vendor must supply the facts you need for your own risk assessment (§ 7150(b)(6), § 7153).</p>
                       <div>
-                        <Label className="text-[12px]">Vendor's role under the CCPA</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Vendor's role under the CCPA</Label>
                         <div className="mt-1"><Radio name="v_status" options={ADMT_VENDOR_STATUS_OPTS} value={adv.vendor_status || ""} onChange={(v) => setA("vendor_status", v)} /></div>
                       </div>
                       <div>
-                        <Label className="text-[12px]">Vendor documentation on file (select all)</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Vendor documentation on file (select all that apply)</Label>
                         <div className="mt-1"><Pills options={ADMT_VENDOR_DOCS_OPTS} value={adv.vendor_docs || []} onChange={(v) => setA("vendor_docs", v)} /></div>
                       </div>
                       <div>
-                        <Label className="text-[12px]">Do your vendor contracts include these obligations?</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Do your vendor contracts include these obligations?</Label>
                         <div className="mt-1 space-y-1">
-                          {[["v_audit", "Audit / monitoring rights"], ["v_assist", "Assistance with consumer access requests"], ["v_optout", "Opt-out propagation downstream"], ["v_appeal", "Appeal / human-review support"], ["v_incident", "Incident notification"]].map(([k, label]) => (
+                          {[["v_audit", "Audit and monitoring rights"], ["v_assist", "Assistance with consumer access requests"], ["v_optout", "Opt-out propagation downstream"], ["v_appeal", "Appeal and human-review support"], ["v_incident", "Incident notification"]].map(([k, label]) => (
                             <div key={k} className="flex items-center justify-between gap-3">
                               <span className="text-[12px]">{label}</span>
                               <span className="shrink-0"><Radio name={k} options={["Yes", "No"]} value={adv[k] || ""} onChange={(val) => setA(k, val)} /></span>
@@ -813,12 +821,12 @@ export default function ADMTChecker() {
                         </div>
                       </div>
                       <div>
-                        <Label className="text-[12px]">Does the vendor make this ADMT available to other businesses?</Label>
-                        <p className="text-[11px] text-muted-foreground">If yes, the recipient-facts obligation under § 7150(b)(6) / § 7153 is engaged.</p>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Does the vendor make this ADMT available to other businesses?</Label>
+                        <p className="text-[11px] text-muted-foreground">If it does, the recipient-facts obligation under § 7150(b)(6) and § 7153 is engaged.</p>
                         <div className="mt-1"><Radio name="v_avail" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.vendor_makes_available || ""} onChange={(v) => setA("vendor_makes_available", v)} /></div>
                       </div>
                       <div>
-                        <Label className="text-[12px]">Vendor training-data / model-improvement rights &amp; sub-processors</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Vendor training-data and model-improvement rights, and sub-processors</Label>
                         <AssistedInput
                           className="mt-1"
                           rows={2}
@@ -826,50 +834,68 @@ export default function ADMTChecker() {
                           value={adv.vendor_training_rights || ""}
                           onChange={(v) => setA("vendor_training_rights", v)}
                           pills={ASSISTED_INPUT_REGISTRY.admt_vendor_training_rights.pills}
-                          placeholder="e.g. Vendor may use de-identified inputs to improve its model; sub-processors: AWS (hosting), Acme Labeling Co."
+                          placeholder="Rights first, then sub-processors by name"
                         />
                       </div>
                     </div>
+
                   )}
 
-                  <div>
-                    <Label>How many distinct ADMT systems does your business operate for significant decisions? (optional)</Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      If you operate more than one ADMT system — for example, a credit scoring model and a separate fraud detection system — you may be eligible to provide a single consolidated Pre-Use Notice under § 7220(e) rather than separate notices for each system. Enter a number or leave blank if you operate a single system.
-                    </p>
-                    <input
-                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
-                      value={admtSystemCount}
-                      onChange={(e) => setAdmtSystemCount(e.target.value)}
-                      placeholder="e.g. 1, 2, 3"
-                    />
-                  </div>
-
-                  {/* TURN 2 — affected population band */}
-                  <div data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>
-                    <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>Approximate California consumers subject to this ADMT (affected-population band) <span className="text-xs text-muted-foreground font-normal">(optional)</span> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
-                    <p className="text-xs text-muted-foreground mt-1">Used to size the risk exposure and the applicability verdict. Optional.</p>
-                    <div className="mt-2">
-                      <Pills
-                        options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
-                        value={affectedPopulationBand ? [affectedPopulationBand] : []}
-                        onChange={(vals) => setAffectedPopulationBand(vals[vals.length - 1] || "")}
+                  <OptionalCluster
+                    title="Scale and internal ownership"
+                    valueLine="Left closed, the report sizes your exposure as unstated and names no internal owner for this system; nothing is inferred on your behalf."
+                  >
+                    <div>
+                      <Label>Approximate number of California consumers this system makes decisions about each year</Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sizes the exposure the report describes. A range is fine.
+                      </p>
+                      <input
+                        className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                        value={caConsumerCount}
+                        onChange={(e) => setCaConsumerCount(e.target.value)}
+                        placeholder="A number or a range"
                       />
                     </div>
-                  </div>
 
-                  {/* TURN 2 — internal role roster */}
-                  <div data-rail-key="role_roster" onFocus={() => focus("role_roster")}>
-                    <Label data-rail-key="role_roster" onFocus={() => focus("role_roster")}>Internal roles with defined responsibilities for this ADMT (role roster) <span className="text-xs text-muted-foreground font-normal">(optional)</span> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7157(c))</span></Label>
-                    <p className="text-xs text-muted-foreground mt-1">Select every role that already has a defined responsibility for this system.</p>
-                    <div className="mt-2">
-                      <Pills
-                        options={ADMT_ROLE_ROSTER_OPTS}
-                        value={roleRoster}
-                        onChange={setRoleRoster}
+                    <div>
+                      <Label>How many distinct ADMT systems does your business run for significant decisions?</Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        More than one system may let you publish a single consolidated pre-use notice under § 7220(e) instead of one per system.
+                      </p>
+                      <input
+                        className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                        value={admtSystemCount}
+                        onChange={(e) => setAdmtSystemCount(e.target.value)}
+                        placeholder="A whole number"
                       />
                     </div>
-                  </div>
+
+                    <div data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>
+                      <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>Affected-population band <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
+                      <p className="text-xs text-muted-foreground mt-1">The band the report uses when it describes how many Californians this system reaches.</p>
+                      <div className="mt-2">
+                        <Pills
+                          options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
+                          value={affectedPopulationBand ? [affectedPopulationBand] : []}
+                          onChange={(vals) => setAffectedPopulationBand(vals[vals.length - 1] || "")}
+                        />
+                      </div>
+                    </div>
+
+                    <div data-rail-key="role_roster" onFocus={() => focus("role_roster")}>
+                      <Label data-rail-key="role_roster" onFocus={() => focus("role_roster")}>Internal roles with defined responsibilities for this ADMT <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7157(c))</span></Label>
+                      <p className="text-xs text-muted-foreground mt-1">Select every role that already holds a defined responsibility for this system.</p>
+                      <div className="mt-2">
+                        <Pills
+                          options={ADMT_ROLE_ROSTER_OPTS}
+                          value={roleRoster}
+                          onChange={setRoleRoster}
+                        />
+                      </div>
+                    </div>
+                  </OptionalCluster>
+
 
 
 
@@ -896,7 +922,7 @@ export default function ADMTChecker() {
                       value={adv.decision_domains_other || ""}
                       onChange={(e) => setA("decision_domains_other", e.target.value)}
                       data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}
-                      placeholder="Optional: a significant decision not listed above — describe it, and we'll assess whether it qualifies under § 7001(ddd)."
+                      placeholder="Describe it in one sentence"
                     />
                   </div>
 
@@ -905,7 +931,7 @@ export default function ADMTChecker() {
                     <p className="text-[12px] text-muted-foreground">Helps an auditor identify the exact system and decision under review, and shapes the access-response analysis.</p>
                     <div>
                       <Label className="text-[12px]">Vendor / product name &amp; version</Label>
-                      <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => setA("vendor_product", e.target.value)} placeholder="e.g. Acme ScoreEngine v3.2 (internal), or FICO Score 9 API" />
+                      <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => setA("vendor_product", e.target.value)} placeholder="Product name and version" />
                     </div>
                     <div>
                       <Label className="text-[12px]">Where is the system hosted?</Label>
@@ -930,7 +956,7 @@ export default function ADMTChecker() {
                     {adv.sole_factor && !adv.sole_factor.startsWith("Sole") && (
                       <div>
                         <Label className="text-[12px]">What other factors feed the decision, and how are they weighted?</Label>
-                        <Textarea className="mt-1" rows={2} value={adv.other_factors || ""} onChange={(e) => setA("other_factors", e.target.value)} placeholder="e.g. Underwriter reviews scores 40–60; scores >60 auto-approve; manual policy checks always apply" />
+                        <Textarea className="mt-1" rows={2} value={adv.other_factors || ""} onChange={(e) => setA("other_factors", e.target.value)} placeholder="One factor per line" />
                       </div>
                     )}
                     <div>
@@ -1057,6 +1083,8 @@ export default function ADMTChecker() {
                  <h2 className="font-serif text-xl">Step 2 · Do people get the right heads-up?</h2>
                  <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> before you use ADMT for a significant decision, you must tell people — in specific terms, at or before you use it — what it does and how to opt out.</p>
                  <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR §§ 7220(b)–(c)</p>
+                 <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the pre-use notice section of your report — an element-by-element test of what you publish against the six things § 7220(c) requires it to say.</p>
+
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     The Pre-use Notice must be provided prominently at or before the point you collect PI for ADMT use (§ 7220(b)). If you've already collected the PI for another purpose and now plan to use ADMT, you must provide the notice before starting ADMT processing.
@@ -1253,6 +1281,8 @@ export default function ADMTChecker() {
                  <h2 className="font-serif text-xl">Step 3 · Can people say no?</h2>
                  <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> consumers can opt out of ADMT for significant decisions unless a narrow exception applies — and if it applies, you must offer at least two ways to opt out.</p>
                  <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR § 7221</p>
+                 <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the opt-out section of your report — whether your opt-out mechanism, or the exception you rely on instead, holds under § 7221.</p>
+
                   <RequiredLegend />
 
                   <div>
@@ -1268,7 +1298,7 @@ export default function ADMTChecker() {
                         otherText={adv.opt_out_exception_other || ""}
                         onOtherText={(v) => setA("opt_out_exception_other", v)}
                         data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}
-                        placeholder="Describe your opt-out approach or the exception you rely on, in your own words — we'll assess whether it qualifies."
+                        placeholder="A short paragraph in your own words"
                       />
                     </div>
                   </div>
@@ -1288,7 +1318,7 @@ export default function ADMTChecker() {
                         value={optOutAppealProcess}
                         onChange={(e) => setOptOutAppealProcess(e.target.value)}
                         data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}
-                        placeholder="Who is the designated reviewer? What is their title and training? How does the consumer submit an appeal? What information can the consumer provide? What is the decision timeline? Can the reviewer change the decision?"
+                        placeholder="A short paragraph"
                       />
                       <div className="mt-4 space-y-3 border-t pt-3">
                         <p className="text-[12px] font-semibold">Appeal mechanics (feeds the § 7221(b)(1) three-part test)</p>
@@ -1342,7 +1372,7 @@ export default function ADMTChecker() {
                         value={optOutFairnessDoc}
                         onChange={setOptOutFairnessDoc}
                         pills={ASSISTED_INPUT_REGISTRY.opt_out_fairness_doc.pills}
-                        placeholder="e.g. Annual disparate-impact analysis across protected classes conducted by [firm]; results documented in [document]; last conducted [date]"
+                        placeholder="A few sentences"
                       />
                       <div className="mt-4 space-y-3 border-t pt-3">
                         <p className="text-[12px] font-semibold">Validity &amp; non-discrimination detail (§ 7221(b)(2)(B), (b)(3)(B))</p>
@@ -1353,7 +1383,7 @@ export default function ADMTChecker() {
                         </div>
                         <div>
                           <Label className="text-[12px]">Proxy variables identified &amp; how mitigated</Label>
-                          <Textarea className="mt-1" rows={2} value={adv.bias_proxy_vars || ""} onChange={(e) => setA("bias_proxy_vars", e.target.value)} placeholder="e.g. ZIP code dropped as a race proxy; tenure capped to avoid age correlation" />
+                          <Textarea className="mt-1" rows={2} value={adv.bias_proxy_vars || ""} onChange={(e) => setA("bias_proxy_vars", e.target.value)} placeholder="One variable per line" />
                         </div>
                         <div>
                           <Label className="text-[12px]">Fairness-testing cadence</Label>
@@ -1369,7 +1399,7 @@ export default function ADMTChecker() {
                         </div>
                         <div>
                           <Label className="text-[12px]">Outcome distribution / false-positive &amp; false-negative rates by group</Label>
-                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="Summarize selection rates and error rates by protected group, or attach as an Exhibit." />
+                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="One line per group, or attach as an Exhibit" />
                         </div>
                       </div>
                     </div>
@@ -1429,7 +1459,7 @@ export default function ADMTChecker() {
                           value={optOutConfirmationMechanism}
                           onChange={(e) => setOptOutConfirmationMechanism(e.target.value)}
                           data-rail-key="optout_timing_response" onFocus={() => focus("optout_timing_response")}
-                          placeholder="e.g. Confirmation email sent within 24 hours; status page in account settings"
+                          placeholder="Channel, then timing"
                         />
                       </div>
 
@@ -1446,8 +1476,10 @@ export default function ADMTChecker() {
                             rows={3}
                             value={optOut15DayProcess}
                             onChange={(e) => setOptOut15DayProcess(e.target.value)}
-                            placeholder="e.g. Opt-out requests are logged in [system] by [team]. A suppression flag is set in [system] within [X] days. Service providers [list] are notified via [method] within [Y] days. Process documented in [document name]."
+                            data-rail-key="optout_15_day_process" onFocus={() => focus("optout_15_day_process")}
+                            placeholder="A few sentences: who receives it, what they do, by when, and who else is told"
                           />
+
                         </div>
                       )}
 
@@ -1490,6 +1522,8 @@ export default function ADMTChecker() {
                  <h2 className="font-serif text-xl">Step 4 · Can people see how it worked?</h2>
                  <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> consumers can ask what the ADMT did and why — you must be able to explain the output, the logic, and any human reviewer's role.</p>
                  <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR § 7222</p>
+                 <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the access-and-appeal section of your report — whether you can actually answer a consumer who asks what the ADMT did to them, and what you would withhold.</p>
+
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Consumers have the right to request information about your use of ADMT with respect to them (§ 7222). Unlike opt-out, access requests require identity verification. You must respond within 45 days.
@@ -1530,7 +1564,7 @@ export default function ADMTChecker() {
                             className="mt-2 w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
                             value={accessReadiness[`${k}_process`] || ""}
                             onChange={(e) => setAR(`${k}_process`, e.target.value)}
-                            placeholder="By what process? e.g. case handler pulls the model run record from the decision log"
+                            placeholder="One sentence"
                           />
                         </div>
                       ))}
@@ -1550,7 +1584,7 @@ export default function ADMTChecker() {
                       value={accessSubmissionMethods}
                       onChange={setAccessSubmissionMethods}
                       pills={ASSISTED_INPUT_REGISTRY.access_submission_methods.pills}
-                      placeholder="e.g. Online form at [URL]; designated email privacy@company.com; same methods as right-to-know requests"
+                      placeholder="One method per line"
                     />
                   </div>
 
@@ -1567,7 +1601,7 @@ export default function ADMTChecker() {
                       value={accessVerificationProcess}
                       onChange={setAccessVerificationProcess}
                       pills={ASSISTED_INPUT_REGISTRY.access_verification_process.pills}
-                      placeholder="e.g. Two-factor verification via email + account login; third-party identity verification service for non-account holders"
+                      placeholder="A few sentences"
                     />
                   </div>
 
@@ -1584,7 +1618,7 @@ export default function ADMTChecker() {
                       value={accessLogicDisclosure}
                       onChange={(e) => setAccessLogicDisclosure(e.target.value)}
                       data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
-                      placeholder="e.g. We disclose: the input features used (credit score, income, DTI ratio); the model's output score for the consumer; the score threshold applied; we do not disclose model weights (trade secret)"
+                      placeholder="What you disclose, then what you withhold"
                     />
                   </div>
 
@@ -1601,7 +1635,7 @@ export default function ADMTChecker() {
                       value={accessOutcomeDisclosure}
                       onChange={(e) => setAccessOutcomeDisclosure(e.target.value)}
                       data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}
-                      placeholder="e.g. We disclose: whether the score was the sole factor or combined with underwriter review; the decision outcome (approved/declined); if declined, which factor(s) were primary"
+                      placeholder="What you disclose, then what you withhold"
                     />
                   </div>
 
@@ -1626,41 +1660,47 @@ export default function ADMTChecker() {
 
                   {/* prior_access_requests_12mo question removed (RC-P6): § 7222(j) threshold applies at framework level and is now framed as a monitoring threshold in the report, not conditioned on a per-consumer count. */}
 
-                  <div>
-                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
-                      Trade secret and security information policy (optional but recommended)
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      § 7222(c) allows you to withhold trade secrets (Civil Code § 3426.1(d)) and security-compromising information. Documenting your policy in advance avoids ad-hoc decisions under access request time pressure.
-                    </p>
-                    <Textarea
-                      className="mt-2"
-                      rows={2}
-                      value={accessTradeSecretPolicy}
-                      onChange={(e) => setAccessTradeSecretPolicy(e.target.value)}
-                      data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
-                      placeholder="e.g. We withhold: model architecture and weights (trade secret per Civil Code § 3426.1(d)); fraud detection rule thresholds (security per § 7222(c)(2)(B))"
-                    />
-                  </div>
-
-                  <div>
-                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
-                      How do you securely transmit the access response? (optional)
-                    </Label>
-                    <div className="mt-2">
-                      <Radio name="access_secure_tx" options={["Encrypted self-service portal", "Encrypted email", "Postal mail", "Not yet defined"]} value={adv.access_secure_transmission || ""} onChange={(v) => setA("access_secure_transmission", v)} data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")} />
+                  <OptionalCluster
+                    title="Withholding and denial policy"
+                    valueLine="Left unanswered, the report records no advance policy on what you withhold or deny, and treats every § 7222(c) call as one you will make under time pressure."
+                  >
+                    <div>
+                      <Label data-rail-key="access_trade_secret_policy" onFocus={() => focus("access_trade_secret_policy")}>
+                        Trade secret and security information policy
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        § 7222(c) lets you withhold trade secrets (Civil Code § 3426.1(d)) and information whose release would compromise security. Name each category you would withhold and the ground for it.
+                      </p>
+                      <Textarea
+                        className="mt-2"
+                        rows={2}
+                        value={accessTradeSecretPolicy}
+                        onChange={(e) => setAccessTradeSecretPolicy(e.target.value)}
+                        data-rail-key="access_trade_secret_policy" onFocus={() => focus("access_trade_secret_policy")}
+                        placeholder="One category per line, each with its ground"
+                      />
                     </div>
-                  </div>
 
-                  <div>
-                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
-                      If you would partially or fully deny an access request, on what basis? (optional)
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      § 7222 permits denial only on specific grounds — a conflict with federal/state law, an enumerated CCPA exception, trade secret (Civil Code § 3426.1(d)), or a substantial security risk. Documenting your basis in advance avoids ad-hoc denials under time pressure.
-                    </p>
-                    <ExhibitTextarea className="mt-2" rows={2} value={adv.access_denial_basis || ""} onChange={(v) => setA("access_denial_basis", v)} placeholder="e.g. We withhold model weights as trade secret; we deny duplicative requests beyond the § 7222(j) aggregate-response threshold." />
-                  </div>
+                    <div>
+                      <Label data-rail-key="access_secure_transmission" onFocus={() => focus("access_secure_transmission")}>
+                        How do you securely transmit the access response?
+                      </Label>
+                      <div className="mt-2">
+                        <Radio name="access_secure_tx" options={["Encrypted self-service portal", "Encrypted email", "Postal mail", "Not yet defined"]} value={adv.access_secure_transmission || ""} onChange={(v) => setA("access_secure_transmission", v)} data-rail-key="access_secure_transmission" onFocus={() => focus("access_secure_transmission")} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label data-rail-key="access_denial_basis" onFocus={() => focus("access_denial_basis")}>
+                        If you would partially or fully deny an access request, on what basis?
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        § 7222 permits denial only on specific grounds — a conflict with federal or state law, an enumerated CCPA exception, trade secret (Civil Code § 3426.1(d)), or a substantial security risk.
+                      </p>
+                      <ExhibitTextarea className="mt-2" rows={2} value={adv.access_denial_basis || ""} onChange={(v) => setA("access_denial_basis", v)} placeholder="One ground per line" />
+                    </div>
+                  </OptionalCluster>
+
                 </>
               )}
 

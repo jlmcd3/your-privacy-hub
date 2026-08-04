@@ -216,7 +216,6 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
       "admt_system_count",
       
       "opt_out_15_day_process",
-      "opt_out_service_provider_notice",
     ],
   },
   ropa: {
