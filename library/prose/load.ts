@@ -15,6 +15,7 @@ async function read<T>(rel: string): Promise<T> {
 
 export const CPPA_RISK_FRAMES = await read<FrameSet>("./frames/cppa-risk.frames.json");
 export const CPPA_RISK_PLAN = await read<DocumentPlan>("./plans/cppa-risk.plan.json");
+export const DPIA_FRAMES = await read<FrameSet>("./frames/dpia.frames.json");
 export const DPIA_PLAN = await read<DocumentPlan>("./plans/dpia.plan.json");
 export const GOVERNANCE_PLAN = await read<DocumentPlan>("./plans/governance.plan.json");
 export const REGISTRATION_PLAN = await read<DocumentPlan>("./plans/registration.plan.json");
