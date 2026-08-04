@@ -178,3 +178,93 @@ Deno.test("buildDomainElementFindings is a pure projection of existing verdicts"
     built.domain_element_findings.map((f) => `${f.key}:${f.verdict}`),
   );
 });
+
+// ── GOVERNANCE UPGRADE ITEM 5 — CORPUS + AUTHORITY EXHIBIT ─────────────
+import {
+  buildGovernanceCorpusLawBlock,
+  fetchGovernanceCorpus,
+  GOVERNANCE_CORPUS_KEYS,
+  governanceCorpusProvisionsForExhibit,
+  isAllowedGovernanceCitation,
+} from "../../../supabase/functions/_shared/ltp/governance-corpus.ts";
+import { buildAuthorityExhibit } from "../../../supabase/functions/_shared/report-exhibits/authority-exhibit.ts";
+
+const CORPUS_FIXTURE = {
+  version: "test",
+  resolved_count: 2,
+  approved_count: 1,
+  provisions: [
+    {
+      key: "gdpr-art-5-2",
+      citation: "GDPR Art. 5(2) (Regulation (EU) 2016/679, CELEX 32016R0679)",
+      status: "approved" as const,
+      verbatim_excerpt: "APPROVED CORPUS TEXT FOR ART 5(2)",
+      plain_requirements: ["demonstrate compliance with the principles"],
+    },
+    {
+      key: "gdpr-art-30",
+      citation: "GDPR Art. 30",
+      status: "pending" as const,
+      verbatim_excerpt: "",
+      plain_requirements: [],
+    },
+  ],
+};
+
+Deno.test("corpus spine covers Arts. 5(2), 24, 30 and 37-39", () => {
+  assertEquals([...GOVERNANCE_CORPUS_KEYS].sort(), [
+    "gdpr-art-24",
+    "gdpr-art-30",
+    "gdpr-art-37",
+    "gdpr-art-38",
+    "gdpr-art-39",
+    "gdpr-art-5-2",
+  ].sort());
+});
+
+Deno.test("law block quotes approved rows only and degrades honestly", () => {
+  const block = buildGovernanceCorpusLawBlock(CORPUS_FIXTURE as never);
+  assert(block.includes("APPROVED CORPUS TEXT FOR ART 5(2)"));
+  assert(block.includes("CITATION ONLY"));
+  assert(/ICO/i.test(block), "ICO material is explicitly marked as non-authority");
+  const empty = buildGovernanceCorpusLawBlock({
+    version: "t", provisions: [], resolved_count: 0, approved_count: 0,
+  } as never);
+  assert(empty.includes("UNAVAILABLE"));
+});
+
+Deno.test("no statutory text is compiled into the corpus module", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../supabase/functions/_shared/ltp/governance-corpus.ts", import.meta.url),
+  );
+  assert(!/personal data shall be/i.test(src));
+  assert(!/The controller shall be responsible for/i.test(src));
+});
+
+Deno.test("resolver miss degrades to an empty corpus rather than throwing", async () => {
+  const corpus = await fetchGovernanceCorpus(null);
+  assertEquals(corpus.provisions.length, 0);
+});
+
+Deno.test("ICO framework language can never be an approved governance citation", () => {
+  assert(isAllowedGovernanceCitation("GDPR Art. 5(2)", CORPUS_FIXTURE as never));
+  assert(!isAllowedGovernanceCitation("GDPR Art. 30", CORPUS_FIXTURE as never));
+  assert(!isAllowedGovernanceCitation(
+    "ICO Data Protection Audit Framework (Oct 2024)", CORPUS_FIXTURE as never));
+  assert(!isAllowedGovernanceCitation("accountability toolkit", CORPUS_FIXTURE as never));
+});
+
+Deno.test("authority exhibit excerpts only approved corpus rows", () => {
+  const exhibit = buildAuthorityExhibit(
+    ["GDPR Art. 5(2)", "GDPR Art. 30"],
+    governanceCorpusProvisionsForExhibit(CORPUS_FIXTURE as never) as never,
+  );
+  assertEquals(exhibit.entries.length, 2);
+  const withText = exhibit.entries.filter((e) => e.excerpt);
+  assertEquals(withText.length, 1);
+  assertEquals(withText[0].corpus_key, "gdpr-art-5-2");
+});
+
+Deno.test("report schema allow-lists the authority exhibit", () => {
+  assert(GOVERNANCE_REPORT_SCHEMA.topLevel.includes("authority_exhibit"));
+});
