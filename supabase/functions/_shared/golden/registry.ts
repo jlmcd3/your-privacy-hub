@@ -59,20 +59,39 @@ export function matchFixtureSet(tool: string, intake: unknown): string | null {
 }
 
 // ─── ITEM 325 — variant-aware pin resolution ────────────────────────────────
-// `/admin/final-test` selects a fixture VARIANT per tool. "perfect" resolves
-// to exactly the same set as the legacy unlabelled path (GOLDEN_BY_TOOL), so
-// labelling a run cannot change what it runs. "messy" resolves to the (as yet
-// unpopulated) MESSY_BY_TOOL set and returns an empty array when no messy
-// fixture has been authored — callers MUST treat empty as a loud failure,
-// never as "fall back to perfect".
+// `/admin/final-test` selects a fixture VARIANT per tool.
+//
+// "perfect" now means TRULY-COMPLETE-RECORD cases where a tool has authored
+// them: PERFECT_BY_TOOL holds intakes that fill every contract key a real
+// organisation could supply, so an A/B batch labelled "perfect" grades
+// perfect-record WRITING rather than degraded-record behaviour. Where a tool
+// has no perfect set authored, "perfect" falls back to GOLDEN_BY_TOOL — the
+// exact legacy behaviour, unchanged.
+//
+// "messy" resolves to the (as yet unpopulated) MESSY_BY_TOOL set and returns
+// an empty array when no messy fixture has been authored — callers MUST treat
+// empty as a loud failure, never as "fall back to perfect".
+//
+// variant === null remains the legacy, unlabelled path: GOLDEN_BY_TOOL.
 
 import type { FixtureVariant } from "../quality/fixture-variant.ts";
 import { MESSY_BY_TOOL } from "./messy-registry.ts";
+import { DPIA_PERFECT } from "./dpia.ts";
+
+/** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
+export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
+  "dpia": DPIA_PERFECT,
+};
 
 export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {
   if (variant === "messy") return MESSY_BY_TOOL[tool] ?? [];
+  if (variant === "perfect") {
+    const perfect = PERFECT_BY_TOOL[tool];
+    if (perfect && perfect.length) return perfect;
+  }
   return GOLDEN_BY_TOOL[tool] ?? [];
 }
+
 
 /** Variant-aware sibling of goldenIntakes(). variant=null ⇒ legacy behaviour. */
 export function intakesForVariant(tool: string, variant: FixtureVariant | null): unknown[] {
