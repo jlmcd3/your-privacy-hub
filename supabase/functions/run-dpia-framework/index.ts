@@ -711,7 +711,11 @@ const STAMP = "r1b2.4-ws6v21";
 // P0/P1/P2 wired end-to-end. Telemetry echoes on `_meta.internal.dpia_w1_wire`
 // and `_meta.internal.emit_gate` (P2 serializer preserves them).
 export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
-console.log(`[run-dpia-framework] boot ${BUILD_STAMP}`);
+// Permanent pipeline build stamp — bump on every pipeline change. Written into
+// every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
+export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item374-2026-08-04";
+console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
+
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
 // The model's training cutoff predates the December 2025 UK adequacy renewals;
@@ -1758,6 +1762,19 @@ async function runStitch(dpia_id: string): Promise<void> {
       ...(staging.units.u4?.keys ?? {}),
       ...(staging.units.u5?.keys ?? {}),
     };
+
+    // ── BUILD-STAMP PROOF (Item 375) ───────────────────────────────────────
+    // Written unconditionally into every document so a stale deploy can never
+    // silently masquerade as a test of new code.
+    try {
+      const _bm = ((reportData as any)._meta ??= {});
+      (_bm.internal ??= {}).dpia_pipeline_stamp = DPIA_PIPELINE_STAMP;
+      console.log(JSON.stringify({
+        evt: "dpia_pipeline_stamp", fn: "run-dpia-framework",
+        dpia_pipeline_stamp: DPIA_PIPELINE_STAMP, build_stamp: BUILD_STAMP,
+      }));
+    } catch { /* never fatal */ }
+
 
     // ── QB8-8(a) residual completeness check (repair pass) ─────────────────
     try {
