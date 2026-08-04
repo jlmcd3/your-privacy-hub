@@ -211,7 +211,11 @@ Deno.test("ITEM369 LEG1 — incident worksheet PDF: blank forms, no exhibit, one
 });
 
 Deno.test("ITEM369 LEG2 — EDPB Art. 33 template: unanswered fields render explicitly blank", () => {
-  const tpl = mapContentOwnerToEdpbTemplate([], {}, []);
+  const tpl = mapContentOwnerToEdpbTemplate([], {
+    org: "", cause: "", dataTypes: [], affectedCount: "", recordCount: "",
+    subjectCount: "", awareness: "", jurisdictions: [], processorInvolved: false,
+    processorName: "",
+  }, []);
   assert(tpl.sections.length > 0, "template sections missing");
   const fields = tpl.sections.flatMap((s) => s.fields);
   assert(fields.length > 0, "template fields missing");
