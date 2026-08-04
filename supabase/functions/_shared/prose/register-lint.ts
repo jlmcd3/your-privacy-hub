@@ -56,6 +56,28 @@ export const BANNED_WORDS: readonly string[] = [
   "delve into",
 ];
 
+/**
+ * ITEM 364 (DISPATCH 2 CORRECTION) — phrases the register refuses, as opposed
+ * to single words. `on the record` is the A6 case that started this list: it
+ * reads as courtroom idiom rather than counsel's own voice, and it multiplies
+ * once one section uses it. Say what the record does or does not say instead.
+ *
+ * These are scanned in prose AND in plan metadata (thesis, exemplar AFTER
+ * text) — see `lintPlan`. A banned phrase carried in a plan's thesis would
+ * otherwise seed itself into every section opener the plan governs.
+ */
+export const BANNED_PHRASES: readonly string[] = [
+  "on the record",
+  "on this record",
+  "on the present record",
+  "at the end of the day",
+  "it is worth noting",
+  "in this regard",
+  "as previously mentioned",
+  "as noted above",
+  "needless to say",
+];
+
 export const INTENSIFIERS: readonly string[] = [
   "very",
   "extremely",
