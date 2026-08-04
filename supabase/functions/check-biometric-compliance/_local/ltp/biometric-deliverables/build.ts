@@ -254,7 +254,7 @@ function buildIdentifierCharacterizations(
         within_enumeration: rule ? rule.within : null,
         reasoning: rule
           ? `Under ${def.pinpoint}, ${rule.why}.`
-          : `"${t}" is not resolvable against ${def.pinpoint} on this record; the record does not describe what is measured or how.`,
+          : `"${t}" is not resolvable against ${def.pinpoint} from what is written down; the record does not describe what is measured or how.`,
       };
     });
 
@@ -288,8 +288,8 @@ function buildIdentifierCharacterizations(
         reasoning: tpo === "yes"
           ? "BIPA excludes information collected, used, or stored for health care treatment, payment, or operations under HIPAA, so the exclusion is engaged."
           : tpo === "no"
-          ? "The HIPAA treatment-payment-operations exclusion is not engaged on this record."
-          : "The HIPAA treatment-payment-operations exclusion cannot be evaluated on this record.",
+          ? "The HIPAA treatment-payment-operations exclusion is not engaged by the facts described."
+          : "The HIPAA treatment-payment-operations exclusion cannot be evaluated from what the intake states.",
       });
     }
 
@@ -302,10 +302,10 @@ function buildIdentifierCharacterizations(
         record_fact: `financial-institution status: ${glba}; described types: ${types.join(", ") || "none supplied"}`,
         engaged: glba === "unknown" ? null : glba === "yes" && types.some((t) => /voice/i.test(t)),
         reasoning: glba === "unknown"
-          ? "Whether the organisation is a financial institution within 15 U.S.C. § 6809 is not on the record."
+          ? "Whether the organisation is a financial institution within 15 U.S.C. § 6809 is not stated."
           : glba === "yes" && types.some((t) => /voice/i.test(t))
           ? "The record describes voiceprint data held by a financial institution, which § 503.001(e)(1) puts outside the section."
-          : "The § 503.001(e)(1) voiceprint carve-out is not engaged on this record.",
+          : "The § 503.001(e)(1) voiceprint carve-out is not engaged as matters stand.",
       });
       exclusions_engaged.push({
         exclusion: "AI model training, unless used to uniquely identify a specific individual",
@@ -318,8 +318,8 @@ function buildIdentifierCharacterizations(
         reasoning: aiTraining === "yes"
           ? "The record describes biometric identifiers used in developing or training AI. The (e)(2) carve-out is lost where a system is used or deployed for the purpose of uniquely identifying a specific individual, and § 503.001(f) re-attaches the possession and destruction provisions on subsequent commercial use."
           : aiTraining === "no"
-          ? "The AI-training carve-out is not engaged on this record."
-          : "AI-training use is not on the record, so the (e)(2) carve-out cannot be evaluated.",
+          ? "The AI-training carve-out is not engaged by the practices described."
+          : "AI-training use is nowhere stated, so the (e)(2) carve-out cannot be evaluated.",
       });
     }
 
@@ -350,8 +350,8 @@ function buildIdentifierCharacterizations(
           : tpo === "yes"
           ? "RCW 19.375.040(2) puts activities subject to the federal health-privacy title outside the chapter."
           : glba === "unknown" && tpo === "unknown"
-          ? "Neither exclusion can be evaluated on this record."
-          : "Neither chapter-level exclusion is engaged on this record.",
+          ? "Neither exclusion can be evaluated from the facts recorded."
+          : "Neither chapter-level exclusion is engaged by the facts recorded.",
       });
     }
 
@@ -370,7 +370,7 @@ function buildIdentifierCharacterizations(
           ? "RCW 19.373.010(8)(b)(ix) lists biometric data as consumer health data. The record states the data identifies or infers health status, so the chapter reaches it."
           : health === "no"
           ? "The record states the biometric data neither identifies nor infers health status and does not identify a consumer seeking health-care services, so it is not consumer health data under RCW 19.373.010(8) and the chapter does not reach it. RCW 19.375 is unaffected by that answer."
-          : "Whether the biometric data identifies or infers health status is not on the record, so its characterisation as consumer health data cannot be settled.",
+          : "Whether the biometric data identifies or infers health status is unstated, so its characterisation as consumer health data cannot be settled.",
       });
       exclusions_engaged.push({
         exclusion: "IRB-governed public-interest research",
@@ -393,7 +393,7 @@ function buildIdentifierCharacterizations(
     let information_needed: string | undefined;
     if (types.length === 0) {
       verdict = "record_insufficient";
-      information_needed = "The data types processed are not on the record.";
+      information_needed = "The data types processed are not stated.";
     } else if (hardExclusion) {
       verdict = "outside_definition";
     } else if (anyWithin && !openExclusion) {
@@ -496,7 +496,7 @@ function buildEntityCharacterization(
           ? "A State or local government agency, and an Illinois court, clerk, judge, or justice, are excluded from \"private entity\", so § 15 does not reach this organisation."
           : gov === "no"
           ? "The organisation is not a State or local government agency or an Illinois court body, so it is a private entity and § 15 reaches it."
-          : "Whether the organisation is a government body is not on the record, so private-entity status cannot be settled.",
+          : "Whether the organisation is a government body is unstated, so private-entity status cannot be settled.",
         verdict: gov === "yes"
           ? ("outside_actor_scope" as const)
           : gov === "no"
@@ -741,7 +741,7 @@ function buildIlDuties(
       ? "§ 15(c) is an unqualified prohibition — it admits no consent exception. The record describes conduct within it."
       : profits === "no"
       ? "The record describes no sale, lease, trade, or other profit from the biometric data."
-      : "Whether the organisation profits from the biometric data is not on the record.",
+      : "Whether the organisation profits from the biometric data is not stated.",
     profits === "yes" ? "not_satisfied" : profits === "no" ? "satisfied" : "record_insufficient",
     profits === "unknown"
       ? "State whether biometric identifiers or information are sold, leased, traded, or otherwise turned to profit."
@@ -889,7 +889,7 @@ function buildTxDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       ? "The record describes retention past the (c)(3) anniversary and also states another law requires the associated document to be kept longer. (c-1) may displace the clock, but the record does not supply the date that document ceases to be required, so the position cannot be resolved."
       : withinYear === "no"
       ? "The record describes retention past the first anniversary of the date the collection purpose expires, and no (c-1) qualifier is asserted."
-      : "Whether destruction occurs within the (c)(3) period is not on the record.",
+      : "Whether destruction occurs within the (c)(3) period is not described.",
     withinYear === "yes"
       ? "satisfied"
       : withinYear === "no" && longerLaw === "yes"
@@ -946,7 +946,7 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       rowId,
       label,
       `Enrolls in a database: ${enrolls}. Commercial purpose: ${commercial}.`,
-      "The duty attaches only to enrollment of a biometric identifier for a commercial purpose as those terms are defined in RCW 19.375.010. That predicate is not met on this record.",
+      "The duty attaches only to enrollment of a biometric identifier for a commercial purpose as those terms are defined in RCW 19.375.010. That predicate is not met by the facts recorded.",
       "not_applicable",
       undefined,
       gateQualifier,
@@ -1074,7 +1074,7 @@ function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding
     standard: chd.verbatim_quote,
     record_fact: `Biometric data identifies or infers health status: ${health}.`,
     effect: health === "yes"
-      ? "Biometric data is an enumerated species of consumer health data, so the chapter's duties attach to it on this record."
+      ? "Biometric data is an enumerated species of consumer health data, so the chapter's duties attach to it here."
       : health === "no"
       ? "The chapter reaches biometric data only where it is consumer health data. That predicate is absent, so these duties do not attach. This says nothing about RCW 19.375, which is assessed separately on its own predicate."
       : "The chapter reaches biometric data only where it is consumer health data, and the record does not settle that predicate.",
@@ -1113,7 +1113,7 @@ function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding
         ? "The record describes a maintained consumer health data privacy policy carrying the five disclosures subsection (1)(a) enumerates, with the homepage link subsection (1)(b) requires."
         : policy === "no"
         ? "Subsection (1)(a) requires a maintained policy disclosing the five enumerated matters, and subsection (1)(b) requires a prominent homepage link. The record describes neither."
-        : "Whether a consumer health data privacy policy is maintained and linked is not on the record.",
+        : "Whether a consumer health data privacy policy is maintained and linked is not stated.",
       policy === "yes" ? "satisfied" : policy === "no" ? "not_satisfied" : "record_insufficient",
       policy === "unknown"
         ? "State whether a consumer health data privacy policy is maintained, whether it carries each of the five disclosures RCW 19.373.020(1)(a) enumerates, and whether it is linked from the homepage."
@@ -1145,7 +1145,7 @@ function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding
         ? "The record describes consent for collection for a specified purpose, which is the first of the two routes subsection (1)(a) allows. This is a different instrument from a BIPA written release: MHMDA consent must be a clear affirmative opt-in act and cannot be carried by a general terms-of-use acceptance."
         : collect === "no"
         ? "Subsection (1)(a) permits collection only on consent for a specified purpose or where collection is necessary to provide a product or service the consumer requested. The record describes neither."
-        : "Whether consent for collection was obtained for a specified purpose is not on the record.",
+        : "Whether consent for collection was obtained for a specified purpose is not described.",
       collect === "yes" ? "satisfied" : collect === "no" ? "not_satisfied" : "record_insufficient",
       collect === "unknown"
         ? "State whether consent for collection was obtained before collection, for what specified purpose, and by what mechanism."
@@ -1179,7 +1179,7 @@ function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding
         ? "The record describes a sharing consent that is separate and distinct from the collection consent, which is what subsection (1)(b) requires — a single combined permission does not satisfy it."
         : share === "no"
         ? "Subsection (1)(b) permits sharing only on a consent separate and distinct from the collection consent, or where sharing is necessary to provide a requested product or service. The record describes neither."
-        : "Whether a separate sharing consent exists is not on the record.",
+        : "Whether a separate sharing consent exists is unstated.",
       noDisclosures && share !== "no"
         ? "not_applicable"
         : share === "yes"
@@ -1205,7 +1205,7 @@ function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding
       ? "The section makes it unlawful for any person to implement such a geofence for any of the three listed uses. The record describes one."
       : geofence === "no"
       ? "The record describes no geofence around an entity providing in-person health-care services."
-      : "Whether a geofence is implemented around an entity providing in-person health-care services is not on the record. This section binds any person, so it does not wait on the consumer-health-data predicate.",
+      : "Whether a geofence is implemented around an entity providing in-person health-care services is not described. This section binds any person, so it does not wait on the consumer-health-data predicate.",
     geofence === "yes" ? "not_satisfied" : geofence === "no" ? "satisfied" : "record_insufficient",
     geofence === "unknown"
       ? "State whether any geofence is implemented around an entity that provides in-person health-care services and, if so, what it is used for."
@@ -1243,7 +1243,7 @@ function buildDivergence(
           ? "the described data falls within this statute's definition"
           : i.verdict === "outside_definition"
           ? "the described data falls outside this statute's definition"
-          : "this statute's definition cannot be applied on the record as supplied",
+          : "this statute's definition cannot be applied to the facts as supplied",
       })),
       no_analogue_in: [],
       record_consequence:
@@ -1548,7 +1548,7 @@ function buildNarrative(
         ? `It falls outside the definition used by ${outDef.join(" and ")}, which matters: the three definitions are drafted differently and do not move together.`
         : "",
       openDef.length > 0
-        ? `Under ${openDef.join(" and ")} the definition cannot be applied on the record as supplied.`
+        ? `Under ${openDef.join(" and ")} the definition cannot be applied to the facts as supplied.`
         : "",
       `The analysis that follows measures the practices the record actually describes against each duty in turn, one statutory subsection at a time.`,
     ].filter(Boolean).join(" ");
