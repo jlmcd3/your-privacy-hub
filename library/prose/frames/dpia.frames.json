@@ -7,7 +7,7 @@
       "id": "dpia-gap-assessment-team",
       "product": "dpia",
       "section": "assessment_team",
-      "body": "The record does not name who prepared {{DOC_NAME}} for {{ENTITY}}. Nobody is recorded as accountable for it, and nobody is recorded as having been consulted. Until those names are on the record, the document has an author only in the sense that a file has a timestamp.",
+      "body": "The record does not name who prepared {{DOC_NAME}} for {{ENTITY}}. Nobody is recorded as accountable for it, and nobody is recorded as having been consulted. Until those names are recorded, the document has an author only in the sense that a file has a timestamp.",
       "placeholders": [
         { "token": "DOC_NAME", "kind": "text", "source": "dpia_metadata.document_name", "required": false },
         { "token": "ENTITY", "kind": "text", "source": "org_context.company_name", "required": true }
