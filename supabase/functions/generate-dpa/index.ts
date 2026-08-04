@@ -1737,7 +1737,7 @@ ${ADVISORY_VOICE_RULES}`;
         if (repairedText.trim()) {
           parsed = retryParsed;
           lint = retryLint;
-          dpa_text = repairedText;
+          dpa_text = await applyArt28Annex(repairedText);
           parsedAnnotations = retryParsed.annotations;
           parsedDraftingRecord = retryParsed.drafting_record;
           report_data = buildReportData();
