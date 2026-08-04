@@ -1,5 +1,5 @@
 // LEAK-PREV-P2 — Registration Assessment customer-report schema.
-// Version: rs-registration-w1-2026-08-03
+// Version: rs-registration-w2-2026-08-04
 //
 // DERIVATION (read, not guessed): the persisted `result_summary` object in
 // supabase/functions/run-registration-assessment/index.ts is built at L218
@@ -28,7 +28,7 @@
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const REGISTRATION_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-registration-w1-2026-08-03",
+  version: "rs-registration-w2-2026-08-04",
   // matches tool_type in _shared/intake-contracts/registration-assessment.ts L116
   tool: "registration_assessment",
   topLevel: [
@@ -50,6 +50,9 @@ export const REGISTRATION_REPORT_SCHEMA: ReportSchema = {
     "narrative",
     "deliverables_version",
     "registration_deliverables_error",
+    // hardening 2026-08-04 — shared table of authorities (attestation rides
+    // inside the deliverables object, which is already allow-listed)
+    "authority_exhibit",
     // internal channel — preserved verbatim by the caller's finalization step
     "_meta",
   ],
@@ -72,5 +75,6 @@ export const REGISTRATION_EMITTED_TOP_LEVEL: readonly string[] = [
   "narrative",
   "deliverables_version",
   "registration_deliverables_error",
+  "authority_exhibit",
   "_meta",
 ];
