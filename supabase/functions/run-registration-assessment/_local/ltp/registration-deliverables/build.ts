@@ -572,12 +572,19 @@ const FILING_ITEM_MAP: Record<string, Array<{ item: string; intake_key: string |
     { item: "Name and primary physical, email and website addresses of the data broker", intake_key: "filing_contact_details_ready" },
     { item: "How a consumer may exercise deletion and opt-out rights", intake_key: "filing_opt_out_mechanism_documented" },
     { item: "Whether the data broker collects the personal information of minors", intake_key: "filing_minors_data_practices_documented" },
+    // COVERAGE FIX (2026-08-04): § 1798.99.82(b)(2)(B) requires the metrics
+    // compiled under § 1798.99.85(a)(1)-(2). The list previously omitted it.
+    { item: "The metrics compiled pursuant to paragraphs (1) and (2) of subdivision (a) of Section 1798.99.85", intake_key: "filing_metrics_documented" },
   ],
   "US-OR": [
     { item: "Name, street address, telephone number, primary website and electronic mail address", intake_key: "filing_contact_details_ready" },
   ],
   "US-TX": [
     { item: "Legal name, contact person, physical address, e-mail, telephone and website", intake_key: "filing_contact_details_ready" },
+    // COVERAGE FIX (2026-08-04): § 510.005(b)(2-a) requires a link to a page
+    // giving consumers prominently displayed instructions on exercising their
+    // rights under § 541.051. The list previously omitted it.
+    { item: "Link to a page providing consumers with prominently displayed instructions on exercising their rights under Section 541.051", intake_key: "filing_rights_instructions_documented" },
   ],
   "US-VT": [
     { item: "Name and primary physical, e-mail and Internet addresses of the data broker", intake_key: "filing_contact_details_ready" },
