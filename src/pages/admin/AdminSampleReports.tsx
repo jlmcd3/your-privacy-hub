@@ -246,10 +246,18 @@ async function runGenerator(
         transfer_destination: src.transfer_destination,
         transfer_mechanism: src.transfer_mechanism,
         retention_period: src.retention_period,
+        retention_varies_by_category: src.retention_varies_by_category,
+        retention_by_category: src.retention_by_category,
         security_measures: src.security_measures,
         access_controls: "Role-based access; quarterly access reviews; least-privilege enforced",
+        activity_owner: src.activity_owner,
+        collection_sources: src.collection_sources,
+        processing_operations: src.processing_operations,
+        related_assessments: src.related_assessments,
+        rights_handling_override: src.rights_handling_override,
       };
       for (const [k, v] of Object.entries(map)) {
+        if (v === undefined) continue;
         answerRows.push({ activity_id: inserted.id, session_id: session.id, question_key: k, answer_value: v });
       }
     }
@@ -263,8 +271,13 @@ async function runGenerator(
         format: "pdf",
         document_date: new Date().toISOString().slice(0, 10),
         author_name: f.author_name as string,
+        approved_by_name: (f.approved_by_name as string) ?? null,
+        approved_by_title: (f.approved_by_title as string) ?? null,
+        approval_date: (f.approval_date as string) ?? null,
+        next_review_due: (f.next_review_due as string) ?? null,
       },
     });
+
     if (genErr) throw new Error(`gen: ${genErr.message}`);
 
     log("… polling ropa_sessions for generation to complete");
