@@ -312,6 +312,32 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   processorInvolved: "processor involvement",
   contained: "containment status",
   organisationType: "organization type",
+  // ── LIA (ITEM 364 dispatch 2) — the structural-program additions. Labels are
+  // written the way counsel would name the thing in a letter, not the way the
+  // intake key spells it; these appear in customer-facing "what is missing"
+  // prose, so they read as parts of a record, not as form fields.
+  "purpose_details.controller_is_public_authority": "whether the organization is a public authority",
+  "purpose_details.public_task_processing": "whether the processing is part of a public task",
+  "purpose_details.specific_benefit": "the specific benefit the processing produces",
+  "purpose_details.beneficiary": "who the benefit accrues to",
+  "necessity_details.alternatives_rationale": "why the alternatives considered were inadequate",
+  "balancing_details.collection_context": "the circumstances in which the data was collected",
+  "balancing_details.children_data_subjects": "whether children's data is involved",
+  "balancing_details.additional_mitigations": "additional safeguards applied to the processing",
+  "balancing_details.relationship_category": "the relationship with the people whose data is used",
+  "balancing_details.scale_approx": "the approximate number of people affected",
+  "balancing_details.frequency": "how often the processing takes place",
+  "balancing_details.duration": "how long the processing continues",
+  "balancing_details.potential_harms": "the harms the processing could cause",
+  "balancing_details.opt_out_available": "whether an opt-out is available",
+  attestation: "the review and approval record",
+  "attestation.dpo_reviewed": "whether a data protection adviser reviewed the assessment",
+  "attestation.dpo_reviewer": "the data protection adviser who reviewed the assessment",
+  "attestation.dpo_review_date": "the date of the data protection adviser's review",
+  "attestation.approver_name": "the name of the person approving the assessment",
+  "attestation.approver_position": "the role of the person approving the assessment",
+  "attestation.approval_date": "the date of approval",
+  "attestation.review_triggers": "the events that would reopen the assessment",
 });
 
 /** Contract-derived allowlist of every intake key we know about. Used
