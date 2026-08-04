@@ -88,6 +88,12 @@ export default function BiometricChecker() {
     // ITEM 317 — practice facts each state statute's duties are measured
     // against. Every one is optional; blank degrades to record_insufficient
     // in the deliverables builder rather than being assumed either way.
+    // Attestation intake (optional) — a named approver turns the assessment
+    // into an accountability record; blank degrades honestly in the report.
+    approved_by_name: "",
+    approved_by_title: "",
+    approval_date: "",
+    next_review_due: "",
     data_source_description: "",
     healthcare_tpo_context: "",
     entity_is_government: "",
@@ -474,6 +480,35 @@ export default function BiometricChecker() {
 
 
 
+
+            <div className="border-t border-border pt-4 mb-4">
+              <p className="text-sm font-semibold text-foreground mb-1">Approval and review (optional)</p>
+              <p className="text-meta text-muted-foreground mb-3">
+                Naming an approver turns this assessment into an accountability record. Left blank, the report states the approval was not recorded rather than printing an empty signature line.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <label className="text-sm">Approved by (name)
+                  <input className="mt-1 w-full border border-border rounded-md px-3 py-2 text-sm"
+                    value={form.approved_by_name}
+                    onChange={(e) => setForm(f => ({ ...f, approved_by_name: e.target.value }))} />
+                </label>
+                <label className="text-sm">Role or title
+                  <input className="mt-1 w-full border border-border rounded-md px-3 py-2 text-sm"
+                    value={form.approved_by_title}
+                    onChange={(e) => setForm(f => ({ ...f, approved_by_title: e.target.value }))} />
+                </label>
+                <label className="text-sm">Date of approval
+                  <input type="date" className="mt-1 w-full border border-border rounded-md px-3 py-2 text-sm"
+                    value={form.approval_date}
+                    onChange={(e) => setForm(f => ({ ...f, approval_date: e.target.value }))} />
+                </label>
+                <label className="text-sm">Next review due
+                  <input type="date" className="mt-1 w-full border border-border rounded-md px-3 py-2 text-sm"
+                    value={form.next_review_due}
+                    onChange={(e) => setForm(f => ({ ...f, next_review_due: e.target.value }))} />
+                </label>
+              </div>
+            </div>
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
