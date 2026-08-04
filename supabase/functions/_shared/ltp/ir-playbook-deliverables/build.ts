@@ -32,6 +32,8 @@ import {
   UK_JURISDICTION,
 } from "./elements.ts";
 import type { NotificationRegime } from "./elements.ts";
+import { mapContentOwnerToEdpbTemplate } from "./edpb-art33-template.ts";
+
 import type {
   Art34ExemptionAnalysis,
   ContentElementKey,
