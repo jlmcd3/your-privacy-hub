@@ -21,3 +21,5 @@ export const LIA_FRAMES = await read<FrameSet>("./frames/lia.frames.json");
 export const LIA_PLAN = await read<DocumentPlan>("./plans/lia.plan.json");
 export const GOVERNANCE_PLAN = await read<DocumentPlan>("./plans/governance.plan.json");
 export const REGISTRATION_PLAN = await read<DocumentPlan>("./plans/registration.plan.json");
+export const REGISTRATION_FRAMES = await read<FrameSet>("./frames/registration.frames.json");
+

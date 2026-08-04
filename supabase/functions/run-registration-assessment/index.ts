@@ -637,7 +637,7 @@ Deno.serve(async (req) => {
         if (os && dpoVerdict === "record_insufficient" && os.dpo_required === true) {
           os.dpo_required = null;
           os.dpo_condition = os.dpo_condition ||
-            "The Art. 37(1) branches cannot be evaluated on this record; the jurisdiction lookup alone does not establish the duty.";
+            "The Art. 37(1) branches cannot be evaluated from the facts recorded; the jurisdiction lookup alone does not establish the duty.";
           os.dpo_trigger = null;
           contradictions.push("dpo_required");
         }

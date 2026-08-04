@@ -21,6 +21,8 @@ const ITEMS = [
   { table: "prose_document_plans", column: "plan", product: "lia", rel: "plans/lia.plan.json" },
   { table: "prose_document_plans", column: "plan", product: "governance", rel: "plans/governance.plan.json" },
   { table: "prose_document_plans", column: "plan", product: "registration", rel: "plans/registration.plan.json" },
+  { table: "prose_frame_sets", column: "frames", product: "registration", rel: "frames/registration.frames.json" },
+
 ] as const;
 
 const ROOT = new URL("../../library/prose/", import.meta.url);
