@@ -141,6 +141,12 @@ export function lintRegisterText(sectionId: string, text: string): RegisterLintF
     if (m) push("banned_word", w, m.input!.slice(Math.max(0, m.index! - 60), m.index! + 80));
   }
 
+  for (const p of BANNED_PHRASES) {
+    const re = new RegExp(`(?<![\\w-])${p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`, "i");
+    const m = body.match(re);
+    if (m) push("banned_phrase", p, m.input!.slice(Math.max(0, m.index! - 60), m.index! + 80));
+  }
+
   const total = words(body);
   let intensifiers = 0;
   for (const w of INTENSIFIERS) {
