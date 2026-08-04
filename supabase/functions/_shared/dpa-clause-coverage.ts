@@ -205,9 +205,14 @@ export function checkArt28Coverage(
     if (present) {
       let best: { heading: string; hits: number } | null = null;
       for (const s of sections) {
-        const hits = sig.filter((t) => s.tokens.has(t)).length;
-        if (hits > 0 && (!best || hits > best.hits)) best = { heading: s.heading, hits };
+        const headingTokens = new Set(words(s.heading).map(stem));
+        const bodyHits = sig.filter((t) => s.tokens.has(t)).length;
+        // A section whose HEADING carries the clause's distinctive terms is
+        // the clause's home; body mentions alone are weaker evidence.
+        const hits = bodyHits + 3 * sig.filter((t) => headingTokens.has(t)).length;
+        if (bodyHits > 0 && (!best || hits > best.hits)) best = { heading: s.heading, hits };
       }
+
       location = best ? best.heading : "Document body";
     }
 
