@@ -29,7 +29,8 @@ import { CertificationStatusPanel } from "@/components/admin/CertificationStatus
 // QB-P3 cleanup: SLUG_TO_TOOL_TYPE lives in src/lib/qualityBatchTools.ts so
 // QualityBatch and QualityBatch2 share one source of truth. Verified against
 // supabase/functions/generate-report-pdf/index.ts tableMap (L1853–1868).
-import { SLUG_TO_TOOL_TYPE } from "@/lib/qualityBatchTools";
+import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_ALT_GENERATION_MODEL } from "@/lib/qualityBatchTools";
+import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
 // is the (not-yet-authored) realistic-input set. See
@@ -89,6 +90,9 @@ type ToolResult = {
   gpt_score_overall: number | null;
   error: string | null;
   dispatched_at?: string | null;
+  // MODEL A/B HARNESS (dispatch 1) — present only on A/B batches.
+  generation_model?: string | null;
+  ab_pair_id?: string | null;
 };
 
 type BatchRow = {
@@ -199,6 +203,10 @@ export function QualityConsole({
   const variantFor = (t: string): FixtureVariant => toolVariant[t] ?? "perfect";
   const setVariantFor = (t: string, v: FixtureVariant) =>
     setToolVariant((prev) => ({ ...prev, [t]: v }));
+  // MODEL A/B HARNESS (dispatch 1) — paired generation on two models.
+  // DEFAULT-PATH LAW: only offered on the variant-aware console, and the
+  // `ab_models` field is omitted entirely unless the toggle is on.
+  const [abModels, setAbModels] = useState(false);
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
 
@@ -422,6 +430,7 @@ export function QualityConsole({
           ...(showVariants
             ? { tool_variants: Object.fromEntries(tools.map((t) => [t, variantFor(t)])) }
             : {}),
+          ...(showVariants && abModels ? { ab_models: true } : {}),
         },
       });
       if (error) throw error;
@@ -631,7 +640,12 @@ export function QualityConsole({
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const blob = await res.blob();
             const shortRow = (d.source_row_id ?? "row").slice(0, 8);
-            zip.file(`${tr.tool}/${String(d.doc_number).padStart(2, "0")}-${shortRow}.pdf`, blob);
+            // A/B pairs share tool+doc_number, so the model slug is what keeps
+            // both PDFs in the zip. Default-model docs keep the legacy name.
+            const modelSuffix = tr.generation_model && tr.generation_model !== DEFAULT_GENERATION_MODEL
+              ? `-${generationModelSlug(tr.generation_model)}`
+              : "";
+            zip.file(`${tr.tool}/${String(d.doc_number).padStart(2, "0")}-${shortRow}${modelSuffix}.pdf`, blob);
             ok += 1;
           } catch (e) {
             console.error("pdf fetch failed", tr.tool, d.source_row_id, e);
@@ -674,12 +688,32 @@ export function QualityConsole({
       lines.push("");
       lines.push("## Per-tool summary");
       lines.push("");
-      lines.push("| Tool | final_status | score_overall | gpt_score_overall | error |");
-      lines.push("| --- | --- | --- | --- | --- |");
+      const isAb = toolResults.some((r) => r.ab_pair_id);
+      lines.push("| Tool | model | final_status | score_overall | gpt_score_overall | error |");
+      lines.push("| --- | --- | --- | --- | --- | --- |");
       for (const tr of toolResults) {
         lines.push(
-          `| ${tr.tool} | ${tr.final_status} | ${tr.score_overall ?? "—"} | ${tr.gpt_score_overall ?? "—"} | ${tr.error ? tr.error.replace(/\|/g, "\\|").slice(0, 200) : ""} |`,
+          `| ${tr.tool} | ${tr.generation_model ?? DEFAULT_GENERATION_MODEL} | ${tr.final_status} | ${tr.score_overall ?? "—"} | ${tr.gpt_score_overall ?? "—"} | ${tr.error ? tr.error.replace(/\|/g, "\\|").slice(0, 200) : ""} |`,
         );
+      }
+      if (isAb) {
+        lines.push("");
+        lines.push("## Model A/B pairs");
+        lines.push("");
+        lines.push("| pair | tool | model A | score A (claude/gpt) | model B | score B (claude/gpt) |");
+        lines.push("| --- | --- | --- | --- | --- | --- |");
+        const byPair = new Map<string, ToolResult[]>();
+        for (const tr of toolResults) {
+          if (!tr.ab_pair_id) continue;
+          byPair.set(tr.ab_pair_id, [...(byPair.get(tr.ab_pair_id) ?? []), tr]);
+        }
+        for (const [pid, rows] of byPair) {
+          const a = rows.find((r) => (r.generation_model ?? DEFAULT_GENERATION_MODEL) === DEFAULT_GENERATION_MODEL);
+          const b = rows.find((r) => r.generation_model === AB_ALT_GENERATION_MODEL);
+          const fmt = (r?: ToolResult) => r ? `${r.score_overall ?? "—"} / ${r.gpt_score_overall ?? "—"}` : "—";
+          lines.push(`| ${pid.slice(0, 8)} | ${rows[0].tool} | ${DEFAULT_GENERATION_MODEL} | ${fmt(a)} | ${AB_ALT_GENERATION_MODEL} | ${fmt(b)} |`);
+        }
+        lines.push("");
       }
       lines.push("");
 
@@ -837,6 +871,26 @@ export function QualityConsole({
             )}
           </div>
 
+          {showVariants && (
+            <div className="border rounded p-3 space-y-1">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <Checkbox
+                  checked={abModels}
+                  disabled={isBatchRunning}
+                  onCheckedChange={(c) => setAbModels(c === true)}
+                />
+                A/B models — generate every fixture twice
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Each selected tool+fixture is generated once on{" "}
+                <code>{DEFAULT_GENERATION_MODEL}</code> and once on{" "}
+                <code>{AB_ALT_GENERATION_MODEL}</code> as a linked pair. Both documents are
+                graded normally; grader and rubric models are pinned and never vary.
+                Doubles batch runtime and spend.
+              </p>
+            </div>
+          )}
+
           <div>
             <Label>Batch size (applied to every selected tool)</Label>
             <Input
@@ -919,6 +973,10 @@ export function QualityConsole({
               </div>
             </div>
           )}
+
+          {/* MODEL A/B HARNESS (dispatch 1) — side-by-side pair results. Renders
+              only when the active batch actually produced linked pairs. */}
+          {activeBatch && <ModelPairTable batch={activeBatch} toolResults={activeToolResults} />}
 
           {/* QB-P24 Item 5 — per-tool Pinned rerun. Reuses the QB-P23
               orchestrator action; admin JWT is carried by supabase.functions.invoke.

@@ -4461,6 +4461,7 @@ export type Database = {
       }
       quality_batch_runs: {
         Row: {
+          ab_models: boolean
           actual_count: number | null
           batch_size: number
           campaign_id: string | null
@@ -4485,6 +4486,7 @@ export type Database = {
           tools: string[]
         }
         Insert: {
+          ab_models?: boolean
           actual_count?: number | null
           batch_size: number
           campaign_id?: string | null
@@ -4509,6 +4511,7 @@ export type Database = {
           tools: string[]
         }
         Update: {
+          ab_models?: boolean
           actual_count?: number | null
           batch_size?: number
           campaign_id?: string | null
@@ -5553,6 +5556,7 @@ export type Database = {
       }
       quality_runs: {
         Row: {
+          ab_pair_id: string | null
           batch_size: number
           campaign_id: string | null
           cancel_requested: boolean
@@ -5566,6 +5570,7 @@ export type Database = {
           engine_path: string | null
           error: string | null
           fixture_variant: string | null
+          generation_model: string | null
           gpt_only_count: number
           gpt_score_accuracy: number | null
           gpt_score_analysis: number | null
@@ -5598,6 +5603,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          ab_pair_id?: string | null
           batch_size?: number
           campaign_id?: string | null
           cancel_requested?: boolean
@@ -5611,6 +5617,7 @@ export type Database = {
           engine_path?: string | null
           error?: string | null
           fixture_variant?: string | null
+          generation_model?: string | null
           gpt_only_count?: number
           gpt_score_accuracy?: number | null
           gpt_score_analysis?: number | null
@@ -5643,6 +5650,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          ab_pair_id?: string | null
           batch_size?: number
           campaign_id?: string | null
           cancel_requested?: boolean
@@ -5656,6 +5664,7 @@ export type Database = {
           engine_path?: string | null
           error?: string | null
           fixture_variant?: string | null
+          generation_model?: string | null
           gpt_only_count?: number
           gpt_score_accuracy?: number | null
           gpt_score_analysis?: number | null

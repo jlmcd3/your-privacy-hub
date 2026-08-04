@@ -58,6 +58,7 @@ import {
   applyGroundedNoteScreen,
   type GroundedNoteTelemetry,
 } from "./grounded-note.ts";
+import { currentGenerationModel, generationTimeoutMs } from "../generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 export const PASS1_LLM_STAMP = "ltp-pass1-llm-item261-grounded-observe@2026-07-29";
 export const PASS1_MODEL = "claude-sonnet-4-6";
@@ -332,14 +333,14 @@ async function callPass1Model(
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("missing_ANTHROPIC_API_KEY");
   const res = await callAnthropicWithContinuation({
-    model: PASS1_MODEL,
+    model: currentGenerationModel(),
     system,
     user,
     maxTokens: 8000,
     label: "ltp-pass1-derive",
     callerName,
     product: "cppa-risk-assessment",
-    timeoutMs,
+    timeoutMs: generationTimeoutMs(currentGenerationModel(), timeoutMs),
     abortSignal: signal,
   });
   return { text: res.text, continuationCount: res.continued ? 1 : 0 };

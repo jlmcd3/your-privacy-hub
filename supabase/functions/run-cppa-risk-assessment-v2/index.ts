@@ -35,6 +35,7 @@ import {
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
 } from "../_shared/ltp/generate-cppa-risk.ts";
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 const FN = "run-cppa-risk-assessment-v2";
 const BUILD_STAMP = "ltp-risk-v2-item359-routed@2026-08-02";
@@ -85,7 +86,7 @@ async function runPipeline(assessmentId: string): Promise<void> {
 
   const firstWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessmentId, {
     status: "complete",
-    report_data: gen.report,
+    report_data: stampGenerationModel(gen.report),
   }, { fn: FN, phase: "persist_first" });
   if (!firstWrite.ok) throw new Error(`persist_first_failed: ${(firstWrite as { message?: string }).message ?? ""}`);
 
@@ -99,7 +100,7 @@ async function runPipeline(assessmentId: string): Promise<void> {
   if (p2.report) {
     await lifecycleUpdate(supabase, "cppa_assessments", assessmentId, {
       status: "complete",
-      report_data: p2.report,
+      report_data: stampGenerationModel(p2.report),
     }, { fn: FN, phase: "pass2r_update" });
   }
   console.log(JSON.stringify({
@@ -111,7 +112,7 @@ async function runPipeline(assessmentId: string): Promise<void> {
   }));
 }
 
-Deno.serve(async (req) => {
+Deno.serve(serveWithGenerationModel(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const url = new URL(req.url);
@@ -185,4 +186,4 @@ Deno.serve(async (req) => {
   if (er?.waitUntil) er.waitUntil(wrapped);
 
   return json({ accepted: true, assessment_id, build_stamp: BUILD_STAMP }, 202);
-});
+}));
