@@ -170,13 +170,13 @@ export default function IRPlaybook() {
 
   const handleGenerate = async () => {
     if (!form.organizationName.trim()) {
-      toast.error("Organisation required", { description: "Tell us the name of the organisation the playbook is for." });
+      toast.error("Organisation required", { description: "Name the organisation this playbook is written for." });
       return;
     }
     const discoveryDate = new Date(form.discoveryDateTime);
     if (isNaN(discoveryDate.getTime()) || discoveryDate > new Date()) {
       toast.error("Invalid date", {
-        description: "The discovery date cannot be in the future. A breach response playbook requires a date when the incident was actually discovered.",
+        description: "The discovery date cannot be in the future. Enter the date the incident was actually discovered.",
       });
       return;
     }
@@ -218,7 +218,7 @@ export default function IRPlaybook() {
     const payload = { ...base, ...standing };
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...payload, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.id) {
-      setResult("Generation failed. Please try again.");
+      setResult("Generation failed — try again.");
       setPhase("result");
       return;
     }
