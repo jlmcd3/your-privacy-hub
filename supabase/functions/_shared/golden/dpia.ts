@@ -155,12 +155,29 @@ export const DPIA_GOLDEN: GoldenCase[] = [
       controller_land: "Bavaria",
       controller_sector: "private",
       central_administration_country: "DE",
+      // DPIA UPGRADE ITEM 6 — the two structural fields, supplied in full so
+      // the attestation deliverables run on the ANALYSED path here (this is
+      // the "perfect data" case). The other fixtures deliberately omit them
+      // and exercise the record_insufficient degradation.
+      dpia_prepared_by:
+        "A. Okonjo \u2014 Privacy Counsel (Responsible); Dr. R. Lindqvist \u2014 Occupational-Health Physician (Consulted); D. Dasher \u2014 Data Protection Officer (Accountable)",
+      dpia_approved_by_name: "M. Ferrante",
+      dpia_approved_by_title: "Managing Director",
+      dpia_approval_date: "2026-04-14",
+      dpia_signoff_basis:
+        "Sections 3 and 4 as reviewed on 12 April 2026, acceptance of two moderate residual risks, and the condition that access to the diagnosis category remains limited to the two named occupational-health physicians.",
     },
     assertions: [
       { kind: "must_include", pattern: "Article\\s*9\\(2\\)\\(h\\)", flags: "i", label: "Art 9(2)(h) selected" },
       { kind: "must_include", pattern: "necessity|proportionality", flags: "i", label: "necessity/proportionality" },
       { kind: "must_include", pattern: "\"intake_field\"", label: "row source.intake_field present" },
       { kind: "must_include", pattern: "\"basis\"\\s*:\\s*\"(stated|inferred)\"", label: "row source.basis is stated|inferred" },
+      // DPIA UPGRADE ITEM 6 — presence-only: the two structural fields and the
+      // authority exhibit must ship. Content is asserted in the edge suite.
+      { kind: "must_include", pattern: "\"assessment_team\"", label: "assessment_team emitted" },
+      { kind: "must_include", pattern: "\"validation_approval\"", label: "validation_approval emitted" },
+      { kind: "must_include", pattern: "\"attested\"\\s*:\\s*true", label: "attestation on the analysed path" },
+      { kind: "must_include", pattern: "\"authority_exhibit\"", label: "authority exhibit emitted" },
     ],
   },
 ];

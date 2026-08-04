@@ -190,6 +190,14 @@ const F_DPIA_EU: SampleFixture = {
           "Data categories in scope: (a) image data incidentally capturing building edges, gardens, and occasional individuals along transit corridors; (b) location data from flight telemetry. Imagery is blurred (faces, license plates, house numbers) before any external release; raw frames are deleted after 30 days.",
         dp_by_design_measures:
           "No automated decision-making with legal or significant effect: geologists review mosaics manually. A YOLOv8-based detector proposes blur regions for faces, license plates, and house numbers; a human QA reviewer approves every mosaic before release. Flight planning excludes school and hospital airspace. 30-day raw-frame deletion is enforced via a storage lifecycle policy with an attestation ledger.",
+        // DPIA UPGRADE ITEM 6 — EDPB template v1.0 § 0.5 ¶6 / ¶10.
+        dpia_prepared_by:
+          "Donna Dasher — Data Protection Officer (Accountable); Jens Halvorsen — Head of Survey Operations (Responsible); Priya Raman — Cloud Infrastructure Lead (Consulted)",
+        dpia_approved_by_name: "Margarethe Ferrante",
+        dpia_approved_by_title: "Geschäftsführerin (Managing Director)",
+        dpia_approval_date: "2026-04-14",
+        dpia_signoff_basis:
+          "Sections 3 and 4 as reviewed on 12 April 2026, acceptance of two moderate residual risks on incidental capture, and the condition that the 30-day raw-frame deletion job is verified in production before the next campaign.",
         source_assessment_id: null,
       },
     },

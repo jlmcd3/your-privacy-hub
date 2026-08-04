@@ -3,9 +3,28 @@
 // section numbering (the template body uses letter sub-sections, e.g. "1.1.a";
 // the Explainer and TOC use "1.1.1" — we key by the Explainer).
 //
-// Source: EDPB "Template [2026] for DPIA — Explainer" v1.0 (10 Mar 2026).
-// NOTE: this is a PUBLIC-CONSULTATION DRAFT (consultation closed 9 Jun 2026);
-// the final text may differ. Guidance below is PARAPHRASED, not verbatim —
+// Source: EDPB "Template [2026] for DPIA — Explainer" v1.0, ADOPTED 10 March
+// 2026 (published 14 April 2026). Used as-is, without hedging on status.
+//
+// SECTION-REF AUDIT (DPIA UPGRADE ITEM 3, verified against the adopted v1.0
+// table of contents). The adopted Explainer numbers third-level headings
+// NUMERICALLY (1.1.1 … 4.1.3); this file previously carried the template
+// body's LETTERED sub-sections for six entries. The `sectionRef` values below
+// are now the adopted numbering. Record keys are unchanged because they are
+// also the `data-rail-key` values wired into DPIAFramework.tsx. Mapping:
+//   1.1.c -> 1.1.3 Secondary or compatible uses
+//   1.1.d -> 1.1.4 Nature, scope and context of the processing
+//   2.2.a -> 2.2.1 Data minimisation and retention periods
+//   2.2.b -> 2.2.2 Data quality
+//   2.3.b -> 2.3.2 Measures supporting the exercise of data subjects' rights
+//   2.3.d -> 2.3.4 Measures supporting data protection by design and by default
+//   4.1.c -> 4.1.3 Inherent risk assessment
+// Sections 0.1-0.5, 1.2-1.4, 5.1 and 5.2 are unchanged in the adopted text.
+// "0.5.reasons" / "0.5.scope" / "0.5.publication" / "0.5.team" /
+// "0.5.validation" are HOUSE sub-keys for distinct paragraphs of § 0.5; they
+// are not template numbering and all carry sectionRef "0.5".
+//
+// Guidance below is PARAPHRASED, not verbatim —
 // EXCEPT entries that carry `verbatimPropositionKey`, whose `guidance` string
 // is the byte-exact `verbatim_quote` from the engine's verified-authority
 // registry (supabase/functions/_shared/registry/dpia-verified-authorities.ts,
@@ -14,8 +33,8 @@
 import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/dpia-verified-authorities";
 
 export const EDPB_DPIA_SOURCE = {
-  label: "EDPB DPIA Template Explainer v1.0 (10 Mar 2026, public-consultation draft)",
-  url: "https://www.edpb.europa.eu/public-consultations/edpb-dpia-template_en",
+  label: "EDPB DPIA Template Explainer v1.0 (adopted 10 March 2026)",
+  url: "https://www.edpb.europa.eu/public-consultations/template-for-data-protection-impact-assessment_en",
 };
 
 /** WP248 rev.01 rows reused verbatim from the engine registry. */
@@ -89,9 +108,9 @@ export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
     sourceLabel: WP248_GUIDANCE_SOURCE.label,
     sourceUrl: WP248_CRITERIA.primary_source_url,
   },
-  // WP248-PINNING (2026-08-01) — § 4.1.c inherent-risk severity appraisal.
+  // WP248-PINNING (2026-08-01) — § 4.1.3 inherent-risk severity appraisal.
   "4.1.c": {
-    sectionRef: "4.1.c",
+    sectionRef: "4.1.3",
     sectionTitle: "Inherent risk assessment — severity appraisal",
     guidance: WP248_SEVERITY.verbatim_quote,
     paraRefs: [],
@@ -116,14 +135,14 @@ export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
     paraRefs: [11],
   },
   "1.1.c": {
-    sectionRef: "1.1.c",
+    sectionRef: "1.1.3",
     sectionTitle: "Secondary or compatible uses",
     guidance:
       "Describe any further use of the data beyond the primary purpose, and explain why each is compatible with the purpose for which the data was originally collected (the Art. 6(4) compatibility test — link to the original purpose, the context, the nature of the data, possible consequences, and any safeguards).",
     paraRefs: [],
   },
   "1.1.d": {
-    sectionRef: "1.1.d",
+    sectionRef: "1.1.4",
     sectionTitle: "Nature, scope and context of the processing",
     guidance:
       "Set out the nature (what you actually do with the data), the scope (its extent — the volume, variety, geography and duration), and the context (the relationship with the data subjects, their reasonable expectations, any power imbalance, and the wider circumstances of the processing).",
@@ -151,28 +170,28 @@ export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
     paraRefs: [],
   },
   "2.2.a": {
-    sectionRef: "2.2.a",
+    sectionRef: "2.2.1",
     sectionTitle: "Data minimisation and retention periods",
     guidance:
       "Justify, for each category of data, that it is adequate, relevant and limited to what is necessary for the purpose (Art. 5(1)(c)), and state the retention period or the criteria used to set it (Art. 5(1)(e)). Flag any data collected that is not strictly necessary as a candidate for minimisation.",
     paraRefs: [],
   },
   "2.2.b": {
-    sectionRef: "2.2.b",
+    sectionRef: "2.2.2",
     sectionTitle: "Data quality",
     guidance:
       "Describe the measures that keep the data accurate and, where necessary, up to date — and how inaccurate data is corrected or erased without delay (Art. 5(1)(d)). Data quality is especially important where the data feeds decisions about people.",
     paraRefs: [],
   },
   "2.3.b": {
-    sectionRef: "2.3.b",
+    sectionRef: "2.3.2",
     sectionTitle: "Measures supporting the exercise of data subjects' rights",
     guidance:
       "Describe how data subjects can exercise their rights — information, access, rectification, erasure, restriction, portability, and objection — and how you receive, verify and action those requests within the time limits (Arts. 12–22).",
     paraRefs: [],
   },
   "2.3.d": {
-    sectionRef: "2.3.d",
+    sectionRef: "2.3.4",
     sectionTitle: "Measures supporting data protection by design and by default",
     guidance:
       "Describe the measures designed into the processing — for example pseudonymisation, data minimisation by default, and access restricted by default — that implement data protection by design and by default (Art. 25).",
@@ -191,5 +210,20 @@ export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
     guidance:
       "Record whether the views of data subjects (or their representatives) were sought, how, and what they said (Art. 35(9)). Where their views were not sought, or were not followed, document the justification.",
     paraRefs: [],
+  },
+  // DPIA UPGRADE ITEM 3 — the two structural accountability fields.
+  "0.5.team": {
+    sectionRef: "0.5",
+    sectionTitle: "DPIA technical sheet — team conducting the DPIA",
+    guidance:
+      "Identify the team involved in conducting this DPIA, with each person's role, tasks and responsibilities. A RACI matrix (Responsible, Accountable, Consulted, Informed) is one way to record it. The people who did the work are part of the accountability record, not administrative trim.",
+    paraRefs: [6],
+  },
+  "0.5.validation": {
+    sectionRef: "0.5",
+    sectionTitle: "DPIA technical sheet — completion and formal validation",
+    guidance:
+      "Record the completion date and the formal validation date. The DPIA must be formally approved as complete and finished by a responsible official — a Managing Director, CEO or equivalent — and the record should say who approved it, in what capacity, on what date, and what the approval rests on. The template may carry a seal and signature.",
+    paraRefs: [10],
   },
 };

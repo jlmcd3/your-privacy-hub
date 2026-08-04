@@ -932,6 +932,8 @@ interface SharedContextData {
   gdprMeta: any;
   resolved: ReturnType<typeof resolveDpiaJurisdiction>;
   testStates: Record<string, DpiaTestStateEntry>;
+  /** DPIA UPGRADE ITEM 4 — Art. 35 / Art. 36 corpus law block (runtime-resolved). */
+  dpiaCorpusLawBlock: string;
   generationStartedAt: number;
 }
 
@@ -1060,10 +1062,30 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
 
   const testStates = computeDpiaTestStates(intake as Record<string, any>);
 
+  // ── DPIA UPGRADE ITEM 4 — CORPUS INTO THE ANALYSIS ─────────────────
+  // Art. 35 and Art. 36 resolved at runtime from `provision_texts` through
+  // the closed-set resolver. No statutory text is compiled in; a resolver
+  // miss degrades honestly to a citation-only law block.
+  let dpiaCorpusLawBlock = "";
+  try {
+    const { fetchDpiaCorpus, buildDpiaCorpusLawBlock } = await import(
+      "../_shared/ltp/dpia-corpus.ts"
+    );
+    const dpiaCorpus = await fetchDpiaCorpus(supabase);
+    dpiaCorpusLawBlock = buildDpiaCorpusLawBlock(dpiaCorpus);
+    console.log(JSON.stringify({
+      evt: "dpia_corpus_resolved", fn: "run-dpia-framework",
+      resolved: dpiaCorpus.resolved_count, approved: dpiaCorpus.approved_count,
+      version: dpiaCorpus.version,
+    }));
+  } catch (e) {
+    console.warn("[run-dpia-framework] dpia corpus resolve failed (non-fatal):", (e as Error)?.message);
+  }
+
   return {
     intake, orgName, orgContext, processingDesc, gdprJurisdiction,
     enforcementPrecedents, enforcementMeta, gdprBlock, gdprMeta,
-    resolved, testStates,
+    resolved, testStates, dpiaCorpusLawBlock,
     generationStartedAt: Date.now(),
   };
 }
@@ -1083,7 +1105,7 @@ function buildSystemBlocksForUnit(shared: SharedContextData): SystemBlock[] {
   const blocks = buildSystemContent({
     toolModule: DPIA_TOOL_MODULE,
     currentDate: today,
-    injected: [DPIA_POST_CUTOFF_AUTHORITIES, gdprAuthorityContext, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
+    injected: [DPIA_POST_CUTOFF_AUTHORITIES, gdprAuthorityContext, shared.dpiaCorpusLawBlock, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
   });
   // Prompt-caching breakpoint at the end of the shared prefix (courier §5).
   // buildSystemContent already caches blocks 1+2; force cache on block 3
@@ -2229,6 +2251,23 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] ITEM-310 deliverables failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── DPIA UPGRADE ITEM 1 — THE TWO STRUCTURAL FIELDS ────────────────
+    // section_0_overview.assessment_team (EDPB template v1.0 § 0.5 para 6) and
+    // section_6_conclusion.validation_approval (§ 0.5 para 10). Single writer,
+    // deterministic, honest degradation when intake lacks them. Fail-open.
+    try {
+      const { attachDpiaAttestation } = await import("../_shared/ltp/dpia-deliverables/attestation.ts");
+      const ameta = attachDpiaAttestation(
+        reportData as Record<string, unknown>,
+        (dpiaIntake ?? {}) as Record<string, unknown>,
+      );
+      const _am = ((reportData as any)._meta ??= {});
+      (_am.internal ??= {}).dpia_attestation = ameta;
+      console.log(JSON.stringify({ evt: "_dpia_attestation", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...ameta }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] DPIA attestation attach failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     // ── DPIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ─────
     // Registry-first citation stamping + write-around for unanchorable
@@ -2264,6 +2303,62 @@ async function runStitch(dpia_id: string): Promise<void> {
       });
     } catch (e) {
       console.warn("[run-dpia-framework] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── DPIA UPGRADE ITEM 5 — BOILERPLATE REPETITION CAP ───────────────
+    // Runs AFTER the two emitters that produce the repeated literals
+    // (_dpia_t6_fix's NEUTRAL_DOWNGRADE and the emit gate's
+    // "information.needed" replacement) and BEFORE the P2 serializer, so the
+    // document-wide cap applies to exactly what ships. Telemetry rides
+    // `_meta.internal.dpia_boilerplate_cap`. Fail-open.
+    try {
+      const { applyDpiaBoilerplateCap } = await import("./_dpia_boilerplate_cap.ts");
+      applyDpiaBoilerplateCap(reportData as any);
+    } catch (e) {
+      console.warn("[run-dpia-framework] boilerplate cap post-pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── DPIA UPGRADE ITEM 4 — AUTHORITY EXHIBIT ────────────────────────
+    // Table of authorities built from the citations THIS report emits.
+    // Excerpts come only from approved corpus rows; everything else is
+    // citation-only. EDPB template / CNIL methodology references are drafting
+    // guidance and are never collected here. Rendered at the end of the body,
+    // immediately before the universal disclaimer. Fail-open.
+    try {
+      const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const { fetchDpiaCorpus, dpiaCorpusProvisionsForExhibit } = await import(
+        "../_shared/ltp/dpia-corpus.ts"
+      );
+      const cited = new Set<string>();
+      const walkCites = (v: unknown): void => {
+        if (typeof v === "string") {
+          for (const m of v.matchAll(/(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+(?:\([a-z0-9]+\))*/gi)) {
+            cited.add(m[0].replace(/\s+/g, " ").trim());
+          }
+          return;
+        }
+        if (Array.isArray(v)) { for (const x of v) walkCites(x); return; }
+        if (v && typeof v === "object") {
+          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+            if (k === "_meta" || k === "_staging") continue;
+            walkCites(x);
+          }
+        }
+      };
+      walkCites(reportData);
+      const exhibitCorpus = await fetchDpiaCorpus(supabase);
+      const exhibit = buildAuthorityExhibit(
+        [...cited],
+        dpiaCorpusProvisionsForExhibit(exhibitCorpus),
+      );
+      (reportData as any).authority_exhibit = exhibit;
+      console.log(JSON.stringify({
+        evt: "dpia_authority_exhibit_attached", fn: "run-dpia-framework",
+        entries: exhibit.entries.length,
+        pin_verified: exhibit.entries.filter((e) => e.pin_verified).length,
+      }));
+    } catch (axErr) {
+      console.warn("[run-dpia-framework] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
     }
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────

@@ -18,6 +18,7 @@ const RAIL_SETS: Record<string, string> = {
   "src/components/cppa/CPPARiskRailEntries.ts": "cppa_risk",
   "src/components/cppa/CPPACyberRailEntries.ts": "cppa_cyber",
   "src/components/cppa/CPPAScopeRailEntries.ts": "cppa_scope",
+  "src/components/dpia/DPIARailEntries.ts": "dpia",
   "src/components/lia/LIARailEntries.ts": "lia",
   "src/components/governance/GovernanceRailEntries.ts": "governance",
   // research sets are reference pages (no intake) — exempt from goodAnswer rules

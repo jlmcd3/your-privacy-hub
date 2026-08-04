@@ -637,6 +637,7 @@ h3 { font-size:12.5px; color:#0c2a44; margin:16px 0 6px; }
 table.dt { width:100%; border-collapse:collapse; margin:8px 0 14px; font-size:10.5px; }
 table.dt th { text-align:left; background:#eef3f6; color:#5c6d7a; text-transform:uppercase; letter-spacing:0.04em; font-size:9px; padding:5px 7px; border:1px solid #dde5ea; }
 table.dt td { padding:5px 7px; border:1px solid #dde5ea; vertical-align:top; }
+${AUTHORITY_EXHIBIT_CSS}
 </style></head><body>
 <div class="shell">
 <header class="header">
@@ -673,7 +674,8 @@ ${safeSec("0. Overview of the Processing", ov, () => `
 <h3>Controller(s)</h3>${tbl([{ key: "name", label: "Controller" }, { key: "responsible_unit", label: "Responsible unit" }, { key: "main_establishment_or_representative", label: "Main establishment / representative" }, { key: "dpo", label: "DPO" }], ov?.controllers)}
 <h3>Processor(s) / sub-processor(s)</h3>${tbl([{ key: "name", label: "Processor" }, { key: "obligations_and_tasks", label: "Obligations & tasks" }], ov?.processors)}
 ${prose("Processing name", ov?.processing_name)}${prose("Version / change history", ov?.processing_version)}${prose("Estimated launch date", ov?.planning?.estimated_launch_date)}${prose("Estimated end date", ov?.planning?.estimated_end_date)}
-<h3>DPIA technical sheet</h3>${prose("Team (RACI)", ts.team_raci)}${prose("Reference materials", ts.reference_materials)}${prose("Reasons to conduct", Array.isArray(ts.reasons_to_conduct) ? ts.reasons_to_conduct.join("; ") : ts.reasons_to_conduct)}${prose("Scope", ts.scope)}${prose("Completion date", ts.completion_date)}${prose("Formal validation date", ts.formal_validation_date)}${prose("Publication intent", ts.publication_intent)}`)}
+<h3>DPIA technical sheet</h3>${prose("Team (RACI)", ts.team_raci)}${prose("Reference materials", ts.reference_materials)}${prose("Reasons to conduct", Array.isArray(ts.reasons_to_conduct) ? ts.reasons_to_conduct.join("; ") : ts.reasons_to_conduct)}${prose("Scope", ts.scope)}${prose("Completion date", ts.completion_date)}${prose("Formal validation date", ts.formal_validation_date)}${prose("Publication intent", ts.publication_intent)}
+${ov?.assessment_team ? `<h3>Assessment team</h3>${ov.assessment_team.text ? `<p>${sanitizeNarrative(String(ov.assessment_team.text))}</p>` : ""}${Array.isArray(ov.assessment_team.members) && ov.assessment_team.members.length ? `<ul>${ov.assessment_team.members.map((m: any) => `<li>${escHtml(m?.name || "")}${m?.role ? ` — ${escHtml(m.role)}` : ""}</li>`).join("")}</ul>` : ""}${ov.assessment_team.information_needed ? prose("Information needed", ov.assessment_team.information_needed) : ""}${prose("Template reference", ov.assessment_team.template_ref)}` : ""}`)}
 
 ${safeSec("1. Systematic Description of the Processing", d1, () => `
 <h3>Processed personal data</h3>${tbl([{ key: "item", label: "Data item" }, { key: "explanation", label: "Explanation" }, { key: "special_category", label: "Special category" }], d1?.processed_personal_data)}
@@ -710,7 +712,7 @@ ${prose("Action plan", rm?.plan)}`)}
 
 ${safeSec("5. Involvement of Interested Parties", ip, () => `${prose("DPO advice", ip?.dpo_advice)}${prose("Views of data subjects or their representatives", ip?.data_subject_views)}`)}
 
-${safeSec("6. Conclusion and Decision", cc, () => `${prose("Decision", cc?.decision)}${Array.isArray(cc?.conditions) && cc.conditions.length ? `<p class="label">Conditions:</p><ul>${cc.conditions.map((c: any) => `<li>${sanitizeNarrative(typeof c === "string" ? c : JSON.stringify(c))}</li>`).join("")}</ul>` : ""}${prose("Supervisory authority consultation", cc?.supervisory_authority_consultation_required)}${prose("Review schedule", cc?.review_schedule)}${prose("Justification", cc?.justification)}`)}
+${safeSec("6. Conclusion and Decision", cc, () => `${prose("Decision", cc?.decision)}${Array.isArray(cc?.conditions) && cc.conditions.length ? `<p class="label">Conditions:</p><ul>${cc.conditions.map((c: any) => `<li>${sanitizeNarrative(typeof c === "string" ? c : JSON.stringify(c))}</li>`).join("")}</ul>` : ""}${prose("Supervisory authority consultation", cc?.supervisory_authority_consultation_required)}${cc?.validation_approval ? `<h3>Validation and approval</h3>${cc.validation_approval.text ? `<p>${sanitizeNarrative(String(cc.validation_approval.text))}</p>` : ""}${cc.validation_approval.attested ? `${prose("Approved by", cc.validation_approval.approved_by_name)}${prose("Title", cc.validation_approval.approved_by_title)}${prose("Date of approval", cc.validation_approval.approval_date)}${prose("Basis for sign-off", cc.validation_approval.basis_for_sign_off)}` : ""}${cc.validation_approval.information_needed ? prose("Information needed", cc.validation_approval.information_needed) : ""}${prose("Template reference", cc.validation_approval.template_ref)}` : ""}${prose("Review schedule", cc?.review_schedule)}${prose("Justification", cc?.justification)}`)}
 ${report.section_6_conclusion?.sign_off_template ? `<h2>Sign-Off Record</h2>
 <div class="signoff">
 Name: ___________________________<br>
@@ -719,6 +721,7 @@ Date of review: _________________<br>
 Decision: [ ] Processing may proceed &nbsp;&nbsp; [ ] Further mitigation required<br>
 Signature: ______________________
 </div>` : ""}
+${renderAuthorityExhibitHtml(report?.authority_exhibit)}
 <div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
 </div></div></body></html>`;
 }

@@ -1,7 +1,7 @@
 // RC-REM-P1-C — DPIA Framework intake contract.
 //
 // Intake shape verified against src/pages/DPIAFramework.tsx buildIntake()
-// (~L283). 44 user-facing keys + `source_assessment_id` system key.
+// (~L283). 49 user-facing keys + `source_assessment_id` system key.
 //
 // Enum options are literal copies of src/pages/DPIAFramework.enums.ts. Parity
 // enforced by the test.
@@ -108,6 +108,14 @@ export const dpiaFrameworkContract: IntakeContract = {
     { key: "estimated_launch_date", kind: "date", required: "optional" },
     { key: "estimated_end_date", kind: "date", required: "optional" },
     { key: "dpia_team", kind: "narrative", required: "optional" },
+    // DPIA UPGRADE ITEM 2 — EDPB template v1.0 (adopted 10 March 2026) § 0.5
+    // ¶6 and ¶10. ALL OPTIONAL so legacy dpia_frameworks rows continue to
+    // validate; they ride intake_data (jsonb), so no column and no migration.
+    { key: "dpia_prepared_by", kind: "narrative", required: "optional" },
+    { key: "dpia_approved_by_name", kind: "text", required: "optional" },
+    { key: "dpia_approved_by_title", kind: "text", required: "optional" },
+    { key: "dpia_approval_date", kind: "date", required: "optional" },
+    { key: "dpia_signoff_basis", kind: "narrative", required: "optional" },
     { key: "reference_materials", kind: "narrative", required: "optional" },
     { key: "reasons_to_conduct", kind: "multi-enum", required: "optional", options: DPIA_REASONS },
     { key: "dpia_scope_note", kind: "narrative", required: "optional" },

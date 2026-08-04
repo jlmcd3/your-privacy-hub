@@ -87,6 +87,7 @@ export async function seedProvisionRegistry(supabase: SupabaseClient): Promise<{
     ["gdpr-art-33", "GDPR Art. 33", "EU"],
     ["gdpr-art-34", "GDPR Art. 34", "EU"],
     ["gdpr-art-35", "GDPR Art. 35", "EU"],
+    ["gdpr-art-36", "GDPR Art. 36", "EU"],
     ["gdpr-art-44", "GDPR Art. 44", "EU"],
     ["gdpr-art-46", "GDPR Art. 46", "EU"],
   ];
