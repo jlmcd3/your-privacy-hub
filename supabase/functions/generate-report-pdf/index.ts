@@ -3080,7 +3080,12 @@ Deno.serve(async (req) => {
       generatedAt = record.generated_at || record.created_at || new Date().toISOString();
     }
 
-    const attachmentName = makeAttachmentName(tool_type, generatedAt);
+    // ITEM 369-IR LEG 1 — the two IR artifacts get distinct filenames so a user
+    // holding both files can tell them apart without opening them.
+    const attachmentName = tool_type === "ir_playbook"
+      ? `EndUserPrivacy-${irArtifact === "incident_worksheet" ? "Incident-Worksheet" : "Standing-Playbook"}-${new Date(generatedAt).toISOString().slice(0, 10)}.pdf`
+      : makeAttachmentName(tool_type, generatedAt);
+
 
     html = applyUniversalDisclaimerHtml(html);
 
