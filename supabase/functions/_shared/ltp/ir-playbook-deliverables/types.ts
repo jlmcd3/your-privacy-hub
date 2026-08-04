@@ -205,8 +205,17 @@ export interface ContentOwnerMapping {
   readonly elements: readonly ContentElementMapping[];
   readonly phasing: PhasingPlan;
   readonly documentation: DocumentationRecord;
+  /**
+   * ITEM 369-IR LEG 2 — the SAME element analysis re-keyed onto the EDPB
+   * Article 33 notification template's field structure. A mapping layer, not a
+   * second analysis: every populated value is carried across from `elements`
+   * or from the incident facts those elements were built from. Template fields
+   * the record does not answer are carried as explicitly blank labelled fields.
+   */
+  readonly edpb_template: EdpbArt33TemplateMapping;
   readonly status: DeliverableStatus;
 }
+
 
 /**
  * ITEM 328 — Chapter V framing for the regime, cited to the regime's own
