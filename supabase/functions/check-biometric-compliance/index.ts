@@ -2048,6 +2048,48 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] guardInformationNeeded failed (non-fatal):", e);
     }
 
+    // ── AUTHORITY EXHIBIT (Biometric hardening, 2026-08-04) ─────────────
+    // Table of authorities built from the citations this report actually
+    // emits. Entries and excerpts come ONLY from the corpus-pinned duty
+    // registry — nothing here is free-typed. Rendered at the end of the
+    // report, immediately before the universal disclaimer. Fail-open.
+    try {
+      const { buildAuthorityExhibit, baseSection } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const { BIOMETRIC_DUTY_ROWS } = await import("./_local/registry/biometric-verified-authorities.ts");
+      const cited = new Set<string>();
+      const walkCites = (v: unknown): void => {
+        if (typeof v === "string") return;
+        if (Array.isArray(v)) { for (const x of v) walkCites(x); return; }
+        if (v && typeof v === "object") {
+          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+            if (k === "_meta" || k === "_staging") continue;
+            if (k === "citation" && typeof x === "string" && x.trim()) cited.add(x.trim());
+            else if (k === "citations" && Array.isArray(x)) {
+              for (const c of x) if (typeof c === "string" && c.trim()) cited.add(c.trim());
+            } else walkCites(x);
+          }
+        }
+      };
+      walkCites(biometric_deliverables);
+      const seenBase = new Set<string>();
+      const provisions = BIOMETRIC_DUTY_ROWS.flatMap((r) => {
+        const base = baseSection(r.pinpoint);
+        if (seenBase.has(base)) return [];
+        seenBase.add(base);
+        return [{ key: r.corpus_key, citation: base, verbatim_excerpt: r.verbatim_quote, status: "approved" }];
+      });
+      const exhibit = buildAuthorityExhibit([...cited], provisions);
+      (report_data as Record<string, unknown>).authority_exhibit = exhibit;
+      console.log(JSON.stringify({
+        evt: "biometric_authority_exhibit_attached",
+        fn: "check-biometric-compliance",
+        entries: exhibit.entries.length,
+        pin_verified: exhibit.entries.filter((e) => e.pin_verified).length,
+      }));
+    } catch (axErr) {
+      console.warn("[check-biometric-compliance] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
+    }
+
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report in place, immediately before the report_data write.
     // FAIL-OPEN: any serializer crash or throw logs and leaves the report
