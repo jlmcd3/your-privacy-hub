@@ -445,7 +445,7 @@ const GovernanceAssessment = () => {
   };
 
   const govRailOpts = !summaryStep ? (govRailConfigs[step] ?? null) : null;
-  const { entry: govRailEntry } = useGdprRailEntry(govRailOpts);
+  const { entry: govRailEntry unusedPlaceholder } = useGdprRailEntry(govRailOpts);
 
   const handleGovRailFocus = () => {};
 
