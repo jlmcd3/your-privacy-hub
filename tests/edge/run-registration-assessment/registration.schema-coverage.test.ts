@@ -43,6 +43,7 @@ Deno.test("REGISTRATION: sample pass-through drops only internal keys", () => {
     narrative: { overview: "…", determination: "…" },
     deliverables_version: "v1",
     registration_deliverables_error: null,
+    authority_exhibit: { version: "ax-w1-2026-08-03", heading: "Appendix — Authorities Cited", entries: [] },
     _meta: { ai_act_provider_obligations_alias: false },
     // internal key that must never ship
     _scratch_debug: { pass: 1 },
