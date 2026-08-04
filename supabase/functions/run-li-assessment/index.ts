@@ -970,6 +970,10 @@ Alternatives considered: ${necessityDetails.alternatives || assessment.alternati
 Why consent not used: ${necessityDetails.why_consent_not_used || "not addressed"}
 Data minimisation steps: ${necessityDetails.data_minimised || "not specified"}
 Pseudonymisation/aggregation options: ${necessityDetails.pseudonymisation_options || "not addressed"}
+Retention / duration on the record (balancing_details.duration — STORAGE-LIMITATION EVIDENCE for the necessity test): ${balancingDetails.duration || necessityDetails.retention_period || "not specified"}
+Scale on the record: ${balancingDetails.scale_approx || "not specified"}
+Frequency on the record: ${balancingDetails.frequency || "not specified"}
+
 
 STAGE B — BALANCING FACTS:
 Reasonable expectation: ${balancingDetails.reasonable_expectation || "not specified"}
