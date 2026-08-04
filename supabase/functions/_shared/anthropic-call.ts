@@ -43,6 +43,7 @@ export class AnthropicTimeoutError extends Error {
 }
 
 import { recordApiUsage } from "./api-usage.ts";
+import { generationMaxTokens } from "./generation-model.ts";
 
 export interface AnthropicCallOpts {
   model: string;
@@ -82,6 +83,10 @@ export interface AnthropicCallResult {
   inputTokens?: number | null;
   cacheReadTokens?: number | null;
   cacheCreationTokens?: number | null;
+  // MODEL A/B (item 373) — observability for models that emit non-text blocks.
+  blockTypes?: string[];
+  thinkingTokens?: number | null;
+  effectiveMaxTokens?: number;
 }
 
 interface RawCallResult {
@@ -92,6 +97,27 @@ interface RawCallResult {
   cacheReadTokens: number | null;
   cacheCreationTokens: number | null;
   elapsedMs: number;
+  /** Ordered content-block types as returned by the API (e.g. ["thinking","text"]). */
+  blockTypes: string[];
+  /** usage.output_tokens_details.thinking_tokens when the model reports it. */
+  thinkingTokens: number | null;
+}
+
+// MODEL A/B (item 373): newer models return a leading non-text content block
+// (claude-fable-5 emits `thinking` before `text`). The historic parser read
+// content[0].text, which yields "" on those models — the generator then burns
+// the full token budget and fails downstream with an empty/unparseable body.
+// Walk the whole array and concatenate every text block instead.
+export function extractTextBlocks(content: unknown): { text: string; blockTypes: string[] } {
+  if (!Array.isArray(content)) return { text: "", blockTypes: [] };
+  const blockTypes: string[] = [];
+  const parts: string[] = [];
+  for (const b of content) {
+    const t = (b as any)?.type;
+    blockTypes.push(typeof t === "string" ? t : "unknown");
+    if (t === "text" && typeof (b as any).text === "string") parts.push((b as any).text);
+  }
+  return { text: parts.join(""), blockTypes };
 }
 
 function combineSignals(external: AbortSignal | undefined, timeoutMs: number): AbortSignal {
@@ -154,14 +180,20 @@ async function doOne(opts: {
     throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
   }
   const d = await res.json();
-  const text = d.content?.[0]?.text ?? "";
+  const { text, blockTypes } = extractTextBlocks(d.content);
   const stopReason: string | null = d.stop_reason ?? null;
   const u = d.usage ?? {};
   const outputTokens: number | null = typeof u.output_tokens === "number" ? u.output_tokens : null;
   const inputTokens: number | null = typeof u.input_tokens === "number" ? u.input_tokens : null;
   const cacheReadTokens: number | null = typeof u.cache_read_input_tokens === "number" ? u.cache_read_input_tokens : null;
   const cacheCreationTokens: number | null = typeof u.cache_creation_input_tokens === "number" ? u.cache_creation_input_tokens : null;
-  return { text, stopReason, outputTokens, inputTokens, cacheReadTokens, cacheCreationTokens, elapsedMs };
+  const thinkingTokens: number | null = typeof u.output_tokens_details?.thinking_tokens === "number"
+    ? u.output_tokens_details.thinking_tokens
+    : null;
+  if (!blockTypes.includes("text")) {
+    console.error(`[${opts.label}] stage=callAnthropic NO_TEXT_BLOCK blocks=[${blockTypes.join(",")}] stop=${stopReason} output_tokens=${outputTokens ?? "?"} thinking_tokens=${thinkingTokens ?? "?"}`);
+  }
+  return { text, stopReason, outputTokens, inputTokens, cacheReadTokens, cacheCreationTokens, elapsedMs, blockTypes, thinkingTokens };
 }
 
 /**
@@ -171,16 +203,18 @@ async function doOne(opts: {
  */
 export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Promise<AnthropicCallResult> {
   const timeoutMs = opts.timeoutMs ?? ANTHROPIC_ABORT_MS;
+  // item 373 — per-model output headroom (config only; prompt unchanged).
+  const maxTokens = generationMaxTokens(opts.model, opts.maxTokens);
   const first = await doOne({
     model: opts.model,
     system: opts.system,
     messages: [{ role: "user", content: opts.user }],
-    maxTokens: opts.maxTokens,
+    maxTokens,
     timeoutMs,
     label: opts.label,
     abortSignal: opts.abortSignal,
   });
-  console.log(`[${opts.label}] stage=callAnthropic model=${opts.model} elapsed=${first.elapsedMs}ms stop=${first.stopReason} output_tokens=${first.outputTokens ?? "?"} input_tokens=${first.inputTokens ?? "?"} cache_read=${first.cacheReadTokens ?? "?"} cache_creation=${first.cacheCreationTokens ?? "?"} chars=${first.text.length}`);
+  console.log(`[${opts.label}] stage=callAnthropic model=${opts.model} elapsed=${first.elapsedMs}ms stop=${first.stopReason} output_tokens=${first.outputTokens ?? "?"} thinking_tokens=${first.thinkingTokens ?? "?"} max_tokens=${maxTokens} blocks=[${first.blockTypes.join(",")}] input_tokens=${first.inputTokens ?? "?"} cache_read=${first.cacheReadTokens ?? "?"} cache_creation=${first.cacheCreationTokens ?? "?"} chars=${first.text.length}`);
   // RC-A A7 — fire-and-forget spend metering per API call (first leg).
   recordApiUsage({
     function_name: opts.callerName ?? opts.label,
@@ -207,6 +241,32 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
       inputTokens: first.inputTokens,
       cacheReadTokens: first.cacheReadTokens,
       cacheCreationTokens: first.cacheCreationTokens,
+      blockTypes: first.blockTypes,
+      thinkingTokens: first.thinkingTokens,
+      effectiveMaxTokens: maxTokens,
+    };
+  }
+
+  // item 373 — an empty first leg cannot be continued: the Messages API
+  // rejects an empty assistant turn, and there is nothing to stitch onto.
+  // Surface it as a classified terminal error rather than burning a second
+  // call and returning unparseable text.
+  if (!first.text.trim()) {
+    return {
+      text: "",
+      stopReason: first.stopReason,
+      elapsedMs: first.elapsedMs,
+      outputTokens: first.outputTokens,
+      continued: false,
+      firstOutputTokens: first.outputTokens,
+      firstStopReason: first.stopReason,
+      stitchedChars: 0,
+      inputTokens: first.inputTokens,
+      cacheReadTokens: first.cacheReadTokens,
+      cacheCreationTokens: first.cacheCreationTokens,
+      blockTypes: first.blockTypes,
+      thinkingTokens: first.thinkingTokens,
+      effectiveMaxTokens: maxTokens,
     };
   }
 
@@ -234,7 +294,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     model: opts.model,
     system: opts.system,
     messages: contMessages,
-    maxTokens: opts.maxTokens,
+    maxTokens,
     timeoutMs,
     label: `${opts.label}#cont`,
     abortSignal: opts.abortSignal,
@@ -259,7 +319,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
       model: opts.model,
       system: opts.system,
       messages: contMessages,
-      maxTokens: opts.maxTokens,
+      maxTokens,
       timeoutMs: DEGENERATE_RETRY_TIMEOUT_MS,
       label: `${opts.label}#cont2`,
       abortSignal: opts.abortSignal,
@@ -339,5 +399,8 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
     inputTokens: (first.inputTokens ?? 0) + (cont.inputTokens ?? 0) || null,
     cacheReadTokens: (first.cacheReadTokens ?? 0) + (cont.cacheReadTokens ?? 0) || null,
     cacheCreationTokens: (first.cacheCreationTokens ?? 0) + (cont.cacheCreationTokens ?? 0) || null,
+    blockTypes: cont.blockTypes,
+    thinkingTokens: (first.thinkingTokens ?? 0) + (cont.thinkingTokens ?? 0) || null,
+    effectiveMaxTokens: maxTokens,
   };
 }

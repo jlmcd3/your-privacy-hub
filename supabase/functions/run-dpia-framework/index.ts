@@ -1415,7 +1415,31 @@ export interface FailTelemetry {
   cont_retried?: boolean | null;
   stitched_chars?: number | null;
   chars?: number | null;
+  // item 373 — model-shape observability (which content blocks came back, and
+  // how much of the output budget the model spent on internal thinking).
+  block_types?: string[] | null;
+  thinking_tokens?: number | null;
+  effective_max_tokens?: number | null;
+  model?: string | null;
+  failure_class?: string | null;
 }
+// ITEM 373 — failure classification. Keeps the durable last_error column
+// machine-triageable: one of a small closed set of classes rather than an
+// opaque message.
+function classifyFailure(message: string, telemetry?: FailTelemetry): string {
+  const blocks = telemetry?.block_types ?? null;
+  const chars = telemetry?.chars ?? null;
+  if (blocks && !blocks.includes("text")) return "no_text_block";
+  if ((chars === 0 || chars === null) && telemetry?.stop_reason === "max_tokens") return "empty_output_max_tokens";
+  if (/truncated_after_continuation/.test(message)) return "truncated_after_continuation";
+  if (/unit_missing_keys/.test(message)) return "unit_key_contract";
+  if (/anthropic_attempt_abort|AnthropicTimeoutError/.test(message)) return "upstream_timeout";
+  if (/Anthropic\s+\d{3}/.test(message)) return "upstream_http_error";
+  if (/self-invoke/.test(message)) return "self_invoke_dispatch";
+  if (/JSON|parse/i.test(message)) return "parse_error";
+  return "unclassified";
+}
+
 async function mergePreservingFail(
   dpia_id: string,
   unit: UnitId | "stitch",
@@ -1443,7 +1467,29 @@ async function mergePreservingFail(
       _staging: staging,
       last_error: { unit, error: message.slice(0, 500), elapsed_ms: elapsedMs, at: new Date().toISOString(), telemetry: telemetry ?? null },
     };
-    const patch = { report_data: nextRd, status: "failed" as const };
+    // ITEM 373 (1) — observability defect: the durable last_error lived only
+    // inside report_data, so a failed row showed status=failed with a NULL
+    // last_error column and the failure was invisible to every operator query.
+    // Every failure path now stamps the column with unit + failure class +
+    // truncated evidence.
+    const failureClass = classifyFailure(message, telemetry);
+    const columnError = [
+      `unit=${unit}`,
+      `class=${failureClass}`,
+      `model=${telemetry?.model ?? currentGenerationModel()}`,
+      `evidence=${message.slice(0, 300)}`,
+      telemetry
+        ? `telemetry=${JSON.stringify({
+            stop_reason: telemetry.stop_reason ?? null,
+            output_tokens: telemetry.output_tokens ?? null,
+            thinking_tokens: telemetry.thinking_tokens ?? null,
+            effective_max_tokens: telemetry.effective_max_tokens ?? null,
+            block_types: telemetry.block_types ?? null,
+            chars: telemetry.chars ?? null,
+          }).slice(0, 400)}`
+        : "telemetry=none",
+    ].join(" | ").slice(0, 1000);
+    const patch = { report_data: nextRd, status: "failed" as const, last_error: columnError };
     const ok = await optimisticUpdate(dpia_id, row.updated_at, patch);
     if (ok) return;
     await new Promise((r) => setTimeout(r, 100 + Math.random() * 200));
@@ -1490,8 +1536,13 @@ async function selfInvokeUnit(dpia_id: string, unit: UnitId): Promise<void> {
   try {
     await writeUnitStatus(dpia_id, unit, { status: "error", error: `self-invoke failed: ${lastErr}`.slice(0, 500) });
     const row = await readRow(dpia_id);
+    const rd = (row.report_data ?? {}) as any;
     await optimisticUpdate(dpia_id, row.updated_at, {
-      last_error: { unit, error: `self-invoke dispatch failed after retries: ${lastErr}`.slice(0, 500), at: new Date().toISOString() },
+      report_data: {
+        ...rd,
+        last_error: { unit, error: `self-invoke dispatch failed after retries: ${lastErr}`.slice(0, 500), at: new Date().toISOString() },
+      },
+      last_error: `unit=${unit} | class=self_invoke_dispatch | model=${currentGenerationModel()} | evidence=${lastErr.slice(0, 300)}`.slice(0, 1000),
     });
   } catch (e) {
     console.error(`[run-dpia-framework] failed to record self-invoke failure for unit=${unit}:`, (e as Error).message);
@@ -1611,7 +1662,18 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       cont_retried: r.contRetried ?? null,
       stitched_chars: r.stitchedChars ?? r.text.length,
       chars: r.text.length,
+      block_types: (r as any).blockTypes ?? null,
+      thinking_tokens: (r as any).thinkingTokens ?? null,
+      effective_max_tokens: (r as any).effectiveMaxTokens ?? null,
+      model: currentGenerationModel(),
     };
+    // item 373 — a response with no text block (model spent the whole output
+    // budget on internal thinking) is terminal and must be named as such.
+    if (!r.text.trim()) {
+      console.error(`[unit:${unit}] empty text — blocks=[${((r as any).blockTypes ?? []).join(",")}] stop=${r.stopReason}`);
+      await mergePreservingFail(dpia_id, unit, new Error(`empty_model_output: blocks=[${((r as any).blockTypes ?? []).join(",")}] stop=${r.stopReason}`), elapsedMs, callTelemetry);
+      return;
+    }
     if (r.stopReason === "max_tokens") {
       console.error(`[unit:${unit}] truncated after continuation — treating as terminal failure`);
       await mergePreservingFail(dpia_id, unit, new Error("truncated_after_continuation"), elapsedMs, callTelemetry);
@@ -1646,7 +1708,7 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     const m = /Anthropic\s+(\d{3}):\s*(.*)$/i.exec(raw);
     const upstream = m ? { upstream_provider: "anthropic", upstream_status: Number(m[1]), upstream_body: m[2].slice(0, 300) } : null;
     console.error(`[unit:${unit}] error after ${elapsedMs}ms upstream=${JSON.stringify(upstream)}:`, raw);
-    await mergePreservingFail(dpia_id, unit, e, elapsedMs, upstream ? ({ upstream } as any) : undefined);
+    await mergePreservingFail(dpia_id, unit, e, elapsedMs, { model: currentGenerationModel(), ...(upstream ? ({ upstream } as any) : {}) } as any);
     return;
   }
 

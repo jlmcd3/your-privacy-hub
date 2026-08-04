@@ -78,6 +78,29 @@ export function generationTimeoutMs(model: string, base?: number): number {
   return base ? Math.max(base, policy) : policy;
 }
 
+// ── Per-call output-token headroom policy (item 373) ─────────────────────────
+// claude-fable-5 emits an internal `thinking` content block whose tokens are
+// billed against the SAME max_tokens budget as the visible answer. With the
+// per-unit caps tuned for claude-sonnet-4-6 the whole budget can be consumed
+// by thinking, so the response comes back stop_reason=max_tokens with no text
+// block at all. Give the alternate model extra output headroom — configuration
+// only; the prompts and every other request field stay byte-identical between
+// the two models.
+export const THINKING_HEADROOM_TOKENS: Record<string, number> = {
+  [DEFAULT_GENERATION_MODEL]: 0,
+  [AB_ALT_GENERATION_MODEL]: 24_000,
+};
+
+/** Hard ceiling for a single Messages API call. */
+export const MAX_OUTPUT_TOKENS_CEILING = 64_000;
+
+export function generationMaxTokens(model: string, base: number): number {
+  const headroom = THINKING_HEADROOM_TOKENS[model] ?? 0;
+  return Math.min(MAX_OUTPUT_TOKENS_CEILING, base + headroom);
+}
+
+
+
 // ── Request-scoped carrier ───────────────────────────────────────────────────
 // Generators have many internal call sites behind local `callAnthropic`
 // helpers. Threading a parameter through every one of them would be a very
