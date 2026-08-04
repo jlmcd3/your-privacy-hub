@@ -175,4 +175,29 @@ export interface RegistrationDeliverables {
   dpo_determination: DpoDetermination;
   corpus_pending: CorpusPendingFlag[];
   narrative: RegistrationNarrative;
+  /** Shared accountability attestation (Registration hardening, 2026-08-04). */
+  attestation: Attestation;
+}
+
+/**
+ * SHARED ATTESTATION PATTERN. Named approver, title, approval date and next
+ * review date, plus the product-appropriate triggers that force an earlier
+ * review. HONEST DEGRADATION: where the record does not carry approver data
+ * the attestation degrades to `record_insufficient` and names what is needed,
+ * rather than printing a blank signature line as though it were complete.
+ *
+ * SCHEDULE-SURFACE LAW: no date is computed here. `next_review_due` is stated
+ * only when the record states it.
+ */
+export interface Attestation {
+  heading: string;
+  approved_by_name: string | null;
+  approved_by_title: string | null;
+  approval_date: string | null;
+  next_review_due: string | null;
+  /** Events that require this assessment to be reviewed before its next date. */
+  review_triggers: string[];
+  statement: string;
+  status: FindingStatus;
+  information_needed?: string;
 }
