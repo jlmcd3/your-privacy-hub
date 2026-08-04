@@ -454,12 +454,8 @@ export default function RopaActivity() {
                     </span>
                   )}
                 </label>
-                <details className="mb-3 text-sm">
-                  <summary className="cursor-pointer text-muted-foreground min-h-[32px] flex items-center">
-                    ⓘ Why we ask this
-                  </summary>
-                  <p className="mt-2 text-muted-foreground">{q.whyWeAsk}</p>
-                </details>
+                <WhyWeAsk>{q.whyWeAsk}</WhyWeAsk>
+
 
                 {q.key === "data_categories" && (
                   <details className="mb-3 text-sm">
