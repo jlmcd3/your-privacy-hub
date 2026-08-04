@@ -480,7 +480,7 @@ const DPIAFramework = () => {
 
   const handlePurchase = async () => {
     const err = validate();
-    if (err) { toast({ title: "Please complete the form first", description: err, variant: "destructive" }); return; }
+    if (err) { toast({ title: "Complete the highlighted fields to continue", description: err, variant: "destructive" }); return; }
     if (!user) { setAuthGateOpen(true); return; }
 
     // For $0 (included with Platform), bypass Stripe entirely
@@ -504,7 +504,7 @@ const DPIAFramework = () => {
         .single();
       if (insErr || !row) {
         setPurchasing(false);
-        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        toast({ title: "Generation failed", description: "Try again.", variant: "destructive" });
         return;
       }
       const { error: fnErr } = await supabase.functions.invoke(
@@ -513,7 +513,7 @@ const DPIAFramework = () => {
       );
       setPurchasing(false);
       if (fnErr) {
-        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        toast({ title: "Generation failed", description: "Try again.", variant: "destructive" });
         return;
       }
       void clearDraft();
@@ -522,7 +522,7 @@ const DPIAFramework = () => {
     }
 
     if (!pricing.stripeConfigured) {
-      toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
+      toast({ title: "Payments unavailable", description: "Payments are not yet configured — check back soon.", variant: "destructive" });
       return;
     }
     setCheckoutOpen(true);
