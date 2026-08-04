@@ -302,21 +302,28 @@ export default function IRPlaybook() {
             />
             <h2 className="font-display text-brand-navy">Incident details</h2>
             <p className="text-xs font-mono text-muted-foreground">Art. 4(12) GDPR — personal data breach · Art. 33 — 72-hour supervisory authority notification · Art. 34 — communication to data subjects</p>
+            <p className="text-sm text-muted-foreground">These facts set which regulators the playbook covers, which deadlines it counts from, and whether Art. 34 communication to individuals comes into play. Answer on what is known now; the playbook is written to be revised as scoping develops.</p>
             <RequiredLegend />
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation<Req /></span>
-              <input type="text" placeholder="e.g. Acme Retail Ltd" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organizationName} onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))} /></label>
-            <label className="block text-sm"><span className="font-semibold text-brand-navy">Date & time of discovery<Req /></span>
+              <span className="block text-meta text-muted-foreground">The entity that carries the notification duty, which is the controller rather than the affected business unit.</span>
+              <input type="text" placeholder="Legal entity name" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organizationName} onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))} /></label>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Date and time of discovery<Req /></span>
+              <span className="block text-meta text-muted-foreground">Every deadline in the playbook is counted from this timestamp, so record it in UTC as it was actually logged.</span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Apparent cause <DefPopover termKey="gdpr_personal_data_breach" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(12) GDPR)</span></span>
+              <span className="block text-meta text-muted-foreground">The working hypothesis, not a conclusion. "Unknown — still investigating" is an honest early answer and the playbook is written accordingly.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>
                 {CAUSES.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Data types affected<Req /></legend>
+              <span className="block text-meta text-muted-foreground">Special-category and children's data change the risk assessment and can pull Art. 34 communication forward. Select every type in scope, including the ones still being confirmed.</span>
               <div className="grid grid-cols-2 gap-1 mt-1">{DATA_TYPES.map(d => <label key={d} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.dataTypes.includes(d)} onChange={() => toggle("dataTypes", d)} />{d}</label>)}</div></fieldset>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Affected individuals</span>
+              <span className="block text-meta text-muted-foreground">A banded estimate is enough at this stage; Art. 33(3)(a) permits approximation.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedCount} onChange={e => setForm(f => ({ ...f, affectedCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_breach_notification" /> <span className="text-xs text-muted-foreground font-mono">(Art. 33 GDPR — notify supervisory authority within 72 hours)</span></legend>
+              <span className="block text-meta text-muted-foreground">Each selection adds its own regulator, deadline and filing portal to the timeline. Select by where the affected individuals are, not only where the organisation is established.</span>
               <div className="mt-1 space-y-3">{JUR_GROUPS.map(g => (
                 <div key={g.label}>
                   <div className="text-meta font-semibold text-brand-navy/70 uppercase tracking-wide mb-1">{g.label}</div>
@@ -324,35 +331,43 @@ export default function IRPlaybook() {
                     <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div>
                 </div>
               ))}</div></fieldset>
-            <label className="block text-sm"><span className="font-semibold text-brand-navy">Contained?</span>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Is the incident contained?</span>
+              <span className="block text-meta text-muted-foreground">Containment does not pause the notification clock, but it changes the sequencing of the first-day actions.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.contained} onChange={e => setForm(f => ({ ...f, contained: e.target.value }))}>
                 <option>Yes</option><option>No</option><option>Unknown</option></select></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
+              <span className="block text-meta text-muted-foreground">Sector regulators add their own duties — HIPAA, NYDFS and financial-sector reporting sit on top of the general regime.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organisationType} onChange={e => setForm(f => ({ ...f, organisationType: e.target.value }))}>
                 {ORG_TYPES.map(o => <option key={o}>{o}</option>)}</select></label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm"><span className="font-semibold text-brand-navy">Affected data encrypted? <span className="text-xs text-muted-foreground font-mono">(Art. 34(3)(a))</span></span>
+              <label className="block text-sm"><span className="font-semibold text-brand-navy">Was the affected data encrypted? <span className="text-xs text-muted-foreground font-mono">(Art. 34(3)(a))</span></span>
+                <span className="block text-meta text-muted-foreground">Art. 34(3)(a) can remove the duty to communicate to individuals where the data is unintelligible to whoever obtained it.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.encryptionStatus} onChange={e => setForm(f => ({ ...f, encryptionStatus: e.target.value }))}>
                   <option>All affected data encrypted / rendered unintelligible</option>
                   <option>Some affected data encrypted</option>
                   <option>No affected data encrypted</option>
                   <option>Unknown</option></select></label>
               <label className="block text-sm"><span className="font-semibold text-brand-navy">Encryption key status</span>
+                <span className="block text-meta text-muted-foreground">Encryption only helps where the keys held. Compromised keys collapse the Art. 34(3)(a) position.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.encryptionKeyStatus} onChange={e => setForm(f => ({ ...f, encryptionKeyStatus: e.target.value }))}>
                   <option>Keys not compromised</option>
                   <option>Keys compromised or possibly compromised</option>
                   <option>Not applicable — no encryption</option>
                   <option>Unknown</option></select></label>
               <label className="block text-sm"><span className="font-semibold text-brand-navy">Approximate number of data subjects <span className="text-xs text-muted-foreground font-mono">(Art. 33(3)(a))</span></span>
-                <input type="text" placeholder="e.g. approx. 41,800" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedDataSubjectCount} onChange={e => setForm(f => ({ ...f, affectedDataSubjectCount: e.target.value }))} /></label>
+                <span className="block text-meta text-muted-foreground">The notification states this figure as an approximation, so an honest estimate is preferred to a blank.</span>
+                <input type="text" placeholder="Approximate figure" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedDataSubjectCount} onChange={e => setForm(f => ({ ...f, affectedDataSubjectCount: e.target.value }))} /></label>
               <label className="block text-sm"><span className="font-semibold text-brand-navy">Approximate number of personal data records <span className="text-xs text-muted-foreground font-mono">(Art. 33(3)(a))</span></span>
-                <input type="text" placeholder="e.g. approx. 63,400" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedRecordCount} onChange={e => setForm(f => ({ ...f, affectedRecordCount: e.target.value }))} /></label>
+                <span className="block text-meta text-muted-foreground">Records and data subjects are counted separately: one person can appear in many records.</span>
+                <input type="text" placeholder="Approximate figure" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedRecordCount} onChange={e => setForm(f => ({ ...f, affectedRecordCount: e.target.value }))} /></label>
             </div>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Awareness timestamp status <span className="text-xs text-muted-foreground font-mono">(Art. 33(1) — awareness, not detection, starts the clock)</span></span>
+              <span className="block text-meta text-muted-foreground">Awareness is a reasonable degree of certainty that a breach occurred, which can fall later than the first alert. Where the two differ, the playbook records the basis on which the clock was started.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.awarenessConfirmed} onChange={e => setForm(f => ({ ...f, awarenessConfirmed: e.target.value }))}>
                 <option>Confirmed — discovery timestamp verified as the moment of awareness</option>
                 <option>Assumed — detection timestamp treated as awareness pending confirmation</option>
                 <option>Unknown</option></select></label>
+
 
             {/* ── ITEM 369-IR — STANDING PLAYBOOK (pre-incident) ──────────
                 Optional throughout, and written BEFORE any incident, which is
