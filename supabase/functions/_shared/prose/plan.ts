@@ -128,6 +128,7 @@ export type PlanLintRule =
   | "legal_content_in_title"
   | "legal_content_in_thesis"
   | "register_defect_in_thesis"
+  | "thesis_too_long"
   | "register_defect_in_exemplar"
   | "exemplar_pair_incomplete";
 
@@ -219,6 +220,18 @@ export function lintPlan(plan: DocumentPlan): PlanLintFinding[] {
   // every section opener must advance the thesis, that phrasing would bleed
   // straight into rendered prose. Both surfaces now go through the register
   // battery itself, so there is one definition of the register, not two.
+  // WAVE 1 PANEL CORRECTION — register A1 (CEO-amended) allows a one- or
+  // two-sentence thesis. A third sentence is a finding, not a style note.
+  if (plan.thesis) {
+    const sentences = plan.thesis.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 0);
+    if (sentences.length > 2) {
+      out.push({
+        rule: "thesis_too_long",
+        detail: `thesis runs ${sentences.length} sentences; the register allows one or two`,
+      });
+    }
+  }
+
   for (const f of lintRegisterText("thesis", plan.thesis ?? "")) {
     out.push({
       rule: "register_defect_in_thesis",
