@@ -211,11 +211,11 @@ export default function RegistrationAssessment() {
 
   async function submit() {
     if (!intake.organization_name.trim()) {
-      setValidationError("Please enter your organization name.");
+      setValidationError("Name the organization this assessment covers.");
       return;
     }
     if (!intake.organization_country && intake.markets_served.length === 0) {
-      setValidationError("Tell us where you're based or which markets you serve");
+      setValidationError("Select the country of establishment, or at least one market served — the jurisdictions you select decide which filings the report examines.");
       return;
     }
     setValidationError(null);
@@ -270,6 +270,10 @@ export default function RegistrationAssessment() {
               <p className="text-muted-foreground mt-2">
                 Free assessment. We map your organization to required DPA, DPO, EU representative, and EU AI Act filings worldwide.
               </p>
+              {/* DISPATCH 5 / G10 — the jurisdiction dependency, stated once and early. */}
+              <p className="text-sm text-foreground mt-3 rounded-md border border-border bg-muted/40 p-3">
+                The jurisdictions you select in Step 3 drive everything else. Each country or market you select adds its own filing analysis to the report; nothing is examined for a place you have not selected. Steps 1 and 2 describe the organization and its data, and are read against whichever regimes Step 3 puts in play.
+              </p>
             </header>
 
             <div className="mb-4">
@@ -302,9 +306,9 @@ export default function RegistrationAssessment() {
               <CardHeader>
                 <CardTitle aria-live="polite">Step {step} of 3</CardTitle>
                 <CardDescription>
-                  {step === 1 && "About your organization"}
-                  {step === 2 && "What data do you process?"}
-                  {step === 3 && "Where do you operate?"}
+                  {step === 1 && "About your organization — the size, role and sector facts that state and EU thresholds are measured against."}
+                  {step === 2 && "What data you process — each answer here switches a filing duty on or off once the jurisdictions are known."}
+                  {step === 3 && "Where you operate — the selections that decide which regimes the report examines at all."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -314,7 +318,7 @@ export default function RegistrationAssessment() {
                     <div className="space-y-2">
                       <Label htmlFor="org">Organization name<Req /> <span className="text-xs text-muted-foreground">(legal entity name as it will appear on the assessment)</span></Label>
                       <Input id="org" value={intake.organization_name} autoComplete="organization"
-                        placeholder="e.g., Acme Retail, Inc."
+                        placeholder="Legal entity name"
                         onChange={(e) => setIntake({ ...intake, organization_name: e.target.value })} />
                     </div>
                     <div>
@@ -328,6 +332,7 @@ export default function RegistrationAssessment() {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Where is your org established?</Label>
+                        <p className="text-xs text-muted-foreground">The country of your main place of business — where management decisions about the processing are actually taken, not where the entity is incorporated on paper.</p>
                         <Select value={intake.organization_country}
                           onValueChange={(v) => setIntake({ ...intake, organization_country: v })}>
                           <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
@@ -360,24 +365,24 @@ export default function RegistrationAssessment() {
                     <div className="grid sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="emp">Employees handling personal data <DefPopover termKey="gdpr_dpo" /></Label>
-                        <Input id="emp" type="number" min={0} placeholder="e.g. 25"
+                        <Input id="emp" type="number" min={0} placeholder="Whole number"
                           value={intake.employee_count}
                           onChange={(e) => setIntake({ ...intake, employee_count: e.target.value })} />
-                        <p className="text-xs text-muted-foreground">Drives DE BDSG §38 (≥20) DPO trigger.</p>
+                        <p className="text-xs text-muted-foreground">Count everyone who touches personal data as part of their job, including part-time staff and contractors under your direction — not headcount overall. Germany requires a data protection officer once twenty or more people are constantly engaged in automated processing (BDSG § 38).</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="rev">Annual revenue (USD)</Label>
-                        <Input id="rev" type="number" min={0} placeholder="e.g. 25000000"
+                        <Input id="rev" type="number" min={0} placeholder="Whole number, USD"
                           value={intake.annual_revenue_usd}
                           onChange={(e) => setIntake({ ...intake, annual_revenue_usd: e.target.value })} />
-                        <p className="text-xs text-muted-foreground">Drives CCPA & state-law thresholds.</p>
+                        <p className="text-xs text-muted-foreground">Gross annual revenue of the whole entity, worldwide, for the last full year. Several US state privacy laws apply only above a revenue floor, and California&apos;s sits at $25 million.</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="ds">Data subjects / year</Label>
-                        <Input id="ds" type="number" min={0} placeholder="e.g. 250000"
+                        <Input id="ds" type="number" min={0} placeholder="Whole number"
                           value={intake.data_subjects_count}
                           onChange={(e) => setIntake({ ...intake, data_subjects_count: e.target.value })} />
-                        <p className="text-xs text-muted-foreground">Used for "large scale" GDPR DPO test.</p>
+                        <p className="text-xs text-muted-foreground">Distinct individuals whose data you handled in the last year, counted once each — not records or transactions. The figure is what the &quot;large scale&quot; test for a mandatory data protection officer turns on.</p>
                       </div>
                     </div>
 
@@ -396,6 +401,7 @@ export default function RegistrationAssessment() {
                       </div>
                       <div className="space-y-2">
                         <Label>Role under GDPR</Label>
+                        <p className="text-xs text-muted-foreground">You are a controller where you decide why and how personal data is used, and a processor where you only act on another organisation&apos;s written instructions. Most organisations that do both should select &quot;Both&quot;.</p>
                         <Select value={intake.role}
                           onValueChange={(v) => setIntake({ ...intake, role: v as IntakeState["role"] })}>
                           <SelectTrigger><SelectValue placeholder="Controller / Processor" /></SelectTrigger>
@@ -412,13 +418,16 @@ export default function RegistrationAssessment() {
                       <Label htmlFor="email">Contact email (optional)</Label>
                       <Input id="email" type="email" value={intake.email}
                         onChange={(e) => setIntake({ ...intake, email: e.target.value })}
-                        placeholder="you@company.com" />
+                        placeholder="name@organisation.com" />
                     </div>
                   </>
                 )}
 
                 {step === 2 && (
                   <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Answer for what the organisation does today, across all its activities. Each box you tick can add a registration, an officer appointment or a filing, but only in the jurisdictions selected in Step 3.
+                    </p>
                     <CheckRow checked={intake.processes_personal_data}
                       onChange={(v) => setIntake({ ...intake, processes_personal_data: v })}
                       label="We process personal data of identifiable individuals" />
@@ -484,13 +493,13 @@ export default function RegistrationAssessment() {
                             <Label className="text-sm">Individuals whose data we handle without collecting it directly</Label>
                             <Input type="number" min="0" value={intake.brokered_data_individual_count}
                               onChange={(e) => setIntake({ ...intake, brokered_data_individual_count: e.target.value })}
-                              placeholder="e.g. 250000" />
+                              placeholder="Whole number" />
                           </div>
                           <div className="space-y-1">
                             <Label className="text-sm">Share of revenue from processing or transferring that data (%)</Label>
                             <Input type="number" min="0" max="100" value={intake.brokered_data_revenue_share_pct}
                               onChange={(e) => setIntake({ ...intake, brokered_data_revenue_share_pct: e.target.value })}
-                              placeholder="e.g. 65" />
+                              placeholder="0-100" />
                           </div>
                         </div>
                         <div className="space-y-1">
@@ -506,6 +515,7 @@ export default function RegistrationAssessment() {
                           </Select>
                         </div>
                         <Label className="text-sm">Registration filing readiness</Label>
+                        <p className="text-xs text-muted-foreground">These describe what you could file today. Anything left unticked appears in the report as an outstanding filing prerequisite rather than as a failure.</p>
                         <CheckRow checked={intake.filing_contact_details_ready}
                           onChange={(v) => setIntake({ ...intake, filing_contact_details_ready: v })}
                           label="Our legal name, physical address, email, telephone and website details are ready to file" />
@@ -530,12 +540,14 @@ export default function RegistrationAssessment() {
                   <div className="space-y-6">
                     <div className="space-y-3">
                       <Label className="text-base">Where are you established?</Label>
+                      <p className="text-sm text-muted-foreground">Establishment means stable arrangements — an office, staff, or a subsidiary — not merely having customers in a place. An EU or UK establishment changes which authority you deal with and whether a representative must be appointed.</p>
                       <CheckRow checked={intake.has_eu_establishment}
                         onChange={(v) => setIntake({ ...intake, has_eu_establishment: v })}
                         label="We have an EU establishment (office, employees, or subsidiary)" />
                       {intake.has_eu_establishment && (
                         <div className="ml-6 space-y-2">
                           <Label className="text-sm">EU lead supervisory authority (if known) <DefPopover termKey="gdpr_supervisory_authority" /></Label>
+                          <p className="text-xs text-muted-foreground">The authority of the member state where your main establishment sits. Left blank, the report picks the likely lead from your establishment rather than asserting one.</p>
                           <Select value={intake.eu_lead_member_state}
                             onValueChange={(v) => setIntake({ ...intake, eu_lead_member_state: v })}>
                             <SelectTrigger className="max-w-xs"><SelectValue placeholder="Auto-pick from establishment" /></SelectTrigger>
@@ -554,7 +566,7 @@ export default function RegistrationAssessment() {
                     <div className="space-y-3">
                       <Label className="text-base">Which markets do you serve or monitor?</Label>
                       <p className="text-sm text-muted-foreground">
-                        Pick every region where you offer goods/services or track behavior.
+                        Select every place where you offer goods or services, or monitor behaviour. Each selection adds that jurisdiction&apos;s filing analysis to the report; a jurisdiction left unselected is not examined at all, even if the answers in Steps 1 and 2 would otherwise trigger a duty there.
                       </p>
                       <div className="space-y-4 max-h-96 overflow-auto pr-2 border rounded-md p-4">
                         {Object.entries(groupedMarkets).map(([region, items]) => (

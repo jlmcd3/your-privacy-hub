@@ -102,4 +102,21 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
     commonMistake: "Selecting only headquarters. BIPA claims attach per Illinois individual, wherever the employer is based.",
   },
 
+  practices: {
+    fieldLabel: "Your practices",
+    citation: "BIPA §§ 15(a)-(e) · CUBI § 503.001(c) · RCW 19.375.020",
+    citationUrl: BIPA_URL,
+    plainSummary:
+      "The practice answers are measured one-to-one against the operative subsections: notice and written release before collection (BIPA § 15(b)), a public written retention-and-destruction schedule (§ 15(a)), the limits on disclosure (§ 15(d)), and the reasonable standard of care in storage (§ 15(e)). Texas adds a one-year destruction clock running from the date the purpose expires, and Washington's statute turns on enrollment for a commercial purpose.",
+    regulationText:
+      "A private entity in possession of a biometric identifier or biometric information shall: (1) store, transmit, and protect from disclosure all biometric identifiers and biometric information using the reasonable standard of care within the private entity's industry; and (2) store, transmit, and protect from disclosure all biometric identifiers and biometric information in a manner that is the same as or more protective than the manner in which the private entity stores, transmits, and protects other confidential and sensitive information.",
+    enforcementNote:
+      "Retention-policy failures under § 15(a) are pleaded alongside consent failures in nearly every BIPA class action, because the policy is either public or it is not — the fact is cheap to establish and hard to cure retrospectively.",
+    coachLead: "Answer on the evidence you could produce, not on intent.",
+    coachBody: "Each answer maps to one subsection. Describe what a reviewer would find if they asked for the document today. Where the record is genuinely silent, say so — the report writes that as an open point rather than assuming a failure.",
+    goodAnswer: "A logistics operator answers that notice was written and given at induction, that the release is a standalone signed form naming purpose and a three-year period, and that no destruction trigger is written down. The report reaches findings on the first two and records the third as unevidenced.",
+    commonMistake: "Answering from the privacy policy rather than from the point of collection. A policy published on the website is not notice given before capture.",
+  },
+
 };
+
