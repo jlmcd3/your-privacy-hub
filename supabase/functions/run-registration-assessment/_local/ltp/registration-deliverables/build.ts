@@ -160,7 +160,7 @@ function caLimbs(intake: I): ThresholdAnalysis["limbs"] {
         ? "Cannot be evaluated: the record does not state whether collection is direct or indirect."
         : collects
         ? "Indirect collection of consumer personal information satisfies the collection limb."
-        : "Direct-only collection does not, on this record, evidence the collection pattern the limb describes.",
+        : "Direct-only collection does not, as the record stands, evidence the collection pattern the limb describes.",
     },
     {
       limb: "Sells that information to third parties",
@@ -356,7 +356,7 @@ function vtLimbs(intake: I): ThresholdAnalysis["limbs"] {
         ? "Cannot be evaluated: the record does not state whether a direct relationship exists."
         : noRel
         ? "The absence of a direct relationship engages the Vermont definition."
-        : "Vermont's statute illustrates a direct relationship by reference to past or present customers, clients, subscribers, users and registered users; on this record the relationship exists and the definition is not engaged.",
+        : "Vermont's statute illustrates a direct relationship by reference to past or present customers, clients, subscribers, users and registered users; the record shows that relationship exists and the definition is not engaged.",
     },
   ];
 }
@@ -464,10 +464,10 @@ function buildThreshold(intake: I, spec: StateSpec): ThresholdAnalysis {
     record_fact: limbs.map((l) => `${l.limb}: ${l.record_fact}`).join(" "),
     application:
       met === true
-        ? `Every limb of the ${spec.state_name} definition is satisfied on this record.`
+        ? `Every limb of the ${spec.state_name} definition is satisfied by the facts recorded.`
         : met === false
-        ? `The ${spec.state_name} definition is not satisfied because the following limb(s) fail on this record: ${failed.join("; ")}.`
-        : `The ${spec.state_name} definition cannot be resolved on this record because the following limb(s) are unevidenced: ${open.join("; ")}.`,
+        ? `The ${spec.state_name} definition is not satisfied because the following limb(s) fail against the facts recorded: ${failed.join("; ")}.`
+        : `The ${spec.state_name} definition cannot be resolved because the following limb(s) are unevidenced by the facts recorded: ${open.join("; ")}.`,
     verdict: met === true ? "satisfied" : met === false ? "not_satisfied" : "record_insufficient",
     status: met === null ? "record_insufficient" : "analysed",
     limbs,
@@ -499,15 +499,15 @@ function buildDetermination(intake: I, spec: StateSpec): RegistrationDeterminati
     standard: reqRow.verbatim_quote,
     record_fact:
       met === "satisfied"
-        ? `${orgName(intake)} meets the ${spec.state_name} data-broker definition on this record.`
+        ? `${orgName(intake)} meets the ${spec.state_name} data-broker definition as the record stands.`
         : met === "not_satisfied"
-        ? `${orgName(intake)} does not meet the ${spec.state_name} data-broker definition on this record.`
-        : `Whether ${orgName(intake)} meets the ${spec.state_name} definition is not resolvable on this record.`,
+        ? `${orgName(intake)} does not meet the ${spec.state_name} data-broker definition as the record stands.`
+        : `Whether ${orgName(intake)} meets the ${spec.state_name} definition is not resolvable from the facts recorded.`,
     application:
       met === "satisfied"
         ? `Because the definition is met, the registration duty in ${reqRow.citation} attaches and must be discharged with ${spec.filing_body}.`
         : met === "not_satisfied"
-        ? `The duty in ${reqRow.citation} is predicated on meeting the definition. It does not attach on this record; it would attach in any year in which the definition is met.`
+        ? `The duty in ${reqRow.citation} is predicated on meeting the definition. It does not attach as matters stand; it would attach in any year in which the definition is met.`
         : `The duty in ${reqRow.citation} cannot be resolved until the definitional limbs above are evidenced.`,
     verdict: met === "satisfied" ? "engaged" : met === "not_satisfied" ? "not_engaged" : "record_insufficient",
     status: met === "record_insufficient" ? "record_insufficient" : "analysed",
@@ -520,10 +520,10 @@ function buildDetermination(intake: I, spec: StateSpec): RegistrationDeterminati
     verdict === "registrable"
       ? `${orgName(intake)} is required to register as a data broker in ${spec.state_name} with ${spec.filing_body}.`
       : verdict === "not_registrable"
-      ? `${orgName(intake)} is not required to register as a data broker in ${spec.state_name} on this record.`
+      ? `${orgName(intake)} is not required to register as a data broker in ${spec.state_name} as the record stands.`
       : verdict === "conditional"
       ? `${orgName(intake)} meets the ${spec.state_name} data-broker definition, but has claimed a statutory exclusion that the record does not establish; registration turns on that claim.`
-      : `Whether ${orgName(intake)} must register in ${spec.state_name} cannot be determined on this record.`;
+      : `Whether ${orgName(intake)} must register in ${spec.state_name} cannot be determined from the facts recorded.`;
 
   const open_questions: string[] = [];
   for (const l of threshold.limbs) {
@@ -625,7 +625,7 @@ function buildFilingReadiness(intake: I, spec: StateSpec): FilingReadiness {
 
   const summary =
     ready_to_file === true
-      ? `On this record every element ${row.citation} requires the filing to contain is documented, so the filing is ready on its face. Readiness on its face is not a substitute for review of the filing itself.`
+      ? `Every element ${row.citation} requires the filing to contain is documented, so the filing is ready on its face. Readiness on its face is not a substitute for review of the filing itself.`
       : ready_to_file === false
       ? `The record shows ${missing.length} element(s) ${row.citation} requires are not yet documented: ${missing.map((m) => m.item).join("; ")}. The filing is not ready.`
       : `Readiness cannot be assessed: the record is silent on ${unknown.length} element(s) ${row.citation} requires.`;
@@ -677,7 +677,7 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     application = `Whether Art. 27(1) is engaged turns on establishment in ${territory}, which the record does not state.`;
   } else if (!offers) {
     verdict = "not_engaged";
-    application = `${orgName(intake)} is not established in ${territory} and the record does not show goods or services offered to, or behaviour monitored of, data subjects there. On this record Article 3(2) is not engaged, so the Art. 27(1) designation duty does not attach.`;
+    application = `${orgName(intake)} is not established in ${territory} and the record does not show goods or services offered to, or behaviour monitored of, data subjects there. Article 3(2) is therefore not engaged, so the Art. 27(1) designation duty does not attach.`;
   } else if (isPublic) {
     verdict = "not_engaged";
     application = `The designation duty does not apply to ${publicRow.verbatim_quote.replace(/\.$/, "")}, and the record states ${orgName(intake)} is a public authority or body (${publicRow.citation}).`;
@@ -695,7 +695,7 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     label: `${which} representative (Art. 27)`,
     citation: reqRow.citation,
     standard: reqRow.verbatim_quote,
-    record_fact: `Establishment in ${territory}: ${yn(established, "yes", "no")} Markets served include ${territory}: ${offers ? "yes." : "not on this record."} Public authority: ${yn(tri(intake.is_public_authority), "yes", "no")}`,
+    record_fact: `Establishment in ${territory}: ${yn(established, "yes", "no")} Markets served include ${territory}: ${offers ? "yes." : "not stated."} Public authority: ${yn(tri(intake.is_public_authority), "yes", "no")}`,
     application,
     verdict,
     status,
@@ -738,7 +738,7 @@ function buildDpo(intake: I): DpoDetermination {
         ? "Cannot be evaluated: the record does not state whether large-scale monitoring is carried out."
         : m
         ? "Branch (b) is engaged: the record describes regular and systematic monitoring of data subjects on a large scale as a core activity."
-        : "Branch (b) is not engaged on this record.",
+        : "Branch (b) is not engaged by the facts recorded.",
     },
     {
       key: "dpo_trigger_special_categories",
@@ -751,7 +751,7 @@ function buildDpo(intake: I): DpoDetermination {
         ? "Cannot be evaluated: the record does not state whether special categories of data are processed."
         : m
         ? "Branch (c) is engaged where such processing is a CORE ACTIVITY on a LARGE SCALE. The record evidences special-category processing; whether it is core and large-scale is a matter for the controller's own record, and the branch is treated as engaged for the purpose of this determination."
-        : "Branch (c) is not engaged on this record.",
+        : "Branch (c) is not engaged by the facts recorded.",
     },
   ];
 
@@ -782,14 +782,14 @@ function buildDpo(intake: I): DpoDetermination {
   return {
     verdict,
     headline: engaged.length
-      ? `A data protection officer must be designated: ${engaged.length} of the three Art. 37(1) branches is engaged on this record.`
+      ? `A data protection officer must be designated: ${engaged.length} of the three Art. 37(1) branches is engaged by the facts recorded.`
       : unknown.length
-      ? "Whether a data protection officer must be designated cannot be determined on this record."
-      : "No Art. 37(1) branch is engaged on this record, so designation is not mandatory.",
+      ? "Whether a data protection officer must be designated cannot be determined from the facts recorded."
+      : "No Art. 37(1) branch is engaged by the facts recorded, so designation is not mandatory.",
     reasoning: engaged.length
       ? `Art. 37(1) is disjunctive: one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached.`
       : unknown.length
-      ? `No branch is affirmatively engaged, but ${unknown.map((f) => f.citation).join(", ")} cannot be evaluated on this record, so a negative conclusion would be unsafe.`
+      ? `No branch is affirmatively engaged, but ${unknown.map((f) => f.citation).join(", ")} cannot be evaluated from the facts recorded, so a negative conclusion would be unsafe.`
       : "Each of the three branches was evaluated against the record and none is engaged. Voluntary designation remains available and is often prudent.",
     findings,
     engaged_branches: engaged.map((f) => f.citation),
@@ -842,7 +842,7 @@ function buildNarrative(
   const overview = [
     `This assessment examines whether ${name} carries a registration or designation obligation under the statutes in this product's verified corpus.`,
     assessed.length
-      ? `Four US state data-broker registration regimes were considered and ${assessed.length} was in scope on this record: ${assessed.join(", ")}. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.`
+      ? `Four US state data-broker registration regimes were considered and ${assessed.length} was in scope here: ${assessed.join(", ")}. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.`
       : "No US state data-broker registration regime in the corpus was in scope on the markets and activities this record describes.",
     "The GDPR and UK GDPR Art. 27 representative duties and the Art. 37(1) data protection officer triggers were each assessed against the record rather than inferred from organisation size.",
     "Every conclusion below states the provision it rests on, reproduces that provision's operative text, records the fact from the intake it was measured against, and gives the reasoning. Where the record does not support a conclusion, none is given.",
@@ -865,7 +865,7 @@ function buildNarrative(
   }
   if (clear.length) {
     parts.push(
-      `No registration duty arises in ${clear.map((d) => d.state_name).join(", ")} on this record. ${clear
+      `No registration duty arises in ${clear.map((d) => d.state_name).join(", ")} as the record stands. ${clear
         .map((d) => `${d.state_name}: ${d.threshold.application}`)
         .join(" ")} This is a conclusion about the record as it stands; a change in collection or sale practice would require the question to be asked again.`,
     );
@@ -880,13 +880,15 @@ function buildNarrative(
   if (combinedCallout) parts.push(combinedCallout);
   for (const r of reps) parts.push(`${r.label}: ${r.application}`);
   parts.push(`Data protection officer: ${dpo.headline} ${dpo.reasoning}`);
-  if (pending.length) {
+  for (const p of pending) {
+    // CORPUS-PENDING REGISTER (ITEM 364 D3): name the topic, say why it cannot
+    // be answered, and say what follows meanwhile. Never talked around, never
+    // apologised for, and never compressed into one over-loaded sentence.
     parts.push(
-      `One question is deliberately left open: ${pending
-        .map((p) => `${p.topic} (${p.named_provisions.join(", ")}) — ${p.note}`)
-        .join(" ")}`,
+      `${p.topic} is recorded here and left open. ${p.note} The provisions that would settle it are listed with this flag. Until their text is in corpus the question stays live; nothing above should be read as a finding that no duty arises.`,
     );
   }
+
   parts.push(
     `Statutory windows and fees are stated as the statutes state them. This assessment does not compute a filing date for ${name}; the operative dates should be fixed by counsel against the organisation's own compliance calendar.`,
   );
@@ -968,7 +970,7 @@ export function buildRegistrationDeliverables(
     (r) => r.verdict === "engaged",
   );
   const combined_representative_callout = both_representatives_required
-    ? `Both representative duties are engaged on this record. This processing requires appointing TWO separate representatives: one established in a Member State where the relevant data subjects are (GDPR Art. 27(1), (3)), and one established in the United Kingdom (UK GDPR Art. 27(1), (3)). Neither designation satisfies the other — the two regimes have applied independently since the United Kingdom left the Union, and a single person or entity may only serve both roles if it is separately established in each territory and separately designated in writing for each.`
+    ? `Both representative duties are engaged. This processing requires appointing TWO separate representatives: one established in a Member State where the relevant data subjects are (GDPR Art. 27(1), (3)), and one established in the United Kingdom (UK GDPR Art. 27(1), (3)). Neither designation satisfies the other — the two regimes have applied independently since the United Kingdom left the Union, and a single person or entity may only serve both roles if it is separately established in each territory and separately designated in writing for each.`
     : null;
   const dpo_determination = buildDpo(intake);
   const corpus_pending = buildCorpusPending(intake);
