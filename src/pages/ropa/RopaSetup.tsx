@@ -19,6 +19,9 @@ type EmployeeBand = "<50" | "50-249" | "250-999" | "1000+";
 
 interface Profile {
   legal_entity_type: string;
+  registered_address: string;
+  registration_number: string;
+  incorporation_jurisdiction: string;
   employee_band: EmployeeBand | "";
   is_controller: boolean;
   is_processor: boolean;
@@ -30,10 +33,14 @@ interface Profile {
   eu_rep_email: string;
   uk_rep_name: string;
   uk_rep_email: string;
+  rights_handling_process: string;
 }
 
 const EMPTY_PROFILE: Profile = {
   legal_entity_type: "",
+  registered_address: "",
+  registration_number: "",
+  incorporation_jurisdiction: "",
   employee_band: "",
   is_controller: true,
   is_processor: false,
@@ -45,7 +52,9 @@ const EMPTY_PROFILE: Profile = {
   eu_rep_email: "",
   uk_rep_name: "",
   uk_rep_email: "",
+  rights_handling_process: "",
 };
+
 
 const ENTITY_TYPES = [
   "Limited company",
@@ -238,6 +247,11 @@ export default function RopaSetup() {
         setProfile((p) => ({
           ...p,
           legal_entity_type: prof.legal_entity_type ?? "",
+          registered_address: prof.registered_address ?? "",
+          registration_number: prof.registration_number ?? "",
+          incorporation_jurisdiction: prof.incorporation_jurisdiction ?? "",
+          rights_handling_process: prof.rights_handling_process ?? "",
+
           employee_band: (prof.employee_band as EmployeeBand) ?? "",
           is_controller: prof.is_controller ?? true,
           is_processor: prof.is_processor ?? false,
@@ -274,6 +288,11 @@ export default function RopaSetup() {
         {
           client_id: clientId,
           legal_entity_type: profile.legal_entity_type || null,
+          registered_address: profile.registered_address || null,
+          registration_number: profile.registration_number || null,
+          incorporation_jurisdiction: profile.incorporation_jurisdiction || null,
+          rights_handling_process: profile.rights_handling_process || null,
+
           employee_band: profile.employee_band || null,
           is_controller: profile.is_controller,
           is_processor: profile.is_processor,
@@ -478,6 +497,54 @@ export default function RopaSetup() {
                 ))}
               </select>
             </Field>
+            <Field label="Registered address">
+              <textarea
+                rows={3}
+                value={profile.registered_address}
+                onChange={(e) =>
+                  setProfile({ ...profile, registered_address: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Why we ask: Art.30(1)(a) requires the record to give the name and
+                contact details of the controller. The CNIL Article 30 register
+                model records the registered address of the entity.
+              </p>
+            </Field>
+            <Field label="Company / registration number">
+              <input
+                type="text"
+                value={profile.registration_number}
+                onChange={(e) =>
+                  setProfile({ ...profile, registration_number: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Why we ask: it identifies the controller unambiguously for
+                Art.30(1)(a) purposes where group entities share a trading name.
+              </p>
+            </Field>
+            <Field label="Incorporation jurisdiction">
+              <input
+                type="text"
+                value={profile.incorporation_jurisdiction}
+                onChange={(e) =>
+                  setProfile({
+                    ...profile,
+                    incorporation_jurisdiction: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Why we ask: the place of incorporation drives establishment
+                analysis and whether an Art.27 representative is needed, and the
+                CNIL register model records it alongside the controller's identity.
+              </p>
+            </Field>
+
             <Field label="Primary industry sector" required>
               <select
                 value={sector}
@@ -614,7 +681,27 @@ export default function RopaSetup() {
                   We'll skip representative fields for now.
                 </div>
               )}
+            <Field label="Rights-handling process">
+              <textarea
+                rows={3}
+                value={profile.rights_handling_process}
+                onChange={(e) =>
+                  setProfile({
+                    ...profile,
+                    rights_handling_process: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Why we ask: how access, erasure, objection, and portability
+                requests reach you, are verified, and are fulfilled. The CNIL
+                register model records this once for the organisation; any
+                activity that handles requests differently can override it.
+              </p>
+            </Field>
           </>
+
         )}
 
         {/* STEP 4 — Primary jurisdiction */}

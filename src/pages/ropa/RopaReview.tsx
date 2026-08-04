@@ -59,6 +59,16 @@ export default function RopaReview() {
   const [docDate, setDocDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [authorName, setAuthorName] = useState("");
   const [internalRef, setInternalRef] = useState("");
+  const [approvedByName, setApprovedByName] = useState("");
+  const [approvedByTitle, setApprovedByTitle] = useState("");
+  const [approvalDate, setApprovalDate] = useState("");
+  // Default: document date + 12 months (CNIL register model review cadence).
+  const [nextReviewDue, setNextReviewDue] = useState(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().slice(0, 10);
+  });
+
 
   const [acknowledged, setAcknowledged] = useState(false);
   const [ackHighlight, setAckHighlight] = useState(false);
@@ -223,6 +233,11 @@ export default function RopaReview() {
           document_date: docDate,
           author_name: authorName,
           internal_reference: internalRef || null,
+          approved_by_name: approvedByName || null,
+          approved_by_title: approvedByTitle || null,
+          approval_date: approvalDate || null,
+          next_review_due: nextReviewDue || null,
+
         },
       });
       if (error) {
@@ -475,8 +490,47 @@ export default function RopaReview() {
                 Version {currentSession?.version_number ?? 1}
               </p>
             </Field>
+            <Field label="Approved by (name)">
+              <input
+                type="text"
+                value={approvedByName}
+                onChange={(e) => setApprovedByName(e.target.value)}
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
+              />
+            </Field>
+            <Field label="Approved by (title)">
+              <input
+                type="text"
+                value={approvedByTitle}
+                onChange={(e) => setApprovedByTitle(e.target.value)}
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
+              />
+            </Field>
+            <Field label="Approval date">
+              <input
+                type="date"
+                value={approvalDate}
+                onChange={(e) => setApprovalDate(e.target.value)}
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
+              />
+            </Field>
+            <Field label="Next review due">
+              <input
+                type="date"
+                value={nextReviewDue}
+                onChange={(e) => setNextReviewDue(e.target.value)}
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
+              />
+            </Field>
           </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Approval details are optional. Left blank, the register still prints
+            the attestation block with those lines marked for completion — it
+            will not invent an approver. Next review defaults to twelve months
+            after the document date.
+          </p>
         </Section>
+
 
         {/* Continue to payment */}
         <div className="border border-border rounded-xl bg-brand-cloud p-5">

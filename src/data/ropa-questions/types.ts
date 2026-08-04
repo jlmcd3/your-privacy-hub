@@ -7,7 +7,11 @@ export type QuestionInputType =
   | "date_or_period"
   | "yes_no"
   | "yes_no_unsure"
-  | "lawful_basis";
+  | "lawful_basis"
+  // Cross-reference picker: lists the client's existing LIA / DPIA records
+  // and renders "None on file" when the account has none.
+  | "assessment_reference";
+
 
 export interface QuestionOption {
   value: string;

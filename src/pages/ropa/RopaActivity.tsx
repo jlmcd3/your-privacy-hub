@@ -826,7 +826,51 @@ function QuestionInput({
         </div>
       );
 
+    case "multi_choice": {
+      const selected = Array.isArray(v) ? (v as string[]) : [];
+      return (
+        <div role="group" aria-labelledby={`q-${question.key}`} className="grid sm:grid-cols-2 gap-2">
+          {(question.options ?? []).map((opt) => {
+            const on = selected.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="checkbox"
+                aria-checked={on}
+                aria-label={opt.label}
+                onClick={() =>
+                  onChange(
+                    on
+                      ? selected.filter((s) => s !== opt.value)
+                      : [...selected, opt.value]
+                  )
+                }
+                className={`text-left p-3 rounded-lg border min-h-[44px] text-sm ${
+                  on
+                    ? "border-primary bg-primary/10 font-semibold"
+                    : "border-border hover:bg-muted/40"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    case "assessment_reference":
+      return (
+        <RelatedAssessmentPicker
+          questionKey={question.key}
+          value={Array.isArray(v) ? (v as string[]) : []}
+          onChange={onChange}
+        />
+      );
+
     case "text_long":
+
       return (
         <textarea
           id={`q-${question.key}`}
@@ -852,6 +896,113 @@ function QuestionInput({
       );
   }
 }
+
+// Cross-reference picker for question type "assessment_reference".
+// Lists the signed-in account's existing LIA and DPIA records so an activity
+// can point at the assessment that covers it. Renders "None on file" — never
+// an invented reference — when the account has no assessments.
+function RelatedAssessmentPicker({
+  questionKey,
+  value,
+  onChange,
+}: {
+  questionKey: string;
+  value: string[];
+  onChange: (v: unknown) => void;
+}) {
+  const [options, setOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth?.user?.id;
+      if (!uid) {
+        if (!cancelled) {
+          setOptions([]);
+          setLoading(false);
+        }
+        return;
+      }
+      const [{ data: lias }, { data: dpias }] = await Promise.all([
+        SUPA.from("li_assessments")
+          .select("id, organization_name, processing_description, created_at")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(25),
+        SUPA.from("dpia_frameworks")
+          .select("id, organization_name, created_at")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(25),
+      ]);
+      if (cancelled) return;
+      const label = (kind: string, name: unknown, detail: unknown, created: unknown) => {
+        const date = created ? String(created).slice(0, 10) : "";
+        const subject =
+          (typeof name === "string" && name.trim()) ||
+          (typeof detail === "string" && detail.trim().slice(0, 60)) ||
+          "Untitled";
+        return `${kind} — ${subject}${date ? ` (${date})` : ""}`;
+      };
+      setOptions([
+        ...(lias ?? []).map((r: any) =>
+          label("LIA", r.organization_name, r.processing_description, r.created_at)
+        ),
+        ...(dpias ?? []).map((r: any) =>
+          label("DPIA", r.organization_name, null, r.created_at)
+        ),
+      ]);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return <p className="text-sm text-muted-foreground">Looking up your assessments…</p>;
+  }
+
+  if (options.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground" data-testid="related-assessments-empty">
+        None on file. Your account has no Legitimate Interests Assessment or DPIA
+        records yet, so this activity will record "None on file".
+      </p>
+    );
+  }
+
+  return (
+    <div role="group" aria-labelledby={`q-${questionKey}`} className="space-y-2">
+      {options.map((opt) => {
+        const on = value.includes(opt);
+        return (
+          <button
+            key={opt}
+            type="button"
+            role="checkbox"
+            aria-checked={on}
+            aria-label={opt}
+            onClick={() =>
+              onChange(on ? value.filter((s) => s !== opt) : [...value, opt])
+            }
+            className={`w-full text-left p-3 rounded-lg border min-h-[44px] text-sm ${
+              on
+                ? "border-primary bg-primary/10 font-semibold"
+                : "border-border hover:bg-muted/40"
+            }`}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+
 
 function FlagPreview({
   question,

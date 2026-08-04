@@ -7099,9 +7099,13 @@ export type Database = {
           employee_band: string | null
           eu_rep_email: string | null
           eu_rep_name: string | null
+          incorporation_jurisdiction: string | null
           is_controller: boolean
           is_processor: boolean
           legal_entity_type: string | null
+          registered_address: string | null
+          registration_number: string | null
+          rights_handling_process: string | null
           uk_rep_email: string | null
           uk_rep_name: string | null
           updated_at: string
@@ -7115,9 +7119,13 @@ export type Database = {
           employee_band?: string | null
           eu_rep_email?: string | null
           eu_rep_name?: string | null
+          incorporation_jurisdiction?: string | null
           is_controller?: boolean
           is_processor?: boolean
           legal_entity_type?: string | null
+          registered_address?: string | null
+          registration_number?: string | null
+          rights_handling_process?: string | null
           uk_rep_email?: string | null
           uk_rep_name?: string | null
           updated_at?: string
@@ -7131,9 +7139,13 @@ export type Database = {
           employee_band?: string | null
           eu_rep_email?: string | null
           eu_rep_name?: string | null
+          incorporation_jurisdiction?: string | null
           is_controller?: boolean
           is_processor?: boolean
           legal_entity_type?: string | null
+          registered_address?: string | null
+          registration_number?: string | null
+          rights_handling_process?: string | null
           uk_rep_email?: string | null
           uk_rep_name?: string | null
           updated_at?: string
