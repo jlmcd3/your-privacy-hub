@@ -210,12 +210,35 @@ export function lintPlan(plan: DocumentPlan): PlanLintFinding[] {
     });
   }
 
+  // ITEM 364 (DISPATCH 2 CORRECTION) — PLAN METADATA IS PROSE TOO.
+  // The thesis and every exemplar AFTER passage are read by the model and by
+  // the reviewer as the register's own specimen text. Until this ran, a plan
+  // could carry banned diction in its thesis and still lint clean — and since
+  // every section opener must advance the thesis, that phrasing would bleed
+  // straight into rendered prose. Both surfaces now go through the register
+  // battery itself, so there is one definition of the register, not two.
+  for (const f of lintRegisterText("thesis", plan.thesis ?? "")) {
+    out.push({
+      rule: "register_defect_in_thesis",
+      detail: `thesis fails the register (${f.rule}: ${f.detail})`,
+    });
+  }
+
   for (const pair of plan.exemplar_pairs ?? []) {
     if (!pair.before.trim() || !pair.after.trim() || !pair.note.trim()) {
       out.push({
         rule: "exemplar_pair_incomplete",
         section_id: pair.section_id,
         detail: `exemplar pair ${pair.id} must carry a before, an after, and a note`,
+      });
+    }
+    // The BEFORE passage is quoted live output and is expected to be dirty;
+    // only the AFTER passage is held to the register.
+    for (const f of lintRegisterText(pair.id, pair.after)) {
+      out.push({
+        rule: "register_defect_in_exemplar",
+        section_id: pair.section_id,
+        detail: `${pair.id} AFTER fails the register (${f.rule}: ${f.detail})`,
       });
     }
   }
