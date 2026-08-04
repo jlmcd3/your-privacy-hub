@@ -36,6 +36,7 @@
 
 import type { Frame, FrameSet } from "./frames.ts";
 import { renderFrame } from "./frame-render.ts";
+import { stripSpanMarks } from "./span-tracking.ts";
 
 export const FRAME_SUBSTITUTION_VERSION = "frame-substitution-2026-08-04-item369";
 
@@ -216,8 +217,14 @@ function renderAtomFor(
   for (const frame of ordered) {
     const r = renderFrame(frame, { values: opts.values ?? {}, contract: opts.contract });
     if (r.omitted || !r.rendered || !r.rendered.trim()) continue;
+    // The realizer marks record-sourced values with span sentinels. The
+    // surfaces this pass writes into are plain prose leaves that the gate
+    // already emitted unmarked, so the marks are stripped here — the atom's
+    // words are unchanged, only the sentinels go.
+    const text = stripSpanMarks(r.rendered).trim();
+    if (!text) continue;
     sel.used.add(frame.id);
-    return { text: r.rendered.trim(), frame_id: frame.id };
+    return { text, frame_id: frame.id };
   }
   return null;
 }
