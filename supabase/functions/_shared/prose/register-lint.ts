@@ -18,7 +18,8 @@ export type RegisterLintRule =
   | "orphan_bracket"
   | "cadence_monotony"
   | "cadence_overlong"
-  | "appositive_stack";
+  | "appositive_stack"
+  | "cross_section_restatement";
 
 export interface RegisterLintFinding {
   readonly rule: RegisterLintRule;
@@ -220,6 +221,79 @@ export function lintRegisterText(sectionId: string, text: string): RegisterLintF
     }
   }
 
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// ITEM 372 (METHOD 3a) — CROSS-SECTION RESTATEMENT.
+//
+// A cross-cutting point is argued once, in the section the plan gives it, and
+// referenced everywhere else. This rule is deliberately CONSERVATIVE: a bare
+// mention of an anchor outside its home section is a reference and passes. A
+// finding is raised only where the anchor is being ARGUED again — the anchor
+// carries a long sentence of its own, or it recurs inside the same foreign
+// section. Passing references ("as Section 0 explains") never trip it.
+// ---------------------------------------------------------------------------
+
+/** Minimum words in an anchor's sentence before it reads as an argument. */
+const RESTATEMENT_SENTENCE_WORDS = 25;
+
+export interface HomeAnchorAssignment {
+  readonly id: string;
+  readonly home_section_id: string;
+  readonly anchors: readonly string[];
+}
+
+function countOccurrences(haystack: string, needle: string): number {
+  if (!needle) return 0;
+  const h = haystack.toLowerCase();
+  const n = needle.toLowerCase();
+  let count = 0;
+  let from = 0;
+  for (;;) {
+    const at = h.indexOf(n, from);
+    if (at === -1) break;
+    count += 1;
+    from = at + n.length;
+  }
+  return count;
+}
+
+export function lintCrossSectionRestatement(
+  sections: readonly RegisterSection[],
+  assignments: readonly HomeAnchorAssignment[],
+): RegisterLintFinding[] {
+  const out: RegisterLintFinding[] = [];
+  for (const section of sections) {
+    const body = String(section.text ?? "");
+    if (!body.trim()) continue;
+    const sentences = splitSentences(body);
+    for (const a of assignments) {
+      if (a.home_section_id === section.section_id) continue;
+      for (const anchor of a.anchors) {
+        const hits = countOccurrences(body, anchor);
+        if (hits === 0) continue;
+        const argued = sentences.find(
+          (s) =>
+            s.toLowerCase().includes(anchor.toLowerCase()) &&
+            s.split(/\s+/).filter(Boolean).length >= RESTATEMENT_SENTENCE_WORDS,
+        );
+        if (hits > 1 || argued) {
+          out.push({
+            rule: "cross_section_restatement",
+            section_id: section.section_id,
+            detail:
+              `"${anchor}" belongs to ${a.home_section_id} (${a.id}); ` +
+              (argued
+                ? "it is argued again here"
+                : `it appears ${hits}× here`) +
+              " — reference the home section instead",
+            excerpt: excerpt(argued ?? anchor),
+          });
+        }
+      }
+    }
+  }
   return out;
 }
 

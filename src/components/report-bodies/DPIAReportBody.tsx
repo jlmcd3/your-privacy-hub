@@ -2,6 +2,8 @@
 // Extracted from DPIAFrameworkResult so sample pages render the same UI.
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
+import DeterminationBlock from "@/components/report/DeterminationBlock";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 
 const sevColor = (s: string) => {
   const x = (s || "").toLowerCase();
@@ -102,6 +104,9 @@ export default function DPIAReportBody({ report = {} }: DPIAReportBodyProps) {
 
   return (
     <div className="space-y-6 font-serif-text">
+      {/* ITEM 372 METHOD 2a — the determination leads the document. */}
+      <DeterminationBlock determination={report?.determination} />
+
       {Array.isArray(meta.applicable_frameworks) && meta.applicable_frameworks.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {meta.applicable_frameworks.map((f: string) => (
@@ -239,6 +244,8 @@ export default function DPIAReportBody({ report = {} }: DPIAReportBodyProps) {
         precedents={report?.enforcement_precedents}
         context="Recent regulator decisions on similar processing activities — review these alongside Section 4 (Risk Assessment and Management)."
       />
+
+      <AuthorityExhibit exhibit={report?.authority_exhibit} />
     </div>
   );
 }

@@ -115,12 +115,15 @@ Deno.test("gate: an unapproved plan is never renderable", () => {
   assertEquals(planRenderable(plan([section()])), true);
 });
 
-Deno.test("reviewed plans are lint-clean but not yet approved", () => {
+Deno.test("reviewed plans are lint-clean; only signed-off plans render", () => {
+  // ITEM 372 — dpia is at v2 and APPROVED (CEO sign-off in the quality-pilot
+  // dispatch). Every other reviewed plan still awaits its own sign-off.
   for (const p of [CPPA_RISK_PLAN, DPIA_PLAN, GOVERNANCE_PLAN, REGISTRATION_PLAN]) {
     assertEquals(lintPlan(p), [], `${p.product} must be lint-clean`);
-    assertEquals(p.approved, false, `${p.product} must not be approved before sign-off`);
-    assertEquals(planRenderable(p), false, `${p.product} must not render before sign-off`);
-    assert(p.sections.every((s) => s.status === "pending_review"));
+    const signedOff = p.product === "dpia";
+    assertEquals(p.approved, signedOff, `${p.product} approval state`);
+    assertEquals(planRenderable(p), signedOff, `${p.product} renderability`);
+    assert(p.sections.every((s) => s.status === (signedOff ? "approved" : "pending_review")));
     // Every reviewed plan opens on its determination, not on the record.
     assertEquals(p.sections[0].arc_stage, "headline");
     assertEquals(p.sections[0].lead, "determination");

@@ -29,7 +29,7 @@ export const ADVISORY_CLOSE_ANY_RE =
  * exempt — those are not scanned; only generator output is.
  */
 export const COUNSEL_REFERRAL_RE =
-  /\b(?:legal\s+counsel|qualified\s+counsel|consult\s+(?:a|an|your|with)?\s*(?:lawyer|attorney|counsel)|(?:review|reviewed|reviewing)\s+by\s+(?:counsel|an?\s+attorney|a\s+lawyer|legal\s+counsel|qualified\s+counsel)|privacy\s+(?:counsel|officer|consultant|professional)s?\s+(?:should|must|need)|counsel\s+should\s+(?:confirm|review|advise|verify|adapt|assess))\b/i;
+  /\b(?:legal\s+counsel|qualified\s+counsel|(?:outside|external)\s+counsel|consult\s+(?:a|an|your|with)?\s*(?:lawyer|attorney|counsel)|(?:review|reviewed|reviewing)\s+by\s+(?:counsel|an?\s+attorney|a\s+lawyer|legal\s+counsel|qualified\s+counsel)|privacy\s+(?:counsel|officer|consultant|professional)s?\s+(?:should|must|need)|counsel\s+should\s+(?:confirm|review|advise|verify|adapt|assess))\b/i;
 
 /**
  * Prompt rule block. Inject into every generative-tool system prompt near

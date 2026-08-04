@@ -16,7 +16,7 @@
 
 import { lintRegisterText } from "./register-lint.ts";
 
-export const DOCUMENT_PLAN_VERSION = "prose-plans-2026-08-01-item339";
+export const DOCUMENT_PLAN_VERSION = "prose-plans-2026-08-04-item372";
 
 export type ArcStage =
   /** Document-level determination, stated before anything else. */
@@ -100,6 +100,47 @@ export interface ExemplarPair {
   readonly note: string;
 }
 
+/**
+ * ITEM 372 (DPIA QUALITY PILOT, METHOD 3a) — SINGLE-HOME RULE.
+ *
+ * A cross-cutting finding belongs to exactly one section. Every other section
+ * may REFERENCE it and may not argue it again. `anchors` are the factual
+ * markers the register lint keys on (a citation, a defined term) — never a
+ * legal standard the plan is asserting, only the string that identifies where
+ * the point is being argued.
+ */
+export interface HomeAssignment {
+  readonly id: string;
+  /** Reader-facing name of the point. Shape only. */
+  readonly label: string;
+  /** Section id that owns the argument. Must exist in `sections`. */
+  readonly home_section_id: string;
+  /** Strings that mark the point being argued, e.g. "Art. 4(16)(a)". */
+  readonly anchors: readonly string[];
+  /** What a non-home section is allowed to say instead of restating. */
+  readonly reference_note: string;
+}
+
+export type ExtendedExemplarKind = "reference_render";
+
+/**
+ * ITEM 372 (METHOD 3b) — REFERENCE RENDER.
+ *
+ * A whole-document exemplar pinned as FORM guidance: architecture, ordering,
+ * and register. `fact_exempt` must be true — the engine may imitate the shape
+ * of this document and may never carry a fact, a party, a figure, or a finding
+ * out of it into a customer's report.
+ */
+export interface ExtendedExemplar {
+  readonly id: string;
+  readonly kind: ExtendedExemplarKind;
+  /** Where the text came from, and on whose authority it is pinned. */
+  readonly provenance: string;
+  readonly fact_exempt: true;
+  readonly text: string;
+  readonly note?: string;
+}
+
 export interface DocumentPlan {
   readonly product: string;
   readonly version: string;
@@ -111,6 +152,10 @@ export interface DocumentPlan {
   /** The document's controlling sentence — what the whole report argues. */
   readonly thesis?: string;
   readonly exemplar_pairs?: readonly ExemplarPair[];
+  /** ITEM 372 — cross-cutting points and the one section that owns each. */
+  readonly home_assignments?: readonly HomeAssignment[];
+  /** ITEM 372 — whole-document form exemplars (fact-exempt). */
+  readonly extended_exemplars?: readonly ExtendedExemplar[];
 }
 
 
@@ -130,7 +175,12 @@ export type PlanLintRule =
   | "register_defect_in_thesis"
   | "thesis_too_long"
   | "register_defect_in_exemplar"
-  | "exemplar_pair_incomplete";
+  | "exemplar_pair_incomplete"
+  | "home_assignment_unknown_section"
+  | "home_assignment_incomplete"
+  | "duplicate_home_assignment"
+  | "extended_exemplar_incomplete"
+  | "extended_exemplar_not_fact_exempt";
 
 export interface PlanLintFinding {
   readonly rule: PlanLintRule;
@@ -258,10 +308,88 @@ export function lintPlan(plan: DocumentPlan): PlanLintFinding[] {
     }
   }
 
+  // ITEM 372 (METHOD 3a) — home assignments must point at real sections, must
+  // be unique, and must carry the anchors the register lint keys on.
+  const sectionIds = new Set(plan.sections.map((s) => s.id));
+  const seenHome = new Set<string>();
+  for (const h of plan.home_assignments ?? []) {
+    if (seenHome.has(h.id)) {
+      out.push({
+        rule: "duplicate_home_assignment",
+        detail: `home assignment ${h.id} is declared more than once`,
+      });
+    }
+    seenHome.add(h.id);
+    if (!sectionIds.has(h.home_section_id)) {
+      out.push({
+        rule: "home_assignment_unknown_section",
+        section_id: h.home_section_id,
+        detail: `home assignment ${h.id} names section ${h.home_section_id}, which the plan does not declare`,
+      });
+    }
+    if (!h.label.trim() || !h.reference_note.trim() || h.anchors.length === 0) {
+      out.push({
+        rule: "home_assignment_incomplete",
+        detail: `home assignment ${h.id} needs a label, at least one anchor, and a reference note`,
+      });
+    }
+  }
+
+  // ITEM 372 (METHOD 3b) — a reference render is form guidance, and the plan
+  // has to say so in the row itself. Its prose is NOT register-linted: it is a
+  // finished document quoted verbatim, not a specimen sentence.
+  for (const x of plan.extended_exemplars ?? []) {
+    if (!x.text.trim() || !x.provenance.trim()) {
+      out.push({
+        rule: "extended_exemplar_incomplete",
+        detail: `extended exemplar ${x.id} needs text and provenance`,
+      });
+    }
+    if (x.fact_exempt !== true) {
+      out.push({
+        rule: "extended_exemplar_not_fact_exempt",
+        detail: `extended exemplar ${x.id} must be marked fact_exempt: its facts may never reach a customer document`,
+      });
+    }
+  }
+
   return out;
 }
 
+/**
+ * ITEM 372 (METHOD 3a) — the prompt block one section receives: the points
+ * owned elsewhere, and the instruction to reference rather than restate.
+ * Returns "" when the plan assigns nothing away from this section.
+ */
+export function homeAssignmentRulesFor(plan: DocumentPlan, sectionId: string): string {
+  const elsewhere = (plan.home_assignments ?? []).filter((h) => h.home_section_id !== sectionId);
+  if (!elsewhere.length) return "";
+  const titleOf = (id: string) => plan.sections.find((s) => s.id === id)?.title ?? id;
+  const lines = elsewhere.map(
+    (h) => `- ${h.label} is argued in "${titleOf(h.home_section_id)}". ${h.reference_note}`,
+  );
+  return [
+    "SINGLE-HOME RULE — the following points are owned by another section of this document.",
+    "Reference them; do not restate the argument, do not re-cite the anchor in full, and do not repeat the reasoning.",
+    ...lines,
+  ].join("\n");
+}
 
+/** The whole single-home block, for a prompt that builds every section at once. */
+export function homeAssignmentPromptBlock(plan: DocumentPlan): string {
+  const list = plan.home_assignments ?? [];
+  if (!list.length) return "";
+  const titleOf = (id: string) => plan.sections.find((s) => s.id === id)?.title ?? id;
+  const lines = list.map(
+    (h) =>
+      `- ${h.label} → argued once, in "${titleOf(h.home_section_id)}". Everywhere else: ${h.reference_note}`,
+  );
+  return [
+    "SINGLE-HOME RULE (one point, one home). Each cross-cutting point below is argued in full in exactly one section.",
+    "Every other section that touches it refers to it in a clause and moves on — no second statement of the reasoning, no repeat of the citation in full.",
+    ...lines,
+  ].join("\n");
+}
 
 /**
  * A product renders through its plan only when the plan is approved, every
