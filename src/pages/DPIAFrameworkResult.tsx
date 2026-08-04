@@ -21,6 +21,7 @@ import { AnnotationCallout } from "@/components/AnnotationCallout";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
@@ -299,6 +300,24 @@ const DPIAFrameworkResult = () => {
                   <Field label="Completion date" value={ts.completion_date} />
                   <Field label="Formal validation date" value={ts.formal_validation_date} />
                   <Field label="Publication intent" value={ts.publication_intent} />
+                  {/* DPIA UPGRADE ITEM 1a — EDPB template v1.0 § 0.5 ¶6. */}
+                  {ov.assessment_team && (
+                    <div className="border rounded p-4 bg-muted/20 space-y-2">
+                      <span className="text-xs uppercase font-medium text-muted-foreground">Assessment team</span>
+                      <p className="text-sm whitespace-pre-wrap">{ov.assessment_team.text}</p>
+                      {Array.isArray(ov.assessment_team.members) && ov.assessment_team.members.length > 0 && (
+                        <ul className="list-disc pl-5 text-sm">
+                          {ov.assessment_team.members.map((m: any, i: number) => (
+                            <li key={i}>{m.name}{m.role ? ` \u2014 ${m.role}` : ""}</li>
+                          ))}
+                        </ul>
+                      )}
+                      {ov.assessment_team.information_needed && (
+                        <p className="text-xs text-muted-foreground">Information needed: {ov.assessment_team.information_needed}</p>
+                      )}
+                      <p className="text-[11px] text-muted-foreground">{ov.assessment_team.template_ref}</p>
+                    </div>
+                  )}
                 </Section>
               )}
 
@@ -404,6 +423,27 @@ const DPIAFrameworkResult = () => {
                     </div>
                   )}
                   <Field label="Supervisory authority consultation" value={cc.supervisory_authority_consultation_required} />
+                  {/* DPIA UPGRADE ITEM 1b — EDPB template v1.0 § 0.5 ¶10. */}
+                  {cc.validation_approval && (
+                    <div className="border rounded p-4 bg-muted/20 space-y-2">
+                      <span className="text-xs uppercase font-medium text-muted-foreground">Validation and approval</span>
+                      <p className="text-sm whitespace-pre-wrap">{cc.validation_approval.text}</p>
+                      {cc.validation_approval.attested && (
+                        <div className="text-sm space-y-1">
+                          <div>Approved by: {cc.validation_approval.approved_by_name}</div>
+                          <div>Title: {cc.validation_approval.approved_by_title}</div>
+                          <div>Date of approval: {cc.validation_approval.approval_date}</div>
+                          {cc.validation_approval.basis_for_sign_off && (
+                            <div>Basis for sign-off: {cc.validation_approval.basis_for_sign_off}</div>
+                          )}
+                        </div>
+                      )}
+                      {cc.validation_approval.information_needed && (
+                        <p className="text-xs text-muted-foreground">Information needed: {cc.validation_approval.information_needed}</p>
+                      )}
+                      <p className="text-[11px] text-muted-foreground">{cc.validation_approval.template_ref}</p>
+                    </div>
+                  )}
                   <div className="border rounded p-4 bg-muted/30 font-mono text-sm space-y-2">
                     {cc.sign_off_template ? (
                       <p className="whitespace-pre-wrap font-mono text-sm">{cc.sign_off_template}</p>
@@ -426,6 +466,10 @@ const DPIAFrameworkResult = () => {
                 precedents={report?.enforcement_precedents}
                 context="Recent regulator decisions on similar processing activities — review these alongside Section 4 (Risk Assessment and Management)."
               />
+
+              {/* DPIA UPGRADE ITEM 4 — shared authority exhibit, last body
+                  element before the universal disclaimer in ReportShell. */}
+              <AuthorityExhibit exhibit={report?.authority_exhibit} />
             </div>
           )}
           </div>
