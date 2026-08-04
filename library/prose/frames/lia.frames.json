@@ -1,0 +1,215 @@
+{
+  "product": "lia",
+  "version": "prose-frames-2026-08-04-item364-d2",
+  "approved": false,
+  "frames": [
+    {
+      "id": "lia-gap-interest-legitimacy",
+      "product": "lia",
+      "section": "interest_legitimacy",
+      "body": "{{ENTITY}} has not said, in its own words, what interest this processing serves. An interest that is left to be inferred cannot be weighed against anything, because there is nothing on one side of the scale. A sentence naming what the organisation is trying to achieve, and why it wants it now, would put that side of the weighing in place.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "interest_legitimacy",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["dpia-gap-assessment-team"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-benefit-and-beneficiary",
+      "product": "lia",
+      "section": "benefit_and_beneficiary",
+      "body": "The record describes a purpose but not a benefit. Who gains, and what they gain, are different questions from what the processing does, and only the first two carry weight in the balance. Name the benefit in terms someone could check, and say whether it accrues to {{ENTITY}}, to the people whose data is used, or to a third party.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "benefit_and_beneficiary",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-interest-legitimacy"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-alternatives-considered",
+      "product": "lia",
+      "section": "alternatives_considered",
+      "body": "No alternative route appears in the record. Necessity is a comparison, so with nothing to compare against, the answer here is not yet available rather than favourable. List what else was looked at and say, for each, what it could not do that the chosen route can.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "alternatives_considered",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-interest-legitimacy"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-alternatives-rationale",
+      "product": "lia",
+      "section": "alternatives_considered.rationale",
+      "body": "One alternative is named and then dismissed without a reason. A rejection with no reasoning behind it reads as a decision already taken rather than a comparison actually run. Say what the alternative failed to deliver, in the terms of the purpose {{ENTITY}} stated.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "alternatives_considered.alternatives[].why_inadequate",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-alternatives-considered"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-relationship-with-individual",
+      "product": "lia",
+      "section": "relationship_with_individual",
+      "body": "The record does not say what the people whose data is used are to {{ENTITY}}. Whether they are customers, employees, or members of the public who have never dealt with the organisation changes what they can be expected to anticipate, and expectation is one of the heaviest weights in this part of the analysis. Until that is stated, the balance is being struck without knowing who is standing on the other side of it.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "relationship_with_individual",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-interest-legitimacy"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-scale-frequency-duration",
+      "product": "lia",
+      "section": "scale_frequency_duration",
+      "body": "How many people, how often, and for how long are all unrecorded. The same activity weighs differently at a hundred people once a year than at a hundred thousand people every day, so the absence of these figures is not a formality. Approximate numbers are enough, provided they are the organisation's own.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "scale_frequency_duration.dimensions",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-relationship-with-individual"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-potential-harms",
+      "product": "lia",
+      "section": "potential_harms",
+      "body": "No harm has been identified by {{ENTITY}}, and none has been ruled out either. Silence here is not the same as a finding of no impact; it means the side of the scale that holds the impact is empty because nobody filled it. Set down the worst realistic outcome for a person affected, and how bad it would be for them if it happened.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "potential_harms.harms",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-relationship-with-individual"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-opt-out-feasibility",
+      "product": "lia",
+      "section": "opt_out_feasibility",
+      "body": "The record does not say whether a person can stop this processing. An opt-out counts in the organisation's favour only when it is real: reachable, free of consequence, and honoured after it is used. Describe the mechanism and when it becomes available, or say plainly that there is none.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "opt_out_feasibility.mechanism",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-potential-harms"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-attestation-block",
+      "product": "lia",
+      "section": "attestation_block",
+      "body": "Nobody has adopted this assessment as the organisation's own position. The analysis stands, but an unadopted assessment is a draft, and a draft is not a defence. {{ENTITY}} completes it by recording who reviewed it, who accepted it, and the date they did so.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "attestation_block",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["dpia-gap-validation-approval"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-attestation-review",
+      "product": "lia",
+      "section": "attestation_block.dpo_review",
+      "body": "The record does not show that the organisation's data protection adviser saw this. Whether advice was taken, and what it said, are part of the account {{ENTITY}} would give if the decision were ever questioned. Record the consultation and the date, or record that no adviser is appointed.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "attestation_block.dpo_review",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-attestation-block"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-attestation-approver",
+      "product": "lia",
+      "section": "attestation_block.approvers",
+      "body": "No approver is named. A decision to rely on this basis belongs to a person with the standing to take it, and the record does not show who that person is. A name, a role, and a date close this.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "attestation_block.approvers",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-attestation-block"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "lia-gap-attestation-review-triggers",
+      "product": "lia",
+      "section": "attestation_block.review_triggers",
+      "body": "The events that would send {{ENTITY}} back to this assessment have not been set. Without them, review happens when someone remembers, which in practice means after the facts have already moved. Name the changes that would reopen it.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "lia",
+        "report_path": "attestation_block.review_triggers",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["lia-gap-attestation-block"]
+      },
+      "status": "pending_review"
+    }
+  ]
+}
