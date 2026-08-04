@@ -1727,6 +1727,15 @@ Return JSON:
       reportData,
     });
 
+    // CEO defect 1 (run 33e79a31) — storage-limitation cross-read backstop:
+    // never claim retention is undocumented when the record states it.
+    try {
+      const _sl = enforceStorageLimitationCrossRead(reportData, liaIntakeObject);
+      if (_sl.changed) {
+        console.log(`[run-li-assessment] storage-limitation cross-read corrected ${_sl.replacements} absence claim(s)`);
+      }
+    } catch (_) { /* non-fatal */ }
+
     try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     // C1-d — Engagement Map v1 (additive metadata; document structure unchanged)
     try {
