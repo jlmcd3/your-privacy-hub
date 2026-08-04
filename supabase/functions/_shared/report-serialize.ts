@@ -65,11 +65,26 @@ function pruneObject(
   allowed: Set<string>,
   pathPrefix: string,
   dropped: DropSink,
+  entryEntries?: Record<string, readonly string[]>,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const k of Object.keys(obj)) {
-    if (allowed.has(k)) out[k] = obj[k];
-    else record(dropped, pathPrefix ? `${pathPrefix}.${k}` : k);
+    if (!allowed.has(k)) {
+      record(dropped, pathPrefix ? `${pathPrefix}.${k}` : k);
+      continue;
+    }
+    const v = obj[k];
+    // ITEM 369-IR: an object slot may itself carry an array-of-object bucket
+    // whose key has its own entry allow-list (e.g. standing_playbook.sections).
+    // Recurse so a nested unreviewed key cannot ship.
+    if (Array.isArray(v) && entryEntries && entryEntries[k]) {
+      const nestedAllowed = new Set(entryEntries[k]);
+      out[k] = v.map((it, i) =>
+        pruneEntry(it, nestedAllowed, entryEntries, `${pathPrefix}.${k}[${i}]`, dropped),
+      );
+    } else {
+      out[k] = v;
+    }
   }
   return out;
 }
@@ -157,6 +172,7 @@ export function serializeCustomerReport(
             new Set(allowList),
             key,
             dropped,
+            schema.entries,
           );
         }
       }
