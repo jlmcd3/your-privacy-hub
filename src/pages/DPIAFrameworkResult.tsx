@@ -22,6 +22,7 @@ import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
 import AuthorityExhibit from "@/components/report/AuthorityExhibit";
+import DeterminationBlock from "@/components/report/DeterminationBlock";
 
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
@@ -266,6 +267,9 @@ const DPIAFrameworkResult = () => {
 
           {status === "complete" && (
             <div className="space-y-6 font-serif-text">
+              {/* ITEM 372 METHOD 2a — determination first, before Section 0. */}
+              <DeterminationBlock determination={(report as any)?.determination} />
+
               {Array.isArray(meta.applicable_frameworks) && meta.applicable_frameworks.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {meta.applicable_frameworks.map((f: string) => (

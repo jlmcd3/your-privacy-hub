@@ -1,15 +1,16 @@
 {
   "product": "dpia",
-  "version": "prose-plans-2026-08-04-item364",
-  "approved": false,
+  "version": "prose-plans-2026-08-04-item372",
+  "approved": true,
   "provenance": {
-    "method": "draft",
+    "method": "draft+ceo_review",
     "donors_total": 36,
     "donors_with_text": 1,
     "extracted_at": "2026-08-04",
     "exemplars": [
       "cppa-risk"
-    ]
+    ],
+    "approval": "ITEM 372 DPIA QUALITY PILOT dispatch, 2026-08-04 — CEO approved methods 2 and 3 explicitly and directed re-seeding as version 2, approved."
   },
   "thesis": "This assessment states what the processing is and what the record this organisation supplied will and will not carry. Where the record is silent the document says so, and nothing here is settled until the organisation writes the missing facts down.",
   "sections": [
@@ -26,7 +27,7 @@
         "residual_uncertainty"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "section_1_description",
@@ -42,7 +43,7 @@
         "purposes"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "section_2_analysis",
@@ -56,7 +57,7 @@
         "consultation"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "section_3_necessity_proportionality",
@@ -72,7 +73,7 @@
         "weighing"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "section_4_risk_management",
@@ -86,7 +87,7 @@
         "residual_risk"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "corpus_analogies",
@@ -99,7 +100,7 @@
         "analogy"
       ],
       "required": false,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "general_conclusions",
@@ -111,7 +112,7 @@
         "synthesis"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "information_needed",
@@ -126,7 +127,7 @@
         "completeness"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "section_5_interested_parties",
@@ -140,7 +141,7 @@
         "processors"
       ],
       "required": false,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "section_6_conclusion",
@@ -155,7 +156,7 @@
         "counsel_reservation"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     }
   ],
   "exemplar_pairs": [
@@ -179,6 +180,74 @@
       "before": "[TO COMPLETE — DD/MM/YYYY, sign-off by the accountable controller representative as complete]",
       "after": "No one has signed this assessment yet. The record names no approver, no title, and no date, so nothing here has been accepted by the organisation as its own position.",
       "note": "Degraded-record register: the silence is stated as a finding in the document's own voice rather than shipped as a form placeholder."
+    }
+  ],
+  "home_assignments": [
+    {
+      "id": "one_stop_shop",
+      "label": "Main establishment and the one-stop-shop position",
+      "home_section_id": "section_0_overview",
+      "anchors": [
+        "Art. 4(16)(a)",
+        "Article 4(16)(a)",
+        "one-stop-shop",
+        "Art. 56",
+        "Article 56"
+      ],
+      "reference_note": "Name the position in one clause and point to the overview section; do not argue the establishment question again."
+    },
+    {
+      "id": "retention_window",
+      "label": "The retention window",
+      "home_section_id": "section_1_description",
+      "anchors": [
+        "retention window",
+        "rolling retention",
+        "retention period"
+      ],
+      "reference_note": "Refer to the window as stated in the description section; do not restate its terms or its gaps."
+    },
+    {
+      "id": "missing_lia",
+      "label": "The absent legitimate-interests assessment",
+      "home_section_id": "section_2_analysis",
+      "anchors": [
+        "legitimate-interests assessment",
+        "legitimate interests assessment"
+      ],
+      "reference_note": "Say that the lawfulness section holds this finding; do not re-run the three-part test."
+    },
+    {
+      "id": "missing_9_2_h_law",
+      "label": "The Article 9(2)(h) condition and the law it needs",
+      "home_section_id": "section_2_analysis",
+      "anchors": [
+        "Art. 9(2)(h)",
+        "Article 9(2)(h)",
+        "Art. 9(3)",
+        "Article 9(3)"
+      ],
+      "reference_note": "Cite the finding in the lawfulness section; do not restate why the gateway is closed."
+    },
+    {
+      "id": "unimplemented_measures",
+      "label": "Measures recorded but not yet implemented",
+      "home_section_id": "section_4_risk_management",
+      "anchors": [
+        "not yet implemented",
+        "none of the mitigating measures exists"
+      ],
+      "reference_note": "The risk section leads on this; elsewhere note only that residual levels are proposed."
+    }
+  ],
+  "extended_exemplars": [
+    {
+      "id": "xr-dpia-panel-1",
+      "kind": "reference_render",
+      "provenance": "CEO writing exercise 2026-08-04, panel rewrite of report c2d39052",
+      "fact_exempt": true,
+      "note": "FORM GUIDANCE ONLY. Imitate the architecture, the ordering, and the register. The Acme Health facts, parties, figures, and findings must never appear in any customer's document.",
+      "text": "DATA PROTECTION IMPACT ASSESSMENT\nAcme Health SA · Patient portal analytics · Version 1.0 · 4 August 2026\nDRAFT — NOT FOR SIGNATURE. The record this assessment rests on is incomplete in the specific respects identified below. Nothing in this document may be relied on until they are resolved.\n\nDETERMINATION\nAcme Health SA proposes to analyse the portal behaviour of the 50,000 adult patients enrolled in its chronic-care programmes, to find where care pathways lose them. The purpose is legitimate and the design is coherent. The record is not ready.\nFive foundations are missing: the legitimate-interests assessment that Article 6(1)(f) requires; the Member State law or health-professional contract that opens the Article 9(2)(h) gateway for health data; the safeguards — pseudonymisation, automated deletion, secondary-use controls, access governance — none of which yet exists; the transparency and objection measures patients are owed; and the identification of the supervisory authorities to which Acme Health answers. Until those foundations are laid, every one of the eight risks this assessment identifies remains High, and the processing must not begin. If it has begun, it must stop.\nThe rest of this document explains each gap, why it matters, and exactly what closes it.\n\n0. THE PROCESSING AND THE PARTIES\nAcme Health SA is the controller. The record names no internal unit as owner of the processing, no data protection officer, and no processor.\nIt also establishes no EU main establishment, and that omission matters more than it may appear. A main establishment — the place where decisions about processing are actually made, in the sense of Article 4(16)(a) — is what entitles a controller to deal with a single lead supervisory authority. Without one, the one-stop-shop mechanism is unavailable, and Acme Health answers separately to the authority of every Member State whose patients are substantially affected. Which authorities those are cannot be determined until the record says where the patients live. That single missing fact therefore controls both the supervision question and, as Section 6 explains, the consultation question.\n\n1. WHAT IS PROCESSED, AND WHY\nThree categories of data feed the analytics. The first is health data in the full Article 9 sense: portal events that record engagement with care content, clinical pathways, symptom tracking, and care-plan steps — a running account of the physical health of identified patients. The specific event types remain to be enumerated for the record. The second is whatever identifier ties each event to a patient account — name, email address, or patient ID; the record does not yet say which, and minimisation cannot be assessed until it does. The third, inferred from the analytics context and awaiting confirmation, is the ordinary behavioural exhaust of any portal: navigation, feature use, session metadata.\nThe stated purpose is improvement of chronic-care pathways through analysis of usage patterns; a second purpose — detecting when patients disengage from their care plans so clinicians can reach out — follows from the first and awaits confirmation. The record also rejects the obvious gentler alternative: aggregated telemetry was assessed and set aside because cohort-level care gaps do not show up in aggregate. That rejection is the seed of the necessity case. Section 3 tests whether it is enough.\nThe record describes no secondary or compatible uses. That is an answer, but an incomplete one: if the analytics outputs are ever used for research, shared with clinical partners, or fed to predictive models, a compatibility assessment under Article 6(4) and a fresh Article 9(2) analysis must come first. Nothing in the current architecture would prevent such reuse — which is itself a design risk, carried into Section 4.\nThe operation runs daily: portal events and identifiers are collected as patients use the portal, ingested into an analytics environment the record does not yet name, analysed for engagement patterns, and deleted on a rolling 24-month cycle. Where the processing takes place, and whether any of it crosses borders, are open questions — no third-country transfer is identified, but the infrastructure and any processor locations must be confirmed before that conclusion can be drawn.\nContext is what gives all of this its weight. These are adult chronic-care patients, in an inherently unequal relationship with the provider they depend on, and often vulnerable by reason of the very conditions the portal serves. Their expectations are shaped by a relationship of care, not of commerce; analysing their behaviour for anything other than their treatment demands particular justification. And a patient who fears that objecting might touch their care cannot be assumed to object freely — which heightens, rather than relaxes, the fairness obligation.\n\n2. LAWFULNESS\nThe record proposes Article 6(1)(f), legitimate interests, as the basis. That basis is earned through a three-part test: a specific legitimate interest, processing necessary to achieve it, and a balance that the patients' rights do not override. The first limb is satisfied — improving chronic-care pathways is a legitimate interest, stated with adequate specificity. The second is partly supported by the rejection of aggregated telemetry. The third is where the tension lives: the confidentiality a patient expects of a healthcare relationship weighs heavily against behavioural analytics, and the record does not yet show what patients are told, what safeguards narrow the intrusion, or that the processing is confined to what the clinical purpose strictly needs. The legitimate-interests assessment that would answer those questions has not been performed. Until it is, the basis is proposed, not established.\nTwo further questions precede even that assessment. If any statute or regulation in this sector mandates quality-improvement analytics, Article 6(1)(c) may be the truer basis, and the record should say so. And if Acme Health SA is a public authority performing its public task, Article 6(1)(f) is not available to it at all — the legal-basis analysis would restart from the beginning.\nHealth data adds a second lock. Article 9(1) prohibits processing it unless one of the Article 9(2) gateways opens. The record proposes Article 9(2)(h) — management of health or social care systems — but that gateway opens only on the basis of Union or Member State law, or under a contract with a health professional, and the record identifies neither. Naming the specific law or contract, and confirming the fit, is not paperwork; it is the difference between permitted processing and prohibited processing.\n\n3. NECESSITY AND PROPORTIONALITY\nNecessity is a comparison, not a declaration. The record makes one comparison well: aggregate analytics cannot reveal which patients disengage from which care-plan steps, so event-level data is needed for the clinical purpose. What the record has not yet done is finish the comparison — whether narrower event categories, a shorter retention window, or pseudonymised analysis would serve the same clinical end at a lower cost to privacy. On each of those, the record is silent, and the silence has consequences: every structural risk below draws part of its weight from it.\nThree risks are built into the design itself, before anything goes wrong. A longitudinal, queryable record of care-seeking behaviour invites uses beyond its purpose, and nothing in the architecture yet forbids them. A 24-month rolling window with no automated deletion accumulates rather than expires. And analytics on identified patients, where pseudonymised analysis has not been ruled out, keeps the cost of every other failure at its maximum. Each is carried into the risk table below at inherent level.\n\n4. RISK\nEight risks are assessed — three arising from the design, five from deviation, malfunction, or attack. All eight stand at High on the current record, for one reason: none of the mitigating measures exists yet. These scores are not a prediction of harm. They are a description of an unprotected system, and they fall only when the measures in Section 5 are implemented and the organisation re-scores them on evidence.\n[Risk table: Unauthorised access to the analytics dataset · Integrity corruption of analytics data · Re-identification of pseudonymised records · Unlawful secondary use · Unlawful legal-basis reliance · Article 9(2)(h) condition failure · Retention-driven accumulation · Transparency deficit and objection gap — each with source, impact on patients, Inherent High, Residual High*]\n*Proposed residual levels assume full implementation of every measure in Section 5; until a measure is in place, exposure remains at the inherent level. Re-scoring after implementation is the organisation's act, on its own evidence.\n\n5. WHAT MUST BE DONE\nEach condition below closes a specific risk identified above. None is optional; the order is the order of dependence.\n1. Complete and evidence the legitimate-interests assessment for Article 6(1)(f), applying the three-part test to health-data analytics for chronic-care improvement, and record the outcome.\n2. Identify and document the Member State law — or the Article 9(3) contract with a health professional — that brings the analytics within Article 9(2)(h), with a confirming legal opinion.\n3. Implement a secondary-use control framework: a compatible-purpose procedure under Article 6(4) and a policy-level prohibition on further processing.\n4. Define and implement automated deletion: records expire at the earlier of 24 months from last interaction or the patient's disenrollment.\n5. Pseudonymise portal event logs at ingest; separate the key from analytics outputs; restrict key access to authorised roles.\n6. Update the patient portal privacy notice — the analytics purpose, the Article 6(1)(f) basis, the interests pursued, and the Article 21(1) right to object — in language chronic-care patients can actually use.\n7. Operationalise objection handling: each Article 21(1) objection assessed individually against the compelling-legitimate-grounds test.\n8. Implement role-based access controls and a minimum-necessary access policy for the analytics environment, and document the governance around them.\n9. Name the internal unit that owns this processing; confirm whether a DPO has been designated under Article 37, and record the DPO's advice on this assessment.\n10. Determine and document the Article 4(16)(a) main-establishment position, and identify each concerned supervisory authority under Article 4(22) by naming the Member States where data subjects reside.\n\n6. CONCLUSION AND DECISION\nThe decision is withheld. Not because the method is incomplete — the analysis above is as far as the facts allow — but because the record is incomplete in fact, in the five respects the Determination names. A DPIA approves a specific, documented state of affairs; this record does not yet describe one.\nProcessing must not commence. If it is already live, it must be suspended until the conditions in Section 5 are met and the organisation's own re-scoring shows residual risk at an acceptable level. Should any risk remain High after that re-scoring, Article 36(1) requires prior consultation before processing proceeds — and because no main establishment is established on this record, that consultation runs to each concerned supervisory authority, in each Member State where patients are substantially affected, not to a single lead authority.\nVALIDATION AND APPROVAL: No official has validated this assessment. The record should name the responsible official who approves it, their title and authority, the date, and the basis of the sign-off: which sections were reviewed, which residual-risk position was accepted, and on what conditions. Those four entries are the difference between an analysis and an adopted assessment.\nREVIEW: Article 35(11) requires review whenever the risk of the processing changes — a change in analytics scope, data categories, architecture, retention, processors, or legal basis triggers it as a matter of law. An annual review is recommended besides, as governance practice; only the statutory trigger is an obligation.\nSIGN-OFF RECORD: [name / role / date of review / decision / signature]\nAPPENDIX — AUTHORITIES CITED: The authorities relied on are listed in the exhibit maintained with this assessment: GDPR Articles 4(16)(a), 4(22), 5, 6(1)(c), 6(1)(f), 6(4), 9(1), 9(2)(h), 9(3), 13, 21(1), 35(1), 35(7), 35(8), 35(11), 36(1), 37 and 56, and the EDPB DPIA template v1.0 (adopted 10 March 2026) with WP248 rev.01. Verbatim excerpts appear only where the approved corpus carries the text; where it does not, the citation stands alone — stated once here rather than per entry."
     }
   ]
 }

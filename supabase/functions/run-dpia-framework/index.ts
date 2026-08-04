@@ -220,7 +220,16 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "REGISTER — NO REPEATED SCAFFOLD: a stock hedge such as 'The organisation should confirm whether the described position applies here' may appear AT MOST ONCE in the entire document. Where the same gap recurs, state it once in its home section and point to it thereafter. Never leave an unbalanced bracket, a doubled sentence, or a merge artifact in a narrative string.",
     "REGISTER — DEGRADED RECORD: where the record is silent, say so in the document's own voice as a finding — 'The record names no processor.' — and then say what putting it on the record would settle. Do not emit a bare form placeholder as the whole of a narrative field, and do not restate the same silence in more than one section.",
     "REGISTER — ACCOUNTABILITY FIELDS: for assessment_team and validation_approval, where the organisation has not named a preparer, an approver, a title, a date, or the basis of sign-off, write the silence as a short finding in the same register. Never invent a name, a role, or a date.",
+    // ─── ITEM 372 METHOD 3a — SINGLE-HOME RULE ─────────────────────────────
+    // A cross-cutting point is argued ONCE, in the section that owns it, and
+    // referenced everywhere else. Mirrors home_assignments in the approved
+    // dpia plan; the register lint keys on the same anchors.
+    "SINGLE-HOME RULE: each cross-cutting point is argued in exactly one section and referenced everywhere else. Homes: main establishment and the one-stop-shop question (Art. 4(16)(a), Art. 56) → section_0_overview; the retention window → section_1_description; the absence of a legitimate-interests assessment → section_2_analysis; the Art. 9(2)(h) legal condition and the member-state law it needs → section_2_analysis; measures recorded but not yet implemented → the lead of section_4_risk_management.",
+    "SINGLE-HOME RULE — HOW TO REFERENCE: outside a point's home section, name it in one clause and move on ('the establishment question is settled in Section 0'). Do not restate the reasoning, do not repeat the citation as an argument, and never re-litigate the same silence. A section that argues another section's point again is a defect.",
+    // ─── ITEM 372 METHOD 2b — NO BRACKET TAGS INSIDE SENTENCES ─────────────
+    "BRACKET TAGS NEVER INTERRUPT PROSE: a [TO COMPLETE — …] or [TO BE ASSESSED — …] tag may stand as the whole value of a form field, and may never appear inside a narrative sentence. Where a narrative passage depends on something the record does not carry, write the absence as a finding in the document's own voice and let the asks surface carry the request. A sentence that breaks off into a bracketed instruction is a defect.",
   ].join("\n\n"),
+
 
 
   languageVariant: "american",
@@ -2313,6 +2322,21 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 372 METHOD 2b — BRACKET TAGS OUT OF SENTENCES ─────────────
+    // Completion placeholders stop interrupting counsel's prose: a bare tag
+    // becomes a short labelled blank, a tag inside a sentence is lifted out
+    // and recorded on the asks surface, and the sentence it left gains the
+    // controlled absence literal that the frame pass below rewrites into the
+    // DPIA register. Runs after the emit gate, before frame substitution.
+    // Fail-open.
+    try {
+      const { applyBracketTagPass } = await import("../_shared/prose/bracket-tags.ts");
+      const bt = applyBracketTagPass(reportData as any);
+      console.log(JSON.stringify({ evt: "dpia_bracket_tags", fn: "run-dpia-framework", ...bt }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] bracket-tag pass failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
     // A7 order: prose → validators → frame substitution → cap → disclaimer.
     // The emit gate has just written its fallback literal into every degraded
@@ -2397,6 +2421,34 @@ async function runStitch(dpia_id: string): Promise<void> {
       }));
     } catch (axErr) {
       console.warn("[run-dpia-framework] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
+    }
+
+    // ── ITEM 372 METHOD 2a — EXECUTIVE DETERMINATION BLOCK ─────────────
+    // The approved plan's headline section renders as prose at the top of the
+    // document, before Section 0. Composed deterministically from what the
+    // report already holds; it decides nothing. Runs LAST so it reads the
+    // final asks surface (including anything the bracket pass lifted).
+    // Fail-open.
+    try {
+      const { buildDeterminationBlock } = await import(
+        "../_shared/report-exhibits/determination.ts"
+      );
+      const determination = buildDeterminationBlock({
+        report: reportData,
+        organizationName:
+          (dpiaIntake as any)?.organization_name ??
+          (reportData as any)?.org_context?.company_name ?? null,
+      });
+      if (determination) {
+        (reportData as any).determination = determination;
+        console.log(JSON.stringify({
+          evt: "dpia_determination_attached", fn: "run-dpia-framework",
+          paragraphs: determination.paragraphs.length,
+          missing_foundations: determination.missing_foundations.length,
+        }));
+      }
+    } catch (dErr) {
+      console.warn("[run-dpia-framework] determination block failed (non-fatal):", (dErr as Error)?.message);
     }
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────

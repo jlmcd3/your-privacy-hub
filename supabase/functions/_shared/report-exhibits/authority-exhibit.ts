@@ -43,6 +43,13 @@ export interface AuthorityExhibitEntry {
 export interface AuthorityExhibit {
   version: string;
   heading: string;
+  /**
+   * ITEM 372 (METHOD 2c) — APPENDIX COMPACTION. Where two or more authorities
+   * lack approved corpus text, the citation-only condition is stated ONCE here
+   * and those entries carry no per-entry note. Repeating one sentence twenty
+   * times is noise, not disclosure.
+   */
+  preamble_note?: string | null;
   entries: AuthorityExhibitEntry[];
 }
 
@@ -67,6 +74,13 @@ export const AUTHORITY_CLASS_LABELS: Record<AuthorityClass, string> = {
 
 export const CITATION_ONLY_NOTE =
   "Citation only — this authority has no approved corpus text, so no excerpt is reproduced.";
+
+/** ITEM 372 — the same condition, stated once for the whole exhibit. */
+export const CITATION_ONLY_PREAMBLE =
+  "Verbatim excerpts appear only where the approved corpus carries the text. Where it does not, the citation stands alone.";
+
+/** Two or more citation-only entries collapse into the preamble note. */
+export const CITATION_ONLY_COMPACTION_THRESHOLD = 2;
 
 /** Classify a citation string into its table-of-authorities class. */
 export function classifyAuthority(citation: string): AuthorityClass {
@@ -171,7 +185,20 @@ export function buildAuthorityExhibit(
     return a.citation.localeCompare(b.citation, "en");
   });
 
-  return { version: AUTHORITY_EXHIBIT_VERSION, heading: AUTHORITY_EXHIBIT_HEADING, entries };
+  // ITEM 372 (METHOD 2c) — state the citation-only condition once.
+  const citationOnly = entries.filter((e) => !e.excerpt);
+  let preamble_note: string | null = null;
+  if (citationOnly.length >= CITATION_ONLY_COMPACTION_THRESHOLD) {
+    preamble_note = CITATION_ONLY_PREAMBLE;
+    for (const e of citationOnly) e.note = null;
+  }
+
+  return {
+    version: AUTHORITY_EXHIBIT_VERSION,
+    heading: AUTHORITY_EXHIBIT_HEADING,
+    preamble_note,
+    entries,
+  };
 }
 
 /** "11 CCR § 7123(c)(1)" → "11 CCR § 7123" */
@@ -222,13 +249,14 @@ export function renderAuthorityExhibitHtml(exhibit: AuthorityExhibit | null | un
         <p class="authority-cite">${esc(e.citation)}${e.as_cited ? ` <span class="authority-pin">(cited at ${esc(e.as_cited)})</span>` : ""}</p>
         ${e.excerpt
           ? `<blockquote class="authority-excerpt">${esc(e.excerpt)}<span class="authority-key">Corpus key: ${esc(e.corpus_key)} · pin-verified verbatim text</span></blockquote>`
-          : `<p class="authority-note">${esc(e.note || CITATION_ONLY_NOTE)}</p>`}
+          : (exhibit?.preamble_note ? "" : `<p class="authority-note">${esc(e.note || CITATION_ONLY_NOTE)}</p>`)}
       </div>`).join("")}
     </div>`).join("");
 
   return `
   <section class="section authority-exhibit">
     <h2>${esc(exhibit?.heading || AUTHORITY_EXHIBIT_HEADING)}</h2>
+    ${exhibit?.preamble_note ? `<p class="authority-preamble">${esc(exhibit.preamble_note)}</p>` : ""}
     ${body}
   </section>`;
 }
@@ -242,5 +270,6 @@ export const AUTHORITY_EXHIBIT_CSS = `
   .authority-exhibit .authority-pin { font-size:10.5px; color:#64748b; }
   .authority-exhibit .authority-excerpt { margin:0 0 0 24px; text-indent:0; padding:6px 10px; border-left:2px solid #cbd5e1; font-size:10px; line-height:1.45; color:#334155; white-space:pre-wrap; }
   .authority-exhibit .authority-key { display:block; margin-top:4px; font-size:9px; color:#64748b; }
+  .authority-exhibit .authority-preamble { margin:0 0 12px; font-size:10.5px; color:#5c6d7a; }
   .authority-exhibit .authority-note { margin:0 0 0 24px; text-indent:0; font-size:10px; color:#64748b; }
 `;

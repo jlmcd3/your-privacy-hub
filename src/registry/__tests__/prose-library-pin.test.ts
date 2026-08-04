@@ -75,11 +75,13 @@ describe.skipIf(!CAN_RUN)("prose library rows — content pin", () => {
       expect(canonicalize(row.payload)).toBe(canonicalize(authored));
 
       // Gating carries over as a column value. cppa-risk was approved under
-      // Item 363 (CEO conditional approval satisfied); the rest still await
-      // sign-off.
-      const expectedApproved = product === "cppa-risk";
+      // Item 363 (CEO conditional approval satisfied) and dpia under Item 372
+      // (the quality-pilot dispatch approved the v2 plan explicitly); the rest
+      // still await sign-off.
+      const expectedApproved = product === "cppa-risk" || product === "dpia";
       expect(row.approved).toBe(expectedApproved);
       expect((row.payload as { approved?: boolean }).approved).toBe(expectedApproved);
+
     });
   }
 

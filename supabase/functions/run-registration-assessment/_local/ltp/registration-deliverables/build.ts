@@ -712,16 +712,29 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
 // now driven by the regime the determination actually applied: UK GDPR where
 // the record places the organisation in the United Kingdom and NOT in the
 // Union; GDPR otherwise. Deterministic, no new facts.
+// EU/EEA member-state ISO codes. A market recorded as a single Member State
+// (e.g. "DE") places the organisation in the Union just as "EU" does, so the
+// label must not fall to UK GDPR on a UK + Member State record.
+const EEA_CODES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU",
+  "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES",
+  "SE", "IS", "LI", "NO",
+]);
+
 export function dpoRegimeLabel(intake: I): "GDPR" | "UK GDPR" {
-  const markets = Array.isArray(intake.markets_served) ? intake.markets_served : [];
+  const markets = (Array.isArray(intake.markets_served) ? intake.markets_served : [])
+    .map((m) => String(m).toUpperCase());
+  const codeOf = (m: string) => m.replace(/^(EU|EEA)-/, "").trim();
   const uk = intake.has_uk_establishment === true ||
     (intake.organization_country || "") === "UK" ||
     (intake.organization_country || "") === "GB" ||
-    markets.includes("UK") || markets.includes("GB");
+    markets.some((m) => ["UK", "GB"].includes(codeOf(m)));
   const eu = intake.has_eu_establishment === true ||
-    markets.includes("EU") || markets.includes("EEA");
+    EEA_CODES.has(String(intake.organization_country || "").toUpperCase()) ||
+    markets.some((m) => m === "EU" || m === "EEA" || EEA_CODES.has(codeOf(m)));
   return uk && !eu ? "UK GDPR" : "GDPR";
 }
+
 
 /** Re-label a corpus citation string for the regime actually applied. */
 function regimeCite(citation: string, regime: "GDPR" | "UK GDPR"): string {

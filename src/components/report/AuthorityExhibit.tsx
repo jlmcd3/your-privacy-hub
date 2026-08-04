@@ -26,6 +26,8 @@ export interface AuthorityExhibitEntry {
 export interface AuthorityExhibitData {
   version?: string;
   heading?: string;
+  /** ITEM 372 — citation-only condition, stated once for the whole exhibit. */
+  preamble_note?: string | null;
   entries: AuthorityExhibitEntry[];
 }
 
@@ -63,6 +65,9 @@ export function AuthorityExhibit({ exhibit }: { exhibit: AuthorityExhibitData | 
       <h2 className="font-body text-display-card font-semibold mb-4">
         {exhibit?.heading || AUTHORITY_EXHIBIT_HEADING}
       </h2>
+      {exhibit?.preamble_note && (
+        <p className="text-xs text-muted-foreground mb-4">{exhibit.preamble_note}</p>
+      )}
       {groups.map((g) => (
         <div key={g.cls} className="mb-5">
           <h3 className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
@@ -82,7 +87,7 @@ export function AuthorityExhibit({ exhibit }: { exhibit: AuthorityExhibitData | 
                       Corpus key: {e.corpus_key} · pin-verified verbatim text
                     </span>
                   </blockquote>
-                ) : (
+                ) : exhibit?.preamble_note ? null : (
                   <p className="mt-1 ml-6 indent-0 text-xs text-muted-foreground">
                     {e.note || CITATION_ONLY_NOTE}
                   </p>

@@ -1,0 +1,1 @@
+GRANT UPDATE ON public.prose_document_plans TO sandbox_exec;

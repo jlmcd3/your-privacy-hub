@@ -1,5 +1,5 @@
 // LEAK-PREV-P2 — DPIA customer-report schema.
-// Version: rs-dpia-w2-2026-08-05-upgrade6
+// Version: rs-dpia-w2-2026-08-05-item372
 //
 // Top-level allow-list derived from run-dpia-framework/index.ts assembler
 // (`reportData.<key> = ...`) and DPIAFrameworkResult.tsx / src/components/dpia
@@ -27,7 +27,7 @@
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const DPIA_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-dpia-w2-2026-08-05-upgrade6",
+  version: "rs-dpia-w2-2026-08-05-item372",
   tool: "dpia_framework",
   topLevel: [
     // Section objects (canonical EDPB structure)
@@ -54,6 +54,8 @@ export const DPIA_REPORT_SCHEMA: ReportSchema = {
     // DPIA UPGRADE ITEM 4 — shared authority exhibit (renders at the end of the
     // body, immediately before the universal disclaimer).
     "authority_exhibit",
+    // ITEM 372 METHOD 2a — executive determination block (renders first).
+    "determination",
 
     // Cross-cutting arrays / bookkeeping
     "annotations",
