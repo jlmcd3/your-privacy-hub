@@ -11,7 +11,7 @@ Date: 2026-08-04 · Product: `dpia` only · Status: **built, seeded, proven**
 | 2c | Authority appendix states the "citation only — no approved corpus text" note **once** as a preamble; entries then list cleanly. | `_shared/report-exhibits/authority-exhibit.ts`, `AuthorityExhibit.tsx` |
 | 3a | Single-home rule: five `home_assignments` in the plan; every section prompt lists points owned elsewhere ("reference, do not restate"); new conservative `cross_section_restatement` register-lint rule keyed on factual anchors. | `dpia.plan.json`, `_shared/prose/register-lint.ts`, `run-dpia-framework/index.ts` |
 | 3b | CEO panel rewrite seeded as `extended_exemplars[0]`, `kind: reference_render`, `fact_exempt: true` (FORM guidance only — Acme Health facts never leak). | `dpia.plan.json` |
-| 3c | Plan re-seeded as **v2, `approved: true`**, provenance citing this dispatch. | `prose_document_plans / dpia`, hash `9d256ac7…aa64` |
+| 3c | Plan re-seeded with the **second content revision** (artifact label `prose-plans-2026-08-04-item372`) into the single `dpia` row, which is `version = 1`, `library_schema_version = 2`; the row is `approved = true` by CEO sign-off recorded directly in the database. "v2" in earlier drafts meant this content revision, NOT a second `version` row. | `prose_document_plans / dpia`, `version 1`, hash at seeding `9d256ac7…aa64`; current hash after the change-control field rename: `70718f28…7897` |
 | Rider | `COUNSEL_REFERRAL_RE` now matches "outside counsel" / "external counsel"; sanctioned-register and disclaimer exemptions unchanged. Positive and negative controls in tests. | `_shared/advisory-voice.ts` |
 
 ## Proof run — two real stored DPIA renders
