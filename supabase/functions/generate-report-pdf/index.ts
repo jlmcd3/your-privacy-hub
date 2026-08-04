@@ -525,6 +525,7 @@ ${recommendedHtml}</div>`;
   })()}
 <h2>Cross-Domain Considerations</h2>
 <p>${escHtml(report.interaction_effects || "")}</p>
+${renderAuthorityExhibitHtml(report?.authority_exhibit)}
 </div></div></body></html>`;
 }
 
