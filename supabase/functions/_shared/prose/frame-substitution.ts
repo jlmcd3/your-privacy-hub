@@ -36,7 +36,7 @@
 
 import type { Frame, FrameSet } from "./frames.ts";
 import { renderFrame } from "./frame-render.ts";
-import { stripSpanMarks } from "./span-tracking.ts";
+import { extractSpans } from "./span-tracking.ts";
 
 export const FRAME_SUBSTITUTION_VERSION = "frame-substitution-2026-08-04-item369";
 
@@ -221,7 +221,7 @@ function renderAtomFor(
     // surfaces this pass writes into are plain prose leaves that the gate
     // already emitted unmarked, so the marks are stripped here — the atom's
     // words are unchanged, only the sentinels go.
-    const text = stripSpanMarks(r.rendered).trim();
+    const text = extractSpans(r.rendered).text.trim();
     if (!text) continue;
     sel.used.add(frame.id);
     return { text, frame_id: frame.id };
