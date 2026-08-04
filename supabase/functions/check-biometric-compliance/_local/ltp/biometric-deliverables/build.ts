@@ -1560,9 +1560,13 @@ function buildNarrative(
   const part4 = scope.length === 0
     ? "No determination is made: no covered jurisdiction was named."
     : [
+      // ITEM 364 D4 — the A2 unit, and the exposure / must-change-now line the
+      // determination logic already draws. Prose states each side; it never
+      // reads an exposure statement as an instruction, and never softens an
+      // unsatisfied duty into one.
       nUnlawful > 0
-        ? `On the record as supplied, ${nUnlawful} ${nUnlawful === 1 ? "duty is" : "duties are"} not satisfied: ${consequence.unlawful_now.map((u) => `${u.statute_short} ${u.citation}`).join(", ")}.`
-        : "On the record as supplied, no duty analysed is affirmatively unsatisfied.",
+        ? `${nUnlawful} ${nUnlawful === 1 ? "duty is" : "duties are"} not satisfied by the practices described. ${nUnlawful === 1 ? "It is" : "They are"} ${consequence.unlawful_now.map((u) => `${u.statute_short} ${u.citation}`).join("; ")}.`
+        : "No duty analysed is affirmatively unsatisfied by the facts described.",
       nSat > 0 ? `${nSat} ${nSat === 1 ? "duty is" : "duties are"} satisfied on the facts described.` : "",
       nOpen > 0
         ? `${nOpen} ${nOpen === 1 ? "duty cannot" : "duties cannot"} be resolved either way because the record does not carry the facts they turn on; each names what is missing rather than assuming an answer.`
@@ -1571,9 +1575,10 @@ function buildNarrative(
         ? `${divergence.length} point${divergence.length === 1 ? "" : "s"} of divergence between the statutes in scope ${divergence.length === 1 ? "is" : "are"} identified, the sharpest being ${divergence[0].topic.toLowerCase()}.`
         : "",
       consequence.exposure_surfaces.length > 0
-        ? `Enforcement routes differ by state and are set out separately from the duty findings.`
+        ? `Enforcement routes differ by state and are set out separately from the duty findings. They describe exposure. ${nUnlawful > 0 ? "What must change now is the unsatisfied duties named above." : "Nothing in them converts an unresolved question into a finding of breach."}`
         : "",
     ].filter(Boolean).join(" ");
+
 
   return { part1_overview: part1, part4_determination: part4 };
 }
