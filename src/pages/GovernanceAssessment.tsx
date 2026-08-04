@@ -445,7 +445,19 @@ const GovernanceAssessment = () => {
   };
 
   const govRailOpts = !summaryStep ? (govRailConfigs[step] ?? null) : null;
-  const { entry: govRailEntry unusedPlaceholder } = useGdprRailEntry(govRailOpts);
+  const { entry: govRailEntryBase } = useGdprRailEntry(govRailOpts);
+  // GOVERNANCE UPGRADE ITEM 4 — overlay the ICO Data Protection Audit Framework
+  // (Oct 2024) template guidance onto the statutorily-resolved rail entry.
+  // Presentation only: the statutory text still comes from useGdprRailEntry.
+  const govRailEntry = useMemo(() => {
+    if (!govRailEntryBase) return govRailEntryBase;
+    const overlay = GOVERNANCE_RAIL_BY_STEP[step];
+    if (!overlay) return govRailEntryBase;
+    return {
+      ...govRailEntryBase,
+      templateGuidance: govRailEntryBase.templateGuidance ?? overlay.templateGuidance,
+    };
+  }, [govRailEntryBase, step]);
 
   const handleGovRailFocus = () => {};
 
