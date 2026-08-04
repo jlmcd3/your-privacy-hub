@@ -355,64 +355,93 @@ export default function IRPlaybook() {
                 <option>Unknown</option></select></label>
 
             {/* ── ITEM 369-IR — STANDING PLAYBOOK (pre-incident) ──────────
-                Optional throughout. This intake is written BEFORE any
-                incident, which is why the statutory rail applies to it and
-                why nothing here blocks generation. */}
-            <details className="border border-border rounded-xl p-4">
-              <summary className="cursor-pointer font-semibold text-brand-navy text-sm">
-                Standing playbook (optional — pre-incident preparation)
-              </summary>
-              <p className="text-meta text-muted-foreground mt-2 mb-4">
-                Anything left blank is recorded as not yet recorded, with the missing item named. Nothing here is invented on your behalf.
-              </p>
+                Optional throughout, and written BEFORE any incident, which is
+                why the statutory rail applies to it and why nothing here
+                blocks generation. DISPATCH 7: the section is no longer
+                collapsed — it runs as four consequence-invited groups in the
+                order rosters → contacts → thresholds → contracts. */}
+            <div className="border-t border-border pt-6 space-y-6">
+              <div>
+                <h2 className="font-display text-brand-navy">Standing playbook <span className="text-sm font-normal text-muted-foreground">(optional)</span></h2>
+                <p className="text-meta text-muted-foreground mt-1">
+                  Everything below is written before an incident, when there is time to get it right. Whatever you record here appears in the playbook as your own standing arrangements; whatever you leave blank is named in the report as not yet recorded, and nothing is invented on your behalf.
+                </p>
+                <p className="text-meta text-muted-foreground mt-2">
+                  The blank incident worksheet delivered alongside the playbook is filled in during a live incident and needs nothing from this form.
+                </p>
+              </div>
+
+              {/* GROUP 1 — ROSTERS */}
               <div className="space-y-4">
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Activation criteria</span>
-                  <span className="block text-meta text-muted-foreground">One observable event per line.</span>
-                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.activationCriteriaText} onChange={e => setForm(f => ({ ...f, activationCriteriaText: e.target.value }))} /></label>
-
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Severity matrix</span>
-                  <span className="block text-meta text-muted-foreground">One level per line: level | definition | escalation consequence</span>
-                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.severityMatrixText} onChange={e => setForm(f => ({ ...f, severityMatrixText: e.target.value }))} /></label>
-
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Rosters — who responds</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">Names the people the playbook can call on, so the first hour is spent responding rather than working out who is responsible.</p>
+                </div>
                 <label className="block text-sm"><span className="font-semibold text-brand-navy">Response team and alternates</span>
-                  <span className="block text-meta text-muted-foreground">One role per line: role | primary (name, title) | alternate (name, title)</span>
-                  <textarea rows={5} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.responseTeamRosterText} onChange={e => setForm(f => ({ ...f, responseTeamRosterText: e.target.value }))} /></label>
+                  <span className="block text-meta text-muted-foreground">Every role needs a named alternate: incidents are discovered at night and in August. One role per line.</span>
+                  <textarea rows={5} placeholder="Role | primary | alternate" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.responseTeamRosterText} onChange={e => setForm(f => ({ ...f, responseTeamRosterText: e.target.value }))} /></label>
 
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Who can authorise systems being taken offline</span>
+                  <span className="block text-meta text-muted-foreground">Containment often means disconnecting something the business depends on. A role that can make that call at 3am, rather than a committee.</span>
+                  <input type="text" placeholder="Role or name" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.itIsolationAuthority} onChange={e => setForm(f => ({ ...f, itIsolationAuthority: e.target.value }))} /></label>
+              </div>
+
+              {/* GROUP 2 — CONTACTS */}
+              <div className="space-y-4 border-t border-border pt-5">
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Contacts — who is called from outside</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">External parties carry their own clocks. Insurers commonly impose a notification condition tighter than the statutory deadline, and cover can be prejudiced by a late call.</p>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Outside counsel</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselName} onChange={e => setForm(f => ({ ...f, outsideCounselName: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">Firm and named partner.</span>
+                    <input type="text" placeholder="Firm and partner" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselName} onChange={e => setForm(f => ({ ...f, outsideCounselName: e.target.value }))} /></label>
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Counsel out-of-hours route</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselContact} onChange={e => setForm(f => ({ ...f, outsideCounselContact: e.target.value }))} /></label>
-                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Insurer and notification condition</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.insurerContact} onChange={e => setForm(f => ({ ...f, insurerContact: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">A route that answers outside office hours, not a switchboard.</span>
+                    <input type="text" placeholder="Phone or pager route" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselContact} onChange={e => setForm(f => ({ ...f, outsideCounselContact: e.target.value }))} /></label>
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Insurer and its notification condition</span>
+                    <span className="block text-meta text-muted-foreground">Record the deadline the policy imposes, which is frequently shorter than 72 hours.</span>
+                    <input type="text" placeholder="Insurer and deadline" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.insurerContact} onChange={e => setForm(f => ({ ...f, insurerContact: e.target.value }))} /></label>
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Forensic vendor and callout window</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.forensicVendorContact} onChange={e => setForm(f => ({ ...f, forensicVendorContact: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">A retainer with a stated response time is what makes this usable mid-incident.</span>
+                    <input type="text" placeholder="Vendor and response time" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.forensicVendorContact} onChange={e => setForm(f => ({ ...f, forensicVendorContact: e.target.value }))} /></label>
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Law enforcement contact</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.lawEnforcementContact} onChange={e => setForm(f => ({ ...f, lawEnforcementContact: e.target.value }))} /></label>
-                  <label className="block text-sm"><span className="font-semibold text-brand-navy">IT isolation authority</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.itIsolationAuthority} onChange={e => setForm(f => ({ ...f, itIsolationAuthority: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">The unit and route you would actually use — a national cybercrime reporting line counts.</span>
+                    <input type="text" placeholder="Unit and route" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.lawEnforcementContact} onChange={e => setForm(f => ({ ...f, lawEnforcementContact: e.target.value }))} /></label>
                 </div>
 
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={form.privilegeProtocol} onChange={e => setForm(f => ({ ...f, privilegeProtocol: e.target.checked }))} />
-                  <span className="font-semibold text-brand-navy">A privilege protocol is in place with counsel</span>
+                <label className="flex items-start gap-2 text-sm">
+                  <input type="checkbox" className="mt-1" checked={form.privilegeProtocol} onChange={e => setForm(f => ({ ...f, privilegeProtocol: e.target.checked }))} />
+                  <span><span className="font-semibold text-brand-navy">A privilege protocol is in place with counsel</span>
+                    <span className="block text-meta text-muted-foreground font-normal">A written arrangement routing forensic work through counsel. Where it exists, the playbook says so; where it does not, the playbook records the exposure rather than assuming privilege.</span></span>
                 </label>
+              </div>
+
+              {/* GROUP 3 — THRESHOLDS */}
+              <div className="space-y-4 border-t border-border pt-5">
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Thresholds — what starts the clock</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">Sets the point at which an event becomes an incident and the evidence available at that moment. Art. 33(1) runs from awareness, so a defined trigger is what makes the 72 hours measurable afterwards.</p>
+                </div>
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Activation criteria</span>
+                  <span className="block text-meta text-muted-foreground">Observable events rather than judgements — an alert firing, a report received. One per line.</span>
+                  <textarea rows={4} placeholder="One event per line" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.activationCriteriaText} onChange={e => setForm(f => ({ ...f, activationCriteriaText: e.target.value }))} /></label>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Severity matrix</span>
+                  <span className="block text-meta text-muted-foreground">Each level earns its place by carrying a consequence — who is woken, what is convened. One level per line.</span>
+                  <textarea rows={4} placeholder="Level | definition | escalation" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.severityMatrixText} onChange={e => setForm(f => ({ ...f, severityMatrixText: e.target.value }))} /></label>
 
                 <label className="block text-sm"><span className="font-semibold text-brand-navy">Key systems holding personal data</span>
-                  <span className="block text-meta text-muted-foreground">One system per line.</span>
-                  <textarea rows={3} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.keySystemsText} onChange={e => setForm(f => ({ ...f, keySystemsText: e.target.value }))} /></label>
+                  <span className="block text-meta text-muted-foreground">The systems scoping would have to reach on day one. One per line.</span>
+                  <textarea rows={3} placeholder="One system per line" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.keySystemsText} onChange={e => setForm(f => ({ ...f, keySystemsText: e.target.value }))} /></label>
 
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Log sources</span>
-                  <span className="block text-meta text-muted-foreground">One source per line, with its retention period.</span>
-                  <textarea rows={3} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.logSourcesText} onChange={e => setForm(f => ({ ...f, logSourcesText: e.target.value }))} /></label>
-
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Contracts carrying breach-notice obligations</span>
-                  <span className="block text-meta text-muted-foreground">One contract per line: counterparty | notice deadline | clause reference</span>
-                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.breachNoticeContractsText} onChange={e => setForm(f => ({ ...f, breachNoticeContractsText: e.target.value }))} /></label>
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Log sources and how long they are kept</span>
+                  <span className="block text-meta text-muted-foreground">Retention shorter than typical dwell time is the constraint worth knowing before an incident, not during one. One source per line.</span>
+                  <textarea rows={3} placeholder="Source | retention period" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.logSourcesText} onChange={e => setForm(f => ({ ...f, logSourcesText: e.target.value }))} /></label>
 
                 <fieldset className="text-sm">
                   <legend className="font-semibold text-brand-navy">First-hour checklist — confirm the steps already provided for</legend>
-                  <span className="block text-meta text-muted-foreground mb-1">Confirmation only. The checklist items themselves are fixed and are not authored here.</span>
+                  <span className="block text-meta text-muted-foreground mb-1">Confirmation only: the checklist itself is fixed and is not authored here. Unticked steps appear in the playbook as gaps in first-hour readiness.</span>
                   <div className="grid sm:grid-cols-2 gap-1 mt-1">
                     {FIRST_HOUR_CONFIRMATIONS.map(o => (
                       <label key={o.id} className="flex items-start gap-2 text-meta">
@@ -425,9 +454,22 @@ export default function IRPlaybook() {
                 </fieldset>
 
                 <label className="block text-sm"><span className="font-semibold text-brand-navy">Next planned tabletop exercise <span className="text-xs text-muted-foreground font-mono">(Art. 32(1)(d))</span></span>
+                  <span className="block text-meta text-muted-foreground">Art. 32(1)(d) asks for regular testing of the measures. A scheduled date is the evidence that the plan is exercised rather than filed.</span>
                   <input type="date" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.nextTabletopDate} onChange={e => setForm(f => ({ ...f, nextTabletopDate: e.target.value }))} /></label>
               </div>
-            </details>
+
+              {/* GROUP 4 — CONTRACTS */}
+              <div className="space-y-4 border-t border-border pt-5">
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Contracts — deadlines you owe other parties</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">Customer and processor contracts routinely carry notice deadlines shorter than the statutory ones. Recorded here, they are sequenced into the playbook's timeline instead of being discovered after they have passed.</p>
+                </div>
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Contracts carrying breach-notice obligations</span>
+                  <span className="block text-meta text-muted-foreground">The clause reference matters as much as the deadline: it is what a reviewer checks the commitment against. One contract per line.</span>
+                  <textarea rows={4} placeholder="Counterparty | deadline | clause" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.breachNoticeContractsText} onChange={e => setForm(f => ({ ...f, breachNoticeContractsText: e.target.value }))} /></label>
+              </div>
+            </div>
+
 
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             <FreeRunIndicator toolKey="ir_playbook" />
