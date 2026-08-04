@@ -44,6 +44,8 @@ export interface SeedStatementInput {
   readonly schemaVersion: number;
   /** Defaults to 1; the row version, not the artifact's version label. */
   readonly version?: number;
+  /** Defaults to `public`; overridden only by the regression suite's scratch table. */
+  readonly schema?: string;
 }
 
 export function buildSeedStatement(input: SeedStatementInput): string {
@@ -60,7 +62,7 @@ export function buildSeedStatement(input: SeedStatementInput): string {
   }
 
   return (
-    `INSERT INTO public.${input.table} (product, version, library_schema_version, approved, provenance, content_hash, ${input.column})\n` +
+    `INSERT INTO ${input.schema ?? "public"}.${input.table} (product, version, library_schema_version, approved, provenance, content_hash, ${input.column})\n` +
     `VALUES ('${input.product}', ${input.version ?? 1}, ${input.schemaVersion}, false, '${provenance}', '${input.hash}', '${json}'::jsonb)\n` +
     `ON CONFLICT (product, version) DO UPDATE SET ${setList};`
   );

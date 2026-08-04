@@ -62,6 +62,7 @@ describe.skipIf(!CAN_RUN)("prose seed — live upsert over an approved row", () 
   it("preserves approved = true and refreshes content", () => {
     const sql = stmt({
       table: "scratch_plans",
+      schema: "pg_temp",
       hash: "newhash",
       json: JSON.stringify({ product: "dpia", revision: "second" }),
       schemaVersion: 2,
