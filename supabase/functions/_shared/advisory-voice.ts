@@ -200,6 +200,17 @@ const _RESERVED_KEYS = new Set([
   "_normalized_intake",
 ]);
 
+/**
+ * PROSE-SURFACE SCOPING (LIA sanction-register defect, 2026-08-04): structured
+ * enum tokens (`permitted_with_safeguards`, `record_insufficient`, …) are not
+ * prose. They were being concatenated into the scanned text and, because they
+ * carry no terminal punctuation, they bled into the neighbouring sentence and
+ * corrupted the evidence of deterministic findings. Enum-token leaves are now
+ * skipped, and every retained leaf is terminated so sentences cannot merge
+ * across leaves.
+ */
+const _ENUM_TOKEN_RE = /^[a-z0-9]+(?:[_-][a-z0-9]+)+$/;
+
 export function extractProseFromReport(report: unknown, budget = 200_000): string {
   const parts: string[] = [];
   let remaining = budget;
@@ -207,7 +218,13 @@ export function extractProseFromReport(report: unknown, budget = 200_000): strin
     if (remaining <= 0) return;
     if (key && _RESERVED_KEYS.has(key)) return;
     if (typeof v === "string") {
-      const t = v.slice(0, Math.max(0, remaining));
+      const trimmed = v.trim();
+      if (!trimmed) return;
+      // Structured enum token / machine slug — never reader-facing prose.
+      if (_ENUM_TOKEN_RE.test(trimmed)) return;
+      let t = trimmed.slice(0, Math.max(0, remaining));
+      // Terminate the leaf so sentence splitting cannot span two leaves.
+      if (!/[.!?:;]$/.test(t)) t += ".";
       parts.push(t);
       remaining -= t.length + 1;
       return;
@@ -220,5 +237,6 @@ export function extractProseFromReport(report: unknown, budget = 200_000): strin
   walk(report);
   return parts.join("\n");
 }
+
 
 

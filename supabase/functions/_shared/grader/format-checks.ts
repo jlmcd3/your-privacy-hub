@@ -17,6 +17,21 @@ import {
   COUNSEL_REFERRAL_RE,
   splitSentences,
 } from "../advisory-voice.ts";
+import { REPORT_DISCLAIMER } from "../report-disclaimer.ts";
+
+/**
+ * UNIVERSAL DISCLAIMER EXEMPTION — the CEO-locked REPORT_DISCLAIMER constant
+ * is sanctioned boilerplate. Any sentence that is a byte-exact fragment of it
+ * is exempt from e6; nothing else is relaxed.
+ */
+const DISCLAIMER_SENTENCES: readonly string[] = splitSentences(REPORT_DISCLAIMER);
+
+function isUniversalDisclaimerSentence(sentence: string): boolean {
+  const s = (sentence ?? "").trim();
+  if (!s) return false;
+  if (DISCLAIMER_SENTENCES.includes(s)) return true;
+  return s.length >= 20 && REPORT_DISCLAIMER.includes(s);
+}
 
 export type FormatFinding = {
   check_id: string;
@@ -487,6 +502,10 @@ function checkE6(
   let hits = 0;
   for (const s of sentences) {
     if (COUNSEL_REFERRAL_RE.test(s)) {
+      // UNIVERSAL DISCLAIMER EXEMPTION (CEO-locked constant). The shared
+      // REPORT_DISCLAIMER is sanctioned boilerplate, not a model-authored
+      // referral; byte-match against the imported constant only.
+      if (isUniversalDisclaimerSentence(s)) continue;
       // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
       // privilege guidance stays. Sentences matching opts.exemptRe skip.
       if (opts.exemptRe && opts.exemptRe.test(s)) continue;

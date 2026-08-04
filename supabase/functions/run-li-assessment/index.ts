@@ -2,6 +2,7 @@
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+import { enforceStorageLimitationCrossRead } from './_lia_storage_limitation.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
 // LIA-REGISTRY-WIRING (2026-07-25): registry-first citation post-pass + LEAK-PREV P0/P1/P2 (schema rs-lia-w1-2026-07-25).
@@ -970,6 +971,10 @@ Alternatives considered: ${necessityDetails.alternatives || assessment.alternati
 Why consent not used: ${necessityDetails.why_consent_not_used || "not addressed"}
 Data minimisation steps: ${necessityDetails.data_minimised || "not specified"}
 Pseudonymisation/aggregation options: ${necessityDetails.pseudonymisation_options || "not addressed"}
+Retention / duration on the record (balancing_details.duration — STORAGE-LIMITATION EVIDENCE for the necessity test): ${balancingDetails.duration || necessityDetails.retention_period || "not specified"}
+Scale on the record: ${balancingDetails.scale_approx || "not specified"}
+Frequency on the record: ${balancingDetails.frequency || "not specified"}
+
 
 STAGE B — BALANCING FACTS:
 Reasonable expectation: ${balancingDetails.reasonable_expectation || "not specified"}
@@ -1013,7 +1018,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
   },
   "necessity_test": {
     "verdict": "passes | fails | uncertain",
-    "analysis": "3-4 sentences. Test whether the processing is the LEAST intrusive way to achieve the stated purpose, given the alternatives the user considered, the data minimisation they described, and any pseudonymisation potential. For EACH data category identified in the intake, state the retention period AND the deletion trigger (event that starts the clock) drawn from the intake — Article 5(1)(e) UK GDPR / GDPR requires storage limitation to be documented per category and purpose. Where the intake does not state a specific retention period or deletion trigger for a category, name that category and record the gap in open_questions and (if it blocks the necessity verdict) blocking_issues — do NOT invent a period.",
+    "analysis": "3-4 sentences. Test whether the processing is the LEAST intrusive way to achieve the stated purpose, given the alternatives the user considered, the data minimisation they described, and any pseudonymisation potential. STORAGE LIMITATION — MANDATORY CROSS-READ: before writing anything about retention, read the 'Retention / duration on the record' line in STAGE B — NECESSITY FACTS above (source field balancing_details.duration). Where that line carries any retention content, the storage-limitation analysis MUST engage with what it states (quote or paraphrase the stated periods per category) and MUST NOT assert that no retention period or deletion trigger is stated, or that storage limitation is undocumented; if the stated period lacks a deletion trigger, say only that the trigger is not stated while acknowledging the stated period. Only where that line reads 'not specified' and no retention content appears anywhere else in the record may the analysis record the absence. For EACH data category identified in the record, state the retention period AND the deletion trigger (event that starts the clock) drawn from the record — Article 5(1)(e) UK GDPR / GDPR requires storage limitation to be documented per category and purpose. Where the record does not state a specific retention period or deletion trigger for a category, name that category and record the gap in open_questions and (if it blocks the necessity verdict) blocking_issues — do NOT invent a period.",
     "risk_factors": ["factors weakening necessity, e.g. overly broad data, weak alternatives analysis, retention period or deletion trigger not stated for a specific data category"],
     "supporting_factors": ["factors strengthening necessity"],
     "open_questions": ["facts that would affect this verdict"]
@@ -1722,6 +1727,15 @@ Return JSON:
       intake: liaIntakeObject,
       reportData,
     });
+
+    // CEO defect 1 (run 33e79a31) — storage-limitation cross-read backstop:
+    // never claim retention is undocumented when the record states it.
+    try {
+      const _sl = enforceStorageLimitationCrossRead(reportData, liaIntakeObject);
+      if (_sl.changed) {
+        console.log(`[run-li-assessment] storage-limitation cross-read corrected ${_sl.replacements} absence claim(s)`);
+      }
+    } catch (_) { /* non-fatal */ }
 
     try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     // C1-d — Engagement Map v1 (additive metadata; document structure unchanged)
