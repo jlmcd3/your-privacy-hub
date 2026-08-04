@@ -1,0 +1,114 @@
+{
+  "product": "dpia",
+  "version": "prose-frames-2026-08-04-item364",
+  "approved": false,
+  "frames": [
+    {
+      "id": "dpia-gap-assessment-team",
+      "product": "dpia",
+      "section": "assessment_team",
+      "body": "The record does not name who prepared {{DOC_NAME}} for {{ENTITY}}. Nobody is recorded as accountable for it, and nobody is recorded as having been consulted. Until those names are on the record, the document has an author only in the sense that a file has a timestamp.",
+      "placeholders": [
+        { "token": "DOC_NAME", "kind": "text", "source": "dpia_metadata.document_name", "required": false },
+        { "token": "ENTITY", "kind": "text", "source": "org_context.company_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "dpia",
+        "report_path": "section_0_overview.assessment_team",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["executive_lead", "record_card_lead"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "dpia-gap-prepared-by",
+      "product": "dpia",
+      "section": "prepared_by",
+      "body": "{{ENTITY}} has not said who drafted this assessment. That matters less for form than for follow-up: the questions left open below have no owner while the drafter is unnamed.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "org_context.company_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "dpia",
+        "report_path": "section_0_overview.assessment_team.prepared_by",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["record_card_lead"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "dpia-gap-validation-approval",
+      "product": "dpia",
+      "section": "validation_approval",
+      "body": "No one has signed this assessment. The record carries no approver, no title, and no date of acceptance, so nothing set out here has yet been adopted by {{ENTITY}} as its own position.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "org_context.company_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "dpia",
+        "report_path": "section_6_conclusion.validation_approval",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["general_conclusions"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "dpia-gap-approval-date",
+      "product": "dpia",
+      "section": "approval_date",
+      "body": "The approval date is blank. Read with the sign-off above, that means the version of the processing described here has never been fixed to a point in time, and a later change would have nothing to be measured against.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "dpia",
+        "report_path": "section_6_conclusion.validation_approval.approval_date",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["general_conclusions"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "dpia-gap-signoff-basis",
+      "product": "dpia",
+      "section": "signoff_basis",
+      "body": "{{ENTITY}} has not stated what a sign-off here would rest on. An approval given without saying what was relied on records a decision but not a reason, and it is the reason that has to be produced later.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "org_context.company_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "dpia",
+        "report_path": "section_6_conclusion.validation_approval.signoff_basis",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["general_conclusions"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "dpia-gap-consultation-silence",
+      "product": "dpia",
+      "section": "interested_parties",
+      "body": "The record says nothing about consultation. It does not say whether the people whose data is described here were asked, whether anyone advised {{ENTITY}} internally, or whether the question was considered and set aside. Silence of that kind reads, to a reader who comes later, as an omission rather than a choice.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "org_context.company_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "dpia",
+        "report_path": "section_5_interested_parties",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["record_card_lead"]
+      },
+      "status": "pending_review"
+    }
+  ]
+}
