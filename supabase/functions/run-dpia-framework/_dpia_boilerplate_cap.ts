@@ -52,23 +52,29 @@ export const NEUTRAL_DOWNGRADE_LITERAL =
  * neutral, non-advisory, asserts nothing the literal did not assert, and keeps
  * the reader pointed at the same place (the information-needed list / the
  * unconfirmed position).
+ *
+ * ITEM 372 SECOND CORRECTION ROUND (3) — these pools ran AFTER frame
+ * substitution, so their sentences shipped verbatim. Two of them carried the
+ * courtroom idiom "on the record" / "on the present record", which the Item
+ * 363 register refuses (BANNED_PHRASES, register-lint.ts). Rewritten in the
+ * register; `lintScaffoldPool` now lints both pools in the test battery.
  */
 const INFO_NEEDED_VARIANTS: readonly string[] = [
   "The record as it stands does not resolve this point; it is carried in the information needed list.",
-  "This point is unresolved on the present record and appears among the items of information needed.",
+  "This point is unresolved and appears among the items of information needed.",
   "The information supplied does not settle this item; see the information needed list.",
-  "This item remains open on the record and is tracked under information needed.",
+  "This item is still open and is tracked under information needed.",
   "The record does not yet answer this point; it is listed with the other information needed.",
-  "No answer to this point appears in the record; it is carried under information needed.",
+  "No answer to this point appears in the material supplied; it is carried under information needed.",
   "This point is not resolved by the material supplied and sits in the information needed list.",
 ];
 
 const NEUTRAL_DOWNGRADE_VARIANTS: readonly string[] = [
-  "Whether the described position applies here is not settled by the record.",
+  "Whether the described position applies here is not settled by the material supplied.",
   "The record does not establish that the described position applies here.",
   "It remains to be confirmed whether the described position holds in this case.",
-  "The described position is stated without support in the record for this case.",
-  "Nothing in the record confirms that the described position applies here.",
+  "The described position is stated without support for this case.",
+  "Nothing supplied confirms that the described position applies here.",
 ];
 
 interface Controlled {

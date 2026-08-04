@@ -115,7 +115,11 @@ Deno.test("2a: the determination leads with the record, enumerates the gaps, sta
   const joined = block!.paragraphs.join("\n");
   assertStringIncludes(joined, "The record is not ready.");
   assertStringIncludes(joined, "Two foundations are missing:");
-  assertStringIncludes(joined, "the legitimate-interests assessment");
+  // ITEM 372 r2 (1) — the determination now enumerates counsel-language
+  // CATEGORIES rolled up from the asks, not the raw ask strings. The
+  // legitimate-interests ask lands on the lawful-basis category.
+  assertStringIncludes(joined, "the lawful basis relied on for each purpose");
+  assertStringIncludes(joined, "the Article 9 condition relied on for special-category data");
   assertStringIncludes(joined, "no one can sign it");
   // prose, never a table
   assert(!/<table|\|/.test(joined));

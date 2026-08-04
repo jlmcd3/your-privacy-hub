@@ -310,3 +310,87 @@ export function lintRegisterDocument(sections: readonly RegisterSection[]): Regi
 export function registerClean(findings: readonly RegisterLintFinding[]): boolean {
   return findings.length === 0;
 }
+
+// ---------------------------------------------------------------------------
+// ITEM 372 (SECOND CORRECTION ROUND, 3) — SCAFFOLD-POOL BATTERY.
+//
+// The register lint policed MODEL prose. It never looked at the sentences the
+// platform itself writes: the neutral absence pool in `frame-substitution.ts`,
+// the per-product boilerplate cap pools, and the authored gap atoms in each
+// product's frame set. Those sentences ship verbatim on a degraded record and
+// were off-register ("on the record", ×3-4 repeats each). This lints a POOL:
+// every sentence individually, plus the pool-level properties that only make
+// sense for a rotation — duplicates, and a floor on how many distinct
+// sentences the rotation offers before it starts repeating in a document.
+// ---------------------------------------------------------------------------
+
+/** Distinct sentences a rotation must offer before it reads as boilerplate. */
+export const MIN_SCAFFOLD_POOL_SIZE = 12;
+
+export interface ScaffoldPoolReport {
+  readonly pool_id: string;
+  readonly size: number;
+  readonly duplicates: readonly string[];
+  readonly findings: readonly RegisterLintFinding[];
+  readonly clean: boolean;
+}
+
+/**
+ * Lint a rotation pool. `minSize` is checked only when `enforceSize` is set —
+ * a per-product cap pool that backstops a rotation does not need the floor.
+ */
+export function lintScaffoldPool(
+  poolId: string,
+  sentences: readonly string[],
+  opts: { enforceSize?: boolean; minSize?: number } = {},
+): ScaffoldPoolReport {
+  const findings: RegisterLintFinding[] = [];
+
+  // Per-sentence diction. Cadence rules are paragraph-level and do not apply
+  // to a single standalone sentence, so they are filtered out here.
+  const CADENCE: ReadonlySet<RegisterLintRule> = new Set([
+    "cadence_monotony",
+    "cadence_overlong",
+  ]);
+  for (const s of sentences) {
+    for (const f of lintRegisterText(poolId, s)) {
+      if (CADENCE.has(f.rule)) continue;
+      findings.push(f);
+    }
+  }
+
+  // Pool-level: an exact duplicate wastes a rotation slot.
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  for (const s of sentences) {
+    const key = s.trim().toLowerCase();
+    if (seen.has(key)) duplicates.push(s);
+    seen.add(key);
+  }
+  for (const d of duplicates) {
+    findings.push({
+      rule: "machine_scaffold",
+      section_id: poolId,
+      detail: "duplicate pool entry — the rotation repeats sooner than its size suggests",
+      excerpt: excerpt(d),
+    });
+  }
+
+  const minSize = opts.minSize ?? MIN_SCAFFOLD_POOL_SIZE;
+  if (opts.enforceSize && seen.size < minSize) {
+    findings.push({
+      rule: "machine_scaffold",
+      section_id: poolId,
+      detail: `${seen.size} distinct sentences; a document with more degraded leaves than that repeats (floor ${minSize})`,
+      excerpt: `${poolId} pool`,
+    });
+  }
+
+  return {
+    pool_id: poolId,
+    size: seen.size,
+    duplicates,
+    findings,
+    clean: findings.length === 0,
+  };
+}
