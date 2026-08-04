@@ -22,6 +22,7 @@ import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { GOVERNANCE_RAIL_BY_STEP } from "@/components/governance/GovernanceRailEntries";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
@@ -445,7 +446,19 @@ const GovernanceAssessment = () => {
   };
 
   const govRailOpts = !summaryStep ? (govRailConfigs[step] ?? null) : null;
-  const { entry: govRailEntry } = useGdprRailEntry(govRailOpts);
+  const { entry: govRailEntryBase } = useGdprRailEntry(govRailOpts);
+  // GOVERNANCE UPGRADE ITEM 4 — overlay the ICO Data Protection Audit Framework
+  // (Oct 2024) template guidance onto the statutorily-resolved rail entry.
+  // Presentation only: the statutory text still comes from useGdprRailEntry.
+  const govRailEntry = useMemo(() => {
+    if (!govRailEntryBase) return govRailEntryBase;
+    const overlay = GOVERNANCE_RAIL_BY_STEP[step];
+    if (!overlay) return govRailEntryBase;
+    return {
+      ...govRailEntryBase,
+      templateGuidance: govRailEntryBase.templateGuidance ?? overlay.templateGuidance,
+    };
+  }, [govRailEntryBase, step]);
 
   const handleGovRailFocus = () => {};
 

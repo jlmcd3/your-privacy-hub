@@ -57,6 +57,9 @@ export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
     // GOVERNANCE UPGRADE — ICO Audit Framework tracker walk + remediation.
     "domain_element_findings",
     "remediation_plan",
+    // GOVERNANCE UPGRADE ITEM 5 — shared authority exhibit (renders at the end
+    // of the body, immediately before the universal disclaimer).
+    "authority_exhibit",
 
 
     "interaction_effects",

@@ -319,6 +319,11 @@ const F_GOV_EU: SampleFixture = {
           "Additional operational tools folded into the intake narrative (not on the standard governance tool list): Shopify Plus (storefront platform) and ShipHero WMS (warehouse-management system). " +
           "Additional data category folded into 'Other': order history (used for fulfilment routing and returns). " +
           "Transfer mechanism SCCs are supplemented by transfer impact assessments (TIAs) for each US-based sub-processor.",
+        // GOVERNANCE UPGRADE — ICO tracker remediation defaults.
+        remediation_default_owner: "Group Data Protection Officer",
+        remediation_default_target_date: "2026-12-31",
+        remediation_default_priority: "High — remediate this quarter",
+        remediation_default_validation_method: "Internal audit sample",
       },
     },
     invoke: { fn: "run-governance-assessment", id_key: "assessment_id" },
@@ -394,6 +399,11 @@ const F_GOV_US: SampleFixture = {
           "Additional operational tools folded into the intake narrative (not on the standard governance tool list): Salesforce (CRM) and Snowflake (analytical data warehouse). " +
           "Additional data category folded into 'Other': internet/network activity (product telemetry from the shipment-tracking web experience). " +
           "Biometric identifier specifics: fingerprint templates enrolled and matched at the employee timeclock endpoint.",
+        // GOVERNANCE UPGRADE — ICO tracker remediation defaults.
+        remediation_default_owner: "VP Compliance",
+        remediation_default_target_date: "2026-11-30",
+        remediation_default_priority: "Medium — remediate this year",
+        remediation_default_validation_method: "Control re-test by a second reviewer",
       },
     },
     invoke: { fn: "run-governance-assessment", id_key: "assessment_id" },

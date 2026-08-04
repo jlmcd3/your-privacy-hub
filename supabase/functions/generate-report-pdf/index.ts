@@ -421,6 +421,7 @@ h3 { font-size:14px; color:#0c2a44; margin-top:20px; }
 .meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
 .label { font-weight:bold; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; color:#5c6d7a; }
 ul { padding-left:20px; } li { margin-bottom:4px; }
+${AUTHORITY_EXHIBIT_CSS}
 </style></head><body>
 <div class="shell">
 <header class="header">
@@ -525,6 +526,7 @@ ${recommendedHtml}</div>`;
   })()}
 <h2>Cross-Domain Considerations</h2>
 <p>${escHtml(report.interaction_effects || "")}</p>
+${renderAuthorityExhibitHtml(report?.authority_exhibit)}
 </div></div></body></html>`;
 }
 

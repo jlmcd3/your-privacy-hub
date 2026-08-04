@@ -1193,12 +1193,34 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
     }
 
+
+    // ── GOVERNANCE UPGRADE ITEM 5 — CORPUS INTO THE ANALYSIS ───────────
+    // Arts. 5(2), 24, 30, 37-39 resolved at runtime from `provision_texts`
+    // through the closed-set resolver. No statutory text is compiled in; a
+    // resolver miss degrades honestly to a citation-only law block.
+    let governanceCorpusLawBlock = "";
+    try {
+      const { fetchGovernanceCorpus, buildGovernanceCorpusLawBlock } = await import(
+        "../_shared/ltp/governance-corpus.ts"
+      );
+      const govCorpus = await fetchGovernanceCorpus(supabase);
+      governanceCorpusLawBlock = buildGovernanceCorpusLawBlock(govCorpus);
+      console.log(JSON.stringify({
+        evt: "governance_corpus_resolved", fn: "run-governance-assessment",
+        resolved: govCorpus.resolved_count, approved: govCorpus.approved_count,
+        version: govCorpus.version,
+      }));
+    } catch (e) {
+      console.warn("[Governance] governance corpus resolve failed (non-fatal):", (e as Error)?.message);
+    }
+
     const synthesisSystem = buildSystemContent({
       toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
       currentDate: today,
       injected: [
         gdprCitationsBlock,
         gdprAuthorityBlock,
+        governanceCorpusLawBlock,
         `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
       ].filter(Boolean).join("\n\n"),
       cache: true,
@@ -1426,6 +1448,51 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     } catch (e) {
       console.warn("[run-governance-assessment] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── GOVERNANCE UPGRADE ITEM 5 — AUTHORITY EXHIBIT ──────────────────
+    // Table of authorities built from the citations THIS report emits.
+    // Excerpts come only from approved corpus rows; everything else is
+    // citation-only. ICO audit-framework references are template guidance and
+    // are never collected here. Rendered at the end of the body, immediately
+    // before the universal disclaimer. Fail-open.
+    try {
+      const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+      const { fetchGovernanceCorpus, governanceCorpusProvisionsForExhibit } = await import(
+        "../_shared/ltp/governance-corpus.ts"
+      );
+      const cited = new Set<string>();
+      const walkCites = (v: unknown): void => {
+        if (typeof v === "string") {
+          for (const m of v.matchAll(/(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+(?:\([a-z0-9]+\))*/gi)) {
+            cited.add(m[0].replace(/\s+/g, " ").trim());
+          }
+          return;
+        }
+        if (Array.isArray(v)) { for (const x of v) walkCites(x); return; }
+        if (v && typeof v === "object") {
+          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+            if (k === "_meta" || k === "_staging") continue;
+            walkCites(x);
+          }
+        }
+      };
+      walkCites(reportData);
+      const exhibitCorpus = await fetchGovernanceCorpus(supabase);
+      const exhibit = buildAuthorityExhibit(
+        [...cited],
+        governanceCorpusProvisionsForExhibit(exhibitCorpus),
+      );
+      (reportData as any).authority_exhibit = exhibit;
+      console.log(JSON.stringify({
+        evt: "governance_authority_exhibit_attached", fn: "run-governance-assessment",
+        entries: exhibit.entries.length,
+        pin_verified: exhibit.entries.filter((e) => e.pin_verified).length,
+      }));
+    } catch (axErr) {
+      console.warn("[run-governance-assessment] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
+    }
+
+
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
     // Whitelist top-level keys; internal telemetry survives via
