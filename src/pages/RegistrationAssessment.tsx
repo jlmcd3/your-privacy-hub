@@ -65,6 +65,13 @@ interface IntakeState {
   filing_contact_details_ready: boolean;
   filing_opt_out_mechanism_documented: boolean;
   filing_minors_data_practices_documented: boolean;
+  filing_metrics_documented: boolean;
+  filing_rights_instructions_documented: boolean;
+  // Attestation (optional)
+  approved_by_name: string;
+  approved_by_title: string;
+  approval_date: string;
+  next_review_due: string;
   // Step 3
   has_eu_establishment: boolean;
   has_uk_establishment: boolean;
@@ -116,6 +123,12 @@ const EMPTY: IntakeState = {
   filing_contact_details_ready: false,
   filing_opt_out_mechanism_documented: false,
   filing_minors_data_practices_documented: false,
+  filing_metrics_documented: false,
+  filing_rights_instructions_documented: false,
+  approved_by_name: "",
+  approved_by_title: "",
+  approval_date: "",
+  next_review_due: "",
   has_eu_establishment: false,
   has_uk_establishment: false,
   eu_lead_member_state: "",
@@ -502,6 +515,12 @@ export default function RegistrationAssessment() {
                         <CheckRow checked={intake.filing_minors_data_practices_documented}
                           onChange={(v) => setIntake({ ...intake, filing_minors_data_practices_documented: v })}
                           label="Our position on collecting the personal information of minors is documented" />
+                        <CheckRow checked={intake.filing_metrics_documented}
+                          onChange={(v) => setIntake({ ...intake, filing_metrics_documented: v })}
+                          label="The consumer-request metrics required by Cal. Civ. Code § 1798.99.85(a)(1)-(2) are compiled" />
+                        <CheckRow checked={intake.filing_rights_instructions_documented}
+                          onChange={(v) => setIntake({ ...intake, filing_rights_instructions_documented: v })}
+                          label="We have a page giving consumers prominently displayed instructions on exercising their rights" />
                       </div>
                     )}
                   </div>
