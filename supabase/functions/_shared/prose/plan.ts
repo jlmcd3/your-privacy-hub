@@ -14,6 +14,8 @@
 // Record facts follow, grouped by the theme the engine's own reasoning
 // assigned them — never in intake-field order.
 
+import { lintRegisterText } from "./register-lint.ts";
+
 export const DOCUMENT_PLAN_VERSION = "prose-plans-2026-08-01-item339";
 
 export type ArcStage =
