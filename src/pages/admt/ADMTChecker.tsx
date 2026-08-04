@@ -328,28 +328,28 @@ export default function ADMTChecker() {
 
   const stepValid = (): string | null => {
     if (step === 1) {
-      if (!organizationName.trim()) return "Please tell us which organization is running this assessment.";
-      if (!systemName.trim()) return "Please name your ADMT system.";
+      if (!organizationName.trim()) return "Name the organization running this assessment.";
+      if (!systemName.trim()) return "Name the ADMT system.";
       if (!systemDescription || systemDescription.length < 30)
-        return "Please describe what the system does (at least 30 characters).";
+        return "Describe what the system does — at least 30 characters.";
       if (!decisionDomains.length)
-        return "Please select the significant decision domain(s) this system affects.";
-      if (!humanReview) return "Please describe the human review process for this system's outputs.";
+        return "Select the decision domains this system affects.";
+      if (!humanReview) return "Describe the human review applied to this system's outputs.";
     }
     if (step === 2) {
-      if (!noticeDelivery.length) return "Please indicate how you deliver the Pre-use Notice.";
-      if (!noticeHasSpecificPurpose) return "Please answer whether your notice states a specific purpose.";
+      if (!noticeDelivery.length) return "Select how the Pre-use Notice reaches consumers.";
+      if (!noticeHasSpecificPurpose) return "Answer whether the notice states a specific purpose.";
       if (noticeHasSpecificPurpose === "Yes" && !noticePurposeText.trim())
-        return "Please paste or describe your specific purpose statement.";
-      if (!noticeHasOptOutDesc) return "Please answer whether your notice describes the opt-out right.";
-      if (!noticeHasAccessDesc) return "Please answer whether your notice describes the access right.";
+        return "Provide the specific purpose statement as published.";
+      if (!noticeHasOptOutDesc) return "Answer whether the notice describes the opt-out right.";
+      if (!noticeHasAccessDesc) return "Answer whether the notice describes the access right.";
       if (!noticeHasAntiRetaliation)
-        return "Please answer whether your notice includes the anti-retaliation statement.";
-      if (!noticeHasHowItWorks) return "Please answer whether your notice explains how the ADMT works.";
+        return "Answer whether the notice includes the anti-retaliation statement.";
+      if (!noticeHasHowItWorks) return "Answer whether the notice explains how the ADMT works.";
     }
     if (step === 3) {
       if (!optOutException)
-        return "Please select whether you are providing an opt-out right or relying on an exception.";
+        return "Select either an opt-out right or the exception relied on.";
       if (provideOptOut && optOutMethods.length < 2)
         return "You must provide at least two designated opt-out methods (§ 7221(c)).";
       if (
@@ -357,23 +357,24 @@ export default function ADMTChecker() {
         optOutMethods.includes("Interactive online form linked from the Pre-use Notice") &&
         !optOutLinkTitle.trim()
       )
-        return "Please provide the title of your opt-out link (§ 7221(c)(1)).";
+        return "Give the title of the opt-out link (§ 7221(c)(1)).";
       if (provideOptOut && !optOutConfirmationMechanism)
-        return "Please describe how consumers can confirm their opt-out was processed (§ 7221(h)).";
+        return "Describe how a consumer confirms an opt-out was processed (§ 7221(h)).";
       if (optOutException.startsWith("Human appeal") && !optOutAppealProcess.trim())
-        return "Please describe your human appeal process in detail (§ 7221(b)(1)).";
+        return "Describe the human appeal process (§ 7221(b)(1)).";
       if ((optOutException.startsWith("Hiring") || optOutException.startsWith("Work")) && !optOutFairnessDoc.trim())
-        return "Please describe your fairness/non-discrimination testing documentation (§ 7221(b)(2)-(3)).";
+        return "Describe the non-discrimination testing documentation (§ 7221(b)(2)-(3)).";
     }
     if (step === 4) {
-      if (!accessSubmissionMethods.trim()) return "Please describe how consumers can submit access requests.";
+      if (!accessSubmissionMethods.trim()) return "Describe how consumers submit access requests.";
       if (!accessVerificationProcess.trim())
-        return "Please describe your identity verification process for access requests.";
+        return "Describe the identity verification applied to access requests.";
       if (!accessLogicDisclosure.trim())
-        return "Please describe what logic information you disclose in access responses.";
+        return "Describe the logic information disclosed in access responses.";
       if (!accessOutcomeDisclosure.trim())
-        return "Please describe what outcome information you disclose in access responses.";
-      if (!accessResponseTimeline) return "Please confirm your response timeline.";
+        return "Describe the outcome information disclosed in access responses.";
+      if (!accessResponseTimeline) return "Select the response timeline.";
+
     }
     return null;
   };
