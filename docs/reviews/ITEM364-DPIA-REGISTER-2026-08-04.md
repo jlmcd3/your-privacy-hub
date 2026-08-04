@@ -6,6 +6,33 @@ Status: **authored and seeded UNAPPROVED — awaiting CEO sign-off**
 Prose only. No schema, deliverable, determination-logic, or structural change was
 made; the structural program stays locked.
 
+## WHAT YOU ARE APPROVING
+
+Two database rows for the DPIA product flip from `approved: false` to `approved: true`:
+
+1. **The document plan** — `prose_document_plans` / `dpia`, content hash
+   `abc779df…ad45`. This is the blueprint for how every future DPIA report is
+   composed: its thesis, the order of its sections, the register each section
+   must be written in, its sentence discipline, and the worked exemplars the
+   engine imitates.
+2. **The frame set** — `prose_frame_sets` / `dpia`, content hash
+   `15f55cd8…c034`. These are the pre-written counsel-voice patterns the
+   document uses to state what the customer's record does not yet say.
+
+**What changes for customers.** Once both rows are approved, every *newly
+generated* DPIA is composed to the plan and speaks through the frames. Reports
+already stored in a customer's account are untouched and read exactly as before.
+
+**What does not change.** Determinations, verdicts, scoring, schemas, statutory
+quotes, and the universal disclaimer are not touched by the flip. Only the way
+the prose is written changes.
+
+**How to revert.** Set either row back to `approved: false`. The product returns
+to today's prose on the very next report. No code change and no deployment.
+
+**Before you decide.** Read the BEFORE→AFTER exemplar pairs in this packet, then
+read the first DPIA generated after approval.
+
 ## 1. What landed
 
 | Artifact | Path | State |
