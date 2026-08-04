@@ -243,7 +243,7 @@ Deno.test("ITEM 4 — a resolved corpus produces a law block quoting the resolve
   assertStringIncludes(block, "Where a type of processing");
   const rows = dpiaCorpusProvisionsForExhibit(corpus);
   assertEquals(rows.length, 1);
-  assertEquals(rows[0].corpus_key, "gdpr-art-35");
+  assertEquals(rows[0].key, "gdpr-art-35");
 });
 
 Deno.test("ITEM 4 — only resolved corpus citations are allowed", () => {
