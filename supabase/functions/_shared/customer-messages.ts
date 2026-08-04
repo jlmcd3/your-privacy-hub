@@ -129,7 +129,6 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   opt_out_appeal_process: "opt-out appeal process",
   opt_out_fairness_doc: "opt-out fairness documentation",
   opt_out_15_day_process: "15-business-day opt-out process",
-  opt_out_service_provider_notice: "opt-out notice to service providers",
   access_submission_methods: "access-right submission methods",
   access_verification_process: "access-request verification process",
   access_logic_disclosure: "access-right logic disclosure",

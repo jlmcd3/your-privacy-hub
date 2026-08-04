@@ -764,8 +764,6 @@ const F_CPPA_ADMT_US: SampleFixture = {
         opt_out_confirmation_mechanism: "Confirmation email within 24 hours plus in-app confirmation banner",
         opt_out_15_day_process:
           "Opt-outs processed within 15 business days; confirmation email sent on completion; audit log retained for 24 months",
-        opt_out_service_provider_notice:
-          "Service providers processing on our behalf are notified of opt-outs within 10 business days via the vendor portal and required by contract to cease ADMT processing within 5 business days of notice",
         opt_out_appeal_process: "Applicants who receive an adverse decision may appeal to a senior human underwriter within 30 days; decisions on appeal issued within 15 business days",
         opt_out_fairness_doc: "Quarterly subgroup performance testing (AUC and adverse-impact ratio) across protected classes; results reviewed by the Model Risk Committee and retained for 5 years",
         access_submission_methods: "Same webform as right-to-know requests at privacy.tomorrow4cariboo.example/requests, plus toll-free number and email",
