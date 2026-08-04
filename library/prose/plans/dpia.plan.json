@@ -11,7 +11,7 @@
       "cppa-risk"
     ]
   },
-  "thesis": "This assessment states what the processing is and what the record this organisation supplied will and will not carry. Where the record is silent the document says so. Nothing here is settled until the organisation writes the missing facts down.",
+  "thesis": "This assessment states what the processing is and what the record this organisation supplied will and will not carry. Where the record is silent the document says so, and nothing here is settled until the organisation writes the missing facts down.",
   "sections": [
     {
       "id": "section_0_overview",
@@ -170,7 +170,7 @@
       "id": "xp-dpia-2",
       "section_id": "section_3_necessity_proportionality",
       "before": "However, necessity under data minimisation and the balancing test requires that the processing be the least intrusive effective option — not merely that one alternative was rejected. The record does not yet resolve whether further minimisation within portal-event data (e.g. processing event types rather than full event sequences, or applying pseudonymisation at point of ingest) was considered. Documenting the specific minimisation choices made at the data-model level — which portal-event fields are collected, which are discarded, and why — would strengthen the necessity case and complete the analysis.",
-      "after": "Rejecting one alternative is not the test. The organisation must show that no less intrusive option would have worked. Here the record stops short: it does not say whether narrower event data, or pseudonymisation at ingest, was weighed and set aside. Name the fields kept, name the fields dropped, and say why. That is what turns a colorable case into a documented one.",
+      "after": "Rejecting one alternative is not the test. The organisation must show that no less intrusive option would have worked. Here the record stops short: it does not say whether narrower event data, or pseudonymisation at ingest, was weighed and set aside. Name the fields kept, name the fields dropped, and say why. That is what turns an assertion into a documented case.",
       "note": "Determination first, then the record, then the ask. Breaks one 60-word chain into four sentences of varying length and strips the stacked em-dash asides."
     },
     {
