@@ -125,7 +125,7 @@ export const LIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "GDPR Art. 5",
     subsection: "GDPR Art. 5(1)(c)",
     verbatim_quote:
-      "adequate, relevant and limited to what is necessary in relation to the purposes for which they are processed ('data minimisation');",
+      "adequate, relevant and limited to what is necessary in relation to the purposes for which they are processed (\u2018data minimisation\u2019);",
     depth_class: "sub_subsection",
     governing_anchor: GDPR,
     verified_on: VOD,
