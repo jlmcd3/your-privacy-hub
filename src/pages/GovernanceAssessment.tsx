@@ -284,7 +284,7 @@ const GovernanceAssessment = () => {
         .single();
       if (insErr || !row) {
         setPurchasing(false);
-        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        toast({ title: "Generation failed", description: "Try again.", variant: "destructive" });
         return;
       }
       const { error: fnErr } = await supabase.functions.invoke(
@@ -293,7 +293,7 @@ const GovernanceAssessment = () => {
       );
       setPurchasing(false);
       if (fnErr) {
-        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        toast({ title: "Generation failed", description: "Try again.", variant: "destructive" });
         return;
       }
       void clearDraft();
@@ -302,7 +302,7 @@ const GovernanceAssessment = () => {
     }
 
     if (!pricing.stripeConfigured) {
-      toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
+      toast({ title: "Payments unavailable", description: "Payments are not yet configured — check back soon.", variant: "destructive" });
       return;
     }
     setCheckoutOpen(true);
@@ -828,15 +828,16 @@ const GovernanceAssessment = () => {
           {/* R1a: optional catch-all rendered on the final input step (before the summary). */}
           {!summaryStep && step === totalSteps - 1 && (
             <div className="pt-2 border-t">
-              <Label htmlFor="additional_context">Additional context: anything material to your privacy program not captured above (optional)</Label>
-              <p className="text-xs text-muted-foreground mt-1">Free text. Anything you want the generator to weigh that the questions above didn't cover.</p>
+              <Label htmlFor="additional_context">Anything material to your privacy programme not captured above <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+              <p className="text-xs text-muted-foreground mt-1">Free text the generator weighs alongside your answers. The things that change a finding are usually in motion rather than settled: a re-organisation affecting the reporting line of the person accountable for data protection, a sub-processor shortfall already under review, correspondence from a regulator. Left blank, the report works from the answers above only.</p>
               <textarea
                 id="additional_context"
                 className="mt-2 w-full min-h-24 px-3 py-2 rounded-md border border-input bg-background text-sm"
                 value={additionalContext}
                 onChange={(e) => setAdditionalContext(e.target.value)}
-                placeholder="E.g. pending re-org affecting DPO reporting line; open sub-processor shortfall under review; recent enforcement letter from a state AG."
+                placeholder="A few sentences"
               />
+
             </div>
           )}
 

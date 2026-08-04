@@ -8,7 +8,7 @@ const RETENTION_FLAG: FlagCondition = {
   severity: "warning",
   message: "Indefinite retention is rarely defensible.",
   consequence:
-    "GDPR Art.5(1)(e) requires a defined retention period. 'Indefinitely' is a common audit finding.",
+    "Art. 5(1)(e) requires a defined retention period, and Art. 30(1)(f) asks for the envisaged erasure time limit. An entry reading 'indefinitely' is one of the most commonly cited register findings.",
 };
 
 const LAWFUL_BASIS_OPTIONS = [
@@ -74,7 +74,7 @@ function baseSequence(opts: {
       key: "purpose",
       text: "What is the purpose of this processing activity?",
       whyWeAsk:
-        "Article 30(1)(b) requires the purposes of processing to be documented in your RoPA.",
+        "Art. 30(1)(b) requires the purposes of the processing to be recorded. A purpose specific enough to test necessity against — 'paying salaries and meeting payroll reporting duties' rather than 'HR administration' — is what makes the rest of the entry defensible.",
       type: "text_long",
       isRequired: true,
     },
@@ -82,7 +82,7 @@ function baseSequence(opts: {
       key: "lawful_basis",
       text: "What is your lawful basis for this activity?",
       whyWeAsk:
-        "Every processing activity must rest on a lawful basis (e.g. GDPR Art.6).",
+        "Every activity rests on one Art. 6 basis, chosen before the processing starts and not swapped afterwards. Where the basis is legitimate interests, the register is expected to point to a documented balancing assessment.",
       type: "lawful_basis",
       options: LAWFUL_BASIS_OPTIONS,
       isRequired: true,
@@ -92,14 +92,15 @@ function baseSequence(opts: {
       key: "data_categories",
       text: "What categories of personal data are involved?",
       whyWeAsk:
-        "RoPA must list data categories. This drives downstream risk assessment.",
+        "Art. 30(1)(c) requires the categories of personal data to be described. Naming special-category data explicitly matters here: it changes the Art. 9 position and the risk treatment for the whole activity.",
       type: "text_long",
       isRequired: true,
     },
     {
       key: "data_subjects",
       text: "Who are the data subjects?",
-      whyWeAsk: "RoPA must identify the categories of individuals whose data you process.",
+      whyWeAsk:
+        "Art. 30(1)(c) requires the categories of data subject. Categories rather than counts — employees, job applicants, customers, dependants — and each group listed separately, because their rights and expectations differ.",
       type: "text_short",
       isRequired: true,
     },
@@ -107,7 +108,7 @@ function baseSequence(opts: {
       key: "activity_owner",
       text: "Who owns this activity (name and role)?",
       whyWeAsk:
-        "The CNIL Article 30 register model expects a named owner for each processing activity, so the register shows who is accountable for keeping the entry accurate. It also supports the accountability duty behind Art.30(1)(a), which requires the record to identify the controller and its contacts.",
+        "The CNIL Article 30 register model expects a named owner for each processing activity, so the register shows who is accountable for keeping the entry accurate. It also supports the accountability duty behind Art. 30(1)(a), which requires the record to identify the controller and its contacts.",
       type: "text_short",
       isRequired: false,
     },
@@ -115,7 +116,7 @@ function baseSequence(opts: {
       key: "collection_sources",
       text: "Where does the personal data come from?",
       whyWeAsk:
-        "The CNIL register model records the source of the data for every activity (directly from the individual, from another controller, from a public source, or observed/derived). It also determines whether Art.13 or Art.14 transparency applies.",
+        "The CNIL register model records the source of the data for every activity (directly from the individual, from another controller, from a public source, or observed/derived). It also determines whether Art. 13 or Art. 14 transparency applies.",
       type: "text_long",
       isRequired: false,
     },
@@ -123,7 +124,7 @@ function baseSequence(opts: {
       key: "processing_operations",
       text: "Which processing operations are performed?",
       whyWeAsk:
-        "Art.30(1)(b) requires the purposes of the processing, and the CNIL register model records the operations carried out on the data. The options follow the operations listed in the Art.4(2) definition of 'processing'.",
+        "Art. 30(1)(b) requires the purposes of the processing, and the CNIL register model records the operations carried out on the data. The options follow the operations listed in the Art. 4(2) definition of 'processing'.",
       type: "multi_choice",
       options: PROCESSING_OPERATION_OPTIONS,
       isRequired: false,
@@ -132,7 +133,7 @@ function baseSequence(opts: {
       key: "related_assessments",
       text: "Is this activity covered by an existing LIA or DPIA?",
       whyWeAsk:
-        "Cross-referencing the register to your Legitimate Interests Assessments and Data Protection Impact Assessments shows a supervisory authority that Art.35 screening and Art.6(1)(f) balancing have actually been done for this activity.",
+        "Cross-referencing the register to your Legitimate Interests Assessments and Data Protection Impact Assessments shows a supervisory authority that Art. 35 screening and Art. 6(1)(f) balancing have actually been done for this activity.",
       type: "assessment_reference",
       isRequired: false,
     },
@@ -140,7 +141,7 @@ function baseSequence(opts: {
       key: "retention_period",
       text: "How long do you keep this data?",
       whyWeAsk:
-        "Storage limitation (GDPR Art.5(1)(e)) requires a defined retention period. Art.30(1)(f) requires the envisaged time limits for erasure where possible.",
+        "Storage limitation (GDPR Art. 5(1)(e)) requires a defined retention period. Art. 30(1)(f) requires the envisaged time limits for erasure where possible.",
       type: "date_or_period",
       options: RETENTION_OPTIONS,
       isRequired: true,
@@ -150,7 +151,7 @@ function baseSequence(opts: {
       key: "retention_varies_by_category",
       text: "Does the retention period differ by data category?",
       whyWeAsk:
-        "Art.30(1)(f) asks for the envisaged erasure time limits for each category of data where possible. Answer yes only if different categories are genuinely deleted on different clocks.",
+        "Art. 30(1)(f) asks for the envisaged erasure time limits for each category of data where possible. Answer yes only if different categories are genuinely deleted on different clocks.",
       type: "yes_no",
       isRequired: false,
     },
@@ -158,7 +159,7 @@ function baseSequence(opts: {
       key: "retention_by_category",
       text: "Set out the retention period for each data category.",
       whyWeAsk:
-        "This breakdown is what Art.30(1)(f) contemplates when a single retention period does not describe the activity accurately. It renders in the register only when you complete it.",
+        "This breakdown is what Art. 30(1)(f) contemplates when a single retention period does not describe the activity accurately. It renders in the register only when you complete it.",
       type: "text_long",
       isRequired: false,
       showIf: {
@@ -172,7 +173,7 @@ function baseSequence(opts: {
       key: "security_measures",
       text: "What security measures protect this data?",
       whyWeAsk:
-        "Art.32 requires appropriate technical and organisational measures.",
+        "Art. 30(1)(g) asks for a general description of the Art. 32 measures. Describe what is actually in place for this activity — encryption at rest, role-based access, logging — rather than restating the organisation's security policy.",
       type: "text_long",
       isRequired: true,
     },
@@ -180,7 +181,7 @@ function baseSequence(opts: {
       key: "access_controls",
       text: "Who has access to this data, and how is that access controlled?",
       whyWeAsk:
-        "Documenting access controls supports Art.32 compliance and is expected by most supervisory authorities during audits.",
+        "Access control is where Art. 32 is tested in practice. Recording who holds access, on what basis it is granted, and when it is reviewed answers the question an auditor asks first.",
       type: "text_long",
       isRequired: false,
     },
@@ -214,7 +215,7 @@ const DPIA_CROSSSELL: FlagCondition = {
   flagType: "cross_sell",
   severity: "recommendation",
   message: "This activity is likely to require a DPIA.",
-  consequence: "High-risk processing needs a documented DPIA under Art.35.",
+  consequence: "High-risk processing needs a documented DPIA under Art. 35.",
   actionLabel: "Open the DPIA Framework",
   actionRoute: "/dpia-framework",
 };
@@ -222,7 +223,8 @@ const DPIA_CROSSSELL: FlagCondition = {
 const DPA_CROSSSELL_Q: Question = {
   key: "uses_processors",
   text: "Do third-party processors handle this data?",
-  whyWeAsk: "Art.28 requires a Data Processing Agreement with every processor.",
+  whyWeAsk:
+    "Art. 28 requires a written agreement with every processor, and Art. 30(1)(d) requires processors to appear in the register as recipients. Answer yes if anyone outside the organisation handles this data on your instructions, including hosting and support providers.",
   type: "yes_no",
   isRequired: true,
   flagIf: [
@@ -233,7 +235,7 @@ const DPA_CROSSSELL_Q: Question = {
       severity: "recommendation",
       message: "You'll need a DPA with each processor.",
       consequence:
-        "GDPR Art.28 makes a written DPA mandatory for every processor relationship.",
+        "GDPR Art. 28 makes a written DPA mandatory for every processor relationship.",
       actionLabel: "Generate a DPA",
       actionRoute: "/dpa-generator",
     },
@@ -246,7 +248,7 @@ const PROCESSOR_PLATFORM_Q: Question = {
   key: "processor_platform",
   text: "Which processors or platforms handle this data?",
   whyWeAsk:
-    "Art.30(1)(d) requires you to list the recipients (including processors) of the personal data.",
+    "Art. 30(1)(d) requires the categories of recipient to be listed, processors included. Name the contracting entity for each one, since that is the party the Art. 28 agreement binds.",
   type: "text_long",
   isRequired: true,
   showIf: { questionKey: "uses_processors", operator: "equals", value: "yes" },
@@ -273,7 +275,8 @@ const MARKETING_EMAIL = baseSequence({
     {
       key: "unsubscribe_mechanism",
       text: "Do recipients have a one-click unsubscribe?",
-      whyWeAsk: "Required under GDPR, PECR, and CAN-SPAM.",
+      whyWeAsk:
+        "An accessible opt-out is required under the GDPR, PECR and CAN-SPAM alike. Its absence is a standalone finding rather than an aggravating factor.",
       type: "yes_no",
       isRequired: true,
       flagIf: [
@@ -327,7 +330,8 @@ const TECH_SECURITY = baseSequence({
     {
       key: "incident_log",
       text: "Do you maintain a breach / incident register?",
-      whyWeAsk: "Art.33(5) requires documenting all security incidents.",
+      whyWeAsk:
+      "Art. 33(5) requires every personal data breach to be documented, including those that are never notified. The register is what demonstrates that the decision not to notify was taken rather than overlooked.",
       type: "yes_no",
       isRequired: true,
       flagIf: [
@@ -336,7 +340,7 @@ const TECH_SECURITY = baseSequence({
           value: "no",
           flagType: "missing_required",
           severity: "warning",
-          message: "Breach register required under Art.33(5).",
+          message: "Breach register required under Art. 33(5).",
           consequence:
             "Even non-reportable incidents must be documented. Missing register is a routine audit finding.",
           actionLabel: "Build an Incident Response Playbook",
@@ -352,7 +356,7 @@ const FINANCE_INVOICING = baseSequence({});
 const FINANCE_CREDIT = baseSequence({
   staticInfoCard: {
     title: "Credit assessment is high-risk",
-    body: "Automated credit scoring triggers Art.22 and DPIA obligations.",
+    body: "Automated credit scoring triggers Art. 22 and DPIA obligations.",
   },
 });
 const LEGAL_CONTRACTS = baseSequence({});
@@ -369,13 +373,14 @@ const THIRD_PARTY_TRANSFERS = baseSequence({
     {
       key: "transfer_mechanism",
       text: "Which transfer mechanism do you rely on?",
-      whyWeAsk: "Chapter V of GDPR limits transfers to third countries.",
+      whyWeAsk:
+        "Chapter V permits transfers to a third country only where a listed mechanism carries them. Record the mechanism relied on for this activity, and treat remote support access as a transfer alongside storage.",
       type: "single_choice",
       options: [
         { value: "sccs", label: "Standard Contractual Clauses (SCCs)" },
         { value: "adequacy", label: "Adequacy decision" },
         { value: "bcrs", label: "Binding Corporate Rules" },
-        { value: "derogations", label: "Art.49 derogations" },
+        { value: "derogations", label: "Art. 49 derogations" },
         { value: "none", label: "None / unclear" },
       ],
       isRequired: true,
@@ -403,7 +408,8 @@ const OPS_FACILITIES = baseSequence({
     {
       key: "notices_displayed",
       text: "Are surveillance notices clearly displayed?",
-      whyWeAsk: "Displaying notices is a standalone GDPR transparency obligation.",
+      whyWeAsk:
+        "Signage is how Arts. 13 and 14 are satisfied where there is no other point of contact with the individual. Regulators treat a missing notice as a transparency failure in its own right.",
       type: "yes_no",
       isRequired: true,
       flagIf: [

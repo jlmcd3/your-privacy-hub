@@ -10,6 +10,8 @@ import { useRopaSessionParam, withSession } from "@/lib/ropaSession";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
 import { getPersonalDataExamplesForSector } from "@/data/ropa-personal-data-examples";
+import WhyWeAsk from "@/components/intake/WhyWeAsk";
+
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -454,12 +456,8 @@ export default function RopaActivity() {
                     </span>
                   )}
                 </label>
-                <details className="mb-3 text-sm">
-                  <summary className="cursor-pointer text-muted-foreground min-h-[32px] flex items-center">
-                    ⓘ Why we ask this
-                  </summary>
-                  <p className="mt-2 text-muted-foreground">{q.whyWeAsk}</p>
-                </details>
+                <WhyWeAsk>{q.whyWeAsk}</WhyWeAsk>
+
 
                 {q.key === "data_categories" && (
                   <details className="mb-3 text-sm">

@@ -170,13 +170,13 @@ export default function IRPlaybook() {
 
   const handleGenerate = async () => {
     if (!form.organizationName.trim()) {
-      toast.error("Organisation required", { description: "Tell us the name of the organisation the playbook is for." });
+      toast.error("Organisation required", { description: "Name the organisation this playbook is written for." });
       return;
     }
     const discoveryDate = new Date(form.discoveryDateTime);
     if (isNaN(discoveryDate.getTime()) || discoveryDate > new Date()) {
       toast.error("Invalid date", {
-        description: "The discovery date cannot be in the future. A breach response playbook requires a date when the incident was actually discovered.",
+        description: "The discovery date cannot be in the future. Enter the date the incident was actually discovered.",
       });
       return;
     }
@@ -218,7 +218,7 @@ export default function IRPlaybook() {
     const payload = { ...base, ...standing };
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...payload, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.id) {
-      setResult("Generation failed. Please try again.");
+      setResult("Generation failed — try again.");
       setPhase("result");
       return;
     }
@@ -302,21 +302,28 @@ export default function IRPlaybook() {
             />
             <h2 className="font-display text-brand-navy">Incident details</h2>
             <p className="text-xs font-mono text-muted-foreground">Art. 4(12) GDPR — personal data breach · Art. 33 — 72-hour supervisory authority notification · Art. 34 — communication to data subjects</p>
+            <p className="text-sm text-muted-foreground">These facts set which regulators the playbook covers, which deadlines it counts from, and whether Art. 34 communication to individuals comes into play. Answer on what is known now; the playbook is written to be revised as scoping develops.</p>
             <RequiredLegend />
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation<Req /></span>
-              <input type="text" placeholder="e.g. Acme Retail Ltd" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organizationName} onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))} /></label>
-            <label className="block text-sm"><span className="font-semibold text-brand-navy">Date & time of discovery<Req /></span>
+              <span className="block text-meta text-muted-foreground">The entity that carries the notification duty, which is the controller rather than the affected business unit.</span>
+              <input type="text" placeholder="Legal entity name" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organizationName} onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))} /></label>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Date and time of discovery<Req /></span>
+              <span className="block text-meta text-muted-foreground">Every deadline in the playbook is counted from this timestamp, so record it in UTC as it was actually logged.</span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Apparent cause <DefPopover termKey="gdpr_personal_data_breach" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(12) GDPR)</span></span>
+              <span className="block text-meta text-muted-foreground">The working hypothesis, not a conclusion. "Unknown — still investigating" is an honest early answer and the playbook is written accordingly.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>
                 {CAUSES.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Data types affected<Req /></legend>
+              <span className="block text-meta text-muted-foreground">Special-category and children's data change the risk assessment and can pull Art. 34 communication forward. Select every type in scope, including the ones still being confirmed.</span>
               <div className="grid grid-cols-2 gap-1 mt-1">{DATA_TYPES.map(d => <label key={d} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.dataTypes.includes(d)} onChange={() => toggle("dataTypes", d)} />{d}</label>)}</div></fieldset>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Affected individuals</span>
+              <span className="block text-meta text-muted-foreground">A banded estimate is enough at this stage; Art. 33(3)(a) permits approximation.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedCount} onChange={e => setForm(f => ({ ...f, affectedCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_breach_notification" /> <span className="text-xs text-muted-foreground font-mono">(Art. 33 GDPR — notify supervisory authority within 72 hours)</span></legend>
+              <span className="block text-meta text-muted-foreground">Each selection adds its own regulator, deadline and filing portal to the timeline. Select by where the affected individuals are, not only where the organisation is established.</span>
               <div className="mt-1 space-y-3">{JUR_GROUPS.map(g => (
                 <div key={g.label}>
                   <div className="text-meta font-semibold text-brand-navy/70 uppercase tracking-wide mb-1">{g.label}</div>
@@ -324,95 +331,132 @@ export default function IRPlaybook() {
                     <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div>
                 </div>
               ))}</div></fieldset>
-            <label className="block text-sm"><span className="font-semibold text-brand-navy">Contained?</span>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Is the incident contained?</span>
+              <span className="block text-meta text-muted-foreground">Containment does not pause the notification clock, but it changes the sequencing of the first-day actions.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.contained} onChange={e => setForm(f => ({ ...f, contained: e.target.value }))}>
                 <option>Yes</option><option>No</option><option>Unknown</option></select></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
+              <span className="block text-meta text-muted-foreground">Sector regulators add their own duties — HIPAA, NYDFS and financial-sector reporting sit on top of the general regime.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organisationType} onChange={e => setForm(f => ({ ...f, organisationType: e.target.value }))}>
                 {ORG_TYPES.map(o => <option key={o}>{o}</option>)}</select></label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm"><span className="font-semibold text-brand-navy">Affected data encrypted? <span className="text-xs text-muted-foreground font-mono">(Art. 34(3)(a))</span></span>
+              <label className="block text-sm"><span className="font-semibold text-brand-navy">Was the affected data encrypted? <span className="text-xs text-muted-foreground font-mono">(Art. 34(3)(a))</span></span>
+                <span className="block text-meta text-muted-foreground">Art. 34(3)(a) can remove the duty to communicate to individuals where the data is unintelligible to whoever obtained it.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.encryptionStatus} onChange={e => setForm(f => ({ ...f, encryptionStatus: e.target.value }))}>
                   <option>All affected data encrypted / rendered unintelligible</option>
                   <option>Some affected data encrypted</option>
                   <option>No affected data encrypted</option>
                   <option>Unknown</option></select></label>
               <label className="block text-sm"><span className="font-semibold text-brand-navy">Encryption key status</span>
+                <span className="block text-meta text-muted-foreground">Encryption only helps where the keys held. Compromised keys collapse the Art. 34(3)(a) position.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.encryptionKeyStatus} onChange={e => setForm(f => ({ ...f, encryptionKeyStatus: e.target.value }))}>
                   <option>Keys not compromised</option>
                   <option>Keys compromised or possibly compromised</option>
                   <option>Not applicable — no encryption</option>
                   <option>Unknown</option></select></label>
               <label className="block text-sm"><span className="font-semibold text-brand-navy">Approximate number of data subjects <span className="text-xs text-muted-foreground font-mono">(Art. 33(3)(a))</span></span>
-                <input type="text" placeholder="e.g. approx. 41,800" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedDataSubjectCount} onChange={e => setForm(f => ({ ...f, affectedDataSubjectCount: e.target.value }))} /></label>
+                <span className="block text-meta text-muted-foreground">The notification states this figure as an approximation, so an honest estimate is preferred to a blank.</span>
+                <input type="text" placeholder="Approximate figure" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedDataSubjectCount} onChange={e => setForm(f => ({ ...f, affectedDataSubjectCount: e.target.value }))} /></label>
               <label className="block text-sm"><span className="font-semibold text-brand-navy">Approximate number of personal data records <span className="text-xs text-muted-foreground font-mono">(Art. 33(3)(a))</span></span>
-                <input type="text" placeholder="e.g. approx. 63,400" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedRecordCount} onChange={e => setForm(f => ({ ...f, affectedRecordCount: e.target.value }))} /></label>
+                <span className="block text-meta text-muted-foreground">Records and data subjects are counted separately: one person can appear in many records.</span>
+                <input type="text" placeholder="Approximate figure" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedRecordCount} onChange={e => setForm(f => ({ ...f, affectedRecordCount: e.target.value }))} /></label>
             </div>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Awareness timestamp status <span className="text-xs text-muted-foreground font-mono">(Art. 33(1) — awareness, not detection, starts the clock)</span></span>
+              <span className="block text-meta text-muted-foreground">Awareness is a reasonable degree of certainty that a breach occurred, which can fall later than the first alert. Where the two differ, the playbook records the basis on which the clock was started.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.awarenessConfirmed} onChange={e => setForm(f => ({ ...f, awarenessConfirmed: e.target.value }))}>
                 <option>Confirmed — discovery timestamp verified as the moment of awareness</option>
                 <option>Assumed — detection timestamp treated as awareness pending confirmation</option>
                 <option>Unknown</option></select></label>
 
+
             {/* ── ITEM 369-IR — STANDING PLAYBOOK (pre-incident) ──────────
-                Optional throughout. This intake is written BEFORE any
-                incident, which is why the statutory rail applies to it and
-                why nothing here blocks generation. */}
-            <details className="border border-border rounded-xl p-4">
-              <summary className="cursor-pointer font-semibold text-brand-navy text-sm">
-                Standing playbook (optional — pre-incident preparation)
-              </summary>
-              <p className="text-meta text-muted-foreground mt-2 mb-4">
-                Anything left blank is recorded as not yet recorded, with the missing item named. Nothing here is invented on your behalf.
-              </p>
+                Optional throughout, and written BEFORE any incident, which is
+                why the statutory rail applies to it and why nothing here
+                blocks generation. DISPATCH 7: the section is no longer
+                collapsed — it runs as four consequence-invited groups in the
+                order rosters → contacts → thresholds → contracts. */}
+            <div className="border-t border-border pt-6 space-y-6">
+              <div>
+                <h2 className="font-display text-brand-navy">Standing playbook <span className="text-sm font-normal text-muted-foreground">(optional)</span></h2>
+                <p className="text-meta text-muted-foreground mt-1">
+                  Everything below is written before an incident, when there is time to get it right. Whatever you record here appears in the playbook as your own standing arrangements; whatever you leave blank is named in the report as not yet recorded, and nothing is invented on your behalf.
+                </p>
+                <p className="text-meta text-muted-foreground mt-2">
+                  The blank incident worksheet delivered alongside the playbook is filled in during a live incident and needs nothing from this form.
+                </p>
+              </div>
+
+              {/* GROUP 1 — ROSTERS */}
               <div className="space-y-4">
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Activation criteria</span>
-                  <span className="block text-meta text-muted-foreground">One observable event per line.</span>
-                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.activationCriteriaText} onChange={e => setForm(f => ({ ...f, activationCriteriaText: e.target.value }))} /></label>
-
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Severity matrix</span>
-                  <span className="block text-meta text-muted-foreground">One level per line: level | definition | escalation consequence</span>
-                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.severityMatrixText} onChange={e => setForm(f => ({ ...f, severityMatrixText: e.target.value }))} /></label>
-
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Rosters — who responds</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">Names the people the playbook can call on, so the first hour is spent responding rather than working out who is responsible.</p>
+                </div>
                 <label className="block text-sm"><span className="font-semibold text-brand-navy">Response team and alternates</span>
-                  <span className="block text-meta text-muted-foreground">One role per line: role | primary (name, title) | alternate (name, title)</span>
-                  <textarea rows={5} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.responseTeamRosterText} onChange={e => setForm(f => ({ ...f, responseTeamRosterText: e.target.value }))} /></label>
+                  <span className="block text-meta text-muted-foreground">Every role needs a named alternate: incidents are discovered at night and in August. One role per line.</span>
+                  <textarea rows={5} placeholder="Role | primary | alternate" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.responseTeamRosterText} onChange={e => setForm(f => ({ ...f, responseTeamRosterText: e.target.value }))} /></label>
 
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Who can authorise systems being taken offline</span>
+                  <span className="block text-meta text-muted-foreground">Containment often means disconnecting something the business depends on. A role that can make that call at 3am, rather than a committee.</span>
+                  <input type="text" placeholder="Role or name" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.itIsolationAuthority} onChange={e => setForm(f => ({ ...f, itIsolationAuthority: e.target.value }))} /></label>
+              </div>
+
+              {/* GROUP 2 — CONTACTS */}
+              <div className="space-y-4 border-t border-border pt-5">
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Contacts — who is called from outside</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">External parties carry their own clocks. Insurers commonly impose a notification condition tighter than the statutory deadline, and cover can be prejudiced by a late call.</p>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Outside counsel</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselName} onChange={e => setForm(f => ({ ...f, outsideCounselName: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">Firm and named partner.</span>
+                    <input type="text" placeholder="Firm and partner" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselName} onChange={e => setForm(f => ({ ...f, outsideCounselName: e.target.value }))} /></label>
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Counsel out-of-hours route</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselContact} onChange={e => setForm(f => ({ ...f, outsideCounselContact: e.target.value }))} /></label>
-                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Insurer and notification condition</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.insurerContact} onChange={e => setForm(f => ({ ...f, insurerContact: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">A route that answers outside office hours, not a switchboard.</span>
+                    <input type="text" placeholder="Phone or pager route" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselContact} onChange={e => setForm(f => ({ ...f, outsideCounselContact: e.target.value }))} /></label>
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Insurer and its notification condition</span>
+                    <span className="block text-meta text-muted-foreground">Record the deadline the policy imposes, which is frequently shorter than 72 hours.</span>
+                    <input type="text" placeholder="Insurer and deadline" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.insurerContact} onChange={e => setForm(f => ({ ...f, insurerContact: e.target.value }))} /></label>
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Forensic vendor and callout window</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.forensicVendorContact} onChange={e => setForm(f => ({ ...f, forensicVendorContact: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">A retainer with a stated response time is what makes this usable mid-incident.</span>
+                    <input type="text" placeholder="Vendor and response time" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.forensicVendorContact} onChange={e => setForm(f => ({ ...f, forensicVendorContact: e.target.value }))} /></label>
                   <label className="block text-sm"><span className="font-semibold text-brand-navy">Law enforcement contact</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.lawEnforcementContact} onChange={e => setForm(f => ({ ...f, lawEnforcementContact: e.target.value }))} /></label>
-                  <label className="block text-sm"><span className="font-semibold text-brand-navy">IT isolation authority</span>
-                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.itIsolationAuthority} onChange={e => setForm(f => ({ ...f, itIsolationAuthority: e.target.value }))} /></label>
+                    <span className="block text-meta text-muted-foreground">The unit and route you would actually use — a national cybercrime reporting line counts.</span>
+                    <input type="text" placeholder="Unit and route" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.lawEnforcementContact} onChange={e => setForm(f => ({ ...f, lawEnforcementContact: e.target.value }))} /></label>
                 </div>
 
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={form.privilegeProtocol} onChange={e => setForm(f => ({ ...f, privilegeProtocol: e.target.checked }))} />
-                  <span className="font-semibold text-brand-navy">A privilege protocol is in place with counsel</span>
+                <label className="flex items-start gap-2 text-sm">
+                  <input type="checkbox" className="mt-1" checked={form.privilegeProtocol} onChange={e => setForm(f => ({ ...f, privilegeProtocol: e.target.checked }))} />
+                  <span><span className="font-semibold text-brand-navy">A privilege protocol is in place with counsel</span>
+                    <span className="block text-meta text-muted-foreground font-normal">A written arrangement routing forensic work through counsel. Where it exists, the playbook says so; where it does not, the playbook records the exposure rather than assuming privilege.</span></span>
                 </label>
+              </div>
+
+              {/* GROUP 3 — THRESHOLDS */}
+              <div className="space-y-4 border-t border-border pt-5">
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Thresholds — what starts the clock</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">Sets the point at which an event becomes an incident and the evidence available at that moment. Art. 33(1) runs from awareness, so a defined trigger is what makes the 72 hours measurable afterwards.</p>
+                </div>
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Activation criteria</span>
+                  <span className="block text-meta text-muted-foreground">Observable events rather than judgements — an alert firing, a report received. One per line.</span>
+                  <textarea rows={4} placeholder="One event per line" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.activationCriteriaText} onChange={e => setForm(f => ({ ...f, activationCriteriaText: e.target.value }))} /></label>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Severity matrix</span>
+                  <span className="block text-meta text-muted-foreground">Each level earns its place by carrying a consequence — who is woken, what is convened. One level per line.</span>
+                  <textarea rows={4} placeholder="Level | definition | escalation" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.severityMatrixText} onChange={e => setForm(f => ({ ...f, severityMatrixText: e.target.value }))} /></label>
 
                 <label className="block text-sm"><span className="font-semibold text-brand-navy">Key systems holding personal data</span>
-                  <span className="block text-meta text-muted-foreground">One system per line.</span>
-                  <textarea rows={3} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.keySystemsText} onChange={e => setForm(f => ({ ...f, keySystemsText: e.target.value }))} /></label>
+                  <span className="block text-meta text-muted-foreground">The systems scoping would have to reach on day one. One per line.</span>
+                  <textarea rows={3} placeholder="One system per line" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.keySystemsText} onChange={e => setForm(f => ({ ...f, keySystemsText: e.target.value }))} /></label>
 
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Log sources</span>
-                  <span className="block text-meta text-muted-foreground">One source per line, with its retention period.</span>
-                  <textarea rows={3} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.logSourcesText} onChange={e => setForm(f => ({ ...f, logSourcesText: e.target.value }))} /></label>
-
-                <label className="block text-sm"><span className="font-semibold text-brand-navy">Contracts carrying breach-notice obligations</span>
-                  <span className="block text-meta text-muted-foreground">One contract per line: counterparty | notice deadline | clause reference</span>
-                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.breachNoticeContractsText} onChange={e => setForm(f => ({ ...f, breachNoticeContractsText: e.target.value }))} /></label>
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Log sources and how long they are kept</span>
+                  <span className="block text-meta text-muted-foreground">Retention shorter than typical dwell time is the constraint worth knowing before an incident, not during one. One source per line.</span>
+                  <textarea rows={3} placeholder="Source | retention period" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.logSourcesText} onChange={e => setForm(f => ({ ...f, logSourcesText: e.target.value }))} /></label>
 
                 <fieldset className="text-sm">
                   <legend className="font-semibold text-brand-navy">First-hour checklist — confirm the steps already provided for</legend>
-                  <span className="block text-meta text-muted-foreground mb-1">Confirmation only. The checklist items themselves are fixed and are not authored here.</span>
+                  <span className="block text-meta text-muted-foreground mb-1">Confirmation only: the checklist itself is fixed and is not authored here. Unticked steps appear in the playbook as gaps in first-hour readiness.</span>
                   <div className="grid sm:grid-cols-2 gap-1 mt-1">
                     {FIRST_HOUR_CONFIRMATIONS.map(o => (
                       <label key={o.id} className="flex items-start gap-2 text-meta">
@@ -425,9 +469,22 @@ export default function IRPlaybook() {
                 </fieldset>
 
                 <label className="block text-sm"><span className="font-semibold text-brand-navy">Next planned tabletop exercise <span className="text-xs text-muted-foreground font-mono">(Art. 32(1)(d))</span></span>
+                  <span className="block text-meta text-muted-foreground">Art. 32(1)(d) asks for regular testing of the measures. A scheduled date is the evidence that the plan is exercised rather than filed.</span>
                   <input type="date" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.nextTabletopDate} onChange={e => setForm(f => ({ ...f, nextTabletopDate: e.target.value }))} /></label>
               </div>
-            </details>
+
+              {/* GROUP 4 — CONTRACTS */}
+              <div className="space-y-4 border-t border-border pt-5">
+                <div>
+                  <h3 className="font-semibold text-brand-navy text-sm">Contracts — deadlines you owe other parties</h3>
+                  <p className="text-meta text-muted-foreground mt-0.5">Customer and processor contracts routinely carry notice deadlines shorter than the statutory ones. Recorded here, they are sequenced into the playbook's timeline instead of being discovered after they have passed.</p>
+                </div>
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Contracts carrying breach-notice obligations</span>
+                  <span className="block text-meta text-muted-foreground">The clause reference matters as much as the deadline: it is what a reviewer checks the commitment against. One contract per line.</span>
+                  <textarea rows={4} placeholder="Counterparty | deadline | clause" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.breachNoticeContractsText} onChange={e => setForm(f => ({ ...f, breachNoticeContractsText: e.target.value }))} /></label>
+              </div>
+            </div>
+
 
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             <FreeRunIndicator toolKey="ir_playbook" />

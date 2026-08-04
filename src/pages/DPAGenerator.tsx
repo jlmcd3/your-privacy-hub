@@ -107,17 +107,17 @@ export default function DPAGenerator() {
   };
 
   const validateForm = (): string | null => {
-    if (!form.entityName.trim()) return "Please enter your entity name.";
-    if (!form.controllerName.trim()) return "Please enter the Controller name.";
-    if (!form.processorName.trim()) return "Please enter the Processor name.";
-    if (!form.services.trim()) return "Please describe the Services to be provided.";
-    if (form.dataCategories.length === 0) return "Please select at least one data category.";
-    if (!form.retentionChoice) return "Please choose a retention / deletion option.";
-    if (form.retentionChoice === "Fixed period — specify" && !form.retentionFixedText.trim()) return "Please specify the fixed retention period.";
-    if (!form.auditRightsChoice) return "Please choose an audit-rights option.";
-    if (form.auditRightsChoice === "Custom — describe" && !form.auditRightsOtherText.trim()) return "Please describe the custom audit-rights arrangement.";
-    if (!form.transfersInvolved) return "Please answer whether the processing involves cross-jurisdiction transfers.";
-    if (form.transfersInvolved === "Yes" && !form.transferMechanism) return "Please select the transfer mechanism in place.";
+    if (!form.entityName.trim()) return "Name your organisation.";
+    if (!form.controllerName.trim()) return "Name the controller.";
+    if (!form.processorName.trim()) return "Name the processor.";
+    if (!form.services.trim()) return "Describe the services the processor will provide.";
+    if (form.dataCategories.length === 0) return "Select at least one data category.";
+    if (!form.retentionChoice) return "Choose what happens to the data at the end of the services.";
+    if (form.retentionChoice === "Fixed period — specify" && !form.retentionFixedText.trim()) return "State the fixed retention period.";
+    if (!form.auditRightsChoice) return "Choose an audit-rights arrangement.";
+    if (form.auditRightsChoice === "Custom — describe" && !form.auditRightsOtherText.trim()) return "Describe the custom audit-rights arrangement.";
+    if (!form.transfersInvolved) return "Answer whether the processing involves cross-jurisdiction transfers.";
+    if (form.transfersInvolved === "Yes" && !form.transferMechanism) return "Select the transfer mechanism in place.";
     return null;
   };
 
@@ -177,12 +177,12 @@ export default function DPAGenerator() {
       .select("id")
       .single();
     if (insErr || !row) {
-      setResult(`Generation failed: ${insErr?.message || "Could not start generation. Please try again."}`);
+      setResult(`Generation failed: ${insErr?.message || "Could not start generation — try again."}`);
       setPhase("result");
       return;
     }
     const timeout = new Promise<never>((_, reject) =>
-      window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
+      window.setTimeout(() => reject(new Error("Generation timed out — try again.")), 100_000)
     );
     const response = await Promise.race([
       supabase.functions.invoke("generate-dpa", { body: { assessment_id: row.id } }),
@@ -190,7 +190,7 @@ export default function DPAGenerator() {
     ]).catch((error) => ({ data: null, error }));
     const { error } = response as { data: unknown; error: { message?: string } | null };
     if (error) {
-      const msg = error?.message || "Generation failed. Please try again.";
+      const msg = error?.message || "Generation failed — try again.";
       setResult(`Generation failed: ${msg}`);
       setPhase("result");
       return;
@@ -321,15 +321,19 @@ export default function DPAGenerator() {
         ) : (
 
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <h2 className="font-display text-brand-navy">DPA Intake</h2>
+            <h2 className="font-display text-brand-navy">Agreement parameters</h2>
             <p className="text-xs font-mono text-muted-foreground">Art. 28 GDPR — controller-processor contracts · Art. 28(3)(a)–(h) — eight mandatory clauses</p>
+            <p className="text-sm text-muted-foreground">Each answer below selects clause language rather than describing it. The two jurisdictions decide which regime the document is drafted under, and the retention, audit and transfer answers decide the wording of three clauses Art. 28(3) requires by name.</p>
             <div className="space-y-3 text-sm">
               <RequiredLegend />
-              <label className="block"><span className="font-semibold text-brand-navy">Entity name<Req /> <span className="text-xs text-muted-foreground">(your organisation — the party engaging this DPA on your side)</span></span>
-                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="e.g., Acme Retail, Inc." value={form.entityName} onChange={e => setForm(f => ({ ...f, entityName: e.target.value }))} autoComplete="organization" /></label>
+              <label className="block"><span className="font-semibold text-brand-navy">Your organisation<Req /></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">The party commissioning this draft. It appears on the drafting record, not in the operative clauses.</span>
+                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Legal entity name" value={form.entityName} onChange={e => setForm(f => ({ ...f, entityName: e.target.value }))} autoComplete="organization" /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller name<Req /> <DefPopover termKey="gdpr_controller" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(7) GDPR)</span></span>
-                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
+                <span className="block text-meta text-muted-foreground mt-0.5">The party determining the purposes and means. Use the full legal name as it appears on the principal agreement, not a trading name.</span>
+                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Legal entity name" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller jurisdiction</span>
+                <span className="block text-meta text-muted-foreground mt-0.5">The place of establishment, which sets the governing regime for the draft — EU/UK Art. 28 terms, US state processor terms, or a dual-compliance document.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.controllerJurisdiction} onChange={e => setForm(f => ({ ...f, controllerJurisdiction: e.target.value }))}>
                   <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
@@ -337,8 +341,10 @@ export default function DPAGenerator() {
                   <optgroup label=" Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
               <label className="block"><span className="font-semibold text-brand-navy">Processor name<Req /> <DefPopover termKey="gdpr_processor" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(8) GDPR)</span></span>
-                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
+                <span className="block text-meta text-muted-foreground mt-0.5">The party processing on the controller's behalf. Name the contracting entity, which is often a subsidiary rather than the group brand.</span>
+                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Legal entity name" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Processor jurisdiction <DefPopover termKey="gdpr_sccs" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–46 GDPR — transfer mechanism triggered when outside EEA)</span></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Where this pair of jurisdictions crosses the EEA boundary, the draft carries a Chapter V transfer clause built on the mechanism you select below.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorJurisdiction} onChange={e => setForm(f => ({ ...f, processorJurisdiction: e.target.value }))}>
                   <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
@@ -346,15 +352,18 @@ export default function DPAGenerator() {
                   <optgroup label=" Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
               <label className="block"><span className="font-semibold text-brand-navy">Services description<Req /> <DefPopover termKey="gdpr_processor_contract" /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR — subject matter and nature of processing)</span></span>
-                <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
+                <span className="block text-meta text-muted-foreground mt-0.5">This becomes the subject matter and nature of the processing in the operative clause, so it also bounds the documented instructions. A description that names the operations — hosting, support access, analytics on aggregated output — draws a clearer boundary than a product name.</span>
+                <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} placeholder="Two or three sentences" value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
 
               <fieldset><legend className="font-semibold text-brand-navy">Data categories<Req /></legend>
+                <span className="block text-meta text-muted-foreground mt-0.5">These populate the schedule describing the personal data covered. Special-category selections pull additional safeguards into the security clause.</span>
                 <div className="grid grid-cols-2 gap-1.5 mt-1">
                   {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
                 </div></fieldset>
 
-              <label className="block"><span className="font-semibold text-brand-navy">Retention / deletion at end of services<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(g) GDPR)</span></span>
+              <label className="block"><span className="font-semibold text-brand-navy">Retention and deletion at the end of the services<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(g) GDPR)</span></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Art. 28(3)(g) requires the agreement to fix this in advance. "As directed" keeps the choice with the controller at termination; "duration of the principal agreement" ties deletion to that contract ending; a fixed period sets a date the processor can be held to.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.retentionChoice} onChange={e => setForm(f => ({ ...f, retentionChoice: e.target.value as typeof f.retentionChoice }))}>
                   <option value="">— select an option —</option>
                   <option value="As directed by the Controller's documented instructions">As directed by the Controller's documented instructions</option>
@@ -362,11 +371,12 @@ export default function DPAGenerator() {
                   <option value="Fixed period — specify">Fixed period — specify</option>
                 </select>
                 {form.retentionChoice === "Fixed period — specify" && (
-                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="e.g., 24 months from termination" value={form.retentionFixedText} onChange={e => setForm(f => ({ ...f, retentionFixedText: e.target.value }))} />
+                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="e.g. 24 months from termination" value={form.retentionFixedText} onChange={e => setForm(f => ({ ...f, retentionFixedText: e.target.value }))} />
                 )}
               </label>
 
               <label className="block"><span className="font-semibold text-brand-navy">Audit rights<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(h) GDPR)</span></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Art. 28(3)(h) requires the processor to make compliance demonstrable and allow audits. Documentation review relies on the processor's own reports; an annual audit adds a right of inspection; the enhanced option adds notice-based on-site access and continuous evidence. Larger processors frequently negotiate the last one down.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.auditRightsChoice} onChange={e => setForm(f => ({ ...f, auditRightsChoice: e.target.value as typeof f.auditRightsChoice }))}>
                   <option value="">— select an option —</option>
                   <option value="Documentation review — Processor provides audit reports/certifications on request">Documentation review — Processor provides audit reports/certifications on request</option>
@@ -375,11 +385,12 @@ export default function DPAGenerator() {
                   <option value="Custom — describe">Custom — describe</option>
                 </select>
                 {form.auditRightsChoice === "Custom — describe" && (
-                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="Describe the audit arrangement" value={form.auditRightsOtherText} onChange={e => setForm(f => ({ ...f, auditRightsOtherText: e.target.value }))} />
+                  <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="One or two sentences" value={form.auditRightsOtherText} onChange={e => setForm(f => ({ ...f, auditRightsOtherText: e.target.value }))} />
                 )}
               </label>
 
-              <label className="block"><span className="font-semibold text-brand-navy">Does the processing involve transfers of personal data across the jurisdictions above (or onward to third countries)?<Req /></span>
+              <label className="block"><span className="font-semibold text-brand-navy">Does the processing move personal data across the jurisdictions above, or onward to a third country?<Req /></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Remote support access and offshore sub-processors count, not only where the data is stored at rest.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.transfersInvolved} onChange={e => setForm(f => ({ ...f, transfersInvolved: e.target.value as typeof f.transfersInvolved, transferMechanism: e.target.value === "Yes" ? f.transferMechanism : "" }))}>
                   <option value="">— select an option —</option>
                   <option value="Yes">Yes</option>
@@ -389,6 +400,7 @@ export default function DPAGenerator() {
 
               {form.transfersInvolved === "Yes" && (
                 <label className="block"><span className="font-semibold text-brand-navy">Transfer mechanism in place<Req /></span>
+                  <span className="block text-meta text-muted-foreground mt-0.5">The mechanism selected here is the one the transfer clause is drafted around. "None in place yet" is a real answer: the draft then carries the clause with the mechanism marked as outstanding rather than asserting cover you do not have.</span>
                   <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.transferMechanism} onChange={e => setForm(f => ({ ...f, transferMechanism: e.target.value as typeof f.transferMechanism }))}>
                     <option value="">— select a mechanism —</option>
                     <option value="EU Standard Contractual Clauses (SCCs)">EU Standard Contractual Clauses (SCCs)</option>
@@ -399,6 +411,7 @@ export default function DPAGenerator() {
                   </select>
                 </label>
               )}
+
             </div>
             <div className="border-t border-border pt-4 mt-4 text-meta text-muted-foreground">Sample preview:</div>
             <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
