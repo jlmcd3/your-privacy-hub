@@ -1193,12 +1193,34 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
     }
 
+
+    // ── GOVERNANCE UPGRADE ITEM 5 — CORPUS INTO THE ANALYSIS ───────────
+    // Arts. 5(2), 24, 30, 37-39 resolved at runtime from `provision_texts`
+    // through the closed-set resolver. No statutory text is compiled in; a
+    // resolver miss degrades honestly to a citation-only law block.
+    let governanceCorpusLawBlock = "";
+    try {
+      const { fetchGovernanceCorpus, buildGovernanceCorpusLawBlock } = await import(
+        "../_shared/ltp/governance-corpus.ts"
+      );
+      const govCorpus = await fetchGovernanceCorpus(supabase);
+      governanceCorpusLawBlock = buildGovernanceCorpusLawBlock(govCorpus);
+      console.log(JSON.stringify({
+        evt: "governance_corpus_resolved", fn: "run-governance-assessment",
+        resolved: govCorpus.resolved_count, approved: govCorpus.approved_count,
+        version: govCorpus.version,
+      }));
+    } catch (e) {
+      console.warn("[Governance] governance corpus resolve failed (non-fatal):", (e as Error)?.message);
+    }
+
     const synthesisSystem = buildSystemContent({
       toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
       currentDate: today,
       injected: [
         gdprCitationsBlock,
         gdprAuthorityBlock,
+        governanceCorpusLawBlock,
         `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
       ].filter(Boolean).join("\n\n"),
       cache: true,
