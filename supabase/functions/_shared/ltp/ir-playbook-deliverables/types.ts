@@ -45,8 +45,11 @@
  */
 
 import type { NotificationRegime } from "./elements.ts";
+import type { EdpbArt33TemplateMapping } from "./edpb-art33-template.ts";
 
 export type { NotificationRegime };
+export type { EdpbArt33TemplateMapping };
+
 
 export type DeliverableStatus = "analysed" | "record_insufficient";
 
