@@ -22,6 +22,9 @@ const ITEMS = [
   { table: "prose_document_plans", column: "plan", product: "governance", rel: "plans/governance.plan.json" },
   { table: "prose_document_plans", column: "plan", product: "registration", rel: "plans/registration.plan.json" },
   { table: "prose_frame_sets", column: "frames", product: "registration", rel: "frames/registration.frames.json" },
+  { table: "prose_document_plans", column: "plan", product: "biometric", rel: "plans/biometric.plan.json" },
+  { table: "prose_frame_sets", column: "frames", product: "biometric", rel: "frames/biometric.frames.json" },
+
 
 ] as const;
 

@@ -1,0 +1,182 @@
+{
+  "product": "biometric",
+  "version": "prose-plans-2026-08-04-item364-d4",
+  "approved": false,
+  "provenance": {
+    "method": "report_keys",
+    "donors_total": 31,
+    "donors_with_text": 31,
+    "extracted_at": "2026-08-04",
+    "exemplars": [
+      "cppa-risk",
+      "dpia",
+      "lia",
+      "registration"
+    ]
+  },
+  "thesis": "Each biometric statute in scope is its own template. This assessment applies each one in its own words rather than in a common frame. A duty is stated as the statute states it, the practice the record describes is set beside it, and the conclusion follows from the two. Where the record is silent the duty is left unresolved and what would settle it is named. Exposure and what must change now are kept apart: an enforcement route is not an instruction, and an unsatisfied duty is not softened into a suggestion.",
+  "sections": [
+    {
+      "id": "consequence_determination",
+      "title": "Determination",
+      "arc_stage": "headline",
+      "lead": "determination",
+      "source_key": "consequence_determination",
+      "themes": [
+        "unsatisfied_now",
+        "satisfied",
+        "unresolved",
+        "exposure_kept_separate"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "overview",
+      "title": "What was assessed, and from what",
+      "arc_stage": "record",
+      "lead": "record",
+      "source_key": "narrative.part1_overview",
+      "themes": [
+        "statutes_in_scope",
+        "identifiers",
+        "entity",
+        "record_quality"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "identifier_characterizations",
+      "title": "Whether the data is a biometric identifier under each statute",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "identifier_characterizations",
+      "themes": [
+        "statute_definition",
+        "modality",
+        "exclusions",
+        "unevidenced_limbs"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "entity_characterization",
+      "title": "Whether the organization is a body each statute binds",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "entity_characterization",
+      "themes": [
+        "private_entity",
+        "government_carve_out",
+        "sector_exclusions"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "divergence_analysis",
+      "title": "Where the statutes pull apart",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "divergence_analysis",
+      "themes": [
+        "topic",
+        "how_they_differ",
+        "which_governs_here"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "duty_findings",
+      "title": "Each duty, the practice, and the conclusion",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "duty_findings",
+      "themes": [
+        "duty_as_stated",
+        "practice_recorded",
+        "conclusion",
+        "what_is_missing"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "exposure_surfaces",
+      "title": "How each statute is enforced",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "consequence_determination.exposure_surfaces",
+      "themes": [
+        "route",
+        "who_may_bring_it",
+        "exposure_not_instruction",
+        "reserved_where_uningested"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "information_needed",
+      "title": "What the record does not yet state",
+      "arc_stage": "ask",
+      "lead": "record",
+      "source_key": "duty_findings[].information_needed",
+      "themes": [
+        "silent_fields",
+        "duty_each_one_blocks",
+        "what_would_settle_it"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "scope_gated",
+      "title": "Questions this assessment records but does not answer",
+      "arc_stage": "ask",
+      "lead": "record",
+      "source_key": "scope_gated",
+      "themes": [
+        "topic_recorded",
+        "why_unanswerable",
+        "what_follows_meanwhile"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "attestation_block",
+      "title": "Approval, and when this must be looked at again",
+      "arc_stage": "close",
+      "lead": "determination",
+      "source_key": "attestation",
+      "themes": [
+        "approval",
+        "review_date",
+        "amendment_trigger",
+        "new_modality_trigger"
+      ],
+      "required": true,
+      "status": "pending_review"
+    }
+  ],
+  "exemplar_pairs": [
+    {
+      "id": "xp-biometric-1",
+      "section_id": "consequence_determination",
+      "before": "On the record as supplied, 5 duties are not satisfied: BIPA 740 ILCS 14/15(a), BIPA 740 ILCS 14/15(a), BIPA 740 ILCS 14/15(b), BIPA 740 ILCS 14/15(c), BIPA 740 ILCS 14/15(d). Enforcement routes differ by state and are set out separately from the duty findings.",
+      "after": "Five duties are not satisfied by the practices described. They are 740 ILCS 14/15(a); 14/15(b); 14/15(c); 14/15(d). Enforcement routes differ by state and are set out separately from the duty findings. They describe exposure. What must change now is the unsatisfied duties named above.",
+      "note": "The courtroom opener goes. The list stops reading as three stacked asides once it is a sentence of its own with semicolons, and the passage now says in plain words which half is exposure and which half is the instruction — the distinction the determination logic already draws and the prose used to blur."
+    },
+    {
+      "id": "xp-biometric-2",
+      "section_id": "overview",
+      "before": "Acme Systems is assessed against BIPA 740 ILCS 14 (Illinois), RCW 19.375 (Washington), RCW 19.373 (Washington). It is characterised as private_entity: the organisation is not recorded as a government body. Under RCW 19.375 and RCW 19.373 (MHMDA) the definition cannot be applied on the record as supplied. The analysis that follows measures the practices the record actually describes against each duty in turn, one statutory subsection at a time.",
+      "after": "Acme Systems is assessed against the Illinois biometric statute and the two Washington chapters. It is a private entity: nothing describes it as a government body. Under both Washington chapters the definition cannot be applied to the facts as supplied. What follows takes each duty in turn, sets the practice the record describes beside it, and states the conclusion that follows.",
+      "note": "The internal verdict token private_entity is spoken rather than printed, the banned courtroom phrase is replaced by a description of what the facts do not carry, and the closing sentence tells the reader the shape of the analysis instead of announcing the machine's method."
+    }
+  ]
+}

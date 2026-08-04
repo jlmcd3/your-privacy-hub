@@ -380,7 +380,45 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   has_uk_establishment: "whether the organization is established in the United Kingdom",
   eu_lead_member_state: "the Member State of the organization's main establishment",
   markets_served: "the markets the organization serves",
+
+  // ── Biometric Compliance Checker (ITEM 364 dispatch 4) ──
+  // Curated in the register: each label says what the field asks in the
+  // reader's words, not a de-underscored field id. The Texas, Washington and
+  // MHMDA blocks name their statute's own limb so a message that quotes one
+  // reads as that statute's question.
+  orgName: "the organization's name",
+  orgType: "the kind of organization collecting the data",
+  biometricTypes: "the biometric identifiers collected",
+  other_state_names: "the other US states named",
+  data_source_description: "who the biometric data is collected from",
+  healthcare_tpo_context: "whether the data is used for treatment, payment or health-care operations",
+  entity_is_government: "whether the organization is a government body",
+  glba_financial_institution: "whether the organization is a financial institution under the GLBA",
+  notice_before_collection: "the notice given before collection",
+  consent_artifact_type: "the form the subject's consent took",
+  release_artifact_description: "what the signed release says",
+  retention_schedule_text: "the written retention and destruction schedule",
+  retention_policy_public: "whether the retention schedule is published",
+  destruction_trigger: "what triggers destruction of the identifiers",
+  sells_or_profits: "whether the organization sells or profits from the data",
+  disclosure_recipients: "who the identifiers are disclosed to",
+  disclosure_bases: "the grounds relied on for each disclosure",
+  security_measures_description: "the safeguards applied to the identifiers",
+  protection_parity: "whether the identifiers are protected as carefully as other confidential data",
+  tx_destruction_within_one_year: "whether Texas identifiers are destroyed within a year of the purpose ending",
+  tx_longer_retention_required_by_law: "whether another law requires the Texas data to be kept longer",
+  tx_employer_security_collection: "whether the Texas collection is by an employer for workplace security",
+  tx_ai_training_use: "whether the data is used to train an AI system",
+  wa_enrolls_in_database: "whether identifiers are enrolled in a database in Washington",
+  wa_commercial_purpose: "the commercial purpose the Washington enrolment serves",
+  wa_security_purpose_only: "whether the Washington collection is for security purposes alone",
+  wa_mhmda_health_inference: "whether the data identifies or infers health status",
+  wa_mhmda_privacy_policy_published: "whether a consumer health data privacy policy is published and linked",
+  wa_mhmda_collection_consent: "the consent obtained for collecting consumer health data",
+  wa_mhmda_share_consent_separate: "whether sharing consent was obtained separately",
+  wa_mhmda_geofence_health_facility: "whether a geofence is used around a health-care facility",
 });
+
 
 
 /** Contract-derived allowlist of every intake key we know about. Used

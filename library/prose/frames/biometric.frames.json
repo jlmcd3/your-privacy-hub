@@ -1,0 +1,313 @@
+{
+  "product": "biometric",
+  "version": "prose-frames-2026-08-04-item364-d4",
+  "approved": false,
+  "frames": [
+    {
+      "id": "biometric-gap-modality-detail",
+      "product": "biometric",
+      "section": "identifier_characterizations",
+      "body": "What {{ENTITY}} actually measures is not described. Each statute's definition turns on the measurement rather than on the label the organisation uses for it, so the definition cannot be applied yet. Say what is captured and from what part of the body, and the definition resolves either way.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "identifier_characterizations",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["registration-gap-threshold-limb"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-definition-exclusion",
+      "product": "biometric",
+      "section": "identifier_characterizations",
+      "body": "The exclusion {{STATUTE}} draws cannot be tested against anything in the record. An untested exclusion is not a failed one, so nothing negative is concluded from the silence. One sentence about the context of the collection settles it.",
+      "placeholders": [
+        { "token": "STATUTE", "kind": "text", "source": "statute_short", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "identifier_characterizations[].exclusions",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-modality-detail"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-entity-status",
+      "product": "biometric",
+      "section": "entity_characterization",
+      "body": "Whether {{ENTITY}} is a government body is not stated. Two of the statutes bind private entities and leave public ones outside, so this single fact decides whether their duties reach the organisation at all. It is one line to supply.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "entity_characterization",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-modality-detail"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-sector-exclusion",
+      "product": "biometric",
+      "section": "entity_characterization",
+      "body": "The sector carve-outs cannot be worked through because the record does not say what business {{ENTITY}} is in. A carve-out either covers the organisation or it does not, and that is a question of fact rather than of drafting. Describe the activity and the carve-outs sort themselves.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "entity_characterization.exclusions",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-entity-status"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-notice",
+      "product": "biometric",
+      "section": "duty_findings",
+      "body": "The record does not say what {{ENTITY}} told people before it collected from them. The notice duty is measured against what was given and in what form, and neither is written down. Supply the notice and its form, and this duty is answered rather than left open.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-modality-detail"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-written-release",
+      "product": "biometric",
+      "section": "duty_findings",
+      "body": "Nothing describes the release the subjects signed. The duty asks for a specific artefact rather than for consent in the abstract, so a general statement that people agreed does not reach it. Describe the artefact and who executed it.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-notice"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-retention-schedule",
+      "product": "biometric",
+      "section": "duty_findings",
+      "body": "No written retention and destruction schedule is described. The duty is satisfied by the document, not by the practice the document would describe, so a settled internal habit does not discharge it. Attach the schedule and say where it is published.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-written-release"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-disclosure-basis",
+      "product": "biometric",
+      "section": "duty_findings",
+      "body": "The record names recipients without naming the ground relied on for each one. Every disclosure has to sit on one of the grounds the statute lists, and the grounds are not interchangeable. Pair each recipient with its ground and the finding closes.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-retention-schedule"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-safeguards",
+      "product": "biometric",
+      "section": "duty_findings",
+      "body": "How the identifiers are protected is not described, and neither is how {{ENTITY}} protects its other confidential data. The duty is comparative, so both halves are needed before it can be answered. Describe the safeguards on each side.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-disclosure-basis"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-wa-predicate",
+      "product": "biometric",
+      "section": "duty_findings",
+      "body": "The Washington chapter reaches enrolment for a commercial purpose, and the record does not say whether either limb is met. The duties below that predicate wait on it rather than fail with it. Say whether identifiers are enrolled and to what commercial end.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-safeguards"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-health-inference",
+      "product": "biometric",
+      "section": "duty_findings",
+      "body": "Whether the data identifies or infers health status is unstated. The Washington health chapter attaches on that question alone, and the answer decides a whole block of duties at once. It is a single fact and it carries a great deal.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-wa-predicate"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-divergence-unresolvable",
+      "product": "biometric",
+      "section": "divergence_analysis",
+      "body": "The statutes in scope diverge on {{TOPIC}}, and which of them governs here cannot be settled from the record. The divergence is real even where the answer is not, so it is reported rather than smoothed over. Resolving the underlying fact picks the governing rule.",
+      "placeholders": [
+        { "token": "TOPIC", "kind": "text", "source": "divergence.topic", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "divergence_analysis",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-modality-detail"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-exposure-reserved",
+      "product": "biometric",
+      "section": "exposure_surfaces",
+      "body": "The enforcement route is stated as the statute states it, and no more than that. Damages figures, mental-state tiers, fee-shifting and accrual are not in this product's verified corpus, so they are reserved rather than estimated. What appears here describes exposure. It is not an instruction, and nothing in it turns an unresolved duty into a breach.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "consequence_determination.exposure_surfaces",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["registration-corpus-pending"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-scope-gated",
+      "product": "biometric",
+      "section": "scope_gated",
+      "body": "{{TOPIC}} is recorded here and left open. Its operative text sits outside this product's verified corpus, and answering without the provision in front of it would be assertion rather than analysis. The question stays live. Nothing above should be read as a finding that no duty arises.",
+      "placeholders": [
+        { "token": "TOPIC", "kind": "text", "source": "scope_gated.citation", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "scope_gated",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["registration-corpus-pending"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-information-needed",
+      "product": "biometric",
+      "section": "information_needed",
+      "body": "Several duties are left unresolved because the facts they turn on are not written down. Each one names the fact it is waiting for rather than assuming an answer in either direction. Supplying them is the shortest route to a closed assessment.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "duty_findings[].information_needed",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-notice"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-gap-attestation",
+      "product": "biometric",
+      "section": "attestation_block",
+      "body": "No one is named as having approved this assessment. A blank signature line reads as a decision that was taken, which is worse than no line at all. Record who approved it, in what role, and when.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "attestation",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["registration-gap-attestation"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-attestation-amendment-trigger",
+      "product": "biometric",
+      "section": "attestation_block",
+      "body": "An amendment to any statute named here brings this assessment back for review before its review date. The duty findings are written against the text as it stands, and amended text can move a finding without anything about {{ENTITY}} changing. Treat an amendment as the trigger it is.",
+      "placeholders": [
+        { "token": "ENTITY", "kind": "text", "source": "organization_name", "required": true }
+      ],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "attestation.review_triggers",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-gap-attestation"]
+      },
+      "status": "pending_review"
+    },
+    {
+      "id": "biometric-attestation-new-modality-trigger",
+      "product": "biometric",
+      "section": "attestation_block",
+      "body": "Collecting a biometric modality that was not assessed here also brings this assessment back. A new identifier type meets each statute's definitional limbs afresh, and a conclusion reached for one modality does not carry to another. Reopen the assessment before the new collection starts.",
+      "placeholders": [],
+      "provenance": {
+        "sample_report_id": null,
+        "tool_slug": "biometric",
+        "report_path": "attestation.review_triggers",
+        "harvested_at": "2026-08-04",
+        "origin": "draft",
+        "exemplars": ["biometric-attestation-amendment-trigger"]
+      },
+      "status": "pending_review"
+    }
+  ]
+}
