@@ -292,6 +292,13 @@ const MESSY_DPIA = thinned("dpia", {
     "alternatives_considered",
     "transfer_flows",
     "estimated_end_date",
+    // Upgrade-6 attestation intake — omitted so the messy variant exercises
+    // the record_insufficient degradation path rather than the analysed path.
+    "dpia_prepared_by",
+    "dpia_approved_by_name",
+    "dpia_approved_by_title",
+    "dpia_approval_date",
+    "dpia_signoff_basis",
   ],
 });
 
