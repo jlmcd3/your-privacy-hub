@@ -691,7 +691,7 @@ const LIAssessmentIntake = () => {
               <option>Significant — discrimination, financial loss, reputational damage</option>
               <option>Severe — physical safety, identity theft, loss of livelihood</option>
             </select>
-            <p className="text-xs text-muted-foreground mt-2">Describe the harms you considered and who would bear them. A severity label with no pathway behind it gives the balance nothing to weigh on the individual\u2019s side.</p>
+            <p className="text-xs text-muted-foreground mt-2">Describe the harms you considered and who would bear them. A severity label with no pathway behind it gives the balance nothing to weigh on the individual’s side.</p>
             <Textarea value={potentialHarmDetail} onFocusCapture={focusField("potential_harms")} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Two or three sentences" className="mt-2" rows={2} />
           </div>
 
