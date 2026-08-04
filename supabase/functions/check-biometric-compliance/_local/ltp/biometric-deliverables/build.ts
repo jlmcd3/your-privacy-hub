@@ -934,7 +934,7 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
     standard: `${enrollRow.verbatim_quote}\n\n${cpRow.verbatim_quote}`,
     record_fact: `Enrolls in a database: ${enrolls}. Commercial purpose as defined: ${commercial}.`,
     effect: gate === "outside"
-      ? "The chapter's operative duties attach to enrollment for a commercial purpose. On this record one of those two elements is absent, so the duties do not attach."
+      ? "The chapter's operative duties attach to enrollment for a commercial purpose. One of those two elements is absent here, so the duties do not attach."
       : gate === "unknown"
       ? "Both elements must be established before the operative duties attach, and the record settles neither."
       : "Both elements are established, so the operative duties attach.",
@@ -1286,7 +1286,7 @@ function buildDivergence(
       statutes: scope.map((s) => s.statute_key).filter((k) => k === "us_tx_cubi" || has(k)),
       positions,
       no_analogue_in: noAnalogue,
-      record_consequence: `CUBI's one-year rule, and its (c-1) and (c-2) qualifiers, have no analogue in ${noAnalogue.join(" or ")}. On this record CUBI § 503.001(c)(3) is ${verdictOf("tx_cubi.c3_one_year_destruction")}` +
+      record_consequence: `CUBI's one-year rule, and its (c-1) and (c-2) qualifiers, have no analogue in ${noAnalogue.join(" or ")}. As the facts are recorded, CUBI § 503.001(c)(3) is ${verdictOf("tx_cubi.c3_one_year_destruction")}` +
         (has("us_il_bipa") ? `, while BIPA § 15(a) is ${verdictOf("il_bipa.15a_written_policy")}` : "") +
         (has("us_wa_19375") ? `, and RCW 19.375.020(4) is ${verdictOf("wa_19375.020_4_care_and_retention")}` : "") +
         ". A retention rule written to satisfy the Illinois policy duty does not by itself meet the Texas anniversary.",
@@ -1330,7 +1330,7 @@ function buildDivergence(
         statutes: scope.map((s) => s.statute_key),
         positions,
         no_analogue_in: [],
-        record_consequence: `On this record: ` +
+        record_consequence: `Taking the facts as written: ` +
           [
             has("us_il_bipa") ? `BIPA § 15(b) ${verdictOf("il_bipa.15b_notice_and_written_release")}` : null,
             has("us_tx_cubi") ? `CUBI § 503.001(b) ${verdictOf("tx_cubi.b_notice_and_consent")}` : null,
@@ -1362,7 +1362,7 @@ function buildDivergence(
         },
       ],
       no_analogue_in: [],
-      record_consequence: `On this record BIPA § 15(d) is ${verdictOf("il_bipa.15d_disclosure_limits")} and CUBI § 503.001(c)(1) is ${verdictOf("tx_cubi.c1_disclosure_limits")}. A consent-based disclosure programme built for Illinois does not transfer to Texas, where consent reaches only the disappearance-or-death case.`,
+      record_consequence: `By the facts described, BIPA § 15(d) is ${verdictOf("il_bipa.15d_disclosure_limits")} and CUBI § 503.001(c)(1) is ${verdictOf("tx_cubi.c1_disclosure_limits")}. A consent-based disclosure programme built for Illinois does not transfer to Texas, where consent reaches only the disappearance-or-death case.`,
     });
   }
 
@@ -1382,7 +1382,7 @@ function buildDivergence(
         has("us_tx_cubi") ? "CUBI" : null,
         has("us_wa_19375") ? "RCW 19.375" : null,
       ].filter((x): x is string => !!x),
-      record_consequence: `Texas and Washington regulate disclosure and permit some of it on listed bases; Illinois additionally bars profit outright. On this record BIPA § 15(c) is ${verdictOf("il_bipa.15c_no_profit")}.`,
+      record_consequence: `Texas and Washington regulate disclosure and permit some of it on listed bases; Illinois additionally bars profit outright. As recorded here, BIPA § 15(c) is ${verdictOf("il_bipa.15c_no_profit")}.`,
     });
   }
 
