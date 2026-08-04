@@ -67,11 +67,21 @@ interface RequestBody {
   document_date?: string;
   author_name?: string;
   internal_reference?: string | null;
+  // Attestation (Section 5). All optional: when absent the attestation frame
+  // still renders with the lines marked for completion.
+  approved_by_name?: string | null;
+  approved_by_title?: string | null;
+  approval_date?: string | null;
+  next_review_due?: string | null;
   // Legacy nested shape from the spec
   document_settings?: {
     document_date?: string;
     author_name?: string;
     internal_reference?: string | null;
+    approved_by_name?: string | null;
+    approved_by_title?: string | null;
+    approval_date?: string | null;
+    next_review_due?: string | null;
   };
 }
 
@@ -79,7 +89,12 @@ interface DocumentSettings {
   documentDate: string;
   authorName: string;
   internalReference: string | null;
+  approvedByName: string | null;
+  approvedByTitle: string | null;
+  approvalDate: string | null;
+  nextReviewDue: string;
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -231,7 +246,15 @@ const QUESTION_LABELS: Record<string, string> = {
   unsubscribe_mechanism: "Unsubscribe mechanism",
   incident_log: "Breach / incident register",
   notices_displayed: "Surveillance notices displayed",
+  activity_owner: "Activity owner",
+  collection_sources: "Collection sources",
+  processing_operations: "Processing operations performed",
+  related_assessments: "Related LIA / DPIA",
+  retention_varies_by_category: "Retention varies by data category",
+  retention_by_category: "Retention by data category",
+  rights_handling_override: "Rights-handling process (activity override)",
 };
+
 
 function questionLabel(key: string): string {
   return QUESTION_LABELS[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -276,15 +299,88 @@ async function renderPdf(html: string, title: string): Promise<Uint8Array> {
   return new Uint8Array(await response.arrayBuffer());
 }
 
+const TO_BE_COMPLETED = "To be completed";
+
+function plusTwelveMonths(isoDate: string): string {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return TO_BE_COMPLETED;
+  d.setUTCFullYear(d.getUTCFullYear() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 function readDocumentSettings(body: RequestBody): DocumentSettings {
   const ds = body.document_settings ?? {};
+  const documentDate =
+    body.document_date ?? ds.document_date ?? new Date().toISOString().slice(0, 10);
+  const clean = (v: unknown): string | null => {
+    const s = typeof v === "string" ? v.trim() : "";
+    return s ? s : null;
+  };
   return {
-    documentDate:
-      body.document_date ?? ds.document_date ?? new Date().toISOString().slice(0, 10),
+    documentDate,
     authorName: body.author_name ?? ds.author_name ?? "—",
     internalReference: body.internal_reference ?? ds.internal_reference ?? null,
+    approvedByName: clean(body.approved_by_name ?? ds.approved_by_name),
+    approvedByTitle: clean(body.approved_by_title ?? ds.approved_by_title),
+    approvalDate: clean(body.approval_date ?? ds.approval_date),
+    nextReviewDue:
+      clean(body.next_review_due ?? ds.next_review_due) ?? plusTwelveMonths(documentDate),
   };
 }
+
+// Art. 4(2) GDPR operations taxonomy — value → register label. Mirrors
+// PROCESSING_OPERATION_OPTIONS in src/data/ropa-questions/index.ts.
+const PROCESSING_OPERATION_LABELS: Record<string, string> = {
+  collection: "Collection",
+  recording: "Recording",
+  organisation: "Organisation",
+  structuring: "Structuring",
+  storage: "Storage",
+  adaptation: "Adaptation or alteration",
+  retrieval: "Retrieval",
+  consultation: "Consultation",
+  use: "Use",
+  disclosure_transmission: "Disclosure by transmission",
+  dissemination: "Dissemination",
+  combination: "Combination",
+  restriction: "Restriction",
+  erasure: "Erasure or destruction",
+};
+
+function processingOperationsLabel(value: unknown): string {
+  const list = Array.isArray(value) ? value : value ? [value] : [];
+  if (list.length === 0) return "—";
+  return list
+    .map((v) => PROCESSING_OPERATION_LABELS[String(v)] ?? answerToString(v))
+    .join(", ");
+}
+
+function relatedAssessmentsLabel(value: unknown): string {
+  const list = Array.isArray(value) ? value.filter(Boolean) : value ? [value] : [];
+  if (list.length === 0) return "None on file";
+  return list.map((v) => answerToString(v)).join("; ");
+}
+
+// Client-level rights-handling process with per-activity override.
+function rightsHandlingLabel(
+  ans: Record<string, unknown>,
+  profile: any,
+): string {
+  const override = answerToString(ans.rights_handling_override);
+  if (override !== "—") return `${override} (activity-specific override)`;
+  const base = answerToString(profile?.rights_handling_process);
+  return base;
+}
+
+// Optional retention-by-category breakdown: renders only when the
+// "retention varies by category" follow-up has actually been answered.
+function retentionByCategory(ans: Record<string, unknown>): string | null {
+  const varies = answerToString(ans.retention_varies_by_category).toLowerCase();
+  if (varies !== "yes") return null;
+  const detail = answerToString(ans.retention_by_category);
+  return detail === "—" ? null : detail;
+}
+
 
 function resolveFormatsToGenerate(body: RequestBody): Format[] {
   if (body.format) return [body.format];
@@ -372,14 +468,26 @@ function buildHtml(d: AssembledData): string {
             <tbody>
               <tr><th>Role</th><td>${escapeHtml(answerToString(ans.role ?? (d.profile?.is_controller ? "Controller" : d.profile?.is_processor ? "Processor" : "—")))}</td></tr>
               <tr><th>Category</th><td>${escapeHtml(categoryLabel(a.category))}</td></tr>
+              <tr><th>Activity owner</th><td>${escapeHtml(answerToString(ans.activity_owner))}</td></tr>
               <tr><th>Purpose</th><td>${escapeHtml(answerToString(ans.purpose))}</td></tr>
               <tr><th>Lawful basis</th><td>${escapeHtml(lawfulBasisLabel(ans.lawful_basis))}</td></tr>
               <tr><th>Special category basis</th><td>${escapeHtml(answerToString(ans.special_category_basis))}</td></tr>
               <tr><th>Data subjects</th><td>${escapeHtml(answerToString(ans.data_subjects))}</td></tr>
               <tr><th>Data categories</th><td>${escapeHtml(answerToString(ans.data_categories))}</td></tr>
+              <tr><th>Collection sources</th><td>${escapeHtml(answerToString(ans.collection_sources))}</td></tr>
+              <tr><th>Processing operations performed</th><td>${escapeHtml(processingOperationsLabel(ans.processing_operations))}</td></tr>
               <tr><th>Processors / recipients</th><td>${escapeHtml(answerToString(ans.processor_platform ?? ans.recipients))}</td></tr>
               <tr><th>Cross-border transfers</th><td>${escapeHtml(answerToString(ans.transfer_destination ?? "None"))}${ans.transfer_mechanism ? ` (${escapeHtml(answerToString(ans.transfer_mechanism))})` : ""}</td></tr>
               <tr><th>Retention period</th><td>${escapeHtml(answerToString(ans.retention_period))}</td></tr>
+              ${(() => {
+                const byCat = retentionByCategory(ans);
+                return byCat
+                  ? `<tr><th>Retention by data category</th><td>${escapeHtml(byCat)}</td></tr>`
+                  : "";
+              })()}
+              <tr><th>Rights-handling process</th><td>${escapeHtml(rightsHandlingLabel(ans, d.profile))}</td></tr>
+              <tr><th>Related LIA / DPIA</th><td>${escapeHtml(relatedAssessmentsLabel(ans.related_assessments))}</td></tr>
+
               <tr><th>Security measures</th><td>${escapeHtml(answerToString(ans.security_measures))}</td></tr>
               <tr><th>Access controls</th><td>${escapeHtml(answerToString(ans.access_controls))}</td></tr>
               <tr><th>Last reviewed</th><td>${escapeHtml(d.settings.documentDate)}</td></tr>
@@ -535,6 +643,10 @@ function buildHtml(d: AssembledData): string {
     <tbody>
       <tr><th>Role</th><td>${[d.profile?.is_controller && "Controller", d.profile?.is_processor && "Processor"].filter(Boolean).join(" + ") || "—"}</td></tr>
       <tr><th>Legal entity</th><td>${escapeHtml(d.profile?.legal_entity_type ?? "—")}</td></tr>
+      <tr><th>Registered address</th><td>${escapeHtml(answerToString(d.profile?.registered_address))}</td></tr>
+      <tr><th>Company / registration number</th><td>${escapeHtml(answerToString(d.profile?.registration_number))}</td></tr>
+      <tr><th>Incorporation jurisdiction</th><td>${escapeHtml(answerToString(d.profile?.incorporation_jurisdiction))}</td></tr>
+
       <tr><th>Sector</th><td>${escapeHtml(d.client?.sector ?? "—")}</td></tr>
       <tr><th>Employee band</th><td>${escapeHtml(d.profile?.employee_band ?? "—")}</td></tr>
       <tr><th>DPO</th><td>${
@@ -593,8 +705,16 @@ function buildHtml(d: AssembledData): string {
     return "";
   })()}
   <div class="signature">
-    Signature: _____________________________ &nbsp;&nbsp; Date: _______________
+    <table class="kv">
+      <tbody>
+        <tr><th>Approved by (name)</th><td>${escapeHtml(d.settings.approvedByName ?? TO_BE_COMPLETED)}</td></tr>
+        <tr><th>Approved by (title)</th><td>${escapeHtml(d.settings.approvedByTitle ?? TO_BE_COMPLETED)}</td></tr>
+        <tr><th>Approval date</th><td>${escapeHtml(d.settings.approvalDate ?? TO_BE_COMPLETED)}</td></tr>
+        <tr><th>Next review due</th><td>${escapeHtml(d.settings.nextReviewDue)}</td></tr>
+      </tbody>
+    </table>
   </div>
+
 
   <p class="footer-note" style="margin-top: 32px;">This record was last reviewed on ${escapeHtml(d.settings.documentDate)}. Maintained in compliance with Article 30 GDPR obligations. Review recommended at least annually or upon any material change to processing activities.</p>
 
@@ -669,6 +789,10 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           .join(" + ") || "—",
       ),
       kvRow("Legal entity", d.profile?.legal_entity_type ?? "—"),
+      kvRow("Registered address", answerToString(d.profile?.registered_address)),
+      kvRow("Company / registration number", answerToString(d.profile?.registration_number)),
+      kvRow("Incorporation jurisdiction", answerToString(d.profile?.incorporation_jurisdiction)),
+
       kvRow("Sector", d.client?.sector ?? "—"),
       kvRow("Employee band", d.profile?.employee_band ?? "—"),
       kvRow(
@@ -697,11 +821,17 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
         rows: [
           kvRow("Role", activityRole(ans, d.profile)),
           kvRow("Category", categoryLabel(a.category)),
+          kvRow("Activity owner", answerToString(ans.activity_owner)),
           kvRow("Purpose", answerToString(ans.purpose)),
           kvRow("Lawful basis", lawfulBasisLabel(ans.lawful_basis)),
           kvRow("Special category basis", answerToString(ans.special_category_basis)),
           kvRow("Data subjects", answerToString(ans.data_subjects)),
           kvRow("Data categories", answerToString(ans.data_categories)),
+          kvRow("Collection sources", answerToString(ans.collection_sources)),
+          kvRow(
+            "Processing operations performed",
+            processingOperationsLabel(ans.processing_operations),
+          ),
           kvRow(
             "Processors / recipients",
             answerToString(ans.processor_platform ?? ans.recipients),
@@ -711,12 +841,18 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
             answerToString(ans.transfer_destination ?? "None"),
           ),
           kvRow("Retention period", answerToString(ans.retention_period)),
+          ...(retentionByCategory(ans)
+            ? [kvRow("Retention by data category", retentionByCategory(ans) as string)]
+            : []),
+          kvRow("Rights-handling process", rightsHandlingLabel(ans, d.profile)),
+          kvRow("Related LIA / DPIA", relatedAssessmentsLabel(ans.related_assessments)),
           kvRow("Security measures", answerToString(ans.security_measures)),
           kvRow("Access controls", answerToString(ans.access_controls)),
           kvRow("Last reviewed", d.settings.documentDate),
         ],
       }),
     );
+
     activityBlocks.push(p(""));
   }
 
@@ -794,7 +930,16 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
             `This record was prepared by ${d.settings.authorName} on ${d.settings.documentDate}. It constitutes our record of processing activities under the applicable laws listed above. We are committed to reviewing and updating this record at least annually.`,
           ),
           p(""),
-          p("Signature: _______________________________   Date: _____________"),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              kvRow("Approved by (name)", d.settings.approvedByName ?? TO_BE_COMPLETED),
+              kvRow("Approved by (title)", d.settings.approvedByTitle ?? TO_BE_COMPLETED),
+              kvRow("Approval date", d.settings.approvalDate ?? TO_BE_COMPLETED),
+              kvRow("Next review due", d.settings.nextReviewDue),
+            ],
+          }),
+
           p(""),
           p(REPORT_DISCLAIMER, { size: 16 }),
         ],
@@ -823,6 +968,9 @@ function buildXlsx(d: AssembledData): Uint8Array {
         .join(" + ") || "—",
     ],
     ["Legal entity", d.profile?.legal_entity_type ?? "—"],
+    ["Registered address", answerToString(d.profile?.registered_address)],
+    ["Company / registration number", answerToString(d.profile?.registration_number)],
+    ["Incorporation jurisdiction", answerToString(d.profile?.incorporation_jurisdiction)],
     ["Sector", d.client?.sector ?? "—"],
     ["Employee band", d.profile?.employee_band ?? "—"],
     ["DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`],
@@ -835,6 +983,12 @@ function buildXlsx(d: AssembledData): Uint8Array {
     ...(d.settings.internalReference
       ? [["Internal reference", d.settings.internalReference]]
       : []),
+    [],
+    ["Attestation"],
+    ["Approved by (name)", d.settings.approvedByName ?? TO_BE_COMPLETED],
+    ["Approved by (title)", d.settings.approvedByTitle ?? TO_BE_COMPLETED],
+    ["Approval date", d.settings.approvalDate ?? TO_BE_COMPLETED],
+    ["Next review due", d.settings.nextReviewDue],
   ]);
   XLSX.utils.book_append_sheet(wb, clientSheet, "Client record");
 
@@ -843,15 +997,21 @@ function buildXlsx(d: AssembledData): Uint8Array {
     "Activity",
     "Role",
     "Category",
+    "Activity owner",
     "Purpose",
     "Lawful basis",
     "Special category basis",
     "Data subjects",
     "Data categories",
+    "Collection sources",
+    "Processing operations performed",
     "Processors / recipients",
     "Transfer destination",
     "Transfer mechanism",
     "Retention",
+    "Retention by data category",
+    "Rights-handling process",
+    "Related LIA / DPIA",
     "Security measures",
     "Access controls",
     "Last reviewed",
@@ -862,20 +1022,27 @@ function buildXlsx(d: AssembledData): Uint8Array {
       a.display_name,
       activityRole(ans, d.profile),
       a.category,
+      answerToString(ans.activity_owner),
       answerToString(ans.purpose),
       lawfulBasisLabel(ans.lawful_basis),
       answerToString(ans.special_category_basis),
       answerToString(ans.data_subjects),
       answerToString(ans.data_categories),
+      answerToString(ans.collection_sources),
+      processingOperationsLabel(ans.processing_operations),
       answerToString(ans.processor_platform ?? ans.recipients),
       answerToString(ans.transfer_destination ?? "None"),
       answerToString(ans.transfer_mechanism),
       answerToString(ans.retention_period),
+      retentionByCategory(ans) ?? "—",
+      rightsHandlingLabel(ans, d.profile),
+      relatedAssessmentsLabel(ans.related_assessments),
       answerToString(ans.security_measures),
       answerToString(ans.access_controls),
       d.settings.documentDate,
     ];
   });
+
   const activitySheet = XLSX.utils.aoa_to_sheet([activityHeader, ...activityRows]);
   XLSX.utils.book_append_sheet(wb, activitySheet, "Activities");
 

@@ -770,8 +770,15 @@ const F_ROPA_EU: SampleFixture = {
     // generate-ropa-document (author_name → header/footer authorship;
     // eu_rep_name / uk_rep_name → representative disclosure block). Keep.
     author_name: "Donna Dasher (DPO)",
+    approved_by_name: "Nicholas Frost",
+    approved_by_title: "Chief Operating Officer",
+    approval_date: "2026-02-18",
+    next_review_due: "2027-02-18",
     profile: {
       legal_entity_type: "Private limited company (UK)",
+      registered_address: "Shaft House, 14 Glacier Way, Kirkby-in-Ashfield, NG17 7DR, United Kingdom",
+      registration_number: "08442671 (Companies House)",
+      incorporation_jurisdiction: "England and Wales",
       employee_band: "1000+",
       is_controller: true,
       is_processor: false,
@@ -782,7 +789,10 @@ const F_ROPA_EU: SampleFixture = {
       eu_rep_email: "eu-rep@northpolemanualmining.example",
       uk_rep_name: "North Pole Manual Mining Ltd",
       uk_rep_email: "uk-rep@northpolemanualmining.example",
+      rights_handling_process:
+        "Requests reach privacy@northpolemanualmining.example or the intranet form, are logged in the DSR register within one working day, verified against payroll or contract records, and fulfilled by the DPO office within one month (extendable by two months with notice under Art. 12(3)).",
     },
+
     jurisdictions: [
       { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
       { code: "UK_GDPR", name: "United Kingdom", region: "EU & UK" },
@@ -801,7 +811,15 @@ const F_ROPA_EU: SampleFixture = {
         transfer_destination: "Germany (Abominal SM GmbH)",
         transfer_mechanism: "UK adequacy regulations — no Art. 46 safeguard required (UK→EEA)",
         retention_period: "Active employment plus 6 years post-termination",
+        retention_varies_by_category: "yes",
+        retention_by_category:
+          "Payroll and tax records: 6 years after the end of the tax year. Occupational-health records: 40 years from last exposure entry (Control of Substances Hazardous to Health record-keeping). Recruitment records for unsuccessful candidates: 6 months.",
         security_measures: "RBAC, MFA, AES-256 at rest, quarterly access reviews, ISO 27001 vendor.",
+        activity_owner: "Marla Quill, Head of People Operations",
+        collection_sources:
+          "Directly from candidates and employees; from the recruitment agency Frostline Talent Ltd; occupational-health results from the appointed provider.",
+        processing_operations: ["collection", "recording", "storage", "retrieval", "use", "disclosure_transmission", "erasure"],
+        related_assessments: [],
       },
       {
         activity_name: "Underground Wearable Safety Telemetry",
@@ -816,7 +834,18 @@ const F_ROPA_EU: SampleFixture = {
         transfer_mechanism: "No third-country transfer",
         retention_period: "Raw telemetry: 90 days; aggregate safety metrics: 12 months",
         security_measures: "Pseudonymised dashboards; identity re-link only on alarm; purpose-limited to safety; works-council oversight.",
+        activity_owner: "Errol Tine, Head of Mine Safety",
+        collection_sources:
+          "Automatically from body-worn safety devices and underground beacon infrastructure; shift rosters from the HR system.",
+        processing_operations: ["collection", "recording", "storage", "consultation", "use", "restriction", "erasure"],
+        related_assessments: [
+          "LIA — Underground wearable safety telemetry (2026-01-12)",
+          "DPIA — Underground wearable safety telemetry (2026-01-19)",
+        ],
+        rights_handling_override:
+          "Objection and erasure requests for telemetry are triaged by the Mine Safety duty manager before the DPO office responds, because switching off a device changes the evacuation-accountability picture for that shift.",
       },
+
       {
         activity_name: "Site Visitor Management",
         category: "operations",
@@ -830,6 +859,11 @@ const F_ROPA_EU: SampleFixture = {
         transfer_mechanism: "No third-country transfer",
         retention_period: "Visitor log: 24 months for HSE reporting; CCTV: 30 days",
         security_measures: "Badge data on-site only; CCTV recorded to encrypted NVR; access restricted to security team.",
+        activity_owner: "Bryn Halloway, Group Security Manager",
+        collection_sources:
+          "Directly from visitors at the gatehouse kiosk; host employee details from the HR directory; vehicle registrations from the barrier ANPR unit.",
+        processing_operations: ["collection", "recording", "storage", "consultation", "erasure"],
+        related_assessments: [],
       },
       {
         activity_name: "Supplier Vetting and KYS",
@@ -844,7 +878,13 @@ const F_ROPA_EU: SampleFixture = {
         transfer_mechanism: "No third-country transfer",
         retention_period: "Duration of supplier relationship plus 7 years",
         security_measures: "Sanctions results access-controlled; supplier records in dedicated KYS platform; quarterly access reviews.",
+        activity_owner: "Ines Carrow, Head of Procurement",
+        collection_sources:
+          "From supplier onboarding submissions; Companies House and equivalent registers; the sanctions-screening vendor's data feed.",
+        processing_operations: ["collection", "recording", "organisation", "storage", "retrieval", "consultation", "combination", "erasure"],
+        related_assessments: [],
       },
+
     ],
     invoke: { fn: "generate-ropa-document", format: "pdf" },
   },

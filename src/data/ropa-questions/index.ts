@@ -29,6 +29,26 @@ const RETENTION_OPTIONS = [
   { value: "indefinitely", label: "Indefinitely" },
 ];
 
+// Art. 4(2) GDPR operations taxonomy. These are the operation names used by
+// the CNIL Article 30 register model for the "processing operations" column.
+const PROCESSING_OPERATION_OPTIONS = [
+  { value: "collection", label: "Collection" },
+  { value: "recording", label: "Recording" },
+  { value: "organisation", label: "Organisation" },
+  { value: "structuring", label: "Structuring" },
+  { value: "storage", label: "Storage" },
+  { value: "adaptation", label: "Adaptation or alteration" },
+  { value: "retrieval", label: "Retrieval" },
+  { value: "consultation", label: "Consultation" },
+  { value: "use", label: "Use" },
+  { value: "disclosure_transmission", label: "Disclosure by transmission" },
+  { value: "dissemination", label: "Dissemination" },
+  { value: "combination", label: "Combination" },
+  { value: "restriction", label: "Restriction" },
+  { value: "erasure", label: "Erasure or destruction" },
+];
+
+
 function baseSequence(opts: {
   lawfulBasisFlags?: FlagCondition[];
   extras?: Question[];
@@ -84,15 +104,70 @@ function baseSequence(opts: {
       isRequired: true,
     },
     {
+      key: "activity_owner",
+      text: "Who owns this activity (name and role)?",
+      whyWeAsk:
+        "The CNIL Article 30 register model expects a named owner for each processing activity, so the register shows who is accountable for keeping the entry accurate. It also supports the accountability duty behind Art.30(1)(a), which requires the record to identify the controller and its contacts.",
+      type: "text_short",
+      isRequired: false,
+    },
+    {
+      key: "collection_sources",
+      text: "Where does the personal data come from?",
+      whyWeAsk:
+        "The CNIL register model records the source of the data for every activity (directly from the individual, from another controller, from a public source, or observed/derived). It also determines whether Art.13 or Art.14 transparency applies.",
+      type: "text_long",
+      isRequired: false,
+    },
+    {
+      key: "processing_operations",
+      text: "Which processing operations are performed?",
+      whyWeAsk:
+        "Art.30(1)(b) requires the purposes of the processing, and the CNIL register model records the operations carried out on the data. The options follow the operations listed in the Art.4(2) definition of 'processing'.",
+      type: "multi_choice",
+      options: PROCESSING_OPERATION_OPTIONS,
+      isRequired: false,
+    },
+    {
+      key: "related_assessments",
+      text: "Is this activity covered by an existing LIA or DPIA?",
+      whyWeAsk:
+        "Cross-referencing the register to your Legitimate Interests Assessments and Data Protection Impact Assessments shows a supervisory authority that Art.35 screening and Art.6(1)(f) balancing have actually been done for this activity.",
+      type: "assessment_reference",
+      isRequired: false,
+    },
+    {
       key: "retention_period",
       text: "How long do you keep this data?",
       whyWeAsk:
-        "Storage limitation (GDPR Art.5(1)(e)) requires a defined retention period.",
+        "Storage limitation (GDPR Art.5(1)(e)) requires a defined retention period. Art.30(1)(f) requires the envisaged time limits for erasure where possible.",
       type: "date_or_period",
       options: RETENTION_OPTIONS,
       isRequired: true,
       flagIf: [RETENTION_FLAG],
     },
+    {
+      key: "retention_varies_by_category",
+      text: "Does the retention period differ by data category?",
+      whyWeAsk:
+        "Art.30(1)(f) asks for the envisaged erasure time limits for each category of data where possible. Answer yes only if different categories are genuinely deleted on different clocks.",
+      type: "yes_no",
+      isRequired: false,
+    },
+    {
+      key: "retention_by_category",
+      text: "Set out the retention period for each data category.",
+      whyWeAsk:
+        "This breakdown is what Art.30(1)(f) contemplates when a single retention period does not describe the activity accurately. It renders in the register only when you complete it.",
+      type: "text_long",
+      isRequired: false,
+      showIf: {
+        questionKey: "retention_varies_by_category",
+        operator: "equals",
+        value: "yes",
+      },
+    },
+
     {
       key: "security_measures",
       text: "What security measures protect this data?",
@@ -109,7 +184,16 @@ function baseSequence(opts: {
       type: "text_long",
       isRequired: false,
     },
+    {
+      key: "rights_handling_override",
+      text: "Does this activity handle data-subject requests differently from your standard process?",
+      whyWeAsk:
+        "Your organisation-level rights-handling process is captured once in setup and applies to every activity. Answer here only if this activity routes, verifies, or fulfils requests differently — the register then shows the override instead of the standard process.",
+      type: "text_long",
+      isRequired: false,
+    },
     ...(opts.extras ?? []),
+
   ];
 }
 
