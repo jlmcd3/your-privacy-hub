@@ -13,7 +13,7 @@
       "lia"
     ]
   },
-  "thesis": "This assessment decides, jurisdiction by jurisdiction, whether the organisation described in the intake must register, may have to, or need not. Each statute is its own template. Its limbs are applied in its own words, and the answer is given in that statute's frame rather than a common one. Where a limb is unevidenced the assessment says so and names what would settle it; where the operative text is not yet in corpus it says that too, and answers nothing.",
+  "thesis": "This assessment decides, jurisdiction by jurisdiction, whether the organisation must register, may have to, or need not, with each statute applied in its own words and answered in its own frame. Where a limb is unevidenced the assessment says so and names what would settle it, and where the operative text is not yet in corpus it says that too and answers nothing.",
   "sections": [
     {
       "id": "registration_determination",
@@ -192,16 +192,16 @@
     {
       "id": "xp-registration-1",
       "section_id": "threshold_analysis",
-      "before": "Four US state data-broker registration regimes were considered and 2 were in scope: California, Vermont. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.",
+      "before": "Four US state data-broker registration regimes were considered and 2 were in scope: California, Vermont. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable \u2014 California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.",
       "after": "Two of the four state data-broker regimes reach this organisation: California and Vermont. Each was applied in its own words. California and Vermont both turn on the absence of a direct relationship with the consumer, and the record shows no such relationship, so both definitions are met. Oregon has no direct-relationship carve-out and Texas asks a different question altogether, reaching processing and transfer rather than sale.",
       "note": "Determination first, in each statute's own frame. The single 68-word sentence with three stacked asides becomes four sentences, the count is stated as a fact rather than as a tally of what the machine considered, and the states that fall away are named with the reason they fall away."
     },
     {
       "id": "xp-registration-2",
       "section_id": "corpus_pending",
-      "before": "One question is deliberately left open: EU AI Act registration duties (Regulation (EU) 2024/1689, Art. 16, Regulation (EU) 2024/1689, Art. 26, Regulation (EU) 2024/1689, Art. 49, Regulation (EU) 2024/1689, Art. 71) — The record indicates AI systems are in use, which raises the question whether the EU database registration duties apply. This assessment does not answer it: the operative text is not yet in this product's verified corpus, and stating a conclusion without the provision in front of it would be assertion rather than analysis.",
+      "before": "One question is deliberately left open: EU AI Act registration duties (Regulation (EU) 2024/1689, Art. 16, Regulation (EU) 2024/1689, Art. 26, Regulation (EU) 2024/1689, Art. 49, Regulation (EU) 2024/1689, Art. 71) \u2014 The record indicates AI systems are in use, which raises the question whether the EU database registration duties apply. This assessment does not answer it: the operative text is not yet in this product's verified corpus, and stating a conclusion without the provision in front of it would be assertion rather than analysis.",
       "after": "EU AI Act registration duties are recorded here and left open. The record indicates AI systems are in use, which raises the question whether the EU database registration duties apply. This assessment does not answer it: the operative text is not yet in this product's verified corpus, and stating a conclusion without the provision in front of it would be assertion rather than analysis. The provisions that would settle it are listed with this flag. Until their text is in corpus the question stays live; nothing above should be read as a finding that no duty arises.",
-      "note": "Six stacked asides — one per repeated citation — are gone; the provisions ride the flag instead of the sentence. The topic is named plainly, the reason for silence is given once, and the passage ends by telling the reader what the silence does and does not mean."
+      "note": "Six stacked asides \u2014 one per repeated citation \u2014 are gone; the provisions ride the flag instead of the sentence. The topic is named plainly, the reason for silence is given once, and the passage ends by telling the reader what the silence does and does not mean."
     }
   ]
 }

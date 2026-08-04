@@ -14,7 +14,7 @@
       "registration"
     ]
   },
-  "thesis": "Each biometric statute in scope is its own template. This assessment applies each one in its own words rather than in a common frame. A duty is stated as the statute states it, the practice the record describes is set beside it, and the conclusion follows from the two. Where the record is silent the duty is left unresolved and what would settle it is named. Exposure and what must change now are kept apart: an enforcement route is not an instruction, and an unsatisfied duty is not softened into a suggestion.",
+  "thesis": "Each biometric statute in scope is applied in its own words: the duty is stated as the statute states it, the practice the record describes is set beside it, and the conclusion follows from the two. Where the record is silent the duty is left unresolved and what would settle it is named, and exposure is kept apart from what must change now.",
   "sections": [
     {
       "id": "consequence_determination",
@@ -169,7 +169,7 @@
       "section_id": "consequence_determination",
       "before": "On the record as supplied, 5 duties are not satisfied: BIPA 740 ILCS 14/15(a), BIPA 740 ILCS 14/15(a), BIPA 740 ILCS 14/15(b), BIPA 740 ILCS 14/15(c), BIPA 740 ILCS 14/15(d). Enforcement routes differ by state and are set out separately from the duty findings.",
       "after": "Five duties are not satisfied by the practices described. They are 740 ILCS 14/15(a); 14/15(b); 14/15(c); 14/15(d). Enforcement routes differ by state and are set out separately from the duty findings. They describe exposure. What must change now is the unsatisfied duties named above.",
-      "note": "The courtroom opener goes. The list stops reading as three stacked asides once it is a sentence of its own with semicolons, and the passage now says in plain words which half is exposure and which half is the instruction — the distinction the determination logic already draws and the prose used to blur."
+      "note": "The courtroom opener goes. The list stops reading as three stacked asides once it is a sentence of its own with semicolons, and the passage now says in plain words which half is exposure and which half is the instruction \u2014 the distinction the determination logic already draws and the prose used to blur."
     },
     {
       "id": "xp-biometric-2",
