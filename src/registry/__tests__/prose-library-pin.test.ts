@@ -7,8 +7,10 @@
 //   * the row exists for every product the repo authors,
 //   * its `content_hash` matches a canonical hash of the stored payload,
 //   * the stored payload equals the authored JSON in `library/prose/`,
-//   * `library_schema_version` matches the version the loader asserts,
-//   * gating carries over as data: `approved` is still false (no CEO sign-off).
+//   * `library_schema_version` matches the version the loader asserts.
+//
+// It deliberately does NOT pin `approved`: approval lives only in the database
+// column and records the CEO's sign-off act.
 //
 // Do NOT edit a pin to make a failing row pass; re-seed the row from
 // `library/prose/` with `scripts/prose/seed-library.ts`.
@@ -74,13 +76,13 @@ describe.skipIf(!CAN_RUN)("prose library rows — content pin", () => {
       const authored = JSON.parse(readFileSync(path.join(ROOT, rel), "utf8"));
       expect(canonicalize(row.payload)).toBe(canonicalize(authored));
 
-      // Gating carries over as a column value. cppa-risk was approved under
-      // Item 363 (CEO conditional approval satisfied) and dpia under Item 372
-      // (the quality-pilot dispatch approved the v2 plan explicitly); the rest
-      // still await sign-off.
-      const expectedApproved = product === "cppa-risk" || product === "dpia";
-      expect(row.approved).toBe(expectedApproved);
-      expect((row.payload as { approved?: boolean }).approved).toBe(expectedApproved);
+      // CHANGE CONTROL — this pin covers CONTENT ONLY. Approval is the CEO's
+      // sign-off act, recorded solely in the `approved` column, and may change
+      // without any repo change; pinning it here would make a legitimate
+      // sign-off look like a regression (and invite a "fix" that reverts it).
+      // The stored payload must carry no operative `approved` field at all.
+      expect((row.payload as { approved?: boolean }).approved).toBeUndefined();
+      expect((row.payload as { seed_default_approved?: boolean }).seed_default_approved).toBe(false);
 
     });
   }
