@@ -11,7 +11,7 @@
       "cppa-risk"
     ]
   },
-  "thesis": "On the record this organisation gave, the assessment states what the processing is, what it decides, what carries the decision, and what the organisation must still put on the record before anyone signs it.",
+  "thesis": "This assessment states what the processing is and what the record this organisation supplied will and will not carry. Where the record is silent the document says so. Nothing here is settled until the organisation writes the missing facts down.",
   "sections": [
     {
       "id": "section_0_overview",
@@ -163,7 +163,7 @@
       "id": "xp-dpia-1",
       "section_id": "section_0_overview",
       "before": "No third-party processors are identified on the current record. If processors are engaged (e.g. cloud hosting, analytics platform), a data processing agreement must be in place for each. The organisation should confirm whether the described position applies here. ]",
-      "after": "The record names no processor. If hosting or analytics work is done by someone outside the organisation, that arrangement belongs on the record, and the assessment cannot close until it is there.",
+      "after": "The record names no processor. If hosting or analytics work is done by someone outside the organisation, that arrangement belongs in the record, and the assessment cannot close until it is there.",
       "note": "Removes the stock hedge and the stray bracket, drops the parenthetical list into the sentence, and ends on a short clause that lands."
     },
     {

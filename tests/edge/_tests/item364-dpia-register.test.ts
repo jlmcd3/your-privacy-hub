@@ -45,8 +45,14 @@ Deno.test("register lint: monotone cadence is caught and varied cadence passes",
 
   const varied =
     "The record names no processor. If hosting or analytics work is done by someone outside the organisation, " +
-    "that arrangement belongs on the record. The assessment cannot close until it is there.";
+    "that arrangement belongs in the record. The assessment cannot close until it is there.";
   assertEquals(lintRegisterText("s", varied), []);
+});
+
+Deno.test("register lint: banned phrases are caught (A6 hole closed)", () => {
+  const f = lintRegisterText("s", "On the record this organisation gave, retention runs to 24 months.");
+  assert(rules(f).includes("banned_phrase"));
+  assertEquals(lintRegisterText("s", "The record this organisation supplied puts retention at 24 months."), []);
 });
 
 Deno.test("register lint: stacked asides are caught", () => {

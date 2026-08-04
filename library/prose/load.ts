@@ -17,5 +17,7 @@ export const CPPA_RISK_FRAMES = await read<FrameSet>("./frames/cppa-risk.frames.
 export const CPPA_RISK_PLAN = await read<DocumentPlan>("./plans/cppa-risk.plan.json");
 export const DPIA_FRAMES = await read<FrameSet>("./frames/dpia.frames.json");
 export const DPIA_PLAN = await read<DocumentPlan>("./plans/dpia.plan.json");
+export const LIA_FRAMES = await read<FrameSet>("./frames/lia.frames.json");
+export const LIA_PLAN = await read<DocumentPlan>("./plans/lia.plan.json");
 export const GOVERNANCE_PLAN = await read<DocumentPlan>("./plans/governance.plan.json");
 export const REGISTRATION_PLAN = await read<DocumentPlan>("./plans/registration.plan.json");

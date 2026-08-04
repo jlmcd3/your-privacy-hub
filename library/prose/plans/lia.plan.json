@@ -1,0 +1,240 @@
+{
+  "product": "lia",
+  "version": "prose-plans-2026-08-04-item364-d2",
+  "approved": false,
+  "provenance": {
+    "method": "report_keys",
+    "donors_total": 3,
+    "donors_with_text": 1,
+    "extracted_at": "2026-08-04",
+    "exemplars": [
+      "cppa-risk",
+      "dpia"
+    ]
+  },
+  "thesis": "This assessment decides whether the interest this organisation stated can carry the processing it described once the effect on the people involved is weighed against it. The weighing is the document. Where the record leaves a side of that weighing empty the assessment says which side and what would fill it.",
+  "sections": [
+    {
+      "id": "determination",
+      "title": "Determination",
+      "arc_stage": "headline",
+      "lead": "determination",
+      "source_key": "lia_determination",
+      "themes": [
+        "outcome",
+        "carrying_reason",
+        "residual_uncertainty"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "classification",
+      "title": "The processing as the organisation described it",
+      "arc_stage": "record",
+      "lead": "record",
+      "source_key": "classification",
+      "themes": [
+        "parties",
+        "activity",
+        "data",
+        "subjects",
+        "jurisdiction"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "interest_legitimacy",
+      "title": "The interest and whether it is a legitimate one",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "interest_legitimacy",
+      "themes": [
+        "purpose_stage",
+        "interest_stated",
+        "sub_test_reasoning",
+        "cumulative_view"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "benefit_and_beneficiary",
+      "title": "What the processing achieves, and for whom",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "benefit_and_beneficiary",
+      "themes": [
+        "purpose_stage",
+        "benefit",
+        "beneficiary",
+        "specificity"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "alternatives_considered",
+      "title": "Whether a less intrusive route was available",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "alternatives_considered",
+      "themes": [
+        "necessity_stage",
+        "alternatives",
+        "why_inadequate",
+        "consent_route"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "relationship_with_individual",
+      "title": "The relationship between the organisation and the people affected",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "relationship_with_individual",
+      "themes": [
+        "balancing_stage",
+        "relationship",
+        "expectation",
+        "power_imbalance"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "scale_frequency_duration",
+      "title": "How much processing, how often, and for how long",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "scale_frequency_duration",
+      "themes": [
+        "balancing_stage",
+        "scale",
+        "frequency",
+        "duration"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "potential_harms",
+      "title": "What could go wrong for the people affected",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "potential_harms",
+      "themes": [
+        "balancing_stage",
+        "harms",
+        "severity",
+        "bearing_on_balance"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "opt_out_feasibility",
+      "title": "Whether the people affected can stop it",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "opt_out_feasibility",
+      "themes": [
+        "balancing_stage",
+        "feasibility",
+        "mechanism",
+        "weight_as_mitigation"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "balancing",
+      "title": "The balance",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "three_part_test.balancing_test",
+      "themes": [
+        "balancing_stage",
+        "case_for",
+        "case_against",
+        "weighing",
+        "outcome"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "comparable_decisions",
+      "title": "Comparable regulator decisions",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "enforcement_precedents",
+      "themes": [
+        "framing",
+        "analogy"
+      ],
+      "required": false,
+      "status": "pending_review"
+    },
+    {
+      "id": "information_needed",
+      "title": "What the record does not yet state",
+      "arc_stage": "ask",
+      "lead": "record",
+      "source_key": "information_needed",
+      "themes": [
+        "silent_fields",
+        "hedged_answers",
+        "effect_on_the_weighing"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "documentation_recommendations",
+      "title": "What to write down next",
+      "arc_stage": "remedy",
+      "lead": "determination",
+      "source_key": "documentation_recommendations",
+      "themes": [
+        "immediate",
+        "conditions"
+      ],
+      "required": true,
+      "status": "pending_review"
+    },
+    {
+      "id": "attestation_block",
+      "title": "Review, approval, and when this must be looked at again",
+      "arc_stage": "close",
+      "lead": "determination",
+      "source_key": "attestation_block",
+      "themes": [
+        "review",
+        "approval",
+        "triggers",
+        "counsel_reservation"
+      ],
+      "required": true,
+      "status": "pending_review"
+    }
+  ],
+  "exemplar_pairs": [
+    {
+      "id": "xp-lia-1",
+      "section_id": "interest_legitimacy",
+      "before": "Meridian Insights Ltd holds a commercial interest in measuring conversion funnel performance to improve marketing efficiency — an interest that is lawful, present, and connected to the controller's own site operations. Under GDPR Article 6(1)(f) UK GDPR, read together with ICO legitimate-interests guidance (the primary UK reference), only interests that are 'lawful, precisely articulated and present' may validly ground this basis (EDPB Guidelines 1/2024, Section II.A, cited as persuasive comparative). The interest as recorded — measuring conversion funnels to improve the marketing site — is sufficiently specific in commercial terms: it identifies the activity (funnel measurement), the subject (the marketing site), and the commercial rationale (marketing efficiency).",
+      "after": "The interest is a legitimate one. Meridian Insights Ltd wants to know which of its marketing pages lose visitors before the enquiry form reaches them. That is a real commercial interest and the organisation is pursuing it now. The record names the activity, the site, and the reason for it. Legitimacy is the lowest of the three bars; the weight comes later.",
+      "note": "Determination first, then the record fact that carries it. Three stacked asides and one nested parenthetical chain are removed, the standard is stated once instead of quoted twice, and the passage ends on a short sentence that lands."
+    },
+    {
+      "id": "xp-lia-2",
+      "section_id": "documentation_recommendations",
+      "before": "The opt-out mechanism must be available at the point of data collection — before or at the moment the visitor's behaviour is first tracked — and must be clearly linked from the transparency notice and any cookie or analytics banner. The organisation should confirm whether the described position applies here. The controller must document: (a) the technical implementation by which an opt-out signal stops analytics data collection or use for funnel measurement; (b) how the opt-out choice is recorded and honoured across sessions for returning visitors; and (c) the process for handling an opt-out exercised after an initial session. The organisation should confirm whether the described position applies here.",
+      "after": "The opt-out belongs before the first tracking event, not after it. Link it from the transparency notice and from any analytics banner. Three things then need writing down: how an opt-out signal actually stops collection, how the choice survives later sessions, and what happens when someone opts out after a first visit. None of that is written down yet.",
+      "note": "The stock hedge appeared twice in one field; it is gone. Lettered sub-clauses become one sentence a reader can hold, and the closing sentence states the gap as a finding rather than repeating the hedge."
+    }
+  ]
+}
