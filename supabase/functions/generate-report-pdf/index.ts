@@ -15,6 +15,9 @@ import {
 import { hasProse9Document } from "../_shared/report-contracts/cppa-risk-prose9.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 import { buildCPPARiskProse9HTML } from "./prose9-html.ts";
+// ITEM 369-IR LEG 1 — two-file IR delivery (standing playbook + worksheet).
+import { buildIRStandingPlaybookHTML, buildIRWorksheetHTML } from "./ir-artifacts-html.ts";
+
 
 
 
