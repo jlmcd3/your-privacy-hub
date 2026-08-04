@@ -71,6 +71,20 @@ const JUR_GROUPS: Array<{ label: string; options: string[] }> = [
 ];
 const ORG_TYPES = ["Company","Public authority","Healthcare provider","Financial institution","Other"];
 
+// ITEM 369-IR — the first-hour checklist is CONFIRM/SELECT ONLY. Ids mirror
+// FIRST_HOUR_ITEMS in _shared/ltp/ir-playbook-deliverables/standing-playbook.ts;
+// the wording of each step lives there and is never authored at intake.
+const FIRST_HOUR_CONFIRMATIONS: { id: string; label: string }[] = [
+  { id: "fh_activate", label: "Declaring the incident and activating the response team" },
+  { id: "fh_clock", label: "Recording the discovery timestamp in UTC and the discoverer" },
+  { id: "fh_preserve", label: "Issuing an evidence-preservation and log-retention hold" },
+  { id: "fh_isolate", label: "Taking the containment / isolation decision" },
+  { id: "fh_counsel", label: "Engaging outside counsel under the privilege protocol" },
+  { id: "fh_dpo", label: "Notifying the DPO or nominated contact point" },
+  { id: "fh_scope", label: "Opening the scoping question: which data, whose, how many" },
+  { id: "fh_insurer", label: "Notifying the insurer within its policy condition" },
+];
+
 const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
 1. Assemble incident response team — IR Lead, DPO, Legal Counsel, Communications, IT Security.
 2. Preserve all evidence: server logs, email records, access trails. Do not delete or modify.
@@ -100,6 +114,26 @@ export default function IRPlaybook() {
     affectedRecordCount: "",
     affectedDataSubjectCount: "",
     awarenessConfirmed: "Assumed — detection timestamp treated as awareness pending confirmation",
+    // ── ITEM 369-IR — STANDING-PLAYBOOK INTAKE (all optional) ──────────
+    // Held as raw text in form state and parsed to structured arrays at
+    // submit. Every field may be left empty: the standing-playbook builder
+    // degrades honestly with a named information_needed rather than
+    // inventing a roster, a contact or a deadline.
+    activationCriteriaText: "",
+    severityMatrixText: "",
+    responseTeamRosterText: "",
+    outsideCounselName: "",
+    outsideCounselContact: "",
+    privilegeProtocol: false,
+    insurerContact: "",
+    forensicVendorContact: "",
+    lawEnforcementContact: "",
+    keySystemsText: "",
+    logSourcesText: "",
+    itIsolationAuthority: "",
+    breachNoticeContractsText: "",
+    firstHourConfirmations: [] as string[],
+    nextTabletopDate: "",
   });
 
   const [result, setResult] = useState("");
@@ -148,7 +182,41 @@ export default function IRPlaybook() {
     }
     logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
+    // ITEM 369-IR — parse the standing-playbook free text into the structured
+    // shapes the contract declares. An unparseable or empty field is OMITTED
+    // rather than sent as an empty string, so the builder sees absence (and
+    // degrades honestly) instead of a blank it might render as content.
+    const lines = (t: string) => t.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+    const cols = (t: string, keys: string[]) =>
+      lines(t)
+        .map((ln) => {
+          const parts = ln.split("|").map((x) => x.trim());
+          if (parts.filter(Boolean).length === 0) return null;
+          const rec: Record<string, string> = {};
+          keys.forEach((k, i) => { if (parts[i]) rec[k] = parts[i]; });
+          return Object.keys(rec).length ? rec : null;
+        })
+        .filter(Boolean);
+    const omitEmpty = (o: Record<string, unknown>) =>
+      Object.fromEntries(
+        Object.entries(o).filter(([, v]) =>
+          Array.isArray(v) ? v.length > 0 : typeof v === "string" ? v.trim() !== "" : v !== undefined,
+        ),
+      );
+    const {
+      activationCriteriaText, severityMatrixText, responseTeamRosterText,
+      keySystemsText, logSourcesText, breachNoticeContractsText, ...base
+    } = form;
+    const standing = omitEmpty({
+      activationCriteria: lines(activationCriteriaText),
+      severityMatrix: cols(severityMatrixText, ["level", "definition", "escalation"]),
+      responseTeamRoster: cols(responseTeamRosterText, ["role", "primary", "alternate"]),
+      keySystems: lines(keySystemsText),
+      logSources: lines(logSourcesText),
+      breachNoticeContracts: cols(breachNoticeContractsText, ["counterparty", "deadline", "clause"]),
+    });
+    const payload = { ...base, ...standing };
+    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...payload, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.id) {
       setResult("Generation failed. Please try again.");
       setPhase("result");
@@ -285,6 +353,81 @@ export default function IRPlaybook() {
                 <option>Confirmed — discovery timestamp verified as the moment of awareness</option>
                 <option>Assumed — detection timestamp treated as awareness pending confirmation</option>
                 <option>Unknown</option></select></label>
+
+            {/* ── ITEM 369-IR — STANDING PLAYBOOK (pre-incident) ──────────
+                Optional throughout. This intake is written BEFORE any
+                incident, which is why the statutory rail applies to it and
+                why nothing here blocks generation. */}
+            <details className="border border-border rounded-xl p-4">
+              <summary className="cursor-pointer font-semibold text-brand-navy text-sm">
+                Standing playbook (optional — pre-incident preparation)
+              </summary>
+              <p className="text-meta text-muted-foreground mt-2 mb-4">
+                Anything left blank is recorded as not yet recorded, with the missing item named. Nothing here is invented on your behalf.
+              </p>
+              <div className="space-y-4">
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Activation criteria</span>
+                  <span className="block text-meta text-muted-foreground">One observable event per line.</span>
+                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.activationCriteriaText} onChange={e => setForm(f => ({ ...f, activationCriteriaText: e.target.value }))} /></label>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Severity matrix</span>
+                  <span className="block text-meta text-muted-foreground">One level per line: level | definition | escalation consequence</span>
+                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.severityMatrixText} onChange={e => setForm(f => ({ ...f, severityMatrixText: e.target.value }))} /></label>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Response team and alternates</span>
+                  <span className="block text-meta text-muted-foreground">One role per line: role | primary (name, title) | alternate (name, title)</span>
+                  <textarea rows={5} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.responseTeamRosterText} onChange={e => setForm(f => ({ ...f, responseTeamRosterText: e.target.value }))} /></label>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Outside counsel</span>
+                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselName} onChange={e => setForm(f => ({ ...f, outsideCounselName: e.target.value }))} /></label>
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Counsel out-of-hours route</span>
+                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.outsideCounselContact} onChange={e => setForm(f => ({ ...f, outsideCounselContact: e.target.value }))} /></label>
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Insurer and notification condition</span>
+                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.insurerContact} onChange={e => setForm(f => ({ ...f, insurerContact: e.target.value }))} /></label>
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Forensic vendor and callout window</span>
+                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.forensicVendorContact} onChange={e => setForm(f => ({ ...f, forensicVendorContact: e.target.value }))} /></label>
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">Law enforcement contact</span>
+                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.lawEnforcementContact} onChange={e => setForm(f => ({ ...f, lawEnforcementContact: e.target.value }))} /></label>
+                  <label className="block text-sm"><span className="font-semibold text-brand-navy">IT isolation authority</span>
+                    <input type="text" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.itIsolationAuthority} onChange={e => setForm(f => ({ ...f, itIsolationAuthority: e.target.value }))} /></label>
+                </div>
+
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.privilegeProtocol} onChange={e => setForm(f => ({ ...f, privilegeProtocol: e.target.checked }))} />
+                  <span className="font-semibold text-brand-navy">A privilege protocol is in place with counsel</span>
+                </label>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Key systems holding personal data</span>
+                  <span className="block text-meta text-muted-foreground">One system per line.</span>
+                  <textarea rows={3} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.keySystemsText} onChange={e => setForm(f => ({ ...f, keySystemsText: e.target.value }))} /></label>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Log sources</span>
+                  <span className="block text-meta text-muted-foreground">One source per line, with its retention period.</span>
+                  <textarea rows={3} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.logSourcesText} onChange={e => setForm(f => ({ ...f, logSourcesText: e.target.value }))} /></label>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Contracts carrying breach-notice obligations</span>
+                  <span className="block text-meta text-muted-foreground">One contract per line: counterparty | notice deadline | clause reference</span>
+                  <textarea rows={4} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.breachNoticeContractsText} onChange={e => setForm(f => ({ ...f, breachNoticeContractsText: e.target.value }))} /></label>
+
+                <fieldset className="text-sm">
+                  <legend className="font-semibold text-brand-navy">First-hour checklist — confirm the steps already provided for</legend>
+                  <span className="block text-meta text-muted-foreground mb-1">Confirmation only. The checklist items themselves are fixed and are not authored here.</span>
+                  <div className="grid sm:grid-cols-2 gap-1 mt-1">
+                    {FIRST_HOUR_CONFIRMATIONS.map(o => (
+                      <label key={o.id} className="flex items-start gap-2 text-meta">
+                        <input type="checkbox" className="mt-1" checked={form.firstHourConfirmations.includes(o.id)}
+                          onChange={() => setForm(f => ({ ...f, firstHourConfirmations: f.firstHourConfirmations.includes(o.id) ? f.firstHourConfirmations.filter(x => x !== o.id) : [...f.firstHourConfirmations, o.id] }))} />
+                        <span>{o.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <label className="block text-sm"><span className="font-semibold text-brand-navy">Next planned tabletop exercise <span className="text-xs text-muted-foreground font-mono">(Art. 32(1)(d))</span></span>
+                  <input type="date" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.nextTabletopDate} onChange={e => setForm(f => ({ ...f, nextTabletopDate: e.target.value }))} /></label>
+              </div>
+            </details>
 
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             <FreeRunIndicator toolKey="ir_playbook" />

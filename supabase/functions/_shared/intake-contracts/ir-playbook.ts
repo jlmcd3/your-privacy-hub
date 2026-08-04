@@ -102,6 +102,28 @@ export const irPlaybookContract: IntakeContract = {
     { key: "affectedDataSubjectCount", kind: "text", required: "optional" },
     // ITEM 312 — the confirmed-vs-assumed flag Op. 1's own logic signals it needs.
     { key: "awarenessConfirmed", kind: "enum", required: "optional", options: AWARENESS_CONFIRMATION },
+
+    // ── ITEM 369-IR (Master Spec §4.2) — STANDING-PLAYBOOK INTAKE ──────
+    // Every field below is OPTIONAL by contract: legacy ir_playbooks rows
+    // predate the two-artifact model and must still generate. Absence is
+    // handled by honest degradation in the standing-playbook builder, never
+    // by invention.
+    { key: "activationCriteria", kind: "string-array", required: "optional" },
+    { key: "severityMatrix", kind: "structured", required: "optional" },
+    { key: "severityThresholds", kind: "string-array", required: "optional" },
+    { key: "responseTeamRoster", kind: "structured", required: "optional" },
+    { key: "outsideCounselName", kind: "text", required: "optional" },
+    { key: "outsideCounselContact", kind: "text", required: "optional" },
+    { key: "privilegeProtocol", kind: "boolean", required: "optional" },
+    { key: "insurerContact", kind: "text", required: "optional" },
+    { key: "forensicVendorContact", kind: "text", required: "optional" },
+    { key: "lawEnforcementContact", kind: "text", required: "optional" },
+    { key: "keySystems", kind: "string-array", required: "optional" },
+    { key: "logSources", kind: "string-array", required: "optional" },
+    { key: "itIsolationAuthority", kind: "text", required: "optional" },
+    { key: "breachNoticeContracts", kind: "structured", required: "optional" },
+    { key: "firstHourConfirmations", kind: "string-array", required: "optional" },
+    { key: "nextTabletopDate", kind: "date", required: "optional" },
   ],
 };
 

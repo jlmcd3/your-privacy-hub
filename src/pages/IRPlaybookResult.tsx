@@ -27,6 +27,10 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
 import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
+// ITEM 369-IR — two-artifact model + authority exhibit.
+import StandingPlaybookView from "@/components/ir/StandingPlaybookView";
+import IncidentWorksheetView from "@/components/ir/IncidentWorksheetView";
+import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 
 const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 
@@ -149,6 +153,16 @@ export default function IRPlaybookResult() {
                 <AnnotationCallout annotations={(row?.report_data as any)?.annotations} />
               </div>
             )}
+
+            {/* ITEM 369-IR — ARTIFACT A: the standing playbook, then its
+                authority exhibit. The exhibit belongs to this artifact only and
+                sits immediately before the universal disclaimer, which
+                ReportShell renders as the final element. */}
+            <StandingPlaybookView playbook={(row?.report_data as any)?.standing_playbook} />
+            <AuthorityExhibit exhibit={(row?.report_data as any)?.authority_exhibit} />
+
+            {/* ITEM 369-IR — ARTIFACT B: blank forms, no exhibit, no analysis. */}
+            <IncidentWorksheetView worksheet={(row?.report_data as any)?.incident_worksheet} />
             </div>
           </ReportShell>
         )}

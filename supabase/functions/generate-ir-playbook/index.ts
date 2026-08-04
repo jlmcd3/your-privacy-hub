@@ -1809,6 +1809,61 @@ let playbook_text = lint.clean;
           console.warn("[generate-ir-playbook] ITEM-312 deliverables failed (non-fatal):", (e as Error)?.message);
         }
 
+        // ── ITEM 369-IR (Master Spec §4.2) — TWO-ARTIFACT MODEL ───────────
+        // ONE generation run, TWO rendered artifacts:
+        //   A. `standing_playbook`  — pre-incident reference, NIST/CISA arc.
+        //   B. `incident_worksheet` — blank structured forms, blank by design.
+        // The authority exhibit belongs to the standing playbook only and is
+        // rendered immediately before the universal disclaimer. The 202 /
+        // background dispatch and the ir_playbooks polling path are untouched.
+        // Fail-open in every limb.
+        try {
+          const { buildStandingPlaybook } = await import("../_shared/ltp/ir-playbook-deliverables/standing-playbook.ts");
+          const { buildIncidentWorksheet } = await import("../_shared/ltp/ir-playbook-deliverables/incident-worksheet.ts");
+          const mapping = (report_data as any)?.content_owner_mapping;
+          report_data.standing_playbook = buildStandingPlaybook(body as unknown, mapping);
+          report_data.incident_worksheet = buildIncidentWorksheet((body as any)?.organizationName ?? "");
+          const _m2 = ((report_data as any)._meta ??= {});
+          (_m2.internal ??= {}).ir_two_artifact = {
+            standing_sections: report_data.standing_playbook.sections.length,
+            standing_status: report_data.standing_playbook.status,
+            standing_information_needed: report_data.standing_playbook.information_needed.length,
+            worksheet_forms: report_data.incident_worksheet.forms.length,
+          };
+        } catch (e) {
+          console.warn("[generate-ir-playbook] ITEM-369 two-artifact build failed (non-fatal):", (e as Error)?.message);
+        }
+
+        // ── ITEM 369-IR — CORPUS + AUTHORITY EXHIBIT ──────────────────────
+        // Statute resolved at runtime through provision-store (zero compiled-in
+        // statutory text); EDPB 9/2022 excerpts re-verified byte-exact against
+        // the live corpus and dropped to citation-only on drift. NIST/CISA/ICO
+        // are template guidance and never enter the exhibit.
+        try {
+          const { loadIrCorpus, irCorpusCitations } = await import("../_shared/ltp/ir-corpus.ts");
+          const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
+          const corpus = await loadIrCorpus(supabase);
+          const provisions = corpus.provisions
+            .filter((p) => p.status === "approved" && p.verbatim_excerpt)
+            .map((p) => ({ key: p.key, citation: p.citation, verbatim_excerpt: p.verbatim_excerpt, status: "approved" }));
+          report_data.authority_exhibit = buildAuthorityExhibit(irCorpusCitations(corpus), provisions);
+          report_data.ir_corpus_meta = {
+            version: corpus.version,
+            resolved_count: corpus.resolved_count,
+            approved_count: corpus.approved_count,
+            guidance_verified_count: corpus.guidance_verified_count,
+            guidance: corpus.guidance.map((g) => ({
+              proposition_key: g.proposition_key,
+              citation: g.citation,
+              source_url: g.source_url,
+              verbatim: g.verbatim,
+              pin_verified: g.pin_verified,
+            })),
+          };
+        } catch (e) {
+          console.warn("[generate-ir-playbook] ITEM-369 corpus/exhibit failed (non-fatal):", (e as Error)?.message);
+        }
+
         // ── IR-PLAYBOOK-REGISTRY-WIRING (2026-07-25) — deterministic post-pass ──
         // Registry-first citation stamping + write-around; telemetry under
         // `_meta.internal.ir_w1`. Fail-open; never blocks emission.

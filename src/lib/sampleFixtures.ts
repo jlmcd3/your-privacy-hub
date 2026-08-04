@@ -439,6 +439,43 @@ const F_IR_EU: SampleFixture = {
       processorInvolved: true,
       contained: "Yes",
       organisationType: "Company",
+      // ── ITEM 369-IR — STANDING-PLAYBOOK INTAKE ────────────────────────
+      // Populated so the sample exercises Artifact A at full strength: all
+      // fourteen sections analysed, no degradation. The US variant below is
+      // deliberately left WITHOUT these fields so the pair covers both the
+      // populated and the honestly-degraded rendering in one fixture set.
+      activationCriteria: [
+        "Any encryption event detected on a warehouse-management server",
+        "Any ransom note or extortion contact received by any employee",
+        "Any cold-chain customer telling us their manifest data has surfaced elsewhere",
+        "Any loss of a depot device holding driver schedules",
+      ],
+      severityMatrix: [
+        { level: "SEV-1", definition: "Warehouse-management system unavailable, or employee personnel data confirmed exfiltrated", escalation: "Executive board notified within 1 hour; response team on continuous call" },
+        { level: "SEV-2", definition: "Unauthorised access confirmed to a system holding personal data, exfiltration not established", escalation: "Managing director notified within 4 hours" },
+        { level: "SEV-3", definition: "Suspicious activity under investigation, no personal data implicated", escalation: "Incident Lead only; written update each working day" },
+      ],
+      responseTeamRoster: [
+        { role: "Incident Lead", primary: "K. Sørensen, Operations Director", alternate: "L. Bak, Depot Network Manager" },
+        { role: "Data Protection Officer", primary: "A. Thorsen", alternate: "M. Hald, Compliance Manager" },
+        { role: "Security / Forensics Lead", primary: "E. Lindgren, Head of IT", alternate: "N. Poulsen, Systems Engineer" },
+        { role: "Communications Lead", primary: "R. Dahl, Customer Relations Director", alternate: "S. Krogh, Account Manager" },
+      ],
+      outsideCounselName: "Vinge & Aaberg Advokatpartnerselskab (data protection practice)",
+      outsideCounselContact: "24-hour incident line under retainer VA-2026-31",
+      privilegeProtocol: true,
+      insurerContact: "Nordisk Cyber policy NC-40771, notification condition: 72 hours from discovery",
+      forensicVendorContact: "Mandiant retainer MDR-2025-118, 4-hour remote callout",
+      lawEnforcementContact: "Danish National Cyber Crime Centre (NC3), reporting via the police online portal",
+      keySystems: ["Warehouse-management system (WMS)", "WMS staging tier", "HR personnel records system", "Corporate email tenant"],
+      logSources: ["WMS application audit trail (90-day retention)", "Identity provider sign-in logs (180-day retention)", "Perimeter firewall flow logs (30-day retention)", "Backup vault access logs (365-day retention)"],
+      itIsolationAuthority: "Head of IT, or the Operations Director where the former is unreachable for 30 minutes",
+      breachNoticeContracts: [
+        { counterparty: "Cold-chain customers (standard supply terms)", deadline: "Within 48 hours of confirming customer manifest data is involved", clause: "Standard supply terms, clause 11.4" },
+        { counterparty: "Nordisk WMS Hosting ApS (processor)", deadline: "Without undue delay and in any event within 24 hours of awareness", clause: "DPA annex II, paragraph 5" },
+      ],
+      firstHourConfirmations: ["fh_activate", "fh_clock", "fh_preserve", "fh_isolate", "fh_counsel", "fh_dpo", "fh_scope", "fh_insurer"],
+      nextTabletopDate: "2026-11-05",
     },
     invoke: { fn: "generate-ir-playbook", returns_id: true },
     poll: null,

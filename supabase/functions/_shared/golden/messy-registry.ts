@@ -354,6 +354,24 @@ const MESSY_IR_THIN = thinned("ir-playbook", {
     "affectedRecordCount",
     "affectedDataSubjectCount",
     "awarenessConfirmed",
+    // ITEM 369-IR — every standing-playbook path, so the thin fixture
+    // exercises honest degradation on all fourteen sections.
+    "activationCriteria",
+    "severityMatrix",
+    "severityThresholds",
+    "responseTeamRoster",
+    "outsideCounselName",
+    "outsideCounselContact",
+    "privilegeProtocol",
+    "insurerContact",
+    "forensicVendorContact",
+    "lawEnforcementContact",
+    "keySystems",
+    "logSources",
+    "itIsolationAuthority",
+    "breachNoticeContracts",
+    "firstHourConfirmations",
+    "nextTabletopDate",
   ],
 });
 
@@ -421,6 +439,12 @@ const MESSY_IR_MIXED: GoldenCase = {
     processorInvolved: true,
     // processorName, encryption status, record counts and awarenessConfirmed
     // are all absent — hour-two reality, and the 72-hour clock still runs.
+    // ITEM 369-IR: the standing-playbook intake is likewise absent in its
+    // entirety (no activationCriteria, severityMatrix, responseTeamRoster,
+    // key contacts, keySystems, logSources, itIsolationAuthority,
+    // breachNoticeContracts, firstHourConfirmations or nextTabletopDate), so
+    // every standing section must degrade with a named information_needed
+    // rather than invent a roster or a contact.
   },
   assertions: [
     ...DEGRADATION_GUARDS,
