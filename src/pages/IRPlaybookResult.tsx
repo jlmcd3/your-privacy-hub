@@ -104,12 +104,24 @@ export default function IRPlaybookResult() {
                   reportId={row.id}
                   onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
                 />
+                {/* ITEM 369-IR LEG 1 — one run, two downloadable files. */}
                 <PDFDownloadButton
                   toolType="ir_playbook"
                   assessmentId={row.id}
                   pdfUrl={row.pdf_url}
+                  artifact="standing_playbook"
+                  label="↓ Standing Playbook PDF"
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                {Boolean((row?.report_data as any)?.incident_worksheet) && (
+                  <PDFDownloadButton
+                    toolType="ir_playbook"
+                    assessmentId={row.id}
+                    artifact="incident_worksheet"
+                    label="↓ Incident Worksheet PDF"
+                  />
+                )}
+
                 <WordConversionPromptButton documentType="ir_playbook" />
                 
                 {(translated?.playbook_text ?? row.playbook_text) && <CopyButton text={translated?.playbook_text ?? row.playbook_text} />}
