@@ -487,6 +487,10 @@ function checkE6(
   let hits = 0;
   for (const s of sentences) {
     if (COUNSEL_REFERRAL_RE.test(s)) {
+      // UNIVERSAL DISCLAIMER EXEMPTION (CEO-locked constant). The shared
+      // REPORT_DISCLAIMER is sanctioned boilerplate, not a model-authored
+      // referral; byte-match against the imported constant only.
+      if (isUniversalDisclaimerSentence(s)) continue;
       // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
       // privilege guidance stays. Sentences matching opts.exemptRe skip.
       if (opts.exemptRe && opts.exemptRe.test(s)) continue;
