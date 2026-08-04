@@ -174,13 +174,13 @@ Deno.test("ITEM 5 — twenty-one identical information-needed sentences are capp
   const doc = docWith(INFO_NEEDED_LITERAL, 21);
   applyDpiaBoilerplateCap(doc);
   const counts = countDpiaBoilerplate(doc);
-  assertEquals(counts[INFO_NEEDED_LITERAL], DPIA_BOILERPLATE_CAP);
+  assertEquals(counts.info_needed, DPIA_BOILERPLATE_CAP);
 });
 
 Deno.test("ITEM 5 — the neutral-downgrade literal is capped on the same rule", () => {
   const doc = docWith(NEUTRAL_DOWNGRADE_LITERAL, 9);
   applyDpiaBoilerplateCap(doc);
-  assertEquals(countDpiaBoilerplate(doc)[NEUTRAL_DOWNGRADE_LITERAL], DPIA_BOILERPLATE_CAP);
+  assertEquals(countDpiaBoilerplate(doc).neutral_downgrade, DPIA_BOILERPLATE_CAP);
 });
 
 Deno.test("ITEM 5 — nothing is deleted: every flagged leaf still carries prose", () => {
@@ -200,11 +200,14 @@ Deno.test("ITEM 5 — the cap is deterministic: identical input, identical outpu
   assertEquals(JSON.stringify(a), JSON.stringify(b));
 });
 
-Deno.test("ITEM 5 — a document already within the cap is left byte-identical", () => {
+Deno.test("ITEM 5 — a document already within the cap keeps its prose byte-identical", () => {
   const doc = docWith(INFO_NEEDED_LITERAL, 2);
-  const before = JSON.stringify(doc);
+  const before = JSON.stringify(doc.section_2_analysis);
   applyDpiaBoilerplateCap(doc);
-  assertEquals(JSON.stringify(doc), before);
+  // The cap always writes its telemetry stamp; the report body must not move.
+  assertEquals(JSON.stringify(doc.section_2_analysis), before);
+  const internal = ((doc._meta as Record<string, unknown>).internal) as Record<string, unknown>;
+  assert(internal.dpia_boilerplate_cap, "cap emits its own telemetry stamp");
 });
 
 Deno.test("ITEM 5 — the cap is fail-open on a non-object document", () => {
@@ -219,8 +222,10 @@ Deno.test("ITEM 4 — the DPIA corpus is keyed on Arts. 35 and 36", () => {
   assert(DPIA_CORPUS_KEYS.includes("gdpr-art-36"), "Art. 36 governs prior consultation");
 });
 
-Deno.test("ITEM 4 — an empty corpus yields no law block and no exhibit rows", () => {
-  assertEquals(buildDpiaCorpusLawBlock(EMPTY_DPIA_CORPUS), "");
+Deno.test("ITEM 4 — an empty corpus forbids quotation and yields no exhibit rows", () => {
+  const block = buildDpiaCorpusLawBlock(EMPTY_DPIA_CORPUS);
+  assertStringIncludes(block, "UNAVAILABLE");
+  assertStringIncludes(block, "Do not quote any statutory");
   assertEquals(dpiaCorpusProvisionsForExhibit(EMPTY_DPIA_CORPUS).length, 0);
 });
 
@@ -231,8 +236,7 @@ Deno.test("ITEM 4 — a resolved corpus produces a law block quoting the resolve
       {
         key: "gdpr-art-35",
         citation: "GDPR Art. 35",
-        title: "Data protection impact assessment",
-        text: "Where a type of processing is likely to result in a high risk…",
+        verbatim_excerpt: "Where a type of processing is likely to result in a high risk…",
         plain_requirements: ["Carry out an assessment before the processing."],
         status: "approved",
       },
@@ -244,6 +248,7 @@ Deno.test("ITEM 4 — a resolved corpus produces a law block quoting the resolve
   const rows = dpiaCorpusProvisionsForExhibit(corpus);
   assertEquals(rows.length, 1);
   assertEquals(rows[0].key, "gdpr-art-35");
+  assertEquals(rows[0].citation, "GDPR Art. 35");
 });
 
 Deno.test("ITEM 4 — only resolved corpus citations are allowed", () => {
@@ -253,8 +258,7 @@ Deno.test("ITEM 4 — only resolved corpus citations are allowed", () => {
       {
         key: "gdpr-art-35",
         citation: "GDPR Art. 35",
-        title: "Data protection impact assessment",
-        text: "…",
+        verbatim_excerpt: "Where a type of processing is likely to result in a high risk…",
         plain_requirements: [],
         status: "approved",
       },
@@ -262,6 +266,9 @@ Deno.test("ITEM 4 — only resolved corpus citations are allowed", () => {
   } as unknown as Parameters<typeof isAllowedDpiaCitation>[1];
   assert(isAllowedDpiaCitation("GDPR Art. 35", corpus));
   assert(!isAllowedDpiaCitation("GDPR Art. 99", corpus));
+  // The template and the CNIL methodology are structure, never authority.
+  assert(!isAllowedDpiaCitation("EDPB DPIA template v1.0", corpus));
+  assert(!isAllowedDpiaCitation("CNIL PIA methodology", corpus));
 });
 
 // ── ITEM 6 — schema ──────────────────────────────────────────────────────
