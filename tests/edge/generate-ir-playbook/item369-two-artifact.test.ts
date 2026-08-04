@@ -164,3 +164,64 @@ Deno.test("ITEM369 — the serializer keeps both artifacts and drops an unreview
   assertEquals(o.standing_playbook.sections[0].smuggled_key, undefined, "nested unreviewed key shipped");
   assert(telemetry.dropped_count > 0);
 });
+
+// ── LEG 1 + LEG 2 ─────────────────────────────────────────────────────
+// PRESENCE-ONLY, as above: the two PDF artifacts are proved by structure
+// (exhibit placement, disclaimer count, blank cells), never by wording.
+
+import { buildIRStandingPlaybookHTML, buildIRWorksheetHTML } from "../../../supabase/functions/generate-report-pdf/ir-artifacts-html.ts";
+import { applyUniversalDisclaimerHtml, REPORT_DISCLAIMER } from "../../../supabase/functions/_shared/report-disclaimer.ts";
+import { mapContentOwnerToEdpbTemplate } from "../../../supabase/functions/_shared/ltp/ir-playbook-deliverables/edpb-art33-template.ts";
+
+const EXHIBIT_TAG = `<section class="section authority-exhibit"`;
+
+function irRecord() {
+  return {
+    id: "t", created_at: new Date().toISOString(),
+    organization_name: "Larkfield Building Society",
+    intake_data: FULL_INTAKE,
+    report_data: {
+      standing_playbook: buildStandingPlaybook(FULL_INTAKE),
+      incident_worksheet: buildIncidentWorksheet("Larkfield Building Society"),
+      authority_exhibit: {
+        version: "ax", heading: "Appendix — Authorities relied on",
+        entries: [{ citation: "GDPR Art. 33", authority_class: "binding_statute", corpus_key: "gdpr-art-33" }],
+      },
+    },
+  };
+}
+
+Deno.test("ITEM369 LEG1 — standing playbook PDF: locked order, exhibit last, one disclaimer", () => {
+  const html = applyUniversalDisclaimerHtml(buildIRStandingPlaybookHTML(irRecord()));
+  assertEquals(html.split(REPORT_DISCLAIMER).length - 1, 1, "disclaimer must appear exactly once");
+  const headings = [...html.matchAll(/<h2 class="sec">(\d+)\./g)].map((m) => Number(m[1]));
+  assertEquals(headings.length, STANDING_SECTION_ORDER.length, "every locked section must render");
+  assertEquals(headings, headings.slice().sort((a, b) => a - b), "sections must render in the locked order");
+  const iEx = html.indexOf(EXHIBIT_TAG);
+  assert(iEx > -1, "authority exhibit missing from the standing playbook");
+  assert(iEx < html.indexOf(REPORT_DISCLAIMER.slice(0, 40)), "exhibit must sit immediately before the disclaimer");
+});
+
+Deno.test("ITEM369 LEG1 — incident worksheet PDF: blank forms, no exhibit, one disclaimer", () => {
+  const html = applyUniversalDisclaimerHtml(buildIRWorksheetHTML(irRecord()));
+  assertEquals(html.split(REPORT_DISCLAIMER).length - 1, 1, "disclaimer must appear exactly once");
+  assertEquals(html.indexOf(EXHIBIT_TAG), -1, "the worksheet must carry NO authority exhibit");
+  assert(/td class="blank"/.test(html), "worksheet cells must render blank");
+  assert(!/<td[^>]*>\s*\S/.test(html.replace(/<td class="blank"><\/td>/g, "")), "no worksheet cell may be pre-filled");
+});
+
+Deno.test("ITEM369 LEG2 — EDPB Art. 33 template: unanswered fields render explicitly blank", () => {
+  const tpl = mapContentOwnerToEdpbTemplate([], {
+    org: "", cause: "", dataTypes: [], affectedCount: "", recordCount: "",
+    subjectCount: "", awareness: "", jurisdictions: [], processorInvolved: false,
+    processorName: "",
+  }, []);
+  assert(tpl.sections.length > 0, "template sections missing");
+  const fields = tpl.sections.flatMap((s) => s.fields);
+  assert(fields.length > 0, "template fields missing");
+  for (const f of fields) {
+    assert(f.label.trim().length > 0, `field ${f.field_id} has no label`);
+    if (f.status === "blank") assertEquals(f.value, "", `blank field ${f.field_id} must carry no invented content`);
+  }
+  assertEquals(tpl.mapped_count + tpl.blank_count, fields.length);
+});

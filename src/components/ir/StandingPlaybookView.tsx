@@ -10,6 +10,8 @@
 // section that degraded renders its named information_needed instead of
 // silently disappearing.
 
+import EdpbArt33TemplateFields, { type EdpbTemplateData } from "./EdpbArt33TemplateFields";
+
 export interface PlaybookSectionData {
   kind: "table" | "note" | "finding" | "pointer";
   id: string;
@@ -140,8 +142,14 @@ function SectionBody({ section }: { section: PlaybookSectionData }) {
 
 export default function StandingPlaybookView({
   playbook,
+  edpbTemplate,
 }: {
   playbook?: StandingPlaybookData | null;
+  /**
+   * ITEM 369-IR LEG 2 — the EDPB Art. 33 template field mapping, rendered
+   * inside the statutory notification section where the form is prepared.
+   */
+  edpbTemplate?: EdpbTemplateData | null;
 }) {
   if (!playbook || !Array.isArray(playbook.sections) || playbook.sections.length === 0) return null;
 
@@ -170,6 +178,9 @@ export default function StandingPlaybookView({
             {i + 1}. {section.heading}
           </h3>
           <SectionBody section={section} />
+          {section.id === "statutory_notification_determinations" && (
+            <EdpbArt33TemplateFields template={edpbTemplate} />
+          )}
         </div>
       ))}
     </section>

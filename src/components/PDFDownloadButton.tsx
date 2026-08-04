@@ -35,9 +35,17 @@ interface Props {
   className?: string;
   /** Force regeneration, bypassing any cached PDF. */
   force?: boolean;
+  /**
+   * ITEM 369-IR LEG 1 — IR Playbook only: selects which of the two artifacts
+   * from a single generation run to render and download. Ignored by every
+   * other tool type.
+   */
+  artifact?: "standing_playbook" | "incident_worksheet";
+  /** Override the button label (e.g. when two artifacts sit side by side). */
+  label?: string;
 }
 
-export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGenerated, className, force }: Props) {
+export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGenerated, className, force, artifact, label }: Props) {
   const [busy, setBusy] = useState(false);
   const fireConversion = useConversionEvent();
 
@@ -56,6 +64,7 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
           assessment_id: assessmentId,
           result_url: window.location.href,
           ...(force ? { force: true } : {}),
+          ...(artifact ? { artifact } : {}),
         },
       });
       if (error) {
@@ -88,7 +97,7 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
       }
       if (!pdfUrl) toast.success("PDF ready");
       onGenerated?.(data.pdf_url);
-      fireConversion("report_download", { tool_slug: toolType, format: "pdf" });
+      fireConversion("report_download", { tool_slug: toolType, format: "pdf", ...(artifact ? { artifact } : {}) });
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
       console.error("PDF generation failed:", e);
@@ -100,7 +109,7 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
 
   return (
     <button type="button" onClick={handleDownload} disabled={busy} className={baseClass}>
-      {busy ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {pdfUrl ? "Preparing…" : "Generating…"}</> : "↓ Download PDF"}
+      {busy ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {pdfUrl ? "Preparing…" : "Generating…"}</> : (label ?? "↓ Download PDF")}
     </button>
   );
 }

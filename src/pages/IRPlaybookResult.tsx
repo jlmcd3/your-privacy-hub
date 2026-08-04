@@ -104,12 +104,24 @@ export default function IRPlaybookResult() {
                   reportId={row.id}
                   onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
                 />
+                {/* ITEM 369-IR LEG 1 — one run, two downloadable files. */}
                 <PDFDownloadButton
                   toolType="ir_playbook"
                   assessmentId={row.id}
                   pdfUrl={row.pdf_url}
+                  artifact="standing_playbook"
+                  label="↓ Standing Playbook PDF"
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                {Boolean((row?.report_data as any)?.incident_worksheet) && (
+                  <PDFDownloadButton
+                    toolType="ir_playbook"
+                    assessmentId={row.id}
+                    artifact="incident_worksheet"
+                    label="↓ Incident Worksheet PDF"
+                  />
+                )}
+
                 <WordConversionPromptButton documentType="ir_playbook" />
                 
                 {(translated?.playbook_text ?? row.playbook_text) && <CopyButton text={translated?.playbook_text ?? row.playbook_text} />}
@@ -158,7 +170,10 @@ export default function IRPlaybookResult() {
                 authority exhibit. The exhibit belongs to this artifact only and
                 sits immediately before the universal disclaimer, which
                 ReportShell renders as the final element. */}
-            <StandingPlaybookView playbook={(row?.report_data as any)?.standing_playbook} />
+            <StandingPlaybookView
+              playbook={(row?.report_data as any)?.standing_playbook}
+              edpbTemplate={(row?.report_data as any)?.content_owner_mapping?.edpb_template}
+            />
             <AuthorityExhibit exhibit={(row?.report_data as any)?.authority_exhibit} />
 
             {/* ITEM 369-IR — ARTIFACT B: blank forms, no exhibit, no analysis. */}
