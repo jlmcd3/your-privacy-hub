@@ -1,7 +1,8 @@
 {
   "product": "dpia",
   "version": "prose-plans-2026-08-04-item372",
-  "approved": true,
+  "seed_default_approved": false,
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
   "provenance": {
     "method": "draft+ceo_review",
     "donors_total": 36,

@@ -196,9 +196,12 @@ Deno.test("3a: a restated cross-cutting point is flagged; a passing reference is
 
 // ── METHOD 3b / 3c ─────────────────────────────────────────────────────────
 
-Deno.test("3c: the dpia plan is version 2, approved, and lint-clean", () => {
+// CHANGE CONTROL — the artifact carries content only. Approval is recorded in
+// `prose_document_plans.approved` (CEO sign-off) and pinned by the DB suite.
+Deno.test("3c: the dpia plan is the item372 revision, sections reviewed, lint-clean", () => {
   assertEquals(dpiaPlan.version, "prose-plans-2026-08-04-item372");
-  assertEquals(dpiaPlan.approved, true);
+  assertEquals(dpiaPlan.approved, undefined);
+  assertEquals(dpiaPlan.seed_default_approved, false);
   assert(dpiaPlan.sections.every((s: { status: string }) => s.status === "approved"));
   assertStringIncludes(dpiaPlan.provenance.approval, "ITEM 372");
   // deno-lint-ignore no-explicit-any

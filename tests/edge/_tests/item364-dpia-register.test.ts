@@ -63,14 +63,14 @@ Deno.test("register lint: stacked asides are caught", () => {
   assert(rules(f).includes("appositive_stack"));
 });
 
-// ITEM 372 (METHOD 3c) — the CEO approved this plan's direction explicitly in
-// the DPIA quality-pilot dispatch and directed re-seeding as version 2,
-// approved. The pin therefore asserts the APPROVED, RENDERABLE state.
-Deno.test("DPIA plan: lint-clean, register fields present, approved at v2", () => {
+// CHANGE CONTROL — approval is a DATABASE column (the CEO's sign-off act) and
+// is never carried by the authored artifact. The file-backed constant always
+// materialises UNAPPROVED; the live approval is pinned by the DB pin suite.
+Deno.test("DPIA plan: lint-clean, register fields present, artifact carries no approval", () => {
   assertEquals(lintPlan(DPIA_PLAN), []);
   assertEquals(DPIA_PLAN.version, "prose-plans-2026-08-04-item372");
-  assertEquals(DPIA_PLAN.approved, true);
-  assertEquals(planRenderable(DPIA_PLAN), true, "v2 renders on the CEO sign-off in the item 372 dispatch");
+  assertEquals(DPIA_PLAN.approved, false);
+  assertEquals(planRenderable(DPIA_PLAN), false, "approval comes from the database column, not the file");
   assert(DPIA_PLAN.thesis && DPIA_PLAN.thesis.length > 40);
   assert((DPIA_PLAN.exemplar_pairs ?? []).length >= 3);
 });

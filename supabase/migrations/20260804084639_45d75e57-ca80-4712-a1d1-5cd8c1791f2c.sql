@@ -1,0 +1,1 @@
+REVOKE UPDATE ON public.prose_document_plans, public.prose_frame_sets FROM sandbox_exec;

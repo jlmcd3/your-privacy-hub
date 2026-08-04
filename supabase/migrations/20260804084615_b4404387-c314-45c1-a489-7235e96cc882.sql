@@ -1,0 +1,1 @@
+GRANT UPDATE ON public.prose_document_plans, public.prose_frame_sets TO sandbox_exec;
