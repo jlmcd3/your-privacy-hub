@@ -116,11 +116,11 @@ Deno.test("gate: an unapproved plan is never renderable", () => {
 });
 
 Deno.test("reviewed plans are lint-clean; only signed-off plans render", () => {
-  // ITEM 372 — dpia is at v2 and APPROVED (CEO sign-off in the quality-pilot
-  // dispatch). Every other reviewed plan still awaits its own sign-off.
+  // CHANGE CONTROL — approval is a database column, never a property of the
+  // authored artifact, so every file-backed plan materialises UNAPPROVED here.
   for (const p of [CPPA_RISK_PLAN, DPIA_PLAN, GOVERNANCE_PLAN, REGISTRATION_PLAN]) {
     assertEquals(lintPlan(p), [], `${p.product} must be lint-clean`);
-    const signedOff = p.product === "dpia";
+    const signedOff = false;
     assertEquals(p.approved, signedOff, `${p.product} approval state`);
     assertEquals(planRenderable(p), signedOff, `${p.product} renderability`);
     assert(p.sections.every((s) => s.status === (signedOff ? "approved" : "pending_review")));
