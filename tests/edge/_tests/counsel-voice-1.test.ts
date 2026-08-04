@@ -284,10 +284,17 @@ Deno.test("CV1-R: generate-report-pdf disclaimer constants have no counsel-refer
   // The "counsel-review" enum label + "counsel review recommended" tier
   // string (~L1034) is a schema-bound admin label kept per CV1-R decision
   // pending; strip that line before scanning body-text templates.
+  // Exempt, too, statutory § 7152(a)(8) participant-roster text (counsel is
+  // EXCLUDED from the roster the regulation requires) — same carve-out the
+  // universal-disclaimer normalizer makes; it is not a referral directive.
   const scanned = src
     .split("\n")
-    .filter((line) => !/=== "counsel-review"/.test(line) && !/Counsel review recommended/i.test(line))
+    .filter((line) =>
+      !/=== "counsel-review"/.test(line) && !/Counsel review recommended/i.test(line)
+      && !/7152\(a\)\(8\)/.test(line)
+    )
     .join("\n");
+
   const hits = scanned.match(COUNSEL_REFERRAL_RE);
   if (hits) {
     // Provide the offending snippet for debugging.
