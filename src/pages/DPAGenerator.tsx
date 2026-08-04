@@ -362,7 +362,7 @@ export default function DPAGenerator() {
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
                 </div></fieldset>
 
-              <label className="block"><span className="font-semibold text-brand-navy">Retention and deletion at the end of the services<Req /> <span className="text-xs text-memory text-muted-foreground font-mono">(Art. 28(3)(g) GDPR)</span></span>
+              <label className="block"><span className="font-semibold text-brand-navy">Retention and deletion at the end of the services<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3)(g) GDPR)</span></span>
                 <span className="block text-meta text-muted-foreground mt-0.5">Art. 28(3)(g) requires the agreement to fix this in advance. "As directed" keeps the choice with the controller at termination; "duration of the principal agreement" ties deletion to that contract ending; a fixed period sets a date the processor can be held to.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.retentionChoice} onChange={e => setForm(f => ({ ...f, retentionChoice: e.target.value as typeof f.retentionChoice }))}>
                   <option value="">— select an option —</option>
