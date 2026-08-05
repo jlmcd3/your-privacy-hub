@@ -195,6 +195,6 @@ Deno.test("TEST 8 — battery runs after the splice (order asserted in the wirin
   assert(refine < frames, "refinement must precede frame substitution");
   assert(frames < cap, "frame substitution must precede the boilerplate cap");
   assert(cap < csc, "boilerplate cap must precede the consistency check");
-  assert(src.includes('DPIA_PIPELINE_STAMP = "dpia-pipeline@item376-refinement-2026-08-04"'));
+  assert(src.includes('DPIA_PIPELINE_STAMP = "dpia-pipeline@item377-refine11-2026-08-05"'));
   assert(src.includes("const DPIA_REFINEMENT_ENABLED = true"));
 });
