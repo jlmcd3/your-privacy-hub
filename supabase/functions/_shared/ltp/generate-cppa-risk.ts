@@ -194,12 +194,24 @@ function attachAuthorityExhibit(
   }
 }
 
-/** Finalize an assembled body into the exact persisted payload. */
+/**
+ * Finalize an assembled body into the exact persisted payload.
+ *
+ * ITEM 378 (CORRECTION) — this is THE finalize point every completed
+ * cppa-risk document passes through on the routed LTP path, so the three
+ * item378 attaches land here:
+ *   1. refinement telemetry (the pass itself already ran on `base` — see
+ *      `refineRiskBase`, which the callers await BEFORE finalizing),
+ *   2. the deterministic CSC post-pass (R1–R4), run after refinement,
+ *   3. the permanent `risk_pipeline_stamp`.
+ * CSC and the stamp run before the payload is returned for persist.
+ */
 export function finalizeCppaRiskPayload(
   base: Record<string, unknown>,
   ltpMeta: Record<string, unknown>,
   rawIntake: unknown,
   riskCorpus?: RiskCorpus | null,
+  extras?: { refinement?: RefinementTelemetry | null },
 ): { report: Record<string, unknown>; emit_gate_filtered: number } {
   const sealed = seal({ ...base }, rawIntake);
   // The exhibit is attached BEFORE serialization so the schema allow-list
@@ -210,8 +222,63 @@ export function finalizeCppaRiskPayload(
     ...ltpMeta,
     emit_gate_filtered: sealed.emit_gate_filtered,
   });
+
+  // (1) refinement telemetry (the splices are already in `base`).
+  try {
+    const internal = ((report._meta as Record<string, unknown>).internal) as Record<string, unknown>;
+    if (extras?.refinement) internal.risk_refinement = extras.refinement;
+  } catch { /* non-fatal */ }
+
+  // (2) CSC — deterministic post-pass, after refinement, before persist.
+  try {
+    attachRiskCsc(report, {
+      intake: (rawIntake && typeof rawIntake === "object" ? rawIntake : {}) as Record<string, unknown>,
+    });
+  } catch (e) {
+    console.warn("[generate-cppa-risk] risk-csc failed (non-fatal):", (e as Error)?.message);
+  }
+
+  // (3) permanent pipeline stamp on every document.
+  try {
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_pipeline_stamp = RISK_PIPELINE_STAMP;
+  } catch { /* non-fatal */ }
+
   return { report, emit_gate_filtered: sealed.emit_gate_filtered };
 }
+
+/**
+ * ITEM 378 (CORRECTION) — run the refinement pass (CRITIC → VERIFIER →
+ * DETERMINISTIC SPLICER) on the assembled body, IN PLACE, before finalize.
+ * Fail-open: any error yields telemetry with `crashed` set and the body is
+ * unchanged. Without `refinementDeps` the pass is recorded as disabled.
+ */
+export async function refineRiskBase(
+  base: Record<string, unknown>,
+  rawIntake: Record<string, unknown>,
+  options: GenerateCppaRiskOptions,
+): Promise<RefinementTelemetry | null> {
+  const deps = options.refinementDeps;
+  try {
+    const enabled = options.refinementEnabled !== false && !!deps;
+    const tel = await runRiskRefinement(
+      base,
+      rawIntake,
+      deps ?? { critic: () => Promise.resolve(""), verifier: () => Promise.resolve("") },
+      { enabled },
+    );
+    console.log(JSON.stringify({
+      evt: "risk_refinement", fn: options.callerName ?? "generate-cppa-risk",
+      build_stamp: options.buildStamp, risk_pipeline_stamp: RISK_PIPELINE_STAMP, ...tel,
+    }));
+    return tel;
+  } catch (e) {
+    console.warn("[generate-cppa-risk] risk refinement failed (non-fatal):", (e as Error)?.message);
+    return null;
+  }
+}
+
 
 export async function generateCppaRiskReport(
   rawIntakeInput: unknown,
