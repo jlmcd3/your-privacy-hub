@@ -38,7 +38,7 @@ import {
   buildDpiaValidationApproval,
 } from "./dpia-deliverables/attestation.ts";
 
-export const DPIA_CSC_VERSION = "dpia-csc-2026-08-04-item374";
+export const DPIA_CSC_VERSION = "dpia-csc-2026-08-05-item380r3";
 
 export type DpiaCscCheckId =
   | "c1_engagement_vs_metadata_vs_intake"
@@ -214,6 +214,54 @@ export function buildDpiaDataSubjectViews(intake: unknown): string {
   return parts.join(" ");
 }
 
+/**
+ * ITEM 380 r3 — single-writer builder for the TRANSPARENCY / rights-measures
+ * surface (`section_2_analysis.measures_rights`), in the exact idiom of
+ * `buildDpiaDataSubjectViews`: it states ONLY what the record states, composed
+ * from `data_subject_rights_mechanisms` and the notice content the record
+ * carries inside `nature_scope_context`. No characterisation, no absence
+ * language, no "on the record" idiom.
+ *
+ * NOTICE-SENTENCE SELECTION is deterministic: the context narrative is split on
+ * sentence boundaries and only those sentences matching NOTICE_SENTENCE_RE are
+ * carried across, in their recorded order. If none match, the sentence is
+ * simply omitted — nothing is invented and nothing is characterised.
+ *
+ * HONEST DEGRADATION: with either backing key empty the builder returns "" and
+ * the caller leaves the violation `repaired: false` (the gate stays shut).
+ */
+export const NOTICE_SENTENCE_RE =
+  /(notice|notified|notif|inform(?:ed|ation|s)?\b|told|transparen|privacy statement|works council|communicat)/i;
+
+export function buildDpiaMeasuresRights(intake: unknown): string {
+  const rec = (intake && typeof intake === "object" ? intake : {}) as Record<string, unknown>;
+  const mechanisms = str(rec.data_subject_rights_mechanisms);
+  const context = str(rec.nature_scope_context);
+  if (!mechanisms || !context) return "";
+
+  const noticeSentences = context
+    .split(/(?<=[.;])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && NOTICE_SENTENCE_RE.test(s));
+
+  const parts: string[] = [
+    `The record states the mechanisms through which data subjects exercise their rights: ${
+      mechanisms.replace(/\.$/, "")
+    }.`,
+  ];
+  if (noticeSentences.length > 0) {
+    parts.push(
+      `On how individuals are told about the processing, the record states: ${
+        noticeSentences.join(" ").replace(/[.;]$/, "")
+      }.`,
+    );
+  }
+  parts.push(
+    "These measures give effect to the controller's obligations under GDPR Arts. 12 to 14 (information to be provided) and Arts. 15 to 22 (rights of the data subject).",
+  );
+  return parts.join(" ");
+}
+
 /** ITEM 380 §4 — absence/partial-discharge language specific to the views and
  * transparency surfaces. */
 export const PARTIAL_DISCHARGE_RE =
@@ -252,6 +300,10 @@ function rebuildSurface(path: string, intake: unknown): unknown {
   if (path.endsWith("validation_approval")) return buildDpiaValidationApproval(intake);
   // ITEM 380 §4 — the views surface has a single writer of its own.
   if (path.endsWith("data_subject_views")) return buildDpiaDataSubjectViews(intake);
+  // ITEM 380 r3 — the transparency / rights-measures surface. An empty return
+  // means the record does not back it; the caller then leaves the violation
+  // unrepaired (honest degradation — the record-complete gate stays shut).
+  if (path.endsWith("measures_rights")) return buildDpiaMeasuresRights(intake) || undefined;
   return undefined;
 }
 
@@ -418,7 +470,13 @@ export function runDpiaCsc(
 
       const rebuilt = rebuildSurface(surface.path, intake);
       if (rebuilt !== undefined) {
-        setPath(report, surface.path, rebuilt);
+        // ITEM 380 r3 — never change a surface's SHAPE: an array surface
+        // (measures_rights) stays an array carrying the single writer's prose.
+        setPath(
+          report,
+          surface.path,
+          Array.isArray(node) && typeof rebuilt === "string" ? [rebuilt] : rebuilt,
+        );
         log({
           check_id: "c2_absence_claim_vs_record",
           path: surface.path,

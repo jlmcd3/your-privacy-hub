@@ -713,7 +713,7 @@ const STAMP = "r1b2.4-ws6v21";
 export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
-export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item380r2-2026-08-05";
+export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item380r3-2026-08-05";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 
 // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
