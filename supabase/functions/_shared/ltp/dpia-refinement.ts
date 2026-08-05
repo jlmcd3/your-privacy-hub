@@ -254,7 +254,9 @@ export interface SpliceResult {
   spliced: number;
   quote_drift: number;
   capped: boolean;
+  cap_overflow: number;
   spliced_paths: string[];
+  protected_rejected: ProtectedRejection[];
   rejected: { path: string; reason: string }[];
 }
 
@@ -266,22 +268,29 @@ export function applySplices(
     spliced: 0,
     quote_drift: 0,
     capped: false,
+    cap_overflow: 0,
     spliced_paths: [],
+    protected_rejected: [],
     rejected: [],
   };
   for (const f of approved) {
     if (res.spliced >= MAX_SPLICES) {
       res.capped = true;
+      res.cap_overflow++;
       res.rejected.push({ path: f.path, reason: "cap_reached" });
       continue;
     }
     try {
-      if (isProtectedPath(f.path)) {
+      const prot = protectedReason(f.path);
+      if (prot !== null) {
+        res.protected_rejected.push({ path: f.path, leaf_key_or_rule: prot });
         res.rejected.push({ path: f.path, reason: "protected_surface" });
         continue;
       }
       const current = readPath(report, f.path);
       if (typeof current !== "string") {
+        // v1.1 accounting: the quoted string is not present at the node.
+        res.quote_drift++;
         res.rejected.push({ path: f.path, reason: "not_a_string_node" });
         continue;
       }
@@ -292,10 +301,12 @@ export function applySplices(
         continue;
       }
       if (typeof f.replacement !== "string" || f.replacement.length === 0) {
+        res.quote_drift++;
         res.rejected.push({ path: f.path, reason: "empty_replacement" });
         continue;
       }
       if (!writePath(report, f.path, f.replacement)) {
+        res.quote_drift++;
         res.rejected.push({ path: f.path, reason: "write_failed" });
         continue;
       }
