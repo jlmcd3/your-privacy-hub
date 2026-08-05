@@ -477,21 +477,27 @@ export async function runCppaRiskPass2R(
     };
     if (stage.shipped_surface === "2R" && stage.prose) {
       const merged = { ...gen.base, ...(stage.prose as unknown as Record<string, unknown>) };
+      // ITEM 378 — refinement on the shipped surface, BEFORE CSC/finalize.
+      const refinement = gen.refinement ?? await refineRiskBase(merged, gen.rawIntake, options);
       const { report } = finalizeCppaRiskPayload(
         merged,
         { ...gen.ltpMeta, shipped_surface: "2R", ...meta },
         gen.rawIntake,
         riskCorpus,
+        { refinement },
       );
       return { report, shipped_surface: "2R", meta };
     }
+    const refinementDet = gen.refinement ?? await refineRiskBase(gen.base, gen.rawIntake, options);
     const { report } = finalizeCppaRiskPayload(
       gen.base,
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
+      { refinement: refinementDet },
     );
     return { report, shipped_surface: "deterministic", meta };
+
   } catch (e) {
     const meta = {
       pass2r_telemetry: null,
