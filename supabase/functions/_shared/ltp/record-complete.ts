@@ -84,16 +84,40 @@ function readPath(root: unknown, key: string): unknown[] {
 }
 
 /**
+ * SYSTEM KEYS — contract entries that are not questions at all.
+ *
+ * ITEM 380 r5b. `source_assessment_id` is a revision pointer the app writes;
+ * no form control ever presents it, so the gate must never count it as an
+ * unanswered ask. Add keys here only when the intake UI presents no control
+ * for them.
+ */
+export const SYSTEM_KEYS: ReadonlySet<string> = new Set<string>([
+  "source_assessment_id",
+]);
+
+/**
  * A conditional field counts as TRIGGERED only when the record itself shows the
- * trigger: the field sits inside an array segment and that array has at least
- * one row. Conditionals whose predicate is prose we cannot parse are left
- * unchecked (they cannot make the claim false, and they cannot make it true).
+ * trigger. Two deterministic predicate shapes are supported:
+ *
+ *   1. ARRAY-ROW (legacy): the field sits inside an array segment ("rows[].x")
+ *      and that array has at least one row.
+ *   2. VALUE-EQUALS (ITEM 380 r5b): the field carries `trigger: { key, equals }`
+ *      mirroring the form's show/hide condition; triggered when the value at
+ *      `trigger.key` is verbatim one of `equals`.
+ *
+ * Conditionals whose predicate is prose we cannot parse are left unchecked
+ * (they cannot make the claim false, and they cannot make it true).
  */
 function conditionalTriggered(intake: Record<string, unknown>, f: IntakeField): boolean {
+  if (f.trigger) {
+    const vals = readPath(intake, f.trigger.key);
+    return vals.some((v) => typeof v === "string" && f.trigger!.equals.includes(v));
+  }
   if (!f.key.includes("[]")) return false;
   const parent = f.key.slice(0, f.key.indexOf("[]") + 2);
   return readPath(intake, parent).length > 0;
 }
+
 
 /** Contract keys that are required (always, or a triggered conditional) and empty. */
 export function emptyRequiredKeys(
