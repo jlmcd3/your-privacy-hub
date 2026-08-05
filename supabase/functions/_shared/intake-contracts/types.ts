@@ -20,6 +20,22 @@ export type FieldKind =
 
 export type Requiredness = "always" | "conditional" | "optional";
 
+/**
+ * ITEM 380 r5b — machine-evaluable skip-logic predicate.
+ *
+ * Mirrors the form's actual show/hide condition for a `required: "conditional"`
+ * field so the record-complete gate can tell "never asked" from "asked and left
+ * empty". Deterministic: the field is TRIGGERED when the value at `key` (read
+ * with the same dotted-path walker the gate uses) is verbatim one of `equals`.
+ * Values are compared as strings, exact match, no normalisation.
+ */
+export interface FieldTrigger {
+  /** Dotted path to the controlling answer in the raw intake record. */
+  key: string;
+  /** VERBATIM stored values of the controlling answer that show this field. */
+  equals: readonly string[];
+}
+
 export interface IntakeField {
   /** Dotted path; use "[]" for array-of-records (e.g. "controls[].maturity"). */
   key: string;
@@ -29,11 +45,14 @@ export interface IntakeField {
   required: Requiredness;
   /** Human-readable predicate mirroring the form's gating logic. */
   requiredWhen?: string;
+  /** Machine-evaluable form of `requiredWhen` (conditional fields only). */
+  trigger?: FieldTrigger;
   /** Value stored when gated off (e.g. "n/a" or ""). */
   hiddenValue?: string;
   /** Mirrors ASK_ELIGIBLE_CRITICAL_FIELDS / cyber walker eligibility. */
   askEligible?: boolean;
 }
+
 
 export interface IntakeContract {
   tool_type: string;
