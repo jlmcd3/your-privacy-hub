@@ -117,21 +117,24 @@ Deno.test("truth gate: every condition can fail independently", () => {
   assertEquals(computeRecordComplete({ ...base, coverage: null, csc: null }).value, false);
 });
 
-Deno.test("truth gate: degraded goldens are NOT record-complete", () => {
-  // The degraded goldens fail the gate on the conditions their runs actually
-  // trip — coverage orphans and CSC false-absence flags — and on any required
-  // key their record leaves empty. None of them may reach `value: true`.
+Deno.test("truth gate: degraded goldens are NOT record-complete (LIVE telemetry shape)", () => {
+  // ITEM 380 r5 RECONCILIATION. This test previously hand-fed DIRTY coverage
+  // and CSC telemetry, so it proved only that dirty evidence closes the gate —
+  // it never exercised the contract condition on the degraded record. The live
+  // degraded run produced CLEAN coverage/CSC, hit the r4 always-only contract
+  // check, and opened the gate. Both goldens are now asserted with the exact
+  // CLEAN telemetry the live runs carried.
   const dpia = byId(DPIA_GOLDEN as never, "dpia-eu-health-tuning");
   const t1 = computeRecordComplete({
     product: "dpia",
     contract: dpiaFrameworkContract,
     intake: dpia.intake,
-    coverage: { crashed: false, counts: { orphans: 4 } } as never,
-    csc: { crashed: false, violations: [{ check_id: "c2_absence_claim_vs_record" }] } as never,
+    coverage: CLEAN_COVERAGE,
+    csc: CLEAN_CSC,
   });
   assertEquals(t1.value, false);
-  assert(t1.failed_conditions.includes("coverage_orphans"));
-  assert(t1.failed_conditions.includes("csc_false_absence"));
+  assert(t1.failed_conditions.includes("contract_incomplete"), JSON.stringify(t1.failed_conditions));
+  assert(t1.counts.empty_required_keys > 0);
 
   const risk = byId(CPPA_RISK_GOLDEN as never, "risk-adtech-sell-tuning");
   const t2 = computeRecordComplete({
@@ -140,10 +143,10 @@ Deno.test("truth gate: degraded goldens are NOT record-complete", () => {
     intake: risk.intake,
     coverage: CLEAN_COVERAGE,
     csc: CLEAN_CSC,
-    recordNeedsMissingData: 3,
+    recordNeedsMissingData: 0,
   });
   assertEquals(t2.value, false);
-  assert(t2.failed_conditions.includes("risk_record_needs_missing_data"));
+  assert(t2.failed_conditions.includes("contract_incomplete"), JSON.stringify(t2.failed_conditions));
 });
 
 // ---------------------------------------------------------------------------
