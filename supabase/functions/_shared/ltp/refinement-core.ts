@@ -312,14 +312,43 @@ export function applySplicesWith(
 
 // -- User-message builders ---------------------------------------------------
 
-export function buildCriticUser(report: unknown, intake: unknown): string {
-  return [
+export function buildCriticUser(
+  report: unknown,
+  intake: unknown,
+  coverageList?: string | null,
+): string {
+  const parts = [
     "INTAKE RECORD:",
     JSON.stringify(intake ?? {}),
     "",
     "DOCUMENT:",
     JSON.stringify(report ?? {}),
-  ].join("\n");
+  ];
+  if (typeof coverageList === "string" && coverageList.trim().length > 0) {
+    parts.push("", coverageList);
+  }
+  return parts.join("\n");
+}
+
+/** ITEM 379 — is a material-omission finding anchored to a coverage entry? */
+export function omissionIsAnchored(
+  finding: CriticFinding,
+  anchorTokens: readonly string[],
+): boolean {
+  if (anchorTokens.length === 0) return false;
+  const hay = `${finding.anchor ?? ""} ${finding.path ?? ""} ${finding.quote ?? ""}`.toLowerCase();
+  return anchorTokens.some((tok) => tok && hay.includes(String(tok).toLowerCase()));
+}
+
+/** Normalise a verifier reason sentence to the fixed reason vocabulary. */
+export function classifyRejectReason(reason: string | undefined): string {
+  const r = String(reason ?? "").toLowerCase();
+  if (/necessit|equally good|no improvement|not better/.test(r)) return "necessity";
+  if (/quote|not found at|drift/.test(r)) return "quote-not-found";
+  if (/anchor|unreal|does not say/.test(r)) return "anchor-unreal";
+  if (/new fact|absent from the intake|unsupported|invent/.test(r)) return "new-fact";
+  if (/protected|disclaimer|placeholder|enum|determination/.test(r)) return "protected-surface";
+  return "unspecified";
 }
 
 export function buildVerifierUser(
