@@ -104,7 +104,10 @@ export interface GenerateCppaRiskResult {
   readonly ltpMeta: Record<string, unknown>;
   readonly typeJOrigin: string | null;
   readonly rawIntake: Record<string, unknown>;
+  /** ITEM 378 — refinement telemetry when the pass ran at generate time. */
+  readonly refinement?: RefinementTelemetry | null;
 }
+
 
 function seal(report: Record<string, unknown>, intakeRoster: unknown): {
   report: Record<string, unknown>;
