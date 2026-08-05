@@ -38,7 +38,7 @@ import {
   buildDpiaValidationApproval,
 } from "./dpia-deliverables/attestation.ts";
 
-export const DPIA_CSC_VERSION = "dpia-csc-2026-08-04-item374";
+export const DPIA_CSC_VERSION = "dpia-csc-2026-08-05-item380r3";
 
 export type DpiaCscCheckId =
   | "c1_engagement_vs_metadata_vs_intake"
