@@ -1,3 +1,4 @@
+import CoachPreviewTmp from "@/pages/__CoachPreview";
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
@@ -815,6 +816,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/__coach-preview" element={<CoachPreviewTmp />} />
             <Route path="/dpia-framework" element={<DPIAFramework />} />
             <Route
               path="/dpia-framework/result/:id"
