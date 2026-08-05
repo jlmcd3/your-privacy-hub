@@ -71,6 +71,19 @@ export interface Verdict {
   reason?: string;
 }
 
+/** v1.1 (item377 §1) — one bucket per critic proposal. */
+export interface ProtectedRejection {
+  path: string;
+  leaf_key_or_rule: string;
+}
+
+export interface FindingLogEntry {
+  path: string;
+  class: string;
+  confidence: string;
+  quote: string; // truncated to 160 chars
+}
+
 export interface RefinementTelemetry {
   version: string;
   enabled: boolean;
@@ -80,10 +93,18 @@ export interface RefinementTelemetry {
   verifier_rejected: number;
   spliced: number;
   quote_drift: number;
+  /** v1.1 — proposals rejected by the in-code protected-surface list. */
+  protected_rejected: { count: number; items: ProtectedRejection[] };
+  /** v1.1 — critic proposals beyond the 12-splice cap. */
+  cap_overflow: number;
   capped: boolean;
   crashed: string | null;
   spliced_paths: string[];
+  /** v1.1 — full critic findings list, quotes truncated. */
+  findings_log: FindingLogEntry[];
 }
+
+export const FINDINGS_LOG_QUOTE_MAX = 160;
 
 // ── Protected surfaces (defense in depth; the prompts say the same) ──────────
 
