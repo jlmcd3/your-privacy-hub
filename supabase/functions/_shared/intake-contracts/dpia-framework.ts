@@ -152,8 +152,14 @@ export const dpiaFrameworkContract: IntakeContract = {
 
     { key: "controller_sector", kind: "text", required: "optional" },
     { key: "central_administration_country", kind: "text", required: "optional" },
-    { key: "eu_decision_establishment_country", kind: "text", required: "optional" },
-    { key: "transfer_flows", kind: "structured", required: "optional" },
+    // ITEM 380 r5c — emptyIsAnswer. DPIAFramework.tsx:936-941 presents this
+    // select unconditionally; its empty option carries emptyLabel
+    // "No — decisions are made elsewhere", so blank is a substantive answer.
+    { key: "eu_decision_establishment_country", kind: "text", required: "optional", emptyIsAnswer: true },
+    // ITEM 380 r5c — emptyIsAnswer. DPIAFramework.tsx:752-756 presents the
+    // transfer-flow repeater unconditionally; zero rows states that
+    // "no cross-border transfer is on the record".
+    { key: "transfer_flows", kind: "structured", required: "optional", emptyIsAnswer: true },
     { key: "retention_record_type", kind: "text", required: "optional" },
 
     // System key
