@@ -176,7 +176,8 @@ Deno.test("TEST 7 — telemetry shape and disabled flag", async () => {
   assertEquals(off.enabled, false);
   assertEquals(off.version, DPIA_REFINEMENT_VERSION);
   assertEquals(Object.keys(off).sort(), [
-    "capped", "crashed", "critic_findings", "enabled", "quote_drift",
+    "cap_overflow", "capped", "crashed", "critic_findings", "enabled",
+    "findings_log", "protected_rejected", "quote_drift",
     "spliced", "spliced_paths", "structural_findings", "verifier_approved",
     "verifier_rejected", "version",
   ]);
