@@ -9,7 +9,7 @@
 //     TRUE (genuine gaps survive);
 //  4. gate-FALSE behaviour is byte-identical to r3 across a corpus of asks;
 //  5. bracket tokens are unaffected by the gate;
-//  6. stamps are on item380r4.
+//  6. stamps are on item380r5.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   classifyOpenItem,
@@ -109,6 +109,6 @@ Deno.test("r4: risk path classification shape unchanged", () => {
 });
 
 Deno.test("r4: stamps are bumped", () => {
-  assertEquals(RECORD_COMPLETE_VERSION, "record-complete-2026-08-05-item380r4");
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item380r4-2026-08-05");
+  assertEquals(RECORD_COMPLETE_VERSION, "record-complete-2026-08-05-item380r5");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item380r5-2026-08-05");
 });
