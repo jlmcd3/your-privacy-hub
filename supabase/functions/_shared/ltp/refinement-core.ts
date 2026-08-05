@@ -594,11 +594,12 @@ export async function runRefinement(
   try {
     const s = applySplicesWith(report, approved, cfg);
     tel.spliced = s.spliced;
-    tel.quote_drift = s.quote_drift;
+    tel.quote_drift += s.quote_drift;
     tel.capped = tel.capped || s.capped;
     tel.cap_overflow += s.cap_overflow;
     tel.spliced_paths = s.spliced_paths;
-    tel.protected_rejected = { count: s.protected_rejected.length, items: s.protected_rejected };
+    const items = [...preProtected, ...s.protected_rejected];
+    tel.protected_rejected = { count: items.length, items };
   } catch (e) {
     tel.crashed = `splicer_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`;
   }
