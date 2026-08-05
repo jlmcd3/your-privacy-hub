@@ -4,7 +4,7 @@
 // fail it and keep today's draft framing byte-identical.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
-import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import {
@@ -52,7 +52,7 @@ for (const id of ["dpia-perfect-eu-complete", "dpia-perfect-uk-complete"]) {
 }
 
 Deno.test("truth gate: risk-perfect-complete is record-complete", () => {
-  const fx = byId(CPPA_RISK_GOLDEN as never, "risk-perfect-complete");
+  const fx = byId(CPPA_RISK_PERFECT as never, "risk-perfect-complete");
   const t = computeRecordComplete({
     product: "cppa-risk",
     contract: cppaRiskContract,
@@ -101,7 +101,7 @@ Deno.test("truth gate: every condition can fail independently", () => {
     }).failed_conditions.includes("csc_false_absence"),
   );
 
-  const riskFx = byId(CPPA_RISK_GOLDEN as never, "risk-perfect-complete");
+  const riskFx = byId(CPPA_RISK_PERFECT as never, "risk-perfect-complete");
   assert(
     computeRecordComplete({
       product: "cppa-risk",
@@ -118,15 +118,20 @@ Deno.test("truth gate: every condition can fail independently", () => {
 });
 
 Deno.test("truth gate: degraded goldens are NOT record-complete", () => {
+  // The degraded goldens fail the gate on the conditions their runs actually
+  // trip — coverage orphans and CSC false-absence flags — and on any required
+  // key their record leaves empty. None of them may reach `value: true`.
   const dpia = byId(DPIA_GOLDEN as never, "dpia-eu-health-tuning");
   const t1 = computeRecordComplete({
     product: "dpia",
     contract: dpiaFrameworkContract,
     intake: dpia.intake,
-    coverage: CLEAN_COVERAGE,
-    csc: CLEAN_CSC,
+    coverage: { crashed: false, counts: { orphans: 4 } } as never,
+    csc: { crashed: false, violations: [{ check_id: "c2_absence_claim_vs_record" }] } as never,
   });
   assertEquals(t1.value, false);
+  assert(t1.failed_conditions.includes("coverage_orphans"));
+  assert(t1.failed_conditions.includes("csc_false_absence"));
 
   const risk = byId(CPPA_RISK_GOLDEN as never, "risk-adtech-sell-tuning");
   const t2 = computeRecordComplete({
@@ -135,9 +140,10 @@ Deno.test("truth gate: degraded goldens are NOT record-complete", () => {
     intake: risk.intake,
     coverage: CLEAN_COVERAGE,
     csc: CLEAN_CSC,
-    recordNeedsMissingData: 0,
+    recordNeedsMissingData: 3,
   });
   assertEquals(t2.value, false);
+  assert(t2.failed_conditions.includes("risk_record_needs_missing_data"));
 });
 
 // ---------------------------------------------------------------------------
