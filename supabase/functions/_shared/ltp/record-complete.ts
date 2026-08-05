@@ -274,25 +274,49 @@ function collectBracketTokens(report: unknown): string[] {
   return out;
 }
 
+/**
+ * THE CLASSIFICATION RULE, in order:
+ *   1. An ask that DEMANDS A VALUE ("state / provide / specify / record …") and
+ *      points at an intake key the record leaves EMPTY is a RECORD GAP: the
+ *      customer could have filled it in.
+ *   2. Otherwise an ask phrased as a FUTURE ACT (confirm, verify, audit, test,
+ *      schedule, publish, re-score, obtain, sign off …) is an ACTION ITEM: no
+ *      intake answer closes it.
+ *   3. Otherwise an ask whose category maps to an empty intake key is a RECORD
+ *      GAP; an ask whose mapped keys the record supplies is an ACTION ITEM.
+ *   4. An ask that maps nowhere falls back to RECORD GAP (fail-closed: it may
+ *      not silently license the affirmative claim).
+ */
 export function classifyOpenItem(text: string, intake: unknown): ClassifiedPlaceholder {
   const cat = categorizeAsk(text);
   const keys = ASK_CATEGORY_INTAKE_KEYS[cat.id] ?? [];
   const emptyKeys = keys.filter((k) => !intakeKeyFilled(intake, k));
+  // Keys the ask NAMES outright (snake_case tokens present in the record).
+  const rec = (intake && typeof intake === "object" ? intake : {}) as Record<string, unknown>;
+  const hay = String(text ?? "").toLowerCase();
+  const namedEmpty = Object.keys(rec).filter((k) =>
+    k.includes("_") && hay.includes(k.toLowerCase()) && !intakeKeyFilled(rec, k)
+  );
+  const demandsValue = VALUE_DEMAND_RE.test(text);
   const futureAct = ACTION_ITEM_RE.test(text);
+
   let klass: PlaceholderClass;
-  if (futureAct && emptyKeys.length === 0) klass = "action_item";
-  else if (keys.length > 0 && emptyKeys.length > 0) klass = "record_gap";
+  if (demandsValue && (emptyKeys.length > 0 || namedEmpty.length > 0)) klass = "record_gap";
+  else if (futureAct) klass = "action_item";
+  else if (emptyKeys.length > 0 || namedEmpty.length > 0) klass = "record_gap";
   else if (keys.length > 0) klass = "action_item";
-  else klass = futureAct ? "action_item" : "record_gap";
+  else klass = "record_gap";
+
   return {
     text: text.replace(/\s+/g, " ").trim().slice(0, 240),
     origin: "information_needed",
     category_id: cat.id,
     klass,
     precondition: klass === "action_item" && PRECONDITION_RE.test(text),
-    empty_keys: emptyKeys,
+    empty_keys: [...new Set([...emptyKeys, ...namedEmpty])],
   };
 }
+
 
 export function classifyPlaceholders(
   report: unknown,
