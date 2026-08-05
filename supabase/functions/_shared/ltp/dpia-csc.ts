@@ -470,7 +470,13 @@ export function runDpiaCsc(
 
       const rebuilt = rebuildSurface(surface.path, intake);
       if (rebuilt !== undefined) {
-        setPath(report, surface.path, rebuilt);
+        // ITEM 380 r3 — never change a surface's SHAPE: an array surface
+        // (measures_rights) stays an array carrying the single writer's prose.
+        setPath(
+          report,
+          surface.path,
+          Array.isArray(node) && typeof rebuilt === "string" ? [rebuilt] : rebuilt,
+        );
         log({
           check_id: "c2_absence_claim_vs_record",
           path: surface.path,
