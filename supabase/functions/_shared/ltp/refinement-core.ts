@@ -373,26 +373,37 @@ export function classifyRejectReason(reason: string | undefined): string {
   return "unspecified";
 }
 
+/** ITEM 379r2 (R3) — the node text supplied to the verifier, per proposal. */
+export const VERIFIER_NODE_CONTENT_MAX = 4000;
+
 export function buildVerifierUser(
   report: unknown,
   intake: unknown,
   findings: CriticFinding[],
 ): string {
+  const clean = stripMeta(report ?? {});
   return [
     "INTAKE RECORD:",
     JSON.stringify(intake ?? {}),
     "",
     "DOCUMENT:",
-    JSON.stringify(report ?? {}),
+    JSON.stringify(clean),
     "",
-    "PROPOSED REVISIONS:",
-    JSON.stringify(findings.map((f) => ({
-      path: f.path,
-      quote: f.quote,
-      class: f.class,
-      anchor: f.anchor,
-      replacement: f.replacement,
-    }))),
+    "PROPOSED REVISIONS — `node_content` is the EXACT current text at the stated path, supplied so conditions (1) and (2) are checked against it rather than searched for:",
+    JSON.stringify(findings.map((f) => {
+      const node = readPath(clean, f.path);
+      return {
+        path: f.path,
+        quote: f.quote,
+        class: f.class,
+        anchor: f.anchor,
+        replacement: f.replacement,
+        node_content: typeof node === "string"
+          ? node.slice(0, VERIFIER_NODE_CONTENT_MAX)
+          : null,
+        quote_present_in_node: typeof node === "string" && !!f.quote && node.includes(f.quote),
+      };
+    })),
   ].join("\n");
 }
 
