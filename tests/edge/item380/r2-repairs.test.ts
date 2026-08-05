@@ -67,8 +67,8 @@ Deno.test("gate: still fail-closed on absent / crashed csc telemetry", () => {
   assertEquals(gate({ crashed: true, violations: [] }).value, false);
 });
 
-Deno.test("record-complete version is bumped to item380r2", () => {
-  assertEquals(RECORD_COMPLETE_VERSION, "record-complete-2026-08-05-item380r2");
+Deno.test("record-complete version is bumped to item380r4", () => {
+  assertEquals(RECORD_COMPLETE_VERSION, "record-complete-2026-08-05-item380r4");
 });
 
 // --- (2) VALUE_DEMAND_RE: noun "record" vs verb "record" --------------------

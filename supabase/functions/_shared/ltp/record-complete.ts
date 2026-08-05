@@ -26,7 +26,7 @@ import {
   intakeKeyFilled,
 } from "../prose/ask-categories.ts";
 
-export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r2";
+export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r4";
 
 export type RecordCompleteProduct = "dpia" | "cppa-risk";
 
@@ -340,8 +340,21 @@ function collectBracketTokens(report: unknown): string[] {
  *      GAP; an ask whose mapped keys the record supplies is an ACTION ITEM.
  *   4. An ask that maps nowhere falls back to RECORD GAP (fail-closed: it may
  *      not silently license the affirmative claim).
+ *
+ * ITEM 380 r4 — GATE-AWARE FALLBACK. Rule 4 is conservative because an
+ * unplaceable ask must never BUY the affirmative claim. But when the truth gate
+ * has ALREADY held on independent evidence (contract complete, coverage clean,
+ * CSC clean), an ask that maps to NO intake key and names NO empty key is by
+ * construction not fillable from the record — the customer answered everything
+ * we ask — so it is an ACTION ITEM. `recordComplete` is the gate value computed
+ * by `computeRecordComplete` BEFORE classification; when it is FALSE (the
+ * default) behaviour is byte-identical to r3.
  */
-export function classifyOpenItem(text: string, intake: unknown): ClassifiedPlaceholder {
+export function classifyOpenItem(
+  text: string,
+  intake: unknown,
+  recordComplete = false,
+): ClassifiedPlaceholder {
   const cat = categorizeAsk(text);
   const keys = ASK_CATEGORY_INTAKE_KEYS[cat.id] ?? [];
   const emptyKeys = keys.filter((k) => !intakeKeyFilled(intake, k));
@@ -353,12 +366,15 @@ export function classifyOpenItem(text: string, intake: unknown): ClassifiedPlace
   );
   const demandsValue = VALUE_DEMAND_RE.test(text);
   const futureAct = ACTION_ITEM_RE.test(text);
+  const nothingEmpty = emptyKeys.length === 0 && namedEmpty.length === 0;
 
   let klass: PlaceholderClass;
   // ITEM 380 r2 — BY-DESIGN ACTION SURFACES are evaluated ahead of the rule
   // chain (including the conservative rule-4 fallback): these surfaces are
   // never intake-fillable, so no empty-key evidence can make them record gaps.
   if (isByDesignActionSurface(text)) klass = "action_item";
+  // ITEM 380 r4 — gate-aware fallback (gate TRUE only, nothing empty).
+  else if (recordComplete && nothingEmpty) klass = "action_item";
   else if (demandsValue && (emptyKeys.length > 0 || namedEmpty.length > 0)) klass = "record_gap";
   else if (futureAct) klass = "action_item";
   else if (emptyKeys.length > 0 || namedEmpty.length > 0) klass = "record_gap";
@@ -379,10 +395,14 @@ export function classifyOpenItem(text: string, intake: unknown): ClassifiedPlace
 export function classifyPlaceholders(
   report: unknown,
   intake: unknown,
+  /** ITEM 380 r4 — the gate value; FALSE (default) reproduces r3 exactly. */
+  recordComplete = false,
 ): PlaceholderClassification {
   const items: ClassifiedPlaceholder[] = [];
   try {
     for (const tok of collectBracketTokens(report)) {
+      // Bracket tokens are UNAFFECTED by the r4 fallback: they classify by
+      // their own token rule and never ride the gate.
       items.push({ ...classifyOpenItem(tok, intake), origin: "bracket_token" });
     }
     const asks = Array.isArray((report as Record<string, unknown>)?.information_needed)
@@ -391,7 +411,7 @@ export function classifyPlaceholders(
     for (const ask of asks) {
       const t = textOf(ask);
       if (!t) continue;
-      items.push(classifyOpenItem(t, intake));
+      items.push(classifyOpenItem(t, intake, recordComplete === true));
     }
   } catch { /* fail-open: whatever was classified stands */ }
   const record_gap = items.filter((i) => i.klass === "record_gap").length;
