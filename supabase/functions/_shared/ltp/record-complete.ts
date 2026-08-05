@@ -26,7 +26,7 @@ import {
   intakeKeyFilled,
 } from "../prose/ask-categories.ts";
 
-export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r2";
+export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r4";
 
 export type RecordCompleteProduct = "dpia" | "cppa-risk";
 

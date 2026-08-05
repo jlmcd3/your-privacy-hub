@@ -306,7 +306,7 @@ export function finalizeCppaRiskPayload(
       csc: internal.risk_csc as never,
       recordNeedsMissingData: Number.isFinite(missingData) ? missingData : undefined,
     });
-    const classification = classifyPlaceholders(report, rawIntake ?? {});
+    const classification = classifyPlaceholders(report, rawIntake ?? {}, telemetry.value);
     attachRecordComplete(report, telemetry, classification);
     applyRiskRecordCompleteFraming(report, telemetry, classification);
     console.log(JSON.stringify({
