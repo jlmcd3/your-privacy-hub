@@ -204,8 +204,9 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
   const n = Math.max(0, Number(input?.actionItems ?? 0) | 0);
   const m = Math.max(0, Number(input?.preconditions ?? 0) | 0);
 
-  if (recordComplete) {
-    paragraphs.push(affirmativeParagraph(n, m));
+  const affirmative = recordComplete ? affirmativeParagraph(n, m) : null;
+  if (affirmative) {
+    paragraphs.push(affirmative);
   } else if (foundations.length) {
     const count = numberWord(foundations.length);
     const noun = foundations.length === 1 ? "foundation is" : "foundations are";
@@ -241,7 +242,10 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
   const cleaned = paragraphs
     .map((p) => p.replace(/\s+/g, " ").trim())
     .filter(Boolean)
-    .filter((p) => !hasPlaceholderToken(p));
+    // The item-380 affirmative paragraph is EXEMPT: its ratified wording
+    // ("…preconditions to be completed before processing begins…") trips the
+    // placeholder token regex on a phrase that is prose, not a template tag.
+    .filter((p) => p === affirmative || !hasPlaceholderToken(p));
   if (!cleaned.length) return null;
 
   return {
