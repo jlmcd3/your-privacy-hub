@@ -2395,6 +2395,29 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] DPIA attestation attach failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ────────────────────
+    // CRITIC (Claude, currentGenerationModel(), one call) → VERIFIER (GPT-4o,
+    // one call) → DETERMINISTIC SPLICER. Runs after stitch + deliverable
+    // attaches and BEFORE the deterministic battery below, so validators →
+    // gated frame substitution → CSC → boilerplate cap → register lint →
+    // disclaimer all run on the spliced document. One pass, no loops.
+    // Config-gated by DPIA_REFINEMENT_ENABLED; fail-open in every branch.
+    try {
+      const { runDpiaRefinement } = await import("../_shared/ltp/dpia-refinement.ts");
+      const refineTel = await runDpiaRefinement(
+        reportData as Record<string, unknown>,
+        (dpiaIntake ?? {}) as Record<string, unknown>,
+        { critic: refinementCriticCall, verifier: refinementVerifierCall },
+        { enabled: DPIA_REFINEMENT_ENABLED },
+      );
+      const _rf = ((reportData as any)._meta ??= {});
+      (_rf.internal ??= {}).dpia_refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "dpia_refinement", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
 
 
     // ── DPIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ─────
