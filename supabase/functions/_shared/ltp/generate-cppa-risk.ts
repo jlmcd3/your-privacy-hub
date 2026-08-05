@@ -53,8 +53,15 @@ import {
 import { buildAuthorityExhibit } from "../report-exhibits/authority-exhibit.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../report-schemas/cppa-risk.ts";
 import { computeRecordNeeds } from "./section-composers/cppa-risk.ts";
+// ITEM 378 (CORRECTION) — refinement + CSC + stamp on the ROUTED LTP path.
+import { RISK_PIPELINE_STAMP } from "./risk-stamp.ts";
+import { attachRiskCsc } from "./risk-csc.ts";
+import { runRiskRefinement } from "./risk-refinement.ts";
+import type { RefinementDeps, RefinementTelemetry } from "./refinement-core.ts";
 
 export const CPPA_RISK_GENERATOR_STAMP = "generate-cppa-risk@2026-08-01-item357";
+export { RISK_PIPELINE_STAMP };
+
 
 export type Pass1Mode = "deterministic" | "model";
 
