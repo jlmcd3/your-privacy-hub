@@ -713,44 +713,53 @@ const STAMP = "r1b2.4-ws6v21";
 export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
-export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item376-refinement-2026-08-04";
+export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item377-refine11-2026-08-05";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 
 // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
 // One line to disable the whole critic → verifier → splicer pass.
 export const DPIA_REFINEMENT_ENABLED = true;
 
-/** CRITIC — Claude, one call, on the run's generation model. */
-async function refinementCriticCall(system: string, user: string): Promise<string> {
-  const key = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!key) throw new Error("ANTHROPIC_API_KEY not set");
-  const model = currentGenerationModel();
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: generationMaxTokens(model, 8000),
-      system,
-      messages: [{ role: "user", content: user }],
-    }),
-    signal: AbortSignal.timeout(generationTimeoutMs(model, 180_000)),
-  });
-  if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  const d = await r.json();
-  const blocks = Array.isArray(d?.content) ? d.content : [];
-  const textBlock = blocks.find((b: any) => b?.type === "text" && typeof b?.text === "string");
-  return textBlock?.text ?? "";
+// ITEM 377 §2 — METERING. api_usage has no label/purpose column, so the two
+// refinement calls are attributed by `function_name` suffix
+// ("…:refine_critic" / "…:refine_verifier") and by `source_row_id` (dpia_id),
+// set here for the duration of the pass.
+let refinementSourceRowId: string | null = null;
+export function setRefinementSourceRowId(id: string | null): void {
+  refinementSourceRowId = id;
 }
 
-/** VERIFIER — GPT-4o, one call (same request shape as run-quality-batch). */
+/** CRITIC — Claude, one call, on the run's generation model, metered. */
+async function refinementCriticCall(system: string, user: string): Promise<string> {
+  const model = currentGenerationModel();
+  const startedMs = Date.now();
+  // ITEM 377 §2 — routed through the generator's metered Anthropic wrapper
+  // (never raw fetch) so retries, continuation, and token accounting match
+  // every other model call in this function.
+  const r = await callAnthropicWithContinuation({
+    model,
+    system,
+    user,
+    maxTokens: generationMaxTokens(model, 8000),
+    label: "run-dpia-framework:refine_critic",
+  });
+  recordApiUsage({
+    function_name: "run-dpia-framework:refine_critic",
+    product: "dpia_framework",
+    model,
+    input_tokens: (r as any).inputTokens ?? null,
+    output_tokens: r.outputTokens ?? null,
+    duration_ms: Date.now() - startedMs,
+    source_row_id: refinementSourceRowId ?? currentSourceRowId() ?? null,
+  });
+  return r.text ?? "";
+}
+
+/** VERIFIER — GPT-4o, one call (same request shape as run-quality-batch), metered. */
 async function refinementVerifierCall(system: string, user: string): Promise<string> {
   const key = Deno.env.get("OPENAI_API_KEY");
   if (!key) throw new Error("OPENAI_API_KEY not set");
+  const startedMs = Date.now();
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
@@ -764,6 +773,15 @@ async function refinementVerifierCall(system: string, user: string): Promise<str
   });
   if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
+  recordApiUsage({
+    function_name: "run-dpia-framework:refine_verifier",
+    product: "dpia_framework",
+    model: "gpt-4o",
+    input_tokens: d?.usage?.prompt_tokens ?? null,
+    output_tokens: d?.usage?.completion_tokens ?? null,
+    duration_ms: Date.now() - startedMs,
+    source_row_id: refinementSourceRowId ?? currentSourceRowId() ?? null,
+  });
   return d.choices?.[0]?.message?.content ?? "";
 }
 
@@ -2455,6 +2473,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // disclaimer all run on the spliced document. One pass, no loops.
     // Config-gated by DPIA_REFINEMENT_ENABLED; fail-open in every branch.
     try {
+      setRefinementSourceRowId(dpia_id ?? null); // ITEM 377 §2 — metering attribution
       const { runDpiaRefinement } = await import("../_shared/ltp/dpia-refinement.ts");
       const refineTel = await runDpiaRefinement(
         reportData as Record<string, unknown>,

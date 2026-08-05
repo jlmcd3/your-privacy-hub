@@ -176,7 +176,8 @@ Deno.test("TEST 7 — telemetry shape and disabled flag", async () => {
   assertEquals(off.enabled, false);
   assertEquals(off.version, DPIA_REFINEMENT_VERSION);
   assertEquals(Object.keys(off).sort(), [
-    "capped", "crashed", "critic_findings", "enabled", "quote_drift",
+    "cap_overflow", "capped", "crashed", "critic_findings", "enabled",
+    "findings_log", "protected_rejected", "quote_drift",
     "spliced", "spliced_paths", "structural_findings", "verifier_approved",
     "verifier_rejected", "version",
   ]);
@@ -194,6 +195,6 @@ Deno.test("TEST 8 — battery runs after the splice (order asserted in the wirin
   assert(refine < frames, "refinement must precede frame substitution");
   assert(frames < cap, "frame substitution must precede the boilerplate cap");
   assert(cap < csc, "boilerplate cap must precede the consistency check");
-  assert(src.includes('DPIA_PIPELINE_STAMP = "dpia-pipeline@item376-refinement-2026-08-04"'));
+  assert(src.includes('DPIA_PIPELINE_STAMP = "dpia-pipeline@item377-refine11-2026-08-05"'));
   assert(src.includes("const DPIA_REFINEMENT_ENABLED = true"));
 });

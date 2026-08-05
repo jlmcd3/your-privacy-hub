@@ -11,7 +11,7 @@
 // The model callers are injected so the pass is fully testable without any
 // live API call.
 
-export const DPIA_REFINEMENT_VERSION = "refine-2026-08-04-item376";
+export const DPIA_REFINEMENT_VERSION = "refine-2026-08-05-item377-v1.1";
 
 export const MAX_SPLICES = 12;
 
@@ -31,11 +31,21 @@ FIND freely — no fixed checklist. Every finding must contain:
 HARD RULES: A replacement may remove, reconcile, or restate what the record supports. It may NEVER assert a fact absent from the intake. A missing-argument replacement may only combine facts already in the record with citations already present in the document. NEVER touch: the final disclaimer, quoted statutory text, "[TO BE COMPLETED …]" / "[TO BE ASSESSED]" placeholders, "(default — confirm)" markers, the canonical advisory closes ("…further clarification is advisable." / "…further internal investigation is advisable."), determination outcomes, enum values, dates, names, ids, schema keys. A statement that something is absent from the record is CORRECT prose when the record is in fact silent — check the intake before flagging one. Avoid in replacements: leverage, utilize, robust, comprehensive, holistic, seamless, "in order to", "it should be noted", "as such", "on the record", "it is worth noting", "as noted above", please, simply.
 
 Maximum 12 findings, ordered most severe first. A defect not fixable by rewriting one node goes under structural_findings with no replacement.
-Return ONLY JSON: {"findings":[{path,quote,class,anchor,replacement,confidence}],"structural_findings":[{path,quote,class,note}]}`;
+Return ONLY JSON: {"findings":[{path,quote,class,anchor,replacement,confidence}],"structural_findings":[{path,quote,class,note}]}
+
+DPIA-SPECIFIC WATCHLIST (from this product's verified defect history — verify each specifically; report ONLY what you actually find, with evidence; watchlist findings carry no privilege: same anchors, same verification):
+W1 Invented entities: processors, vendors, technologies, certifications, or workflows not in the intake (history: invented monitoring vendors and HR-review workflows).
+W2 Basis contradictions: the stated legal basis, Art. 9 condition, or Art. 35(3) trigger contradicted elsewhere in the document (history: legal_basis vs article_35_3_trigger; engagement map vs metadata).
+W3 False absence: any claim that the record does not supply something the intake in fact supplies. Check the intake both ways — an absence statement about a genuinely silent record is CORRECT and must not be flagged.
+W4 Leaked candidacy markers: "CANDIDATE —" or "[TO COMPLETE — …]" where the record supplies the answer. A placeholder is correct ONLY when the record is silent on that item.
+W5 Interchangeable filler: near-identical stock sentences repeated across risk rows or sections where fact-specific reasoning belongs.
+W6 Mis-attached citations: a real citation attached to the wrong proposition or instrument.`;
 
 export const VERIFIER_SYSTEM_PROMPT =
   `You are an independent verifier. You receive the INTAKE RECORD, the DOCUMENT (JSON), and PROPOSED REVISIONS (path, quote, class, anchor, replacement). Approve a proposal ONLY if ALL hold: (1) the quote exists at the stated path; (2) the anchor is real — the cited intake field says what the proposal claims, or both quoted contradictory passages exist; (3) the replacement contains no factual assertion absent from the intake record; (4) the replacement does not alter any protected surface: the final disclaimer, quoted statutory text, bracketed placeholders, "(default — confirm)" markers, the canonical advisory closes, determination outcomes, enum values, dates, names, ids. You never propose revisions. You never improve replacements.
-Return ONLY JSON: {"verdicts":[{"path":"...","verdict":"approve"|"reject","reason":"one sentence"}]}`;
+Return ONLY JSON: {"verdicts":[{"path":"...","verdict":"approve"|"reject","reason":"one sentence"}]}
+
+DESIGNED-OUTPUT PATTERNS (these are deliberate product output; a proposal altering any of them fails condition 4 and must be REJECTED): the final disclaimer; quoted statutory text; "[TO BE COMPLETED …]"/"[TO BE ASSESSED]" placeholders where the intake is silent on the item; "(default — confirm)" markers; the canonical closes "…further clarification is advisable." / "…further internal investigation is advisable."; drafting-voice references to "the record"; the EDPB DPIA template v1.0 structure and its § 0.5 assessment-team/validation fields; plain-prose FSOR/Agency-position citations; corpus-verified recent law (SB 446 notice windows; Cal. Civ. Code § 1798.140(ag); UK GDPR Art. 6(11) per the DUAA 2025). Conversely: a placeholder or absence statement covering something the intake DOES supply is NOT protected — that is a record-contradiction, and its correction should be APPROVED when conditions 1–3 hold.`;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,6 +71,19 @@ export interface Verdict {
   reason?: string;
 }
 
+/** v1.1 (item377 §1) — one bucket per critic proposal. */
+export interface ProtectedRejection {
+  path: string;
+  leaf_key_or_rule: string;
+}
+
+export interface FindingLogEntry {
+  path: string;
+  class: string;
+  confidence: string;
+  quote: string; // truncated to 160 chars
+}
+
 export interface RefinementTelemetry {
   version: string;
   enabled: boolean;
@@ -70,10 +93,18 @@ export interface RefinementTelemetry {
   verifier_rejected: number;
   spliced: number;
   quote_drift: number;
+  /** v1.1 — proposals rejected by the in-code protected-surface list. */
+  protected_rejected: { count: number; items: ProtectedRejection[] };
+  /** v1.1 — critic proposals beyond the 12-splice cap. */
+  cap_overflow: number;
   capped: boolean;
   crashed: string | null;
   spliced_paths: string[];
+  /** v1.1 — full critic findings list, quotes truncated. */
+  findings_log: FindingLogEntry[];
 }
+
+export const FINDINGS_LOG_QUOTE_MAX = 160;
 
 // ── Protected surfaces (defense in depth; the prompts say the same) ──────────
 
@@ -98,18 +129,26 @@ export const PROTECTED_LEAF_KEYS = [
 ];
 
 export function isProtectedPath(path: string): boolean {
+  return protectedReason(path) !== null;
+}
+
+/**
+ * v1.1 (item377 §1) — the rule that protects a path, or null when unprotected.
+ * Returned verbatim in telemetry as `leaf_key_or_rule`.
+ */
+export function protectedReason(path: string): string | null {
   const segs = parsePath(path);
-  if (!segs) return true; // unresolvable → treat as protected
+  if (!segs) return "unparseable_path"; // unresolvable → treat as protected
   for (const s of segs) {
-    if (typeof s === "string" && PROTECTED_ROOT_KEYS.includes(s)) return true;
+    if (typeof s === "string" && PROTECTED_ROOT_KEYS.includes(s)) return s;
   }
   for (let i = segs.length - 1; i >= 0; i--) {
     const s = segs[i];
     if (typeof s === "string") {
-      return PROTECTED_LEAF_KEYS.includes(s);
+      return PROTECTED_LEAF_KEYS.includes(s) ? s : null;
     }
   }
-  return false;
+  return null;
 }
 
 // ── JSONPath (the narrow dialect the critic is instructed to emit) ───────────
@@ -215,7 +254,9 @@ export interface SpliceResult {
   spliced: number;
   quote_drift: number;
   capped: boolean;
+  cap_overflow: number;
   spliced_paths: string[];
+  protected_rejected: ProtectedRejection[];
   rejected: { path: string; reason: string }[];
 }
 
@@ -227,22 +268,29 @@ export function applySplices(
     spliced: 0,
     quote_drift: 0,
     capped: false,
+    cap_overflow: 0,
     spliced_paths: [],
+    protected_rejected: [],
     rejected: [],
   };
   for (const f of approved) {
     if (res.spliced >= MAX_SPLICES) {
       res.capped = true;
+      res.cap_overflow++;
       res.rejected.push({ path: f.path, reason: "cap_reached" });
       continue;
     }
     try {
-      if (isProtectedPath(f.path)) {
+      const prot = protectedReason(f.path);
+      if (prot !== null) {
+        res.protected_rejected.push({ path: f.path, leaf_key_or_rule: prot });
         res.rejected.push({ path: f.path, reason: "protected_surface" });
         continue;
       }
       const current = readPath(report, f.path);
       if (typeof current !== "string") {
+        // v1.1 accounting: the quoted string is not present at the node.
+        res.quote_drift++;
         res.rejected.push({ path: f.path, reason: "not_a_string_node" });
         continue;
       }
@@ -253,16 +301,19 @@ export function applySplices(
         continue;
       }
       if (typeof f.replacement !== "string" || f.replacement.length === 0) {
+        res.quote_drift++;
         res.rejected.push({ path: f.path, reason: "empty_replacement" });
         continue;
       }
       if (!writePath(report, f.path, f.replacement)) {
+        res.quote_drift++;
         res.rejected.push({ path: f.path, reason: "write_failed" });
         continue;
       }
       res.spliced++;
       res.spliced_paths.push(f.path);
     } catch (e) {
+      res.quote_drift++;
       res.rejected.push({ path: f.path, reason: `splice_error:${(e as Error)?.message ?? "unknown"}` });
     }
   }
@@ -323,10 +374,27 @@ function emptyTelemetry(enabled: boolean, crashed: string | null = null): Refine
     verifier_rejected: 0,
     spliced: 0,
     quote_drift: 0,
+    protected_rejected: { count: 0, items: [] },
+    cap_overflow: 0,
     capped: false,
     crashed,
     spliced_paths: [],
+    findings_log: [],
   };
+}
+
+/**
+ * v1.1 (item377 §1) — FULL PROPOSAL ACCOUNTING. Every critic proposal must end
+ * in exactly one bucket: spliced | verifier_rejected | protected_rejected |
+ * quote_drift | cap_overflow. Any residue (e.g. a splicer crash mid-list) is
+ * attributed to quote_drift so the invariant always holds.
+ */
+function balanceBuckets(tel: RefinementTelemetry): RefinementTelemetry {
+  const accounted = tel.spliced + tel.verifier_rejected +
+    tel.protected_rejected.count + tel.quote_drift + tel.cap_overflow;
+  const residue = tel.critic_findings - accounted;
+  if (residue > 0) tel.quote_drift += residue;
+  return tel;
 }
 
 export async function runDpiaRefinement(
@@ -341,20 +409,30 @@ export async function runDpiaRefinement(
   // 1. CRITIC — any failure skips refinement entirely.
   let findings: CriticFinding[] = [];
   let structural: StructuralFinding[] = [];
+  let allFindings: CriticFinding[] = [];
   try {
     const raw = await deps.critic(CRITIC_SYSTEM_PROMPT, buildCriticUser(report, intake));
     const parsed = asFindings(parseJsonLoose(raw));
     if (!parsed) return emptyTelemetry(true, "critic_unparseable");
-    findings = parsed.findings.slice(0, MAX_SPLICES);
+    allFindings = parsed.findings;
+    findings = allFindings.slice(0, MAX_SPLICES);
     structural = parsed.structural;
   } catch (e) {
     return emptyTelemetry(true, `critic_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`);
   }
 
   const tel = emptyTelemetry(true);
-  tel.critic_findings = findings.length;
+  tel.critic_findings = allFindings.length;
   tel.structural_findings = structural.length;
-  if (findings.length === 0) return tel;
+  tel.cap_overflow = allFindings.length - findings.length;
+  if (tel.cap_overflow > 0) tel.capped = true;
+  tel.findings_log = allFindings.map((f) => ({
+    path: f.path,
+    class: f.class,
+    confidence: f.confidence,
+    quote: (f.quote ?? "").slice(0, FINDINGS_LOG_QUOTE_MAX),
+  }));
+  if (findings.length === 0) return balanceBuckets(tel);
 
   // 2. VERIFIER — any failure means ZERO splices.
   let verdicts: Verdict[] = [];
@@ -367,13 +445,13 @@ export async function runDpiaRefinement(
     if (!parsed) {
       tel.crashed = "verifier_unparseable";
       tel.verifier_rejected = findings.length;
-      return tel;
+      return balanceBuckets(tel);
     }
     verdicts = parsed;
   } catch (e) {
     tel.crashed = `verifier_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`;
     tel.verifier_rejected = findings.length;
-    return tel;
+    return balanceBuckets(tel);
   }
 
   const approvedPaths = new Set(
@@ -382,17 +460,19 @@ export async function runDpiaRefinement(
   const approved = findings.filter((f) => approvedPaths.has(f.path));
   tel.verifier_approved = approved.length;
   tel.verifier_rejected = findings.length - approved.length;
-  if (approved.length === 0) return tel;
+  if (approved.length === 0) return balanceBuckets(tel);
 
   // 3. DETERMINISTIC SPLICER.
   try {
     const s = applySplices(report, approved);
     tel.spliced = s.spliced;
     tel.quote_drift = s.quote_drift;
-    tel.capped = s.capped;
+    tel.capped = tel.capped || s.capped;
+    tel.cap_overflow += s.cap_overflow;
     tel.spliced_paths = s.spliced_paths;
+    tel.protected_rejected = { count: s.protected_rejected.length, items: s.protected_rejected };
   } catch (e) {
     tel.crashed = `splicer_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`;
   }
-  return tel;
+  return balanceBuckets(tel);
 }
