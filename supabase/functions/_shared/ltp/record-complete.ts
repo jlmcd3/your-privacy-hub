@@ -26,7 +26,7 @@ import {
   intakeKeyFilled,
 } from "../prose/ask-categories.ts";
 
-export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r4";
+export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 
 export type RecordCompleteProduct = "dpia" | "cppa-risk";
 
@@ -42,7 +42,7 @@ export interface RecordCompleteTelemetry {
   product: RecordCompleteProduct;
   value: boolean;
   failed_conditions: FailedCondition[];
-  /** Contract keys that are empty (capped for telemetry sanity). */
+  /** ITEM 380 r5 — ASKED contract keys that are empty (capped at 40). */
   empty_required_keys: string[];
   counts: {
     empty_required_keys: number;
@@ -112,6 +112,39 @@ export function emptyRequiredKeys(
   return out;
 }
 
+/**
+ * ITEM 380 r5 — the keys the intake ACTUALLY ASKED of this record and that the
+ * record leaves empty.
+ *
+ * The affirmative sentence the gate licenses is "every question the intake asks
+ * has been answered". `emptyRequiredKeys` could not test that sentence: it
+ * ignored `required: "optional"` fields entirely, so a record that answered the
+ * eleven always-required DPIA questions and skipped thirty-nine presented ones
+ * still read as complete. This function tests the sentence literally:
+ *
+ *   asked  = every contract field
+ *   EXCEPT conditionals whose trigger is not met (skip-logic questions the form
+ *          never put on screen — they were not asked, so they cannot be
+ *          unanswered).
+ *
+ * Optional-but-presented fields COUNT. Computed on the raw customer record.
+ */
+export function emptyAskedKeys(
+  contract: IntakeContract,
+  intake: unknown,
+): string[] {
+  const rec = (intake && typeof intake === "object" ? intake : {}) as Record<string, unknown>;
+  const out: string[] = [];
+  for (const f of contract.fields) {
+    // Skip-logic: a conditional whose trigger the record does not show was
+    // never asked.
+    if (f.required === "conditional" && !conditionalTriggered(rec, f)) continue;
+    const values = readPath(rec, f.key);
+    if (values.length === 0 || values.every(isEmptyValue)) out.push(f.key);
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // (b)+(c) the gate
 // ---------------------------------------------------------------------------
@@ -149,7 +182,10 @@ export function computeRecordComplete(input: RecordCompleteInput): RecordComplet
     },
   };
   try {
-    const empties = emptyRequiredKeys(input.contract, input.intake);
+    // ITEM 380 r5 — the condition now tests the sentence it licenses: every
+    // question the intake ASKED must be answered (optional-but-presented
+    // fields included; untriggered skip-logic questions excluded).
+    const empties = emptyAskedKeys(input.contract, input.intake);
     base.empty_required_keys = empties.slice(0, 40);
     base.counts.empty_required_keys = empties.length;
     if (empties.length > 0) base.failed_conditions.push("contract_incomplete");
