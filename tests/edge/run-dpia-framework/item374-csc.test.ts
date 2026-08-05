@@ -140,7 +140,11 @@ Deno.test("defect 2 — a category the record answers is not a missing foundatio
   const kept = filterCategoriesAgainstRecord(cats, EU).map((c: any) => c.id);
   assertEquals(kept.includes("accountability_owner"), false);
   assertEquals(kept.includes("identity"), false);
-  assertEquals(kept.includes("transparency"), true, "unmapped categories are never suppressed");
+  // ITEM 380 r3 — transparency is now MAPPED (data_subject_rights_mechanisms +
+  // nature_scope_context), so the perfect EU record answers it and it is
+  // dropped. The "unmapped categories are never suppressed" guarantee is still
+  // proven by `unspecified` in tests/edge/item380/r3-transparency.test.ts.
+  assertEquals(kept.includes("transparency"), false, "the EU record answers transparency");
 });
 
 Deno.test("defect 2 — the same categories survive on a record that omits the keys", () => {
