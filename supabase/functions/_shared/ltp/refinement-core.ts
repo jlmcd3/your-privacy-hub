@@ -96,6 +96,17 @@ export interface RefinementTelemetry {
   crashed: string | null;
   spliced_paths: string[];
   findings_log: FindingLogEntry[];
+  // ── ITEM 379 additions ────────────────────────────────────────────────
+  /** Verifier rejections attributed to the necessity condition (5). */
+  necessity_rejected: number;
+  /** Every verifier rejection, counted by normalised reason. */
+  verifier_reject_reasons: Record<string, number>;
+  /** class === "material-omission" proposals the critic raised. */
+  omission_findings: number;
+  /** Omission proposals rejected in code for citing no coverage entry. */
+  omission_unanchored: number;
+  /** True when a deterministic coverage list was supplied to the critic. */
+  coverage_supplied: boolean;
 }
 
 /** Everything that varies per product. */
