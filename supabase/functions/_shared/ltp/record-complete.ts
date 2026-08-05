@@ -340,8 +340,21 @@ function collectBracketTokens(report: unknown): string[] {
  *      GAP; an ask whose mapped keys the record supplies is an ACTION ITEM.
  *   4. An ask that maps nowhere falls back to RECORD GAP (fail-closed: it may
  *      not silently license the affirmative claim).
+ *
+ * ITEM 380 r4 — GATE-AWARE FALLBACK. Rule 4 is conservative because an
+ * unplaceable ask must never BUY the affirmative claim. But when the truth gate
+ * has ALREADY held on independent evidence (contract complete, coverage clean,
+ * CSC clean), an ask that maps to NO intake key and names NO empty key is by
+ * construction not fillable from the record — the customer answered everything
+ * we ask — so it is an ACTION ITEM. `recordComplete` is the gate value computed
+ * by `computeRecordComplete` BEFORE classification; when it is FALSE (the
+ * default) behaviour is byte-identical to r3.
  */
-export function classifyOpenItem(text: string, intake: unknown): ClassifiedPlaceholder {
+export function classifyOpenItem(
+  text: string,
+  intake: unknown,
+  recordComplete = false,
+): ClassifiedPlaceholder {
   const cat = categorizeAsk(text);
   const keys = ASK_CATEGORY_INTAKE_KEYS[cat.id] ?? [];
   const emptyKeys = keys.filter((k) => !intakeKeyFilled(intake, k));
@@ -353,12 +366,15 @@ export function classifyOpenItem(text: string, intake: unknown): ClassifiedPlace
   );
   const demandsValue = VALUE_DEMAND_RE.test(text);
   const futureAct = ACTION_ITEM_RE.test(text);
+  const nothingEmpty = emptyKeys.length === 0 && namedEmpty.length === 0;
 
   let klass: PlaceholderClass;
   // ITEM 380 r2 — BY-DESIGN ACTION SURFACES are evaluated ahead of the rule
   // chain (including the conservative rule-4 fallback): these surfaces are
   // never intake-fillable, so no empty-key evidence can make them record gaps.
   if (isByDesignActionSurface(text)) klass = "action_item";
+  // ITEM 380 r4 — gate-aware fallback (gate TRUE only, nothing empty).
+  else if (recordComplete && nothingEmpty) klass = "action_item";
   else if (demandsValue && (emptyKeys.length > 0 || namedEmpty.length > 0)) klass = "record_gap";
   else if (futureAct) klass = "action_item";
   else if (emptyKeys.length > 0 || namedEmpty.length > 0) klass = "record_gap";
