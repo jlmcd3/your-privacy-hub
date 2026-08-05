@@ -402,9 +402,18 @@ export async function generateCppaRiskReport(
     },
   };
 
-  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus);
-  return { report, base, plan, ltpMeta, typeJOrigin, rawIntake };
+  // ITEM 378 (CORRECTION) — refinement runs ONCE per document, on the surface
+  // that ships. When Pass-2R will produce the final payload it refines there;
+  // when it cannot (Type-J write-around, or 2R disabled) it refines here.
+  const pass2rWillFinalize = !typeJOrigin && !!plan && options.pass2rEnabled !== false;
+  const refinement = pass2rWillFinalize
+    ? null
+    : await refineRiskBase(base, rawIntake, options);
+
+  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement });
+  return { report, base, plan, ltpMeta, typeJOrigin, rawIntake, refinement };
 }
+
 
 export interface Pass2RResult {
   /** New persisted payload when 2R shipped; null when the deterministic surface stands. */
