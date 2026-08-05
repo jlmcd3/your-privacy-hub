@@ -510,7 +510,9 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
+      { refinement: gen.refinement ?? null },
     );
+
     return { report, shipped_surface: "deterministic", meta };
   }
 }
