@@ -21,7 +21,7 @@ import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
-export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379";
+export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379r2";
 
 export type CoverageProduct = "dpia" | "cppa-risk";
 
