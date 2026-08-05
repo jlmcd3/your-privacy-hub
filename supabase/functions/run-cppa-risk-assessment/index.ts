@@ -16,6 +16,77 @@ import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // _w<digits>_* / _meta.internal strip). Feeds future LEAK-PREV-P4 loop.
 export const BUILD_STAMP = "ltp-risk-item217-hook-authz-repair-outside-guard@2026-07-28T03:15:00Z";
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
+// ITEM 378 — permanent pipeline build stamp. Bump on every pipeline change.
+// Written into every document at `_meta.internal.risk_pipeline_stamp`.
+export const RISK_PIPELINE_STAMP = "risk-pipeline@item378-2026-08-05";
+console.log(`[run-cppa-risk-assessment] boot ${RISK_PIPELINE_STAMP}`);
+
+// ── ITEM 378 — CPPA RISK REFINEMENT PASS (the ratified DPIA template) ───────
+// One line disables the whole critic → verifier → splicer pass.
+export const RISK_REFINEMENT_ENABLED = true;
+
+// METERING. api_usage has no label/purpose column, so the two refinement calls
+// are attributed by `function_name` suffix ("…:refine_critic" /
+// "…:refine_verifier") and by `source_row_id` (the assessment id).
+let riskRefinementSourceRowId: string | null = null;
+export function setRiskRefinementSourceRowId(id: string | null): void {
+  riskRefinementSourceRowId = id;
+}
+
+/** CRITIC — Claude, one call, on the run's generation model, metered. */
+async function riskRefinementCriticCall(system: string, user: string): Promise<string> {
+  const model = currentGenerationModel();
+  const startedMs = Date.now();
+  // Routed through the generator's metered Anthropic wrapper (never raw fetch)
+  // so retries, continuation, and token accounting match every other call.
+  const r = await callAnthropicWithContinuation({
+    model,
+    system,
+    user,
+    maxTokens: generationMaxTokens(model, 8000),
+    label: "run-cppa-risk-assessment:refine_critic",
+  });
+  recordApiUsage({
+    function_name: "run-cppa-risk-assessment:refine_critic",
+    product: "cppa_risk_assessment",
+    model,
+    input_tokens: (r as any).inputTokens ?? null,
+    output_tokens: (r as any).outputTokens ?? null,
+    duration_ms: Date.now() - startedMs,
+    source_row_id: riskRefinementSourceRowId ?? currentSourceRowId() ?? null,
+  });
+  return r.text ?? "";
+}
+
+/** VERIFIER — GPT-4o, one call, metered the same way. */
+async function riskRefinementVerifierCall(system: string, user: string): Promise<string> {
+  const key = Deno.env.get("OPENAI_API_KEY");
+  if (!key) throw new Error("OPENAI_API_KEY not set");
+  const startedMs = Date.now();
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      max_tokens: 4000,
+      response_format: { type: "json_object" },
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const d = await r.json();
+  recordApiUsage({
+    function_name: "run-cppa-risk-assessment:refine_verifier",
+    product: "cppa_risk_assessment",
+    model: "gpt-4o",
+    input_tokens: d?.usage?.prompt_tokens ?? null,
+    output_tokens: d?.usage?.completion_tokens ?? null,
+    duration_ms: Date.now() - startedMs,
+    source_row_id: riskRefinementSourceRowId ?? currentSourceRowId() ?? null,
+  });
+  return d.choices?.[0]?.message?.content ?? "";
+}
 const LTP_MODE_BOOT = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
 const COMPOSITION_ENFORCE_BOOT = Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0";
 console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} composition_enforce=${COMPOSITION_ENFORCE_BOOT} safe_finalize=safe-finalize@2026-07-27-hangfix persist_first_retry=retry-budget@2026-07-27-persistfirst design=docs/design/LEGAL-TEST-PIPELINE.md §16-measurement-validity-law`);
@@ -142,6 +213,8 @@ import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { normalizeRiskV2 } from "./_qbp25_b3_pointers.ts";
 import { validateSourceFields } from "./_local/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { recordApiUsage } from "../_shared/api-usage.ts";
+import { generationMaxTokens } from "../_shared/generation-model.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -3179,6 +3252,33 @@ async function runPipeline(assessment_id: string) {
     });
 
     try { const _prose = extractProseFromReport(report_data); const _roster = extractIntakeRoster((row as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runCppaHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report_data as any, _det as any); } catch(_) {}
+    // ── ITEM 378 — CPPA RISK REFINEMENT PASS ──────────────────────────
+    // CRITIC (Claude, currentGenerationModel(), one call) → VERIFIER (GPT-4o,
+    // one call) → DETERMINISTIC SPLICER. Runs after every prose pass and
+    // BEFORE the emit gate / frame substitution / CSC, so the deterministic
+    // battery below runs on the spliced document. One pass, no loops.
+    // Config-gated by RISK_REFINEMENT_ENABLED; fail-open in every branch.
+    try {
+      setRiskRefinementSourceRowId(assessment_id ?? null);
+      const { runRiskRefinement } = await import("../_shared/ltp/risk-refinement.ts");
+      const refineTel = await runRiskRefinement(
+        report_data as Record<string, unknown>,
+        (((row as any).intake_data as Record<string, unknown>) ?? {}),
+        { critic: riskRefinementCriticCall, verifier: riskRefinementVerifierCall },
+        { enabled: RISK_REFINEMENT_ENABLED },
+      );
+      const _rdRf: any = report_data as any;
+      _rdRf._meta = _rdRf._meta ?? {};
+      _rdRf._meta.internal = _rdRf._meta.internal ?? {};
+      _rdRf._meta.internal.risk_refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "risk_refinement", fn: "run-cppa-risk-assessment",
+        build_stamp: BUILD_STAMP, risk_pipeline_stamp: RISK_PIPELINE_STAMP, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
     // Runs AFTER every content-shaping pass (W6/W10/W12/fact-ledger/W18)
     // and IMMEDIATELY BEFORE the terminal complete-write; gate telemetry
@@ -3409,6 +3509,32 @@ async function runPipeline(assessment_id: string) {
     } catch (e) {
       console.warn("[run-cppa-risk-assessment] info-needed-normalize failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── ITEM 378 — RISK CROSS-SURFACE CONSISTENCY (R1–R4) ─────────────
+    // Deterministic post-pass: benefits-vs-intake, exception-vs-record,
+    // secondary-use predicate, structured-leaf hygiene. Telemetry rides
+    // `_meta.internal.risk_csc`. Fail-open; honest-degradation safe.
+    try {
+      const { attachRiskCsc } = await import("../_shared/ltp/risk-csc.ts");
+      const _cscTel = attachRiskCsc(report_data as Record<string, unknown>, {
+        intake: ((row as any).intake_data as Record<string, unknown>) ?? {},
+      });
+      console.log(JSON.stringify({
+        evt: "risk_csc", fn: "run-cppa-risk-assessment", build_stamp: BUILD_STAMP,
+        version: _cscTel.version, violations: _cscTel.violations.length,
+        repairs: _cscTel.repairs, crashed: _cscTel.crashed,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-risk-assessment] risk-csc failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ITEM 378 — permanent pipeline stamp on every document.
+    try {
+      const _rdS: any = report_data as any;
+      _rdS._meta = _rdS._meta ?? {};
+      _rdS._meta.internal = _rdS._meta.internal ?? {};
+      _rdS._meta.internal.risk_pipeline_stamp = RISK_PIPELINE_STAMP;
+    } catch { /* non-fatal */ }
 
 
 

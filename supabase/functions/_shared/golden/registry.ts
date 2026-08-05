@@ -77,10 +77,12 @@ export function matchFixtureSet(tool: string, intake: unknown): string | null {
 import type { FixtureVariant } from "../quality/fixture-variant.ts";
 import { MESSY_BY_TOOL } from "./messy-registry.ts";
 import { DPIA_PERFECT } from "./dpia.ts";
+import { CPPA_RISK_PERFECT } from "./cppa-risk.ts";
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
   "dpia": DPIA_PERFECT,
+  "cppa-risk": CPPA_RISK_PERFECT,
 };
 
 export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {
