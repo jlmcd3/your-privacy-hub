@@ -30,6 +30,15 @@ function internalOf(report: Record<string, unknown>): Record<string, unknown> {
   return (meta.internal ?? {}) as Record<string, unknown>;
 }
 
+function bucketSum(telemetry: Record<string, unknown>): number {
+  const protectedRejected = telemetry.protected_rejected as { count?: number } | undefined;
+  return Number(telemetry.spliced ?? 0) +
+    Number(telemetry.verifier_rejected ?? 0) +
+    Number(protectedRejected?.count ?? 0) +
+    Number(telemetry.quote_drift ?? 0) +
+    Number(telemetry.cap_overflow ?? 0);
+}
+
 Deno.test("routed LTP finalize carries stamp + refinement + csc (deterministic pass1)", async () => {
   const options = {
     buildStamp: "test@item378-correction",
@@ -68,4 +77,25 @@ Deno.test("routed LTP Pass-2R payload also carries all three attaches", async ()
   assertEquals(internal.risk_pipeline_stamp, RISK_PIPELINE_STAMP);
   assert(internal.risk_refinement, "risk_refinement telemetry must be present");
   assert(internal.risk_csc, "risk_csc telemetry must be present");
+});
+
+Deno.test("routed LTP persist-first carries balanced fail-open telemetry when critic throws", async () => {
+  const options = {
+    buildStamp: "test@item378-correction-2",
+    runId: "test-run-critic-error",
+    mode: "enforce" as const,
+    pass1: "deterministic" as const,
+    callerName: "test",
+    refinementDeps: {
+      critic: () => Promise.reject(new Error("critic unavailable")),
+      verifier: () => Promise.resolve(JSON.stringify({ verdicts: [] })),
+    },
+  };
+  const gen = await generateCppaRiskReport(INTAKE, options);
+  const telemetry = internalOf(gen.report).risk_refinement as Record<string, unknown>;
+
+  assert(telemetry, "risk_refinement telemetry must be unconditional");
+  assertEquals(telemetry.enabled, true);
+  assert(String(telemetry.crashed).startsWith("critic_error:"));
+  assertEquals(bucketSum(telemetry), Number(telemetry.critic_findings));
 });

@@ -16,6 +16,7 @@ import {
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
 } from "../../../_shared/ltp/generate-cppa-risk.ts";
+import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../../../_shared/ltp/risk-refinement-deps.ts";
 
 export const LTP_PRODUCTION_ENTRY_STAMP = "ltp-production-entry-item357@2026-08-01";
 
@@ -46,6 +47,8 @@ export async function runLtpProduction(args: LtpProductionArgs): Promise<{ ok: b
     mode: "enforce" as const,
     pass1: "model" as const,
     callerName: "run-cppa-risk-assessment",
+    refinementDeps: makeRiskRefinementDeps(assessmentId, "run-cppa-risk-assessment"),
+    refinementEnabled: RISK_REFINEMENT_ENABLED,
   };
   try {
     const gen = await generateCppaRiskReport((row as { intake_data?: unknown }).intake_data ?? {}, options);
