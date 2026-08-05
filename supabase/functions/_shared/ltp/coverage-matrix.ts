@@ -208,24 +208,32 @@ function dpiaCoverage(
     });
   });
 
+  // ITEM 379r2 (R2) — the full risk corpus the document enumerates, used as a
+  // fallback when a measure states no determinate `mitigated_risks` claim
+  // (the neutral scaffold "the record is silent here…" is NOT a claim).
+  const riskCorpus = [
+    ...register.map((r) => text(r)),
+    ...inherent.map((r) => text(r)),
+    ...arr(s4.residual_risk_assessment).map((r) => text(r)),
+  ].join(" \n ");
+
   measures.forEach((m, i) => {
     t.counts.links_checked++;
     const claim = text(m.mitigated_risks);
-    if (!claim.trim()) {
-      t.orphans.push({
-        type: "measure_without_risk",
-        path: `section_4_risk_management.additional_mitigating_measures[${i}]`,
-        detail: `the measure "${text(m.measure).slice(0, 80)}" names no risk it mitigates.`,
-      });
-      return;
+    const determinate = claim.trim().length > 0 && !ABSENCE_FRAME_RE.test(claim);
+    if (determinate) {
+      const hit = register.some((r) => overlaps(claim, text(r.risk_label) + " " + text(r.source))) ||
+        inherent.some((r) => overlaps(claim, text(r.risk)));
+      if (hit) return;
     }
-    const hit = register.some((r) => overlaps(claim, text(r.risk_label) + " " + text(r.source))) ||
-      inherent.some((r) => overlaps(claim, text(r.risk)));
-    if (hit) return;
+    // Fallback: does the measure itself name a risk the assessment enumerates?
+    if (overlaps(text(m.measure) + " " + text(m.detail) + " " + text(m.rationale), riskCorpus)) return;
     t.orphans.push({
       type: "measure_without_risk",
       path: `section_4_risk_management.additional_mitigating_measures[${i}]`,
-      detail: `the measure "${text(m.measure).slice(0, 80)}" mitigates no risk enumerated in the assessment.`,
+      detail: determinate
+        ? `the measure "${text(m.measure).slice(0, 80)}" mitigates no risk enumerated in the assessment.`
+        : `the measure "${text(m.measure).slice(0, 80)}" names no risk it mitigates.`,
     });
   });
 
@@ -233,6 +241,11 @@ function dpiaCoverage(
   const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
   asks.forEach((ask, i) => {
     t.counts.links_checked++;
+    // ITEM 379r2 (R2): a confirmation/verification directive is a next step,
+    // not a request for a fact the record already holds; and an ask bound to a
+    // document node that is already substantively drafted is not an orphan.
+    if (isConfirmationAsk(ask)) return;
+    if (askTargetSubstantive(report, ask)) return;
     const cat = categorizeAsk(ask);
     if (!categoryAnsweredByRecord(cat.id, intake)) return;
     t.orphans.push({
