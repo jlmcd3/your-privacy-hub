@@ -26,7 +26,7 @@ import {
   intakeKeyFilled,
 } from "../prose/ask-categories.ts";
 
-export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r4";
+export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 
 export type RecordCompleteProduct = "dpia" | "cppa-risk";
 
@@ -42,7 +42,7 @@ export interface RecordCompleteTelemetry {
   product: RecordCompleteProduct;
   value: boolean;
   failed_conditions: FailedCondition[];
-  /** Contract keys that are empty (capped for telemetry sanity). */
+  /** ITEM 380 r5 — ASKED contract keys that are empty (capped at 40). */
   empty_required_keys: string[];
   counts: {
     empty_required_keys: number;
@@ -182,7 +182,10 @@ export function computeRecordComplete(input: RecordCompleteInput): RecordComplet
     },
   };
   try {
-    const empties = emptyRequiredKeys(input.contract, input.intake);
+    // ITEM 380 r5 — the condition now tests the sentence it licenses: every
+    // question the intake ASKED must be answered (optional-but-presented
+    // fields included; untriggered skip-logic questions excluded).
+    const empties = emptyAskedKeys(input.contract, input.intake);
     base.empty_required_keys = empties.slice(0, 40);
     base.counts.empty_required_keys = empties.length;
     if (empties.length > 0) base.failed_conditions.push("contract_incomplete");
