@@ -58,6 +58,15 @@ import { RISK_PIPELINE_STAMP } from "./risk-stamp.ts";
 import { attachRiskCsc } from "./risk-csc.ts";
 import { RISK_REFINEMENT_CONFIG, runRiskRefinement } from "./risk-refinement.ts";
 import { emptyTelemetryFor, type RefinementDeps, type RefinementTelemetry } from "./refinement-core.ts";
+// ITEM 379 — bidirectional coverage matrix + soft release ledger.
+import {
+  runCoverageMatrix,
+  coverageListForCritic,
+  coverageAnchorTokens,
+  attachCoverage,
+  type CoverageTelemetry,
+} from "./coverage-matrix.ts";
+import { attachReleaseLedger } from "./release-ledger.ts";
 
 export const CPPA_RISK_GENERATOR_STAMP = "generate-cppa-risk@2026-08-01-item357";
 export { RISK_PIPELINE_STAMP };
@@ -243,11 +252,40 @@ export function finalizeCppaRiskPayload(
     console.warn("[generate-cppa-risk] risk-csc failed (non-fatal):", (e as Error)?.message);
   }
 
-  // (3) permanent pipeline stamp on every document.
+  // (3) ITEM 379 — bidirectional coverage matrix (flag-only) on the FINAL
+  // document, alongside CSC. No repairs; telemetry only.
+  let coverage: CoverageTelemetry | null = null;
+  try {
+    coverage = attachCoverage(
+      report,
+      "risk_coverage",
+      runCoverageMatrix("cppa-risk", report, rawIntake),
+    );
+    console.log(JSON.stringify({
+      evt: "risk_coverage", fn: "generate-cppa-risk",
+      version: coverage.version, orphans: coverage.counts.orphans,
+      unused_intake_facts: coverage.counts.unused_intake_facts,
+      links_checked: coverage.counts.links_checked, crashed: coverage.crashed,
+    }));
+  } catch (e) {
+    console.warn("[generate-cppa-risk] coverage matrix failed (non-fatal):", (e as Error)?.message);
+  }
+
+  // (4) permanent pipeline stamp on every document.
   try {
     const meta = (report._meta ??= {}) as Record<string, unknown>;
     const internal = (meta.internal ??= {}) as Record<string, unknown>;
     internal.risk_pipeline_stamp = RISK_PIPELINE_STAMP;
+  } catch { /* non-fatal */ }
+
+  // (5) ITEM 379 — RELEASE LEDGER. Soft, non-blocking; alerts when non-clean.
+  try {
+    const internal = ((report._meta as Record<string, unknown>)?.internal ?? {}) as Record<string, unknown>;
+    attachReleaseLedger(report, {
+      refinement: internal.risk_refinement,
+      csc: internal.risk_csc,
+      coverage,
+    }, { fn: "generate-cppa-risk", product: "cppa_risk_assessment" });
   } catch { /* non-fatal */ }
 
   return { report, emit_gate_filtered: sealed.emit_gate_filtered };
@@ -273,7 +311,15 @@ export async function refineRiskBase(
   );
   try {
     if (enabled && deps) {
-      telemetry = await runRiskRefinement(base, rawIntake, deps, { enabled: true });
+      // ITEM 379 §3 — the coverage list is computed BEFORE the critic call and
+      // handed to it as the ONLY permitted anchor set for material-omission
+      // findings. It is recomputed after splice for the final telemetry.
+      const pre = runCoverageMatrix("cppa-risk", base, rawIntake);
+      telemetry = await runRiskRefinement(base, rawIntake, deps, {
+        enabled: true,
+        coverageList: coverageListForCritic(pre),
+        coverageAnchors: coverageAnchorTokens(pre),
+      });
     } else if (!enabled) {
       telemetry = emptyTelemetryFor(RISK_REFINEMENT_CONFIG, false);
     }
