@@ -21,7 +21,7 @@ import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
-export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379";
+export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379r2";
 
 export type CoverageProduct = "dpia" | "cppa-risk";
 
@@ -158,6 +158,66 @@ function unusedNarrativeFacts(
 
 const ARTICLE_RE = /(?:art(?:icle|\.)?)[\s_]*([0-9]{1,2}(?:\([0-9a-z]+\))*)/i;
 
+/**
+ * ITEM 379r2 (R2) — the neutral scaffold the renderer writes when the record
+ * is silent. It is prose, not a determinate claim, and must not be read as one.
+ */
+const ABSENCE_FRAME_RE =
+  /(record is silent|remains open|information needed|open questions|not established|is absent|unresolved|no part of the material|left where it stands|carried forward|remains unanswered|this unresolved|nothing supplied|no supporting entry)/i;
+
+/** A next-step directive rather than a request for a fact the record holds. */
+const CONFIRMATION_ASK_RE =
+  /\b(confirm|confirming|verify|verifying|validate|re-?check|cross-?check|document (?:the|a|and|whether)|documenting|record (?:the|and|that)|identify the specific|review (?:the|and)|reviewing|assess whether|obtain and record|ensure)\b/i;
+
+/** Placeholder scaffolding that carries no drafted content. */
+const PLACEHOLDER_PREFIX_RE =
+  /(\[?\s*to be (?:completed|assessed|confirmed|determined)[^\]:]*\]?\s*:?\s*)|(\btbc\b\s*:?\s*)|(^[—–-]\s*)/gi;
+
+const ASK_TEXT_KEYS = ["dimensions", "question", "ask", "note", "detail", "enables", "provision"];
+
+function askText(ask: unknown): string {
+  if (typeof ask === "string") return ask;
+  if (!ask || typeof ask !== "object") return "";
+  const o = ask as Record<string, unknown>;
+  return ASK_TEXT_KEYS.map((k) => text(o[k])).join(" ").trim();
+}
+
+function isConfirmationAsk(ask: unknown): boolean {
+  return CONFIRMATION_ASK_RE.test(askText(ask));
+}
+
+/** Read `a.b[2].c` against the document. */
+function getDocNode(root: unknown, field: string): unknown {
+  let cur: unknown = root;
+  for (const raw of String(field).replace(/^\$\.?/, "").split(".")) {
+    if (!raw) continue;
+    const m = /^([^[\]]+)((?:\[\d+\])*)$/.exec(raw);
+    if (!m) return undefined;
+    if (!cur || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[m[1]];
+    for (const idx of m[2].match(/\d+/g) ?? []) {
+      if (!Array.isArray(cur)) return undefined;
+      cur = cur[Number(idx)];
+    }
+  }
+  return cur;
+}
+
+/**
+ * Is the ask bound to a document node that is already substantively drafted?
+ * Such an ask refines drafted text; it is not an unanswered-fact orphan.
+ */
+function askTargetSubstantive(report: Record<string, unknown>, ask: unknown): boolean {
+  if (!ask || typeof ask !== "object") return false;
+  const field = String((ask as Record<string, unknown>).field ?? "").trim();
+  if (!field) return false;
+  const node = getDocNode(report, field);
+  if (node == null) return false;
+  const body = text(node).replace(PLACEHOLDER_PREFIX_RE, "").trim();
+  return body.length >= 40;
+}
+
+
 function dpiaCoverage(
   report: Record<string, unknown>,
   intake: Record<string, unknown>,
@@ -208,24 +268,32 @@ function dpiaCoverage(
     });
   });
 
+  // ITEM 379r2 (R2) — the full risk corpus the document enumerates, used as a
+  // fallback when a measure states no determinate `mitigated_risks` claim
+  // (the neutral scaffold "the record is silent here…" is NOT a claim).
+  const riskCorpus = [
+    ...register.map((r) => text(r)),
+    ...inherent.map((r) => text(r)),
+    ...arr(s4.residual_risk_assessment).map((r) => text(r)),
+  ].join(" \n ");
+
   measures.forEach((m, i) => {
     t.counts.links_checked++;
     const claim = text(m.mitigated_risks);
-    if (!claim.trim()) {
-      t.orphans.push({
-        type: "measure_without_risk",
-        path: `section_4_risk_management.additional_mitigating_measures[${i}]`,
-        detail: `the measure "${text(m.measure).slice(0, 80)}" names no risk it mitigates.`,
-      });
-      return;
+    const determinate = claim.trim().length > 0 && !ABSENCE_FRAME_RE.test(claim);
+    if (determinate) {
+      const hit = register.some((r) => overlaps(claim, text(r.risk_label) + " " + text(r.source))) ||
+        inherent.some((r) => overlaps(claim, text(r.risk)));
+      if (hit) return;
     }
-    const hit = register.some((r) => overlaps(claim, text(r.risk_label) + " " + text(r.source))) ||
-      inherent.some((r) => overlaps(claim, text(r.risk)));
-    if (hit) return;
+    // Fallback: does the measure itself name a risk the assessment enumerates?
+    if (overlaps(text(m.measure) + " " + text(m.detail) + " " + text(m.rationale), riskCorpus)) return;
     t.orphans.push({
       type: "measure_without_risk",
       path: `section_4_risk_management.additional_mitigating_measures[${i}]`,
-      detail: `the measure "${text(m.measure).slice(0, 80)}" mitigates no risk enumerated in the assessment.`,
+      detail: determinate
+        ? `the measure "${text(m.measure).slice(0, 80)}" mitigates no risk enumerated in the assessment.`
+        : `the measure "${text(m.measure).slice(0, 80)}" names no risk it mitigates.`,
     });
   });
 
@@ -233,6 +301,11 @@ function dpiaCoverage(
   const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
   asks.forEach((ask, i) => {
     t.counts.links_checked++;
+    // ITEM 379r2 (R2): a confirmation/verification directive is a next step,
+    // not a request for a fact the record already holds; and an ask bound to a
+    // document node that is already substantively drafted is not an orphan.
+    if (isConfirmationAsk(ask)) return;
+    if (askTargetSubstantive(report, ask)) return;
     const cat = categorizeAsk(ask);
     if (!categoryAnsweredByRecord(cat.id, intake)) return;
     t.orphans.push({

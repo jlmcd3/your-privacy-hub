@@ -129,6 +129,10 @@ export function isProtectedPathFor(path: string, cfg: RefinementConfig): boolean
 export function protectedReasonFor(path: string, cfg: RefinementConfig): string | null {
   const segs = parsePath(path);
   if (!segs) return "unparseable_path"; // unresolvable -> treat as protected
+  // ITEM 379r2 (R1) — the internal telemetry subtree is never a revision
+  // target. The critic never sees it; if a proposal names it anyway, the
+  // splicer refuses it in code.
+  if (segs[0] === "_meta") return "_meta_subtree";
   for (const s of segs) {
     if (typeof s === "string" && cfg.protectedRootKeys.includes(s)) return s;
   }
@@ -140,6 +144,23 @@ export function protectedReasonFor(path: string, cfg: RefinementConfig): string 
   }
   return null;
 }
+
+/**
+ * ITEM 379r2 (R1) — the document as the models may see it: the ENTIRE `_meta`
+ * subtree (and its sibling staging buckets) removed. Pure; the original object
+ * is never mutated.
+ */
+export function stripMeta<T>(report: T): T {
+  if (!report || typeof report !== "object") return report;
+  if (Array.isArray(report)) return report.map((x) => stripMeta(x)) as unknown as T;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(report as Record<string, unknown>)) {
+    if (k === "_meta" || k === "_staging") continue;
+    out[k] = (v && typeof v === "object") ? stripMeta(v) : v;
+  }
+  return out as unknown as T;
+}
+
 
 // -- JSONPath (the narrow dialect the critic is instructed to emit) ----------
 
@@ -322,7 +343,8 @@ export function buildCriticUser(
     JSON.stringify(intake ?? {}),
     "",
     "DOCUMENT:",
-    JSON.stringify(report ?? {}),
+    // ITEM 379r2 (R1) — the critic never sees `_meta`.
+    JSON.stringify(stripMeta(report ?? {})),
   ];
   if (typeof coverageList === "string" && coverageList.trim().length > 0) {
     parts.push("", coverageList);
@@ -351,26 +373,37 @@ export function classifyRejectReason(reason: string | undefined): string {
   return "unspecified";
 }
 
+/** ITEM 379r2 (R3) — the node text supplied to the verifier, per proposal. */
+export const VERIFIER_NODE_CONTENT_MAX = 4000;
+
 export function buildVerifierUser(
   report: unknown,
   intake: unknown,
   findings: CriticFinding[],
 ): string {
+  const clean = stripMeta(report ?? {});
   return [
     "INTAKE RECORD:",
     JSON.stringify(intake ?? {}),
     "",
     "DOCUMENT:",
-    JSON.stringify(report ?? {}),
+    JSON.stringify(clean),
     "",
-    "PROPOSED REVISIONS:",
-    JSON.stringify(findings.map((f) => ({
-      path: f.path,
-      quote: f.quote,
-      class: f.class,
-      anchor: f.anchor,
-      replacement: f.replacement,
-    }))),
+    "PROPOSED REVISIONS — `node_content` is the EXACT current text at the stated path, supplied so conditions (1) and (2) are checked against it rather than searched for:",
+    JSON.stringify(findings.map((f) => {
+      const node = readPath(clean, f.path);
+      return {
+        path: f.path,
+        quote: f.quote,
+        class: f.class,
+        anchor: f.anchor,
+        replacement: f.replacement,
+        node_content: typeof node === "string"
+          ? node.slice(0, VERIFIER_NODE_CONTENT_MAX)
+          : null,
+        quote_present_in_node: typeof node === "string" && !!f.quote && node.includes(f.quote),
+      };
+    })),
   ].join("\n");
 }
 
@@ -500,6 +533,27 @@ export async function runRefinement(
     gated.push(f);
   }
   findings = gated;
+
+  // ITEM 379r2 (R3) — condition (1) is enforced DETERMINISTICALLY here, before
+  // the verifier call: a proposal whose path is protected, or whose quote does
+  // not exist verbatim at that path, cannot be verified and never reaches GPT.
+  const preProtected: ProtectedRejection[] = [];
+  const survivors: CriticFinding[] = [];
+  for (const f of findings) {
+    const prot = protectedReasonFor(f.path, cfg);
+    if (prot !== null) {
+      preProtected.push({ path: f.path, leaf_key_or_rule: prot });
+      continue;
+    }
+    const node = readPath(report, f.path);
+    if (typeof node !== "string" || !f.quote || !node.includes(f.quote)) {
+      tel.quote_drift++;
+      continue;
+    }
+    survivors.push(f);
+  }
+  findings = survivors;
+  tel.protected_rejected = { count: preProtected.length, items: preProtected };
   if (findings.length === 0) return balanceBuckets(tel);
 
   // 2. VERIFIER — any failure means ZERO splices.
@@ -540,11 +594,12 @@ export async function runRefinement(
   try {
     const s = applySplicesWith(report, approved, cfg);
     tel.spliced = s.spliced;
-    tel.quote_drift = s.quote_drift;
+    tel.quote_drift += s.quote_drift;
     tel.capped = tel.capped || s.capped;
     tel.cap_overflow += s.cap_overflow;
     tel.spliced_paths = s.spliced_paths;
-    tel.protected_rejected = { count: s.protected_rejected.length, items: s.protected_rejected };
+    const items = [...preProtected, ...s.protected_rejected];
+    tel.protected_rejected = { count: items.length, items };
   } catch (e) {
     tel.crashed = `splicer_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`;
   }

@@ -86,7 +86,10 @@ Deno.test("TEST 2 — protected-surface proposal rejected in code even when appr
     verifier: approveAll(paths),
   });
   assertEquals(tel.spliced, 0);
-  assertEquals(tel.verifier_approved, paths.length);
+  // item379r2 (R1/R3): protected proposals are dropped in code BEFORE the
+  // verifier call, so none of them is ever approved.
+  assertEquals(tel.verifier_approved, 0);
+  assertEquals(tel.protected_rejected.count, paths.length);
   assertEquals(JSON.stringify(d), before);
 });
 
@@ -198,6 +201,6 @@ Deno.test("TEST 8 — battery runs after the splice (order asserted in the wirin
   assert(refine < frames, "refinement must precede frame substitution");
   assert(frames < cap, "frame substitution must precede the boilerplate cap");
   assert(cap < csc, "boilerplate cap must precede the consistency check");
-  assert(src.includes('DPIA_PIPELINE_STAMP = "dpia-pipeline@item379-2026-08-05"'));
+  assert(src.includes('DPIA_PIPELINE_STAMP = "dpia-pipeline@item379r2-2026-08-05"'));
   assert(src.includes("const DPIA_REFINEMENT_ENABLED = true"));
 });
