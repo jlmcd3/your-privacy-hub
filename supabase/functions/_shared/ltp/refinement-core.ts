@@ -403,20 +403,35 @@ export function emptyTelemetryFor(
     crashed,
     spliced_paths: [],
     findings_log: [],
+    necessity_rejected: 0,
+    verifier_reject_reasons: {},
+    omission_findings: 0,
+    omission_unanchored: 0,
+    coverage_supplied: false,
   };
 }
 
 /**
  * FULL PROPOSAL ACCOUNTING. Every critic proposal ends in exactly one bucket:
- * spliced | verifier_rejected | protected_rejected | quote_drift | cap_overflow.
+ * spliced | verifier_rejected | protected_rejected | quote_drift |
+ * cap_overflow | omission_unanchored (item379).
  * Any residue is attributed to quote_drift so the invariant always holds.
  */
 export function balanceBuckets(tel: RefinementTelemetry): RefinementTelemetry {
   const accounted = tel.spliced + tel.verifier_rejected +
-    tel.protected_rejected.count + tel.quote_drift + tel.cap_overflow;
+    tel.protected_rejected.count + tel.quote_drift + tel.cap_overflow +
+    tel.omission_unanchored;
   const residue = tel.critic_findings - accounted;
   if (residue > 0) tel.quote_drift += residue;
   return tel;
+}
+
+export interface RefinementRunOptions {
+  enabled?: boolean;
+  /** ITEM 379 — the deterministic COVERAGE list handed to the critic. */
+  coverageList?: string | null;
+  /** ITEM 379 — the only permitted anchors for material-omission findings. */
+  coverageAnchors?: readonly string[];
 }
 
 export async function runRefinement(
@@ -424,27 +439,44 @@ export async function runRefinement(
   intake: Record<string, unknown>,
   deps: RefinementDeps,
   cfg: RefinementConfig,
-  opts: { enabled?: boolean } = {},
+  opts: RefinementRunOptions = {},
 ): Promise<RefinementTelemetry> {
   const enabled = opts.enabled !== false;
   if (!enabled) return emptyTelemetryFor(cfg, false);
+  const coverageList = opts.coverageList ?? null;
+  const coverageAnchors = opts.coverageAnchors ?? [];
+  const coverageSupplied = typeof coverageList === "string" && coverageList.trim().length > 0;
 
   // 1. CRITIC — any failure skips refinement entirely.
   let findings: CriticFinding[] = [];
   let structural: StructuralFinding[] = [];
   let allFindings: CriticFinding[] = [];
   try {
-    const raw = await deps.critic(cfg.criticSystemPrompt, buildCriticUser(report, intake));
+    const raw = await deps.critic(
+      cfg.criticSystemPrompt,
+      buildCriticUser(report, intake, coverageList),
+    );
     const parsed = asFindings(parseJsonLoose(raw));
-    if (!parsed) return emptyTelemetryFor(cfg, true, "critic_unparseable");
+    if (!parsed) {
+      const t = emptyTelemetryFor(cfg, true, "critic_unparseable");
+      t.coverage_supplied = coverageSupplied;
+      return t;
+    }
     allFindings = parsed.findings;
     findings = allFindings.slice(0, MAX_SPLICES);
     structural = parsed.structural;
   } catch (e) {
-    return emptyTelemetryFor(cfg, true, `critic_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`);
+    const t = emptyTelemetryFor(
+      cfg,
+      true,
+      `critic_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`,
+    );
+    t.coverage_supplied = coverageSupplied;
+    return t;
   }
 
   const tel = emptyTelemetryFor(cfg, true);
+  tel.coverage_supplied = coverageSupplied;
   tel.critic_findings = allFindings.length;
   tel.structural_findings = structural.length;
   tel.cap_overflow = allFindings.length - findings.length;
@@ -455,6 +487,19 @@ export async function runRefinement(
     confidence: f.confidence,
     quote: (f.quote ?? "").slice(0, FINDINGS_LOG_QUOTE_MAX),
   }));
+  tel.omission_findings = allFindings.filter((f) => f.class === "material-omission").length;
+
+  // ITEM 379 §3 — an omission finding must cite a coverage entry. Enforced in
+  // code, before the verifier ever sees it.
+  const gated: CriticFinding[] = [];
+  for (const f of findings) {
+    if (f.class === "material-omission" && !omissionIsAnchored(f, coverageAnchors)) {
+      tel.omission_unanchored++;
+      continue;
+    }
+    gated.push(f);
+  }
+  findings = gated;
   if (findings.length === 0) return balanceBuckets(tel);
 
   // 2. VERIFIER — any failure means ZERO splices.
@@ -483,6 +528,12 @@ export async function runRefinement(
   const approved = findings.filter((f) => approvedPaths.has(f.path));
   tel.verifier_approved = approved.length;
   tel.verifier_rejected = findings.length - approved.length;
+  for (const v of verdicts) {
+    if (v.verdict === "approve") continue;
+    const reason = classifyRejectReason(v.reason);
+    tel.verifier_reject_reasons[reason] = (tel.verifier_reject_reasons[reason] ?? 0) + 1;
+    if (reason === "necessity") tel.necessity_rejected++;
+  }
   if (approved.length === 0) return balanceBuckets(tel);
 
   // 3. DETERMINISTIC SPLICER.
