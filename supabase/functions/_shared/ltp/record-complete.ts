@@ -26,7 +26,7 @@ import {
   intakeKeyFilled,
 } from "../prose/ask-categories.ts";
 
-export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380";
+export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r2";
 
 export type RecordCompleteProduct = "dpia" | "cppa-risk";
 
@@ -129,7 +129,7 @@ export interface RecordCompleteInput {
   /** `_meta.internal.<product>_coverage` telemetry. */
   readonly coverage?: { counts?: { orphans?: number }; crashed?: boolean } | null;
   /** `_meta.internal.<product>_csc` telemetry. */
-  readonly csc?: { violations?: Array<{ check_id?: string }>; crashed?: boolean } | null;
+  readonly csc?: { violations?: Array<{ check_id?: string; repaired?: boolean }>; crashed?: boolean } | null;
   /** RISK only — `_meta.internal.record_needs.missing_data`. */
   readonly recordNeedsMissingData?: number | null;
 }
@@ -165,8 +165,14 @@ export function computeRecordComplete(input: RecordCompleteInput): RecordComplet
     // CSC telemetry is REQUIRED evidence: absent or crashed ⇒ fail-closed.
     const csc = input.csc;
     const ids = FALSE_ABSENCE_CHECK_IDS[input.product] ?? [];
+    // ITEM 380 r2 (DEFECT A) — count only UNREPAIRED false-absence violations.
+    // A violation the CSC pass REPAIRED proves the record SUPPLIED the fact:
+    // the absence phrasing was generator error, not record incompleteness, and
+    // the shipped document no longer carries it. Counting repaired violations
+    // held the gate shut on every live document (CSC repairs are routine).
+    // Fail-closed behaviour for absent/crashed telemetry is unchanged.
     const falseAbsence = (csc?.violations ?? []).filter((v) =>
-      ids.includes(String(v?.check_id ?? ""))
+      ids.includes(String(v?.check_id ?? "")) && v?.repaired !== true
     ).length;
     base.counts.csc_false_absence = falseAbsence;
     if (!csc || csc.crashed || falseAbsence > 0) base.failed_conditions.push("csc_false_absence");
@@ -214,17 +220,60 @@ export function computeRecordComplete(input: RecordCompleteInput): RecordComplet
 // deployment / precondition / pre-launch).
 
 export const ACTION_ITEM_RE =
-  /\b(confirm|confirming|confirmation|verify|verif(?:ying|ication)|validate|validation|re-?check|cross-?check|audit|test(?:ing)?|monitor(?:ing)?|review(?:ing)?|obtain|schedule[ds]?|scheduling|publish|re-?score|re-?assess|sign(?:-| )off|implement|deploy|train(?:ing)?|update)\b/i;
+  /\b(confirm|confirming|confirmation|verify|verif(?:ying|ication)|validate|validation|re-?check|cross-?check|audit|test(?:ing)?|monitor(?:ing)?|review(?:ing)?|obtain|schedule[ds]?|scheduling|publish|re-?score|re-?assess|sign(?:-| )off|implement|deploy|train(?:ing)?|update|assign(?:ing|ed)?|appoint(?:ing)?|designate(?:d)?|designating|attach(?:ing|ed)?|conclude|concluding|draw up|drawing up)\b/i;
 
 export const PRECONDITION_RE =
   /\b(before (?:the )?(?:processing|launch|go[- ]?live|deployment|roll[- ]?out|first use|any processing)|prior to (?:the )?(?:processing|launch|go[- ]?live|deployment|start)|pre[- ]?launch|precondition|before proceeding|before this assessment can be signed)\b/i;
 
-/** Asks that demand a VALUE the intake could have carried. */
+/**
+ * Asks that demand a VALUE the intake could have carried.
+ *
+ * ITEM 380 r2 (DEFECT D) — "record" is BOTH a verb ("record the retention
+ * period") and, far more often in our prose, a NOUN ("The record does not yet
+ * include …"). The bare `\brecord\b` alternative therefore matched nearly
+ * every ask and forced it down the record-gap branch. The verb sense is now
+ * matched explicitly and ONLY when it is used imperatively — `record` followed
+ * by a determiner/wh-word — and never when it is preceded by a determiner
+ * (the/this/that/present/a/our/its/their/no/each/whose), which marks the noun.
+ */
 export const VALUE_DEMAND_RE =
-  /\b(state|provide|supply|specify|record|name|identify|list|give|enter|fill in|complete the (?:field|entry)|answer)\b/i;
+  /\b(state|provide|supply|specify|name|identify|list|give|enter|fill in|complete the (?:field|entry)|answer)\b|(?<!\b(?:the|this|that|present|a|our|its|their|no|each|whose)\s)\brecord\s+(?:the|a|an|each|every|all|its|their|this|these|any|both|when|who|what|which|how|where|why)\b/i;
 
 export const BRACKET_TOKEN_RE = /\[TO (?:BE )?(?:COMPLETE|COMPLETED|ASSESSED|CONFIRMED|DETERMINED|RE-SCORED)[^\]]*\]/gi;
 
+
+/**
+ * ITEM 380 r2 (DEFECTS B + D) — BY-DESIGN ACTION SURFACES.
+ *
+ * Deterministic substring anchors naming surfaces that are, by construction,
+ * post-generation ACTS a human performs on the finished document — never facts
+ * an intake form could have carried. An ask anchored to any of these is an
+ * ACTION ITEM regardless of the other rules:
+ *
+ *   DPIA  · technical_sheet.completion_date        (the date the sheet is completed)
+ *         · technical_sheet.formal_validation_date (the date the DPO/controller validates)
+ *         · sign_off_template                      (the signature block itself)
+ *   RISK  · 11 CCR § 7152(a)(7) — the decision whether to INITIATE the
+ *           processing, which the regulation reserves to the business.
+ *
+ * Anchors are matched case-insensitively as plain substrings on the ask text.
+ */
+export const BY_DESIGN_ACTION_ANCHORS: readonly string[] = [
+  "technical_sheet.completion_date",
+  "technical_sheet.formal_validation_date",
+  "sign_off_template",
+  "section_6_conclusion.sign_off",
+];
+
+/** Risk: the reserved § 7152(a)(7) initiate-the-processing decision. */
+export const RESERVED_INITIATE_RE =
+  /7152\(a\)\(7\)|decision whether to initiate the processing/i;
+
+export function isByDesignActionSurface(text: string): boolean {
+  const hay = String(text ?? "").toLowerCase();
+  if (BY_DESIGN_ACTION_ANCHORS.some((a) => hay.includes(a))) return true;
+  return RESERVED_INITIATE_RE.test(String(text ?? ""));
+}
 
 export type PlaceholderClass = "record_gap" | "action_item";
 
@@ -306,7 +355,11 @@ export function classifyOpenItem(text: string, intake: unknown): ClassifiedPlace
   const futureAct = ACTION_ITEM_RE.test(text);
 
   let klass: PlaceholderClass;
-  if (demandsValue && (emptyKeys.length > 0 || namedEmpty.length > 0)) klass = "record_gap";
+  // ITEM 380 r2 — BY-DESIGN ACTION SURFACES are evaluated ahead of the rule
+  // chain (including the conservative rule-4 fallback): these surfaces are
+  // never intake-fillable, so no empty-key evidence can make them record gaps.
+  if (isByDesignActionSurface(text)) klass = "action_item";
+  else if (demandsValue && (emptyKeys.length > 0 || namedEmpty.length > 0)) klass = "record_gap";
   else if (futureAct) klass = "action_item";
   else if (emptyKeys.length > 0 || namedEmpty.length > 0) klass = "record_gap";
   else if (keys.length > 0) klass = "action_item";
