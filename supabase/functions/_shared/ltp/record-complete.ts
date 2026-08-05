@@ -160,9 +160,12 @@ export function emptyAskedKeys(
   const rec = (intake && typeof intake === "object" ? intake : {}) as Record<string, unknown>;
   const out: string[] = [];
   for (const f of contract.fields) {
+    // System/revision keys are not questions (r5b).
+    if (SYSTEM_KEYS.has(f.key)) continue;
     // Skip-logic: a conditional whose trigger the record does not show was
     // never asked.
     if (f.required === "conditional" && !conditionalTriggered(rec, f)) continue;
+
     const values = readPath(rec, f.key);
     if (values.length === 0 || values.every(isEmptyValue)) out.push(f.key);
   }
