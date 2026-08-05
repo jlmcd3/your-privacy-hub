@@ -129,6 +129,10 @@ export function isProtectedPathFor(path: string, cfg: RefinementConfig): boolean
 export function protectedReasonFor(path: string, cfg: RefinementConfig): string | null {
   const segs = parsePath(path);
   if (!segs) return "unparseable_path"; // unresolvable -> treat as protected
+  // ITEM 379r2 (R1) — the internal telemetry subtree is never a revision
+  // target. The critic never sees it; if a proposal names it anyway, the
+  // splicer refuses it in code.
+  if (segs[0] === "_meta") return "_meta_subtree";
   for (const s of segs) {
     if (typeof s === "string" && cfg.protectedRootKeys.includes(s)) return s;
   }
@@ -140,6 +144,23 @@ export function protectedReasonFor(path: string, cfg: RefinementConfig): string 
   }
   return null;
 }
+
+/**
+ * ITEM 379r2 (R1) — the document as the models may see it: the ENTIRE `_meta`
+ * subtree (and its sibling staging buckets) removed. Pure; the original object
+ * is never mutated.
+ */
+export function stripMeta<T>(report: T): T {
+  if (!report || typeof report !== "object") return report;
+  if (Array.isArray(report)) return report.map((x) => stripMeta(x)) as unknown as T;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(report as Record<string, unknown>)) {
+    if (k === "_meta" || k === "_staging") continue;
+    out[k] = (v && typeof v === "object") ? stripMeta(v) : v;
+  }
+  return out as unknown as T;
+}
+
 
 // -- JSONPath (the narrow dialect the critic is instructed to emit) ----------
 
