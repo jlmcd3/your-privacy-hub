@@ -40,8 +40,8 @@ Deno.test("gate: TRUE when every false-absence violation is repaired", () => {
   const t = gate({
     crashed: false,
     violations: [
-      { check_id: "C1_false_absence", repaired: true },
-      { check_id: "C2_false_absence", repaired: true },
+      { check_id: "r1_benefits_vs_intake", repaired: true },
+      { check_id: "r2_exception_vs_record", repaired: true },
     ],
   });
   assertEquals(t.counts.csc_false_absence, 0);
@@ -53,8 +53,8 @@ Deno.test("gate: FALSE when any false-absence violation is unrepaired", () => {
   const t = gate({
     crashed: false,
     violations: [
-      { check_id: "C1_false_absence", repaired: true },
-      { check_id: "C2_false_absence", repaired: false },
+      { check_id: "r1_benefits_vs_intake", repaired: true },
+      { check_id: "r2_exception_vs_record", repaired: false },
     ],
   });
   assertEquals(t.counts.csc_false_absence, 1);
