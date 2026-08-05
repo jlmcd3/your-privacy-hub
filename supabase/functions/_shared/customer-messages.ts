@@ -102,6 +102,28 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "impact_intake.benefitsOutweigh": "whether benefits outweigh risks",
   "impact_intake.cyberGaps": "known cybersecurity gaps",
   "impact_intake.harmTypes": "types of potential harm",
+  primary_activity_name: "name of the processing activity",
+  primary_activity_purpose: "purpose of the processing activity",
+  has_secondary_uses: "whether the data is used for further purposes",
+  secondary_activities: "further uses of the data",
+  bought_sold_shared_count: "number of people whose data is bought, sold, or shared",
+  a2_necessity_set: "why the processing is necessary",
+  a4_benefit_business: "benefit to the business",
+  a4_benefit_consumer: "benefit to consumers",
+  a4_benefit_other_stakeholders: "benefit to other stakeholders",
+  a4_benefit_public: "benefit to the public",
+  a4_benefit_business_fact: "evidence for the benefit to the business",
+  a4_benefit_consumer_fact: "evidence for the benefit to consumers",
+  a4_benefit_other_stakeholders_fact: "evidence for the benefit to other stakeholders",
+  a4_benefit_public_fact: "evidence for the benefit to the public",
+  a5_harm_pathways: "how the processing could cause harm",
+  a6_safeguards: "safeguards in place",
+  a8_information_providers: "who provided the information for the assessment",
+  a9_approver_name: "name of the person approving the assessment",
+  a9_approver_position: "position of the person approving the assessment",
+  a9_approval_date: "date the assessment was approved",
+
+
 
   // ── CPPA ADMT Checker ──
   organization_name: "organization name",
