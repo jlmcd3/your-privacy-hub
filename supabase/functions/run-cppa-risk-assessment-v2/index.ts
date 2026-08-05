@@ -34,6 +34,7 @@ import {
   generateCppaRiskReport,
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
+  RISK_PIPELINE_STAMP,
 } from "../_shared/ltp/generate-cppa-risk.ts";
 // ITEM 378 (CORRECTION) — refinement deps for the ROUTED LTP finalize point.
 import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../_shared/ltp/risk-refinement-deps.ts";
@@ -47,7 +48,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} ltp_mode=${LTP_MODE} engine_path=ltp routed=true`);
+console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} risk_pipeline_stamp=${RISK_PIPELINE_STAMP} ltp_mode=${LTP_MODE} engine_path=ltp routed=true`);
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {

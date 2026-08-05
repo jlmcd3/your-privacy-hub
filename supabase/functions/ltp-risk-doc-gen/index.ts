@@ -21,6 +21,7 @@ import {
   generateCppaRiskReport,
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
+  RISK_PIPELINE_STAMP,
 } from "../_shared/ltp/generate-cppa-risk.ts";
 import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../_shared/ltp/risk-refinement-deps.ts";
 
@@ -28,7 +29,7 @@ const BUILD_STAMP = "ltp-risk-doc-gen-item357-2026-08-01";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-console.log(`[ltp-risk-doc-gen] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP}`);
+console.log(`[ltp-risk-doc-gen] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} risk_pipeline_stamp=${RISK_PIPELINE_STAMP}`);
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
