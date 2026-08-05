@@ -2473,6 +2473,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // disclaimer all run on the spliced document. One pass, no loops.
     // Config-gated by DPIA_REFINEMENT_ENABLED; fail-open in every branch.
     try {
+      setRefinementSourceRowId(dpia_id ?? null); // ITEM 377 §2 — metering attribution
       const { runDpiaRefinement } = await import("../_shared/ltp/dpia-refinement.ts");
       const refineTel = await runDpiaRefinement(
         reportData as Record<string, unknown>,
