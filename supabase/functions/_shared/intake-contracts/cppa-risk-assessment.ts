@@ -242,7 +242,13 @@ export const cppaRiskContract: IntakeContract = {
     { key: "primary_activity_purpose", kind: "text", required: "always" },
     { key: "has_secondary_uses",       kind: "enum", required: "always",
       options: HAS_SECONDARY_USES_OPTS },
-    { key: "secondary_activities",     kind: "structured", required: "optional" },
+    // ITEM 380 r5b — real skip logic: CPPARiskAssessment.tsx L1147 renders the
+    // secondary-activity repeater, and L688 emits rows, only when the fork
+    // answer is the "Yes" option; otherwise the key is emitted as [].
+    { key: "secondary_activities",     kind: "structured", required: "conditional",
+      requiredWhen: "has_secondary_uses === \"Yes — there are other uses\"",
+      trigger: { key: "has_secondary_uses", equals: ["Yes — there are other uses"] } },
+
 
     { key: "q1_revenue",     kind: "enum", required: "always", options: REVENUE_OPTS },
     { key: "q2_consumers",   kind: "enum", required: "always", options: CONSUMER_OPTS },
