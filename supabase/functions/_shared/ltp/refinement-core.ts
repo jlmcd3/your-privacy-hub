@@ -30,10 +30,13 @@ FIND freely — no fixed checklist. Every finding must contain:
 HARD RULES: A replacement may remove, reconcile, or restate what the record supports. It may NEVER assert a fact absent from the intake. A missing-argument replacement may only combine facts already in the record with citations already present in the document. NEVER touch: the final disclaimer, quoted statutory text, "[TO BE COMPLETED …]" / "[TO BE ASSESSED]" placeholders, "(default — confirm)" markers, the canonical advisory closes ("…further clarification is advisable." / "…further internal investigation is advisable."), determination outcomes, enum values, dates, names, ids, schema keys. A statement that something is absent from the record is CORRECT prose when the record is in fact silent — check the intake before flagging one. Avoid in replacements: leverage, utilize, robust, comprehensive, holistic, seamless, "in order to", "it should be noted", "as such", "on the record", "it is worth noting", "as noted above", please, simply.
 
 Maximum 12 findings, ordered most severe first. A defect not fixable by rewriting one node goes under structural_findings with no replacement.
-Return ONLY JSON: {"findings":[{path,quote,class,anchor,replacement,confidence}],"structural_findings":[{path,quote,class,note}]}`;
+Return ONLY JSON: {"findings":[{path,quote,class,anchor,replacement,confidence}],"structural_findings":[{path,quote,class,note}]}
+
+MATERIAL OMISSIONS — you will receive a COVERAGE list (unused intake facts and orphaned links, computed deterministically). You may raise class 'material-omission' findings ONLY anchored to an entry in that list or to an engaged authority with no corresponding analysis. An omission finding's replacement expands ONE existing node using ONLY the cited unused fact or the cited authority already in the document; no other new content. Unanchored omission claims are forbidden.`;
 
 export const VERIFIER_PROMPT_BASE =
-  `You are an independent verifier. You receive the INTAKE RECORD, the DOCUMENT (JSON), and PROPOSED REVISIONS (path, quote, class, anchor, replacement). Approve a proposal ONLY if ALL hold: (1) the quote exists at the stated path; (2) the anchor is real — the cited intake field says what the proposal claims, or both quoted contradictory passages exist; (3) the replacement contains no factual assertion absent from the intake record; (4) the replacement does not alter any protected surface: the final disclaimer, quoted statutory text, bracketed placeholders, "(default — confirm)" markers, the canonical advisory closes, determination outcomes, enum values, dates, names, ids. You never propose revisions. You never improve replacements.
+  `You are an independent verifier. You receive the INTAKE RECORD, the DOCUMENT (JSON), and PROPOSED REVISIONS (path, quote, class, anchor, replacement). Approve a proposal ONLY if ALL hold: (1) the quote exists at the stated path; (2) the anchor is real — the cited intake field says what the proposal claims, or both quoted contradictory passages exist; (3) the replacement contains no factual assertion absent from the intake record; (4) the replacement does not alter any protected surface: the final disclaimer, quoted statutory text, bracketed placeholders, "(default — confirm)" markers, the canonical advisory closes, determination outcomes, enum values, dates, names, ids; (5) the replacement affirmatively performs better than the original — more accurate, more complete against the finding, or clearer; when the original is equally good, REJECT with reason "necessity". You never propose revisions. You never improve replacements.
+Rejection reason vocabulary — use exactly one of: quote-not-found | anchor-unreal | new-fact | protected-surface | necessity.
 Return ONLY JSON: {"verdicts":[{"path":"...","verdict":"approve"|"reject","reason":"one sentence"}]}`;
 
 /** Compose a product prompt: shared core + "\n\n" + the product block. */
@@ -93,6 +96,17 @@ export interface RefinementTelemetry {
   crashed: string | null;
   spliced_paths: string[];
   findings_log: FindingLogEntry[];
+  // ── ITEM 379 additions ────────────────────────────────────────────────
+  /** Verifier rejections attributed to the necessity condition (5). */
+  necessity_rejected: number;
+  /** Every verifier rejection, counted by normalised reason. */
+  verifier_reject_reasons: Record<string, number>;
+  /** class === "material-omission" proposals the critic raised. */
+  omission_findings: number;
+  /** Omission proposals rejected in code for citing no coverage entry. */
+  omission_unanchored: number;
+  /** True when a deterministic coverage list was supplied to the critic. */
+  coverage_supplied: boolean;
 }
 
 /** Everything that varies per product. */
@@ -298,14 +312,43 @@ export function applySplicesWith(
 
 // -- User-message builders ---------------------------------------------------
 
-export function buildCriticUser(report: unknown, intake: unknown): string {
-  return [
+export function buildCriticUser(
+  report: unknown,
+  intake: unknown,
+  coverageList?: string | null,
+): string {
+  const parts = [
     "INTAKE RECORD:",
     JSON.stringify(intake ?? {}),
     "",
     "DOCUMENT:",
     JSON.stringify(report ?? {}),
-  ].join("\n");
+  ];
+  if (typeof coverageList === "string" && coverageList.trim().length > 0) {
+    parts.push("", coverageList);
+  }
+  return parts.join("\n");
+}
+
+/** ITEM 379 — is a material-omission finding anchored to a coverage entry? */
+export function omissionIsAnchored(
+  finding: CriticFinding,
+  anchorTokens: readonly string[],
+): boolean {
+  if (anchorTokens.length === 0) return false;
+  const hay = `${finding.anchor ?? ""} ${finding.path ?? ""} ${finding.quote ?? ""}`.toLowerCase();
+  return anchorTokens.some((tok) => tok && hay.includes(String(tok).toLowerCase()));
+}
+
+/** Normalise a verifier reason sentence to the fixed reason vocabulary. */
+export function classifyRejectReason(reason: string | undefined): string {
+  const r = String(reason ?? "").toLowerCase();
+  if (/necessit|equally good|no improvement|not better/.test(r)) return "necessity";
+  if (/quote|not found at|drift/.test(r)) return "quote-not-found";
+  if (/anchor|unreal|does not say/.test(r)) return "anchor-unreal";
+  if (/new fact|absent from the intake|unsupported|invent/.test(r)) return "new-fact";
+  if (/protected|disclaimer|placeholder|enum|determination/.test(r)) return "protected-surface";
+  return "unspecified";
 }
 
 export function buildVerifierUser(
@@ -360,20 +403,35 @@ export function emptyTelemetryFor(
     crashed,
     spliced_paths: [],
     findings_log: [],
+    necessity_rejected: 0,
+    verifier_reject_reasons: {},
+    omission_findings: 0,
+    omission_unanchored: 0,
+    coverage_supplied: false,
   };
 }
 
 /**
  * FULL PROPOSAL ACCOUNTING. Every critic proposal ends in exactly one bucket:
- * spliced | verifier_rejected | protected_rejected | quote_drift | cap_overflow.
+ * spliced | verifier_rejected | protected_rejected | quote_drift |
+ * cap_overflow | omission_unanchored (item379).
  * Any residue is attributed to quote_drift so the invariant always holds.
  */
 export function balanceBuckets(tel: RefinementTelemetry): RefinementTelemetry {
   const accounted = tel.spliced + tel.verifier_rejected +
-    tel.protected_rejected.count + tel.quote_drift + tel.cap_overflow;
+    tel.protected_rejected.count + tel.quote_drift + tel.cap_overflow +
+    tel.omission_unanchored;
   const residue = tel.critic_findings - accounted;
   if (residue > 0) tel.quote_drift += residue;
   return tel;
+}
+
+export interface RefinementRunOptions {
+  enabled?: boolean;
+  /** ITEM 379 — the deterministic COVERAGE list handed to the critic. */
+  coverageList?: string | null;
+  /** ITEM 379 — the only permitted anchors for material-omission findings. */
+  coverageAnchors?: readonly string[];
 }
 
 export async function runRefinement(
@@ -381,27 +439,44 @@ export async function runRefinement(
   intake: Record<string, unknown>,
   deps: RefinementDeps,
   cfg: RefinementConfig,
-  opts: { enabled?: boolean } = {},
+  opts: RefinementRunOptions = {},
 ): Promise<RefinementTelemetry> {
   const enabled = opts.enabled !== false;
   if (!enabled) return emptyTelemetryFor(cfg, false);
+  const coverageList = opts.coverageList ?? null;
+  const coverageAnchors = opts.coverageAnchors ?? [];
+  const coverageSupplied = typeof coverageList === "string" && coverageList.trim().length > 0;
 
   // 1. CRITIC — any failure skips refinement entirely.
   let findings: CriticFinding[] = [];
   let structural: StructuralFinding[] = [];
   let allFindings: CriticFinding[] = [];
   try {
-    const raw = await deps.critic(cfg.criticSystemPrompt, buildCriticUser(report, intake));
+    const raw = await deps.critic(
+      cfg.criticSystemPrompt,
+      buildCriticUser(report, intake, coverageList),
+    );
     const parsed = asFindings(parseJsonLoose(raw));
-    if (!parsed) return emptyTelemetryFor(cfg, true, "critic_unparseable");
+    if (!parsed) {
+      const t = emptyTelemetryFor(cfg, true, "critic_unparseable");
+      t.coverage_supplied = coverageSupplied;
+      return t;
+    }
     allFindings = parsed.findings;
     findings = allFindings.slice(0, MAX_SPLICES);
     structural = parsed.structural;
   } catch (e) {
-    return emptyTelemetryFor(cfg, true, `critic_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`);
+    const t = emptyTelemetryFor(
+      cfg,
+      true,
+      `critic_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`,
+    );
+    t.coverage_supplied = coverageSupplied;
+    return t;
   }
 
   const tel = emptyTelemetryFor(cfg, true);
+  tel.coverage_supplied = coverageSupplied;
   tel.critic_findings = allFindings.length;
   tel.structural_findings = structural.length;
   tel.cap_overflow = allFindings.length - findings.length;
@@ -412,6 +487,19 @@ export async function runRefinement(
     confidence: f.confidence,
     quote: (f.quote ?? "").slice(0, FINDINGS_LOG_QUOTE_MAX),
   }));
+  tel.omission_findings = allFindings.filter((f) => f.class === "material-omission").length;
+
+  // ITEM 379 §3 — an omission finding must cite a coverage entry. Enforced in
+  // code, before the verifier ever sees it.
+  const gated: CriticFinding[] = [];
+  for (const f of findings) {
+    if (f.class === "material-omission" && !omissionIsAnchored(f, coverageAnchors)) {
+      tel.omission_unanchored++;
+      continue;
+    }
+    gated.push(f);
+  }
+  findings = gated;
   if (findings.length === 0) return balanceBuckets(tel);
 
   // 2. VERIFIER — any failure means ZERO splices.
@@ -440,6 +528,12 @@ export async function runRefinement(
   const approved = findings.filter((f) => approvedPaths.has(f.path));
   tel.verifier_approved = approved.length;
   tel.verifier_rejected = findings.length - approved.length;
+  for (const v of verdicts) {
+    if (v.verdict === "approve") continue;
+    const reason = classifyRejectReason(v.reason);
+    tel.verifier_reject_reasons[reason] = (tel.verifier_reject_reasons[reason] ?? 0) + 1;
+    if (reason === "necessity") tel.necessity_rejected++;
+  }
   if (approved.length === 0) return balanceBuckets(tel);
 
   // 3. DETERMINISTIC SPLICER.

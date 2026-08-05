@@ -20,6 +20,7 @@ import {
   runRefinement,
   type RefinementConfig,
   type RefinementDeps,
+  type RefinementRunOptions,
   type RefinementTelemetry,
   type CriticFinding,
   type SpliceResult,
@@ -116,7 +117,7 @@ export async function runDpiaRefinement(
   report: Record<string, unknown>,
   intake: Record<string, unknown>,
   deps: RefinementDeps,
-  opts: { enabled?: boolean } = {},
+  opts: RefinementRunOptions = {},
 ): Promise<RefinementTelemetry> {
   return await runRefinement(report, intake, deps, DPIA_REFINEMENT_CONFIG, opts);
 }
