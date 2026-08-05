@@ -112,6 +112,39 @@ export function emptyRequiredKeys(
   return out;
 }
 
+/**
+ * ITEM 380 r5 — the keys the intake ACTUALLY ASKED of this record and that the
+ * record leaves empty.
+ *
+ * The affirmative sentence the gate licenses is "every question the intake asks
+ * has been answered". `emptyRequiredKeys` could not test that sentence: it
+ * ignored `required: "optional"` fields entirely, so a record that answered the
+ * eleven always-required DPIA questions and skipped thirty-nine presented ones
+ * still read as complete. This function tests the sentence literally:
+ *
+ *   asked  = every contract field
+ *   EXCEPT conditionals whose trigger is not met (skip-logic questions the form
+ *          never put on screen — they were not asked, so they cannot be
+ *          unanswered).
+ *
+ * Optional-but-presented fields COUNT. Computed on the raw customer record.
+ */
+export function emptyAskedKeys(
+  contract: IntakeContract,
+  intake: unknown,
+): string[] {
+  const rec = (intake && typeof intake === "object" ? intake : {}) as Record<string, unknown>;
+  const out: string[] = [];
+  for (const f of contract.fields) {
+    // Skip-logic: a conditional whose trigger the record does not show was
+    // never asked.
+    if (f.required === "conditional" && !conditionalTriggered(rec, f)) continue;
+    const values = readPath(rec, f.key);
+    if (values.length === 0 || values.every(isEmptyValue)) out.push(f.key);
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // (b)+(c) the gate
 // ---------------------------------------------------------------------------
