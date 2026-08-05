@@ -84,7 +84,16 @@ export interface GenerateCppaRiskOptions {
   readonly pass2rEnabled?: boolean;
   /** UPGRADE-2 — pre-resolved §§ 7150-7157 corpus (test seam; else fetched from db). */
   readonly riskCorpus?: RiskCorpus;
+  /**
+   * ITEM 378 (CORRECTION) — critic/verifier callers for the refinement pass.
+   * Omitted (tests/harnesses without model access) ⇒ refinement records
+   * `enabled:false` telemetry and the document proceeds unchanged.
+   */
+  readonly refinementDeps?: RefinementDeps;
+  /** Set false to skip the refinement pass explicitly. */
+  readonly refinementEnabled?: boolean;
 }
+
 
 export interface GenerateCppaRiskResult {
   /** THE PERSISTED PAYLOAD. Write this verbatim to report_data. */
