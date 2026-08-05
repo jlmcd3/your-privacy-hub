@@ -48,6 +48,10 @@ import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
+// ITEM 381 — intake completeness coach (Layer 1), per-product flag, default off.
+import IntakeCoachStep from "@/components/intake/IntakeCoachStep";
+import { isIntakeCoachEnabled } from "@/config/intakeCoach";
+import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 
 
 // RC-FLIP-3 — intake option sets extracted to DPIAFramework.enums.ts so shared
@@ -113,6 +117,9 @@ const DPIAFramework = () => {
   const [prefilled, setPrefilled] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // ITEM 381 — the review step is advisory and shown at most once per run.
+  const [coachOpen, setCoachOpen] = useState(false);
+  const [coachSeen, setCoachSeen] = useState(false);
 
   // EDPB template — Section 0 (Overview of the processing). All optional in this tranche.
   const [controllerContact, setControllerContact] = useState("");        // 0.1 main establishment / point of contact
@@ -482,6 +489,14 @@ const DPIAFramework = () => {
     const err = validate();
     if (err) { toast({ title: "Complete the highlighted fields to continue", description: err, variant: "destructive" }); return; }
     if (!user) { setAuthGateOpen(true); return; }
+
+    // ITEM 381 — advisory review step, before checkout and without altering it.
+    // Flag off ⇒ this branch is never taken and the flow is unchanged.
+    if (isIntakeCoachEnabled("dpia") && !coachSeen) {
+      setCoachSeen(true);
+      setCoachOpen(true);
+      return;
+    }
 
     // For $0 (included with Platform), bypass Stripe entirely
     if (pricing.price === 0) {
@@ -1090,6 +1105,14 @@ const DPIAFramework = () => {
         </BenchLayout>
 
 
+        <IntakeCoachStep
+          open={coachOpen}
+          product="dpia"
+          contract={COACH_CONTRACTS.dpia}
+          intake={buildIntake()}
+          onClose={() => setCoachOpen(false)}
+          onContinue={() => { setCoachOpen(false); void handlePurchase(); }}
+        />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
         <ToolCheckoutModal
           open={checkoutOpen}
