@@ -395,10 +395,14 @@ export function classifyOpenItem(
 export function classifyPlaceholders(
   report: unknown,
   intake: unknown,
+  /** ITEM 380 r4 — the gate value; FALSE (default) reproduces r3 exactly. */
+  recordComplete = false,
 ): PlaceholderClassification {
   const items: ClassifiedPlaceholder[] = [];
   try {
     for (const tok of collectBracketTokens(report)) {
+      // Bracket tokens are UNAFFECTED by the r4 fallback: they classify by
+      // their own token rule and never ride the gate.
       items.push({ ...classifyOpenItem(tok, intake), origin: "bracket_token" });
     }
     const asks = Array.isArray((report as Record<string, unknown>)?.information_needed)
@@ -407,7 +411,7 @@ export function classifyPlaceholders(
     for (const ask of asks) {
       const t = textOf(ask);
       if (!t) continue;
-      items.push(classifyOpenItem(t, intake));
+      items.push(classifyOpenItem(t, intake, recordComplete === true));
     }
   } catch { /* fail-open: whatever was classified stands */ }
   const record_gap = items.filter((i) => i.klass === "record_gap").length;
