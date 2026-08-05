@@ -343,7 +343,8 @@ export function buildCriticUser(
     JSON.stringify(intake ?? {}),
     "",
     "DOCUMENT:",
-    JSON.stringify(report ?? {}),
+    // ITEM 379r2 (R1) — the critic never sees `_meta`.
+    JSON.stringify(stripMeta(report ?? {})),
   ];
   if (typeof coverageList === "string" && coverageList.trim().length > 0) {
     parts.push("", coverageList);
