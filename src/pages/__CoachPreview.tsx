@@ -9,7 +9,7 @@ const dpia = (DPIA_GOLDEN as unknown as Array<{ id: string; intake: Record<strin
 const risk = (CPPA_RISK_GOLDEN as unknown as Array<{ id: string; intake: Record<string, unknown> }>)[0];
 
 const CoachPreview = () => {
-  const [which, setWhich] = useState<"dpia" | "cppa_risk">("dpia");
+  const [which, setWhich] = useState<"dpia" | "cppa_risk">(new URLSearchParams(window.location.search).get("p") === "risk" ? "cppa_risk" : "dpia");
   return (
     <div className="p-8">
       <button onClick={() => setWhich("dpia")}>dpia</button>
