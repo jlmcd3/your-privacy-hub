@@ -176,7 +176,7 @@ Deno.test("item378 — refinement calls are metered (wrapper, never raw fetch)",
   const stampSrc = await Deno.readTextFile(
     new URL("../../../supabase/functions/_shared/ltp/risk-stamp.ts", import.meta.url),
   );
-  assertStringIncludes(stampSrc, 'export const RISK_PIPELINE_STAMP = "risk-pipeline@item380-2026-08-05";');
+  assertStringIncludes(stampSrc, 'export const RISK_PIPELINE_STAMP = "risk-pipeline@item380r2-2026-08-05";');
   assertStringIncludes(src, 'from "../_shared/ltp/risk-stamp.ts"');
   // The refinement module itself never calls a model directly.
   const mod = await Deno.readTextFile(
