@@ -533,6 +533,27 @@ export async function runRefinement(
     gated.push(f);
   }
   findings = gated;
+
+  // ITEM 379r2 (R3) — condition (1) is enforced DETERMINISTICALLY here, before
+  // the verifier call: a proposal whose path is protected, or whose quote does
+  // not exist verbatim at that path, cannot be verified and never reaches GPT.
+  const preProtected: ProtectedRejection[] = [];
+  const survivors: CriticFinding[] = [];
+  for (const f of findings) {
+    const prot = protectedReasonFor(f.path, cfg);
+    if (prot !== null) {
+      preProtected.push({ path: f.path, leaf_key_or_rule: prot });
+      continue;
+    }
+    const node = readPath(report, f.path);
+    if (typeof node !== "string" || !f.quote || !node.includes(f.quote)) {
+      tel.quote_drift++;
+      continue;
+    }
+    survivors.push(f);
+  }
+  findings = survivors;
+  tel.protected_rejected = { count: preProtected.length, items: preProtected };
   if (findings.length === 0) return balanceBuckets(tel);
 
   // 2. VERIFIER — any failure means ZERO splices.
