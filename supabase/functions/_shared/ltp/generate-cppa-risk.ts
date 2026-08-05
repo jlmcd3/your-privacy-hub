@@ -67,6 +67,15 @@ import {
   type CoverageTelemetry,
 } from "./coverage-matrix.ts";
 import { attachReleaseLedger } from "./release-ledger.ts";
+// ITEM 380 — the deterministic truth gate and placeholder classification.
+import {
+  affirmativeParagraph,
+  attachRecordComplete,
+  classifyPlaceholders,
+  computeRecordComplete,
+} from "./record-complete.ts";
+import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
+
 
 export const CPPA_RISK_GENERATOR_STAMP = "generate-cppa-risk@2026-08-01-item357";
 export { RISK_PIPELINE_STAMP };
@@ -278,7 +287,38 @@ export function finalizeCppaRiskPayload(
     internal.risk_pipeline_stamp = RISK_PIPELINE_STAMP;
   } catch { /* non-fatal */ }
 
-  // (5) ITEM 379 — RELEASE LEDGER. Soft, non-blocking; alerts when non-clean.
+  // (5) ITEM 380 — THE TRUTH GATE + PLACEHOLDER CLASSIFICATION. Deterministic,
+  // no model. Reads the coverage/CSC telemetry written above plus the LTP
+  // build's own `record_needs.missing_data`. Fail-closed on the affirmative
+  // claim: on any error `record_complete.value` stays false and every draft
+  // framing renders exactly as it does today.
+  try {
+    const internal = ((report._meta as Record<string, unknown>)?.internal ?? {}) as Record<string, unknown>;
+    const missingData = Number(
+      ((internal.record_needs ?? (ltpMeta.record_needs as Record<string, unknown>)) as
+        Record<string, unknown> | undefined)?.missing_data ?? NaN,
+    );
+    const telemetry = computeRecordComplete({
+      product: "cppa-risk",
+      contract: cppaRiskContract,
+      intake: (rawIntake && typeof rawIntake === "object" ? rawIntake : {}) as Record<string, unknown>,
+      coverage: internal.risk_coverage as never,
+      csc: internal.risk_csc as never,
+      recordNeedsMissingData: Number.isFinite(missingData) ? missingData : undefined,
+    });
+    const classification = classifyPlaceholders(report, rawIntake ?? {});
+    attachRecordComplete(report, telemetry, classification);
+    applyRiskRecordCompleteFraming(report, telemetry, classification);
+    console.log(JSON.stringify({
+      evt: "risk_record_complete", fn: "generate-cppa-risk",
+      value: telemetry.value, failed_conditions: telemetry.failed_conditions,
+      ...classification.counts,
+    }));
+  } catch (e) {
+    console.warn("[generate-cppa-risk] record-complete gate failed (non-fatal):", (e as Error)?.message);
+  }
+
+  // (6) ITEM 379 — RELEASE LEDGER. Soft, non-blocking; alerts when non-clean.
   try {
     const internal = ((report._meta as Record<string, unknown>)?.internal ?? {}) as Record<string, unknown>;
     attachReleaseLedger(report, {
@@ -290,6 +330,38 @@ export function finalizeCppaRiskPayload(
 
   return { report, emit_gate_filtered: sealed.emit_gate_filtered };
 }
+
+/**
+ * ITEM 380 §3 (RISK) — the determination-equivalent surface for cppa-risk is
+ * the record-sufficiency surface in the executive summary. When, and ONLY
+ * when, the truth gate holds, its draft framing is replaced by the affirmative
+ * paragraph; otherwise the surface is left byte-identical.
+ */
+export function applyRiskRecordCompleteFraming(
+  report: Record<string, unknown>,
+  telemetry: { value: boolean },
+  classification: { counts: { action_item: number; preconditions: number } },
+): void {
+  if (!telemetry?.value) return;
+  const text = affirmativeParagraph(
+    classification.counts.action_item,
+    classification.counts.preconditions,
+  );
+  const summary = (report.executive_summary ?? {}) as Record<string, unknown>;
+  if (summary && typeof summary === "object") {
+    summary.record_sufficiency_statement = text;
+    report.executive_summary = summary;
+  }
+  // The itemised record-sufficiency surface no longer speaks in the draft
+  // register once the gate holds: the affirmative paragraph is its prose.
+  // The surface's SHAPE is never changed here (renderers and the report schema
+  // depend on it); only an object surface gains the affirmative prose.
+  const rs = report.record_sufficiency;
+  if (rs && typeof rs === "object" && !Array.isArray(rs)) {
+    (rs as Record<string, unknown>).prose = text;
+  }
+}
+
 
 /**
  * ITEM 378 (CORRECTION) — run the refinement pass (CRITIC → VERIFIER →

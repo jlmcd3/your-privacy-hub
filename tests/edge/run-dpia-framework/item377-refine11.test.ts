@@ -151,5 +151,5 @@ Deno.test("item377 — version + pipeline stamp bumped", async () => {
   const idx = await Deno.readTextFile(
     new URL("../../../supabase/functions/run-dpia-framework/index.ts", import.meta.url),
   );
-  assertStringIncludes(idx, `DPIA_PIPELINE_STAMP = "dpia-pipeline@item379r2-2026-08-05"`);
+  assertStringIncludes(idx, `DPIA_PIPELINE_STAMP = "dpia-pipeline@item380-2026-08-05"`);
 });

@@ -215,7 +215,19 @@ export function buildHarmCausation(rows: unknown): HarmCausationEntry[] {
     const cause = str(r.cause);
     const dataInvolved = str(r.data_involved);
     const actor = str(r.actor);
-    const pathway = str(r.pathway);
+    // ITEM 380 §4 — THE PATHWAY IS ON THE RECORD WHENEVER THE RECORD SUPPLIES
+    // IT. The intake contract collects `source` and `cause` for every § 7152
+    // (a)(5) row; there is NO `pathway` field on the form. Reading `r.pathway`
+    // alone therefore emitted "not stated on the record" on records that state
+    // the route in full — a false absence the refinement critic then repaired
+    // post-hoc. The emitter now derives the pathway from the record: an
+    // explicit pathway when the row carries one, otherwise the recorded cause
+    // (the mechanism by which the source produces the impact). The absence
+    // text is emitted ONLY when the row genuinely lacks all three.
+    const pathwayStated = str((r as Record<string, unknown>).pathway) ||
+      str((r as Record<string, unknown>).harm_pathway) ||
+      str((r as Record<string, unknown>).mechanism);
+    const pathway = pathwayStated || cause;
     const likelihood = oneOf<HarmLikelihood>(r.likelihood, HARM_LIKELIHOOD_OPTS);
     const severity = oneOf<HarmSeverity>(r.severity, HARM_SEVERITY_OPTS);
     const scored = likelihood && severity
@@ -239,6 +251,7 @@ export function buildHarmCausation(rows: unknown): HarmCausationEntry[] {
       data_involved: dataInvolved || NOT_STATED,
       actor: actor || NOT_STATED,
       pathway: pathway || NOT_STATED,
+
       source: source || NOT_STATED,
       cause: cause || NOT_STATED,
       likelihood: likelihood ?? NOT_STATED,

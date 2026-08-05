@@ -15,6 +15,30 @@ import {
 import { hasProse9Document } from "../_shared/report-contracts/cppa-risk-prose9.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
+// ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the
+// banner this document has always printed; states (ii)/(iii) are reachable
+// ONLY when the deterministic truth gate wrote record_complete.value === true
+// in the generating function. The legal disclaimer block is untouched in all
+// three states.
+import {
+  decideBanner,
+  renderBannerHtml,
+} from "../_shared/ltp/record-complete.ts";
+
+// deno-lint-ignore no-explicit-any
+function renderRecordCompleteBanner(report: any): string {
+  try {
+    const internal = report?._meta?.internal ?? {};
+    return renderBannerHtml(decideBanner(
+      internal?.record_complete?.value === true,
+      internal?.placeholder_classification ?? null,
+      report?.has_unresolved_placeholders === true,
+    ));
+  } catch {
+    return report?.has_unresolved_placeholders === true ? renderBannerHtml({ state: "draft_incomplete", action_items: 0, preconditions: 0 }) : "";
+  }
+}
+
 import { renderDeterminationHtml, DETERMINATION_CSS } from "../_shared/report-exhibits/determination.ts";
 import { buildCPPARiskProse9HTML } from "./prose9-html.ts";
 // ITEM 369-IR LEG 1 — two-file IR delivery (standing playbook + worksheet).
@@ -653,7 +677,7 @@ ${DETERMINATION_CSS}
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
-${report.has_unresolved_placeholders ? `<div style="background:#7c1a1a;color:#fff;padding:10px 16px;font-size:12px;font-weight:600;border-radius:6px;margin-bottom:16px;letter-spacing:0.03em;">⚠ DRAFT — REQUIRED INPUTS INCOMPLETE — DO NOT SIGN OR RELY ON THIS DOCUMENT until all fields marked [TO COMPLETE] and [TO BE ASSESSED] have been resolved.</div>` : ""}
+${renderRecordCompleteBanner(report)}
 ${renderDeterminationHtml(report?.determination)}
 <!-- ITEM 372 r2 (2) — LEGACY BANNER SLOT SUPPRESSED. The top-of-document
      "IMPORTANT: …" slot printed framework_disclaimer above everything. The
