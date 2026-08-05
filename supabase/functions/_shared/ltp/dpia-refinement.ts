@@ -313,6 +313,7 @@ export function applySplices(
       res.spliced++;
       res.spliced_paths.push(f.path);
     } catch (e) {
+      res.quote_drift++;
       res.rejected.push({ path: f.path, reason: `splice_error:${(e as Error)?.message ?? "unknown"}` });
     }
   }
