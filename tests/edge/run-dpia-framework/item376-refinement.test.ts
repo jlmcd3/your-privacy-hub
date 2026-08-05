@@ -86,7 +86,10 @@ Deno.test("TEST 2 — protected-surface proposal rejected in code even when appr
     verifier: approveAll(paths),
   });
   assertEquals(tel.spliced, 0);
-  assertEquals(tel.verifier_approved, paths.length);
+  // item379r2 (R1/R3): protected proposals are dropped in code BEFORE the
+  // verifier call, so none of them is ever approved.
+  assertEquals(tel.verifier_approved, 0);
+  assertEquals(tel.protected_rejected.count, paths.length);
   assertEquals(JSON.stringify(d), before);
 });
 
