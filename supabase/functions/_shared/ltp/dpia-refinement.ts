@@ -129,18 +129,26 @@ export const PROTECTED_LEAF_KEYS = [
 ];
 
 export function isProtectedPath(path: string): boolean {
+  return protectedReason(path) !== null;
+}
+
+/**
+ * v1.1 (item377 §1) — the rule that protects a path, or null when unprotected.
+ * Returned verbatim in telemetry as `leaf_key_or_rule`.
+ */
+export function protectedReason(path: string): string | null {
   const segs = parsePath(path);
-  if (!segs) return true; // unresolvable → treat as protected
+  if (!segs) return "unparseable_path"; // unresolvable → treat as protected
   for (const s of segs) {
-    if (typeof s === "string" && PROTECTED_ROOT_KEYS.includes(s)) return true;
+    if (typeof s === "string" && PROTECTED_ROOT_KEYS.includes(s)) return s;
   }
   for (let i = segs.length - 1; i >= 0; i--) {
     const s = segs[i];
     if (typeof s === "string") {
-      return PROTECTED_LEAF_KEYS.includes(s);
+      return PROTECTED_LEAF_KEYS.includes(s) ? s : null;
     }
   }
-  return false;
+  return null;
 }
 
 // ── JSONPath (the narrow dialect the critic is instructed to emit) ───────────
