@@ -11,7 +11,7 @@
 // The model callers are injected so the pass is fully testable without any
 // live API call.
 
-export const DPIA_REFINEMENT_VERSION = "refine-2026-08-04-item376";
+export const DPIA_REFINEMENT_VERSION = "refine-2026-08-05-item377-v1.1";
 
 export const MAX_SPLICES = 12;
 
