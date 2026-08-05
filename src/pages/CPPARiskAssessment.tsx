@@ -24,6 +24,10 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+// ITEM 381 — intake completeness coach (Layer 1), per-product flag, default off.
+import IntakeCoachStep from "@/components/intake/IntakeCoachStep";
+import { isIntakeCoachEnabled } from "@/config/intakeCoach";
+import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
@@ -346,6 +350,9 @@ export default function CPPARiskAssessment() {
   }, [step]);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // ITEM 381 — the review step is advisory and shown at most once per run.
+  const [coachOpen, setCoachOpen] = useState(false);
+  const [coachSeen, setCoachSeen] = useState(false);
 
   // Step 1 — Business Profile
   const [entityName, setEntityName] = useState("");
@@ -945,6 +952,13 @@ export default function CPPARiskAssessment() {
 
   const handlePurchase = () => {
     if (!user) { setAuthGateOpen(true); return; }
+    // ITEM 381 — advisory review step, before checkout and without altering it.
+    // Flag off ⇒ this branch is never taken and the flow is unchanged.
+    if (isIntakeCoachEnabled("cppa_risk") && !coachSeen) {
+      setCoachSeen(true);
+      setCoachOpen(true);
+      return;
+    }
     if (!pricing.stripeConfigured) {
       toast({ title: "Payments unavailable", description: "Payments are not yet configured.", variant: "destructive" });
       return;
@@ -2021,6 +2035,14 @@ export default function CPPARiskAssessment() {
           This is a compliance framework tool aligned to the CPPA audit regulations (11 CCR §§ 7150-7157); the page-level disclaimer above governs its status.
         </p>
 
+        <IntakeCoachStep
+          open={coachOpen}
+          product="cppa_risk"
+          contract={COACH_CONTRACTS.cppa_risk}
+          intake={intake}
+          onClose={() => setCoachOpen(false)}
+          onContinue={() => { setCoachOpen(false); handlePurchase(); }}
+        />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={isSuite ? "/cppa-risk-assessment?suite=true" : "/cppa-risk-assessment"} />
         <ToolCheckoutModal
           open={checkoutOpen}
