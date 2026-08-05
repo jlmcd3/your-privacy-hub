@@ -219,7 +219,12 @@ export const ACTION_ITEM_RE =
 export const PRECONDITION_RE =
   /\b(before (?:the )?(?:processing|launch|go[- ]?live|deployment|roll[- ]?out|first use|any processing)|prior to (?:the )?(?:processing|launch|go[- ]?live|deployment|start)|pre[- ]?launch|precondition|before proceeding|before this assessment can be signed)\b/i;
 
+/** Asks that demand a VALUE the intake could have carried. */
+export const VALUE_DEMAND_RE =
+  /\b(state|provide|supply|specify|record|name|identify|list|give|enter|fill in|complete the (?:field|entry)|answer)\b/i;
+
 export const BRACKET_TOKEN_RE = /\[TO (?:BE )?(?:COMPLETE|COMPLETED|ASSESSED|CONFIRMED|DETERMINED|RE-SCORED)[^\]]*\]/gi;
+
 
 export type PlaceholderClass = "record_gap" | "action_item";
 
