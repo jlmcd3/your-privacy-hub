@@ -171,7 +171,13 @@ Deno.test("item378 — refinement calls are metered (wrapper, never raw fetch)",
   assertStringIncludes(src, "run-cppa-risk-assessment:refine_verifier");
   assertStringIncludes(src, "callAnthropicWithContinuation({");
   assertStringIncludes(src, "recordApiUsage({");
-  assertStringIncludes(src, 'export const RISK_PIPELINE_STAMP = "risk-pipeline@item378-2026-08-05";');
+  // ITEM 378 (CORRECTION) — the stamp is now single-sourced in _shared so the
+  // routed LTP finalize point writes the identical value.
+  const stampSrc = await Deno.readTextFile(
+    new URL("../../../supabase/functions/_shared/ltp/risk-stamp.ts", import.meta.url),
+  );
+  assertStringIncludes(stampSrc, 'export const RISK_PIPELINE_STAMP = "risk-pipeline@item378-2026-08-05";');
+  assertStringIncludes(src, 'from "../_shared/ltp/risk-stamp.ts"');
   // The refinement module itself never calls a model directly.
   const mod = await Deno.readTextFile(
     new URL("../../../supabase/functions/_shared/ltp/risk-refinement.ts", import.meta.url),

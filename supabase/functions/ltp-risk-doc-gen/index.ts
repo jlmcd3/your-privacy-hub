@@ -22,6 +22,7 @@ import {
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
 } from "../_shared/ltp/generate-cppa-risk.ts";
+import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../_shared/ltp/risk-refinement-deps.ts";
 
 const BUILD_STAMP = "ltp-risk-doc-gen-item357-2026-08-01";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -55,6 +56,8 @@ async function generate(assessmentId: string): Promise<void> {
       mode: "observe" as const,
       pass1: "model" as const,
       callerName: "ltp-risk-doc-gen",
+      refinementDeps: makeRiskRefinementDeps(assessmentId, "ltp-risk-doc-gen"),
+      refinementEnabled: RISK_REFINEMENT_ENABLED,
     };
     const gen = await generateCppaRiskReport(row.intake_data ?? {}, options);
 

@@ -18,7 +18,8 @@ export const BUILD_STAMP = "ltp-risk-item217-hook-authz-repair-outside-guard@202
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // ITEM 378 — permanent pipeline build stamp. Bump on every pipeline change.
 // Written into every document at `_meta.internal.risk_pipeline_stamp`.
-export const RISK_PIPELINE_STAMP = "risk-pipeline@item378-2026-08-05";
+export { RISK_PIPELINE_STAMP } from "../_shared/ltp/risk-stamp.ts";
+import { RISK_PIPELINE_STAMP } from "../_shared/ltp/risk-stamp.ts";
 console.log(`[run-cppa-risk-assessment] boot ${RISK_PIPELINE_STAMP}`);
 
 // ── ITEM 378 — CPPA RISK REFINEMENT PASS (the ratified DPIA template) ───────
