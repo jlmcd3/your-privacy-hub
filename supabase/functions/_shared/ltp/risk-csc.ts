@@ -173,6 +173,14 @@ export function benefitAsk(activityName: string): string {
 export const EXCEPTION_CLAIMED_RE =
   /(claims? (?:the|an|this) [^.]{0,60}exception|exception is claimed|asserts? (?:the|an|this) [^.]{0,60}exception|relies on (?:the|an|this) [^.]{0,60}exception|has claimed [^.]{0,60}exception)/i;
 
+/**
+ * Negation guard. Honest-degradation prose ("No exception is claimed on this
+ * record.", "The business does not claim an exception.") must never be read as
+ * an assertion — otherwise a correctly degraded document gets "repaired".
+ */
+export const EXCEPTION_NOT_CLAIMED_RE =
+  /(no [^.]{0,40}exception[^.]{0,40}(?:is|are|was|were) claimed|not claimed|does not claim|do not claim|no exception is claimed|claims no [^.]{0,40}exception|none (?:is|are) claimed)/i;
+
 export function exceptionsClaimedInIntake(intake: unknown): boolean {
   const ex = (intake as Record<string, unknown> | null)?.exceptions_intake;
   if (!ex || typeof ex !== "object") return false;
@@ -400,7 +408,8 @@ export function runRiskCsc(
         const prose = `${str(row.text)} ${str(row.description)} ${str(row.recorded_basis)} ${
           str(row.rationale)
         }`;
-        const proseClaimed = EXCEPTION_CLAIMED_RE.test(prose);
+        const proseClaimed = EXCEPTION_CLAIMED_RE.test(prose) &&
+          !EXCEPTION_NOT_CLAIMED_RE.test(prose);
         if (!statusClaimed && !proseClaimed) return;
         row.status = "not_claimed";
         log({
