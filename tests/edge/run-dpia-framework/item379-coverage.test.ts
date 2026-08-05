@@ -51,13 +51,13 @@ Deno.test("coverage matrix flags both link directions on a degraded document", (
   const doc = faithfulDoc();
   // an engaged authority with no analysis surface
   (doc.engagement_map as any).entries.push({
-    rule_id: "gdpr-art-22",
-    name: "GDPR Article 22",
+    rule_id: "edpb-wp248-annex",
+    name: "EDPB WP248 necessity annex",
     status: "engaged",
-    section_ref: "$.section_9_admt",
+    section_ref: "$.section_9_necessity_annex",
   });
   // a risk with no measure
-  (doc.risk_register as any[]).push({ risk_id: "R2", risk_label: "Retention beyond the occupational purpose", measures: [] });
+  (doc.risk_register as any[]).push({ risk_id: "R2", risk_label: "Zebra telemetry drift beyond calibration", measures: [] });
   // a measure that mitigates nothing enumerated
   (doc.section_4_risk_management as any).additional_mitigating_measures.push({
     measure: "Vendor penetration testing",
