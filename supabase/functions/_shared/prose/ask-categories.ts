@@ -233,8 +233,16 @@ export const ASK_CATEGORY_INTAKE_KEYS: Readonly<Record<string, readonly string[]
   volume: ["volume_frequency"],
   timing: ["estimated_launch_date"],
   identity: ["organization_name", "controller_contact"],
-  // transparency + unspecified: deliberately unmapped — no single intake key
-  // answers them, so they are never suppressed by this filter.
+  // ITEM 380 r3 — TRANSPARENCY is now mapped. Item 380 §4 declared exactly
+  // these two keys as the backing record for "how individuals are told about
+  // the processing" (the same pair the DPIA CSC transparency surface uses), so
+  // the earlier deliberate unmapping no longer holds. `categoryAnsweredByRecord`
+  // requires EVERY mapped key to be filled, so a record supplying only one of
+  // them — or neither, as in every non-DPIA product — keeps the category
+  // exactly as before.
+  transparency: ["data_subject_rights_mechanisms", "nature_scope_context"],
+  // unspecified: deliberately unmapped — no single intake key answers it, so it
+  // is never suppressed by this filter.
 };
 
 /** True when the intake value at `key` carries something. */
