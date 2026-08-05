@@ -713,7 +713,7 @@ const STAMP = "r1b2.4-ws6v21";
 export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
-export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item377-refine11-2026-08-05";
+export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item379-2026-08-05";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 
 // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
@@ -2475,11 +2475,27 @@ async function runStitch(dpia_id: string): Promise<void> {
     try {
       setRefinementSourceRowId(dpia_id ?? null); // ITEM 377 §2 — metering attribution
       const { runDpiaRefinement } = await import("../_shared/ltp/dpia-refinement.ts");
+      // ITEM 379 §3 — the deterministic COVERAGE list is computed BEFORE the
+      // critic call and is the ONLY permitted anchor set for its
+      // material-omission findings. It is recomputed after splice (below) for
+      // the final `dpia_coverage` telemetry.
+      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      const preCoverage = runCoverageMatrix(
+        "dpia",
+        reportData as Record<string, unknown>,
+        dpiaIntake ?? {},
+      );
       const refineTel = await runDpiaRefinement(
         reportData as Record<string, unknown>,
         (dpiaIntake ?? {}) as Record<string, unknown>,
         { critic: refinementCriticCall, verifier: refinementVerifierCall },
-        { enabled: DPIA_REFINEMENT_ENABLED },
+        {
+          enabled: DPIA_REFINEMENT_ENABLED,
+          coverageList: coverageListForCritic(preCoverage),
+          coverageAnchors: coverageAnchorTokens(preCoverage),
+        },
       );
       const _rf = ((reportData as any)._meta ??= {});
       (_rf.internal ??= {}).dpia_refinement = refineTel;
@@ -2679,6 +2695,34 @@ async function runStitch(dpia_id: string): Promise<void> {
       }));
     } catch (e) {
       console.warn("[run-dpia-framework] cross-surface consistency check failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 379 — BIDIRECTIONAL COVERAGE MATRIX (flag-only) + RELEASE LEDGER.
+    // Deterministic, no model, no repairs. Runs after refinement, alongside
+    // CSC. Telemetry rides `_meta.internal.dpia_coverage`; the soft release
+    // ledger rides `_meta.internal.release_ledger` and never blocks.
+    try {
+      const { runCoverageMatrix, attachCoverage } = await import("../_shared/ltp/coverage-matrix.ts");
+      const { attachReleaseLedger } = await import("../_shared/ltp/release-ledger.ts");
+      const coverage = attachCoverage(
+        reportData as Record<string, unknown>,
+        "dpia_coverage",
+        runCoverageMatrix("dpia", reportData as Record<string, unknown>, dpiaIntake ?? {}),
+      );
+      console.log(JSON.stringify({
+        evt: "dpia_coverage", fn: "run-dpia-framework", build_stamp: BUILD_STAMP,
+        version: coverage.version, orphans: coverage.counts.orphans,
+        unused_intake_facts: coverage.counts.unused_intake_facts,
+        links_checked: coverage.counts.links_checked, crashed: coverage.crashed,
+      }));
+      const internal = (((reportData as any)._meta ?? {}).internal ?? {}) as Record<string, unknown>;
+      attachReleaseLedger(reportData as Record<string, unknown>, {
+        refinement: internal.dpia_refinement,
+        csc: internal.dpia_csc,
+        coverage,
+      }, { fn: "run-dpia-framework", product: "dpia_framework", source_row_id: dpia_id ?? null });
+    } catch (e) {
+      console.warn("[run-dpia-framework] coverage/ledger failed (non-fatal):", (e as Error)?.message);
     }
 
 
