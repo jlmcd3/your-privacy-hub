@@ -46,7 +46,7 @@ const DPIA_HALF_MAX_TOKENS = 24_000;
 import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
 // RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
 import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTerminal } from "./reliability.ts";
-import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, generationMaxTokens, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS: per-unit spend/latency metering
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
@@ -713,8 +713,60 @@ const STAMP = "r1b2.4-ws6v21";
 export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
-export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item374-2026-08-04";
+export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item376-refinement-2026-08-04";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
+
+// ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
+// One line to disable the whole critic → verifier → splicer pass.
+export const DPIA_REFINEMENT_ENABLED = true;
+
+/** CRITIC — Claude, one call, on the run's generation model. */
+async function refinementCriticCall(system: string, user: string): Promise<string> {
+  const key = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!key) throw new Error("ANTHROPIC_API_KEY not set");
+  const model = currentGenerationModel();
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: generationMaxTokens(model, 8000),
+      system,
+      messages: [{ role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(generationTimeoutMs(model, 180_000)),
+  });
+  if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const d = await r.json();
+  const blocks = Array.isArray(d?.content) ? d.content : [];
+  const textBlock = blocks.find((b: any) => b?.type === "text" && typeof b?.text === "string");
+  return textBlock?.text ?? "";
+}
+
+/** VERIFIER — GPT-4o, one call (same request shape as run-quality-batch). */
+async function refinementVerifierCall(system: string, user: string): Promise<string> {
+  const key = Deno.env.get("OPENAI_API_KEY");
+  if (!key) throw new Error("OPENAI_API_KEY not set");
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      max_tokens: 4000,
+      response_format: { type: "json_object" },
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content ?? "";
+}
+
 
 
 // FF-3 T4 — POST-CUTOFF VERIFIED AUTHORITIES (dpia-scoped generator block).
@@ -2395,6 +2447,29 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] DPIA attestation attach failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ────────────────────
+    // CRITIC (Claude, currentGenerationModel(), one call) → VERIFIER (GPT-4o,
+    // one call) → DETERMINISTIC SPLICER. Runs after stitch + deliverable
+    // attaches and BEFORE the deterministic battery below, so validators →
+    // gated frame substitution → CSC → boilerplate cap → register lint →
+    // disclaimer all run on the spliced document. One pass, no loops.
+    // Config-gated by DPIA_REFINEMENT_ENABLED; fail-open in every branch.
+    try {
+      const { runDpiaRefinement } = await import("../_shared/ltp/dpia-refinement.ts");
+      const refineTel = await runDpiaRefinement(
+        reportData as Record<string, unknown>,
+        (dpiaIntake ?? {}) as Record<string, unknown>,
+        { critic: refinementCriticCall, verifier: refinementVerifierCall },
+        { enabled: DPIA_REFINEMENT_ENABLED },
+      );
+      const _rf = ((reportData as any)._meta ??= {});
+      (_rf.internal ??= {}).dpia_refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "dpia_refinement", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
 
 
     // ── DPIA-REGISTRY-WIRING — deterministic post-pass (2026-07-25) ─────
