@@ -347,18 +347,34 @@ export function applyRiskRecordCompleteFraming(
     classification.counts.action_item,
     classification.counts.preconditions,
   );
-  const summary = (report.executive_summary ?? {}) as Record<string, unknown>;
-  if (summary && typeof summary === "object") {
-    summary.record_sufficiency_statement = text;
-    report.executive_summary = summary;
+  // ITEM 380 r2 (DEFECT C) — SHAPE-AWARE WRITE. On the live LTP path the two
+  // surfaces are NOT objects: `executive_summary` is a STRING and
+  // `record_sufficiency` is an ARRAY of paragraphs. The item-380 object-only
+  // write therefore silently no-opped and neither affirmative surface reached
+  // the persisted document. Both shapes are now handled, and the surface SHAPE
+  // is still never changed (a string stays a string, an array stays an array
+  // of paragraph strings — the renderer prints both as-is).
+  const es = report.executive_summary;
+  if (typeof es === "string") {
+    report.executive_summary = es.includes(text) ? es : `${es.trim()}\n\n${text}`.trim();
+  } else if (es && typeof es === "object" && !Array.isArray(es)) {
+    (es as Record<string, unknown>).record_sufficiency_statement = text;
+  } else if (es === undefined || es === null) {
+    report.executive_summary = { record_sufficiency_statement: text };
   }
-  // The itemised record-sufficiency surface no longer speaks in the draft
-  // register once the gate holds: the affirmative paragraph is its prose.
-  // The surface's SHAPE is never changed here (renderers and the report schema
-  // depend on it); only an object surface gains the affirmative prose.
+  // Mirrored as a top-level statement so telemetry/tests and any surface-level
+  // consumer can read the affirmative claim without reparsing prose.
+  report.record_sufficiency_statement = text;
+
   const rs = report.record_sufficiency;
-  if (rs && typeof rs === "object" && !Array.isArray(rs)) {
+  if (Array.isArray(rs)) {
+    if (!rs.some((p) => typeof p === "string" && p.includes(text))) rs.unshift(text);
+  } else if (rs && typeof rs === "object") {
     (rs as Record<string, unknown>).prose = text;
+  } else if (typeof rs === "string") {
+    report.record_sufficiency = rs.includes(text) ? rs : `${text}\n\n${rs}`.trim();
+  } else {
+    report.record_sufficiency = [text];
   }
 }
 
