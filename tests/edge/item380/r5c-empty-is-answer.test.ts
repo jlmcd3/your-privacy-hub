@@ -36,9 +36,9 @@ const FLEET: IntakeContract[] = [
 
 /** Change this list only with authorization; each entry needs a form citation. */
 const AUTHORIZED = [
-  "dpia-framework::transfer_flows",
-  "dpia-framework::eu_decision_establishment_country",
-  "cppa-risk::exceptions_intake",
+  "dpia_framework::transfer_flows",
+  "dpia_framework::eu_decision_establishment_country",
+  "cppa_risk_assessment::exceptions_intake",
 ].sort();
 
 Deno.test("r5c LINT: emptyIsAnswer appears on exactly the authorized fields fleet-wide", () => {
