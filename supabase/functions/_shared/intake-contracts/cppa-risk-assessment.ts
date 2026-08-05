@@ -346,7 +346,10 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: 'i9_has_existing_dpia === "Yes"', hiddenValue: "" },
 
     // Structured optional blocks
-    { key: "exceptions_intake", kind: "structured", required: "optional" },
+    // ITEM 380 r5c — emptyIsAnswer. CPPARiskAssessment.tsx:1655-1710 presents
+    // the exceptions block unconditionally and instructs "leave blank if none
+    // apply", so an empty block is a substantive negative answer.
+    { key: "exceptions_intake", kind: "structured", required: "optional", emptyIsAnswer: true },
     { key: "impact_intake",     kind: "structured", required: "optional" },
 
     // Impact_intake enum leaves — advisory (impact_intake itself is

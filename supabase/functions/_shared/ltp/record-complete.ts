@@ -162,6 +162,10 @@ export function emptyAskedKeys(
   for (const f of contract.fields) {
     // System/revision keys are not questions (r5b).
     if (SYSTEM_KEYS.has(f.key)) continue;
+    // ITEM 380 r5c — the contract marks this control as one the form presents
+    // unconditionally AND whose empty state IS a substantive answer, so an
+    // empty value is an answer, not an unanswered ask.
+    if (f.emptyIsAnswer === true) continue;
     // Skip-logic: a conditional whose trigger the record does not show was
     // never asked.
     if (f.required === "conditional" && !conditionalTriggered(rec, f)) continue;

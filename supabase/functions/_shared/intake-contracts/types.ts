@@ -51,6 +51,20 @@ export interface IntakeField {
   hiddenValue?: string;
   /** Mirrors ASK_ELIGIBLE_CRITICAL_FIELDS / cyber walker eligibility. */
   askEligible?: boolean;
+  /**
+   * ITEM 380 r5c — EMPTY IS A SUBSTANTIVE ANSWER.
+   *
+   * Set to `true` only when the form presents this control UNCONDITIONALLY
+   * AND defines the empty state as a substantive answer (e.g. "leave blank if
+   * none apply"). The record-complete gate then never counts the key as an
+   * unanswered ask.
+   *
+   * The doc comment on the field MUST cite the form file/line and quote the
+   * empty-state wording. The marker lives on the field — never as a floating
+   * key-name set — so a same-named key in another product's contract does not
+   * silently inherit the exclusion.
+   */
+  emptyIsAnswer?: true;
 }
 
 
