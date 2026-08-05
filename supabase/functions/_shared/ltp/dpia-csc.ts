@@ -178,7 +178,47 @@ export const CSC_SURFACES: readonly CscSurface[] = [
     keys: ["dpia_approved_by_name", "dpia_approved_by_title", "dpia_approval_date"],
     mode: "all",
   },
+  // ITEM 380 §4 — TRANSPARENCY. "How individuals are told" is backed by the
+  // rights-mechanism narrative and by the notice content the record carries in
+  // nature_scope_context. When BOTH are supplied, absence language on the
+  // rights-measures surface is a false statement about the record.
+  {
+    path: "section_2_analysis.measures_rights",
+    keys: ["data_subject_rights_mechanisms", "nature_scope_context"],
+    mode: "all",
+  },
+  // ITEM 380 §4 — ART. 35(9) VIEWS. A "partially discharged" / absence claim
+  // on the views surface when the record supplies BOTH the sought-status and
+  // the views themselves is a C2 violation, repaired from the builder below.
+  {
+    path: "section_5_interested_parties.data_subject_views",
+    keys: ["data_subjects_views_sought", "data_subjects_views"],
+    mode: "all",
+  },
 ];
+
+/**
+ * ITEM 380 §4 — single-writer builder for the Art. 35(9) views surface. It
+ * states ONLY what the record states; it never characterises the discharge.
+ */
+export function buildDpiaDataSubjectViews(intake: unknown): string {
+  const rec = (intake && typeof intake === "object" ? intake : {}) as Record<string, unknown>;
+  const sought = str(rec.data_subjects_views_sought);
+  const views = str(rec.data_subjects_views);
+  const parts: string[] = [];
+  if (sought) parts.push(`The record states, on whether the views of data subjects were sought: ${sought.replace(/\.$/, "")}.`);
+  if (views) parts.push(`The views recorded are: ${views.replace(/\.$/, "")}.`);
+  parts.push(
+    "The controller records these views under GDPR Art. 35(9); where they were not followed, the reasons are recorded with the decision in Section 6.",
+  );
+  return parts.join(" ");
+}
+
+/** ITEM 380 §4 — absence/partial-discharge language specific to the views and
+ * transparency surfaces. */
+export const PARTIAL_DISCHARGE_RE =
+  /(partially discharged|partly discharged|only partially|not (?:been )?(?:fully )?discharged|no views (?:were )?(?:sought|recorded)|views were not sought|were not consulted|the record does not (?:record|state) (?:the )?views|not (?:been )?told|individuals are not informed)/i;
+
 
 function surfaceBacked(surface: CscSurface, intake: unknown): boolean {
   return surface.mode === "all"
@@ -210,8 +250,11 @@ function setPath(root: Record<string, unknown>, path: string, value: unknown): v
 function rebuildSurface(path: string, intake: unknown): unknown {
   if (path.endsWith("assessment_team")) return buildDpiaAssessmentTeam(intake);
   if (path.endsWith("validation_approval")) return buildDpiaValidationApproval(intake);
+  // ITEM 380 §4 — the views surface has a single writer of its own.
+  if (path.endsWith("data_subject_views")) return buildDpiaDataSubjectViews(intake);
   return undefined;
 }
+
 
 // ---------------------------------------------------------------------------
 // C1 — Article 35(3) limbs
@@ -362,11 +405,17 @@ export function runDpiaCsc(
       // never silently absorbed by the other check's repair.
       const prose = typeof node === "string"
         ? node
+        // ITEM 380 §4 — an array surface (measures_rights and friends) is read
+        // whole; its rows are prose, not structured leaves.
+        : Array.isArray(node)
+        ? str(node)
         : `${str((node as Record<string, unknown>).text)} ${
           str((node as Record<string, unknown>).information_needed)
         }`;
-      const hit = carriesAbsenceLanguage(prose, needles);
+      const partial = PARTIAL_DISCHARGE_RE.exec(prose);
+      const hit = carriesAbsenceLanguage(prose, needles) ?? (partial ? partial[0] : null);
       if (!hit) continue;
+
       const rebuilt = rebuildSurface(surface.path, intake);
       if (rebuilt !== undefined) {
         setPath(report, surface.path, rebuilt);

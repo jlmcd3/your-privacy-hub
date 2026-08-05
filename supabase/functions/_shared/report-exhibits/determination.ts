@@ -14,10 +14,14 @@
 import {
   filterCategoriesAgainstRecord,
   hasPlaceholderToken,
+  intakeKeyFilled,
   rollUpAskCategories,
+  categorizeAsk,
+  GENERIC_CATEGORY,
 } from "../prose/ask-categories.ts";
+import { affirmativeParagraph } from "../ltp/record-complete.ts";
 
-export const DETERMINATION_VERSION = "det-w2-2026-08-05-item374";
+export const DETERMINATION_VERSION = "det-w2-2026-08-05-item380";
 
 export const DETERMINATION_HEADING = "Determination";
 
@@ -28,9 +32,14 @@ export interface DeterminationBlock {
   paragraphs: string[];
   /** The missing foundations, as enumerated in the second paragraph. */
   missing_foundations: string[];
+  /** ITEM 380 — the truth gate's verdict, as this block applied it. */
+  record_complete?: boolean;
+  /** ITEM 380 §3 — asks dropped because the key they name is supplied. */
+  ask_against_supplied_key?: number;
 }
 
 const MAX_FOUNDATIONS = 6;
+
 
 function firstSentences(text: string, n: number): string {
   const parts = String(text ?? "")
@@ -80,7 +89,40 @@ export interface DeterminationInput {
    */
   readonly intake?: unknown;
 
+  /**
+   * ITEM 380 — the deterministic truth gate. TRUE only when the record is
+   * complete on every condition (contract, coverage, CSC). When TRUE, the
+   * missing-foundations paragraph and the "no one can sign it" sentence are
+   * replaced by the affirmative paragraph. Omitted/false → byte-identical
+   * previous behaviour.
+   */
+  readonly recordComplete?: boolean;
+  /** ITEM 380 — action-plan counts: N items, M of them preconditions. */
+  readonly actionItems?: number;
+  readonly preconditions?: number;
 }
+
+/**
+ * ITEM 380 §3 — does this ask name an intake key the record leaves EMPTY?
+ * Snake-case key tokens are read out of the ask's own text/field; a key the
+ * record supplies is not evidence of a missing foundation.
+ */
+function askNamesEmptyIntakeKey(ask: unknown, intake: unknown): boolean {
+  if (!intake || typeof intake !== "object") return true; // unknown record → keep
+  const rec = intake as Record<string, unknown>;
+  const parts: string[] = [];
+  if (typeof ask === "string") parts.push(ask);
+  else if (ask && typeof ask === "object") {
+    for (const v of Object.values(ask as Record<string, unknown>)) {
+      if (typeof v === "string") parts.push(v);
+    }
+  }
+  const hay = parts.join(" ").toLowerCase();
+  const named = Object.keys(rec).filter((k) => k.includes("_") && hay.includes(k.toLowerCase()));
+  if (named.length === 0) return true; // names no key → cannot be dismissed
+  return named.some((k) => !intakeKeyFilled(rec, k));
+}
+
 
 export function buildDeterminationBlock(input: DeterminationInput): DeterminationBlock | null {
   const report = input?.report;
@@ -134,16 +176,37 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
   // only then capped. Capping first would have let a suppressed category
   // crowd out a genuine one.
   const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
+
+  // ITEM 380 §3 — an ask that names an intake key the record SUPPLIES is not a
+  // missing foundation. The rule bites hardest on the generic category, which
+  // has no intake mapping of its own: it may only be enumerated when at least
+  // one of its underlying asks names an actually-empty key.
+  let askAgainstSuppliedKey = 0;
+  const keptAsks = asks.filter((a: unknown) => {
+    const cat = categorizeAsk(a);
+    if (cat.id !== GENERIC_CATEGORY.id) return true;
+    if (askNamesEmptyIntakeKey(a, input?.intake)) return true;
+    askAgainstSuppliedKey += 1;
+    return false;
+  });
+
   const categories = filterCategoriesAgainstRecord(
-    rollUpAskCategories(asks, Number.MAX_SAFE_INTEGER),
+    rollUpAskCategories(keptAsks, Number.MAX_SAFE_INTEGER),
     input?.intake,
   ).slice(0, MAX_FOUNDATIONS);
   const foundations: string[] = categories
     .map((c) => decapitalize(c.label))
     .filter((label) => label && !hasPlaceholderToken(label));
 
+  // ITEM 380 §2/§3 — the truth gate. Only a deterministically complete record
+  // may carry the affirmative claim; everything else renders exactly as before.
+  const recordComplete = input?.recordComplete === true;
+  const n = Math.max(0, Number(input?.actionItems ?? 0) | 0);
+  const m = Math.max(0, Number(input?.preconditions ?? 0) | 0);
 
-  if (foundations.length) {
+  if (recordComplete) {
+    paragraphs.push(affirmativeParagraph(n, m));
+  } else if (foundations.length) {
     const count = numberWord(foundations.length);
     const noun = foundations.length === 1 ? "foundation is" : "foundations are";
     paragraphs.push(`${count.charAt(0).toUpperCase()}${count.slice(1)} ${noun} missing: ${joinList(foundations)}.`);
@@ -153,10 +216,11 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
 
   // 3 — the consequence, stated plainly.
   const decision = asText(conclusion.decision);
-  const incomplete =
+  const incomplete = !recordComplete && (
     report.has_unresolved_placeholders === true ||
     /draft|incomplete|withheld|not\s+approved|must\s+not/i.test(decision) ||
-    foundations.length > 0;
+    foundations.length > 0
+  );
 
   if (incomplete) {
     paragraphs.push(
@@ -167,6 +231,7 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
   } else if (decision && !hasPlaceholderToken(decision)) {
     paragraphs.push(`The decision recorded is: ${decision}.`);
   }
+
 
   // 4 — what the reader should do with the rest of the document.
   paragraphs.push("The sections that follow set out each point, why it matters, and what closes it.");
@@ -183,8 +248,11 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
     version: DETERMINATION_VERSION,
     heading: DETERMINATION_HEADING,
     paragraphs: cleaned,
-    missing_foundations: foundations,
+    missing_foundations: recordComplete ? [] : foundations,
+    record_complete: recordComplete,
+    ask_against_supplied_key: askAgainstSuppliedKey,
   };
+
 }
 
 function esc(v: unknown): string {

@@ -713,7 +713,7 @@ const STAMP = "r1b2.4-ws6v21";
 export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
-export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item379r2-2026-08-05";
+export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item380-2026-08-05";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 
 // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
@@ -2725,6 +2725,45 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] coverage/ledger failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 380 — THE TRUTH GATE + PLACEHOLDER CLASSIFICATION ─────────
+    // Deterministic, no model. Runs AFTER coverage and CSC (whose telemetry it
+    // reads) and BEFORE the determination, which it gates. Fail-closed on the
+    // affirmative claim: any error leaves record_complete false and today's
+    // draft framing renders unchanged.
+    let dpiaRecordComplete: { value: boolean; failed_conditions: string[] } = {
+      value: false,
+      failed_conditions: ["gate_error"],
+    };
+    let dpiaClassification: { counts: { record_gap: number; action_item: number; preconditions: number } } = {
+      counts: { record_gap: 0, action_item: 0, preconditions: 0 },
+    };
+    try {
+      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
+        "../_shared/ltp/record-complete.ts"
+      );
+      const { dpiaFrameworkContract } = await import("../_shared/intake-contracts/dpia-framework.ts");
+      const internal = (((reportData as any)._meta ?? {}).internal ?? {}) as Record<string, unknown>;
+      const telemetry = computeRecordComplete({
+        product: "dpia",
+        contract: dpiaFrameworkContract,
+        intake: dpiaIntake ?? {},
+        coverage: internal.dpia_coverage as never,
+        csc: internal.dpia_csc as never,
+      });
+      const classification = classifyPlaceholders(reportData as Record<string, unknown>, dpiaIntake ?? {});
+      attachRecordComplete(reportData as Record<string, unknown>, telemetry, classification);
+      dpiaRecordComplete = { value: telemetry.value, failed_conditions: telemetry.failed_conditions };
+      dpiaClassification = classification;
+      console.log(JSON.stringify({
+        evt: "dpia_record_complete", fn: "run-dpia-framework", build_stamp: BUILD_STAMP,
+        value: telemetry.value, failed_conditions: telemetry.failed_conditions,
+        ...classification.counts,
+      }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] record-complete gate failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
 
     // ── DPIA UPGRADE ITEM 4 — AUTHORITY EXHIBIT ────────────────────────
@@ -2788,7 +2827,13 @@ async function runStitch(dpia_id: string): Promise<void> {
         // ITEM 374 FIX 2 — the record itself, so a category the intake answers
         // is never enumerated as a missing foundation.
         intake: dpiaIntake ?? {},
+        // ITEM 380 — the affirmative claim renders ONLY when the truth gate says
+        // the record is complete; N/M come from the classified placeholders.
+        recordComplete: dpiaRecordComplete.value,
+        actionItems: dpiaClassification.counts.action_item,
+        preconditions: dpiaClassification.counts.preconditions,
       });
+
 
       if (determination) {
         (reportData as any).determination = determination;
