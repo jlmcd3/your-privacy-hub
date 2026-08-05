@@ -300,6 +300,10 @@ function rebuildSurface(path: string, intake: unknown): unknown {
   if (path.endsWith("validation_approval")) return buildDpiaValidationApproval(intake);
   // ITEM 380 §4 — the views surface has a single writer of its own.
   if (path.endsWith("data_subject_views")) return buildDpiaDataSubjectViews(intake);
+  // ITEM 380 r3 — the transparency / rights-measures surface. An empty return
+  // means the record does not back it; the caller then leaves the violation
+  // unrepaired (honest degradation — the record-complete gate stays shut).
+  if (path.endsWith("measures_rights")) return buildDpiaMeasuresRights(intake) || undefined;
   return undefined;
 }
 
