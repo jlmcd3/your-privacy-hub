@@ -144,7 +144,12 @@ export const dpiaFrameworkContract: IntakeContract = {
 
     // Jurisdiction resolver inputs
     { key: "controller_country", kind: "text", required: "optional" },
-    { key: "controller_land", kind: "text", required: "optional" },
+    // ITEM 380 r5b — real skip logic: DPIAFramework.tsx L911 renders this
+    // select only when `controllerCountry === "DE"`.
+    { key: "controller_land", kind: "text", required: "conditional",
+      requiredWhen: "controller_country === \"DE\"",
+      trigger: { key: "controller_country", equals: ["DE"] } },
+
     { key: "controller_sector", kind: "text", required: "optional" },
     { key: "central_administration_country", kind: "text", required: "optional" },
     { key: "eu_decision_establishment_country", kind: "text", required: "optional" },
