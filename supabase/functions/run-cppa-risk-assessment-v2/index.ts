@@ -35,6 +35,8 @@ import {
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
 } from "../_shared/ltp/generate-cppa-risk.ts";
+// ITEM 378 (CORRECTION) — refinement deps for the ROUTED LTP finalize point.
+import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../_shared/ltp/risk-refinement-deps.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 const FN = "run-cppa-risk-assessment-v2";
@@ -70,6 +72,10 @@ async function runPipeline(assessmentId: string): Promise<void> {
     mode: "enforce" as const,
     pass1: "model" as const,
     callerName: FN,
+    // ITEM 378 (CORRECTION) — critic/verifier injected so the refinement pass
+    // runs on this (routed) path; CSC + stamp land in finalizeCppaRiskPayload.
+    refinementDeps: makeRiskRefinementDeps(assessmentId, FN),
+    refinementEnabled: RISK_REFINEMENT_ENABLED,
   };
 
   // ── ONE CALL. The module returns the exact payload to persist. ──────
