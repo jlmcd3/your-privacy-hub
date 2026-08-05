@@ -48,6 +48,10 @@ import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
+// ITEM 381 — intake completeness coach (Layer 1), per-product flag, default off.
+import IntakeCoachStep from "@/components/intake/IntakeCoachStep";
+import { isIntakeCoachEnabled } from "@/config/intakeCoach";
+import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 
 
 // RC-FLIP-3 — intake option sets extracted to DPIAFramework.enums.ts so shared
@@ -113,6 +117,9 @@ const DPIAFramework = () => {
   const [prefilled, setPrefilled] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // ITEM 381 — the review step is advisory and shown at most once per run.
+  const [coachOpen, setCoachOpen] = useState(false);
+  const [coachSeen, setCoachSeen] = useState(false);
 
   // EDPB template — Section 0 (Overview of the processing). All optional in this tranche.
   const [controllerContact, setControllerContact] = useState("");        // 0.1 main establishment / point of contact
@@ -483,6 +490,14 @@ const DPIAFramework = () => {
     if (err) { toast({ title: "Complete the highlighted fields to continue", description: err, variant: "destructive" }); return; }
     if (!user) { setAuthGateOpen(true); return; }
 
+    // ITEM 381 — advisory review step, before checkout and without altering it.
+    // Flag off ⇒ this branch is never taken and the flow is unchanged.
+    if (isIntakeCoachEnabled("dpia") && !coachSeen) {
+      setCoachSeen(true);
+      setCoachOpen(true);
+      return;
+    }
+
     // For $0 (included with Platform), bypass Stripe entirely
     if (pricing.price === 0) {
       setPurchasing(true);
@@ -737,7 +752,7 @@ const DPIAFramework = () => {
             <Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="250 staff, every 5 minutes" className="mt-2" />
             <p className="text-meta text-muted-foreground mt-1">One answer with two parts: the scale and the cadence. A complete answer carries both as numbers — "around 250 staff, one location ping every five minutes during shifts, roughly 24,000 records a day". Scale and cadence are what decide whether the processing counts as large-scale or as systematic monitoring, and adjectives cannot be measured against those thresholds (Art. 35(3)).</p>
           </div>
-          <div data-rail-key="retention_period" onFocus={() => handleLocalRailFocus("retention_period")}>
+          <div data-coach-field="retention_period" data-rail-key="retention_period" onFocus={() => handleLocalRailFocus("retention_period")}>
             <Label>How long do you keep the data, and why that long?<Req /></Label>
             <Input value={retentionPeriod} onChange={(e) => setRetentionPeriod(e.target.value)} placeholder="24 months, then deleted" className="mt-2" />
             <p className="text-meta text-muted-foreground mt-1">The period, the reason for it, and what happens when it ends. A strong answer ties the number to something — "24 months, matching our audit cycle, then automatic deletion; aggregated figures with no identifiers are kept indefinitely". Your assessment tests whether the period is longer than the purpose needs, which it can only do when a reason is on the record (Art. 5(1)(e)).</p>
@@ -793,12 +808,12 @@ const DPIAFramework = () => {
                 <Textarea value={natureScopeContext} onChange={(e) => setNatureScopeContext(e.target.value)} className="mt-2 min-h-16" />
                 <p className="text-meta text-muted-foreground mt-1">Your relationship with the people involved and what they would reasonably expect — how far the processing extends in place and time, and whether it is routine in your sector. A strong answer might read "staff are told at hire and monthly thereafter; comparable monitoring is standard in logistics; the app runs only during shifts". Skipped, your assessment records the context as open.</p>
               </div>
-              <div data-rail-key='1.2' onFocus={() => handleTemplateRailFocus('1.2')}>
+              <div data-coach-field="functional_description" data-rail-key='1.2' onFocus={() => handleTemplateRailFocus('1.2')}>
                 <Label>How does the processing work from end to end?</Label>
                 <Textarea value={functionalDescription} onChange={(e) => setFunctionalDescription(e.target.value)} className="mt-2 min-h-16" />
                 <p className="text-meta text-muted-foreground mt-1">The life of the data in sequence: collection, use, storage, sharing, deletion. A strong answer follows one record all the way through, naming the system at each hop. Skipped, your assessment records the data flow as open.</p>
               </div>
-              <div data-rail-key='1.3' onFocus={() => handleTemplateRailFocus('1.3')}>
+              <div data-coach-field="supporting_assets" data-rail-key='1.3' onFocus={() => handleTemplateRailFocus('1.3')}>
                 <Label>Which systems and infrastructure support it?</Label>
                 <AssistedInput
                   className="mt-2"
@@ -841,7 +856,7 @@ const DPIAFramework = () => {
               <p className="text-meta text-muted-foreground mt-1">Employment-law and explicit-consent conditions are the common ones in a workplace setting. Your assessment records this condition alongside the lawful basis (Art. 9(2)).</p>
             </div>
           )}
-          <div>
+          <div data-coach-field="necessity_proportionality">
             <Label>Why is this processing necessary, and what else did you consider?<Req /></Label>
             <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} className="mt-2 min-h-24" />
             <p className="text-meta text-muted-foreground mt-1">Why the purpose cannot reasonably be met with less data or a lighter method, and what less intrusive options you looked at. A strong answer takes each option in turn: "manual shift sign-in was tested for six months and left 18% of shifts unverified, so it does not achieve the purpose". Your assessment compares the options you record here; a single general statement leaves it nothing to compare (Art. 35(7)(b)).</p>
@@ -1012,12 +1027,12 @@ const DPIAFramework = () => {
               <span className="block text-meta font-normal text-muted-foreground mt-1">Answering the next two lets your assessment record the officer's advice and the views of the people affected. Skipped, both are recorded as open, and the law treats the second as a step that needs explaining.</span>
             </summary>
             <div className="px-4 pb-4 pt-3 border-t space-y-4">
-              <div data-rail-key='5.1' onFocus={() => handleTemplateRailFocus('5.1')}>
+              <div data-coach-field="dpo_advice" data-rail-key='5.1' onFocus={() => handleTemplateRailFocus('5.1')}>
                 <Label>What has your data protection officer advised?</Label>
                 <Textarea value={dpoAdvice} onChange={(e) => setDpoAdvice(e.target.value)} className="mt-2 min-h-16" />
                 <p className="text-meta text-muted-foreground mt-1">The advice given on this assessment, and what you did with it. A strong answer records both sides — "the officer advised limiting tracking to rostered hours; this was adopted before launch". Where you departed from the advice, your reason belongs here too. Skipped, your assessment records the officer's advice as open (Art. 35(2)).</p>
               </div>
-              <div data-rail-key="data_subjects_views" onFocus={() => handleLocalRailFocus("data_subjects_views")}>
+              <div data-coach-field="data_subjects_views" data-rail-key="data_subjects_views" onFocus={() => handleLocalRailFocus("data_subjects_views")}>
                 <Label>Have you asked the people affected what they think?</Label>
                 <select value={dataSubjectsViewsSought} onChange={(e) => setDataSubjectsViewsSought(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Not answered</option>
@@ -1065,7 +1080,7 @@ const DPIAFramework = () => {
             <Input type="date" value={dpiaApprovalDate} onChange={(e) => setDpiaApprovalDate(e.target.value)} className="mt-2" />
             <p className="text-meta text-muted-foreground mt-1">The date approval was given, which is a separate event from the day the document was finished. Left empty, your assessment lists the approval date as outstanding.</p>
           </div>
-          <div data-rail-key="dpia_signoff_basis" onFocus={() => handleLocalRailFocus("dpia_signoff_basis")}>
+          <div data-coach-field="dpia_signoff_basis" data-rail-key="dpia_signoff_basis" onFocus={() => handleLocalRailFocus("dpia_signoff_basis")}>
             <Label>What does the approval rest on?</Label>
             <Textarea value={dpiaSignoffBasis} onChange={(e) => setDpiaSignoffBasis(e.target.value)} className="mt-2 min-h-16" />
             <p className="text-meta text-muted-foreground mt-1">The reasoning behind the signature: which sections were reviewed, which remaining risks were accepted, and any condition attached. A strong answer is specific — "sections 3 and 4 reviewed on 12 April 2026; two moderate residual risks accepted; conditional on the 30-day deletion job being verified in production before launch". "Approved subject to compliance" records no decision. Left empty, your assessment lists the basis for sign-off as outstanding.</p>
@@ -1090,6 +1105,14 @@ const DPIAFramework = () => {
         </BenchLayout>
 
 
+        <IntakeCoachStep
+          open={coachOpen}
+          product="dpia"
+          contract={COACH_CONTRACTS.dpia}
+          intake={buildIntake()}
+          onClose={() => setCoachOpen(false)}
+          onContinue={() => { setCoachOpen(false); void handlePurchase(); }}
+        />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
         <ToolCheckoutModal
           open={checkoutOpen}

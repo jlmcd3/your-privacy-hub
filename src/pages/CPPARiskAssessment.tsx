@@ -24,6 +24,10 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+// ITEM 381 — intake completeness coach (Layer 1), per-product flag, default off.
+import IntakeCoachStep from "@/components/intake/IntakeCoachStep";
+import { isIntakeCoachEnabled } from "@/config/intakeCoach";
+import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
@@ -346,6 +350,9 @@ export default function CPPARiskAssessment() {
   }, [step]);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // ITEM 381 — the review step is advisory and shown at most once per run.
+  const [coachOpen, setCoachOpen] = useState(false);
+  const [coachSeen, setCoachSeen] = useState(false);
 
   // Step 1 — Business Profile
   const [entityName, setEntityName] = useState("");
@@ -945,6 +952,13 @@ export default function CPPARiskAssessment() {
 
   const handlePurchase = () => {
     if (!user) { setAuthGateOpen(true); return; }
+    // ITEM 381 — advisory review step, before checkout and without altering it.
+    // Flag off ⇒ this branch is never taken and the flow is unchanged.
+    if (isIntakeCoachEnabled("cppa_risk") && !coachSeen) {
+      setCoachSeen(true);
+      setCoachOpen(true);
+      return;
+    }
     if (!pricing.stripeConfigured) {
       toast({ title: "Payments unavailable", description: "Payments are not yet configured.", variant: "destructive" });
       return;
@@ -1399,7 +1413,7 @@ export default function CPPARiskAssessment() {
                 <div className="mt-2"><Radio name="q21" options={["Yes — training ADMT for significant decisions", "Yes — training facial/emotion/biometric recognition", "No"]} value={q18bTraining} onChange={setQ18bTraining} /></div>
               </div>
               {admtTriggered && (
-                <div data-rail-key="i5_admt" onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
+                <div data-coach-field="i5_admt_logic" data-rail-key="i5_admt" onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
                   <Label className="font-semibold">Automated decisionmaking specifics <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1582,7 +1596,7 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7152(a)(2)–(3)(B); Cal. Civ. Code §§ 1798.140(e), 1798.145 — minimisation analysis, retention, and enumerated business purposes</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers drive the minimisation analysis in the report — each element tested against the stated purpose — together with the retention plan and any enumerated business purpose the activity leans on.</p>
-              <div data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
+              <div data-coach-field="i1b_min_pi" data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What is the minimum personal information necessary to achieve this purpose? <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='Elements needed, and elements not needed' />
@@ -1654,7 +1668,7 @@ export default function CPPARiskAssessment() {
                 </div>
               <OptionalCluster title="Business purposes and statutory exemptions" valueLine="Left unclaimed, the report records no enumerated business purpose for this activity; nothing is inferred on your behalf.">
               {/* === CCPA business purposes / statutory exemptions (optional) — moved to follow retention === */}
-              <div className="border-t pt-6 mt-6">
+              <div data-coach-field="exceptions_intake" className="border-t pt-6 mt-6">
                 <Label className="text-base font-semibold">CCPA business purposes &amp; statutory exemptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">
                   These are the enumerated "business purposes" in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and exemptions in <span className="font-mono">§ 1798.145</span>. They permit specific internal uses or carve out specific obligations — they do <span className="font-medium">not</span> remove a § 7150 trigger from risk-assessment scope. Identify any you rely on so the report can address them; leave blank if none apply.
@@ -1732,7 +1746,7 @@ export default function CPPARiskAssessment() {
                     <Textarea className="mt-2" rows={3} value={impactData.harmCauses} onChange={(e) => setImpactData((d) => ({ ...d, harmCauses: e.target.value }))} placeholder='Source and cause of each impact' />
                   </div>
                 {/* A-5 — harm pathways against the statutory catalogue */}
-                <div data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
+                <div data-coach-field="a5_harm_pathways" data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Negative impacts, with their sources and causes <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(5)(A)–(H))</span></Label><StatutePopover term="Negative impacts" summary="Identify the negative impacts to consumers' privacy associated with the processing, and the sources and causes of those impacts." cite="11 CCR § 7152(a)(5)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">One row per impact. The source is where the impact comes from; the cause is what about this processing produces it.</p>
                   <div className="mt-2 space-y-3">
@@ -1784,7 +1798,7 @@ export default function CPPARiskAssessment() {
                     <Textarea className="mt-2" rows={3} value={impactData.safeguards} onChange={(e) => setImpactData((d) => ({ ...d, safeguards: e.target.value }))} placeholder='One safeguard per line' />
                   </div>
                 {/* A-6 — safeguards mapped to an identified impact */}
-                <div data-rail-key="impact_safeguards" onFocus={() => focusRail('impact_safeguards')}>
+                <div data-coach-field="a6_safeguards" data-rail-key="impact_safeguards" onFocus={() => focusRail('impact_safeguards')}>
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Safeguards, mapped to the impact each one addresses <span className="text-xs text-muted-foreground">(§ 7152(a)(6))</span></Label><StatutePopover term="Safeguards" summary="Identify the safeguards the business plans to implement for the processing, including safeguards addressing the negative impacts identified under subsection (a)(5)." cite="11 CCR § 7152(a)(6)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">Each safeguard must name the impact it addresses. An impact with no safeguard is reported as unaddressed.</p>
                   <div className="mt-2 space-y-3">
@@ -1838,7 +1852,7 @@ export default function CPPARiskAssessment() {
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers produce the weighing section. A benefit stated without a supporting fact from the record is carried as unevidenced, and the weighing reserves rather than concluding.</p>
                 {/* A-4 — benefits, four beneficiary classes */}
-                <div>
+                <div data-coach-field="a4_benefits">
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Benefits of this processing, stated specifically for each group <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">Each group gets its own statement and its own supporting fact from the record. A benefit with no supporting fact is carried as unevidenced in the weighing.</p>
                   <div className="mt-3 space-y-4">
@@ -2021,6 +2035,14 @@ export default function CPPARiskAssessment() {
           This is a compliance framework tool aligned to the CPPA audit regulations (11 CCR §§ 7150-7157); the page-level disclaimer above governs its status.
         </p>
 
+        <IntakeCoachStep
+          open={coachOpen}
+          product="cppa_risk"
+          contract={COACH_CONTRACTS.cppa_risk}
+          intake={intake}
+          onClose={() => setCoachOpen(false)}
+          onContinue={() => { setCoachOpen(false); handlePurchase(); }}
+        />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={isSuite ? "/cppa-risk-assessment?suite=true" : "/cppa-risk-assessment"} />
         <ToolCheckoutModal
           open={checkoutOpen}
