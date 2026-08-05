@@ -172,7 +172,7 @@ function a4Spot(key: string, title: string, rank: number): ThinSpot {
   return {
     key,
     title,
-    jumpSelector: `[data-coach-field="${key}"]`,
+    jumpSelector: `[data-coach-field="a4_benefits"]`, // the four benefit groups share one block
     rank,
     minLength: 40,
     marker: A4_BENEFIT_MARKER,

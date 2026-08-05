@@ -24,7 +24,7 @@ export const COACH_MAX_CARDS = 6;
 export const COACH_COPY = {
   heading: "Strengthen your answers",
   intro:
-    "A short review of what your assessment will say with the answers you have given. Nothing here is required — you can continue now.",
+    "A short review of what your assessment will say with the answers you have given. Nothing here blocks you — you can continue now.",
   statAnswered: "questions answered",
   statStrengthen: "answers to strengthen",
   statStrong: "already strong",
