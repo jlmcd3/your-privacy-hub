@@ -374,10 +374,27 @@ function emptyTelemetry(enabled: boolean, crashed: string | null = null): Refine
     verifier_rejected: 0,
     spliced: 0,
     quote_drift: 0,
+    protected_rejected: { count: 0, items: [] },
+    cap_overflow: 0,
     capped: false,
     crashed,
     spliced_paths: [],
+    findings_log: [],
   };
+}
+
+/**
+ * v1.1 (item377 §1) — FULL PROPOSAL ACCOUNTING. Every critic proposal must end
+ * in exactly one bucket: spliced | verifier_rejected | protected_rejected |
+ * quote_drift | cap_overflow. Any residue (e.g. a splicer crash mid-list) is
+ * attributed to quote_drift so the invariant always holds.
+ */
+function balanceBuckets(tel: RefinementTelemetry): RefinementTelemetry {
+  const accounted = tel.spliced + tel.verifier_rejected +
+    tel.protected_rejected.count + tel.quote_drift + tel.cap_overflow;
+  const residue = tel.critic_findings - accounted;
+  if (residue > 0) tel.quote_drift += residue;
+  return tel;
 }
 
 export async function runDpiaRefinement(
@@ -392,20 +409,30 @@ export async function runDpiaRefinement(
   // 1. CRITIC — any failure skips refinement entirely.
   let findings: CriticFinding[] = [];
   let structural: StructuralFinding[] = [];
+  let allFindings: CriticFinding[] = [];
   try {
     const raw = await deps.critic(CRITIC_SYSTEM_PROMPT, buildCriticUser(report, intake));
     const parsed = asFindings(parseJsonLoose(raw));
     if (!parsed) return emptyTelemetry(true, "critic_unparseable");
-    findings = parsed.findings.slice(0, MAX_SPLICES);
+    allFindings = parsed.findings;
+    findings = allFindings.slice(0, MAX_SPLICES);
     structural = parsed.structural;
   } catch (e) {
     return emptyTelemetry(true, `critic_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`);
   }
 
   const tel = emptyTelemetry(true);
-  tel.critic_findings = findings.length;
+  tel.critic_findings = allFindings.length;
   tel.structural_findings = structural.length;
-  if (findings.length === 0) return tel;
+  tel.cap_overflow = allFindings.length - findings.length;
+  if (tel.cap_overflow > 0) tel.capped = true;
+  tel.findings_log = allFindings.map((f) => ({
+    path: f.path,
+    class: f.class,
+    confidence: f.confidence,
+    quote: (f.quote ?? "").slice(0, FINDINGS_LOG_QUOTE_MAX),
+  }));
+  if (findings.length === 0) return balanceBuckets(tel);
 
   // 2. VERIFIER — any failure means ZERO splices.
   let verdicts: Verdict[] = [];
@@ -418,13 +445,13 @@ export async function runDpiaRefinement(
     if (!parsed) {
       tel.crashed = "verifier_unparseable";
       tel.verifier_rejected = findings.length;
-      return tel;
+      return balanceBuckets(tel);
     }
     verdicts = parsed;
   } catch (e) {
     tel.crashed = `verifier_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`;
     tel.verifier_rejected = findings.length;
-    return tel;
+    return balanceBuckets(tel);
   }
 
   const approvedPaths = new Set(
@@ -433,17 +460,19 @@ export async function runDpiaRefinement(
   const approved = findings.filter((f) => approvedPaths.has(f.path));
   tel.verifier_approved = approved.length;
   tel.verifier_rejected = findings.length - approved.length;
-  if (approved.length === 0) return tel;
+  if (approved.length === 0) return balanceBuckets(tel);
 
   // 3. DETERMINISTIC SPLICER.
   try {
     const s = applySplices(report, approved);
     tel.spliced = s.spliced;
     tel.quote_drift = s.quote_drift;
-    tel.capped = s.capped;
+    tel.capped = tel.capped || s.capped;
+    tel.cap_overflow += s.cap_overflow;
     tel.spliced_paths = s.spliced_paths;
+    tel.protected_rejected = { count: s.protected_rejected.length, items: s.protected_rejected };
   } catch (e) {
     tel.crashed = `splicer_error:${(e as Error)?.message?.slice(0, 120) ?? "unknown"}`;
   }
-  return tel;
+  return balanceBuckets(tel);
 }
