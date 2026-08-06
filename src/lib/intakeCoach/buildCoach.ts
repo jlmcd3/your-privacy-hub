@@ -184,6 +184,32 @@ export function buildCoach(
       continue;
     }
 
+    // ITEM 381 r2 — consolidated block (a spot that declares sub-fields): the
+    // primary box is answered but one of the other boxes in the same block is
+    // an asked question left empty. The gate counts that box, so the card is
+    // the unanswered card, naming the boxes concerned.
+    if (spot.subFields?.length) {
+      const emptyBoxes = spot.subFields.filter(
+        (f) => empty.has(f.key) && fieldWasAsked(contract, f.key, intake),
+      );
+      if (emptyBoxes.length) {
+        unanswered.push({
+          key: spot.key,
+          title: spot.title,
+          reason: "unanswered",
+          excerpt: "",
+          consequence: UNANSWERED_CONSEQUENCE,
+          consequenceSource:
+            "supabase/functions/_shared/ltp/record-complete.ts (emptyAskedKeys, affirmativeParagraph, decideBanner)",
+          advice: spot.advice,
+          jumpSelector: spot.jumpSelector,
+          details: emptyBoxes.map((f) => f.label),
+        });
+        continue;
+      }
+    }
+
+
     if (isThin(text, spot) || (isEmpty && spot.adviceOnlyWhenEmpty)) {
       thin.push({
         key: spot.key,
