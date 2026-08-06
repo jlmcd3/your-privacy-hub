@@ -400,13 +400,13 @@ export const LIA_M_HUMAN_MAP: Record<string, string> = {
 // State tokens rewritten to plain conclusions (shared token family with
 // dpia/risk). Applied by applyDeterministicPostGenFallbackLia below.
 const LIA_STATE_TOKEN_REWRITES: Array<[RegExp, string]> = [
-  [/\bRESOLVED_MET\b/g, "resolved on the record"],
-  [/\bRESOLVED_NOT_MET\b/g, "resolved on the record (not met)"],
-  [/\bRESOLVED_NOT_APPLICABLE\b/g, "not applicable on the record"],
-  [/\bresolved_met\b/g, "resolved on the record"],
-  [/\bresolved_not_met\b/g, "resolved on the record (not met)"],
-  [/\bresolved_not_applicable\b/g, "not applicable on the record"],
-  [/\bINDETERMINATE\b/gi, "not yet resolved on the record"],
+  [/\bRESOLVED_MET\b/g, "resolved"],
+  [/\bRESOLVED_NOT_MET\b/g, "resolved (not met)"],
+  [/\bRESOLVED_NOT_APPLICABLE\b/g, "not applicable"],
+  [/\bresolved_met\b/g, "resolved"],
+  [/\bresolved_not_met\b/g, "resolved (not met)"],
+  [/\bresolved_not_applicable\b/g, "not applicable"],
+  [/\bINDETERMINATE\b/gi, "not yet resolved"],
   [/\bCANDIDATE\b/g, "candidate"],
   [/\bTEST-STATES\b/g, "the deterministic-state block"],
 ];
@@ -1465,7 +1465,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     // Always attach a plain-language note explaining the argument-strength rating
     // so end users (especially non-specialists) understand what "uncertain" means.
     const STRENGTH_NOTES: Record<string, string> = {
-      strong: "Strong: on the record as it stands the facts present a strong argument for legitimate interest — the balancing record still requires the recommended documentation.",
+      strong: "Strong: as the record stands the facts present a strong argument for legitimate interest — the balancing record still requires the recommended documentation.",
       moderate: "Moderate: the record supports a colorable legitimate-interest argument on named recorded facts; the items in Information Needed would strengthen it before deployment.",
       weak: "Weak: the record establishes some elements of the three-part test; the items in Information Needed would need to be recorded before a defensible legitimate-interest argument can be made.",
       insufficient: "The record as it stands does not yet establish a defensible legitimate-interest claim; the items listed under Information Needed would complete the record.",
