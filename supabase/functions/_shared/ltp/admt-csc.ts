@@ -267,6 +267,8 @@ interface AdmtElement {
   /** Every intake path the element runs on. */
   readonly keys: readonly string[];
   readonly why: string;
+  /** ITEM 396 — the element's single writer, used by the a1 repair. */
+  readonly rebuild: (intake: unknown) => string;
 }
 
 export const ADMT_ADEQUACY_ELEMENTS: readonly AdmtElement[] = [
@@ -274,13 +276,16 @@ export const ADMT_ADEQUACY_ELEMENTS: readonly AdmtElement[] = [
     id: "logic_disclosure",
     keys: ["access_logic_disclosure"],
     why: "the record states the explanation the business can give of how the technology produced its output",
+    rebuild: buildLogicDisclosureRecord,
   },
   {
     id: "human_intervention",
     keys: ["human_review", "opt_out_appeal_process"],
     why: "the record answers the human-review question and describes the appeal process",
+    rebuild: buildHumanInvolvementRecord,
   },
 ];
+
 
 // ---------------------------------------------------------------------------
 // A3 / A4 — field hygiene
