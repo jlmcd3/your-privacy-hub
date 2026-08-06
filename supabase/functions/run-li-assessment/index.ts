@@ -1845,6 +1845,62 @@ Return JSON:
       console.warn("[run-li-assessment] authority exhibit failed (non-fatal):", (axErr as Error)?.message);
     }
 
+    // ── ITEM 386 LEG 3 — LIA REFINEMENT PASS ───────────────────────────
+    // CRITIC (Claude, the run's resolved generation model, one call) →
+    // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. Mirrors the DPIA
+    // battery order exactly: refinement runs AFTER generation and the
+    // deliverable attaches and BEFORE the deterministic battery — frame
+    // substitution → boilerplate cap → CSC → coverage → stamp → record-complete
+    // gate — so every downstream deterministic pass sees the spliced document.
+    // One pass, no loops. Config-gated by LIA_REFINEMENT_ENABLED; fail-open.
+    try {
+      const { runLiaRefinement } = await import("../_shared/ltp/lia-refinement.ts");
+      const { makeLiaRefinementDeps, LIA_REFINEMENT_ENABLED } = await import(
+        "../_shared/ltp/lia-refinement-deps.ts"
+      );
+      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      // ITEM 385 r2 divergence class — the FULL persisted row, as CSC and the
+      // coverage pass below both use.
+      const refineIntake = (assessment as unknown as Record<string, unknown>) ?? {};
+      // The deterministic COVERAGE list is computed BEFORE the critic call and
+      // is the ONLY permitted anchor set for its material-omission findings.
+      const preCoverage = runCoverageMatrix(
+        "lia",
+        reportData as Record<string, unknown>,
+        (assessment as unknown as Record<string, unknown>) ?? {},
+      );
+
+      // RESURRECTION-BUG CLASS — the generation model is resolved HERE, inside
+      // the request context, and carried explicitly into the deps.
+      const refineModel = currentGenerationModel();
+      const refineTel = await runLiaRefinement(
+        reportData as Record<string, unknown>,
+        refineIntake,
+        makeLiaRefinementDeps(assessment_id ?? null, refineModel),
+        {
+          enabled: LIA_REFINEMENT_ENABLED,
+          coverageList: coverageListForCritic(preCoverage),
+          coverageAnchors: coverageAnchorTokens(preCoverage),
+        },
+      );
+      const _rf = ((reportData as any)._meta ??= {});
+      const _rfi = (_rf.internal ??= {});
+      _rfi.lia_refinement = refineTel;
+      // The CEO-named generic telemetry address, alongside the product key the
+      // other two configs use.
+      _rfi._refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "lia_refinement", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+        generation_model: refineModel, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[run-li-assessment] refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
     // Runs after the emit gate and BEFORE the cap, so the LIA register's
     // approved gap atoms land on degraded leaves and the cap is a backstop.
