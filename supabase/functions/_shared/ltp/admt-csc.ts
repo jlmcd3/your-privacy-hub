@@ -339,7 +339,7 @@ export const AUTHORITY_FIELD_KEYS: readonly string[] = [
 export function looksLikeAbsenceProse(text: string, needles: readonly string[]): string | null {
   const t = String(text ?? "").replace(/\s+/g, " ");
   if (!t.trim()) return null;
-  const hit = carriesAbsenceLanguage(t, needles);
+  const hit = admtCarriesAbsence(t, needles);
   if (hit) return hit;
   if (PARTIAL_DISCHARGE_RE.test(t)) return PARTIAL_DISCHARGE_RE.exec(t)![0];
   const m = /(the record is silent|carried forward|we could not verify this item|listed under information needed)/i
