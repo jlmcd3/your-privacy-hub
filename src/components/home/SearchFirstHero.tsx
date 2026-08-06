@@ -10,16 +10,16 @@ const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackg
 // placement, size, and interaction as before. Do not remove or shrink.
 
 const CPPA_SUITE_PRICE = PRICING.tools.cppa_suite.display; // "$449"
-const CPPA_RISK_PRICE = PRICING.tools.cppa_risk.display;   // "$229"
+const CPPA_RISK_PRICE = PRICING.tools.cppa_risk.display;   // "$239"
 const CPPA_CYBER_PRICE = PRICING.tools.cppa_cyber.display; // "$299"
-const CPPA_ADMT_PRICE = PRICING.tools.cppa_admt.display;   // "$99"
-const LIA_PRICE = PRICING.tools.lia.display;               // "$99"
+const CPPA_ADMT_PRICE = PRICING.tools.cppa_admt.display;   // "$109"
+const LIA_PRICE = PRICING.tools.lia.display;               // "$109"
 
 // Subscriber prices sourced from PRICING_REGISTRY — never hardcode.
-const LIA_SUB = PRICING_REGISTRY.li_subscriber_v2.displayPrice;             // "$49"
-const DPIA_SUB = PRICING_REGISTRY.dpia_subscriber_v2.displayPrice;          // "$49"
-const GOV_SUB = PRICING_REGISTRY.hc_subscriber_v2.displayPrice;             // "$49"
-const CPPA_ADMT_SUB = PRICING_REGISTRY.cppa_admt_subscriber.displayPrice;   // "$49"
+const LIA_SUB = PRICING_REGISTRY.li_subscriber_v2.displayPrice;             // "$59"
+const DPIA_SUB = PRICING_REGISTRY.dpia_subscriber_v2.displayPrice;          // "$59"
+const GOV_SUB = PRICING_REGISTRY.hc_subscriber_v2.displayPrice;             // "$59"
+const CPPA_ADMT_SUB = PRICING_REGISTRY.cppa_admt_subscriber.displayPrice;   // "$59"
 const CPPA_CYBER_SUB = PRICING_REGISTRY.cppa_cyber_subscriber.displayPrice; // "$169"
 const CPPA_SUITE_SUB = PRICING_REGISTRY.cppa_suite_subscriber.displayPrice; // "$249"
 
