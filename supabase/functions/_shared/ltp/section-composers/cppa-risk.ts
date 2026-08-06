@@ -1087,7 +1087,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         // before it is joined, so "…the risk it addresses complete and retain
         // the assessment record by …" cannot recur.
         compliance_guidance_sentence: sentenceTerminate(s.compliance_guidance_sentence),
-        deadline_sentence: sentenceTerminate(sel.row.deadline_sentence),
+        deadline_sentence: sentenceTerminate(sel.row.deadline_sentence, true),
         owner_sentence: ownerSentence(reservedTo),
         __cite: { PINPOINT: s.pinpoint },
       },

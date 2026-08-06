@@ -71,11 +71,12 @@ export function isLegacySufficiencyVoice(s: unknown): boolean {
 // ---------------------------------------------------------------------------
 
 /** Terminate a clause so the next clause cannot splice onto it. */
-export function sentenceTerminate(s: string): string {
+export function sentenceTerminate(s: string, capitalize = false): string {
   let t = String(s ?? "").trim().replace(/[;,]\s*$/, "");
   if (!t) return "";
-  // A clause promoted to a sentence must also OPEN like one.
-  t = t.charAt(0).toUpperCase() + t.slice(1);
+  // A clause promoted to a sentence mid-run must also OPEN like one. The first
+  // clause after a colon keeps its lower-case lead-in.
+  if (capitalize) t = t.charAt(0).toUpperCase() + t.slice(1);
   return /[.!?]$/.test(t) ? t : `${t}.`;
 }
 
