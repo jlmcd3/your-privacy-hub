@@ -97,6 +97,11 @@ function readPath(root: unknown, key: string): unknown[] {
  */
 export const SYSTEM_KEYS: ReadonlySet<string> = new Set<string>([
   "source_assessment_id",
+  // ITEM 383 leg 1 — the LIA Stage-B payload carries the id of the preview row
+  // the app created; no form control presents it. It is a pointer, not a
+  // question. No other contract in the union declares this key, so DPIA and
+  // Risk gate behaviour is byte-identical.
+  "preview_assessment_id",
 ]);
 
 /**
