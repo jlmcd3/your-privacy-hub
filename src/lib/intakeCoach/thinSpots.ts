@@ -116,38 +116,46 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
       "Walk the activity through from collection to deletion and name the systems at each step, with figures where you have them.",
   },
   {
+    // ITEM 381 r2 — the phase-word marker was RETIRED: it fired on
+    // dpia-perfect-uk-complete, a sufficiency-audited record whose asset list
+    // is a plain, complete list of named systems. A named-systems list is not
+    // a weak answer, so the detector now only notices a list too short to
+    // carry any system at all.
     key: "supporting_assets",
     title: "The systems the activity runs on",
     jumpSelector: '[data-coach-field="supporting_assets"]',
     rank: 5,
-    marker:
-      /\b(collect|collection|store|storage|stored|access|accessed|transfer|transferred|delete|deletion|retain|retention|host|hosted|process|processing)\b/i,
+    minLength: 40,
     heuristic:
-      "List without phases: systems are named but no processing phase word ties them to a step.",
+      "Short list: fewer than 40 characters of substance across the supporting-systems boxes.",
     consequence:
-      "As written, the supporting-systems section lists what you enter without tying any system to a step of the activity.",
+      "As written, the supporting-systems section carries only the few words you entered as the record of the systems the activity runs on.",
     consequenceSource:
       "src/pages/DPIAFramework.tsx supporting-assets guidance; supabase/functions/_shared/ltp/dpia-deliverables",
     advice:
-      "Tie each system to the phase it serves — the shape is \"collection: A; storage: B; access: C\".",
+      "Name each system the activity runs on, and where you can, the phase it serves — the shape is \"collection: A; storage: B; access: C\".",
   },
   {
+    // ITEM 381 r2 — evaluated over retention_period AND retention_record_type
+    // together (a schedule or register reference in the record-type box is a
+    // reason), with the vocabulary widened to real-world phrasing.
     key: "retention_period",
     companions: ["retention_record_type"],
     title: "How long the data is kept",
     jumpSelector: '[data-coach-field="retention_period"]',
     rank: 6,
     marker:
-      /\b(because|since|required|statut\w*|law|legal|regulat\w*|policy|so that|in order|to meet|obligation)\b/i,
+      /\b(because|since|required|statut\w*|law|legal|regulat\w*|policy|policies|so that|in order|to meet|obligation|register|schedule\w*|retention entry|entry\s+[A-Z0-9-]+|records? register|fixed by|set by|contract\w*|limitation period)\b/i,
     heuristic:
-      "Period without a reason: a duration is given but no wording explains what sets it.",
+      "Period without a reason: a duration is given and neither the period box nor the record-type box carries any wording for what sets it.",
     consequence:
-      "As written, the retention section states your period and treats it as freely chosen, because no rule or reason is given for it.",
+      "As written, the retention section states your period without what sets it, so the record gives a duration and no rule, schedule or contract behind it.",
     consequenceSource:
       "src/pages/DPIAFramework.tsx retention guidance; supabase/functions/_shared/ltp/submission-retention.ts",
     advice:
-      "Give the period and what sets it — a statutory rule, a contract, or your own policy — and name the record type where a law fixes the minimum.",
+      "Give the period and what sets it — a statutory rule, a contract, or your own retention schedule — and name the record type where a law fixes the minimum.",
   },
+
   {
     key: "dpia_signoff_basis",
     companions: [
