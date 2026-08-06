@@ -239,6 +239,24 @@ export const LIA_CSC_SURFACES: readonly LiaCscSurface[] = [
   },
 ];
 
+/** Every string a surface carries, at any depth (report-aware repairs only). */
+export function deepProse(node: unknown): string {
+  const out: string[] = [];
+  const walk = (n: unknown) => {
+    if (typeof n === "string") {
+      out.push(n);
+      return;
+    }
+    if (Array.isArray(n)) {
+      n.forEach(walk);
+      return;
+    }
+    if (n && typeof n === "object") Object.values(n as Record<string, unknown>).forEach(walk);
+  };
+  walk(node);
+  return out.join(" ");
+}
+
 function surfaceBacked(s: LiaCscSurface, intake: unknown): boolean {
   return s.mode === "all"
     ? s.keys.every((k) => intakeFilled(intake, k))
