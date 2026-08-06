@@ -1884,6 +1884,49 @@ Return JSON:
     }
 
 
+    // ── ITEM 385 LEG 2 — LIA CROSS-SURFACE CONSISTENCY CHECK ───────────
+    // Deterministic, model-agnostic, fail-open. Runs AFTER every prose pass
+    // (frame substitution and the boilerplate cap included) and BEFORE the
+    // record-complete gate, whose `csc_false_absence` arm reads its
+    // telemetry. Rides `_meta.internal.lia_csc`.
+    try {
+      const { attachLiaCsc } = await import("../_shared/ltp/lia-csc.ts");
+      const { loadApprovedFrameSet } = await import("../_shared/prose/frame-substitution.ts");
+      const cscFrameSet = await loadApprovedFrameSet(supabase, "lia").catch(() => undefined);
+      const csc = attachLiaCsc(reportData as Record<string, unknown>, {
+        intake: liaIntakeObject ?? {},
+        frameSet: cscFrameSet as never,
+      });
+      console.log(JSON.stringify({
+        evt: "lia_csc", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+        version: csc.version, violations: csc.violations.length, repairs: csc.repairs,
+        checks: csc.violations.map((v) => v.check_id), crashed: csc.crashed,
+      }));
+    } catch (e) {
+      console.warn("[run-li-assessment] cross-surface consistency check failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 385 LEG 2 — LIA COVERAGE MATRIX (flag-only) ───────────────
+    // Deterministic, no model, no repairs. Runs alongside CSC and before the
+    // gate, whose `coverage_orphans` arm reads
+    // `_meta.internal.lia_coverage`. Fail-open.
+    try {
+      const { runCoverageMatrix, attachCoverage } = await import("../_shared/ltp/coverage-matrix.ts");
+      const coverage = attachCoverage(
+        reportData as Record<string, unknown>,
+        "lia_coverage",
+        runCoverageMatrix("lia", reportData as Record<string, unknown>, liaIntakeObject ?? {}),
+      );
+      console.log(JSON.stringify({
+        evt: "lia_coverage", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+        version: coverage.version, orphans: coverage.counts.orphans,
+        unused_intake_facts: coverage.counts.unused_intake_facts,
+        links_checked: coverage.counts.links_checked, crashed: coverage.crashed,
+      }));
+    } catch (e) {
+      console.warn("[run-li-assessment] coverage matrix failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     // ── ITEM 382 — LIA PIPELINE STAMP (FINALIZE POINT) ─────────────────
     // This is the point every LIA document actually passes through: after
