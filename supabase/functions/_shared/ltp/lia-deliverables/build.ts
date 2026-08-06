@@ -98,6 +98,16 @@ function lowerFirst(s: string): string {
   return t ? `${t.charAt(0).toLowerCase()}${t.slice(1)}` : "";
 }
 
+/** The first recorded sentence of a record field, terminated. */
+function firstSentence(s: string): string {
+  const t = typeof s === "string" ? s.trim() : "";
+  if (!t) return "";
+  const m = /^[\s\S]*?[.!?](?=\s|$)/.exec(t);
+  const one = (m ? m[0] : t).trim();
+  return /[.!?]$/.test(one) ? one : `${one}.`;
+}
+
+
 /**
  * ITEM 385 seam repair — factor tokens are internal identifiers. Prose names
  * the factor in words; the enum never reaches the page.
