@@ -224,11 +224,114 @@ export function buildRecordSufficiency(
       ? [current]
       : [];
   const elements = rows.filter(
-    (r) => !isLegacySufficiencyVoice(r) && !r.includes(affirmative.slice(0, 40)),
+    (r) =>
+      !isLegacySufficiencyVoice(r) &&
+      !r.includes(affirmative.slice(0, 40)) &&
+      // ITEM 384 r3 / RESIDUAL 1 — a could-not-verify placeholder may not sit
+      // inside the sufficiency surface of a record the gate certifies
+      // complete (R4 wrong-field). Gate-FALSE documents never reach here, so
+      // honest degradation is preserved untouched.
+      !isDegradedPlaceholderRow(r),
   );
   const voice = [affirmative, reservedSentence].map((s) => s.trim()).filter(Boolean).join(" ");
   return [voice, ...elements];
 }
+
+/**
+ * ITEM 384 r3 / RESIDUAL 1 — a row that is ONLY an emit-gate placeholder
+ * (nothing of substance survives the strip). Guarded exactly like r2: the
+ * substance floor is `MIN_SURFACE_SUBSTANCE`, so a placeholder carrying real
+ * content after it is kept (with the opener still in place; the row is the
+ * per-element ledger line, not an opener surface).
+ */
+export function isDegradedPlaceholderRow(row: unknown): boolean {
+  const s = String(row ?? "").trim();
+  if (!s) return false;
+  if (!DEGRADED_OPENER_RES.some((re) => re.test(s))) return false;
+  return stripDegradedOpeners(s).length < MIN_SURFACE_SUBSTANCE;
+}
+
+/** Count of placeholder rows a gate-TRUE sufficiency rebuild would drop. */
+export function countDegradedPlaceholderRows(current: unknown): number {
+  return Array.isArray(current)
+    ? (current as unknown[]).filter((r) => typeof r === "string" && isDegradedPlaceholderRow(r)).length
+    : isDegradedPlaceholderRow(current)
+      ? 1
+      : 0;
+}
+
+// ---------------------------------------------------------------------------
+// ITEM 384 r3 / RESIDUAL 2 — activity_analytics coherence on a gate-TRUE record
+// ---------------------------------------------------------------------------
+
+/**
+ * SCOPE: this normalizer runs in the PROSE layer, over the assembled report.
+ * It never touches the determination machinery: `decision`, `rule_ids`,
+ * `modifications`, `conditions` and the emit-gate catalogue are left exactly
+ * as `decideConsequence` wrote them. Only the customer-visible STATUS
+ * vocabulary and the insufficiency ASSERTIONS are re-voiced, and only when
+ * the record-complete gate is TRUE.
+ */
+export const REVIEW_DATE_ACTION_SENTENCE =
+  "The review date under § 7152(a)(9) is recorded at review — listed under Items for your review.";
+
+/** Sentences that assert the record is insufficient. */
+export const INSUFFICIENCY_ASSERTION_RES: readonly RegExp[] = [
+  /has not yet been recorded/i,
+  /not supported by the present record/i,
+  /does not carry the review-and-approval/i,
+  /the (?:initiation )?decision is reserved until/i,
+  /record does not (?:yet )?(?:carry|contain)/i,
+];
+
+export function assertsInsufficiency(text: unknown): boolean {
+  const s = String(text ?? "");
+  return INSUFFICIENCY_ASSERTION_RES.some((re) => re.test(s));
+}
+
+export interface AnalyticsCoherenceCounts {
+  statuses: number;
+  reasons: number;
+}
+
+/**
+ * Gate-TRUE only. Returns the counts of what was re-voiced.
+ */
+export function normalizeActivityAnalytics(
+  activities: unknown,
+  recordComplete: boolean,
+): AnalyticsCoherenceCounts {
+  const counts: AnalyticsCoherenceCounts = { statuses: 0, reasons: 0 };
+  if (recordComplete !== true || !Array.isArray(activities)) return counts;
+  for (const a of activities as any[]) {
+    const cons = a?.consequence;
+    if (!cons || typeof cons !== "object" || Array.isArray(cons)) continue;
+    if (cons.status === "record_insufficient") {
+      cons.status = "analysed";
+      counts.statuses += 1;
+    }
+    if (Array.isArray(cons.reasons)) {
+      const kept: string[] = [];
+      let rewritten = false;
+      for (const r of cons.reasons as unknown[]) {
+        if (typeof r === "string" && assertsInsufficiency(r)) {
+          rewritten = true;
+          if (!kept.includes(REVIEW_DATE_ACTION_SENTENCE)) kept.push(REVIEW_DATE_ACTION_SENTENCE);
+          continue;
+        }
+        if (typeof r === "string" && r.trim()) kept.push(r);
+      }
+      if (rewritten) {
+        cons.reasons = kept;
+        counts.reasons += 1;
+      }
+    }
+    // G-6 — the open-element ledger lives in one place only.
+    if (typeof cons.information_needed === "string") delete cons.information_needed;
+  }
+  return counts;
+}
+
 
 // ---------------------------------------------------------------------------
 // G-4 — attestation block
@@ -278,6 +381,11 @@ export interface RiskProseGoldTelemetry {
   exec_degraded_opener_stripped: boolean;
   sufficiency_voices_retired: number;
   attestation_normalized: boolean;
+  /** r3 RESIDUAL 1 — placeholder rows dropped from the sufficiency array. */
+  sufficiency_placeholders_dropped: number;
+  /** r3 RESIDUAL 2 — analytics consequences re-voiced on a gate-TRUE record. */
+  analytics_statuses_normalized: number;
+  analytics_reasons_rewritten: number;
 }
 
 /**
@@ -300,6 +408,9 @@ export function applyRiskProseGold(
     exec_degraded_opener_stripped: false,
     sufficiency_voices_retired: 0,
     attestation_normalized: false,
+    sufficiency_placeholders_dropped: 0,
+    analytics_statuses_normalized: 0,
+    analytics_reasons_rewritten: 0,
   };
   try {
     // G-2 (register repair, every record) — with the r2 empty-surface guard.
@@ -335,6 +446,7 @@ export function applyRiskProseGold(
     // Shape law: the ARRAY/STRING live shapes are collapsed here; the legacy
     // OBJECT envelope keeps the item-380 `.prose` write and is untouched.
     if (rsRewritable) {
+      t.sufficiency_placeholders_dropped = countDegradedPlaceholderRows(rs);
       report.record_sufficiency = buildRecordSufficiency(
         rs,
         opts.affirmative,
@@ -342,6 +454,12 @@ export function applyRiskProseGold(
       );
     }
     t.sufficiency_voices_retired = before;
+
+    // r3 RESIDUAL 2 — analytics coherence (gate-true only; prose layer only).
+    const counts = normalizeActivityAnalytics(report.activity_analytics, true);
+    t.analytics_statuses_normalized = counts.statuses;
+    t.analytics_reasons_rewritten = counts.reasons;
+
     t.applied = true;
   } catch {
     /* fail-open: the document ships exactly as assembled */
