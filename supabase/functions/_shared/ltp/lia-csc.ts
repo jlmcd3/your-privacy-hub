@@ -45,8 +45,10 @@ import {
   buildOptOutFeasibility,
   buildScaleFrequencyDuration,
 } from "./lia-deliverables/build-upgrade4.ts";
+import { repairDocumentationRecommendations } from "./lia-deliverables/doc-plan-register.ts";
 
-export const LIA_CSC_VERSION = "lia-csc-2026-08-06-item385";
+export const LIA_CSC_VERSION = "lia-csc-2026-08-06-item385r2";
+
 
 export type LiaCscCheckId =
   | "l1_engagement_vs_record"
@@ -150,7 +152,14 @@ export interface LiaCscSurface {
   readonly mode: "any" | "all";
   /** Single writer, when the surface has one. */
   readonly rebuild?: (intake: unknown) => unknown;
+  /**
+   * ITEM 385 r2 — a surface whose repair needs the ASSEMBLED REPORT as well as
+   * the record (the plan register derives from this report's own classified
+   * open items). Takes precedence over `rebuild` when present.
+   */
+  readonly repair?: (node: unknown, intake: unknown, report: unknown) => unknown;
 }
+
 
 export const LIA_CSC_SURFACES: readonly LiaCscSurface[] = [
   // The VIEWS / CONSULTATION surface. LIA's analogue of the DPIA Art. 35(9)
@@ -209,13 +218,51 @@ export const LIA_CSC_SURFACES: readonly LiaCscSurface[] = [
     ],
     mode: "any",
   },
+  // ITEM 385 r2 DEFECT 2 — the DOCUMENTATION-PLAN surface. Backed whenever the
+  // record supplies the facts the plan is written from; repaired by the plan
+  // register (doc-plan-register.ts), which derives what to write down next
+  // from THIS report's classified open items (G-6 ledger discipline).
+  {
+    path: "documentation_recommendations",
+    keys: [
+      "balancing_details.safeguards",
+      "balancing_details.opt_out_mechanism",
+      "balancing_details.reasonable_expectation",
+      "processing_description",
+      "attestation.dpo_reviewed",
+    ],
+    mode: "any",
+    repair: (node, intake, report) => {
+      const r = repairDocumentationRecommendations(node, intake, report);
+      return r.changed ? r.value : undefined;
+    },
+  },
 ];
+
+/** Every string a surface carries, at any depth (report-aware repairs only). */
+export function deepProse(node: unknown): string {
+  const out: string[] = [];
+  const walk = (n: unknown) => {
+    if (typeof n === "string") {
+      out.push(n);
+      return;
+    }
+    if (Array.isArray(n)) {
+      n.forEach(walk);
+      return;
+    }
+    if (n && typeof n === "object") Object.values(n as Record<string, unknown>).forEach(walk);
+  };
+  walk(node);
+  return out.join(" ");
+}
 
 function surfaceBacked(s: LiaCscSurface, intake: unknown): boolean {
   return s.mode === "all"
     ? s.keys.every((k) => intakeFilled(intake, k))
     : s.keys.some((k) => intakeFilled(intake, k));
 }
+
 
 /** The prose a surface node exposes to L2, whatever its shape. */
 export function surfaceProse(node: unknown): string {
@@ -369,14 +416,25 @@ export function runLiaCsc(
       if (!surfaceBacked(surface, intake)) continue; // honest degradation
       const node = getPath(report, surface.path);
       if (node === undefined || node === null) continue;
-      const prose = surfaceProse(node);
+      // A surface with a report-aware repair is read DEEPLY: its frames sit in
+      // nested lists (key_elements, review_triggers) the shallow extractor
+      // never reaches. Shallow extraction stays the default so no existing
+      // surface changes behaviour.
+      const prose = surface.repair ? deepProse(node) : surfaceProse(node);
       if (!prose.trim()) continue;
       const partial = PARTIAL_DISCHARGE_RE.exec(prose);
       const hit = carriesAbsenceLanguage(prose, needles) ?? (partial ? partial[0] : null);
       if (!hit) continue;
 
-      const rebuilt = surface.rebuild ? surface.rebuild(intake) : undefined;
-      if (rebuilt !== undefined && rebuilt !== null && str(rebuilt) !== "") {
+      const rebuilt = surface.repair
+        ? surface.repair(node, intake, report)
+        : surface.rebuild
+        ? surface.rebuild(intake)
+        : undefined;
+      const usable = rebuilt !== undefined && rebuilt !== null &&
+        (typeof rebuilt === "object" ? true : str(rebuilt) !== "");
+      if (usable) {
+
         // Never change a surface's SHAPE.
         setPath(
           report,

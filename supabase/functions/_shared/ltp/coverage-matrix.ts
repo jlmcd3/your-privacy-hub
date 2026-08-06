@@ -613,6 +613,11 @@ function liaCoverage(
   }
 
   // L2 — every mitigation must trace to something the record states.
+  //
+  // ITEM 385 r2 DEFECT 1 — anchorage is now DECLARED by the composer
+  // (`anchor_keys`) rather than inferred from word overlap. A mitigation whose
+  // declared keys the record fills is anchored by construction; word overlap
+  // stays as the fallback for mitigations authored elsewhere.
   const determination = (report.lia_determination ?? {}) as Record<string, unknown>;
   const anchorText = [
     text(intake.processing_description),
@@ -621,6 +626,7 @@ function liaCoverage(
     text(intake.purpose_details),
     text(intake.necessity_details),
     text(intake.balancing_details),
+    text(intake.attestation),
   ].join(" \n ");
   arr(determination.mitigations).forEach((m, i) => {
     t.counts.links_checked++;
@@ -633,13 +639,21 @@ function liaCoverage(
       ? (determination.driving_factors as unknown[]).map(String)
       : [];
     if (factor && driving.includes(factor)) return;
+    const declared = Array.isArray(m.anchor_keys) ? (m.anchor_keys as unknown[]).map(String) : null;
+    // An empty declared list means "this closes an open factor" — the anchor
+    // is the absence itself, so it is never an orphan.
+    if (declared && declared.length === 0) return;
+    if (declared && declared.some((k) => liaFilled(intake, k))) return;
     if (overlaps(measure, anchorText)) return;
     t.orphans.push({
       type: "mitigation_without_record_anchor",
       path: `lia_determination.mitigations[${i}]`,
-      detail: `the mitigation "${measure.slice(0, 80)}" traces to nothing the record states and closes no factor the determination drives.`,
+      detail: declared
+        ? `the mitigation "${measure.slice(0, 80)}" names ${declared.join(", ")} as its record anchor and the record fills none of them.`
+        : `the mitigation "${measure.slice(0, 80)}" traces to nothing the record states and closes no factor the determination drives.`,
     });
   });
+
 
   // L3 — asks raised against facts the record in fact supplies.
   const asks = Array.isArray(report.information_needed) ? report.information_needed : [];

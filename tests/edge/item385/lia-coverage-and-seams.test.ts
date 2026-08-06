@@ -112,7 +112,7 @@ Deno.test("SEAM (d) — the expectation answer is written, never quoted as a bar
 // Machine leaves (determination/verdict/status/factor enums) and the asks,
 // which legitimately name the intake key the reader must fill, are not prose.
 const MACHINE_LEAF =
-  /(rule_id|_id|outcome|status|verdict|category|determination|factor|feasibility|default_position|information_needed|citation|id)$/;
+  /(rule_id|_id|anchor_keys|outcome|status|verdict|category|determination|factor|feasibility|default_position|information_needed|citation|id)(\[\d+\])?$/;
 
 Deno.test("SEAM LINT — no bare enum token reaches LIA prose", () => {
   const report = assembleLiaReport(INTAKE);

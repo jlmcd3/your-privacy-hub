@@ -98,6 +98,16 @@ function lowerFirst(s: string): string {
   return t ? `${t.charAt(0).toLowerCase()}${t.slice(1)}` : "";
 }
 
+/** The first recorded sentence of a record field, terminated. */
+function firstSentence(s: string): string {
+  const t = typeof s === "string" ? s.trim() : "";
+  if (!t) return "";
+  const m = /^[\s\S]*?[.!?](?=\s|$)/.exec(t);
+  const one = (m ? m[0] : t).trim();
+  return /[.!?]$/.test(one) ? one : `${one}.`;
+}
+
+
 /**
  * ITEM 385 seam repair — factor tokens are internal identifiers. Prose names
  * the factor in words; the enum never reaches the page.
@@ -405,6 +415,7 @@ export function classifyRecordedMitigations(intake: unknown): Mitigation[] {
     return {
       factor: "balancing" as LiaFactor,
       measure,
+      anchor_keys: ["balancing_details.additional_mitigations"],
       why_it_moves_the_balance: already
         ? `This measure is recorded as a mitigation, but it is one the GDPR already requires of the controller. ${excluded.verbatim} It therefore does not move the balance and is not counted in the re-balance below.`
         : `This measure goes beyond what the GDPR already requires and so reduces the impact the balancing test weighs. ${beyond.verbatim}, which is the footing on which it is counted here.`,
@@ -414,6 +425,7 @@ export function classifyRecordedMitigations(intake: unknown): Mitigation[] {
       ...authorityVerbatim(already ? excluded.verbatim : beyond.verbatim),
     };
   });
+
 }
 
 export function buildDetermination(
@@ -435,6 +447,8 @@ export function buildDetermination(
   const harm = str(get(intake, "balancing_details.potential_harm"));
   const safeguards = arr(get(intake, "balancing_details.safeguards"));
   const optOut = str(get(intake, "balancing_details.opt_out_mechanism"));
+  const optOutAvailable = str(get(intake, "balancing_details.opt_out_available"));
+  const collectionContext = str(get(intake, "balancing_details.collection_context"));
 
   const failing: LiaFactor[] = [];
   const open: LiaFactor[] = [];
@@ -445,6 +459,7 @@ export function buildDetermination(
     open.push("legitimacy");
     mitigations.push({
       factor: "legitimacy",
+      anchor_keys: [],
       measure:
         "Articulate the interest pursued in a single sentence naming who holds it, what it achieves, and why it is present rather than speculative, and record it in the balancing record.",
       why_it_moves_the_balance:
@@ -460,6 +475,7 @@ export function buildDetermination(
     open.push("necessity");
     mitigations.push({
       factor: "necessity",
+      anchor_keys: [],
       measure:
         "Record the less intrusive alternatives that were actually considered for this purpose, and for each one the reason it was rejected on purpose-defeat grounds rather than on cost or convenience.",
       why_it_moves_the_balance:
@@ -475,6 +491,11 @@ export function buildDetermination(
     failing.push("reasonable_expectations");
     mitigations.push({
       factor: "reasonable_expectations",
+      anchor_keys: [
+        "balancing_details.reasonable_expectation",
+        "balancing_details.reasonable_expectation_detail",
+        "balancing_details.collection_context",
+      ],
       measure:
         "Bring the processing back inside what the data subjects contemplated at collection — narrow it to the uses the relationship supports, or seek the data at a point where the use is disclosed and the individual can decline it without losing the service.",
       why_it_moves_the_balance:
@@ -484,12 +505,34 @@ export function buildDetermination(
       ...authorityVerbatim(expectations.standard),
     });
   } else if (expectations.verdict === "partly_expected") {
+    // ITEM 385 r2 DEFECT 1 (b) — the composer used to advise a standing stop
+    // on the use WITHOUT reading whether the record already states one. Where
+    // the record supplies the route, the mitigation is written FROM it: what
+    // is left to do is carry it to the point of first encounter.
+    const recordedStop = !!optOut;
     mitigations.push({
       factor: "reasonable_expectations",
-      measure:
-        "Give the data subjects an unconditional, standing means of stopping this specific use at the point where they would first encounter it, going beyond the Article 21 objection right the GDPR already requires.",
+      anchor_keys: recordedStop
+        ? [
+          "balancing_details.opt_out_mechanism",
+          "balancing_details.opt_out_available",
+          "balancing_details.collection_context",
+        ]
+        : [
+          "balancing_details.reasonable_expectation",
+          "balancing_details.reasonable_expectation_detail",
+        ],
+      measure: recordedStop
+        ? `The record already states the route by which an individual stops this use — ${
+          lowerFirst(firstSentence(optOut))
+        }${optOutAvailable ? ` The record records its availability as "${optOutAvailable}".` : ""} What is left is to carry that same route to the point where the data subjects first encounter the use${
+          collectionContext ? `, which the record places at ${lowerFirst(firstSentence(collectionContext))}` : ""
+        } so the choice is available before the processing runs and not only after it, and to name the role that operates it.`
+        : "Give the data subjects an unconditional, standing means of stopping this specific use at the point where they would first encounter it, going beyond the Article 21 objection right the GDPR already requires.",
       why_it_moves_the_balance:
-        `Expectation is only partly satisfied on this record, so the factor sits on the data-subject side of the balance until the individual can decline the specific use. ${beyond.verbatim}, and an unconditional stop on this use is such a safeguard.`,
+        `Expectation is only partly satisfied on this record, so the factor sits on the data-subject side of the balance until the individual can decline the specific use${
+          recordedStop ? " at the point the use is met" : ""
+        }. ${beyond.verbatim}, and an unconditional stop on this use is such a safeguard.`,
       goes_beyond_gdpr_obligation: true,
       citation: expectations.supporting_citation,
       ...authorityVerbatim(expectations.supporting_verbatim),
@@ -506,6 +549,7 @@ export function buildDetermination(
     failing.push("balancing");
     mitigations.push({
       factor: "balancing",
+      anchor_keys: ["balancing_details.potential_harm"],
       measure:
         "Put named safeguards against the specific harm the record identifies, state who operates each one, and record how its effect is evidenced.",
       why_it_moves_the_balance:
@@ -518,6 +562,7 @@ export function buildDetermination(
   if (harm && !optOut) {
     mitigations.push({
       factor: "balancing",
+      anchor_keys: ["balancing_details.potential_harm"],
       measure:
         "Provide a working opt-out for this processing and record where the data subject encounters it and how the suppression is enforced downstream.",
       why_it_moves_the_balance:
@@ -527,6 +572,7 @@ export function buildDetermination(
       ...authorityVerbatim(beyond.verbatim),
     });
   }
+
 
   if (child.determination === "children_in_scope") failing.push("balancing");
   if (child.determination === "undetermined_on_the_record") open.push("balancing");
