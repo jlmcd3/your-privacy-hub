@@ -501,7 +501,7 @@ export function buildDetermination(
   if (publicAuthority.basis_unavailable) {
     outcome = "legitimate_interests_not_available";
     rawWhy =
-      `${publicAuthority.standard} The record places this processing inside that exclusion, so Article 6(1)(f) is not available and no mitigation reaches the point: the question is which other Article 6(1) basis, provided for by law, covers the processing.`;
+      `Legitimate interests is not available for this processing: the record places it inside the public-authority exclusion, so no mitigation reaches the point and the question is which other Article 6(1) basis, provided for by law, covers it. ${publicAuthority.standard}`;
   } else if (publicAuthority.determination === "undetermined_on_the_record") {
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
@@ -511,13 +511,13 @@ export function buildDetermination(
   } else if (child.determination === "children_in_scope" && materialHarm) {
     outcome = "legitimate_interests_not_available";
     rawWhy =
-      `${basis.verbatim} On this record the data subjects include children and the worst-case impact is recorded as "${harm}". ${overrideAnchor.verbatim} The mitigations set out below address individual factors, but none of them removes the combination of a child data subject and a material impact, so legitimate interests is not a sound basis for this processing as recorded.`;
+      `Legitimate interests is not a sound basis for this processing as recorded: the data subjects include children and the worst-case impact is recorded as "${harm}", and the mitigations set out below address individual factors without removing that combination. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" ${overrideAnchor.verbatim}`;
   } else if (open.length > 0) {
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
-    const names = [...new Set(open)];
+    const names = [...new Set(open)].map(factorLabel);
     rawWhy =
-      `${conditions.verbatim} On this record ${names.length} of the elements the assessment turns on — ${names.join(", ")} — are not established, so the determination is open rather than answered either way. The mitigations below are the steps that would close each of them.`;
+      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — are not established on this record, and the mitigations below are the steps that would close each of them. ${conditions.verbatim}`;
     information_needed = [
       ...new Set(
         [
@@ -538,13 +538,13 @@ export function buildDetermination(
   } else if (failing.length > 0) {
     outcome = "available_only_with_mitigations";
     rebalance = true;
-    const names = [...new Set(failing)];
+    const names = [...new Set(failing)].map(factorLabel);
     rawWhy =
-      `${basis.verbatim} Run over this record the interest and its necessity hold, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands. ${overrideAnchor.verbatim} The mitigations below are directed at those specific factors; where they are adopted the balancing test must be performed again before the processing is relied on.`;
+      `Legitimate interests carries this processing only if the mitigations below are adopted: the interest and its necessity hold on this record, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands, and where the mitigations are adopted the balancing test must be performed again before the processing is relied on. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" ${overrideAnchor.verbatim}`;
   } else {
     outcome = "legitimate_interests_available";
     rawWhy =
-      `${basis.verbatim} On this record each of the three conditions is met: the interest is stated, the record shows the comparison against less intrusive means, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
+      `Legitimate interests carries this processing as the record stands: the interest is stated, the record shows the comparison against less intrusive means, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
   }
 
   const { kept, moved, repairs } = splitExposure(rawWhy);
