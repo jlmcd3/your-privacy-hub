@@ -173,6 +173,20 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     note: "Frontend-visible schema tag; literal owned by the shard.",
   },
   {
+    // ITEM 390 (FIX 2-ii) — LAW 2(iii) RESTORE. ITEM 337 Part C wrote
+    // `report.methodology_note` from inside applyMethodologyNote, outside the
+    // registry, so the schema shipped a top-level key the registry did not
+    // own. The note is now a registry-owned deterministic shard written by the
+    // single assembler write site; applyMethodologyNote keeps its STRIPPING
+    // job (methodology sentences out of every narrative field) and is called
+    // with `writeNote: false`. Render-once semantics are unchanged — exactly
+    // one emission of the canonical literal, at report.methodology_note.
+    key: "methodology_note",
+    owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "_shared/prose/methodology.ts" },
+    project: (_plan) => METHODOLOGY_NOTE,
+    note: "ITEM 337 Part C canonical methodology narration; ITEM 390 moved the write into the registry.",
+  },
+  {
     key: "document_metadata",
     owner: { kind: "deterministic", template_ids: ["deterministic"], emitter: "document-metadata-composer" },
     project: (plan) => ({
