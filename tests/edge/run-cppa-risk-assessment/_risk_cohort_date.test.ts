@@ -33,7 +33,9 @@ Deno.test("RCD [corpus pin]: literal date + audit period match § 7121(a)(3) ver
 
 Deno.test("RCD [stamp+version shape]", () => {
   assert(RISK_COHORT_DATE_STAMP.startsWith("risk-cohort-date@"));
-  assertEquals(RISK_COHORT_DATE_VERSION, "risk-cohort-date-v1-2026-07-26");
+  // ITEM 387 (a): PRE-WAVED-EMITTER-FIXES-2026-07-27 replaced the
+  // 25_50m-only emitter with the full V2 band truth-table.
+  assertEquals(RISK_COHORT_DATE_VERSION, "risk-cohort-date-v2-truth-table-2026-07-27");
 });
 
 // ── Band-not-resolved / other-band no-ops ────────────────────────────────
@@ -45,7 +47,11 @@ Deno.test("RCD [no-op]: unspecified band → no emit, no mutation", () => {
   assertEquals((report as any).cross_tool_recommendations.cybersecurity_audit_rationale, "unchanged.");
 });
 
-for (const other of ["Under $25M", "$50M–$100M", "$100M–$500M", "Over $500M", "$25M–$100M"]) {
+// ITEM 387 (b): "Under $25M", "$50M–$100M", "$100M–$500M" and "Over $500M"
+// were removed from this no-op list — PRE-WAVED-EMITTER-FIXES-2026-07-27
+// (V2 truth-table) deliberately emits the corpus-pinned § 7121(a) date for
+// every resolvable band. Only the indeterminate bands stay no-ops.
+for (const other of ["$25M–$100M"]) {
   Deno.test(`RCD [no-op]: band ${other} → no emit`, () => {
     const before = { cross_tool_recommendations: { cybersecurity_audit_rationale: "keep me." } };
     const { counters, report } = applyRiskCohortDate(
@@ -56,6 +62,10 @@ for (const other of ["Under $25M", "$50M–$100M", "$100M–$500M", "Over $500M"
     assertEquals((report as any).cross_tool_recommendations.cybersecurity_audit_rationale, "keep me.");
   });
 }
+
+const V2_SENTENCE_25_50M =
+  "Per 11 CCR § 7121(a)(3), the first cybersecurity audit report is due April 1, 2030 " +
+  "(audit period January 1, 2029 through January 1, 2030).";
 
 // ── Regression pins from w27/w28 offending fixtures ──────────────────────
 // Reconstructed by running W24A-V3 (upstream) over the fixture strings
@@ -90,7 +100,7 @@ Deno.test("RCD [regression w27 7f0de458 / w28 e5a04cf7+1036f12c shape]: after V3
   assertEquals(counters.errors, 0);
   assert(
     String((after as any).cross_tool_recommendations.cybersecurity_audit_rationale)
-      .includes(DETERMINISTIC_COHORT_SENTENCE_25_50M),
+      .includes(V2_SENTENCE_25_50M),
   );
 });
 
@@ -128,7 +138,7 @@ Deno.test("RCD [wrong-date excision]: sentence stating April 1, 2029 for cohort 
   assertEquals(counters.date_corrected, 1);
   const out = String((report as any).cross_tool_recommendations.cybersecurity_audit_rationale);
   assert(!/April\s+1,?\s+2029/.test(out), "wrong date must be gone");
-  assert(out.includes(DETERMINISTIC_COHORT_SENTENCE_25_50M));
+  assert(out.includes(V2_SENTENCE_25_50M));
   assert(out.includes("Baseline sentence unrelated"));
   assert(out.includes("Another retained sentence"));
 });
