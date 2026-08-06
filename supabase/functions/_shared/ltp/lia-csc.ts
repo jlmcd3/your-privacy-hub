@@ -150,7 +150,14 @@ export interface LiaCscSurface {
   readonly mode: "any" | "all";
   /** Single writer, when the surface has one. */
   readonly rebuild?: (intake: unknown) => unknown;
+  /**
+   * ITEM 385 r2 — a surface whose repair needs the ASSEMBLED REPORT as well as
+   * the record (the plan register derives from this report's own classified
+   * open items). Takes precedence over `rebuild` when present.
+   */
+  readonly repair?: (node: unknown, intake: unknown, report: unknown) => unknown;
 }
+
 
 export const LIA_CSC_SURFACES: readonly LiaCscSurface[] = [
   // The VIEWS / CONSULTATION surface. LIA's analogue of the DPIA Art. 35(9)
