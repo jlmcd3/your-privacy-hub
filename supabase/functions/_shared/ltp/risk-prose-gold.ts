@@ -302,13 +302,14 @@ export function applyRiskProseGold(
     attestation_normalized: false,
   };
   try {
-    // G-2 (register repair, every record).
+    // G-2 (register repair, every record) — with the r2 empty-surface guard.
     const esBefore = typeof report.executive_summary === "string" ? report.executive_summary : "";
     if (esBefore) {
-      const stripped = stripDegradedOpeners(esBefore);
-      if (stripped !== esBefore.trim()) t.exec_degraded_opener_stripped = true;
+      const stripped = stripDegradedOpenersGuarded(esBefore, opts.recordComplete === true);
+      if (stripped !== esBefore && stripped !== esBefore.trim()) t.exec_degraded_opener_stripped = true;
       report.executive_summary = stripped;
     }
+
 
     // G-4 (register repair, every record; status swap gate-aware).
     if (report.attestation_block) {
