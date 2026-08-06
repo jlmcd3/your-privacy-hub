@@ -10,10 +10,15 @@
 
 import type { CoachProduct } from "@/lib/intakeCoach/thinSpots";
 
+// ITEM 381 r3 — FLAGS FLIPPED ON after the review panel's unanimous walk of the
+// r2 build (perfect fixtures zero cards, degraded fixtures fire at cap, truth
+// rule holds). The review step is advisory and skippable; the checkout path is
+// unchanged.
 export const INTAKE_COACH_ENABLED: Record<CoachProduct, boolean> = {
-  dpia: false,
-  cppa_risk: false,
+  dpia: true,
+  cppa_risk: true,
 };
+
 
 export function isIntakeCoachEnabled(product: CoachProduct): boolean {
   return INTAKE_COACH_ENABLED[product] === true;
