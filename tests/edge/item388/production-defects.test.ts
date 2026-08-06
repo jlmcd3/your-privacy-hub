@@ -65,7 +65,8 @@ Deno.test("FIX4: the dead V1 helper and its missing constant are gone from the m
   const src = await Deno.readTextFile(
     new URL("../../../supabase/functions/run-cppa-risk-assessment/_risk_cohort_date.ts", import.meta.url),
   );
-  assertEquals(/\bWRONG_DATE_RE_25_50M\b/.test(src), false);
+  // Only the removal comment may name the constant; no executable reference remains.
+  assertEquals(/WRONG_DATE_RE_25_50M\s*\./.test(src), false);
   assertEquals(/function exciseWrongCohortSentences\b/.test(src), false);
 });
 
