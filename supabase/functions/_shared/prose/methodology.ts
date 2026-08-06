@@ -49,7 +49,7 @@ export function stripMethodologySentences(text: unknown): { text: string; remove
  */
 export function applyMethodologyNote(
   report: Record<string, unknown> | null | undefined,
-  opts: { always?: boolean; noteKey?: string } = {},
+  opts: { always?: boolean; noteKey?: string; writeNote?: boolean } = {},
 ): { removed: number; note_attached: boolean } {
   if (!report || typeof report !== "object") return { removed: 0, note_attached: false };
   const noteKey = opts.noteKey ?? "methodology_note";
