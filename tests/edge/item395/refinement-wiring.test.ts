@@ -70,7 +70,7 @@ Deno.test("ITEM 395 — the ADMT config does not disturb the other three configs
 
 Deno.test("ITEM 395 — the spine class is the item392 arc, exactly; stamp pinned", () => {
   assertEquals([...ADMT_PROTECTED_SPINE_SECTION_IDS], ADMT_SECTION_SPECS.map((s) => s.id));
-  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item395-2026-08-06");
+  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item396-2026-08-06");
 });
 
 // ── 2. Splicer refusal, per protected class ──────────────────────────────────
