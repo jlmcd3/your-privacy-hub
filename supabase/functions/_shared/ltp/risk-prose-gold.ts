@@ -518,6 +518,9 @@ export interface RiskProseGoldTelemetry {
   /** r3 RESIDUAL 2 — analytics consequences re-voiced on a gate-TRUE record. */
   analytics_statuses_normalized: number;
   analytics_reasons_rewritten: number;
+  /** r4 — global gate-TRUE placeholder sweep. */
+  placeholders_swept: number;
+  placeholder_paths: string[];
 }
 
 /**
