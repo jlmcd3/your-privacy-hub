@@ -177,9 +177,11 @@ export function buildCoach(
         consequenceSource: spot.consequenceSource,
         advice: spot.advice,
         jumpSelector: spot.jumpSelector,
+        details: weakSubFields(intake, spot),
       });
       continue;
     }
+
 
     if (!isEmpty) strong.push(spot.title);
   }
