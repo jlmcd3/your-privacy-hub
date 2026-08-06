@@ -405,6 +405,7 @@ export function classifyRecordedMitigations(intake: unknown): Mitigation[] {
     return {
       factor: "balancing" as LiaFactor,
       measure,
+      anchor_keys: ["balancing_details.additional_mitigations"],
       why_it_moves_the_balance: already
         ? `This measure is recorded as a mitigation, but it is one the GDPR already requires of the controller. ${excluded.verbatim} It therefore does not move the balance and is not counted in the re-balance below.`
         : `This measure goes beyond what the GDPR already requires and so reduces the impact the balancing test weighs. ${beyond.verbatim}, which is the footing on which it is counted here.`,
@@ -414,6 +415,7 @@ export function classifyRecordedMitigations(intake: unknown): Mitigation[] {
       ...authorityVerbatim(already ? excluded.verbatim : beyond.verbatim),
     };
   });
+
 }
 
 export function buildDetermination(
