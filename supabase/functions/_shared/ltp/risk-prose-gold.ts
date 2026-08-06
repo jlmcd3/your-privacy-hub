@@ -292,8 +292,12 @@ export function applyRiskProseGold(
 
     if (opts.recordComplete !== true) return t;
 
-    // G-2 (verdict-first assembly, gate-true only).
-    report.executive_summary = buildExecutiveSummary(report, opts.affirmative);
+    // G-2 (verdict-first assembly, gate-true only). Shape is never changed:
+    // the legacy OBJECT envelope is left to the item-380 object branch in
+    // `applyRiskRecordCompleteFraming`; only the live STRING shape is rebuilt.
+    if (typeof report.executive_summary === "string" || report.executive_summary == null) {
+      report.executive_summary = buildExecutiveSummary(report, opts.affirmative);
+    }
 
     // G-1 / G-6 (one sufficiency voice, gate-true only).
     const before = Array.isArray(report.record_sufficiency)
