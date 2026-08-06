@@ -45,8 +45,10 @@ import {
   buildOptOutFeasibility,
   buildScaleFrequencyDuration,
 } from "./lia-deliverables/build-upgrade4.ts";
+import { repairDocumentationRecommendations } from "./lia-deliverables/doc-plan-register.ts";
 
-export const LIA_CSC_VERSION = "lia-csc-2026-08-06-item385";
+export const LIA_CSC_VERSION = "lia-csc-2026-08-06-item385r2";
+
 
 export type LiaCscCheckId =
   | "l1_engagement_vs_record"
