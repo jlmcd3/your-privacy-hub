@@ -65,6 +65,12 @@ import {
   ADMT_DELIVERABLES_VERSION,
 } from "./_local/ltp/admt-deliverables/build.ts";
 console.log(`[run-admt-checker] boot admt_deliverables=${ADMT_DELIVERABLES_VERSION}`);
+// ITEM 392 — ADMT prose gold (plan encode + register repairs AG-1..AG-3).
+import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "../_shared/ltp/admt-prose-gold.ts";
+import { ADMT_PIPELINE_STAMP } from "../_shared/prose/plans/admt.spine.ts";
+console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION}`);
+
+
 
 import { buildAdmtVerifiedWhitelist } from "../_shared/admt-citation-registry.ts";
 import { buildFsorAnchorBlock, ADMT_FSOR_ANCHOR_SPECS } from "../_shared/fsor-anchor-block.ts";
@@ -2634,7 +2640,24 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] H6-ADMT-GOVERNING-ANCHOR failed (non-fatal):", (e as Error)?.message);
     }
 
-
+    // ── ITEM 392 — ADMT PROSE GOLD (AG-1 hedge ledger, AG-2 customer
+    // register, AG-3 shape hygiene) ───────────────────────────────────
+    // TRUE FINALIZE POINT: this is the last content-shaping seam before the
+    // emit gate and the schema serializer, and therefore the last place a
+    // customer surface can be repaired and still ship. The terminal act is the
+    // `status: "complete"` lifecycle write below; everything between here and
+    // it only strips or serializes. The stamp is written into
+    // `_meta.internal.admt_pipeline_stamp` here so it survives the serializer's
+    // `_meta.internal`-only preservation. Fail-open.
+    try {
+      const admtGold = applyAdmtProseGold(report as any);
+      console.log(JSON.stringify({
+        evt: "admt_prose_gold", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...admtGold,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 392 admt-prose-gold failed (non-fatal):", (e as Error)?.message);
+    }
 
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────

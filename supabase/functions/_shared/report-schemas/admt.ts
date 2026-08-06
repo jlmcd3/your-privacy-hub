@@ -19,8 +19,10 @@ const FINDING_ENTRY_KEYS = [
   "requirement_id",
   "proposition_key",
   "status",
+  "status_label", // ITEM 392 AG-2 — reader-facing sibling of the machine enum
   "insufficient_basis", // LEAK-PREV-P0 additive flag
   "information_needed", // LEAK-PREV-P1 additive flag
+
   "finding",
   "gap_description",
   "remediation",
@@ -221,6 +223,8 @@ export const ADMT_REPORT_SCHEMA: ReportSchema = {
     // core presentation
     "system_name",
     "overall_status",
+    "overall_status_label", // ITEM 392 AG-2 — reader-facing sibling
+
     "disclaimer",
     "framework_disclaimer",
     "compliance_deadline",

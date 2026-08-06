@@ -54,6 +54,7 @@ const ROWS: ReadonlyArray<readonly [string, string, string, string]> = [
   ["prose_document_plans", "plan", "dpia", "plans/dpia.plan.json"],
   ["prose_document_plans", "plan", "governance", "plans/governance.plan.json"],
   ["prose_document_plans", "plan", "registration", "plans/registration.plan.json"],
+  ["prose_document_plans", "plan", "admt", "plans/admt.plan.json"],
 ];
 
 describe.skipIf(!CAN_RUN)("prose library rows — content pin", () => {

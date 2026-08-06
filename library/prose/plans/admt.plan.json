@@ -1,0 +1,178 @@
+{
+  "product": "admt",
+  "version": "prose-plans-2026-08-06-item392",
+  "seed_default_approved": false,
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
+  "provenance": {
+    "method": "live_render_mining",
+    "extracted_at": "2026-08-06",
+    "render_doc_id": "562f1770-990e-4b4b-8f13-e7354dc6aa9b",
+    "render_table": "quality_run_documents",
+    "approval_note": "panel-delegated approval per CEO delegation 2026-08-06",
+    "exemplars": [
+      "lia",
+      "cppa-risk"
+    ],
+    "fact_exempt_rule": "The reference render is an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from it (TalentRank and every fact around it) may reach a customer document or a future fixture as if it were the record."
+  },
+  "thesis": "This assessment decides whether the technology the business described is automated decisionmaking technology used to make a significant decision, and, where it is, states for each of the three consumer rights what the business owes and what its own record shows it has. Where the record does not carry an element the assessment says so once, names the element, and says what would close it.",
+  "sections": [
+    {
+      "id": "applicability_verdict",
+      "title": "Whether these rules apply to this system",
+      "arc_stage": "headline",
+      "lead": "determination",
+      "source_key": "applicability_verdict",
+      "themes": ["scope", "admt_definition", "significant_decision", "compliance_date"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "scope_analysis",
+      "title": "The system as the business described it",
+      "arc_stage": "record",
+      "lead": "record",
+      "source_key": "scope_analysis",
+      "themes": ["system", "computation", "decision_domain", "human_review", "exception_claimed"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "notice_analysis",
+      "title": "The pre-use notice right",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "notice_gaps",
+      "themes": ["required_elements", "published_text", "purpose_statement", "sufficiency"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "opt_out_analysis",
+      "title": "The opt-out right",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "opt_out_gaps",
+      "themes": ["mechanism", "cessation_timeline", "alternative_process", "exception_dependence"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "access_analysis",
+      "title": "The access right",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "access_gaps",
+      "themes": ["response_elements", "logic_disclosure", "sole_factor", "operational_readiness"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "adequacy_by_element",
+      "title": "Whether the record carries each element",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "adequacy_finding",
+      "themes": ["element_conclusion", "authorities", "open_items_ledger"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "consolidated_analyses",
+      "title": "Whether the disclosures may be consolidated",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "consolidated_notice_analysis",
+      "themes": ["consolidation_scenarios", "aggregate_access", "conditions"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "obligations_and_deadlines",
+      "title": "The obligations and when they fall due",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "deadline_table",
+      "themes": ["compliance_dates", "risk_assessment_obligation", "submission"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "information_needed",
+      "title": "What the record does not yet state",
+      "arc_stage": "ask",
+      "lead": "record",
+      "source_key": "information_needed",
+      "themes": ["unresolved_elements", "single_ledger", "what_would_close_it"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "actions",
+      "title": "What to do next",
+      "arc_stage": "remedy",
+      "lead": "determination",
+      "source_key": "top_3_actions",
+      "themes": ["act", "owner", "date", "citation"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "documentation_to_maintain",
+      "title": "What to keep on file",
+      "arc_stage": "remedy",
+      "lead": "determination",
+      "source_key": "documentation_to_maintain",
+      "themes": ["records", "evidence", "retention"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "close",
+      "title": "Enforcement context and closing position",
+      "arc_stage": "close",
+      "lead": "determination",
+      "source_key": "enforcement_context",
+      "themes": ["exposure", "review_trigger", "closing_position"],
+      "required": true,
+      "status": "approved"
+    }
+  ],
+  "exemplar_pairs": [
+    {
+      "id": "xp-admt-1",
+      "section_id": "adequacy_by_element",
+      "before": "logic_disclosure — reason: \"The information provided does not resolve this question; the missing intake dimensions are listed under information needed.\" human_intervention — reason: \"The information provided does not resolve this question; the missing intake dimensions are listed under information needed.\"",
+      "after": "Whether the business can explain how the technology produced its output is not established from the information supplied. Whether a human reviewer's involvement meets the three-part standard is not established from the information supplied. Open items: the logic-disclosure element and the human-involvement element are unresolved; the intake fields that would close them are listed under what the record does not yet state.",
+      "note": "AG-1. One sentence per element, each naming its own question and stating its conclusion; the unresolved elements are named once in a single ledger sentence rather than by repeating the same hedge under every element."
+    },
+    {
+      "id": "xp-admt-2",
+      "section_id": "adequacy_by_element",
+      "before": "\"conclusion\": \"insufficient_basis\" · \"overall_status\": \"gaps_identified\" · \"status\": \"insufficient_basis\"",
+      "after": "\"conclusion_label\": \"not established from the information supplied\" · \"overall_status_label\": \"Action required in some areas\" · \"status_label\": \"More information needed\"",
+      "note": "AG-2. The machine enums stay in the machine fields the renderers key on; the reader reads words. No banned \"on the record\" idiom."
+    },
+    {
+      "id": "xp-admt-3",
+      "section_id": "consolidated_analyses",
+      "before": "\"consolidation_risk\": \"\", \"consolidation_benefit\": \"\", \"conditions_to_consolidate\": \"\" · \"information_needed\": [{}, {}]",
+      "after": "The record identifies a single ADMT system operated for a single purpose. None of the four consolidation scenarios under the Pre-use Notice consolidation provision are engaged: there are no multiple ADMT systems and no multiple distinct purposes for this single system.",
+      "note": "AG-3. A field either carries substance or it is not shipped. Hollow strings and empty objects are omitted, and the surface speaks through the basis sentence that does carry the record."
+    },
+    {
+      "id": "xp-admt-4",
+      "section_id": "actions",
+      "before": "Insufficient information to state a top action for this system.",
+      "after": "Privacy Officer: produce the hiring/admission exception qualification file — validity evidence and non-discrimination analysis — by January 1, 2027; until confirmed, implement all opt-out obligations including the 15-business-day cessation standard.",
+      "note": "The after-register for actions: a concrete act, a named owner, a date, and a registry-stamped citation carried on the entry. Mined from the reference render as REGISTER only — the facts are fact-exempt."
+    },
+    {
+      "id": "xp-admt-5",
+      "section_id": "applicability_verdict",
+      "before": "The system may fall within scope. Article 11 duties are assessed below subject to confirmation of the applicable definitions and categories.",
+      "after": "The system satisfies the definition of automated decisionmaking technology and is used to make a significant decision in an enumerated domain, placing the business within scope of the obligations for all three rights — pre-use notice, opt-out, and access — with a compliance date of January 1, 2027. Where a qualifying element cannot be confirmed, the assessment proceeds on the determination that the obligations attach and says what would change that.",
+      "note": "The after-register for the headline: the verdict first, the enumerated ground next, the date, and then the one honest reservation stated once."
+    }
+  ]
+}

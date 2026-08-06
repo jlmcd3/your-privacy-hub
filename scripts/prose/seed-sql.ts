@@ -28,6 +28,8 @@ export const SEED_ITEMS: readonly SeedItem[] = [
   { table: "prose_frame_sets", column: "frames", product: "registration", rel: "frames/registration.frames.json" },
   { table: "prose_document_plans", column: "plan", product: "biometric", rel: "plans/biometric.plan.json" },
   { table: "prose_frame_sets", column: "frames", product: "biometric", rel: "frames/biometric.frames.json" },
+  // ITEM 392 — ADMT prose plan (leg A).
+  { table: "prose_document_plans", column: "plan", product: "admt", rel: "plans/admt.plan.json" },
 ];
 
 /** Columns an upsert may refresh on an existing row. `approved` is NOT one. */
