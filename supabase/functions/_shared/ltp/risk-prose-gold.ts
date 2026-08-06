@@ -55,6 +55,29 @@ export function stripDegradedOpeners(text: string): string {
   return out.trim();
 }
 
+/** Minimum substance (characters) a stripped surface must retain on a
+ * gate-FALSE document. Below this the placeholder IS the honest content. */
+export const MIN_SURFACE_SUBSTANCE = 40;
+
+/**
+ * item384 r2 — empty-surface guard. On a gate-FALSE document the emit-gate
+ * placeholder may be the ENTIRE surface; stripping it leaves a blank section,
+ * which is worse than the honest placeholder. In that case the original text
+ * is returned byte-identical. On gate-TRUE documents the verdict-led rebuild
+ * owns the surface, so the strip is unconditional.
+ */
+export function stripDegradedOpenersGuarded(
+  text: string,
+  recordComplete: boolean,
+): string {
+  const original = String(text ?? "");
+  const stripped = stripDegradedOpeners(original);
+  if (recordComplete === true) return stripped;
+  if (stripped.replace(/\s+/g, " ").trim().length < MIN_SURFACE_SUBSTANCE) return original;
+  return stripped;
+}
+
+
 /** The two legacy sufficiency voices retired by G-1. */
 export const SUFFICIENCY_VOICE_V2_RE =
   /has adequately documented\s+\d+\s+of the § 7152\(a\) elements listed below/i;
