@@ -28,7 +28,11 @@ import {
 
 export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 
-export type RecordCompleteProduct = "dpia" | "cppa-risk";
+// ITEM 383 leg 1 — "lia" joins the union. LIA has NO coverage matrix and NO
+// CSC yet (those land in later legs), so the fail-closed rules keep the LIA
+// gate value FALSE with `coverage_orphans` + `csc_false_absence` in
+// failed_conditions. That is correct and intended for this leg.
+export type RecordCompleteProduct = "dpia" | "cppa-risk" | "lia";
 
 export type FailedCondition =
   | "contract_incomplete"
