@@ -32,6 +32,8 @@ export const COACH_COPY = {
   strongHeading: "Already strong",
   strongIntro: "These answers carry enough detail for the assessment to work from.",
   consequenceLabel: "As written, your assessment will record…",
+  detailsLabel: "The boxes to look at first",
+
   adviceLabel: "Strengthen your answer by…",
   jumpLabel: "Jump to this question",
   continueLabel: "Continue",
@@ -66,7 +68,13 @@ export interface CoachCard {
   consequenceSource: string;
   advice: string;
   jumpSelector: string;
+  /**
+   * ITEM 381 r2 — for a consolidated block card (A4 benefits), the boxes
+   * inside the block that are empty or short. Empty for every other card.
+   */
+  details?: string[];
 }
+
 
 export interface CoachResult {
   product: CoachProduct;
@@ -120,6 +128,21 @@ function excerptOf(text: string): string {
   return t.length <= 180 ? t : `${t.slice(0, 177)}…`;
 }
 
+/**
+ * ITEM 381 r2 — for a consolidated block card, the labels of the boxes inside
+ * the block that are empty or shorter than the block's sub-field threshold.
+ * Undefined for every spot that declares no sub-fields.
+ */
+export function weakSubFields(intake: unknown, spot: ThinSpot): string[] | undefined {
+  if (!spot.subFields?.length) return undefined;
+  const min = spot.subFieldMinLength ?? 20;
+  const out = spot.subFields
+    .filter((f) => flattenText(intake, f.key).trim().length < min)
+    .map((f) => f.label);
+  return out.length ? out : undefined;
+}
+
+
 // ── the builder ─────────────────────────────────────────────────────────
 
 export function buildCoach(
@@ -161,6 +184,32 @@ export function buildCoach(
       continue;
     }
 
+    // ITEM 381 r2 — consolidated block (a spot that declares sub-fields): the
+    // primary box is answered but one of the other boxes in the same block is
+    // an asked question left empty. The gate counts that box, so the card is
+    // the unanswered card, naming the boxes concerned.
+    if (spot.subFields?.length) {
+      const emptyBoxes = spot.subFields.filter(
+        (f) => empty.has(f.key) && fieldWasAsked(contract, f.key, intake),
+      );
+      if (emptyBoxes.length) {
+        unanswered.push({
+          key: spot.key,
+          title: spot.title,
+          reason: "unanswered",
+          excerpt: "",
+          consequence: UNANSWERED_CONSEQUENCE,
+          consequenceSource:
+            "supabase/functions/_shared/ltp/record-complete.ts (emptyAskedKeys, affirmativeParagraph, decideBanner)",
+          advice: spot.advice,
+          jumpSelector: spot.jumpSelector,
+          details: emptyBoxes.map((f) => f.label),
+        });
+        continue;
+      }
+    }
+
+
     if (isThin(text, spot) || (isEmpty && spot.adviceOnlyWhenEmpty)) {
       thin.push({
         key: spot.key,
@@ -171,9 +220,11 @@ export function buildCoach(
         consequenceSource: spot.consequenceSource,
         advice: spot.advice,
         jumpSelector: spot.jumpSelector,
+        details: weakSubFields(intake, spot),
       });
       continue;
     }
+
 
     if (!isEmpty) strong.push(spot.title);
   }

@@ -76,6 +76,15 @@ const IntakeCoachStep = ({ open, product, contract, intake, onContinue, onClose 
                 {card.excerpt ? (
                   <p className="text-meta text-muted-foreground italic">“{card.excerpt}”</p>
                 ) : null}
+                {card.details?.length ? (
+                  <div>
+                    <div className="text-meta font-semibold">{COACH_COPY.detailsLabel}</div>
+                    <ul className="list-disc pl-5 text-sm text-muted-foreground">
+                      {card.details.map((d) => <li key={d}>{d}</li>)}
+                    </ul>
+                  </div>
+                ) : null}
+
                 <div>
                   <div className="text-meta font-semibold">{COACH_COPY.consequenceLabel}</div>
                   <p className="text-sm text-muted-foreground">{card.consequence}</p>

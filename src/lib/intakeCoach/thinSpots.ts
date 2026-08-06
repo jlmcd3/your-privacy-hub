@@ -30,6 +30,14 @@ export interface ThinSpot {
   minLength?: number;
   /** The answer is thin when this marker is absent. */
   marker?: RegExp;
+  /**
+   * ITEM 381 r2 — boxes inside one consolidated block. When the card fires, it
+   * names which of these are empty or shorter than subFieldMinLength.
+   */
+  subFields?: readonly { readonly key: string; readonly label: string }[];
+  /** Length below which a sub-field is named inside the card. */
+  subFieldMinLength?: number;
+
   /** Human-readable statement of the detector, shown in tests and reviews. */
   heuristic: string;
   /** TRUE statement of what the report does with the answer as written. */
@@ -49,21 +57,27 @@ export interface ThinSpot {
 
 export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
   {
+    // ITEM 381 r2 — the marker is evaluated over the primary field text
+    // CONCATENATED with every companion field (see buildCoach.spotText), and
+    // the vocabulary covers purpose/achievement clauses, not only the literal
+    // word "benefit". Direction of error: miss a weak answer rather than
+    // accuse a strong one.
     key: "necessity_proportionality",
     title: "Why the processing is necessary, and what else you considered",
     jumpSelector: '[data-coach-field="necessity_proportionality"]',
     rank: 1,
     marker:
-      /\b(benefit|benefits|gain|gains|advantage|outweigh|outweighs|in return|worth|value to)\b/i,
+      /\b(benefit\w*|gain\w*|advantage\w*|outweigh\w*|in return|worth|value|needs?\s+\w+|enables?|allows?|so that|in order to|achieves?|delivers?|prevent\w*|protect\w*|reduces?|detect\w*|to (?:set|pay|provide|protect|prevent|meet|support))\b/i,
     heuristic:
-      "One-sided balance: the answer is present but carries no benefit-side wording, so only the impact side is described.",
+      "One-sided balance: the answer describes the impact and carries no wording of any kind for what the processing achieves or for whom.",
     consequence:
-      "As written, the necessity section sets out the impact of the processing and compares only the options you have described. It carries no benefit side, so the balance renders one-sided.",
+      "As written, the necessity section sets out the impact of the processing and compares only the options you have described. Your answer states no outcome the processing achieves, so the balance renders with one side only.",
     consequenceSource:
       "src/pages/DPIAFramework.tsx necessity guidance; supabase/functions/_shared/ltp/dpia-csc.ts (necessity surface)",
     advice:
       "Add the other half of the balance: what the processing achieves and for whom, next to what it costs the people affected. A two-sided answer names both — the shape is \"the check removes X, at the cost of Y for the people affected\".",
   },
+
   {
     key: "data_subjects_views",
     companions: ["data_subjects_views_sought"],
@@ -110,38 +124,46 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
       "Walk the activity through from collection to deletion and name the systems at each step, with figures where you have them.",
   },
   {
+    // ITEM 381 r2 — the phase-word marker was RETIRED: it fired on
+    // dpia-perfect-uk-complete, a sufficiency-audited record whose asset list
+    // is a plain, complete list of named systems. A named-systems list is not
+    // a weak answer, so the detector now only notices a list too short to
+    // carry any system at all.
     key: "supporting_assets",
     title: "The systems the activity runs on",
     jumpSelector: '[data-coach-field="supporting_assets"]',
     rank: 5,
-    marker:
-      /\b(collect|collection|store|storage|stored|access|accessed|transfer|transferred|delete|deletion|retain|retention|host|hosted|process|processing)\b/i,
+    minLength: 40,
     heuristic:
-      "List without phases: systems are named but no processing phase word ties them to a step.",
+      "Short list: fewer than 40 characters of substance across the supporting-systems boxes.",
     consequence:
-      "As written, the supporting-systems section lists what you enter without tying any system to a step of the activity.",
+      "As written, the supporting-systems section carries only the few words you entered as the record of the systems the activity runs on.",
     consequenceSource:
       "src/pages/DPIAFramework.tsx supporting-assets guidance; supabase/functions/_shared/ltp/dpia-deliverables",
     advice:
-      "Tie each system to the phase it serves — the shape is \"collection: A; storage: B; access: C\".",
+      "Name each system the activity runs on, and where you can, the phase it serves — the shape is \"collection: A; storage: B; access: C\".",
   },
   {
+    // ITEM 381 r2 — evaluated over retention_period AND retention_record_type
+    // together (a schedule or register reference in the record-type box is a
+    // reason), with the vocabulary widened to real-world phrasing.
     key: "retention_period",
     companions: ["retention_record_type"],
     title: "How long the data is kept",
     jumpSelector: '[data-coach-field="retention_period"]',
     rank: 6,
     marker:
-      /\b(because|since|required|statut\w*|law|legal|regulat\w*|policy|so that|in order|to meet|obligation)\b/i,
+      /\b(because|since|required|statut\w*|law|legal|regulat\w*|policy|policies|so that|in order|to meet|obligation|register|schedule\w*|retention entry|entry\s+[A-Z0-9-]+|records? register|fixed by|set by|contract\w*|limitation period)\b/i,
     heuristic:
-      "Period without a reason: a duration is given but no wording explains what sets it.",
+      "Period without a reason: a duration is given and neither the period box nor the record-type box carries any wording for what sets it.",
     consequence:
-      "As written, the retention section states your period and treats it as freely chosen, because no rule or reason is given for it.",
+      "As written, the retention section states your period without what sets it, so the record gives a duration and no rule, schedule or contract behind it.",
     consequenceSource:
       "src/pages/DPIAFramework.tsx retention guidance; supabase/functions/_shared/ltp/submission-retention.ts",
     advice:
-      "Give the period and what sets it — a statutory rule, a contract, or your own policy — and name the record type where a law fixes the minimum.",
+      "Give the period and what sets it — a statutory rule, a contract, or your own retention schedule — and name the record type where a law fixes the minimum.",
   },
+
   {
     key: "dpia_signoff_basis",
     companions: [
@@ -166,32 +188,45 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
 
 // ── CPPA RISK ───────────────────────────────────────────────────────────
 
-const A4_BENEFIT_MARKER = /\b(consumer|consumers|customer|customers|business|employee|employees|public|user|users|resident|residents|applicant|applicants|patient|patients|merchant|merchants)\b/i;
+// ITEM 381 r2 — A4 CONSOLIDATION. The four benefit statements and their four
+// supporting-fact boxes are ONE form block with ONE anchor, so they are one
+// card. The detector evaluates the whole block (primary + companions) and the
+// card names, inside itself, which of the eight boxes are thin or empty.
+const A4_BENEFIT_MARKER =
+  /\b(consumer\w*|customer\w*|business\w*|employee\w*|public|user\w*|resident\w*|applicant\w*|patient\w*|merchant\w*|associate\w*|team\w*|staff|administrator\w*|council|community|\d+%|\$\s?\d|\d+\s*(?:minute|hour|day|month|year)\w*)\b/i;
 
-function a4Spot(key: string, title: string, rank: number): ThinSpot {
-  return {
-    key,
-    title,
-    jumpSelector: `[data-coach-field="a4_benefits"]`, // the four benefit groups share one block
-    rank,
-    minLength: 40,
+const A4_SUBFIELDS = [
+  { key: "a4_benefit_business", label: "the benefit to the business" },
+  { key: "a4_benefit_business_fact", label: "the fact that shows the business benefit" },
+  { key: "a4_benefit_consumer", label: "the benefit to consumers" },
+  { key: "a4_benefit_consumer_fact", label: "the fact that shows the consumer benefit" },
+  { key: "a4_benefit_other_stakeholders", label: "the benefit to other stakeholders" },
+  { key: "a4_benefit_other_stakeholders_fact", label: "the fact that shows the other-stakeholder benefit" },
+  { key: "a4_benefit_public", label: "the benefit to the public" },
+  { key: "a4_benefit_public_fact", label: "the fact that shows the public benefit" },
+] as const;
+
+export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
+  {
+    key: "a4_benefit_business",
+    companions: A4_SUBFIELDS.slice(1).map((f) => f.key),
+    subFields: A4_SUBFIELDS,
+    subFieldMinLength: 20,
+    title: "The benefits of the activity",
+    jumpSelector: '[data-coach-field="a4_benefits"]',
+    rank: 1,
+    minLength: 80,
     marker: A4_BENEFIT_MARKER,
     heuristic:
-      "Short (under 40 characters) or names no beneficiary group: no group word appears in the answer.",
+      "Across all four benefit statements and their supporting-fact boxes together: under 80 characters of substance, or no group and no concrete outcome named anywhere in the block.",
     consequence:
-      "As written, the benefits section states this benefit as you enter it. Where the answer names no group and no outcome, the assessment records the benefit as claimed rather than shown.",
+      "As written, the benefits section states the benefits in your own words. Your answers name no group who gains and no outcome they get, so the assessment records the benefits as claimed rather than shown.",
     consequenceSource:
       "supabase/functions/_shared/ltp/risk-csc.ts R1 benefitAsk (§ 7152(a)(4))",
     advice:
       "Name who gains and the concrete outcome they get, and put the fact from your own records that shows it in the supporting box.",
-  };
-}
+  },
 
-export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
-  a4Spot("a4_benefit_business", "The benefit to the business", 1),
-  a4Spot("a4_benefit_consumer", "The benefit to consumers", 2),
-  a4Spot("a4_benefit_other_stakeholders", "The benefit to other stakeholders", 3),
-  a4Spot("a4_benefit_public", "The benefit to the public", 4),
   {
     key: "a5_harm_pathways",
     title: "How harm could occur",
@@ -226,6 +261,14 @@ export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
   {
     key: "i5_admt_logic",
     companions: ["i5_admt_fairness_testing", "i5_admt_human_review"],
+    // ITEM 381 r2 — one block, three boxes: the card names the box concerned.
+    subFields: [
+      { key: "i5_admt_logic", label: "how the system reaches its decision" },
+      { key: "i5_admt_fairness_testing", label: "the fairness testing you ran" },
+      { key: "i5_admt_human_review", label: "what a human reviewer can change" },
+    ],
+    subFieldMinLength: 20,
+
     title: "How the automated decision-making works",
     jumpSelector: '[data-coach-field="i5_admt_logic"]',
     rank: 7,
@@ -245,27 +288,34 @@ export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
     jumpSelector: '[data-coach-field="a6_safeguards"]',
     rank: 8,
     minLength: 80,
-    marker: /\b(residual|remain\w*|still|after|left|reduced to|cannot be|not eliminated)\b/i,
+    // ITEM 381 r2 — widened: a residual entry is often stated as a rating with
+    // its monitoring ("Low — monitored via SOC alerts"), which is a residual
+    // statement even without the word "residual".
+    marker:
+      /\b(residual|remain\w*|still|after|left|reduced to|cannot be|not eliminated|monitor\w*|ongoing|persist\w*|low|moderate|medium|high|within band|band)\b/i,
     heuristic:
-      "Short (under 80 characters) or no residual wording across the safeguard rows.",
+      "Short (under 80 characters) across the safeguard rows, or no wording anywhere in the rows for what is left after the safeguards.",
     consequence:
-      "As written, the safeguards section reports each safeguard and its status. Where no residual risk is stated, it records none.",
+      "As written, the safeguards section reports each safeguard and its status. Your rows state nothing about what is left after them, so the assessment records no remaining risk.",
     consequenceSource:
       "supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts a6_safeguards[].residual",
     advice:
       "State what remains after each safeguard rather than treating the harm as removed.",
   },
   {
+    // ITEM 381 r2 — blank is a COMPLETE answer here (contract emptyIsAnswer),
+    // so the card no longer fires on a blank block; it fires only on a
+    // started-but-short entry.
     key: "exceptions_intake",
     title: "Statutory exceptions you claim",
     jumpSelector: '[data-coach-field="exceptions_intake"]',
     rank: 9,
     minLength: 30,
-    adviceOnlyWhenEmpty: true,
     heuristic:
-      "Blank, or fewer than 30 characters across the exception boxes. Blank is an answer here, so the card carries advice only.",
+      "An exception entry has been started but carries fewer than 30 characters across its boxes. A blank block is a complete answer and is never carded.",
     consequence:
-      "As written, your assessment records that no statutory exception is claimed for this activity.",
+      "As written, your assessment carries the exception exactly as entered, and the few words in the boxes are all the record holds about what it covers.",
+
     consequenceSource:
       "supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts exceptions_intake (emptyIsAnswer); supabase/functions/_shared/ltp/risk-csc.ts R2",
     advice:
