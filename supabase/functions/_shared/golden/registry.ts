@@ -81,7 +81,7 @@ import { CPPA_RISK_PERFECT } from "./cppa-risk.ts";
 // ITEM 383 leg 1 — LIA perfect fixture (×1).
 import { LIA_PERFECT } from "./lia-perfect.ts";
 // ITEM 393 leg B — ADMT perfect fixture (×1).
-import { CPPA_ADMT_GOLDEN as _CPPA_ADMT_GOLDEN_UNUSED, ADMT_PERFECT } from "./cppa-admt.ts";
+import { ADMT_PERFECT } from "./cppa-admt.ts";
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
