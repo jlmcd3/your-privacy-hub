@@ -1383,7 +1383,10 @@ async function dispatchGeneration(
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "lia") {
-      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal","supplemental_responses","supplemental_context"];
+      const LIA_COLS = ["stage","status","organization_name","subject_anchor","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","attestation","preview_signal","supplemental_responses","supplemental_context"];
+      // ITEM 383 leg 1 — subject_anchor + attestation are real li_assessments
+      // columns and Stage-B contract keys; without them a "perfect" LIA pin
+      // could never persist as a complete record.
       const cleaned: any = {};
       for (const k of LIA_COLS) if (intake?.[k] !== undefined) cleaned[k] = intake[k];
       if (!cleaned.stage) cleaned.stage = "final";
@@ -1649,7 +1652,10 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
     }
     if (tool === "lia") {
       // Whitelist columns to li_assessments schema — drop any AI-hallucinated keys
-      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal","supplemental_responses","supplemental_context"];
+      const LIA_COLS = ["stage","status","organization_name","subject_anchor","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","attestation","preview_signal","supplemental_responses","supplemental_context"];
+      // ITEM 383 leg 1 — subject_anchor + attestation are real li_assessments
+      // columns and Stage-B contract keys; without them a "perfect" LIA pin
+      // could never persist as a complete record.
       const cleaned: any = {};
       for (const k of LIA_COLS) if (intake?.[k] !== undefined) cleaned[k] = intake[k];
       if (!cleaned.stage) cleaned.stage = "final";

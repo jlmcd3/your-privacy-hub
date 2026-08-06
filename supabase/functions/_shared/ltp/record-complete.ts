@@ -28,7 +28,11 @@ import {
 
 export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 
-export type RecordCompleteProduct = "dpia" | "cppa-risk";
+// ITEM 383 leg 1 — "lia" joins the union. LIA has NO coverage matrix and NO
+// CSC yet (those land in later legs), so the fail-closed rules keep the LIA
+// gate value FALSE with `coverage_orphans` + `csc_false_absence` in
+// failed_conditions. That is correct and intended for this leg.
+export type RecordCompleteProduct = "dpia" | "cppa-risk" | "lia";
 
 export type FailedCondition =
   | "contract_incomplete"
@@ -93,6 +97,11 @@ function readPath(root: unknown, key: string): unknown[] {
  */
 export const SYSTEM_KEYS: ReadonlySet<string> = new Set<string>([
   "source_assessment_id",
+  // ITEM 383 leg 1 — the LIA Stage-B payload carries the id of the preview row
+  // the app created; no form control presents it. It is a pointer, not a
+  // question. No other contract in the union declares this key, so DPIA and
+  // Risk gate behaviour is byte-identical.
+  "preview_assessment_id",
 ]);
 
 /**
@@ -184,6 +193,9 @@ export function emptyAskedKeys(
 export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, readonly string[]>> = {
   dpia: ["c2_absence_claim_vs_record"],
   "cppa-risk": ["r1_benefits_vs_intake", "r2_exception_vs_record"],
+  // ITEM 383 leg 1 — LIA has no CSC pass yet; the list is empty and the
+  // absent-telemetry arm of the gate holds it shut regardless.
+  lia: [],
 };
 
 export interface RecordCompleteInput {
