@@ -104,6 +104,38 @@ function foldInitialCap(s: string): string {
   return s[0].toLowerCase() + s.slice(1);
 }
 
+/**
+ * ITEM 390 (FIX 1) — SENTENCE-VALUED SLOT EXEMPTION.
+ *
+ * ITEM 337's authorized purpose (see this module's docstring) is enum and
+ * FRAGMENT repair: "Directly from account signup" ⇒ "from account signup",
+ * "Fixed period" ⇒ "a fixed period", "telemetry.." ⇒ "telemetry.". It was
+ * never authorized for slot values that are already COMPLETE, byte-pinned
+ * SENTENCES. Applied to those, step-4 stripped the locked terminal period and
+ * step-6 lowercased the locked initial capital — and because the strip removed
+ * the sentence boundary, `stemTail` then reported `endsSentence: false` for the
+ * NEXT slot, cascading the fold down the template. Shipped result on the
+ * ITEM 319 locked pair: "…assessed activity recommended: marketing…".
+ *
+ * A value is a complete sentence when it opens with a capital, carries more
+ * than one word, and closes with a single terminal mark. Such a value is
+ * neither stripped nor folded: it renders verbatim, and the boundary it keeps
+ * lets the FOLLOWING slot retain its own initial capital.
+ *
+ * Deliberately strict so ITEM 337's fragment behaviour stays byte-identical:
+ *   • "telemetry.."          → doubled mark, lowercase opener  → NOT a sentence
+ *   • "Fixed period"         → no terminal mark                → NOT a sentence
+ *   • "Deliver the service"  → no terminal mark                → NOT a sentence
+ */
+function isSentenceValue(s: string): boolean {
+  const t = s.trim();
+  if (t.length < 12) return false;
+  if (!/\s/.test(t)) return false;                 // a lone token is never a sentence
+  if (!/^["'(\[]?[A-Z]/.test(t)) return false;     // must open with a capital
+  if (/[.!?]{2,}["')\]]?$/.test(t)) return false;  // doubled mark = ITEM 337 artifact
+  return /[.!?]["')\]]?$/.test(t);
+}
+
 function stemTail(stem: string): { lastWord: string; endsSentence: boolean; endsPunct: string } {
   const t = stem.replace(/\s+$/, "");
   const lastWord = (/([A-Za-z']+)$/.exec(t)?.[1] ?? "").toLowerCase();
