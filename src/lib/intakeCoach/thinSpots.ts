@@ -30,6 +30,14 @@ export interface ThinSpot {
   minLength?: number;
   /** The answer is thin when this marker is absent. */
   marker?: RegExp;
+  /**
+   * ITEM 381 r2 — boxes inside one consolidated block. When the card fires, it
+   * names which of these are empty or shorter than subFieldMinLength.
+   */
+  subFields?: readonly { readonly key: string; readonly label: string }[];
+  /** Length below which a sub-field is named inside the card. */
+  subFieldMinLength?: number;
+
   /** Human-readable statement of the detector, shown in tests and reviews. */
   heuristic: string;
   /** TRUE statement of what the report does with the answer as written. */
