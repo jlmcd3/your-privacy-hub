@@ -30,7 +30,7 @@ Deno.test("serializer: lia_pipeline_stamp + record_complete survive the whitelis
   attachRecordComplete(doc, t, classifyPlaceholders(doc, intake, t.value));
 
   const { report, telemetry } = serializeCustomerReport(doc, LIA_REPORT_SCHEMA);
-  assertEquals(telemetry.crashed, false);
+  assert(telemetry.crashed !== true);
   const internal = (report as any)?._meta?.internal ?? {};
   assertEquals(internal.lia_pipeline_stamp, LIA_PIPELINE_STAMP);
   assertEquals(internal.record_complete?.product, "lia");

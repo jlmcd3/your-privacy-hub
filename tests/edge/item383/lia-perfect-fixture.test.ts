@@ -2,6 +2,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { LIA_PERFECT } from "../../../supabase/functions/_shared/golden/lia-perfect.ts";
 import { PERFECT_BY_TOOL, casesForVariant, intakesForVariant, GOLDEN_BY_TOOL } from "../../../supabase/functions/_shared/golden/registry.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
 import { liAssessmentStageBContract } from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
 import {
   emptyAskedKeys,
@@ -54,7 +55,9 @@ Deno.test("registry: PERFECT_BY_TOOL + casesForVariant wiring for lia", () => {
   assertEquals(intakesForVariant("lia", "perfect"), [INTAKE]);
   // Legacy paths unchanged.
   assertEquals(casesForVariant("lia", null), GOLDEN_BY_TOOL["lia"]);
-  assertEquals(casesForVariant("lia", "messy"), []);
+  // A messy LIA fixture already exists (MESSY_BY_TOOL['lia']); the perfect
+  // wiring must not disturb it.
+  assertEquals(casesForVariant("lia", "messy"), MESSY_BY_TOOL["lia"]);
 });
 
 Deno.test("gate: lia is in the product union with an empty false-absence list", () => {
