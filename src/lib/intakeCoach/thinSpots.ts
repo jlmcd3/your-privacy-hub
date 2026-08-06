@@ -305,9 +305,9 @@ export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
     minLength: 30,
     heuristic:
       "An exception entry has been started but carries fewer than 30 characters across its boxes. A blank block is a complete answer and is never carded.",
-
     consequence:
-      "As written, your assessment records that no statutory exception is claimed for this activity.",
+      "As written, your assessment carries the exception exactly as entered, and the few words in the boxes are all the record holds about what it covers.",
+
     consequenceSource:
       "supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts exceptions_intake (emptyIsAnswer); supabase/functions/_shared/ltp/risk-csc.ts R2",
     advice:
