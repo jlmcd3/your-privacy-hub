@@ -23,7 +23,7 @@ import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
 export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379r2";
 
-export type CoverageProduct = "dpia" | "cppa-risk" | "lia";
+export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt";
 
 export interface CoverageOrphan {
   /** Stable machine id for the broken link. */
@@ -680,8 +680,184 @@ function liaCoverage(
 }
 
 // ---------------------------------------------------------------------------
+// ADMT — ITEM 394 LEG C
+//
+// The link config binds the cppa-admt contract's SUPPLIED facts to the item392
+// section arc (`prose/plans/admt.spine.ts`). A link is an orphan only when the
+// record SUPPLIES the fact and the section the plan gives it carries nothing.
+// Silence in the record is never an orphan. Anchorage for actions is DECLARED
+// (`anchor_keys`) — never inferred from word overlap.
+// ---------------------------------------------------------------------------
+
+export interface AdmtCoverageLink {
+  /** Dotted intake paths (any one filled engages the link). */
+  readonly keys: readonly string[];
+  /** Dotted report path of the surface the plan gives those facts. */
+  readonly surface: string;
+  /** Plan section id (admt.spine.ts), for the orphan detail. */
+  readonly section: string;
+}
+
+export const ADMT_COVERAGE_LINKS: readonly AdmtCoverageLink[] = [
+  {
+    keys: ["system_name", "system_type", "system_description", "decision_domains"],
+    surface: "scope_analysis",
+    section: "scope_analysis",
+  },
+  {
+    keys: [
+      "notice_delivery",
+      "notice_full_text",
+      "notice_has_specific_purpose",
+      "notice_purpose_text",
+    ],
+    surface: "notice_element_findings",
+    section: "notice_analysis",
+  },
+  {
+    keys: [
+      "opt_out_methods",
+      "opt_out_exception",
+      "opt_out_confirmation_mechanism",
+      "opt_out_15_day_process",
+    ],
+    surface: "opt_out_gaps",
+    section: "opt_out_analysis",
+  },
+  {
+    keys: [
+      "access_submission_methods",
+      "access_verification_process",
+      "access_logic_disclosure",
+      "access_outcome_disclosure",
+      "access_response_timeline",
+    ],
+    surface: "access_readiness_findings",
+    section: "access_analysis",
+  },
+  {
+    keys: [
+      "human_review",
+      "opt_out_appeal_process",
+      "admt_detail.appeal_reviewer_role",
+    ],
+    surface: "adequacy_finding",
+    section: "adequacy_by_element",
+  },
+  {
+    keys: ["third_party_admt", "admt_detail.vendor_status", "admt_detail.vendor_docs"],
+    surface: "documentation_to_maintain",
+    section: "documentation_to_maintain",
+  },
+  {
+    keys: [
+      "training_data_use",
+      "profiling_use",
+      "ca_consumer_count",
+      "affected_population_band",
+    ],
+    surface: "risk_assessment_obligation",
+    section: "obligations_and_deadlines",
+  },
+];
+
+/** Every intake dotted path the ADMT link config knows about. */
+export const ADMT_LINKED_INTAKE_KEYS: readonly string[] = ADMT_COVERAGE_LINKS
+  .flatMap((l) => l.keys);
+
+/** Substance a surface must carry before the link counts as resolved. */
+const ADMT_SURFACE_MIN_CHARS = 40;
+
+function admtIntakeValue(intake: unknown, path: string): unknown {
+  let cur: unknown = intake;
+  for (const seg of String(path).split(".")) {
+    if (!cur || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[seg];
+  }
+  return cur;
+}
+
+function admtFilled(intake: unknown, path: string): boolean {
+  return nonEmpty(admtIntakeValue(intake, path));
+}
+
+function admtSurfaceSubstance(node: unknown): number {
+  return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
+}
+
+function admtCoverage(
+  report: Record<string, unknown>,
+  intake: Record<string, unknown>,
+  t: CoverageTelemetry,
+): void {
+  const docText = documentText(report);
+
+  // L1 — supplied fact → the plan's section for it.
+  for (const link of ADMT_COVERAGE_LINKS) {
+    const supplied = link.keys.filter((k) => admtFilled(intake, k));
+    if (supplied.length === 0) continue; // honest silence
+    t.counts.links_checked++;
+    const node = getPath(report, link.surface);
+    if (admtSurfaceSubstance(node) >= ADMT_SURFACE_MIN_CHARS) continue;
+    t.orphans.push({
+      type: "supplied_fact_without_section",
+      path: link.surface,
+      detail:
+        `the record supplies ${supplied.join(", ")} but the "${link.section}" section carries nothing that reflects it.`,
+    });
+  }
+
+  // L2 — every action must trace to something the record states, by DECLARED
+  // anchorage. An action that declares no anchor keys is not inferred against
+  // word overlap: undeclared anchorage is silence, never an orphan.
+  for (const listKey of ["top_3_actions", "priority_actions"]) {
+    arr(report[listKey]).forEach((a, i) => {
+      const declared = Array.isArray(a.anchor_keys)
+        ? (a.anchor_keys as unknown[]).map(String)
+        : null;
+      if (!declared) return; // undeclared — never inferred
+      t.counts.links_checked++;
+      // An empty declared list means "this closes an open element" — the
+      // anchor is the absence itself, so it is never an orphan.
+      if (declared.length === 0) return;
+      if (declared.some((k) => admtFilled(intake, k))) return;
+      const label = text(a.action ?? a.finding ?? a.remediation ?? a.title).slice(0, 80);
+      t.orphans.push({
+        type: "action_without_record_anchor",
+        path: `${listKey}[${i}]`,
+        detail: `the action "${label}" names ${declared.join(", ")} as its record anchor and the record fills none of them.`,
+      });
+    });
+  }
+
+  // L3 — asks raised against facts the record in fact supplies.
+  const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
+  asks.forEach((ask, i) => {
+    t.counts.links_checked++;
+    const body = askText(ask) || text(ask);
+    if (!body.trim()) return;
+    const named = ADMT_LINKED_INTAKE_KEYS.filter((k) => body.includes(k));
+    const supplied = named.filter((k) => admtFilled(intake, k));
+    if (supplied.length === 0) return;
+    t.orphans.push({
+      type: "ask_against_supplied_fact",
+      path: `information_needed[${i}]`,
+      detail: `the ask names ${supplied.join(", ")} although the record supplies it.`,
+    });
+  });
+
+  t.unused_intake_facts = ADMT_LINKED_INTAKE_KEYS.filter((k) => {
+    const v = admtIntakeValue(intake, k);
+    if (typeof v !== "string" || v.trim().length < 24) return false;
+    const words = contentWords(v);
+    return words.length > 0 && !words.some((w) => docText.includes(w));
+  });
+}
+
+// ---------------------------------------------------------------------------
 // the pass
 // ---------------------------------------------------------------------------
+
 
 
 export function runCoverageMatrix(
@@ -702,6 +878,7 @@ export function runCoverageMatrix(
     const intake = (intakeIn && typeof intakeIn === "object" ? intakeIn : {}) as Record<string, unknown>;
     if (product === "dpia") dpiaCoverage(report, intake, t);
     else if (product === "lia") liaCoverage(report, intake, t);
+    else if (product === "cppa-admt") admtCoverage(report, intake, t);
     else riskCoverage(report, intake, t);
   } catch (e) {
     t.crashed = true;

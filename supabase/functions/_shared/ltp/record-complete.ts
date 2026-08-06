@@ -201,10 +201,11 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // the gate reads real evidence: an UNREPAIRED l2 violation is a false
   // absence claim about a record that supplies the fact.
   lia: ["l2_absence_claim_vs_record"],
-  // ITEM 393 leg B — empty until the ADMT CSC leg lands. The gate still
-  // fails closed on ADMT because absent/crashed CSC telemetry is itself a
-  // failed condition.
-  "cppa-admt": [],
+  // ITEM 394 LEG C — the ADMT CSC pass (`_shared/ltp/admt-csc.ts`) now runs,
+  // so the gate reads real evidence: an UNREPAIRED a2 violation is a false
+  // absence claim about a record that supplies the fact.
+  "cppa-admt": ["a2_absence_claim_vs_record"],
+
 };
 
 export interface RecordCompleteInput {

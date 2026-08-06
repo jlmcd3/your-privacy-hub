@@ -29,7 +29,7 @@ export const ADMT_PLAN_ROW_ID = "f59eb3b8-d747-4110-a3ab-0452e9cf92fd";
 export const ADMT_PLAN_VERSION = "prose-plans-2026-08-06-item392";
 
 /** The finalize-point stamp written into `_meta.internal.admt_pipeline_stamp`. */
-export const ADMT_PIPELINE_STAMP = "admt-pipeline@item392-2026-08-06";
+export const ADMT_PIPELINE_STAMP = "admt-pipeline@item394-2026-08-06";
 
 /** Transcribed verbatim from the approved plan row. */
 export const ADMT_THESIS =
