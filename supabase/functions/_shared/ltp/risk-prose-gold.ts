@@ -381,6 +381,11 @@ export interface RiskProseGoldTelemetry {
   exec_degraded_opener_stripped: boolean;
   sufficiency_voices_retired: number;
   attestation_normalized: boolean;
+  /** r3 RESIDUAL 1 — placeholder rows dropped from the sufficiency array. */
+  sufficiency_placeholders_dropped: number;
+  /** r3 RESIDUAL 2 — analytics consequences re-voiced on a gate-TRUE record. */
+  analytics_statuses_normalized: number;
+  analytics_reasons_rewritten: number;
 }
 
 /**
