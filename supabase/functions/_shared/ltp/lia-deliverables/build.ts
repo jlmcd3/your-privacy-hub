@@ -81,6 +81,17 @@ function anchor(key: keyof typeof ANCHOR_KEYS): { citation: string; verbatim: st
   return { citation: r?.subsection ?? "", verbatim: r?.verbatim_quote ?? "" };
 }
 
+
+/**
+ * ITEM 385 seam repair (b) — an authority field carries AUTHORITY or is
+ * ABSENT. Empty verbatim text yields no key at all, so no later frame pass
+ * can fill the empty leaf with "The record is silent here…" gap prose.
+ */
+function authorityVerbatim(v: string): { authority_verbatim?: string } {
+  const t = typeof v === "string" ? v.trim() : "";
+  return t ? { authority_verbatim: t } : {};
+}
+
 // ---------------------------------------------------------------------
 // 1. Reasonable expectations — Recital 47 / EDPB 1/2024 II.C.3
 // ---------------------------------------------------------------------
@@ -360,7 +371,7 @@ export function classifyRecordedMitigations(intake: unknown): Mitigation[] {
       goes_beyond_gdpr_obligation: !already,
       citation: (already ? excluded.citation : beyond.citation) ||
         "EDPB Guidelines 1/2024, Section II.C.4",
-      authority_verbatim: already ? excluded.verbatim : beyond.verbatim,
+      ...authorityVerbatim(already ? excluded.verbatim : beyond.verbatim),
     };
   });
 }
@@ -400,7 +411,7 @@ export function buildDetermination(
         `The first of the three conditions cannot be weighed against anything until the interest is stated with precision. ${conditions.verbatim} the first of which is the pursuit of a legitimate interest.`,
       goes_beyond_gdpr_obligation: false,
       citation: conditions.citation || "EDPB Guidelines 1/2024, Section II",
-      authority_verbatim: conditions.verbatim,
+      ...authorityVerbatim(conditions.verbatim),
     });
   }
 
@@ -415,7 +426,7 @@ export function buildDetermination(
         `Necessity is not satisfied by asserting that the processing is useful. ${necessityAnchor.verbatim}. Without that comparison written down, the second condition stays open.`,
       goes_beyond_gdpr_obligation: false,
       citation: necessityAnchor.citation || "EDPB Guidelines 1/2024, Section II.B",
-      authority_verbatim: necessityAnchor.verbatim,
+      ...authorityVerbatim(necessityAnchor.verbatim),
     });
   }
 
@@ -430,7 +441,7 @@ export function buildDetermination(
         `The record places this use outside what the data subjects would expect at the time and in the context of collection, which is the situation Recital 47 identifies as tipping the balance towards the data subject. Narrowing the use to the expected scope removes that factor from the data-subject side rather than merely disclosing it, which ${beyond.verbatim} recognises as the kind of step that counts.`,
       goes_beyond_gdpr_obligation: true,
       citation: expectations.standard_citation,
-      authority_verbatim: expectations.standard,
+      ...authorityVerbatim(expectations.standard),
     });
   } else if (expectations.verdict === "partly_expected") {
     mitigations.push({
@@ -441,7 +452,7 @@ export function buildDetermination(
         `Expectation is only partly satisfied on this record, so the factor sits on the data-subject side of the balance until the individual can decline the specific use. ${beyond.verbatim}, and an unconditional stop on this use is such a safeguard.`,
       goes_beyond_gdpr_obligation: true,
       citation: expectations.supporting_citation,
-      authority_verbatim: expectations.supporting_verbatim,
+      ...authorityVerbatim(expectations.supporting_verbatim),
     });
   } else if (expectations.verdict === "undetermined_on_the_record") {
     open.push("reasonable_expectations");
@@ -461,7 +472,7 @@ export function buildDetermination(
         `The record puts the worst-case impact at "${harm}" and names no safeguard against it, so nothing recorded reduces the weight on the data-subject side. Safeguards that go beyond the controller's existing obligations reduce that weight; ones that do not, do not.`,
       goes_beyond_gdpr_obligation: true,
       citation: beyond.citation || "EDPB Guidelines 1/2024, Section II.C.4",
-      authority_verbatim: beyond.verbatim,
+      ...authorityVerbatim(beyond.verbatim),
     });
   }
   if (harm && !optOut) {
@@ -473,7 +484,7 @@ export function buildDetermination(
         "The record identifies an impact on the data subjects but no mechanism by which an individual can remove themselves from it, so the impact is borne without any control on the data-subject side of the balance.",
       goes_beyond_gdpr_obligation: true,
       citation: beyond.citation || "EDPB Guidelines 1/2024, Section II.C.4",
-      authority_verbatim: beyond.verbatim,
+      ...authorityVerbatim(beyond.verbatim),
     });
   }
 
