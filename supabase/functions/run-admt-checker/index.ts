@@ -2640,6 +2640,61 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] H6-ADMT-GOVERNING-ANCHOR failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 395 LEG D — ADMT REFINEMENT PASS ─────────────────────────
+    // CRITIC (Claude, the run's resolved generation model, one call) →
+    // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. Mirrors the
+    // run-li-assessment battery order exactly: refinement runs AFTER
+    // generation and the deliverable attaches and BEFORE the deterministic
+    // battery — prose gold → CSC → coverage → record-complete gate — so every
+    // downstream deterministic pass sees the spliced document.
+    // One pass, no loops. Config-gated by ADMT_REFINEMENT_ENABLED; fail-open.
+    try {
+      const { runAdmtRefinement } = await import("../_shared/ltp/admt-refinement.ts");
+      const { makeAdmtRefinementDeps, ADMT_REFINEMENT_ENABLED } = await import(
+        "../_shared/ltp/admt-refinement-deps.ts"
+      );
+      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      // The FULL PERSISTED RECORD, as the leg-C CSC and coverage passes use
+      // (the item385 r2 divergence-class lesson).
+      const refineIntake = ((assessment as any).intake_data ?? {}) as Record<string, unknown>;
+      // The deterministic COVERAGE list is computed BEFORE the critic call and
+      // is the ONLY permitted anchor set for its material-omission findings.
+      const preCoverage = runCoverageMatrix(
+        "cppa-admt",
+        report as Record<string, unknown>,
+        refineIntake,
+      );
+      // RESURRECTION-BUG CLASS — the generation model is resolved HERE, inside
+      // the request context, and carried explicitly into the deps.
+      const refineModel = currentGenerationModel();
+      const refineTel = await runAdmtRefinement(
+        report as Record<string, unknown>,
+        refineIntake,
+        makeAdmtRefinementDeps(assessment_id ?? currentSourceRowId() ?? null, refineModel),
+        {
+          enabled: ADMT_REFINEMENT_ENABLED,
+          coverageList: coverageListForCritic(preCoverage),
+          coverageAnchors: coverageAnchorTokens(preCoverage),
+        },
+      );
+      const _rf = ((report as any)._meta ??= {});
+      const _rfi = (_rf.internal ??= {});
+      _rfi.admt_refinement = refineTel;
+      // The CEO-named generic telemetry address, alongside the product key the
+      // other three configs use.
+      _rfi._refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "admt_refinement", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
+        generation_model: refineModel, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 395 refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     // ── ITEM 392 — ADMT PROSE GOLD (AG-1 hedge ledger, AG-2 customer
     // register, AG-3 shape hygiene) ───────────────────────────────────
     // TRUE FINALIZE POINT: this is the last content-shaping seam before the

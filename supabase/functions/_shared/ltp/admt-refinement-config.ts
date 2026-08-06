@@ -20,6 +20,8 @@
 //   rubric_british_spelling .............. 9 fails
 //   rubric_absence_on_backed_surface ..... 8 fails
 
+import { ADMT_SECTION_SPECS } from "../prose/plans/admt.spine.ts";
+
 export const ADMT_REFINEMENT_CONFIG_VERSION = "admt-refinement-config@item394-2026-08-06";
 
 export interface AdmtWatchClass {
@@ -177,13 +179,42 @@ export const ADMT_PROTECTED_SECTION_IDS = [
   "rule_ids",
 ] as const;
 
+/** C5 — deadline dates. A refined sentence may never move a date. */
+export const ADMT_PROTECTED_DEADLINE_KEYS = [
+  "deadline",
+  "deadline_date",
+  "due_date",
+  "effective_date",
+  "compliance_date",
+  "operative_date",
+] as const;
+
+/** C6 — declared anchorage (item394 leg C coverage L2). Never rewritten. */
+export const ADMT_PROTECTED_ANCHORAGE_KEYS = [
+  "anchor_keys",
+  "anchor_key",
+  "anchors",
+] as const;
+
+/**
+ * C7 — the item392 spine section ids. A leaf whose KEY is a plan section id is
+ * the section's machine address, not prose, and the splicer refuses it.
+ */
+export const ADMT_PROTECTED_SPINE_SECTION_IDS: readonly string[] = ADMT_SECTION_SPECS.map((s) =>
+  s.id
+);
+
 export const ADMT_PROTECTED_LEAF_CLASSES = {
   determination: ADMT_PROTECTED_DETERMINATION_KEYS,
   enum: ADMT_PROTECTED_ENUM_KEYS,
   citation: ADMT_PROTECTED_CITATION_KEYS,
   section_id: ADMT_PROTECTED_SECTION_IDS,
+  deadline: ADMT_PROTECTED_DEADLINE_KEYS,
+  anchorage: ADMT_PROTECTED_ANCHORAGE_KEYS,
+  spine_section_id: ADMT_PROTECTED_SPINE_SECTION_IDS,
 } as const;
 
 export const ADMT_PROTECTED_LEAF_KEYS: string[] = Array.from(
   new Set(Object.values(ADMT_PROTECTED_LEAF_CLASSES).flatMap((v) => [...v])),
 );
+
