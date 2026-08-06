@@ -1921,7 +1921,13 @@ Return JSON:
       const coverage = attachCoverage(
         reportData as Record<string, unknown>,
         "lia_coverage",
-        runCoverageMatrix("lia", reportData as Record<string, unknown>, liaIntakeObject ?? {}),
+        // ITEM 385 r2 — full row, as CSC above (same divergence class).
+        runCoverageMatrix(
+          "lia",
+          reportData as Record<string, unknown>,
+          (assessment as unknown as Record<string, unknown>) ?? {},
+        ),
+
       );
       console.log(JSON.stringify({
         evt: "lia_coverage", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
