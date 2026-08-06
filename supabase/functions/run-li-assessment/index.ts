@@ -1897,6 +1897,50 @@ Return JSON:
       console.warn("[run-li-assessment] lia pipeline stamp failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 383 LEG 1 — RECORD-COMPLETE GATE (FAIL-CLOSED, TELEMETRY ONLY)
+    // Same pattern as DPIA: after the deliverable build and every
+    // deterministic post-pass, before the P2 serializer. LIA has NO coverage
+    // matrix and NO CSC pass yet, so the fail-closed arms of the gate keep the
+    // value FALSE with `coverage_orphans` + `csc_false_absence` in
+    // failed_conditions until those legs land. THIS LEG CHANGES NO
+    // CUSTOMER-VISIBLE OUTPUT: nothing here reads the value back into prose,
+    // the determination, or the banner. Telemetry only, on
+    // `_meta.internal.record_complete` / `.placeholder_classification`.
+    try {
+      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
+        "../_shared/ltp/record-complete.ts"
+      );
+      const { liAssessmentStageBContract } = await import("../_shared/intake-contracts/li-assessment.ts");
+      // The gate reads the PERSISTED ROW, which carries every Stage-B contract
+      // key (purpose_details / necessity_details / balancing_details /
+      // attestation / stage), not the trimmed `liaIntakeObject`.
+      const liaGateRecord = assessment as unknown as Record<string, unknown>;
+      const internal = (((reportData as any)._meta ?? {}).internal ?? {}) as Record<string, unknown>;
+      const telemetry = computeRecordComplete({
+        product: "lia",
+        contract: liAssessmentStageBContract,
+        intake: liaGateRecord,
+        coverage: (internal.lia_coverage ?? null) as never,
+        csc: (internal.lia_csc ?? null) as never,
+      });
+      const classification = classifyPlaceholders(
+        reportData as Record<string, unknown>,
+        liaGateRecord,
+        telemetry.value,
+      );
+      attachRecordComplete(reportData as Record<string, unknown>, telemetry, classification);
+      console.log(JSON.stringify({
+        evt: "lia_record_complete", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+        lia_pipeline_stamp: LIA_PIPELINE_STAMP,
+        value: telemetry.value, failed_conditions: telemetry.failed_conditions,
+        ...classification.counts,
+      }));
+    } catch (e) {
+      console.warn("[run-li-assessment] record-complete gate failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
     // Whitelist top-level keys; internal telemetry survives via
     // `_meta.internal` reduction inside the serializer (stamp-echo key
