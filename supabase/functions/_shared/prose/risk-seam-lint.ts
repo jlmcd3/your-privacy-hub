@@ -70,9 +70,19 @@ export function hasSplice(text: string): boolean {
   return SPLICE_RES.some((re) => re.test(t));
 }
 
-/** R7 — LITANY. Three or more consecutive items sharing a six-word stem. */
+/**
+ * R7 — LITANY. Three or more consecutive items built from the same mould:
+ * the same opening word AND the same closing eight words. The recorded
+ * defect was four consecutive "Confirm <element> is documented in the
+ * assessment record — present on the record; retain …" steps, whose leading
+ * six words differ but whose mould is identical.
+ */
 export function hasLitany(items: readonly string[], run = 3): boolean {
-  const stem = (s: string) => String(s ?? "").trim().toLowerCase().split(/\s+/).slice(0, 6).join(" ");
+  const stem = (s: string) => {
+    const w = String(s ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (w.length < 4) return "";
+    return `${w[0]}|${w.slice(-8).join(" ")}`;
+  };
   let streak = 1;
   for (let i = 1; i < items.length; i++) {
     if (stem(items[i]) && stem(items[i]) === stem(items[i - 1])) {

@@ -261,8 +261,8 @@ Deno.test("seam — detectors fire on their recorded defects", () => {
   assert(hasBareEnum("The record shows a4_benefit_business is thin."));
   assert(!hasBareEnum("The record cites 11 CCR § 7152(a)(6) for the balancing frame."));
   assert(hasSplice("…the risk it addresses complete and retain the assessment record."));
-  assert(hasLitany(["Confirm A is documented", "Confirm A is documented", "Confirm A is documented"]));
-  assertEquals(duplicateSentences("The balancing supports a benefits-outweigh conclusion here. The balancing supports a benefits-outweigh conclusion here.").length, 1);
+  assert(hasLitany(["Confirm A is documented in the assessment record now", "Confirm B is documented in the assessment record now", "Confirm C is documented in the assessment record now"]));
+  assertEquals(duplicateSentences("The § 7152(a)(6) balancing supports a benefits-outweigh conclusion on this record. The § 7152(a)(6) balancing supports a benefits-outweigh conclusion on this record.").length, 1);
   assertEquals(
     rendersWrongField("The reviewer recorded the safeguard as quarterly purge-job auditing.", {
       a6_safeguards: "the safeguard as quarterly purge-job auditing",
