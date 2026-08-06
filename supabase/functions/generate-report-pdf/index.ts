@@ -585,7 +585,7 @@ function buildDPIAReportHTML(report: any, dpia: any): string {
     const basis = String((source as any).basis ?? "").toLowerCase();
     const field = (source as any).intake_field ? String((source as any).intake_field) : "";
     if (basis === "inferred") {
-      return ` <span style="display:inline-block;margin-left:6px;padding:1px 5px;font-size:9px;border:1px solid #b45309;background:#fef3c7;color:#92400e;border-radius:3px;text-transform:uppercase;">inferred — confirm</span>`;
+      return ` <span style="display:inline-block;margin-left:6px;padding:1px 5px;font-size:9px;border:1px solid #1a4a6e;background:#eef4f7;color:#1a4a6e;border-radius:3px;text-transform:uppercase;">inferred — confirm</span>`;
     }
     if (basis === "stated" && field) {
       return ` <span style="display:inline-block;margin-left:6px;padding:1px 5px;font-size:9px;border:1px solid #047857;background:#d1fae5;color:#065f46;border-radius:3px;text-transform:uppercase;">stated · ${escHtml(field)}</span>`;
@@ -1019,7 +1019,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
   :root {
     --navy:#0c2a44; --navy-ink:#1a1916; --paper:#f5f8fa; --card:#ffffff;
     --border:#dde5ea; --steel:#8a9eb1; --silver:#edf2f5; --slate:#5c6d7a;
-    --teal:#2d9b90; --teal-soft:#e5f4f2; --warn:#b45309; --warn-soft:#fdf3e1; --accent:#2d9b90;
+    --teal:#2d9b90; --teal-soft:#e5f4f2; --warn:#1a4a6e; --warn-soft:#eef4f7; --accent:#2d9b90;
   }
   * { box-sizing: border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--navy-ink);
@@ -1184,7 +1184,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
 <style>
-  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
@@ -1211,7 +1211,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
   .status-gap { background:var(--orange-soft); color:var(--orange); }
   .status-partial { background:var(--amber-soft); color:var(--amber); }
   .status-compliant { background:var(--green-soft); color:var(--green); }
-  .status-neutral { background:#f3f4f6; color:var(--muted); }
+  .status-neutral { background:#f2f6f8; color:var(--muted); }
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
@@ -1585,7 +1585,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
 <style>
-  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#fff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --orange:#b45309; --orange-soft:#fdf3e1; --red:#a32d2d; --red-soft:#fce8e8; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#fff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --orange:#1a4a6e; --orange-soft:#eef4f7; --red:#0d2a45; --red-soft:#e8eff2; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman',Times,serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
@@ -1821,7 +1821,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     : `<div class="callout"><p class="label">Not yet ready for sign-off</p>${list(Array.isArray(gating.blockers) ? gating.blockers : [])}</div>`;
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${a?.sec_1_trigger?.voluntary ? "Voluntary Privacy Impact Review" : "CPPA Privacy Risk Assessment"}</title>
 <style>
-  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
@@ -2062,7 +2062,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit — Readiness Assessment</title>
 <style>
-  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
@@ -2092,8 +2092,8 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .status-gap { background:var(--orange-soft); color:var(--orange); }
   .status-partial { background:var(--amber-soft); color:var(--amber); }
   .status-compliant { background:var(--green-soft); color:var(--green); }
-  .status-mature { background:#dbeafe; color:#1d4ed8; }
-  .status-neutral { background:#f3f4f6; color:var(--muted); }
+  .status-mature { background:#e8eff2; color:#0d2a45; }
+  .status-neutral { background:#f2f6f8; color:var(--muted); }
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
   .determination { border:1px solid var(--border); border-left:4px solid var(--navy); border-radius:0 10px 10px 0; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
@@ -2276,7 +2276,7 @@ function buildADMTReportHTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ADMT Compliance Assessment</title>
 <style>
-  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
@@ -2303,7 +2303,7 @@ function buildADMTReportHTML(report: any, record: any): string {
   .status-critical { background:var(--red-soft); color:var(--red); }
   .status-gap { background:var(--amber-soft); color:var(--amber); }
   .status-compliant { background:var(--green-soft); color:var(--green); }
-  .status-neutral { background:#f3f4f6; color:var(--muted); }
+  .status-neutral { background:#f2f6f8; color:var(--muted); }
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
   ${AUTHORITY_EXHIBIT_CSS}

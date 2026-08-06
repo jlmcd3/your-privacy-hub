@@ -14,8 +14,8 @@ import { AlertTriangle, Ban, ClipboardList } from 'lucide-react';
 
 // ── UPGRADE-4 shared finding chrome ───────────────────────────────────
 const STATUS_TONE: Record<string, string> = {
-  record_sufficient: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
-  record_partial: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
+  record_sufficient: "bg-brand-teal/10 text-brand-teal-text dark:bg-brand-teal/40 dark:text-brand-teal",
+  record_partial: "bg-brand-slate-teal/10 text-brand-slate-teal dark:bg-brand-slate-teal/40 dark:text-brand-light-teal",
   record_insufficient: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
 };
 const statusLabel = (s?: string) =>
@@ -81,22 +81,22 @@ const KeyValueRows = ({ rows }: { rows: [string, any][] }) => {
 
 const strengthColor = (s: string) => {
   const v = (s || "").toLowerCase();
-  if (v === "strong") return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200";
-  if (v === "moderate") return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200";
-  return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200";
+  if (v === "strong") return "bg-brand-teal/10 text-brand-teal-text dark:bg-brand-teal/40 dark:text-brand-teal";
+  if (v === "moderate") return "bg-brand-slate-teal/10 text-brand-slate-teal dark:bg-brand-slate-teal/40 dark:text-brand-light-teal";
+  return "bg-brand-navy/10 text-brand-navy dark:bg-brand-navy/40 dark:text-brand-mist";
 };
 const verdictColor = (v: string) => {
   const x = (v || "").toLowerCase();
-  if (x.includes("pass")) return "bg-green-100 text-green-800";
-  if (x.includes("fail")) return "bg-red-100 text-red-800";
-  return "bg-amber-100 text-amber-800";
+  if (x.includes("pass")) return "bg-brand-teal/10 text-brand-teal-text";
+  if (x.includes("fail")) return "bg-brand-navy/10 text-brand-navy";
+  return "bg-brand-slate-teal/10 text-brand-slate-teal";
 };
 const verdictLabel = (v: string) =>
   ({ likely_passes: "Likely passes", likely_fails: "Likely fails", passes: "Passes", fails: "Fails", uncertain: "Uncertain" } as Record<string, string>)[v] ?? v.replace(/_/g, " ");
 
 const tierLabelFor = (tier: number | null | undefined, isUk: boolean) => {
-  if (tier === 1) return { label: isUk ? "UK GDPR enforcement" : "EU GDPR enforcement", tone: "bg-emerald-100 text-emerald-800 border-emerald-200" };
-  if (tier === 2) return { label: isUk ? "Persuasive — EU decision (not binding under UK GDPR)" : "Persuasive — UK decision (not binding under EU GDPR)", tone: "bg-amber-100 text-amber-800 border-amber-200" };
+  if (tier === 1) return { label: isUk ? "UK GDPR enforcement" : "EU GDPR enforcement", tone: "bg-brand-teal/10 text-brand-teal-text border-brand-teal/20" };
+  if (tier === 2) return { label: isUk ? "Persuasive — EU decision (not binding under UK GDPR)" : "Persuasive — UK decision (not binding under EU GDPR)", tone: "bg-brand-slate-teal/10 text-brand-slate-teal border-brand-slate-teal/20" };
   if (tier === 3) return { label: "Non-EU/UK — supportive only, not authoritative", tone: "bg-slate-100 text-slate-700 border-slate-200" };
   return null;
 };
@@ -141,19 +141,19 @@ const TestCard = ({ title, test, annotations, precedents, isUk }: any) => (
     </div>
     {test?.analysis && <p className="text-sm text-foreground mb-3">{test.analysis}</p>}
     {test?.special_category_flag && (
-      <div className="text-sm p-2 bg-amber-50 border border-amber-200 rounded mb-3 text-amber-900">
+      <div className="text-sm p-2 bg-brand-slate-teal/5 border border-brand-slate-teal/20 rounded mb-3 text-brand-slate-teal">
         <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Special category data — heightened scrutiny applies
       </div>
     )}
     {Array.isArray(test?.supporting_factors) && test.supporting_factors.length > 0 && (
       <div className="mb-2">
-        <p className="text-xs font-medium text-green-700 mb-1">Supporting factors</p>
+        <p className="text-xs font-medium text-brand-teal-text mb-1">Supporting factors</p>
         <ul className="list-disc pl-5 text-sm space-y-1">{test.supporting_factors.map((f: string, i: number) => <li key={i}>{f}</li>)}</ul>
       </div>
     )}
     {Array.isArray(test?.risk_factors) && test.risk_factors.length > 0 && (
       <div>
-        <p className="text-xs font-medium text-red-700 mb-1">Risk factors</p>
+        <p className="text-xs font-medium text-brand-navy mb-1">Risk factors</p>
         <ul className="list-disc pl-5 text-sm space-y-1">{test.risk_factors.map((f: string, i: number) => <li key={i}>{f}</li>)}</ul>
       </div>
     )}
@@ -307,11 +307,11 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
 
 
       {Array.isArray(overall?.blocking_issues) && overall.blocking_issues.length > 0 && (
-        <section className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded-lg p-5">
-          <h3 className="font-body text-display-card font-semibold text-red-800 dark:text-red-300 mb-3"><Ban aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Blocking Issues — Resolve Before Relying on Legitimate Interest</h3>
+        <section className="border-l-4 border-brand-navy bg-brand-navy/5 dark:bg-brand-navy/40 rounded-lg p-5">
+          <h3 className="font-body text-display-card font-semibold text-brand-navy dark:text-brand-mist mb-3"><Ban aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Blocking Issues — Resolve Before Relying on Legitimate Interest</h3>
           <ul className="space-y-2">
             {overall.blocking_issues.map((issue: string, i: number) => (
-              <li key={i} className="text-sm text-red-900 dark:text-red-200 flex gap-2">
+              <li key={i} className="text-sm text-brand-navy dark:text-brand-mist flex gap-2">
                 <span className="font-mono">•</span>
                 <span>{issue}</span>
               </li>
@@ -324,11 +324,11 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
         <h2 className="font-body text-display-card font-semibold mb-4">Most Analogous Regulatory Decisions</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="p-4 border rounded">
-            <h3 className="font-body text-display-card font-semibold text-green-700 mb-2">Accepted Cases</h3>
+            <h3 className="font-body text-display-card font-semibold text-brand-teal-text mb-2">Accepted Cases</h3>
             <p className="text-sm">{overall?.closest_accepted_precedent || "No closely analogous accepted precedents found in tracked database"}</p>
           </div>
           <div className="p-4 border rounded">
-            <h3 className="font-body text-display-card font-semibold text-red-700 mb-2">Rejected Cases</h3>
+            <h3 className="font-body text-display-card font-semibold text-brand-navy mb-2">Rejected Cases</h3>
             <p className="text-sm">{overall?.closest_rejected_precedent || "No closely analogous rejected precedents found in tracked database"}</p>
           </div>
         </div>

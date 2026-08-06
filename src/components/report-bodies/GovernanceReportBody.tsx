@@ -10,29 +10,29 @@ import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallo
 
 const ratingColor = (r: string) => {
   const x = (r || "").toLowerCase();
-  if (x === "initial") return "bg-red-100 text-red-800";
-  if (x === "developing") return "bg-amber-100 text-amber-800";
+  if (x === "initial") return "bg-brand-navy/10 text-brand-navy";
+  if (x === "developing") return "bg-brand-slate-teal/10 text-brand-slate-teal";
   if (x === "defined") return "bg-blue-100 text-blue-800";
-  if (x === "managed") return "bg-green-100 text-green-800";
-  if (x === "optimised" || x === "optimized") return "bg-emerald-200 text-emerald-900";
+  if (x === "managed") return "bg-brand-teal/10 text-brand-teal-text";
+  if (x === "optimised" || x === "optimized") return "bg-brand-teal/20 text-brand-teal-text";
   return "bg-muted text-foreground";
 };
 const sevColor = (s: string) => {
   const x = (s || "").toLowerCase();
-  if (x === "critical") return "bg-red-100 text-red-800";
-  if (x === "high") return "bg-orange-100 text-orange-800";
-  if (x === "medium") return "bg-amber-100 text-amber-800";
+  if (x === "critical") return "bg-brand-navy/10 text-brand-navy";
+  if (x === "high") return "bg-brand-ocean/10 text-brand-ocean";
+  if (x === "medium") return "bg-brand-slate-teal/10 text-brand-slate-teal";
   if (x === "low") return "bg-blue-100 text-blue-800";
-  if (x === "compliant") return "bg-green-100 text-green-800";
+  if (x === "compliant") return "bg-brand-teal/10 text-brand-teal-text";
   return "bg-muted text-foreground";
 };
 const sevBg = (s: string) => {
   const x = (s || "").toLowerCase();
-  if (x === "critical") return "bg-red-50 border-red-300";
-  if (x === "high") return "bg-orange-50 border-orange-300";
-  if (x === "medium") return "bg-amber-50 border-amber-300";
+  if (x === "critical") return "bg-brand-navy/5 border-brand-navy/30";
+  if (x === "high") return "bg-brand-ocean/5 border-brand-ocean/30";
+  if (x === "medium") return "bg-brand-slate-teal/5 border-brand-slate-teal/30";
   if (x === "low") return "bg-blue-50 border-blue-300";
-  if (x === "compliant") return "bg-green-50 border-green-300";
+  if (x === "compliant") return "bg-brand-teal/5 border-brand-teal/30";
   return "bg-muted/40 border-border";
 };
 

@@ -100,8 +100,8 @@ const argStrengthLabel = (s?: string): string => {
 
 const argStrengthBadge = (s?: string): string => {
   const x = (s || "").toLowerCase();
-  if (x === "strong") return "bg-green-100 text-green-800";
-  if (x === "colorable") return "bg-amber-100 text-amber-800";
+  if (x === "strong") return "bg-brand-teal/10 text-brand-teal-text";
+  if (x === "colorable") return "bg-brand-slate-teal/10 text-brand-slate-teal";
   if (x === "counsel-review" || x === "counsel review") return "bg-blue-100 text-blue-800";
   return "bg-slate-100 text-slate-800";
 };
@@ -212,18 +212,18 @@ export function isV4Report(rd: any): boolean {
 
 const riskBadge = (level?: string) => {
   switch (level) {
-    case "Critical": return "bg-red-600 text-white";
-    case "High": return "bg-red-100 text-red-800";
-    case "Moderate": return "bg-amber-100 text-amber-800";
-    case "Low": return "bg-green-100 text-green-800";
+    case "Critical": return "bg-brand-navy text-white";
+    case "High": return "bg-brand-navy/10 text-brand-navy";
+    case "Moderate": return "bg-brand-slate-teal/10 text-brand-slate-teal";
+    case "Low": return "bg-brand-teal/10 text-brand-teal-text";
     default: return "bg-slate-100 text-slate-800";
   }
 };
 
 const priorityBadge = (p?: string) => {
   if (!p) return "bg-slate-100 text-slate-800";
-  if (p.toLowerCase().includes("immediate")) return "bg-red-100 text-red-800";
-  if (p.includes("30")) return "bg-amber-100 text-amber-800";
+  if (p.toLowerCase().includes("immediate")) return "bg-brand-navy/10 text-brand-navy";
+  if (p.includes("30")) return "bg-brand-slate-teal/10 text-brand-slate-teal";
   return "bg-blue-100 text-blue-800";
 };
 
@@ -494,11 +494,11 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
 
       {/* Inconsistency flags */}
       {inconsistencies.length > 0 && (
-        <section className="bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded p-4">
-          <h2 className="font-body text-display-card font-semibold mb-2 text-amber-900 dark:text-amber-200">Inconsistency Flags</h2>
+        <section className="bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border-l-4 border-brand-slate-teal rounded p-4">
+          <h2 className="font-body text-display-card font-semibold mb-2 text-brand-slate-teal dark:text-brand-light-teal">Inconsistency Flags</h2>
           <ul className="space-y-2 text-sm">
             {inconsistencies.map((f, i) => (
-              <li key={i} className="border-l-2 border-amber-400 pl-3">
+              <li key={i} className="border-l-2 border-brand-slate-teal/40 pl-3">
                 <p>{f.description}</p>
                 {(f.intake_field_1 || f.intake_field_2) && (
                   <p className="text-xs text-muted-foreground">
@@ -559,7 +559,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
       {/* Enforcement context */}
       {enf && (typeof enf === "string"
         ? enf.trim() && (
-            <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
+            <section className="p-4 bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border-l-4 border-brand-slate-teal text-sm rounded">
               <p className="font-semibold mb-1">Enforcement Context</p>
               <p>{enf}</p>
             </section>

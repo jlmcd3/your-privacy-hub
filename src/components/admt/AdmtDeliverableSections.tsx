@@ -15,15 +15,15 @@ function txt(v: unknown): string {
 }
 
 const VERDICT_TONE: Record<string, string> = {
-  meets: "text-emerald-700 dark:text-emerald-400",
-  ready: "text-emerald-700 dark:text-emerald-400",
-  qualifies: "text-emerald-700 dark:text-emerald-400",
+  meets: "text-brand-teal-text dark:text-brand-teal",
+  ready: "text-brand-teal-text dark:text-brand-teal",
+  qualifies: "text-brand-teal-text dark:text-brand-teal",
   not_applicable: "text-muted-foreground",
-  partially_ready: "text-amber-700 dark:text-amber-400",
-  inadequate: "text-red-700 dark:text-red-400",
-  absent: "text-red-700 dark:text-red-400",
-  not_ready: "text-red-700 dark:text-red-400",
-  does_not_qualify: "text-red-700 dark:text-red-400",
+  partially_ready: "text-brand-slate-teal dark:text-brand-light-teal",
+  inadequate: "text-brand-navy dark:text-brand-mist",
+  absent: "text-brand-navy dark:text-brand-mist",
+  not_ready: "text-brand-navy dark:text-brand-mist",
+  does_not_qualify: "text-brand-navy dark:text-brand-mist",
   insufficient_record: "text-muted-foreground italic",
 };
 
@@ -57,8 +57,8 @@ function ShapeLawBlock({ f }: { f: Record<string, unknown> }) {
           </div>
         ))}
       {needed && (
-        <div className="rounded-md bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200 px-3 py-2">
-          <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide mb-0.5">Information needed</p>
+        <div className="rounded-md bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border border-brand-slate-teal/20 px-3 py-2">
+          <p className="text-[11px] font-semibold text-brand-slate-teal uppercase tracking-wide mb-0.5">Information needed</p>
           <p className="text-[12px] leading-relaxed">{needed}</p>
         </div>
       )}
@@ -104,8 +104,8 @@ export function AdmtLawfulnessSection({ determination }: { determination?: Recor
         {txt(law.finding) && <p className="text-[13px] leading-relaxed">{txt(law.finding)}</p>}
         {txt(law.citation) && <p className="text-[11px] font-mono text-muted-foreground">{txt(law.citation)}</p>}
         {txt(law.information_needed) && (
-          <div className="rounded-md bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200 px-3 py-2">
-            <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide mb-0.5">Information needed</p>
+          <div className="rounded-md bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border border-brand-slate-teal/20 px-3 py-2">
+            <p className="text-[11px] font-semibold text-brand-slate-teal uppercase tracking-wide mb-0.5">Information needed</p>
             <p className="text-[12px] leading-relaxed">{txt(law.information_needed)}</p>
           </div>
         )}

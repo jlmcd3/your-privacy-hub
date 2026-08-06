@@ -50,18 +50,18 @@ type Report = {
 
 const tone = (s?: string) => {
   const x = (s || "").toLowerCase();
-  if (x === "high") return "bg-red-100 text-red-800 border-red-300";
-  if (x === "medium") return "bg-amber-100 text-amber-800 border-amber-300";
-  if (x === "low") return "bg-green-100 text-green-800 border-green-300";
+  if (x === "high") return "bg-brand-navy/10 text-brand-navy border-brand-navy/30";
+  if (x === "medium") return "bg-brand-slate-teal/10 text-brand-slate-teal border-brand-slate-teal/30";
+  if (x === "low") return "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30";
   return "bg-muted text-foreground border-border";
 };
 
 const validatorPill = (v?: { status?: string; note?: string | null }) => {
   if (!v?.status) return null;
   const tones: Record<string, string> = {
-    pass: "bg-green-100 text-green-800 border-green-300",
-    warn: "bg-amber-100 text-amber-800 border-amber-300",
-    fail: "bg-red-100 text-red-800 border-red-300",
+    pass: "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30",
+    warn: "bg-brand-slate-teal/10 text-brand-slate-teal border-brand-slate-teal/30",
+    fail: "bg-brand-navy/10 text-brand-navy border-brand-navy/30",
   };
   return (
     <span className={`inline-block px-2 py-0.5 text-[11px] rounded border ${tones[v.status] ?? "bg-muted"}`}>
@@ -74,7 +74,7 @@ const validatorPill = (v?: { status?: string; note?: string | null }) => {
 const SectionShell = ({
   num, title, statute, children, fill,
 }: { num: string; title: string; statute?: string; children: React.ReactNode; fill?: boolean }) => (
-  <section className={`border rounded-lg p-5 ${fill ? "bg-amber-50/40 dark:bg-amber-950/10" : "bg-card"}`}>
+  <section className={`border rounded-lg p-5 ${fill ? "bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40" : "bg-card"}`}>
     <header className="flex items-baseline gap-3 flex-wrap mb-3">
       <span className="text-xs font-mono px-2 py-0.5 rounded bg-brand-navy text-white">{num}</span>
       <h3 className="font-body text-display-card font-semibold">{title}</h3>
@@ -88,7 +88,7 @@ const FillIn = ({ value, label }: { value?: string; label: string }) => {
   const empty = !value || /\[FILL IN/i.test(value);
   if (empty) {
     return (
-      <p className="italic text-amber-700 dark:text-amber-300">
+      <p className="italic text-brand-slate-teal dark:text-brand-light-teal">
         <Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {label} — fill in before sign-off.
       </p>
     );
@@ -109,8 +109,8 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
       <div
         className={`rounded-lg border-l-4 p-4 ${
           gating.ready_for_signoff
-            ? "border-green-500 bg-green-50 dark:bg-green-950/20"
-            : "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
+            ? "border-brand-teal bg-brand-teal/5 dark:bg-brand-teal/40"
+            : "border-brand-slate-teal bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40"
         }`}
       >
         <p className="font-semibold">
@@ -265,7 +265,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
             <div key={group}>
               <h4 className="font-semibold capitalize text-sm mt-2">{label}</h4>
               {arr.length === 0 ? (
-                <p className="italic text-amber-700 dark:text-amber-300 text-sm"><Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> No {label} safeguards listed — fill in before sign-off.</p>
+                <p className="italic text-brand-slate-teal dark:text-brand-light-teal text-sm"><Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> No {label} safeguards listed — fill in before sign-off.</p>
               ) : (
                 <ul className="list-disc pl-5 text-sm">
                   {arr.map((s: Safeguard, i: number) => (
@@ -275,7 +275,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
                       {s.linked_harms?.length ? (
                         <span className="ml-2 text-xs text-muted-foreground">Linked harms: {s.linked_harms.join(", ")}</span>
                       ) : (
-                        <span className="ml-2 text-xs text-amber-700"><Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> No linked harm — add a § 6 link.</span>
+                        <span className="ml-2 text-xs text-brand-slate-teal"><Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> No linked harm — add a § 6 link.</span>
                       )}
                     </li>
                   ))}
@@ -294,8 +294,8 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
             Record your decision in the section below. The analysis above is provided for your consideration only — this tool does not produce a recommendation on whether processing should proceed.
           </p>
         </div>
-        <div className="rounded border-2 border-dashed border-amber-400 p-3 bg-amber-50/60 dark:bg-amber-950/20">
-          <p className="font-semibold text-amber-900 dark:text-amber-200">
+        <div className="rounded border-2 border-dashed border-brand-slate-teal/40 p-3 bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40">
+          <p className="font-semibold text-brand-slate-teal dark:text-brand-light-teal">
             <Flag aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Executive decision required (§ 7152(a)(7))
           </p>
           <p className="text-sm">
@@ -414,7 +414,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
             <p className="font-semibold">Penalty-of-perjury attestation (§ 7157(b)(5))</p>
             <p className="whitespace-pre-wrap mt-1">{report.part_b.perjury_attestation_block}</p>
           </div>
-          <p className="mt-3 text-xs italic text-amber-800 dark:text-amber-200">
+          <p className="mt-3 text-xs italic text-brand-slate-teal dark:text-brand-light-teal">
             {report.part_b.submission_banner}
           </p>
         </section>

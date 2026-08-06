@@ -7,8 +7,8 @@ import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 
 const sevColor = (s: string) => {
   const x = (s || "").toLowerCase();
-  if (x.includes("critical") || x.includes("high")) return "bg-red-100 text-red-800";
-  if (x.includes("medium")) return "bg-amber-100 text-amber-800";
+  if (x.includes("critical") || x.includes("high")) return "bg-brand-navy/10 text-brand-navy";
+  if (x.includes("medium")) return "bg-brand-slate-teal/10 text-brand-slate-teal";
   if (x.includes("low")) return "bg-blue-100 text-blue-800";
   return "bg-muted text-foreground";
 };
@@ -16,11 +16,11 @@ const sevColor = (s: string) => {
 const StatusBadge = ({ value }: { value: string }) => {
   const v = (value || "").toLowerCase();
   const cls =
-    v.includes("not accept") ? "bg-red-100 text-red-800"
-    : v.includes("partial") ? "bg-amber-100 text-amber-800"
-    : v.includes("implemented") ? "bg-green-100 text-green-800"
+    v.includes("not accept") ? "bg-brand-navy/10 text-brand-navy"
+    : v.includes("partial") ? "bg-brand-slate-teal/10 text-brand-slate-teal"
+    : v.includes("implemented") ? "bg-brand-teal/10 text-brand-teal-text"
     : v.includes("planned") ? "bg-blue-100 text-blue-800"
-    : v.includes("accept") ? "bg-green-100 text-green-800"
+    : v.includes("accept") ? "bg-brand-teal/10 text-brand-teal-text"
     : "bg-muted text-foreground";
   return <span className={`inline-block px-2 py-0.5 text-xs rounded ${cls}`}>{value}</span>;
 };
@@ -73,7 +73,7 @@ const Section = ({ num, title, guidance, completion, children }: any) => (
     )}
     <div className="space-y-3">{children}</div>
     {completion && (
-      <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
+      <div className="mt-4 p-3 bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border-l-4 border-brand-slate-teal text-sm rounded">
         <p className="font-medium mb-1">Your DPO/Counsel Must Complete</p>
         <p>{completion}</p>
       </div>
@@ -116,7 +116,7 @@ export default function DPIAReportBody({ report = {} }: DPIAReportBodyProps) {
       )}
 
       {report?.supervisory_authority_consultation?.trigger_conditions && (
-        <div className="p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 text-sm rounded">
+        <div className="p-4 bg-brand-navy/5 dark:bg-brand-navy/40 border-l-4 border-brand-navy text-sm rounded">
           <p className="font-medium mb-1">Supervisory authority consultation may be required</p>
           <p>{report.supervisory_authority_consultation.trigger_conditions}</p>
         </div>

@@ -30,11 +30,11 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
       {/* Sprint 2 #3 — Cover (print-only by default; visible when handoff package is being generated) */}
       <AuditorHandoffCover row={row} />
 
-      <section className="p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-600 rounded">
-        <p className="text-sm font-semibold text-red-900 dark:text-red-200">
+      <section className="p-4 bg-brand-navy/5 dark:bg-brand-navy/40 border-l-4 border-brand-navy rounded">
+        <p className="text-sm font-semibold text-brand-navy dark:text-brand-mist">
           Compliance deadline: April 1, 2028
         </p>
-        <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+        <p className="text-xs text-brand-navy dark:text-brand-mist mt-1">
           Businesses subject to CPPA's cybersecurity audit regulation must complete their first independent audit
           and certify compliance to the Agency by April 1, 2028. Highest-risk thresholds (revenue + sensitive data
           processing) trigger earlier obligations. Use this assessment to scope remediation now.
@@ -81,7 +81,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
 
 
       {report?.enforcement_context && (
-        <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
+        <section className="p-4 bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border-l-4 border-brand-slate-teal text-sm rounded">
           <p className="font-semibold mb-1">Enforcement Context</p>
           <p>{report.enforcement_context}</p>
         </section>
@@ -187,9 +187,9 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
           <p className="font-semibold mb-2">How to read these scores</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
             {CYBER_BANDS.map((b) => {
-              const cls = b.label === "Critical Gap" ? "bg-red-100 text-red-900"
-                : b.label === "Gap / Partial" ? "bg-orange-100 text-orange-900"
-                : b.label === "Implemented" ? "bg-emerald-100 text-emerald-900"
+              const cls = b.label === "Critical Gap" ? "bg-brand-navy/10 text-brand-navy"
+                : b.label === "Gap / Partial" ? "bg-brand-ocean/10 text-brand-ocean"
+                : b.label === "Implemented" ? "bg-brand-teal/10 text-brand-teal-text"
                 : "bg-sky-100 text-sky-900";
               return (
                 <div key={b.label} className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
                 <p className="font-medium">{r.title}</p>
                 {r.description && <p className="text-sm mt-1">{r.description}</p>}
                 {r.deadline && <p className="text-xs text-muted-foreground mt-2">Deadline: {r.deadline}</p>}
-                {r.consequence && <p className="text-xs text-red-700 mt-1">{r.consequence}</p>}
+                {r.consequence && <p className="text-xs text-brand-navy mt-1">{r.consequence}</p>}
               </div>
             ))}
           </div>

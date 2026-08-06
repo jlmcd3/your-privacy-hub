@@ -540,8 +540,8 @@ const TOOLS: ToolDef[] = [
     tagline: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
     href: "/cppa-admt-checker",
     requirement: { tier: "conditional", text: "Required for ADMT decisions — by Jan 1, 2027" },
-    subscriberPrice: (PRICING.tools as any).cppa_admt?.display ?? "$49",
-    standalonePrice: (PRICING.tools as any).cppa_admt?.display ?? "$99",
+    subscriberPrice: (PRICING.tools as any).cppa_admt?.display ?? "$59",
+    standalonePrice: (PRICING.tools as any).cppa_admt?.display ?? "$109",
     body: [
       "The CPPA's automated decisionmaking technology regulations take effect January 1, 2027. Businesses that use ADMT for significant decisions — credit, housing, education, employment, healthcare — must provide a pre-use notice, offer two opt-out methods (or qualify for a narrow exception), and respond to consumer access requests with plain-language information about the logic and outcome of the decision.",
       "The ADMT Compliance Assessment walks through one ADMT system at a time. Each answer updates a persistent Statute Rail showing the exact regulation text, the agency's reasoning in the Final Statement of Reasons, and enforcement notes. The output is a gap analysis — every finding cites the specific paragraph of 11 CCR §§ 7220–7222 it relates to, with a concrete remediation step.",
@@ -568,7 +568,7 @@ const PRICING_GRID: [string, string][] = [
   ["CPPA Scope Checker", PRICING.tools.cppa_scope.display],
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
   ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
-  ["ADMT Compliance Assessment", `${(PRICING.tools as any).cppa_admt?.display ?? '$99'} (Smart)`],
+  ["ADMT Compliance Assessment", `${(PRICING.tools as any).cppa_admt?.display ?? '$109'} (Smart)`],
   ["Annual subscription bonus", "1 free Smart Tool run/yr (Intelligence) · 3 free Smart Tool runs/yr (Professional): Governance, LIA, or DPIA"],
 ];
 
