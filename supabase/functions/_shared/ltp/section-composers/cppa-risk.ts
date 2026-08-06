@@ -1148,15 +1148,13 @@ function composeNextSteps(plan: RenderPlan): TemplateInstance[] {
     );
   }
 
-  // (3) Present-element confirmations (retained prior behavior).
-  for (const f of plan.factor_table) {
-    if (!f.present_in_intake || f.kind !== "safeguard") continue;
-    const label = factorLabel(f);
-    push(
-      `Confirm ${label} is documented in the assessment record`,
-      `Present on the record; retain the supporting documentation with the assessment file.`,
-    );
-  }
+  // ITEM 384 (G-5) — NEXT STEPS CARRY ACTIONS ONLY. Block (3) used to emit a
+  // "Confirm <element> is documented in the assessment record" line for every
+  // present safeguard. Those are not steps: the element is already on the
+  // record, so the line asks the reader to confirm what the same document has
+  // just told them, and four of them in a row produced the litany the panel
+  // recorded on doc 03192701. Retired. Present-element status is stated once,
+  // with its pinpoint, in the record-sufficiency element list.
 
   return out;
 }
