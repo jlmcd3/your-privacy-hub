@@ -44,8 +44,45 @@ import {
   buildHumanReviewReasoning,
   buildLogicDisclosureRecord,
 } from "./admt-deliverables/record-register.ts";
+import {
+  ADMT_RECORD_BACKED_LABEL,
+  buildOpenItemsLedger,
+  elementMeta,
+  isUnresolvedConclusion,
+} from "./admt-prose-gold.ts";
 
-export const ADMT_CSC_VERSION = "admt-csc-2026-08-06-item394";
+export const ADMT_CSC_VERSION = "admt-csc-2026-08-06-item396";
+
+/**
+ * ITEM 396 — THE PHRASING CLASS THE ITEM-392 PROSE-GOLD PASS ITSELF WRITES.
+ *
+ * The first full-stack pilot (doc 6146db76) shipped a false absence on a fully
+ * backed adequacy surface: prose-gold had relabelled `insufficient_basis` to
+ * "not established from the information supplied" and written the open-items
+ * ledger, and NEITHER form appeared in the emit-gate absence catalog the CSC
+ * detector reads — so a2 saw no absence on a backed surface and repaired
+ * nothing. This regex closes the class. The linkage test in
+ * `tests/edge/item396` enumerates every phrasing prose-gold can write and
+ * asserts each one matches here, so a future relabeling breaks the build.
+ */
+export const ADMT_LABEL_ABSENCE_RE =
+  /(not established from the information supplied|(?:is|are|was|were)\s+not\s+established\b|not established on the (?:present )?record|Open items:[^.]{0,400}?\b(?:is|are)\s+unresolved)/i;
+
+/**
+ * The ADMT absence detector: the shared emit-gate catalog PLUS the reader-label
+ * class above. Used by a2 (surface detection) and a3 (authority-field hygiene).
+ * a4 deliberately keeps the narrow catalog: a structured `conclusion_label`
+ * legitimately carries the reader label on a genuinely unbacked element.
+ */
+export function admtCarriesAbsence(text: string, needles: readonly string[]): string | null {
+  const t = String(text ?? "").replace(/\s+/g, " ");
+  if (!t.trim()) return null;
+  const catalog = carriesAbsenceLanguage(t, needles);
+  if (catalog) return catalog;
+  const m = ADMT_LABEL_ABSENCE_RE.exec(t);
+  return m ? m[0] : null;
+}
+
 
 export type AdmtCscCheckId =
   | "a1_element_conclusion_vs_record"
