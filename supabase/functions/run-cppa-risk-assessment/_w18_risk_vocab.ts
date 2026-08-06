@@ -76,6 +76,29 @@ export const RISK_INTAKE_LABELS: Record<string, string> = {
   i9_existing_dpia_summary: "the existing-DPIA summary",
   exceptions_intake: "the exceptions intake",
   impact_intake: "the impact intake",
+  // ITEM 388 FIX 1 — contract-vs-map delta closed. Every remaining
+  // cppaRiskContract leaf key now carries a label so prose naming one of
+  // them renders the human label instead of collapsing to NEUTRAL_LABEL.
+  primary_activity_name: "the name of the processing activity",
+  primary_activity_purpose: "the purpose of the processing activity",
+  has_secondary_uses: "the other-uses answer",
+  secondary_activities: "the secondary-activity records",
+  bought_sold_shared_count: "the bought, sold or shared consumer count",
+  a2_necessity_set: "the necessity answers",
+  a4_benefit_business: "the business-benefit answer",
+  a4_benefit_consumer: "the consumer-benefit answer",
+  a4_benefit_other_stakeholders: "the other-stakeholder-benefit answer",
+  a4_benefit_public: "the public-benefit answer",
+  a4_benefit_business_fact: "the supporting fact for the business benefit",
+  a4_benefit_consumer_fact: "the supporting fact for the consumer benefit",
+  a4_benefit_other_stakeholders_fact: "the supporting fact for the other-stakeholder benefit",
+  a4_benefit_public_fact: "the supporting fact for the public benefit",
+  a5_harm_pathways: "the identified harm pathways",
+  a6_safeguards: "the recorded safeguards",
+  a8_information_providers: "the information providers consulted",
+  a9_approver_name: "the approver name",
+  a9_approver_position: "the approver position",
+  a9_approval_date: "the approval date",
 };
 
 export const NEUTRAL_LABEL = "the corresponding intake response";
