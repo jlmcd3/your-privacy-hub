@@ -280,25 +280,32 @@ export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
     jumpSelector: '[data-coach-field="a6_safeguards"]',
     rank: 8,
     minLength: 80,
-    marker: /\b(residual|remain\w*|still|after|left|reduced to|cannot be|not eliminated)\b/i,
+    // ITEM 381 r2 — widened: a residual entry is often stated as a rating with
+    // its monitoring ("Low — monitored via SOC alerts"), which is a residual
+    // statement even without the word "residual".
+    marker:
+      /\b(residual|remain\w*|still|after|left|reduced to|cannot be|not eliminated|monitor\w*|ongoing|persist\w*|low|moderate|medium|high|within band|band)\b/i,
     heuristic:
-      "Short (under 80 characters) or no residual wording across the safeguard rows.",
+      "Short (under 80 characters) across the safeguard rows, or no wording anywhere in the rows for what is left after the safeguards.",
     consequence:
-      "As written, the safeguards section reports each safeguard and its status. Where no residual risk is stated, it records none.",
+      "As written, the safeguards section reports each safeguard and its status. Your rows state nothing about what is left after them, so the assessment records no remaining risk.",
     consequenceSource:
       "supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts a6_safeguards[].residual",
     advice:
       "State what remains after each safeguard rather than treating the harm as removed.",
   },
   {
+    // ITEM 381 r2 — blank is a COMPLETE answer here (contract emptyIsAnswer),
+    // so the card no longer fires on a blank block; it fires only on a
+    // started-but-short entry.
     key: "exceptions_intake",
     title: "Statutory exceptions you claim",
     jumpSelector: '[data-coach-field="exceptions_intake"]',
     rank: 9,
     minLength: 30,
-    adviceOnlyWhenEmpty: true,
     heuristic:
-      "Blank, or fewer than 30 characters across the exception boxes. Blank is an answer here, so the card carries advice only.",
+      "An exception entry has been started but carries fewer than 30 characters across its boxes. A blank block is a complete answer and is never carded.",
+
     consequence:
       "As written, your assessment records that no statutory exception is claimed for this activity.",
     consequenceSource:
