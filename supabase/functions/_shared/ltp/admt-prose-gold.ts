@@ -111,7 +111,6 @@ export function buildOpenItemsLedger(unresolved: readonly string[]): string {
  */
 export const ADMT_ABSENCE_LABEL_PHRASINGS: readonly string[] = [
   ADMT_CONCLUSION_LABELS.insufficient_basis,
-  ADMT_VERDICT_LABELS_PLACEHOLDER_GUARD,
   "Whether the business can explain how the technology produced its output is not established from the information supplied.",
   buildOpenItemsLedger(["the logic-disclosure element"]),
   buildOpenItemsLedger(["the logic-disclosure element", "the human-involvement element"]),
