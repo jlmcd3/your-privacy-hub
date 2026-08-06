@@ -446,6 +446,7 @@ export function applyRiskProseGold(
     // Shape law: the ARRAY/STRING live shapes are collapsed here; the legacy
     // OBJECT envelope keeps the item-380 `.prose` write and is untouched.
     if (rsRewritable) {
+      t.sufficiency_placeholders_dropped = countDegradedPlaceholderRows(rs);
       report.record_sufficiency = buildRecordSufficiency(
         rs,
         opts.affirmative,
@@ -453,6 +454,12 @@ export function applyRiskProseGold(
       );
     }
     t.sufficiency_voices_retired = before;
+
+    // r3 RESIDUAL 2 — analytics coherence (gate-true only; prose layer only).
+    const counts = normalizeActivityAnalytics(report.activity_analytics, true);
+    t.analytics_statuses_normalized = counts.statuses;
+    t.analytics_reasons_rewritten = counts.reasons;
+
     t.applied = true;
   } catch {
     /* fail-open: the document ships exactly as assembled */
