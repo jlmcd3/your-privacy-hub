@@ -73,7 +73,10 @@ import {
   attachRecordComplete,
   classifyPlaceholders,
   computeRecordComplete,
+  isByDesignActionSurface,
 } from "./record-complete.ts";
+// ITEM 384 — the gold-standard prose pass (G-1, G-2, G-4, G-6).
+import { applyRiskProseGold } from "./risk-prose-gold.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 
 
@@ -336,24 +339,49 @@ export function finalizeCppaRiskPayload(
  * the record-sufficiency surface in the executive summary. When, and ONLY
  * when, the truth gate holds, its draft framing is replaced by the affirmative
  * paragraph; otherwise the surface is left byte-identical.
+ *
+ * ITEM 384 — this function is now the SOLE WRITER of the sufficiency voice
+ * (G-1) and of the executive-summary opening (G-2), and it normalises the
+ * attestation block (G-4). It CONSUMES the item-380 classification; it never
+ * edits the gate, the classification rule, or the banner.
  */
 export function applyRiskRecordCompleteFraming(
   report: Record<string, unknown>,
   telemetry: { value: boolean },
-  classification: { counts: { action_item: number; preconditions: number } },
+  classification: {
+    counts: { action_item: number; preconditions: number };
+    items?: { text: string; klass: string }[];
+  },
 ): void {
-  if (!telemetry?.value) return;
   const text = affirmativeParagraph(
-    classification.counts.action_item,
-    classification.counts.preconditions,
+    classification?.counts?.action_item ?? 0,
+    classification?.counts?.preconditions ?? 0,
   );
+  // ITEM 384 (G-2 / G-4) — register repairs run on EVERY record: a degraded
+  // emit-gate placeholder may never open a customer surface, and the
+  // attestation block never speaks in the "not stated on the record" idiom.
+  // The gate-true rewrites happen inside the same pass.
+  const reservedCount = (classification?.items ?? []).filter(
+    (i) => i && i.klass === "action_item" && isByDesignActionSurface(String(i.text ?? "")),
+  ).length;
+  const goldTelemetry = applyRiskProseGold(report, {
+    recordComplete: telemetry?.value === true,
+    affirmative: text,
+    reservedCount,
+  });
+  try {
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_prose_gold = goldTelemetry;
+  } catch { /* non-fatal */ }
+
+  if (!telemetry?.value) return;
+
   // ITEM 380 r2 (DEFECT C) — SHAPE-AWARE WRITE. On the live LTP path the two
   // surfaces are NOT objects: `executive_summary` is a STRING and
-  // `record_sufficiency` is an ARRAY of paragraphs. The item-380 object-only
-  // write therefore silently no-opped and neither affirmative surface reached
-  // the persisted document. Both shapes are now handled, and the surface SHAPE
-  // is still never changed (a string stays a string, an array stays an array
-  // of paragraph strings — the renderer prints both as-is).
+  // `record_sufficiency` is an ARRAY of paragraphs. Item 384 rewrote both
+  // shapes above for the string/array case; the object shapes below remain
+  // for legacy envelopes.
   const es = report.executive_summary;
   if (typeof es === "string") {
     report.executive_summary = es.includes(text) ? es : `${es.trim()}\n\n${text}`.trim();

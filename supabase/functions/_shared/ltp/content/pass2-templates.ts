@@ -333,7 +333,10 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     id: "T.risk.priority_action.golden",
     // ITEM 242 (defect 7a) — owner slot appended verbatim to every action.
     // Sourced from i7_internal_contributors (role-title only, per PII law).
-    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}} Owner: {{plan:owner_role_titles}}.",
+    // ITEM 384 (G-3) — the internal `Owner:` scaffolding is replaced by a
+    // plain sentence, and the guidance/deadline clauses arrive
+    // sentence-terminated from the composer so they cannot splice.
+    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}} {{plan:owner_sentence}}",
     citation_slots: ["PINPOINT"],
     plan_slots: [
       "element_short_label",
@@ -342,7 +345,7 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
       "gap_or_consequence_clause",
       "compliance_guidance_sentence",
       "deadline_sentence",
-      "owner_role_titles",
+      "owner_sentence",
     ],
     intake_slots: [],
     max_chars: 1400,

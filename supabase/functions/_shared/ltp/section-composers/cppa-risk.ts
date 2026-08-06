@@ -38,6 +38,9 @@ import {
   type SecondaryActivityRow,
 } from "../secondary-recommendation.ts";
 
+// ITEM 384 (G-3) — counsel-register helpers for reserved-judgment actions.
+import { reservedActionLabel, ownerSentence, sentenceTerminate } from "../risk-prose-gold.ts";
+
 export { secondaryRecommendation };
 
 export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item276-primary-subject";
@@ -1059,10 +1062,18 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     // take the class-neutral ratified stem instead; non-family rows are
     // unchanged.
     const isFamily = !!s.factor_id?.startsWith("family.");
+    // ITEM 384 (G-3) — RESERVED-JUDGMENT ACTIONS IN COUNSEL'S REGISTER. The
+    // shipped stem ("Qualified counsel should be consulted for further
+    // consideration of …") read as boilerplate advice rather than as a
+    // statement of who holds the determination. Reserved rows now open with
+    // the ratified register; every other KIND is unchanged.
+    const reservedTo = s.owner_role_titles_override ?? ownerForKind(s.kind, plan);
     const stem = isFamily ? KIND_OPENERS.gate_unresolved : KIND_OPENERS[s.kind];
-    const prefixedLabel = isFamily
-      ? `${stem} ${s.element_short_label}`
-      : `${stem} ${lcFirst(s.element_short_label)}`;
+    const prefixedLabel = s.kind === "type_j_reserved" && !isFamily
+      ? `${reservedActionLabel(s.pinpoint, reservedTo)} ${lcFirst(s.element_short_label)}`
+      : isFamily
+        ? `${stem} ${s.element_short_label}`
+        : `${stem} ${lcFirst(s.element_short_label)}`;
     // Family customer_recorded_fact_clause carries the "the business" sentinel — replace here.
     const factClause = s.customer_recorded_fact_clause.replace(/the business's record/g, `${entity}'s record`);
     return {
@@ -1072,9 +1083,12 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         entity_name: entity,
         customer_recorded_fact_clause: factClause,
         gap_or_consequence_clause: s.gap_or_consequence_clause,
-        compliance_guidance_sentence: s.compliance_guidance_sentence,
-        deadline_sentence: sel.row.deadline_sentence,
-        owner_role_titles: s.owner_role_titles_override ?? ownerForKind(s.kind, plan),
+        // ITEM 384 (G-3, splice class) — every clause is sentence-terminated
+        // before it is joined, so "…the risk it addresses complete and retain
+        // the assessment record by …" cannot recur.
+        compliance_guidance_sentence: sentenceTerminate(s.compliance_guidance_sentence),
+        deadline_sentence: sentenceTerminate(sel.row.deadline_sentence, true),
+        owner_sentence: ownerSentence(reservedTo),
         __cite: { PINPOINT: s.pinpoint },
       },
     };
@@ -1137,15 +1151,13 @@ function composeNextSteps(plan: RenderPlan): TemplateInstance[] {
     );
   }
 
-  // (3) Present-element confirmations (retained prior behavior).
-  for (const f of plan.factor_table) {
-    if (!f.present_in_intake || f.kind !== "safeguard") continue;
-    const label = factorLabel(f);
-    push(
-      `Confirm ${label} is documented in the assessment record`,
-      `Present on the record; retain the supporting documentation with the assessment file.`,
-    );
-  }
+  // ITEM 384 (G-5) — NEXT STEPS CARRY ACTIONS ONLY. Block (3) used to emit a
+  // "Confirm <element> is documented in the assessment record" line for every
+  // present safeguard. Those are not steps: the element is already on the
+  // record, so the line asks the reader to confirm what the same document has
+  // just told them, and four of them in a row produced the litany the panel
+  // recorded on doc 03192701. Retired. Present-element status is stated once,
+  // with its pinpoint, in the record-sufficiency element list.
 
   return out;
 }

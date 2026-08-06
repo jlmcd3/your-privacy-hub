@@ -110,5 +110,5 @@ Deno.test("r4: risk path classification shape unchanged", () => {
 
 Deno.test("r4: stamps are bumped", () => {
   assertEquals(RECORD_COMPLETE_VERSION, "record-complete-2026-08-05-item380r5");
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item380r5-2026-08-05");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item384-2026-08-06");
 });
