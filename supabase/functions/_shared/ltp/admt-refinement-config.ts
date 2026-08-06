@@ -20,6 +20,8 @@
 //   rubric_british_spelling .............. 9 fails
 //   rubric_absence_on_backed_surface ..... 8 fails
 
+import { ADMT_SECTION_SPECS } from "../prose/plans/admt.spine.ts";
+
 export const ADMT_REFINEMENT_CONFIG_VERSION = "admt-refinement-config@item394-2026-08-06";
 
 export interface AdmtWatchClass {
