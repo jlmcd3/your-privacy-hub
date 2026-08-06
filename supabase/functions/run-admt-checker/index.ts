@@ -2672,7 +2672,7 @@ Return this JSON structure exactly:
       const refineTel = await runAdmtRefinement(
         report as Record<string, unknown>,
         refineIntake,
-        makeAdmtRefinementDeps((assessment as any)?.id ?? currentSourceRowId() ?? null, refineModel),
+        makeAdmtRefinementDeps(assessment_id ?? currentSourceRowId() ?? null, refineModel),
         {
           enabled: ADMT_REFINEMENT_ENABLED,
           coverageList: coverageListForCritic(preCoverage),
