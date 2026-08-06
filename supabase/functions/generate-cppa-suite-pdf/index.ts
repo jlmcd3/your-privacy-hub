@@ -26,14 +26,14 @@ const esc = (s: any) =>
 
 function statusClass(s: string) {
   const x = (s || "").toLowerCase();
-  if (x.includes("critical")) return "bg:#fee;color:#991b1b";
-  if (x === "gap") return "bg:#fef3c7;color:#92400e";
-  if (x === "partial") return "bg:#fef9c3;color:#854d0e";
-  if (x === "compliant") return "bg:#dcfce7;color:#166534";
-  if (x === "high" || x === "critical") return "bg:#fee2e2;color:#991b1b";
-  if (x === "medium") return "bg:#fef3c7;color:#92400e";
-  if (x === "low") return "bg:#dcfce7;color:#166534";
-  return "bg:#f1f5f9;color:#0f172a";
+  if (x.includes("critical")) return "bg:#e8eff2;color:#0d2a45";
+  if (x === "gap") return "bg:#eef4f7;color:#1a4a6e";
+  if (x === "partial") return "bg:#eaf2f5;color:#24606c";
+  if (x === "compliant") return "bg:#e5f4f2;color:#1c6960";
+  if (x === "high" || x === "critical") return "bg:#e8eff2;color:#0d2a45";
+  if (x === "medium") return "bg:#eef4f7;color:#1a4a6e";
+  if (x === "low") return "bg:#e5f4f2;color:#1c6960";
+  return "bg:#f2f6f8;color:#516a76";
 }
 
 function chip(text: string) {
@@ -192,10 +192,10 @@ function buildHTML(riskRow: any, cyberRow: any) {
   .row-head{margin:0 0 4px}
   .label{color:#5c5a54;font-weight:600}
   .muted{color:#5c5a54;font-size:10px}
-  .callout{border-left:4px solid #f59e0b;background:#fffbeb;padding:10px 12px;margin:10px 0;border-radius:4px}
+  .callout{border-left:4px solid #1a4a6e;background:#eef4f7;padding:10px 12px;margin:10px 0;border-radius:4px}
   .callout .label{display:block;margin-bottom:2px}
   .page-break{page-break-before:always}
-  .notice{margin-top:24px;padding:10px 12px;background:#fef3c7;border-left:4px solid #f59e0b;border-radius:4px;font-size:10px}
+  .notice{margin-top:24px;padding:10px 12px;background:#eef4f7;border-left:4px solid #1a4a6e;border-radius:4px;font-size:10px}
   ul,ol{margin:4px 0 4px 18px;padding:0}
 </style></head><body>
 <div style="padding:0 24px">
