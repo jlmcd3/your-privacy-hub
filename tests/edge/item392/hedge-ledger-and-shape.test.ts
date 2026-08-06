@@ -50,7 +50,7 @@ Deno.test("AG-1 — complete record: no hedge, no ledger", () => {
   assertEquals(t.hedges_rewritten, 0);
   assertEquals(t.ledger_written, false);
   assertEquals(t.unresolved_elements, []);
-  assertEquals(r.open_items_ledger, undefined);
+  assertEquals(r.adequacy_finding.open_items, undefined);
   assertEquals(JSON.stringify(r).includes("does not resolve this question"), false);
 });
 
@@ -59,9 +59,10 @@ Deno.test("AG-1 — degraded record: exactly ONE ledger naming every unresolved 
   const t = applyAdmtProseGold(r);
   assert(t.hedges_rewritten >= 2, `expected the repeated hedge to be de-duplicated, got ${t.hedges_rewritten}`);
   assertEquals(t.ledger_written, true);
-  assertEquals(t.unresolved_elements.sort(), ["human_intervention", "logic_disclosure"]);
+  assertEquals(t.unresolved_elements.sort(), ["the human-involvement element", "the logic-disclosure element"]);
 
-  const ledger: string = r.open_items_ledger;
+  // ONE ledger, on the adequacy surface, and nowhere else.
+  const ledger: string = r.adequacy_finding.open_items;
   assertEquals(typeof ledger, "string");
   // ONE sentence.
   assertEquals(ledger.trim().split(/(?<=[.!?])\s+/).length, 1);
@@ -69,7 +70,7 @@ Deno.test("AG-1 — degraded record: exactly ONE ledger naming every unresolved 
   assert(/logic/i.test(ledger), ledger);
   assert(/human/i.test(ledger), ledger);
   // The information is never lost.
-  assert(/information needed/i.test(ledger), ledger);
+  assert(/does not yet state/i.test(ledger), ledger);
 });
 
 Deno.test("AG-1 — the litany is gone from every element and the resolved element is untouched", () => {
@@ -92,7 +93,7 @@ Deno.test("AG-1 — the ledger is idempotent over its own output", () => {
   const first = JSON.parse(JSON.stringify(r));
   const t2 = applyAdmtProseGold(r);
   assertEquals(t2.hedges_rewritten, 0);
-  assertEquals(r.open_items_ledger, first.open_items_ledger);
+  assertEquals(r.adequacy_finding.open_items, first.adequacy_finding.open_items);
 });
 
 Deno.test("AG-3 — hollow fields and empty objects never ship", () => {

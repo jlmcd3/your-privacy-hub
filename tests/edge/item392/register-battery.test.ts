@@ -63,6 +63,9 @@ Deno.test("ITEM 392 — no ADMT builder literal carries a banned register idiom"
       // The label maps and substitution targets are the cure, not the disease:
       // they are keyed by the enum token and must be allowed to name it.
       if (ban.id === "internal_vocabulary" && /^[a-z_]+$/.test(text)) continue;
+      // JSON-path literals name the machine fields the pass walks; they are
+      // addresses, not reader copy.
+      if (/^[A-Za-z_][A-Za-z0-9_]*(\[\]|\.[A-Za-z0-9_]+|\[\d+\])+$/.test(text)) continue;
       if (ban.re.test(text)) hits.push(`${file}: [${ban.id}] ${text.slice(0, 90)}`);
     }
   }
@@ -156,6 +159,9 @@ function readerStrings(node: unknown, path = "", out: [string, string][] = []): 
 }
 
 /** Machine-keyed leaf names — enums are allowed to live here and only here. */
+/** Reader LABELS are phrases by design — not sentences. */
+const LABEL_LEAVES = /(_label|label_display)$/;
+
 const MACHINE_LEAVES = new Set(["overall_status", "status", "conclusion", "label", "enforcement_exposure", "element_id", "proposition_key", "citation", "deadline", "system_name"]);
 
 Deno.test("ITEM 392 seam — no reader surface opens on a hedge (opening-12-words)", () => {
@@ -182,7 +188,7 @@ Deno.test("ITEM 392 seam — no splice: every reader sentence is terminated and 
   applyAdmtProseGold(r);
   for (const [path, text] of readerStrings(r)) {
     const leaf = path.split(".").pop()!.replace(/\[\d+\]$/, "");
-    if (MACHINE_LEAVES.has(leaf)) continue;
+    if (MACHINE_LEAVES.has(leaf) || LABEL_LEAVES.test(leaf)) continue;
     assert(!/\s{2,}/.test(text), `${path} double space`);
     assert(!/[a-z]\.[A-Z]/.test(text), `${path} missing space after terminator`);
     assert(/[.!?]$/.test(text.trim()), `${path} unterminated: ${text}`);
@@ -202,7 +208,7 @@ Deno.test("ITEM 392 seam — duplicate-sentence: no sentence ships twice on the 
   const seen = new Map<string, string>();
   for (const [path, text] of readerStrings(r)) {
     const leaf = path.split(".").pop()!.replace(/\[\d+\]$/, "");
-    if (MACHINE_LEAVES.has(leaf)) continue;
+    if (MACHINE_LEAVES.has(leaf) || LABEL_LEAVES.test(leaf)) continue;
     for (const s of text.split(/(?<=[.!?])\s+/)) {
       const key = s.trim().toLowerCase();
       if (key.length < 25) continue;
