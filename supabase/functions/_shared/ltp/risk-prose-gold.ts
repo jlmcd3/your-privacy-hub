@@ -372,6 +372,138 @@ export function normalizeAttestationBlock(
 }
 
 // ---------------------------------------------------------------------------
+// ITEM 384 r4 — GLOBAL GATE-TRUE PLACEHOLDER SWEEP (ends the placeholder class)
+// ---------------------------------------------------------------------------
+
+/**
+ * Determination machinery. These keys are NEVER swept, whatever they carry:
+ * the outcome vocabulary belongs to `decideConsequence` / the emit-gate
+ * catalogue, not to the prose layer.
+ */
+export const SWEEP_PROTECTED_KEYS: ReadonlySet<string> = new Set([
+  "decision",
+  "rule_ids",
+  "rule_id",
+  "outcome",
+  "outcomes",
+  "outweigh_determination",
+  "verdict",
+  "modifications",
+  "conditions",
+  "harm_id",
+  "harm_ids",
+  "gating",
+  "_meta",
+  "_staging",
+]);
+
+/**
+ * Fields whose value IS the row. A guidance entry with no verbatim quote is
+ * not a quotation — the parent row is dropped rather than shipped hollow.
+ */
+export const SWEEP_ROW_CRITICAL_KEYS: ReadonlySet<string> = new Set([
+  "verbatim_quote",
+]);
+
+export interface SweepResult {
+  swept: number;
+  paths: string[];
+}
+
+/** A string is a PURE placeholder iff it matches the emit-gate class and
+ *  nothing of substance survives the strip (the r2/r3 guard, exactly). */
+export function isPurePlaceholder(v: unknown): boolean {
+  return typeof v === "string" && isDegradedPlaceholderRow(v);
+}
+
+/**
+ * Walks every customer surface of an assembled report and removes PURE
+ * emit-gate placeholders. Gate-FALSE documents are byte-untouched.
+ *
+ * RENDERER SAFETY (verified before coding):
+ *  - `risk_assessment_by_activity` — PDF `coerceNarrativeList` + `listSection`,
+ *    LTP `<ListSection>`, V4 `activities.length > 0` guard: all handle an empty
+ *    or shorter array. Element removal is safe; order is preserved.
+ *  - `activity_analytics[].weighing[].case_against` — PDF `f()` and the
+ *    `<Field>` component both skip undefined/empty, so field deletion renders
+ *    the row without that line.
+ *  - `eu_persuasive_authority.topics[].guidance[]` — `analogies.ts` reads
+ *    `guidance[0].verbatim_quote` unguarded, so a quote-less guidance row is
+ *    dropped whole (row-critical key) rather than left hollow.
+ */
+export function sweepDegradedPlaceholders(
+  report: unknown,
+  recordComplete: boolean,
+  maxPaths = 20,
+): SweepResult {
+  const res: SweepResult = { swept: 0, paths: [] };
+  if (recordComplete !== true) return res;
+  if (!report || typeof report !== "object" || Array.isArray(report)) return res;
+
+  const note = (path: string) => {
+    res.swept += 1;
+    if (res.paths.length < maxPaths) res.paths.push(path);
+  };
+
+  // Returns true when the caller should drop this node entirely.
+  const walk = (node: unknown, path: string): boolean => {
+    if (typeof node === "string") return isPurePlaceholder(node);
+
+    if (Array.isArray(node)) {
+      for (let i = node.length - 1; i >= 0; i--) {
+        if (walk(node[i], `${path}[${i}]`)) {
+          note(`${path}[${i}]`);
+          node.splice(i, 1);
+        }
+      }
+      return false;
+    }
+
+    if (node && typeof node === "object") {
+      const obj = node as Record<string, unknown>;
+      let dropSelf = false;
+      for (const [k, v] of Object.entries(obj)) {
+        if (SWEEP_PROTECTED_KEYS.has(k)) continue;
+        const child = `${path}.${k}`;
+        if (typeof v === "string") {
+          if (!isPurePlaceholder(v)) continue;
+          if (SWEEP_ROW_CRITICAL_KEYS.has(k)) {
+            note(child);
+            dropSelf = true;
+          } else {
+            note(child);
+            delete obj[k];
+          }
+          continue;
+        }
+        if (walk(v, child)) {
+          note(child);
+          delete obj[k];
+        }
+      }
+      return dropSelf;
+    }
+    return false;
+  };
+
+  for (const [k, v] of Object.entries(report as Record<string, unknown>)) {
+    if (SWEEP_PROTECTED_KEYS.has(k)) continue;
+    const path = `$.${k}`;
+    if (typeof v === "string") {
+      // Top-level scalar surfaces are owned by the G-passes; a pure
+      // placeholder there is emptied only when a G-pass already rebuilt it.
+      continue;
+    }
+    if (walk(v, path)) {
+      note(path);
+      delete (report as Record<string, unknown>)[k];
+    }
+  }
+  return res;
+}
+
+
+// ---------------------------------------------------------------------------
 // The single entry point
 // ---------------------------------------------------------------------------
 
@@ -386,6 +518,9 @@ export interface RiskProseGoldTelemetry {
   /** r3 RESIDUAL 2 — analytics consequences re-voiced on a gate-TRUE record. */
   analytics_statuses_normalized: number;
   analytics_reasons_rewritten: number;
+  /** r4 — global gate-TRUE placeholder sweep. */
+  placeholders_swept: number;
+  placeholder_paths: string[];
 }
 
 /**
@@ -411,6 +546,8 @@ export function applyRiskProseGold(
     sufficiency_placeholders_dropped: 0,
     analytics_statuses_normalized: 0,
     analytics_reasons_rewritten: 0,
+    placeholders_swept: 0,
+    placeholder_paths: [],
   };
   try {
     // G-2 (register repair, every record) — with the r2 empty-surface guard.
@@ -459,6 +596,12 @@ export function applyRiskProseGold(
     const counts = normalizeActivityAnalytics(report.activity_analytics, true);
     t.analytics_statuses_normalized = counts.statuses;
     t.analytics_reasons_rewritten = counts.reasons;
+
+    // r4 — GLOBAL SWEEP, after every G-pass: no pure emit-gate placeholder
+    // survives anywhere on a gate-TRUE document outside `_meta`.
+    const sweep = sweepDegradedPlaceholders(report, true);
+    t.placeholders_swept = sweep.swept;
+    t.placeholder_paths = sweep.paths;
 
     t.applied = true;
   } catch {
