@@ -79,22 +79,31 @@ export function scrubAuthoredAggregates(
   // sentence with the same canonical sentence, so a summary carrying two mean
   // sentences emitted the canonical sentence verbatim twice. Only the FIRST
   // occurrence now emits the canonical sentence; later occurrences are dropped.
+  //
+  // ITEM 391 FIX 4 — the dedup must be IDEMPOTENT OVER ITS OWN OUTPUT. The
+  // canonical sentence itself contains "Mean of N", so the loose-token fallback
+  // used to re-match the substitution it had just written and corrupt it into
+  // "figure stated above". The substitution is therefore parked behind a
+  // sentinel for the duration of the loose pass and restored afterwards.
+  const SENTINEL = "\u0000W10CANON\u0000";
   let emitted = false;
   const emit = (): string => {
     replaced++;
     if (emitted) return " ";
     emitted = true;
-    return ` ${agg.canonical_sentence}`;
+    return ` ${SENTINEL}`;
   };
   // Full-sentence replacement first — preserves paragraph structure.
   out = out.replace(AGG_SENTENCE_RE, emit);
-  // Fallback: neutralize any surviving loose mean/average token.
+  // Fallback: neutralize any surviving loose mean/average token. The sentinel
+  // is inert here, so the canonical sentence can never be re-matched.
   out = out.replace(LOOSE_SCORE_RE, () => {
     replaced++;
     if (emitted) return "figure stated above";
     emitted = true;
     return agg.canonical_sentence.replace(/\.$/, "");
   });
+  out = out.split(SENTINEL).join(agg.canonical_sentence);
   return { out: out.replace(/\s{2,}/g, " ").trim(), replaced };
 }
 

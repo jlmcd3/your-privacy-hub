@@ -296,7 +296,9 @@ const M_TOKEN_MAP: Record<string, string> = {
   M3: "the consumer-volume determination",
   M4: "the sensitive-PI determination",
   M5: "the sale/share-revenue determination",
-  M6: "the cyber-audit tier review",
+  // ITEM 391 FIX 2 — "cyber-audit tier review" is the internal module name.
+  // The reader-facing meaning of M6 is the audit-cohort determination.
+  M6: "the audit-cohort determination",
   M7: "the trigger review",
   M8: "the exception review",
   M9: "the § 7152(a) element review",

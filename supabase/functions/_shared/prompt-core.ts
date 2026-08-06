@@ -144,9 +144,13 @@ NOT modify or duplicate any per-tool deterministic check)
   anchor is a defect even when the surrounding narrative is correct. When the precise anchor is
   not verified, cite the parent article/section and name the requirement in words rather than
   deepen from memory (per CITATION DEPTH DISCIPLINE, GLOBAL). Non-existent or misremembered
-  provisions are prohibited — including but not limited to: "GDPR Article 6(11)" or "UK GDPR
-  Article 6(11)" (the legitimate-interests basis is Article 6(1)(f); there is no Article 6(11));
+  provisions are prohibited — including but not limited to: "GDPR Article 6(11)" as an EU citation
+  (the EU GDPR has no Article 6(11); the EU legitimate-interests basis is Article 6(1)(f)). UK GDPR
+  Article 6(11) DOES exist — inserted by the Data (Use and Access) Act 2025, in force 5 February
+  2026 — and may be cited ONLY for UK-law analysis and ONLY in the verified form supplied by the
+  injected registry text; never carry it across into an EU GDPR citation. Also prohibited:
   HIPAA "45 CFR § …" citations whose subsection is not in the IR-playbook Part-164 anchors or an
+
   otherwise-provided HIPAA source; US state statute cites (C.R.S., Va. Code, Tex. Bus. & Com.
   Code, Conn. Gen. Stat., etc.) on an intake that engages only EU/UK jurisdictions. Where such a
   defect would occur, replace with the correct verified anchor (Article 6(1)(f) for LI; the

@@ -162,21 +162,20 @@ export function formatAnswer(questionKey: string, value: unknown): string {
   if (value == null) return "";
   const labelMap = OPTION_LABELS[questionKey];
 
-  const humanizeToken = (k: string): string => {
-    if (!k) return k;
-    const spaced = k.replace(/_/g, " ").trim();
-    return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-  };
-
+  // ITEM 391 FIX 1 — the humanizer introduced at f84f79c73 title-cased EVERY
+  // unmapped value, including free-text answers such as email addresses and
+  // URLs. That corrupted the DPO contact line's href (`mailto:Dpo@acme.test`).
+  // Values with no OPTION_LABELS entry are free text and pass through verbatim;
+  // genuine enum tokens are rendered from the label map, byte-identical.
   if (Array.isArray(value)) {
     const labels = value.map((v) => {
       const k = String(v);
-      return labelMap?.[k] ?? humanizeToken(k);
+      return labelMap?.[k] ?? k;
     });
     return labels.join(", ");
   }
   if (typeof value === "string") {
-    return labelMap?.[value] ?? humanizeToken(value);
+    return labelMap?.[value] ?? value;
   }
   if (typeof value === "number" || typeof value === "boolean") {
     return String(value);
