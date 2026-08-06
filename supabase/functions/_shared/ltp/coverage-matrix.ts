@@ -687,6 +687,7 @@ export function runCoverageMatrix(
     if (!report || typeof report !== "object") return t;
     const intake = (intakeIn && typeof intakeIn === "object" ? intakeIn : {}) as Record<string, unknown>;
     if (product === "dpia") dpiaCoverage(report, intake, t);
+    else if (product === "lia") liaCoverage(report, intake, t);
     else riskCoverage(report, intake, t);
   } catch (e) {
     t.crashed = true;
