@@ -73,7 +73,10 @@ import {
   attachRecordComplete,
   classifyPlaceholders,
   computeRecordComplete,
+  isByDesignActionSurface,
 } from "./record-complete.ts";
+// ITEM 384 — the gold-standard prose pass (G-1, G-2, G-4, G-6).
+import { applyRiskProseGold } from "./risk-prose-gold.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 
 
