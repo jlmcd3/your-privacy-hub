@@ -1893,10 +1893,16 @@ Return JSON:
       const { attachLiaCsc } = await import("../_shared/ltp/lia-csc.ts");
       const { loadApprovedFrameSet } = await import("../_shared/prose/frame-substitution.ts");
       const cscFrameSet = await loadApprovedFrameSet(supabase, "lia").catch(() => undefined);
+      // ITEM 385 r2 — the FULL persisted row, as the deliverables builder
+      // reads it. The trimmed `liaIntakeObject` omits purpose_details /
+      // necessity_details / balancing_details / attestation, which is where
+      // every CSC backing key lives: passing it made every surface look
+      // unbacked and turned the pass into a no-op on live documents.
       const csc = attachLiaCsc(reportData as Record<string, unknown>, {
-        intake: liaIntakeObject ?? {},
+        intake: (assessment as unknown as Record<string, unknown>) ?? {},
         frameSet: cscFrameSet as never,
       });
+
       console.log(JSON.stringify({
         evt: "lia_csc", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
         version: csc.version, violations: csc.violations.length, repairs: csc.repairs,
