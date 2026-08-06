@@ -7,7 +7,7 @@
 export function CitationVerificationBadge({ verified }: { verified: boolean }) {
   if (verified) {
     return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-[0.1em] border bg-emerald-50 text-emerald-700 border-emerald-200">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-[0.1em] border bg-brand-teal/5 text-brand-teal-text border-brand-teal/20">
         Verified
       </span>
     );
@@ -15,7 +15,7 @@ export function CitationVerificationBadge({ verified }: { verified: boolean }) {
   return (
     <span
       title="Not found in our CCPA/CPPA corpus — verify against the primary source."
-      className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-[0.1em] border bg-amber-50 text-amber-700 border-amber-200"
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-[0.1em] border bg-brand-slate-teal/5 text-brand-slate-teal border-brand-slate-teal/20"
     >
       Unverified
     </span>

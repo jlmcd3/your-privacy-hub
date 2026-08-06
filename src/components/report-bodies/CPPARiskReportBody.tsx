@@ -18,10 +18,10 @@ import { describeCppaRiskShape } from "@/lib/cppa-risk-shape";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
-  if (x === "critical") return "bg-red-100 text-red-800";
-  if (x === "high") return "bg-orange-100 text-orange-800";
-  if (x === "medium") return "bg-amber-100 text-amber-800";
-  if (x === "low") return "bg-green-100 text-green-800";
+  if (x === "critical") return "bg-brand-navy/10 text-brand-navy";
+  if (x === "high") return "bg-brand-ocean/10 text-brand-ocean";
+  if (x === "medium") return "bg-brand-slate-teal/10 text-brand-slate-teal";
+  if (x === "low") return "bg-brand-teal/10 text-brand-teal-text";
   return "bg-muted text-foreground";
 };
 
@@ -107,7 +107,7 @@ export default function CPPARiskReportBody({ report = {}, createdAt }: CPPARiskR
         && typeof report.enforcement_context === "string"
         && report.enforcement_context.trim() !== ""
         && report.enforcement_context.trim().toLowerCase() !== "null" && (
-          <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
+          <section className="p-4 bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border-l-4 border-brand-slate-teal text-sm rounded">
             <p className="font-semibold mb-1">Enforcement Context</p>
             <p>{report.enforcement_context}</p>
           </section>

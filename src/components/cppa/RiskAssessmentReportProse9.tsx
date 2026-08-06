@@ -23,10 +23,10 @@ export interface RiskAssessmentReportProse9Props {
 
 const bandColor = (r: string) => {
   const x = (r || "").toLowerCase();
-  if (x === "critical") return "bg-red-100 text-red-800";
-  if (x === "high") return "bg-orange-100 text-orange-800";
-  if (x === "moderate" || x === "medium") return "bg-amber-100 text-amber-800";
-  if (x === "low") return "bg-green-100 text-green-800";
+  if (x === "critical") return "bg-brand-navy/10 text-brand-navy";
+  if (x === "high") return "bg-brand-ocean/10 text-brand-ocean";
+  if (x === "moderate" || x === "medium") return "bg-brand-slate-teal/10 text-brand-slate-teal";
+  if (x === "low") return "bg-brand-teal/10 text-brand-teal-text";
   return "bg-muted text-foreground";
 };
 
