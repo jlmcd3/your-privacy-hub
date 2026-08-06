@@ -46,8 +46,9 @@ Deno.test("TOOL_TABLE: intake column shape is per-tool", () => {
 
 Deno.test("GRADER_STAMP === grade-single-assessment.BUILD_STAMP (mirror asserted)", () => {
   assertEquals(GRADER_STAMP, GRADER_BUILD_STAMP);
-  // QLB-F3: stamp prefix bumped from "ql3-p1-2-" to "ql3-qlbf3-".
-  assert(GRADER_BUILD_STAMP.startsWith("ql3-qlbf3-"));
+  // ITEM 388 FIX 3: the mirror's truth is grade-single-assessment.BUILD_STAMP,
+  // which moved to the post-c1-fix-2 line on 2026-07-23. Old pin: "ql3-qlbf3-".
+  assert(GRADER_BUILD_STAMP.startsWith("post-c1-fix-2-"));
 });
 
 // ---------- Handler input validation (no network) ----------

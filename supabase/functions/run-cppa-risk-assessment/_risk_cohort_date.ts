@@ -151,36 +151,12 @@ function emptyCounters(buildStamp: string | null): RiskCohortDateCounters {
   };
 }
 
-// Excise wrong-cohort sentences from a targeted timeline string. Only
-// touches sentences that BOTH (a) mention a wrong-year cohort date
-// literal and (b) sit in a § 7121 / cohort context sentence.
-function exciseWrongCohortSentences(
-  s: string,
-  c: RiskCohortDateCounters,
-): string {
-  try {
-    if (typeof s !== "string" || !s) return s;
-    if (!WRONG_DATE_RE_25_50M.test(s)) return s;
-    const sentences = splitSentences(s);
-    const kept: string[] = [];
-    let excised = 0;
-    for (const raw of sentences) {
-      const hasWrong = WRONG_DATE_RE_25_50M.test(raw);
-      const hasCohortCtx = COHORT_CITE_HINT.test(raw);
-      if (hasWrong && hasCohortCtx) {
-        excised += 1;
-        continue;
-      }
-      kept.push(raw);
-    }
-    if (excised === 0) return s;
-    c.sentences_excised += excised;
-    return normalizeSpacing(kept.join(" "));
-  } catch {
-    c.errors += 1;
-    return s;
-  }
-}
+// ITEM 388 FIX 4 — the V1 helper `exciseWrongCohortSentences` was deleted
+// whole here. It referenced `WRONG_DATE_RE_25_50M`, a V1 constant removed by
+// PRE-WAVED-EMITTER-FIXES-2026-07-27 when the V2 truth table took ownership of
+// cohort-date excision; the helper was unreachable (only
+// `exciseAnyWrongCohortSentences` is called) but broke `deno check`.
+
 
 // Excise sentences that mention a WRONG cohort date for the resolved
 // band and sit in a § 7121/cohort context. For indeterminate bands
