@@ -70,7 +70,7 @@ Deno.test("item396 a1 repairs a backed element from the record register", () => 
   assertEquals(a1.length, 2);
   assert(a1.every((v) => v.repaired));
   const af = report.adequacy_finding as Record<string, any>;
-  assert(String(af.logic_disclosure.reason).includes("rubric band"), af.logic_disclosure.reason);
+  assert(String(af.logic_disclosure.reason).includes("plain-language explanation"), af.logic_disclosure.reason);
   assertEquals(af.logic_disclosure.conclusion_label, ADMT_RECORD_BACKED_LABEL);
   assertEquals(af.logic_disclosure.record_backed, true);
   assert(String(af.human_intervention.reason).length > 40);

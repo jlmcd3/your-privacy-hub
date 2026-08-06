@@ -86,7 +86,7 @@ export function isUnresolvedConclusion(v: unknown): boolean {
  * ITEM 396 — the reader label an element carries once the CSC has established
  * it from the persisted record. The machine `conclusion` enum is NOT touched.
  */
-export const ADMT_RECORD_BACKED_LABEL = "established on the record";
+export const ADMT_RECORD_BACKED_LABEL = "established by the record supplied";
 
 function joinList(items: readonly string[]): string {
   if (items.length === 0) return "";
