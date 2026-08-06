@@ -21,6 +21,11 @@ import {
 } from "./_risk_cohort_date.ts";
 import { applyW24aV3 } from "./_w24a_v3.ts";
 
+// The exact sentence the V2 truth-table emitter writes for the $25M–$50M band.
+const V2_COHORT_SENTENCE_25_50M =
+  "Per 11 CCR § 7121(a)(3), the first cybersecurity audit report is due " +
+  "April 1, 2030 (audit period January 1, 2029 through January 1, 2030).";
+
 // ── Corpus-pin: literals must match provision_texts.cppa-7121 §7121(a)(3) ──
 Deno.test("RCD [corpus pin]: literal date + audit period match § 7121(a)(3) verbatim", () => {
   // Pin the deterministic literals; changing either without a corpus
@@ -33,7 +38,10 @@ Deno.test("RCD [corpus pin]: literal date + audit period match § 7121(a)(3) ver
 
 Deno.test("RCD [stamp+version shape]", () => {
   assert(RISK_COHORT_DATE_STAMP.startsWith("risk-cohort-date@"));
-  assertEquals(RISK_COHORT_DATE_VERSION, "risk-cohort-date-v1-2026-07-26");
+  // (a) STALE PIN, item 387 r2: PRE-WAVED-EMITTER-FIXES-2026-07-27 replaced the
+  // 25_50m-only V1 emitter with the full V2 revenue-band truth table.
+  // old: risk-cohort-date-v1-2026-07-26 → new: risk-cohort-date-v2-truth-table-2026-07-27
+  assertEquals(RISK_COHORT_DATE_VERSION, "risk-cohort-date-v2-truth-table-2026-07-27");
 });
 
 // ── Band-not-resolved / other-band no-ops ────────────────────────────────
@@ -45,7 +53,13 @@ Deno.test("RCD [no-op]: unspecified band → no emit, no mutation", () => {
   assertEquals((report as any).cross_tool_recommendations.cybersecurity_audit_rationale, "unchanged.");
 });
 
-for (const other of ["Under $25M", "$50M–$100M", "$100M–$500M", "Over $500M", "$25M–$100M"]) {
+// (b) DEAD TESTS, item 387 r2: the no-op assertions for "Under $25M",
+// "$50M–$100M", "$100M–$500M" and "Over $500M" tested V1 behaviour that
+// PRE-WAVED-EMITTER-FIXES-2026-07-27 (V2 truth table) deliberately removed — V2
+// emits the corpus-pinned literal for every RESOLVABLE band. Only the
+// indeterminate legacy band stays a no-op (OMISSION-OVER-INVENTION). Positive
+// per-band emit expectations are pinned in the truth-table test below.
+for (const other of ["$25M–$100M"]) {
   Deno.test(`RCD [no-op]: band ${other} → no emit`, () => {
     const before = { cross_tool_recommendations: { cybersecurity_audit_rationale: "keep me." } };
     const { counters, report } = applyRiskCohortDate(
@@ -54,6 +68,28 @@ for (const other of ["Under $25M", "$50M–$100M", "$100M–$500M", "Over $500M"
     assertEquals(counters.date_emitted, 0);
     assertEquals(counters.date_corrected, 0);
     assertEquals((report as any).cross_tool_recommendations.cybersecurity_audit_rationale, "keep me.");
+  });
+}
+
+// ── V2 truth-table: resolvable bands emit their corpus-pinned literal ────
+for (
+  const [band, subdivision, date, period] of [
+    ["Under $25M", "(a)(3)", "April 1, 2030", "January 1, 2029 through January 1, 2030"],
+    ["$25M\u2013$50M", "(a)(3)", "April 1, 2030", "January 1, 2029 through January 1, 2030"],
+    ["$50M\u2013$100M", "(a)(2)", "April 1, 2029", "January 1, 2028 through January 1, 2029"],
+    ["$100M\u2013$500M", "(a)(1)", "April 1, 2028", "January 1, 2027 through January 1, 2028"],
+    ["Over $500M", "(a)(1)", "April 1, 2028", "January 1, 2027 through January 1, 2028"],
+  ] as const
+) {
+  Deno.test(`RCD [V2 truth table]: band ${band} \u2192 \u00a7 7121${subdivision} / ${date}`, () => {
+    const before = { cross_tool_recommendations: { cybersecurity_audit_rationale: "" } };
+    const { counters, report } = applyRiskCohortDate({ q1_revenue: band }, before as any);
+    assertEquals(counters.date_emitted, 1);
+    assertEquals(counters.errors, 0);
+    assertEquals(
+      String((report as any).cross_tool_recommendations.cybersecurity_audit_rationale),
+      `Per 11 CCR \u00a7 7121${subdivision}, the first cybersecurity audit report is due ${date} (audit period ${period}).`,
+    );
   });
 }
 
@@ -88,9 +124,13 @@ Deno.test("RCD [regression w27 7f0de458 / w28 e5a04cf7+1036f12c shape]: after V3
   assertEquals(counters.band_resolved, "25_50m");
   assertEquals(counters.date_emitted, 1);
   assertEquals(counters.errors, 0);
+  // (a) STALE PIN, item 387 r2: V2 emits the truth-table sentence rather than the
+  // V1 constant DETERMINISTIC_COHORT_SENTENCE_25_50M (which carried a
+  // "$50,000,000" revenue clause). old: DETERMINISTIC_COHORT_SENTENCE_25_50M
+  // \u2192 new: the \u00a7 7121(a)(3) truth-table sentence pinned verbatim below.
   assert(
     String((after as any).cross_tool_recommendations.cybersecurity_audit_rationale)
-      .includes(DETERMINISTIC_COHORT_SENTENCE_25_50M),
+      .includes(V2_COHORT_SENTENCE_25_50M),
   );
 });
 
@@ -128,7 +168,7 @@ Deno.test("RCD [wrong-date excision]: sentence stating April 1, 2029 for cohort 
   assertEquals(counters.date_corrected, 1);
   const out = String((report as any).cross_tool_recommendations.cybersecurity_audit_rationale);
   assert(!/April\s+1,?\s+2029/.test(out), "wrong date must be gone");
-  assert(out.includes(DETERMINISTIC_COHORT_SENTENCE_25_50M));
+  assert(out.includes(V2_COHORT_SENTENCE_25_50M));
   assert(out.includes("Baseline sentence unrelated"));
   assert(out.includes("Another retained sentence"));
 });
