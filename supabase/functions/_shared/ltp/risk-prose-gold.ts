@@ -408,6 +408,9 @@ export function applyRiskProseGold(
     exec_degraded_opener_stripped: false,
     sufficiency_voices_retired: 0,
     attestation_normalized: false,
+    sufficiency_placeholders_dropped: 0,
+    analytics_statuses_normalized: 0,
+    analytics_reasons_rewritten: 0,
   };
   try {
     // G-2 (register repair, every record) — with the r2 empty-surface guard.
