@@ -47,8 +47,8 @@ describe("D6 ▣3 — PRE-PAYMENT placement (CEO ruling 2026-08-06)", () => {
   });
 
   it("the coach branch returns before the checkout call", () => {
-    for (const src of [dpia, cppa]) {
-      const seg = src.slice(src.indexOf("isIntakeCoachEnabled"), src.indexOf("isIntakeCoachEnabled") + 260);
+    for (const [src, key] of [[dpia, 'isIntakeCoachEnabled("dpia")'], [cppa, 'isIntakeCoachEnabled("cppa_risk")']] as const) {
+      const seg = src.slice(src.indexOf(key), src.indexOf(key) + 260);
       expect(seg).toContain("setCoachOpen(true)");
       expect(seg).toContain("return;");
     }
@@ -64,7 +64,7 @@ describe("D6 ▣5 — UNIVERSAL access (CEO ruling 2026-08-06)", () => {
     expect(isIntakeCoachEnabled("dpia")).toBe(true);
     expect(isIntakeCoachEnabled("cppa_risk")).toBe(true);
     for (const src of [dpia, cppa]) {
-      const seg = src.slice(src.indexOf("isIntakeCoachEnabled"), src.indexOf("isIntakeCoachEnabled") + 120);
+      const seg = src.slice(src.indexOf("isIntakeCoachEnabled("), src.indexOf("isIntakeCoachEnabled(") + 120);
       expect(seg).not.toMatch(/subscriber|isPremium|entitlement/i);
     }
   });
