@@ -398,14 +398,25 @@ export function runLiaCsc(
       if (!surfaceBacked(surface, intake)) continue; // honest degradation
       const node = getPath(report, surface.path);
       if (node === undefined || node === null) continue;
-      const prose = surfaceProse(node);
+      // A surface with a report-aware repair is read DEEPLY: its frames sit in
+      // nested lists (key_elements, review_triggers) the shallow extractor
+      // never reaches. Shallow extraction stays the default so no existing
+      // surface changes behaviour.
+      const prose = surface.repair ? deepProse(node) : surfaceProse(node);
       if (!prose.trim()) continue;
       const partial = PARTIAL_DISCHARGE_RE.exec(prose);
       const hit = carriesAbsenceLanguage(prose, needles) ?? (partial ? partial[0] : null);
       if (!hit) continue;
 
-      const rebuilt = surface.rebuild ? surface.rebuild(intake) : undefined;
-      if (rebuilt !== undefined && rebuilt !== null && str(rebuilt) !== "") {
+      const rebuilt = surface.repair
+        ? surface.repair(node, intake, report)
+        : surface.rebuild
+        ? surface.rebuild(intake)
+        : undefined;
+      const usable = rebuilt !== undefined && rebuilt !== null &&
+        (typeof rebuilt === "object" ? true : str(rebuilt) !== "");
+      if (usable) {
+
         // Never change a surface's SHAPE.
         setPath(
           report,
