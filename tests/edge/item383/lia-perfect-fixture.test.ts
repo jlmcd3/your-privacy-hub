@@ -60,8 +60,10 @@ Deno.test("registry: PERFECT_BY_TOOL + casesForVariant wiring for lia", () => {
   assertEquals(casesForVariant("lia", "messy"), MESSY_BY_TOOL["lia"]);
 });
 
-Deno.test("gate: lia is in the product union with an empty false-absence list", () => {
-  assertEquals(FALSE_ABSENCE_CHECK_IDS["lia"], []);
+Deno.test("gate: lia carries the l2-class false-absence id (item385 leg 2)", () => {
+  // Leg 1 shipped an empty list because LIA had no CSC pass. The pass landed
+  // in item385 leg 2, so the gate now reads real evidence.
+  assertEquals(FALSE_ABSENCE_CHECK_IDS["lia"], ["l2_absence_claim_vs_record"]);
 });
 
 Deno.test("gate: fail-closed shape on the perfect fixture (no coverage, no CSC)", () => {
