@@ -30,8 +30,8 @@ import {
   SPECULATIVE_LEXICON,
   row,
 } from "./elements.ts";
-import type {
 import { liaVerdictLabel } from "../../prose/plans/lia.spine.ts";
+import type {
   AlternativeConsidered,
   AlternativesConsideredFinding,
   BeneficiaryClass,
