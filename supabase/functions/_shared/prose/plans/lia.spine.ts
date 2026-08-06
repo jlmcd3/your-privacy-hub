@@ -25,7 +25,7 @@ export const LIA_PLAN_ROW_ID = "c9b3d942-83b9-4aac-859d-b507c1f2ef37";
 export const LIA_PLAN_VERSION = "prose-plans-2026-08-04-item364-d2";
 
 /** The finalize-point stamp written into `_meta.internal.lia_pipeline_stamp`. */
-export const LIA_PIPELINE_STAMP = "lia-pipeline@item385-2026-08-06";
+export const LIA_PIPELINE_STAMP = "lia-pipeline@item385r2-2026-08-06";
 
 /** Transcribed verbatim from the approved plan row. */
 export const LIA_THESIS =
