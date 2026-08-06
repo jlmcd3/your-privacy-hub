@@ -43,6 +43,7 @@ import { renderDeterminationHtml, DETERMINATION_CSS } from "../_shared/report-ex
 import { buildCPPARiskProse9HTML } from "./prose9-html.ts";
 // ITEM 369-IR LEG 1 — two-file IR delivery (standing playbook + worksheet).
 import { buildIRStandingPlaybookHTML, buildIRWorksheetHTML } from "./ir-artifacts-html.ts";
+import { liaSectionTitle, liaVerdictLabel } from "../_shared/prose/plans/lia.spine.ts";
 
 
 
@@ -182,7 +183,7 @@ function buildLiaUpgrade4HTML(report: any): string {
     String(s ?? "").replace(/_/g, " ");
   const head = (title: string, f: any) => {
     if (!f) return "";
-    const bits = [f.verdict ? String(f.verdict).replace(/_/g, " ") : "", f.status ? statusLabel(f.status) : ""].filter(Boolean).join(" · ");
+    const bits = [f.verdict ? liaVerdictLabel(f.verdict) : "", f.status ? statusLabel(f.status) : ""].filter(Boolean).join(" · ");
     return `<h3>${S(title)}${bits ? ` <span class="label">— ${S(bits)}</span>` : ""}</h3>`;
   };
   const finding = (title: string, f: any, extra = "") => {
@@ -210,10 +211,10 @@ ${(f.citation || f.supporting_citation) ? `<p class="meta">Authority: ${S(f.cita
 
   const purpose = (il || bb)
     ? `<h2>Purpose — Is the interest legitimate?</h2>
-${finding("Legitimacy of the interest", il, Array.isArray(il?.sub_tests) && il.sub_tests.length
-        ? `<ul>${il.sub_tests.map((t: any) => `<li><strong>${S(t?.label)}</strong>${t?.verdict ? ` — ${S(String(t.verdict).replace(/_/g, " "))}` : ""}${t?.reasoning ? `: ${S(t.reasoning)}` : ""}</li>`).join("")}</ul>`
+${finding(liaSectionTitle("interest_legitimacy"), il, Array.isArray(il?.sub_tests) && il.sub_tests.length
+        ? `<ul>${il.sub_tests.map((t: any) => `<li><strong>${S(t?.label)}</strong>${t?.verdict ? ` — ${S(liaVerdictLabel(t.verdict))}` : ""}${t?.reasoning ? `: ${S(t.reasoning)}` : ""}</li>`).join("")}</ul>`
         : "")}
-${finding("Benefit and beneficiary", bb, [
+${finding(liaSectionTitle("benefit_and_beneficiary"), bb, [
         bb?.benefit ? `<p><span class="label">Benefit:</span> ${S(bb.benefit)}</p>` : "",
         Array.isArray(bb?.beneficiary_labels ?? bb?.beneficiaries) && (bb.beneficiary_labels ?? bb.beneficiaries).length ? `<p><span class="label">Beneficiaries:</span> ${S((bb.beneficiary_labels ?? bb.beneficiaries).join(", "))}</p>` : "",
       ].join(""))}`
@@ -221,28 +222,28 @@ ${finding("Benefit and beneficiary", bb, [
 
   const necessity = ac
     ? `<h2>Necessity — Were less intrusive options ruled out?</h2>
-${finding("Alternatives considered", ac, Array.isArray(ac?.alternatives) && ac.alternatives.length
+${finding(liaSectionTitle("alternatives_considered"), ac, Array.isArray(ac?.alternatives) && ac.alternatives.length
         ? `<ul>${ac.alternatives.map((a: any) => `<li><strong>${S(a?.alternative)}</strong>${a?.why_inadequate ? ` — ${S(a.why_inadequate)}` : ""}</li>`).join("")}</ul>`
         : "")}`
     : "";
 
   const balancing = (rel || sfd || ph || oof)
     ? `<h2>Balancing — The individual's side of the scale</h2>
-${finding("Relationship with the individual", rel, rel?.category ? `<p><span class="label">Category:</span> ${S(rel.category_label || rel.category)}</p>` : "")}
-${finding("Scale, frequency and duration", sfd, Array.isArray(sfd?.dimensions) && sfd.dimensions.length
+${finding(liaSectionTitle("relationship_with_individual"), rel, rel?.category ? `<p><span class="label">Category:</span> ${S(rel.category_label || rel.category)}</p>` : "")}
+${finding(liaSectionTitle("scale_frequency_duration"), sfd, Array.isArray(sfd?.dimensions) && sfd.dimensions.length
         ? `<ul>${sfd.dimensions.map((dm: any) => `<li><strong>${S(dm?.label)}:</strong> ${S(dm?.recorded || statusLabel(dm?.status))}</li>`).join("")}</ul>`
         : "")}
-${finding("Potential harms", ph, Array.isArray(ph?.harms) && ph.harms.length
+${finding(liaSectionTitle("potential_harms"), ph, Array.isArray(ph?.harms) && ph.harms.length
         ? `<ul>${ph.harms.map((h: any) => `<li><strong>${S(h?.harm)}</strong>${h?.severity ? ` — ${S(h.severity)}` : ""}${h?.bearing_on_balance ? `: ${S(h.bearing_on_balance)}` : ""}</li>`).join("")}</ul>`
         : "")}
-${finding("Opt-out feasibility", oof, [
+${finding(liaSectionTitle("opt_out_feasibility"), oof, [
         oof?.feasibility ? `<p><span class="label">Feasibility:</span> ${S(oof.feasibility)}</p>` : "",
         oof?.mechanism ? `<p><span class="label">Mechanism:</span> ${S(oof.mechanism)}</p>` : "",
       ].join(""))}`
     : "";
 
   const attestation = att
-    ? `<h2>Attestation and Review</h2>
+    ? `<h2>${S(liaSectionTitle("attestation_block"))}</h2>
 <div class="section">
 ${att?.text ? `<p>${S(att.text)}</p>` : ""}
 ${att?.dpo_review?.reviewer ? `<p><span class="label">DPO review — who:</span> ${S(att.dpo_review.reviewer)}</p>` : ""}
