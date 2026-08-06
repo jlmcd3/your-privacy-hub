@@ -129,8 +129,8 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   );
   factParts.push(
     interestType
-      ? `It classifies that interest as ${interestType.toLowerCase()}.`
-      : "It does not classify the type of interest.",
+      ? `The interest it relies on is ${interestType.toLowerCase().replace(/\.$/, "")}.`
+      : "It does not describe the kind of interest relied on.",
   );
   factParts.push(
     statedPurpose
@@ -161,7 +161,7 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   } else if (interestType) {
     lawfulVerdict = "met";
     lawfulReasoning =
-      `The record classifies the interest as ${interestType.toLowerCase()}, which is a category of interest the Regulation contemplates a controller pursuing under Article 6(1)(f); nothing in the record puts the interest itself outside the law. This sub-test addresses lawfulness of the interest only — it does not resolve whether the processing that serves it is necessary or whether the balance falls in the controller's favour.`;
+      `The interest the record relies on is ${interestType.toLowerCase().replace(/\.$/, "")} — a category of interest the Regulation contemplates a controller pursuing under Article 6(1)(f); nothing in the record puts the interest itself outside the law. This sub-test addresses lawfulness of the interest only — it does not resolve whether the processing that serves it is necessary or whether the balance falls in the controller's favour.`;
   } else {
     lawfulVerdict = "undetermined_on_the_record";
     lawfulReasoning =
