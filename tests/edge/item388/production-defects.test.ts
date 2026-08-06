@@ -56,7 +56,7 @@ Deno.test("FIX3: ql3-orchestrator.GRADER_STAMP === grade-single-assessment.BUILD
 });
 
 Deno.test("FIX3 negative: the drifted pre-item-388 value is gone", () => {
-  assertEquals(GRADER_STAMP === "ql3-qlbf3-grader-payload@2026-07-15T02:00Z", false);
+  assertEquals(String(GRADER_STAMP) === "ql3-qlbf3-grader-payload@2026-07-15T02:00Z", false);
 });
 
 // ---------- FIX 4 — dead V1 helper removed, live V2 path intact ----------
