@@ -2659,6 +2659,52 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] ITEM 392 admt-prose-gold failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 393 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ───────────
+    // Order mirrors the established pattern (DPIA / Risk / LIA): the gate is
+    // the LAST deterministic post-pass, AFTER item-392 prose gold and BEFORE
+    // the LEAK-PREV-P1 emit gate and the P2 serializer, so its telemetry rides
+    // `_meta.internal` and survives the whitelist.
+    //
+    // Evidence passes receive the FULL PERSISTED RECORD — `assessment.
+    // intake_data`, the row the harness and the app both write — never a
+    // trimmed projection (the item385 r2 lesson). ADMT has no coverage matrix
+    // and no CSC pass yet, so the fail-closed arms hold the value FALSE with
+    // `coverage_orphans` + `csc_false_absence` until the CSC leg lands.
+    // ZERO CUSTOMER-VISIBLE OUTPUT CHANGE: nothing reads the value back into
+    // prose, the determination, or the banner. Telemetry only. Fail-open.
+    try {
+      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
+        "../_shared/ltp/record-complete.ts"
+      );
+      const { cppaAdmtContract } = await import("../_shared/intake-contracts/cppa-admt.ts");
+      const admtGateRecord = ((assessment as any).intake_data ?? {}) as Record<string, unknown>;
+      const internal = ((((report as any)._meta ?? {}).internal ?? {})) as Record<string, unknown>;
+      const telemetry = computeRecordComplete({
+        product: "cppa-admt",
+        contract: cppaAdmtContract,
+        intake: admtGateRecord,
+        coverage: (internal.admt_coverage ?? null) as never,
+        csc: (internal.admt_csc ?? null) as never,
+      });
+      const classification = classifyPlaceholders(
+        report as Record<string, unknown>,
+        admtGateRecord,
+        telemetry.value,
+      );
+      attachRecordComplete(report as Record<string, unknown>, telemetry, classification);
+      console.log(JSON.stringify({
+        evt: "admt_record_complete", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
+        admt_pipeline_stamp: ADMT_PIPELINE_STAMP,
+        value: telemetry.value, failed_conditions: telemetry.failed_conditions,
+        empty_asked_keys: telemetry.counts.empty_required_keys,
+        ...classification.counts,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] record-complete gate failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ─────────────────────────
     // Runs AFTER every content-shaping pass and IMMEDIATELY BEFORE the

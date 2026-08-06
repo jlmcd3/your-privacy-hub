@@ -32,7 +32,11 @@ export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 // CSC yet (those land in later legs), so the fail-closed rules keep the LIA
 // gate value FALSE with `coverage_orphans` + `csc_false_absence` in
 // failed_conditions. That is correct and intended for this leg.
-export type RecordCompleteProduct = "dpia" | "cppa-risk" | "lia";
+// ITEM 393 leg B — "cppa-admt" joins the union, FAIL-CLOSED. ADMT has NO
+// coverage matrix and NO CSC pass yet (the CSC leg follows), so the
+// fail-closed arms keep the ADMT gate value FALSE with `coverage_orphans` +
+// `csc_false_absence` in failed_conditions. That is correct for this leg.
+export type RecordCompleteProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt";
 
 export type FailedCondition =
   | "contract_incomplete"
@@ -197,6 +201,10 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // the gate reads real evidence: an UNREPAIRED l2 violation is a false
   // absence claim about a record that supplies the fact.
   lia: ["l2_absence_claim_vs_record"],
+  // ITEM 393 leg B — empty until the ADMT CSC leg lands. The gate still
+  // fails closed on ADMT because absent/crashed CSC telemetry is itself a
+  // failed condition.
+  "cppa-admt": [],
 };
 
 export interface RecordCompleteInput {
