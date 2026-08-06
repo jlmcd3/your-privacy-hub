@@ -193,6 +193,9 @@ export function emptyAskedKeys(
 export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, readonly string[]>> = {
   dpia: ["c2_absence_claim_vs_record"],
   "cppa-risk": ["r1_benefits_vs_intake", "r2_exception_vs_record"],
+  // ITEM 383 leg 1 — LIA has no CSC pass yet; the list is empty and the
+  // absent-telemetry arm of the gate holds it shut regardless.
+  lia: [],
 };
 
 export interface RecordCompleteInput {
