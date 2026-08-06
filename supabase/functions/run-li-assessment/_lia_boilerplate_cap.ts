@@ -60,9 +60,9 @@ export const NEUTRAL_DOWNGRADE_LITERAL =
  */
 const INFO_NEEDED_VARIANTS: readonly string[] = [
   "The record as it stands does not resolve this point; it is carried in the information needed list.",
-  "This point is unresolved on the present record and appears among the items of information needed.",
+  "The record leaves this point unresolved; it appears among the items of information needed.",
   "The information supplied does not settle this item; see the information needed list.",
-  "This item remains open on the record and is tracked under information needed.",
+  "This item is still open and is tracked under information needed.",
   "The record does not yet answer this point; it is listed with the other information needed.",
   "No answer to this point appears in the record; it is carried under information needed.",
   "This point is not resolved by the material supplied and sits in the information needed list.",

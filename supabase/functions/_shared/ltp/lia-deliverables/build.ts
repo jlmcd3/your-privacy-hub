@@ -116,7 +116,7 @@ export function buildReasonableExpectations(
   );
   factParts.push(
     context
-      ? `On the time and context of collection the record states: "${context}"`
+      ? `The record states this about the time and context of collection: "${context}"`
       : "The record does not state when or in what context the personal data were collected, or what the data subjects were told at that time.",
   );
   factParts.push(
@@ -412,7 +412,7 @@ export function buildDetermination(
       measure:
         "Record the less intrusive alternatives that were actually considered for this purpose, and for each one the reason it was rejected on purpose-defeat grounds rather than on cost or convenience.",
       why_it_moves_the_balance:
-        `Necessity is not satisfied by asserting that the processing is useful. ${necessityAnchor.verbatim}. Without the comparison on the record the second condition is open.`,
+        `Necessity is not satisfied by asserting that the processing is useful. ${necessityAnchor.verbatim}. Without that comparison written down, the second condition stays open.`,
       goes_beyond_gdpr_obligation: false,
       citation: necessityAnchor.citation || "EDPB Guidelines 1/2024, Section II.B",
       authority_verbatim: necessityAnchor.verbatim,
@@ -458,7 +458,7 @@ export function buildDetermination(
       measure:
         "Put named safeguards against the specific harm the record identifies, state who operates each one, and record how its effect is evidenced.",
       why_it_moves_the_balance:
-        `The record puts the worst-case impact at "${harm}" and names no safeguard against it, so nothing on the record reduces the weight on the data-subject side. Safeguards that go beyond the controller's existing obligations reduce that weight; ones that do not, do not.`,
+        `The record puts the worst-case impact at "${harm}" and names no safeguard against it, so nothing recorded reduces the weight on the data-subject side. Safeguards that go beyond the controller's existing obligations reduce that weight; ones that do not, do not.`,
       goes_beyond_gdpr_obligation: true,
       citation: beyond.citation || "EDPB Guidelines 1/2024, Section II.C.4",
       authority_verbatim: beyond.verbatim,
@@ -696,11 +696,11 @@ export function buildAutomatedDecisionAnalysis(
     if (specialYes) {
       special_category_restriction = true;
       parts.push(
-        `The record states that special-category data is processed, so Article 22B(1) is engaged on the record as it stands: "${uk22bSpecial.verbatim}"`,
+        `The record states that special-category data is processed, so Article 22B(1) is engaged as the record stands: "${uk22bSpecial.verbatim}"`,
       );
     } else if (specialRecorded) {
       parts.push(
-        "The record states that no special-category data is processed, so the Article 22B(1) restriction is not engaged on the record as it stands.",
+        "The record states that no special-category data is processed, so the Article 22B(1) restriction is not engaged as the record stands.",
       );
     } else {
       parts.push(

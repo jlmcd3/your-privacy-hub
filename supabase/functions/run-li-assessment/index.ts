@@ -8,7 +8,11 @@ import { enforceStorageLimitationCrossRead } from './_lia_storage_limitation.ts'
 // LIA-REGISTRY-WIRING (2026-07-25): registry-first citation post-pass + LEAK-PREV P0/P1/P2 (schema rs-lia-w1-2026-07-25).
 // LIA-T6-FIX-TURN (2026-07-25): Class A citation audit + Class B business-claim scrub.
 export const BUILD_STAMP = "lia-upgrade4@2026-08-03T22:00:00Z";
-console.log(`[run-li-assessment] boot ${BUILD_STAMP}`);
+// ITEM 382 — LIA prose encode + register repair. The stamp is written into
+// every document's `_meta.internal.lia_pipeline_stamp` at the finalize point
+// below (immediately before the P2 serializer).
+import { LIA_PIPELINE_STAMP } from "../_shared/prose/plans/lia.spine.ts";
+console.log(`[run-li-assessment] boot ${BUILD_STAMP} ${LIA_PIPELINE_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -400,13 +404,13 @@ export const LIA_M_HUMAN_MAP: Record<string, string> = {
 // State tokens rewritten to plain conclusions (shared token family with
 // dpia/risk). Applied by applyDeterministicPostGenFallbackLia below.
 const LIA_STATE_TOKEN_REWRITES: Array<[RegExp, string]> = [
-  [/\bRESOLVED_MET\b/g, "resolved on the record"],
-  [/\bRESOLVED_NOT_MET\b/g, "resolved on the record (not met)"],
-  [/\bRESOLVED_NOT_APPLICABLE\b/g, "not applicable on the record"],
-  [/\bresolved_met\b/g, "resolved on the record"],
-  [/\bresolved_not_met\b/g, "resolved on the record (not met)"],
-  [/\bresolved_not_applicable\b/g, "not applicable on the record"],
-  [/\bINDETERMINATE\b/gi, "not yet resolved on the record"],
+  [/\bRESOLVED_MET\b/g, "resolved"],
+  [/\bRESOLVED_NOT_MET\b/g, "resolved (not met)"],
+  [/\bRESOLVED_NOT_APPLICABLE\b/g, "not applicable"],
+  [/\bresolved_met\b/g, "resolved"],
+  [/\bresolved_not_met\b/g, "resolved (not met)"],
+  [/\bresolved_not_applicable\b/g, "not applicable"],
+  [/\bINDETERMINATE\b/gi, "not yet resolved"],
   [/\bCANDIDATE\b/g, "candidate"],
   [/\bTEST-STATES\b/g, "the deterministic-state block"],
 ];
@@ -1465,7 +1469,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     // Always attach a plain-language note explaining the argument-strength rating
     // so end users (especially non-specialists) understand what "uncertain" means.
     const STRENGTH_NOTES: Record<string, string> = {
-      strong: "Strong: on the record as it stands the facts present a strong argument for legitimate interest — the balancing record still requires the recommended documentation.",
+      strong: "Strong: as the record stands the facts present a strong argument for legitimate interest — the balancing record still requires the recommended documentation.",
       moderate: "Moderate: the record supports a colorable legitimate-interest argument on named recorded facts; the items in Information Needed would strengthen it before deployment.",
       weak: "Weak: the record establishes some elements of the three-part test; the items in Information Needed would need to be recorded before a defensible legitimate-interest argument can be made.",
       insufficient: "The record as it stands does not yet establish a defensible legitimate-interest claim; the items listed under Information Needed would complete the record.",
@@ -1880,6 +1884,18 @@ Return JSON:
     }
 
 
+
+    // ── ITEM 382 — LIA PIPELINE STAMP (FINALIZE POINT) ─────────────────
+    // This is the point every LIA document actually passes through: after
+    // every deterministic post-pass and immediately before the P2 serializer,
+    // whose `_meta.internal` reduction carries the key through to the row.
+    try {
+      const meta = ((reportData as any)._meta ??= {});
+      const internal = (meta.internal ??= {});
+      internal.lia_pipeline_stamp = LIA_PIPELINE_STAMP;
+    } catch (e) {
+      console.warn("[run-li-assessment] lia pipeline stamp failed (non-fatal):", (e as Error)?.message);
+    }
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
     // Whitelist top-level keys; internal telemetry survives via
