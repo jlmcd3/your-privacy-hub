@@ -69,9 +69,10 @@ describe("coach register", () => {
     }
   });
 
-  it("both product flags default OFF", () => {
-    expect(INTAKE_COACH_ENABLED).toEqual({ dpia: false, cppa_risk: false });
+  it("both product flags are ON (item381 r3 flip)", () => {
+    expect(INTAKE_COACH_ENABLED).toEqual({ dpia: true, cppa_risk: true });
   });
+
 });
 
 describe("coach behaviour", () => {
