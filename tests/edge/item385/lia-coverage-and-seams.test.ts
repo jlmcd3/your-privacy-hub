@@ -109,10 +109,15 @@ Deno.test("SEAM (d) — the expectation answer is written, never quoted as a bar
 
 // ── item384 seam lint on the LIA battery ───────────────────────────────────
 
+// Machine leaves (determination/verdict/status/factor enums) and the asks,
+// which legitimately name the intake key the reader must fill, are not prose.
+const MACHINE_LEAF =
+  /(rule_id|_id|outcome|status|verdict|category|determination|factor|feasibility|default_position|information_needed|citation|id)$/;
+
 Deno.test("SEAM LINT — no bare enum token reaches LIA prose", () => {
   const report = assembleLiaReport(INTAKE);
   const offenders = proseLeaves(report)
-    .filter(({ path }) => !/(rule_id|_id|outcome|status|verdict|category|id)$/.test(path))
+    .filter(({ path }) => !MACHINE_LEAF.test(path))
     .filter(({ value }) => hasBareEnum(value))
     .map(({ path, value }) => `${path}: ${value.slice(0, 90)}`);
   assertEquals(offenders, [], offenders.join("\n"));
