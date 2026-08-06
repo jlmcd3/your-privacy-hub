@@ -597,6 +597,12 @@ export function applyRiskProseGold(
     t.analytics_statuses_normalized = counts.statuses;
     t.analytics_reasons_rewritten = counts.reasons;
 
+    // r4 — GLOBAL SWEEP, after every G-pass: no pure emit-gate placeholder
+    // survives anywhere on a gate-TRUE document outside `_meta`.
+    const sweep = sweepDegradedPlaceholders(report, true);
+    t.placeholders_swept = sweep.swept;
+    t.placeholder_paths = sweep.paths;
+
     t.applied = true;
   } catch {
     /* fail-open: the document ships exactly as assembled */
