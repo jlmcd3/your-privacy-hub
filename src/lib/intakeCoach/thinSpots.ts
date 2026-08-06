@@ -49,21 +49,27 @@ export interface ThinSpot {
 
 export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
   {
+    // ITEM 381 r2 — the marker is evaluated over the primary field text
+    // CONCATENATED with every companion field (see buildCoach.spotText), and
+    // the vocabulary covers purpose/achievement clauses, not only the literal
+    // word "benefit". Direction of error: miss a weak answer rather than
+    // accuse a strong one.
     key: "necessity_proportionality",
     title: "Why the processing is necessary, and what else you considered",
     jumpSelector: '[data-coach-field="necessity_proportionality"]',
     rank: 1,
     marker:
-      /\b(benefit|benefits|gain|gains|advantage|outweigh|outweighs|in return|worth|value to)\b/i,
+      /\b(benefit\w*|gain\w*|advantage\w*|outweigh\w*|in return|worth|value|needs?\s+\w+|enables?|allows?|so that|in order to|achieves?|delivers?|prevent\w*|protect\w*|reduces?|detect\w*|to (?:set|pay|provide|protect|prevent|meet|support))\b/i,
     heuristic:
-      "One-sided balance: the answer is present but carries no benefit-side wording, so only the impact side is described.",
+      "One-sided balance: the answer describes the impact and carries no wording of any kind for what the processing achieves or for whom.",
     consequence:
-      "As written, the necessity section sets out the impact of the processing and compares only the options you have described. It carries no benefit side, so the balance renders one-sided.",
+      "As written, the necessity section sets out the impact of the processing and compares only the options you have described. Your answer states no outcome the processing achieves, so the balance renders with one side only.",
     consequenceSource:
       "src/pages/DPIAFramework.tsx necessity guidance; supabase/functions/_shared/ltp/dpia-csc.ts (necessity surface)",
     advice:
       "Add the other half of the balance: what the processing achieves and for whom, next to what it costs the people affected. A two-sided answer names both — the shape is \"the check removes X, at the cost of Y for the people affected\".",
   },
+
   {
     key: "data_subjects_views",
     companions: ["data_subjects_views_sought"],
