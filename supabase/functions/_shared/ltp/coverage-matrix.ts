@@ -454,8 +454,221 @@ function riskCoverage(
 }
 
 // ---------------------------------------------------------------------------
+// LIA — ITEM 385 LEG 2
+//
+// The link config binds the LIA contract's SUPPLIED facts to the item382
+// section arc (`prose/plans/lia.spine.ts`). A link is an orphan only when the
+// record SUPPLIES the fact and the section the plan gives it carries nothing.
+// Silence in the record is never an orphan.
+// ---------------------------------------------------------------------------
+
+export interface LiaCoverageLink {
+  /** Dotted intake paths (any one filled engages the link). */
+  readonly keys: readonly string[];
+  /** Dotted report path of the section the plan gives those facts. */
+  readonly surface: string;
+  /** Plan section id, for the orphan detail. */
+  readonly section: string;
+}
+
+export const LIA_COVERAGE_LINKS: readonly LiaCoverageLink[] = [
+  {
+    keys: ["processing_description", "data_categories", "jurisdictions"],
+    surface: "classification",
+    section: "classification",
+  },
+  {
+    keys: [
+      "purpose_details.interest_statement",
+      "purpose_details.interest_type",
+      "purpose_details.interest_type_other",
+      "stated_purpose",
+    ],
+    surface: "interest_legitimacy",
+    section: "interest_legitimacy",
+  },
+  {
+    keys: ["purpose_details.specific_benefit", "purpose_details.beneficiary"],
+    surface: "benefit_and_beneficiary",
+    section: "benefit_and_beneficiary",
+  },
+  {
+    keys: [
+      "necessity_details.alternatives",
+      "necessity_details.alternatives_rationale",
+      "necessity_details.why_consent_not_used",
+      "alternatives_considered",
+    ],
+    surface: "alternatives_considered",
+    section: "alternatives_considered",
+  },
+  {
+    keys: ["relationship_type", "balancing_details.relationship_category"],
+    surface: "relationship_with_individual",
+    section: "relationship_with_individual",
+  },
+  {
+    keys: [
+      "balancing_details.reasonable_expectation",
+      "balancing_details.reasonable_expectation_detail",
+      "balancing_details.collection_context",
+    ],
+    surface: "reasonable_expectations",
+    section: "relationship_with_individual",
+  },
+  {
+    keys: [
+      "balancing_details.scale_approx",
+      "balancing_details.frequency",
+      "balancing_details.duration",
+    ],
+    surface: "scale_frequency_duration",
+    section: "scale_frequency_duration",
+  },
+  {
+    keys: [
+      "balancing_details.potential_harm",
+      "balancing_details.potential_harm_detail",
+      "balancing_details.potential_harms",
+    ],
+    surface: "potential_harms",
+    section: "potential_harms",
+  },
+  {
+    keys: [
+      "balancing_details.opt_out_mechanism",
+      "balancing_details.opt_out_available",
+    ],
+    surface: "opt_out_feasibility",
+    section: "opt_out_feasibility",
+  },
+  {
+    keys: ["balancing_details.children_data_subjects"],
+    surface: "child_factor",
+    section: "potential_harms",
+  },
+  {
+    keys: [
+      "purpose_details.controller_is_public_authority",
+      "purpose_details.public_task_processing",
+    ],
+    surface: "public_authority_exclusion",
+    section: "interest_legitimacy",
+  },
+  {
+    keys: [
+      "attestation.dpo_reviewed",
+      "attestation.approver_name",
+      "attestation.review_triggers",
+    ],
+    surface: "attestation_block",
+    section: "attestation_block",
+  },
+];
+
+function liaIntakeValue(intake: unknown, path: string): unknown {
+  let cur: unknown = intake;
+  for (const seg of String(path).split(".")) {
+    if (!cur || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[seg];
+  }
+  return cur;
+}
+
+function liaFilled(intake: unknown, path: string): boolean {
+  return nonEmpty(liaIntakeValue(intake, path));
+}
+
+/** Substance a surface must carry before the link counts as resolved. */
+const LIA_SURFACE_MIN_CHARS = 40;
+
+function liaSurfaceSubstance(node: unknown): number {
+  return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
+}
+
+/** Every intake dotted path the LIA link config knows about. */
+export const LIA_LINKED_INTAKE_KEYS: readonly string[] = LIA_COVERAGE_LINKS
+  .flatMap((l) => l.keys);
+
+function liaCoverage(
+  report: Record<string, unknown>,
+  intake: Record<string, unknown>,
+  t: CoverageTelemetry,
+): void {
+  const docText = documentText(report);
+
+  // L1 — supplied fact → the plan's section for it.
+  for (const link of LIA_COVERAGE_LINKS) {
+    const supplied = link.keys.filter((k) => liaFilled(intake, k));
+    if (supplied.length === 0) continue; // honest silence
+    t.counts.links_checked++;
+    const node = getPath(report, link.surface);
+    if (liaSurfaceSubstance(node) >= LIA_SURFACE_MIN_CHARS) continue;
+    t.orphans.push({
+      type: "supplied_fact_without_section",
+      path: link.surface,
+      detail:
+        `the record supplies ${supplied.join(", ")} but the "${link.section}" section carries nothing that reflects it.`,
+    });
+  }
+
+  // L2 — every mitigation must trace to something the record states.
+  const determination = (report.lia_determination ?? {}) as Record<string, unknown>;
+  const anchorText = [
+    text(intake.processing_description),
+    text(intake.stated_purpose),
+    text(intake.alternatives_considered),
+    text(intake.purpose_details),
+    text(intake.necessity_details),
+    text(intake.balancing_details),
+  ].join(" \n ");
+  arr(determination.mitigations).forEach((m, i) => {
+    t.counts.links_checked++;
+    const measure = text(m.measure);
+    if (!measure.trim()) return;
+    // A mitigation authored for an OPEN factor is a next step, not a record
+    // claim: it is bound to the factor it closes, not to recorded text.
+    const factor = String(m.factor ?? "");
+    const driving = Array.isArray(determination.driving_factors)
+      ? (determination.driving_factors as unknown[]).map(String)
+      : [];
+    if (factor && driving.includes(factor)) return;
+    if (overlaps(measure, anchorText)) return;
+    t.orphans.push({
+      type: "mitigation_without_record_anchor",
+      path: `lia_determination.mitigations[${i}]`,
+      detail: `the mitigation "${measure.slice(0, 80)}" traces to nothing the record states and closes no factor the determination drives.`,
+    });
+  });
+
+  // L3 — asks raised against facts the record in fact supplies.
+  const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
+  asks.forEach((ask, i) => {
+    t.counts.links_checked++;
+    const body = askText(ask) || text(ask);
+    if (!body.trim()) return;
+    const named = LIA_LINKED_INTAKE_KEYS.filter((k) => body.includes(k));
+    const supplied = named.filter((k) => liaFilled(intake, k));
+    if (supplied.length === 0) return;
+    t.orphans.push({
+      type: "ask_against_supplied_fact",
+      path: `information_needed[${i}]`,
+      detail: `the ask names ${supplied.join(", ")} although the record supplies it.`,
+    });
+  });
+
+  t.unused_intake_facts = LIA_LINKED_INTAKE_KEYS.filter((k) => {
+    const v = liaIntakeValue(intake, k);
+    if (typeof v !== "string" || v.trim().length < 24) return false;
+    const words = contentWords(v);
+    return words.length > 0 && !words.some((w) => docText.includes(w));
+  });
+}
+
+// ---------------------------------------------------------------------------
 // the pass
 // ---------------------------------------------------------------------------
+
 
 export function runCoverageMatrix(
   product: CoverageProduct,
