@@ -8,7 +8,11 @@ import { enforceStorageLimitationCrossRead } from './_lia_storage_limitation.ts'
 // LIA-REGISTRY-WIRING (2026-07-25): registry-first citation post-pass + LEAK-PREV P0/P1/P2 (schema rs-lia-w1-2026-07-25).
 // LIA-T6-FIX-TURN (2026-07-25): Class A citation audit + Class B business-claim scrub.
 export const BUILD_STAMP = "lia-upgrade4@2026-08-03T22:00:00Z";
-console.log(`[run-li-assessment] boot ${BUILD_STAMP}`);
+// ITEM 382 — LIA prose encode + register repair. The stamp is written into
+// every document's `_meta.internal.lia_pipeline_stamp` at the finalize point
+// below (immediately before the P2 serializer).
+import { LIA_PIPELINE_STAMP } from "../_shared/prose/plans/lia.spine.ts";
+console.log(`[run-li-assessment] boot ${BUILD_STAMP} ${LIA_PIPELINE_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -1880,6 +1884,18 @@ Return JSON:
     }
 
 
+
+    // ── ITEM 382 — LIA PIPELINE STAMP (FINALIZE POINT) ─────────────────
+    // This is the point every LIA document actually passes through: after
+    // every deterministic post-pass and immediately before the P2 serializer,
+    // whose `_meta.internal` reduction carries the key through to the row.
+    try {
+      const meta = ((reportData as any)._meta ??= {});
+      const internal = (meta.internal ??= {});
+      internal.lia_pipeline_stamp = LIA_PIPELINE_STAMP;
+    } catch (e) {
+      console.warn("[run-li-assessment] lia pipeline stamp failed (non-fatal):", (e as Error)?.message);
+    }
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
     // Whitelist top-level keys; internal telemetry survives via
