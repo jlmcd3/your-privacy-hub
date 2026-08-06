@@ -81,6 +81,57 @@ function anchor(key: keyof typeof ANCHOR_KEYS): { citation: string; verbatim: st
   return { citation: r?.subsection ?? "", verbatim: r?.verbatim_quote ?? "" };
 }
 
+
+/**
+ * ITEM 385 seam repair (b) — an authority field carries AUTHORITY or is
+ * ABSENT. Empty verbatim text yields no key at all, so no later frame pass
+ * can fill the empty leaf with "The record is silent here…" gap prose.
+ */
+function authorityVerbatim(v: string): { authority_verbatim?: string } {
+  const t = typeof v === "string" ? v.trim() : "";
+  return t ? { authority_verbatim: t } : {};
+}
+
+/** Statute quoted AFTER the finding reads as a clause: lower its first letter. */
+function lowerFirst(s: string): string {
+  const t = typeof s === "string" ? s.trim() : "";
+  return t ? `${t.charAt(0).toLowerCase()}${t.slice(1)}` : "";
+}
+
+/**
+ * ITEM 385 seam repair — factor tokens are internal identifiers. Prose names
+ * the factor in words; the enum never reaches the page.
+ */
+export const LIA_FACTOR_LABELS: Record<string, string> = {
+  legitimacy: "the legitimacy of the interest",
+  necessity: "necessity",
+  reasonable_expectations: "what the people affected would reasonably expect",
+  balancing: "the balance itself",
+};
+
+export function factorLabel(f: string): string {
+  return LIA_FACTOR_LABELS[String(f)] ?? String(f).replace(/_/g, " ");
+}
+
+/**
+ * ITEM 385 seam repair (d) — the record's answer is written as what it
+ * states, never quoted back as a bare form value.
+ */
+export const EXPECTATION_ANSWER_PROSE: Record<string, string> = {
+  yes: "The record's own answer is that the data subjects would expect this processing.",
+  partly:
+    "The record's own answer is that the data subjects would expect this processing only in part.",
+  no: "The record's own answer is that the data subjects would not expect this processing.",
+};
+
+export function expectationAnswerSentence(answer: string): string {
+  const key = String(answer ?? "").trim().toLowerCase();
+  return EXPECTATION_ANSWER_PROSE[key] ??
+    `The record answers the expectation question as follows: ${String(answer).trim().replace(/\.$/, "")}.`;
+}
+
+
+
 // ---------------------------------------------------------------------
 // 1. Reasonable expectations — Recital 47 / EDPB 1/2024 II.C.3
 // ---------------------------------------------------------------------
@@ -121,7 +172,7 @@ export function buildReasonableExpectations(
   );
   factParts.push(
     expectation
-      ? `The record's own answer on expectation is "${expectation}".`
+      ? expectationAnswerSentence(expectation)
       : "The record gives no answer on whether the data subjects would expect this processing.",
   );
   if (detail) factParts.push(`It adds: "${detail}"`);
@@ -360,7 +411,7 @@ export function classifyRecordedMitigations(intake: unknown): Mitigation[] {
       goes_beyond_gdpr_obligation: !already,
       citation: (already ? excluded.citation : beyond.citation) ||
         "EDPB Guidelines 1/2024, Section II.C.4",
-      authority_verbatim: already ? excluded.verbatim : beyond.verbatim,
+      ...authorityVerbatim(already ? excluded.verbatim : beyond.verbatim),
     };
   });
 }
@@ -400,7 +451,7 @@ export function buildDetermination(
         `The first of the three conditions cannot be weighed against anything until the interest is stated with precision. ${conditions.verbatim} the first of which is the pursuit of a legitimate interest.`,
       goes_beyond_gdpr_obligation: false,
       citation: conditions.citation || "EDPB Guidelines 1/2024, Section II",
-      authority_verbatim: conditions.verbatim,
+      ...authorityVerbatim(conditions.verbatim),
     });
   }
 
@@ -415,7 +466,7 @@ export function buildDetermination(
         `Necessity is not satisfied by asserting that the processing is useful. ${necessityAnchor.verbatim}. Without that comparison written down, the second condition stays open.`,
       goes_beyond_gdpr_obligation: false,
       citation: necessityAnchor.citation || "EDPB Guidelines 1/2024, Section II.B",
-      authority_verbatim: necessityAnchor.verbatim,
+      ...authorityVerbatim(necessityAnchor.verbatim),
     });
   }
 
@@ -430,7 +481,7 @@ export function buildDetermination(
         `The record places this use outside what the data subjects would expect at the time and in the context of collection, which is the situation Recital 47 identifies as tipping the balance towards the data subject. Narrowing the use to the expected scope removes that factor from the data-subject side rather than merely disclosing it, which ${beyond.verbatim} recognises as the kind of step that counts.`,
       goes_beyond_gdpr_obligation: true,
       citation: expectations.standard_citation,
-      authority_verbatim: expectations.standard,
+      ...authorityVerbatim(expectations.standard),
     });
   } else if (expectations.verdict === "partly_expected") {
     mitigations.push({
@@ -441,7 +492,7 @@ export function buildDetermination(
         `Expectation is only partly satisfied on this record, so the factor sits on the data-subject side of the balance until the individual can decline the specific use. ${beyond.verbatim}, and an unconditional stop on this use is such a safeguard.`,
       goes_beyond_gdpr_obligation: true,
       citation: expectations.supporting_citation,
-      authority_verbatim: expectations.supporting_verbatim,
+      ...authorityVerbatim(expectations.supporting_verbatim),
     });
   } else if (expectations.verdict === "undetermined_on_the_record") {
     open.push("reasonable_expectations");
@@ -461,7 +512,7 @@ export function buildDetermination(
         `The record puts the worst-case impact at "${harm}" and names no safeguard against it, so nothing recorded reduces the weight on the data-subject side. Safeguards that go beyond the controller's existing obligations reduce that weight; ones that do not, do not.`,
       goes_beyond_gdpr_obligation: true,
       citation: beyond.citation || "EDPB Guidelines 1/2024, Section II.C.4",
-      authority_verbatim: beyond.verbatim,
+      ...authorityVerbatim(beyond.verbatim),
     });
   }
   if (harm && !optOut) {
@@ -473,7 +524,7 @@ export function buildDetermination(
         "The record identifies an impact on the data subjects but no mechanism by which an individual can remove themselves from it, so the impact is borne without any control on the data-subject side of the balance.",
       goes_beyond_gdpr_obligation: true,
       citation: beyond.citation || "EDPB Guidelines 1/2024, Section II.C.4",
-      authority_verbatim: beyond.verbatim,
+      ...authorityVerbatim(beyond.verbatim),
     });
   }
 
@@ -490,7 +541,7 @@ export function buildDetermination(
   if (publicAuthority.basis_unavailable) {
     outcome = "legitimate_interests_not_available";
     rawWhy =
-      `${publicAuthority.standard} The record places this processing inside that exclusion, so Article 6(1)(f) is not available and no mitigation reaches the point: the question is which other Article 6(1) basis, provided for by law, covers the processing.`;
+      `Legitimate interests is not available for this processing: the record places it inside the public-authority exclusion, so no mitigation reaches the point and the question is which other Article 6(1) basis, provided for by law, covers it. ${publicAuthority.standard}`;
   } else if (publicAuthority.determination === "undetermined_on_the_record") {
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
@@ -500,13 +551,13 @@ export function buildDetermination(
   } else if (child.determination === "children_in_scope" && materialHarm) {
     outcome = "legitimate_interests_not_available";
     rawWhy =
-      `${basis.verbatim} On this record the data subjects include children and the worst-case impact is recorded as "${harm}". ${overrideAnchor.verbatim} The mitigations set out below address individual factors, but none of them removes the combination of a child data subject and a material impact, so legitimate interests is not a sound basis for this processing as recorded.`;
+      `Legitimate interests is not a sound basis for this processing as recorded: the data subjects include children and the worst-case impact is recorded as "${harm}", and the mitigations set out below address individual factors without removing that combination. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" ${overrideAnchor.verbatim}`;
   } else if (open.length > 0) {
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
-    const names = [...new Set(open)];
+    const names = [...new Set(open)].map(factorLabel);
     rawWhy =
-      `${conditions.verbatim} On this record ${names.length} of the elements the assessment turns on — ${names.join(", ")} — are not established, so the determination is open rather than answered either way. The mitigations below are the steps that would close each of them.`;
+      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — are not established on this record, and the mitigations below are the steps that would close each of them. ${conditions.verbatim}`;
     information_needed = [
       ...new Set(
         [
@@ -527,13 +578,13 @@ export function buildDetermination(
   } else if (failing.length > 0) {
     outcome = "available_only_with_mitigations";
     rebalance = true;
-    const names = [...new Set(failing)];
+    const names = [...new Set(failing)].map(factorLabel);
     rawWhy =
-      `${basis.verbatim} Run over this record the interest and its necessity hold, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands. ${overrideAnchor.verbatim} The mitigations below are directed at those specific factors; where they are adopted the balancing test must be performed again before the processing is relied on.`;
+      `Legitimate interests carries this processing only if the mitigations below are adopted: the interest and its necessity hold on this record, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands, and where the mitigations are adopted the balancing test must be performed again before the processing is relied on. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" ${overrideAnchor.verbatim}`;
   } else {
     outcome = "legitimate_interests_available";
     rawWhy =
-      `${basis.verbatim} On this record each of the three conditions is met: the interest is stated, the record shows the comparison against less intrusive means, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
+      `Legitimate interests carries this processing as the record stands: the interest is stated, the record shows the comparison against less intrusive means, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
   }
 
   const { kept, moved, repairs } = splitExposure(rawWhy);

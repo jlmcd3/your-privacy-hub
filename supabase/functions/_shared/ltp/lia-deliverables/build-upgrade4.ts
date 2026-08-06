@@ -108,7 +108,15 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   const statement = str(get(intake, "purpose_details.interest_statement"));
   const typeRaw = str(get(intake, "purpose_details.interest_type"));
   const typeOther = str(get(intake, "purpose_details.interest_type_other"));
-  const interestType = typeRaw === "Other (describe below)" && typeOther ? typeOther : typeRaw;
+  /**
+   * ITEM 385 seam repair (c) — prose reasons from the interest's SUBSTANCE,
+   * never from the stored option value. "Other" is a form affordance, not a
+   * category of interest: when the record picks it, the substance is the
+   * free-text description beside it, and where that is missing the type
+   * contributes nothing to reason from.
+   */
+  const typeIsOther = /^other\b/i.test(typeRaw);
+  const interestType = typeIsOther ? typeOther : typeRaw;
   const statedPurpose = str(get(intake, "stated_purpose"));
   const description = str(get(intake, "processing_description"));
   const anchorLine = str(get(intake, "subject_anchor"));
@@ -121,8 +129,8 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   );
   factParts.push(
     interestType
-      ? `It classifies that interest as ${interestType.toLowerCase()}.`
-      : "It does not classify the type of interest.",
+      ? `The interest it relies on is ${interestType.toLowerCase().replace(/\.$/, "")}.`
+      : "It does not describe the kind of interest relied on.",
   );
   factParts.push(
     statedPurpose
@@ -153,7 +161,7 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   } else if (interestType) {
     lawfulVerdict = "met";
     lawfulReasoning =
-      `The record classifies the interest as ${interestType.toLowerCase()}, which is a category of interest the Regulation contemplates a controller pursuing under Article 6(1)(f); nothing in the record puts the interest itself outside the law. This sub-test addresses lawfulness of the interest only — it does not resolve whether the processing that serves it is necessary or whether the balance falls in the controller's favour.`;
+      `The interest the record relies on is ${interestType.toLowerCase().replace(/\.$/, "")} — a category of interest the Regulation contemplates a controller pursuing under Article 6(1)(f); nothing in the record puts the interest itself outside the law. This sub-test addresses lawfulness of the interest only — it does not resolve whether the processing that serves it is necessary or whether the balance falls in the controller's favour.`;
   } else {
     lawfulVerdict = "undetermined_on_the_record";
     lawfulReasoning =

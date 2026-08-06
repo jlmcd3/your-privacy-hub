@@ -120,7 +120,12 @@ export interface Mitigation {
    */
   readonly goes_beyond_gdpr_obligation: boolean;
   readonly citation: string;
-  readonly authority_verbatim: string;
+  /**
+   * ITEM 385 seam repair (b): an authority field carries AUTHORITY or is
+   * ABSENT. When the anchor supplies no verbatim text the key is omitted, so
+   * no downstream frame pass can fill the empty leaf with gap prose.
+   */
+  readonly authority_verbatim?: string;
 }
 
 export type LiaOutcome =
