@@ -33,6 +33,11 @@ const ABSENCE = "The record is silent here, and the question is carried forward.
 
 function assemble(intake: Record<string, unknown>): Record<string, unknown> {
   return {
+    classification: {
+      text: `${String(intake.processing_description ?? "")} ${
+        (intake.data_categories as string[] ?? []).join(", ")
+      } ${(intake.jurisdictions as string[] ?? []).join(", ")}`,
+    },
     ...(buildLiaDeliverables(intake) as unknown as Record<string, unknown>),
     ...(buildLiaUpgrade4(intake) as unknown as Record<string, unknown>),
   };
