@@ -2038,6 +2038,9 @@ export default function CPPARiskAssessment() {
         <IntakeCoachStep
           open={coachOpen}
           product="cppa_risk"
+          userId={user?.id}
+          referenceKind="cppa_risk_intake"
+          referenceId={clientId ?? null}
           contract={COACH_CONTRACTS.cppa_risk}
           intake={intake}
           onClose={() => setCoachOpen(false)}
