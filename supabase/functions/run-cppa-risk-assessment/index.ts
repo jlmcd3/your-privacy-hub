@@ -3668,8 +3668,10 @@ async function runPipeline(assessment_id: string) {
       _rdF2._meta.internal = _rdF2._meta.internal ?? {};
       _rdF2._meta.internal.composition_finalize = {
         build_stamp: BUILD_STAMP,
-        version: COMPOSITION_FINALIZE_VERSION,
-        safe_version: SAFE_FINALIZE_VERSION,
+        // ITEM 388 — the explicit `version` / `safe_version` keys were dead:
+        // `_safe.telemetry` already carries version=COMPOSITION_FINALIZE_VERSION
+        // and safe_version=SAFE_FINALIZE_VERSION on both branches, and the
+        // spread overwrote them with identical values. Emitted shape unchanged.
         ..._safe.telemetry,
         // ITEM 206 — per-hit path/context surfaced from ValueScreenError.
         hits: (_safe.telemetry.hits ?? []).map((h: any) => ({
