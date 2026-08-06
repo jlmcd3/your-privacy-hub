@@ -72,8 +72,10 @@ export function isLegacySufficiencyVoice(s: unknown): boolean {
 
 /** Terminate a clause so the next clause cannot splice onto it. */
 export function sentenceTerminate(s: string): string {
-  const t = String(s ?? "").trim().replace(/[;,]\s*$/, "");
+  let t = String(s ?? "").trim().replace(/[;,]\s*$/, "");
   if (!t) return "";
+  // A clause promoted to a sentence must also OPEN like one.
+  t = t.charAt(0).toUpperCase() + t.slice(1);
   return /[.!?]$/.test(t) ? t : `${t}.`;
 }
 
@@ -179,8 +181,8 @@ export function buildExecutiveSummary(
 export function reservedJudgmentSentence(count: number): string {
   if (count <= 0) return "";
   const noun = count === 1 ? "one determination" : `${count} determinations`;
-  const verb = count === 1 ? "is" : "are";
-  return `The record also carries ${noun} the regulation reserves to the business and to qualified legal counsel; ${verb} listed under Items for your review as an action, not as a deficiency in the record.`;
+  const subject = count === 1 ? "It is" : "They are";
+  return `The record also carries ${noun} the regulation reserves to the business and to qualified legal counsel. ${subject} listed under Items for your review as an action, not as a deficiency in the record.`;
 }
 
 /**
