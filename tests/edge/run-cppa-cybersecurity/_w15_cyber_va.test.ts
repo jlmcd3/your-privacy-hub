@@ -14,6 +14,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  CYBER_AUTHORITY_LOCATORS,
   CYBER_VERIFIED_AUTHORITIES,
   CYBER_VERIFIED_AUTHORITY_VERSION,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
@@ -48,14 +49,17 @@ Deno.test("W15: index.ts imports cyber registry + resolver + injects VA block", 
 Deno.test("W15: registry version stamp is the current cyber wave and non-empty", () => {
   // ITEM 387 (a): cyber-va-w1-* → cyber-va-w2-corpus-2026-08-03.
   assert(CYBER_VERIFIED_AUTHORITY_VERSION.startsWith("cyber-va-w2-"), CYBER_VERIFIED_AUTHORITY_VERSION);
-  assert(registrySize(CYBER_VERIFIED_AUTHORITIES) >= 40, "registry too small");
+  // ITEM 387 (a): the w2 registry is corpus-hydrated at request time, so the
+  // static size lives on CYBER_AUTHORITY_LOCATORS (the slice specs) rather
+  // than on the pre-baked CYBER_VERIFIED_AUTHORITIES map.
+  assert(CYBER_AUTHORITY_LOCATORS.length >= 40, `registry too small: ${CYBER_AUTHORITY_LOCATORS.length}`);
 });
 
 Deno.test("W15: retention anchor row resolves to 11 CCR § 7122(g) — NOT § 7123(e)", () => {
   // ITEM 387 (a): the w2 registry rows are corpus-slice specs hydrated at
   // request time, so the whitelist resolver no longer returns pre-baked
   // rows; the anchor is asserted on the registry row itself.
-  const row = (CYBER_VERIFIED_AUTHORITIES as ReadonlyArray<{ proposition_key: string; subsection: string }>)
+  const row = CYBER_AUTHORITY_LOCATORS
     .find((r) => r.proposition_key === "cyber_retention_5yr");
   assert(row, "cyber_retention_5yr row missing");
   assertEquals(row!.subsection, "11 CCR \u00a7 7122(g)");
