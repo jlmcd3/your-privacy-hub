@@ -38,6 +38,9 @@ import {
   type SecondaryActivityRow,
 } from "../secondary-recommendation.ts";
 
+// ITEM 384 (G-3) — counsel-register helpers for reserved-judgment actions.
+import { reservedActionLabel, ownerSentence, sentenceTerminate } from "../risk-prose-gold.ts";
+
 export { secondaryRecommendation };
 
 export const SECTION_COMPOSERS_VERSION = "ltp-section-composers-cppa-risk-2026-07-30-item276-primary-subject";

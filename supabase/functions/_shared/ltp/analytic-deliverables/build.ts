@@ -50,7 +50,10 @@ import type {
 export const ANALYTIC_DELIVERABLES_VERSION =
   "cppa-risk-analytic-deliverables-2026-08-03-upgrade2";
 
-const NOT_STATED = "not stated on the record" as const;
+// ITEM 384 (G-4) — ATTESTATION REGISTER. "not stated on the record" is
+// courtroom register and read as an accusation on a complete record. The
+// absence value is plain and neutral; the semantics are unchanged.
+const NOT_STATED = "Not recorded" as const;
 
 const CITE_A2 = "11 CCR § 7152(a)(2)";
 const CITE_A5 = "11 CCR § 7152(a)(5)";
