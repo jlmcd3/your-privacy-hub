@@ -108,7 +108,15 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   const statement = str(get(intake, "purpose_details.interest_statement"));
   const typeRaw = str(get(intake, "purpose_details.interest_type"));
   const typeOther = str(get(intake, "purpose_details.interest_type_other"));
-  const interestType = typeRaw === "Other (describe below)" && typeOther ? typeOther : typeRaw;
+  /**
+   * ITEM 385 seam repair (c) — prose reasons from the interest's SUBSTANCE,
+   * never from the stored option value. "Other" is a form affordance, not a
+   * category of interest: when the record picks it, the substance is the
+   * free-text description beside it, and where that is missing the type
+   * contributes nothing to reason from.
+   */
+  const typeIsOther = /^other\b/i.test(typeRaw);
+  const interestType = typeIsOther ? typeOther : typeRaw;
   const statedPurpose = str(get(intake, "stated_purpose"));
   const description = str(get(intake, "processing_description"));
   const anchorLine = str(get(intake, "subject_anchor"));
