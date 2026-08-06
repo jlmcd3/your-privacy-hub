@@ -32,6 +32,8 @@ export const COACH_COPY = {
   strongHeading: "Already strong",
   strongIntro: "These answers carry enough detail for the assessment to work from.",
   consequenceLabel: "As written, your assessment will record…",
+  detailsLabel: "The boxes to look at first",
+
   adviceLabel: "Strengthen your answer by…",
   jumpLabel: "Jump to this question",
   continueLabel: "Continue",
