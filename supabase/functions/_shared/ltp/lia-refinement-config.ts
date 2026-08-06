@@ -142,16 +142,121 @@ export const LIA_PROTECTED_ROOT_KEYS = [
   "prompt_version",
 ];
 
-export const LIA_PROTECTED_LEAF_KEYS = [
+// ── ITEM 386 LEG 3 — PROTECTED LEAF CLASSES ─────────────────────────────────
+// Enumerated by class so the leg-3 splicer-refusal test can assert each class
+// independently. `protectedReasonFor` in refinement-core.ts inspects the LAST
+// string segment of a path, so a class member protects the NODE it names,
+// not the subtree beneath it: `$.interest_legitimacy.application` stays
+// revisable even though `interest_legitimacy` is a protected section node.
+
+/** C1 — determination outcome fields. The finding itself is never rewritten. */
+export const LIA_PROTECTED_DETERMINATION_KEYS = [
   "outcome",
   "verdict",
-  "status",
+  "decision",
+  "conclusion",
+  "result",
+  "lia_determination",
+  "determination",
+  "public_authority_exclusion",
+] as const;
+
+/** C2 — attestation names, roles and dates. */
+export const LIA_PROTECTED_ATTESTATION_KEYS = [
+  "name",
+  "role",
+  "approvers",
+  "approved_by_name",
+  "approved_by_title",
+  "approval_date",
+  "attested",
+  "dpo_review",
+  "review_triggers",
+  "triggers_are_default",
+  "reviewed_by",
+  "review_date",
+] as const;
+
+/** C3 — citation and quoted-authority leaves. */
+export const LIA_PROTECTED_CITATION_KEYS = [
   "citation",
+  "standard",
   "standard_citation",
   "supporting_citation",
   "authority_verbatim",
   "supporting_verbatim",
-  "standard",
+] as const;
+
+/** C4 — enum / status / machine-value leaves per the LIA report schema. */
+export const LIA_PROTECTED_ENUM_KEYS = [
+  "status",
+  "severity",
+  "worst_case_severity",
+  "material_weight_against_controller",
+  "power_imbalance",
+  "large_scale_indicated",
+  "benefit_is_generic",
+  "counts_as_mitigation",
+  "consent_addressed",
+  "rationale_recorded",
+  "explicitly_recorded",
+  "dimensions_recorded",
+  "count_with_rationale",
+  "recorded",
+  "category",
+  "category_label",
+  "beneficiary_labels",
+  "label",
+  "classification",
+  "generated_at",
+  "assessment_id",
+] as const;
+
+/** C5 — identifiers and machine bookkeeping, including the r2 anchor keys. */
+export const LIA_PROTECTED_MACHINE_KEYS = [
+  "id",
   "rule_id",
-  "approval_date",
-];
+  "rule_ids",
+  "anchor_keys",
+  "source_fields",
+  "field",
+  "prompt_version",
+  "build_stamp",
+] as const;
+
+/**
+ * C6 — the item382 spine section ids (prose/plans/lia.spine.ts, 14 sections).
+ * Duplicated here as literals rather than imported so the refinement config
+ * has no dependency on the plan module; the leg-3 test asserts the two lists
+ * are identical, which is what keeps them in step.
+ */
+export const LIA_PROTECTED_SECTION_IDS = [
+  "determination",
+  "classification",
+  "interest_legitimacy",
+  "benefit_and_beneficiary",
+  "alternatives_considered",
+  "relationship_with_individual",
+  "scale_frequency_duration",
+  "potential_harms",
+  "opt_out_feasibility",
+  "balancing",
+  "comparable_decisions",
+  "information_needed",
+  "documentation_recommendations",
+  "attestation_block",
+] as const;
+
+export const LIA_PROTECTED_LEAF_CLASSES = {
+  determination: LIA_PROTECTED_DETERMINATION_KEYS,
+  attestation: LIA_PROTECTED_ATTESTATION_KEYS,
+  citation: LIA_PROTECTED_CITATION_KEYS,
+  enum: LIA_PROTECTED_ENUM_KEYS,
+  machine: LIA_PROTECTED_MACHINE_KEYS,
+  section_id: LIA_PROTECTED_SECTION_IDS,
+} as const;
+
+export const LIA_PROTECTED_LEAF_KEYS: string[] = Array.from(
+  new Set(Object.values(LIA_PROTECTED_LEAF_CLASSES).flatMap((v) => [...v])),
+);
+
