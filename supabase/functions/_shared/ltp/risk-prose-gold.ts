@@ -300,14 +300,20 @@ export function applyRiskProseGold(
     }
 
     // G-1 / G-6 (one sufficiency voice, gate-true only).
-    const before = Array.isArray(report.record_sufficiency)
-      ? (report.record_sufficiency as unknown[]).filter(isLegacySufficiencyVoice).length
+    const rs = report.record_sufficiency;
+    const rsRewritable = Array.isArray(rs) || typeof rs === "string";
+    const before = Array.isArray(rs)
+      ? (rs as unknown[]).filter(isLegacySufficiencyVoice).length
       : 0;
-    report.record_sufficiency = buildRecordSufficiency(
-      report.record_sufficiency,
-      opts.affirmative,
-      reservedJudgmentSentence(opts.reservedCount),
-    );
+    // Shape law: the ARRAY/STRING live shapes are collapsed here; the legacy
+    // OBJECT envelope keeps the item-380 `.prose` write and is untouched.
+    if (rsRewritable) {
+      report.record_sufficiency = buildRecordSufficiency(
+        rs,
+        opts.affirmative,
+        reservedJudgmentSentence(opts.reservedCount),
+      );
+    }
     t.sufficiency_voices_retired = before;
     t.applied = true;
   } catch {
