@@ -160,7 +160,12 @@ Deno.test("ITEM 284 F4: the § 7152(a)(7) initiation decision is owned by the bu
     /initiat/i.test(String((a.ctx as { element_short_label?: string }).element_short_label ?? ""))
   );
   if (!initiation) return; // not engaged on this record
-  const owner = String((initiation.ctx as { owner_role_titles?: string }).owner_role_titles ?? "");
+  // ITEM 389 (a) — CARRIER RENAME, CONTRACT INTACT. ITEM 384 (G-3, commit
+  // 307b0b7df) moved the owner from the raw `owner_role_titles` ctx key to the
+  // rendered `owner_sentence`. The F4 contract (initiation is the business's
+  // call, never counsel's) is unchanged; only the carrier moved.
+  const ctx = initiation.ctx as { owner_sentence?: string; owner_role_titles?: string };
+  const owner = String(ctx.owner_sentence ?? ctx.owner_role_titles ?? "");
   assert(
     !/qualified legal counsel/i.test(owner),
     `initiation decision must not be assigned to counsel; got: ${owner}`,

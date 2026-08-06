@@ -88,15 +88,31 @@ Deno.test("241.1 (E1): scope shards emit in the shipped report (fill-or-omit no 
 });
 
 
-Deno.test("241.1 (E2): aggregateBalance insufficiency is documentation-gate driven — factor absence alone is NOT insufficient", () => {
-  // No factors present, but ALL documentation gates PASS → not insufficient.
+Deno.test("241.1 (E2): aggregateBalance insufficiency follows the ONE completeness predicate (ITEM 284 F1)", () => {
+  // ITEM 389 (a) — STALE PIN, SUPERSEDED IN FULL BY ITEM 284 F1.
+  // OLD TRUTH (241.1): "factor absence alone is NOT insufficient" — docs-gate
+  // pass with an empty benefit column returned a sufficient record.
+  // NEW TRUTH (ITEM 284 F1, section-composers/cppa-risk.ts:182-205, autopsy
+  // doc 278d0608 batch 1R): there is now exactly ONE completeness predicate,
+  // and `no_present_benefit_factor` is one of its three reasons
+  // (RecordCompletenessReason, cppa-risk.ts:207-210). F1 exists precisely
+  // because the old split let the exec summary say "not sufficient" while the
+  // assessment summary issued a firm benefits-outweigh conclusion on the same
+  // record. So docs-pass + NO present benefit factor is now, correctly,
+  // "insufficient". The surviving 241.1 clause — ITEM 241.3 CONDITION 5, that
+  // judgment-subset gates never make a record incomplete by themselves — is
+  // preserved inside F1 and is asserted below unchanged.
   const planDocsOk = planWithGateOutcomes([
     { gate_id: "G.documentation.purpose_present", outcome: "pass" },
     { gate_id: "G.documentation.categories_present", outcome: "pass" },
     { gate_id: "G.documentation.operational_elements_present", outcome: "pass" },
     { gate_id: "G.documentation.approver_present", outcome: "pass" },
   ]);
-  assert(aggregateBalance(planDocsOk) !== "insufficient", "docs pass + no factors ⇒ NOT insufficient");
+  assertEquals(
+    aggregateBalance(planDocsOk),
+    "insufficient",
+    "docs pass but empty benefit column ⇒ insufficient under the ONE predicate",
+  );
 
   // Any docs gate not-pass → insufficient.
   const planDocsBlocked = planWithGateOutcomes([

@@ -63,14 +63,42 @@ function walkStrings(v: unknown, out: string[]): void {
   }
 }
 
+/**
+ * ITEM 389 (a) — ITEM 354 NULLABLE RENDERED SCALARS.
+ * Item 354 ("CUSTOMER CONTRACT: rendered scalars", section-shards/cppa-risk.ts
+ * L235-248, 2026-08-01) redefined `overall_score` / `risk_level` as RENDERED
+ * SCALARS whose contract value is "number 0-100 or null" / band-or-null —
+ * "the LTP risk engine ships a band, not a score" (shard note, verbatim).
+ * A contracted `null` on those two keys is therefore shipped content, not an
+ * absent surface. The law is NOT weakened: the key must still be PRESENT on
+ * the report, every other emitted key must still be non-null, and the
+ * residue/empty-string checks below are unchanged.
+ */
+const CONTRACTED_NULLABLE_SCALARS: ReadonlySet<string> = new Set([
+  "overall_score",
+  "risk_level",
+]);
+
 Deno.test("LAW 2 (i): every emitted section carries real, residue-free content", () => {
   const plan = fixturePlan();
   const result = assembleReport(plan, {}, { exitMode: "observe" });
   const emitted = result.telemetry.sections.filter((s) => s.emitted);
   assert(emitted.length > 0, "no sections were emitted at all");
   for (const s of emitted) {
-    const val = (result.report as Record<string, unknown>)[s.key];
-    assert(val !== undefined && val !== null, `emitted section ${s.key} missing on report`);
+    const bag = result.report as Record<string, unknown>;
+    assert(
+      Object.prototype.hasOwnProperty.call(bag, s.key),
+      `emitted section ${s.key} missing on report`,
+    );
+    const val = bag[s.key];
+    assert(val !== undefined, `emitted section ${s.key} is undefined on report`);
+    if (val === null) {
+      assert(
+        CONTRACTED_NULLABLE_SCALARS.has(s.key),
+        `emitted section ${s.key} is null and is not an Item 354 contracted nullable scalar`,
+      );
+      continue;
+    }
     const strings: string[] = [];
     walkStrings(val, strings);
     if (strings.length > 0) {

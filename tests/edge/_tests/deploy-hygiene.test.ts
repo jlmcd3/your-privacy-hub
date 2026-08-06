@@ -16,7 +16,31 @@ import {
 } from "https://deno.land/std@0.224.0/path/mod.ts";
 
 const HERE = dirname(fromFileUrl(import.meta.url));
-const FUNCTIONS_ROOT = resolve(HERE, "..");           // supabase/functions
+
+// ITEM 389 (a) — SCAN-ROOT REPAIR. This file is a copy of
+// supabase/functions/_tests/deploy-hygiene.test.ts relocated one level
+// shallower into tests/edge/_tests/. The original `resolve(HERE, "..")`
+// silently resolved to `tests/edge`, so the guard walked the ROOT FIXTURE
+// TREE instead of the deployed edge tree and flagged
+// tests/edge/fixtures/item354/*.ts (Item 357 re-export shims, never
+// bundled by the edge runtime) as deploy-breakers. The rule itself is
+// unchanged and its assertion is not weakened — it now scans the surface
+// it was written to police. Resolve supabase/functions by walking up.
+function findFunctionsRoot(start: string): string {
+  let dir = start;
+  for (let i = 0; i < 12; i++) {
+    const candidate = resolve(dir, "supabase", "functions");
+    try {
+      if (Deno.statSync(candidate).isDirectory) return candidate;
+    } catch { /* keep walking up */ }
+    const parent = resolve(dir, "..");
+    if (parent === dir) break;
+    dir = parent;
+  }
+  throw new Error(`deploy-hygiene: could not locate supabase/functions from ${start}`);
+}
+
+const FUNCTIONS_ROOT = findFunctionsRoot(HERE); // supabase/functions
 const TESTS_DIR = resolve(FUNCTIONS_ROOT, "_tests");
 
 // Matches static + dynamic imports and re-exports:

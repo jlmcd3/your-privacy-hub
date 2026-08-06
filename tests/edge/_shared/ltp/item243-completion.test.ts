@@ -134,6 +134,15 @@ Deno.test("defect 6 — ownerForKind returns per-KIND defaults (Type-J → quali
   } as unknown as RenderPlan;
   const actions = mod.composePriorityActionsForTest(plan);
   assert(actions.length >= 1);
-  const owner = String(actions[0].ctx.owner_role_titles ?? "");
+  // ITEM 389 (a) — CARRIER RENAME, CONTRACT INTACT. ITEM 384 (G-3, commit
+  // 307b0b7df, 2026-08-06) replaced the raw `owner_role_titles` ctx key with
+  // the rendered `owner_sentence` ("Responsibility for this action sits with
+  // <owner>.", risk-prose-gold.ts:137-141); the priority-action template now
+  // consumes `{{plan:owner_sentence}}` (content/pass2-templates.ts:339,348).
+  // ownerForKind still returns "qualified legal counsel" for type_j_reserved,
+  // so the Item-243 defect-6 contract is unchanged — only its carrier moved.
+  // The assertion is not weakened: the owner must still be named, verbatim,
+  // on the shipped action.
+  const owner = String(actions[0].ctx.owner_sentence ?? actions[0].ctx.owner_role_titles ?? "");
   assert(/qualified legal counsel/i.test(owner), `expected qualified legal counsel, got: ${owner}`);
 });
