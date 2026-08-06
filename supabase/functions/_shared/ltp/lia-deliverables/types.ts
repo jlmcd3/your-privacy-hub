@@ -126,7 +126,15 @@ export interface Mitigation {
    * no downstream frame pass can fill the empty leaf with gap prose.
    */
   readonly authority_verbatim?: string;
+  /**
+   * ITEM 385 r2 DEFECT 1: every mitigation the composer can emit NAMES the
+   * record keys that ground it. The coverage matrix reads this instead of
+   * guessing anchorage from word overlap. An empty array means the mitigation
+   * closes an OPEN factor (the anchor is the absence itself).
+   */
+  readonly anchor_keys?: readonly string[];
 }
+
 
 export type LiaOutcome =
   | "legitimate_interests_available"
