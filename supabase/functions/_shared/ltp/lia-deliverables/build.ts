@@ -172,7 +172,7 @@ export function buildReasonableExpectations(
   );
   factParts.push(
     expectation
-      ? `The record's own answer on expectation is "${expectation}".`
+      ? expectationAnswerSentence(expectation)
       : "The record gives no answer on whether the data subjects would expect this processing.",
   );
   if (detail) factParts.push(`It adds: "${detail}"`);
