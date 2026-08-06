@@ -51,6 +51,7 @@
 
 import type { RenderPlan } from "../../render-plan/schema.ts";
 import { CPPA_RISK_REPORT_SCHEMA } from "../../report-schemas/cppa-risk.ts";
+import { METHODOLOGY_NOTE } from "../../prose/methodology.ts";
 // ITEM 354 — customer-surface projections (rendering only; see the module header).
 import {
   projectAnnotations,
