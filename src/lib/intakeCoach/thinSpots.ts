@@ -261,6 +261,14 @@ export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
   {
     key: "i5_admt_logic",
     companions: ["i5_admt_fairness_testing", "i5_admt_human_review"],
+    // ITEM 381 r2 — one block, three boxes: the card names the box concerned.
+    subFields: [
+      { key: "i5_admt_logic", label: "how the system reaches its decision" },
+      { key: "i5_admt_fairness_testing", label: "the fairness testing you ran" },
+      { key: "i5_admt_human_review", label: "what a human reviewer can change" },
+    ],
+    subFieldMinLength: 20,
+
     title: "How the automated decision-making works",
     jumpSelector: '[data-coach-field="i5_admt_logic"]',
     rank: 7,
