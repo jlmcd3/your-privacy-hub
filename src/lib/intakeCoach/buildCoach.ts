@@ -66,7 +66,13 @@ export interface CoachCard {
   consequenceSource: string;
   advice: string;
   jumpSelector: string;
+  /**
+   * ITEM 381 r2 — for a consolidated block card (A4 benefits), the boxes
+   * inside the block that are empty or short. Empty for every other card.
+   */
+  details?: string[];
 }
+
 
 export interface CoachResult {
   product: CoachProduct;
