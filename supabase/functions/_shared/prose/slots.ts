@@ -104,6 +104,38 @@ function foldInitialCap(s: string): string {
   return s[0].toLowerCase() + s.slice(1);
 }
 
+/**
+ * ITEM 390 (FIX 1) — SENTENCE-VALUED SLOT EXEMPTION.
+ *
+ * ITEM 337's authorized purpose (see this module's docstring) is enum and
+ * FRAGMENT repair: "Directly from account signup" ⇒ "from account signup",
+ * "Fixed period" ⇒ "a fixed period", "telemetry.." ⇒ "telemetry.". It was
+ * never authorized for slot values that are already COMPLETE, byte-pinned
+ * SENTENCES. Applied to those, step-4 stripped the locked terminal period and
+ * step-6 lowercased the locked initial capital — and because the strip removed
+ * the sentence boundary, `stemTail` then reported `endsSentence: false` for the
+ * NEXT slot, cascading the fold down the template. Shipped result on the
+ * ITEM 319 locked pair: "…assessed activity recommended: marketing…".
+ *
+ * A value is a complete sentence when it opens with a capital, carries more
+ * than one word, and closes with a single terminal mark. Such a value is
+ * neither stripped nor folded: it renders verbatim, and the boundary it keeps
+ * lets the FOLLOWING slot retain its own initial capital.
+ *
+ * Deliberately strict so ITEM 337's fragment behaviour stays byte-identical:
+ *   • "telemetry.."          → doubled mark, lowercase opener  → NOT a sentence
+ *   • "Fixed period"         → no terminal mark                → NOT a sentence
+ *   • "Deliver the service"  → no terminal mark                → NOT a sentence
+ */
+function isSentenceValue(s: string): boolean {
+  const t = s.trim();
+  if (t.length < 12) return false;
+  if (!/\s/.test(t)) return false;                 // a lone token is never a sentence
+  if (!/^["'(\[]?[A-Z]/.test(t)) return false;     // must open with a capital
+  if (/[.!?]{2,}["')\]]?$/.test(t)) return false;  // doubled mark = ITEM 337 artifact
+  return /[.!?]["')\]]?$/.test(t);
+}
+
 function stemTail(stem: string): { lastWord: string; endsSentence: boolean; endsPunct: string } {
   const t = stem.replace(/\s+$/, "");
   const lastWord = (/([A-Za-z']+)$/.exec(t)?.[1] ?? "").toLowerCase();
@@ -156,10 +188,21 @@ function finish(input: string, opts: SlotRenderOptions): string {
   const midSentence = opts.midSentence ?? (stem.trim().length > 0 && !endsSentence);
 
   // (2) value-trailing punctuation — strip when the template continues with a
-  // word or already supplies punctuation.
+  // word or already supplies punctuation. ITEM 390 (FIX 1): a complete
+  // sentence keeps its terminal mark unless the template itself supplies one.
   const templateSuppliesPunct = /^\s*[.,;:)]/.test(next);
   const templateContinues = /^\s*\S/.test(next);
-  const keepTerminal = opts.isSentence === true && !templateSuppliesPunct && !templateContinues;
+  // A slot is sentence-valued either because the value carries its own
+  // terminal mark, or because the CONTRACT declares it so (`opts.isSentence`,
+  // set from the `_sentence`/`_clause`/`_note` slot-name classes) and the value
+  // has the shape of a sentence — the terminal mark is template-supplied there
+  // ("{{plan:customer_recorded_fact_clause}}."). Enum/fragment slots never
+  // carry `isSentence`, so ITEM 337's behaviour on them is byte-identical.
+  const declaredSentence = opts.isSentence === true && /\s/.test(out) &&
+    /^["'(\[]?[A-Z]/.test(out);
+  const valueIsSentence = declaredSentence || isSentenceValue(out);
+  const keepTerminal = !templateSuppliesPunct &&
+    (isSentenceValue(out) || (opts.isSentence === true && !templateContinues));
   if (!keepTerminal) out = out.replace(/[\s.,;:]+$/, "");
   if (!out) return "";
 
@@ -171,8 +214,9 @@ function finish(input: string, opts: SlotRenderOptions): string {
     if (re.test(out)) out = out.replace(re, "");
   }
 
-  // (3) mid-sentence case folding.
-  if (midSentence) out = foldInitialCap(out);
+  // (3) mid-sentence case folding. ITEM 390 (FIX 1): never fold a complete
+  // sentence — its opening capital is part of the byte-pinned form.
+  if (midSentence && !valueIsSentence) out = foldInitialCap(out);
   return out;
 }
 

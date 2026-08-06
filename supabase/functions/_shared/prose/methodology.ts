@@ -49,7 +49,7 @@ export function stripMethodologySentences(text: unknown): { text: string; remove
  */
 export function applyMethodologyNote(
   report: Record<string, unknown> | null | undefined,
-  opts: { always?: boolean; noteKey?: string } = {},
+  opts: { always?: boolean; noteKey?: string; writeNote?: boolean } = {},
 ): { removed: number; note_attached: boolean } {
   if (!report || typeof report !== "object") return { removed: 0, note_attached: false };
   const noteKey = opts.noteKey ?? "methodology_note";
@@ -92,6 +92,13 @@ export function applyMethodologyNote(
   }
 
   const attach = opts.always === true || removed > 0;
-  if (attach) (report as Record<string, unknown>)[noteKey] = METHODOLOGY_NOTE;
+  // ITEM 390 (FIX 2-ii) — LAW 3 SINGLE WRITER. Callers that own the note
+  // through the section-shard registry pass `writeNote: false`: the strip
+  // still runs, but the note itself is written by the assembler's single
+  // registry-driven write site. `note_attached` still reports the decision so
+  // exit telemetry is byte-unchanged.
+  if (attach && opts.writeNote !== false) {
+    (report as Record<string, unknown>)[noteKey] = METHODOLOGY_NOTE;
+  }
   return { removed, note_attached: attach };
 }

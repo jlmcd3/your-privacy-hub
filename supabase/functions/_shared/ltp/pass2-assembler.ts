@@ -609,9 +609,13 @@ function assembleCore(
   }
 
   // ITEM 337 (PROSE PROGRAM 1, Part C) — METHODOLOGY NARRATION OUT OF BODY.
-  // Methodology sentences are stripped from every narrative field and the
-  // canonical note is rendered ONCE at report.methodology_note.
-  const methodology = applyMethodologyNote(report as Record<string, unknown>, { always: true });
+  // Methodology sentences are stripped from every narrative field; the
+  // canonical note itself is rendered ONCE by the `methodology_note` shard
+  // above (ITEM 390 FIX 2-ii), so this call strips only — `writeNote: false`.
+  const methodology = applyMethodologyNote(report as Record<string, unknown>, {
+    always: true,
+    writeNote: false,
+  });
 
   // ITEM 337 (PROSE PROGRAM 1, Part E) — REGISTRY CITATION LINT. Runs only
   // when the caller supplies the run's citation supply; an unsupplied or
@@ -627,7 +631,14 @@ function assembleCore(
       runId: lintOpts.runId ?? null,
       supplied: lintOpts.supply,
     });
-    for (const f of lint.fields_changed) report[f] = lint.fields[f];
+    // ITEM 390 (FIX 2-i) — LAW 3 SINGLE WRITER. The lint's field mutations no
+    // longer form a second bracketed write site; they are collected into a
+    // patch and routed through Object.assign, the same sanctioned path the
+    // coherence collapse below already uses. The lint's SEMANTICS are
+    // byte-preserved: the same fields carry the same degraded values.
+    const lintPatch: Record<string, unknown> = {};
+    for (const f of lint.fields_changed) lintPatch[f] = lint.fields[f];
+    Object.assign(report, lintPatch);
     citation_lint = {
       ran: true,
       version: CITATION_LINT_VERSION,
