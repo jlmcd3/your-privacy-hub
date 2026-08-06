@@ -49,7 +49,7 @@ export const ADEQUACY_ELEMENTS: Record<string, { readonly label: string; readonl
   },
 };
 
-function elementMeta(key: string): { label: string; question: string } {
+export function elementMeta(key: string): { label: string; question: string } {
   const known = ADEQUACY_ELEMENTS[key];
   if (known) return { label: known.label, question: known.question };
   const plain = key.replace(/_/g, " ").trim();
@@ -77,11 +77,44 @@ export function admtConclusionLabel(v: unknown): string {
 /** The conclusion values that leave an element open. */
 const UNRESOLVED_CONCLUSIONS = new Set(["insufficient_basis"]);
 
+/** ITEM 396 — the single predicate the ledger and the CSC both read. */
+export function isUnresolvedConclusion(v: unknown): boolean {
+  return UNRESOLVED_CONCLUSIONS.has(String(v ?? "").trim());
+}
+
+/**
+ * ITEM 396 — the reader label an element carries once the CSC has established
+ * it from the persisted record. The machine `conclusion` enum is NOT touched.
+ */
+export const ADMT_RECORD_BACKED_LABEL = "established by the record supplied";
+
 function joinList(items: readonly string[]): string {
   if (items.length === 0) return "";
   if (items.length === 1) return items[0];
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
+
+/** ITEM 396 — the ONE open-items ledger sentence (G-6). Single writer. */
+export function buildOpenItemsLedger(unresolved: readonly string[]): string {
+  if (unresolved.length === 0) return "";
+  return (
+    `Open items: ${joinList(unresolved)} ${unresolved.length === 1 ? "is" : "are"} unresolved; ` +
+    `the intake details that would close ${unresolved.length === 1 ? "it" : "them"} are listed under what the record does not yet state.`
+  );
+}
+
+/**
+ * ITEM 396 — every absence-class phrasing this module can write to a reader
+ * surface. The ADMT CSC detector MUST match each of these (linkage test
+ * `item396 linkage every prose-gold absence phrasing is detected`), so a future
+ * relabeling cannot escape false-absence detection.
+ */
+export const ADMT_ABSENCE_LABEL_PHRASINGS: readonly string[] = [
+  ADMT_CONCLUSION_LABELS.insufficient_basis,
+  "Whether the business can explain how the technology produced its output is not established from the information supplied.",
+  buildOpenItemsLedger(["the logic-disclosure element"]),
+  buildOpenItemsLedger(["the logic-disclosure element", "the human-involvement element"]),
+];
 
 export interface HedgeLedgerResult {
   readonly rewritten: number;
@@ -94,6 +127,9 @@ export interface HedgeLedgerResult {
  * element's own one-sentence conclusion, and writes ONE ledger sentence naming
  * the unresolved elements. On a record that resolves every element there is no
  * ledger and no hedge.
+ *
+ * ITEM 396: an element the CSC has established from the record (`record_backed`)
+ * never enters the ledger, however its machine enum reads.
  */
 export function applyHedgeLedger(report: unknown): HedgeLedgerResult {
   const r = report as Record<string, unknown> | null;
@@ -110,7 +146,7 @@ export function applyHedgeLedger(report: unknown): HedgeLedgerResult {
     const el = value as Record<string, unknown>;
     const conclusion = String(el.conclusion ?? "").trim();
     const meta = elementMeta(key);
-    const open = UNRESOLVED_CONCLUSIONS.has(conclusion);
+    const open = isUnresolvedConclusion(conclusion) && el.record_backed !== true;
     if (open) unresolved.push(meta.label);
 
     if (isHedgeLitany(el.reason)) {
@@ -119,15 +155,13 @@ export function applyHedgeLedger(report: unknown): HedgeLedgerResult {
     }
   }
 
-  let ledger = "";
-  if (unresolved.length > 0) {
-    ledger =
-      `Open items: ${joinList(unresolved)} ${unresolved.length === 1 ? "is" : "are"} unresolved; ` +
-      `the intake details that would close ${unresolved.length === 1 ? "it" : "them"} are listed under what the record does not yet state.`;
+  const ledger = buildOpenItemsLedger(unresolved);
+  if (ledger) {
     (af as Record<string, unknown>).open_items = ledger;
   } else if ("open_items" in af) {
     delete (af as Record<string, unknown>).open_items;
   }
+
 
   return { rewritten, unresolved, ledger };
 }

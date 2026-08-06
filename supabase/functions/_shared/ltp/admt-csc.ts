@@ -44,8 +44,45 @@ import {
   buildHumanReviewReasoning,
   buildLogicDisclosureRecord,
 } from "./admt-deliverables/record-register.ts";
+import {
+  ADMT_RECORD_BACKED_LABEL,
+  buildOpenItemsLedger,
+  elementMeta,
+  isUnresolvedConclusion,
+} from "./admt-prose-gold.ts";
 
-export const ADMT_CSC_VERSION = "admt-csc-2026-08-06-item394";
+export const ADMT_CSC_VERSION = "admt-csc-2026-08-06-item396";
+
+/**
+ * ITEM 396 — THE PHRASING CLASS THE ITEM-392 PROSE-GOLD PASS ITSELF WRITES.
+ *
+ * The first full-stack pilot (doc 6146db76) shipped a false absence on a fully
+ * backed adequacy surface: prose-gold had relabelled `insufficient_basis` to
+ * "not established from the information supplied" and written the open-items
+ * ledger, and NEITHER form appeared in the emit-gate absence catalog the CSC
+ * detector reads — so a2 saw no absence on a backed surface and repaired
+ * nothing. This regex closes the class. The linkage test in
+ * `tests/edge/item396` enumerates every phrasing prose-gold can write and
+ * asserts each one matches here, so a future relabeling breaks the build.
+ */
+export const ADMT_LABEL_ABSENCE_RE =
+  /(not established from the information supplied|(?:is|are|was|were)\s+not\s+established\b|not established on the (?:present )?record|Open items:[^.]{0,400}?\b(?:is|are)\s+unresolved)/i;
+
+/**
+ * The ADMT absence detector: the shared emit-gate catalog PLUS the reader-label
+ * class above. Used by a2 (surface detection) and a3 (authority-field hygiene).
+ * a4 deliberately keeps the narrow catalog: a structured `conclusion_label`
+ * legitimately carries the reader label on a genuinely unbacked element.
+ */
+export function admtCarriesAbsence(text: string, needles: readonly string[]): string | null {
+  const t = String(text ?? "").replace(/\s+/g, " ");
+  if (!t.trim()) return null;
+  const catalog = carriesAbsenceLanguage(t, needles);
+  if (catalog) return catalog;
+  const m = ADMT_LABEL_ABSENCE_RE.exec(t);
+  return m ? m[0] : null;
+}
+
 
 export type AdmtCscCheckId =
   | "a1_element_conclusion_vs_record"
@@ -267,6 +304,8 @@ interface AdmtElement {
   /** Every intake path the element runs on. */
   readonly keys: readonly string[];
   readonly why: string;
+  /** ITEM 396 — the element's single writer, used by the a1 repair. */
+  readonly rebuild: (intake: unknown) => string;
 }
 
 export const ADMT_ADEQUACY_ELEMENTS: readonly AdmtElement[] = [
@@ -274,13 +313,16 @@ export const ADMT_ADEQUACY_ELEMENTS: readonly AdmtElement[] = [
     id: "logic_disclosure",
     keys: ["access_logic_disclosure"],
     why: "the record states the explanation the business can give of how the technology produced its output",
+    rebuild: buildLogicDisclosureRecord,
   },
   {
     id: "human_intervention",
     keys: ["human_review", "opt_out_appeal_process"],
     why: "the record answers the human-review question and describes the appeal process",
+    rebuild: buildHumanInvolvementRecord,
   },
 ];
+
 
 // ---------------------------------------------------------------------------
 // A3 / A4 — field hygiene
@@ -297,7 +339,7 @@ export const AUTHORITY_FIELD_KEYS: readonly string[] = [
 export function looksLikeAbsenceProse(text: string, needles: readonly string[]): string | null {
   const t = String(text ?? "").replace(/\s+/g, " ");
   if (!t.trim()) return null;
-  const hit = carriesAbsenceLanguage(t, needles);
+  const hit = admtCarriesAbsence(t, needles);
   if (hit) return hit;
   if (PARTIAL_DISCHARGE_RE.test(t)) return PARTIAL_DISCHARGE_RE.exec(t)![0];
   const m = /(the record is silent|carried forward|we could not verify this item|listed under information needed)/i
@@ -343,20 +385,51 @@ export function runAdmtCsc(
     };
 
     // ── A1 ────────────────────────────────────────────────────────────────
+    // ITEM 396 — a1 now REPAIRS. Rule implemented (stated for the record):
+    // when an adequacy element concludes "insufficient_basis" while the record
+    // answers EVERY key that element runs on, the element's single writer
+    // (the record register) rewrites the reader surface — `reason` — from what
+    // the record states, the reader label follows
+    // (`conclusion_label` → "established on the record"), and the element is
+    // marked `record_backed: true` so it leaves the open-items ledger.
+    //   The MACHINE ENUM `conclusion` IS NEVER FLIPPED. Determination semantics
+    // (decideConsequence-class logic, the emit gate and the renderers that key
+    // on the enum) stay byte-identical; only reader surfaces change.
     const adequacy = report.adequacy_finding as Record<string, unknown> | undefined;
     if (adequacy && typeof adequacy === "object" && !Array.isArray(adequacy)) {
       for (const el of ADMT_ADEQUACY_ELEMENTS) {
         const node = adequacy[el.id] as Record<string, unknown> | undefined;
-        if (!node || typeof node !== "object") continue;
-        if (str(node.conclusion) !== "insufficient_basis") continue;
+        if (!node || typeof node !== "object" || Array.isArray(node)) continue;
+        if (!isUnresolvedConclusion(node.conclusion)) continue;
         if (!el.keys.every((k) => intakeFilled(intake, k))) continue; // honest silence
+        const built = el.rebuild(intake);
+        if (built) {
+          node.reason = built;
+          node.conclusion_label = ADMT_RECORD_BACKED_LABEL;
+          node.record_backed = true;
+        }
         log({
           check_id: "a1_element_conclusion_vs_record",
           path: `adequacy_finding.${el.id}.conclusion`,
           evidence: `the element is concluded "insufficient_basis" although ${el.why} (${el.keys.join(", ")}).`,
-          repaired: false,
+          repaired: Boolean(built),
         });
       }
+
+      // ── THE ONE OPEN-ELEMENT LEDGER (G-6) ──────────────────────────────
+      // Derived STRICTLY from the elements that remain genuinely unbacked
+      // after the a1 repairs above. Perfect record ⇒ no ledger.
+      const stillOpen: string[] = [];
+      for (const [key, value] of Object.entries(adequacy)) {
+        if (key === "open_items" || !value || typeof value !== "object" || Array.isArray(value)) continue;
+        const elNode = value as Record<string, unknown>;
+        if (isUnresolvedConclusion(elNode.conclusion) && elNode.record_backed !== true) {
+          stillOpen.push(elementMeta(key).label);
+        }
+      }
+      const ledger = buildOpenItemsLedger(stillOpen);
+      if (ledger) adequacy.open_items = ledger;
+      else if ("open_items" in adequacy) delete adequacy.open_items;
     }
 
     // ── A2 ────────────────────────────────────────────────────────────────
@@ -367,8 +440,9 @@ export function runAdmtCsc(
       const prose = surface.repair || surface.rebuild ? deepProse(node) : surfaceProse(node);
       if (!prose.trim()) continue;
       const partial = PARTIAL_DISCHARGE_RE.exec(prose);
-      const hit = carriesAbsenceLanguage(prose, needles) ?? (partial ? partial[0] : null);
+      const hit = admtCarriesAbsence(prose, needles) ?? (partial ? partial[0] : null);
       if (!hit) continue;
+
 
       const rebuilt = surface.repair
         ? surface.repair(node, intake, report)
