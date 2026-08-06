@@ -116,17 +116,35 @@ Deno.test("buildNoticeHtml escapes user-controlled controller name", () => {
 });
 
 // ----- conditional sections (matrix) ---------------------------------------
+//
+// ITEM 389 (a) — STALE PIN, UPDATED OLD→NEW WITH EVIDENCE.
+// These four pins were authored 2026-08-01 against a 4-conditional model that
+// never matched shipped code. The Art. 27 "EU representative" section has been
+// emitted by buildNoticeHtml since commit f84f79c73 (2026-06-12) — seven weeks
+// BEFORE these pins were written — under the in-source declaration:
+//   "// Representative (Art. 27): render only when establishment differs from
+//    the framework's jurisdiction. We infer establishment from intake fields
+//    when available; otherwise we render a placeholder so the controller
+//    addresses it."
+// baseAnswers carries no `establishment_jurisdiction`, so the placeholder
+// branch fires and the representative renders at position 6 for EU_GDPR,
+// shifting every later section by +1. Nothing is weakened: contiguity from 1,
+// the exact ordinal of each conditional section, and the "no extra section"
+// exclusivity bound are all still asserted — against the real section arc.
 
-Deno.test("baseline (no DPO, no transfers, no automated) has 7 sections", () => {
+Deno.test("baseline (no DPO, no transfers, no automated) has 8 sections", () => {
   const html = buildNoticeHtml({
     fw: FW_GDPR,
     answers: baseAnswers,
     generatedAtHuman: "May 2, 2026",
   });
-  for (const n of [1, 2, 3, 4, 5, 6, 7]) {
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8]) {
     assertStringIncludes(html, `<h2>${n}.`);
   }
-  assert(!html.includes("<h2>8."), "Unexpected 8th section");
+  assert(!html.includes("<h2>9."), "Unexpected 9th section");
+  assertStringIncludes(html, "<h2>6. EU representative");
+  assertStringIncludes(html, "<h2>7. Retention");
+  assertStringIncludes(html, "<h2>8. Your rights");
   assert(!html.includes("International transfers"));
   assert(!html.includes("Automated decision-making"));
 });
@@ -141,10 +159,12 @@ Deno.test("transfers=yes inserts International transfers section in order", () =
     },
     generatedAtHuman: "May 2, 2026",
   });
-  // Numbering: 1 Who/2 Data/3 Purposes/4 Basis/5 Recipients/6 Transfers/7 Retention/8 Rights
-  assertStringIncludes(html, "<h2>6. International transfers");
-  assertStringIncludes(html, "<h2>7. Retention");
-  assertStringIncludes(html, "<h2>8. Your rights");
+  // 1 Who / 2 Data / 3 Purposes / 4 Basis / 5 Recipients / 6 EU representative
+  // / 7 Transfers / 8 Retention / 9 Rights.
+  assertStringIncludes(html, "<h2>7. International transfers");
+  assertStringIncludes(html, "<h2>8. Retention");
+  assertStringIncludes(html, "<h2>9. Your rights");
+  assert(!html.includes("<h2>10."), "Unexpected 10th section");
   assertStringIncludes(html, "Standard Contractual Clauses (SCCs)");
   assertStringIncludes(html, "UK International Data Transfer Addendum");
 });
@@ -155,12 +175,12 @@ Deno.test("automated=yes adds Automated decision-making as last section", () => 
     answers: { ...baseAnswers, automated_decisions: "yes" },
     generatedAtHuman: "May 2, 2026",
   });
-  // No transfers, so automated becomes section 8.
-  assertStringIncludes(html, "<h2>8. Automated decision-making");
-  assert(!html.includes("<h2>9."), "Unexpected 9th section");
+  // No transfers, so automated becomes section 9 behind the representative.
+  assertStringIncludes(html, "<h2>9. Automated decision-making");
+  assert(!html.includes("<h2>10."), "Unexpected 10th section");
 });
 
-Deno.test("transfers=yes AND automated=yes produces 9 contiguous sections", () => {
+Deno.test("transfers=yes AND automated=yes produces 10 contiguous sections", () => {
   const html = buildNoticeHtml({
     fw: FW_GDPR,
     answers: {
@@ -171,11 +191,11 @@ Deno.test("transfers=yes AND automated=yes produces 9 contiguous sections", () =
     },
     generatedAtHuman: "May 2, 2026",
   });
-  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
     assertStringIncludes(html, `<h2>${n}.`);
   }
-  assert(!html.includes("<h2>10."), "Unexpected 10th section");
-  assertStringIncludes(html, "<h2>9. Automated decision-making");
+  assert(!html.includes("<h2>11."), "Unexpected 11th section");
+  assertStringIncludes(html, "<h2>10. Automated decision-making");
 });
 
 Deno.test("dpo_details=yes renders DPO contact line with name", () => {
