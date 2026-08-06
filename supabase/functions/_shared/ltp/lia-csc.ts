@@ -216,13 +216,27 @@ export const LIA_CSC_SURFACES: readonly LiaCscSurface[] = [
     ],
     mode: "any",
   },
+  // ITEM 385 r2 DEFECT 2 — the DOCUMENTATION-PLAN surface. Backed whenever the
+  // record supplies the facts the plan is written from; repaired by the plan
+  // register (doc-plan-register.ts), which derives what to write down next
+  // from THIS report's classified open items (G-6 ledger discipline).
+  {
+    path: "documentation_recommendations",
+    keys: [
+      "balancing_details.safeguards",
+      "balancing_details.opt_out_mechanism",
+      "balancing_details.reasonable_expectation",
+      "processing_description",
+      "attestation.dpo_reviewed",
+    ],
+    mode: "any",
+    repair: (node, intake, report) => {
+      const r = repairDocumentationRecommendations(node, intake, report);
+      return r.changed ? r.value : undefined;
+    },
+  },
 ];
 
-function surfaceBacked(s: LiaCscSurface, intake: unknown): boolean {
-  return s.mode === "all"
-    ? s.keys.every((k) => intakeFilled(intake, k))
-    : s.keys.some((k) => intakeFilled(intake, k));
-}
 
 /** The prose a surface node exposes to L2, whatever its shape. */
 export function surfaceProse(node: unknown): string {
