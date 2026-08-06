@@ -470,6 +470,101 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_transcript_cards: {
+        Row: {
+          card_key: string
+          created_at: string
+          edited_at: string | null
+          field_edited_after: boolean
+          id: string
+          reason: string | null
+          transcript_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_key: string
+          created_at?: string
+          edited_at?: string | null
+          field_edited_after?: boolean
+          id?: string
+          reason?: string | null
+          transcript_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_key?: string
+          created_at?: string
+          edited_at?: string | null
+          field_edited_after?: boolean
+          id?: string
+          reason?: string | null
+          transcript_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_transcript_cards_transcript_id_fkey"
+            columns: ["transcript_id"]
+            isOneToOne: false
+            referencedRelation: "coach_transcripts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_transcripts: {
+        Row: {
+          already_strong: number
+          answered: number
+          asked: number
+          cards: Json
+          continued_at: string | null
+          created_at: string
+          id: string
+          product: string
+          reference_id: string | null
+          reference_kind: string | null
+          skipped_at: string | null
+          to_strengthen: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          already_strong?: number
+          answered?: number
+          asked?: number
+          cards?: Json
+          continued_at?: string | null
+          created_at?: string
+          id?: string
+          product: string
+          reference_id?: string | null
+          reference_kind?: string | null
+          skipped_at?: string | null
+          to_strengthen?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          already_strong?: number
+          answered?: number
+          asked?: number
+          cards?: Json
+          continued_at?: string | null
+          created_at?: string
+          id?: string
+          product?: string
+          reference_id?: string | null
+          reference_kind?: string | null
+          skipped_at?: string | null
+          to_strengthen?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       corpus_drift_log: {
         Row: {
           detected_at: string
@@ -9653,6 +9748,7 @@ export type Database = {
       my_client_ids: { Args: never; Returns: string[] }
       normalize_provisions: { Args: { provs: string[] }; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
+      prune_old_coach_transcripts: { Args: never; Returns: undefined }
       prune_old_user_events: { Args: never; Returns: undefined }
       quality_runs_watchdog: { Args: never; Returns: Json }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
