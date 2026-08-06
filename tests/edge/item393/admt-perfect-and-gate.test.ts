@@ -1,7 +1,7 @@
 // ITEM 393 LEG B — ADMT perfect fixture, registry/variant wiring, harness
 // kickoff, fail-closed gate shape, output neutrality, serializer survival.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { ADMT_PERFECT } from "../../../supabase/functions/_shared/golden/admt-perfect.ts";
+import { ADMT_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
 import {
   PERFECT_BY_TOOL,
   casesForVariant,
