@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+// ITEM 384 r2 — EMPTY-SURFACE GUARD ON THE OPENER STRIP.
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   applyRiskProseGold,
   stripDegradedOpenersGuarded,
@@ -9,34 +10,32 @@ const OPENER =
 const SUBSTANCE =
   "The business processes precise geolocation for route optimisation across a fleet of delivery vehicles.";
 
-describe("item384 r2 — empty-surface guard on the opener strip", () => {
-  it("gate-false + opener-only ⇒ text preserved byte-identical", () => {
-    const report: Record<string, unknown> = { executive_summary: OPENER };
-    const t = applyRiskProseGold(report, {
-      recordComplete: false,
-      affirmative: "A",
-      reservedCount: 0,
-    });
-    expect(report.executive_summary).toBe(OPENER);
-    expect(t.exec_degraded_opener_stripped).toBe(false);
+Deno.test("r2: gate-false + opener-only => text preserved byte-identical", () => {
+  const report: Record<string, unknown> = { executive_summary: OPENER };
+  const t = applyRiskProseGold(report, {
+    recordComplete: false,
+    affirmative: "A",
+    reservedCount: 0,
   });
+  assertEquals(report.executive_summary, OPENER);
+  assertEquals(t.exec_degraded_opener_stripped, false);
+});
 
-  it("gate-false + opener-plus-substance ⇒ opener stripped, substance kept", () => {
-    const report: Record<string, unknown> = {
-      executive_summary: `${OPENER} ${SUBSTANCE}`,
-    };
-    const t = applyRiskProseGold(report, {
-      recordComplete: false,
-      affirmative: "A",
-      reservedCount: 0,
-    });
-    expect(report.executive_summary).toBe(SUBSTANCE);
-    expect(t.exec_degraded_opener_stripped).toBe(true);
+Deno.test("r2: gate-false + opener-plus-substance => opener stripped, substance kept", () => {
+  const report: Record<string, unknown> = {
+    executive_summary: `${OPENER} ${SUBSTANCE}`,
+  };
+  const t = applyRiskProseGold(report, {
+    recordComplete: false,
+    affirmative: "A",
+    reservedCount: 0,
   });
+  assertEquals(report.executive_summary, SUBSTANCE);
+  assertEquals(t.exec_degraded_opener_stripped, true);
+});
 
-  it("gate-true ⇒ unchanged behaviour (strip is unconditional)", () => {
-    expect(stripDegradedOpenersGuarded(OPENER, true)).toBe("");
-    expect(stripDegradedOpenersGuarded(OPENER, false)).toBe(OPENER);
-    expect(stripDegradedOpenersGuarded(`${OPENER} ${SUBSTANCE}`, true)).toBe(SUBSTANCE);
-  });
+Deno.test("r2: gate-true => unchanged behaviour (strip is unconditional)", () => {
+  assertEquals(stripDegradedOpenersGuarded(OPENER, true), "");
+  assertEquals(stripDegradedOpenersGuarded(OPENER, false), OPENER);
+  assertEquals(stripDegradedOpenersGuarded(`${OPENER} ${SUBSTANCE}`, true), SUBSTANCE);
 });
