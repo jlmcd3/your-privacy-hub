@@ -1108,6 +1108,9 @@ const DPIAFramework = () => {
         <IntakeCoachStep
           open={coachOpen}
           product="dpia"
+          userId={user?.id}
+          referenceKind="dpia_intake"
+          referenceId={clientId ?? null}
           contract={COACH_CONTRACTS.dpia}
           intake={buildIntake()}
           onClose={() => setCoachOpen(false)}
