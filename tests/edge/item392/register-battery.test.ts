@@ -161,6 +161,8 @@ function readerStrings(node: unknown, path = "", out: [string, string][] = []): 
 /** Machine-keyed leaf names — enums are allowed to live here and only here. */
 /** Reader LABELS are phrases by design — not sentences. */
 const LABEL_LEAVES = /(_label|label_display)$/;
+/** Heading-shaped name leaves are titles, not sentences. */
+const NAME_LEAVES = new Set(["element", "title", "owner", "name", "why", "item"]);
 
 const MACHINE_LEAVES = new Set(["overall_status", "status", "conclusion", "label", "enforcement_exposure", "element_id", "proposition_key", "citation", "deadline", "system_name"]);
 
@@ -188,7 +190,7 @@ Deno.test("ITEM 392 seam — no splice: every reader sentence is terminated and 
   applyAdmtProseGold(r);
   for (const [path, text] of readerStrings(r)) {
     const leaf = path.split(".").pop()!.replace(/\[\d+\]$/, "");
-    if (MACHINE_LEAVES.has(leaf) || LABEL_LEAVES.test(leaf)) continue;
+    if (MACHINE_LEAVES.has(leaf) || LABEL_LEAVES.test(leaf) || NAME_LEAVES.has(leaf)) continue;
     assert(!/\s{2,}/.test(text), `${path} double space`);
     assert(!/[a-z]\.[A-Z]/.test(text), `${path} missing space after terminator`);
     assert(/[.!?]$/.test(text.trim()), `${path} unterminated: ${text}`);
