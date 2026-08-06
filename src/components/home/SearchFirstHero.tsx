@@ -18,7 +18,7 @@ const LIA_PRICE = PRICING.tools.lia.display;               // "$109"
 // Subscriber prices sourced from PRICING_REGISTRY — never hardcode.
 const LIA_SUB = PRICING_REGISTRY.li_subscriber_v2.displayPrice;             // "$59"
 const DPIA_SUB = PRICING_REGISTRY.dpia_subscriber_v2.displayPrice;          // "$59"
-const GOV_SUB = PRICING_REGISTRY.hc_subscriber_v2.displayPrice;             // "$59"
+const GOV_SUB = PRICING_REGISTRY.hc_subscriber_v2.displayPrice;             // "$49"
 const CPPA_ADMT_SUB = PRICING_REGISTRY.cppa_admt_subscriber.displayPrice;   // "$59"
 const CPPA_CYBER_SUB = PRICING_REGISTRY.cppa_cyber_subscriber.displayPrice; // "$169"
 const CPPA_SUITE_SUB = PRICING_REGISTRY.cppa_suite_subscriber.displayPrice; // "$249"
