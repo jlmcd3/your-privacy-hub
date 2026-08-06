@@ -237,6 +237,12 @@ export const LIA_CSC_SURFACES: readonly LiaCscSurface[] = [
   },
 ];
 
+function surfaceBacked(s: LiaCscSurface, intake: unknown): boolean {
+  return s.mode === "all"
+    ? s.keys.every((k) => intakeFilled(intake, k))
+    : s.keys.some((k) => intakeFilled(intake, k));
+}
+
 
 /** The prose a surface node exposes to L2, whatever its shape. */
 export function surfaceProse(node: unknown): string {
