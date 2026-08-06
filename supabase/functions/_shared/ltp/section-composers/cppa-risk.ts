@@ -1059,10 +1059,18 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     // take the class-neutral ratified stem instead; non-family rows are
     // unchanged.
     const isFamily = !!s.factor_id?.startsWith("family.");
+    // ITEM 384 (G-3) — RESERVED-JUDGMENT ACTIONS IN COUNSEL'S REGISTER. The
+    // shipped stem ("Qualified counsel should be consulted for further
+    // consideration of …") read as boilerplate advice rather than as a
+    // statement of who holds the determination. Reserved rows now open with
+    // the ratified register; every other KIND is unchanged.
+    const reservedTo = s.owner_role_titles_override ?? ownerForKind(s.kind, plan);
     const stem = isFamily ? KIND_OPENERS.gate_unresolved : KIND_OPENERS[s.kind];
-    const prefixedLabel = isFamily
-      ? `${stem} ${s.element_short_label}`
-      : `${stem} ${lcFirst(s.element_short_label)}`;
+    const prefixedLabel = s.kind === "type_j_reserved" && !isFamily
+      ? `${reservedActionLabel(s.pinpoint, reservedTo)} ${lcFirst(s.element_short_label)}`
+      : isFamily
+        ? `${stem} ${s.element_short_label}`
+        : `${stem} ${lcFirst(s.element_short_label)}`;
     // Family customer_recorded_fact_clause carries the "the business" sentinel — replace here.
     const factClause = s.customer_recorded_fact_clause.replace(/the business's record/g, `${entity}'s record`);
     return {
@@ -1072,9 +1080,12 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         entity_name: entity,
         customer_recorded_fact_clause: factClause,
         gap_or_consequence_clause: s.gap_or_consequence_clause,
-        compliance_guidance_sentence: s.compliance_guidance_sentence,
-        deadline_sentence: sel.row.deadline_sentence,
-        owner_role_titles: s.owner_role_titles_override ?? ownerForKind(s.kind, plan),
+        // ITEM 384 (G-3, splice class) — every clause is sentence-terminated
+        // before it is joined, so "…the risk it addresses complete and retain
+        // the assessment record by …" cannot recur.
+        compliance_guidance_sentence: sentenceTerminate(s.compliance_guidance_sentence),
+        deadline_sentence: sentenceTerminate(sel.row.deadline_sentence),
+        owner_sentence: ownerSentence(reservedTo),
         __cite: { PINPOINT: s.pinpoint },
       },
     };
