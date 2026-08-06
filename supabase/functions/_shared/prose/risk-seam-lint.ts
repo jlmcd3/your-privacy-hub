@@ -72,7 +72,7 @@ export function hasSplice(text: string): boolean {
 
 /**
  * R7 — LITANY. Three or more consecutive items built from the same mould:
- * the same opening word AND the same closing eight words. The recorded
+ * the same opening word AND the same closing six words. The recorded
  * defect was four consecutive "Confirm <element> is documented in the
  * assessment record — present on the record; retain …" steps, whose leading
  * six words differ but whose mould is identical.
@@ -81,7 +81,7 @@ export function hasLitany(items: readonly string[], run = 3): boolean {
   const stem = (s: string) => {
     const w = String(s ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (w.length < 4) return "";
-    return `${w[0]}|${w.slice(-8).join(" ")}`;
+    return `${w[0]}|${w.slice(-6).join(" ")}`;
   };
   let streak = 1;
   for (let i = 1; i < items.length; i++) {
