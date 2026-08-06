@@ -1,6 +1,6 @@
 // LTP Phase-2 integration tests (shadow-mode). Deterministic; no network.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
+import { runLegalTestPipelineShadow, LTP_STAMP } from "./_local/ltp/pipeline.ts";
 import { evaluateCppaRiskGates } from "../_shared/ltp/gate-eval.ts";
 import { derivePlan } from "../_shared/ltp/derive.ts";
 import { runGuideStage } from "../_shared/ltp/guide.ts";
