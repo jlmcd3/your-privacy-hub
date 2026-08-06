@@ -95,6 +95,14 @@ export const LIA_WATCH_CLASSES: readonly LiaWatchClass[] = [
     archive_fails: 15,
     detector_hint: "recognise, organisation, behaviour, personalise, analyse and their family.",
   },
+  {
+    // ITEM 385 r2 DEFECT 2 — the phrase class joins the watchlist.
+    id: "W7",
+    title: "Absence frame on a backed surface",
+    archive_fails: 9,
+    detector_hint:
+      "a controlled absence sentence — 'The record is silent here, and the question is carried forward.' and its family — occupying a surface the record in fact backs; most often the documentation-plan lists (review_triggers, balancing_record_elements, key_elements). An absence sentence about a GENUINELY silent surface is designed output and must not be flagged.",
+  },
 ];
 
 /** The critic block, in the dpia-refinement idiom. Consumed in leg 3. */
@@ -105,7 +113,9 @@ W2 Recommendation without an owner or a trigger: a documentation recommendation 
 W3 Citation without a pinpoint, or applied to the wrong proposition: EDPB Guidelines 1/2024 or a UK GDPR provision cited at guideline or article level for a proposition its cited part does not carry; UK GDPR Art. 6(11) (DUAA 2025) applied beyond intra-group transmission for internal administrative purposes.
 W4 Assertion about the record the record does not carry: an overridden special-category answer, a quoted intake field path that does not exist, a miscount of the alternatives the record supplies. Check the record both ways — an accurate statement about a genuinely silent record is CORRECT and must not be flagged.
 W5 Counsel referral or internal reasoning in body text: a "review with qualified legal counsel" sentence anywhere outside the standing disclaimer; any model reasoning about its own process.
-W6 British spelling in the customer render: recognise, organisation, behaviour, personalise, analyse and their family.`;
+W6 British spelling in the customer render: recognise, organisation, behaviour, personalise, analyse and their family.
+W7 Absence frame on a backed surface: a controlled absence sentence ("The record is silent here, and the question is carried forward." and its family) on a surface the record in fact backs — most often the documentation-plan lists. An absence sentence about a genuinely silent surface is designed output and must be preserved.`;
+
 
 /**
  * DESIGNED-OUTPUT EXEMPLARS — the xp-lia-1 / xp-lia-2 after-register blocks,
