@@ -188,10 +188,13 @@ function finish(input: string, opts: SlotRenderOptions): string {
   const midSentence = opts.midSentence ?? (stem.trim().length > 0 && !endsSentence);
 
   // (2) value-trailing punctuation — strip when the template continues with a
-  // word or already supplies punctuation.
+  // word or already supplies punctuation. ITEM 390 (FIX 1): a complete
+  // sentence keeps its terminal mark unless the template itself supplies one.
   const templateSuppliesPunct = /^\s*[.,;:)]/.test(next);
   const templateContinues = /^\s*\S/.test(next);
-  const keepTerminal = opts.isSentence === true && !templateSuppliesPunct && !templateContinues;
+  const valueIsSentence = isSentenceValue(out);
+  const keepTerminal = !templateSuppliesPunct &&
+    (valueIsSentence || (opts.isSentence === true && !templateContinues));
   if (!keepTerminal) out = out.replace(/[\s.,;:]+$/, "");
   if (!out) return "";
 
@@ -203,8 +206,9 @@ function finish(input: string, opts: SlotRenderOptions): string {
     if (re.test(out)) out = out.replace(re, "");
   }
 
-  // (3) mid-sentence case folding.
-  if (midSentence) out = foldInitialCap(out);
+  // (3) mid-sentence case folding. ITEM 390 (FIX 1): never fold a complete
+  // sentence — its opening capital is part of the byte-pinned form.
+  if (midSentence && !valueIsSentence) out = foldInitialCap(out);
   return out;
 }
 
