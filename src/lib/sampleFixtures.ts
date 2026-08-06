@@ -649,6 +649,91 @@ const F_CPPA_RISK_US: SampleFixture = {
           harmCauses:
             "Over-broad ad-segment sharing; retention beyond the stated period; credential-stuffing exposure",
         },
+        // ITEM 391 FIX 6 — § 7152(a) analytic-deliverable operands. These are
+        // required-always in `cppaRiskContract`; the sample fixture predated
+        // Item 305 and validated with 18 required-always violations. Values are
+        // authored to this entity's own activity (ad-tech audience scoring),
+        // never shared filler. Enum values are VERBATIM from
+        // supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts.
+        a2_necessity_set: [
+          {
+            element: "Cross-publisher browsing and app-engagement events",
+            necessity: "Necessary to the stated purpose",
+            justification:
+              "The segment-affinity score is computed directly from these events; without them no audience segment can be derived.",
+          },
+          {
+            element: "Device identifiers (cookie ID, mobile advertising ID)",
+            necessity: "Necessary to the stated purpose",
+            justification:
+              "The identifier is the join key that resolves engagement events to a single profile and carries the opt-out state.",
+          },
+          {
+            element: "Contact identifiers (name, email, phone)",
+            necessity: "Collected but not necessary to the stated purpose",
+            justification:
+              "Contact identifiers are collected for shipment-tracking notifications and are excluded from the audience models; the quarterly minimisation review keeps them out of the scoring feature set.",
+          },
+          {
+            element: "General location (city, region, ZIP, IP-derived)",
+            necessity: "Necessary to the stated purpose",
+            justification:
+              "Region-level location supports geo-targeting eligibility and frequency capping; precise geolocation is truncated at ingest.",
+          },
+        ],
+        a4_benefit_business:
+          "Advertising revenue from audience-segment bidding funds the free consumer shipment-tracking tier and covers its hosting and carrier-integration costs.",
+        a4_benefit_business_fact:
+          "Segment-based bidding accounted for the majority of 2025 advertising revenue on the free tracking tier per the finance close reviewed by the CPO.",
+        a4_benefit_consumer:
+          "Consumers keep a no-fee tracking product and see fewer irrelevant advertisements because frequency caps suppress repeat creatives.",
+        a4_benefit_consumer_fact:
+          "Frequency capping reduced repeat-creative impressions per consumer over the 13-month engagement window measured by the ad-operations team.",
+        a4_benefit_other_stakeholders:
+          "Publisher partners receive higher-yield inventory, and advertisers reach a defined audience with less wasted spend.",
+        a4_benefit_other_stakeholders_fact:
+          "Publisher partners are paid on realised yield under the revenue-share terms recorded in the partner agreements.",
+        a4_benefit_public:
+          "No distinct public benefit is claimed beyond the consumer and partner benefits stated above.",
+        a5_harm_pathways: [
+          {
+            harm: "(C) Impairment of consumer control over personal information",
+            data_involved:
+              "Segment-affinity scores and purchase-intent bands derived from 13 months of browsing events",
+            actor: "Ad-exchange partners receiving bid-request segment signals",
+            source: "Real-time bid requests emitted to the exchange partners",
+            cause:
+              "A segment signal continues to be emitted after an opt-out request if suppression does not propagate to every exchange within the 15-business-day window.",
+            likelihood: "Possible",
+            severity: "Moderate",
+          },
+          {
+            harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+            data_involved:
+              "Tracking-account credentials, delivery addresses, and device identifiers held in the warehouse",
+            actor: "External attackers running credential-stuffing campaigns",
+            source: "Authenticated consumer sessions on the tracking page",
+            cause:
+              "Reused consumer passwords allow account takeover, exposing delivery addresses and linked device identifiers.",
+            likelihood: "Possible",
+            severity: "Significant",
+          },
+          {
+            harm: "(G) Reputational harms",
+            data_involved: "Purchase-intent bands inferred from browsing behaviour",
+            actor: "Household members sharing a device or tracking page",
+            source: "Advertising creatives served on partner publisher pages",
+            cause:
+              "An inferred intent band renders a creative that discloses a shopping interest to another household viewer of the shared tracking page.",
+            likelihood: "Unlikely",
+            severity: "Moderate",
+          },
+        ],
+        a8_information_providers:
+          "CISO Blitz Zenn (security controls and incident history); VP Engineering (scoring pipeline and retention enforcement); Product Owner (opt-out propagation); the independent bias auditor (annual subgroup testing). Legal advice from outside counsel is excluded from this record.",
+        a9_approver_name: "Rudy Rangifer",
+        a9_approver_position: "Chief Privacy Officer",
+        a9_approval_date: "2026-05-14",
         public_privacy_policy_url: "https://www.tomorrow4cariboo.example/privacy",
         // Precise geolocation is truncated to 3 decimals at ingest and
         // excluded from audience models, so no sensitive-location processing
