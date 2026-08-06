@@ -385,20 +385,51 @@ export function runAdmtCsc(
     };
 
     // ── A1 ────────────────────────────────────────────────────────────────
+    // ITEM 396 — a1 now REPAIRS. Rule implemented (stated for the record):
+    // when an adequacy element concludes "insufficient_basis" while the record
+    // answers EVERY key that element runs on, the element's single writer
+    // (the record register) rewrites the reader surface — `reason` — from what
+    // the record states, the reader label follows
+    // (`conclusion_label` → "established on the record"), and the element is
+    // marked `record_backed: true` so it leaves the open-items ledger.
+    //   The MACHINE ENUM `conclusion` IS NEVER FLIPPED. Determination semantics
+    // (decideConsequence-class logic, the emit gate and the renderers that key
+    // on the enum) stay byte-identical; only reader surfaces change.
     const adequacy = report.adequacy_finding as Record<string, unknown> | undefined;
     if (adequacy && typeof adequacy === "object" && !Array.isArray(adequacy)) {
       for (const el of ADMT_ADEQUACY_ELEMENTS) {
         const node = adequacy[el.id] as Record<string, unknown> | undefined;
-        if (!node || typeof node !== "object") continue;
-        if (str(node.conclusion) !== "insufficient_basis") continue;
+        if (!node || typeof node !== "object" || Array.isArray(node)) continue;
+        if (!isUnresolvedConclusion(node.conclusion)) continue;
         if (!el.keys.every((k) => intakeFilled(intake, k))) continue; // honest silence
+        const built = el.rebuild(intake);
+        if (built) {
+          node.reason = built;
+          node.conclusion_label = ADMT_RECORD_BACKED_LABEL;
+          node.record_backed = true;
+        }
         log({
           check_id: "a1_element_conclusion_vs_record",
           path: `adequacy_finding.${el.id}.conclusion`,
           evidence: `the element is concluded "insufficient_basis" although ${el.why} (${el.keys.join(", ")}).`,
-          repaired: false,
+          repaired: Boolean(built),
         });
       }
+
+      // ── THE ONE OPEN-ELEMENT LEDGER (G-6) ──────────────────────────────
+      // Derived STRICTLY from the elements that remain genuinely unbacked
+      // after the a1 repairs above. Perfect record ⇒ no ledger.
+      const stillOpen: string[] = [];
+      for (const [key, value] of Object.entries(adequacy)) {
+        if (key === "open_items" || !value || typeof value !== "object" || Array.isArray(value)) continue;
+        const elNode = value as Record<string, unknown>;
+        if (isUnresolvedConclusion(elNode.conclusion) && elNode.record_backed !== true) {
+          stillOpen.push(elementMeta(key).label);
+        }
+      }
+      const ledger = buildOpenItemsLedger(stillOpen);
+      if (ledger) adequacy.open_items = ledger;
+      else if ("open_items" in adequacy) delete adequacy.open_items;
     }
 
     // ── A2 ────────────────────────────────────────────────────────────────
@@ -409,8 +440,9 @@ export function runAdmtCsc(
       const prose = surface.repair || surface.rebuild ? deepProse(node) : surfaceProse(node);
       if (!prose.trim()) continue;
       const partial = PARTIAL_DISCHARGE_RE.exec(prose);
-      const hit = carriesAbsenceLanguage(prose, needles) ?? (partial ? partial[0] : null);
+      const hit = admtCarriesAbsence(prose, needles) ?? (partial ? partial[0] : null);
       if (!hit) continue;
+
 
       const rebuilt = surface.repair
         ? surface.repair(node, intake, report)
