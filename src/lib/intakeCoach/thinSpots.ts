@@ -180,32 +180,45 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
 
 // ── CPPA RISK ───────────────────────────────────────────────────────────
 
-const A4_BENEFIT_MARKER = /\b(consumer|consumers|customer|customers|business|employee|employees|public|user|users|resident|residents|applicant|applicants|patient|patients|merchant|merchants)\b/i;
+// ITEM 381 r2 — A4 CONSOLIDATION. The four benefit statements and their four
+// supporting-fact boxes are ONE form block with ONE anchor, so they are one
+// card. The detector evaluates the whole block (primary + companions) and the
+// card names, inside itself, which of the eight boxes are thin or empty.
+const A4_BENEFIT_MARKER =
+  /\b(consumer\w*|customer\w*|business\w*|employee\w*|public|user\w*|resident\w*|applicant\w*|patient\w*|merchant\w*|associate\w*|team\w*|staff|administrator\w*|council|community|\d+%|\$\s?\d|\d+\s*(?:minute|hour|day|month|year)\w*)\b/i;
 
-function a4Spot(key: string, title: string, rank: number): ThinSpot {
-  return {
-    key,
-    title,
-    jumpSelector: `[data-coach-field="a4_benefits"]`, // the four benefit groups share one block
-    rank,
-    minLength: 40,
+const A4_SUBFIELDS = [
+  { key: "a4_benefit_business", label: "the benefit to the business" },
+  { key: "a4_benefit_business_fact", label: "the fact that shows the business benefit" },
+  { key: "a4_benefit_consumer", label: "the benefit to consumers" },
+  { key: "a4_benefit_consumer_fact", label: "the fact that shows the consumer benefit" },
+  { key: "a4_benefit_other_stakeholders", label: "the benefit to other stakeholders" },
+  { key: "a4_benefit_other_stakeholders_fact", label: "the fact that shows the other-stakeholder benefit" },
+  { key: "a4_benefit_public", label: "the benefit to the public" },
+  { key: "a4_benefit_public_fact", label: "the fact that shows the public benefit" },
+] as const;
+
+export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
+  {
+    key: "a4_benefit_business",
+    companions: A4_SUBFIELDS.slice(1).map((f) => f.key),
+    subFields: A4_SUBFIELDS,
+    subFieldMinLength: 20,
+    title: "The benefits of the activity",
+    jumpSelector: '[data-coach-field="a4_benefits"]',
+    rank: 1,
+    minLength: 80,
     marker: A4_BENEFIT_MARKER,
     heuristic:
-      "Short (under 40 characters) or names no beneficiary group: no group word appears in the answer.",
+      "Across all four benefit statements and their supporting-fact boxes together: under 80 characters of substance, or no group and no concrete outcome named anywhere in the block.",
     consequence:
-      "As written, the benefits section states this benefit as you enter it. Where the answer names no group and no outcome, the assessment records the benefit as claimed rather than shown.",
+      "As written, the benefits section states the benefits in your own words. Your answers name no group who gains and no outcome they get, so the assessment records the benefits as claimed rather than shown.",
     consequenceSource:
       "supabase/functions/_shared/ltp/risk-csc.ts R1 benefitAsk (§ 7152(a)(4))",
     advice:
       "Name who gains and the concrete outcome they get, and put the fact from your own records that shows it in the supporting box.",
-  };
-}
+  },
 
-export const RISK_THIN_SPOTS: readonly ThinSpot[] = [
-  a4Spot("a4_benefit_business", "The benefit to the business", 1),
-  a4Spot("a4_benefit_consumer", "The benefit to consumers", 2),
-  a4Spot("a4_benefit_other_stakeholders", "The benefit to other stakeholders", 3),
-  a4Spot("a4_benefit_public", "The benefit to the public", 4),
   {
     key: "a5_harm_pathways",
     title: "How harm could occur",
