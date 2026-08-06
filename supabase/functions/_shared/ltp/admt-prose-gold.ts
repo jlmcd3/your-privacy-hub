@@ -49,7 +49,7 @@ export const ADEQUACY_ELEMENTS: Record<string, { readonly label: string; readonl
   },
 };
 
-function elementMeta(key: string): { label: string; question: string } {
+export function elementMeta(key: string): { label: string; question: string } {
   const known = ADEQUACY_ELEMENTS[key];
   if (known) return { label: known.label, question: known.question };
   const plain = key.replace(/_/g, " ").trim();
