@@ -193,9 +193,10 @@ export function emptyAskedKeys(
 export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, readonly string[]>> = {
   dpia: ["c2_absence_claim_vs_record"],
   "cppa-risk": ["r1_benefits_vs_intake", "r2_exception_vs_record"],
-  // ITEM 383 leg 1 — LIA has no CSC pass yet; the list is empty and the
-  // absent-telemetry arm of the gate holds it shut regardless.
-  lia: [],
+  // ITEM 385 LEG 2 — the LIA CSC pass (`_shared/ltp/lia-csc.ts`) now runs, so
+  // the gate reads real evidence: an UNREPAIRED l2 violation is a false
+  // absence claim about a record that supplies the fact.
+  lia: ["l2_absence_claim_vs_record"],
 };
 
 export interface RecordCompleteInput {
