@@ -4,10 +4,12 @@
 // model or an API — every line it shows is derived in the browser from the
 // customer's own answers by src/lib/intakeCoach/buildCoach.ts.
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { buildCoach, COACH_COPY } from "@/lib/intakeCoach/buildCoach";
+import { buildCoach, COACH_COPY, flattenText } from "@/lib/intakeCoach/buildCoach";
+// ITEM 398 — CEO ruling D6 ▣4 (2026-08-06): transcript storage, fail-open.
+import { markCardEdited, markTranscriptOutcome, writeCoachTranscript } from "@/lib/intakeCoach/transcript";
 import type { CoachContract } from "@/lib/intakeCoach/askedKeys";
 import type { CoachProduct } from "@/lib/intakeCoach/thinSpots";
 
@@ -19,6 +21,10 @@ interface Props {
   /** Advisory footer action — continues to checkout unchanged. */
   onContinue: () => void;
   onClose: () => void;
+  /** ITEM 398 ▣4 — transcript owner. Absent ⇒ no transcript, flow unchanged. */
+  userId?: string | null;
+  referenceKind?: string | null;
+  referenceId?: string | null;
 }
 
 function jumpTo(selector: string, onClose: () => void) {
@@ -32,15 +38,64 @@ function jumpTo(selector: string, onClose: () => void) {
   }, 60);
 }
 
-const IntakeCoachStep = ({ open, product, contract, intake, onContinue, onClose }: Props) => {
+const IntakeCoachStep = ({
+  open, product, contract, intake, onContinue, onClose,
+  userId, referenceKind, referenceId,
+}: Props) => {
   const result = useMemo(
     () => (open ? buildCoach(product, contract, intake) : null),
     [open, product, contract, intake],
   );
+
+  // ── ITEM 398 ▣4 — transcript write path (fail-open, fire-and-forget) ──
+  const transcriptIdRef = useRef<string | null>(null);
+  const writtenRef = useRef(false);
+  const baselineRef = useRef<Record<string, string>>({});
+  const editedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!open || !result || writtenRef.current || !userId) return;
+    writtenRef.current = true;
+    const baseline: Record<string, string> = {};
+    for (const c of result.cards) baseline[c.key] = flattenText(intake, c.key);
+    baselineRef.current = baseline;
+    void writeCoachTranscript(
+      { userId, product, referenceKind, referenceId },
+      result,
+    )
+      .then((id) => { transcriptIdRef.current = id; })
+      .catch(() => { /* fail-open */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, result, userId]);
+
+  // ACCEPTANCE TRACKING: a flagged field edited after the coach showed it.
+  useEffect(() => {
+    const id = transcriptIdRef.current;
+    if (!id) return;
+    for (const [key, before] of Object.entries(baselineRef.current)) {
+      if (editedRef.current.has(key)) continue;
+      if (flattenText(intake, key) !== before) {
+        editedRef.current.add(key);
+        void markCardEdited(id, key).catch(() => { /* fail-open */ });
+      }
+    }
+  }, [intake]);
+
+  const handleClose = () => {
+    const id = transcriptIdRef.current;
+    if (id) void markTranscriptOutcome(id, "skipped").catch(() => { /* fail-open */ });
+    onClose();
+  };
+  const handleContinue = () => {
+    const id = transcriptIdRef.current;
+    if (id) void markTranscriptOutcome(id, "continued").catch(() => { /* fail-open */ });
+    onContinue();
+  };
+
   if (!result) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{COACH_COPY.heading}</DialogTitle>
@@ -96,7 +151,7 @@ const IntakeCoachStep = ({ open, product, contract, intake, onContinue, onClose 
                 <button
                   type="button"
                   className="text-sm font-medium text-[hsl(var(--brand-teal))] underline underline-offset-2"
-                  onClick={() => jumpTo(card.jumpSelector, onClose)}
+                  onClick={() => jumpTo(card.jumpSelector, handleClose)}
                 >
                   {COACH_COPY.jumpLabel}
                 </button>
@@ -120,7 +175,7 @@ const IntakeCoachStep = ({ open, product, contract, intake, onContinue, onClose 
 
         <div className="flex items-center justify-between gap-3 border-t pt-3">
           <p className="text-meta text-muted-foreground">{COACH_COPY.footer}</p>
-          <Button onClick={onContinue}>{COACH_COPY.continueLabel}</Button>
+          <Button onClick={handleContinue}>{COACH_COPY.continueLabel}</Button>
         </div>
       </DialogContent>
     </Dialog>
