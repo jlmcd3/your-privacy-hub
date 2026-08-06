@@ -8,7 +8,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { transcriptCards } from "@/lib/intakeCoach/transcript";
 import { buildCoach } from "@/lib/intakeCoach/buildCoach";
-import { COACH_CONTRACTS } from "@/lib/intakeCoach/askedKeys";
+import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
+import type { CoachContract } from "@/lib/intakeCoach/askedKeys";
 import { isIntakeCoachEnabled } from "@/config/intakeCoach";
 
 const step = readFileSync("src/components/intake/IntakeCoachStep.tsx", "utf8");
@@ -89,14 +90,14 @@ describe("D6 ▣4 — transcript storage (CEO ruling 2026-08-06)", () => {
     }));
     const mod = await import("@/lib/intakeCoach/transcript");
     await expect(
-      mod.writeCoachTranscript({ userId: "u", product: "dpia" }, buildCoach("dpia", COACH_CONTRACTS.dpia, {})),
+      mod.writeCoachTranscript({ userId: "u", product: "dpia" }, buildCoach("dpia", COACH_CONTRACTS.dpia as CoachContract, {})),
     ).resolves.toBeNull();
     await expect(mod.markTranscriptOutcome("t", "continued")).resolves.toBeUndefined();
     await expect(mod.markCardEdited("t", "k")).resolves.toBeUndefined();
   });
 
   it("the cards payload carries no field beyond the coach's own text", () => {
-    const r = buildCoach("dpia", COACH_CONTRACTS.dpia, {});
+    const r = buildCoach("dpia", COACH_CONTRACTS.dpia as CoachContract, {});
     for (const c of transcriptCards(r)) {
       expect(Object.keys(c).sort()).toEqual(
         ["advice", "consequence", "excerpt", "key", "reason", "title"],
