@@ -31,6 +31,7 @@ import {
   row,
 } from "./elements.ts";
 import type {
+import { liaVerdictLabel } from "../../prose/plans/lia.spine.ts";
   AlternativeConsidered,
   AlternativesConsideredFinding,
   BeneficiaryClass,
@@ -192,7 +193,7 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   if (!description && !statedPurpose) {
     presentVerdict = "undetermined_on_the_record";
     presentReasoning =
-      "The third condition asks whether the interest is real and present rather than speculative. The record describes neither the processing nor the purpose as it would be stated to data subjects, so there is no present activity on the record to weigh.";
+      "The third condition asks whether the interest is real and present rather than speculative. The record describes neither the processing nor the purpose as it would be stated to data subjects, so the record names no present activity to weigh.";
     presentNeeded =
       "processing_description — what is actually done today, to whose data, and with what output.";
   } else if (speculative) {
@@ -250,10 +251,10 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   }
 
   const cumulative_note =
-    "The three conditions are cumulative. A condition recorded as not met, or left open on the record, is not offset by the other two; the first limb of Article 6(1)(f) fails or remains unresolved until that condition is answered.";
+    "The three conditions are cumulative. A condition recorded as not met, or left open, is not offset by the other two; the first limb of Article 6(1)(f) fails or remains unresolved until that condition is answered.";
 
   const application =
-    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Run condition by condition over what this record states, the first condition is ${sub_tests[0].verdict.replace(/_/g, " ")}, the second is ${sub_tests[1].verdict.replace(/_/g, " ")}, and the third is ${sub_tests[2].verdict.replace(/_/g, " ")}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${verdict.replace(/_/g, " ")}.`;
+    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Run condition by condition over what this record states, the first condition is ${liaVerdictLabel(sub_tests[0].verdict)}, the second is ${liaVerdictLabel(sub_tests[1].verdict)}, and the third is ${liaVerdictLabel(sub_tests[2].verdict)}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
 
   return {
     standard: std.verbatim || basis.verbatim,
@@ -428,7 +429,7 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
       "necessity_details.alternatives_rationale — for each alternative already listed, the reason it would not achieve the purpose, stated in terms of the outcome that would be lost.";
   } else if (count_with_rationale < alternatives.length) {
     application =
-      `Of the ${alternatives.length} alternatives on the record, ${count_with_rationale} carry a reason for inadequacy and ${alternatives.length - count_with_rationale} do not. The comparison the necessity limb requires is therefore performed for part of the field only; the alternatives left unexplained remain open on the record and are set out individually below.`;
+      `Of the ${alternatives.length} alternatives the record lists, ${count_with_rationale} carry a reason for inadequacy and ${alternatives.length - count_with_rationale} do not. The comparison the necessity limb requires is therefore performed for part of the field only; the alternatives left unexplained remain open and are set out individually below.`;
     information_needed =
       "necessity_details.alternatives_rationale — supply the reason for inadequacy for the alternatives listed below without one.";
   } else if (!consent_addressed) {
@@ -471,7 +472,7 @@ export function buildRelationshipWithIndividual(intake: unknown): RelationshipFi
   const source = explicit || derived;
 
   let category: RelationshipCategory = "undetermined_on_the_record";
-  let category_label = "not stated on the record";
+  let category_label = "not stated";
   for (const c of RELATIONSHIP_CATEGORIES) {
     if (source && c.match.test(source)) {
       category = c.id as RelationshipCategory;
@@ -595,10 +596,10 @@ export function buildScaleFrequencyDuration(intake: unknown): ScaleFrequencyDura
     information_needed = `balancing_details.${missing.map((m) => m === "scale" ? "scale_approx" : m).join(" and balancing_details.")} — the missing dimension${missing.length === 1 ? "" : "s"} above.`;
   } else if (large_scale_indicated) {
     application =
-      `All three dimensions are on the record, and the scale the record states puts this processing in the large-scale range. Scale does not by itself defeat a legitimate interest, but it multiplies whatever intrusion the processing causes: the same operation run across an entire population is a materially larger interference than the same operation run on an exception basis. That multiplier is carried into the balance below.`;
+      `All three dimensions are recorded, and the scale the record states puts this processing in the large-scale range. Scale does not by itself defeat a legitimate interest, but it multiplies whatever intrusion the processing causes: the same operation run across an entire population is a materially larger interference than the same operation run on an exception basis. That multiplier is carried into the balance below.`;
   } else {
     application =
-      `All three dimensions are on the record, so the intrusion can be sized rather than assumed. The scale, frequency and duration the record states are the quantities weighed against the benefit in the balancing analysis below.`;
+      `All three dimensions are recorded, so the intrusion can be sized rather than assumed. The scale, frequency and duration the record states are the quantities weighed against the benefit in the balancing analysis below.`;
   }
 
   return {
@@ -850,7 +851,7 @@ export function buildLiaAttestation(intake: unknown): LiaAttestationBlock {
 
   const text = attested
     ? `This legitimate interests assessment was reviewed by ${dpoReviewer} on ${dpoDate} and approved by ${approverName}${approverPosition ? `, ${approverPosition}` : ""}, on ${approvalDate}. It records the assessment the controller carried out before the processing described in it was relied on, and it is to be performed anew on the occurrence of any trigger listed below.`
-    : `This legitimate interests assessment is not attested on the present record. An assessment relied on as the controller's accountability record for Article 6(1)(f) should name the person who reviewed it, the person who approved it, and the date of each. The items outstanding are listed below.`;
+    : `This legitimate interests assessment carries no attestation yet. An assessment relied on as the controller's accountability record for Article 6(1)(f) names the person who reviewed it, the person who approved it, and the date of each. Those entries are listed below and writing them down closes the point.`;
 
   return {
     text,
