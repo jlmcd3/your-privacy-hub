@@ -126,6 +126,21 @@ function excerptOf(text: string): string {
   return t.length <= 180 ? t : `${t.slice(0, 177)}…`;
 }
 
+/**
+ * ITEM 381 r2 — for a consolidated block card, the labels of the boxes inside
+ * the block that are empty or shorter than the block's sub-field threshold.
+ * Undefined for every spot that declares no sub-fields.
+ */
+export function weakSubFields(intake: unknown, spot: ThinSpot): string[] | undefined {
+  if (!spot.subFields?.length) return undefined;
+  const min = spot.subFieldMinLength ?? 20;
+  const out = spot.subFields
+    .filter((f) => flattenText(intake, f.key).trim().length < min)
+    .map((f) => f.label);
+  return out.length ? out : undefined;
+}
+
+
 // ── the builder ─────────────────────────────────────────────────────────
 
 export function buildCoach(
