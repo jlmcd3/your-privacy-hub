@@ -253,7 +253,12 @@ function substitutePlanSlots(
         stem,
         next,
         adapter: adapterFor(productContract(plan)),
-        isSentence: /_sentence$|_clause$|_note$/.test(slot),
+        // ITEM 390 (FIX 1) — the sentence-valued slot classes. `_basis` joins
+        // the set: factor/action/deadline/review/step_basis all carry whole
+        // sentences ("The record states a 31% reduction …") whose terminal
+        // mark the template supplies, so they were the one sentence class
+        // still reaching ITEM 337's fragment fold.
+        isSentence: /_sentence$|_clause$|_note$|_basis$/.test(slot),
       })
       : rawValue;
     const empty = value === "" || value === "no items on the record";
