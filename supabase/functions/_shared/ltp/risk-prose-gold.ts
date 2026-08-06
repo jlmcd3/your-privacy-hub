@@ -55,6 +55,29 @@ export function stripDegradedOpeners(text: string): string {
   return out.trim();
 }
 
+/** Minimum substance (characters) a stripped surface must retain on a
+ * gate-FALSE document. Below this the placeholder IS the honest content. */
+export const MIN_SURFACE_SUBSTANCE = 40;
+
+/**
+ * item384 r2 — empty-surface guard. On a gate-FALSE document the emit-gate
+ * placeholder may be the ENTIRE surface; stripping it leaves a blank section,
+ * which is worse than the honest placeholder. In that case the original text
+ * is returned byte-identical. On gate-TRUE documents the verdict-led rebuild
+ * owns the surface, so the strip is unconditional.
+ */
+export function stripDegradedOpenersGuarded(
+  text: string,
+  recordComplete: boolean,
+): string {
+  const original = String(text ?? "");
+  const stripped = stripDegradedOpeners(original);
+  if (recordComplete === true) return stripped;
+  if (stripped.replace(/\s+/g, " ").trim().length < MIN_SURFACE_SUBSTANCE) return original;
+  return stripped;
+}
+
+
 /** The two legacy sufficiency voices retired by G-1. */
 export const SUFFICIENCY_VOICE_V2_RE =
   /has adequately documented\s+\d+\s+of the § 7152\(a\) elements listed below/i;
@@ -279,13 +302,14 @@ export function applyRiskProseGold(
     attestation_normalized: false,
   };
   try {
-    // G-2 (register repair, every record).
+    // G-2 (register repair, every record) — with the r2 empty-surface guard.
     const esBefore = typeof report.executive_summary === "string" ? report.executive_summary : "";
     if (esBefore) {
-      const stripped = stripDegradedOpeners(esBefore);
-      if (stripped !== esBefore.trim()) t.exec_degraded_opener_stripped = true;
+      const stripped = stripDegradedOpenersGuarded(esBefore, opts.recordComplete === true);
+      if (stripped !== esBefore && stripped !== esBefore.trim()) t.exec_degraded_opener_stripped = true;
       report.executive_summary = stripped;
     }
+
 
     // G-4 (register repair, every record; status swap gate-aware).
     if (report.attestation_block) {
