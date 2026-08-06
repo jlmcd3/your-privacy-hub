@@ -73,6 +73,8 @@ Deno.test("W3-T1 · DPIA golden fixtures assert source fields on enumerated rows
   // Every fixture must carry the two new assertions.
   const intakeFieldMatches = golden.match(/"row source\.intake_field present"/g) ?? [];
   const basisMatches = golden.match(/"row source\.basis is stated\|inferred"/g) ?? [];
-  assertEquals(intakeFieldMatches.length, 3, "expected 3 intake_field assertions (one per fixture)");
-  assertEquals(basisMatches.length, 3, "expected 3 basis assertions (one per fixture)");
+  // ITEM 387 (a): the DPIA golden set grew from 3 to 6 fixtures; the
+  // one-per-fixture invariant is unchanged, the count pin moved 3 → 6.
+  assertEquals(intakeFieldMatches.length, 6, "expected 6 intake_field assertions (one per fixture)");
+  assertEquals(basisMatches.length, 6, "expected 6 basis assertions (one per fixture)");
 });

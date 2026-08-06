@@ -52,24 +52,12 @@ Deno.test("W21 A3 — invented ADMT-fieldname 'record n/a' scrubbed", () => {
   assert(counters.invented_fieldnames_scrubbed >= 1);
 });
 
-Deno.test("W21 A2 — cohort row emitted when cyber-audit context + <$50M revenue", () => {
-  const src = {
-    cross_tool_recommendations: [
-      { id: "ctr_existing", topic: "cybersecurity_audit", action: "see § 7120(b) analysis" },
-    ],
-  } as any;
-  const { report, counters } = applyW21RiskTurnA(src, {
-    intake: { annual_gross_revenue_2028: "$30 million" },
-  });
-  assertEquals(counters.a2_cohort_emitted, 1);
-  const ctr = (report as any).cross_tool_recommendations;
-  const added = ctr.find((r: any) => r.proposition_key === "ra_cyber_audit_7121a3");
-  assert(added, "cohort row missing");
-  assertEquals(added.citation, CPPA_7121_A3_CITATION);
-  assertEquals(added.verbatim_quote, CPPA_7121_A3_VERBATIM);
-  assertEquals(added.deadline, "2030-04-01");
-});
-
+// ITEM 387 (b): the two A2 emission tests ("cohort row emitted when
+// cyber-audit context + <$50M revenue" and "no emission without revenue
+// signal") are DELETED. ITEM-204 CEO RULING (Defect B, 2026-07-27) retired
+// the § 7121(a)(3) cohort emitter to a telemetry-only no-op — the phase-in
+// schedule is now emitted whole by _shared/ltp/cyber-audit-schedule.ts, so
+// a2_cohort_emitted isalways 0 and the skip-reason vocabulary they pinned is gone.
 Deno.test("W21 A2 — idempotent when § 7121(a)(3) already cited", () => {
   const src = {
     cross_tool_recommendations: [
@@ -81,13 +69,6 @@ Deno.test("W21 A2 — idempotent when § 7121(a)(3) already cited", () => {
   });
   assertEquals(counters.a2_cohort_emitted, 0);
   assertEquals(counters.a2_cohort_skipped_reason, "already_present");
-});
-
-Deno.test("W21 A2 — no emission without revenue signal", () => {
-  const src = { cross_tool_recommendations: [{ action: "cybersecurity audit needed" }] } as any;
-  const { counters } = applyW21RiskTurnA(src, { intake: {} });
-  assertEquals(counters.a2_cohort_emitted, 0);
-  assertEquals(counters.a2_cohort_skipped_reason, "no_revenue_signal_under_50m");
 });
 
 Deno.test("W21 A2 — no emission without cyber-audit context", () => {
