@@ -92,6 +92,46 @@ function authorityVerbatim(v: string): { authority_verbatim?: string } {
   return t ? { authority_verbatim: t } : {};
 }
 
+/** Statute quoted AFTER the finding reads as a clause: lower its first letter. */
+function lowerFirst(s: string): string {
+  const t = typeof s === "string" ? s.trim() : "";
+  return t ? `${t.charAt(0).toLowerCase()}${t.slice(1)}` : "";
+}
+
+/**
+ * ITEM 385 seam repair — factor tokens are internal identifiers. Prose names
+ * the factor in words; the enum never reaches the page.
+ */
+export const LIA_FACTOR_LABELS: Record<string, string> = {
+  legitimacy: "the legitimacy of the interest",
+  necessity: "necessity",
+  reasonable_expectations: "what the people affected would reasonably expect",
+  balancing: "the balance itself",
+};
+
+export function factorLabel(f: string): string {
+  return LIA_FACTOR_LABELS[String(f)] ?? String(f).replace(/_/g, " ");
+}
+
+/**
+ * ITEM 385 seam repair (d) — the record's answer is written as what it
+ * states, never quoted back as a bare form value.
+ */
+export const EXPECTATION_ANSWER_PROSE: Record<string, string> = {
+  yes: "The record's own answer is that the data subjects would expect this processing.",
+  partly:
+    "The record's own answer is that the data subjects would expect this processing only in part.",
+  no: "The record's own answer is that the data subjects would not expect this processing.",
+};
+
+export function expectationAnswerSentence(answer: string): string {
+  const key = String(answer ?? "").trim().toLowerCase();
+  return EXPECTATION_ANSWER_PROSE[key] ??
+    `The record answers the expectation question as follows: ${String(answer).trim().replace(/\.$/, "")}.`;
+}
+
+
+
 // ---------------------------------------------------------------------
 // 1. Reasonable expectations — Recital 47 / EDPB 1/2024 II.C.3
 // ---------------------------------------------------------------------
