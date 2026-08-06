@@ -192,9 +192,17 @@ function finish(input: string, opts: SlotRenderOptions): string {
   // sentence keeps its terminal mark unless the template itself supplies one.
   const templateSuppliesPunct = /^\s*[.,;:)]/.test(next);
   const templateContinues = /^\s*\S/.test(next);
-  const valueIsSentence = isSentenceValue(out);
+  // A slot is sentence-valued either because the value carries its own
+  // terminal mark, or because the CONTRACT declares it so (`opts.isSentence`,
+  // set from the `_sentence`/`_clause`/`_note` slot-name classes) and the value
+  // has the shape of a sentence — the terminal mark is template-supplied there
+  // ("{{plan:customer_recorded_fact_clause}}."). Enum/fragment slots never
+  // carry `isSentence`, so ITEM 337's behaviour on them is byte-identical.
+  const declaredSentence = opts.isSentence === true && /\s/.test(out) &&
+    /^["'(\[]?[A-Z]/.test(out);
+  const valueIsSentence = declaredSentence || isSentenceValue(out);
   const keepTerminal = !templateSuppliesPunct &&
-    (valueIsSentence || (opts.isSentence === true && !templateContinues));
+    (isSentenceValue(out) || (opts.isSentence === true && !templateContinues));
   if (!keepTerminal) out = out.replace(/[\s.,;:]+$/, "");
   if (!out) return "";
 
