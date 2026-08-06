@@ -129,8 +129,9 @@ Deno.test("harness: the admt source row carries the intake wholesale (no column 
   assert(!/ADMT_COLS/.test(src), "unexpected column whitelist for admt");
 });
 
-Deno.test("gate: cppa-admt is in the union with an empty false-absence list this leg", () => {
-  assertEquals(FALSE_ABSENCE_CHECK_IDS["cppa-admt"], []);
+// ITEM 394 LEG C — the ADMT CSC pass now ships, so the union carries the a2 id.
+Deno.test("gate: cppa-admt is in the union with the a2 false-absence id", () => {
+  assertEquals(FALSE_ABSENCE_CHECK_IDS["cppa-admt"], ["a2_absence_claim_vs_record"]);
 });
 
 Deno.test("gate: fail-closed shape on the perfect fixture (no coverage, no CSC)", () => {

@@ -2659,6 +2659,43 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] ITEM 392 admt-prose-gold failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 394 LEG C — ADMT CSC, THEN THE COVERAGE MATRIX ───────────
+    // Both are deterministic, fail-open, and run AFTER item-392 prose gold and
+    // BEFORE the record-complete gate, so the gate reads their telemetry off
+    // `_meta.internal`. Both receive the FULL PERSISTED RECORD.
+    try {
+      const { attachAdmtCsc } = await import("../_shared/ltp/admt-csc.ts");
+      const csc = attachAdmtCsc(report as Record<string, unknown>, {
+        intake: ((assessment as any).intake_data ?? {}) as Record<string, unknown>,
+      });
+      console.log(JSON.stringify({
+        evt: "admt_csc", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
+        version: csc.version, violations: csc.violations.length,
+        repairs: csc.repairs, crashed: csc.crashed,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 394 admt-csc failed (non-fatal):", (e as Error)?.message);
+    }
+
+    try {
+      const { runCoverageMatrix, attachCoverage } = await import("../_shared/ltp/coverage-matrix.ts");
+      const coverage = attachCoverage(
+        report as Record<string, unknown>,
+        "admt_coverage",
+        runCoverageMatrix(
+          "cppa-admt",
+          report as Record<string, unknown>,
+          ((assessment as any).intake_data ?? {}) as Record<string, unknown>,
+        ),
+      );
+      console.log(JSON.stringify({
+        evt: "admt_coverage", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
+        version: coverage.version, ...coverage.counts, crashed: coverage.crashed,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 394 admt-coverage failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── ITEM 393 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ───────────
     // Order mirrors the established pattern (DPIA / Risk / LIA): the gate is
     // the LAST deterministic post-pass, AFTER item-392 prose gold and BEFORE
@@ -2667,11 +2704,12 @@ Return this JSON structure exactly:
     //
     // Evidence passes receive the FULL PERSISTED RECORD — `assessment.
     // intake_data`, the row the harness and the app both write — never a
-    // trimmed projection (the item385 r2 lesson). ADMT has no coverage matrix
-    // and no CSC pass yet, so the fail-closed arms hold the value FALSE with
-    // `coverage_orphans` + `csc_false_absence` until the CSC leg lands.
+    // trimmed projection (the item385 r2 lesson). ITEM 394 leg C wires the CSC
+    // and coverage passes above, so both fail-closed arms now read real
+    // evidence.
     // ZERO CUSTOMER-VISIBLE OUTPUT CHANGE: nothing reads the value back into
     // prose, the determination, or the banner. Telemetry only. Fail-open.
+
     try {
       const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
         "../_shared/ltp/record-complete.ts"
