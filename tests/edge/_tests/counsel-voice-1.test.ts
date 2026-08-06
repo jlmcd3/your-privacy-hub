@@ -91,17 +91,12 @@ Deno.test("COUNSEL-VOICE-1 §3: advisory-formula sentences are protected from le
   assertEquals(dropped.a2, 1);
 });
 
-Deno.test("COUNSEL-VOICE-1 §3: legacy NOTE FOR LEGAL REVIEW is still whitelisted (back-compat)", () => {
-  const { kept, dropped } = applyGraderCal1Filter([{
-    check_id: "rubric_internal_reasoning_leak",
-    dimension: "hallucination",
-    severity: "high",
-    passed: false,
-    evidence: "NOTE FOR LEGAL REVIEW — Framework selection: …",
-  }]);
-  assertEquals(kept.length, 0);
-  assertEquals(dropped.a2, 1);
-});
+// ITEM 387 (b): the "legacy NOTE FOR LEGAL REVIEW is still whitelisted"
+// test is DELETED. GRADER-CAL-2 Task 5 deliberately removed
+// LEGACY_NOTE_BLOCK_RE from the post-filter drop path (see
+// _shared/grader/post-filters.ts) because current generator prompts
+// prohibit the heading outright, so dropping such findings masked real
+// defects. The back-compat behaviour it pinned no longer exists.
 
 Deno.test("COUNSEL-VOICE-1 §3: genuine self-narration outside formulas still fires", () => {
   const { kept } = applyGraderCal1Filter([{
@@ -117,7 +112,8 @@ Deno.test("COUNSEL-VOICE-1 §3: genuine self-narration outside formulas still fi
 // ─── §3: version bump ────────────────────────────────────────────────
 
 Deno.test("COUNSEL-VOICE-1: GRADER_CONTEXT_VERSION bumped", () => {
-  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-26-s5-eu-uk-ca-au-sg");
+  // ITEM 387 (a): gc-2026-07-26-s5 → gc-2026-07-27-s6 (grader/context.ts).
+  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-27-s6-eu-uk-ca-au-sg");
 });
 
 // ─── §4: E-checks per tool ───────────────────────────────────────────
@@ -158,8 +154,19 @@ Deno.test("COUNSEL-VOICE-1 E6: body-text counsel referral is flagged", () => {
   assert(findings.some((f) => f.check_id === "e6_counsel_referral" && !f.passed));
 });
 
-Deno.test("COUNSEL-VOICE-1 E1 (IR): PART A..PART F presence", () => {
-  const good = "PART A\ncontent\nPART B\ncontent\nPART C\nx\nPART D\nx\nPART E\nx\nPART F\nx";
+Deno.test("COUNSEL-VOICE-1 E1 (IR): required numbered-section presence", () => {
+  // ITEM 387 (a): SWEEP-2R R1 retargeted IR_REQUIRED_SECTIONS from the stale
+  // "PART A".."PART F" list to the seven numbered headings the shipped
+  // instrument (generate-ir-playbook v3.9.1) actually emits.
+  const good = [
+    "## Section 1: IMMEDIATE ACTIONS",
+    "## Section 2: BREACH ASSESSMENT CHECKLIST",
+    "## Section 3: REGULATORY NOTIFICATION TIMELINE",
+    "## Section 4: INDIVIDUAL NOTIFICATION DECISION TREE",
+    "## Section 5: NOTIFICATION TEMPLATES",
+    "## Section 6: DOCUMENTATION & ACCOUNTABILITY CHECKLIST",
+    "## Section 7: POST-INCIDENT ACTIONS",
+  ].map((h) => h + "\ncontent").join("\n");
   const findings = runFormatChecksIR(good);
   assert(findings.some((f) => f.check_id === "e1_sections_ok" && f.passed));
 });
@@ -313,7 +320,11 @@ Deno.test("CV1-R: run-governance-assessment disclaimer constants have no counsel
   // Rulebook lines describing what the generator MUST NOT emit are exempt,
   // as are role-roster labels ("Legal Counsel" as owner) per CV1-ALL T4.
   const scanned = src.split("\n").filter((l) =>
-    !/NEVER direct|no 'consult legal counsel'|NEVER emit|Do not direct/i.test(l)
+    // ITEM 387 (a): POST-GOVERNANCE-FIX-1 T2(b) added a rulebook line that
+    // NAMES the prohibited counsel-ownership phrasings in order to forbid
+    // them ("COUNSEL-REFERRAL ZONE DISCIPLINE"). It is a prohibition line,
+    // exactly like the "NEVER emit" family already exempted here.
+    !/NEVER direct|no 'consult legal counsel'|NEVER emit|Do not direct|COUNSEL-REFERRAL ZONE DISCIPLINE/i.test(l)
     && !/owner['"]?\s*[:=]\s*['"][^'"]*Legal Counsel/i.test(l)
     && !/["']Legal Counsel["']/.test(l)
   ).join("\n");

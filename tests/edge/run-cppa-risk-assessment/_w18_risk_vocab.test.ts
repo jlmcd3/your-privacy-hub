@@ -20,7 +20,7 @@ import { BUILD_STAMP } from "../../../supabase/functions/run-cppa-risk-assessmen
 
 Deno.test("W18 BUILD_STAMP is w18-risk-vocabscrub@ (or w19 successor)", () => {
   assert(
-    BUILD_STAMP.startsWith("w18-risk-vocabscrub@") || BUILD_STAMP.startsWith("w19-risk-turnb@") || BUILD_STAMP.startsWith("w20-risk-turnb@") || BUILD_STAMP.startsWith("band-realignment-t2a@"),
+    BUILD_STAMP.startsWith("w18-risk-vocabscrub@") || BUILD_STAMP.startsWith("w19-risk-turnb@") || BUILD_STAMP.startsWith("w20-risk-turnb@") || BUILD_STAMP.startsWith("band-realignment-t2a@") || BUILD_STAMP.startsWith("ltp-risk-item217-hook-authz-repair-outside-guard@"),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });

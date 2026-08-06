@@ -63,7 +63,7 @@ Deno.test("W3-T1 · _staging and _revision handling is untouched (regression gua
 Deno.test("W3-T1 · BUILD_STAMP bumped to w3-t1 tag", () => {
   const m = idx.match(/export const BUILD_STAMP = "([^"]+)"/);
   assert(m, "BUILD_STAMP export not found");
-  assertEquals(/^(w3-t1-|r-turn-|c1-[a-z]-)/.test(m![1]), true, `unexpected BUILD_STAMP: ${m![1]}`);
+  assertEquals(/^(w3-t1-|r-turn-|c1-[a-z]-|dpia-t6fix)/.test(m![1]), true, `unexpected BUILD_STAMP: ${m![1]}`);
 });
 
 Deno.test("W3-T1 · DPIA golden fixtures assert source fields on enumerated rows", async () => {
@@ -73,6 +73,8 @@ Deno.test("W3-T1 · DPIA golden fixtures assert source fields on enumerated rows
   // Every fixture must carry the two new assertions.
   const intakeFieldMatches = golden.match(/"row source\.intake_field present"/g) ?? [];
   const basisMatches = golden.match(/"row source\.basis is stated\|inferred"/g) ?? [];
-  assertEquals(intakeFieldMatches.length, 3, "expected 3 intake_field assertions (one per fixture)");
-  assertEquals(basisMatches.length, 3, "expected 3 basis assertions (one per fixture)");
+  // ITEM 387 (a): the DPIA golden set grew from 3 to 6 fixtures; the
+  // one-per-fixture invariant is unchanged, the count pin moved 3 → 6.
+  assertEquals(intakeFieldMatches.length, 6, "expected 6 intake_field assertions (one per fixture)");
+  assertEquals(basisMatches.length, 6, "expected 6 basis assertions (one per fixture)");
 });

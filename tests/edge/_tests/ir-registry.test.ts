@@ -27,41 +27,54 @@ import {
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
 
-/** proposition_key -> provision_texts key that must contain the verbatim_quote. */
+/** proposition_key -> provision_texts key that must contain the verbatim_quote.
+ * ITEM 387 (2026-08-06): extended from the w1 (2026-07-25) set to the UK GDPR
+ * rows added by items 311/326/327. */
 const ROW_TO_SOURCE: Record<string, { table: "provision_texts"; key: string }> = {
-  breach_notify_sa_72h:                                       { table: "provision_texts", key: "gdpr-art-33" },
-  breach_notify_reasons_for_delay:                            { table: "provision_texts", key: "gdpr-art-33" },
-  processor_notify_controller_without_undue_delay:            { table: "provision_texts", key: "gdpr-art-33" },
-  notification_content_describe_breach:                       { table: "provision_texts", key: "gdpr-art-33" },
-  notification_content_dpo_contact:                           { table: "provision_texts", key: "gdpr-art-33" },
-  notification_content_likely_consequences:                   { table: "provision_texts", key: "gdpr-art-33" },
-  notification_content_measures_taken:                        { table: "provision_texts", key: "gdpr-art-33" },
-  phased_notification_permitted:                              { table: "provision_texts", key: "gdpr-art-33" },
-  document_breaches_duty:                                     { table: "provision_texts", key: "gdpr-art-33" },
-  communicate_to_data_subject_high_risk:                      { table: "provision_texts", key: "gdpr-art-34" },
-  communication_clear_plain_language:                         { table: "provision_texts", key: "gdpr-art-34" },
-  exception_encryption_unintelligibility:                     { table: "provision_texts", key: "gdpr-art-34" },
-  exception_subsequent_measures:                              { table: "provision_texts", key: "gdpr-art-34" },
-  exception_disproportionate_effort:                          { table: "provision_texts", key: "gdpr-art-34" },
-  sa_may_require_communication:                               { table: "provision_texts", key: "gdpr-art-34" },
-  security_appropriate_measures:                              { table: "provision_texts", key: "gdpr-art-32" },
-  security_pseudonymisation_encryption:                       { table: "provision_texts", key: "gdpr-art-32" },
+  breach_notify_sa_72h: { table: "provision_texts", key: "gdpr-art-33" },
+  breach_notify_reasons_for_delay: { table: "provision_texts", key: "gdpr-art-33" },
+  processor_notify_controller_without_undue_delay: { table: "provision_texts", key: "gdpr-art-33" },
+  notification_content_describe_breach: { table: "provision_texts", key: "gdpr-art-33" },
+  notification_content_dpo_contact: { table: "provision_texts", key: "gdpr-art-33" },
+  notification_content_likely_consequences: { table: "provision_texts", key: "gdpr-art-33" },
+  notification_content_measures_taken: { table: "provision_texts", key: "gdpr-art-33" },
+  phased_notification_permitted: { table: "provision_texts", key: "gdpr-art-33" },
+  document_breaches_duty: { table: "provision_texts", key: "gdpr-art-33" },
+  communicate_to_data_subject_high_risk: { table: "provision_texts", key: "gdpr-art-34" },
+  communication_clear_plain_language: { table: "provision_texts", key: "gdpr-art-34" },
+  exception_encryption_unintelligibility: { table: "provision_texts", key: "gdpr-art-34" },
+  exception_subsequent_measures: { table: "provision_texts", key: "gdpr-art-34" },
+  exception_disproportionate_effort: { table: "provision_texts", key: "gdpr-art-34" },
+  sa_may_require_communication: { table: "provision_texts", key: "gdpr-art-34" },
+  security_appropriate_measures: { table: "provision_texts", key: "gdpr-art-32" },
+  security_pseudonymisation_encryption: { table: "provision_texts", key: "gdpr-art-32" },
   security_confidentiality_integrity_availability_resilience: { table: "provision_texts", key: "gdpr-art-32" },
-  security_restore_availability:                              { table: "provision_texts", key: "gdpr-art-32" },
-  security_regular_testing:                                   { table: "provision_texts", key: "gdpr-art-32" },
-  security_risk_factors_scope:                                { table: "provision_texts", key: "gdpr-art-32" },
-  staff_process_only_on_instructions:                         { table: "provision_texts", key: "gdpr-art-32" },
-  processor_assists_arts_32_to_36:                            { table: "provision_texts", key: "gdpr-art-28" },
-  demonstrate_compliance_and_audits:                          { table: "provision_texts", key: "gdpr-art-28" },
-  controller_ropa_duty:                                       { table: "provision_texts", key: "gdpr-art-30" },
-  processor_ropa_duty:                                        { table: "provision_texts", key: "gdpr-art-30" },
-  principle_purpose_limitation:                               { table: "provision_texts", key: "gdpr-art-5-1-b" },
-  principle_data_minimisation:                                { table: "provision_texts", key: "gdpr-art-5-1-c" },
-  special_categories_prohibition:                             { table: "provision_texts", key: "gdpr-art-9-1" },
-  transfers_chapter_v_general_principle:                      { table: "provision_texts", key: "gdpr-art-44" },
-  transfers_appropriate_safeguards_required:                  { table: "provision_texts", key: "gdpr-art-46" },
-  transfers_bcr_safeguard:                                    { table: "provision_texts", key: "gdpr-art-46" },
-  transfers_scc_safeguard:                                    { table: "provision_texts", key: "gdpr-art-46" },
+  security_restore_availability: { table: "provision_texts", key: "gdpr-art-32" },
+  security_regular_testing: { table: "provision_texts", key: "gdpr-art-32" },
+  security_risk_factors_scope: { table: "provision_texts", key: "gdpr-art-32" },
+  staff_process_only_on_instructions: { table: "provision_texts", key: "gdpr-art-32" },
+  processor_assists_arts_32_to_36: { table: "provision_texts", key: "gdpr-art-28" },
+  demonstrate_compliance_and_audits: { table: "provision_texts", key: "gdpr-art-28" },
+  controller_ropa_duty: { table: "provision_texts", key: "gdpr-art-30" },
+  processor_ropa_duty: { table: "provision_texts", key: "gdpr-art-30" },
+  principle_purpose_limitation: { table: "provision_texts", key: "gdpr-art-5-1-b" },
+  principle_data_minimisation: { table: "provision_texts", key: "gdpr-art-5-1-c" },
+  special_categories_prohibition: { table: "provision_texts", key: "gdpr-art-9-1" },
+  transfers_chapter_v_general_principle: { table: "provision_texts", key: "gdpr-art-44" },
+  transfers_appropriate_safeguards_required: { table: "provision_texts", key: "gdpr-art-46" },
+  transfers_bcr_safeguard: { table: "provision_texts", key: "gdpr-art-46" },
+  transfers_scc_safeguard: { table: "provision_texts", key: "gdpr-art-46" },
+  uk_gdpr_art_33_mirror: { table: "provision_texts", key: "ukgdpr-art-33" },
+  uk_gdpr_art_34_mirror: { table: "provision_texts", key: "ukgdpr-art-34" },
+  uk_art_44_not_in_force: { table: "provision_texts", key: "ukgdpr-art-44" },
+  uk_transfers_general_principle: { table: "provision_texts", key: "ukgdpr-art-44a" },
+  uk_transfers_adequacy_route: { table: "provision_texts", key: "ukgdpr-art-44a" },
+  uk_transfers_safeguards_route: { table: "provision_texts", key: "ukgdpr-art-44a" },
+  uk_adequacy_data_protection_test: { table: "provision_texts", key: "ukgdpr-art-45b" },
+  uk_transfers_appropriate_safeguards: { table: "provision_texts", key: "ukgdpr-art-46" },
+  uk_transfers_sos_clauses: { table: "provision_texts", key: "ukgdpr-art-46" },
+  uk_transfers_commissioner_clauses: { table: "provision_texts", key: "ukgdpr-art-46" },
+  uk_transfers_data_protection_test: { table: "provision_texts", key: "ukgdpr-art-46" },
 };
 
 async function pgrest(path: string): Promise<unknown[]> {
@@ -82,13 +95,13 @@ async function loadCorpus(): Promise<Map<string, string>> {
   for (const src of Object.values(ROW_TO_SOURCE)) keys.add(src.key);
   const keyList = [...keys].map((k) => `"${k}"`).join(",");
   const provisions = await pgrest(
-    `provision_texts?select=key,verbatim_excerpt&jurisdiction=eq.EU&status=eq.approved&key=in.(${keyList})`,
+    `provision_texts?select=key,verbatim_excerpt&status=eq.approved&key=in.(${keyList})`,
   ) as Array<{ key: string; verbatim_excerpt: string }>;
   return new Map(provisions.map((r) => [r.key, r.verbatim_excerpt]));
 }
 
-Deno.test("ir-registry: version tag is w1", () => {
-  assert(IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION === "ir-va-w1-2026-07-25");
+Deno.test("ir-registry: version tag is the current authored wave (w2, item 328)", () => {
+  assert(IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION === "ir-va-w2-2026-08-01-item328");
 });
 
 Deno.test("ir-registry: no paraphrase on entry (KNOWN_PARAPHRASED_KEYS empty)", () => {
@@ -131,6 +144,11 @@ Deno.test("ir-registry: registry keys match proposition_key on each row and requ
     assert(row.subsection.length > 0, `subsection empty on ${k}`);
     assert(row.verbatim_quote.length > 0, `verbatim_quote empty on ${k}`);
     assert(row.governing_anchor.length > 0, `governing_anchor empty on ${k}`);
-    assert(row.verified_on === "2026-07-25", `verified_on wrong on ${k}`);
+    // ITEM 387: three authored waves — w1 (2026-07-25), UK mirrors
+    // (2026-07-31), item 328 UK Chapter V (2026-08-01).
+    assert(
+      ["2026-07-25", "2026-07-31", "2026-08-01"].includes(row.verified_on),
+      `verified_on wrong on ${k}: ${row.verified_on}`,
+    );
   }
 });

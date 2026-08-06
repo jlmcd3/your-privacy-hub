@@ -14,6 +14,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  CYBER_AUTHORITY_LOCATORS,
   CYBER_VERIFIED_AUTHORITIES,
   CYBER_VERIFIED_AUTHORITY_VERSION,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
@@ -25,7 +26,7 @@ import {
 Deno.test("W15: BUILD_STAMP is w15-cyber-regwire@<iso> or w15-cyber-factledger@<iso>", async () => {
   const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-cybersecurity/index.ts", import.meta.url));
   const m = src.match(/export const BUILD_STAMP = "([^"]+)"/);
-  assert(m && /^(w15-cyber-regwire|w15-cyber-factledger|w16-cyber-flfix|w17-cyber-boiler)@\d{4}-\d{2}-\d{2}T/.test(m[1]), `unexpected stamp: ${m?.[1]}`);
+  assert(m && /^(w15-cyber-regwire|w15-cyber-factledger|w16-cyber-flfix|w17-cyber-boiler|w21-cyber-turnc)@\d{4}-\d{2}-\d{2}T/.test(m[1]), `unexpected stamp: ${m?.[1]}`);
 });
 
 Deno.test("W15: index.ts imports cyber registry + resolver + injects VA block", async () => {
@@ -33,10 +34,11 @@ Deno.test("W15: index.ts imports cyber registry + resolver + injects VA block", 
   assert(src.includes("cyber-verified-authorities.ts"), "registry import missing");
   assert(src.includes("resolveByPropositionKey"), "resolver import missing");
   assert(src.includes("buildCyberVerifiedAuthorityBlock"), "block builder missing");
-  assert(src.includes("CYBER_VERIFIED_AUTHORITY_BLOCK"), "block constant missing");
-  // Block is injected into the system context.
+  // ITEM 387 (a): the module-level CYBER_VERIFIED_AUTHORITY_BLOCK constant
+  // was replaced by a per-request call (the block is now built from the
+  // corpus-hydrated source), so the push site names the builder.
   assert(
-    /cyberInjectedParts\.push\(CYBER_VERIFIED_AUTHORITY_BLOCK\)/.test(src),
+    /cyberInjectedParts\.push\(buildCyberVerifiedAuthorityBlock\(cyberAuthoritySource\)\)/.test(src),
     "VA block not appended to cyberInjectedParts",
   );
   // Post-generation stamp pass and telemetry surface exist.
@@ -44,13 +46,21 @@ Deno.test("W15: index.ts imports cyber registry + resolver + injects VA block", 
   assert(src.includes("meta.internal.cyber_va"), "cyber_va telemetry key missing");
 });
 
-Deno.test("W15: registry version stamp is cyber-va-w1 and non-empty", () => {
-  assert(CYBER_VERIFIED_AUTHORITY_VERSION.startsWith("cyber-va-w1-"), CYBER_VERIFIED_AUTHORITY_VERSION);
-  assert(registrySize(CYBER_VERIFIED_AUTHORITIES) >= 40, "registry too small");
+Deno.test("W15: registry version stamp is the current cyber wave and non-empty", () => {
+  // ITEM 387 (a): cyber-va-w1-* → cyber-va-w2-corpus-2026-08-03.
+  assert(CYBER_VERIFIED_AUTHORITY_VERSION.startsWith("cyber-va-w2-"), CYBER_VERIFIED_AUTHORITY_VERSION);
+  // ITEM 387 (a): the w2 registry is corpus-hydrated at request time, so the
+  // static size lives on CYBER_AUTHORITY_LOCATORS (the slice specs) rather
+  // than on the pre-baked CYBER_VERIFIED_AUTHORITIES map.
+  assert(CYBER_AUTHORITY_LOCATORS.length >= 40, `registry too small: ${CYBER_AUTHORITY_LOCATORS.length}`);
 });
 
 Deno.test("W15: retention anchor row resolves to 11 CCR § 7122(g) — NOT § 7123(e)", () => {
-  const row = resolveByPropositionKey(CYBER_VERIFIED_AUTHORITIES, "cyber_retention_5yr");
+  // ITEM 387 (a): the w2 registry rows are corpus-slice specs hydrated at
+  // request time, so the whitelist resolver no longer returns pre-baked
+  // rows; the anchor is asserted on the registry row itself.
+  const row = CYBER_AUTHORITY_LOCATORS
+    .find((r) => r.proposition_key === "cyber_retention_5yr");
   assert(row, "cyber_retention_5yr row missing");
   assertEquals(row!.subsection, "11 CCR \u00a7 7122(g)");
   assert(!/7123\(e\)/.test(row!.subsection), "retention row must not anchor to § 7123(e)");

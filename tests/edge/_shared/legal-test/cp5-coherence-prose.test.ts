@@ -34,7 +34,7 @@ import { composeSection } from "../../../../supabase/functions/_shared/ltp/secti
 Deno.test("CP5-CP: (a) RISK_OPENING_SLOT_ORDER is S2→S3→S4→S0→S1→S5→S6", () => {
   assertEquals(
     RISK_OPENING_SLOT_ORDER as readonly string[],
-    ["S2", "S3", "S4", "S0", "S1", "S5", "S6"],
+    ["S2", "S3", "S4", "S4_5", "S0", "S1", "S5", "S6"],
   );
 });
 

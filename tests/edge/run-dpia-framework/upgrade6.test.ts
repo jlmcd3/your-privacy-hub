@@ -275,7 +275,7 @@ Deno.test("ITEM 4 — only resolved corpus citations are allowed", () => {
 
 Deno.test("ITEM 6 — the report schema is bumped and allow-lists the authority exhibit", () => {
   assertEquals(DPIA_REPORT_SCHEMA.tool, "dpia_framework");
-  assertStringIncludes(DPIA_REPORT_SCHEMA.version, "upgrade6");
+  assertStringIncludes(DPIA_REPORT_SCHEMA.version, "rs-dpia-w2-2026-08-05-item372");
   assert(DPIA_REPORT_SCHEMA.topLevel.includes("authority_exhibit"));
   // The two structural fields ride existing section objects, which stay listed.
   assert(DPIA_REPORT_SCHEMA.topLevel.includes("section_0_overview"));

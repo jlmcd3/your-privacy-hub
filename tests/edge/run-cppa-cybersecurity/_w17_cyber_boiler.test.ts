@@ -88,7 +88,7 @@ Deno.test("W17-CYBER-BOILER: telemetry lands under _meta.internal.cyber_boiler o
 
 Deno.test("W17-CYBER-BOILER: BUILD_STAMP restamped to w17-cyber-boiler", () => {
   assert(
-    /^(w17-cyber-boiler|w16-cyber-flfix)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
+    /^(w17-cyber-boiler|w16-cyber-flfix|w21-cyber-turnc)@\d{4}-\d{2}-\d{2}T/.test(BUILD_STAMP),
     `unexpected BUILD_STAMP: ${BUILD_STAMP}`,
   );
 });
