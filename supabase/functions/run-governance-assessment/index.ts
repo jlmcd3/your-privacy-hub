@@ -1478,6 +1478,54 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] ITEM 400 prose gold failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 401 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
+    // Order mirrors the established pattern (DPIA / Risk / LIA / ADMT): the
+    // gate is the LAST deterministic post-pass, AFTER the item-400 governance
+    // prose gold and BEFORE the LEAK-PREV-P1 emit gate and the LEAK-PREV-P2
+    // serializer, so its telemetry rides `_meta.internal` and survives the
+    // whitelist.
+    //
+    // The evidence passes receive the FULL PERSISTED RECORD —
+    // `assessment.intake_data`, the row the harness and the app both write —
+    // never a trimmed projection (the item385 r2 lesson).
+    //
+    // Governance has no coverage matrix and no CSC pass yet (the CSC leg
+    // follows), so both fail-closed arms hold and the gate value is FALSE.
+    // ZERO CUSTOMER-VISIBLE OUTPUT CHANGE: nothing reads the value back into
+    // prose, the determination, or the banner. Telemetry only. Fail-open.
+    try {
+      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
+        "../_shared/ltp/record-complete.ts"
+      );
+      const { governanceContract } = await import("../_shared/intake-contracts/governance-assessment.ts");
+      const govGateRecord = (((assessment as any).intake_data ?? {})) as Record<string, unknown>;
+      const internal = ((((reportData as any)._meta ?? {}).internal ?? {})) as Record<string, unknown>;
+      const telemetry = computeRecordComplete({
+        product: "governance",
+        contract: governanceContract,
+        intake: govGateRecord,
+        coverage: (internal.governance_coverage ?? null) as any,
+        csc: (internal.governance_csc ?? null) as any,
+      });
+      const classification = classifyPlaceholders(
+        reportData as Record<string, unknown>,
+        govGateRecord,
+        telemetry.value,
+      );
+      attachRecordComplete(reportData as Record<string, unknown>, telemetry, classification);
+      console.log(JSON.stringify({
+        evt: "governance_record_complete", fn: "run-governance-assessment",
+        version: telemetry.version, value: telemetry.value,
+        failed_conditions: telemetry.failed_conditions,
+        counts: telemetry.counts,
+        empty_required_keys: telemetry.empty_required_keys.slice(0, 20),
+      }));
+    } catch (e) {
+      console.warn("[run-governance-assessment] ITEM 401 record-complete gate failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────
     // Runs AFTER the wire post-pass and BEFORE the P2 serializer so gate
