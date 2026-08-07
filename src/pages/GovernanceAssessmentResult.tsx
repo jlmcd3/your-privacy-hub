@@ -215,6 +215,15 @@ const GovernanceAssessmentResult = () => {
                       This assessment evaluates the privacy programme of <span className="font-semibold">{assessment?.organization_name || assessment?.intake_data?.organization_name}</span>.
                     </p>
                   )}
+                  {/* ITEM 402 item 4(b) — ONE CONSUMER PATH. The readiness line
+                      is derived once from the typed `readiness_determination`
+                      record and simply read here. Legacy documents carry
+                      neither field and render exactly as they did before. */}
+                  {report?.governance_readiness_line && (
+                    <p className="text-sm font-semibold text-foreground mb-3">
+                      {report.governance_readiness_line}
+                    </p>
+                  )}
                   {/* ITEM 313 — the headline conclusion is the statutory
                       accountability determination under Arts. 5(2)/24(1). */}
                   {report?.accountability_determination && (
