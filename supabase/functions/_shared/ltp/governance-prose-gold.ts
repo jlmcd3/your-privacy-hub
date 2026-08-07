@@ -144,9 +144,16 @@ export function applyVerdictVoice(report: unknown): VerdictVoiceResult {
   if (!r || typeof r !== "object") return out;
 
   const det = r.accountability_determination as Record<string, unknown> | undefined;
-  const line = readinessLineFromDetermination(det);
+  // ITEM 402 item 4(b) — ONE CONSUMER PATH. The typed
+  // `readiness_determination` record is written first and every surface reads
+  // it; no surface computes its own readiness. The fallback keeps documents
+  // whose determination shape the typed derivation cannot read rendering
+  // exactly as they did under item400.
+  const typed = attachReadinessDetermination(r);
+  const line = readinessLineFromTypedField(typed) || readinessLineFromDetermination(det);
   if (!line) return out; // no authoritative verdict → no second voice invented
   out.readiness_line = line;
+  out.readiness_rating = typed?.rating ?? "";
   r.governance_readiness_line = line;
 
   let summary = typeof r.executive_summary === "string" ? r.executive_summary : "";
