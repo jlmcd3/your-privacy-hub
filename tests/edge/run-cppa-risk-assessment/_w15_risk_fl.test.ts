@@ -19,7 +19,7 @@ Deno.test("W15-FL: BUILD_STAMP restamped (accepts w15 or later hotfix variants)"
 
 Deno.test("W15-FL: index.ts imports fact-ledger and inserts pre-VA-stamp pass", async () => {
   const src = await Deno.readTextFile(new URL("../../../supabase/functions/run-cppa-risk-assessment/index.ts", import.meta.url));
-  assert(src.includes("../../../supabase/functions/_shared/intake/fact-ledger.ts"), "fact-ledger import missing");
+  assert(src.includes("../_shared/intake/fact-ledger.ts"), "fact-ledger import missing");
   assert(src.includes("buildFactLedger("), "buildFactLedger call missing");
   assert(src.includes("enforceLedger("), "enforceLedger call missing");
   assert(src.includes("fact_ledger_pass"), "fact_ledger_pass telemetry log missing");
