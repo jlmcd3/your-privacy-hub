@@ -38,14 +38,13 @@ export const GOVERNANCE_PIPELINE_STAMP = "governance-pipeline@item400-2026-08-07
 
 /** Transcribed verbatim from the approved plan row. */
 export const GOVERNANCE_THESIS =
-  "This assessment states, once, whether the organisation can demonstrate compliance under Articles 5(2) and 24(1) on the record it supplied, and then shows the record that produced that answer domain by domain. Where a duty is unevidenced the assessment names the duty, says what artifact would evidence it, and never lets a second verdict speak beside the first.";
+  "This assessment states, once, whether the organisation can demonstrate compliance under Articles 5(2) and 24(1) from the record it supplied, and then shows the record that produced that answer domain by domain. Where a duty is unevidenced the assessment names the duty, says what artifact would evidence it, and never lets a second verdict speak beside the first.";
 
 export type GovernanceArcStage =
   | "headline"
   | "record"
   | "analysis"
-  | "synthesis"
-  | "duty"
+    | "duty"
   | "remedy"
   | "close";
 
@@ -98,7 +97,7 @@ export const GOVERNANCE_SECTION_SPECS: readonly GovernanceSectionSpec[] = [
     id: "domain_findings",
     title: "The domains, in the order the record addresses them",
     arc_stage: "analysis",
-    lead: "record",
+    lead: "determination",
     source_key: "domain_findings",
     themes: ["regulatory_basis", "control_state", "recommended_action", "severity"],
   },
@@ -113,7 +112,7 @@ export const GOVERNANCE_SECTION_SPECS: readonly GovernanceSectionSpec[] = [
   {
     id: "cross_domain_findings",
     title: "What the domains say when read together",
-    arc_stage: "synthesis",
+    arc_stage: "analysis",
     lead: "determination",
     source_key: "interaction_effects",
     themes: ["interaction", "transfers", "dpo", "risk_calibration", "review_cycle"],
