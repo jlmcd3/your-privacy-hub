@@ -20,7 +20,7 @@
     ],
     "fact_exempt_rule": "The reference render is an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from it may reach a customer document or a future fixture as if it were the record."
   },
-  "thesis": "This assessment states, once, whether the organisation can demonstrate compliance under Articles 5(2) and 24(1) on the record it supplied, and then shows the record that produced that answer domain by domain. Where a duty is unevidenced the assessment names the duty, says what artifact would evidence it, and never lets a second verdict speak beside the first.",
+  "thesis": "This assessment states, once, whether the organisation can demonstrate compliance under Articles 5(2) and 24(1) from the record it supplied, and then shows the record that produced that answer domain by domain. Where a duty is unevidenced the assessment names the duty, says what artifact would evidence it, and never lets a second verdict speak beside the first.",
   "centre_of_gravity": "readiness_determination",
   "sections": [
     {
@@ -29,7 +29,12 @@
       "arc_stage": "headline",
       "lead": "determination",
       "source_key": "accountability_determination",
-      "themes": ["art_5_2", "art_24_1", "one_verdict", "unevidenced_duties"],
+      "themes": [
+        "art_5_2",
+        "art_24_1",
+        "one_verdict",
+        "unevidenced_duties"
+      ],
       "required": true,
       "status": "approved"
     },
@@ -39,7 +44,11 @@
       "arc_stage": "headline",
       "lead": "determination",
       "source_key": "executive_summary",
-      "themes": ["verdict_first", "residual_risks", "ownership"],
+      "themes": [
+        "verdict_first",
+        "residual_risks",
+        "ownership"
+      ],
       "required": true,
       "status": "approved"
     },
@@ -49,7 +58,13 @@
       "arc_stage": "record",
       "lead": "record",
       "source_key": "organisation_profile",
-      "themes": ["sector", "jurisdictions", "tools", "data_categories", "size"],
+      "themes": [
+        "sector",
+        "jurisdictions",
+        "tools",
+        "data_categories",
+        "size"
+      ],
       "required": true,
       "status": "approved"
     },
@@ -57,9 +72,14 @@
       "id": "domain_findings",
       "title": "The domains, in the order the record addresses them",
       "arc_stage": "analysis",
-      "lead": "record",
+      "lead": "determination",
       "source_key": "domain_findings",
-      "themes": ["regulatory_basis", "control_state", "recommended_action", "severity"],
+      "themes": [
+        "regulatory_basis",
+        "control_state",
+        "recommended_action",
+        "severity"
+      ],
       "required": true,
       "status": "approved"
     },
@@ -69,17 +89,27 @@
       "arc_stage": "analysis",
       "lead": "determination",
       "source_key": "domain_element_findings",
-      "themes": ["element_conclusion", "evidence", "ico_audit_framework"],
+      "themes": [
+        "element_conclusion",
+        "evidence",
+        "ico_audit_framework"
+      ],
       "required": true,
       "status": "approved"
     },
     {
       "id": "cross_domain_findings",
       "title": "What the domains say when read together",
-      "arc_stage": "synthesis",
+      "arc_stage": "analysis",
       "lead": "determination",
       "source_key": "interaction_effects",
-      "themes": ["interaction", "transfers", "dpo", "risk_calibration", "review_cycle"],
+      "themes": [
+        "interaction",
+        "transfers",
+        "dpo",
+        "risk_calibration",
+        "review_cycle"
+      ],
       "required": true,
       "status": "approved"
     },
@@ -89,7 +119,11 @@
       "arc_stage": "duty",
       "lead": "determination",
       "source_key": "open_items",
-      "themes": ["single_ledger", "unevidenced_duty", "what_would_close_it"],
+      "themes": [
+        "single_ledger",
+        "unevidenced_duty",
+        "what_would_close_it"
+      ],
       "required": true,
       "status": "approved"
     },
@@ -99,7 +133,12 @@
       "arc_stage": "remedy",
       "lead": "determination",
       "source_key": "remediation_plan",
-      "themes": ["act", "owner", "date", "citation"],
+      "themes": [
+        "act",
+        "owner",
+        "date",
+        "citation"
+      ],
       "required": true,
       "status": "approved"
     },
@@ -109,7 +148,11 @@
       "arc_stage": "close",
       "lead": "determination",
       "source_key": "enforcement_context",
-      "themes": ["exposure", "review_trigger", "closing_position"],
+      "themes": [
+        "exposure",
+        "review_trigger",
+        "closing_position"
+      ],
       "required": true,
       "status": "approved"
     }
