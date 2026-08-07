@@ -10,7 +10,7 @@ import { describe, it, expect } from "vitest";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework";
 import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia";
-import { GOLDEN_BY_TOOL, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
+import { GOLDEN_BY_TOOL, PERFECT_BY_TOOL, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
 
 const EXEMPT = new Set([
   "source_assessment_id",
