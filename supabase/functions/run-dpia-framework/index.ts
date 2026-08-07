@@ -713,7 +713,7 @@ const STAMP = "r1b2.4-ws6v21";
 export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
-export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item391-2026-08-06";
+export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item399-2026-08-07";
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 
 // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
@@ -2752,6 +2752,19 @@ async function runStitch(dpia_id: string): Promise<void> {
       });
       const classification = classifyPlaceholders(reportData as Record<string, unknown>, dpiaIntake ?? {}, telemetry.value);
       attachRecordComplete(reportData as Record<string, unknown>, telemetry, classification);
+      // ITEM 399 R11 — ASSEMBLED-PROSE LINT: detect-only, fail-open telemetry
+      // over the FINAL assembled strings. No mutation of any prose surface.
+      try {
+        const { attachProseLint } = await import("../_shared/prose/assembled-prose-lint.ts");
+        const lint = attachProseLint(reportData as Record<string, unknown>);
+        console.log(JSON.stringify({
+          evt: "prose_lint", fn: "run-dpia-framework", build_stamp: BUILD_STAMP,
+          version: lint.version, count: lint.count, blocking: lint.blocking,
+          paths: lint.findings.map((f) => `${f.rule}@${f.path}`).slice(0, 20),
+        }));
+      } catch (e) {
+        console.warn("[run-dpia-framework] prose lint failed (non-fatal):", (e as Error)?.message);
+      }
       dpiaRecordComplete = { value: telemetry.value, failed_conditions: telemetry.failed_conditions };
       dpiaClassification = classification;
       console.log(JSON.stringify({

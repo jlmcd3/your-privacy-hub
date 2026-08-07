@@ -4,4 +4,4 @@
 // (run-cppa-risk-assessment) and the ROUTED LTP finalize point
 // (_shared/ltp/generate-cppa-risk.ts → finalizeCppaRiskPayload) write the
 // identical value at `_meta.internal.risk_pipeline_stamp`.
-export const RISK_PIPELINE_STAMP = "risk-pipeline@item391-2026-08-06";
+export const RISK_PIPELINE_STAMP = "risk-pipeline@item399-2026-08-07";

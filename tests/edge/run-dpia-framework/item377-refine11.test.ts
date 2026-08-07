@@ -121,7 +121,8 @@ W2 Basis contradictions: the stated legal basis, Art. 9 condition, or Art. 35(3)
 W3 False absence: any claim that the record does not supply something the intake in fact supplies. Check the intake both ways — an absence statement about a genuinely silent record is CORRECT and must not be flagged.
 W4 Leaked candidacy markers: "CANDIDATE —" or "[TO COMPLETE — …]" where the record supplies the answer. A placeholder is correct ONLY when the record is silent on that item.
 W5 Interchangeable filler: near-identical stock sentences repeated across risk rows or sections where fact-specific reasoning belongs.
-W6 Mis-attached citations: a real citation attached to the wrong proposition or instrument.`;
+W6 Mis-attached citations: a real citation attached to the wrong proposition or instrument.
+W-COPYEDIT Assembly-seam copy defects (ITEM 399 R11; the perfect-exemplar register is the "after"): markdown or markup leaking into prose (**bold**, ## headings, backticks, bullet glyphs); a grammar break at a concatenation seam (a frame clause that does not accept the words the quotation actually begins with; a missing relative pronoun, as in "the gap is the reserved judgment must be exercised"); the SAME citation pinpoint repeated back to back inside one string; internal scaffolding surviving mid-sentence ("Owner:"); a Title-Case headline fragment jammed into a paragraph. Report the assembled string, not the builder. Never restyle a byte-pinned surface, a verbatim quotation, a banner or the standing disclaimer to satisfy this class.`;
   assertStringIncludes(CRITIC_SYSTEM_PROMPT, WATCHLIST);
 });
 
@@ -151,5 +152,5 @@ Deno.test("item377 — version + pipeline stamp bumped", async () => {
   const idx = await Deno.readTextFile(
     new URL("../../../supabase/functions/run-dpia-framework/index.ts", import.meta.url),
   );
-  assertStringIncludes(idx, `DPIA_PIPELINE_STAMP = "dpia-pipeline@item391-2026-08-06"`);
+  assertStringIncludes(idx, `DPIA_PIPELINE_STAMP = "dpia-pipeline@item399-2026-08-07"`);
 });

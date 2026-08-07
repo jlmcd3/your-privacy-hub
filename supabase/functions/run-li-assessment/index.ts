@@ -2040,6 +2040,19 @@ Return JSON:
         telemetry.value,
       );
       attachRecordComplete(reportData as Record<string, unknown>, telemetry, classification);
+      // ITEM 399 R11 — ASSEMBLED-PROSE LINT: detect-only, fail-open telemetry
+      // over the FINAL assembled strings. No mutation of any prose surface.
+      try {
+        const { attachProseLint } = await import("../_shared/prose/assembled-prose-lint.ts");
+        const lint = attachProseLint(reportData as Record<string, unknown>);
+        console.log(JSON.stringify({
+          evt: "prose_lint", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+          version: lint.version, count: lint.count, blocking: lint.blocking,
+          paths: lint.findings.map((f) => `${f.rule}@${f.path}`).slice(0, 20),
+        }));
+      } catch (e) {
+        console.warn("[run-li-assessment] prose lint failed (non-fatal):", (e as Error)?.message);
+      }
       console.log(JSON.stringify({
         evt: "lia_record_complete", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
         lia_pipeline_stamp: LIA_PIPELINE_STAMP,

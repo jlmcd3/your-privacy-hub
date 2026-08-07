@@ -336,7 +336,10 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     // ITEM 384 (G-3) — the internal `Owner:` scaffolding is replaced by a
     // plain sentence, and the guidance/deadline clauses arrive
     // sentence-terminated from the composer so they cannot splice.
-    text: "**{{plan:element_short_label}}** — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}} {{plan:owner_sentence}}",
+    // ITEM 399 (FIX 2 / R11 rule 1) — the markdown bold that wrapped the
+    // headline rendered as literal asterisks in the PDF. The headline is plain
+    // prose; the renderer styles the action row, never a markdown token.
+    text: "{{plan:element_short_label}} — {{cite:PINPOINT}}. On {{plan:entity_name}}'s record, {{plan:customer_recorded_fact_clause}}. The gap is {{plan:gap_or_consequence_clause}}. The regulation requires the following: {{plan:compliance_guidance_sentence}} {{plan:deadline_sentence}} {{plan:owner_sentence}}",
     citation_slots: ["PINPOINT"],
     plan_slots: [
       "element_short_label",
@@ -535,7 +538,10 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   // asserted).
   "T.risk.processing_narrative": {
     id: "T.risk.processing_narrative",
-    text: "**How {{plan:entity_name}} processes personal information for {{plan:activity_label}}.**\n\n{{plan:entity_name}} collects {{plan:pi_categories_clause}} from {{plan:sources_clause}}. The information is used {{plan:i1_processing_purpose_clause}}. {{plan:entity_name}} discloses this information to {{plan:i6_vendors_clause}} through {{plan:i4_disclosure_mechanisms_clause}}. The record sets a retention period of {{plan:i2_retention_period_clause}}, applying the criterion that {{plan:i2_retention_criteria_clause}}. At the end of that period the information is {{plan:i2_deletion_clause}}.",
+    // ITEM 399 (FIX 1 / R11 rule 1) — the markdown-bold heading was jammed
+    // inline and travelled into `executive_summary` as literal asterisks. It is
+    // now a plain prose lead sentence.
+    text: "{{plan:entity_name}} processes personal information for {{plan:activity_label}} as recorded below.\n\n{{plan:entity_name}} collects {{plan:pi_categories_clause}} from {{plan:sources_clause}}. The information is used {{plan:i1_processing_purpose_clause}}. {{plan:entity_name}} discloses this information to {{plan:i6_vendors_clause}} through {{plan:i4_disclosure_mechanisms_clause}}. The record sets a retention period of {{plan:i2_retention_period_clause}}, applying the criterion that {{plan:i2_retention_criteria_clause}}. At the end of that period the information is {{plan:i2_deletion_clause}}.",
     citation_slots: [],
     plan_slots: [
       "entity_name",
@@ -585,7 +591,9 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
   // constants), NOT from submission-postures.ts (§ 7120 family).
   "T.risk.section_opener.scope.v2": {
     id: "T.risk.section_opener.scope.v2",
-    text: "**Scope & Triggers.** This assessment is triggered under **{{cite:PINPOINT_ENGAGED}} — {{plan:engaged_prong_label}}** on the following record basis: {{plan:engaged_prong_posture_clause}}. The remaining § 7150(b) applicability prongs are not engaged on the current record: {{plan:non_engaged_prongs_inline}}.",
+    // ITEM 399 (R11 rule 1 + rule 5) — markdown removed; the Title-Case
+    // headline fragment is folded into the sentence.
+    text: "This assessment is triggered under {{cite:PINPOINT_ENGAGED}} — {{plan:engaged_prong_label}} — on the following record basis: {{plan:engaged_prong_posture_clause}}. The remaining § 7150(b) applicability prongs are not engaged on the current record: {{plan:non_engaged_prongs_inline}}.",
     citation_slots: ["PINPOINT_ENGAGED"],
     plan_slots: [
       "engaged_prong_label",

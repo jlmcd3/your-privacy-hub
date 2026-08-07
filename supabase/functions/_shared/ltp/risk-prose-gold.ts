@@ -127,10 +127,23 @@ export function firstSentence(s: string): string {
  * in `_shared/emit-gate.ts`, so these actions keep the same exemption the old
  * stem had. Nothing in the emit gate is edited.
  */
-export function reservedActionLabel(pinpoint: string, reservedTo: string): string {
+export function reservedActionLabel(
+  pinpoint: string,
+  reservedTo: string,
+  /**
+   * ITEM 399 (FIX 2) — when the rendering template already carries the
+   * citation slot, the pinpoint must NOT be repeated inside the headline.
+   * Doc 55bc938d shipped "…§ 7152(a)(7) reserves to …: … — 11 CCR
+   * § 7152(a)(7)." — the same pinpoint back to back. Default stays TRUE so
+   * every existing caller and pin is byte-identical.
+   */
+  includePinpoint = true,
+): string {
   const pin = String(pinpoint ?? "").trim() || "11 CCR § 7152(a)";
   const who = String(reservedTo ?? "").trim() || "the accountable business owner";
-  return `The determination ${pin} reserves to ${who}:`;
+  return includePinpoint
+    ? `The determination ${pin} reserves to ${who}:`
+    : `The determination reserved to ${who}:`;
 }
 
 /** Replaces the internal `Owner: X.` scaffolding with a plain sentence. */
