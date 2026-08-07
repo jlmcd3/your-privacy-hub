@@ -317,3 +317,38 @@ export function applyGovernanceProseGold(report: unknown, intake?: unknown): Gov
   try { t.customer_register = applyCustomerRegister(report); } catch (e) { t.errors.push(`customer_register:${(e as Error)?.message}`); }
   return t;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ITEM 402 — THE ITEM 396 LESSON: THE PHRASING CLASS THIS MODULE CAN WRITE
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Every reader-facing ABSENCE phrasing the governance prose-gold pass can emit,
+// derived from the maps above rather than transcribed, so a relabel updates the
+// class automatically. The governance CSC detector builds its regex from this
+// list and the item402 LINKAGE TEST asserts each entry is matched — a future
+// relabel therefore cannot escape its own detector (the item396 failure).
+
+/** Verdict enums whose reader labels are absence claims about the record. */
+export const GOVERNANCE_ABSENCE_VERDICTS: readonly string[] = [
+  "not_satisfied",
+  "record_insufficient",
+];
+
+export function governanceAbsenceLabelPhrasings(): string[] {
+  const out = new Set<string>();
+  for (const v of GOVERNANCE_ABSENCE_VERDICTS) {
+    const label = GOVERNANCE_VERDICT_LABELS[v];
+    if (label) out.add(label);
+    const line = GOVERNANCE_READINESS_LINES[v];
+    if (line) out.add(line);
+    const opener = verdictOpener({ verdict: v });
+    if (opener) out.add(opener);
+  }
+  // The standing machine-absence sentence the governance builders emit.
+  out.add("We could not verify this item from the information provided; it is listed under information needed.");
+  return [...out];
+}
+
+/** Frozen snapshot for tests and for the CSC regex builder. */
+export const GOVERNANCE_ABSENCE_LABEL_PHRASINGS: readonly string[] =
+  governanceAbsenceLabelPhrasings();
