@@ -129,6 +129,8 @@ const POSTURE_CONTRADICTIONS: readonly { readonly re: RegExp; readonly to: strin
 
 export interface VerdictVoiceResult {
   readiness_line: string;
+  /** ITEM 402 — the typed rating the line restates ("" when none derived). */
+  readiness_rating?: string;
   opener_prepended: boolean;
   posture_claims_deasserted: number;
 }
