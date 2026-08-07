@@ -27,8 +27,12 @@
 // or customer-message semantics, disclaimers, or any non-governance surface.
 
 import { GOVERNANCE_PIPELINE_STAMP } from "../prose/plans/governance.spine.ts";
+import {
+  attachReadinessDetermination,
+  readinessLine as readinessLineFromTypedField,
+} from "./governance-readiness.ts";
 
-export const GOVERNANCE_PROSE_GOLD_VERSION = "governance-prose-gold@item400-2026-08-07";
+export const GOVERNANCE_PROSE_GOLD_VERSION = "governance-prose-gold@item402-2026-08-07";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GV-1 — ONE VERDICT VOICE
