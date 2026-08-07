@@ -23,7 +23,7 @@ import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
 export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379r2";
 
-export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt";
+export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance";
 
 export interface CoverageOrphan {
   /** Stable machine id for the broken link. */
@@ -854,6 +854,166 @@ function admtCoverage(
   });
 }
 
+
+// ---------------------------------------------------------------------------
+// GOVERNANCE — ITEM 402 LEG C
+//
+// The link config binds the governance contract's SUPPLIED facts to the item400
+// section arc (`prose/plans/governance.spine.ts`). A link is an orphan only
+// when the record SUPPLIES the fact and the section the plan gives it carries
+// nothing. Silence in the record is never an orphan. Anchorage for actions is
+// DECLARED (`anchor_keys`) — never inferred from word overlap (the item385-r2
+// discipline).
+// ---------------------------------------------------------------------------
+
+export interface GovernanceCoverageLink {
+  /** Dotted intake paths (any one filled engages the link). */
+  readonly keys: readonly string[];
+  /** Dotted report paths — ANY carrying substance resolves the link. */
+  readonly surfaces: readonly string[];
+  /** Plan section id (governance.spine.ts), for the orphan detail. */
+  readonly section: string;
+}
+
+export const GOVERNANCE_COVERAGE_LINKS: readonly GovernanceCoverageLink[] = [
+  {
+    keys: ["sector", "org_size", "jurisdictions", "eu_uk_data", "tools", "data_categories"],
+    surfaces: ["executive_summary", "organisation_profile", "governance_header_fields"],
+    section: "gov_determination",
+  },
+  {
+    keys: ["dpo_status", "remediation_default_owner"],
+    surfaces: ["dpo_determination", "accountability_determination", "domain_findings"],
+    section: "gov_accountability",
+  },
+  {
+    keys: ["dpa_status", "dpa_art28_verified", "processing_nature"],
+    surfaces: ["domain_findings", "domain_element_findings"],
+    section: "gov_domains",
+  },
+  {
+    keys: ["transfer_status", "transfer_mechanism"],
+    surfaces: ["transfer_analysis", "domain_findings"],
+    section: "gov_transfers",
+  },
+  {
+    keys: ["processing_scope", "processing_purposes", "processing_context"],
+    surfaces: ["art30_element_findings", "domain_findings"],
+    section: "gov_records",
+  },
+  {
+    keys: ["training_status", "training_ai_coverage", "tool_instruction"],
+    surfaces: ["domain_findings", "domain_element_findings"],
+    section: "gov_domains",
+  },
+  {
+    keys: ["dpia_status", "dpia_ai_coverage"],
+    surfaces: ["dpia_scope", "domain_findings", "risk_calibration_finding"],
+    section: "gov_risk",
+  },
+  {
+    keys: [
+      "remediation_default_target_date",
+      "remediation_default_priority",
+      "remediation_default_validation_method",
+    ],
+    surfaces: ["remediation_plan", "recommended_actions", "top_recommendations"],
+    section: "gov_remediation",
+  },
+];
+
+/** Every intake dotted path the governance link config knows about. */
+export const GOVERNANCE_LINKED_INTAKE_KEYS: readonly string[] = GOVERNANCE_COVERAGE_LINKS
+  .flatMap((l) => l.keys);
+
+/** Substance a surface must carry before the link counts as resolved. */
+const GOVERNANCE_SURFACE_MIN_CHARS = 40;
+
+function govIntakeValue(intake: unknown, path: string): unknown {
+  let cur: unknown = intake;
+  for (const seg of String(path).split(".")) {
+    if (!cur || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[seg];
+  }
+  return cur;
+}
+
+function govFilled(intake: unknown, path: string): boolean {
+  return nonEmpty(govIntakeValue(intake, path));
+}
+
+function govSurfaceSubstance(node: unknown): number {
+  return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
+}
+
+function governanceCoverage(
+  report: Record<string, unknown>,
+  intake: Record<string, unknown>,
+  t: CoverageTelemetry,
+): void {
+  const docText = documentText(report);
+
+  // L1 — supplied fact → the plan's section for it.
+  for (const link of GOVERNANCE_COVERAGE_LINKS) {
+    const supplied = link.keys.filter((k) => govFilled(intake, k));
+    if (supplied.length === 0) continue; // honest silence
+    t.counts.links_checked++;
+    const resolved = link.surfaces.some(
+      (s) => govSurfaceSubstance(getPath(report, s)) >= GOVERNANCE_SURFACE_MIN_CHARS,
+    );
+    if (resolved) continue;
+    t.orphans.push({
+      type: "supplied_fact_without_section",
+      path: link.surfaces[0],
+      detail:
+        `the record supplies ${supplied.join(", ")} but the "${link.section}" section carries nothing that reflects it.`,
+    });
+  }
+
+  // L2 — DECLARED anchorage only. An action that declares no anchor keys is
+  // never inferred against word overlap: undeclared anchorage is silence.
+  for (const listKey of ["recommended_actions", "top_recommendations", "remediation_plan"]) {
+    arr(report[listKey]).forEach((a, i) => {
+      const declared = Array.isArray(a.anchor_keys)
+        ? (a.anchor_keys as unknown[]).map(String)
+        : null;
+      if (!declared) return;
+      t.counts.links_checked++;
+      if (declared.length === 0) return; // closes an open element — the absence IS the anchor
+      if (declared.some((k) => govFilled(intake, k))) return;
+      const label = text(a.action ?? a.recommendation ?? a.title ?? a.finding).slice(0, 80);
+      t.orphans.push({
+        type: "action_without_record_anchor",
+        path: `${listKey}[${i}]`,
+        detail: `the action "${label}" names ${declared.join(", ")} as its record anchor and the record fills none of them.`,
+      });
+    });
+  }
+
+  // L3 — asks raised against facts the record in fact supplies.
+  const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
+  asks.forEach((ask, i) => {
+    t.counts.links_checked++;
+    const body = askText(ask) || text(ask);
+    if (!body.trim()) return;
+    const named = GOVERNANCE_LINKED_INTAKE_KEYS.filter((k) => body.includes(k));
+    const supplied = named.filter((k) => govFilled(intake, k));
+    if (supplied.length === 0) return;
+    t.orphans.push({
+      type: "ask_against_supplied_fact",
+      path: `information_needed[${i}]`,
+      detail: `the ask names ${supplied.join(", ")} although the record supplies it.`,
+    });
+  });
+
+  t.unused_intake_facts = GOVERNANCE_LINKED_INTAKE_KEYS.filter((k) => {
+    const v = govIntakeValue(intake, k);
+    if (typeof v !== "string" || v.trim().length < 24) return false;
+    const words = contentWords(v);
+    return words.length > 0 && !words.some((w) => docText.includes(w));
+  });
+}
+
 // ---------------------------------------------------------------------------
 // the pass
 // ---------------------------------------------------------------------------
@@ -879,6 +1039,7 @@ export function runCoverageMatrix(
     if (product === "dpia") dpiaCoverage(report, intake, t);
     else if (product === "lia") liaCoverage(report, intake, t);
     else if (product === "cppa-admt") admtCoverage(report, intake, t);
+    else if (product === "governance") governanceCoverage(report, intake, t);
     else riskCoverage(report, intake, t);
   } catch (e) {
     t.crashed = true;
