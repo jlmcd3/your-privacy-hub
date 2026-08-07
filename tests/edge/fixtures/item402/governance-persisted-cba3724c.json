@@ -1,0 +1,2580 @@
+{
+"_meta": {
+"generation_model": "claude-sonnet-4-6",
+"internal": {
+"deterministic_checks": [
+{
+"check_id": "e2_heading_hierarchy_ok",
+"check_type": "deterministic",
+"dimension": "formatting",
+"evidence": null,
+"passed": true,
+"severity": "medium"
+},
+{
+"check_id": "e3_tbc_brackets_ok",
+"check_type": "deterministic",
+"dimension": "formatting",
+"evidence": null,
+"passed": true,
+"severity": "medium"
+},
+{
+"check_id": "e4_no_instruction_leak",
+"check_type": "deterministic",
+"dimension": "hallucination",
+"evidence": null,
+"passed": true,
+"severity": "medium"
+},
+{
+"check_id": "e5_advisory_formula_ok",
+"check_type": "deterministic",
+"dimension": "hallucination",
+"evidence": null,
+"passed": true,
+"severity": "medium"
+},
+{
+"check_id": "e6_counsel_referral",
+"check_type": "deterministic",
+"dimension": "hallucination",
+"evidence": null,
+"passed": true,
+"severity": "medium"
+}
+],
+"emit_gate": {
+"customer_rows_filtered": 0,
+"degraded_count": 41,
+"findings": [
+{
+"check_id": "unterminated_sentence",
+"evidence": "Incident response plan not confirmed to cover tool-exposure breach scenarios or map the Art. 33(1) 72-hour notification clock",
+"path": "$.top_three_risks[1].risk"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Cross-border transfer record does not evidence a TIA for Microsoft 365 / Copilot SCCs or confirm a UK-specific transfer instrument",
+"path": "$.top_three_risks[2].risk"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Data Processing Agreement content requirements; the intake confirms all vendors have executed DPAs and the organisation processes personal data via technology tools subject to processor relationships",
+"path": "$.domain_findings.tool_inventory.regulatory_basis_v2[1].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Appropriate technical and organisational security measures; the intake confirms tool inventory and DLP/content filtering controls in place",
+"path": "$.domain_findings.tool_inventory.regulatory_basis_v2[2].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "DPIA obligation for high-risk processing; the intake confirms AI/high-risk tools are assessed and one DPIA has been completed",
+"path": "$.domain_findings.tool_inventory.regulatory_basis_v2[3].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "the organisation processes employee and customer records; data minimisation is a core principle governing collection and submission to external tools",
+"path": "$.domain_findings.data_submission.regulatory_basis_v2[0].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "DLP and content-filtering controls are technical and organisational measures required to safeguard personal data in processing systems including cloud platforms",
+"path": "$.domain_findings.data_submission.regulatory_basis_v2[1].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "he organisation has a formal DPO; ongoing monitoring of data minimisation compliance and awareness-raising are DPO tasks, requiring periodic verification of control effectiveness and training currency",
+"path": "$.domain_findings.data_submission.regulatory_basis_v2[2].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Confirmed SCC reliance for US-based Microsoft 365 / Copilot transfers without evidenced TIA or confirmed UK transfer instrument on the intake record",
+"path": "$.domain_findings.vendor_terms.recommended_action_v2.trigger"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "dian SaaS Inc. uses Microsoft 365 / Copilot as a named external technology tool processing employee and customer personal data \u2014 the controller must use only processors providing sufficient guarantees",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[0].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "t 365 / Copilot engages sub-processors; the intake does not confirm whether the executed DPA contains a prior specific or general written authorisation mechanism with notification and objection rights",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[1].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "ndor DPA status and Art. 28(3) verification are confirmed as Yes in the intake, establishing the baseline obligation whose sub-processor and transfer-instrument dimensions require further verification",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[2].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "sfer status is confirmed as Yes (US-based tools) and transfer mechanism is confirmed as EU SCCs \u2014 Art. 46(1) requires appropriate safeguards to be in place and demonstrable, including a documented TIA",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[3].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "The intake records EU Standard Contractual Clauses as the chosen transfer mechanism for US-based tools including Microsoft 365 / Copilot",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[4].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Meridian SaaS Inc. is a controller under EU GDPR \u2014 the accountability principle requires TIA, DPA, sub-processor, and transfer-instrument documentation to be retained and demonstrable",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[5].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Controller obligation to maintain records of processing activities \u2014 transfer mechanism and sub-processor details must be recorded for the Microsoft 365 / Copilot processing activity",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[6].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "an SaaS Inc. operates under UK GDPR jurisdiction (intake confirmed) and processes UK personal data via Microsoft 365 / Copilot \u2014 the same processor-sufficiency obligation applies under retained UK law",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[7].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Sub-processor authorisation obligation applies equally under UK GDPR for the UK leg of the Microsoft 365 / Copilot processing",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[8].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": " the UK to the US require a UK Art. 46 mechanism \u2014 EU SCCs alone do not satisfy the UK GDPR requirement; the IDTA or UK Addendum to the EDPB SCCs is required and its use is not confirmed on the intake",
+"path": "$.domain_findings.vendor_terms.regulatory_basis_v2[9].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "EU/UK jurisdiction engaged; controller must ensure staff processing personal data are subject to confidentiality undertakings",
+"path": "$.domain_findings.training.regulatory_basis_v2[1].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "DPO appointed; DPO task includes monitoring compliance and awareness-raising and training of staff involved in processing operations",
+"path": "$.domain_findings.training.regulatory_basis_v2[2].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "tested incident response plan and explicit coverage of data exposure via Microsoft 365 / Copilot as a notifiable breach scenario, as recorded in the incident_response_plan and vendor DPA intake fields",
+"path": "$.domain_findings.incident_response.recommended_action_v2.trigger"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "irms US-based technology tools under SCCs, creating a real scenario in which a tool-originated breach must be notified to the competent EU supervisory authority within 72 hours of controller awareness",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[0].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Microsoft 365 / Copilot is engaged as a processor under a DPA; the processor's obligation to notify the controller without undue delay directly determines when the Art. 33(1) clock begins",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[1].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Any supervisory authority notification arising from a tool-exposure breach must describe measures taken or proposed, requiring the incident response plan to address this content element",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[2].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Customer and employee records are processed; a high-risk breach originating in Microsoft 365 / Copilot would engage the data subject communication obligation",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[3].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "rt. 28(3)(f) requires the processor-assistance obligation for Arts. 32\u201336 \u2014 including breach notification \u2014 to be contractually covered, and the plan must align with those contractual escalation terms",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[4].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Meridian SaaS Inc. also processes UK personal data (employee and customer records) under the UK GDPR, engaging the parallel 72-hour breach notification obligation to the ICO",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[5].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "The processor obligation to notify the controller without undue delay applies equally under the UK GDPR for the UK personal data processing leg",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[6].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "UK data subjects (employees and customers) are in scope; a high-risk breach originating in Microsoft 365 / Copilot engages the UK GDPR data subject communication obligation",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[7].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "The verified DPA with Microsoft must cover the processor-assistance obligation for UK GDPR Arts. 32\u201336, including breach notification, for the UK personal data processing leg",
+"path": "$.domain_findings.incident_response.regulatory_basis_v2[8].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Vendor DPA status confirmed in intake; the processor's obligation to assist the controller with data subject rights requests is the contractual cornerstone of end-to-end fulfilment",
+"path": "$.domain_findings.subject_rights.regulatory_basis_v2[2].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "UK jurisdiction of operation confirmed in intake; the UK GDPR regime is identical to GDPR on data subject rights and processor assistance",
+"path": "$.domain_findings.subject_rights.regulatory_basis_v2[3].engaged_because"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "o an international organisation shall take place only if, subject to the other provisions of this Regulation, the conditions laid down in this Chapter are complied with by the controller and processor",
+"path": "$.transfer_analysis.standard"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "ed under paragraph 1A, and (where relevant) by other means, would not be materially lower than the standard of the protection provided for the data subject with regard to the personal data by or under",
+"path": "$.transfer_analysis.benchmark_verbatim"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "Yes, all vendors; technical_controls = Yes \u2014 DLP/content filtering actively enforced; incident_response = Yes, tested in last 12 months; dsr_capability = Yes \u2014 documented and tested across all vendors",
+"path": "$.domain_element_findings[0].customer_answer"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "technical_controls = Yes \u2014 DLP/content filtering actively enforced; technical_controls_list = DLP rules, Content filtering",
+"path": "$.domain_element_findings[15].customer_answer"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "dpo_status = Yes, formal DPO; sector = Technology/SaaS; org_size = 51-250; data_categories = Employee records, Customer records",
+"path": "$.domain_element_findings[17].customer_answer"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "dpo_status = Yes, formal DPO; dpia_status = Yes, one DPIA completed; training_status = Yes, formal onboarding + annual refresh",
+"path": "$.domain_element_findings[19].customer_answer"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "o an international organisation shall take place only if, subject to the other provisions of this Regulation, the conditions laid down in this Chapter are complied with by the controller and processor",
+"path": "$.domain_element_findings[22].standard"
+},
+{
+"check_id": "unterminated_sentence",
+"evidence": "ed under paragraph 1A, and (where relevant) by other means, would not be materially lower than the standard of the protection provided for the data subject with regard to the personal data by or under",
+"path": "$.domain_element_findings[22].benchmark_verbatim"
+}
+],
+"prose_node_count": 441,
+"tool": "governance_assessment",
+"version": "eg-w1-2026-07-25"
+},
+"gov_t6fix": {
+"build_stamp": "gov-t6fix@2026-07-25T23:48:00Z",
+"classA_pinpoint_omissions": 0,
+"classA_pinpoint_substitutions": 0,
+"classB_downgrades": 0,
+"classB_preserved": 40,
+"errors": 0,
+"hedge_only_degradations": 0,
+"sentences_excised": 0,
+"stamp": "gov-t6fix@2026-07-25T23:47:00Z",
+"strings_scanned": 337,
+"version": "governance-va-w2-2026-08-01-item327"
+},
+"governance_item313": {
+"art30_elements_analysed": 5,
+"art30_exemption_available": false,
+"demonstrability_verdict": "partially_satisfied",
+"domain_findings_analysed": 16,
+"domain_findings_total": 23,
+"dpo_verdict": "record_insufficient",
+"headline_verdict": "record_insufficient",
+"ok": true,
+"remediation_incomplete": 10,
+"remediation_records": 10,
+"review_verdict": "record_insufficient",
+"risk_calibration_verdict": "record_insufficient",
+"tier_demoted": true,
+"transfer_mechanism_mismatch": false,
+"transfer_regime": "dual",
+"transfer_verdict": "partially_satisfied",
+"unevidenced_duties": 1,
+"version": "governance-deliverables-item327-2026-08-01"
+},
+"governance_w1": {
+"resolved": 0,
+"stamp": "w1-governance-wire@2026-07-25T14:02:34Z",
+"unanchored_scrubbed": 0,
+"unresolved_keys": [],
+"version": "governance-va-w2-2026-08-01-item327",
+"walked": 116
+},
+"serializer": {
+"dropped_count": 4,
+"dropped_keys": [
+"organisation_profile",
+"top_three_risks",
+"immediate_actions",
+"_meta.prompt_version"
+],
+"tool": "governance_assessment",
+"version": "rs-w1-2026-07-25"
+}
+}
+},
+"accountability_determination": {
+"appropriateness_verdict": "record_insufficient",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"demonstrability_verdict": "partially_satisfied",
+"information_needed": "Complete the unanswered accountability duties and the Article 24(1) factors before relying on any headline conclusion.",
+"reasoning": "The record does not yet support a determination. 0 of 8 accountability duties are unanswered, and the Article 24(1) factors or review evidence are incomplete. Article 5(2) places the burden on the controller to be able to demonstrate compliance, so an unanswered duty is not neutral \u2014 it is an unevidenced duty until the artifact is produced.",
+"standard_appropriateness": "Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"standard_demonstrability": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019).",
+"status": "record_insufficient",
+"unevidenced_duties": [
+"Assessing high-risk processing before it begins"
+],
+"verdict": "record_insufficient"
+},
+"annotations": [],
+"art30_element_findings": [
+{
+"application": "That content addresses Article 30(1)(a) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(a)",
+"element": "a",
+"key": "art30_a",
+"label": "Controller / representative / DPO contact details",
+"record_fact": "The record carries: organization_name = Meridian SaaS Inc.; dpo_status = Yes, formal DPO.",
+"standard": "the name and contact details of the controller and, where applicable, the joint controller, the controller's representative and the data protection officer;",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "",
+"citation": "GDPR Art. 30(1)(b)",
+"element": "b",
+"information_needed": "Supply the Article 30(1)(b) content \u2014 purposes of the processing \u2014 for each processing activity. Until it is supplied the record cannot be said to contain \"all of the following information\".",
+"key": "art30_b",
+"label": "Purposes of the processing",
+"record_fact": "The record carries nothing on this element.",
+"standard": "the purposes of the processing;",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "That content addresses Article 30(1)(c) in part only. The element is drafted as a mandatory content requirement, so a partial entry leaves the record incomplete for this element.",
+"citation": "GDPR Art. 30(1)(c)",
+"element": "c",
+"key": "art30_c",
+"label": "Categories of data subjects and of personal data",
+"record_fact": "The record carries: data_categories = Employee records, Customer records.",
+"standard": "a description of the categories of data subjects and of the categories of personal data;",
+"status": "analysed",
+"verdict": "partially_satisfied"
+},
+{
+"application": "That content addresses Article 30(1)(d) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(d)",
+"element": "d",
+"key": "art30_d",
+"label": "Categories of recipients",
+"record_fact": "The record carries: tools = Microsoft 365 / Copilot.",
+"standard": "the categories of recipients to whom the personal data have been or will be disclosed including recipients in third countries or international organisations;",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "That content addresses Article 30(1)(e) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(e)",
+"element": "e",
+"key": "art30_e",
+"label": "Third-country transfers and safeguards",
+"record_fact": "The record carries: transfer_status = Yes, US-based tools; transfer_mechanism = EU Standard Contractual Clauses (SCCs).",
+"standard": "where applicable, transfers of personal data to a third country or an international organisation, including the identification of that third country or international organisation and, in the case of transfers referred to in the second subparagraph of Article 49(1), the documentation of suitable safeguards;",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "",
+"citation": "GDPR Art. 30(1)(f)",
+"element": "f",
+"information_needed": "Supply the Article 30(1)(f) content \u2014 envisaged retention time limits \u2014 for each processing activity. Until it is supplied the record cannot be said to contain \"all of the following information\".",
+"key": "art30_f",
+"label": "Envisaged retention time limits",
+"record_fact": "The record carries nothing on this element.",
+"standard": "where possible, the envisaged time limits for erasure of the different categories of data;",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "That content addresses Article 30(1)(g) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(g)",
+"element": "g",
+"key": "art30_g",
+"label": "General description of security measures",
+"record_fact": "The record carries: technical_controls = Yes \u2014 DLP/content filtering actively enforced; technical_controls_list = DLP rules, Content filtering.",
+"standard": "where possible, a general description of the technical and organisational security measures referred to in Article 32(1).",
+"status": "analysed",
+"verdict": "satisfied"
+}
+],
+"art30_exemption_determination": {
+"application": "The exemption is defeated. Any one of the three conditions removes it, and on this record one applies: the processing is not occasional. The Article 30(1) record duty therefore applies in full notwithstanding the headcount.",
+"citation": "GDPR Art. 30(5)",
+"defeating_conditions": [
+{
+"basis": "Data categories on the record: Employee records, Customer records.",
+"condition": "likely_risk",
+"label": "the processing it carries out is likely to result in a risk to the rights and freedoms of data subjects",
+"met": false
+},
+{
+"basis": "The record describes standing employee, customer or contact processing, which is continuous rather than occasional.",
+"condition": "not_occasional",
+"label": "the processing is not occasional",
+"met": true
+},
+{
+"basis": "The record reports no special-category processing.",
+"condition": "special_category",
+"label": "the processing includes special categories of data as referred to in Article 9(1)",
+"met": false
+}
+],
+"exemption_available": false,
+"key": "art30_5_exemption",
+"label": "Article 30(5) small-enterprise exemption",
+"record_fact": "The record puts headcount in the 51-250 band, below 250 persons. The record describes standing employee, customer or contact processing, which is continuous rather than occasional.",
+"standard": "The obligations referred to in paragraphs 1 and 2 shall not apply to an enterprise or an organisation employing fewer than 250 persons unless the processing it carries out is likely to result in a risk to the rights and freedoms of data subjects, the processing is not occasional, or the processing includes special categories of data as referred to in Article 9(1) or personal data relating to criminal convictions and offences referred to in Article 10.",
+"status": "analysed",
+"under_250_employees": true,
+"verdict": "not_applicable"
+},
+"assessment_id": "0b9ccbcf-c30b-4013-a821-dc8ba02cfae2",
+"authority_exhibit": {
+"entries": [
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 12(3)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 13(2)(a)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 14(2)(a)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 24(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 24(2)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 28(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 28(2)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 28(3)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 28(3)(a)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 28(3)(e)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 28(3)(f)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30.",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(1)(a)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(1)(b)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(1)(c)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(1)(d)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(1)(e)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(1)(f)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(1)(g)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(4)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 30(5)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 32(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 32(4)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 33(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 33(2)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 33(3)(d)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 34(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 35(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 35(11)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 35(3)(a)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 37(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 38(3)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 39(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 39(1)(b)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 4(12)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 46(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 46(2)(c)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 5(1)(a)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 5(1)(b)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 5(2)",
+"corpus_key": "gdpr-art-5-2",
+"excerpt": "2. The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019).",
+"note": null,
+"pin_verified": true
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 6(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Art. 6(1)(f)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "GDPR Articles 13(2)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 12",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 13",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 14",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 15",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 24",
+"corpus_key": "gdpr-art-24",
+"excerpt": "1. Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation. Those measures shall be reviewed and updated where necessary.\n\n2. Where proportionate in relation to processing activities, the measures referred to in paragraph 1 shall include the implementation of appropriate data protection policies by the controller.\n\n3. Adherence to approved codes of conduct as referred to in Article 40 or approved certification mechanisms as referred to in Article 42 may be used as an element by which to demonstrate compliance with the obligations of the controller.",
+"note": null,
+"pin_verified": true
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 29",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 30",
+"corpus_key": "gdpr-art-30",
+"excerpt": "1. Each controller and, where applicable, the controller's representative, shall maintain a record of processing activities under its responsibility. That record shall contain all of the following information:\n\n(a)\n\nthe name and contact details of the controller and, where applicable, the joint controller, the controller's representative and the data protection officer;\n\n(b)\n\nthe purposes of the processing;\n\n(c)\n\na description of the categories of data subjects and of the categories of personal data;\n\n(d)\n\nthe categories of recipients to whom the personal data have been or will be disclosed including recipients in third countries or international organisations;\n\n(e)\n\nwhere applicable, transfers of personal data to a third country or an international organisation, including the identification of that third country or international organisation and, in the case of transfers referred to in the second subparagraph of Article 49(1), the documentation of suitable safeguards;\n\n(f)\n\nwhere possible, the envisaged time limits for erasure of the different categories of data;\n\n(g)\n\nwhere possible, a general description of the technical and organisational security measures referred to in Article 32(1).\n\n2. Each processor and, where applicable, the processor's representative shall maintain a record of all categories of processing activities carried out on behalf of a controller, containing:\n\n(a)\n\nthe name and contact details of the processor or processors and of each controller on behalf of which the processor is acting, and, where applicable, of the controller's or the processor's representative, and the data protection officer;\n\n(b)\n\nthe categories of processing carried out on behalf of each controller;\n\n(c)\n\nwhere applicable, transfers of personal data to a third country or an international organisation, including the identification of that third country or international organisation and, in the case of transfers referred to in the second subparagraph of Article 49(1), the documentation of suitable safeguards;\n\n(d)\n\nwhere possible, a general description of the technical and organisational security measures referred to in Article 32(1).\n\n3. The records referred to in paragraphs 1 and 2 shall be in writing, including in electronic form.\n\n4. The controller or the processor and, where applicable, the controller's or the processor's representative, shall make the record available to the supervisory authority on request.\n\n5. The obligations referred to in paragraphs 1 and 2 shall not apply to an enterprise or an organisation employing fewer than 250 persons unless the processing it carries out is likely to result in a risk to the rights and freedoms of data subjects, the processing is not occasional, or the processing includes special categories of data as referred to in Article 9(1) or personal data relating to criminal convictions and offences referred to in Article 10.",
+"note": null,
+"pin_verified": true
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 33",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 44",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 12",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 12(3)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 13",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 24",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 28(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 28(2)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 28(3)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 28(3)(f)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 29",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 32(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 33",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 33(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 33(2)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 33(3)(d)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 34(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 35(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 35(11)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 37(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 39(1)(b)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 4(12)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 44",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 45",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46(1A)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46(1A)(a)(ii)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46(2)(c)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46(2)(d)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46(6)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 46(7)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 47",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 5(1)(a)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 5(2)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Art. 6(1)",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+},
+{
+"authority_class": "regulation",
+"citation": "UK GDPR Article 44",
+"corpus_key": null,
+"excerpt": null,
+"note": null,
+"pin_verified": false
+}
+],
+"heading": "Appendix \u2014 Authorities Cited",
+"preamble_note": "Verbatim excerpts appear only where the approved corpus carries the text. Where it does not, the citation stands alone.",
+"version": "ax-w1-2026-08-03"
+},
+"demonstrability_findings": [
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the dated privacy notice, with its review record and version history would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(2)",
+"duty": "Maintaining a transparent, current privacy notice",
+"evidencing_artifact": "The dated privacy notice, with its review record and version history",
+"key": "transparency_notice",
+"label": "Maintaining a transparent, current privacy notice",
+"record_fact": "The record answers \"Yes, current (reviewed in last 12 months)\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Where proportionate in relation to processing activities, the measures referred to in paragraph 1 shall include the implementation of appropriate data protection policies by the controller.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the Article 30 record itself, in writing and producible to the supervisory authority on request would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 30(4)",
+"duty": "Maintaining a record of processing activities",
+"evidencing_artifact": "The Article 30 record itself, in writing and producible to the supervisory authority on request",
+"key": "record_of_processing",
+"label": "Maintaining a record of processing activities",
+"record_fact": "The record answers \"Yes \u2014 audited + formal approval process\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). The controller or the processor and, where applicable, the controller's or the processor's representative, shall make the record available to the supervisory authority on request.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows the duty is partly discharged. Completed DPIA files, with the sign-off and the residual-risk conclusion for each high-risk activity would exist in incomplete form, which is enough to describe the measure but not enough to demonstrate compliance with it: an authority asking for the artifact would receive a partial answer.",
+"artifact_present": "partial",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"duty": "Assessing high-risk processing before it begins",
+"evidencing_artifact": "Completed DPIA files, with the sign-off and the residual-risk conclusion for each high-risk activity",
+"key": "dpia_programme",
+"label": "Assessing high-risk processing before it begins",
+"record_fact": "The record answers \"Yes, one DPIA completed\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "partially_satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: training completion records by role, with dates and content version would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(2)",
+"duty": "Ensuring staff who process personal data are instructed and trained",
+"evidencing_artifact": "Training completion records by role, with dates and content version",
+"key": "training",
+"label": "Ensuring staff who process personal data are instructed and trained",
+"record_fact": "The record answers \"Yes, formal onboarding + annual refresh\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Where proportionate in relation to processing activities, the measures referred to in paragraph 1 shall include the implementation of appropriate data protection policies by the controller.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: executed data processing agreements for each vendor, with the Article 28 clause review would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"duty": "Engaging processors only under a written contract",
+"evidencing_artifact": "Executed data processing agreements for each vendor, with the Article 28 clause review",
+"key": "processor_contracts",
+"label": "Engaging processors only under a written contract",
+"record_fact": "The record answers \"Yes, all vendors\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the control inventory with configuration evidence and the most recent effectiveness test would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 30(1)(g)",
+"duty": "Implementing appropriate technical and organisational security measures",
+"evidencing_artifact": "The control inventory with configuration evidence and the most recent effectiveness test",
+"key": "security_measures",
+"label": "Implementing appropriate technical and organisational security measures",
+"record_fact": "The record answers \"Yes \u2014 DLP/content filtering actively enforced\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). where possible, a general description of the technical and organisational security measures referred to in Article 32(1).",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the incident-response plan plus the breach register and the most recent test report would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"duty": "Being able to detect, record and notify personal data breaches",
+"evidencing_artifact": "The incident-response plan plus the breach register and the most recent test report",
+"key": "incident_response",
+"label": "Being able to detect, record and notify personal data breaches",
+"record_fact": "The record answers \"Yes, tested in last 12 months\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the rights-request log with response times, and evidence the process was tested end to end across vendors would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"duty": "Being able to give effect to data-subject rights within the statutory period",
+"evidencing_artifact": "The rights-request log with response times, and evidence the process was tested end to end across vendors",
+"key": "data_subject_rights",
+"label": "Being able to give effect to data-subject rights within the statutory period",
+"record_fact": "The record answers \"Yes \u2014 documented and tested across all vendors\".",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "satisfied"
+}
+],
+"disclaimer": "EndUserPrivacy.com (\u201cEUP\u201d) utilizes your information in a secure manner with third party providers, including AI providers, to prepare your documents. EUP prohibits those providers from retaining that information or using it to train their models. Accordingly, your information remains confidential and is never retained by EUP providers for machine learning or for any other purpose. Documents from EUP are intended for educational and strategic planning purposes only, so they do not establish an attorney-client relationship. Instead, they constitute general analysis of complex regulatory matters and are not a substitute for legal counsel.",
+"domain_element_findings": [
+{
+"application": "The record does not yet support a determination. 0 of 8 accountability duties are unanswered, and the Article 24(1) factors or review evidence are incomplete. Article 5(2) places the burden on the controller to be able to demonstrate compliance, so an unanswered duty is not neutral \u2014 it is an unevidenced duty until the artifact is produced.",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"control_question": "Can the organisation demonstrate, from artifacts it holds today, that its processing complies with the Regulation and that its measures are appropriate to its risk?",
+"customer_answer": "We could not verify this item from the information provided; it is listed under information needed.",
+"domain": "accountability",
+"domain_label": "Accountability and governance",
+"evidence_reviewed": "Record fields reviewed: privacy_policy, inventory_audit, dpia_status, training_status, dpa_status, technical_controls, incident_response, dsr_capability.",
+"information_needed": true,
+"key": "accountability_determination",
+"label": "Accountability \u2014 demonstrability and appropriateness",
+"record_fact": "The record leaves 1 accountability duty unevidenced: Assessing high-risk processing before it begins.",
+"regulator_expectation": "An auditor expects a single, owned governance framework whose outputs can be produced on request, rather than a set of practices that exist only in the knowledge of individuals.",
+"remediation": {
+"accountable_owner": "",
+"domain": "accountability",
+"finding_key": "accountability_determination",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the dated privacy notice, with its review record and version history would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(2)",
+"control_question": "Is there a dated privacy notice covering current processing, and can its review history be produced?",
+"customer_answer": "privacy_policy = Yes, current (reviewed in last 12 months)",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Maintaining a transparent, current privacy notice",
+"evidence_reviewed": "Record fields reviewed: privacy_policy.",
+"evidencing_artifact": "The dated privacy notice, with its review record and version history",
+"key": "transparency_notice",
+"label": "Maintaining a transparent, current privacy notice",
+"record_fact": "The record answers \"Yes, current (reviewed in last 12 months)\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Where proportionate in relation to processing activities, the measures referred to in paragraph 1 shall include the implementation of appropriate data protection policies by the controller.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the Article 30 record itself, in writing and producible to the supervisory authority on request would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 30(4)",
+"control_question": "Is the record of processing activities maintained, approved, and producible to the supervisory authority?",
+"customer_answer": "inventory_audit = Yes \u2014 audited + formal approval process",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Maintaining a record of processing activities",
+"evidence_reviewed": "Record fields reviewed: inventory_audit.",
+"evidencing_artifact": "The Article 30 record itself, in writing and producible to the supervisory authority on request",
+"key": "record_of_processing",
+"label": "Maintaining a record of processing activities",
+"record_fact": "The record answers \"Yes \u2014 audited + formal approval process\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). The controller or the processor and, where applicable, the controller's or the processor's representative, shall make the record available to the supervisory authority on request.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows the duty is partly discharged. Completed DPIA files, with the sign-off and the residual-risk conclusion for each high-risk activity would exist in incomplete form, which is enough to describe the measure but not enough to demonstrate compliance with it: an authority asking for the artifact would receive a partial answer.",
+"artifact_present": "partial",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"control_question": "Has every high-risk processing activity been assessed before it began, with the residual-risk conclusion signed off?",
+"customer_answer": "dpia_status = Yes, one DPIA completed",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Assessing high-risk processing before it begins",
+"evidence_reviewed": "Record fields reviewed: dpia_status.",
+"evidencing_artifact": "Completed DPIA files, with the sign-off and the residual-risk conclusion for each high-risk activity",
+"key": "dpia_programme",
+"label": "Assessing high-risk processing before it begins",
+"record_fact": "The record answers \"Yes, one DPIA completed\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"remediation": {
+"accountable_owner": "",
+"domain": "demonstrability",
+"finding_key": "dpia_programme",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "partially_satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: training completion records by role, with dates and content version would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(2)",
+"control_question": "Can training completion be evidenced by role, with dates and the version of the content delivered?",
+"customer_answer": "training_status = Yes, formal onboarding + annual refresh",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Ensuring staff who process personal data are instructed and trained",
+"evidence_reviewed": "Record fields reviewed: training_status.",
+"evidencing_artifact": "Training completion records by role, with dates and content version",
+"key": "training",
+"label": "Ensuring staff who process personal data are instructed and trained",
+"record_fact": "The record answers \"Yes, formal onboarding + annual refresh\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Where proportionate in relation to processing activities, the measures referred to in paragraph 1 shall include the implementation of appropriate data protection policies by the controller.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: executed data processing agreements for each vendor, with the Article 28 clause review would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"control_question": "Is every processor engaged under a written contract, and have those contracts been reviewed against the mandatory clauses?",
+"customer_answer": "dpa_status = Yes, all vendors",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Engaging processors only under a written contract",
+"evidence_reviewed": "Record fields reviewed: dpa_status.",
+"evidencing_artifact": "Executed data processing agreements for each vendor, with the Article 28 clause review",
+"key": "processor_contracts",
+"label": "Engaging processors only under a written contract",
+"record_fact": "The record answers \"Yes, all vendors\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the control inventory with configuration evidence and the most recent effectiveness test would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 30(1)(g)",
+"control_question": "Is the control inventory evidenced by configuration records and a recent effectiveness test?",
+"customer_answer": "technical_controls = Yes \u2014 DLP/content filtering actively enforced",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Implementing appropriate technical and organisational security measures",
+"evidence_reviewed": "Record fields reviewed: technical_controls.",
+"evidencing_artifact": "The control inventory with configuration evidence and the most recent effectiveness test",
+"key": "security_measures",
+"label": "Implementing appropriate technical and organisational security measures",
+"record_fact": "The record answers \"Yes \u2014 DLP/content filtering actively enforced\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). where possible, a general description of the technical and organisational security measures referred to in Article 32(1).",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the incident-response plan plus the breach register and the most recent test report would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"control_question": "Can the organisation evidence its ability to detect, record and notify a personal data breach within the statutory period?",
+"customer_answer": "incident_response = Yes, tested in last 12 months",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Being able to detect, record and notify personal data breaches",
+"evidence_reviewed": "Record fields reviewed: incident_response.",
+"evidencing_artifact": "The incident-response plan plus the breach register and the most recent test report",
+"key": "incident_response",
+"label": "Being able to detect, record and notify personal data breaches",
+"record_fact": "The record answers \"Yes, tested in last 12 months\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record shows this duty is discharged and, on its face, evidenced: the rights-request log with response times, and evidence the process was tested end to end across vendors would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable \u2014 confirm it against the source system before relying on this finding.",
+"artifact_present": "yes",
+"citation": "GDPR Art. 5(2); GDPR Art. 24(1)",
+"control_question": "Has the rights-request process been tested end to end across vendors, with response times recorded?",
+"customer_answer": "dsr_capability = Yes \u2014 documented and tested across all vendors",
+"domain": "demonstrability",
+"domain_label": "Evidence of compliance",
+"duty": "Being able to give effect to data-subject rights within the statutory period",
+"evidence_reviewed": "Record fields reviewed: dsr_capability.",
+"evidencing_artifact": "The rights-request log with response times, and evidence the process was tested end to end across vendors",
+"key": "data_subject_rights",
+"label": "Being able to give effect to data-subject rights within the statutory period",
+"record_fact": "The record answers \"Yes \u2014 documented and tested across all vendors\".",
+"regulator_expectation": "An auditor expects each accountability duty to be tied to a dated artifact that can be retrieved and shown, not to an assurance that the duty is met.",
+"standard": "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (\u2018accountability\u2019). Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "That content addresses Article 30(1)(a) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(a)",
+"control_question": "Does the record name the controller, any representative, and the data protection officer, with contact details?",
+"customer_answer": "organization_name = Meridian SaaS Inc.; dpo_status = Yes, formal DPO",
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"element": "a",
+"evidence_reviewed": "Record fields reviewed: organization_name, dpo_status.",
+"key": "art30_a",
+"label": "Controller / representative / DPO contact details",
+"record_fact": "The record carries: organization_name = Meridian SaaS Inc.; dpo_status = Yes, formal DPO.",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"standard": "the name and contact details of the controller and, where applicable, the joint controller, the controller's representative and the data protection officer;",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record carries nothing that can be applied to this standard, so no conclusion is reached on the merits. Supply the Article 30(1)(b) content \u2014 purposes of the processing \u2014 for each processing activity. Until it is supplied the record cannot be said to contain \"all of the following information\".",
+"citation": "GDPR Art. 30(1)(b)",
+"control_question": "Does the record state the purposes of each processing activity in its own terms?",
+"customer_answer": "The record does not answer this control question.",
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"element": "b",
+"evidence_reviewed": "No record content addresses this control.",
+"information_needed": "Supply the Article 30(1)(b) content \u2014 purposes of the processing \u2014 for each processing activity. Until it is supplied the record cannot be said to contain \"all of the following information\".",
+"key": "art30_b",
+"label": "Purposes of the processing",
+"record_fact": "The record carries nothing on this element.",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"remediation": {
+"accountable_owner": "",
+"domain": "records_of_processing",
+"finding_key": "art30_b",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "the purposes of the processing;",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "That content addresses Article 30(1)(c) in part only. The element is drafted as a mandatory content requirement, so a partial entry leaves the record incomplete for this element.",
+"citation": "GDPR Art. 30(1)(c)",
+"control_question": "Does the record describe the categories of data subjects and of personal data?",
+"customer_answer": "data_categories = Employee records, Customer records",
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"element": "c",
+"evidence_reviewed": "Record fields reviewed: data_categories.",
+"key": "art30_c",
+"label": "Categories of data subjects and of personal data",
+"record_fact": "The record carries: data_categories = Employee records, Customer records.",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"remediation": {
+"accountable_owner": "",
+"domain": "records_of_processing",
+"finding_key": "art30_c",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "a description of the categories of data subjects and of the categories of personal data;",
+"status": "analysed",
+"verdict": "partially_satisfied"
+},
+{
+"application": "That content addresses Article 30(1)(d) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(d)",
+"control_question": "Does the record list the categories of recipients to whom personal data has been or will be disclosed?",
+"customer_answer": "tools = Microsoft 365 / Copilot",
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"element": "d",
+"evidence_reviewed": "Record fields reviewed: tools.",
+"key": "art30_d",
+"label": "Categories of recipients",
+"record_fact": "The record carries: tools = Microsoft 365 / Copilot.",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"standard": "the categories of recipients to whom the personal data have been or will be disclosed including recipients in third countries or international organisations;",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "That content addresses Article 30(1)(e) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(e)",
+"control_question": "Does the record identify third-country transfers and the safeguards relied on?",
+"customer_answer": "transfer_status = Yes, US-based tools; transfer_mechanism = EU Standard Contractual Clauses (SCCs)",
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"element": "e",
+"evidence_reviewed": "Record fields reviewed: transfer_status, transfer_mechanism.",
+"key": "art30_e",
+"label": "Third-country transfers and safeguards",
+"record_fact": "The record carries: transfer_status = Yes, US-based tools; transfer_mechanism = EU Standard Contractual Clauses (SCCs).",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"standard": "where applicable, transfers of personal data to a third country or an international organisation, including the identification of that third country or international organisation and, in the case of transfers referred to in the second subparagraph of Article 49(1), the documentation of suitable safeguards;",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The record carries nothing that can be applied to this standard, so no conclusion is reached on the merits. Supply the Article 30(1)(f) content \u2014 envisaged retention time limits \u2014 for each processing activity. Until it is supplied the record cannot be said to contain \"all of the following information\".",
+"citation": "GDPR Art. 30(1)(f)",
+"control_question": "Does the record state the envisaged time limits for erasure of each category?",
+"customer_answer": "The record does not answer this control question.",
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"element": "f",
+"evidence_reviewed": "No record content addresses this control.",
+"information_needed": "Supply the Article 30(1)(f) content \u2014 envisaged retention time limits \u2014 for each processing activity. Until it is supplied the record cannot be said to contain \"all of the following information\".",
+"key": "art30_f",
+"label": "Envisaged retention time limits",
+"record_fact": "The record carries nothing on this element.",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"remediation": {
+"accountable_owner": "",
+"domain": "records_of_processing",
+"finding_key": "art30_f",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "where possible, the envisaged time limits for erasure of the different categories of data;",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "That content addresses Article 30(1)(g) on its face. Whether it does so activity by activity \u2014 the unit Article 30(1) uses \u2014 must be confirmed against the record itself.",
+"citation": "GDPR Art. 30(1)(g)",
+"control_question": "Does the record give a general description of the technical and organisational security measures?",
+"customer_answer": "We could not verify this item from the information provided; it is listed under information needed.",
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"element": "g",
+"evidence_reviewed": "Record fields reviewed: technical_controls, technical_controls_list.",
+"information_needed": true,
+"key": "art30_g",
+"label": "General description of security measures",
+"record_fact": "The record carries: technical_controls = Yes \u2014 DLP/content filtering actively enforced; technical_controls_list = DLP rules, Content filtering.",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"standard": "where possible, a general description of the technical and organisational security measures referred to in Article 32(1).",
+"status": "analysed",
+"verdict": "satisfied"
+},
+{
+"application": "The exemption is defeated. Any one of the three conditions removes it, and on this record one applies: the processing is not occasional. The Article 30(1) record duty therefore applies in full notwithstanding the headcount.",
+"citation": "GDPR Art. 30(5)",
+"control_question": "Does the organisation qualify for the small-enterprise exemption from the record duty, and has each defeating condition been tested?",
+"customer_answer": "org_size = 51-250; data_categories = Employee records, Customer records; special_category = No",
+"defeating_conditions": [
+{
+"basis": "Data categories on the record: Employee records, Customer records.",
+"condition": "likely_risk",
+"label": "the processing it carries out is likely to result in a risk to the rights and freedoms of data subjects",
+"met": false
+},
+{
+"basis": "The record describes standing employee, customer or contact processing, which is continuous rather than occasional.",
+"condition": "not_occasional",
+"label": "the processing is not occasional",
+"met": true
+},
+{
+"basis": "The record reports no special-category processing.",
+"condition": "special_category",
+"label": "the processing includes special categories of data as referred to in Article 9(1)",
+"met": false
+}
+],
+"domain": "records_of_processing",
+"domain_label": "Records of processing activities",
+"evidence_reviewed": "Record fields reviewed: org_size, data_categories, special_category.",
+"exemption_available": false,
+"key": "art30_5_exemption",
+"label": "Article 30(5) small-enterprise exemption",
+"record_fact": "The record puts headcount in the 51-250 band, below 250 persons. The record describes standing employee, customer or contact processing, which is continuous rather than occasional.",
+"regulator_expectation": "An auditor expects a written record covering every mandatory element for every processing activity, kept current and producible to the supervisory authority.",
+"standard": "The obligations referred to in paragraphs 1 and 2 shall not apply to an enterprise or an organisation employing fewer than 250 persons unless the processing it carries out is likely to result in a risk to the rights and freedoms of data subjects, the processing is not occasional, or the processing includes special categories of data as referred to in Article 9(1) or personal data relating to criminal convictions and offences referred to in Article 10.",
+"status": "analysed",
+"under_250_employees": true,
+"verdict": "not_applicable"
+},
+{
+"application": "None of the three limbs of Article 37(1) is established on this record: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation is therefore voluntary. A DPO has nonetheless been designated; once designated, Articles 38 and 39 apply in full \u2014 the voluntary character of the appointment does not soften them.",
+"citation": "GDPR Art. 37(1)",
+"control_question": "Has the organisation tested whether designation of a data protection officer is mandatory, independently of whether one has been appointed?",
+"customer_answer": "We could not verify this item from the information provided; it is listed under information needed.",
+"domain": "dpo",
+"domain_label": "Data protection officer",
+"evidence_reviewed": "Record fields reviewed: dpo_status, sector, org_size, data_categories.",
+"information_needed": true,
+"key": "dpo_designation_trigger",
+"label": "Article 37 designation trigger",
+"record_fact": "The record answers the DPO question \"Yes, formal DPO\" for a 51-250 organisation in the Technology/SaaS sector.",
+"regulator_expectation": "An auditor expects the designation decision, the reporting line, the resourcing and the conflict-of-interests position to be documented, not inferred from a job title.",
+"standard": "The controller and the processor shall designate a data protection officer in any case where: the processing is carried out by a public authority or body, except for courts acting in their judicial capacity; the core activities of the controller or the processor consist of processing operations which, by virtue of their nature, their scope and/or their purposes, require regular and systematic monitoring of data subjects on a large scale; or the core activities of the controller or the processor consist of processing on a large scale of special categories of data pursuant to Article 9 and personal data relating to criminal convictions and offences referred to in Article 10.",
+"status": "analysed",
+"verdict": "not_applicable"
+},
+{
+"application": "Article 38 is not discharged by the fact of an appointment. It requires timely involvement in all data-protection issues, resources sufficient to perform the Article 39 tasks, a direct reporting line to the highest management level, freedom from instructions on the exercise of those tasks, and the absence of a conflict of interests from any other duties held. None of those five is evidenced on this record.",
+"citation": "GDPR Art. 38(3)",
+"control_question": "Is the officer involved in good time, resourced, reporting to the highest management level, free from instructions, and free of conflicting duties?",
+"customer_answer": "dpo_status = Yes, formal DPO",
+"domain": "dpo",
+"domain_label": "Data protection officer",
+"evidence_reviewed": "Record fields reviewed: dpo_status.",
+"information_needed": "Supply the DPO's reporting line, the resources allocated, and the other roles the same individual holds, so the Article 38(1)-(3) and 38(6) requirements can be tested rather than assumed.",
+"key": "dpo_position_independence",
+"label": "Article 38 position and independence",
+"record_fact": "The record answers \"Yes, formal DPO\" and says nothing about reporting line, resourcing, or other duties held by the same person.",
+"regulator_expectation": "An auditor expects the designation decision, the reporting line, the resourcing and the conflict-of-interests position to be documented, not inferred from a job title.",
+"remediation": {
+"accountable_owner": "",
+"domain": "dpo",
+"finding_key": "dpo_position_independence",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "The controller and the processor shall ensure that the data protection officer is involved, properly and in a timely manner, in all issues which relate to the protection of personal data. The controller and processor shall support the data protection officer in performing the tasks referred to in Article 39 by providing resources necessary to carry out those tasks and access to personal data and processing operations, and to maintain his or her expert knowledge. The controller and processor shall ensure that the data protection officer does not receive any instructions regarding the exercise of those tasks. He or she shall not be dismissed or penalised by the controller or the processor for performing his tasks. The data protection officer shall directly report to the highest management level of the controller or the processor. The data protection officer may fulfil other tasks and duties. The controller or processor shall ensure that any such tasks and duties do not result in a conflict of interests.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "Article 39(1) sets a floor of five tasks, and two of them are visible in the adjacent answers: monitoring compliance including awareness-raising and training of staff (39(1)(b)), and advising on and monitoring the performance of data protection impact assessments (39(1)(c)). Both are evidenced in substance, which is consistent with \u2014 but not proof of \u2014 the officer performing them. The remaining tasks (informing and advising, cooperating with the supervisory authority, and acting as its contact point) are not addressed by the record.",
+"citation": "GDPR Art. 39(1)",
+"control_question": "Which of the statutory officer tasks are actually performed, and how is that recorded?",
+"customer_answer": "We could not verify this item from the information provided; it is listed under information needed.",
+"domain": "dpo",
+"domain_label": "Data protection officer",
+"evidence_reviewed": "Record fields reviewed: dpo_status, dpia_status, training_status.",
+"information_needed": true,
+"key": "dpo_task_coverage",
+"label": "Article 39 task coverage",
+"record_fact": "The record answers \"Yes, formal DPO\". On the adjacent answers, DPIA activity is \"Yes, one DPIA completed\" and training is \"Yes, formal onboarding + annual refresh\".",
+"regulator_expectation": "An auditor expects the designation decision, the reporting line, the resourcing and the conflict-of-interests position to be documented, not inferred from a job title.",
+"remediation": {
+"accountable_owner": "",
+"domain": "dpo",
+"finding_key": "dpo_task_coverage",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "The data protection officer shall have at least the following tasks: to inform and advise the controller or the processor and the employees who carry out processing of their obligations pursuant to this Regulation and to other Union or Member State data protection provisions; to monitor compliance with this Regulation, with other Union or Member State data protection provisions and with the policies of the controller or processor in relation to the protection of personal data, including the assignment of responsibilities, awareness-raising and training of staff involved in processing operations, and the related audits; to provide advice where requested as regards the data protection impact assessment and monitor its performance pursuant to Article 35; to cooperate with the supervisory authority; to act as the contact point for the supervisory authority on issues relating to processing, including the prior consultation referred to in Article 36, and to consult, where appropriate, with regard to any other matter.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "The record carries nothing that can be applied to this standard, so no conclusion is reached on the merits. Article 24(1) makes appropriateness relative to the nature, scope, context and purposes of the processing and to the risks of varying likelihood and severity for the rights and freedoms of natural persons. Supply the missing factors: nature, scope, context, purposes. Without them any conclusion about whether measures are \"appropriate\" is an absolute judgment, which is not the test the Article sets.",
+"citation": "GDPR Art. 24(1)",
+"control_question": "Are the technical and organisational measures calibrated to the recorded nature, scope, context and purposes of the processing?",
+"customer_answer": "technical_controls = Yes \u2014 DLP/content filtering actively enforced",
+"domain": "risk_calibration",
+"domain_label": "Risk calibration of measures",
+"evidence_reviewed": "Record fields reviewed: technical_controls.",
+"information_needed": "Article 24(1) makes appropriateness relative to the nature, scope, context and purposes of the processing and to the risks of varying likelihood and severity for the rights and freedoms of natural persons. Supply the missing factors: nature, scope, context, purposes. Without them any conclusion about whether measures are \"appropriate\" is an absolute judgment, which is not the test the Article sets.",
+"key": "risk_calibration",
+"label": "Article 24(1) risk calibration",
+"record_fact": "The record supplies 0 of the four factors Article 24(1) names.",
+"regulator_expectation": "An auditor expects the measure set to be justified against the recorded nature, scope, context and purposes of the processing, so that proportionality can be tested rather than asserted.",
+"remediation": {
+"accountable_owner": "",
+"domain": "risk_calibration",
+"finding_key": "risk_calibration",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "The record carries nothing that can be applied to this standard, so no conclusion is reached on the merits. State the review cadence for the technical and organisational measures and the date they were last reviewed. The second sentence of Article 24(1) is a standing obligation distinct from the appropriateness clause; it cannot be answered from the appropriateness evidence.",
+"citation": "GDPR Art. 24(1) (second sentence)",
+"control_question": "Are the measures reviewed on a defined cycle, and has the most recent review actually been carried out?",
+"customer_answer": "The record does not answer this control question.",
+"domain": "review_and_update",
+"domain_label": "Review and update of measures",
+"evidence_reviewed": "No record content addresses this control.",
+"information_needed": "State the review cadence for the technical and organisational measures and the date they were last reviewed. The second sentence of Article 24(1) is a standing obligation distinct from the appropriateness clause; it cannot be answered from the appropriateness evidence.",
+"key": "review_and_update",
+"label": "Article 24(1) review and update",
+"record_fact": "The record states no review cadence for the measure set.",
+"regulator_expectation": "An auditor expects a defined review cycle with executed reviews on file, and evidence that the reviews produced changes where the processing changed.",
+"remediation": {
+"accountable_owner": "",
+"domain": "review_and_update",
+"finding_key": "review_and_update",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "Those measures shall be reviewed and updated where necessary.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+{
+"application": "The record puts both the EU and the UK chapter in scope. Each transfer leg is analysed under its own chapter; neither chapter's mechanism, benchmark or article numbering is carried across to the other. Under the EU chapter the general principle in Article 44 governs: \"Any transfer of personal data which are undergoing processing or are intended for processing after transfer to a third country or to an international organisation shall take place only if, subject to the other provisions of this Regulation, the conditions laid down in this Chapter are complied with by the controller and processor\" A transfer to a third country is lawful only on an adequacy decision, on Article 46 appropriate safeguards, or on an Article 49 derogation. Article 46(1) sets the safeguards route: \"a controller or processor may transfer personal data to a third country or an international organisation only if the controller or processor has provided appropriate safeguards, and on condition that enforceable data subject rights and effective legal remedies for data subjects are available.\" The recorded mechanism is the Commission clause set \u2014 Article 46(2)(c): \"standard data protection clauses adopted by the Commission in accordance with the examination procedure referred to in Article 93(2);\" The UK chapter is a different body of law, not the EU chapter under another name. There is no UK GDPR Article 44 in force; the UK Chapter V general principle must not be cited to Art. 44. The operative UK general principle is Article 44A(1): \"A controller or processor may transfer personal data to a third country or an international organisation only if\", and the condition is met only where the transfer is approved by adequacy regulations, is made subject to appropriate safeguards, or relies on a derogation \u2014 Article 44A(2)(a): \"is approved by regulations under Article 45A that are in force at the time of the transfer,\"; Article 44A(2)(b): \"is made subject to appropriate safeguards (see Article 46), or\" The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer \"A transfer of personal data to a third country or an international organisation by a controller or processor is made subject to appropriate safeguards only\" where the listed safeguards are provided and the exporter itself judges the data protection test met. The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) \u2014 Article 46(2)(c): \"standard data protection clauses specified in regulations made by the Secretary of State under Article 47A(1) and for the time being in force;\" \u2014 and those issued by the Commissioner under section 119A of the Data Protection Act 2018 \u2014 Article 46(2)(d): \"standard data protection clauses specified in a document issued (and not withdrawn) by the Commissioner for the purposes of this Article under section 119A of the 2018 Act and for the time being in force;\" The Secretary of State's power reads: \"The Secretary of State may by regulations specify standard data protection clauses which the Secretary of State considers are capable of securing that the data protection test set out in Article 46 is met in relation to transfers of personal data generally or in relation to a type of transfer specified in the regulations.\" The exporter carries its own assessment duty: Article 46(1A)(a)(ii) requires that \"the controller or processor, acting reasonably and proportionately, considers that the data protection test is met in relation to the transfer or that type of transfer (see paragraph 6), or\" and Article 46(6) fixes that test as whether, after the transfer, \"the data protection test is met in relation to a transfer, or a type of transfer, of personal data if, after the transfer, the standard of the protection provided for the data subject with regard to that personal data by the safeguards required under paragraph 1A, and (where relevant) by other means, would not be materially lower than the standard of the protection provided for the data subject with regard to the personal data by or under\" this Regulation, Part 2 of the 2018 Act, and Parts 5 to 7 of that Act. Article 46(7) sets the standard of that judgement: \"what is reasonable and proportionate is to be determined by reference to all the circumstances, or likely circumstances, of the transfer or type of transfer, including the nature and volume of the personal data transferred.\"",
+"benchmark_citation": "UK GDPR Art. 46(6)",
+"benchmark_verbatim": "We could not verify this item from the information provided; it is listed under information needed.",
+"citation": "GDPR Art. 44",
+"citations_used": [
+"GDPR Art. 44",
+"GDPR Art. 46(1)",
+"GDPR Art. 46(2)(c)",
+"UK GDPR Art. 44A(1)",
+"UK GDPR Art. 44 (omitted)",
+"UK GDPR Art. 46(1A)",
+"UK GDPR Art. 46(2)(c)",
+"UK GDPR Art. 46(2)(d)",
+"UK GDPR Art. 47A(1)",
+"UK GDPR Art. 46(6)",
+"UK GDPR Art. 46(1A)(a)(ii)",
+"UK GDPR Art. 46(7)"
+],
+"control_question": "Is every cross-border transfer covered by a mechanism belonging to the chapter that governs it, with the required assessment on file?",
+"customer_answer": "jurisdictions = EU (GDPR), United Kingdom (UK GDPR); transfer_status = Yes, US-based tools; transfer_mechanism = EU Standard Contractual Clauses (SCCs)",
+"domain": "international_transfers",
+"domain_label": "International transfers",
+"evidence_reviewed": "Record fields reviewed: jurisdictions, transfer_status, transfer_mechanism.",
+"information_needed": true,
+"key": "chapter_v_transfers",
+"label": "International transfers \u2014 Chapter V",
+"mechanism": "EU Standard Contractual Clauses (SCCs)",
+"mechanism_regime": "eu",
+"mechanism_regime_mismatch": false,
+"record_fact": "The record states the jurisdictions in scope as \"EU (GDPR)\", \"United Kingdom (UK GDPR)\". It records cross-border transfer status as \"Yes, US-based tools\". It records the transfer mechanism in place as \"EU Standard Contractual Clauses (SCCs)\".",
+"regime": "dual",
+"regulator_expectation": "An auditor expects each transfer route to be mapped to a named mechanism belonging to the chapter that actually governs it, with the underlying assessment on file.",
+"remediation": {
+"accountable_owner": "",
+"domain": "international_transfers",
+"finding_key": "chapter_v_transfers",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+"standard": "We could not verify this item from the information provided; it is listed under information needed.",
+"status": "analysed",
+"transfer_status": "Yes, US-based tools",
+"verdict": "partially_satisfied"
+}
+],
+"domain_findings": {
+"data_submission": {
+"current_state": "The organisation has implemented a written policy with specific prohibitions on data submission to external tools, active DLP/content filtering technical controls, and formal employee training covering AI tools and data minimisation obligations.",
+"domain_id": 2,
+"domain_name": "Data Submission Risk",
+"gap_description": "",
+"recommended_action": "Document the organisation's periodic verification (at least annually) that the DLP rules and content-filtering controls remain effective and aligned with the written policy on prohibited data submission, and that the policy coverage and training remain current relative to the tool inventory and any changes in Microsoft 365 / Copilot functionality or data-handling terms.",
+"recommended_action_v2": {
+"action": "Document and conduct periodic verification that DLP rules and content-filtering controls remain effective, aligned with the written prohibition policy, and current relative to the Microsoft 365 / Copilot inventory and any changes to the platform's data-handling terms.",
+"deadline": {
+"illustrative_default": "annually",
+"kind": "org_set"
+},
+"owner": {
+"intake_field": "dpo_status",
+"role": "the formal DPO, working with the CISO or technical controls administrator"
+},
+"trigger": "at least annually, or on any material change to the Microsoft 365 / Copilot configuration or data-handling commitment"
+},
+"regulatory_basis": "GDPR Art. 5(1)(b) (data minimisation); GDPR Art. 32(1) (appropriate technical and organisational measures); GDPR Art. 39(1)(b) (DPO monitoring and awareness-raising/training obligations).",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 5(1)(b)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 32(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 39(1)(b)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+}
+],
+"severity": "Compliant",
+"suggested_owner": "the formal DPO, working with the CISO or technical controls administrator",
+"suggested_timeline": "timeline to be set by the organisation (e.g. annually)"
+},
+"dpia_status": {
+"current_state": "Meridian SaaS Inc. has completed one DPIA, with the intake confirming that all AI and high-risk tools have been assessed; the organisation operates a formal tool-inventory audit with an approval process, and Microsoft 365 / Copilot is the named technology tool in use for employee and customer personal data processing.",
+"domain_id": 8,
+"domain_name": "Privacy Impact Assessment Status",
+"gap_description": "The intake records a single completed DPIA and confirms AI/high-risk coverage, but does not evidence whether a documented scope-mapping exercise has been performed to identify every processing activity that independently meets the Art. 35(1) high-risk threshold \u2014 specifically: (i) whether the use of Microsoft 365 / Copilot has been individually assessed against the Art. 35(1) threshold and the WP248rev.01 high-risk criteria (systematic monitoring, innovative technology/new organisational solutions, matching or combining datasets, large-scale processing) in its tenant configuration, and (ii) whether a periodic review mechanism exists to reassess completed DPIAs when processing changes, consistent with GDPR Art. 35(11).",
+"recommended_action": "The DPO must conduct a documented scope-mapping exercise against the WP248rev.01 high-risk criteria \u2014 evaluating each processing activity involving Microsoft 365 / Copilot (including any automated processing, profiling, or behavioural analytics features active in the tenant configuration) against the Art. 35(1) threshold \u2014 and record the outcome as a structured register entry for each activity, confirming either that a DPIA has been completed, that one is required and is in progress, or that the threshold is not met with reasons stated. Separately, the DPO must confirm whether a periodic DPIA-review mechanism aligned with Art. 35(11) is documented and operational, and, if the review mechanism is not yet formalised, establish it. For Microsoft 365 / Copilot specifically, data-handling and model-training commitments for the tenant must be verified and documented as part of the DPIA scope assessment to confirm that processing purposes and any AI-driven features are accurately characterised in the impact assessment.",
+"recommended_action_v2": {
+"action": "Conduct a documented scope-mapping exercise against the WP248rev.01 high-risk criteria for all processing activities, with individual assessment of Microsoft 365 / Copilot's tenant-active features against the GDPR Art. 35(1) threshold; record the outcome in a structured DPIA register; and formalise a periodic review mechanism under GDPR Art. 35(11) if one is not already documented and operational.",
+"deadline": {
+"illustrative_default": "this quarter",
+"kind": "org_set"
+},
+"owner": {
+"intake_field": "dpo_status",
+"role": "Formal DPO"
+},
+"trigger": "Completion of the Art. 35(1) scope-mapping exercise and confirmation of the Microsoft 365 / Copilot tenant data-handling configuration, both of which are unconfirmed on the current record."
+},
+"regulatory_basis": "GDPR Art. 35(1) (general DPIA obligation where processing is likely to result in a high risk to the rights and freedoms of natural persons); GDPR Art. 35(3)(a) (systematic and extensive evaluation of personal aspects based on automated processing, including profiling, with decisions producing legal or similarly significant effects \u2014 illustrative example of the Art. 35(1) threshold); GDPR Art. 35(11) (obligation to carry out a review to assess whether processing is performed in accordance with the DPIA, at least when there is a change of the risk represented by processing operations); GDPR Art. 24 (controller must implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation); UK GDPR Art. 35(1), Art. 35(3)(a), Art. 35(11), Art. 24 (retained equivalents).",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 35(1)",
+"engaged_because": "Meridian SaaS Inc. processes employee and customer personal data using Microsoft 365 / Copilot, a technology tool with AI/ML features whose tenant configuration may involve systematic monitoring, large-scale processing, or innovative technological solutions meeting the Art. 35(1) high-risk threshold; DPIA AI/high-risk coverage is confirmed but the scope-mapping evidencing all Art. 35(1) triggers have been identified and assessed is not recorded in the intake."
+},
+{
+"citation": "GDPR Art. 35(3)(a)",
+"engaged_because": "Microsoft 365 / Copilot incorporates automated processing features that may involve systematic and extensive evaluation of personal aspects with significant effects, engaging this illustrative example of the Art. 35(1) threshold; whether those features are active in the tenant is a configuration fact not confirmed on the record."
+},
+{
+"citation": "GDPR Art. 35(11)",
+"engaged_because": "One DPIA has been completed; Art. 35(11) requires a review process to assess whether processing remains performed in accordance with the DPIA when the risk of processing changes, and the intake does not record whether such a review mechanism is formalised."
+},
+{
+"citation": "GDPR Art. 24",
+"engaged_because": "Meridian SaaS Inc. is the controller for employee and customer personal data under EU GDPR; Art. 24 requires the controller to implement and be able to demonstrate measures ensuring GDPR-compliant processing, which includes evidencing that the DPIA programme covers all Art. 35(1)-triggered activities."
+},
+{
+"citation": "UK GDPR Art. 35(1)",
+"engaged_because": "UK GDPR applies as an engaged jurisdiction; Art. 35(1) imposes the equivalent DPIA obligation for processing likely to result in high risk to UK data subjects, on the same factual basis as the EU GDPR finding above."
+},
+{
+"citation": "UK GDPR Art. 35(11)",
+"engaged_because": "The periodic review obligation is retained in UK GDPR Art. 35(11) on the same terms; the absence of a confirmed review mechanism engages both the EU and UK equivalents."
+},
+{
+"citation": "UK GDPR Art. 24",
+"engaged_because": "Meridian SaaS Inc. processes personal data of UK data subjects; UK GDPR Art. 24 imposes the same accountability and demonstration obligation as its EU GDPR equivalent."
+}
+],
+"severity": "Medium",
+"suggested_owner": "Formal DPO",
+"suggested_timeline": "timeline to be set by the organisation (e.g. this quarter)"
+},
+"incident_response": {
+"current_state": "Meridian SaaS Inc. maintains a tested incident response plan (tested within the last 12 months), operates under formal DPO oversight, and processes EU and UK personal data through Microsoft 365 / Copilot under EU Standard Contractual Clauses; however, the intake does not confirm that the plan explicitly addresses data exposure through external technology tools as a distinct notifiable breach scenario, nor does it confirm documented vendor contact procedures or a mapped trigger for the GDPR Art. 33(1) 72-hour supervisory authority notification window in tool-specific breach scenarios.",
+"domain_id": 6,
+"domain_name": "Incident Response and Breach Readiness",
+"gap_description": "The intake does not confirm that the incident response plan expressly identifies data exposure via external technology tools (including Microsoft 365 / Copilot) as a notifiable breach scenario, documents the vendor notification escalation pathway that starts the controller's awareness clock under GDPR Art. 33(2), or maps the conditions under which a tool-originated incident triggers Art. 33(1) supervisory authority notification within 72 hours of the controller becoming aware and Art. 34 communication to affected data subjects.",
+"recommended_action": "The DPO, working with the formal DPO role confirmed in the intake, must review the current incident response plan and verify \u2014 and if absent, add \u2014 an explicit scenario covering data exposure through external technology tools, including Microsoft 365 / Copilot. The scenario must: (1) define the conditions under which a tool-originated incident constitutes a personal data breach under GDPR Art. 4(12) and UK GDPR Art. 4(12); (2) document the vendor escalation and contact procedure that triggers controller awareness, because the Art. 33(1) and UK GDPR Art. 33(1) 72-hour notification clock begins when the controller becomes aware of the breach \u2014 through receipt of the processor's Art. 33(2) notice, internal detection, or any other means \u2014 not at the moment of the processor's notification alone; (3) map the Art. 33(1) and UK GDPR Art. 33(1) 72-hour reporting obligation to the competent supervisory authority (the CNIL or the relevant EU lead supervisory authority for EU data subjects; the ICO for UK data subjects) and the Art. 33(3)(d) requirement to describe remedial measures; (4) map the Art. 34(1) and UK GDPR Art. 34(1) obligation to communicate high-risk breaches to affected data subjects without undue delay; (5) confirm that the Data Processing Agreement with Microsoft covers the Art. 28(3)(f) processor-assistance obligation for breach notification and that the contractual escalation timeframe enables the controller to meet the Art. 33(1) 72-hour window; and (6) document a test or tabletop exercise specifically covering the tool-exposure scenario to validate end-to-end escalation and notification timeliness.",
+"recommended_action_v2": {
+"action": "Review the existing incident response plan and verify \u2014 or, if absent, incorporate \u2014 an explicit tool-exposure breach scenario that: (1) defines breach conditions under GDPR Art. 4(12) and UK GDPR Art. 4(12) for incidents originating in Microsoft 365 / Copilot; (2) documents the vendor contact and escalation pathway that establishes controller awareness, noting that the Art. 33(1) and UK GDPR Art. 33(1) 72-hour supervisory authority notification clock starts upon controller awareness \u2014 via the processor's Art. 33(2) notice, internal detection, or any other means; (3) maps Art. 33(3)(d) and UK GDPR Art. 33(3)(d) content requirements, including a description of measures taken or proposed; (4) maps Art. 34(1) and UK GDPR Art. 34(1) high-risk data subject communication obligations; (5) confirms the Data Processing Agreement with Microsoft satisfies the Art. 28(3)(f) and UK GDPR Art. 28(3)(f) processor-assistance obligation for breach notification with a contractual escalation timeframe enabling the Art. 33(1) window to be met; and (6) conducts and documents a tabletop exercise specifically covering the tool-exposure scenario to validate escalation, notification timeliness, and completeness of Art. 33(3) content.",
+"deadline": {
+"illustrative_default": "within 30 days",
+"kind": "org_set"
+},
+"information_needed": true,
+"owner": {
+"intake_field": "dpo_status",
+"role": "formal DPO"
+},
+"trigger": "We could not verify this item from the information provided; it is listed under information needed."
+},
+"regulatory_basis": "GDPR Art. 33(1) (controller must notify the competent supervisory authority within 72 hours of becoming aware of a personal data breach, without undue delay); GDPR Art. 33(2) (processor must notify the controller without undue delay after becoming aware of a personal data breach); GDPR Art. 33(3)(d) (notification must include a description of measures taken or proposed to address the breach); GDPR Art. 34(1) (controller must communicate a high-risk breach to affected data subjects without undue delay); GDPR Art. 28(3)(f) (the Data Processing Agreement must require the processor to assist the controller with Arts. 32\u201336 obligations, including breach notification); UK GDPR Art. 33(1); UK GDPR Art. 33(2); UK GDPR Art. 34(1); UK GDPR Art. 28(3)(f)",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 33(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 33(2)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 33(3)(d)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 34(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 28(3)(f)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 33(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 33(2)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 34(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 28(3)(f)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+}
+],
+"severity": "Medium",
+"suggested_owner": "formal DPO",
+"suggested_timeline": "timeline to be set by the organisation (e.g. within 30 days)"
+},
+"internal_policy": {
+"current_state": "The organisation maintains a current privacy policy (reviewed within 12 months), a comprehensive privacy notice covering all current processing activities, data transfers, and retention periods, a written policy with specific tool-use prohibitions, and formal employee privacy training that includes explicit AI-tool coverage; all technology tools have been inventoried, audited, and subject to a formal approval process.",
+"domain_id": 4,
+"domain_name": "Internal Policy Coverage",
+"gap_description": "",
+"recommended_action": "",
+"regulatory_basis": "GDPR Art. 5(2) (accountability \u2014 the controller must be able to demonstrate compliance with data protection principles); GDPR Art. 24 (the controller must implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with the Regulation); GDPR Art. 32(1) (the controller and processor must implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk, including as appropriate: (a) the pseudonymisation and encryption of personal data; (b) the ability to ensure the ongoing confidentiality, integrity, availability and resilience of processing systems and services; (c) the ability to restore the availability and access to personal data in a timely manner in the event of a physical or technical incident; (d) a process for regularly testing, assessing and evaluating the effectiveness of technical and organisational measures for ensuring the security of the processing); UK GDPR Art. 5(2), Art. 24, Art. 32(1) (identical substance).",
+"severity": "Compliant",
+"suggested_owner": null,
+"suggested_timeline": null
+},
+"privacy_notice": {
+"current_state": "The organisation maintains a current privacy notice (reviewed within the last 12 months) that the intake confirms covers all current processing activities, transfers, retention periods, and data subject rights.",
+"domain_id": 10,
+"domain_name": "Privacy Notice Accuracy",
+"gap_description": "The intake does not evidence whether the privacy notice specifically and transparently discloses Microsoft 365 / Copilot as a named tool, the purposes for which it processes personal data (including any AI model training or optimisation activities), the categories of personal data it receives, the retention and deletion mechanics, the data subject's rights in relation to that processing, or the transfer mechanism (Standard Contractual Clauses) by which data flows to US processors \u2014 verification is required to confirm adequate specificity under Article 13(2)(a), (b), and 14(2)(a), (b).",
+"recommended_action": "Audit the organisation's privacy notice against the template at GDPR Articles 13(2) and 14(2) and confirm that the notice transparently discloses: (1) Microsoft 365 / Copilot as a named processor and tool; (2) the specific categories of personal data each tool receives and the purposes of processing (including whether personal data are used for AI model training, optimisation, or similar activities, and the scope of any such use); (3) the retention period for each category of data processed via the tool, or the criteria used to determine retention, in sufficient specificity to allow data subjects to understand when their data will be deleted; (4) the data subject's rights (access, rectification, erasure, restriction, portability, objection) as they apply to data processed by the tool; (5) the transfer mechanism (Standard Contractual Clauses) and the importer's jurisdiction (US-based) where data leave the UK or EU; (6) information about automated decision-making, if the tool engages in profiling or scoring with legal or similarly significant effects; and (7) the contact details for lodging a complaint with the supervisory authority. Document the audit findings and remediate any gaps in the notice by revision. Re-issue the updated notice to all affected data subjects whose processing the disclosure concerns.",
+"recommended_action_v2": {
+"action": "Audit the privacy notice against GDPR Articles 13(2) and 14(2) to verify transparent disclosure of: Microsoft 365 / Copilot as named processor; specific data categories and processing purposes (including AI model training or optimisation if applicable); retention criteria; data subject rights applicable to that processing; the Standard Contractual Clauses as the transfer mechanism; and supervisory authority contact. Remediate disclosure gaps by notice revision and re-issue to affected data subjects.",
+"deadline": {
+"illustrative_default": "within 30 days",
+"kind": "org_set"
+},
+"owner": {
+"intake_field": "dpo_status",
+"role": "the formal DPO"
+},
+"trigger": "To meet transparency obligations under Articles 13 and 14 before further processing or at the next notice-review cycle."
+},
+"regulatory_basis": "GDPR Art. 13 (information to be provided where personal data are obtained from the data subject); GDPR Art. 14 (information to be provided where personal data have not been obtained from the data subject); GDPR Art. 13(2)(a)\u2013(b) (storage period criteria and rights enumeration); GDPR Art. 14(2)(a)\u2013(b) (equivalent transparency obligations); GDPR Art. 6(1)(f) and Recital 47 (legitimate interests basis, where applicable, requires transparent disclosure); GDPR Art. 28(3)(f) (processor assistance in compliance with transparency obligations).",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 13(2)(a)\u2013(b)",
+"engaged_because": "The organisation processes employee records and customer records under the GDPR in the EU and UK; Articles 13(2)(a)\u2013(b) require transparent disclosure of storage period/retention criteria and data subject rights where data are obtained from the data subject."
+},
+{
+"citation": "GDPR Art. 14(2)(a)\u2013(b)",
+"engaged_because": "Equivalent transparency obligations apply where personal data are not obtained from the data subject, as may occur with customer or third-party records processed via Microsoft 365 / Copilot."
+},
+{
+"citation": "GDPR Art. 28(3)(f)",
+"engaged_because": "The processor (Microsoft) is contractually obliged to assist the controller in meeting its transparency obligations under Articles 13\u201314; any tool-specific disclosures must be incorporated into or clearly referenced in the controller's privacy notice."
+}
+],
+"severity": "High",
+"suggested_owner": "the formal DPO",
+"suggested_timeline": "timeline to be set by the organisation (e.g. within 30 days)"
+},
+"regulatory_exposure": {
+"current_state": "Meridian SaaS Inc. operates under GDPR and UK GDPR as the applicable frameworks, processing employee and customer personal data across EU and UK jurisdictions via Microsoft 365 / Copilot with SCCs as the transfer mechanism for US-based tools; the organisation has a formal DPO, a current privacy notice covering all activities, a tested incident response plan, a completed DPIA with AI/high-risk coverage, formal training with AI-tool coverage, enforced DLP/content filtering, verified Article 28(3)-compliant DPAs with all vendors, and documented and tested DSR fulfilment capability across Access and Erasure rights.",
+"domain_id": 7,
+"domain_name": "Regulatory Exposure Summary",
+"gap_description": "No material gaps are identified against the GDPR and UK GDPR provisions triggered by the organisation's profile; the single area warranting periodic verification is the continued currency of SCCs and the DPF certification status of US-based importers under GDPR Art. 46(2)(c) and UK GDPR Art. 46(2)(c), given that adequacy and safeguard instruments require ongoing maintenance rather than one-time execution.",
+"recommended_action": "The DPO must conduct a periodic verification \u2014 at a cadence the organisation determines \u2014 confirming that: (i) the SCCs in use for US-based tools (including Microsoft 365 / Copilot) remain the current European Commission standard contractual clauses under GDPR Art. 46(2)(c) and that the corresponding UK transfer mechanism (UK IDTA or UK Addendum to SCCs) under UK GDPR Art. 46(2)(c) remains current and executed; (ii) where any US importer is additionally certified under the EU\u2013US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795), current certification status is verified at dataprivacyframework.gov, and where the UK Extension to the Data Privacy Framework applies, participation is confirmed on the same list \u2014 noting that adequacy under UK GDPR Art. 45 via the UK Extension would satisfy the transfer requirement for that leg without a separate UK IDTA or UK Addendum; (iii) the DPIA register is reviewed against any new or materially changed processing activities involving Microsoft 365 / Copilot to determine whether further DPIAs are required under GDPR Art. 35(1) and UK GDPR Art. 35(1); and (iv) the privacy notice remains accurate against current processing activities, transfers, and data categories in compliance with GDPR Art. 13\u201314 and UK GDPR Art. 13\u201314.",
+"recommended_action_v2": {
+"action": "Conduct a periodic verification confirming: (i) SCCs for US-based tools including Microsoft 365 / Copilot are the current European Commission standard contractual clauses under GDPR Art. 46(2)(c), and the UK IDTA or UK Addendum to SCCs under UK GDPR Art. 46(2)(c) is current and executed; (ii) where any US importer is certified under the EU\u2013US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795), current certification status is confirmed at dataprivacyframework.gov, and where the UK Extension applies, participation is confirmed on the same list \u2014 adequacy under UK GDPR Art. 45 via the UK Extension satisfies the transfer requirement for that leg without a separate UK IDTA or UK Addendum; (iii) the DPIA register is reviewed against any new or materially changed processing activities involving Microsoft 365 / Copilot under GDPR Art. 35(1) and UK GDPR Art. 35(1); and (iv) the privacy notice remains accurate under GDPR Art. 13\u201314 and UK GDPR Art. 13\u201314.",
+"deadline": {
+"illustrative_default": "ongoing",
+"kind": "org_set"
+},
+"owner": {
+"intake_field": "dpo_status",
+"role": "DPO"
+},
+"trigger": "Periodic review cycle; additionally triggered by any new or materially changed processing activity involving Microsoft 365 / Copilot or any change to the US-based tools inventory."
+},
+"regulatory_basis": "GDPR Art. 5(1)(a)\u2013(f) (processing principles); GDPR Art. 6(1) (lawful basis); GDPR Art. 12\u201314 (transparency and privacy notice obligations); GDPR Art. 24 (controller accountability); GDPR Art. 28(3) (processor contract requirements); GDPR Art. 29 (processing under the controller's authority); GDPR Art. 32(1) (technical and organisational security measures); GDPR Art. 33\u201334 (breach notification); GDPR Art. 35(1) (DPIA obligation for high-risk processing); GDPR Art. 37(1) (DPO designation); GDPR Art. 39(1)(b) (DPO monitoring, awareness-raising and staff training); GDPR Art. 44\u201346 (transfers to third countries, including Art. 46(2)(c) SCCs); UK GDPR Art. 5(1)(a)\u2013(f); UK GDPR Art. 6(1); UK GDPR Art. 12\u201314; UK GDPR Art. 24; UK GDPR Art. 28(3); UK GDPR Art. 29; UK GDPR Art. 32(1); UK GDPR Art. 33\u201334; UK GDPR Art. 35(1); UK GDPR Art. 37(1); UK GDPR Art. 39(1)(b); UK GDPR Art. 44\u201346 (transfers to third countries, including the UK IDTA or UK Addendum to SCCs as the applicable UK transfer mechanism).",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 5(1)(a)\u2013(f)",
+"engaged_because": "Meridian SaaS Inc. processes employee and customer personal data in EU jurisdictions, engaging all processing principles including lawfulness, fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, and integrity and confidentiality."
+},
+{
+"citation": "GDPR Art. 6(1)",
+"engaged_because": "Processing of employee and customer personal data requires a documented lawful basis for each processing activity."
+},
+{
+"citation": "GDPR Art. 12\u201314",
+"engaged_because": "The organisation has an existing privacy notice confirmed as covering all current activities, transfers, retention, and rights, engaging the transparency and information obligations for data collected from data subjects and from third parties."
+},
+{
+"citation": "GDPR Art. 24",
+"engaged_because": "Meridian SaaS Inc. acts as controller of employee and customer personal data and must implement and be able to demonstrate compliance with the GDPR."
+},
+{
+"citation": "GDPR Art. 28(3)",
+"engaged_because": "All vendors have verified Article 28(3)-compliant DPAs in place, directly engaging the processor contract requirements."
+},
+{
+"citation": "GDPR Art. 29",
+"engaged_because": "Persons acting under the authority of Meridian SaaS Inc. process personal data, engaging the obligation that such processing occurs only on the controller's instructions."
+},
+{
+"citation": "GDPR Art. 32(1)",
+"engaged_because": "The organisation has confirmed DLP and content filtering controls actively enforced, engaging the obligation to implement appropriate technical and organisational security measures."
+},
+{
+"citation": "GDPR Art. 33\u201334",
+"engaged_because": "A tested incident response plan is in place, engaging the breach notification obligations to the supervisory authority and, where applicable, to data subjects."
+},
+{
+"citation": "GDPR Art. 35(1)",
+"engaged_because": "A DPIA has been completed with AI/high-risk coverage confirmed, engaging the obligation to assess high-risk processing including use of Microsoft 365 / Copilot."
+},
+{
+"citation": "GDPR Art. 37(1)",
+"engaged_because": "A formal DPO has been designated, engaging the DPO appointment obligation where Art. 37(1) triggers are met."
+},
+{
+"citation": "GDPR Art. 39(1)(b)",
+"engaged_because": "Formal onboarding and annual refresh training with explicit AI-tool coverage is confirmed, engaging the DPO's monitoring task including awareness-raising and staff training."
+},
+{
+"citation": "GDPR Art. 46(2)(c)",
+"engaged_because": "Cross-border transfers to US-based tools including Microsoft 365 / Copilot are confirmed, with EU SCCs identified as the transfer mechanism, directly engaging the appropriate safeguards requirement."
+},
+{
+"citation": "UK GDPR Art. 5(1)(a)\u2013(f)",
+"engaged_because": "Meridian SaaS Inc. processes personal data of UK data subjects, engaging the full suite of UK GDPR processing principles."
+},
+{
+"citation": "UK GDPR Art. 6(1)",
+"engaged_because": "Processing of employee and customer personal data in the UK requires a documented lawful basis under the UK GDPR."
+},
+{
+"citation": "UK GDPR Art. 12\u201314",
+"engaged_because": "The privacy notice is confirmed as covering all current activities, transfers, retention, and rights for UK data subjects."
+},
+{
+"citation": "UK GDPR Art. 24",
+"engaged_because": "Meridian SaaS Inc. acts as controller under the UK GDPR and must implement and demonstrate compliance."
+},
+{
+"citation": "UK GDPR Art. 28(3)",
+"engaged_because": "Verified DPAs are in place with all vendors, engaging the UK GDPR processor contract requirements."
+},
+{
+"citation": "UK GDPR Art. 29",
+"engaged_because": "Persons acting under the authority of Meridian SaaS Inc. process personal data under the UK GDPR regime."
+},
+{
+"citation": "UK GDPR Art. 32(1)",
+"engaged_because": "Confirmed DLP and content filtering controls engage the UK GDPR obligation to implement appropriate technical and organisational security measures."
+},
+{
+"citation": "UK GDPR Art. 33\u201334",
+"engaged_because": "Tested incident response plan engages the UK GDPR breach notification obligations to the ICO and, where applicable, to data subjects."
+},
+{
+"citation": "UK GDPR Art. 35(1)",
+"engaged_because": "Completed DPIA with AI/high-risk coverage confirmed engages the UK GDPR obligation to assess high-risk processing."
+},
+{
+"citation": "UK GDPR Art. 37(1)",
+"engaged_because": "Formal DPO designated, engaging the UK GDPR DPO appointment obligation."
+},
+{
+"citation": "UK GDPR Art. 39(1)(b)",
+"engaged_because": "Formal training programme with AI-tool coverage confirmed, engaging the DPO's UK GDPR monitoring task including awareness-raising and staff training."
+},
+{
+"citation": "UK GDPR Art. 46(2)(c)",
+"engaged_because": "Cross-border transfers to US-based tools are confirmed; the UK transfer mechanism (UK IDTA or UK Addendum to SCCs) must be verified as current and executed alongside or in place of EU SCCs for the UK transfer leg."
+}
+],
+"severity": "Low",
+"suggested_owner": "DPO",
+"suggested_timeline": "timeline to be set by the organisation (e.g. ongoing)"
+},
+"subject_rights": {
+"current_state": "The organisation has documented and tested end-to-end data subject rights fulfilment (access and erasure) across all vendors, with DSR workflows verified against the vendor DPA portfolio and incident-response plan.",
+"domain_id": 9,
+"domain_name": "Data Subject Rights Integrity",
+"gap_description": "",
+"recommended_action": "Maintain the documented DSR fulfilment capability and testing cycle: on an annual or bi-annual basis (timeline to be set by the organisation), verify that all vendors remain capable of responding to erasure and access requests within the operational timeframe that enables the organisation to meet the GDPR Art. 12(3) and UK GDPR Art. 12(3) one-month response deadline, and confirm that DPA Article 28(3)(e) assistance mechanisms continue to be specified and enforced in all vendor agreements.",
+"recommended_action_v2": {
+"action": "Verify and document the annual DSR capability refresh: confirm that all vendors can fulfil access and erasure requests within the operational timeframe required to meet the one-month statutory deadline, and audit the DPA Article 28(3)(e) assistance clause in all vendor agreements to ensure the contractual response-timeframe obligation remains current.",
+"deadline": {
+"illustrative_default": "annually",
+"kind": "org_set"
+},
+"owner": {
+"intake_field": "dpo_status",
+"role": "DPO (established in intake)"
+},
+"trigger": "On completion of each annual vendor audit cycle (or at the next scheduled tool-inventory review)"
+},
+"regulatory_basis": "GDPR Art. 12(3) (one-month response deadline for data subject requests); GDPR Art. 15\u201322 (data subject rights); GDPR Art. 28(3)(e) (processor obligation to assist the controller in fulfilling data subject rights requests); UK GDPR Art. 12(3), Art. 15\u201322, Art. 28(3)(e) (equivalent UK regime).",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 12(3)",
+"engaged_because": "EU/UK jurisdiction confirmed in intake; one-month deadline governs DSR response timeline"
+},
+{
+"citation": "GDPR Art. 15\u201322",
+"engaged_because": "EU/UK jurisdiction; establishes the substantive data subject rights (access, erasure, portability, rectification, restriction, object)"
+},
+{
+"citation": "GDPR Art. 28(3)(e)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 12(3), Art. 15\u201322, Art. 28(3)(e)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+}
+],
+"severity": "Compliant",
+"suggested_owner": "DPO (established in intake)",
+"suggested_timeline": "timeline to be set by the organisation (e.g. annually)"
+},
+"tool_inventory": {
+"current_state": "The organisation maintains a formally approved tool inventory that has been audited, covers all current processing activities including the generative-AI platform Microsoft 365 / Copilot, and is subject to a documented sanctioning process; all vendors have executed Article 28-compliant Data Processing Agreements.",
+"domain_id": 1,
+"domain_name": "Tool Inventory and Sanctioning",
+"gap_description": "",
+"recommended_action": "Maintain the tool inventory and sanctioning process on an ongoing basis. On any addition or material change to a technology tool used to process personal data, conduct a formal review (including DPIA assessment where GDPR Art. 35(1) high-risk criteria are met), execute or update the Data Processing Agreement to meet GDPR Art. 28(3)(a)\u2013(c) requirements, and obtain documented approval before deployment. For Microsoft 365 / Copilot specifically, verify and document Microsoft's current data-handling and model-training commitments in the DPA and organisational settings, confirming that personal data of employees and customers is not used for AI model training or optimisation absent explicit consent.",
+"recommended_action_v2": {
+"action": "Maintain the tool inventory and sanctioning process on an ongoing basis. On any addition or material change to a technology tool used to process personal data, conduct a formal review, execute or update the Data Processing Agreement to meet GDPR Art. 28(3)(a)\u2013(c) requirements, and obtain documented approval before deployment. For Microsoft 365 / Copilot specifically, verify and document Microsoft's current data-handling and model-training commitments in the DPA and organisational settings, confirming that personal data of employees and customers is not used for AI model training or optimisation absent explicit consent.",
+"deadline": {
+"illustrative_default": "within 7 days of new tool decision; ongoing for existing tools",
+"kind": "org_set"
+},
+"owner": {
+"intake_field": "dpo_status",
+"role": "DPO"
+},
+"trigger": "On any addition or material change to a technology tool used to process personal data; maintain ongoing for existing tools."
+},
+"regulatory_basis": "GDPR Art. 24 (controller accountability and implementation of appropriate technical and organisational measures); GDPR Art. 28(3)(a)\u2013(c) (processor contract requirements, including documented instruction, confidentiality, and assistance obligations); GDPR Art. 32(1) (appropriate technical and organisational security measures); UK GDPR equivalents.",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 24",
+"engaged_because": "Controller accountability obligation; the intake confirms EU/UK personal data processing and a formal DPO"
+},
+{
+"citation": "GDPR Art. 28(3)(a)\u2013(c)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 32(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 35(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 24, Art. 28(3)(a)\u2013(c), Art. 32(1), Art. 35(1)",
+"engaged_because": "Identical obligations apply to the organisation's UK data subject processing"
+}
+],
+"severity": "Compliant",
+"suggested_owner": "DPO",
+"suggested_timeline": "ongoing"
+},
+"training": {
+"current_state": "The organisation has implemented formal employee onboarding training plus annual refreshers, with explicit coverage of AI tools and Microsoft 365 / Copilot, and maintains a written policy with specific prohibited-submission rules and documented escalation pathways for incident reporting.",
+"domain_id": 5,
+"domain_name": "Employee Training and Awareness",
+"gap_description": "The intake does not confirm whether training materials address the specific obligations on staff under GDPR Art. 29 (act only on instructions from the controller), Art. 32(4) (confidentiality undertaking), or the data subject rights request workflow under Art. 28(3)(e) (processor assistance obligations where applicable to staff roles) \u2014 verify that training explicitly covers these obligations and the employee's role in supporting controller compliance.",
+"recommended_action": "Verify that the annual employee privacy-training programme covers: (1) the staff obligation under GDPR Art. 29 to process personal data only on controller instructions; (2) the confidentiality and instruction-compliance undertaking under GDPR Art. 32(4); (3) the escalation and reporting pathway for data subject rights requests and suspected data breaches; and (4) the specific prohibited-submission restrictions named in the tool-specific policy (Microsoft 365 / Copilot). Document the training curriculum and attendance records, and confirm the DPO's involvement in content sign-off and refresher-schedule governance.",
+"recommended_action_v2": {
+"action": "Verify the annual employee privacy-training curriculum covers: (1) GDPR Art. 29 staff obligation to process personal data only on controller instructions; (2) GDPR Art. 32(4) confidentiality and instruction-compliance undertaking; (3) escalation pathway for data subject rights requests and suspected data breaches; (4) the specific prohibited-submission restrictions named in the tool-specific policy for Microsoft 365 / Copilot. Document the curriculum and attendance records; confirm DPO sign-off and refresher-schedule governance.",
+"deadline": {
+"illustrative_default": "this quarter",
+"kind": "org_set"
+},
+"owner": {
+"intake_field": "dpo_status",
+"role": "formal DPO"
+},
+"trigger": "ongoing training governance cycle; next annual refresh scheduled"
+},
+"regulatory_basis": "GDPR Art. 29 (persons acting under the controller's authority may process personal data only on instructions from the controller); GDPR Art. 32(4) (controller and processor must take steps to ensure staff processing data on instructions do not process except on controller instructions and are committed to confidentiality or under a statutory obligation of confidentiality); GDPR Art. 39(1)(b) (DPO task to monitor compliance, including awareness-raising and training of staff involved in processing operations).",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 29",
+"engaged_because": "EU/UK jurisdiction engaged; staff process employee and customer personal data under controller instructions"
+},
+{
+"citation": "GDPR Art. 32(4)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 39(1)(b)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+}
+],
+"severity": "Low",
+"suggested_owner": "formal DPO",
+"suggested_timeline": "timeline to be set by the organisation (e.g. this quarter)"
+},
+"vendor_terms": {
+"current_state": "Meridian SaaS Inc. has executed Data Processing Agreements with all vendors, has verified Article 28(3) compliance across those agreements, has deployed EU Standard Contractual Clauses (SCCs) as the transfer mechanism for US-based tools (including Microsoft 365 / Copilot), and maintains a formal tool inventory with an approval process \u2014 the organisation also confirms DSR fulfilment has been tested end-to-end across all vendors for access and erasure rights.",
+"domain_id": 3,
+"domain_name": "Vendor Data Terms Compliance",
+"gap_description": "The intake confirms SCCs are in place for US-based transfers but does not evidence whether a Transfer Impact Assessment (TIA) has been conducted and documented for the Microsoft 365 / Copilot SCCs, as required following the CJEU's ruling in Data Protection Commissioner v Facebook Ireland Limited and Maximillian Schrems (Case C-311/18) and reflected in GDPR Art. 46(1) \u2014 the adequacy of the safeguard must be assessed in light of the circumstances of the transfer, and the absence of a documented TIA is a verifiable gap in the SCC reliance record; additionally, the intake does not confirm whether Microsoft 365 / Copilot's sub-processor list has been reviewed against the approved-vendor register or whether the DPA contractually restricts sub-processor additions to those subject to prior specific or general written authorisation per GDPR Art. 28(2).",
+"recommended_action": "Under GDPR Art. 46(1) and UK GDPR Art. 46(1), the DPO must: (1) confirm whether a documented TIA has been completed for the Microsoft 365 / Copilot SCC transfer and, if not, commission and document one \u2014 the TIA must assess whether the SCCs can be effective in practice given the legal and regulatory framework of the United States, and must be retained as part of the Article 5(2) accountability record; (2) confirm whether the UK leg of the Microsoft 365 / Copilot transfer relies on the ICO-approved IDTA or the UK Addendum to the EDPB SCCs, and verify that the applicable UK instrument is executed and current \u2014 SCCs issued under EU GDPR do not on their own satisfy UK GDPR Art. 46 for transfers from the UK; (3) review Microsoft 365 / Copilot's published sub-processor list against the approved-vendor register and verify that the executed DPA contains an Art. 28(2)-compliant sub-processor authorisation mechanism, including notification rights and an objection procedure; (4) verify that Microsoft 365 / Copilot's data-handling and model-training commitments for the Meridian SaaS Inc. tenant are documented and confirmed within the executed DPA or supplementary terms, and ensure any such use is within the purposes disclosed in the privacy notice \u2014 the AI VENDOR VERIFICATION RULE applies to this tool and this is the single location for that full instruction; (5) retain all TIA, transfer-instrument, sub-processor, and data-handling documentation in the records of processing activities maintained under GDPR Art. 30.",
+"recommended_action_v2": {
+"action": "The DPO must: (1) confirm whether a documented TIA exists for the Microsoft 365 / Copilot SCC transfer; if not, commission and document one assessing SCC effectiveness in light of US law, and retain it under GDPR Art. 5(2); (2) confirm whether the UK transfer leg relies on the ICO-approved IDTA or the UK Addendum to the EDPB SCCs, and verify the applicable UK instrument is executed and current; (3) review Microsoft 365 / Copilot's published sub-processor list against the approved-vendor register and verify the executed DPA contains an Art. 28(2)-compliant sub-processor authorisation and objection mechanism; (4) confirm that Microsoft 365 / Copilot's data-handling and model-training commitments for the Meridian SaaS Inc. tenant are documented and that any such use is within the purposes disclosed in the privacy notice; (5) retain all TIA, transfer-instrument, sub-processor, and data-handling documentation within the Art. 30 records.",
+"deadline": {
+"illustrative_default": "this quarter",
+"kind": "org_set"
+},
+"information_needed": true,
+"owner": {
+"intake_field": "dpo_status",
+"role": "DPO"
+},
+"trigger": "We could not verify this item from the information provided; it is listed under information needed."
+},
+"regulatory_basis": "GDPR Art. 28(1) (controller must use only processors providing sufficient guarantees); GDPR Art. 28(2) (prior specific or general written authorisation for sub-processors); GDPR Art. 28(3) (mandatory DPA content); GDPR Art. 46(1) (transfer to third country requires appropriate safeguards); GDPR Art. 46(2)(c) (SCCs as the chosen Art. 46 appropriate safeguard); UK GDPR Art. 28(1), Art. 28(2), Art. 28(3), Art. 46(1), Art. 46(2)(c) (equivalent obligations under retained UK law, with the ICO-approved UK Addendum to the EDPB SCCs or the IDTA as the applicable UK instrument \u2014 verify which instrument is in use for the UK leg of each US transfer)",
+"regulatory_basis_v2": [
+{
+"citation": "GDPR Art. 28(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 28(2)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 28(3)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 46(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 46(2)(c)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 5(2)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "GDPR Art. 30",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 28(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 28(2)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+},
+{
+"citation": "UK GDPR Art. 46(1)",
+"engaged_because": "We could not verify this item from the information provided; it is listed under information needed.",
+"information_needed": true
+}
+],
+"severity": "Medium",
+"suggested_owner": "DPO",
+"suggested_timeline": "timeline to be set by the organisation (e.g. this quarter)"
+}
+},
+"dpo_determination": {
+"designation_trigger": {
+"application": "None of the three limbs of Article 37(1) is established on this record: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation is therefore voluntary. A DPO has nonetheless been designated; once designated, Articles 38 and 39 apply in full \u2014 the voluntary character of the appointment does not soften them.",
+"citation": "GDPR Art. 37(1)",
+"key": "dpo_designation_trigger",
+"label": "Article 37 designation trigger",
+"record_fact": "The record answers the DPO question \"Yes, formal DPO\" for a 51-250 organisation in the Technology/SaaS sector.",
+"standard": "The controller and the processor shall designate a data protection officer in any case where: the processing is carried out by a public authority or body, except for courts acting in their judicial capacity; the core activities of the controller or the processor consist of processing operations which, by virtue of their nature, their scope and/or their purposes, require regular and systematic monitoring of data subjects on a large scale; or the core activities of the controller or the processor consist of processing on a large scale of special categories of data pursuant to Article 9 and personal data relating to criminal convictions and offences referred to in Article 10.",
+"status": "analysed",
+"verdict": "not_applicable"
+},
+"position_and_independence": {
+"application": "Article 38 is not discharged by the fact of an appointment. It requires timely involvement in all data-protection issues, resources sufficient to perform the Article 39 tasks, a direct reporting line to the highest management level, freedom from instructions on the exercise of those tasks, and the absence of a conflict of interests from any other duties held. None of those five is evidenced on this record.",
+"citation": "GDPR Art. 38(3)",
+"information_needed": "Supply the DPO's reporting line, the resources allocated, and the other roles the same individual holds, so the Article 38(1)-(3) and 38(6) requirements can be tested rather than assumed.",
+"key": "dpo_position_independence",
+"label": "Article 38 position and independence",
+"record_fact": "The record answers \"Yes, formal DPO\" and says nothing about reporting line, resourcing, or other duties held by the same person.",
+"standard": "The controller and the processor shall ensure that the data protection officer is involved, properly and in a timely manner, in all issues which relate to the protection of personal data. The controller and processor shall support the data protection officer in performing the tasks referred to in Article 39 by providing resources necessary to carry out those tasks and access to personal data and processing operations, and to maintain his or her expert knowledge. The controller and processor shall ensure that the data protection officer does not receive any instructions regarding the exercise of those tasks. He or she shall not be dismissed or penalised by the controller or the processor for performing his tasks. The data protection officer shall directly report to the highest management level of the controller or the processor. The data protection officer may fulfil other tasks and duties. The controller or processor shall ensure that any such tasks and duties do not result in a conflict of interests.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+"status": "record_insufficient",
+"task_coverage": {
+"application": "Article 39(1) sets a floor of five tasks, and two of them are visible in the adjacent answers: monitoring compliance including awareness-raising and training of staff (39(1)(b)), and advising on and monitoring the performance of data protection impact assessments (39(1)(c)). Both are evidenced in substance, which is consistent with \u2014 but not proof of \u2014 the officer performing them. The remaining tasks (informing and advising, cooperating with the supervisory authority, and acting as its contact point) are not addressed by the record.",
+"citation": "GDPR Art. 39(1)",
+"information_needed": "Confirm, task by task against Article 39(1)(a)-(e), which tasks the designated officer actually performs and how that is recorded.",
+"key": "dpo_task_coverage",
+"label": "Article 39 task coverage",
+"record_fact": "The record answers \"Yes, formal DPO\". On the adjacent answers, DPIA activity is \"Yes, one DPIA completed\" and training is \"Yes, formal onboarding + annual refresh\".",
+"standard": "The data protection officer shall have at least the following tasks: to inform and advise the controller or the processor and the employees who carry out processing of their obligations pursuant to this Regulation and to other Union or Member State data protection provisions; to monitor compliance with this Regulation, with other Union or Member State data protection provisions and with the policies of the controller or processor in relation to the protection of personal data, including the assignment of responsibilities, awareness-raising and training of staff involved in processing operations, and the related audits; to provide advice where requested as regards the data protection impact assessment and monitor its performance pursuant to Article 35; to cooperate with the supervisory authority; to act as the contact point for the supervisory authority on issues relating to processing, including the prior consultation referred to in Article 36, and to consult, where appropriate, with regard to any other matter.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+"verdict": "record_insufficient"
+},
+"enforcement_meta": {
+"attempted": true,
+"query_descriptor": "Technology/SaaS sector \u2014 governance in EU (GDPR), United Kingdom (UK GDPR)",
+"total_matched": 0
+},
+"enforcement_precedents": [],
+"executive_summary": "Meridian SaaS Inc. presents a materially strong compliance posture under GDPR and UK GDPR, with a formal DPO, verified Article 28-compliant Data Processing Agreements across all vendors, active DLP controls, tested incident response and data subject rights workflows, and a current privacy notice and training programme with explicit AI-tool coverage. Three residual risks require prompt attention: the privacy notice has not been confirmed to disclose Microsoft 365 / Copilot with the specificity that GDPR Arts. 13 and 14 require, including AI-driven processing purposes and the Standard Contractual Clauses transfer mechanism; the incident response plan has not been confirmed to address data exposure via external tools as a mapped notifiable-breach scenario with a documented vendor escalation pathway triggering the 72-hour supervisory authority notification clock; and the cross-border transfer record does not evidence a completed Transfer Impact Assessment for the Microsoft 365 / Copilot SCC reliance, nor confirm whether the UK transfer leg is covered by the ICO-approved IDTA or UK Addendum rather than EU SCCs alone. Immediate action is required on the privacy notice and incident response plan gaps; the transfer documentation gap should be closed this quarter. All three items are DPO-owned and remediable on the current organisational structure.",
+"generated_at": "2026-08-07T15:46:54.699Z",
+"information_needed": [],
+"interaction_effects": "The Privacy Notice Accuracy, Vendor Data Terms Compliance, and Privacy Impact Assessment Status findings compound each other directly: a privacy notice that does not specifically disclose Microsoft 365 / Copilot's processing purposes, AI-driven features, retention criteria, or SCC transfer mechanism cannot accurately reflect the output of a DPIA, and a DPIA whose scope has not been confirmed against the WP248rev.01 criteria for that tool's tenant configuration may itself rest on an incomplete characterisation of processing \u2014 meaning gaps in any one of these three areas propagate into the accountability record required by GDPR Arts. 5(2) and 24.\n\nThe Incident Response and Breach Readiness gap intersects with the Vendor Data Terms findings because the Art. 33(1) 72-hour notification clock depends on the quality of the vendor escalation pathway embedded in the DPA: if the DPA's Art. 28(3)(f) processor-assistance obligation does not specify a contractual escalation timeframe, and the incident response plan does not map the vendor contact procedure that establishes controller awareness, the organisation faces compounded exposure \u2014 delayed controller awareness followed by a clock that is already running. The unconfirmed UK transfer instrument in Vendor Data Terms also bears on the Incident Response domain, because a UK-leg breach notification to the ICO under UK GDPR Art. 33(1) presupposes a legally valid transfer mechanism is in place for that leg.\n\nThe Employee Training and Awareness gap, though low severity in isolation, extends the reach of the Privacy Notice and Incident Response gaps: if staff are not confirmed to be trained on the GDPR Art. 29 instruction obligation, the Art. 32(4) confidentiality undertaking, and the data subject rights escalation pathway, the organisation's overall accountability demonstration under Arts. 5(2) and 24 is weakened across all domains simultaneously. Closing the training curriculum verification step is therefore a dependency for the broader governance demonstration rather than a standalone remediation item.",
+"lint_warnings": [],
+"maturity_tier_readability_aid": {
+"caveat": "This tier is a readability aid only. No provision of the GDPR establishes maturity tiers, and no supervisory authority assesses a controller against them. The operative conclusion for this assessment is the accountability determination under Articles 5(2) and 24(1).",
+"label": "Non-statutory readability aid",
+"statutory_basis": "none",
+"superseded_by": "accountability_determination",
+"tier": "Managed"
+},
+"open_items": [],
+"remediation_plan": [
+{
+"accountable_owner": "",
+"domain": "accountability",
+"finding_key": "accountability_determination",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "demonstrability",
+"finding_key": "dpia_programme",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "records_of_processing",
+"finding_key": "art30_b",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "records_of_processing",
+"finding_key": "art30_c",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "records_of_processing",
+"finding_key": "art30_f",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "dpo",
+"finding_key": "dpo_position_independence",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "dpo",
+"finding_key": "dpo_task_coverage",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "risk_calibration",
+"finding_key": "risk_calibration",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "review_and_update",
+"finding_key": "review_and_update",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+},
+{
+"accountable_owner": "",
+"domain": "international_transfers",
+"finding_key": "chapter_v_transfers",
+"information_needed": "Supply the accountable owner (name or role), the target date, the remediation priority for this finding. A remediation entry without an owner and a date is not a plan, and cannot be tested at the next review.",
+"priority": "unspecified",
+"status": "record_insufficient",
+"target_date": "",
+"validation_method": "Documentary evidence review",
+"validation_method_source": "default"
+}
+],
+"review_and_update_finding": {
+"application": "",
+"citation": "GDPR Art. 24(1) (second sentence)",
+"information_needed": "State the review cadence for the technical and organisational measures and the date they were last reviewed. The second sentence of Article 24(1) is a standing obligation distinct from the appropriateness clause; it cannot be answered from the appropriateness evidence.",
+"key": "review_and_update",
+"label": "Article 24(1) review and update",
+"record_fact": "The record states no review cadence for the measure set.",
+"standard": "Those measures shall be reviewed and updated where necessary.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+"risk_calibration_finding": {
+"application": "",
+"citation": "GDPR Art. 24(1)",
+"information_needed": "Article 24(1) makes appropriateness relative to the nature, scope, context and purposes of the processing and to the risks of varying likelihood and severity for the rights and freedoms of natural persons. Supply the missing factors: nature, scope, context, purposes. Without them any conclusion about whether measures are \"appropriate\" is an absolute judgment, which is not the test the Article sets.",
+"key": "risk_calibration",
+"label": "Article 24(1) risk calibration",
+"record_fact": "The record supplies 0 of the four factors Article 24(1) names.",
+"standard": "Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+"status": "record_insufficient",
+"verdict": "record_insufficient"
+},
+"transfer_analysis": {
+"application": "The record puts both the EU and the UK chapter in scope. Each transfer leg is analysed under its own chapter; neither chapter's mechanism, benchmark or article numbering is carried across to the other. Under the EU chapter the general principle in Article 44 governs: \"Any transfer of personal data which are undergoing processing or are intended for processing after transfer to a third country or to an international organisation shall take place only if, subject to the other provisions of this Regulation, the conditions laid down in this Chapter are complied with by the controller and processor\" A transfer to a third country is lawful only on an adequacy decision, on Article 46 appropriate safeguards, or on an Article 49 derogation. Article 46(1) sets the safeguards route: \"a controller or processor may transfer personal data to a third country or an international organisation only if the controller or processor has provided appropriate safeguards, and on condition that enforceable data subject rights and effective legal remedies for data subjects are available.\" The recorded mechanism is the Commission clause set \u2014 Article 46(2)(c): \"standard data protection clauses adopted by the Commission in accordance with the examination procedure referred to in Article 93(2);\" The UK chapter is a different body of law, not the EU chapter under another name. There is no UK GDPR Article 44 in force; the UK Chapter V general principle must not be cited to Art. 44. The operative UK general principle is Article 44A(1): \"A controller or processor may transfer personal data to a third country or an international organisation only if\", and the condition is met only where the transfer is approved by adequacy regulations, is made subject to appropriate safeguards, or relies on a derogation \u2014 Article 44A(2)(a): \"is approved by regulations under Article 45A that are in force at the time of the transfer,\"; Article 44A(2)(b): \"is made subject to appropriate safeguards (see Article 46), or\" The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer \"A transfer of personal data to a third country or an international organisation by a controller or processor is made subject to appropriate safeguards only\" where the listed safeguards are provided and the exporter itself judges the data protection test met. The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) \u2014 Article 46(2)(c): \"standard data protection clauses specified in regulations made by the Secretary of State under Article 47A(1) and for the time being in force;\" \u2014 and those issued by the Commissioner under section 119A of the Data Protection Act 2018 \u2014 Article 46(2)(d): \"standard data protection clauses specified in a document issued (and not withdrawn) by the Commissioner for the purposes of this Article under section 119A of the 2018 Act and for the time being in force;\" The Secretary of State's power reads: \"The Secretary of State may by regulations specify standard data protection clauses which the Secretary of State considers are capable of securing that the data protection test set out in Article 46 is met in relation to transfers of personal data generally or in relation to a type of transfer specified in the regulations.\" The exporter carries its own assessment duty: Article 46(1A)(a)(ii) requires that \"the controller or processor, acting reasonably and proportionately, considers that the data protection test is met in relation to the transfer or that type of transfer (see paragraph 6), or\" and Article 46(6) fixes that test as whether, after the transfer, \"the data protection test is met in relation to a transfer, or a type of transfer, of personal data if, after the transfer, the standard of the protection provided for the data subject with regard to that personal data by the safeguards required under paragraph 1A, and (where relevant) by other means, would not be materially lower than the standard of the protection provided for the data subject with regard to the personal data by or under\" this Regulation, Part 2 of the 2018 Act, and Parts 5 to 7 of that Act. Article 46(7) sets the standard of that judgement: \"what is reasonable and proportionate is to be determined by reference to all the circumstances, or likely circumstances, of the transfer or type of transfer, including the nature and volume of the personal data transferred.\"",
+"benchmark_citation": "UK GDPR Art. 46(6)",
+"benchmark_verbatim": "We could not verify this item from the information provided; it is listed under information needed.",
+"citation": "GDPR Art. 44",
+"citations_used": [
+"GDPR Art. 44",
+"GDPR Art. 46(1)",
+"GDPR Art. 46(2)(c)",
+"UK GDPR Art. 44A(1)",
+"UK GDPR Art. 44 (omitted)",
+"UK GDPR Art. 46(1A)",
+"UK GDPR Art. 46(2)(c)",
+"UK GDPR Art. 46(2)(d)",
+"UK GDPR Art. 47A(1)",
+"UK GDPR Art. 46(6)",
+"UK GDPR Art. 46(1A)(a)(ii)",
+"UK GDPR Art. 46(7)"
+],
+"information_needed": true,
+"key": "chapter_v_transfers",
+"label": "International transfers \u2014 Chapter V",
+"mechanism": "EU Standard Contractual Clauses (SCCs)",
+"mechanism_regime": "eu",
+"mechanism_regime_mismatch": false,
+"record_fact": "The record states the jurisdictions in scope as \"EU (GDPR)\", \"United Kingdom (UK GDPR)\". It records cross-border transfer status as \"Yes, US-based tools\". It records the transfer mechanism in place as \"EU Standard Contractual Clauses (SCCs)\".",
+"regime": "dual",
+"standard": "We could not verify this item from the information provided; it is listed under information needed.",
+"status": "analysed",
+"transfer_status": "Yes, US-based tools",
+"verdict": "partially_satisfied"
+}
+}
