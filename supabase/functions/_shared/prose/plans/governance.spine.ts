@@ -34,7 +34,7 @@ export const GOVERNANCE_PLAN_VERSION_LABEL = "prose-plans-2026-08-07-item400";
 export const GOVERNANCE_SUPERSEDED_PLAN_VERSION_LABEL = "prose-plans-2026-08-01-item339";
 
 /** The finalize-point stamp written into `_meta.internal.governance_pipeline_stamp`. */
-export const GOVERNANCE_PIPELINE_STAMP = "governance-pipeline@item400-2026-08-07";
+export const GOVERNANCE_PIPELINE_STAMP = "governance-pipeline@item402-2026-08-07";
 
 /** Transcribed verbatim from the approved plan row. */
 export const GOVERNANCE_THESIS =

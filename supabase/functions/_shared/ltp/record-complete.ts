@@ -210,10 +210,11 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // so the gate reads real evidence: an UNREPAIRED a2 violation is a false
   // absence claim about a record that supplies the fact.
   "cppa-admt": ["a2_absence_claim_vs_record"],
-  // ITEM 401 LEG B — governance has no CSC pass yet; the empty list means the
-  // gate can never count a governance false-absence violation, and the
-  // absent-telemetry arm holds the gate shut until the CSC leg lands.
-  governance: [],
+  // ITEM 402 LEG C — the governance CSC pass
+  // (`_shared/ltp/governance-csc.ts`) now runs, so the gate reads real
+  // evidence: an UNREPAIRED g2 violation is a false absence claim about a
+  // record that supplies the fact.
+  governance: ["g2_absence_claim_vs_record"],
 
 };
 

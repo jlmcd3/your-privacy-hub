@@ -27,8 +27,12 @@
 // or customer-message semantics, disclaimers, or any non-governance surface.
 
 import { GOVERNANCE_PIPELINE_STAMP } from "../prose/plans/governance.spine.ts";
+import {
+  attachReadinessDetermination,
+  readinessLine as readinessLineFromTypedField,
+} from "./governance-readiness.ts";
 
-export const GOVERNANCE_PROSE_GOLD_VERSION = "governance-prose-gold@item400-2026-08-07";
+export const GOVERNANCE_PROSE_GOLD_VERSION = "governance-prose-gold@item402-2026-08-07";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GV-1 — ONE VERDICT VOICE
@@ -125,6 +129,8 @@ const POSTURE_CONTRADICTIONS: readonly { readonly re: RegExp; readonly to: strin
 
 export interface VerdictVoiceResult {
   readiness_line: string;
+  /** ITEM 402 — the typed rating the line restates ("" when none derived). */
+  readiness_rating?: string;
   opener_prepended: boolean;
   posture_claims_deasserted: number;
 }
@@ -140,9 +146,16 @@ export function applyVerdictVoice(report: unknown): VerdictVoiceResult {
   if (!r || typeof r !== "object") return out;
 
   const det = r.accountability_determination as Record<string, unknown> | undefined;
-  const line = readinessLineFromDetermination(det);
+  // ITEM 402 item 4(b) — ONE CONSUMER PATH. The typed
+  // `readiness_determination` record is written first and every surface reads
+  // it; no surface computes its own readiness. The fallback keeps documents
+  // whose determination shape the typed derivation cannot read rendering
+  // exactly as they did under item400.
+  const typed = attachReadinessDetermination(r);
+  const line = readinessLineFromTypedField(typed) || readinessLineFromDetermination(det);
   if (!line) return out; // no authoritative verdict → no second voice invented
   out.readiness_line = line;
+  out.readiness_rating = typed?.rating ?? "";
   r.governance_readiness_line = line;
 
   let summary = typeof r.executive_summary === "string" ? r.executive_summary : "";
@@ -304,3 +317,38 @@ export function applyGovernanceProseGold(report: unknown, intake?: unknown): Gov
   try { t.customer_register = applyCustomerRegister(report); } catch (e) { t.errors.push(`customer_register:${(e as Error)?.message}`); }
   return t;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ITEM 402 — THE ITEM 396 LESSON: THE PHRASING CLASS THIS MODULE CAN WRITE
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Every reader-facing ABSENCE phrasing the governance prose-gold pass can emit,
+// derived from the maps above rather than transcribed, so a relabel updates the
+// class automatically. The governance CSC detector builds its regex from this
+// list and the item402 LINKAGE TEST asserts each entry is matched — a future
+// relabel therefore cannot escape its own detector (the item396 failure).
+
+/** Verdict enums whose reader labels are absence claims about the record. */
+export const GOVERNANCE_ABSENCE_VERDICTS: readonly string[] = [
+  "not_satisfied",
+  "record_insufficient",
+];
+
+export function governanceAbsenceLabelPhrasings(): string[] {
+  const out = new Set<string>();
+  for (const v of GOVERNANCE_ABSENCE_VERDICTS) {
+    const label = GOVERNANCE_VERDICT_LABELS[v];
+    if (label) out.add(label);
+    const line = GOVERNANCE_READINESS_LINES[v];
+    if (line) out.add(line);
+    const opener = verdictOpener({ verdict: v });
+    if (opener) out.add(opener);
+  }
+  // The standing machine-absence sentence the governance builders emit.
+  out.add("We could not verify this item from the information provided; it is listed under information needed.");
+  return [...out];
+}
+
+/** Frozen snapshot for tests and for the CSC regex builder. */
+export const GOVERNANCE_ABSENCE_LABEL_PHRASINGS: readonly string[] =
+  governanceAbsenceLabelPhrasings();
