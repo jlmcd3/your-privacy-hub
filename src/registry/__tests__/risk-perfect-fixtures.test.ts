@@ -11,7 +11,7 @@ import { describe, it, expect } from "vitest";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment";
 import { CPPA_RISK_PERFECT, CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk";
-import { GOLDEN_BY_TOOL, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
+import { GOLDEN_BY_TOOL, PERFECT_BY_TOOL, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
 
 /**
  * Keys a truthful complete record legitimately leaves empty:
