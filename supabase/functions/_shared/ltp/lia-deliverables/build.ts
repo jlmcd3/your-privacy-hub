@@ -13,6 +13,8 @@
  * reaches adverse verdicts; Chapter 7 (E)(5) holds its analysis shape up as
  * the standard. This module matches that shape rather than diluting it.
  */
+// ITEM 399 (FIX 3) — grammatical frame for the pinned statutory quotation.
+import { frameStatuteQuote } from "../../prose/quote-frame.ts";
 import {
   ALREADY_REQUIRED_LEXICON,
   ANCHOR_KEYS,
@@ -597,7 +599,7 @@ export function buildDetermination(
   } else if (child.determination === "children_in_scope" && materialHarm) {
     outcome = "legitimate_interests_not_available";
     rawWhy =
-      `Legitimate interests is not a sound basis for this processing as recorded: the data subjects include children and the worst-case impact is recorded as "${harm}", and the mitigations set out below address individual factors without removing that combination. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" ${overrideAnchor.verbatim}`;
+      `Legitimate interests is not a sound basis for this processing as recorded: the data subjects include children and the worst-case impact is recorded as "${harm}", and the mitigations set out below address individual factors without removing that combination. ${frameStatuteQuote("Article 6(1)(f)", basis.verbatim)} ${overrideAnchor.verbatim}`;
   } else if (open.length > 0) {
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
@@ -626,11 +628,11 @@ export function buildDetermination(
     rebalance = true;
     const names = [...new Set(failing)].map(factorLabel);
     rawWhy =
-      `Legitimate interests carries this processing only if the mitigations below are adopted: the interest and its necessity hold on this record, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands, and where the mitigations are adopted the balancing test must be performed again before the processing is relied on. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" ${overrideAnchor.verbatim}`;
+      `Legitimate interests carries this processing only if the mitigations below are adopted: the interest and its necessity hold on this record, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands, and where the mitigations are adopted the balancing test must be performed again before the processing is relied on. ${frameStatuteQuote("Article 6(1)(f)", basis.verbatim)} ${overrideAnchor.verbatim}`;
   } else {
     outcome = "legitimate_interests_available";
     rawWhy =
-      `Legitimate interests carries this processing as the record stands: the interest is stated, the record shows the comparison against less intrusive means, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. Article 6(1)(f) permits processing where it "${lowerFirst(basis.verbatim)}" This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
+      `Legitimate interests carries this processing as the record stands: the interest is stated, the record shows the comparison against less intrusive means, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. ${frameStatuteQuote("Article 6(1)(f)", basis.verbatim)} This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
   }
 
   const { kept, moved, repairs } = splitExposure(rawWhy);

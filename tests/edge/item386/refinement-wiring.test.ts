@@ -65,7 +65,7 @@ Deno.test("ITEM 386 — the LIA config does not disturb the DPIA or risk configs
 
 Deno.test("ITEM 386 — the protected section-id class is the item382 spine, exactly", () => {
   assertEquals([...LIA_PROTECTED_SECTION_IDS], LIA_SECTION_SPECS.map((s) => s.id));
-  assertEquals(LIA_PIPELINE_STAMP, "lia-pipeline@item386-2026-08-06");
+  assertEquals(LIA_PIPELINE_STAMP, "lia-pipeline@item399-2026-08-07");
 });
 
 // ── 2. Splicer refusal, per protected class ──────────────────────────────────

@@ -330,6 +330,55 @@ export const VALUE_DEMAND_RE =
 
 export const BRACKET_TOKEN_RE = /\[TO (?:BE )?(?:COMPLETE|COMPLETED|ASSESSED|CONFIRMED|DETERMINED|RE-SCORED)[^\]]*\]/gi;
 
+// ---------------------------------------------------------------------------
+// ITEM 399 (FIX 4) — THE BRACKET TOKEN CATALOG
+// ---------------------------------------------------------------------------
+//
+// THE DEFECT (doc afa8c910-d1ba-4f01-90a7-e06be9c99daf, batch 3cb1f213)
+// ---------------------------------------------------------------------
+// "[TO BE RE-SCORED by organisation once Conditions 1-6 are met]" fell through
+// the prose rule chain to the conservative rule-4 fallback and classified
+// `record_gap`, because its phrasing matched no ask-category vocabulary and
+// bracket tokens are (correctly) excluded from the r4 gate-aware fallback. On
+// the PERFECT fixture that single token re-created the DRAFT-banner-over-an-
+// affirmative-record contradiction.
+//
+// THE FIX, AT THE HONEST LEVEL
+// ----------------------------
+// A bracket token is not prose. Its verb IS its classification, and the verb
+// is fixed by the catalog below, regardless of the words that follow it:
+//
+//   ACTION class  — [TO BE RE-SCORED / RE-ASSESSED / ASSESSED / CONFIRMED /
+//                    DETERMINED / VALIDATED / VERIFIED / REVIEWED]
+//                   These name an act a human performs ON the finished
+//                   document. No intake answer closes them.
+//   RECORD-GAP    — [TO COMPLETE / TO BE COMPLETED / TO BE PROVIDED /
+//     class         TO BE SPECIFIED / TO BE SUPPLIED]
+//                   These name a VALUE the record should have carried.
+//
+// A token matching neither list returns `null` and keeps the prose rule chain
+// exactly as it was. The gate-FALSE banner decision is byte-identical by
+// construction: `decideBanner` ignores the classification counts entirely when
+// `recordComplete` is false.
+const BRACKET_ACTION_RE =
+  /\[\s*TO\s+BE\s+(?:RE-?\s?SCORED|RE-?\s?ASSESSED|ASSESSED|CONFIRMED|DETERMINED|VALIDATED|VERIFIED|REVIEWED|SIGNED(?:\s+OFF)?)\b/i;
+
+const BRACKET_RECORD_GAP_RE =
+  /\[\s*TO\s+(?:COMPLETE|BE\s+(?:COMPLETED|PROVIDED|SPECIFIED|SUPPLIED|STATED|NAMED))\b/i;
+
+/**
+ * Classify a bracket completion token by the TOKEN CATALOG alone.
+ * Returns `null` when the token is outside the catalog (prose rules apply).
+ */
+export function classifyBracketToken(token: string): PlaceholderClass | null {
+  const t = String(token ?? "");
+  if (BRACKET_ACTION_RE.test(t)) return "action_item";
+  if (BRACKET_RECORD_GAP_RE.test(t)) return "record_gap";
+  return null;
+}
+
+
+
 
 /**
  * ITEM 380 r2 (DEFECTS B + D) — BY-DESIGN ACTION SURFACES.
@@ -492,7 +541,16 @@ export function classifyPlaceholders(
     for (const tok of collectBracketTokens(report)) {
       // Bracket tokens are UNAFFECTED by the r4 fallback: they classify by
       // their own token rule and never ride the gate.
-      items.push({ ...classifyOpenItem(tok, intake), origin: "bracket_token" });
+      // ITEM 399 (FIX 4) — and that token rule is the TOKEN CATALOG, not the
+      // surrounding words. See `classifyBracketToken`.
+      const base = classifyOpenItem(tok, intake);
+      const catalog = classifyBracketToken(tok);
+      items.push({
+        ...base,
+        origin: "bracket_token",
+        klass: catalog ?? base.klass,
+        precondition: (catalog ?? base.klass) === "action_item" && PRECONDITION_RE.test(tok),
+      });
     }
     const asks = Array.isArray((report as Record<string, unknown>)?.information_needed)
       ? ((report as Record<string, unknown>).information_needed as unknown[])

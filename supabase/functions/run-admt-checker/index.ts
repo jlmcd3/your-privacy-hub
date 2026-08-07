@@ -2785,6 +2785,19 @@ Return this JSON structure exactly:
         telemetry.value,
       );
       attachRecordComplete(report as Record<string, unknown>, telemetry, classification);
+      // ITEM 399 R11 — ASSEMBLED-PROSE LINT: detect-only, fail-open telemetry
+      // over the FINAL assembled strings. No mutation of any prose surface.
+      try {
+        const { attachProseLint } = await import("../_shared/prose/assembled-prose-lint.ts");
+        const lint = attachProseLint(report as Record<string, unknown>);
+        console.log(JSON.stringify({
+          evt: "prose_lint", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
+          version: lint.version, count: lint.count, blocking: lint.blocking,
+          paths: lint.findings.map((f) => `${f.rule}@${f.path}`).slice(0, 20),
+        }));
+      } catch (e) {
+        console.warn("[run-admt-checker] prose lint failed (non-fatal):", (e as Error)?.message);
+      }
       console.log(JSON.stringify({
         evt: "admt_record_complete", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
         admt_pipeline_stamp: ADMT_PIPELINE_STAMP,

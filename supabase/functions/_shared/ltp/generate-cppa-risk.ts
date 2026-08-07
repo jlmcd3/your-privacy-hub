@@ -77,6 +77,8 @@ import {
 } from "./record-complete.ts";
 // ITEM 384 — the gold-standard prose pass (G-1, G-2, G-4, G-6).
 import { applyRiskProseGold } from "./risk-prose-gold.ts";
+// ITEM 399 R11 — assembled-prose lint (detect-only telemetry).
+import { attachProseLint } from "../prose/assembled-prose-lint.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 
 
@@ -329,6 +331,12 @@ export function finalizeCppaRiskPayload(
       csc: internal.risk_csc,
       coverage,
     }, { fn: "generate-cppa-risk", product: "cppa_risk_assessment" });
+  } catch { /* non-fatal */ }
+
+  // (7) ITEM 399 R11 — ASSEMBLED-PROSE LINT. Last pass, detect-only,
+  // fail-open. It reads the FINAL strings; it never edits them.
+  try {
+    attachProseLint(report);
   } catch { /* non-fatal */ }
 
   return { report, emit_gate_filtered: sealed.emit_gate_filtered };

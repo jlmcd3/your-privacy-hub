@@ -1001,29 +1001,40 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     if (!propAdmtApplicable(p, plan)) continue; // defect 4
     const spec: ConclusionSpec | undefined = CPPA_RISK_CONCLUSION_INDEX[p.conclusion_id];
     const label = propLabel(p) || conclusionLabel(p.conclusion_id) || "this reserved judgment";
-    const reservedTo = spec?.reserved_to === "legal_counsel"
+    // ITEM 399 (FIX 2) — ONE ROLE SOURCE OF TRUTH. Doc 55bc938d named
+    // "Chief Compliance Officer" in the headline (the override path) and "the
+    // accountable business owner" in the body (this local default) for the
+    // SAME reserved determination. The override, when the registry states
+    // `reserved_to: business`, is the more specific and therefore the correct
+    // role; it is now computed FIRST and used in the headline, the recorded-
+    // fact clause and the guidance sentence alike.
+    const overrideRole = spec?.reserved_to === "business"
+      ? (certifyingExecTitle(plan) || "the accountable business owner named on the assessment record")
+      : spec?.reserved_to === "external_auditor"
+        ? "the external auditor"
+        : undefined;
+    const reservedTo = overrideRole ?? (spec?.reserved_to === "legal_counsel"
       ? "qualified legal counsel"
       : spec?.reserved_to === "external_auditor"
         ? "the external auditor"
-        : "the accountable business owner";
+        : "the accountable business owner");
     rawSources.push({
       kind: "type_j_reserved",
       conclusion_id: p.conclusion_id,
       element_short_label: label,
       pinpoint: p.anchor.pinpoint,
       customer_recorded_fact_clause: `the record reserves ${lcFirst(label)} to ${reservedTo}`,
-      gap_or_consequence_clause: `the reserved judgment must be exercised and recorded before the assessment closes`,
+      // ITEM 399 (FIX 2, splice class) — the template reads "The gap is
+      // {{clause}}."; without the relative "that" the assembled sentence read
+      // "The gap is the reserved judgment must be exercised".
+      gap_or_consequence_clause: `that the reserved judgment must be exercised and recorded before the assessment closes`,
       compliance_guidance_sentence: spec?.compliance_guidance
         ?? `Record ${reservedTo}'s decision on ${lcFirst(label)} in the assessment file per ${p.anchor.pinpoint}.`,
       is_documentation_gate: false,
       // ITEM 284 (F4) — owner follows the registry's reserved_to when the
       // registry states one. Unregistered conclusion ids keep the
       // Item-243 defect-6 per-KIND default (qualified legal counsel).
-      owner_role_titles_override: spec?.reserved_to === "business"
-        ? (certifyingExecTitle(plan) || "the accountable business owner named on the assessment record")
-        : spec?.reserved_to === "external_auditor"
-          ? "the external auditor"
-          : undefined,
+      owner_role_titles_override: overrideRole,
     });
   }
 
@@ -1069,8 +1080,11 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     // the ratified register; every other KIND is unchanged.
     const reservedTo = s.owner_role_titles_override ?? ownerForKind(s.kind, plan);
     const stem = isFamily ? KIND_OPENERS.gate_unresolved : KIND_OPENERS[s.kind];
+    // ITEM 399 (FIX 2) — the template already renders `{{cite:PINPOINT}}`
+    // immediately after the headline, so the headline drops its own copy of
+    // the pinpoint: it appears exactly once per action string.
     const prefixedLabel = s.kind === "type_j_reserved" && !isFamily
-      ? `${reservedActionLabel(s.pinpoint, reservedTo)} ${lcFirst(s.element_short_label)}`
+      ? `${reservedActionLabel(s.pinpoint, reservedTo, false)} ${lcFirst(s.element_short_label)}`
       : isFamily
         ? `${stem} ${s.element_short_label}`
         : `${stem} ${lcFirst(s.element_short_label)}`;
