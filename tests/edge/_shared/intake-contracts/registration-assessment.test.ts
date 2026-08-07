@@ -10,7 +10,7 @@ import {
   REGISTRATION_ROLES,
   REGISTRATION_EU_LEAD_CODES,
   REGISTRATION_MARKET_CODES,
-} from "../../../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
+} from "../../../../archive/unwired/_shared/intake-contracts/registration-assessment.ts";
 
 Deno.test("registration contract / shape", () => {
   assertEquals(registrationContract.tool_type, "registration_assessment");

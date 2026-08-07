@@ -19,9 +19,9 @@ import {
   validateTypeRPolarity,
   validateTypeWFactorCompleteness,
 } from "../../../../supabase/functions/_shared/render-plan/validators.ts";
-import { LIA_WEIGHING_TESTS } from "../../../../supabase/functions/_shared/factors/lia-factors.ts";
-import { LIA_CONCLUSIONS } from "../../../../supabase/functions/_shared/legal-test/lia-conclusions.ts";
-import { LIA_PASSG_INDEX_BY_TEST } from "../../../../supabase/functions/_shared/pass-g/lia-candidate-index.ts";
+import { LIA_WEIGHING_TESTS } from "../../../../archive/unwired/_shared/factors/lia-factors.ts";
+import { LIA_CONCLUSIONS } from "../../../../archive/unwired/_shared/legal-test/lia-conclusions.ts";
+import { LIA_PASSG_INDEX_BY_TEST } from "../../../../archive/unwired/_shared/pass-g/lia-candidate-index.ts";
 
 function liaBasePlan(overrides: Partial<RenderPlan> = {}): RenderPlan {
   const plan: RenderPlan = {

@@ -12,7 +12,7 @@ import {
   hasBareEnum,
   openingCarriesFinding,
   proseLeaves,
-} from "../../../supabase/functions/_shared/prose/risk-seam-lint.ts";
+} from "../../../archive/unwired/_shared/prose/risk-seam-lint.ts";
 
 const INTAKE = LIA_PERFECT[0].intake as Record<string, unknown>;
 
