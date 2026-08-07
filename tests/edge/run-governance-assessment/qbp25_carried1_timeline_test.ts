@@ -6,7 +6,7 @@
 // Deno test: `deno test supabase/functions/run-governance-assessment/qbp25_carried1_timeline_test.ts`
 
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { composeTimelineSentence } from "./_qbp25_b1_v2.ts";
+import { composeTimelineSentence } from "../../../supabase/functions/run-governance-assessment/_qbp25_b1_v2.ts";
 
 Deno.test("statutory with citation + no illustrative_default → base sentence", () => {
   const s = composeTimelineSentence({

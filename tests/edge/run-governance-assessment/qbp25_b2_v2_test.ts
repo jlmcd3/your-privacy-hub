@@ -5,7 +5,7 @@ import {
   findingHasV2Deadline,
   isRecommendedActionV2Valid,
   isRegulatoryBasisV2Valid,
-} from "./_qbp25_b1_v2.ts";
+} from "../../../supabase/functions/run-governance-assessment/_qbp25_b1_v2.ts";
 
 const validRA = {
   action: "Appoint a DPO and publish contact details.",

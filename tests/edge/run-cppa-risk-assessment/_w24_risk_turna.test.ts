@@ -216,10 +216,11 @@ Deno.test("W24-A regression pin (doc 93a8313b input shape): resolved cohort emit
   assert(a1.includes("April 1, 2030"), a1);
 });
 
-// ── Bimodal emitter tests (W24-RISK-TURNA §1) — DELETED (ITEM 387, category b)
-// The § 7121(a)(3) cohort emitter and its `info_cyber_audit_7121a3_revenue`
-// information-needed ask were retired to a telemetry-only no-op by
-// ITEM-204 CEO RULING (Defect B), 2026-07-27 — cohort membership is no longer
-// computed on this surface; the § 7121(a) phase-in schedule is emitted whole
-// by _shared/ltp/cyber-audit-schedule.ts from corpus literals. The three
-// bimodal tests asserted the removed behaviour and are deleted here.
+// ── Bimodal emitter tests (W24-RISK-TURNA §1) — DELETED (item 387 r2, cat. b) ──
+// The § 7121(a)(3) bimodal cohort emitter (applyW21RiskTurnA a2_cohort_*) was
+// RETIRED by ITEM 204 (CEO ruling): the full audit schedule now renders, and the
+// emitter short-circuits with counters.a2_cohort_skipped_reason =
+// "retired_item204_full_schedule_renders". The three bimodal tests (resolved
+// branch / unresolved info-needed branch / info-needed idempotence) tested
+// behaviour that item 204 deliberately removed, so they are deleted rather than
+// re-pinned. Cohort-date truth is now owned by _risk_cohort_date.ts (V2).
