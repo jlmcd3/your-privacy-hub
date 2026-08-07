@@ -39,7 +39,7 @@ import { GOVERNANCE_PERFECT } from "../../../supabase/functions/_shared/golden/g
 import {
   GOVERNANCE_CRITIC_WATCHLIST,
   GOVERNANCE_WATCH_CLASSES,
-} from "../../../archive/unwired/_shared/ltp/governance-refinement-config.ts";
+} from "../../../supabase/functions/_shared/ltp/governance-refinement-config.ts";
 import { LIA_CRITIC_WATCHLIST } from "../../../supabase/functions/_shared/ltp/lia-refinement-config.ts";
 
 const PERFECT = GOVERNANCE_PERFECT[0].intake as Record<string, unknown>;
