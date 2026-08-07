@@ -149,7 +149,11 @@ describe("casesForVariant — perfect routing (cppa-risk)", () => {
     expect(casesForVariant("cppa-risk", null)).toBe(GOLDEN_BY_TOOL["cppa-risk"]);
   });
 
-  it("governance / perfect still returns its GOLDEN_BY_TOOL set", () => {
-    expect(casesForVariant("governance", "perfect")).toEqual(GOLDEN_BY_TOOL["governance"]);
+  // ITEM 401 leg B — governance now HAS a perfect fixture, so the old
+  // "falls back to GOLDEN_BY_TOOL" pin is superseded: perfect routes to
+  // PERFECT_BY_TOOL["governance"] and the legacy set stays untouched.
+  it("governance / perfect routes to the item-401 perfect fixture", () => {
+    expect(casesForVariant("governance", "perfect")).toEqual(PERFECT_BY_TOOL["governance"]);
+    expect(casesForVariant("governance", null)).toEqual(GOLDEN_BY_TOOL["governance"]);
   });
 });
