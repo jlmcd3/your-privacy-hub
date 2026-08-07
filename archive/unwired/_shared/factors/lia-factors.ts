@@ -33,7 +33,7 @@
  * derivation and Pass G candidate-set construction.
  */
 
-import type { JurisdictionTag, StatutoryAnchor } from "../render-plan/schema.ts";
+import type { JurisdictionTag, StatutoryAnchor } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 export type FactorKind =
   | "purpose_legitimacy"

@@ -35,7 +35,7 @@ import {
   ADMT_COVERAGE_GAPS,
   ADMT_BACKLOG_SNAPSHOT,
   coverageSummary,
-} from "../../../supabase/functions/_shared/registry/admt-verified-authorities.coverage.ts";
+} from "../../../archive/unwired/_shared/registry/admt-verified-authorities.coverage.ts";
 
 describe("cppa-admt verified-authority registry — row-shape contract", () => {
   it("stamps a non-empty version tag", () => {

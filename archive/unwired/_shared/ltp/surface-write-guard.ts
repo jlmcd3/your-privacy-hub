@@ -17,7 +17,7 @@ import {
   RISK_SURFACE_BINDINGS,
   RISK_CUT_RULINGS,
   RISK_SURFACE_MAP_VERSION,
-} from "./content/risk-surface-map.ts";
+} from "../../../../supabase/functions/_shared/ltp/content/risk-surface-map.ts";
 
 export const SURFACE_WRITE_GUARD_VERSION = `surface-write-guard@2026-07-27+${RISK_SURFACE_MAP_VERSION}`;
 

@@ -24,7 +24,7 @@ import {
   openingCarriesFinding,
   proseLeaves,
   rendersWrongField,
-} from "../../../supabase/functions/_shared/prose/risk-seam-lint.ts";
+} from "../../../archive/unwired/_shared/prose/risk-seam-lint.ts";
 import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
 import { isSanctionedCounselRegister } from "../../../supabase/functions/_shared/emit-gate.ts";
 

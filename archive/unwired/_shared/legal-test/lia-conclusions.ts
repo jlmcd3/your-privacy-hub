@@ -43,7 +43,7 @@ import type {
   EpistemicType,
   JurisdictionTag,
   StatutoryAnchor,
-} from "../render-plan/schema.ts";
+} from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 export type { EpistemicType, JurisdictionTag, StatutoryAnchor };
 

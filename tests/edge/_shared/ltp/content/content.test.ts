@@ -2,7 +2,7 @@
 // Deterministic; no network.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { PASS1_DERIVE_SYSTEM, PASS1_DERIVE_USER_TEMPLATE, PASS1_DERIVE_PROMPT_VERSION } from "../../../../../supabase/functions/_shared/ltp/content/pass1-derive-prompt.ts";
-import { PASSV_VERIFY_SYSTEM, PASSV_VERIFY_PROMPT_VERSION } from "../../../../../supabase/functions/_shared/ltp/content/passv-verify-prompt.ts";
+import { PASSV_VERIFY_SYSTEM, PASSV_VERIFY_PROMPT_VERSION } from "../../../../../archive/unwired/_shared/ltp/content/passv-verify-prompt.ts";
 import {
   PASS2_TEMPLATES,
   SURFACE_AUDIT_RULINGS,

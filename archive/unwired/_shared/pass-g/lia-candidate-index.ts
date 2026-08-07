@@ -32,7 +32,7 @@
  * NO WIRING. Data only.
  */
 
-import type { JurisdictionTag } from "../render-plan/schema.ts";
+import type { JurisdictionTag } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 export interface CandidateEntry {
   readonly source:

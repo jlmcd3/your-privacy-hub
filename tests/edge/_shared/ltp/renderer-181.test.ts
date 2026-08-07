@@ -5,7 +5,7 @@ import {
   isBQuestionIntake,
   filterInfoNeededToBQuestions,
   AGGREGATION_NOTE_TEXT,
-} from "../../../../supabase/functions/_shared/ltp/renderer-181.ts";
+} from "../../../../archive/unwired/_shared/ltp/renderer-181.ts";
 
 Deno.test("renderer-181: order assertion passes when factors precede conclusion", () => {
   const parts = [

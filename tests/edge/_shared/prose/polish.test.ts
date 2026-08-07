@@ -20,8 +20,8 @@ import {
   runPolishStage,
   type PolishCallFn,
   type PolishSection,
-} from "../../../../supabase/functions/_shared/prose/polish.ts";
-import { POLISH_FLAGS, POLISH_PRODUCTS, polishEnabledFor, polishShipsFor } from "../../../../supabase/functions/_shared/prose/polish-flags.ts";
+} from "../../../../archive/unwired/_shared/prose/polish.ts";
+import { POLISH_FLAGS, POLISH_PRODUCTS, polishEnabledFor, polishShipsFor } from "../../../../archive/unwired/_shared/prose/polish-flags.ts";
 
 const DET = [
   'The Company must complete a risk assessment under § 7152(a)(5). The record states an annual',

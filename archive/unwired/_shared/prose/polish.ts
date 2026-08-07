@@ -27,7 +27,7 @@ import {
   type EntailmentFinding,
   type EntailmentResult,
   validateEntailment,
-} from "./entailment.ts";
+} from "../../../../supabase/functions/_shared/prose/entailment.ts";
 import { polishEnabledFor, polishShipsFor, POLISH_FLAGS_VERSION } from "./polish-flags.ts";
 
 export const POLISH_RUNNER_VERSION = "prose-polish-2026-08-01-item340";

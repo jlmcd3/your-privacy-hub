@@ -17,7 +17,7 @@
 import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_ROWS,
-} from "./admt-verified-authorities.ts";
+} from "../../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
 
 /** Snapshot metadata — pin the coverage claim to the source data. */
 export const ADMT_BACKLOG_SNAPSHOT = {

@@ -6,7 +6,7 @@
  * identical suite runs (a) harness-side in Deno tests and (b) against
  * live-persisted `report_data` from the deployed v2 function.
  */
-import { INTERNAL_FORBIDDEN_TOKENS } from "../customer-projections.ts";
+import { INTERNAL_FORBIDDEN_TOKENS } from "../../../../../supabase/functions/_shared/ltp/customer-projections.ts";
 import {
   CPPA_RISK_SURFACE_CONTRACT,
   CPPA_RISK_REQUIRED_SURFACE_KEYS,
