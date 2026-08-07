@@ -156,10 +156,22 @@ export function deriveReadinessDetermination(
   return { rating, rating_basis: BASIS, rationale, determined_from };
 }
 
-/** The ONE readiness line every surface reads. Never computed twice. */
+/**
+ * The ONE readiness line every surface reads. Never computed twice, and the
+ * wording is byte-identical to the item400 line class so the restoration adds
+ * a typed SOURCE without changing a single reader-facing string.
+ */
+export const READINESS_RATING_LINES: Record<ReadinessRating, string> = {
+  "Evidenced": "Accountability evidenced",
+  "Partly evidenced": "Accountability partly evidenced",
+  "Not evidenced": "Accountability not evidenced",
+  "Not determinable": "Accountability not yet determinable",
+  "Not engaged": "Accountability duties not engaged",
+};
+
 export function readinessLine(rd: ReadinessDetermination | null | undefined): string {
   if (!rd) return "";
-  return `Accountability: ${rd.rating.toLowerCase()}`;
+  return READINESS_RATING_LINES[rd.rating] ?? "";
 }
 
 /**
