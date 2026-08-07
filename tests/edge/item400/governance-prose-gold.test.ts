@@ -23,7 +23,7 @@ import {
 } from "../../../supabase/functions/_shared/prose/plans/governance.spine.ts";
 
 Deno.test("ITEM400 spine: stamp, thesis and nine-section arc", () => {
-  assertEquals(GOVERNANCE_PIPELINE_STAMP, "governance-pipeline@item402-2026-08-07");
+  assertEquals(GOVERNANCE_PIPELINE_STAMP, "governance-pipeline@item403-2026-08-07");
   assertEquals(GOVERNANCE_PLAN_ROW_ID, "7f168ddb-d419-4f06-8cdc-1cf1fa03be7f");
   assertEquals(GOVERNANCE_PLAN_VERSION_LABEL, "prose-plans-2026-08-07-item400");
   assertEquals(GOVERNANCE_SECTION_SPECS.length, 9);
