@@ -10,7 +10,7 @@
  * this turn (Phase 2 will wire).
  */
 
-import type { GateRuleOutcome, JurisdictionTag } from "../render-plan/schema.ts";
+import type { GateRuleOutcome, JurisdictionTag } from "../../../supabase/functions/_shared/render-plan/schema.ts";
 
 export interface GateSpec {
   readonly id: string;
