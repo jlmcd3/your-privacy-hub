@@ -1443,6 +1443,40 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] ITEM 313 deliverables failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 400 — GOVERNANCE PROSE GOLD (GV-1 … GV-3) ─────────────────
+    // Runs AFTER the ITEM 313 deliverables (so the authoritative
+    // accountability determination exists) and BEFORE the emit gate and the
+    // P2 serializer, so the gate reads the text the customer will read.
+    // Fail-open: a throw leaves the report exactly as assembled.
+    try {
+      const { applyGovernanceProseGold } = await import("../_shared/ltp/governance-prose-gold.ts");
+      const { GOVERNANCE_PIPELINE_STAMP } = await import("../_shared/prose/plans/governance.spine.ts");
+      const gold = applyGovernanceProseGold(
+        reportData as any,
+        ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
+      );
+      (reportData as any)._meta = {
+        ...(((reportData as any)._meta ?? {})),
+        internal: {
+          ...(((reportData as any)._meta ?? {}).internal ?? {}),
+          governance_prose_gold: gold,
+          governance_pipeline_stamp: GOVERNANCE_PIPELINE_STAMP,
+        },
+      };
+      console.log(JSON.stringify({
+        evt: "governance_prose_gold_applied", fn: "run-governance-assessment",
+        stamp: GOVERNANCE_PIPELINE_STAMP,
+        readiness_line: gold.verdict_voice.readiness_line,
+        opener_prepended: gold.verdict_voice.opener_prepended,
+        posture_claims_deasserted: gold.verdict_voice.posture_claims_deasserted,
+        hollow_fields_omitted: gold.hollow_fields.omitted,
+        register_rewrites: gold.customer_register.rewrites,
+        register_paths: gold.customer_register.paths,
+        errors: gold.errors,
+      }));
+    } catch (e) {
+      console.warn("[run-governance-assessment] ITEM 400 prose gold failed (non-fatal):", (e as Error)?.message);
+    }
 
 
     // ── LEAK-PREV-P1 — EMIT GATE (2026-07-25) ──────────────────────────

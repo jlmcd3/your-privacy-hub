@@ -1,130 +1,156 @@
 {
   "product": "governance",
-  "version": "prose-plans-2026-08-01-item339",
+  "version": "prose-plans-2026-08-07-item400",
   "seed_default_approved": false,
   "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
+  "supersedes": "prose-plans-2026-08-01-item339",
   "provenance": {
-    "method": "report_keys",
-    "donors_total": 14,
-    "donors_with_text": 0,
-    "extracted_at": "2026-08-01",
+    "method": "live_render_mining",
+    "extracted_at": "2026-08-07",
+    "render_doc_id": "cba3724c-ca12-43de-85e4-dd005e5bcf4e",
+    "render_table": "quality_run_documents",
+    "render_score": 90.95,
+    "absent_render_doc_id": "0b9ccbcf-c30b-4013-a821-dc8ba02cfae2",
+    "absent_render_note": "The second nominated render does not exist in quality_run_documents. The walk proceeded on the single extant governance render and that absence is reported rather than papered over.",
+    "approval_note": "panel-delegated approval per CEO delegation 2026-08-06",
     "exemplars": [
       "cppa-risk",
-      "ir_playbook"
-    ]
+      "lia",
+      "admt"
+    ],
+    "fact_exempt_rule": "The reference render is an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from it may reach a customer document or a future fixture as if it were the record."
   },
+  "thesis": "This assessment states, once, whether the organisation can demonstrate compliance under Articles 5(2) and 24(1) on the record it supplied, and then shows the record that produced that answer domain by domain. Where a duty is unevidenced the assessment names the duty, says what artifact would evidence it, and never lets a second verdict speak beside the first.",
+  "centre_of_gravity": "readiness_determination",
   "sections": [
     {
-      "id": "governance_summary",
-      "title": "Determination",
+      "id": "readiness_determination",
+      "title": "Whether the organisation can demonstrate compliance",
+      "arc_stage": "headline",
+      "lead": "determination",
+      "source_key": "accountability_determination",
+      "themes": ["art_5_2", "art_24_1", "one_verdict", "unevidenced_duties"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "executive_summary",
+      "title": "The assessment in short",
       "arc_stage": "headline",
       "lead": "determination",
       "source_key": "executive_summary",
-      "themes": [
-        "maturity_outcome",
-        "drivers",
-        "residual_uncertainty"
-      ],
+      "themes": ["verdict_first", "residual_risks", "ownership"],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
-      "id": "scope_of_review",
-      "title": "What this review covers",
-      "arc_stage": "scope",
-      "lead": "determination",
-      "source_key": "organisation_profile",
-      "themes": [
-        "jurisdictions",
-        "programme_elements",
-        "exclusions"
-      ],
-      "required": true,
-      "status": "pending_review"
-    },
-    {
-      "id": "programme_record",
-      "title": "The programme as the organisation described it",
+      "id": "organisation_record",
+      "title": "The organisation as it described itself",
       "arc_stage": "record",
       "lead": "record",
-      "source_key": "domain_findings",
-      "themes": [
-        "accountability",
-        "policies",
-        "training",
-        "vendor_management",
-        "transfers"
-      ],
+      "source_key": "organisation_profile",
+      "themes": ["sector", "jurisdictions", "tools", "data_categories", "size"],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
-      "id": "maturity_analysis",
-      "title": "Maturity analysis",
+      "id": "domain_findings",
+      "title": "The domains, in the order the record addresses them",
+      "arc_stage": "analysis",
+      "lead": "record",
+      "source_key": "domain_findings",
+      "themes": ["regulatory_basis", "control_state", "recommended_action", "severity"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "domain_element_findings",
+      "title": "The elements each domain has to carry",
       "arc_stage": "analysis",
       "lead": "determination",
-      "source_key": "readiness_rationale",
-      "themes": [
-        "strengths",
-        "weaknesses",
-        "evidence_quality"
-      ],
+      "source_key": "domain_element_findings",
+      "themes": ["element_conclusion", "evidence", "ico_audit_framework"],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
-      "id": "obligations_engaged",
-      "title": "The risks driving this rating",
+      "id": "cross_domain_findings",
+      "title": "What the domains say when read together",
+      "arc_stage": "synthesis",
+      "lead": "determination",
+      "source_key": "interaction_effects",
+      "themes": ["interaction", "transfers", "dpo", "risk_calibration", "review_cycle"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "obligations_and_gaps",
+      "title": "The obligations and where the record falls short",
       "arc_stage": "duty",
       "lead": "determination",
-      "source_key": "top_three_risks",
-      "themes": [
-        "risks_engaged",
-        "duties_engaged",
-        "documentation"
-      ],
+      "source_key": "open_items",
+      "themes": ["single_ledger", "unevidenced_duty", "what_would_close_it"],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
-      "id": "information_needed",
-      "title": "What the record does not yet state",
-      "arc_stage": "ask",
-      "lead": "record",
-      "source_key": "information_needed",
-      "themes": [
-        "silent_fields",
-        "hedged_answers",
-        "inconsistencies"
-      ],
-      "required": true,
-      "status": "pending_review"
-    },
-    {
-      "id": "recommendations",
+      "id": "remediation_plan",
       "title": "What to do next",
       "arc_stage": "remedy",
       "lead": "determination",
-      "source_key": "immediate_actions",
-      "themes": [
-        "immediate",
-        "next_cycle",
-        "ongoing"
-      ],
+      "source_key": "remediation_plan",
+      "themes": ["act", "owner", "date", "citation"],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
-      "id": "closing",
-      "title": "Reservation to counsel",
+      "id": "close",
+      "title": "Enforcement context and closing position",
       "arc_stage": "close",
       "lead": "determination",
-      "source_key": "disclaimer",
-      "themes": [
-        "counsel_reservation"
-      ],
+      "source_key": "enforcement_context",
+      "themes": ["exposure", "review_trigger", "closing_position"],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
+    }
+  ],
+  "strong_surfaces": [
+    "accountability_determination.reasoning — names the duty, cites the Article 5(2) burden, and states why an unanswered duty is not a neutral one.",
+    "maturity_tier_readability_aid.caveat — declares its own non-statutory status and names the conclusion that actually operates.",
+    "domain_findings[].regulatory_basis_v2 — a citation plus an engaged_because clause tied to something the record says."
+  ],
+  "exemplars": [
+    {
+      "id": "xp-gov-1",
+      "section_id": "readiness_determination",
+      "defect_class": "two_verdicts",
+      "before": "Readiness: Unknown … the organisation presents a materially strong compliance posture under GDPR and UK GDPR.",
+      "after": "Accountability not yet determinable. The record does not yet carry what a determination under these duties requires (GDPR Art. 5(2); GDPR Art. 24(1)). The organisation describes the set of controls set out below under GDPR and UK GDPR.",
+      "note": "GV-1. One verdict, sourced from the accountability determination. The demoted maturity tier never speaks a second verdict, and an affirmative posture claim cannot stand beside a non-affirmative determination."
+    },
+    {
+      "id": "xp-gov-2",
+      "section_id": "organisation_record",
+      "defect_class": "hollow_header_field",
+      "before": "SECTOR —    JURISDICTIONS —",
+      "after": "Sector and Jurisdictions print verbatim when the record carries them, and the row is omitted entirely when it does not.",
+      "note": "GV-2. A field with nothing to say is omitted, never shipped as a bare em-dash. The hollow render traced to organisation_profile being absent from the governance serializer allow-list."
+    },
+    {
+      "id": "xp-gov-3",
+      "section_id": "domain_element_findings",
+      "defect_class": "internal_vocabulary",
+      "before": "The domain is record_insufficient on the evidence supplied.",
+      "after": "The domain does not yet carry what a determination requires on the evidence supplied.",
+      "note": "GV-3. Machine enums stay on the machine-keyed fields the renderers and graders read; reader prose carries the words."
+    },
+    {
+      "id": "xp-gov-4",
+      "section_id": "obligations_and_gaps",
+      "defect_class": "unevidenced_duty",
+      "before": "No evidence provided for this element.",
+      "after": "The duty is engaged and the record does not evidence it; the artifact that would close it is a dated, approved record of the control and the person accountable for it.",
+      "note": "An unevidenced duty is named as a duty, not scored as neutral, and always paired with what would close it."
     }
   ]
 }
