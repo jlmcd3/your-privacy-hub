@@ -108,8 +108,10 @@ Deno.test("harness: the governance source row carries the intake wholesale (no c
   assert(/intake_data: intake/.test(src), "expected governance insert to persist intake wholesale");
 });
 
-Deno.test("gate: governance is in the union with an empty false-absence id list", () => {
-  assertEquals(FALSE_ABSENCE_CHECK_IDS["governance"], []);
+// ITEM 402 LEG C — the governance CSC pass now exists, so the gate reads a
+// real false-absence id instead of the leg-B placeholder empty list.
+Deno.test("gate: governance false-absence id is the CSC g2 check", () => {
+  assertEquals(FALSE_ABSENCE_CHECK_IDS["governance"], ["g2_absence_claim_vs_record"]);
 });
 
 Deno.test("gate: fail-closed shape on the perfect fixture (no coverage, no CSC)", () => {
