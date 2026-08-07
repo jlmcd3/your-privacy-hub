@@ -10,7 +10,7 @@ import { describe, it, expect } from "vitest";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework";
 import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia";
-import { GOLDEN_BY_TOOL, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
+import { GOLDEN_BY_TOOL, PERFECT_BY_TOOL, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
 
 const EXEMPT = new Set([
   "source_assessment_id",
@@ -67,8 +67,12 @@ describe("casesForVariant — perfect routing", () => {
     expect(casesForVariant("dpia", "perfect")).toEqual(DPIA_PERFECT);
   });
 
-  it("governance / perfect still returns its GOLDEN_BY_TOOL set", () => {
-    expect(casesForVariant("governance", "perfect")).toEqual(GOLDEN_BY_TOOL["governance"]);
+  // ITEM 401 leg B — governance now HAS a perfect fixture, so the old
+  // "falls back to GOLDEN_BY_TOOL" pin is superseded: perfect routes to
+  // PERFECT_BY_TOOL["governance"] and the legacy set stays untouched.
+  it("governance / perfect routes to the item-401 perfect fixture", () => {
+    expect(casesForVariant("governance", "perfect")).toEqual(PERFECT_BY_TOOL["governance"]);
+    expect(casesForVariant("governance", null)).toEqual(GOLDEN_BY_TOOL["governance"]);
   });
 
   it("dpia / null is unchanged (legacy golden set)", () => {

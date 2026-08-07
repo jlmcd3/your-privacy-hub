@@ -82,6 +82,8 @@ import { CPPA_RISK_PERFECT } from "./cppa-risk.ts";
 import { LIA_PERFECT } from "./lia-perfect.ts";
 // ITEM 393 leg B — ADMT perfect fixture (×1).
 import { ADMT_PERFECT } from "./cppa-admt.ts";
+// ITEM 401 leg B — governance perfect fixture (×1).
+import { GOVERNANCE_PERFECT } from "./governance-perfect.ts";
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
@@ -89,6 +91,7 @@ export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
   "cppa-risk": CPPA_RISK_PERFECT,
   "lia": LIA_PERFECT,
   "cppa-admt": ADMT_PERFECT,
+  "governance": GOVERNANCE_PERFECT,
 };
 
 export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {

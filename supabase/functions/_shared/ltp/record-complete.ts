@@ -36,7 +36,12 @@ export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 // coverage matrix and NO CSC pass yet (the CSC leg follows), so the
 // fail-closed arms keep the ADMT gate value FALSE with `coverage_orphans` +
 // `csc_false_absence` in failed_conditions. That is correct for this leg.
-export type RecordCompleteProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt";
+// ITEM 401 leg B — "governance" joins the union, FAIL-CLOSED. Governance has
+// NO coverage matrix and NO CSC pass yet (the CSC leg follows), so the
+// fail-closed arms keep the governance gate value FALSE with
+// `coverage_orphans` + `csc_false_absence` in failed_conditions. That is
+// correct and intended for this leg.
+export type RecordCompleteProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance";
 
 export type FailedCondition =
   | "contract_incomplete"
@@ -205,6 +210,10 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // so the gate reads real evidence: an UNREPAIRED a2 violation is a false
   // absence claim about a record that supplies the fact.
   "cppa-admt": ["a2_absence_claim_vs_record"],
+  // ITEM 401 LEG B — governance has no CSC pass yet; the empty list means the
+  // gate can never count a governance false-absence violation, and the
+  // absent-telemetry arm holds the gate shut until the CSC leg lands.
+  governance: [],
 
 };
 
