@@ -1478,19 +1478,47 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] ITEM 400 prose gold failed (non-fatal):", (e as Error)?.message);
     }
 
-    // ── ITEM 401 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
-    // Order mirrors the established pattern (DPIA / Risk / LIA / ADMT): the
-    // gate is the LAST deterministic post-pass, AFTER the item-400 governance
-    // prose gold and BEFORE the LEAK-PREV-P1 emit gate and the LEAK-PREV-P2
-    // serializer, so its telemetry rides `_meta.internal` and survives the
-    // whitelist.
-    //
-    // The evidence passes receive the FULL PERSISTED RECORD —
+    // ── ITEM 402 LEG C — GOVERNANCE CSC, THEN COVERAGE ─────────────────
+    // Order mirrors the established pattern (DPIA / Risk / LIA / ADMT):
+    // CSC first (it may REPAIR a surface from the record register), then the
+    // coverage matrix (so it scores the repaired document), then the item-401
+    // record-complete gate. Both passes receive the FULL PERSISTED RECORD —
     // `assessment.intake_data`, the row the harness and the app both write —
-    // never a trimmed projection (the item385 r2 lesson).
+    // never a trimmed projection (the item385 r2 lesson). Fail-open.
+    try {
+      const { runGovernanceCsc, attachGovernanceCsc } = await import("../_shared/ltp/governance-csc.ts");
+      const govRecord = (((assessment as any).intake_data ?? intake ?? {})) as Record<string, unknown>;
+      const csc = runGovernanceCsc(reportData as Record<string, unknown>, { intake: govRecord });
+      attachGovernanceCsc(reportData as Record<string, unknown>, csc);
+      console.log(JSON.stringify({
+        evt: "governance_csc", fn: "run-governance-assessment",
+        version: csc.version, repairs: csc.repairs, crashed: csc.crashed,
+        violations: csc.violations.map((v) => ({ id: v.check_id, path: v.path, repaired: v.repaired })),
+      }));
+    } catch (e) {
+      console.warn("[run-governance-assessment] ITEM 402 CSC failed (non-fatal):", (e as Error)?.message);
+    }
+
+    try {
+      const { runCoverageMatrix, attachCoverage } = await import("../_shared/ltp/coverage-matrix.ts");
+      const govRecord = (((assessment as any).intake_data ?? intake ?? {})) as Record<string, unknown>;
+      const cov = runCoverageMatrix("governance", reportData as Record<string, unknown>, govRecord);
+      attachCoverage(reportData as Record<string, unknown>, "governance_coverage", cov);
+      console.log(JSON.stringify({
+        evt: "governance_coverage", fn: "run-governance-assessment",
+        version: cov.version, counts: cov.counts, crashed: cov.crashed,
+        orphans: cov.orphans.slice(0, 10),
+      }));
+    } catch (e) {
+      console.warn("[run-governance-assessment] ITEM 402 coverage failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 401 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
+    // The gate is the LAST deterministic post-pass, AFTER the item-400
+    // governance prose gold and the item-402 evidence passes, and BEFORE the
+    // LEAK-PREV-P1 emit gate and the LEAK-PREV-P2 serializer, so its telemetry
+    // rides `_meta.internal` and survives the whitelist.
     //
-    // Governance has no coverage matrix and no CSC pass yet (the CSC leg
-    // follows), so both fail-closed arms hold and the gate value is FALSE.
     // ZERO CUSTOMER-VISIBLE OUTPUT CHANGE: nothing reads the value back into
     // prose, the determination, or the banner. Telemetry only. Fail-open.
     try {
