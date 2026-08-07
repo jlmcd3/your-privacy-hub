@@ -28,7 +28,7 @@ import {
   emptyAskedKeys,
   FALSE_ABSENCE_CHECK_IDS,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { REFERENCE_RENDER_TOKENS } from "../../../supabase/functions/_shared/prose/plans/governance.spine.ts";
+import { GOVERNANCE_PIPELINE_STAMP, REFERENCE_RENDER_TOKENS } from "../../../supabase/functions/_shared/prose/plans/governance.spine.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/governance.ts";
 
@@ -147,7 +147,7 @@ Deno.test("serializer: record_complete survives the governance whitelist", () =>
   const doc: Record<string, unknown> = {
     assessment_id: "test-401",
     generated_at: new Date().toISOString(),
-    _meta: { internal: {} },
+    _meta: { internal: { governance_pipeline_stamp: GOVERNANCE_PIPELINE_STAMP } },
     not_a_declared_key: "must be dropped",
   };
   const t = computeRecordComplete({ product: "governance", contract: governanceContract, intake: INTAKE });
@@ -155,6 +155,7 @@ Deno.test("serializer: record_complete survives the governance whitelist", () =>
   const { report, telemetry } = serializeCustomerReport(doc, GOVERNANCE_REPORT_SCHEMA);
   assert(telemetry.crashed !== true);
   const internal = (report as any)?._meta?.internal ?? {};
+  assertEquals(internal.governance_pipeline_stamp, GOVERNANCE_PIPELINE_STAMP);
   assertEquals(internal.record_complete?.product, "governance");
   assertEquals(internal.record_complete?.value, false);
   assert(Array.isArray(internal.placeholder_classification?.items));
