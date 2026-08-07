@@ -1443,6 +1443,60 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] ITEM 313 deliverables failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 403 LEG D — GOVERNANCE REFINEMENT PASS ────────────────────
+    // CRITIC (Claude, the run's resolved generation model, one call) →
+    // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. Mirrors the
+    // run-li-assessment / run-admt-checker battery order exactly: refinement
+    // runs AFTER generation and the ITEM 313 deliverable attaches, and BEFORE
+    // the deterministic battery — item400 prose gold → leg-C CSC → coverage →
+    // item401 record-complete gate — so every downstream deterministic pass
+    // sees the spliced document. One pass, no loops. Config-gated by
+    // GOVERNANCE_REFINEMENT_ENABLED; fail-open.
+    try {
+      const { runGovernanceRefinement } = await import("../_shared/ltp/governance-refinement.ts");
+      const { makeGovernanceRefinementDeps, GOVERNANCE_REFINEMENT_ENABLED } = await import(
+        "../_shared/ltp/governance-refinement-deps.ts"
+      );
+      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      // The FULL PERSISTED RECORD, as the leg-C CSC and coverage passes use
+      // (the item385 r2 divergence-class lesson).
+      const refineIntake = ((((assessment as any).intake_data ?? intake ?? {}))) as Record<string, unknown>;
+      // The deterministic COVERAGE list is computed BEFORE the critic call and
+      // is the ONLY permitted anchor set for its material-omission findings.
+      const preCoverage = runCoverageMatrix(
+        "governance",
+        reportData as Record<string, unknown>,
+        refineIntake,
+      );
+      // RESURRECTION-BUG CLASS — the generation model is resolved HERE, inside
+      // the request context, and carried explicitly into the deps.
+      const refineModel = currentGenerationModel();
+      const refineTel = await runGovernanceRefinement(
+        reportData as Record<string, unknown>,
+        refineIntake,
+        makeGovernanceRefinementDeps(assessment_id ?? currentSourceRowId() ?? null, refineModel),
+        {
+          enabled: GOVERNANCE_REFINEMENT_ENABLED,
+          coverageList: coverageListForCritic(preCoverage),
+          coverageAnchors: coverageAnchorTokens(preCoverage),
+        },
+      );
+      const _rf = ((reportData as any)._meta ??= {});
+      const _rfi = (_rf.internal ??= {});
+      _rfi.governance_refinement = refineTel;
+      // The CEO-named generic telemetry address, alongside the product key.
+      _rfi._refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "governance_refinement", fn: "run-governance-assessment",
+        build_stamp: BUILD_STAMP, generation_model: refineModel, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[run-governance-assessment] ITEM 403 refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── ITEM 400 — GOVERNANCE PROSE GOLD (GV-1 … GV-3) ─────────────────
     // Runs AFTER the ITEM 313 deliverables (so the authoritative
     // accountability determination exists) and BEFORE the emit gate and the
