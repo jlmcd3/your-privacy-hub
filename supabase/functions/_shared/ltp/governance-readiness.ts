@@ -187,3 +187,19 @@ export function attachReadinessDetermination(
   report.readiness_determination = rd;
   return rd;
 }
+
+/**
+ * The ONE line a RENDERER may print. Readers never derive a rating: they read
+ * the typed record (or the line the pipeline already wrote) and print nothing
+ * when a document carries neither — which is every document persisted before
+ * item402, so legacy renders are byte-identical.
+ */
+export function readinessLineForRender(report: unknown): string {
+  const r = (report ?? null) as Record<string, unknown> | null;
+  if (!r || typeof r !== "object") return "";
+  const written = r.governance_readiness_line;
+  if (typeof written === "string" && written.trim()) return written.trim();
+  const rd = r.readiness_determination as { rating?: string } | undefined;
+  const rating = rd && typeof rd === "object" ? String(rd.rating ?? "") : "";
+  return (READINESS_RATING_LINES as Record<string, string>)[rating] ?? "";
+}

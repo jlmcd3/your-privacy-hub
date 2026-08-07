@@ -3,6 +3,7 @@
 // External-verification gate: clone HEAD sha == BUILD_STAMP prefix.
 export const BUILD_STAMP = "generate-report-pdf-item271-replay-review@2026-07-30T06:30:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
+import { readinessLineForRender } from "../_shared/ltp/governance-readiness.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { applyUniversalDisclaimerHtml } from "../_shared/report-disclaimer.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -502,17 +503,7 @@ ${/* ITEM 402 item 4(b) — ONE CONSUMER PATH: the typed readiness_determination
       record is the source; this header only restates it. Documents persisted
       before item402 carry neither field and render exactly as before. */""}
 ${(() => {
-      const RD_LINES: Record<string, string> = {
-        "Evidenced": "Accountability evidenced",
-        "Partly evidenced": "Accountability partly evidenced",
-        "Not evidenced": "Accountability not evidenced",
-        "Not determinable": "Accountability not yet determinable",
-        "Not engaged": "Accountability duties not engaged",
-      };
-      const typed = report.readiness_determination?.rating
-        ? RD_LINES[String(report.readiness_determination.rating)]
-        : "";
-      const line = report.governance_readiness_line || typed || "";
+      const line = readinessLineForRender(report);
       return line ? `<div class="rating">${escHtml(line)}</div>` : "";
     })()}
 <p class="meta" style="font-size:10.5px;color:#5c5a54;margin-top:4px;">
