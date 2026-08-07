@@ -21,7 +21,7 @@
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-governance-w3-2026-08-07-item400",
+  version: "rs-governance-w4-2026-08-07-item402",
   tool: "governance_assessment",
   topLevel: [
     // Core assembly (governance terminal reportData)
@@ -66,6 +66,8 @@ export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
     // something to say. `organisation_profile` was previously NOT allow-listed,
     // which is why SECTOR/JURISDICTIONS rendered as bare em-dashes.
     "governance_readiness_line",
+    // ITEM 402 item 4 — the typed readiness record every surface reads.
+    "readiness_determination",
     "governance_header_fields",
     "organisation_profile",
 

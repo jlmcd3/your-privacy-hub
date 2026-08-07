@@ -498,9 +498,23 @@ ${/* ITEM 400 GV-1 — ONE verdict voice. The maturity tier is demoted (ITEM 313
       print "Readiness: Unknown" beside a contradicting summary. The line now
       comes from the authoritative accountability determination, and prints
       nothing at all when there is no determination to report. */""}
-${report.governance_readiness_line
-      ? `<div class="rating">${escHtml(report.governance_readiness_line)}</div>`
-      : ""}
+${/* ITEM 402 item 4(b) — ONE CONSUMER PATH: the typed readiness_determination
+      record is the source; this header only restates it. Documents persisted
+      before item402 carry neither field and render exactly as before. */""}
+${(() => {
+      const RD_LINES: Record<string, string> = {
+        "Evidenced": "Accountability evidenced",
+        "Partly evidenced": "Accountability partly evidenced",
+        "Not evidenced": "Accountability not evidenced",
+        "Not determinable": "Accountability not yet determinable",
+        "Not engaged": "Accountability duties not engaged",
+      };
+      const typed = report.readiness_determination?.rating
+        ? RD_LINES[String(report.readiness_determination.rating)]
+        : "";
+      const line = report.governance_readiness_line || typed || "";
+      return line ? `<div class="rating">${escHtml(line)}</div>` : "";
+    })()}
 <p class="meta" style="font-size:10.5px;color:#5c5a54;margin-top:4px;">
   Domain severity guide: <strong>Critical</strong> = no controls in place; <strong>High</strong> = controls exist but are materially incomplete; <strong>Medium</strong> = controls mostly in place with identified gaps; <strong>Low</strong> = minor gaps only; <strong>Compliant</strong> = requirements met.
 </p>
