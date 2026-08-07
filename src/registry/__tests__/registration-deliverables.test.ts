@@ -29,7 +29,7 @@ import {
   buildRegistrationDeliverables,
   stateInScope,
 } from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-deliverables/build";
-import { registrationContract } from "../../../supabase/functions/_shared/intake-contracts/registration-assessment";
+import { registrationContract } from "../../../archive/unwired/_shared/intake-contracts/registration-assessment";
 import { REGISTRATION_GOLDEN } from "../../../supabase/functions/_shared/golden/registration";
 
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
