@@ -21,7 +21,7 @@
 import type { ReportSchema } from "../report-serialize.ts";
 
 export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-governance-w2-2026-08-04-upgrade5",
+  version: "rs-governance-w3-2026-08-07-item400",
   tool: "governance_assessment",
   topLevel: [
     // Core assembly (governance terminal reportData)
@@ -61,6 +61,13 @@ export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
     // of the body, immediately before the universal disclaimer).
     "authority_exhibit",
 
+    // ITEM 400 GV-1/GV-2 — the single readiness line (derived from
+    // accountability_determination) and the header fields that actually have
+    // something to say. `organisation_profile` was previously NOT allow-listed,
+    // which is why SECTOR/JURISDICTIONS rendered as bare em-dashes.
+    "governance_readiness_line",
+    "governance_header_fields",
+    "organisation_profile",
 
     "interaction_effects",
     "dpia_scope",

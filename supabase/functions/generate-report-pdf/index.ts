@@ -461,34 +461,46 @@ ${AUTHORITY_EXHIBIT_CSS}
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
-<div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
+${(() => {
+    // ITEM 400 GV-2 — a header field with nothing to say is OMITTED, never
+    // shipped as a bare em-dash. Values come from `governance_header_fields`
+    // (written by the governance prose-gold pass) and fall back to the
+    // report/assessment record for documents generated before ITEM 400.
+    const hf = (report.governance_header_fields || {}) as Record<string, string>;
+    const prof = (report.organisation_profile || {}) as Record<string, unknown>;
+    const flat = (v: unknown): string =>
+      Array.isArray(v) ? v.map((x) => String(x)).join(", ") : (v == null ? "" : String(v));
+    const clean = (v: string): string => {
+      const s = v.trim();
+      return s === "—" || s === "-" || s === "–" || s.toLowerCase() === "n/a" ? "" : s;
+    };
+    const rows: { label: string; value: string }[] = [];
+    const push = (label: string, v: string) => { const s = clean(v); if (s) rows.push({ label, value: s }); };
+    push("Organization", hf.organization_name || flat(assessment?.organization_name) || flat(prof.organization_name));
+    push("Sector", hf.sector || flat(prof.sector));
+    push("Jurisdictions", hf.jurisdictions || flat(prof.jurisdictions));
+    push("Generated", report.generated_at
+      ? new Date(report.generated_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+      : "");
+    if (!rows.length) return "";
+    return `<div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
-    <tr>
-      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Organization</td>
-      <td style="padding:3px 0;color:#1a1916;">${escHtml(assessment?.organization_name || report.organisation_profile?.organization_name || "—")}</td>
-      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:100px;">Sector</td>
-      <td style="padding:3px 0;color:#1a1916;">${escHtml(report.organisation_profile?.sector || "—")}</td>
-    </tr>
-    <tr>
-      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Jurisdictions</td>
-      <td style="padding:3px 0;color:#1a1916;" colspan="3">${escHtml(
-        Array.isArray(report.organisation_profile?.jurisdictions)
-          ? report.organisation_profile.jurisdictions.join(", ")
-          : (report.organisation_profile?.jurisdictions || "—")
-      )}</td>
-    </tr>
-    <tr>
-      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Generated</td>
-      <td style="padding:3px 0;color:#1a1916;">${escHtml(
-        report.generated_at
-          ? new Date(report.generated_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
-          : "—"
-      )}</td>
-    </tr>
+    ${rows.map((r) => `<tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">${escHtml(r.label)}</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(r.value)}</td>
+    </tr>`).join("")}
   </table>
-</div>
+</div>`;
+  })()}
 <h2>Executive Summary</h2>
-<div class="rating">Readiness: ${escHtml(report.overall_readiness_rating || "Unknown")}</div>
+${/* ITEM 400 GV-1 — ONE verdict voice. The maturity tier is demoted (ITEM 313)
+      and `overall_readiness_rating` is deleted, which is why this line used to
+      print "Readiness: Unknown" beside a contradicting summary. The line now
+      comes from the authoritative accountability determination, and prints
+      nothing at all when there is no determination to report. */""}
+${report.governance_readiness_line
+      ? `<div class="rating">${escHtml(report.governance_readiness_line)}</div>`
+      : ""}
 <p class="meta" style="font-size:10.5px;color:#5c5a54;margin-top:4px;">
   Domain severity guide: <strong>Critical</strong> = no controls in place; <strong>High</strong> = controls exist but are materially incomplete; <strong>Medium</strong> = controls mostly in place with identified gaps; <strong>Low</strong> = minor gaps only; <strong>Compliant</strong> = requirements met.
 </p>
