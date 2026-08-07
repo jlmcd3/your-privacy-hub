@@ -18,7 +18,7 @@ import {
   coerceExposure,
   hasCaConsumerCount,
   COMPACT_KEYS,
-} from "./_qbp25_a3_normalize.ts";
+} from "../../../supabase/functions/run-admt-checker/_qbp25_a3_normalize.ts";
 
 // ── enum coercion ────────────────────────────────────────────────────────────
 

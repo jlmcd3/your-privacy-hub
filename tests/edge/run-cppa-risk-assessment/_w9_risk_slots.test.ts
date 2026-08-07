@@ -55,9 +55,8 @@ Deno.test("buildAttestationBlock renders i7/i8 identity + § 7156 basis", () => 
   assertEquals(ab.certifying_executive_name, "Jane Doe");
   assertEquals(ab.certifying_executive_title, "Chief Privacy Officer");
   assertEquals(ab.certifying_contact_email, "jane@example.com");
-  // ITEM 387 (a): item 157 WAVEB2-CLOSURE (2026-07-27) re-anchored the
-  // attestation basis from § 7156(a) (unverified in provision_texts) to
-  // § 7157(b)(5) + § 7157(c). Pinned exactly.
+  // ITEM 157 (WAVEB2-CLOSURE, 2026-07-27): § 7156(a) removed as unverified in
+  // provision_texts; attestation re-anchored to § 7157(b)(5) + § 7157(c).
   assertEquals(ab.statutory_basis, "§ 7157(b)(5), § 7157(c)");
   assertEquals(ab.submission_status, "pending");
   assert(ab.certification_statement.length > 40);

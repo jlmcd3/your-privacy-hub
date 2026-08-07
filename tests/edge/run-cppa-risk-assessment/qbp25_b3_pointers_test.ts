@@ -7,7 +7,7 @@ import {
   resolveStrengthenPointers,
   scrubStrengthenItemIds,
   validStrengthenItemIds,
-} from "./_qbp25_b3_pointers.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_qbp25_b3_pointers.ts";
 
 Deno.test("coerceLikelihood: enum passthrough + case/synonym normalisation", () => {
   assertEquals(coerceLikelihood("Unlikely"), "Unlikely");

@@ -2,7 +2,7 @@
 // Run with: deno test supabase/functions/run-registration-assessment/engine_test.ts
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runRegistrationAssessment, type IntakeData } from "./_local/registration-engine.ts";
+import { runRegistrationAssessment, type IntakeData } from "../../../supabase/functions/run-registration-assessment/_local/registration-engine.ts";
 
 // ---------- Persona 1: US SaaS, no EU presence, EU customers ----------
 Deno.test("Persona 1 — US SaaS selling into EU & UK", () => {

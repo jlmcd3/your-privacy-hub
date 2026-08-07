@@ -1,7 +1,7 @@
 // Doc Y-5 Commit 2 unit tests — 5 tests per John's approval message.
 // Run: `deno test supabase/functions/run-governance-assessment/doc-y-5_test.ts`
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
+import { docY5StripIllustrativeFrequency } from "../../../supabase/functions/run-governance-assessment/_doc_y_5.ts";
 
 const FIELD = "report.domains[4].recommended_action";
 
