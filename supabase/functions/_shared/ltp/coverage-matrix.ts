@@ -21,9 +21,17 @@ import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
-export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item406b";
+export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item411";
 
-export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
+export type CoverageProduct =
+  | "dpia"
+  | "cppa-risk"
+  | "lia"
+  | "cppa-admt"
+  | "governance"
+  | "cppa-cyber"
+  | "biometric";
+
 
 export interface CoverageOrphan {
   /** Stable machine id for the broken link. */
