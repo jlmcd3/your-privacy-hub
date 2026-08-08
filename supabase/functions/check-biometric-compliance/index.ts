@@ -24,6 +24,47 @@ import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+// ITEM 409 — biometric prose gold + reference-passage discipline.
+import {
+  applyBiometricProseGold,
+  repairBiometricProse,
+  stampBiometricPipeline,
+} from "../_shared/ltp/biometric-prose-gold.ts";
+
+import {
+  assertNoDrift,
+  checkPassageShape,
+  checkPassagesSurviveAssembly,
+  formatDrift,
+  toReferencePassages,
+} from "../_shared/prose/biometric-reference-passages.ts";
+import { BIOMETRIC_PIPELINE_STAMP } from "../_shared/prose/plans/biometric.spine.ts";
+import { BIOMETRIC_DUTY_ROWS } from "./_local/registry/biometric-verified-authorities.ts";
+
+/**
+ * ITEM 409 — the reference passages this product renders as template.
+ * Boot-time self-consistency is asserted below; the byte-match against the
+ * cited `provision_texts` rows is asserted in the item409 test battery, which
+ * reads the corpus directly. A passage that disagrees with its cited row is a
+ * STOP condition — neither side is ever "reconciled" in code.
+ */
+const BIOMETRIC_REFERENCE_PASSAGES = toReferencePassages(BIOMETRIC_DUTY_ROWS);
+{
+  const shapeDrift = checkPassageShape(BIOMETRIC_REFERENCE_PASSAGES);
+  if (shapeDrift.length) {
+    console.error(
+      `[check-biometric-compliance] REFERENCE-PASSAGE SHAPE DRIFT:\n${formatDrift(shapeDrift)}`,
+    );
+  }
+  console.log(JSON.stringify({
+    evt: "biometric_boot",
+    fn: "check-biometric-compliance",
+    stamp: BIOMETRIC_PIPELINE_STAMP,
+    reference_passages: BIOMETRIC_REFERENCE_PASSAGES.length,
+    shape_drift: shapeDrift.length,
+  }));
+}
+
 // ITEM 317 — deterministic biometric analytic deliverables (pure builder).
 import {
   buildBiometricDeliverables,
@@ -1311,9 +1352,14 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     });
   }
   const sectionTexts = uniqueJurisdictions.map((jn) => parameterizePriorityActions(stressSection(jn)));
-  const assessment_text = scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n"));
+  // ITEM 409 — the stress path is the batch renderer that produced the walked
+  // renders, so it carries the same register defect and takes the same pass.
+  const assessment_text = repairBiometricProse(
+    scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n")),
+    BIOMETRIC_REFERENCE_PASSAGES,
+  );
 
-  const report_data = {
+  const report_data = stampBiometricPipeline({
     // bipa_risk field retired 2026-07-14
     jurisdictions_analysed: uniqueJurisdictions,
     enforcement_precedents: [],
@@ -1327,7 +1373,8 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     envelope: { registry_version: BIOMETRIC_REGISTRY_VERSION },
     _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
 
-  };
+  }) as Record<string, unknown> & { generated_at: string; enforcement_precedents: unknown[] };
+
 
   let savedId: string | null = null;
   if (body.assessment_id) {
@@ -2109,6 +2156,76 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     } catch (e) {
       console.warn("[check-biometric-compliance] frame substitution failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── ITEM 409 — BIOMETRIC PROSE GOLD. THE TRUE FINALIZE POINT. ───────────
+    // This is the LAST CONTENT-SHAPING SEAM in the function: frame
+    // substitution (immediately above) is the last pass that writes prose, and
+    // everything below this point either filters keys (LEAK-PREV-P2 whitelist
+    // serialization), persists rows, or streams the already-shaped payload.
+    // Running the register pass here means it sees the document exactly as the
+    // reader will, and no later pass can reintroduce the register it removes.
+    //
+    // FAIL-OPEN, with ONE exception: reference-passage drift through assembly
+    // is logged loudly, because a mutated statutory passage is the one defect
+    // this product cannot ship quietly.
+    try {
+      const goldStart = Date.now();
+      const { report: golded, repaired_keys } = applyBiometricProseGold(
+        report_data as Record<string, unknown>,
+        BIOMETRIC_REFERENCE_PASSAGES,
+      );
+      const orig = report_data as Record<string, unknown>;
+      for (const k of Object.keys(orig)) if (!(k in golded)) delete orig[k];
+      Object.assign(orig, golded);
+
+      // `assessment_text` is the document: a single string carrying ~83% of it,
+      // held outside report_data and streamed separately. It gets the same pass.
+      const goldedText = repairBiometricProse(assessment_text, BIOMETRIC_REFERENCE_PASSAGES);
+      const textChanged = goldedText !== assessment_text;
+      assessment_text = goldedText;
+
+      const assemblyDrift = checkPassagesSurviveAssembly(
+        assessment_text,
+        BIOMETRIC_REFERENCE_PASSAGES,
+      );
+      if (assemblyDrift.length) {
+        console.error(
+          `[check-biometric-compliance] REFERENCE-PASSAGE DRIFT THROUGH ASSEMBLY:\n${formatDrift(assemblyDrift)}`,
+        );
+      }
+
+      console.log(JSON.stringify({
+        evt: "biometric_prose_gold",
+        fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        repaired_keys: repaired_keys.length,
+        assessment_text_repaired: textChanged,
+        assembly_drift: assemblyDrift.length,
+        ms: Date.now() - goldStart,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] prose gold failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // R11 — assembled-prose lint over the FINAL rendered strings.
+    try {
+      const { lintAssembledProse } = await import("../_shared/prose/assembled-prose-lint.ts");
+      const r11 = lintAssembledProse({
+        ...(report_data as Record<string, unknown>),
+        assessment_text,
+      });
+      console.log(JSON.stringify({
+        evt: "biometric_r11_lint",
+        fn: "check-biometric-compliance",
+        version: r11.version,
+        findings: r11.findings.length,
+        rules: [...new Set(r11.findings.map((f) => f.rule))],
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] R11 lint failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report in place, immediately before the report_data write.

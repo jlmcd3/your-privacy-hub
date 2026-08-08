@@ -1,183 +1,255 @@
 {
   "product": "biometric",
-  "version": "prose-plans-2026-08-04-item364-d4",
+  "version": "prose-plans-2026-08-08-item409",
   "seed_default_approved": false,
-  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved. For this plan the approving authority is the review panel acting under standing CEO delegation: a unanimous review-panel verdict stands as CEO approval.",
+  "supersedes": {
+    "row_id": "f1deaa14-e377-4d03-a2af-bd30475b8e42",
+    "version": 1,
+    "provenance": "library/prose/plans/biometric.plan.json @ item348",
+    "disposition": "RETAINED AND DEMOTED, NOT DELETED. The item348 row is a pre-fleet-template artifact: it was derived from report_keys of 31 donor documents, it walked no render, and it carries no delegation record. Its arc was written against the deliverables builder's key set (narrative.part1_overview and friends) and does not describe the document the pipeline actually emits, which is a single assessment_text string. The row is set approved=false with a provenance note naming this row as its successor; it is not orphaned and it is not silently reused."
+  },
   "provenance": {
-    "method": "report_keys",
-    "donors_total": 31,
-    "donors_with_text": 31,
-    "extracted_at": "2026-08-04",
-    "exemplars": [
-      "cppa-risk",
-      "dpia",
-      "lia",
-      "registration"
+    "method": "live_render_walk",
+    "extracted_at": "2026-08-08",
+    "render_table": "quality_run_documents",
+    "render_doc_ids": [
+      "28583f46-a280-4f18-9854-6dba7c2ea1b8",
+      "d49d9be8-a503-4711-a60a-d1adb9e83bd1"
+    ],
+    "render_scores": [
+      92.3,
+      88.4
+    ],
+    "approval_note": "panel-delegated approval per CEO delegation 2026-08-06",
+    "supersession_note": "Supersedes prose_document_plans row f1deaa14-e377-4d03-a2af-bd30475b8e42 (product biometric, version 1, approved=true, provenance `library/prose/plans/biometric.plan.json @ item348`). That row is set approved=false with a provenance note naming this successor row; it is retained, not orphaned and not silently reused.",
+    "fact_exempt_rule": "The walked renders are an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from them may reach a customer document, and none of them may be seeded into a fixture as record truth."
+  },
+  "idiom": "reference_passage",
+  "idiom_note": "This product is STATUTE-AS-TEMPLATE. Verified statutory passages form the document's skeleton and the record's facts are woven in against them. Every passage rendered as template must byte-match the provision_texts row its citation names; the citation names the row the bytes actually came from. A passage and its cited row may never be reconciled by editing either the passage or the corpus row.",
+  "thesis": "Each biometric statute in scope is applied in its own words: the verified passage states the requirement, the practice the record describes is set beside it, and the conclusion is stated first. Where the record is silent, the fact that would settle it is named.",
+  "centre_of_gravity": "applicability_determination",
+  "render_walk": {
+    "classes_found": [
+      {
+        "class": "SINGLE_STRING_DOCUMENT",
+        "status": "ESTABLISHED — CONFIRMED",
+        "evidence": "report_data.assessment_text is a single 3,698-character string in both walked renders and carries ~83% of the document. The remaining keys are envelope chrome (_meta 327 B, envelope 48 B, registry_version, generated_at), two empty arrays (annotations, lint_warnings, enforcement_precedents) and jurisdictions_analysed (one entry).",
+        "consequence": "There is no section to style, no shard, nothing for CSC to repair and nothing for coverage to link to. Leg A is therefore a REGISTER encode over rendered strings, not a section-composer encode."
+      },
+      {
+        "class": "APPARATUS_FIRST_OPENER",
+        "rule": "R1",
+        "evidence": "\"On the intake as supplied, this framework applies conditionally — Employer (employee biometrics) organisation processing Fingerprint / palm print for the stated purpose: Time & attendance / workforce management.\" — the qualifier occupies the sentence's first position and the determination arrives after an em dash.",
+        "after": "The determination leads: \"This framework applies to the processing described, conditionally on the intake as supplied.\""
+      },
+      {
+        "class": "ENUM_LEAK_AND_FIELD_LABEL_COLON",
+        "rule": "R3",
+        "evidence": "Same sentence. `Employer (employee biometrics)`, `Fingerprint / palm print` and `Time & attendance / workforce management` are intake option strings pasted into prose verbatim, and `for the stated purpose:` is a field label used as a prose connective.",
+        "after": "\"The organisation processes employee biometrics as an employer, using fingerprint or palm-print data, for time and attendance and workforce management.\""
+      },
+      {
+        "class": "STRONG_SURFACE — VERIFIED PASSAGE AS SKELETON",
+        "status": "THIS IS THE AFTER REGISTER",
+        "evidence": "\"Section 15(a): written, publicly available retention and destruction policy before or at the time of collection.\" and \"Section 15(b): inform the subject in writing of the specific purpose and duration of collection; obtain a written release before collection.\" Each enumerated requirement tracks the language of its corpus row and names its pinpoint.",
+        "consequence": "The register to generalise: pinpoint, then the requirement in the statute's own words, then the record's fact against it."
+      },
+      {
+        "class": "STRONG_SURFACE — AMENDMENT DISCIPLINE",
+        "evidence": "\"P.A. 103-0769 (effective Aug 2, 2024): one violation per person per biometric identifier for a single course of conduct (not per scan). Pre-August 2024 conduct may face per-scan exposure in Illinois state court…\" — dated, sourced, and separated from the present-tense duty.",
+        "consequence": "Behavioural prompt law already resident in check-biometric-compliance/index.ts. NOT rewritten by this item."
+      },
+      {
+        "class": "STRONG_SURFACE — PARAMETERISED PRIORITY ACTIONS",
+        "evidence": "Each priority action carries \"Suggested owner (confirm): the HR lead, in coordination with the DPO. Timeframe: before any biometric collection from the first affected employee, and in any event within 30 days of this assessment.\"",
+        "consequence": "Actions carry an owner and a trigger. Kept; the register pass must not strip them."
+      },
+      {
+        "class": "EXPOSURE_KEPT_SEPARATE",
+        "evidence": "\"Current enforcement posture:\" and \"Compliance risk rating: CRITICAL\" are their own labelled blocks, downstream of the requirement analysis.",
+        "consequence": "Confirmed as correct arc placement; exposure never leads a section."
+      },
+      {
+        "class": "MACHINE_KEYED_CHROME",
+        "evidence": "_meta.build_stamp `bio-reg-w1-s3-eu-uk-ca-au-sg@2026-07-24T06:02:02Z`, _meta.prompt_version.deployment_id, registry_version `bio-reg-w1-s3-2026-07-24`.",
+        "consequence": "Machine-keyed fields are NAMED AND LEFT — never restyled, never rendered on a reader surface."
+      },
+      {
+        "class": "NO_PIPELINE_STAMP",
+        "evidence": "Neither render carries a pipeline stamp; only build_stamp and prompt_version exist.",
+        "consequence": "BIOMETRIC_PIPELINE_STAMP is a NEW constant introduced by this item and written at the finalize point."
+      },
+      {
+        "class": "HOLLOW_ENVELOPE_FIELDS",
+        "evidence": "annotations: [], lint_warnings: [], enforcement_precedents: [] present and empty in both renders.",
+        "consequence": "Hollow reader-surface fields are omitted; machine channels keep their empty arrays."
+      }
     ]
   },
-  "thesis": "Each biometric statute in scope is applied in its own words: the duty is stated as the statute states it, the practice the record describes is set beside it, and the conclusion follows from the two. Where the record is silent the duty is left unresolved and what would settle it is named, and exposure is kept apart from what must change now.",
+  "banned_register": [
+    "record_insufficient",
+    "insufficient_basis",
+    "resolved_met",
+    "resolved_not_met",
+    "INDETERMINATE",
+    "CANDIDATE",
+    "TEST-STATES",
+    "Applies to this organisation:",
+    "Applicability: Conditional",
+    "Status: Conditional",
+    "for the stated purpose:",
+    "cannot be determined",
+    "no basis to assess"
+  ],
+  "reference_render_tokens": [
+    "Prairie Warehousing Co.",
+    "Prairie Warehousing",
+    "Prairie"
+  ],
   "sections": [
     {
-      "id": "consequence_determination",
-      "title": "Determination",
+      "id": "applicability_determination",
+      "title": "Whether each statute applies here",
       "arc_stage": "headline",
       "lead": "determination",
       "source_key": "consequence_determination",
       "themes": [
-        "unsatisfied_now",
-        "satisfied",
-        "unresolved",
-        "exposure_kept_separate"
+        "applies",
+        "applies_conditionally",
+        "does_not_apply",
+        "one_verdict_per_statute",
+        "condition_named"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved",
+      "exemplar_before": "On the intake as supplied, this framework applies conditionally — Employer (employee biometrics) organisation processing Fingerprint / palm print for the stated purpose: Time & attendance / workforce management.",
+      "exemplar_after": "This framework applies to the processing described, conditionally on the intake as supplied. The organisation processes employee biometrics as an employer, using fingerprint or palm-print data, for time and attendance and workforce management."
     },
     {
-      "id": "overview",
-      "title": "What was assessed, and from what",
+      "id": "processing_record",
+      "title": "The processing as the record describes it",
       "arc_stage": "record",
       "lead": "record",
-      "source_key": "narrative.part1_overview",
+      "source_key": "processing_record",
       "themes": [
-        "statutes_in_scope",
         "identifiers",
-        "entity",
+        "population",
+        "purpose",
+        "vendor_and_storage",
         "record_quality"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved",
+      "exemplar_after": "The record describes fingerprint and palm-print capture from employees at shift start, held by a workforce-management vendor. The record does not say how long the templates are kept."
     },
     {
-      "id": "identifier_characterizations",
-      "title": "Whether the data is a biometric identifier under each statute",
-      "arc_stage": "analysis",
-      "lead": "determination",
-      "source_key": "identifier_characterizations",
-      "themes": [
-        "statute_definition",
-        "modality",
-        "exclusions",
-        "unevidenced_limbs"
-      ],
-      "required": true,
-      "status": "pending_review"
-    },
-    {
-      "id": "entity_characterization",
-      "title": "Whether the organization is a body each statute binds",
-      "arc_stage": "analysis",
-      "lead": "determination",
-      "source_key": "entity_characterization",
-      "themes": [
-        "private_entity",
-        "government_carve_out",
-        "sector_exclusions"
-      ],
-      "required": true,
-      "status": "pending_review"
-    },
-    {
-      "id": "divergence_analysis",
-      "title": "Where the statutes pull apart",
-      "arc_stage": "analysis",
-      "lead": "determination",
-      "source_key": "divergence_analysis",
-      "themes": [
-        "topic",
-        "how_they_differ",
-        "which_governs_here"
-      ],
-      "required": true,
-      "status": "pending_review"
-    },
-    {
-      "id": "duty_findings",
-      "title": "Each duty, the practice, and the conclusion",
+      "id": "statutory_requirements",
+      "title": "The requirements that attach, and the record against each",
       "arc_stage": "duty",
       "lead": "determination",
       "source_key": "duty_findings",
       "themes": [
-        "duty_as_stated",
-        "practice_recorded",
-        "conclusion",
-        "what_is_missing"
+        "verified_passage_as_skeleton",
+        "pinpoint_named",
+        "record_fact_against_the_passage",
+        "amendment_dated_and_separated",
+        "exposure_kept_separate"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved",
+      "exemplar_after": "740 ILCS 14/15(a) requires a private entity in possession of biometric identifiers to develop a written policy, made available to the public, establishing a retention schedule and guidelines for permanently destroying biometric identifiers. The record does not identify such a policy, so the requirement is unmet on the record as supplied."
     },
     {
-      "id": "exposure_surfaces",
-      "title": "How each statute is enforced",
+      "id": "consent_and_notice",
+      "title": "Consent and notice",
       "arc_stage": "duty",
       "lead": "determination",
-      "source_key": "consequence_determination.exposure_surfaces",
+      "source_key": "consent_and_notice",
       "themes": [
-        "route",
-        "who_may_bring_it",
-        "exposure_not_instruction",
-        "reserved_where_uningested"
+        "written_release",
+        "pre_collection_notice",
+        "employment_condition_limb",
+        "standalone_vs_embedded"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved",
+      "exemplar_after": "A written release is required before collection. The record reports a release executed inside onboarding paperwork; a standalone biometric release is the defensible form."
     },
     {
-      "id": "information_needed",
-      "title": "What the record does not yet state",
-      "arc_stage": "ask",
-      "lead": "record",
-      "source_key": "duty_findings[].information_needed",
+      "id": "retention_and_destruction",
+      "title": "Retention and destruction",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "retention_and_destruction",
       "themes": [
-        "silent_fields",
-        "duty_each_one_blocks",
-        "what_would_settle_it"
+        "public_policy",
+        "destruction_trigger",
+        "outer_limit",
+        "schedule_adherence"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
-      "id": "scope_gated",
-      "title": "Questions this assessment records but does not answer",
-      "arc_stage": "ask",
-      "lead": "record",
-      "source_key": "scope_gated",
+      "id": "security_and_disclosure",
+      "title": "Security, disclosure and profit",
+      "arc_stage": "duty",
+      "lead": "determination",
+      "source_key": "security_and_disclosure",
       "themes": [
-        "topic_recorded",
-        "why_unanswerable",
-        "what_follows_meanwhile"
+        "reasonable_standard_of_care",
+        "no_profit",
+        "permitted_disclosure_bases",
+        "vendor_flow_down"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     },
     {
-      "id": "attestation_block",
-      "title": "Approval, and when this must be looked at again",
+      "id": "open_elements",
+      "title": "What the record does not yet settle",
+      "arc_stage": "remedy",
+      "lead": "determination",
+      "source_key": "information_needed",
+      "themes": [
+        "one_ledger",
+        "named_missing_fact",
+        "who_confirms_it",
+        "actions_only"
+      ],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "close",
+      "title": "Scope and reliance",
       "arc_stage": "close",
       "lead": "determination",
-      "source_key": "attestation",
+      "source_key": "disclaimer",
       "themes": [
-        "approval",
-        "review_date",
-        "amendment_trigger",
-        "new_modality_trigger"
+        "not_legal_advice",
+        "counsel_review",
+        "record_bound"
       ],
       "required": true,
-      "status": "pending_review"
+      "status": "approved"
     }
   ],
   "exemplar_pairs": [
     {
-      "id": "xp-biometric-1",
-      "section_id": "consequence_determination",
-      "before": "On the record as supplied, 5 duties are not satisfied: BIPA 740 ILCS 14/15(a), BIPA 740 ILCS 14/15(a), BIPA 740 ILCS 14/15(b), BIPA 740 ILCS 14/15(c), BIPA 740 ILCS 14/15(d). Enforcement routes differ by state and are set out separately from the duty findings.",
-      "after": "Five duties are not satisfied by the practices described. They are 740 ILCS 14/15(a); 14/15(b); 14/15(c); 14/15(d). Enforcement routes differ by state and are set out separately from the duty findings. They describe exposure. What must change now is the unsatisfied duties named above.",
-      "note": "The courtroom opener goes. The list stops reading as three stacked asides once it is a sentence of its own with semicolons, and the passage now says in plain words which half is exposure and which half is the instruction — the distinction the determination logic already draws and the prose used to blur."
+      "id": "biometric-opener-verdict-first",
+      "section_id": "applicability_determination",
+      "before": "Illinois, USA (BIPA) — BIPA, 740 ILCS 14\n\nOn the intake as supplied, this framework applies conditionally — Employer (employee biometrics) organisation processing Fingerprint / palm print for the stated purpose: Time & attendance / workforce management.",
+      "after": "This framework applies to the processing described, conditionally on the intake as supplied. The organisation is an employer processing employee biometrics, and it processes fingerprint or palm-print data for time and attendance and workforce management.",
+      "note": "R1 and R3: the determination takes the first position, and the contract enum values and the field label are rendered as prose."
     },
     {
-      "id": "xp-biometric-2",
-      "section_id": "overview",
-      "before": "Acme Systems is assessed against BIPA 740 ILCS 14 (Illinois), RCW 19.375 (Washington), RCW 19.373 (Washington). It is characterised as private_entity: the organisation is not recorded as a government body. Under RCW 19.375 and RCW 19.373 (MHMDA) the definition cannot be applied on the record as supplied. The analysis that follows measures the practices the record actually describes against each duty in turn, one statutory subsection at a time.",
-      "after": "Acme Systems is assessed against the Illinois biometric statute and the two Washington chapters. It is a private entity: nothing describes it as a government body. Under both Washington chapters the definition cannot be applied to the facts as supplied. What follows takes each duty in turn, sets the practice the record describes beside it, and states the conclusion that follows.",
-      "note": "The internal verdict token private_entity is spoken rather than printed, the banned courtroom phrase is replaced by a description of what the facts do not carry, and the closing sentence tells the reader the shape of the analysis instead of announcing the machine's method."
+      "id": "biometric-open-element-named",
+      "section_id": "open_elements",
+      "before": "Consent artifact type: record_insufficient. Cannot be determined on the record.",
+      "after": "The record does not yet show which written release was used. Confirm the artifact signed before collection and this requirement is settled.",
+      "note": "R2 and R4: one voice, machine vocabulary retired, and the missing fact named with who settles it."
     }
   ]
 }
