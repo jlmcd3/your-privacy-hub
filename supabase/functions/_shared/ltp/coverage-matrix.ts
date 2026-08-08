@@ -1107,11 +1107,16 @@ function cyberSurfaceSubstance(node: unknown): number {
   return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
 }
 
-/** Programme, scope and independence facts → the plan's arc. */
+/** Programme, scope and independence facts → the plan's arc.
+ *  ITEM 406-B — every surface named below was audited against the live cyber
+ *  corpus (149 persisted `quality_run_documents` rows, tool='cppa-cyber').
+ *  `component_coverage`, `evidence_sufficiency`, `program_obligation_findings`
+ *  and `cyber_readiness_line` appear in ZERO of them and were removed: a link
+ *  may only name a surface the pipeline actually writes. */
 const CYBER_PROFILE_LINKS: readonly CyberCoverageLink[] = [
   {
     keys: ["profile.entity_name", "profile.industry", "profile.incidents_12mo"],
-    surfaces: ["executive_summary", "readiness_determination", "cyber_readiness_line"],
+    surfaces: ["executive_summary", "readiness_determination"],
     section: "readiness_determination",
   },
   {
@@ -1122,22 +1127,28 @@ const CYBER_PROFILE_LINKS: readonly CyberCoverageLink[] = [
       "profile.audit_scope_rationale",
       "profile.prior_audit_scope",
     ],
-    surfaces: ["executive_summary", "evidence_sufficiency", "component_coverage", "program_obligation_findings"],
+    surfaces: ["executive_summary"],
     section: "programme_record",
   },
   {
     keys: ["profile.auditor_engagement_status"],
-    surfaces: ["independence_determination", "program_obligation_findings"],
+    surfaces: ["independence_determination"],
     section: "audit_schedule",
   },
 ];
 
-/** One link per § 7123(c) component: the record entry → its own surfaces. */
+/** One link per § 7123(c) component: the record entry → its own surfaces.
+ *  ITEM 406-B — the live pipeline writes the per-component findings as rows of
+ *  the top-level `controls` array (score/status/finding/priority/remediation).
+ *  There is no `control_findings` section and there never was; the item406
+ *  declaration named a surface the pipeline never writes, which orphaned all
+ *  eighteen components on a perfect record. */
 const CYBER_CONTROL_LINKS: readonly CyberCoverageLink[] = CYBER_SLUGS.map((slug) => ({
   keys: [`controls[${slug}].notes`, `controls[${slug}].maturity`, `controls[${slug}].evidence`],
-  surfaces: [`controls[${slug}]`, `component_coverage[${slug}]`, `evidence_sufficiency[${slug}]`],
-  section: "control_findings",
+  surfaces: [`controls[${slug}]`],
+  section: "controls",
 }));
+
 
 export const CYBER_COVERAGE_LINKS: readonly CyberCoverageLink[] = [
   ...CYBER_PROFILE_LINKS,
