@@ -53,6 +53,21 @@ def main(plan_path):
         def fix(m):
             spec = m.group(3)
             target_old = os.path.normpath(os.path.join(os.path.dirname(pre), spec))
+            # GUARD (§8 / item 402-C-2-FIX): only rewrite a specifier that
+            # actually names a moved path. Extension-less specifiers normalise
+            # to a directory-looking path, and `os.path.relpath` then collapses
+            # them ("../assistedInput" -> "."), corrupting untouched files.
+            # A specifier whose resolved target is not a move source (with or
+            # without a code extension) is left byte-identical.
+            # (A file that itself moved must re-address every specifier, so the
+            # guard applies only to files that stayed put.)
+            if pre == f and not (
+                target_old in moves
+                or any(target_old + ext in moves for ext in CODE_EXT)
+                or os.path.join(target_old, "index.ts") in moves
+            ):
+                return m.group(0)
+
             target_new = newloc(target_old)
             rel = os.path.relpath(target_new, os.path.dirname(f))
             if not rel.startswith("."):
@@ -60,6 +75,7 @@ def main(plan_path):
             if rel == spec:
                 return m.group(0)
             return f"{m.group(1)}{m.group(2)}{rel}{m.group(2)}"
+
 
         out = IMPORT_RE.sub(fix, src_text)
         if out != src_text:

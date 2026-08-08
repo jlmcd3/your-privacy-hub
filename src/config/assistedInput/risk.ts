@@ -8,7 +8,7 @@
  * Content rules verified: descriptive/neutral, no legal conclusions,
  * banned word "gap" absent, ≤6 pills per field.
  */
-import type { AssistedInputFieldConfig } from ".";
+import type { AssistedInputFieldConfig } from "../assistedInput";
 
 const q19_admt_description: AssistedInputFieldConfig = {
   fieldId: "q19_admt_description",
