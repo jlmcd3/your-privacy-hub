@@ -174,6 +174,6 @@ Deno.test("item412b defect a the repair never touches a reference passage", () =
 });
 
 Deno.test("item412b stamp the item412b pins", () => {
-  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412c-2026-08-08");
+  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412d-2026-08-08");
   assertEquals(BIOMETRIC_PROSE_GOLD_VERSION, "biometric-prose-gold-2026-08-08-item412b");
 });
