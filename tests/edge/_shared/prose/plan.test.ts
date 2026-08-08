@@ -14,27 +14,27 @@ import {
   OUTCOME_STAGES,
   type PlannedSection,
   planRenderable,
-} from "../../../../supabase/functions/_shared/prose/plan.ts";
+} from "../../../../archive/unwired/_shared/prose/plan.ts";
 import {
   CONNECTIVES,
   connectiveFor,
   connectiveMatchesRelation,
   joinWithConnective,
   type Relation,
-} from "../../../../supabase/functions/_shared/prose/connectives.ts";
-import { applyMentionRule, MentionTracker } from "../../../../supabase/functions/_shared/prose/mentions.ts";
-import { aggregateFacts } from "../../../../supabase/functions/_shared/prose/aggregate.ts";
+} from "../../../../archive/unwired/_shared/prose/connectives.ts";
+import { applyMentionRule, MentionTracker } from "../../../../archive/unwired/_shared/prose/mentions.ts";
+import { aggregateFacts } from "../../../../archive/unwired/_shared/prose/aggregate.ts";
 import {
   auditSectionConnectives,
   renderDocumentFromPlan,
   renderPlannedSection,
-} from "../../../../supabase/functions/_shared/prose/plan-render.ts";
+} from "../../../../archive/unwired/_shared/prose/plan-render.ts";
 import {
   edge,
   enumerateConnectives,
   LEAD_NODE,
   ReasoningGraph,
-} from "../../../../supabase/functions/_shared/prose/reasoning-graph.ts";
+} from "../../../../archive/unwired/_shared/prose/reasoning-graph.ts";
 import type { FrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
 import {
   CPPA_RISK_PLAN,

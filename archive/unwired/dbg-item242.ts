@@ -1,5 +1,5 @@
-import { derivePlan } from "./_shared/ltp/derive.ts";
-import { composePriorityActionsForTest } from "./_shared/ltp/section-composers/cppa-risk.ts";
+import { derivePlan } from "../../supabase/functions/_shared/ltp/derive.ts";
+import { composePriorityActionsForTest } from "../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
 const plan = derivePlan({ intake: { q1_revenue: "10000000", q2_consumers: "50000", q18_admt_use: "no" }, report_data: {}, buildStamp: "d" });
 const actions = composePriorityActionsForTest(plan);
 for (const a of actions) {

@@ -30,12 +30,12 @@
 // Nothing here generates prose. Every sentence arrives already realized from
 // the engine or from an approved frame.
 
-import type { FrameSet } from "./frames.ts";
+import type { FrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
 import { type AtomicFact, aggregateFacts } from "./aggregate.ts";
 import { type Relation, connectiveFor, joinWithConnective } from "./connectives.ts";
 import { applyMentionRule, type MentionOptions } from "./mentions.ts";
 import { DOCUMENT_PLAN_VERSION, type DocumentPlan, type PlannedSection } from "./plan.ts";
-import { extractSpans, type RecordSpan } from "./span-tracking.ts";
+import { extractSpans, type RecordSpan } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
 import {
   auditConnectives,
   type ConnectiveAudit,

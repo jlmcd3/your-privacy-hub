@@ -6,8 +6,8 @@
 // plan-metadata lint hole closed alongside this dispatch.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lintRegisterDocument, registerClean } from "../../../supabase/functions/_shared/prose/register-lint.ts";
-import { lintPlan, planRenderable } from "../../../supabase/functions/_shared/prose/plan.ts";
+import { lintRegisterDocument, registerClean } from "../../../archive/unwired/_shared/prose/register-lint.ts";
+import { lintPlan, planRenderable } from "../../../archive/unwired/_shared/prose/plan.ts";
 import { lintFrameSet, frameSetRenderable } from "../../../supabase/functions/_shared/prose/frames.ts";
 import { LIA_PLAN, LIA_FRAMES } from "../../../library/prose/load.ts";
 import { LIA_ANALYSIS_TOOL_MODULE } from "../../../supabase/functions/run-li-assessment/index.ts";

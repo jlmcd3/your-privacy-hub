@@ -8,8 +8,8 @@ import {
   lintRegisterText,
   lintRegisterDocument,
   registerClean,
-} from "../../../supabase/functions/_shared/prose/register-lint.ts";
-import { lintPlan, planRenderable } from "../../../supabase/functions/_shared/prose/plan.ts";
+} from "../../../archive/unwired/_shared/prose/register-lint.ts";
+import { lintPlan, planRenderable } from "../../../archive/unwired/_shared/prose/plan.ts";
 import { lintFrameSet, frameSetRenderable } from "../../../supabase/functions/_shared/prose/frames.ts";
 import { DPIA_PLAN, DPIA_FRAMES } from "../../../library/prose/load.ts";
 import { DPIA_TOOL_MODULE } from "../../../supabase/functions/run-dpia-framework/index.ts";

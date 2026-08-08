@@ -7,7 +7,7 @@
 // they live outside `supabase/functions` so they never enter a function bundle.
 
 import type { FrameSet } from "../../supabase/functions/_shared/prose/frames.ts";
-import type { DocumentPlan } from "../../supabase/functions/_shared/prose/plan.ts";
+import type { DocumentPlan } from "../../archive/unwired/_shared/prose/plan.ts";
 
 // CHANGE CONTROL — the artifacts carry `seed_default_approved`, never an
 // operative `approved`. Approval is a database column (the record of the CEO's

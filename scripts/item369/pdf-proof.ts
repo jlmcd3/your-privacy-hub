@@ -5,7 +5,7 @@
 // malformed (no raw JSON, no sentinels, all nine sections present).
 
 import { buildCPPARiskProse9HTML } from "../../supabase/functions/generate-report-pdf/prose9-html.ts";
-import { CPPA_RISK_SECTION_ORDER } from "../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
+import { CPPA_RISK_SECTION_ORDER } from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
 
 const DIR = new URL("../../docs/reviews/item369/", import.meta.url);
 const slugs = ["perfect-item350-", "messy-item350-", "risk-saas-clean-tuning"];

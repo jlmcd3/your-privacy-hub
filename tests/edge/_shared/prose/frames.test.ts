@@ -129,13 +129,13 @@ Deno.test("F11 — an approved set renders; frame provenance is retained", () =>
 });
 
 // ── ITEM 346/363 — THREE-SLOT-TYPE AND NO-FLATTENING GUARANTEES ────────
-import { buildCppaRiskFrameValues } from "../../../../supabase/functions/_shared/prose/frames/cppa-risk.values.ts";
+import { buildCppaRiskFrameValues } from "../../../../archive/unwired/_shared/prose/frames/cppa-risk.values.ts";
 import { extractSpans } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
-import { checkCoverage, collectCoverageAtoms } from "../../../../supabase/functions/_shared/prose/frame-coverage.ts";
+import { checkCoverage, collectCoverageAtoms } from "../../../../archive/unwired/_shared/prose/frame-coverage.ts";
 import { CPPA_RISK_ENGINE_CONCLUSIONS, resolveEngineConclusion } from "../../../../supabase/functions/_shared/prose/engine-conclusions.ts";
 import { CPPA_RISK_LEGAL_PHRASINGS } from "../../../../supabase/functions/_shared/prose/legal-phrasings.ts";
-import { composeCppaRisk } from "../../../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
-import { renderDocumentFromPlan } from "../../../../supabase/functions/_shared/prose/plan-render.ts";
+import { composeCppaRisk } from "../../../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
+import { renderDocumentFromPlan } from "../../../../archive/unwired/_shared/prose/plan-render.ts";
 import { CPPA_RISK_PLAN } from "../../../../library/prose/load.ts";
 import { buildActivityAnalytics } from "../../../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../../../supabase/functions/_shared/golden/cppa-risk.ts";

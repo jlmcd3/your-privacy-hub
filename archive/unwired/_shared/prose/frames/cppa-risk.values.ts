@@ -27,11 +27,11 @@
 //   * TIGHT GRAMMAR. Counts are spelled and agree with their nouns; no
 //     "1 element(s)". Values never collide with the following punctuation.
 
-import type { ActivityAnalytics } from "../../ltp/analytic-deliverables/types.ts";
-import { resolveEngineConclusion } from "../engine-conclusions.ts";
-import { rec } from "../span-tracking.ts";
+import type { ActivityAnalytics } from "../../../../../supabase/functions/_shared/ltp/analytic-deliverables/types.ts";
+import { resolveEngineConclusion } from "../../../../../supabase/functions/_shared/prose/engine-conclusions.ts";
+import { rec } from "../../../../../supabase/functions/_shared/prose/span-tracking.ts";
 import { countWord, pluralise } from "../record-summary.ts";
-import { joinNaturalList } from "../slots.ts";
+import { joinNaturalList } from "../../../../../supabase/functions/_shared/prose/slots.ts";
 
 export const CPPA_RISK_VALUES_VERSION = "prose-values-2026-08-01-item363";
 

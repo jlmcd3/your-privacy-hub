@@ -9,7 +9,7 @@ import {
   PROSE_LIBRARY_SCHEMA_VERSION,
   type ProseLibraryRow,
   type ProseLibrarySource,
-} from "../../supabase/functions/_shared/prose/library-source.ts";
+} from "../../archive/unwired/_shared/prose/library-source.ts";
 
 const ROOT = new URL("../../library/prose/", import.meta.url);
 

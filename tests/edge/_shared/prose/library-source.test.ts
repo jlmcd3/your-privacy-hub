@@ -17,7 +17,7 @@ import {
   tryLoadProseLibrary,
   type ProseLibraryRow,
   type ProseLibrarySource,
-} from "../../../../supabase/functions/_shared/prose/library-source.ts";
+} from "../../../../archive/unwired/_shared/prose/library-source.ts";
 
 const FRAMES = {
   product: "unit",

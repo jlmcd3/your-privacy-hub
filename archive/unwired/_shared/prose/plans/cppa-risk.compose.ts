@@ -13,10 +13,10 @@
 //
 // This file computes NOTHING about the law and NOTHING about the record.
 
-import type { ActivityAnalytics } from "../../ltp/analytic-deliverables/types.ts";
-import type { EuAuthoritySection } from "../../ltp/eu-authority/types.ts";
-import type { FrameSet } from "../frames.ts";
-import { renderSectionFromFrames } from "../frame-render.ts";
+import type { ActivityAnalytics } from "../../../../../supabase/functions/_shared/ltp/analytic-deliverables/types.ts";
+import type { EuAuthoritySection } from "../../../../../supabase/functions/_shared/ltp/eu-authority/types.ts";
+import type { FrameSet } from "../../../../../supabase/functions/_shared/prose/frames.ts";
+import { renderSectionFromFrames } from "../../../../../supabase/functions/_shared/prose/frame-render.ts";
 import { buildCppaRiskFrameValues } from "../frames/cppa-risk.values.ts";
 import type { SectionInput, SupportingStatement } from "../plan-render.ts";
 import { edge, LEAD_NODE, type ReasoningEdge, ReasoningGraph } from "../reasoning-graph.ts";

@@ -7,8 +7,8 @@
 // the deliverables this product actually renders are register-clean.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lintRegisterDocument, registerClean, BANNED_PHRASES } from "../../../supabase/functions/_shared/prose/register-lint.ts";
-import { lintPlan, planRenderable } from "../../../supabase/functions/_shared/prose/plan.ts";
+import { lintRegisterDocument, registerClean, BANNED_PHRASES } from "../../../archive/unwired/_shared/prose/register-lint.ts";
+import { lintPlan, planRenderable } from "../../../archive/unwired/_shared/prose/plan.ts";
 import { lintFrameSet, frameSetRenderable } from "../../../supabase/functions/_shared/prose/frames.ts";
 import { REGISTRATION_PLAN, REGISTRATION_FRAMES } from "../../../library/prose/load.ts";
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";

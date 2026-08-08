@@ -15,7 +15,7 @@
 //
 // Without --apply it prints the SQL. With --apply it runs it through psql.
 
-import { contentHash, PROSE_LIBRARY_SCHEMA_VERSION } from "../../supabase/functions/_shared/prose/library-source.ts";
+import { contentHash, PROSE_LIBRARY_SCHEMA_VERSION } from "../../archive/unwired/_shared/prose/library-source.ts";
 import { buildSeedStatement, SEED_ITEMS } from "./seed-sql.ts";
 
 const ROOT = new URL("../../library/prose/", import.meta.url);

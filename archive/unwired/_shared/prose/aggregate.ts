@@ -6,8 +6,8 @@
 // the Item 338 library. There is no runtime sentence generation here: if no
 // approved variant exists for a topic, the facts stay as separate sentences.
 
-import type { Frame, FrameSet } from "./frames.ts";
-import { renderFrame } from "./frame-render.ts";
+import type { Frame, FrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
+import { renderFrame } from "../../../../supabase/functions/_shared/prose/frame-render.ts";
 
 export interface AtomicFact {
   /** Engine-assigned topic. Facts aggregate only within one topic. */

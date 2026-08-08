@@ -17,7 +17,7 @@
 //   (d) PIN TESTS     — every row carries `content_hash` over its canonical
 //                       payload; the loader verifies it on every cold read.
 
-import type { FrameSet } from "./frames.ts";
+import type { FrameSet } from "../../../../supabase/functions/_shared/prose/frames.ts";
 import type { DocumentPlan } from "./plan.ts";
 
 /**

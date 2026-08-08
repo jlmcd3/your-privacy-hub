@@ -31,8 +31,8 @@
  * yet. A before/after sample goes to the CEO before any flag moves.
  */
 
-import type { RecordSpan } from "./span-tracking.ts";
-import { stripSpanMarks } from "./span-tracking.ts";
+import type { RecordSpan } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
+import { stripSpanMarks } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
 import {
   lintDocumentStyle,
   type LintableSection,

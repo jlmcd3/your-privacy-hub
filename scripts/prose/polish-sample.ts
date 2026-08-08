@@ -13,15 +13,15 @@ import {
   composeCppaRisk,
   CPPA_RISK_MIN_PARAGRAPHS,
   CPPA_RISK_SECTION_ORDER,
-} from "../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
-import { renderDocumentFromPlan } from "../../supabase/functions/_shared/prose/plan-render.ts";
+} from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
+import { renderDocumentFromPlan } from "../../archive/unwired/_shared/prose/plan-render.ts";
 import { buildActivityAnalytics } from "../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import { buildEuAuthoritySection } from "../../supabase/functions/_shared/ltp/eu-authority/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
 import {
   runSpanSafePolish,
   SPAN_SAFE_POLISH_VERSION,
-} from "../../supabase/functions/_shared/prose/span-safe-polish.ts";
+} from "../../archive/unwired/_shared/prose/span-safe-polish.ts";
 
 const fixture = CPPA_RISK_GOLDEN.find((f: { id: string }) => f.id === "risk-saas-clean-tuning") ??
   CPPA_RISK_GOLDEN[0];

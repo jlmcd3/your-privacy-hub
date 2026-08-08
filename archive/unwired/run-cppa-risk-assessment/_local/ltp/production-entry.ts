@@ -15,8 +15,8 @@ import {
   generateCppaRiskReport,
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
-} from "../../../_shared/ltp/generate-cppa-risk.ts";
-import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../../../_shared/ltp/risk-refinement-deps.ts";
+} from "../../../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
+import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../../../../../supabase/functions/_shared/ltp/risk-refinement-deps.ts";
 
 export const LTP_PRODUCTION_ENTRY_STAMP = "ltp-production-entry-item357@2026-08-01";
 

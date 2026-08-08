@@ -8,15 +8,15 @@
 //
 //   deno run --allow-read --allow-env --allow-write scripts/item369/prove.ts
 
-import { generateCppaRiskReportItem363Preview } from "../../supabase/functions/_shared/ltp/generate-cppa-risk-item363-preview.ts";
+import { generateCppaRiskReportItem363Preview } from "../../archive/unwired/_shared/ltp/generate-cppa-risk-item363-preview.ts";
 import { fileLibrarySource } from "../prose/file-source.ts";
 import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
 import {
   CPPA_RISK_MIN_PARAGRAPHS,
   CPPA_RISK_SECTION_ORDER,
-} from "../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
-import { lintDocumentStyle } from "../../supabase/functions/_shared/prose/style-lint.ts";
-import { auditSectionConnectives } from "../../supabase/functions/_shared/prose/plan-render.ts";
+} from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
+import { lintDocumentStyle } from "../../archive/unwired/_shared/prose/style-lint.ts";
+import { auditSectionConnectives } from "../../archive/unwired/_shared/prose/plan-render.ts";
 import { hasProse9Document } from "../../supabase/functions/_shared/report-contracts/cppa-risk-prose9.ts";
 
 const OUT = new URL("../../docs/reviews/item369/", import.meta.url);

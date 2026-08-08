@@ -24,11 +24,11 @@ import {
   generateCppaRiskReport,
   type GenerateCppaRiskOptions,
   type GenerateCppaRiskResult,
-} from "./generate-cppa-risk.ts";
-import { resolveLtpIntake } from "./entry-intake.ts";
-import { fetchEuAuthorityCorpus } from "./eu-authority/fetch.ts";
-import { buildEuAuthoritySection } from "./eu-authority/build.ts";
-import { buildActivityAnalytics } from "./analytic-deliverables/build.ts";
+} from "../../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
+import { resolveLtpIntake } from "../../../../supabase/functions/_shared/ltp/entry-intake.ts";
+import { fetchEuAuthorityCorpus } from "../../../../supabase/functions/_shared/ltp/eu-authority/fetch.ts";
+import { buildEuAuthoritySection } from "../../../../supabase/functions/_shared/ltp/eu-authority/build.ts";
+import { buildActivityAnalytics } from "../../../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import {
   loadDocumentPlan,
   loadFrameSet,
@@ -44,7 +44,7 @@ import {
   CPPA_RISK_PROSE9_SHAPE_VERSION,
   type Prose9Section,
   type ProseDocumentEnvelope,
-} from "../report-contracts/cppa-risk-prose9.ts";
+} from "../../../../supabase/functions/_shared/report-contracts/cppa-risk-prose9.ts";
 
 export const ITEM369_PREVIEW_STAMP = "generate-cppa-risk-item363-preview@2026-08-02-item369";
 
