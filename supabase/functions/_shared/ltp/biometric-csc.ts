@@ -454,10 +454,12 @@ const DUTY_SURFACES: readonly BiometricCscSurface[] = BIOMETRIC_DUTY_SURFACE_KEY
   keys: DUTY_SURFACE_KEYS[k].keys,
   corroborating: DUTY_SURFACE_KEYS[k].corroborating,
   mode: "any" as const,
-  leaf: "record_states",
+  // ITEM 406-B DISCIPLINE — the leaf is one the builder writes on every duty
+  // row (`record_fact`), never a key invented by this pass.
+  leaf: "record_fact",
 }));
 
-/** The four statute-scoped identifier characterizations. */
+/** The four statute-scoped identifier characterizations the builder emits. */
 const IDENTIFIER_STATUTE_KEYS: readonly string[] = [
   "us_il_bipa", "us_tx_cubi", "us_wa_19375", "us_wa_19373",
 ];
@@ -471,7 +473,7 @@ const IDENTIFIER_SURFACES: readonly BiometricCscSurface[] = IDENTIFIER_STATUTE_K
   keys: ["data_source_description"],
   corroborating: ["biometricTypes", "purpose"],
   mode: "any" as const,
-  leaf: "record_states",
+  leaf: "record_fact",
 }));
 
 export const BIOMETRIC_CSC_SURFACES: readonly BiometricCscSurface[] = [
@@ -479,11 +481,12 @@ export const BIOMETRIC_CSC_SURFACES: readonly BiometricCscSurface[] = [
   ...IDENTIFIER_SURFACES,
   {
     // The proposition is "the record states what kind of actor this is".
+    // `role_reasoning` is the reader leaf the builder writes here.
     path: "entity_characterization",
     keys: ["orgType"],
     corroborating: ["orgName", "entity_is_government", "glba_financial_institution", "healthcare_tpo_context"],
     mode: "any",
-    leaf: "record_states",
+    leaf: "role_reasoning",
   },
   {
     // The proposition is "the record names an approver". HONEST DEGRADATION
@@ -494,9 +497,10 @@ export const BIOMETRIC_CSC_SURFACES: readonly BiometricCscSurface[] = [
     keys: ["approved_by_name"],
     corroborating: ["approved_by_title", "approval_date", "next_review_due"],
     mode: "any",
-    leaf: "record_states",
+    leaf: "statement",
   },
 ];
+
 
 export function biometricSurfaceBacked(s: BiometricCscSurface, intake: unknown): boolean {
   return s.mode === "all"
