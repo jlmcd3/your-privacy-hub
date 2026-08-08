@@ -2310,9 +2310,11 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     // therefore receive the FULL record, never a trimmed projection (the
     // item385-r2 defect).
     //
-    // Leg B ships no coverage matrix and no CSC pass for biometric, so both
-    // fail-closed arms fire and the value is FALSE. Nothing reads the gate
-    // value back into prose, the determination or any banner. Telemetry only.
+    // ITEM 411 LEG C — the CSC and coverage passes now run immediately above,
+    // so both fail-closed arms have real telemetry to read and the gate can
+    // reach TRUE on a complete record. Nothing reads the gate value back into
+    // prose, the determination or any banner. Telemetry only.
+
     try {
       const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
         "../_shared/ltp/record-complete.ts"
