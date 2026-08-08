@@ -23,7 +23,7 @@ import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
 export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379r2";
 
-export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance";
+export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
 
 export interface CoverageOrphan {
   /** Stable machine id for the broken link. */

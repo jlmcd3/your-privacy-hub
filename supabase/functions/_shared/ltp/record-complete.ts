@@ -45,7 +45,8 @@ export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 // coverage matrix and NO CSC pass yet (leg C follows), so the fail-closed arms
 // keep the cyber gate value FALSE with `coverage_orphans` + `csc_false_absence`
 // in failed_conditions. That is correct and intended for this leg, and
-// FALSE_ABSENCE_CHECK_IDS["cppa-cyber"] is [] until leg C ships the pass.
+// ITEM 406 LEG C — the cyber CSC pass ships, so FALSE_ABSENCE_CHECK_IDS
+// ["cppa-cyber"] now carries the absence-class id (it was [] in leg B).
 export type RecordCompleteProduct =
   | "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
 
