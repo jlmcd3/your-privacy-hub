@@ -2225,6 +2225,59 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] R11 lint failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 410 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
+    // Ordering matches the established products (item 393 ADMT, item 401
+    // governance, item 405 cyber): the gate is the LAST deterministic
+    // post-pass — AFTER the item409 biometric prose gold and the R11
+    // assembled-prose lint (so it judges the final customer text) and BEFORE
+    // the LEAK-PREV-P2 serializer (so its telemetry rides `_meta.internal`
+    // and survives the whitelist; this function has no LEAK-PREV-P1 emit
+    // gate — `guardInformationNeeded` above is its equivalent, and it runs
+    // earlier still).
+    //
+    // THE RECORD. This function does not read a persisted `intake_data`
+    // projection: the customer record IS the request body (`body`), which is
+    // also the exact value written to `biometric_assessments.intake_data`
+    // on both the update and insert paths below. The evidence passes
+    // therefore receive the FULL record, never a trimmed projection (the
+    // item385-r2 defect).
+    //
+    // Leg B ships no coverage matrix and no CSC pass for biometric, so both
+    // fail-closed arms fire and the value is FALSE. Nothing reads the gate
+    // value back into prose, the determination or any banner. Telemetry only.
+    try {
+      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
+        "../_shared/ltp/record-complete.ts"
+      );
+      const { biometricContract } = await import(
+        "../_shared/intake-contracts/biometric.ts"
+      );
+      const bioGateRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const binternal = ((((report_data as any)._meta ?? {}).internal ?? {})) as Record<string, unknown>;
+      const telemetry = computeRecordComplete({
+        product: "biometric",
+        contract: biometricContract,
+        intake: bioGateRecord,
+        coverage: (binternal.biometric_coverage ?? null) as any,
+        csc: (binternal.biometric_csc ?? null) as any,
+      });
+      const classification = classifyPlaceholders(
+        report_data as Record<string, unknown>,
+        bioGateRecord,
+        telemetry.value,
+      );
+      attachRecordComplete(report_data as Record<string, unknown>, telemetry, classification);
+      console.log(JSON.stringify({
+        evt: "biometric_record_complete", fn: "check-biometric-compliance",
+        biometric_pipeline_stamp: BIOMETRIC_PIPELINE_STAMP,
+        version: telemetry.version, value: telemetry.value,
+        failed_conditions: telemetry.failed_conditions,
+        counts: telemetry.counts,
+        empty_required_keys: telemetry.empty_required_keys.slice(0, 20),
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 410 record-complete gate failed (non-fatal):", (e as Error)?.message);
+    }
 
 
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the

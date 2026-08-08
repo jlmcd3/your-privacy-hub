@@ -47,8 +47,21 @@ export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 // in failed_conditions. That is correct and intended for this leg, and
 // ITEM 406 LEG C — the cyber CSC pass ships, so FALSE_ABSENCE_CHECK_IDS
 // ["cppa-cyber"] now carries the absence-class id (it was [] in leg B).
+// ITEM 410 leg B — "biometric" joins the union, FAIL-CLOSED. THE UNION KEY IS
+// `biometric`, not `biometric-checker`: this union names the PRODUCT whose
+// telemetry rides `_meta.internal.<product>_coverage` / `_csc`, and the
+// item409 spine already fixed the product name as `biometric`
+// (`BIOMETRIC_PLAN_PRODUCT = "biometric"`, `biometric_pipeline_stamp`). Leg C
+// will therefore emit `biometric_coverage` / `biometric_csc`, consistent with
+// this key. `biometric-checker` remains the HARNESS slug (golden registry,
+// messy registry, RUN_QUALITY_BATCH_SLUGS, dispatchGeneration) and is not a
+// product name. Biometric has NO coverage matrix and NO CSC pass yet (leg C
+// follows), so the fail-closed arms keep the gate value FALSE with
+// `coverage_orphans` + `csc_false_absence` in failed_conditions. That is
+// correct and intended for this leg.
 export type RecordCompleteProduct =
-  | "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
+  | "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber"
+  | "biometric";
 
 export type FailedCondition =
   | "contract_incomplete"
@@ -228,6 +241,11 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // gate (the item403-A g1 precedent): it flags per-component prose and its
   // repair is a sentence swap, not a determination of record completeness.
   "cppa-cyber": ["cy2_absence_claim_vs_record"],
+  // ITEM 410 LEG B — the biometric CSC pass does NOT exist yet (leg C ships
+  // it). An empty list is the honest value: there is no absence-class check id
+  // to count. The gate still fails closed on biometric because `csc` and
+  // `coverage` telemetry are absent, which is the required behaviour.
+  biometric: [],
 
 
 

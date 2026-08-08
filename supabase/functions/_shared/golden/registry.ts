@@ -86,6 +86,12 @@ import { ADMT_PERFECT } from "./cppa-admt.ts";
 import { GOVERNANCE_PERFECT } from "./governance-perfect.ts";
 // ITEM 405 leg B — CPPA cybersecurity perfect fixture (×1).
 import { CYBER_PERFECT } from "./cppa-cyber.ts";
+// ITEM 410 leg B — biometric perfect fixture (×1). NOTE THE SLUG: the golden
+// registry, the messy registry, RUN_QUALITY_BATCH_SLUGS and
+// dispatchGeneration all key this product as "biometric-checker" (the
+// contract's own `tool_type` is the distinct value "biometric_checker", used
+// only for entitlements/metering).
+import { BIOMETRIC_PERFECT } from "./biometric-perfect.ts";
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
@@ -95,6 +101,7 @@ export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
   "cppa-admt": ADMT_PERFECT,
   "governance": GOVERNANCE_PERFECT,
   "cppa-cyber": CYBER_PERFECT,
+  "biometric-checker": BIOMETRIC_PERFECT,
 };
 
 export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {
