@@ -116,6 +116,8 @@ export const CPPA_CYBER_FRONTEND_READ_PATHS: readonly string[] = [
   "overall_score",
   "executive_summary",
   "controls",
+  "control_status_counts",
+  "cyber_readiness_line",
   "top_risks",
   "next_steps",
   "citation_ledger",
