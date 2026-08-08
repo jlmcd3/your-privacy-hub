@@ -179,6 +179,40 @@ export function deepProse(node: unknown): string {
   return out.join(" ");
 }
 
+/**
+ * ITEM 403-A DEFECT 4 — replace the ONE sentence carrying the unsupported
+ * absence claim with the domain's record statement, leaving every other
+ * sentence byte-identical. Returns "" when the swap cannot be made safely
+ * (no sentence located, or the result would be shorter than the item384-r2
+ * 40-character substance floor), in which case the caller leaves the text
+ * unchanged and the violation is logged unrepaired.
+ */
+export function replaceAbsenceSentence(
+  text: string,
+  hit: string,
+  replacement: string,
+): string {
+  const src = String(text ?? "");
+  const idx = src.toLowerCase().indexOf(String(hit ?? "").toLowerCase());
+  if (idx < 0 || !replacement.trim()) return "";
+  // Sentence bounds around the hit.
+  let start = 0;
+  for (let i = idx; i > 0; i--) {
+    if (/[.!?]/.test(src[i - 1]) && /\s/.test(src[i] ?? " ")) { start = i; break; }
+  }
+  let end = src.length;
+  for (let i = idx + hit.length; i < src.length; i++) {
+    if (/[.!?]/.test(src[i])) { end = i + 1; break; }
+  }
+  const out = `${src.slice(0, start)}${replacement}${src.slice(end)}`
+    .replace(/\s+/g, " ")
+    .trim();
+  if (out.replace(/\s+/g, "").length < 40) return "";
+  return out;
+}
+
+
+
 // ---------------------------------------------------------------------------
 // G2 — surface → backing intake keys (the absence-claim map)
 // ---------------------------------------------------------------------------
