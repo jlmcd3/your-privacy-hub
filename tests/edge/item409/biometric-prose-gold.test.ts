@@ -123,7 +123,7 @@ Deno.test("item409 · the plan names the row it supersedes and says what became 
 });
 
 Deno.test("item409 · the superseded row is not the pinned row", () => {
-  assert(BIOMETRIC_PLAN_SUPERSEDED_ROW_ID !== BIOMETRIC_PLAN_ROW_ID);
+  assert(String(BIOMETRIC_PLAN_SUPERSEDED_ROW_ID) !== String(BIOMETRIC_PLAN_ROW_ID));
 });
 
 // ── 3. REFERENCE-PASSAGE DISCIPLINE ─────────────────────────────────────────
