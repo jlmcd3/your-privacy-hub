@@ -67,7 +67,7 @@ Deno.test("ITEM 407 — the cyber config is the shared core with a product block
   assert(VERIFIER_PROMPT_BASE.includes('REJECT with reason "necessity"'));
   assertEquals(MAX_SPLICES, 12);
   assertEquals(CYBER_REFINEMENT_CONFIG_VERSION, "cyber-refine-config-2026-08-07-item406");
-  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item407-2026-08-07");
+  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item407b-2026-08-08");
 });
 
 Deno.test("ITEM 407 — the cyber config does not disturb the other five configs", () => {

@@ -21,7 +21,7 @@ import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
-export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-05-item379r2";
+export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item406b";
 
 export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
 
@@ -1075,25 +1075,62 @@ function cyberSurfaceNode(report: Record<string, unknown>, path: string): unknow
   if (m) {
     const rows = report[m[1]];
     if (!Array.isArray(rows)) return undefined;
+    // (i) identity match — a row that NAMES its component wins.
     for (const r of rows) {
       if (!r || typeof r !== "object") continue;
       const o = r as Record<string, unknown>;
-      if (String(o.key ?? o.slug ?? "") === m[2]) return o;
+      if (String(o.key ?? o.slug ?? o.control_id ?? o.component_id ?? "") === m[2]) return o;
+    }
+    // (ii) ITEM 406-B — POSITIONAL match. The live cyber pipeline writes
+    // `controls` as an eighteen-row array in contract order whose rows carry
+    // NO slug field (verified on quality_run_documents b2f1ec1e-7e33-4259-
+    // 9358-c60280369fd2: row keys are score/status/finding/priority/
+    // remediation only). Ordinal resolution is used ONLY when no row in the
+    // array names any component and the array is exactly the contract length,
+    // so a partially-identified array can never be mis-resolved.
+    const idx = CYBER_SLUGS.indexOf(m[2]);
+    if (idx >= 0 && rows.length === CYBER_SLUGS.length) {
+      const anyIdentified = rows.some((r) =>
+        !!r && typeof r === "object" &&
+        nonEmpty((r as Record<string, unknown>).key ?? (r as Record<string, unknown>).slug ??
+          (r as Record<string, unknown>).control_id ?? (r as Record<string, unknown>).component_id)
+      );
+      if (!anyIdentified) return rows[idx];
     }
     return undefined;
   }
   return getPath(report, path);
 }
 
+
 function cyberSurfaceSubstance(node: unknown): number {
-  return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
+  // ITEM 406-B — measure the VALUES a surface carries, never its key names.
+  // A hollow row ({score:null, finding:"", …}) serialises to ~45 characters of
+  // field names, which would otherwise resolve a link the surface says nothing
+  // about.
+  const leaves: string[] = [];
+  const walk = (n: unknown, depth: number): void => {
+    if (n === null || n === undefined || depth > 6) return;
+    if (typeof n === "string") { leaves.push(n); return; }
+    if (typeof n === "number" || typeof n === "boolean") { leaves.push(String(n)); return; }
+    if (Array.isArray(n)) { for (const x of n) walk(x, depth + 1); return; }
+    if (typeof n === "object") { for (const v of Object.values(n as Record<string, unknown>)) walk(v, depth + 1); }
+  };
+  walk(node, 0);
+  return leaves.join(" ").replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
 }
 
-/** Programme, scope and independence facts → the plan's arc. */
+
+/** Programme, scope and independence facts → the plan's arc.
+ *  ITEM 406-B — every surface named below was audited against the live cyber
+ *  corpus (149 persisted `quality_run_documents` rows, tool='cppa-cyber').
+ *  `component_coverage`, `evidence_sufficiency`, `program_obligation_findings`
+ *  and `cyber_readiness_line` appear in ZERO of them and were removed: a link
+ *  may only name a surface the pipeline actually writes. */
 const CYBER_PROFILE_LINKS: readonly CyberCoverageLink[] = [
   {
     keys: ["profile.entity_name", "profile.industry", "profile.incidents_12mo"],
-    surfaces: ["executive_summary", "readiness_determination", "cyber_readiness_line"],
+    surfaces: ["executive_summary", "readiness_determination"],
     section: "readiness_determination",
   },
   {
@@ -1104,22 +1141,28 @@ const CYBER_PROFILE_LINKS: readonly CyberCoverageLink[] = [
       "profile.audit_scope_rationale",
       "profile.prior_audit_scope",
     ],
-    surfaces: ["executive_summary", "evidence_sufficiency", "component_coverage", "program_obligation_findings"],
+    surfaces: ["executive_summary"],
     section: "programme_record",
   },
   {
     keys: ["profile.auditor_engagement_status"],
-    surfaces: ["independence_determination", "program_obligation_findings"],
+    surfaces: ["independence_determination"],
     section: "audit_schedule",
   },
 ];
 
-/** One link per § 7123(c) component: the record entry → its own surfaces. */
+/** One link per § 7123(c) component: the record entry → its own surfaces.
+ *  ITEM 406-B — the live pipeline writes the per-component findings as rows of
+ *  the top-level `controls` array (score/status/finding/priority/remediation).
+ *  There is no `control_findings` section and there never was; the item406
+ *  declaration named a surface the pipeline never writes, which orphaned all
+ *  eighteen components on a perfect record. */
 const CYBER_CONTROL_LINKS: readonly CyberCoverageLink[] = CYBER_SLUGS.map((slug) => ({
   keys: [`controls[${slug}].notes`, `controls[${slug}].maturity`, `controls[${slug}].evidence`],
-  surfaces: [`controls[${slug}]`, `component_coverage[${slug}]`, `evidence_sufficiency[${slug}]`],
-  section: "control_findings",
+  surfaces: [`controls[${slug}]`],
+  section: "controls",
 }));
+
 
 export const CYBER_COVERAGE_LINKS: readonly CyberCoverageLink[] = [
   ...CYBER_PROFILE_LINKS,
