@@ -21,9 +21,17 @@ import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
-export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item406b";
+export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item411";
 
-export type CoverageProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
+export type CoverageProduct =
+  | "dpia"
+  | "cppa-risk"
+  | "lia"
+  | "cppa-admt"
+  | "governance"
+  | "cppa-cyber"
+  | "biometric";
+
 
 export interface CoverageOrphan {
   /** Stable machine id for the broken link. */
@@ -1252,6 +1260,221 @@ function cyberCoverage(
 }
 
 // ---------------------------------------------------------------------------
+// ITEM 411 LEG C — BIOMETRIC COVERAGE
+//
+// ITEM 406-B DISCIPLINE IS MANDATORY HERE. Every surface named below was
+// derived from the shape the pipeline ACTUALLY WRITES — the `report_data`
+// literal assembled in `check-biometric-compliance/index.ts` plus the
+// deliverables the builder emits for `BIOMETRIC_PERFECT`:
+//
+//   duty_findings[<one of eighteen mk() row ids>]   (record_fact/application/…)
+//   identifier_characterizations[us_il_bipa|us_tx_cubi|us_wa_19375|us_wa_19373]
+//   entity_characterization        (role, role_reasoning, intake_label, per_statute)
+//   divergence_analysis            (positions[] across statutes)
+//   consequence_determination      (unlawful_now, unresolved_on_record, …)
+//   biometric_deliverables.attestation
+//   assessment_text                (the prose document — ~83% of the reader's
+//                                   text; the wiring passes it in alongside
+//                                   report_data, since it is streamed
+//                                   separately and is NOT a report_data key)
+//
+// Surfaces the pipeline does NOT write — `controls`, `control_findings`,
+// `component_coverage`, `next_steps` — are deliberately absent. Naming one
+// would reproduce the item406 defect exactly.
+// ---------------------------------------------------------------------------
+
+interface BiometricCoverageLink {
+  readonly keys: readonly string[];
+  readonly surfaces: readonly string[];
+  readonly section: string;
+}
+
+const BIO_SURFACE_MIN_CHARS = 40;
+const BIO_ROW_PATH_RE = /^([a-z_]+)\[([a-z0-9_.]+)\]$/;
+
+function bioSurfaceNode(report: Record<string, unknown>, path: string): unknown {
+  const m = BIO_ROW_PATH_RE.exec(path);
+  if (m) {
+    const rows = report[m[1]];
+    if (!Array.isArray(rows)) return undefined;
+    for (const r of rows) {
+      if (!r || typeof r !== "object") continue;
+      const o = r as Record<string, unknown>;
+      if (String(o.key ?? o.statute_key ?? o.slug ?? "") === m[2]) return o;
+    }
+    return undefined;
+  }
+  return getPath(report, path);
+}
+
+/** Measure the VALUES a surface carries, never its key names (item406-B). */
+function bioSurfaceSubstance(node: unknown): number {
+  const leaves: string[] = [];
+  const walk = (n: unknown, depth: number): void => {
+    if (n === null || n === undefined || depth > 6) return;
+    if (typeof n === "string") { leaves.push(n); return; }
+    if (typeof n === "number" || typeof n === "boolean") { leaves.push(String(n)); return; }
+    if (Array.isArray(n)) { for (const x of n) walk(x, depth + 1); return; }
+    if (typeof n === "object") {
+      for (const v of Object.values(n as Record<string, unknown>)) walk(v, depth + 1);
+    }
+  };
+  walk(node, 0);
+  return leaves.join(" ").replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
+}
+
+function bioFilled(intake: unknown, key: string): boolean {
+  const v = getPath(intake, key);
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    return s.length > 0 && s !== "not known";
+  }
+  return nonEmpty(v);
+}
+
+/** The eighteen duty rows the builder emits, grouped by the statute scope
+ *  that produces them. A link fires only when the record supplies its key, so
+ *  a statute out of scope on this record simply never engages. */
+const BIO_DUTY_LINKS: readonly BiometricCoverageLink[] = [
+  { keys: ["retention_schedule_text", "retention_policy_public"], surfaces: ["duty_findings[il_bipa.15a_written_policy]"], section: "duty_findings" },
+  { keys: ["destruction_trigger"], surfaces: ["duty_findings[il_bipa.15a_comply_with_schedule]"], section: "duty_findings" },
+  { keys: ["notice_before_collection", "consent_artifact_type", "release_artifact_description"], surfaces: ["duty_findings[il_bipa.15b_notice_and_written_release]", "duty_findings[tx_cubi.b_notice_and_consent]", "duty_findings[wa_19375.020_1_enrollment_notice_consent]"], section: "duty_findings" },
+  { keys: ["sells_or_profits"], surfaces: ["duty_findings[il_bipa.15c_no_profit]"], section: "duty_findings" },
+  { keys: ["disclosure_bases", "disclosure_recipients"], surfaces: ["duty_findings[il_bipa.15d_disclosure_limits]", "duty_findings[tx_cubi.c1_disclosure_limits]", "duty_findings[wa_19375.020_3_disclosure_limits]"], section: "duty_findings" },
+  { keys: ["security_measures_description", "protection_parity"], surfaces: ["duty_findings[il_bipa.15e_reasonable_care]", "duty_findings[tx_cubi.c2_reasonable_care]", "duty_findings[wa_19375.020_4_care_and_retention]"], section: "duty_findings" },
+  { keys: ["tx_destruction_within_one_year", "tx_longer_retention_required_by_law"], surfaces: ["duty_findings[tx_cubi.c3_one_year_destruction]"], section: "duty_findings" },
+  { keys: ["wa_commercial_purpose"], surfaces: ["duty_findings[wa_19375.020_5_material_inconsistency]", "duty_findings[wa_19375.020_1_enrollment_notice_consent]"], section: "duty_findings" },
+  { keys: ["wa_enrolls_in_database"], surfaces: ["duty_findings[wa_19375.020_1_enrollment_notice_consent]"], section: "duty_findings" },
+  { keys: ["wa_mhmda_privacy_policy_published"], surfaces: ["duty_findings[wa_19373.020_privacy_policy]"], section: "duty_findings" },
+  { keys: ["wa_mhmda_collection_consent"], surfaces: ["duty_findings[wa_19373.030_collection_consent]"], section: "duty_findings" },
+  { keys: ["wa_mhmda_share_consent_separate"], surfaces: ["duty_findings[wa_19373.030_share_consent]"], section: "duty_findings" },
+  { keys: ["wa_mhmda_geofence_health_facility"], surfaces: ["duty_findings[wa_19373.080_geofence]"], section: "duty_findings" },
+];
+
+const BIO_SCOPE_LINKS: readonly BiometricCoverageLink[] = [
+  {
+    keys: ["data_source_description", "biometricTypes"],
+    surfaces: [
+      "identifier_characterizations[us_il_bipa]",
+      "identifier_characterizations[us_tx_cubi]",
+      "identifier_characterizations[us_wa_19375]",
+      "identifier_characterizations[us_wa_19373]",
+    ],
+    section: "identifier_characterizations",
+  },
+  {
+    keys: ["orgType", "orgName", "entity_is_government", "glba_financial_institution", "healthcare_tpo_context"],
+    surfaces: ["entity_characterization"],
+    section: "entity_characterization",
+  },
+  {
+    keys: ["wa_mhmda_health_inference"],
+    surfaces: ["identifier_characterizations[us_wa_19373]", "assessment_text"],
+    section: "identifier_characterizations",
+  },
+  {
+    keys: ["jurisdictions", "other_state_names"],
+    surfaces: ["jurisdictions_analysed", "assessment_text"],
+    section: "scope",
+  },
+  {
+    keys: ["purpose"],
+    surfaces: ["assessment_text", "entity_characterization"],
+    section: "scope",
+  },
+  {
+    keys: ["tx_ai_training_use", "tx_employer_security_collection", "wa_security_purpose_only"],
+    surfaces: ["assessment_text", "divergence_analysis"],
+    section: "divergence_analysis",
+  },
+  {
+    keys: ["approved_by_name", "approved_by_title", "approval_date", "next_review_due"],
+    surfaces: ["biometric_deliverables.attestation"],
+    section: "attestation",
+  },
+];
+
+export const BIOMETRIC_COVERAGE_LINKS: readonly BiometricCoverageLink[] = [
+  ...BIO_DUTY_LINKS,
+  ...BIO_SCOPE_LINKS,
+];
+
+/** Every intake key the biometric link config knows about. */
+export const BIOMETRIC_LINKED_INTAKE_KEYS: readonly string[] = [
+  ...new Set(BIOMETRIC_COVERAGE_LINKS.flatMap((l) => l.keys)),
+];
+
+/** Lists whose entries may DECLARE their record anchorage. */
+const BIO_ACTION_LISTS = ["priority_actions", "recommended_actions", "next_steps"];
+
+function biometricCoverage(
+  report: Record<string, unknown>,
+  intake: Record<string, unknown>,
+  t: CoverageTelemetry,
+): void {
+  const docText = documentText(report);
+
+  // L1 — supplied fact → a section that reflects it.
+  for (const link of BIOMETRIC_COVERAGE_LINKS) {
+    const supplied = link.keys.filter((k) => bioFilled(intake, k));
+    if (supplied.length === 0) continue; // honest silence
+    t.counts.links_checked++;
+    const resolved = link.surfaces.some(
+      (s) => bioSurfaceSubstance(bioSurfaceNode(report, s)) >= BIO_SURFACE_MIN_CHARS,
+    );
+    if (resolved) continue;
+    t.orphans.push({
+      type: "supplied_fact_without_section",
+      path: link.surfaces[0],
+      detail:
+        `the record supplies ${supplied.join(", ")} but the "${link.section}" section carries nothing that reflects it.`,
+    });
+  }
+
+  // L2 — DECLARED anchorage only; undeclared anchorage is silence.
+  for (const listKey of BIO_ACTION_LISTS) {
+    arr(report[listKey]).forEach((a, i) => {
+      const declared = Array.isArray(a.anchor_keys) ? (a.anchor_keys as unknown[]).map(String) : null;
+      if (!declared) return;
+      t.counts.links_checked++;
+      if (declared.length === 0) return;
+      if (declared.some((k) => bioFilled(intake, k))) return;
+      const label = text(a.action ?? a.step ?? a.risk ?? a.title ?? a.finding).slice(0, 80);
+      t.orphans.push({
+        type: "action_without_record_anchor",
+        path: `${listKey}[${i}]`,
+        detail: `the action "${label}" names ${declared.join(", ")} as its record anchor and the record fills none of them.`,
+      });
+    });
+  }
+
+  // L3 — asks raised against facts the record in fact supplies. For this
+  // product the ask surface is the per-duty `information_needed` leaf as well
+  // as any top-level `information_needed` list.
+  const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
+  asks.forEach((ask, i) => {
+    t.counts.links_checked++;
+    const body = askText(ask) || text(ask);
+    if (!body.trim()) return;
+    const named = BIOMETRIC_LINKED_INTAKE_KEYS.filter((k) => body.includes(k));
+    const supplied = named.filter((k) => bioFilled(intake, k));
+    if (supplied.length === 0) return;
+    t.orphans.push({
+      type: "ask_against_supplied_fact",
+      path: `information_needed[${i}]`,
+      detail: `the ask names ${supplied.join(", ")} although the record supplies it.`,
+    });
+  });
+
+  t.unused_intake_facts = BIOMETRIC_LINKED_INTAKE_KEYS.filter((k) => {
+    const v = getPath(intake, k);
+    if (typeof v !== "string" || v.trim().length < 24) return false;
+    const words = contentWords(v);
+    return words.length > 0 && !words.some((w) => docText.includes(w));
+  });
+}
+
+// ---------------------------------------------------------------------------
 
 // the pass
 // ---------------------------------------------------------------------------
@@ -1279,6 +1502,8 @@ export function runCoverageMatrix(
     else if (product === "cppa-admt") admtCoverage(report, intake, t);
     else if (product === "governance") governanceCoverage(report, intake, t);
     else if (product === "cppa-cyber") cyberCoverage(report, intake, t);
+    else if (product === "biometric") biometricCoverage(report, intake, t);
+
     else riskCoverage(report, intake, t);
   } catch (e) {
     t.crashed = true;

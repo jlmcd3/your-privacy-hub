@@ -2225,7 +2225,75 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] R11 lint failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 411 LEG C — BIOMETRIC CSC, THEN COVERAGE, BEFORE THE GATE ──
+    // Ordering is the fleet ordering (item 394 ADMT, item 402 governance,
+    // item 406 cyber): CSC first, so its repairs land before coverage measures
+    // the surfaces; coverage second; the item410 record-complete gate last, so
+    // it reads BOTH telemetries off `_meta.internal` rather than failing
+    // closed on their absence.
+    //
+    // THE RECORD is the request body (see the gate note below) — the full
+    // record, never a trimmed projection.
+    //
+    // THE DOCUMENT the coverage pass measures is `report_data` PLUS
+    // `assessment_text`. `assessment_text` is streamed separately and is not a
+    // `report_data` key, but it carries most of the reader's prose, so the
+    // matrix would otherwise orphan every narrative-only fact. The spread is
+    // read-only: coverage never writes, and the gate's telemetry is attached
+    // to `report_data` itself.
+    //
+    // FAIL-OPEN, both passes.
+    try {
+      const cscStart = Date.now();
+      const { attachBiometricCsc } = await import("../_shared/ltp/biometric-csc.ts");
+      const bioRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const csc = attachBiometricCsc(report_data as Record<string, unknown>, {
+        intake: bioRecord,
+      });
+      console.log(JSON.stringify({
+        evt: "biometric_csc",
+        fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        version: csc.version,
+        violations: csc.violations.length,
+        repairs: csc.repairs,
+        crashed: csc.crashed,
+        check_ids: [...new Set(csc.violations.map((v) => v.check_id))],
+        ms: Date.now() - cscStart,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 411 CSC failed (non-fatal):", (e as Error)?.message);
+    }
+
+    try {
+      const covStart = Date.now();
+      const { runCoverageMatrix, attachCoverage } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      const bioRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const coverage = runCoverageMatrix(
+        "biometric",
+        { ...(report_data as Record<string, unknown>), assessment_text },
+        bioRecord,
+      );
+      attachCoverage(report_data as Record<string, unknown>, "biometric_coverage", coverage);
+      console.log(JSON.stringify({
+        evt: "biometric_coverage",
+        fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        version: coverage.version,
+        orphans: coverage.counts.orphans,
+        unused_intake_facts: coverage.counts.unused_intake_facts,
+        links_checked: coverage.counts.links_checked,
+        crashed: coverage.crashed,
+        ms: Date.now() - covStart,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 411 coverage failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── ITEM 410 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
+
     // Ordering matches the established products (item 393 ADMT, item 401
     // governance, item 405 cyber): the gate is the LAST deterministic
     // post-pass — AFTER the item409 biometric prose gold and the R11
@@ -2242,9 +2310,11 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     // therefore receive the FULL record, never a trimmed projection (the
     // item385-r2 defect).
     //
-    // Leg B ships no coverage matrix and no CSC pass for biometric, so both
-    // fail-closed arms fire and the value is FALSE. Nothing reads the gate
-    // value back into prose, the determination or any banner. Telemetry only.
+    // ITEM 411 LEG C — the CSC and coverage passes now run immediately above,
+    // so both fail-closed arms have real telemetry to read and the gate can
+    // reach TRUE on a complete record. Nothing reads the gate value back into
+    // prose, the determination or any banner. Telemetry only.
+
     try {
       const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
         "../_shared/ltp/record-complete.ts"
