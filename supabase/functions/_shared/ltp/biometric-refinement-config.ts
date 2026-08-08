@@ -70,7 +70,8 @@
 //     entity surface the record in fact answers (W8).
 
 export const BIOMETRIC_REFINEMENT_CONFIG_VERSION =
-  "biometric-refine-config-2026-08-08-item411";
+  "biometric-refine-config-2026-08-08-item412";
+
 
 export interface BiometricWatchClass {
   readonly id: string;
@@ -148,7 +149,8 @@ W4 Priority action without a record-specific object: "Audit vendor contracts…"
 W5 Claim the record and the corpus cannot both support: a derived population midpoint, an unverifiable case-law or amendment assertion, a penalty exposure computed from a headcount the record does not state.
 W6 British spelling in a US-statute document: "organisation", "analyse", "behaviour" and their family. The deterministic no_british_spelling check owns this class.
 W7 Counsel referral or internal reasoning in body text: a "review with qualified legal counsel" sentence outside the standing disclaimer, or model reasoning about its own process.
-W8 Absence frame on a surface the record answers: an absence sentence on a duty, identifier, entity or attestation surface whose backing intake question is in fact answered. Check the record both ways — an absence sentence about a genuinely unanswered question is designed output and must be preserved byte-for-byte.`;
+W8 Absence frame on a surface the record answers: an absence sentence on a duty, identifier, entity or attestation surface whose backing intake question is in fact answered. Check the record both ways — an absence sentence about a genuinely unanswered question is designed output and must be preserved byte-for-byte.
+W-COPYEDIT Assembly-seam copy defects (ITEM 399 R11; the perfect-exemplar register is the "after"): markdown or markup leaking into prose (**bold**, ## headings, backticks, bullet glyphs); a grammar break at a concatenation seam (a frame clause that does not accept the words the quotation actually begins with; a missing relative pronoun); the SAME citation pinpoint repeated back to back inside one string; internal scaffolding surviving mid-sentence ("Owner:", "Suggested owner (confirm):"); a Title-Case headline fragment jammed into a paragraph. Report the assembled string, not the builder. NEVER restyle a reference passage, a verbatim quotation, a citation, the attestation block or the standing disclaimer to satisfy this class — a reference passage is byte-pinned to its corpus row and a seam defect adjacent to one is fixed on the surrounding words only.`;
 
 /**
  * DESIGNED OUTPUT. These are deliberate product decisions, not defects. A
