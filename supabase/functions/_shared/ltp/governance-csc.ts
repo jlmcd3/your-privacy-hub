@@ -41,6 +41,7 @@
 import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "./dpia-csc.ts";
 import { GOVERNANCE_ABSENCE_LABEL_PHRASINGS } from "./governance-prose-gold.ts";
 import {
+  buildDomainRecordStatement,
   buildDpoRecordStatement,
   buildRetentionStatement,
   buildTrainingStatement,
