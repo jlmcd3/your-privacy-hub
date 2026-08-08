@@ -29,7 +29,8 @@ export type ProseLintRule =
   | "quote_frame_break"
   | "duplicate_pinpoint"
   | "splice_pattern"
-  | "headline_in_paragraph";
+  | "headline_in_paragraph"
+  | "bare_aggregate_token";
 
 export interface ProseLintFinding {
   rule: ProseLintRule;
