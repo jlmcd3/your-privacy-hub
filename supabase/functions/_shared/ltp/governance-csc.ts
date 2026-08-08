@@ -367,22 +367,31 @@ export function runGovernanceCsc(
     };
 
     // ── G1 — per-domain finding vs the control facts ──────────────────────
+    // ITEM 403-A DEFECT 4 — g1 now carries a SINGLE-WRITER REPAIR (the g2
+    // idiom): the sentence carrying the unsupported absence claim is replaced
+    // in place by `buildDomainRecordStatement`, the domain's only writer. g1
+    // remains flag-only for the GATE — it is deliberately outside
+    // FALSE_ABSENCE_CHECK_IDS and this change does not widen the gate.
     const domains = report.domain_findings as Record<string, unknown> | undefined;
     if (domains && typeof domains === "object" && !Array.isArray(domains)) {
       for (const ctl of GOVERNANCE_DOMAIN_CONTROLS) {
         const node = domains[ctl.domain] as Record<string, unknown> | undefined;
         if (!node || typeof node !== "object" || Array.isArray(node)) continue;
         if (!ctl.keys.every((k) => intakeFilled(intake, k))) continue; // honest silence
+        const answered = ctl.keys.filter((k) => intakeFilled(intake, k));
         for (const leaf of DOMAIN_CLAIM_LEAVES) {
           const text = str(node[leaf]);
           if (!text) continue;
           const hit = governanceCarriesAbsence(text, needles);
           if (!hit) continue;
+          const built = buildDomainRecordStatement(intake, answered);
+          const repaired = built ? replaceAbsenceSentence(text, hit, built) : "";
+          if (repaired && repaired !== text) node[leaf] = repaired;
           log({
             check_id: "g1_domain_finding_vs_record",
             path: `domain_findings.${ctl.domain}.${leaf}`,
-            evidence: `the finding says "${clip(hit, 90)}" although ${ctl.why} (${ctl.keys.join(", ")}).`,
-            repaired: false,
+            evidence: `the finding says "${clip(hit, 90)}" although ${ctl.why} (${answered.join(", ")}).`,
+            repaired: Boolean(repaired && repaired !== text),
           });
         }
       }
@@ -410,10 +419,12 @@ export function runGovernanceCsc(
       log({
         check_id: "g2_absence_claim_vs_record",
         path: surface.path,
-        evidence: `the surface says "${clip(hit, 90)}" although the record supplies ${surface.keys.join(", ")}.`,
+        // ITEM 403-A DEFECT 1(a) — only keys the record actually supplies.
+        evidence: `the surface says "${clip(hit, 90)}" although the record supplies ${answeredKeysForSurface(surface, intake).join(", ")}.`,
         repaired: Boolean(built),
       });
     }
+
 
     // ── G3 / G4 — field hygiene ───────────────────────────────────────────
     const authority = new Set(GOVERNANCE_AUTHORITY_FIELD_KEYS);
