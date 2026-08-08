@@ -2149,6 +2149,76 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] frame substitution failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 409 — BIOMETRIC PROSE GOLD. THE TRUE FINALIZE POINT. ───────────
+    // This is the LAST CONTENT-SHAPING SEAM in the function: frame
+    // substitution (immediately above) is the last pass that writes prose, and
+    // everything below this point either filters keys (LEAK-PREV-P2 whitelist
+    // serialization), persists rows, or streams the already-shaped payload.
+    // Running the register pass here means it sees the document exactly as the
+    // reader will, and no later pass can reintroduce the register it removes.
+    //
+    // FAIL-OPEN, with ONE exception: reference-passage drift through assembly
+    // is logged loudly, because a mutated statutory passage is the one defect
+    // this product cannot ship quietly.
+    try {
+      const goldStart = Date.now();
+      const { report: golded, repaired_keys } = applyBiometricProseGold(
+        report_data as Record<string, unknown>,
+        BIOMETRIC_REFERENCE_PASSAGES,
+      );
+      const orig = report_data as Record<string, unknown>;
+      for (const k of Object.keys(orig)) if (!(k in golded)) delete orig[k];
+      Object.assign(orig, golded);
+
+      // `assessment_text` is the document: a single string carrying ~83% of it,
+      // held outside report_data and streamed separately. It gets the same pass.
+      const goldedText = repairBiometricProse(assessment_text, BIOMETRIC_REFERENCE_PASSAGES);
+      const textChanged = goldedText !== assessment_text;
+      assessment_text = goldedText;
+
+      const assemblyDrift = checkPassagesSurviveAssembly(
+        assessment_text,
+        BIOMETRIC_REFERENCE_PASSAGES,
+      );
+      if (assemblyDrift.length) {
+        console.error(
+          `[check-biometric-compliance] REFERENCE-PASSAGE DRIFT THROUGH ASSEMBLY:\n${formatDrift(assemblyDrift)}`,
+        );
+      }
+
+      console.log(JSON.stringify({
+        evt: "biometric_prose_gold",
+        fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        repaired_keys: repaired_keys.length,
+        assessment_text_repaired: textChanged,
+        assembly_drift: assemblyDrift.length,
+        ms: Date.now() - goldStart,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] prose gold failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // R11 — assembled-prose lint over the FINAL rendered strings.
+    try {
+      const { lintAssembledProse } = await import("../_shared/prose/assembled-prose-lint.ts");
+      const r11 = lintAssembledProse({
+        ...(report_data as Record<string, unknown>),
+        assessment_text,
+      });
+      console.log(JSON.stringify({
+        evt: "biometric_r11_lint",
+        fn: "check-biometric-compliance",
+        version: r11.version,
+        findings: r11.findings.length,
+        rules: [...new Set(r11.findings.map((f) => f.rule))],
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] R11 lint failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report in place, immediately before the report_data write.
     // FAIL-OPEN: any serializer crash or throw logs and leaves the report
