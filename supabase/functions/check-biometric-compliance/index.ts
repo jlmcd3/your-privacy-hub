@@ -1354,7 +1354,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
   const sectionTexts = uniqueJurisdictions.map((jn) => parameterizePriorityActions(stressSection(jn)));
   // ITEM 409 — the stress path is the batch renderer that produced the walked
   // renders, so it carries the same register defect and takes the same pass.
-  const assessment_text = repairBiometricProse(
+  let assessment_text = repairBiometricProse(
     scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n")),
     BIOMETRIC_REFERENCE_PASSAGES,
   );
@@ -1375,8 +1375,19 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
 
   }) as Record<string, unknown> & { generated_at: string; enforcement_precedents: unknown[] };
 
+  // ── ITEM 412-B — THE HARNESS PATH TAKES THE SAME SEAM ──────────────────
+  // This path is what `run-quality-batch` invokes (`stress_run: true`). It
+  // previously persisted without the item410/411/412 battery; it now calls the
+  // one finalize seam, immediately before its persist writes, exactly as the
+  // streaming path does.
+  assessment_text = await runBiometricFinalizeBattery(
+    report_data as Record<string, unknown>,
+    assessment_text,
+    body,
+  );
 
   let savedId: string | null = null;
+
   if (body.assessment_id) {
     const { data, error } = await supabase.from("biometric_assessments").update({
       client_id: body.client_id ?? null,
