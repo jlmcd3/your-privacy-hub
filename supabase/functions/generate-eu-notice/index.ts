@@ -444,9 +444,20 @@ ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>W
   });
 
   if (automatedYes) {
+    // INTAKE-1: when the controller supplied Art.13(2)(f) detail, render it
+    // immediately after the standing sentence. Absent (legacy records), the
+    // section is byte-identical to its previous output.
+    const admDetail = formatAnswer(
+      "automated_decisions_detail",
+      answers["automated_decisions_detail"],
+    ).trim();
     sections.push({
       title: "Automated decision-making",
-      html: `<p>We use automated decision-making with legal or similarly significant effects. You have the right to obtain human intervention, express your point of view, and contest the decision.</p>`,
+      html: `<p>We use automated decision-making with legal or similarly significant effects. You have the right to obtain human intervention, express your point of view, and contest the decision.</p>${
+        admDetail
+          ? `<p>Meaningful information about the logic involved, and the significance and envisaged consequences of this processing for you: ${escapeHtml(admDetail)}</p>`
+          : ""
+      }`,
     });
   }
 
