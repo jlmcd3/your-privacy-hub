@@ -85,7 +85,7 @@ import { ADMT_PERFECT } from "./cppa-admt.ts";
 // ITEM 401 leg B — governance perfect fixture (×1).
 import { GOVERNANCE_PERFECT } from "./governance-perfect.ts";
 // ITEM 405 leg B — CPPA cybersecurity perfect fixture (×1).
-import { CYBER_PERFECT } from "./cppa-cyber-perfect.ts";
+import { CYBER_PERFECT } from "./cppa-cyber.ts";
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
