@@ -385,6 +385,9 @@ Deno.test("item404 · cyber_pipeline_stamp survives the LEAK-PREV-P2 serializer"
 });
 
 Deno.test("item404 · the stamp and version constants are the item404 values", () => {
-  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item404-2026-08-07");
+  // ITEM 406 leg C bumps the PIPELINE stamp; the prose-gold module version is
+  // unchanged because item406 alters no prose-gold behaviour (it only exports
+  // the absence-label phrasing class the CSC detector is built from).
+  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item406-2026-08-07");
   assertEquals(CYBER_PROSE_GOLD_VERSION, "cyber-prose-gold-2026-08-07-item404");
 });

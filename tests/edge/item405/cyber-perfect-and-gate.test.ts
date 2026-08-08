@@ -173,8 +173,10 @@ Deno.test("write-path parity: the persisted intake_data is the fixture, key-for-
   assertEquals(emptyAskedKeys(cppaCybersecurityContract, persisted), []);
 });
 
-Deno.test("gate: cppa-cyber is in the union with an EMPTY false-absence id list (leg C pending)", () => {
-  assertEquals(FALSE_ABSENCE_CHECK_IDS["cppa-cyber"], []);
+Deno.test("gate: cppa-cyber carries the leg-C false-absence id list", () => {
+  // ITEM 406 LEG C shipped `_shared/ltp/cyber-csc.ts`, so the empty leg-B list
+  // is replaced by the real absence-class id. cy1 stays out (item403-A g1).
+  assertEquals(FALSE_ABSENCE_CHECK_IDS["cppa-cyber"], ["cy2_absence_claim_vs_record"]);
 });
 
 Deno.test("gate: fail-closed shape on the perfect fixture (no coverage, no CSC)", () => {

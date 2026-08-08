@@ -1983,19 +1983,64 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[ITEM399-R11] cyber prose lint failed (non-fatal):", String(lintErr));
     }
 
+    // ── ITEM 406 LEG C — CYBER CSC, THEN THE COVERAGE MATRIX ───────────
+    // Both are deterministic, fail-open, and run AFTER item-404 prose gold
+    // and the R11 lint and BEFORE the item-405 record-complete gate, so the
+    // gate reads their telemetry off `_meta.internal`. THIS IS THE SAME
+    // ORDER AS GOVERNANCE (item 402 leg C) AND ADMT (item 394 leg C): prose
+    // gold → CSC → coverage → record-complete gate → emit gate → serializer.
+    // Both receive the FULL PERSISTED RECORD (`row.intake_data`), never a
+    // trimmed projection (the item385-r2 lesson).
+    try {
+      const { attachCyberCsc } = await import("../_shared/ltp/cyber-csc.ts");
+      const csc = attachCyberCsc(report as Record<string, unknown>, {
+        intake: (((row as any).intake_data ?? {})) as Record<string, unknown>,
+      });
+      console.log(JSON.stringify({
+        evt: "cyber_csc", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, cyber_pipeline_stamp: CYBER_PIPELINE_STAMP,
+        version: csc.version, violations: csc.violations.length,
+        repairs: csc.repairs, crashed: csc.crashed,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-cybersecurity] ITEM 406 cyber-csc failed (non-fatal):", (e as Error)?.message);
+    }
+
+    try {
+      const { runCoverageMatrix, attachCoverage } = await import("../_shared/ltp/coverage-matrix.ts");
+      const coverage = attachCoverage(
+        report as Record<string, unknown>,
+        "cyber_coverage",
+        runCoverageMatrix(
+          "cppa-cyber",
+          report as Record<string, unknown>,
+          (((row as any).intake_data ?? {})) as Record<string, unknown>,
+        ),
+      );
+      console.log(JSON.stringify({
+        evt: "cyber_coverage", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, cyber_pipeline_stamp: CYBER_PIPELINE_STAMP,
+        version: coverage.version, ...coverage.counts, crashed: coverage.crashed,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-cybersecurity] ITEM 406 cyber-coverage failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── ITEM 405 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
     // Ordering matches the established products (item 393 ADMT, item 401
     // governance): the gate is the LAST deterministic post-pass — AFTER
-    // W21-CYBER-TURNC and the item-404 cyber prose gold (so it judges the
-    // final customer text) and BEFORE the LEAK-PREV-P1 emit gate and the
-    // LEAK-PREV-P2 serializer (so its telemetry rides `_meta.internal` and
-    // survives the whitelist).
+    // W21-CYBER-TURNC, the item-404 cyber prose gold and the item-406
+    // evidence passes (so it judges the final customer text and reads real
+    // evidence) and BEFORE the LEAK-PREV-P1 emit gate and the LEAK-PREV-P2
+    // serializer (so its telemetry rides `_meta.internal` and survives the
+    // whitelist).
     //
     // The evidence passes receive the FULL persisted record
     // (`row.intake_data`), never a trimmed projection — the item385-r2
-    // defect. Cyber has no coverage matrix and no CSC pass until leg C, so
-    // the gate value is FALSE by the fail-closed arms; nothing reads it back
-    // into prose, the determination, or the banner. Telemetry only.
+    // defect. ITEM 406 leg C wires the CSC and coverage passes above, so
+    // both fail-closed arms now read real evidence; nothing reads the gate
+    // value back into prose, the determination, or the banner. Telemetry
+    // only.
     try {
       const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
         "../_shared/ltp/record-complete.ts"

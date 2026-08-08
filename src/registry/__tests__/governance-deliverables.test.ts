@@ -162,9 +162,14 @@ describe("ITEM 313 — DPO determination (Op. 4)", () => {
     expect(CORPUS.includes(d.designation_trigger.standard.split(" the processing is carried out")[0])).toBe(true);
   });
 
-  it("refuses to conclude on Art. 38 position without reporting-line evidence", () => {
-    expect(d.position_and_independence.status).toBe("record_insufficient");
+  it("takes the Art. 38 position from the designation and does not penalise uncollected detail", () => {
+    // ITEM 403-A ruling: the intake never asks for the reporting line, so its
+    // absence cannot hold the finding at `record_insufficient`. The operating
+    // detail is recorded as information needed, expressly carrying no adverse
+    // weight.
+    expect(d.position_and_independence.status).toBe("analysed");
     expect(d.position_and_independence.information_needed).toMatch(/reporting line/i);
+    expect(d.position_and_independence.information_needed).toMatch(/no adverse weight/i);
   });
 
   it("treats an informal privacy lead as not satisfying a mandatory designation", () => {

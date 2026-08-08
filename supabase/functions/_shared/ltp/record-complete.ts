@@ -45,7 +45,8 @@ export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 // coverage matrix and NO CSC pass yet (leg C follows), so the fail-closed arms
 // keep the cyber gate value FALSE with `coverage_orphans` + `csc_false_absence`
 // in failed_conditions. That is correct and intended for this leg, and
-// FALSE_ABSENCE_CHECK_IDS["cppa-cyber"] is [] until leg C ships the pass.
+// ITEM 406 LEG C — the cyber CSC pass ships, so FALSE_ABSENCE_CHECK_IDS
+// ["cppa-cyber"] now carries the absence-class id (it was [] in leg B).
 export type RecordCompleteProduct =
   | "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
 
@@ -221,11 +222,13 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // evidence: an UNREPAIRED g2 violation is a false absence claim about a
   // record that supplies the fact.
   governance: ["g2_absence_claim_vs_record"],
-  // ITEM 405 LEG B — the cyber CSC pass does not exist yet (leg C). An empty
-  // id list means no violation can ever be counted as a false absence, while
-  // the fail-closed arm above still holds the gate FALSE because the cyber
-  // coverage/CSC telemetry is absent. Leg C replaces this with the real ids.
-  "cppa-cyber": [],
+  // ITEM 406 LEG C — the cyber CSC pass (`_shared/ltp/cyber-csc.ts`) now runs,
+  // so the gate reads real evidence: an UNREPAIRED cy2 violation is a false
+  // absence claim about a record that supplies the fact. cy1 stays OUT of the
+  // gate (the item403-A g1 precedent): it flags per-component prose and its
+  // repair is a sentence swap, not a determination of record completeness.
+  "cppa-cyber": ["cy2_absence_claim_vs_record"],
+
 
 
 };
