@@ -6,6 +6,7 @@
 // RC-FLIP-3 — extraction eliminates a page↔shared-component cycle that could
 // contribute to Rollup binding hoists across chunks.
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { enforcementContextText } from "@/lib/enforcementContextText";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
