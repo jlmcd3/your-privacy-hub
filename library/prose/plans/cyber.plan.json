@@ -1,0 +1,157 @@
+{
+  "product": "cppa-cyber",
+  "version": "prose-plans-2026-08-07-item404",
+  "seed_default_approved": false,
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved. For this plan the approving authority is the review panel acting under standing CEO delegation: a unanimous review-panel verdict stands as CEO approval.",
+  "supersedes": null,
+  "provenance": {
+    "method": "live_render_mining",
+    "extracted_at": "2026-08-07",
+    "render_table": "quality_run_documents",
+    "render_doc_ids": [
+      "3dd35bf8-5be5-47ce-b6dc-f3f135c4afef",
+      "52a79112-0916-4530-ac4d-a61cb1dc6985"
+    ],
+    "render_scores": [88.45, 92.25],
+    "approval_note": "panel-delegated approval per CEO delegation 2026-08-06",
+    "supersession_note": "No prior prose_document_plans row existed for product cppa-cyber; this row is an insert, not a supersession. Nothing is orphaned.",
+    "fact_exempt_rule": "The walked renders are an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from them may reach a customer document, and none of them may be seeded into a fixture as record truth."
+  },
+  "thesis": "This assessment states, once, whether the business's cybersecurity programme is audit-ready under 11 CCR §§ 7121-7124 on the record it supplied, and then shows the record that produced that answer component by component. Arithmetic about the eighteen § 7123(c) components belongs in the typed control tally the renderer prints, never in a sentence; comparative frameworks are named as comparative and never as the operative requirement.",
+  "centre_of_gravity": "readiness_determination",
+  "banned_register": [
+    "record_insufficient",
+    "insufficient_basis",
+    "resolved_met",
+    "resolved_not_met",
+    "INDETERMINATE",
+    "CANDIDATE",
+    "TEST-STATES",
+    "Mean of",
+    "aggregate score of",
+    "cannot be determined",
+    "no basis to assess"
+  ],
+  "sections": [
+    {
+      "id": "readiness_determination",
+      "title": "Whether the programme is audit-ready",
+      "arc_stage": "headline",
+      "lead": "determination",
+      "source_key": "readiness_determination",
+      "themes": ["audit_readiness", "one_verdict", "s7121_7124", "reserved_to_counsel"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "executive_summary",
+      "title": "The assessment in short",
+      "arc_stage": "headline",
+      "lead": "determination",
+      "source_key": "executive_summary",
+      "themes": ["verdict_first", "no_arithmetic_in_prose", "ownership"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "programme_record",
+      "title": "The programme as the business described it",
+      "arc_stage": "record",
+      "lead": "record",
+      "source_key": "programme_record",
+      "themes": ["frameworks_in_scope", "evidence_on_file", "maturity_reported", "auditor_engagement"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "control_findings",
+      "title": "The eighteen components, one at a time",
+      "arc_stage": "analysis",
+      "lead": "determination",
+      "source_key": "controls",
+      "themes": ["component_status", "evidence", "operative_citation", "comparative_framework"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "control_status_counts",
+      "title": "How the components tally",
+      "arc_stage": "analysis",
+      "lead": "record",
+      "source_key": "control_status_counts",
+      "themes": ["typed_aggregate", "denominator", "methodology_note", "renderer_formats"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "audit_schedule",
+      "title": "When the first audit is due",
+      "arc_stage": "duty",
+      "lead": "record",
+      "source_key": "audit_schedule",
+      "themes": ["s7121_phase_in", "cohort_reserved_to_customer", "s7122_independence", "byte_pinned"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "gaps_and_remediation",
+      "title": "What the record does not yet carry, and what closes it",
+      "arc_stage": "remedy",
+      "lead": "determination",
+      "source_key": "top_risks",
+      "themes": ["named_element", "artifact_that_evidences_it", "priority", "credit_first"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "next_steps",
+      "title": "What to do next",
+      "arc_stage": "remedy",
+      "lead": "determination",
+      "source_key": "next_steps",
+      "themes": ["actions_only", "verdict_blocking_or_record_completeness", "owner", "no_enhancements"],
+      "required": true,
+      "status": "approved"
+    },
+    {
+      "id": "close",
+      "title": "Scope and reliance",
+      "arc_stage": "close",
+      "lead": "record",
+      "source_key": "disclaimer",
+      "themes": ["not_legal_advice", "counsel_review", "record_bound"],
+      "required": true,
+      "status": "approved"
+    }
+  ],
+  "exemplars": [
+    {
+      "class": "aggregate_corruption",
+      "section_id": "executive_summary",
+      "before": "This readiness assessment rates Meridian SaaS Inc. Mean of 81 across the 17 scored components (excluding 1 Insufficient-information component).",
+      "after": "The programme is not yet audit-ready on this record. Seventeen of the eighteen § 7123(c) components are scored; the tally and its denominator are set out in the component table.",
+      "rule": "Prose states the verdict. Arithmetic lives in the typed control tally and is formatted by the renderer."
+    },
+    {
+      "class": "garbled_comparative_citation",
+      "section_id": "control_findings",
+      "before": "corresponding to the NIST CSF 2.0 provides comparative guidance on and Identify functions; the operative requirement is 11 CCR § 7123(c)(15)",
+      "after": "The NIST CSF 2.0 Govern and Identify functions provide comparative guidance on third-party oversight; the operative requirement is 11 CCR § 7123(c)(15).",
+      "rule": "A comparative framework is named as comparative. Framework function names are proper nouns and are never rewritten as operative verbs."
+    },
+    {
+      "class": "strong_surface_register",
+      "section_id": "control_findings",
+      "before": null,
+      "after": "The record documents multi-factor authentication for all administrative access and supplies the configuration export that evidences it. What remains is retention of the change-log evidence for the audit period; the operative requirement is 11 CCR § 7123(c)(2).",
+      "rule": "Credit first, then the incremental residual, then the operative pinpoint once."
+    },
+    {
+      "class": "strong_surface_register",
+      "section_id": "audit_schedule",
+      "before": null,
+      "after": "The customer, in consultation with qualified legal counsel, determines which tier its revenue places it in and calendars the corresponding deadline.",
+      "rule": "The § 7121(a) phase-in sentences are corpus-pinned law and are reproduced byte-for-byte; the prose work never rewords them."
+    }
+  ]
+}
