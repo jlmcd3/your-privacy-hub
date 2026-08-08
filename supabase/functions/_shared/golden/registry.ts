@@ -84,6 +84,8 @@ import { LIA_PERFECT } from "./lia-perfect.ts";
 import { ADMT_PERFECT } from "./cppa-admt.ts";
 // ITEM 401 leg B — governance perfect fixture (×1).
 import { GOVERNANCE_PERFECT } from "./governance-perfect.ts";
+// ITEM 405 leg B — CPPA cybersecurity perfect fixture (×1).
+import { CYBER_PERFECT } from "./cppa-cyber.ts";
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
@@ -92,6 +94,7 @@ export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
   "lia": LIA_PERFECT,
   "cppa-admt": ADMT_PERFECT,
   "governance": GOVERNANCE_PERFECT,
+  "cppa-cyber": CYBER_PERFECT,
 };
 
 export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {
