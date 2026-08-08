@@ -1104,8 +1104,22 @@ function cyberSurfaceNode(report: Record<string, unknown>, path: string): unknow
 
 
 function cyberSurfaceSubstance(node: unknown): number {
-  return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
+  // ITEM 406-B — measure the VALUES a surface carries, never its key names.
+  // A hollow row ({score:null, finding:"", …}) serialises to ~45 characters of
+  // field names, which would otherwise resolve a link the surface says nothing
+  // about.
+  const leaves: string[] = [];
+  const walk = (n: unknown, depth: number): void => {
+    if (n === null || n === undefined || depth > 6) return;
+    if (typeof n === "string") { leaves.push(n); return; }
+    if (typeof n === "number" || typeof n === "boolean") { leaves.push(String(n)); return; }
+    if (Array.isArray(n)) { for (const x of n) walk(x, depth + 1); return; }
+    if (typeof n === "object") { for (const v of Object.values(n as Record<string, unknown>)) walk(v, depth + 1); }
+  };
+  walk(node, 0);
+  return leaves.join(" ").replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
 }
+
 
 /** Programme, scope and independence facts → the plan's arc.
  *  ITEM 406-B — every surface named below was audited against the live cyber
