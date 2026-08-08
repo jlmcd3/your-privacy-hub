@@ -35,7 +35,8 @@ import { CYBER_PERFECT, CPPA_CYBER_GOLDEN } from "../../../supabase/functions/_s
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { CYBER_PIPELINE_STAMP } from "../../../supabase/functions/_shared/prose/plans/cyber.spine.ts";
 import {
-  CYBER_AUDIT_SCHEDULE_SENTENCES,
+  SCHEDULE_LITERALS,
+  SCHEDULE_MARKER,
 } from "../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
 
 const PERFECT = CYBER_PERFECT[0].intake as Record<string, unknown>;
@@ -215,7 +216,14 @@ Deno.test("item406 degraded goldens keep their honest absence byte-identical", (
 // ── the byte-pinned audit schedule survives every repair path ─────────────
 
 Deno.test("item406 the audit-schedule sentences survive csc repair byte-identically", () => {
-  const pinned = [...CYBER_AUDIT_SCHEDULE_SENTENCES];
+  // The corpus-pinned § 7121(a) / § 7122 literals, as the schedule builder
+  // writes them. Byte-identical survival is the assertion.
+  const pinned = [
+    SCHEDULE_MARKER,
+    ...Object.values(SCHEDULE_LITERALS).flatMap((t) => [
+      `Under § 7121${t.subdivision}, the audit is due ${t.deadline} where ${t.revenue_condition}, covering ${t.audit_period}.`,
+    ]),
+  ];
   assert(pinned.length > 0);
   const report: Record<string, unknown> = {
     audit_schedule: { statement: pinned.join(" ") },
