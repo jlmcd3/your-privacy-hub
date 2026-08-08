@@ -169,6 +169,15 @@ function lintString(s: string, path: string, out: ProseLintFinding[]): void {
     }
   }
 
+  for (const re of BARE_AGGREGATE_RES) {
+    if (re.test(s)) {
+      out.push({ rule: "bare_aggregate_token", path, sample });
+      break;
+    }
+  }
+
+
+
   for (const m of s.matchAll(HEADLINE_RES)) {
     const frag = m[1];
     if (!frag || frag.split(/\s+/).length < 2) continue;
