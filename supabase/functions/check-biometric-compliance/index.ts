@@ -28,7 +28,9 @@ import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import {
   applyBiometricProseGold,
   repairBiometricProse,
+  stampBiometricPipeline,
 } from "../_shared/ltp/biometric-prose-gold.ts";
+
 import {
   assertNoDrift,
   checkPassageShape,
