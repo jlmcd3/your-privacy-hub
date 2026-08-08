@@ -1925,6 +1925,64 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W21-CYBER-TURNC] non-fatal:", String(w21Err));
     }
 
+    // ── ITEM 404 — CYBER PROSE GOLD + THE TYPED AGGREGATE RESTORATION ──
+    // THE TRUE FINALIZE POINT. W21-CYBER-TURNC is the last pass that shapes
+    // customer CONTENT; everything after it either reads the document
+    // (emit gate, authority exhibit, serializer, metering) or writes chrome.
+    // Prose gold therefore runs HERE — after every content-shaping pass, so
+    // it sees final text, and before the emit gate, so the gate judges what
+    // the reader will actually receive. Fail-open; the pipeline stamp lands
+    // on `_meta.internal.cyber_pipeline_stamp`, which the LEAK-PREV-P2
+    // serializer preserves (it reduces `_meta` to `{ internal }`).
+    try {
+      const gold = applyCyberProseGold(report as any);
+      const gmeta: any = (report as any)._meta ?? ((report as any)._meta = {});
+      gmeta.internal = gmeta.internal ?? {};
+      gmeta.internal.cyber_pipeline_stamp = CYBER_PIPELINE_STAMP;
+      gmeta.internal.cyber_prose_gold = {
+        version: gold.version,
+        stamp: gold.stamp,
+        aggregate_attached: gold.aggregate.attached,
+        scored_count: gold.aggregate.scored_count,
+        mean_score: gold.aggregate.mean_score,
+        arithmetic_removed: gold.prose_sweep.arithmetic_removed,
+        citations_repaired: gold.prose_sweep.citations_repaired,
+        readiness_line: gold.verdict_voice.readiness_line,
+        opener_prepended: gold.verdict_voice.opener_prepended,
+        hollow_omitted: gold.hollow_fields.omitted,
+        dangling_clauses_removed: gold.hollow_fields.dangling_clauses_removed,
+        register_rewrites: gold.customer_register.rewrites,
+        enforcement_context_normalised: gold.enforcement_shape.normalised,
+        errors: gold.errors,
+      };
+      console.log(JSON.stringify({
+        evt: "cyber_prose_gold_pass", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, cyber_pipeline_stamp: CYBER_PIPELINE_STAMP,
+        version: CYBER_PROSE_GOLD_VERSION,
+        arithmetic_removed: gold.prose_sweep.arithmetic_removed,
+        citations_repaired: gold.prose_sweep.citations_repaired,
+        register_rewrites: gold.customer_register.rewrites,
+        hollow_omitted: gold.hollow_fields.omitted.length,
+        enforcement_context_normalised: gold.enforcement_shape.normalised,
+        errors: gold.errors,
+      }));
+    } catch (goldErr) {
+      console.error("[ITEM404-CYBER-PROSE-GOLD] non-fatal:", String(goldErr));
+    }
+
+    // ── ITEM 399 R11 — ASSEMBLED-PROSE LINT (fail-open telemetry only) ──
+    try {
+      const { attachProseLint } = await import("../_shared/prose/assembled-prose-lint.ts");
+      const lint = attachProseLint(report as any);
+      console.log(JSON.stringify({
+        evt: "cyber_prose_lint", fn: "run-cppa-cybersecurity",
+        cyber_pipeline_stamp: CYBER_PIPELINE_STAMP,
+        count: lint.count, blocking: lint.blocking, crashed: lint.crashed,
+      }));
+    } catch (lintErr) {
+      console.warn("[ITEM399-R11] cyber prose lint failed (non-fatal):", String(lintErr));
+    }
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
