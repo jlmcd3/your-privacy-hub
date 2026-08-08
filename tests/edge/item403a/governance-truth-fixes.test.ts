@@ -154,8 +154,14 @@ Deno.test("item403a d2 degraded record still returns record_insufficient", () =>
 Deno.test("item403a d2 informal lead is partly evidenced not insufficient", () => {
   const d = buildDpoDetermination({ ...PERFECT, dpo_status: "Yes, informal privacy lead" });
   assertEquals(d.position_and_independence.verdict, "partially_satisfied");
-  assertEquals(d.verdict, "partially_satisfied");
+  assertEquals(d.position_and_independence.status, "analysed");
+  // The Art. 37 trigger outcome is untouched by this item: on a mandatory-
+  // designation record an informal lead is still "not_satisfied", and the
+  // aggregate follows that determination — not the record's silence.
+  assertEquals(d.designation_trigger.verdict, "not_satisfied");
+  assertEquals(d.verdict, "not_satisfied");
 });
+
 
 Deno.test("item403a d2 unrequested facts are strengthening not deficiency", () => {
   const d = buildDpoDetermination(PERFECT);
