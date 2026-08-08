@@ -33,7 +33,9 @@ Deno.test("biometric plan: every AFTER exemplar passes the register lint", () =>
 });
 
 Deno.test("biometric plan: the exposure / must-change-now distinction is drawn", () => {
-  const det = BIOMETRIC_PLAN.sections.find((s) => s.id === "consequence_determination");
+  // item409 superseded the item348 arc: the exposure theme now sits on the
+  // statutory-requirements section, where each duty is argued from its passage.
+  const det = BIOMETRIC_PLAN.sections.find((s) => s.id === "statutory_requirements");
   assert(det, "determination section missing");
   assert((det?.themes ?? []).includes("exposure_kept_separate"));
 });

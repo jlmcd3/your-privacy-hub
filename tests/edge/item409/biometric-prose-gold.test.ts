@@ -98,14 +98,26 @@ Deno.test("item409 · thesis, idiom, banned register and render ids match the pl
   assertEquals(BIOMETRIC_FACT_EXEMPT_RULE, planJson.provenance.fact_exempt_rule);
 });
 
-Deno.test("item409 · the arc runs determination → record → duty → analysis → remedy → close", () => {
+Deno.test("item409 · the arc runs determination → record → duty → remedy → close, never backwards", () => {
+  const ARC_ORDER = ["headline", "record", "duty", "remedy", "close"];
   const stages = BIOMETRIC_SECTION_SPECS.map((s) => s.arc_stage);
   assertEquals(stages[0], "headline");
   assertEquals(stages[1], "record");
   assertEquals(stages[2], "duty");
   assertEquals(stages[stages.length - 1], "close");
-  assertEquals(stages.filter((s) => s === "analysis").length, 3);
-  assert(stages.indexOf("remedy") > stages.lastIndexOf("analysis"));
+  // The four requirement/analysis surfaces are all duty-stage: the register
+  // lint forbids an arc that regresses, and analysis precedes duty in ARC_ORDER.
+  assertEquals(stages.filter((s) => s === "duty").length, 4);
+  let last = -1;
+  for (const st of stages) {
+    const i = ARC_ORDER.indexOf(st);
+    assert(i >= last, `arc regresses at ${st}`);
+    last = i;
+  }
+  // Every outcome section leads with its determination (conclusion-first law).
+  for (const spec of BIOMETRIC_SECTION_SPECS) {
+    if (spec.arc_stage !== "record") assertEquals(spec.lead, "determination", spec.id);
+  }
 });
 
 // ── 2. SUPERSESSION ─────────────────────────────────────────────────────────
