@@ -82,12 +82,13 @@ Deno.test("item412c REGRESSION: a verifier-approved whole-leaf proposal is rejec
   const doc = baseDoc();
   const tel = await runBiometricRefinement(doc, {}, deps([{
     path: "$.assessment_text",
-    // The quote is present (double anchor satisfied) …
-    quote: QUOTE,
+    // Double-anchored on the whole head of the document …
+    quote: HEADER + IL + TX + WA,
     class: "generic-boilerplate",
     anchor: "intake",
-    // … but the replacement is a WHOLE-DOCUMENT rewrite starting mid-document.
-    replacement: "1. Written releases: releases are obtained and retained.",
+    // … and rewritten away, leaving the document beginning mid-text at
+    // "1. Written releases:" — the re-pilot defect verbatim (14,058 B → 1,833 B).
+    replacement: "",
     confidence: "high",
   }]));
 
