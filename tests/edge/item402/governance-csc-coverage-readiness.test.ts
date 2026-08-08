@@ -131,7 +131,15 @@ Deno.test("item402 csc g1 flags a domain finding the record answers", () => {
   const g1 = t.violations.filter((v) => v.check_id === "g1_domain_finding_vs_record");
   assertEquals(g1.length, 1);
   assertEquals(g1[0].path, "domain_findings.training.gap_description");
-  assertEquals(g1[0].repaired, false);
+  // ITEM 403-A DEFECT 4 — g1 now carries a single-writer repair (it was
+  // flag-only under item402). It remains OUTSIDE the gate's condition set;
+  // `item403a d4 g1 stays outside the gate condition set` pins that.
+  assertEquals(g1[0].repaired, true);
+  assertEquals(
+    (report.domain_findings as Record<string, Record<string, unknown>>).training.severity,
+    "High",
+    "the repair must not touch machine-keyed siblings",
+  );
   // and the other direction: a record that is silent on training earns nothing.
   const quiet: Record<string, unknown> = JSON.parse(JSON.stringify(report));
   const t2 = runGovernanceCsc(quiet, { intake: { sector: "Healthcare/Life Sciences" } });

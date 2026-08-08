@@ -41,6 +41,7 @@
 import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "./dpia-csc.ts";
 import { GOVERNANCE_ABSENCE_LABEL_PHRASINGS } from "./governance-prose-gold.ts";
 import {
+  buildDomainRecordStatement,
   buildDpoRecordStatement,
   buildRetentionStatement,
   buildTrainingStatement,
@@ -178,6 +179,40 @@ export function deepProse(node: unknown): string {
   return out.join(" ");
 }
 
+/**
+ * ITEM 403-A DEFECT 4 — replace the ONE sentence carrying the unsupported
+ * absence claim with the domain's record statement, leaving every other
+ * sentence byte-identical. Returns "" when the swap cannot be made safely
+ * (no sentence located, or the result would be shorter than the item384-r2
+ * 40-character substance floor), in which case the caller leaves the text
+ * unchanged and the violation is logged unrepaired.
+ */
+export function replaceAbsenceSentence(
+  text: string,
+  hit: string,
+  replacement: string,
+): string {
+  const src = String(text ?? "");
+  const idx = src.toLowerCase().indexOf(String(hit ?? "").toLowerCase());
+  if (idx < 0 || !replacement.trim()) return "";
+  // Sentence bounds around the hit.
+  let start = 0;
+  for (let i = idx; i > 0; i--) {
+    if (/[.!?]/.test(src[i - 1]) && /\s/.test(src[i] ?? " ")) { start = i; break; }
+  }
+  let end = src.length;
+  for (let i = idx + hit.length; i < src.length; i++) {
+    if (/[.!?]/.test(src[i])) { end = i + 1; break; }
+  }
+  const out = `${src.slice(0, start)}${replacement}${src.slice(end)}`
+    .replace(/\s+/g, " ")
+    .trim();
+  if (out.replace(/\s+/g, "").length < 40) return "";
+  return out;
+}
+
+
+
 // ---------------------------------------------------------------------------
 // G2 — surface → backing intake keys (the absence-claim map)
 // ---------------------------------------------------------------------------
@@ -185,9 +220,16 @@ export function deepProse(node: unknown): string {
 export interface GovernanceCscSurface {
   /** Dotted report path of the surface. */
   readonly path: string;
-  /** Dotted intake paths that back it. */
+  /**
+   * ITEM 403-A DEFECT 1(b) — PRIMARY keys only. A key belongs here ONLY when
+   * it is, on its own, sufficient evidence for the proposition the surface
+   * asserts. Everything that merely colours the picture goes to
+   * `corroborating`, which never backs the surface by itself.
+   */
   readonly keys: readonly string[];
-  /** "any" — one filled key backs the surface; "all" — every key must be filled. */
+  /** Keys that support but cannot alone establish the surface's proposition. */
+  readonly corroborating?: readonly string[];
+  /** "any" — one filled PRIMARY key backs it; "all" — every primary key must be filled. */
   readonly mode: "any" | "all";
   /** Reader leaf the repair writes into (the surface's own prose slot). */
   readonly leaf: string;
@@ -195,11 +237,35 @@ export interface GovernanceCscSurface {
   readonly rebuild?: (intake: unknown) => string;
 }
 
+// ITEM 403-A DEFECT 1(b) — THE FIVE-SURFACE AUDIT AGAINST THE "any" STANDARD.
+//
+//  dpo_determination        FAILED. `remediation_default_owner` (a generic
+//                           remediation owner) and `additional_context` (free
+//                           prose) were treated as evidence that the Art. 37-39
+//                           duties are discharged. Neither is. Primary is now
+//                           `dpo_status` alone; the other two corroborate.
+//  domain_findings.vendor_terms  FAILED (the degraded-pilot defect). The group
+//                           mixed a confirmation field (`dpa_status`), a
+//                           verification field (`dpa_art28_verified`) and a
+//                           descriptive one (`processing_nature`). The first two
+//                           each independently state the record's Art. 28
+//                           position and stay primary; the narrative is
+//                           corroborating only.
+//  transfer_analysis        PASSED. `transfer_status` states the position and
+//                           `transfer_mechanism` cannot be answered without one
+//                           — each independently evidences that the record
+//                           speaks to Chapter V.
+//  art30_element_findings   PASSED (single key, mode "all").
+//  domain_findings.training FAILED. `training_ai_coverage` answers the coverage
+//                           sub-question (it can read "n/a") and does not by
+//                           itself evidence that training exists. `training_status`
+//                           is the primary; coverage corroborates.
 export const GOVERNANCE_CSC_SURFACES: readonly GovernanceCscSurface[] = [
   // Arts. 37–39 — the DPO / accountability surface.
   {
     path: "dpo_determination",
-    keys: ["dpo_status", "remediation_default_owner", "additional_context"],
+    keys: ["dpo_status"],
+    corroborating: ["remediation_default_owner", "additional_context"],
     mode: "any",
     leaf: "record_states",
     rebuild: buildDpoRecordStatement,
@@ -207,7 +273,8 @@ export const GOVERNANCE_CSC_SURFACES: readonly GovernanceCscSurface[] = [
   // Art. 28 — the vendor / processor-contract surface.
   {
     path: "domain_findings.vendor_terms",
-    keys: ["dpa_status", "dpa_art28_verified", "processing_nature"],
+    keys: ["dpa_status", "dpa_art28_verified"],
+    corroborating: ["processing_nature"],
     mode: "any",
     leaf: "record_states",
     rebuild: buildVendorArt28Statement,
@@ -231,7 +298,8 @@ export const GOVERNANCE_CSC_SURFACES: readonly GovernanceCscSurface[] = [
   // Art. 39(1)(b) — the training surface.
   {
     path: "domain_findings.training",
-    keys: ["training_status", "training_ai_coverage"],
+    keys: ["training_status"],
+    corroborating: ["training_ai_coverage"],
     mode: "any",
     leaf: "record_states",
     rebuild: buildTrainingStatement,
@@ -243,6 +311,20 @@ function surfaceBacked(s: GovernanceCscSurface, intake: unknown): boolean {
     ? s.keys.every((k) => intakeFilled(intake, k))
     : s.keys.some((k) => intakeFilled(intake, k));
 }
+
+/**
+ * ITEM 403-A DEFECT 1(a) — EVIDENCE MAY NAME ONLY ANSWERED KEYS.
+ * The evidence string is built from the keys the record actually supplies,
+ * never from the surface's declared key list. The item403a battery asserts,
+ * for every surface, that every key named in the evidence is answered.
+ */
+export function answeredKeysForSurface(
+  s: GovernanceCscSurface,
+  intake: unknown,
+): string[] {
+  return [...s.keys, ...(s.corroborating ?? [])].filter((k) => intakeFilled(intake, k));
+}
+
 
 // ---------------------------------------------------------------------------
 // G1 — per-domain finding vs the control facts that answer it
@@ -320,22 +402,31 @@ export function runGovernanceCsc(
     };
 
     // ── G1 — per-domain finding vs the control facts ──────────────────────
+    // ITEM 403-A DEFECT 4 — g1 now carries a SINGLE-WRITER REPAIR (the g2
+    // idiom): the sentence carrying the unsupported absence claim is replaced
+    // in place by `buildDomainRecordStatement`, the domain's only writer. g1
+    // remains flag-only for the GATE — it is deliberately outside
+    // FALSE_ABSENCE_CHECK_IDS and this change does not widen the gate.
     const domains = report.domain_findings as Record<string, unknown> | undefined;
     if (domains && typeof domains === "object" && !Array.isArray(domains)) {
       for (const ctl of GOVERNANCE_DOMAIN_CONTROLS) {
         const node = domains[ctl.domain] as Record<string, unknown> | undefined;
         if (!node || typeof node !== "object" || Array.isArray(node)) continue;
         if (!ctl.keys.every((k) => intakeFilled(intake, k))) continue; // honest silence
+        const answered = ctl.keys.filter((k) => intakeFilled(intake, k));
         for (const leaf of DOMAIN_CLAIM_LEAVES) {
           const text = str(node[leaf]);
           if (!text) continue;
           const hit = governanceCarriesAbsence(text, needles);
           if (!hit) continue;
+          const built = buildDomainRecordStatement(intake, answered);
+          const repaired = built ? replaceAbsenceSentence(text, hit, built) : "";
+          if (repaired && repaired !== text) node[leaf] = repaired;
           log({
             check_id: "g1_domain_finding_vs_record",
             path: `domain_findings.${ctl.domain}.${leaf}`,
-            evidence: `the finding says "${clip(hit, 90)}" although ${ctl.why} (${ctl.keys.join(", ")}).`,
-            repaired: false,
+            evidence: `the finding says "${clip(hit, 90)}" although ${ctl.why} (${answered.join(", ")}).`,
+            repaired: Boolean(repaired && repaired !== text),
           });
         }
       }
@@ -363,10 +454,12 @@ export function runGovernanceCsc(
       log({
         check_id: "g2_absence_claim_vs_record",
         path: surface.path,
-        evidence: `the surface says "${clip(hit, 90)}" although the record supplies ${surface.keys.join(", ")}.`,
+        // ITEM 403-A DEFECT 1(a) — only keys the record actually supplies.
+        evidence: `the surface says "${clip(hit, 90)}" although the record supplies ${answeredKeysForSurface(surface, intake).join(", ")}.`,
         repaired: Boolean(built),
       });
     }
+
 
     // ── G3 / G4 — field hygiene ───────────────────────────────────────────
     const authority = new Set(GOVERNANCE_AUTHORITY_FIELD_KEYS);
