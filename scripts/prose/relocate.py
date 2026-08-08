@@ -59,12 +59,15 @@ def main(plan_path):
             # them ("../assistedInput" -> "."), corrupting untouched files.
             # A specifier whose resolved target is not a move source (with or
             # without a code extension) is left byte-identical.
-            if not (
+            # (A file that itself moved must re-address every specifier, so the
+            # guard applies only to files that stayed put.)
+            if pre == f and not (
                 target_old in moves
                 or any(target_old + ext in moves for ext in CODE_EXT)
                 or os.path.join(target_old, "index.ts") in moves
             ):
                 return m.group(0)
+
             target_new = newloc(target_old)
             rel = os.path.relpath(target_new, os.path.dirname(f))
             if not rel.startswith("."):
