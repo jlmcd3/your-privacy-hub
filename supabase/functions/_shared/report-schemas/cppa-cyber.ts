@@ -49,7 +49,11 @@ const CYBER_ENTRY_KEYS = [
 export const CPPA_CYBER_REPORT_SCHEMA: ReportSchema = {
   // ITEM 371 W2 — wires the parked readiness/independence determinations and
   // the shared authority exhibit onto the customer surface.
-  version: "rs-cppa-cyber-w2-2026-08-03",
+  // ITEM 404 — adds the typed aggregate (`control_status_counts`) and the
+  // one-line readiness voice (`cyber_readiness_line`). Before item404 the
+  // § 7123(c) arithmetic had NO declared top-level home, so it was dropped by
+  // this whitelist and narrated itself into the executive summary instead.
+  version: "rs-cppa-cyber-w3-2026-08-07-item404",
 
   tool: "cppa_cybersecurity",
   topLevel: [
@@ -58,6 +62,8 @@ export const CPPA_CYBER_REPORT_SCHEMA: ReportSchema = {
     "overall_score",
     "executive_summary",
     "controls",
+    "control_status_counts",
+    "cyber_readiness_line",
     "top_risks",
     "next_steps",
     "citation_ledger",
@@ -82,6 +88,26 @@ export const CPPA_CYBER_REPORT_SCHEMA: ReportSchema = {
     annotations: CYBER_ENTRY_KEYS,
     information_needed: CYBER_ENTRY_KEYS,
     enforcement_precedents: CYBER_ENTRY_KEYS,
+  },
+  objects: {
+    // ITEM 404 CY-7 — the fleet object shape for enforcement_context. Readers
+    // accept both shapes; a legacy string document renders byte-identically.
+    enforcement_context: [
+      "narrative",
+      "penalty_statutory_basis",
+      "penalty_per_violation_unintentional",
+      "penalty_per_violation_intentional",
+      "aggregate_exposure_note",
+    ],
+    control_status_counts: [
+      "total_components",
+      "scored_count",
+      "insufficient_count",
+      "mean_score",
+      "mean_denominator",
+      "by_status",
+      "methodology_note",
+    ],
   },
 };
 
