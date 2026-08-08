@@ -1350,9 +1350,14 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     });
   }
   const sectionTexts = uniqueJurisdictions.map((jn) => parameterizePriorityActions(stressSection(jn)));
-  const assessment_text = scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n"));
+  // ITEM 409 — the stress path is the batch renderer that produced the walked
+  // renders, so it carries the same register defect and takes the same pass.
+  const assessment_text = repairBiometricProse(
+    scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n")),
+    BIOMETRIC_REFERENCE_PASSAGES,
+  );
 
-  const report_data = {
+  const report_data = stampBiometricPipeline({
     // bipa_risk field retired 2026-07-14
     jurisdictions_analysed: uniqueJurisdictions,
     enforcement_precedents: [],
@@ -1366,7 +1371,8 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     envelope: { registry_version: BIOMETRIC_REGISTRY_VERSION },
     _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
 
-  };
+  }) as Record<string, unknown> & { generated_at: string; enforcement_precedents: unknown[] };
+
 
   let savedId: string | null = null;
   if (body.assessment_id) {
