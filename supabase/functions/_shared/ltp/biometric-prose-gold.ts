@@ -31,7 +31,7 @@ import {
 import { BIOMETRIC_PIPELINE_STAMP } from "../prose/plans/biometric.spine.ts";
 import type { ReferencePassage } from "../prose/biometric-reference-passages.ts";
 
-export const BIOMETRIC_PROSE_GOLD_VERSION = "biometric-prose-gold-2026-08-08-item411";
+export const BIOMETRIC_PROSE_GOLD_VERSION = "biometric-prose-gold-2026-08-08-item412b";
 
 // ── PROTECTED KEYS ──────────────────────────────────────────────────────────
 
@@ -317,8 +317,46 @@ function repairSegment(segment: string): string {
   out = stripFieldLabelColons(out);
   out = applyOneVoice(out);
   out = applyBiometricCustomerRegister(out);
+  out = repairStatutoryTriggers(out);
   return out;
 }
+
+// ── ITEM 412-B (a) — MISSTATED STATUTORY TRIGGER, DETERMINISTIC REPAIR ──────
+// Graded HIGH on the perfect pilot (document 1b608e10): the BIPA retention
+// surface stated destruction "within 3 years of collection". 740 ILCS 14/15(a)
+// measures the outer bound from the individual's LAST INTERACTION with the
+// private entity, not from collection. W2 already names this class for the
+// critic; a misstated statutory trigger is too load-bearing to leave to a
+// model call, so it is also repaired deterministically here, on EVERY path.
+// Reference passages are span-excluded upstream (`repairBiometricProse`), so
+// this never touches quoted statutory text.
+export const BIOMETRIC_STATUTORY_TRIGGER_REPAIRS: ReadonlyArray<
+  { readonly id: string; readonly pattern: RegExp; readonly replacement: string }
+> = [
+  {
+    id: "bipa_15a_last_interaction",
+    // "within 3 years of collection" / "3 years from collection" / "…of the date of collection"
+    pattern: /\b(?:with|wi)?(?:in|thin)?\s*(3|three)\s+years?\s+(?:of|from|after)\s+(?:the\s+)?(?:date\s+of\s+)?collection\b/gi,
+    replacement: "within 3 years of the individual's last interaction with the entity",
+  },
+];
+
+export function repairStatutoryTriggers(text: string): string {
+  let out = text;
+  for (const r of BIOMETRIC_STATUTORY_TRIGGER_REPAIRS) out = out.replace(r.pattern, r.replacement);
+  return out;
+}
+
+/** Detector — the same vocabulary, read-only, for lint/telemetry callers. */
+export function detectStatutoryTriggerDefects(text: string): string[] {
+  const hits: string[] = [];
+  for (const r of BIOMETRIC_STATUTORY_TRIGGER_REPAIRS) {
+    const re = new RegExp(r.pattern.source, r.pattern.flags);
+    if (re.test(text)) hits.push(r.id);
+  }
+  return hits;
+}
+
 
 /** Non-overlapping [start,end) spans of verified passages, in order. */
 export function passageSpans(
