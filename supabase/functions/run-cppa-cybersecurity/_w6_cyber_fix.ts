@@ -218,20 +218,23 @@ export function rewriteComparativeAsOperative(
     if (/11\s*CCR\s*§\s*7123/i.test(sent) && !hit.re.test(sent.split(/11\s*CCR/i)[0] ?? "")) {
       return sent;
     }
-    rewritten++;
     // ITEM 404 (b) ROOT CAUSE — FRAMEWORK FUNCTION NAMES ARE PROPER NOUNS.
     // The NIST CSF 2.0 functions are Govern, Identify, Protect, Detect,
     // Respond and Recover. Capitalised "Govern" was matching /\bgoverns?\b/
     // and being rewritten to "provides comparative guidance on", producing
     // the live defect "the NIST CSF 2.0 provides comparative guidance on and
     // Identify functions". Function names are masked for the duration of the
-    // operative-verb rewrite and restored byte-for-byte afterwards.
+    // operative-verb rewrite and restored byte-for-byte afterwards; if the
+    // sentence's ONLY apparent operative verb was a masked function name,
+    // there is nothing comparative to rewrite and the sentence stands.
     const NIST_FN_RE = /\b(Govern|Identify|Protect|Detect|Respond|Recover)\b/g;
     const masked: string[] = [];
     let rewritten_sent = sent.replace(NIST_FN_RE, (m) => {
       masked.push(m);
       return `\u0000NISTFN${masked.length - 1}\u0000`;
     });
+    if (!OPERATIVE_VERBS_RE.test(rewritten_sent)) return sent;
+    rewritten++;
     rewritten_sent = rewritten_sent
       .replace(/\brequires?\b/gi, "addresses")
       .replace(/\bmandates?\b/gi, "addresses")
