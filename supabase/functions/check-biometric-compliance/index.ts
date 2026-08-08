@@ -1359,6 +1359,17 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     BIOMETRIC_REFERENCE_PASSAGES,
   );
 
+  // ── ITEM 412-D — ONE SHAPE, BOTH PATHS ─────────────────────────────────
+  // The harness path previously persisted a report WITHOUT the ITEM 317 typed
+  // deliverables, so coverage/CSC/gate graded a shape customers never receive
+  // (16 duty_findings coverage orphans). The builder is pure and deterministic
+  // (no model calls, no cost) and remains the SINGLE WRITER of these keys on
+  // both paths — it is called here exactly as the streaming path calls it, and
+  // the keys are persisted BEFORE the finalize-battery seam below.
+  const stress_deliverables = buildBiometricDeliverables(
+    body as unknown as BiometricIntakeForDeliverables,
+  );
+
   const report_data = stampBiometricPipeline({
     // bipa_risk field retired 2026-07-14
     jurisdictions_analysed: uniqueJurisdictions,
@@ -1371,9 +1382,18 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     // report top-level AND under report_data.envelope per original spec.
     registry_version: BIOMETRIC_REGISTRY_VERSION,
     envelope: { registry_version: BIOMETRIC_REGISTRY_VERSION },
+    // ITEM 412-D — same deliverables key set as the streaming path (index.ts
+    // terminal assembly). Shape parity is asserted by tests/edge/item412d.
+    identifier_characterizations: stress_deliverables.identifier_characterizations,
+    entity_characterization: stress_deliverables.entity_characterization,
+    duty_findings: stress_deliverables.duty_findings,
+    divergence_analysis: stress_deliverables.divergence_analysis,
+    consequence_determination: stress_deliverables.consequence_determination,
+    biometric_deliverables: stress_deliverables,
     _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress"), build_stamp: BUILD_STAMP, registry_version: BIOMETRIC_REGISTRY_VERSION },
 
   }) as Record<string, unknown> & { generated_at: string; enforcement_precedents: unknown[] };
+
 
   // ── ITEM 412-B — THE HARNESS PATH TAKES THE SAME SEAM ──────────────────
   // This path is what `run-quality-batch` invokes (`stress_run: true`). It
