@@ -261,6 +261,29 @@ export function applyBiometricCustomerRegister(text: string): string {
   return out;
 }
 
+/**
+ * ITEM 411 LEG C — THE ABSENCE-LABEL PHRASING CLASS.
+ *
+ * ITEM 396 LESSON, APPLIED: the CSC absence detector is BUILT FROM the
+ * phrasings THIS pass can write, so a relabel can never escape its own
+ * detector. Every string below is a replacement value the BG-4 customer
+ * register or the BG-1 opener repair emits verbatim. The linkage test in
+ * `tests/edge/item411/biometric-csc-and-coverage.test.ts` enumerates this
+ * array and asserts `biometricCarriesAbsence` matches each one.
+ *
+ * NOT in this list: resolved labels ("met on the record", "not met on the
+ * record"), which are determinations and must never be read as absence.
+ */
+export const BIOMETRIC_ABSENCE_LABEL_PHRASINGS: readonly string[] = [
+  "the record does not settle this",
+  "the record does not yet support a conclusion",
+  "the record does not yet support an assessment",
+  "is not settled by the record",
+  "open on the record",
+  "the record describes no biometric processing currently deployed",
+];
+
+
 // ── THE STRING PASS, WITH PASSAGE SPANS PROTECTED ───────────────────────────
 
 /**
