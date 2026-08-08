@@ -24,6 +24,45 @@ import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
+// ITEM 409 — biometric prose gold + reference-passage discipline.
+import {
+  applyBiometricProseGold,
+  repairBiometricProse,
+} from "../_shared/ltp/biometric-prose-gold.ts";
+import {
+  assertNoDrift,
+  checkPassageShape,
+  checkPassagesSurviveAssembly,
+  formatDrift,
+  toReferencePassages,
+} from "../_shared/prose/biometric-reference-passages.ts";
+import { BIOMETRIC_PIPELINE_STAMP } from "../_shared/prose/plans/biometric.spine.ts";
+import { BIOMETRIC_DUTY_ROWS } from "./_local/registry/biometric-verified-authorities.ts";
+
+/**
+ * ITEM 409 — the reference passages this product renders as template.
+ * Boot-time self-consistency is asserted below; the byte-match against the
+ * cited `provision_texts` rows is asserted in the item409 test battery, which
+ * reads the corpus directly. A passage that disagrees with its cited row is a
+ * STOP condition — neither side is ever "reconciled" in code.
+ */
+const BIOMETRIC_REFERENCE_PASSAGES = toReferencePassages(BIOMETRIC_DUTY_ROWS);
+{
+  const shapeDrift = checkPassageShape(BIOMETRIC_REFERENCE_PASSAGES);
+  if (shapeDrift.length) {
+    console.error(
+      `[check-biometric-compliance] REFERENCE-PASSAGE SHAPE DRIFT:\n${formatDrift(shapeDrift)}`,
+    );
+  }
+  console.log(JSON.stringify({
+    evt: "biometric_boot",
+    fn: "check-biometric-compliance",
+    stamp: BIOMETRIC_PIPELINE_STAMP,
+    reference_passages: BIOMETRIC_REFERENCE_PASSAGES.length,
+    shape_drift: shapeDrift.length,
+  }));
+}
+
 // ITEM 317 — deterministic biometric analytic deliverables (pure builder).
 import {
   buildBiometricDeliverables,
