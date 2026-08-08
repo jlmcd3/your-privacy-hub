@@ -19,6 +19,18 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+
+// ITEM 404 CY-7 — tolerant reader: enforcement_context may be a legacy string
+// or the fleet object shape. Both render identically.
+const enfText = (v: any): string => {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object") {
+    for (const k of ["narrative", "summary", "text", "aggregate_exposure_note"]) {
+      if (typeof v[k] === "string" && v[k].trim()) return v[k];
+    }
+  }
+  return "";
+};
 const esc = (s: any) =>
   String(s ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -91,7 +103,7 @@ function renderRisk(row: any) {
         : ""}
     </div>` : "")}
 
-    ${r.enforcement_context && typeof r.enforcement_context === "string" ? `<div class="callout"><p class="label">Enforcement Context</p><p>${esc(r.enforcement_context)}</p></div>` : ""}
+    ${enfText(r.enforcement_context) ? `<div class="callout"><p class="label">Enforcement Context</p><p>${esc(enfText(r.enforcement_context))}</p></div>` : ""}
 
     ${domains.length ? `<div class="block">
       <h3>Domain Findings</h3>
@@ -140,7 +152,7 @@ function renderCyber(row: any) {
       ${r.executive_summary ? `<p class="summary">${esc(r.executive_summary)}</p>` : ""}
     </div>
 
-    ${r.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${esc(r.enforcement_context)}</p></div>` : ""}
+    ${enfText(r.enforcement_context) ? `<div class="callout"><p class="label">Enforcement Context</p><p>${esc(enfText(r.enforcement_context))}</p></div>` : ""}
 
     ${controls.length ? `<div class="block">
       <h3>§ 7123(c) Cybersecurity Component Findings</h3>

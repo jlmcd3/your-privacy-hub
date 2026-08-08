@@ -784,6 +784,21 @@ ${renderAuthorityExhibitHtml(report?.authority_exhibit)}
 // Mirrors the on-screen ReportShell + AssessmentReport styling.
 // ─────────────────────────────────────────────────────────────────────────
 
+// ITEM 404 CY-7 — enforcement_context is a STRING on legacy cyber documents
+// and an OBJECT on the fleet shape. Readers accept both; a legacy document
+// renders byte-identically.
+function enfText(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    for (const k of ["narrative", "summary", "text", "aggregate_exposure_note"]) {
+      const x = o[k];
+      if (typeof x === "string" && x.trim()) return x;
+    }
+  }
+  return "";
+}
+
 function escHtml(s: unknown): string {
   if (s === null || s === undefined) return "";
   const str = typeof s === "string" ? s : (
@@ -1249,7 +1264,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
       ${scope.threshold_met ? `<p><span class="label">Threshold met:</span> ${text(scope.threshold_met)}</p>` : ""}
       ${Array.isArray(scope.applicable_deadlines) && scope.applicable_deadlines.length ? `<p><span class="label">Applicable deadlines:</span></p>${list(scope.applicable_deadlines)}` : ""}
     </section>` : ""}
-    ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
+    ${enfText(report?.enforcement_context) ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(enfText(report?.enforcement_context))}</p></div>` : ""}
     ${domains.length ? `<section class="section"><h2>Domain Findings</h2>${domains.map((d: any) => `<article class="domain">
       <div class="domain-head"><h3>${text(d.domain)}${d.status ? `<span class="status status-${statusClass(d.status)}">${text(d.status)}</span>` : ""}</h3>${d.score !== undefined ? `<span class="score">${text(d.score)}/100</span>` : ""}</div>
       ${d.finding ? `<p><span class="label">Finding:</span> ${text(d.finding)}</p>` : ""}
@@ -2132,7 +2147,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     <div class="notice"><span class="label">This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be validated against your organization's authoritative records before operational reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${scorecardBlock}
-    ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
+    ${enfText(report?.enforcement_context) ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(enfText(report?.enforcement_context))}</p></div>` : ""}
     ${controls.length ? `<section class="section"><h2>Control Findings</h2>${controls.map((c: any) => `<article class="control">
       <div class="control-head"><h3>${text(c.control)}${c.status ? `<span class="status status-${statusClass(c.status)}">${text(c.status)}</span>` : ""}</h3>${c.score !== undefined ? `<span class="score">${text(c.score)}/100</span>` : ""}</div>
       ${c.finding ? `<p><span class="label">Finding:</span> ${text(c.finding)}</p>` : ""}
