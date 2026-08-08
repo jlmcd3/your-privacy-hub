@@ -21,7 +21,7 @@ import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
-export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item411";
+export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item413";
 
 export type CoverageProduct =
   | "dpia"
@@ -30,7 +30,8 @@ export type CoverageProduct =
   | "cppa-admt"
   | "governance"
   | "cppa-cyber"
-  | "biometric";
+  | "biometric"
+  | "registration";
 
 
 export interface CoverageOrphan {
@@ -1475,9 +1476,200 @@ function biometricCoverage(
 }
 
 // ---------------------------------------------------------------------------
+// REGISTRATION (ITEM 413)
+// ---------------------------------------------------------------------------
+//
+// THE COVERAGE QUESTION, ANSWERED WITH EVIDENCE. Registration is deterministic,
+// so the question is not "did a model forget something" but "can a supplied
+// fact be DROPPED by a conditional branch". It can, in two distinct ways, both
+// read out of `run-registration-assessment/_local`:
+//
+//  (1) SCOPE-GATED EMISSION. `buildRegistrationDeliverables` filters
+//      `STATE_SPECS` through `stateInScope(intake, code)` and then filters
+//      again by verdict: `filing_readiness` is emitted ONLY for states whose
+//      verdict is `registrable` or `conditional`. The five `filing_*` booleans
+//      the form collects are therefore read by NOTHING whenever no US state is
+//      in scope — a UK-only or EU-only record answers five questions whose
+//      answers never reach the document.
+//
+//  (2) AN INTAKE KEY WITH NO EMISSION PATH AT ALL. `cross_border_transfers` is
+//      declared on the form (`src/pages/RegistrationAssessment.tsx`) and on the
+//      engine's `IntakeData`, and is read in neither `registration-engine.ts`
+//      nor `registration-deliverables/build.ts` nor `index.ts`. A customer who
+//      answers it is answering into silence.
+//
+// Coverage is therefore NOT vacuous for this product and is wired, with
+// DECLARED anchorage only.
+
+interface RegistrationCoverageLink {
+  readonly keys: readonly string[];
+  readonly surfaces: readonly string[];
+  readonly section: string;
+}
+
+const REG_SURFACE_MIN_CHARS = 40;
+
+/** For registration a `false` answer is a SUPPLIED fact, not an absence. */
+function regFilled(intake: unknown, key: string): boolean {
+  const v = getPath(intake, key);
+  if (v === null || v === undefined) return false;
+  if (typeof v === "boolean") return true;
+  if (typeof v === "number") return Number.isFinite(v);
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    return s.length > 0 && s !== "not known" && s !== "not stated";
+  }
+  if (Array.isArray(v)) return v.length > 0;
+  return nonEmpty(v);
+}
+
+const REG_LINKS: readonly RegistrationCoverageLink[] = [
+  {
+    keys: [
+      "filing_contact_details_ready",
+      "filing_opt_out_mechanism_documented",
+      "filing_minors_data_practices_documented",
+      "filing_metrics_documented",
+      "filing_rights_instructions_documented",
+    ],
+    surfaces: ["registration_deliverables.filing_readiness"],
+    section: "filing_readiness",
+  },
+  {
+    keys: [
+      "acts_as_data_broker",
+      "sells_or_licenses_brokered_data",
+      "collects_data_not_directly_from_individuals",
+      "has_direct_relationship_with_data_subjects",
+      "data_broker_exemption_claimed",
+      "brokered_data_individual_count",
+      "brokered_data_revenue_share_pct",
+    ],
+    surfaces: ["registration_deliverables.determinations"],
+    section: "determinations",
+  },
+  {
+    keys: ["has_eu_establishment", "has_uk_establishment", "is_public_authority"],
+    surfaces: ["registration_deliverables.representative_determinations"],
+    section: "representative_determinations",
+  },
+  {
+    keys: [
+      "employee_count",
+      "large_scale_monitoring",
+      "processes_special_categories",
+      "processes_children_data",
+    ],
+    surfaces: ["registration_deliverables.dpo_determination"],
+    section: "dpo_determination",
+  },
+  {
+    keys: ["approved_by_name", "approved_by_title", "approval_date", "next_review_due"],
+    surfaces: ["registration_deliverables.attestation"],
+    section: "attestation",
+  },
+  {
+    keys: ["markets_served", "organization_country"],
+    surfaces: ["jurisdictions"],
+    section: "jurisdictions",
+  },
+  {
+    keys: ["uses_ai_systems", "ai_high_risk", "ai_general_purpose_provider"],
+    surfaces: ["registration_deliverables.corpus_pending", "eu_ai_act_basis", "jurisdictions"],
+    section: "corpus_pending",
+  },
+  {
+    keys: ["organization_name"],
+    surfaces: ["narrative", "registration_deliverables.narrative"],
+    section: "narrative",
+  },
+  // NO SURFACE EXISTS. Declared with an empty surface list so that supplying
+  // the fact always orphans — which is the truth about it. Deleting this entry
+  // would hide the finding; the fix is an emission path, not a quieter matrix.
+  {
+    keys: ["cross_border_transfers"],
+    surfaces: [],
+    section: "no_emission_path",
+  },
+];
+
+/** Every intake key the registration link config knows about. */
+export const REGISTRATION_LINKED_INTAKE_KEYS: readonly string[] = [
+  ...new Set(REG_LINKS.flatMap((l) => l.keys)),
+];
+
+export const REGISTRATION_COVERAGE_LINKS: readonly RegistrationCoverageLink[] = REG_LINKS;
+
+function registrationCoverage(
+  report: Record<string, unknown>,
+  intake: Record<string, unknown>,
+  t: CoverageTelemetry,
+): void {
+  const docText = documentText(report);
+
+  // L1 — supplied fact → a section that reflects it.
+  for (const link of REG_LINKS) {
+    const supplied = link.keys.filter((k) => regFilled(intake, k));
+    if (supplied.length === 0) continue; // honest silence
+    t.counts.links_checked++;
+    const resolved = link.surfaces.some(
+      (s) => bioSurfaceSubstance(getPath(report, s)) >= REG_SURFACE_MIN_CHARS,
+    );
+    if (resolved) continue;
+    t.orphans.push({
+      type: link.surfaces.length === 0
+        ? "supplied_fact_with_no_emission_path"
+        : "supplied_fact_without_section",
+      path: link.surfaces[0] ?? `registration_deliverables.${link.section}`,
+      detail: link.surfaces.length === 0
+        ? `the record supplies ${supplied.join(", ")} and no emission path in this product reads it.`
+        : `the record supplies ${supplied.join(", ")} but the "${link.section}" section carries nothing that reflects it.`,
+    });
+  }
+
+  // L2 — asks raised against facts the record in fact supplies. Registration's
+  // ask surface is the per-finding `information_needed` leaf.
+  const asks: Array<{ path: string; body: string }> = [];
+  const collectAsks = (v: unknown, path: string): void => {
+    if (Array.isArray(v)) { v.forEach((x, i) => collectAsks(x, `${path}[${i}]`)); return; }
+    if (v && typeof v === "object") {
+      for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+        if (k === "_meta" || k === "_staging") continue;
+        if (k === "information_needed" && typeof x === "string" && x.trim()) {
+          asks.push({ path: `${path}.information_needed`, body: x });
+        } else collectAsks(x, `${path}.${k}`);
+      }
+    }
+  };
+  collectAsks(report.registration_deliverables, "registration_deliverables");
+  for (const a of asks) {
+    t.counts.links_checked++;
+    const named = REGISTRATION_LINKED_INTAKE_KEYS.filter((k) => a.body.includes(k));
+    const supplied = named.filter((k) => regFilled(intake, k));
+    if (supplied.length === 0) continue;
+    t.orphans.push({
+      type: "ask_against_supplied_fact",
+      path: a.path,
+      detail: `the ask names ${supplied.join(", ")} although the record supplies it.`,
+    });
+  }
+
+  // L3 — narrative facts the record fills that the document reflects nowhere.
+  t.unused_intake_facts = REGISTRATION_LINKED_INTAKE_KEYS.filter((k) => {
+    const v = getPath(intake, k);
+    if (typeof v !== "string" || v.trim().length < 24) return false;
+    const words = contentWords(v);
+    return words.length > 0 && !words.some((w) => docText.includes(w));
+  });
+}
+
+// ---------------------------------------------------------------------------
 
 // the pass
 // ---------------------------------------------------------------------------
+
+
+
 
 
 
@@ -1503,6 +1695,7 @@ export function runCoverageMatrix(
     else if (product === "governance") governanceCoverage(report, intake, t);
     else if (product === "cppa-cyber") cyberCoverage(report, intake, t);
     else if (product === "biometric") biometricCoverage(report, intake, t);
+    else if (product === "registration") registrationCoverage(report, intake, t);
 
     else riskCoverage(report, intake, t);
   } catch (e) {

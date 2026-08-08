@@ -90,8 +90,24 @@ function tri(v: unknown): boolean | null {
 function num(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
-function yn(v: boolean | null, yes: string, no: string): string {
-  return v === true ? yes : v === false ? no : UNKNOWN;
+/**
+ * ITEM 413 RG-3 — NO HOLLOW FACTS.
+ *
+ * The unknown branch used to render "The record does not state this.", which
+ * names nothing: the reader cannot act on it because it never says what "this"
+ * is. Every affirmative branch in this file is written as "The record states
+ * <clause>.", so the unknown sentence is DERIVED from it — "The record does not
+ * state whether <clause>." Nothing is invented and no call site can forget it.
+ * An explicit `unknown` argument overrides the derivation where the affirmative
+ * branch is not in that form.
+ */
+export function unknownFactFrom(yes: string): string {
+  const m = /^The record states (?:that )?(.+?)\.?$/.exec(yes.trim());
+  if (!m) return UNKNOWN;
+  return `The record does not state whether ${m[1]}.`;
+}
+function yn(v: boolean | null, yes: string, no: string, unknown?: string): string {
+  return v === true ? yes : v === false ? no : (unknown ?? unknownFactFrom(yes));
 }
 function orgName(intake: I): string {
   const n = (intake.organization_name || "").trim();
@@ -615,7 +631,9 @@ function buildFilingReadiness(intake: I, spec: StateSpec): FilingReadiness {
       ready: v,
       record_fact: yn(v,
         "The record states this element is documented and available to file.",
-        "The record states this element is not yet documented."),
+        "The record states this element is not yet documented.",
+        // RG-3 — name the element, not "this".
+        `The record does not state whether "${d.item}" is documented and available to file.`),
     };
   });
   const unknown = items.filter((i) => i.ready === null);
@@ -695,7 +713,23 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     label: `${which} representative (Art. 27)`,
     citation: reqRow.citation,
     standard: reqRow.verbatim_quote,
-    record_fact: `Establishment in ${territory}: ${yn(established, "yes", "no")} Markets served include ${territory}: ${offers ? "yes." : "not stated."} Public authority: ${yn(tri(intake.is_public_authority), "yes", "no")}`,
+    // ITEM 413 RG-2 — the record fact is a sentence, not a form. The previous
+    // rendering was "Establishment in EU: yes Markets served include EU: not
+    // stated. Public authority: no" — three field labels, three colons and a
+    // missing stop. Every value it carried is preserved below.
+    record_fact: [
+      established === true
+        ? `The record states ${orgName(intake)} is established in ${territory}.`
+        : established === false
+        ? `The record states ${orgName(intake)} is not established in ${territory}.`
+        : `The record does not state whether ${orgName(intake)} is established in ${territory}.`,
+      offers
+        ? `The markets served include ${territory}.`
+        : `The record does not state that the markets served include ${territory}.`,
+      yn(tri(intake.is_public_authority),
+        "The record states the organisation is a public authority or body.",
+        "The record states the organisation is not a public authority or body."),
+    ].join(" "),
     application,
     verdict,
     status,
@@ -889,8 +923,32 @@ function buildNarrative(
   const insufficient = determinations.filter((d) => d.verdict === "record_insufficient");
   const clear = determinations.filter((d) => d.verdict === "not_registrable");
 
+  // ITEM 413 RG-4 (G-2 class) — THE OVERVIEW OPENS WITH THE VERDICT.
+  // It previously opened "This assessment examines whether …": the method
+  // before the answer. The opener below is composed only from determinations
+  // already reached above; it asserts nothing new.
+  const engagedReps = reps.filter((r) => r.verdict === "engaged").map((r) => r.jurisdiction);
+  const repClause = engagedReps.length
+    ? `${engagedReps.join(" and ")} Art. 27 representative ${engagedReps.length > 1 ? "designations are" : "designation is"} required`
+    : reps.some((r) => r.verdict === "conditional")
+    ? "the Art. 27 representative position is conditional on facts the record does not settle"
+    : "no Art. 27 representative designation is required";
+  const dpoClause = dpo.verdict === "engaged"
+    ? "a data protection officer must be designated"
+    : dpo.verdict === "record_insufficient"
+    ? "the data protection officer question cannot be settled on this record"
+    : "no data protection officer designation is required";
+  const verdictOpener = registrable.length
+    ? `${name} is registrable in ${registrable.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
+    : conditional.length
+    ? `${name}'s registration position is conditional in ${conditional.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
+    : insufficient.length
+    ? `${name}'s registration position cannot be settled on this record in ${insufficient.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
+    : `${name} is not registrable under any US state data-broker regime in this product's verified corpus; ${repClause}; ${dpoClause}.`;
+
   const overview = [
-    `This assessment examines whether ${name} carries a registration or designation obligation under the statutes in this product's verified corpus.`,
+    verdictOpener,
+    `The determinations rest on the statutes in this product's verified corpus and on nothing else.`,
     assessed.length
       ? `Four US state data-broker registration regimes were considered and ${assessed.length} was in scope here: ${assessed.join(", ")}. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.`
       : "No US state data-broker registration regime in the corpus was in scope on the markets and activities this record describes.",
@@ -1013,7 +1071,19 @@ export function buildRegistrationAttestation(intake: I): Attestation {
     review_triggers: registrationReviewTriggers(intake),
     statement,
     status: missing.length === 0 ? "analysed" : "record_insufficient",
-    ...(missing.length ? { information_needed: missing.join("; ") } : {}),
+    // ITEM 413 (G-4 class) — ATTESTATION REGISTER-CLEAN. The ask was a
+    // semicolon litany that restated the statement's own words. It is now a
+    // sentence naming what must be recorded, in the register of the surface it
+    // sits on.
+    ...(missing.length
+      ? {
+        information_needed: `To complete this block the record must state ${
+          missing.length === 1
+            ? missing[0]
+            : `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}`
+        }.`,
+      }
+      : {}),
   };
 }
 
