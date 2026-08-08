@@ -1014,7 +1014,202 @@ function governanceCoverage(
   });
 }
 
+
 // ---------------------------------------------------------------------------
+// CPPA CYBER — ITEM 406 LEG C
+//
+// The link config binds the cybersecurity contract's SUPPLIED facts to the
+// item404 section arc (`prose/plans/cyber.spine.ts`). A link is an orphan only
+// when the record SUPPLIES the fact and the section the plan gives it carries
+// nothing. Silence in the record is never an orphan. Anchorage for actions is
+// DECLARED (`anchor_keys`) — never inferred from word overlap (the item385-r2
+// discipline).
+// ---------------------------------------------------------------------------
+
+export interface CyberCoverageLink {
+  /** Intake keys — dotted, or `controls[<slug>].<field>` (any one engages). */
+  readonly keys: readonly string[];
+  /** Report paths — ANY carrying substance resolves the link. Row paths
+   *  (`controls[<slug>]`) match the row whose key/slug is that component. */
+  readonly surfaces: readonly string[];
+  /** Plan section id (cyber.spine.ts), for the orphan detail. */
+  readonly section: string;
+}
+
+/** Substance a surface must carry before the link counts as resolved. */
+const CYBER_SURFACE_MIN_CHARS = 40;
+
+const CYBER_ROW_PATH_RE = /^([a-z_]+)\[([a-z0-9_]+)\]$/;
+const CYBER_CONTROL_KEY_RE = /^controls\[([a-z0-9_]+)\]\.([a-z_]+)$/;
+
+/** The eighteen § 7123(c) component slugs, in contract order. */
+const CYBER_SLUGS: readonly string[] = [
+  "c1_auth", "c2_encryption", "c3_account_access", "c4_inventory",
+  "c5_secure_config", "c6_vuln_mgmt", "c7_audit_logs", "c8_network_mon",
+  "c9_anti_malware", "c10_segmentation", "c11_port_protocol", "c12_awareness",
+  "c13_training", "c14_secure_dev", "c15_third_party", "c16_retention",
+  "c17_incident", "c18_continuity",
+];
+
+function cyberIntakeValue(intake: unknown, key: string): unknown {
+  const m = CYBER_CONTROL_KEY_RE.exec(key);
+  if (m) {
+    const rows = (intake as Record<string, unknown> | null)?.controls;
+    if (!Array.isArray(rows)) return undefined;
+    for (const r of rows) {
+      if (r && typeof r === "object" && String((r as Record<string, unknown>).key ?? "") === m[1]) {
+        return (r as Record<string, unknown>)[m[2]];
+      }
+    }
+    return undefined;
+  }
+  return getPath(intake, key);
+}
+
+function cyberFilled(intake: unknown, key: string): boolean {
+  return nonEmpty(cyberIntakeValue(intake, key));
+}
+
+function cyberSurfaceNode(report: Record<string, unknown>, path: string): unknown {
+  const m = CYBER_ROW_PATH_RE.exec(path);
+  if (m) {
+    const rows = report[m[1]];
+    if (!Array.isArray(rows)) return undefined;
+    for (const r of rows) {
+      if (!r || typeof r !== "object") continue;
+      const o = r as Record<string, unknown>;
+      if (String(o.key ?? o.slug ?? "") === m[2]) return o;
+    }
+    return undefined;
+  }
+  return getPath(report, path);
+}
+
+function cyberSurfaceSubstance(node: unknown): number {
+  return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
+}
+
+/** Programme, scope and independence facts → the plan's arc. */
+const CYBER_PROFILE_LINKS: readonly CyberCoverageLink[] = [
+  {
+    keys: ["profile.entity_name", "profile.industry", "profile.incidents_12mo"],
+    surfaces: ["executive_summary", "readiness_determination", "cyber_readiness_line"],
+    section: "readiness_determination",
+  },
+  {
+    keys: [
+      "profile.framework",
+      "profile.in_scope_frameworks",
+      "profile.last_audit",
+      "profile.audit_scope_rationale",
+      "profile.prior_audit_scope",
+    ],
+    surfaces: ["executive_summary", "evidence_sufficiency", "component_coverage", "program_obligation_findings"],
+    section: "programme_record",
+  },
+  {
+    keys: ["profile.auditor_engagement_status"],
+    surfaces: ["independence_determination", "program_obligation_findings"],
+    section: "audit_schedule",
+  },
+];
+
+/** One link per § 7123(c) component: the record entry → its own surfaces. */
+const CYBER_CONTROL_LINKS: readonly CyberCoverageLink[] = CYBER_SLUGS.map((slug) => ({
+  keys: [`controls[${slug}].notes`, `controls[${slug}].maturity`, `controls[${slug}].evidence`],
+  surfaces: [`controls[${slug}]`, `component_coverage[${slug}]`, `evidence_sufficiency[${slug}]`],
+  section: "control_findings",
+}));
+
+export const CYBER_COVERAGE_LINKS: readonly CyberCoverageLink[] = [
+  ...CYBER_PROFILE_LINKS,
+  ...CYBER_CONTROL_LINKS,
+  {
+    // The typed tally is the plan's own section; any recorded component
+    // engages it (item404 CY-2 restored `control_status_counts`).
+    keys: CYBER_SLUGS.map((s) => `controls[${s}].maturity`),
+    surfaces: ["control_status_counts"],
+    section: "control_status_counts",
+  },
+];
+
+/** Every intake key the cyber link config knows about. */
+export const CYBER_LINKED_INTAKE_KEYS: readonly string[] = CYBER_COVERAGE_LINKS
+  .flatMap((l) => l.keys);
+
+/** Lists whose entries may DECLARE their record anchorage. */
+const CYBER_ACTION_LISTS = ["next_steps", "top_risks", "recommended_actions"];
+
+function cyberCoverage(
+  report: Record<string, unknown>,
+  intake: Record<string, unknown>,
+  t: CoverageTelemetry,
+): void {
+  const docText = documentText(report);
+
+  // L1 — supplied fact → the plan's section for it.
+  for (const link of CYBER_COVERAGE_LINKS) {
+    const supplied = link.keys.filter((k) => cyberFilled(intake, k));
+    if (supplied.length === 0) continue; // honest silence
+    t.counts.links_checked++;
+    const resolved = link.surfaces.some(
+      (s) => cyberSurfaceSubstance(cyberSurfaceNode(report, s)) >= CYBER_SURFACE_MIN_CHARS,
+    );
+    if (resolved) continue;
+    t.orphans.push({
+      type: "supplied_fact_without_section",
+      path: link.surfaces[0],
+      detail:
+        `the record supplies ${supplied.join(", ")} but the "${link.section}" section carries nothing that reflects it.`,
+    });
+  }
+
+  // L2 — DECLARED anchorage only. An entry that declares no anchor keys is
+  // never inferred against word overlap: undeclared anchorage is silence.
+  for (const listKey of CYBER_ACTION_LISTS) {
+    arr(report[listKey]).forEach((a, i) => {
+      const declared = Array.isArray(a.anchor_keys)
+        ? (a.anchor_keys as unknown[]).map(String)
+        : null;
+      if (!declared) return;
+      t.counts.links_checked++;
+      if (declared.length === 0) return; // closes an open element — the absence IS the anchor
+      if (declared.some((k) => cyberFilled(intake, k))) return;
+      const label = text(a.action ?? a.step ?? a.risk ?? a.title ?? a.finding).slice(0, 80);
+      t.orphans.push({
+        type: "action_without_record_anchor",
+        path: `${listKey}[${i}]`,
+        detail: `the action "${label}" names ${declared.join(", ")} as its record anchor and the record fills none of them.`,
+      });
+    });
+  }
+
+  // L3 — asks raised against facts the record in fact supplies.
+  const asks = Array.isArray(report.information_needed) ? report.information_needed : [];
+  asks.forEach((ask, i) => {
+    t.counts.links_checked++;
+    const body = askText(ask) || text(ask);
+    if (!body.trim()) return;
+    const named = CYBER_LINKED_INTAKE_KEYS.filter((k) => body.includes(k));
+    const supplied = named.filter((k) => cyberFilled(intake, k));
+    if (supplied.length === 0) return;
+    t.orphans.push({
+      type: "ask_against_supplied_fact",
+      path: `information_needed[${i}]`,
+      detail: `the ask names ${supplied.join(", ")} although the record supplies it.`,
+    });
+  });
+
+  t.unused_intake_facts = CYBER_LINKED_INTAKE_KEYS.filter((k) => {
+    const v = cyberIntakeValue(intake, k);
+    if (typeof v !== "string" || v.trim().length < 24) return false;
+    const words = contentWords(v);
+    return words.length > 0 && !words.some((w) => docText.includes(w));
+  });
+}
+
+// ---------------------------------------------------------------------------
+
 // the pass
 // ---------------------------------------------------------------------------
 
