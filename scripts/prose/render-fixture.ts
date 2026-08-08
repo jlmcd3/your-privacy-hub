@@ -14,15 +14,15 @@
 //
 //   deno run --allow-read --allow-env --allow-run scripts/prose/render-fixture.ts --source=db
 
-import { composeCppaRisk } from "../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
-import { renderDocumentFromPlan } from "../../supabase/functions/_shared/prose/plan-render.ts";
+import { composeCppaRisk } from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
+import { renderDocumentFromPlan } from "../../archive/unwired/_shared/prose/plan-render.ts";
 import { buildActivityAnalytics } from "../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
 import {
   loadFrameSet,
   loadDocumentPlan,
   type ProseLibrarySource,
-} from "../../supabase/functions/_shared/prose/library-source.ts";
+} from "../../archive/unwired/_shared/prose/library-source.ts";
 import { fileLibrarySource } from "./file-source.ts";
 import { psqlLibrarySource } from "./psql-source.ts";
 

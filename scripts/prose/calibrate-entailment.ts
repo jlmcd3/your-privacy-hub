@@ -30,7 +30,7 @@
 import {
   validateEntailment,
   type EntailmentResult,
-} from "../../supabase/functions/_shared/prose/entailment.ts";
+} from "../../archive/unwired/_shared/prose/entailment.ts";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const REVIEW_DIR = `${ROOT}docs/reviews`;

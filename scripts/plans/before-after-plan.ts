@@ -17,13 +17,13 @@ import {
   GOVERNANCE_PLAN,
   REGISTRATION_PLAN,
 } from "../../library/prose/load.ts";
-import type { DocumentPlan } from "../../supabase/functions/_shared/prose/plan.ts";
+import type { DocumentPlan } from "../../archive/unwired/_shared/prose/plan.ts";
 import {
   renderDocumentFromPlan,
   type SectionInput,
   type SupportingStatement,
-} from "../../supabase/functions/_shared/prose/plan-render.ts";
-import type { Relation } from "../../supabase/functions/_shared/prose/connectives.ts";
+} from "../../archive/unwired/_shared/prose/plan-render.ts";
+import type { Relation } from "../../archive/unwired/_shared/prose/connectives.ts";
 
 const PLANS: Record<string, DocumentPlan> = {
   "cppa-risk": CPPA_RISK_PLAN,

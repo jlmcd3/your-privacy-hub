@@ -5,8 +5,8 @@
 // triggers), and the curated field labels authored for the intake.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lintRegisterDocument, lintRegisterText, registerClean, BANNED_PHRASES } from "../../../supabase/functions/_shared/prose/register-lint.ts";
-import { lintPlan, planRenderable } from "../../../supabase/functions/_shared/prose/plan.ts";
+import { lintRegisterDocument, lintRegisterText, registerClean, BANNED_PHRASES } from "../../../archive/unwired/_shared/prose/register-lint.ts";
+import { lintPlan, planRenderable } from "../../../archive/unwired/_shared/prose/plan.ts";
 import { lintFrameSet, frameSetRenderable } from "../../../supabase/functions/_shared/prose/frames.ts";
 import { BIOMETRIC_PLAN, BIOMETRIC_FRAMES } from "../../../library/prose/load.ts";
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";

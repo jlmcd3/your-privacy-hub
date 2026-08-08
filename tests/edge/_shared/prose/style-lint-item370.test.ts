@@ -12,7 +12,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   type LintableSection,
   lintDocumentStyle,
-} from "../../../../supabase/functions/_shared/prose/style-lint.ts";
+} from "../../../../archive/unwired/_shared/prose/style-lint.ts";
 
 const sec = (id: string, text: string): LintableSection => ({
   section_id: id,

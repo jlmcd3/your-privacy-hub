@@ -14,18 +14,18 @@
 //   deno run --allow-read --allow-env scripts/plans/before-after-plan-v2.ts
 
 import { CPPA_RISK_PLAN, CPPA_RISK_FRAMES } from "../../library/prose/load.ts";
-import { composeCppaRisk } from "../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
+import { composeCppaRisk } from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
 
 import {
   auditSectionConnectives,
   renderDocumentFromPlan,
-} from "../../supabase/functions/_shared/prose/plan-render.ts";
+} from "../../archive/unwired/_shared/prose/plan-render.ts";
 import { buildActivityAnalytics } from "../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
 import {
   checkCoverage,
   collectCoverageAtoms,
-} from "../../supabase/functions/_shared/prose/frame-coverage.ts";
+} from "../../archive/unwired/_shared/prose/frame-coverage.ts";
 import { resolveEngineConclusion } from "../../supabase/functions/_shared/prose/engine-conclusions.ts";
 
 // COMPLETE FIXTURE — every required record value present, so nothing renders as

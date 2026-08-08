@@ -7,7 +7,7 @@
 import type {
   ProseLibraryRow,
   ProseLibrarySource,
-} from "../../supabase/functions/_shared/prose/library-source.ts";
+} from "../../archive/unwired/_shared/prose/library-source.ts";
 
 async function queryRow(sql: string): Promise<Record<string, unknown> | null> {
   const cmd = new Deno.Command("psql", {

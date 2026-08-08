@@ -9,7 +9,7 @@
 // senior legal counsel with assistance from professional writers.
 
 import { BANNED_ANALOGY_PATTERNS, NO_ANALOGY_SENTENCE } from "./analogies.ts";
-import { auditSentinels, type RecordSpan } from "./span-tracking.ts";
+import { auditSentinels, type RecordSpan } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
 
 export const STYLE_LINT_VERSION = "prose-style-lint-2026-08-03-item370";
 

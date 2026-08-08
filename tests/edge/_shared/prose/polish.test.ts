@@ -14,7 +14,7 @@ import {
   normaliseTypography,
   properNouns,
   validateEntailment,
-} from "../../../../supabase/functions/_shared/prose/entailment.ts";
+} from "../../../../archive/unwired/_shared/prose/entailment.ts";
 import {
   polishSection,
   runPolishStage,

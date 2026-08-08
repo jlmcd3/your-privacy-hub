@@ -11,7 +11,7 @@
  * banned word "gap" absent, ≤6 pills per field.
  * The assertion slot is intentionally empty for this product (Doc R).
  */
-import type { AssistedInputFieldConfig } from "../assistedInput";
+import type { AssistedInputFieldConfig } from ".";
 
 const admt_vendor_training_rights: AssistedInputFieldConfig = {
   fieldId: "admt_vendor_training_rights",

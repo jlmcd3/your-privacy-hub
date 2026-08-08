@@ -30,8 +30,8 @@ import {
   CITATION_ONLY_PREAMBLE,
   renderAuthorityExhibitHtml,
 } from "../../../supabase/functions/_shared/report-exhibits/authority-exhibit.ts";
-import { lintCrossSectionRestatement } from "../../../supabase/functions/_shared/prose/register-lint.ts";
-import { lintPlan } from "../../../supabase/functions/_shared/prose/plan.ts";
+import { lintCrossSectionRestatement } from "../../../archive/unwired/_shared/prose/register-lint.ts";
+import { lintPlan } from "../../../archive/unwired/_shared/prose/plan.ts";
 import { COUNSEL_REFERRAL_RE } from "../../../supabase/functions/_shared/advisory-voice.ts";
 import { runFormatChecksGeneric } from "../../../supabase/functions/_shared/grader/format-checks.ts";
 import { REPORT_DISCLAIMER } from "../../../supabase/functions/_shared/report-disclaimer.ts";

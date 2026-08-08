@@ -32,7 +32,7 @@ import { applyInferredGeneralisation } from "../../../supabase/functions/_shared
 import { buildDeterminationBlock } from "../../../supabase/functions/_shared/report-exhibits/determination.ts";
 import { hasPlaceholderToken, rollUpAskCategories } from "../../../supabase/functions/_shared/prose/ask-categories.ts";
 import { GENERIC_ABSENCE } from "../../../supabase/functions/_shared/prose/frame-substitution.ts";
-import { lintScaffoldPool, MIN_SCAFFOLD_POOL_SIZE } from "../../../supabase/functions/_shared/prose/register-lint.ts";
+import { lintScaffoldPool, MIN_SCAFFOLD_POOL_SIZE } from "../../../archive/unwired/_shared/prose/register-lint.ts";
 
 function degradedReport() {
   return {

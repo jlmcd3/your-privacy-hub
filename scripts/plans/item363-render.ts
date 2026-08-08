@@ -21,21 +21,21 @@ import {
   composeCppaRisk,
   CPPA_RISK_MIN_PARAGRAPHS,
   CPPA_RISK_SECTION_ORDER,
-} from "../../supabase/functions/_shared/prose/plans/cppa-risk.compose.ts";
+} from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
 import {
   auditSectionConnectives,
   renderDocumentFromPlan,
-} from "../../supabase/functions/_shared/prose/plan-render.ts";
+} from "../../archive/unwired/_shared/prose/plan-render.ts";
 import { buildActivityAnalytics } from "../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
 import { buildEuAuthoritySection } from "../../supabase/functions/_shared/ltp/eu-authority/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
 import { lintFrameSet } from "../../supabase/functions/_shared/prose/frames.ts";
-import { lintPlan } from "../../supabase/functions/_shared/prose/plan.ts";
-import { lintDocumentStyle } from "../../supabase/functions/_shared/prose/style-lint.ts";
+import { lintPlan } from "../../archive/unwired/_shared/prose/plan.ts";
+import { lintDocumentStyle } from "../../archive/unwired/_shared/prose/style-lint.ts";
 import {
   checkCoverage,
   collectCoverageAtoms,
-} from "../../supabase/functions/_shared/prose/frame-coverage.ts";
+} from "../../archive/unwired/_shared/prose/frame-coverage.ts";
 import { resolveEngineConclusion } from "../../supabase/functions/_shared/prose/engine-conclusions.ts";
 
 const fixture = CPPA_RISK_GOLDEN.find((f: { id: string }) => f.id === "risk-saas-clean-tuning") ??

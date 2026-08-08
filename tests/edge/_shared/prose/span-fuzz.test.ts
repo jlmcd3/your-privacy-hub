@@ -35,11 +35,11 @@ import {
   SPAN_START,
   UnbalancedSentinelError,
 } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
-import { lintDocumentStyle } from "../../../../supabase/functions/_shared/prose/style-lint.ts";
+import { lintDocumentStyle } from "../../../../archive/unwired/_shared/prose/style-lint.ts";
 import {
   editableSegments,
   runSpanSafePolish,
-} from "../../../../supabase/functions/_shared/prose/span-safe-polish.ts";
+} from "../../../../archive/unwired/_shared/prose/span-safe-polish.ts";
 
 // ── deterministic PRNG ─────────────────────────────────────────────────────
 function rng(seed: number) {
