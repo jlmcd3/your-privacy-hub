@@ -39,7 +39,7 @@ export const BIOMETRIC_PLAN_SUPERSEDED_ROW_ID = "f1deaa14-e377-4d03-a2af-bd30475
  * NEW constant — check-biometric-compliance carried only prompt-block and
  * registry build stamps before item409.
  */
-export const BIOMETRIC_PIPELINE_STAMP = "biometric-pipeline@item412b-2026-08-08";
+export const BIOMETRIC_PIPELINE_STAMP = "biometric-pipeline@item412c-2026-08-08";
 
 export const BIOMETRIC_REFERENCE_RENDER_IDS: readonly string[] = [
   "28583f46-a280-4f18-9854-6dba7c2ea1b8",

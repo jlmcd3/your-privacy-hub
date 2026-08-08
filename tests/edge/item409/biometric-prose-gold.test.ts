@@ -383,7 +383,7 @@ Deno.test("item409 · the stamp is written at the finalize point", () => {
   const internal = (report._meta as Record<string, Record<string, string>>).internal;
   assertEquals(internal.biometric_pipeline_stamp, BIOMETRIC_PIPELINE_STAMP);
   assertEquals(internal.biometric_prose_gold_version, BIOMETRIC_PROSE_GOLD_VERSION);
-  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412b-2026-08-08");
+  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412c-2026-08-08");
 });
 
 Deno.test("item409 · the stamp survives the LEAK-PREV-P2 serializer", () => {
