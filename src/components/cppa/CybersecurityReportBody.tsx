@@ -80,10 +80,54 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
       )}
 
 
-      {report?.enforcement_context && (
+      {/* ITEM 404 CY-2 — the typed § 7123(c) tally. The renderer formats the
+          arithmetic; the executive summary states the verdict and never
+          recites it. Legacy documents carry no tally and render as before. */}
+      {report?.control_status_counts && (
+        <section className="bg-card border rounded-lg p-6">
+          <h2 className="font-body text-display-card font-semibold mb-3">Component tally</h2>
+          <div className="flex flex-wrap gap-3">
+            <span className="px-3 py-1.5 rounded bg-muted text-sm">
+              Components: <strong>{report.control_status_counts.total_components}</strong>
+            </span>
+            <span className="px-3 py-1.5 rounded bg-muted text-sm">
+              Scored: <strong>{report.control_status_counts.scored_count}</strong>
+            </span>
+            {report.control_status_counts.mean_score != null && (
+              <span className="px-3 py-1.5 rounded bg-muted text-sm">
+                Mean of scored components: <strong>{report.control_status_counts.mean_score}</strong>
+                {" / 100"}
+              </span>
+            )}
+            {report.control_status_counts.insufficient_count > 0 && (
+              <span className="px-3 py-1.5 rounded bg-muted text-sm">
+                Insufficient information: <strong>{report.control_status_counts.insufficient_count}</strong>
+              </span>
+            )}
+          </div>
+          {report.control_status_counts.by_status && (
+            <ul className="mt-3 text-sm text-muted-foreground space-y-1">
+              {Object.entries(report.control_status_counts.by_status as Record<string, number>).map(
+                ([status, n]) => (
+                  <li key={status}>
+                    {status}: {n}
+                  </li>
+                ),
+              )}
+            </ul>
+          )}
+          {report.control_status_counts.methodology_note && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {report.control_status_counts.methodology_note}
+            </p>
+          )}
+        </section>
+      )}
+
+      {enforcementContextText(report?.enforcement_context) && (
         <section className="p-4 bg-brand-slate-teal/5 dark:bg-brand-slate-teal/40 border-l-4 border-brand-slate-teal text-sm rounded">
           <p className="font-semibold mb-1">Enforcement Context</p>
-          <p>{report.enforcement_context}</p>
+          <p>{enforcementContextText(report.enforcement_context)}</p>
         </section>
       )}
 
