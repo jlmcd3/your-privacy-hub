@@ -42,7 +42,7 @@ import {
 } from "../../../supabase/functions/_shared/ltp/cyber-prose-gold.ts";
 
 import { lintAssembledProse } from "../../../supabase/functions/_shared/prose/assembled-prose-lint.ts";
-import { serializeReport } from "../../../supabase/functions/_shared/report-serialize.ts";
+import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 import { CPPA_CYBER_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/cppa-cyber.ts";
 
 const planJson = JSON.parse(
@@ -193,7 +193,7 @@ Deno.test("item404 · the tally is attached before prose is swept", () => {
 Deno.test("item404 · the tally survives the customer serializer", () => {
   const report: Record<string, unknown> = { controls: CONTROLS, executive_summary: "The programme is not yet audit-ready." };
   attachControlStatusCounts(report);
-  const out = serializeReport(report, CPPA_CYBER_REPORT_SCHEMA) as Record<string, unknown>;
+  const out = serializeCustomerReport(report, CPPA_CYBER_REPORT_SCHEMA).report as Record<string, unknown>;
   assert(out.control_status_counts, "serializer dropped control_status_counts");
 });
 
@@ -369,7 +369,7 @@ Deno.test("item404 · cyber_pipeline_stamp survives the LEAK-PREV-P2 serializer"
     executive_summary: "The programme is not yet audit-ready on the record supplied.",
     _meta: { internal: { cyber_pipeline_stamp: CYBER_PIPELINE_STAMP }, build_stamp: "x" },
   };
-  const out = serializeReport(report, CPPA_CYBER_REPORT_SCHEMA) as Record<string, unknown>;
+  const out = serializeCustomerReport(report, CPPA_CYBER_REPORT_SCHEMA).report as Record<string, unknown>;
   const meta = out._meta as Record<string, unknown>;
   const internal = meta?.internal as Record<string, unknown>;
   assertEquals(internal?.cyber_pipeline_stamp, CYBER_PIPELINE_STAMP);
