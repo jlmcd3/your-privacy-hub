@@ -250,7 +250,8 @@ function buildNoticeHtml(
   ${state.state_code === "OR" ? `<ul><li><strong>Oregon Attorney General:</strong> <a href="https://www.doj.state.or.us">doj.state.or.us</a> · (503) 378-4400</li></ul>` : ""}
   ${state.state_code === "MT" ? `<ul><li><strong>Montana Attorney General:</strong> <a href="https://doj.mt.gov">doj.mt.gov</a> · (406) 444-2026</li></ul>` : ""}
   ${!["VA","TX","CO","CT","OR","MT"].includes(state.state_code) ? `<ul><li>Contact your state Attorney General for more information about your rights and how to file a complaint.</li></ul>` : ""}
-  </p>`
+  </p>${appealsMethodHtml}`
+
   }
 
   <h2>6. How to contact us</h2>
