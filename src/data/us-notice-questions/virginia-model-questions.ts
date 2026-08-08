@@ -146,6 +146,16 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       },
     ],
   },
+  {
+    key: "vam_appeals_method",
+    text: "How can an individual submit an appeal after a denied request, and how are they informed of the outcome?",
+    whyWeAsk:
+      "The notice must describe the appeals mechanism itself: how to submit an appeal, the written response within 60 days, and the right to contact the state attorney general if the appeal is denied. [Va. Code § 59.1-577(C); Colo. Rev. Stat. § 6-1-1306(3); Conn. Gen. Stat. § 42-518(c); Tex. Bus. & Com. Code § 541.054]",
+    type: "text_long",
+    isRequired: false,
+    jurisdictionOnly: ["US_VA", "US_CO", "US_CT", "US_TX"],
+    showIf: { questionKey: "vam_appeals_process", operator: "equals", value: "yes" },
+  },
 ];
 
 /**

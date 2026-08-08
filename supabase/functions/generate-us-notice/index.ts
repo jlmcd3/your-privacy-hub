@@ -44,7 +44,7 @@ interface SessionRow {
   version_number: number | null;
 }
 
-interface StateRow {
+export interface StateRow {
   state_code: string;
   state_name: string;
   framework_type: string;
@@ -112,7 +112,7 @@ function answerString(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function buildNoticeHtml(
+export function buildNoticeHtml(
   state: StateRow,
   answers: Record<string, unknown>,
   generatedAt: string,
@@ -127,6 +127,15 @@ function buildNoticeHtml(
   const thirdParties = answerString(answers["third_party_categories"]) || "—";
   const sale = answerString(answers["sale_or_sharing"]);
   const retention = answerString(answers["retention_general"]) || "Not specified";
+
+  // INTAKE-1: controller-supplied appeals mechanism (Va. Code § 59.1-577(C)
+  // and state analogues). Absent on legacy records -> empty string, so the
+  // rendered notice is byte-identical to its previous output.
+  const appealsMethod = answerString(answers["vam_appeals_method"]).trim();
+  const appealsMethodHtml = appealsMethod
+    ? `\n  <p>How to submit an appeal, and how we inform you of the outcome: ${escapeHtml(appealsMethod)} If your appeal is denied, you may contact the ${escapeHtml(state.state_name)} Attorney General to submit a complaint.</p>`
+    : "";
+
 
   const showOptOut =
     sale === "sell_and_share" || sale === "sell_only" || sale === "share_only";
@@ -250,7 +259,8 @@ function buildNoticeHtml(
   ${state.state_code === "OR" ? `<ul><li><strong>Oregon Attorney General:</strong> <a href="https://www.doj.state.or.us">doj.state.or.us</a> · (503) 378-4400</li></ul>` : ""}
   ${state.state_code === "MT" ? `<ul><li><strong>Montana Attorney General:</strong> <a href="https://doj.mt.gov">doj.mt.gov</a> · (406) 444-2026</li></ul>` : ""}
   ${!["VA","TX","CO","CT","OR","MT"].includes(state.state_code) ? `<ul><li>Contact your state Attorney General for more information about your rights and how to file a complaint.</li></ul>` : ""}
-  </p>`
+  </p>${appealsMethodHtml}`
+
   }
 
   <h2>6. How to contact us</h2>

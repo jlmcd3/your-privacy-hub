@@ -236,6 +236,15 @@ export const UNIVERSAL_EU_NOTICE_QUESTIONS: Question[] = [
     ],
   },
   {
+    key: "automated_decisions_detail",
+    text: "What meaningful information can you provide about the logic involved, the significance, and the likely consequences of these decisions for the individual?",
+    whyWeAsk:
+      "Art.13(2)(f) requires meaningful information about the logic involved and the significance and envisaged consequences of automated decision-making; Art.22(3) requires the right to human intervention. [GDPR Art.13(2)(f), Art.22]",
+    type: "text_long",
+    isRequired: false,
+    showIf: { questionKey: "automated_decisions", operator: "equals", value: "yes" },
+  },
+  {
     key: "collection_source",
     text: "How do you obtain the personal data you process?",
     whyWeAsk: "Determines whether GDPR Art.13 (direct collection) or Art.14 (data obtained from other sources) transparency rules apply.",
