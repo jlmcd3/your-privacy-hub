@@ -295,9 +295,12 @@ Deno.test("reference passages: byte-identical with the gate wired", () => {
 Deno.test("live-parity: gate call site passes the FULL record, after prose gold + R11, before the serializer", () => {
   const gold = FN_SRC.indexOf("applyBiometricProseGold(");
   const r11 = FN_SRC.indexOf("biometric_r11_lint");
-  const gate = FN_SRC.indexOf('product: "biometric"');
+  // Anchor on the gate's own marker: `product: "biometric"` also appears at
+  // the item369 frame-substitution call site above.
+  const gateMarker = FN_SRC.indexOf("ITEM 410 LEG B — RECORD-COMPLETE GATE");
+  const gate = FN_SRC.indexOf('product: "biometric",', gateMarker);
   const ser = FN_SRC.indexOf("LEAK-PREV-P2 — single finalization point");
-  assert(gold > 0 && r11 > 0 && gate > 0 && ser > 0, "call sites not found");
+  assert(gold > 0 && r11 > 0 && gateMarker > 0 && gate > 0 && ser > 0, "call sites not found");
   assert(gold < gate, "gate must run AFTER item409 biometric prose gold");
   assert(r11 < gate, "gate must run AFTER the R11 assembled-prose lint");
   assert(gate < ser, "gate must run BEFORE the LEAK-PREV-P2 serializer");
