@@ -139,10 +139,14 @@ Deno.test("item409 · every reference passage byte-matches the corpus row it cit
 });
 
 Deno.test("item409 · the ITEM 388 failure is detected, not absorbed", () => {
-  const p = PASSAGES[0];
-  const curly = { ...p, bytes: p.bytes.replace(/'/g, "\u2019") };
+  // A passage that actually carries straight quotes — the exact shape that
+  // drifted in item388 when a registry entry was re-typed with curly quotes.
+  const p = PASSAGES.find((x) => /['"]/.test(x.bytes))!;
+  assert(p, "no passage carries a straight quote to mutate");
+  const curly = { ...p, bytes: p.bytes.replace(/'/g, "\u2019").replace(/"/g, "\u201C") };
   const drift = checkPassagesAgainstCorpus([curly], CORPUS);
   assert(drift.length === 1, "quote drift must be reported");
+
   assert(
     drift[0].reason === "smart_quote_drift" || drift[0].reason === "not_substring_of_cited_row",
     `unexpected reason ${drift[0].reason}`,
