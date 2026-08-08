@@ -32,7 +32,7 @@ export const CYBER_PLAN_VERSION_LABEL = "prose-plans-2026-08-07-item404";
  * The finalize-point stamp written into `_meta.internal.cyber_pipeline_stamp`.
  * NEW constant — run-cppa-cybersecurity carried only BUILD_STAMP before item404.
  */
-export const CYBER_PIPELINE_STAMP = "cyber-pipeline@item406-2026-08-07";
+export const CYBER_PIPELINE_STAMP = "cyber-pipeline@item407-2026-08-07";
 
 /** The two walked renders, for provenance assertions. */
 export const CYBER_REFERENCE_RENDER_IDS: readonly string[] = [
