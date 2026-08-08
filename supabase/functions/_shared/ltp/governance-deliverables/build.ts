@@ -417,20 +417,33 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       status: "analysed",
     };
 
+  // ── ITEM 403-A DEFECT 2 — THE UNREQUESTED-FACT RULE ────────────────────
+  // `emptyAskedKeys`, applied to ANALYSIS instead of to the gate: an analysis
+  // may not treat a fact the intake never requested as a gap in the customer's
+  // record. The governance contract asks `dpo_status` and asks nothing about
+  // the officer's reporting line, resourcing, or other duties held — so those
+  // three may not downgrade the verdict. PANEL DECISION: the FIRST option was
+  // taken (assess on what is asked), not the second (extend the contract),
+  // because Articles 38 and 39 are assessable on the designation the record
+  // states, the three facts are refinements rather than preconditions, and
+  // adding three free-text fields to a 38-field intake would cost every
+  // customer completion time to answer a question the analysis can already
+  // reach. What the form does not collect is routed to `information_needed`
+  // framed as what would STRENGTHEN the record — never as a deficiency.
   const position_and_independence: Finding = hasFormal || hasInformal
     ? {
       key: "dpo_position_independence",
       label: "Article 38 position and independence",
       citation: indep.citation,
       standard: [anchor("dpo_involvement", "GDPR Art. 38(1)").verbatim, anchor("dpo_resources", "GDPR Art. 38(2)").verbatim, indep.verbatim, anchor("dpo_conflict", "GDPR Art. 38(6)").verbatim].filter(Boolean).join(" "),
-      record_fact: `The record answers "${f.dpoStatus}" and says nothing about reporting line, resourcing, or other duties held by the same person.`,
-      application:
-        "Article 38 is not discharged by the fact of an appointment. It requires timely involvement in all data-protection issues, resources sufficient to perform the Article 39 tasks, a direct reporting line to the highest management level, freedom from instructions on the exercise of those tasks, and the absence of a conflict of interests from any other duties held. None of those five is evidenced on this record." +
-        (hasInformal ? " An informal privacy lead who also owns the systems being assessed is the standard conflict-of-interests case under Article 38(6) and should be tested first." : ""),
-      verdict: "record_insufficient",
-      status: "record_insufficient",
+      record_fact: `The record answers the designation question "${f.dpoStatus}".`,
+      application: hasFormal
+        ? "A formal designation carries the Article 38 duties with it: on designation the controller owes timely involvement in all data-protection issues, resources sufficient for the Article 39 tasks, freedom from instructions on their exercise, and a direct reporting line to the highest management level. The record states a formal designation, and the assessment takes the Article 38 position as evidenced on that basis. The operating detail behind it — reporting line, resourcing, and other duties held — is a refinement this assessment records under information needed; it is not collected by the intake and is not read as a shortfall."
+        : "An informal privacy lead is not a formal designation for Article 37 purposes, so the Article 38 protections are evidenced only in part: the function exists and is owned, but the independence and conflict-of-interests protections Article 38(3) and 38(6) attach to a designated officer are not carried by an informal arrangement. That is a conclusion about the arrangement the record describes, not about anything the record omits.",
+      verdict: hasFormal ? "satisfied" : "partially_satisfied",
+      status: "analysed",
       information_needed:
-        "Supply the DPO's reporting line, the resources allocated, and the other roles the same individual holds, so the Article 38(1)-(3) and 38(6) requirements can be tested rather than assumed.",
+        "Recording the officer's reporting line, the resources allocated, and any other roles the same individual holds would let Article 38(1)-(3) and 38(6) be tested directly rather than taken from the designation. This intake does not collect those facts, so their absence carries no adverse weight.",
     }
     : {
       key: "dpo_position_independence",
@@ -446,6 +459,9 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       information_needed: none ? undefined : "State whether a data protection officer has been designated.",
     };
 
+  const bothAdjacent = str(get(intake, "dpia_status")).startsWith("Yes") &&
+    str(get(intake, "training_status")).startsWith("Yes");
+
   const task_coverage: Finding = hasFormal || hasInformal
     ? {
       key: "dpo_task_coverage",
@@ -455,14 +471,16 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       record_fact:
         `The record answers "${f.dpoStatus}". On the adjacent answers, DPIA activity is "${str(get(intake, "dpia_status")) || "unstated"}" and training is "${str(get(intake, "training_status")) || "unstated"}".`,
       application:
-        "Article 39(1) sets a floor of five tasks, and two of them are visible in the adjacent answers: monitoring compliance including awareness-raising and training of staff (39(1)(b)), and advising on and monitoring the performance of data protection impact assessments (39(1)(c)). " +
-        ((str(get(intake, "dpia_status")).startsWith("Yes") && str(get(intake, "training_status")).startsWith("Yes"))
-          ? "Both are evidenced in substance, which is consistent with — but not proof of — the officer performing them. The remaining tasks (informing and advising, cooperating with the supervisory authority, and acting as its contact point) are not addressed by the record."
-          : "At least one is not evidenced in substance, so task coverage cannot be said to be complete. The remaining tasks are not addressed by the record at all."),
-      verdict: "record_insufficient",
-      status: "record_insufficient",
+        "Article 39(1) sets a floor of five tasks, and the record speaks to two of them directly: monitoring compliance including awareness-raising and training of staff (39(1)(b)), and advising on and monitoring the performance of data protection impact assessments (39(1)(c)). " +
+        (bothAdjacent
+          ? "Both are evidenced in substance alongside a designation, which is what this intake collects on the point, and the assessment takes Article 39 task coverage as evidenced on that basis. The remaining tasks — informing and advising, cooperating with the supervisory authority, and acting as its contact point — follow from the designation itself and are recorded under information needed as a confirmation that would strengthen the record."
+          : (hasFormal
+            ? "One of the two is not evidenced in substance, so task coverage is evidenced in part: the designation is recorded, and the activity behind two of the named tasks is only partly visible in the answers this intake collects."
+            : "The arrangement recorded is an informal privacy lead and one of the two adjacent activities is not evidenced in substance, so task coverage is evidenced in part.")),
+      verdict: (bothAdjacent && hasFormal) ? "satisfied" : "partially_satisfied",
+      status: "analysed",
       information_needed:
-        "Confirm, task by task against Article 39(1)(a)-(e), which tasks the designated officer actually performs and how that is recorded.",
+        "Confirming, task by task against Article 39(1)(a)-(e), which tasks the designated officer performs and how that is recorded would strengthen the record. This intake does not collect it, so its absence carries no adverse weight.",
     }
     : {
       key: "dpo_task_coverage",
@@ -484,9 +502,12 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
     : "record_insufficient";
   const verdict: Verdict = designation_trigger.verdict === "not_satisfied"
     ? "not_satisfied"
-    : status === "analysed"
-    ? "satisfied"
-    : "record_insufficient";
+    : status !== "analysed"
+    ? "record_insufficient"
+    : subs.some((s) => s.verdict === "partially_satisfied")
+    ? "partially_satisfied"
+    : "satisfied";
+
 
   return { designation_trigger, position_and_independence, task_coverage, verdict, status };
 }
