@@ -20,15 +20,17 @@ const INDEX = await Deno.readTextFile(
 const code = INDEX.split("\n").filter((l) => !l.trim().startsWith("//")).join("\n");
 
 Deno.test("there is exactly one serialize-and-persist seam", () => {
-  const serializes = code.match(/serializeCustomer\s*\(/g) ?? [];
-  assertEquals(serializes.length, 1, `expected 1 serializeCustomer call, found ${serializes.length}`);
+  // The local wrapper's own declaration is not a call site.
+  const serializes = (code.match(/serializeCustomer\s*\(/g) ?? []).length -
+    (code.match(/function serializeCustomer\s*\(/g) ?? []).length;
+  assertEquals(serializes, 1, `expected 1 serializeCustomer call, found ${serializes}`);
   const inserts = code.match(/from\(["']registration_assessments["']\)\s*\n?\s*\.(insert|upsert)/g) ?? [];
   assert(inserts.length <= 1, `expected at most 1 write path, found ${inserts.length}`);
 });
 
 Deno.test("the battery runs BEFORE serialization, at that one seam", () => {
   const battery = code.indexOf("runRegistrationFinalizeBattery(");
-  const serialize = code.indexOf("serializeCustomer(");
+  const serialize = code.indexOf("= serializeCustomer(");
   assert(battery > 0, "battery is not wired into index.ts");
   assert(battery < serialize, "battery runs after serialization — repairs would be discarded");
 });

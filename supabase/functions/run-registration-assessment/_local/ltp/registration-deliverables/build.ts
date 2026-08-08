@@ -866,12 +866,12 @@ function buildDpo(intake: I): DpoDetermination {
   return {
     verdict,
     headline: engaged.length
-      ? `A data protection officer must be designated: ${engaged.length} of the three ${art} branches is engaged by the facts recorded.`
+      ? `A data protection officer must be designated: ${engaged.length === 1 ? "one" : engaged.length === 2 ? "two" : "all three"} of the three ${art} branches ${engaged.length === 1 ? "is" : "are"} engaged by the facts recorded.`
       : unknown.length
       ? `Whether a data protection officer must be designated cannot be determined from the facts recorded.`
       : `No ${art} branch is engaged by the facts recorded, so designation is not mandatory.`,
     reasoning: engaged.length
-      ? `${art} is disjunctive: one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached.`
+      ? `The provision is disjunctive, so one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached.`
       : unknown.length
       ? `No branch is affirmatively engaged, but ${unknown.map((f) => f.citation).join(", ")} cannot be evaluated from the facts recorded, so a negative conclusion would be unsafe.`
       : "Each of the three branches was evaluated against the record and none is engaged. Voluntary designation remains available and is often prudent.",
@@ -993,7 +993,7 @@ function buildNarrative(
     // be answered, and say what follows meanwhile. Never talked around, never
     // apologised for, and never compressed into one over-loaded sentence.
     parts.push(
-      `${p.topic} is recorded here and left open. ${p.note} The provisions that would settle it are listed with this flag. Until their text is in corpus the question stays live; nothing above should be read as a finding that no duty arises.`,
+      `The question of ${p.topic.charAt(0).toLowerCase() + p.topic.slice(1)} is recorded here and left open. ${p.note} The provisions that would settle it are listed with this flag. Until their text is in corpus the question stays live; nothing above should be read as a finding that no duty arises.`,
     );
   }
 
