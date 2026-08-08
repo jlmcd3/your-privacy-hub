@@ -248,7 +248,7 @@
       "id": "biometric-open-element-named",
       "section_id": "open_elements",
       "before": "Consent artifact type: record_insufficient. Cannot be determined on the record.",
-      "after": "The record does not yet show which written release was used. Confirm the artifact signed before collection and this requirement can be settled on the record.",
+      "after": "The record does not yet show which written release was used. Confirm the artifact signed before collection and this requirement is settled.",
       "note": "R2 and R4: one voice, machine vocabulary retired, and the missing fact named with who settles it."
     }
   ]
