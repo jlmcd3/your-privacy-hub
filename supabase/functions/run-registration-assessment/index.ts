@@ -15,6 +15,12 @@ import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { buildRegistrationDeliverables, REGISTRATION_DELIVERABLES_VERSION } from "./_local/ltp/registration-deliverables/build.ts";
 import { serializeCustomerReport } from "../_shared/report-serialize.ts";
 import { REGISTRATION_REPORT_SCHEMA } from "../_shared/report-schemas/registration.ts";
+import {
+  REGISTRATION_PIPELINE_STAMP,
+  runRegistrationFinalizeBattery,
+} from "../_shared/ltp/registration-finalize.ts";
+import { REGISTRATION_DUTY_AUTHORITIES } from "./_local/registry/registration-verified-authorities.ts";
+
 
 /**
  * LEAK-PREV-P2 — whitelist serialization of the customer report.
@@ -45,7 +51,9 @@ function serializeCustomer(report: Record<string, unknown>): Record<string, unkn
 }
 
 export const BUILD_STAMP = "r1-hds-conditional@2026-07-23T14:20:00Z";
+export { REGISTRATION_PIPELINE_STAMP };
 console.log(`[run-registration-assessment] boot build_stamp=${BUILD_STAMP}`);
+console.log(`[run-registration-assessment] boot registration_pipeline_stamp=${REGISTRATION_PIPELINE_STAMP}`);
 
 // QB-P26 Item 1 — per-jurisdiction DPO basis. The engine emits a single
 // global `dpo_required` + trigger; but the trigger it names may be a
@@ -754,9 +762,20 @@ Deno.serve(async (req) => {
 
     // 4. Persist
 
+    // ── ITEM 413 — THE REGISTRATION FINALIZE BATTERY (single seam) ────────
+    // Prose gold (RG-1..RG-4), the pipeline stamp, coverage and the R11
+    // assembled-prose lint, run over the fully assembled report and BEFORE
+    // whitelist serialization, so every persist path carries them. Fail-open.
+    const battery = runRegistrationFinalizeBattery(
+      result_summary as Record<string, unknown>,
+      intake as unknown as Record<string, unknown>,
+      REGISTRATION_DUTY_AUTHORITIES,
+    );
+    const finalized_result_summary = battery.report as Record<string, unknown>;
+
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report immediately before the write (fail-open).
-    const customer_result_summary = serializeCustomer(result_summary as Record<string, unknown>);
+    const customer_result_summary = serializeCustomer(finalized_result_summary);
     let row;
     const persistPayload = {
       intake_data: intake,

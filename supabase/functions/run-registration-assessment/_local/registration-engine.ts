@@ -182,9 +182,13 @@ function ensure(
     if (!existing.obligations.includes(obligation)) {
       existing.obligations.push(obligation);
     }
-    // Append rule trace into "why" only if it adds new info
+    // Append rule trace into "why" only if it adds new info.
+    // ITEM 413 RG-1 — join with a sentence stop, not a bullet glyph. The
+    // previous " • " joiner reached the reader as prose ("…residents of UK •
+    // UK GDPR applies…"); a glyph is not a conjunction.
     if (!existing.why.includes(why)) {
-      existing.why = `${existing.why} • ${why}`;
+      const head = /[.!?;]$/.test(existing.why.trim()) ? existing.why.trim() : `${existing.why.trim()}.`;
+      existing.why = `${head} ${why}`;
     }
     return;
   }
