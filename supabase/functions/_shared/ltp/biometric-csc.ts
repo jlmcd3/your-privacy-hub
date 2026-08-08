@@ -344,21 +344,29 @@ export interface BiometricCscSurface {
  *
  * Each duty row's proposition is "the record answers the question this duty
  * turns on". The PRIMARY key is the intake question the deliverable builder
- * itself branches on for that duty (verified against
- * `check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts`);
- * anything the builder merely quotes alongside it corroborates.
+ * itself branches on for that duty; anything the builder merely quotes
+ * alongside it corroborates and never backs the surface on its own.
  *
- * Duty rows with NO intake backing at all — the three enforcement rows
- * (`tx_cubi.d_enforcement`, `wa_19373.090_cpa_enforcement`,
- * `wa_19375.030_enforcement`) — are deliberately absent: they restate
- * enforcement machinery, not the record, so an absence sentence on them is
- * never a false absence.
+ * ITEM 406-B DISCIPLINE, APPLIED TO THE MAP ITSELF. Every key below is a duty
+ * row the pipeline ACTUALLY WRITES: the eighteen `mk(...)` row ids in
+ * `check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts`,
+ * confirmed against the rows the builder emits for `BIOMETRIC_PERFECT`. The
+ * definitional and qualifier rows (`*.def_*`, `tx_cubi.c1_qualifier_other_law`,
+ * `wa_19375.040_exclusions`, …) are NOT duty rows — the builder folds them into
+ * `identifier_characterizations`, `entity_characterization` and `scope_gated` —
+ * so naming them here would be the item406 defect over again: a map entry
+ * pointing at a surface that does not exist.
+ *
+ * The three enforcement rows (`tx_cubi.d_enforcement`,
+ * `wa_19373.090_cpa_enforcement`, `wa_19375.030_enforcement`) are likewise
+ * absent, and for a second reason: they restate enforcement machinery rather
+ * than the record, so an absence sentence on them is never a false absence.
  */
 const DUTY_SURFACE_KEYS: Readonly<Record<string, {
   keys: readonly string[];
   corroborating?: readonly string[];
 }>> = {
-  // ── Illinois — BIPA ────────────────────────────────────────────────────
+  // ── Illinois — BIPA (740 ILCS 14/15) ───────────────────────────────────
   "il_bipa.15a_written_policy": {
     keys: ["retention_schedule_text"],
     corroborating: ["retention_policy_public", "destruction_trigger"],
@@ -380,23 +388,11 @@ const DUTY_SURFACE_KEYS: Readonly<Record<string, {
     keys: ["security_measures_description"],
     corroborating: ["protection_parity"],
   },
-  "il_bipa.def_biometric_identifier": {
-    keys: ["data_source_description"],
-    corroborating: ["biometricTypes"],
-  },
-  "il_bipa.def_private_entity": {
-    keys: ["orgType"],
-    corroborating: ["entity_is_government"],
-  },
 
-  // ── Texas — CUBI ───────────────────────────────────────────────────────
+  // ── Texas — CUBI (Tex. Bus. & Com. Code § 503.001) ─────────────────────
   "tx_cubi.b_notice_and_consent": {
     keys: ["notice_before_collection", "consent_artifact_type"],
-    corroborating: ["release_artifact_description"],
-  },
-  "tx_cubi.b1_public_media_qualifier": {
-    keys: ["data_source_description"],
-    corroborating: ["purpose"],
+    corroborating: ["release_artifact_description", "data_source_description"],
   },
   "tx_cubi.c1_disclosure_limits": {
     keys: ["disclosure_bases"],
@@ -404,28 +400,21 @@ const DUTY_SURFACE_KEYS: Readonly<Record<string, {
   },
   "tx_cubi.c2_reasonable_care": {
     keys: ["security_measures_description"],
-    corroborating: ["protection_parity"],
+    corroborating: ["protection_parity", "tx_employer_security_collection"],
   },
-  "tx_cubi.c1_qualifier_other_law": { keys: ["tx_longer_retention_required_by_law"] },
-  "tx_cubi.c2_qualifier_employer": { keys: ["tx_employer_security_collection"] },
   "tx_cubi.c3_one_year_destruction": {
     keys: ["tx_destruction_within_one_year"],
     corroborating: ["tx_longer_retention_required_by_law", "destruction_trigger"],
-  },
-  "tx_cubi.e_exceptions": { keys: ["tx_ai_training_use"] },
-  "tx_cubi.def_biometric_identifier": {
-    keys: ["data_source_description"],
-    corroborating: ["biometricTypes"],
   },
 
   // ── Washington — RCW 19.375 ────────────────────────────────────────────
   "wa_19375.020_1_enrollment_notice_consent": {
     keys: ["wa_enrolls_in_database"],
-    corroborating: ["wa_commercial_purpose", "notice_before_collection", "consent_artifact_type"],
-  },
-  "wa_19375.020_2_notice_standard": {
-    keys: ["notice_before_collection"],
-    corroborating: ["wa_enrolls_in_database"],
+    corroborating: [
+      "wa_commercial_purpose",
+      "notice_before_collection",
+      "consent_artifact_type",
+    ],
   },
   "wa_19375.020_3_disclosure_limits": {
     keys: ["disclosure_bases"],
@@ -439,36 +428,13 @@ const DUTY_SURFACE_KEYS: Readonly<Record<string, {
     keys: ["wa_commercial_purpose"],
     corroborating: ["purpose", "notice_before_collection"],
   },
-  "wa_19375.020_7_security_purpose_carveout": { keys: ["wa_security_purpose_only"] },
-  "wa_19375.040_exclusions": {
-    keys: ["healthcare_tpo_context"],
-    corroborating: ["glba_financial_institution", "entity_is_government"],
-  },
-  "wa_19375.def_enroll": { keys: ["wa_enrolls_in_database"] },
-  "wa_19375.def_commercial_purpose": { keys: ["wa_commercial_purpose"] },
-  "wa_19375.def_biometric_identifier": {
-    keys: ["data_source_description"],
-    corroborating: ["biometricTypes"],
-  },
-  "wa_19375.def_person": { keys: ["orgType"], corroborating: ["entity_is_government"] },
 
   // ── Washington — RCW 19.373 (MHMDA) ────────────────────────────────────
-  "wa_19373.def_biometric_data": {
-    keys: ["wa_mhmda_health_inference"],
-    corroborating: ["data_source_description"],
-  },
-  "wa_19373.def_consumer_health_data": { keys: ["wa_mhmda_health_inference"] },
-  "wa_19373.chd_research_exclusion": {
-    keys: ["wa_mhmda_health_inference"],
-    corroborating: ["purpose"],
-  },
-  "wa_19373.020_privacy_policy": { keys: ["wa_mhmda_privacy_policy_published"] },
-  "wa_19373.020_undisclosed_categories_purposes": {
+  "wa_19373.020_privacy_policy": {
     keys: ["wa_mhmda_privacy_policy_published"],
     corroborating: ["purpose"],
   },
-  "wa_19373.030_collection_consent": { keys: ["wa_mhmda_collection_consent"] },
-  "wa_19373.030_consent_disclosure_content": {
+  "wa_19373.030_collection_consent": {
     keys: ["wa_mhmda_collection_consent"],
     corroborating: ["purpose"],
   },
@@ -478,6 +444,7 @@ const DUTY_SURFACE_KEYS: Readonly<Record<string, {
   },
   "wa_19373.080_geofence": { keys: ["wa_mhmda_geofence_health_facility"] },
 };
+
 
 /** Every duty key the CSC map knows about. */
 export const BIOMETRIC_DUTY_SURFACE_KEYS: readonly string[] = Object.keys(DUTY_SURFACE_KEYS);
