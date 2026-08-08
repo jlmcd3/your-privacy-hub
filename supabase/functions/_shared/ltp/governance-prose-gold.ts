@@ -118,11 +118,31 @@ export function verdictOpener(det: unknown): string {
 }
 
 /**
- * Affirmative posture claims that may not stand beside a non-affirmative
- * determination. Replacements are record-anchored and grammatical in place.
+ * ITEM 403-A DEFECT 3 — THE SUMMARY IS BOUND TO THE TYPED VERDICT.
+ *
+ * Item 400 gated posture de-assertion on `accountability_determination.verdict`
+ * alone. On the perfect pilot that verdict was "satisfied" while the TYPED
+ * readiness rating was "Partly evidenced" (an adverse sibling pulled it down),
+ * so the summary was free to assert "a materially strong data protection
+ * posture" beside a weaker headline — the two-voices defect one level deeper.
+ * The gate is now the typed `readiness_determination.rating`, and the
+ * replacement phrase is DERIVED from that rating, so summary and verdict
+ * cannot disagree by construction.
  */
-const POSTURE_CONTRADICTIONS: readonly { readonly re: RegExp; readonly to: string }[] = [
-  { re: /\ba (?:materially |substantially |broadly )?(?:strong|robust|mature|sound) compliance posture\b/gi, to: "the set of controls described below" },
+const POSTURE_CLAIM_RE =
+  /\b(?:a|an)\s+(?:materially\s+|substantially\s+|broadly\s+|generally\s+|largely\s+)?(?:strong|robust|mature|sound|solid|mixed|weak|developing|limited)\s+(?:compliance|data protection|data-protection|privacy|governance|security|risk|regulatory)?\s*posture\b/gi;
+
+/** The posture phrase each rating licenses. Ratings absent here allow the claim. */
+export const RATING_POSTURE_PHRASES: Record<string, string> = {
+  "Partly evidenced": "a posture this record evidences only in part",
+  "Not evidenced": "a posture this record leaves unevidenced",
+  "Not determinable": "a posture that remains undetermined on this record",
+};
+
+/** Ratings that permit an affirmative posture claim to stand. */
+export const AFFIRMATIVE_RATINGS = new Set(["Evidenced", "Not engaged"]);
+
+const LEGACY_POSTURE_CONTRADICTIONS: readonly { readonly re: RegExp; readonly to: string }[] = [
   { re: /\bis (?:materially |substantially |broadly )?compliant\b/gi, to: "describes controls across the domains assessed" },
   { re: /\bpresents a (?:materially |substantially |broadly )?strong posture\b/gi, to: "presents the controls described below" },
 ];
@@ -161,8 +181,20 @@ export function applyVerdictVoice(report: unknown): VerdictVoiceResult {
   let summary = typeof r.executive_summary === "string" ? r.executive_summary : "";
   if (!summary.trim()) return out;
 
-  if (!isAffirmativeVerdict(det?.verdict)) {
-    for (const { re, to } of POSTURE_CONTRADICTIONS) {
+  // ITEM 403-A DEFECT 3 — bind to the TYPED rating where one exists; fall back
+  // to the item400 verdict gate for documents that carry no typed record.
+  const rating = out.readiness_rating ?? "";
+  const affirmativeAllowed = rating
+    ? AFFIRMATIVE_RATINGS.has(rating)
+    : isAffirmativeVerdict(det?.verdict);
+
+  if (!affirmativeAllowed) {
+    const phrase = RATING_POSTURE_PHRASES[rating] ?? "the set of controls described below";
+    summary = summary.replace(POSTURE_CLAIM_RE, () => {
+      out.posture_claims_deasserted += 1;
+      return phrase;
+    });
+    for (const { re, to } of LEGACY_POSTURE_CONTRADICTIONS) {
       summary = summary.replace(re, () => {
         out.posture_claims_deasserted += 1;
         return to;
@@ -178,6 +210,23 @@ export function applyVerdictVoice(report: unknown): VerdictVoiceResult {
   r.executive_summary = summary;
   return out;
 }
+
+/**
+ * ITEM 403-A DEFECT 3 — THE STRUCTURAL ONE-VOICE ASSERTION.
+ * Returns every posture claim in the assembled document that the typed rating
+ * does not license. An assembled governance document must return [].
+ */
+export function unboundPostureClaims(report: unknown): string[] {
+  const r = (report ?? null) as Record<string, unknown> | null;
+  if (!r || typeof r !== "object") return [];
+  const rd = r.readiness_determination as { rating?: string } | undefined;
+  const rating = String(rd?.rating ?? "").trim();
+  if (!rating || AFFIRMATIVE_RATINGS.has(rating)) return [];
+  const summary = typeof r.executive_summary === "string" ? r.executive_summary : "";
+  POSTURE_CLAIM_RE.lastIndex = 0;
+  return summary.match(POSTURE_CLAIM_RE) ?? [];
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GV-2 — HOLLOW FIELDS ARE OMITTED, NEVER SHIPPED
