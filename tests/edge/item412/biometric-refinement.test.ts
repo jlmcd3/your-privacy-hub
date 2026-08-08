@@ -103,7 +103,7 @@ Deno.test("item412 the biometric config is the shared core with a product block"
   assert(VERIFIER_PROMPT_BASE.includes('REJECT with reason "necessity"'));
   assertEquals(MAX_SPLICES, 12);
   assertEquals(BIOMETRIC_REFINEMENT_CONFIG_VERSION, "biometric-refine-config-2026-08-08-item412");
-  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412c-2026-08-08");
+  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412d-2026-08-08");
 });
 
 Deno.test("item412 the biometric config does not disturb the other six configs", () => {

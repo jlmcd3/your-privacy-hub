@@ -164,5 +164,5 @@ Deno.test("item412c telemetry carries the leaf_guard_rejected bucket with full a
 });
 
 Deno.test("item412c the stamp is item412c", () => {
-  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412c-2026-08-08");
+  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412d-2026-08-08");
 });
