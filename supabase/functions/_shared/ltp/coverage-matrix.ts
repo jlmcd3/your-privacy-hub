@@ -1075,15 +1075,33 @@ function cyberSurfaceNode(report: Record<string, unknown>, path: string): unknow
   if (m) {
     const rows = report[m[1]];
     if (!Array.isArray(rows)) return undefined;
+    // (i) identity match — a row that NAMES its component wins.
     for (const r of rows) {
       if (!r || typeof r !== "object") continue;
       const o = r as Record<string, unknown>;
-      if (String(o.key ?? o.slug ?? "") === m[2]) return o;
+      if (String(o.key ?? o.slug ?? o.control_id ?? o.component_id ?? "") === m[2]) return o;
+    }
+    // (ii) ITEM 406-B — POSITIONAL match. The live cyber pipeline writes
+    // `controls` as an eighteen-row array in contract order whose rows carry
+    // NO slug field (verified on quality_run_documents b2f1ec1e-7e33-4259-
+    // 9358-c60280369fd2: row keys are score/status/finding/priority/
+    // remediation only). Ordinal resolution is used ONLY when no row in the
+    // array names any component and the array is exactly the contract length,
+    // so a partially-identified array can never be mis-resolved.
+    const idx = CYBER_SLUGS.indexOf(m[2]);
+    if (idx >= 0 && rows.length === CYBER_SLUGS.length) {
+      const anyIdentified = rows.some((r) =>
+        !!r && typeof r === "object" &&
+        nonEmpty((r as Record<string, unknown>).key ?? (r as Record<string, unknown>).slug ??
+          (r as Record<string, unknown>).control_id ?? (r as Record<string, unknown>).component_id)
+      );
+      if (!anyIdentified) return rows[idx];
     }
     return undefined;
   }
   return getPath(report, path);
 }
+
 
 function cyberSurfaceSubstance(node: unknown): number {
   return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
