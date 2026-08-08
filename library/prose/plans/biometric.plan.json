@@ -17,14 +17,17 @@
       "28583f46-a280-4f18-9854-6dba7c2ea1b8",
       "d49d9be8-a503-4711-a60a-d1adb9e83bd1"
     ],
-    "render_scores": [92.3, 88.4],
+    "render_scores": [
+      92.3,
+      88.4
+    ],
     "approval_note": "panel-delegated approval per CEO delegation 2026-08-06",
     "supersession_note": "Supersedes prose_document_plans row f1deaa14-e377-4d03-a2af-bd30475b8e42 (product biometric, version 1, approved=true, provenance `library/prose/plans/biometric.plan.json @ item348`). That row is set approved=false with a provenance note naming this successor row; it is retained, not orphaned and not silently reused.",
     "fact_exempt_rule": "The walked renders are an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from them may reach a customer document, and none of them may be seeded into a fixture as record truth."
   },
   "idiom": "reference_passage",
   "idiom_note": "This product is STATUTE-AS-TEMPLATE. Verified statutory passages form the document's skeleton and the record's facts are woven in against them. Every passage rendered as template must byte-match the provision_texts row its citation names; the citation names the row the bytes actually came from. A passage and its cited row may never be reconciled by editing either the passage or the corpus row.",
-  "thesis": "Each biometric statute in scope is applied in its own words: the requirement is set down as the verified passage states it, the practice the record describes is set beside it, and the conclusion follows from the two and is stated first. Where the record is silent the requirement is left open and the one fact that would settle it is named. Exposure is described as exposure and kept apart from what the organisation must change now.",
+  "thesis": "Each biometric statute in scope is applied in its own words: the verified passage states the requirement, the practice the record describes is set beside it, and the conclusion is stated first. Where the record is silent, the fact that would settle it is named.",
   "centre_of_gravity": "applicability_determination",
   "render_walk": {
     "classes_found": [
@@ -160,7 +163,7 @@
     {
       "id": "consent_and_notice",
       "title": "Consent and notice",
-      "arc_stage": "analysis",
+      "arc_stage": "duty",
       "lead": "determination",
       "source_key": "consent_and_notice",
       "themes": [
@@ -176,7 +179,7 @@
     {
       "id": "retention_and_destruction",
       "title": "Retention and destruction",
-      "arc_stage": "analysis",
+      "arc_stage": "duty",
       "lead": "determination",
       "source_key": "retention_and_destruction",
       "themes": [
@@ -191,7 +194,7 @@
     {
       "id": "security_and_disclosure",
       "title": "Security, disclosure and profit",
-      "arc_stage": "analysis",
+      "arc_stage": "duty",
       "lead": "determination",
       "source_key": "security_and_disclosure",
       "themes": [
@@ -222,9 +225,13 @@
       "id": "close",
       "title": "Scope and reliance",
       "arc_stage": "close",
-      "lead": "record",
+      "lead": "determination",
       "source_key": "disclaimer",
-      "themes": ["not_legal_advice", "counsel_review", "record_bound"],
+      "themes": [
+        "not_legal_advice",
+        "counsel_review",
+        "record_bound"
+      ],
       "required": true,
       "status": "approved"
     }

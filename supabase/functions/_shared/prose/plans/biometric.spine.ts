@@ -47,7 +47,7 @@ export const BIOMETRIC_REFERENCE_RENDER_IDS: readonly string[] = [
 ];
 
 export const BIOMETRIC_THESIS =
-  "Each biometric statute in scope is applied in its own words: the requirement is set down as the verified passage states it, the practice the record describes is set beside it, and the conclusion follows from the two and is stated first. Where the record is silent the requirement is left open and the one fact that would settle it is named. Exposure is described as exposure and kept apart from what the organisation must change now.";
+  "Each biometric statute in scope is applied in its own words: the verified passage states the requirement, the practice the record describes is set beside it, and the conclusion is stated first. Where the record is silent, the fact that would settle it is named.";
 
 export const BIOMETRIC_IDIOM = "reference_passage" as const;
 
@@ -127,7 +127,7 @@ export const BIOMETRIC_SECTION_SPECS: readonly BiometricSectionSpec[] = [
   {
     id: "consent_and_notice",
     title: "Consent and notice",
-    arc_stage: "analysis",
+    arc_stage: "duty",
     lead: "determination",
     source_key: "consent_and_notice",
     themes: [
@@ -141,7 +141,7 @@ export const BIOMETRIC_SECTION_SPECS: readonly BiometricSectionSpec[] = [
   {
     id: "retention_and_destruction",
     title: "Retention and destruction",
-    arc_stage: "analysis",
+    arc_stage: "duty",
     lead: "determination",
     source_key: "retention_and_destruction",
     themes: ["public_policy", "destruction_trigger", "outer_limit", "schedule_adherence"],
@@ -150,7 +150,7 @@ export const BIOMETRIC_SECTION_SPECS: readonly BiometricSectionSpec[] = [
   {
     id: "security_and_disclosure",
     title: "Security, disclosure and profit",
-    arc_stage: "analysis",
+    arc_stage: "duty",
     lead: "determination",
     source_key: "security_and_disclosure",
     themes: [
@@ -174,7 +174,7 @@ export const BIOMETRIC_SECTION_SPECS: readonly BiometricSectionSpec[] = [
     id: "close",
     title: "Scope and reliance",
     arc_stage: "close",
-    lead: "record",
+    lead: "determination",
     source_key: "disclaimer",
     themes: ["not_legal_advice", "counsel_review", "record_bound"],
     required: true,
