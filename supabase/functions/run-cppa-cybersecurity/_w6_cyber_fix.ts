@@ -219,7 +219,20 @@ export function rewriteComparativeAsOperative(
       return sent;
     }
     rewritten++;
-    let rewritten_sent = sent
+    // ITEM 404 (b) ROOT CAUSE — FRAMEWORK FUNCTION NAMES ARE PROPER NOUNS.
+    // The NIST CSF 2.0 functions are Govern, Identify, Protect, Detect,
+    // Respond and Recover. Capitalised "Govern" was matching /\bgoverns?\b/
+    // and being rewritten to "provides comparative guidance on", producing
+    // the live defect "the NIST CSF 2.0 provides comparative guidance on and
+    // Identify functions". Function names are masked for the duration of the
+    // operative-verb rewrite and restored byte-for-byte afterwards.
+    const NIST_FN_RE = /\b(Govern|Identify|Protect|Detect|Respond|Recover)\b/g;
+    const masked: string[] = [];
+    let rewritten_sent = sent.replace(NIST_FN_RE, (m) => {
+      masked.push(m);
+      return `\u0000NISTFN${masked.length - 1}\u0000`;
+    });
+    rewritten_sent = rewritten_sent
       .replace(/\brequires?\b/gi, "addresses")
       .replace(/\bmandates?\b/gi, "addresses")
       .replace(/\bgoverns?\b/gi, "provides comparative guidance on")
@@ -227,6 +240,10 @@ export function rewriteComparativeAsOperative(
       .replace(/\bdictates?\b/gi, "addresses")
       .replace(/\bis\s+the\s+operative\s+standard\s+for\b/gi, "provides comparative context for")
       .replace(/\bis\s+the\s+governing\s+standard\s+for\b/gi, "provides comparative context for");
+    rewritten_sent = rewritten_sent.replace(
+      /\u0000NISTFN(\d+)\u0000/g,
+      (_m, i: string) => masked[Number(i)] ?? "",
+    );
     // TURN E E1a — orphan-preposition rollback: if the rewrite left a stub
     // (verb-phrase ending in a bare preposition immediately before a
     // terminator/semicolon) OMIT the transformed clause entirely rather
