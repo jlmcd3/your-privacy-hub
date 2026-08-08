@@ -26,6 +26,8 @@ import { liAssessmentStageBContract } from "./intake-contracts/li-assessment.ts"
 import { governanceContract } from "./intake-contracts/governance-assessment.ts";
 import { dpaGeneratorContract } from "./intake-contracts/dpa-generator.ts";
 import { irPlaybookContract } from "./intake-contracts/ir-playbook.ts";
+// ITEM 408 — biometric contract joins the shared union.
+import { biometricContract } from "./intake-contracts/biometric.ts";
 
 export const CUSTOMER_MESSAGES_VERSION = "cm-w1-2026-07-25";
 
@@ -453,6 +455,8 @@ export const KNOWN_INTAKE_KEYS: readonly string[] = Object.freeze([
   ...governanceContract.fields.map((f) => f.key),
   ...dpaGeneratorContract.fields.map((f) => f.key),
   ...irPlaybookContract.fields.map((f) => f.key),
+  // ITEM 408 — biometric contract (P7 leg 0).
+  ...biometricContract.fields.map((f) => f.key),
 ]);
 
 /** Returns the humanized label for an intake field or the neutral
