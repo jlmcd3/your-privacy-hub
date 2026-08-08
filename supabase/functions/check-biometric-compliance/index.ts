@@ -1417,6 +1417,313 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
   }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
 
+
+/**
+ * ITEM 412-B — THE SINGLE FINALIZE SEAM.
+ *
+ * DEFECT THIS FIXES: the item410/411/412 battery was wired inline in the
+ * streaming LLM handler only. `runStressBiometric` (the harness path, entered
+ * at the `body.stress_run === true` short-circuit) builds its own document and
+ * persists it WITHOUT ever reaching that code, so the perfect pilot persisted
+ * a document whose `_meta.internal` carried only the pipeline stamp and the
+ * prose-gold version — those two attach inside `stampBiometricPipeline` /
+ * `repairBiometricProse`, which the stress path DOES call.
+ *
+ * LAW 3 (single seam): the battery is not duplicated per path. It lives here,
+ * and every persist path calls it immediately before its write.
+ *
+ * Returns the (possibly refined/repaired) document text; mutates `report_data`
+ * in place. Fail-open throughout — each pass carries its own try/catch.
+ */
+export async function runBiometricFinalizeBattery(
+  report_data: Record<string, unknown>,
+  assessmentText: string,
+  body: Body,
+): Promise<string> {
+  let assessment_text = assessmentText;
+    // ── ITEM 412 LEG D — BIOMETRIC REFINEMENT PASS ─────────────────────
+    // CRITIC (Claude, the run's resolved generation model, one call) →
+    // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. THE ORDER MIRRORS
+    // run-li-assessment (item386) AND run-cppa-cybersecurity (item407)
+    // EXACTLY: refinement runs AFTER generation and every content-shaping
+    // pass (frame substitution is the last one) and BEFORE the deterministic
+    // battery — item409 prose gold → item399 R11 lint → item411 CSC →
+    // item411 coverage → item410 record-complete gate — so every downstream
+    // deterministic pass, and the gate, see the spliced document. One pass,
+    // no loops. Config-gated by BIOMETRIC_REFINEMENT_ENABLED; fail-open.
+    //
+    // THE DOCUMENT. `assessment_text` carries most of this product's prose and
+    // is held outside `report_data`. It is attached to the refinement document
+    // under its own key for the duration of the pass and detached immediately
+    // afterwards, so the critic sees what the reader sees and the splicer can
+    // write back to the one surface that matters. `_meta` never reaches the
+    // critic — the core strips it.
+    try {
+      const { runBiometricRefinement } = await import("../_shared/ltp/biometric-refinement.ts");
+      const { makeBiometricRefinementDeps, BIOMETRIC_REFINEMENT_ENABLED } = await import(
+        "../_shared/ltp/biometric-refinement-deps.ts"
+      );
+      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      // The FULL RECORD — the request body, exactly as the leg-C CSC and
+      // coverage passes and the leg-B gate use it (the item385 r2 lesson).
+      const refineIntake = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const refineDoc = report_data as Record<string, unknown>;
+      refineDoc.assessment_text = assessment_text;
+      // The deterministic COVERAGE list is computed BEFORE the critic call and
+      // is the ONLY permitted anchor set for its material-omission findings.
+      const preCoverage = runCoverageMatrix("biometric", refineDoc, refineIntake);
+      // RESURRECTION-BUG CLASS — the generation model is resolved HERE, inside
+      // the request context, and carried explicitly into the deps.
+      const refineModel = currentGenerationModel();
+      const refineTel = await runBiometricRefinement(
+        refineDoc,
+        refineIntake,
+        makeBiometricRefinementDeps(body.assessment_id ?? currentSourceRowId() ?? null, refineModel),
+        {
+          enabled: BIOMETRIC_REFINEMENT_ENABLED,
+          coverageList: coverageListForCritic(preCoverage),
+          coverageAnchors: coverageAnchorTokens(preCoverage),
+        },
+      );
+      assessment_text = typeof refineDoc.assessment_text === "string"
+        ? refineDoc.assessment_text
+        : assessment_text;
+      delete refineDoc.assessment_text;
+      const _rf = ((report_data as any)._meta ??= {});
+      const _rfi = (_rf.internal ??= {});
+      _rfi.biometric_refinement = refineTel;
+      // The CEO-named generic telemetry address, alongside the product key.
+      _rfi._refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "biometric_refinement", fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        generation_model: refineModel, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 412 refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+    // ── ITEM 409 — BIOMETRIC PROSE GOLD. THE TRUE FINALIZE POINT. ───────────
+    // This is the LAST CONTENT-SHAPING SEAM in the function: frame
+    // substitution (immediately above) is the last pass that writes prose, and
+    // everything below this point either filters keys (LEAK-PREV-P2 whitelist
+    // serialization), persists rows, or streams the already-shaped payload.
+    // Running the register pass here means it sees the document exactly as the
+    // reader will, and no later pass can reintroduce the register it removes.
+    //
+    // FAIL-OPEN, with ONE exception: reference-passage drift through assembly
+    // is logged loudly, because a mutated statutory passage is the one defect
+    // this product cannot ship quietly.
+    try {
+      const goldStart = Date.now();
+      const { report: golded, repaired_keys } = applyBiometricProseGold(
+        report_data as Record<string, unknown>,
+        BIOMETRIC_REFERENCE_PASSAGES,
+      );
+      const orig = report_data as Record<string, unknown>;
+      for (const k of Object.keys(orig)) if (!(k in golded)) delete orig[k];
+      Object.assign(orig, golded);
+
+      // `assessment_text` is the document: a single string carrying ~83% of it,
+      // held outside report_data and streamed separately. It gets the same pass.
+      const goldedText = repairBiometricProse(assessment_text, BIOMETRIC_REFERENCE_PASSAGES);
+      const textChanged = goldedText !== assessment_text;
+      assessment_text = goldedText;
+
+      const assemblyDrift = checkPassagesSurviveAssembly(
+        assessment_text,
+        BIOMETRIC_REFERENCE_PASSAGES,
+      );
+      if (assemblyDrift.length) {
+        console.error(
+          `[check-biometric-compliance] REFERENCE-PASSAGE DRIFT THROUGH ASSEMBLY:\n${formatDrift(assemblyDrift)}`,
+        );
+      }
+
+      console.log(JSON.stringify({
+        evt: "biometric_prose_gold",
+        fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        repaired_keys: repaired_keys.length,
+        assessment_text_repaired: textChanged,
+        assembly_drift: assemblyDrift.length,
+        ms: Date.now() - goldStart,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] prose gold failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // R11 — assembled-prose lint over the FINAL rendered strings.
+    try {
+      const { lintAssembledProse } = await import("../_shared/prose/assembled-prose-lint.ts");
+      const r11 = lintAssembledProse({
+        ...(report_data as Record<string, unknown>),
+        assessment_text,
+      });
+      console.log(JSON.stringify({
+        evt: "biometric_r11_lint",
+        fn: "check-biometric-compliance",
+        version: r11.version,
+        findings: r11.findings.length,
+        rules: [...new Set(r11.findings.map((f) => f.rule))],
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] R11 lint failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 411 LEG C — BIOMETRIC CSC, THEN COVERAGE, BEFORE THE GATE ──
+    // Ordering is the fleet ordering (item 394 ADMT, item 402 governance,
+    // item 406 cyber): CSC first, so its repairs land before coverage measures
+    // the surfaces; coverage second; the item410 record-complete gate last, so
+    // it reads BOTH telemetries off `_meta.internal` rather than failing
+    // closed on their absence.
+    //
+    // THE RECORD is the request body (see the gate note below) — the full
+    // record, never a trimmed projection.
+    //
+    // THE DOCUMENT the coverage pass measures is `report_data` PLUS
+    // `assessment_text`. `assessment_text` is streamed separately and is not a
+    // `report_data` key, but it carries most of the reader's prose, so the
+    // matrix would otherwise orphan every narrative-only fact. The spread is
+    // read-only: coverage never writes, and the gate's telemetry is attached
+    // to `report_data` itself.
+    //
+    // FAIL-OPEN, both passes.
+    try {
+      const cscStart = Date.now();
+      const { attachBiometricCsc } = await import("../_shared/ltp/biometric-csc.ts");
+      const bioRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const csc = attachBiometricCsc(report_data as Record<string, unknown>, {
+        intake: bioRecord,
+      });
+      console.log(JSON.stringify({
+        evt: "biometric_csc",
+        fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        version: csc.version,
+        violations: csc.violations.length,
+        repairs: csc.repairs,
+        crashed: csc.crashed,
+        check_ids: [...new Set(csc.violations.map((v) => v.check_id))],
+        ms: Date.now() - cscStart,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 411 CSC failed (non-fatal):", (e as Error)?.message);
+    }
+
+    try {
+      const covStart = Date.now();
+      const { runCoverageMatrix, attachCoverage } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      const bioRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const coverage = runCoverageMatrix(
+        "biometric",
+        { ...(report_data as Record<string, unknown>), assessment_text },
+        bioRecord,
+      );
+      attachCoverage(report_data as Record<string, unknown>, "biometric_coverage", coverage);
+      console.log(JSON.stringify({
+        evt: "biometric_coverage",
+        fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        version: coverage.version,
+        orphans: coverage.counts.orphans,
+        unused_intake_facts: coverage.counts.unused_intake_facts,
+        links_checked: coverage.counts.links_checked,
+        crashed: coverage.crashed,
+        ms: Date.now() - covStart,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 411 coverage failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 410 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
+
+    // Ordering matches the established products (item 393 ADMT, item 401
+    // governance, item 405 cyber): the gate is the LAST deterministic
+    // post-pass — AFTER the item409 biometric prose gold and the R11
+    // assembled-prose lint (so it judges the final customer text) and BEFORE
+    // the LEAK-PREV-P2 serializer (so its telemetry rides `_meta.internal`
+    // and survives the whitelist; this function has no LEAK-PREV-P1 emit
+    // gate — `guardInformationNeeded` above is its equivalent, and it runs
+    // earlier still).
+    //
+    // THE RECORD. This function does not read a persisted `intake_data`
+    // projection: the customer record IS the request body (`body`), which is
+    // also the exact value written to `biometric_assessments.intake_data`
+    // on both the update and insert paths below. The evidence passes
+    // therefore receive the FULL record, never a trimmed projection (the
+    // item385-r2 defect).
+    //
+    // ITEM 411 LEG C — the CSC and coverage passes now run immediately above,
+    // so both fail-closed arms have real telemetry to read and the gate can
+    // reach TRUE on a complete record. Nothing reads the gate value back into
+    // prose, the determination or any banner. Telemetry only.
+
+    try {
+      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
+        "../_shared/ltp/record-complete.ts"
+      );
+      const { biometricContract } = await import(
+        "../_shared/intake-contracts/biometric.ts"
+      );
+      const bioGateRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const binternal = ((((report_data as any)._meta ?? {}).internal ?? {})) as Record<string, unknown>;
+      const telemetry = computeRecordComplete({
+        product: "biometric",
+        contract: biometricContract,
+        intake: bioGateRecord,
+        coverage: (binternal.biometric_coverage ?? null) as any,
+        csc: (binternal.biometric_csc ?? null) as any,
+      });
+      const classification = classifyPlaceholders(
+        report_data as Record<string, unknown>,
+        bioGateRecord,
+        telemetry.value,
+      );
+      attachRecordComplete(report_data as Record<string, unknown>, telemetry, classification);
+      console.log(JSON.stringify({
+        evt: "biometric_record_complete", fn: "check-biometric-compliance",
+        biometric_pipeline_stamp: BIOMETRIC_PIPELINE_STAMP,
+        version: telemetry.version, value: telemetry.value,
+        failed_conditions: telemetry.failed_conditions,
+        counts: telemetry.counts,
+        empty_required_keys: telemetry.empty_required_keys.slice(0, 20),
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 410 record-complete gate failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+    // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
+    // assembled report in place, immediately before the report_data write.
+    // FAIL-OPEN: any serializer crash or throw logs and leaves the report
+    // unserialized — a serializer defect must never block a customer report.
+    // `_meta` is restored verbatim (internal channel read downstream).
+    try {
+      const { report: serialized, telemetry } = serializeCustomerReport(
+        report_data as Record<string, unknown>,
+        BIOMETRIC_REPORT_SCHEMA,
+      );
+      if (!telemetry.crashed && serialized && typeof serialized === "object") {
+        const s = serialized as Record<string, unknown>;
+        const orig = report_data as Record<string, unknown>;
+        if (orig._meta && typeof orig._meta === "object") {
+          s._meta = { ...(orig._meta as Record<string, unknown>), ...(s._meta as Record<string, unknown>) };
+        }
+        for (const k of Object.keys(orig)) if (!(k in s)) delete orig[k];
+        Object.assign(orig, s);
+      }
+    } catch (e) {
+      console.warn("[check-biometric-compliance] serializer failed (non-fatal):", (e as Error)?.message);
+    }
+  return assessment_text;
+}
+
 Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] check-biometric-compliance build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
   console.log(JSON.stringify({ evt: "bio_build_stamp", build_stamp: BUILD_STAMP }));
@@ -2157,286 +2464,15 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] frame substitution failed (non-fatal):", (e as Error)?.message);
     }
 
-    // ── ITEM 412 LEG D — BIOMETRIC REFINEMENT PASS ─────────────────────
-    // CRITIC (Claude, the run's resolved generation model, one call) →
-    // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. THE ORDER MIRRORS
-    // run-li-assessment (item386) AND run-cppa-cybersecurity (item407)
-    // EXACTLY: refinement runs AFTER generation and every content-shaping
-    // pass (frame substitution is the last one) and BEFORE the deterministic
-    // battery — item409 prose gold → item399 R11 lint → item411 CSC →
-    // item411 coverage → item410 record-complete gate — so every downstream
-    // deterministic pass, and the gate, see the spliced document. One pass,
-    // no loops. Config-gated by BIOMETRIC_REFINEMENT_ENABLED; fail-open.
-    //
-    // THE DOCUMENT. `assessment_text` carries most of this product's prose and
-    // is held outside `report_data`. It is attached to the refinement document
-    // under its own key for the duration of the pass and detached immediately
-    // afterwards, so the critic sees what the reader sees and the splicer can
-    // write back to the one surface that matters. `_meta` never reaches the
-    // critic — the core strips it.
-    try {
-      const { runBiometricRefinement } = await import("../_shared/ltp/biometric-refinement.ts");
-      const { makeBiometricRefinementDeps, BIOMETRIC_REFINEMENT_ENABLED } = await import(
-        "../_shared/ltp/biometric-refinement-deps.ts"
-      );
-      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
-        "../_shared/ltp/coverage-matrix.ts"
-      );
-      // The FULL RECORD — the request body, exactly as the leg-C CSC and
-      // coverage passes and the leg-B gate use it (the item385 r2 lesson).
-      const refineIntake = ((body ?? {}) as unknown) as Record<string, unknown>;
-      const refineDoc = report_data as Record<string, unknown>;
-      refineDoc.assessment_text = assessment_text;
-      // The deterministic COVERAGE list is computed BEFORE the critic call and
-      // is the ONLY permitted anchor set for its material-omission findings.
-      const preCoverage = runCoverageMatrix("biometric", refineDoc, refineIntake);
-      // RESURRECTION-BUG CLASS — the generation model is resolved HERE, inside
-      // the request context, and carried explicitly into the deps.
-      const refineModel = currentGenerationModel();
-      const refineTel = await runBiometricRefinement(
-        refineDoc,
-        refineIntake,
-        makeBiometricRefinementDeps(body.assessment_id ?? currentSourceRowId() ?? null, refineModel),
-        {
-          enabled: BIOMETRIC_REFINEMENT_ENABLED,
-          coverageList: coverageListForCritic(preCoverage),
-          coverageAnchors: coverageAnchorTokens(preCoverage),
-        },
-      );
-      assessment_text = typeof refineDoc.assessment_text === "string"
-        ? refineDoc.assessment_text
-        : assessment_text;
-      delete refineDoc.assessment_text;
-      const _rf = ((report_data as any)._meta ??= {});
-      const _rfi = (_rf.internal ??= {});
-      _rfi.biometric_refinement = refineTel;
-      // The CEO-named generic telemetry address, alongside the product key.
-      _rfi._refinement = refineTel;
-      console.log(JSON.stringify({
-        evt: "biometric_refinement", fn: "check-biometric-compliance",
-        stamp: BIOMETRIC_PIPELINE_STAMP,
-        generation_model: refineModel, ...refineTel,
-      }));
-    } catch (e) {
-      console.warn("[check-biometric-compliance] ITEM 412 refinement pass failed (non-fatal):", (e as Error)?.message);
-    }
-
-
-    // ── ITEM 409 — BIOMETRIC PROSE GOLD. THE TRUE FINALIZE POINT. ───────────
-    // This is the LAST CONTENT-SHAPING SEAM in the function: frame
-    // substitution (immediately above) is the last pass that writes prose, and
-    // everything below this point either filters keys (LEAK-PREV-P2 whitelist
-    // serialization), persists rows, or streams the already-shaped payload.
-    // Running the register pass here means it sees the document exactly as the
-    // reader will, and no later pass can reintroduce the register it removes.
-    //
-    // FAIL-OPEN, with ONE exception: reference-passage drift through assembly
-    // is logged loudly, because a mutated statutory passage is the one defect
-    // this product cannot ship quietly.
-    try {
-      const goldStart = Date.now();
-      const { report: golded, repaired_keys } = applyBiometricProseGold(
-        report_data as Record<string, unknown>,
-        BIOMETRIC_REFERENCE_PASSAGES,
-      );
-      const orig = report_data as Record<string, unknown>;
-      for (const k of Object.keys(orig)) if (!(k in golded)) delete orig[k];
-      Object.assign(orig, golded);
-
-      // `assessment_text` is the document: a single string carrying ~83% of it,
-      // held outside report_data and streamed separately. It gets the same pass.
-      const goldedText = repairBiometricProse(assessment_text, BIOMETRIC_REFERENCE_PASSAGES);
-      const textChanged = goldedText !== assessment_text;
-      assessment_text = goldedText;
-
-      const assemblyDrift = checkPassagesSurviveAssembly(
-        assessment_text,
-        BIOMETRIC_REFERENCE_PASSAGES,
-      );
-      if (assemblyDrift.length) {
-        console.error(
-          `[check-biometric-compliance] REFERENCE-PASSAGE DRIFT THROUGH ASSEMBLY:\n${formatDrift(assemblyDrift)}`,
-        );
-      }
-
-      console.log(JSON.stringify({
-        evt: "biometric_prose_gold",
-        fn: "check-biometric-compliance",
-        stamp: BIOMETRIC_PIPELINE_STAMP,
-        repaired_keys: repaired_keys.length,
-        assessment_text_repaired: textChanged,
-        assembly_drift: assemblyDrift.length,
-        ms: Date.now() - goldStart,
-      }));
-    } catch (e) {
-      console.warn("[check-biometric-compliance] prose gold failed (non-fatal):", (e as Error)?.message);
-    }
-
-    // R11 — assembled-prose lint over the FINAL rendered strings.
-    try {
-      const { lintAssembledProse } = await import("../_shared/prose/assembled-prose-lint.ts");
-      const r11 = lintAssembledProse({
-        ...(report_data as Record<string, unknown>),
-        assessment_text,
-      });
-      console.log(JSON.stringify({
-        evt: "biometric_r11_lint",
-        fn: "check-biometric-compliance",
-        version: r11.version,
-        findings: r11.findings.length,
-        rules: [...new Set(r11.findings.map((f) => f.rule))],
-      }));
-    } catch (e) {
-      console.warn("[check-biometric-compliance] R11 lint failed (non-fatal):", (e as Error)?.message);
-    }
-
-    // ── ITEM 411 LEG C — BIOMETRIC CSC, THEN COVERAGE, BEFORE THE GATE ──
-    // Ordering is the fleet ordering (item 394 ADMT, item 402 governance,
-    // item 406 cyber): CSC first, so its repairs land before coverage measures
-    // the surfaces; coverage second; the item410 record-complete gate last, so
-    // it reads BOTH telemetries off `_meta.internal` rather than failing
-    // closed on their absence.
-    //
-    // THE RECORD is the request body (see the gate note below) — the full
-    // record, never a trimmed projection.
-    //
-    // THE DOCUMENT the coverage pass measures is `report_data` PLUS
-    // `assessment_text`. `assessment_text` is streamed separately and is not a
-    // `report_data` key, but it carries most of the reader's prose, so the
-    // matrix would otherwise orphan every narrative-only fact. The spread is
-    // read-only: coverage never writes, and the gate's telemetry is attached
-    // to `report_data` itself.
-    //
-    // FAIL-OPEN, both passes.
-    try {
-      const cscStart = Date.now();
-      const { attachBiometricCsc } = await import("../_shared/ltp/biometric-csc.ts");
-      const bioRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
-      const csc = attachBiometricCsc(report_data as Record<string, unknown>, {
-        intake: bioRecord,
-      });
-      console.log(JSON.stringify({
-        evt: "biometric_csc",
-        fn: "check-biometric-compliance",
-        stamp: BIOMETRIC_PIPELINE_STAMP,
-        version: csc.version,
-        violations: csc.violations.length,
-        repairs: csc.repairs,
-        crashed: csc.crashed,
-        check_ids: [...new Set(csc.violations.map((v) => v.check_id))],
-        ms: Date.now() - cscStart,
-      }));
-    } catch (e) {
-      console.warn("[check-biometric-compliance] ITEM 411 CSC failed (non-fatal):", (e as Error)?.message);
-    }
-
-    try {
-      const covStart = Date.now();
-      const { runCoverageMatrix, attachCoverage } = await import(
-        "../_shared/ltp/coverage-matrix.ts"
-      );
-      const bioRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
-      const coverage = runCoverageMatrix(
-        "biometric",
-        { ...(report_data as Record<string, unknown>), assessment_text },
-        bioRecord,
-      );
-      attachCoverage(report_data as Record<string, unknown>, "biometric_coverage", coverage);
-      console.log(JSON.stringify({
-        evt: "biometric_coverage",
-        fn: "check-biometric-compliance",
-        stamp: BIOMETRIC_PIPELINE_STAMP,
-        version: coverage.version,
-        orphans: coverage.counts.orphans,
-        unused_intake_facts: coverage.counts.unused_intake_facts,
-        links_checked: coverage.counts.links_checked,
-        crashed: coverage.crashed,
-        ms: Date.now() - covStart,
-      }));
-    } catch (e) {
-      console.warn("[check-biometric-compliance] ITEM 411 coverage failed (non-fatal):", (e as Error)?.message);
-    }
-
-    // ── ITEM 410 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
-
-    // Ordering matches the established products (item 393 ADMT, item 401
-    // governance, item 405 cyber): the gate is the LAST deterministic
-    // post-pass — AFTER the item409 biometric prose gold and the R11
-    // assembled-prose lint (so it judges the final customer text) and BEFORE
-    // the LEAK-PREV-P2 serializer (so its telemetry rides `_meta.internal`
-    // and survives the whitelist; this function has no LEAK-PREV-P1 emit
-    // gate — `guardInformationNeeded` above is its equivalent, and it runs
-    // earlier still).
-    //
-    // THE RECORD. This function does not read a persisted `intake_data`
-    // projection: the customer record IS the request body (`body`), which is
-    // also the exact value written to `biometric_assessments.intake_data`
-    // on both the update and insert paths below. The evidence passes
-    // therefore receive the FULL record, never a trimmed projection (the
-    // item385-r2 defect).
-    //
-    // ITEM 411 LEG C — the CSC and coverage passes now run immediately above,
-    // so both fail-closed arms have real telemetry to read and the gate can
-    // reach TRUE on a complete record. Nothing reads the gate value back into
-    // prose, the determination or any banner. Telemetry only.
-
-    try {
-      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
-        "../_shared/ltp/record-complete.ts"
-      );
-      const { biometricContract } = await import(
-        "../_shared/intake-contracts/biometric.ts"
-      );
-      const bioGateRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
-      const binternal = ((((report_data as any)._meta ?? {}).internal ?? {})) as Record<string, unknown>;
-      const telemetry = computeRecordComplete({
-        product: "biometric",
-        contract: biometricContract,
-        intake: bioGateRecord,
-        coverage: (binternal.biometric_coverage ?? null) as any,
-        csc: (binternal.biometric_csc ?? null) as any,
-      });
-      const classification = classifyPlaceholders(
-        report_data as Record<string, unknown>,
-        bioGateRecord,
-        telemetry.value,
-      );
-      attachRecordComplete(report_data as Record<string, unknown>, telemetry, classification);
-      console.log(JSON.stringify({
-        evt: "biometric_record_complete", fn: "check-biometric-compliance",
-        biometric_pipeline_stamp: BIOMETRIC_PIPELINE_STAMP,
-        version: telemetry.version, value: telemetry.value,
-        failed_conditions: telemetry.failed_conditions,
-        counts: telemetry.counts,
-        empty_required_keys: telemetry.empty_required_keys.slice(0, 20),
-      }));
-    } catch (e) {
-      console.warn("[check-biometric-compliance] ITEM 410 record-complete gate failed (non-fatal):", (e as Error)?.message);
-    }
-
-
-    // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
-    // assembled report in place, immediately before the report_data write.
-    // FAIL-OPEN: any serializer crash or throw logs and leaves the report
-    // unserialized — a serializer defect must never block a customer report.
-    // `_meta` is restored verbatim (internal channel read downstream).
-    try {
-      const { report: serialized, telemetry } = serializeCustomerReport(
-        report_data as Record<string, unknown>,
-        BIOMETRIC_REPORT_SCHEMA,
-      );
-      if (!telemetry.crashed && serialized && typeof serialized === "object") {
-        const s = serialized as Record<string, unknown>;
-        const orig = report_data as Record<string, unknown>;
-        if (orig._meta && typeof orig._meta === "object") {
-          s._meta = { ...(orig._meta as Record<string, unknown>), ...(s._meta as Record<string, unknown>) };
-        }
-        for (const k of Object.keys(orig)) if (!(k in s)) delete orig[k];
-        Object.assign(orig, s);
-      }
-    } catch (e) {
-      console.warn("[check-biometric-compliance] serializer failed (non-fatal):", (e as Error)?.message);
-    }
+    // ── ITEM 412-B — SINGLE FINALIZE SEAM ──────────────────────────────
+    // The full battery (refinement → prose gold → R11 → CSC → coverage →
+    // record-complete gate → LEAK-PREV-P2 serializer) lives in ONE function
+    // that EVERY persist path calls. See runBiometricFinalizeBattery.
+    assessment_text = await runBiometricFinalizeBattery(
+      report_data as Record<string, unknown>,
+      assessment_text,
+      body,
+    );
 
 
     let savedId: string | null = null;
