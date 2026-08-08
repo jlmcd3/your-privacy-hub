@@ -77,3 +77,61 @@ export function buildTrainingStatement(intake: unknown): string {
   if (ai) parts.push(`Coverage of AI tools is recorded as "${ai}".`);
   return parts.join(" ");
 }
+
+// ---------------------------------------------------------------------------
+// ITEM 403-A DEFECT 4 — the per-domain single writer.
+//
+// The panel's decision on g1: the CSC gets a SINGLE-WRITER REPAIR (the g2
+// idiom) rather than leaving the contradiction on the page. This is the only
+// writer that repair may use. It states what the record answers for the
+// domain's own control keys, in the record-states-only voice — no evaluation,
+// no determination, no recommendation, and nothing the record does not carry.
+// It returns "" when no control key is answered, so an honest silence keeps
+// the surface's absence sentence byte-for-byte.
+// ---------------------------------------------------------------------------
+
+/** Reader labels for the domain control keys the g1 writer may name. */
+export const GOVERNANCE_RECORD_KEY_LABELS: Record<string, string> = {
+  training_status: "the training position",
+  training_ai_coverage: "coverage of AI tools in training",
+  dpa_status: "processor-contract coverage",
+  dpa_art28_verified: "Article 28 clause verification",
+  privacy_policy: "the privacy notice position",
+  privacy_notice_coverage: "privacy notice coverage",
+  tools: "the tools in use",
+  inventory_audit: "the tool-inventory position",
+  dsr_capability: "the rights-handling capability",
+  dsr_rights_tested: "the rights tested",
+  incident_response: "the incident-response position",
+  dpia_status: "DPIA activity",
+  dpia_ai_coverage: "DPIA coverage of AI tools",
+  tool_instruction: "the AI-use policy position",
+  technical_controls: "the technical-controls position",
+  technical_controls_list: "the technical controls named",
+  dpo_status: "the designation position",
+  transfer_status: "the transfer position",
+  transfer_mechanism: "the transfer mechanism",
+  processing_scope: "the scope and retention position",
+};
+
+export function governanceRecordKeyLabel(key: string): string {
+  return GOVERNANCE_RECORD_KEY_LABELS[key] ?? key.replace(/_/g, " ");
+}
+
+/**
+ * The per-domain record statement: one sentence per ANSWERED control key.
+ * `keys` is the domain's control-key list; unanswered keys are never named.
+ */
+export function buildDomainRecordStatement(
+  intake: unknown,
+  keys: readonly string[],
+): string {
+  const parts: string[] = [];
+  for (const k of keys) {
+    const v = read(intake, k);
+    if (!v) continue;
+    parts.push(`The record answers ${governanceRecordKeyLabel(k)} as "${v.slice(0, 300)}".`);
+  }
+  return parts.join(" ");
+}
+
