@@ -1925,6 +1925,63 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.error("[W21-CYBER-TURNC] non-fatal:", String(w21Err));
     }
 
+    // ── ITEM 407 LEG D — CYBER REFINEMENT PASS ─────────────────────────
+    // CRITIC (Claude, the run's resolved generation model, one call) →
+    // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. THE ORDER MIRRORS
+    // run-li-assessment (item386) AND run-governance-assessment (item403)
+    // EXACTLY: refinement runs AFTER generation and every content-shaping
+    // pass (W21-CYBER-TURNC is the last one) and BEFORE the deterministic
+    // battery — item404 prose gold → item399 R11 lint → item406 CSC →
+    // item406 coverage → item405 record-complete gate — so every downstream
+    // deterministic pass, and the gate, see the spliced document. One pass,
+    // no loops. Config-gated by CYBER_REFINEMENT_ENABLED; fail-open.
+    try {
+      const { runCyberRefinement } = await import("../_shared/ltp/cyber-refinement.ts");
+      const { makeCyberRefinementDeps, CYBER_REFINEMENT_ENABLED } = await import(
+        "../_shared/ltp/cyber-refinement-deps.ts"
+      );
+      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      // The FULL PERSISTED RECORD, as the leg-C CSC and coverage passes use
+      // (the item385 r2 divergence-class lesson).
+      const refineIntake = (((row as any).intake_data ?? {})) as Record<string, unknown>;
+      // The deterministic COVERAGE list is computed BEFORE the critic call and
+      // is the ONLY permitted anchor set for its material-omission findings.
+      const preCoverage = runCoverageMatrix(
+        "cppa-cyber",
+        report as Record<string, unknown>,
+        refineIntake,
+      );
+      // RESURRECTION-BUG CLASS — the generation model is resolved HERE, inside
+      // the request context, and carried explicitly into the deps.
+      const refineModel = currentGenerationModel();
+      const refineTel = await runCyberRefinement(
+        report as Record<string, unknown>,
+        refineIntake,
+        makeCyberRefinementDeps(assessment_id ?? currentSourceRowId() ?? null, refineModel),
+        {
+          enabled: CYBER_REFINEMENT_ENABLED,
+          coverageList: coverageListForCritic(preCoverage),
+          coverageAnchors: coverageAnchorTokens(preCoverage),
+        },
+      );
+      const _rf = ((report as any)._meta ??= {});
+      const _rfi = (_rf.internal ??= {});
+      _rfi.cyber_refinement = refineTel;
+      // The CEO-named generic telemetry address, alongside the product key.
+      _rfi._refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "cyber_refinement", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, cyber_pipeline_stamp: CYBER_PIPELINE_STAMP,
+        generation_model: refineModel, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-cybersecurity] ITEM 407 refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
     // ── ITEM 404 — CYBER PROSE GOLD + THE TYPED AGGREGATE RESTORATION ──
     // THE TRUE FINALIZE POINT. W21-CYBER-TURNC is the last pass that shapes
     // customer CONTENT; everything after it either reads the document
