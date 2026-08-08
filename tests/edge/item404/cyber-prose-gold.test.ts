@@ -55,7 +55,9 @@ Deno.test("item404 · plan row identity is pinned", () => {
   assertEquals(planJson.product, CYBER_PLAN_PRODUCT);
   // The row id is assigned by the database on insert and pinned in the encode.
   assert(/^[0-9a-f-]{36}$/.test(CYBER_PLAN_ROW_ID));
-  assertEquals(planJson.seed_default_approved, true);
+  // Approval lives in the DB column only (prose-seed-approval-guard).
+  assertEquals(planJson.seed_default_approved, false);
+  assert(String(planJson.approval_authority).includes("review panel"));
   assertEquals(planJson.thesis, CYBER_THESIS);
   assertEquals(planJson.banned_register, [...CYBER_BANNED_REGISTER]);
 });
