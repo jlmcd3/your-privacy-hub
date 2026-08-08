@@ -1502,6 +1502,8 @@ export function runCoverageMatrix(
     else if (product === "cppa-admt") admtCoverage(report, intake, t);
     else if (product === "governance") governanceCoverage(report, intake, t);
     else if (product === "cppa-cyber") cyberCoverage(report, intake, t);
+    else if (product === "biometric") biometricCoverage(report, intake, t);
+
     else riskCoverage(report, intake, t);
   } catch (e) {
     t.crashed = true;
