@@ -88,7 +88,7 @@ Deno.test("item412c REGRESSION: a verifier-approved whole-leaf proposal is rejec
     anchor: "intake",
     // … and rewritten away, leaving the document beginning mid-text at
     // "1. Written releases:" — the re-pilot defect verbatim (14,058 B → 1,833 B).
-    replacement: "",
+    replacement: "Assessment summary.\n\n",
     confidence: "high",
   }]));
 
