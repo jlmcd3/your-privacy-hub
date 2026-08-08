@@ -108,6 +108,17 @@ const SPLICE_RES: RegExp[] = [
   /\b(?:addresses|requires|applies)\s+(?:complete|record|document|retain|attach)\s+(?:and|the)\b/i,
 ];
 
+// ── rule 6 — a bare aggregate token inside prose (ITEM 404 defect (a)) ──────
+// A deterministic aggregate figure narrating itself in a sentence, typically
+// spliced across an abbreviation boundary ("… rates Acme Inc. Mean of 81
+// across the 18 scored components."). Arithmetic belongs in a typed tally the
+// renderer formats, never in prose.
+const BARE_AGGREGATE_RES: RegExp[] = [
+  /\bMean of \d+(?:\.\d+)? across the \d+ scored components?\b/i,
+  /\b(?:an?\s+)?(?:aggregate|mean|average)\s+score\s+of\s+\d+(?:\.\d+)?\b/i,
+  /[.!?]\s+(?:Mean|Average|Aggregate)\s+of\s+\d/,
+];
+
 // ── rule 5 — headline jammed into a paragraph (conservative / advisory) ─────
 // A sentence ending, then a Title-Case fragment that terminates in a period and
 // contains no finite verb.
