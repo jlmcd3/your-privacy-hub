@@ -41,7 +41,13 @@ export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 // fail-closed arms keep the governance gate value FALSE with
 // `coverage_orphans` + `csc_false_absence` in failed_conditions. That is
 // correct and intended for this leg.
-export type RecordCompleteProduct = "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance";
+// ITEM 405 leg B — "cppa-cyber" joins the union, FAIL-CLOSED. Cyber has NO
+// coverage matrix and NO CSC pass yet (leg C follows), so the fail-closed arms
+// keep the cyber gate value FALSE with `coverage_orphans` + `csc_false_absence`
+// in failed_conditions. That is correct and intended for this leg, and
+// FALSE_ABSENCE_CHECK_IDS["cppa-cyber"] is [] until leg C ships the pass.
+export type RecordCompleteProduct =
+  | "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber";
 
 export type FailedCondition =
   | "contract_incomplete"
@@ -215,6 +221,12 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // evidence: an UNREPAIRED g2 violation is a false absence claim about a
   // record that supplies the fact.
   governance: ["g2_absence_claim_vs_record"],
+  // ITEM 405 LEG B — the cyber CSC pass does not exist yet (leg C). An empty
+  // id list means no violation can ever be counted as a false absence, while
+  // the fail-closed arm above still holds the gate FALSE because the cyber
+  // coverage/CSC telemetry is absent. Leg C replaces this with the real ids.
+  "cppa-cyber": [],
+
 
 };
 

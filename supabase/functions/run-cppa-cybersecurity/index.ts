@@ -1983,6 +1983,54 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[ITEM399-R11] cyber prose lint failed (non-fatal):", String(lintErr));
     }
 
+    // ── ITEM 405 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
+    // Ordering matches the established products (item 393 ADMT, item 401
+    // governance): the gate is the LAST deterministic post-pass — AFTER
+    // W21-CYBER-TURNC and the item-404 cyber prose gold (so it judges the
+    // final customer text) and BEFORE the LEAK-PREV-P1 emit gate and the
+    // LEAK-PREV-P2 serializer (so its telemetry rides `_meta.internal` and
+    // survives the whitelist).
+    //
+    // The evidence passes receive the FULL persisted record
+    // (`row.intake_data`), never a trimmed projection — the item385-r2
+    // defect. Cyber has no coverage matrix and no CSC pass until leg C, so
+    // the gate value is FALSE by the fail-closed arms; nothing reads it back
+    // into prose, the determination, or the banner. Telemetry only.
+    try {
+      const { computeRecordComplete, classifyPlaceholders, attachRecordComplete } = await import(
+        "../_shared/ltp/record-complete.ts"
+      );
+      const { cppaCybersecurityContract } = await import(
+        "../_shared/intake-contracts/cppa-cybersecurity.ts"
+      );
+      const cyberGateRecord = (((row as any).intake_data ?? {})) as Record<string, unknown>;
+      const cinternal = ((((report as any)._meta ?? {}).internal ?? {})) as Record<string, unknown>;
+      const telemetry = computeRecordComplete({
+        product: "cppa-cyber",
+        contract: cppaCybersecurityContract,
+        intake: cyberGateRecord,
+        coverage: (cinternal.cyber_coverage ?? null) as any,
+        csc: (cinternal.cyber_csc ?? null) as any,
+      });
+      const classification = classifyPlaceholders(
+        report as Record<string, unknown>,
+        cyberGateRecord,
+        telemetry.value,
+      );
+      attachRecordComplete(report as Record<string, unknown>, telemetry, classification);
+      console.log(JSON.stringify({
+        evt: "cyber_record_complete", fn: "run-cppa-cybersecurity",
+        cyber_pipeline_stamp: CYBER_PIPELINE_STAMP,
+        version: telemetry.version, value: telemetry.value,
+        failed_conditions: telemetry.failed_conditions,
+        counts: telemetry.counts,
+        empty_required_keys: telemetry.empty_required_keys.slice(0, 20),
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-cybersecurity] ITEM 405 record-complete gate failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity", "cyber-cppa-hf6@2026-07-20"), build_stamp: BUILD_STAMP };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
