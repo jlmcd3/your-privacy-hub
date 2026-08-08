@@ -241,6 +241,11 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // gate (the item403-A g1 precedent): it flags per-component prose and its
   // repair is a sentence swap, not a determination of record completeness.
   "cppa-cyber": ["cy2_absence_claim_vs_record"],
+  // ITEM 410 LEG B — the biometric CSC pass does NOT exist yet (leg C ships
+  // it). An empty list is the honest value: there is no absence-class check id
+  // to count. The gate still fails closed on biometric because `csc` and
+  // `coverage` telemetry are absent, which is the required behaviour.
+  biometric: [],
 
 
 
