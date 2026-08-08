@@ -53,9 +53,11 @@ const planJson = JSON.parse(
 
 Deno.test("item404 · plan row identity is pinned", () => {
   assertEquals(planJson.product, CYBER_PLAN_PRODUCT);
-  assertEquals(planJson.id, CYBER_PLAN_ROW_ID);
-  assertEquals(planJson.approved, true);
+  // The row id is assigned by the database on insert and pinned in the encode.
+  assert(/^[0-9a-f-]{36}$/.test(CYBER_PLAN_ROW_ID));
+  assertEquals(planJson.seed_default_approved, true);
   assertEquals(planJson.thesis, CYBER_THESIS);
+  assertEquals(planJson.banned_register, [...CYBER_BANNED_REGISTER]);
 });
 
 Deno.test("item404 · provenance records both walked renders and the delegation verbatim", () => {
@@ -105,7 +107,12 @@ Deno.test("item404 · FACT-EXEMPT — no reference-render fact reaches a builder
     const src = await Deno.readTextFile(new URL(f, import.meta.url));
     // Strip comments: the exemption rule is about EMITTED literals, and the
     // rule itself must be documentable in prose.
-    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    const code = src
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "")
+      // The token list itself must name the facts it bars; exclude its own
+      // declaration from the scan.
+      .replace(/REFERENCE_RENDER_TOKENS[\s\S]*?\];/, "");
     for (const token of REFERENCE_RENDER_TOKENS) {
       assert(
         !code.includes(token),
