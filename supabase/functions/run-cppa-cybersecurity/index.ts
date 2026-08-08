@@ -17,6 +17,11 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // retention re-anchor guard supersedes § 7123(e) mis-anchor (wave-15 HIGH).
 export const BUILD_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z";
 console.log(`[run-cppa-cybersecurity] boot build_stamp=${BUILD_STAMP}`);
+// ITEM 404 — CYBER PROSE GOLD (leg A). The pipeline stamp is a NEW constant;
+// this function carried only BUILD_STAMP before item404.
+import { applyCyberProseGold, CYBER_PROSE_GOLD_VERSION } from "../_shared/ltp/cyber-prose-gold.ts";
+import { CYBER_PIPELINE_STAMP } from "../_shared/prose/plans/cyber.spine.ts";
+console.log(`[run-cppa-cybersecurity] boot cyber_pipeline_stamp=${CYBER_PIPELINE_STAMP}`);
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 3/3 (CYBER).
 // Blocks wave-14/15 unsupported-positive, contradiction, and
 // negative-from-silence classes on client-fact surfaces. Runs AFTER
