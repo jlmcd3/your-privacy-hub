@@ -880,7 +880,7 @@ Consent and notice:
 Written release (signed by individual or legally authorised representative) required before collection. Standalone biometric-specific release is the defensible practice — embedding in onboarding paperwork is routinely challenged by plaintiffs.
 
 Retention and destruction:
-Written retention policy must be publicly available before collection. Destroy biometric data when purpose expires or within 3 years of collection, whichever is first.
+Written retention policy must be publicly available before collection. Destroy biometric data when the initial purpose for collection has been satisfied or within 3 years of the individual's last interaction with the entity, whichever occurs first (740 ILCS 14/15(a)).
 
 Sale and sharing restrictions:
 Absolute prohibition on sale, lease, trade, or profit. Disclosure limited to consent, financial transaction completion, or legal compulsion.
