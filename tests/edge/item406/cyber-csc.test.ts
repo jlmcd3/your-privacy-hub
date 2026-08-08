@@ -245,7 +245,7 @@ Deno.test("item406 the false-absence gate id is wired", () => {
 });
 
 Deno.test("item406 the pipeline stamp is the item406 value", () => {
-  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item406-2026-08-07");
+  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item407-2026-08-07");
   const report: Record<string, unknown> = {};
   const t = attachCyberCsc(report, { intake: PERFECT });
   assertEquals(t.version, CYBER_CSC_VERSION);
