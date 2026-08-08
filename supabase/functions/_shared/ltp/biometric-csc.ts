@@ -658,20 +658,34 @@ export function runBiometricCsc(
 
       const answered = answeredKeysForBiometricSurface(surface, intake);
       const built = buildBiometricRecordStatement(intake, answered);
-      // NEVER change a surface's SHAPE and never flip a determination enum:
-      // the repair writes the register sentence into the surface's own reader
-      // leaf and leaves every other key byte-identical.
+      // NEVER change a surface's SHAPE and never flip a determination enum.
+      // The repair rewrites the ONE sentence carrying the unsupported claim,
+      // inside the leaf that carries it, and leaves every other key
+      // byte-identical. Only when no existing leaf carries it does it fall
+      // back to restating the record in the surface's declared reader leaf.
+      let repaired = false;
       if (built) {
-        node[surface.leaf] = built;
-        node.record_backed = true;
+        for (const [k, v] of Object.entries(node)) {
+          if (typeof v !== "string" || PROSE_EXCLUDED.has(k)) continue;
+          const leafHit = biometricCarriesAbsence(v, needles);
+          if (!leafHit) continue;
+          const next = replaceBiometricAbsenceSentence(v, leafHit, built);
+          if (next && next !== v) { node[k] = next; repaired = true; }
+        }
+        if (!repaired && typeof node[surface.leaf] === "string") {
+          node[surface.leaf] = built;
+          repaired = true;
+        }
+        if (repaired) node.record_backed = true;
       }
       log({
         check_id: "b2_absence_claim_vs_record",
         path: surface.path,
         evidence:
           `the surface says "${clip(hit, 90)}" although the record supplies ${answered.join(", ")}.`,
-        repaired: Boolean(built),
+        repaired,
       });
+
     }
 
     // ── B-3 / B-4 — field hygiene. FLAG ONLY for both: this product renders
