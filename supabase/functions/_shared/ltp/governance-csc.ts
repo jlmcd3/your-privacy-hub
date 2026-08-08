@@ -185,9 +185,16 @@ export function deepProse(node: unknown): string {
 export interface GovernanceCscSurface {
   /** Dotted report path of the surface. */
   readonly path: string;
-  /** Dotted intake paths that back it. */
+  /**
+   * ITEM 403-A DEFECT 1(b) — PRIMARY keys only. A key belongs here ONLY when
+   * it is, on its own, sufficient evidence for the proposition the surface
+   * asserts. Everything that merely colours the picture goes to
+   * `corroborating`, which never backs the surface by itself.
+   */
   readonly keys: readonly string[];
-  /** "any" — one filled key backs the surface; "all" — every key must be filled. */
+  /** Keys that support but cannot alone establish the surface's proposition. */
+  readonly corroborating?: readonly string[];
+  /** "any" — one filled PRIMARY key backs it; "all" — every primary key must be filled. */
   readonly mode: "any" | "all";
   /** Reader leaf the repair writes into (the surface's own prose slot). */
   readonly leaf: string;
@@ -195,11 +202,35 @@ export interface GovernanceCscSurface {
   readonly rebuild?: (intake: unknown) => string;
 }
 
+// ITEM 403-A DEFECT 1(b) — THE FIVE-SURFACE AUDIT AGAINST THE "any" STANDARD.
+//
+//  dpo_determination        FAILED. `remediation_default_owner` (a generic
+//                           remediation owner) and `additional_context` (free
+//                           prose) were treated as evidence that the Art. 37-39
+//                           duties are discharged. Neither is. Primary is now
+//                           `dpo_status` alone; the other two corroborate.
+//  domain_findings.vendor_terms  FAILED (the degraded-pilot defect). The group
+//                           mixed a confirmation field (`dpa_status`), a
+//                           verification field (`dpa_art28_verified`) and a
+//                           descriptive one (`processing_nature`). The first two
+//                           each independently state the record's Art. 28
+//                           position and stay primary; the narrative is
+//                           corroborating only.
+//  transfer_analysis        PASSED. `transfer_status` states the position and
+//                           `transfer_mechanism` cannot be answered without one
+//                           — each independently evidences that the record
+//                           speaks to Chapter V.
+//  art30_element_findings   PASSED (single key, mode "all").
+//  domain_findings.training FAILED. `training_ai_coverage` answers the coverage
+//                           sub-question (it can read "n/a") and does not by
+//                           itself evidence that training exists. `training_status`
+//                           is the primary; coverage corroborates.
 export const GOVERNANCE_CSC_SURFACES: readonly GovernanceCscSurface[] = [
   // Arts. 37–39 — the DPO / accountability surface.
   {
     path: "dpo_determination",
-    keys: ["dpo_status", "remediation_default_owner", "additional_context"],
+    keys: ["dpo_status"],
+    corroborating: ["remediation_default_owner", "additional_context"],
     mode: "any",
     leaf: "record_states",
     rebuild: buildDpoRecordStatement,
@@ -207,7 +238,8 @@ export const GOVERNANCE_CSC_SURFACES: readonly GovernanceCscSurface[] = [
   // Art. 28 — the vendor / processor-contract surface.
   {
     path: "domain_findings.vendor_terms",
-    keys: ["dpa_status", "dpa_art28_verified", "processing_nature"],
+    keys: ["dpa_status", "dpa_art28_verified"],
+    corroborating: ["processing_nature"],
     mode: "any",
     leaf: "record_states",
     rebuild: buildVendorArt28Statement,
@@ -231,7 +263,8 @@ export const GOVERNANCE_CSC_SURFACES: readonly GovernanceCscSurface[] = [
   // Art. 39(1)(b) — the training surface.
   {
     path: "domain_findings.training",
-    keys: ["training_status", "training_ai_coverage"],
+    keys: ["training_status"],
+    corroborating: ["training_ai_coverage"],
     mode: "any",
     leaf: "record_states",
     rebuild: buildTrainingStatement,
@@ -243,6 +276,20 @@ function surfaceBacked(s: GovernanceCscSurface, intake: unknown): boolean {
     ? s.keys.every((k) => intakeFilled(intake, k))
     : s.keys.some((k) => intakeFilled(intake, k));
 }
+
+/**
+ * ITEM 403-A DEFECT 1(a) — EVIDENCE MAY NAME ONLY ANSWERED KEYS.
+ * The evidence string is built from the keys the record actually supplies,
+ * never from the surface's declared key list. The item403a battery asserts,
+ * for every surface, that every key named in the evidence is answered.
+ */
+export function answeredKeysForSurface(
+  s: GovernanceCscSurface,
+  intake: unknown,
+): string[] {
+  return [...s.keys, ...(s.corroborating ?? [])].filter((k) => intakeFilled(intake, k));
+}
+
 
 // ---------------------------------------------------------------------------
 // G1 — per-domain finding vs the control facts that answer it
