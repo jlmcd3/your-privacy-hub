@@ -196,9 +196,12 @@ Deno.test("write-path parity: the record the function analyses is the invocation
 
 // ── gate ───────────────────────────────────────────────────────────────────
 
-Deno.test("gate: biometric carries an EMPTY false-absence id list until leg C", () => {
-  assertEquals(FALSE_ABSENCE_CHECK_IDS["biometric"], []);
+// ITEM 411 LEG C shipped the biometric CSC pass, so the leg-B placeholder
+// (an EMPTY list) is retired: the gate now counts UNREPAIRED b2 violations.
+Deno.test("gate: biometric counts the CSC absence class from leg C", () => {
+  assertEquals(FALSE_ABSENCE_CHECK_IDS["biometric"], ["b2_absence_claim_vs_record"]);
 });
+
 
 Deno.test("gate: fail-closed shape on the perfect fixture (no coverage, no CSC)", () => {
   const t = computeRecordComplete({
