@@ -112,7 +112,7 @@ function answerString(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function buildNoticeHtml(
+export function buildNoticeHtml(
   state: StateRow,
   answers: Record<string, unknown>,
   generatedAt: string,
@@ -127,6 +127,15 @@ function buildNoticeHtml(
   const thirdParties = answerString(answers["third_party_categories"]) || "—";
   const sale = answerString(answers["sale_or_sharing"]);
   const retention = answerString(answers["retention_general"]) || "Not specified";
+
+  // INTAKE-1: controller-supplied appeals mechanism (Va. Code § 59.1-577(C)
+  // and state analogues). Absent on legacy records -> empty string, so the
+  // rendered notice is byte-identical to its previous output.
+  const appealsMethod = answerString(answers["vam_appeals_method"]).trim();
+  const appealsMethodHtml = appealsMethod
+    ? `\n  <p>How to submit an appeal, and how we inform you of the outcome: ${escapeHtml(appealsMethod)} If your appeal is denied, you may contact the ${escapeHtml(state.state_name)} Attorney General to submit a complaint.</p>`
+    : "";
+
 
   const showOptOut =
     sale === "sell_and_share" || sale === "sell_only" || sale === "share_only";
