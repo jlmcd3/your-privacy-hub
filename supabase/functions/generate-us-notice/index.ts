@@ -44,7 +44,7 @@ interface SessionRow {
   version_number: number | null;
 }
 
-interface StateRow {
+export interface StateRow {
   state_code: string;
   state_name: string;
   framework_type: string;
