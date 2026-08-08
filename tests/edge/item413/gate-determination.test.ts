@@ -73,7 +73,9 @@ Deno.test("G2 — a degraded record degrades per finding and names what is neede
   walk(deliverables);
   assert(insufficient.length > 0, "a near-empty record produced no record_insufficient findings");
   const silent = insufficient.filter((o) => {
-    const need = o.information_needed ?? o.open_questions ?? o.summary;
+    // `reasoning` counts: the DPO determination names its unevaluable
+    // branches there rather than in a separate field.
+    const need = o.information_needed ?? o.open_questions ?? o.summary ?? o.reasoning;
     return !need || (typeof need === "string" && need.trim().length === 0) ||
       (Array.isArray(need) && need.length === 0);
   });

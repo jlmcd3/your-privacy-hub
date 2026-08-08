@@ -137,8 +137,25 @@ Deno.test("R11 assembled-prose lint reports no findings on a perfect record", ()
   // Advisory findings are the lint's own conservative class (rule 5 flags any
   // capitalised citation-led clause, which a `label` field legitimately is);
   // the operative assertion is that no NON-advisory finding survives assembly.
-  const { lint } = assembleRegistrationReport(PERFECT_INTAKE);
-  const operative = (lint?.findings ?? []).filter((f) => !f.advisory);
+  const { report, lint } = assembleRegistrationReport(PERFECT_INTAKE);
+  // `narrative.determination` is a MULTI-PARAGRAPH composite: Article 3(2)
+  // legitimately recurs once in the EU-representative paragraph and once in
+  // the UK one. The lint reads the field as a single paragraph, so its
+  // duplicate-pinpoint hit on that field is re-checked per paragraph below and
+  // excluded here only when no single paragraph repeats a pinpoint.
+  const determination = String(
+    (report.narrative as Record<string, unknown> | undefined)?.determination ?? "",
+  );
+  const PIN = /(?:\d+\s*CCR\s*)?§+\s*\d[\d.]*(?:\([a-z0-9]+\))*|Art(?:icle|\.)\s*\d+(?:\(\d+\))*(?:\([a-z]\))?/gi;
+  for (const para of determination.split(/\n\n+/)) {
+    const pins = (para.match(PIN) ?? [])
+      .map((x) => x.replace(/\s+/g, " ").trim().toLowerCase())
+      .filter((x) => x.includes("("));
+    assertEquals(new Set(pins).size, pins.length, `pinpoint repeated in one paragraph: ${pins.join(" | ")}`);
+  }
+  const operative = (lint?.findings ?? []).filter(
+    (f) => !f.advisory && !(f.rule === "duplicate_pinpoint" && f.path.endsWith("narrative.determination")),
+  );
   assertEquals(operative.length, 0, JSON.stringify(operative, null, 2));
 });
 

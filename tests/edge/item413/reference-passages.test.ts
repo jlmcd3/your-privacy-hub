@@ -73,6 +73,6 @@ Deno.test("GDPR article rows are resolved from the article table, not invented",
 
 Deno.test("passages survive assembly into a document string unaltered", () => {
   const assembled = PASSAGES.map((p) => `${p.citation}: ${p.bytes}`).join("\n\n");
-  const drift = checkPassagesSurviveAssembly(PASSAGES, assembled);
+  const drift = checkPassagesSurviveAssembly(assembled, PASSAGES);
   assertEquals(drift.length, 0, formatDrift(drift));
 });
