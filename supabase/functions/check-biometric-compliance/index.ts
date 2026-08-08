@@ -2157,6 +2157,71 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       console.warn("[check-biometric-compliance] frame substitution failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 412 LEG D — BIOMETRIC REFINEMENT PASS ─────────────────────
+    // CRITIC (Claude, the run's resolved generation model, one call) →
+    // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. THE ORDER MIRRORS
+    // run-li-assessment (item386) AND run-cppa-cybersecurity (item407)
+    // EXACTLY: refinement runs AFTER generation and every content-shaping
+    // pass (frame substitution is the last one) and BEFORE the deterministic
+    // battery — item409 prose gold → item399 R11 lint → item411 CSC →
+    // item411 coverage → item410 record-complete gate — so every downstream
+    // deterministic pass, and the gate, see the spliced document. One pass,
+    // no loops. Config-gated by BIOMETRIC_REFINEMENT_ENABLED; fail-open.
+    //
+    // THE DOCUMENT. `assessment_text` carries most of this product's prose and
+    // is held outside `report_data`. It is attached to the refinement document
+    // under its own key for the duration of the pass and detached immediately
+    // afterwards, so the critic sees what the reader sees and the splicer can
+    // write back to the one surface that matters. `_meta` never reaches the
+    // critic — the core strips it.
+    try {
+      const { runBiometricRefinement } = await import("../_shared/ltp/biometric-refinement.ts");
+      const { makeBiometricRefinementDeps, BIOMETRIC_REFINEMENT_ENABLED } = await import(
+        "../_shared/ltp/biometric-refinement-deps.ts"
+      );
+      const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+        "../_shared/ltp/coverage-matrix.ts"
+      );
+      // The FULL RECORD — the request body, exactly as the leg-C CSC and
+      // coverage passes and the leg-B gate use it (the item385 r2 lesson).
+      const refineIntake = ((body ?? {}) as unknown) as Record<string, unknown>;
+      const refineDoc = report_data as Record<string, unknown>;
+      refineDoc.assessment_text = assessment_text;
+      // The deterministic COVERAGE list is computed BEFORE the critic call and
+      // is the ONLY permitted anchor set for its material-omission findings.
+      const preCoverage = runCoverageMatrix("biometric", refineDoc, refineIntake);
+      // RESURRECTION-BUG CLASS — the generation model is resolved HERE, inside
+      // the request context, and carried explicitly into the deps.
+      const refineModel = currentGenerationModel();
+      const refineTel = await runBiometricRefinement(
+        refineDoc,
+        refineIntake,
+        makeBiometricRefinementDeps(body.assessment_id ?? currentSourceRowId() ?? null, refineModel),
+        {
+          enabled: BIOMETRIC_REFINEMENT_ENABLED,
+          coverageList: coverageListForCritic(preCoverage),
+          coverageAnchors: coverageAnchorTokens(preCoverage),
+        },
+      );
+      assessment_text = typeof refineDoc.assessment_text === "string"
+        ? refineDoc.assessment_text
+        : assessment_text;
+      delete refineDoc.assessment_text;
+      const _rf = ((report_data as any)._meta ??= {});
+      const _rfi = (_rf.internal ??= {});
+      _rfi.biometric_refinement = refineTel;
+      // The CEO-named generic telemetry address, alongside the product key.
+      _rfi._refinement = refineTel;
+      console.log(JSON.stringify({
+        evt: "biometric_refinement", fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_PIPELINE_STAMP,
+        generation_model: refineModel, ...refineTel,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] ITEM 412 refinement pass failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── ITEM 409 — BIOMETRIC PROSE GOLD. THE TRUE FINALIZE POINT. ───────────
     // This is the LAST CONTENT-SHAPING SEAM in the function: frame
     // substitution (immediately above) is the last pass that writes prose, and
