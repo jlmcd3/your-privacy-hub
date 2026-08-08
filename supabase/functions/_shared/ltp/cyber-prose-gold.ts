@@ -414,7 +414,7 @@ export function applyCyberHollowOmission(report: unknown): HollowOmissionResult 
 const CYBER_ENUM_RE =
   /\b(record_insufficient|insufficient_basis|resolved_met|resolved_not_met|RESOLVED_MET|RESOLVED_NOT_MET|INDETERMINATE|CANDIDATE)\b/g;
 
-const CYBER_ENUM_LABELS: Record<string, string> = {
+export const CYBER_ENUM_LABELS: Record<string, string> = {
   record_insufficient: "the record does not yet carry what a readiness conclusion requires",
   insufficient_basis: "the record does not yet carry a basis for this conclusion",
   resolved_met: "met on this record",
@@ -424,6 +424,28 @@ const CYBER_ENUM_LABELS: Record<string, string> = {
   INDETERMINATE: "not determinable on this record",
   CANDIDATE: "not yet resolved on this record",
 };
+
+/**
+ * ITEM 406 LEG C — THE ABSENCE-LABEL CLASS THIS MODULE CAN WRITE.
+ *
+ * Every reader-facing phrasing the item404 prose-gold pass can put on a cyber
+ * surface to say "the record does not carry this". `_shared/ltp/cyber-csc.ts`
+ * BUILDS its detector from this list (the item396 lesson, governance idiom),
+ * and `tests/edge/item406/linkage.test.ts` asserts each entry is matched by
+ * the CSC regex — so a relabel here can never escape false-absence detection.
+ */
+export const CYBER_ABSENCE_LABEL_PHRASINGS: readonly string[] = [
+  CYBER_VERDICT_LABELS.record_insufficient,
+  CYBER_ENUM_LABELS.record_insufficient,
+  CYBER_ENUM_LABELS.insufficient_basis,
+  CYBER_ENUM_LABELS.INDETERMINATE,
+  CYBER_ENUM_LABELS.CANDIDATE,
+  // The prompt-pinned per-control absence sentence (run-cppa-cybersecurity
+  // control schema, `evidence` field): the canonical "nothing on the record"
+  // artefact statement.
+  "the intake supplies no artefact for this component",
+];
+
 
 export interface CustomerRegisterResult {
   rewrites: number;
