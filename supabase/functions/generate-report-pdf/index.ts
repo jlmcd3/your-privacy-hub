@@ -28,6 +28,12 @@ import {
 } from "./_local/record-sufficiency-html.ts";
 import { renderExceptionAnalysisSectionHtml } from "./_local/exception-analysis-html.ts";
 import { renderActivityAnalysisSectionHtml } from "./_local/activity-analysis-html.ts";
+import {
+  FACT_STRIP_CSS,
+  renderAssessmentSummarySectionHtml,
+  renderExecutiveSummarySectionHtml,
+  renderSubmissionSummarySectionHtml,
+} from "./_local/summary-voice-html.ts";
 import { coerceExceptionView } from "../_shared/report-contracts/risk-exceptions.ts";
 import { coerceActivityView } from "../_shared/report-contracts/risk-activities.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
@@ -1515,9 +1521,9 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const meta = (report.document_metadata && typeof report.document_metadata === "object") ? report.document_metadata : {};
   const orgName = summary.company_name || record?.intake_data?.org_context?.company_name || "";
   const opening = coerceNarrativeScalar(report.opening_summary);
-  const exec = coerceNarrativeScalar(report.executive_summary);
-  const summaryNarr = coerceNarrativeScalar(summary.narrative);
-  const submission = coerceNarrativeScalar(report.submission_summary);
+  // ITEM 428 — the three summary-class sections render through the extracted
+  // module (the byte-identity proof renders THE REAL PATH).
+
   const scopeConf = coerceNarrativeList(report.scope_confirmation);
   const scopeTrig = coerceNarrativeList(report.scope_and_triggers);
   const nextSteps = coerceNarrativeList(report.next_steps);
@@ -1559,6 +1565,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   blockquote { border-left:2px solid var(--border); margin:4px 0 4px 10px; padding-left:10px; color:var(--muted); font-size:10px; }
   ${AUTHORITY_EXHIBIT_CSS}
   ${RECORD_SUFFICIENCY_TABLE_CSS}
+  ${FACT_STRIP_CSS}
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
@@ -1569,14 +1576,9 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   </header>
   <div class="body">
     ${opening ? `<section><div class="opening">${para(opening)}</div></section>` : ""}
-    ${exec ? `<section><h2>${text(headerForSection("executive_summary", "Executive Summary"))}</h2>${para(exec)}</section>` : ""}
-    ${(summaryNarr || summary.company_name || summary.assessment_date || summary.overall_risk_level) ? `<section><h2>${text(headerForSection("assessment_summary", "Assessment Summary"))}</h2>
-      ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
-      ${summary.assessment_date ? `<p><span class="label">Assessment date:</span> ${text(summary.assessment_date)}</p>` : ""}
-      ${summary.overall_risk_level ? `<p><span class="label">Overall risk level:</span> ${text(summary.overall_risk_level)}</p>` : ""}
-      ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(summary.exceptions_status)}</p>` : ""}
-      ${summaryNarr ? para(summaryNarr) : ""}
-    </section>` : ""}
+    ${renderExecutiveSummarySectionHtml(report)}
+    ${renderAssessmentSummarySectionHtml(report)}
+
     ${listSection("scope_and_triggers", "Scope & Triggers", scopeTrig || scopeConf)}
     ${listSection("processing_narrative", "How the business processes personal information", processingNarrative)}
     ${renderActivityAnalysisSectionHtml(report)}
@@ -1587,7 +1589,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("strengthen_items", "What Would Strengthen the Record", strengthen)}
     ${listSection("information_needed", "Items for Your Review", infoNeeded)}
     ${renderRecordSufficiencySectionHtml(report)}
-    ${submission ? `<section><h2>${text(headerForSection("submission_summary", "Submission Summary"))}</h2>${para(submission)}</section>` : ""}
+    ${renderSubmissionSummarySectionHtml(report)}
     ${buildCPPARiskAttestationHTML(report)}
     ${renderAuthorityExhibitHtml(report?.authority_exhibit)}
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.build_stamp ? ` · build ${text(meta.build_stamp)}` : ""}</div>

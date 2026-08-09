@@ -2052,6 +2052,20 @@ Return JSON:
       } catch (e) {
         console.warn("[run-li-assessment] prose lint failed (non-fatal):", (e as Error)?.message);
       }
+
+      // ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE: the assembled document
+      // against its approved plan. Detect-only, fail-open, ZERO mutation.
+      try {
+        const { structureConformanceTelemetry } = await import("../_shared/prose/structure-conformance.ts");
+        const _doc = reportData as Record<string, unknown>;
+        const _meta = (_doc._meta ??= {}) as Record<string, unknown>;
+        const _internal = (_meta.internal ??= {}) as Record<string, unknown>;
+        _internal.structure_conformance = structureConformanceTelemetry("lia", _doc);
+        console.log(JSON.stringify({ evt: "structure_conformance", prod: "lia", telemetry: _internal.structure_conformance }));
+      } catch (e) {
+        console.warn("[item428] structure conformance failed (non-fatal):", (e as Error)?.message);
+      }
+
       console.log(JSON.stringify({
         evt: "lia_record_complete", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
         lia_pipeline_stamp: LIA_PIPELINE_STAMP,

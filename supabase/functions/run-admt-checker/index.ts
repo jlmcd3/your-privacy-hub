@@ -2899,6 +2899,20 @@ Return this JSON structure exactly:
       } catch (e) {
         console.warn("[run-admt-checker] prose lint failed (non-fatal):", (e as Error)?.message);
       }
+
+      // ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE: the assembled document
+      // against its approved plan. Detect-only, fail-open, ZERO mutation.
+      try {
+        const { structureConformanceTelemetry } = await import("../_shared/prose/structure-conformance.ts");
+        const _doc = report as Record<string, unknown>;
+        const _meta = (_doc._meta ??= {}) as Record<string, unknown>;
+        const _internal = (_meta.internal ??= {}) as Record<string, unknown>;
+        _internal.structure_conformance = structureConformanceTelemetry("admt", _doc);
+        console.log(JSON.stringify({ evt: "structure_conformance", prod: "admt", telemetry: _internal.structure_conformance }));
+      } catch (e) {
+        console.warn("[item428] structure conformance failed (non-fatal):", (e as Error)?.message);
+      }
+
       console.log(JSON.stringify({
         evt: "admt_record_complete", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
         admt_pipeline_stamp: ADMT_PIPELINE_STAMP,

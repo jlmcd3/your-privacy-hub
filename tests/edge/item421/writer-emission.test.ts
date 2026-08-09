@@ -46,7 +46,7 @@ function input(overrides: Record<string, unknown> = {}) {
 }
 
 Deno.test("ITEM 421: stamp and writer version are the ratified values", () => {
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item427-2026-08-09");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428-2026-08-09");
   assertEquals(RISK_ACTION_RECORD_WRITER_VERSION, "risk-action-records@item421-2026-08-09");
 });
 
