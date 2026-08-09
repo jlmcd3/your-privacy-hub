@@ -78,6 +78,11 @@ export interface StandingPlaybook {
   readonly section_order: readonly string[];
   readonly sections: readonly PlaybookSection[];
   readonly information_needed: readonly string[];
+  /**
+   * ITEM 414 (IR-1) — ONE ledger sentence naming the sections the record does
+   * not yet complete. Absent entirely on a complete record.
+   */
+  readonly unrecorded_ledger?: string;
   readonly status: DeliverableStatus;
 }
 
@@ -272,6 +277,24 @@ function buildFirstHour(intake: unknown): PlaybookTableSection {
 }
 
 /**
+ * ITEM 414 (IR-6) — one action per Article 33(3) sub-point, named. The shipped
+ * defect was four consecutive rows built from a single mould, which is a
+ * litany (R7) and tells the reader nothing about what each element requires.
+ * These phrasings PARAPHRASE the sub-points; the verbatim provision text stays
+ * in `content_owner_mapping.elements[].requirement_verbatim`, which is corpus
+ * material and is never rewritten here.
+ */
+const ELEMENT_ACTIONS: Readonly<Record<string, string>> = {
+  a_nature:
+    "Establish the nature of the breach and the categories and approximate numbers of data subjects and records concerned",
+  b_dpo_contact:
+    "Give the name and contact details of the data protection officer or other contact point",
+  c_likely_consequences: "Describe the likely consequences of the breach",
+  d_measures:
+    "Describe the measures taken or proposed to address the breach, including any measures to mitigate its adverse effects",
+};
+
+/**
  * GENERALISATION of the Art. 33(3) content/owner mapping's phasing logic: the
  * first-24-hours arc is the same "what can be established now, what is
  * deferred, and who owns each" question, asked of the whole response rather
@@ -282,7 +305,7 @@ function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): Play
   const first = new Set(mapping?.phasing?.first_tranche ?? []);
   for (const el of mapping?.elements ?? []) {
     rows.push([
-      `Notification content — ${el.citation}: ${el.requirement_verbatim ? "supply the element as the provision states it" : "supply the element"}.`,
+      `${ELEMENT_ACTIONS[el.element] ?? "Supply the notification element the provision requires"}, for ${el.citation}.`,
       el.owner,
       first.has(el.element) ? "First tranche" : "Phased — deferred with a recorded reason",
     ]);
@@ -478,6 +501,29 @@ export const STANDING_SECTION_ORDER: readonly string[] = [
   "testing_training",
 ];
 
+/**
+ * ITEM 414 (IR-1) — THE LEDGER. One sentence, naming the incomplete sections
+ * by their headings, and pointing at the per-section sentence that says what
+ * would fill each. Nothing is asserted here that the sections do not already
+ * say; the change is register, not honesty. Emitted only where something is
+ * incomplete.
+ */
+function unrecordedLedger(incomplete: readonly PlaybookSection[]): string {
+  const names = incomplete.map((s) => s.heading.replace(/ — determination$/, "").toLowerCase());
+  const unique = [...new Set(names)];
+  const list = unique.length === 1
+    ? unique[0]
+    : `${unique.slice(0, -1).join(", ")} and ${unique[unique.length - 1]}`;
+  const noun = unique.length === 1 ? "One section" : `${WORD_COUNT[unique.length] ?? unique.length} sections`;
+  const verb = unique.length === 1 ? "is" : "are";
+  return `${noun} of this playbook ${verb} incomplete because the organisation has not yet recorded what ${unique.length === 1 ? "it requires" : "they require"}: ${list}. Each of those sections states what would complete it.`;
+}
+
+const WORD_COUNT: Readonly<Record<number, string>> = {
+  2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven",
+  8: "Eight", 9: "Nine", 10: "Ten", 11: "Eleven", 12: "Twelve",
+};
+
 export function buildStandingPlaybook(
   intake: unknown,
   mapping?: ContentOwnerMapping,
@@ -498,9 +544,17 @@ export function buildStandingPlaybook(
     buildCommunications(),
     buildTestingTraining(intake),
   ];
-  const information_needed = sections
-    .map((s) => s.information_needed)
-    .filter((x): x is string => Boolean(x));
+  // ITEM 414 (IR-1) — deduplicate: two sections that need the same thing say
+  // it once. The shipped defect carried the breach-notice-contract ask twice,
+  // byte-identical (R8).
+  const information_needed = [
+    ...new Set(
+      sections
+        .map((s) => s.information_needed)
+        .filter((x): x is string => Boolean(x)),
+    ),
+  ];
+  const incomplete = sections.filter((s) => Boolean(s.information_needed));
   return {
     version: STANDING_PLAYBOOK_VERSION,
     artifact: "standing_playbook",
@@ -509,6 +563,7 @@ export function buildStandingPlaybook(
     section_order: STANDING_SECTION_ORDER,
     sections,
     information_needed,
+    ...(incomplete.length ? { unrecorded_ledger: unrecordedLedger(incomplete) } : {}),
     status: information_needed.length ? "record_insufficient" : "analysed",
   };
 }
