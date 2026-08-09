@@ -7,9 +7,10 @@ import type { Question } from "./types";
 export const CCPA_SPECIFIC_QUESTIONS: Question[] = [
   {
     key: "ccpa_sensitive_data",
-    text: "Do you collect or use 'sensitive personal information' as defined by CCPA/CPRA (SSN, precise geolocation, racial/ethnic origin, religious beliefs, union membership, mail/email/text contents, genetic data, biometric identifiers, health, sex life/orientation)?",
+    text: "Do you collect or use sensitive personal information about Californians?",
     whyWeAsk:
-      "CCPA/CPRA gives Californians the right to limit use of sensitive personal information. Disclosure is required. [Cal. Civ. Code § 1798.121]",
+      "California's sensitive categories are SSN, driver's licence or passport number, account log-ins, precise geolocation, racial or ethnic origin, religious beliefs, union membership, the contents of mail/email/text messages, genetic data, biometric identifiers used for identification, health data, and sex life or sexual orientation. CCPA/CPRA gives Californians the right to limit use of this data, and disclosure is required. [Cal. Civ. Code § 1798.121]",
+
     type: "single_choice",
     options: [
       { value: "yes", label: "Yes" },
