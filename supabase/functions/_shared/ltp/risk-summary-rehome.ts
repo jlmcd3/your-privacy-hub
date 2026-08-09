@@ -230,6 +230,13 @@ export function rehomeReservedReferrals(
       }
     }
 
+    // (d) ITEM 428-C — the activity surface carries no referral prose either.
+    const activityMoved = sweepActivityReferrals(report);
+    out.activity_sentences_moved = activityMoved.length;
+    moved.push(...activityMoved);
+
+
+
     // (a) RE-HOME, BYTE-IDENTICALLY, ONTO THE RESERVED-JUDGMENT ROW.
     const rows = Array.isArray(report.priority_actions) ? report.priority_actions : [];
     for (const sentence of moved) {
