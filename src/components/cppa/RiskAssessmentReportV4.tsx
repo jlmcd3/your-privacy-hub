@@ -4,6 +4,7 @@
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { coerceExceptionView } from "@/lib/risk-exceptions";
+import { coerceActivityView } from "@/lib/risk-activities";
 import { coerceActionList, sortByRank, type ActionRecord } from "@/lib/action-record";
 
 // CPPA-HF6R Task A — render-layer intake-field-id label map (parity with
@@ -152,7 +153,7 @@ export type V4Report = {
   scope_and_triggers?: { triggered_activities_detail?: TriggerDetail[]; scope_notes?: string };
   /** ITEM 426 — five shapes in the wild: absent, empty, string[], legacy object[], typed. */
   exception_analysis?: Exception[] | string[] | string;
-  risk_assessment_by_activity?: ActivityRisk[];
+  risk_assessment_by_activity?: unknown;
   inconsistency_flags?: Inconsistency[];
   enforcement_context?: {
     relevant_precedents?: string;
@@ -243,7 +244,13 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
     ...exceptionView.texts.map((t) => ({ __prose: t }) as Exception),
     ...(exceptionView.rows as unknown as Exception[]),
   ];
-  const activities = report.risk_assessment_by_activity || [];
+  // ITEM 427 — five-shape tolerance: strings, legacy eleven-leaf objects and
+  // canonical thirteen-leaf records all reach this accordion.
+  const activityView = coerceActivityView(report.risk_assessment_by_activity);
+  const activities: any[] = [
+    ...activityView.texts.map((t) => ({ __prose: t })),
+    ...activityView.rows,
+  ];
   const inconsistencies = report.inconsistency_flags || [];
   // QB-P25 B3 — priority_actions sorted by rank (ascending, 1 = highest);
   // entries missing a numeric rank sink to the end preserving input order.
@@ -459,11 +466,12 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
               <AccordionItem key={i} value={`a${i}`}>
                 <AccordionTrigger>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <span>{a.activity || `Activity ${i + 1}`}</span>
+                    <span>{a.activity || a.activity_name || (a.__prose ? `Activity ${i + 1}` : `Activity ${i + 1}`)}</span>
                     {a.statutory_basis && <span className="font-mono text-xs text-brand-teal-text">{a.statutory_basis}</span>}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="space-y-3 text-sm">
+                  {a.__prose && <p className="whitespace-pre-line">{a.__prose}</p>}
                   {a.purpose && <p><strong>Purpose:</strong> {a.purpose}</p>}
                   {(a.benefits_to_business || a.benefits_to_consumers) && (
                     <div className="grid sm:grid-cols-2 gap-3">
@@ -472,6 +480,12 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                       )}
                       {a.benefits_to_consumers && (
                         <div><p className="text-xs uppercase tracking-wider text-muted-foreground">Benefits to consumers</p><p>{a.benefits_to_consumers}</p></div>
+                      )}
+                      {a.benefits_to_other_stakeholders && (
+                        <div><p className="text-xs uppercase tracking-wider text-muted-foreground">Benefits to other stakeholders</p><p>{a.benefits_to_other_stakeholders}</p></div>
+                      )}
+                      {a.benefits_to_public && (
+                        <div><p className="text-xs uppercase tracking-wider text-muted-foreground">Benefits to the public</p><p>{a.benefits_to_public}</p></div>
                       )}
                     </div>
                   )}
@@ -509,8 +523,18 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                       )}
                     </div>
                   )}
-                  {a.section_7152_mapping && (
-                    <p className="text-xs text-muted-foreground"><strong>§ 7152 mapping:</strong> {a.section_7152_mapping}</p>
+                  {Array.isArray(a.section_7152_mapping) ? (
+                    a.section_7152_mapping.length > 0 && (
+                      <ul className="text-xs text-muted-foreground list-disc pl-4">
+                        {a.section_7152_mapping.map((m: any, mi: number) => (
+                          <li key={mi}>{m?.element} — {m?.pinpoint}</li>
+                        ))}
+                      </ul>
+                    )
+                  ) : (
+                    a.section_7152_mapping && (
+                      <p className="text-xs text-muted-foreground"><strong>§ 7152 mapping:</strong> {a.section_7152_mapping}</p>
+                    )
                   )}
                 </AccordionContent>
               </AccordionItem>

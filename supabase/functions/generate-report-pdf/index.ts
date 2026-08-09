@@ -27,7 +27,9 @@ import {
   RECORD_SUFFICIENCY_TABLE_CSS,
 } from "./_local/record-sufficiency-html.ts";
 import { renderExceptionAnalysisSectionHtml } from "./_local/exception-analysis-html.ts";
+import { renderActivityAnalysisSectionHtml } from "./_local/activity-analysis-html.ts";
 import { coerceExceptionView } from "../_shared/report-contracts/risk-exceptions.ts";
+import { coerceActivityView } from "../_shared/report-contracts/risk-activities.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
 // ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the
@@ -1516,7 +1518,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const exec = coerceNarrativeScalar(report.executive_summary);
   const summaryNarr = coerceNarrativeScalar(summary.narrative);
   const submission = coerceNarrativeScalar(report.submission_summary);
-  const activityPara = coerceNarrativeList(report.risk_assessment_by_activity);
   const scopeConf = coerceNarrativeList(report.scope_confirmation);
   const scopeTrig = coerceNarrativeList(report.scope_and_triggers);
   const nextSteps = coerceNarrativeList(report.next_steps);
@@ -1578,7 +1579,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     </section>` : ""}
     ${listSection("scope_and_triggers", "Scope & Triggers", scopeTrig || scopeConf)}
     ${listSection("processing_narrative", "How the business processes personal information", processingNarrative)}
-    ${listSection("risk_assessment_by_activity", "Risk Assessment by Activity", activityPara)}
+    ${renderActivityAnalysisSectionHtml(report)}
     ${buildCPPARiskDeliverablesHTML(report)}
     ${renderExceptionAnalysisSectionHtml(report)}
     ${renderPriorityActionsSectionHtml(report)}
@@ -1607,7 +1608,13 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
       : "";
   const summary = report.assessment_summary || {};
   const scope = report.scope_and_triggers || {};
-  const activities = Array.isArray(report.risk_assessment_by_activity) ? report.risk_assessment_by_activity : [];
+  // ITEM 427 — five-shape tolerance: strings, legacy eleven-leaf objects and
+  // canonical thirteen-leaf records all reach this table; empty/absent render nothing.
+  const activityView = coerceActivityView(report.risk_assessment_by_activity);
+  const activities: any[] = [
+    ...activityView.texts.map((t: string) => ({ __prose: t })),
+    ...activityView.rows,
+  ];
   // ITEM 426 — five-shape tolerance: strings, legacy objects and canonical
   // nine-leaf records all reach this table; the empty/absent states render nothing.
   const exceptionView = coerceExceptionView(report.exception_analysis);
@@ -1696,15 +1703,18 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
     </section>` : ""}
 
     ${activities.length ? `<section><h2>Risk Assessment by Activity</h2>
-      ${activities.map((a: any) => `<div class="card">
-        <h3>${text(a.activity || "")}</h3>
+      ${activities.map((a: any) => typeof a?.__prose === "string" ? `<div class="card">${para(a.__prose)}</div>` : `<div class="card">
+        <h3>${text(a.activity || a.activity_name || "")}</h3>
         ${a.purpose ? `<p><span class="label">Purpose:</span> ${text(a.purpose)}</p>` : ""}
         ${a.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(a.statutory_basis)}</p>` : ""}
         ${a.section_7153_mapping ? `<p><span class="label">§ 7153 mapping:</span> ${text(a.section_7153_mapping)}</p>` : ""}
+        ${Array.isArray(a.section_7152_mapping) && a.section_7152_mapping.length ? `<p class="label">Where this sits in § 7152(a)</p><ul>${a.section_7152_mapping.map((m: any) => `<li>${text(m?.element || "")} — ${text(m?.pinpoint || "")}</li>`).join("")}</ul>` : ""}
         ${a.current_safeguards ? `<p><span class="label">Current safeguards:</span> ${text(a.current_safeguards)}</p>` : ""}
         ${a.safeguard_gaps ? `<p><span class="label">Safeguard deficiencies:</span> ${text(a.safeguard_gaps)}</p>` : ""}
         ${a.benefits_to_business ? `<p><span class="label">Business benefits:</span> ${text(a.benefits_to_business)}</p>` : ""}
         ${a.benefits_to_consumers ? `<p><span class="label">Consumer benefits:</span> ${text(a.benefits_to_consumers)}</p>` : ""}
+        ${a.benefits_to_other_stakeholders ? `<p><span class="label">Benefits to other stakeholders:</span> ${text(a.benefits_to_other_stakeholders)}</p>` : ""}
+        ${a.benefits_to_public ? `<p><span class="label">Benefits to the public:</span> ${text(a.benefits_to_public)}</p>` : ""}
         ${Array.isArray(a.adverse_effects) && a.adverse_effects.length ? `<p class="label" style="margin-top:8px;">Adverse effects</p>
           <table class="harm"><thead><tr><th>Harm</th><th>Severity</th><th>Likelihood</th><th>Description</th></tr></thead><tbody>
           ${a.adverse_effects.map((h: any) => `<tr><td>${text(h.harm_type || "")}</td><td>${text(h.severity || "")}</td><td>${text(h.likelihood || "")}</td><td>${text(h.description || "")}</td></tr>`).join("")}

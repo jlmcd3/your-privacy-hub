@@ -19,6 +19,8 @@ import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 // ITEM 420 — dual-read priority actions (string | typed action record).
 import { coerceActionListText } from "@/lib/action-record";
 import { coerceExceptionView, exceptionViewText } from "@/lib/risk-exceptions";
+// ITEM 427 — five-shape tolerance for risk_assessment_by_activity.
+import { coerceActivityView, activityViewText } from "@/lib/risk-activities";
 // ITEM 425 — dual-read record sufficiency (string | string[] | legacy object | typed record).
 import {
   coerceSufficiencyView,
@@ -192,6 +194,10 @@ export default function RiskAssessmentReportLTP({
   // list-shaped section never drops a row (absent/empty render nothing).
   const exceptionView = coerceExceptionView(report?.exception_analysis);
   const exceptionText = exceptionView.present ? exceptionViewText(exceptionView) : undefined;
+  // ITEM 427 — object rows are projected to prose so the list-shaped section
+  // never drops a row (absent/empty render nothing).
+  const activityView = coerceActivityView(report?.risk_assessment_by_activity);
+  const activityText = activityView.present ? activityViewText(activityView) : undefined;
 
   return (
     <div className="font-serif-text">
@@ -257,7 +263,7 @@ export default function RiskAssessmentReportLTP({
       <ListSection
         sectionKey="risk_assessment_by_activity"
         fallbackTitle="Risk Assessment by Activity"
-        value={report?.risk_assessment_by_activity}
+        value={activityText}
       />
       {/* UPGRADE-2 — the six § 7152(a) structured deliverables, in statutory order. */}
       <RiskAnalyticDeliverables analytics={report?.activity_analytics} />

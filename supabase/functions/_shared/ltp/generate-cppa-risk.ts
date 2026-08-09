@@ -57,6 +57,8 @@ import { computeRecordNeeds } from "./section-composers/cppa-risk.ts";
 // ITEM 378 (CORRECTION) — refinement + CSC + stamp on the ROUTED LTP path.
 import { RISK_PIPELINE_STAMP } from "./risk-stamp.ts";
 import { attachRiskCsc } from "./risk-csc.ts";
+// ITEM 427 — canonical `risk_assessment_by_activity` emission (LAW 3 write site).
+import { normalizeRiskActivities, RISK_ACTIVITIES_CONTRACT_VERSION } from "./risk-activity-emit.ts";
 import {
   normalizeRiskExceptions,
   RISK_EXCEPTIONS_CONTRACT_VERSION,
@@ -285,6 +287,24 @@ export function finalizeCppaRiskPayload(
     });
   } catch (e) {
     console.warn("[generate-cppa-risk] risk-csc failed (non-fatal):", (e as Error)?.message);
+  }
+
+  // (2b) ITEM 427 — `risk_assessment_by_activity` CANONICAL EMISSION. LAW 3
+  // SINGLE WRITE SITE for the SHAPE of that surface: one thirteen-leaf record
+  // per TRIGGERED activity, with `statutory_basis` and every
+  // `section_7152_mapping[].pinpoint` REGISTRY-RESOLVED.
+  //
+  // ORDER IS LOAD-BEARING: this runs AFTER attachRiskCsc, because
+  // r1_benefits_vs_intake repairs `activity_analytics.benefits` in place and
+  // the typed benefit leaves are composed FROM those rows. Emitting first
+  // would freeze a benefit claim the CSC then strips.
+  try {
+    const actSummary = normalizeRiskActivities(report, rawIntake);
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_activities = { version: RISK_ACTIVITIES_CONTRACT_VERSION, ...actSummary };
+  } catch (e) {
+    console.warn("[generate-cppa-risk] activity normalize failed (non-fatal):", (e as Error)?.message);
   }
 
   // (3) ITEM 379 — bidirectional coverage matrix (flag-only) on the FINAL
