@@ -394,6 +394,7 @@ export default function CPPARiskAssessment() {
   const [i8ContactEmail, setI8ContactEmail] = useState("");
   // I-9: existing DPIA?
   const [i9HasDpia, setI9HasDpia] = useState("");
+  const [materialChangeSincePrior, setMaterialChangeSincePrior] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
 
   // § 7152 exceptions + impact (optional). R1a: each claimed exception may carry two additional
@@ -640,6 +641,7 @@ export default function CPPARiskAssessment() {
       if (!i1Purpose || i1Purpose.length < 30) return "Describe the specific purpose of this processing (at least 30 characters).";
       if (!i9HasDpia) return "Answer whether an existing data protection impact assessment covers this activity.";
       if (i9HasDpia === "Yes" && !i9DpiaSummary) return "Summarise the existing impact assessment — its title, date, and scope.";
+      if (!materialChangeSincePrior) return "Answer whether this activity has changed materially since the last assessment.";
     }
     if (step === 2) {
       if (!q1 || !q2) return "Select the revenue band and the California consumer band.";
@@ -742,6 +744,7 @@ export default function CPPARiskAssessment() {
     i8_contact_email: i8ContactEmail,
     i9_has_existing_dpia: i9HasDpia,
     i9_existing_dpia_summary: i9DpiaSummary,
+    material_change_since_prior: materialChangeSincePrior,
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
     // ITEM 305 — operands of the five per-activity analytic deliverables.
@@ -776,7 +779,7 @@ export default function CPPARiskAssessment() {
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
-    i9HasDpia, i9DpiaSummary, exceptionClaims, impactData,
+    i9HasDpia, i9DpiaSummary, materialChangeSincePrior, exceptionClaims, impactData,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
     a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
     a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
@@ -791,7 +794,7 @@ export default function CPPARiskAssessment() {
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
-    i9HasDpia, i9DpiaSummary,
+    i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
@@ -802,7 +805,7 @@ export default function CPPARiskAssessment() {
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
-    i9HasDpia, i9DpiaSummary,
+    i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
@@ -815,7 +818,7 @@ export default function CPPARiskAssessment() {
     i1Purpose: "", i2RetentionPeriod: "", i2RetentionCriteria: "", i2RetentionDetail: "",
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
-    i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
+    i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "", materialChangeSincePrior: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
@@ -888,6 +891,7 @@ export default function CPPARiskAssessment() {
     if (typeof d.i8ContactEmail === "string") setI8ContactEmail(d.i8ContactEmail);
     if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
     if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
+    if (typeof d.materialChangeSincePrior === "string") setMaterialChangeSincePrior(d.materialChangeSincePrior);
     if (typeof d.entityName === "string") setEntityName(d.entityName);
     if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
@@ -1331,6 +1335,11 @@ export default function CPPARiskAssessment() {
                 )}
                 {renderAssertion("i9_existing_dpia_summary")}
               </div>
+              <div data-rail-key="material_change_since_prior" onFocus={() => focusRail('material_change_since_prior')}>
+                <Label>Has this processing activity changed materially since the last assessment?</Label>
+                <p className="text-xs text-muted-foreground mt-1">Cover changes to the data collected, the purpose, the recipients, or the safeguards since you last assessed this activity. If this is the first assessment of this activity, answer "No".</p>
+                <div className="mt-2"><Radio name="material_change_since_prior" options={["Yes", "No"]} value={materialChangeSincePrior} onChange={setMaterialChangeSincePrior} /></div>
+              </div>
             </>
           )}
 
@@ -1358,7 +1367,7 @@ export default function CPPARiskAssessment() {
                   Unanswered flows to information_needed via the (B)-gap gate. */}
               {q5 && q5 !== "No" && (
                 <div data-rail-key="bought_sold_shared_count" onFocus={() => focusRail('bought_sold_shared_count')}>
-                  <Label htmlFor="bought_sold_shared_count">Approximately how many California consumers or households have personal information you <em>buy, sell, or share</em> annually? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(B))</span></Label>
+                  <Label htmlFor="bought_sold_shared_count">About how many California consumers or households' personal information do you <em>buy, sell, or share</em> each year? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(B))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">Optional — this is the operand for the § 1798.140(d)(1)(B) covered-business prong. If left blank, the assessment will list it as an outstanding item rather than assume a value.</p>
                   <select
                     id="bought_sold_shared_count"
@@ -1408,7 +1417,7 @@ export default function CPPARiskAssessment() {
                 <div><Label>Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div>{renderAssertion("q20_admt_opt_out")}</div>
               )}
               <div data-rail-key="q18b_admt_training" onFocus={() => focusRail('q18b_admt_training')}>
-                <Label>Do you process personal information to train ADMT, facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification technology? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
+                <Label>Do you use personal information to train ADMT or biometric-recognition technology? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Training such a model is an independent risk-assessment trigger, separate from <span className="font-medium">using</span> ADMT for a decision. It applies even if the trained system is never deployed against your own consumers — for example, building or fine-tuning a facial-recognition or biometric model on collected data.</p>
                 <div className="mt-2"><Radio name="q21" options={["Yes — training ADMT for significant decisions", "Yes — training facial/emotion/biometric recognition", "No"]} value={q18bTraining} onChange={setQ18bTraining} /></div>
               </div>
@@ -1551,7 +1560,7 @@ export default function CPPARiskAssessment() {
                 <div><Label>What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
               </>)}
               <div data-rail-key="q15b_under16" onFocus={() => focusRail('q15b_under16')}>
-                <Label>Do you have actual knowledge that you process the personal information of consumers under 16? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label>
+                <Label>Do you know that you collect personal information from consumers under 16? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label><p className="text-xs text-muted-foreground mt-1">"Actual knowledge" is the legal standard — meaning your business is actually aware, not merely on notice. This includes knowledge gained from age screening, account data, or other direct signals.</p>
                 <p className="text-xs text-muted-foreground mt-1">Under the 2026 regulations, <span className="font-medium">all</span> personal information of a consumer under 16 is sensitive personal information where the business has actual knowledge of the age. Requesting age at sign-up, or willfully disregarding age, counts as actual knowledge — and pulls this processing into the sensitive-PI rules.</p>
                 <div className="mt-2"><Radio name="q15b" options={["Yes — we knowingly process under-16 data", "No — we do not knowingly process under-16 data", "Unsure"]} value={q15bUnder16} onChange={setQ15bUnder16} /></div>
               </div>
@@ -1631,7 +1640,7 @@ export default function CPPARiskAssessment() {
               </div>
                 {/* A-2 — minimum-necessary candidate set */}
                 <div data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Candidate personal-information elements, and whether each is necessary <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="Minimum-necessary set" summary="The assessment must identify the minimum personal information necessary to achieve the purpose; each element collected is tested against that purpose." cite="11 CCR § 7152(a)(2)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Which data elements do you collect, and is each one necessary for your stated purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="Minimum-necessary set" summary="The assessment must identify the minimum personal information necessary to achieve the purpose; each element collected is tested against that purpose." cite="11 CCR § 7152(a)(2)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">List each data element this activity collects. Mark the ones that are not necessary — they become minimisation findings in the report.</p>
                   <div className="mt-2 space-y-2">
                     {a2NecessitySet.map((row, idx) => (
@@ -1671,7 +1680,7 @@ export default function CPPARiskAssessment() {
               <div data-coach-field="exceptions_intake" className="border-t pt-6 mt-6">
                 <Label className="text-base font-semibold">CCPA business purposes &amp; statutory exemptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">
-                  These are the enumerated "business purposes" in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and exemptions in <span className="font-mono">§ 1798.145</span>. They permit specific internal uses or carve out specific obligations — they do <span className="font-medium">not</span> remove a § 7150 trigger from risk-assessment scope. Identify any you rely on so the report can address them; leave blank if none apply.
+                  Check any that apply to this activity; leave blank if none do. These are the "business purposes" listed in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and the exemptions in <span className="font-mono">§ 1798.145</span> — they permit specific internal uses or carve out specific obligations, but they do <span className="font-medium">not</span> remove a § 7150 risk-assessment trigger.
                 </p>
                 <div className="mt-3 space-y-3">
                   {CPPA_EXCEPTIONS.map((ex) => {
@@ -1747,7 +1756,7 @@ export default function CPPARiskAssessment() {
                   </div>
                 {/* A-5 — harm pathways against the statutory catalogue */}
                 <div data-coach-field="a5_harm_pathways" data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Negative impacts, with their sources and causes <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(5)(A)–(H))</span></Label><StatutePopover term="Negative impacts" summary="Identify the negative impacts to consumers' privacy associated with the processing, and the sources and causes of those impacts." cite="11 CCR § 7152(a)(5)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What negative impacts could this processing cause, and what causes each one? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(5)(A)–(H))</span></Label><StatutePopover term="Negative impacts" summary="Identify the negative impacts to consumers' privacy associated with the processing, and the sources and causes of those impacts." cite="11 CCR § 7152(a)(5)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">One row per impact. The source is where the impact comes from; the cause is what about this processing produces it.</p>
                   <div className="mt-2 space-y-3">
                     {a5HarmPathways.map((row, idx) => (
@@ -1799,7 +1808,7 @@ export default function CPPARiskAssessment() {
                   </div>
                 {/* A-6 — safeguards mapped to an identified impact */}
                 <div data-coach-field="a6_safeguards" data-rail-key="impact_safeguards" onFocus={() => focusRail('impact_safeguards')}>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Safeguards, mapped to the impact each one addresses <span className="text-xs text-muted-foreground">(§ 7152(a)(6))</span></Label><StatutePopover term="Safeguards" summary="Identify the safeguards the business plans to implement for the processing, including safeguards addressing the negative impacts identified under subsection (a)(5)." cite="11 CCR § 7152(a)(6)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What safeguards address each impact above? <span className="text-xs text-muted-foreground">(§ 7152(a)(6))</span></Label><StatutePopover term="Safeguards" summary="Identify the safeguards the business plans to implement for the processing, including safeguards addressing the negative impacts identified under subsection (a)(5)." cite="11 CCR § 7152(a)(6)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">Each safeguard must name the impact it addresses. An impact with no safeguard is reported as unaddressed.</p>
                   <div className="mt-2 space-y-3">
                     {a6Safeguards.map((row, idx) => (
@@ -1853,7 +1862,7 @@ export default function CPPARiskAssessment() {
               <p className="text-sm text-muted-foreground">These answers produce the weighing section. A benefit stated without a supporting fact from the record is carried as unevidenced, and the weighing reserves rather than concluding.</p>
                 {/* A-4 — benefits, four beneficiary classes */}
                 <div data-coach-field="a4_benefits">
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Benefits of this processing, stated specifically for each group <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Who benefits from this processing, and how — for each group? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">Each group gets its own statement and its own supporting fact from the record. A benefit with no supporting fact is carried as unevidenced in the weighing.</p>
                   <div className="mt-3 space-y-4">
                     <div className="space-y-2">

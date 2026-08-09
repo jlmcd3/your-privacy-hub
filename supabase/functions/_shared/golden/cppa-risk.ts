@@ -393,6 +393,10 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       i8_contact_email: "privacy@sierraoutfitters.example",
       i9_has_existing_dpia: "No",
       // i9_existing_dpia_summary — NOT TRIGGERED (i9_has_existing_dpia is "No").
+      // INTAKE-4a addition (CEO-approved 2026-08-09): asked field, answered
+      // like every other asked field on the truly-complete-record fixture.
+      material_change_since_prior: "No",
+
 
       // exceptions_intake — none claimed (truthful; the key is omitted).
 

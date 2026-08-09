@@ -74,6 +74,7 @@ export const RISK_INTAKE_LABELS: Record<string, string> = {
   i8_contact_email: "the certifying-executive email",
   i9_has_existing_dpia: "the existing-DPIA answer",
   i9_existing_dpia_summary: "the existing-DPIA summary",
+  material_change_since_prior: "whether the activity changed materially since the last assessment",
   exceptions_intake: "the exceptions intake",
   impact_intake: "the impact intake",
   // ITEM 388 FIX 1 — contract-vs-map delta closed. Every remaining
