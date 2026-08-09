@@ -456,7 +456,13 @@ export default function RopaActivity() {
                     </span>
                   )}
                 </label>
+                {q.followUpPrompt && (
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {q.followUpPrompt}
+                  </p>
+                )}
                 <WhyWeAsk>{q.whyWeAsk}</WhyWeAsk>
+
 
 
                 {q.key === "data_categories" && (
