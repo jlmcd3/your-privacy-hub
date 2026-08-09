@@ -377,6 +377,10 @@ export interface IrRefinementTelemetry extends RefinementTelemetry {
   monolith_paths_detected: string[];
   /** The item417 choice, recorded in telemetry so the pilots can see it. */
   artifact_pass_mode: "single_pass_over_persisted_record";
+  /** ITEM 417-B — set when the pass was skipped fail-open on TIME, not error. */
+  skipped_reason: string | null;
+  /** ITEM 417-B — the budget reading that produced the decision. */
+  time_budget: IrBudgetVerdict | null;
 }
 
 /**
