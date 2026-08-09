@@ -188,7 +188,7 @@ function buildActivationCriteria(intake: unknown): PlaybookTableSection {
     "Activation criteria",
     ["Trigger", "Source of the trigger", "Activates"],
     rows,
-    "This section is complete once the organisation records the standing triggers that put the playbook into force, with the source of each trigger and what it activates.",
+    "Record the standing triggers that put this playbook into force, the source of each trigger and what it activates; that completes this section.",
   );
 }
 
@@ -204,7 +204,7 @@ function buildSeverityMatrix(intake: unknown): PlaybookTableSection {
     "Severity matrix",
     ["Severity level", "Definition / threshold", "Escalation on reaching this level"],
     structured.length ? structured : flat,
-    "This section is complete once the organisation records the severity levels it grades an incident against, the threshold for each level and what reaching that level escalates to.",
+    "Record the severity levels an incident is graded against, the threshold for each level and what reaching it escalates to; that completes this section.",
   );
 }
 
@@ -219,7 +219,7 @@ function buildResponseTeam(intake: unknown): PlaybookTableSection {
     "Response team and alternates",
     ["Role", "Primary", "Alternate"],
     rows,
-    "This section is complete once the organisation records each response role with a named primary and a named alternate.",
+    "Record each response role with a named primary and a named alternate; that completes this section.",
     "A role with no named alternate is a single point of failure in an out-of-hours incident.",
   );
 }
@@ -254,7 +254,7 @@ function buildKeyContacts(intake: unknown): PlaybookTableSection {
     "Key contacts",
     ["Contact type", "Name / firm", "Contact detail", "Note"],
     rows,
-    "This section is complete once the organisation records outside counsel and whether a privilege protocol is in force, the cyber insurer, the retained forensic vendor and the law-enforcement point of contact.",
+    "Record outside counsel and whether a privilege protocol is in force, the cyber insurer, the retained forensic vendor and the law-enforcement point of contact; that completes this section.",
   );
 }
 
@@ -325,7 +325,7 @@ function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): Play
     status: isolation ? "analysed" : "record_insufficient",
     ...(isolation
       ? {}
-      : { information_needed: "This section is complete once the organisation records which role may isolate a production system without further approval." }),
+      : { information_needed: "Record which role may isolate a production system without further approval; that completes this section." }),
     note: "The phasing column generalises the Article 33(4) phasing plan: an item that cannot be established in the first tranche is deferred with a recorded reason, not dropped.",
   };
 }
@@ -341,7 +341,7 @@ function buildEvidencePreservation(intake: unknown): PlaybookTableSection {
     "Evidence preservation",
     ["System or log source", "Type", "Preservation action", "Owner"],
     rows,
-    "This section is complete once the organisation records the key systems and log sources whose evidence must be preserved before it rotates.",
+    "Record the key systems and log sources whose evidence must be preserved before it rotates; that completes this section.",
     "Preservation is instructed in the first hour because most log sources rotate faster than an investigation concludes.",
   );
 }
@@ -386,7 +386,7 @@ function buildClassification(intake: unknown): PlaybookTableSection {
     status: categories.length ? "analysed" : "record_insufficient",
     ...(categories.length
       ? {}
-      : { information_needed: "This section is complete once the organisation records the categories of personal data it holds, which the classification framework is mapped onto." }),
+      : { information_needed: "Record the categories of personal data the organisation holds, which this classification framework is mapped onto; that completes this section." }),
   };
 }
 
@@ -440,14 +440,14 @@ function buildContractualNotifications(intake: unknown): PlaybookSection[] {
     status: contracts.length ? "analysed" : "record_insufficient",
     ...(contracts.length
       ? {}
-      : { information_needed: "This section is complete once the organisation records each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference." }),
+      : { information_needed: "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference; that completes this section." }),
   };
   const table = tableOrGap(
     "contractual_notifications",
     "Contractual notification obligations",
     ["Contract / counterparty", "Notice deadline", "Clause reference"],
     rows,
-    "This section is complete once the organisation records each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference.",
+    "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference; that completes this section.",
   );
   return [finding, table];
 }
@@ -478,7 +478,7 @@ function buildTestingTraining(intake: unknown): PlaybookNoteSection {
     status: next ? "analysed" : "record_insufficient",
     ...(next
       ? {}
-      : { information_needed: "This section is complete once the organisation records the date of its next planned tabletop exercise." }),
+      : { information_needed: "Record the date of the next planned tabletop exercise; that completes this section." }),
   };
 }
 
@@ -516,7 +516,7 @@ function unrecordedLedger(incomplete: readonly PlaybookSection[]): string {
     : `${unique.slice(0, -1).join(", ")} and ${unique[unique.length - 1]}`;
   const noun = unique.length === 1 ? "One section" : `${WORD_COUNT[unique.length] ?? unique.length} sections`;
   const verb = unique.length === 1 ? "is" : "are";
-  return `${noun} of this playbook ${verb} incomplete because the organisation has not yet recorded what ${unique.length === 1 ? "it requires" : "they require"}: ${list}. Each of those sections states what would complete it.`;
+  return `${noun} of this playbook ${verb} incomplete because the organisation has not yet recorded what ${unique.length === 1 ? "it requires" : "they require"}: ${list}. Each of those sections states what to record to complete it.`;
 }
 
 const WORD_COUNT: Readonly<Record<number, string>> = {

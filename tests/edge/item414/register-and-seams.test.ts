@@ -12,6 +12,7 @@ import {
 } from "../../../supabase/functions/generate-ir-playbook/_local/prose/ir.spine.ts";
 import {
   applyIrProseGold,
+  isProtectedIrKey,
   templateReadsAsAuthority,
 } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-prose-gold.ts";
 import { runIrFinalizeBattery } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-finalize.ts";
@@ -70,12 +71,15 @@ function assemble(intake: Record<string, unknown>): Record<string, unknown> {
   return runIrFinalizeBattery(report, intake).report;
 }
 
+// PROSE leaves only: determination machinery and identity fields (`status`,
+// `verdict`, `id`, `kind`, `citation` …) are not prose and the register does
+// not bind them.
 function strings(node: unknown, path = "$"): { path: string; value: string }[] {
   if (typeof node === "string") return node.trim() ? [{ path, value: node }] : [];
   if (Array.isArray(node)) return node.flatMap((v, i) => strings(v, `${path}[${i}]`));
   if (node && typeof node === "object") {
     return Object.entries(node as Record<string, unknown>)
-      .filter(([k]) => k !== "_meta" && k !== "_staging")
+      .filter(([k]) => k !== "_meta" && k !== "_staging" && !isProtectedIrKey(k))
       .flatMap(([k, v]) => strings(v, `${path}.${k}`));
   }
   return [];
@@ -134,13 +138,13 @@ Deno.test("item414: IR-1 — a thin record gets ONE ledger, honest and readable"
   const ledger = String(sp.unrecorded_ledger ?? "");
   assert(ledger.length > 0, "a thin record must carry the ledger");
   assert(/incomplete/.test(ledger), "the ledger must say the sections are incomplete");
-  assert(/Each of those sections states what would complete it\.$/.test(ledger));
+  assert(/Each of those sections states what to record to complete it\.$/.test(ledger));
   // Every ask says what would fill it, and none is a bare fragment.
   const asks = (sp.information_needed as string[]) ?? [];
   assert(asks.length > 0);
   for (const a of asks) {
     assert(a.length > 40, `ask is a bare fragment: ${a}`);
-    assert(/complete once the organisation records/.test(a), `ask does not say what would fill it: ${a}`);
+    assert(/that completes this section\.$/.test(a), `ask does not say what would fill it: ${a}`);
   }
   // R8 — deduplicated: the shipped defect emitted the same ask twice.
   assertEquals(new Set(asks).size, asks.length, "asks must be deduplicated");
@@ -323,7 +327,7 @@ Deno.test("item414: the stamp survives the P2 whitelist serializer", async () =>
   const { IR_PLAYBOOK_REPORT_SCHEMA } = await import("../../../supabase/functions/generate-ir-playbook/_local/report-schemas/ir-playbook.ts");
   const report = assemble(THIN);
   const { report: out, telemetry } = serializeCustomerReport(report as any, IR_PLAYBOOK_REPORT_SCHEMA);
-  assertEquals(telemetry.crashed, false);
+  assert(!telemetry.crashed);
   assertEquals(((out as any)._meta?.internal ?? {}).ir_pipeline_stamp, IR_PIPELINE_STAMP);
   assert((out as any).standing_playbook?.unrecorded_ledger, "the ledger must survive serialization");
   assert((out as any).incident_worksheet?.forms?.length > 0);
