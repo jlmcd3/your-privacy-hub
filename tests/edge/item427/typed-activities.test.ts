@@ -189,3 +189,30 @@ Deno.test("ITEM 427 anti-padding: an untriggered scaffold row is not a triggered
     true,
   );
 });
+
+// ── CSC LINKAGE ───────────────────────────────────────────────────────
+Deno.test("ITEM 427 CSC linkage: a benefit the CSC strips never reaches a typed leaf", async () => {
+  const { attachRiskCsc } = await import("../../../supabase/functions/_shared/ltp/risk-csc.ts");
+  const report = reportWithAnalytics();
+  const analytics = (report.activity_analytics as any[])[0];
+  analytics.benefits.push({
+    beneficiary_class: "the public",
+    benefit: "Sierra Outfitters, Inc funds a municipal fibre-optic broadband rollout for every county it serves.",
+  });
+  attachRiskCsc(report, { intake: INTAKE as Record<string, unknown> });
+  normalizeRiskActivities(report, INTAKE);
+  const row = (report.risk_assessment_by_activity as any[])[0];
+  const all = JSON.stringify(row);
+  assert(
+    !all.includes("municipal fibre-optic broadband"),
+    "an unanchored benefit claim survived into a typed leaf",
+  );
+});
+
+Deno.test("ITEM 427 emission is idempotent — re-running the writer changes nothing", () => {
+  const report = reportWithAnalytics();
+  normalizeRiskActivities(report, INTAKE);
+  const once = JSON.stringify(report.risk_assessment_by_activity);
+  normalizeRiskActivities(report, INTAKE);
+  assertEquals(JSON.stringify(report.risk_assessment_by_activity), once);
+});
