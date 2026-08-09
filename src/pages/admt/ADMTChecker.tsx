@@ -341,9 +341,9 @@ export default function ADMTChecker() {
   useEffect(() => {
     if (prefillTouched.hi_reviewer_present || adv.hi_reviewer_present) return;
     const map: Record<string, string> = {
-      "Yes — reviewer knows the system and can change the outcome": "Yes — on every decision",
-      "Yes — but reviewer rubber-stamps / lacks authority": "Sometimes / on a subset",
-      "No — fully automated": "No — fully automated",
+      [HUMAN_REVIEW_OPTIONS[0]]: "Yes — on every decision",
+      [HUMAN_REVIEW_OPTIONS[1]]: "Sometimes / on a subset",
+      [HUMAN_REVIEW_OPTIONS[2]]: "No — fully automated",
     };
     const seed = map[humanReview];
     if (!seed) return;
