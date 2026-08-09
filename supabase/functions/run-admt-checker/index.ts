@@ -69,7 +69,9 @@ console.log(`[run-admt-checker] boot admt_deliverables=${ADMT_DELIVERABLES_VERSI
 import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "./_local/ltp/admt-prose-gold.ts";
 import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
 import { normalizeAdmtPriorityActions, ADMT_ACTION_RECORD_WRITER_VERSION } from "./_local/ltp/admt-action-records.ts";
-console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION} action_records=${ADMT_ACTION_RECORD_WRITER_VERSION}`);
+// ITEM 422-B — registry-resolved citations on the typed priority actions.
+import { resolveAdmtActionCitations, ADMT_ACTION_CITATION_VERSION } from "./_local/ltp/admt-action-citations.ts";
+console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION} action_records=${ADMT_ACTION_RECORD_WRITER_VERSION} action_citations=${ADMT_ACTION_CITATION_VERSION}`);
 
 
 
@@ -2421,13 +2423,18 @@ Return this JSON structure exactly:
     // already applies to `top_3_actions`. Fail-open.
     try {
       const pa422 = normalizeAdmtPriorityActions(report);
+      // ITEM 422-B DEFECT 1 — the pinpoint on every typed record is RESOLVED
+      // FROM THE VERIFIED-AUTHORITY REGISTRY (key → reverse lookup → honest
+      // downgrade). A model-authored §-token never ships.
+      const pa422b = resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
       console.log(JSON.stringify({
         evt: "item422_priority_actions", fn: "run-admt-checker",
-        build_stamp: BUILD_STAMP, ...pa422,
+        build_stamp: BUILD_STAMP, ...pa422, citations: pa422b,
       }));
     } catch (e) {
       console.warn("[run-admt-checker] ITEM 422 normalise failed (non-fatal):", (e as Error)?.message);
     }
+
 
     // ── WAVE19-FIX TURN A (2026-07-25) — targeted A1/A2/A3/A4 sanitiser.
     // A1: registry-first fallback resolution (per-entry re-stamp).
@@ -2757,6 +2764,20 @@ Return this JSON structure exactly:
         version: csc.version, violations: csc.violations.length,
         repairs: csc.repairs, crashed: csc.crashed,
       }));
+      // ── ITEM 422-B DEFECT 2 — ASK HYGIENE. Runs inside the CSC seam, on the
+      // FULL PERSISTED RECORD, BEFORE the coverage matrix: an ask whose every
+      // named subject the record supplies is suppressed; honest asks on thin
+      // records survive byte-identical. The detector is untouched.
+      const { attachAdmtAskHygiene } = await import("./_local/ltp/admt-ask-hygiene.ts");
+      const askHyg = attachAdmtAskHygiene(
+        report as Record<string, unknown>,
+        ((assessment as any).intake_data ?? {}) as Record<string, unknown>,
+      );
+      console.log(JSON.stringify({
+        evt: "admt_ask_hygiene", fn: "run-admt-checker", build_stamp: BUILD_STAMP,
+        ...askHyg,
+      }));
+
     } catch (e) {
       console.warn("[run-admt-checker] ITEM 394 admt-csc failed (non-fatal):", (e as Error)?.message);
     }

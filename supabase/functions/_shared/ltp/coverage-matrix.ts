@@ -796,6 +796,23 @@ function admtFilled(intake: unknown, path: string): boolean {
   return nonEmpty(admtIntakeValue(intake, path));
 }
 
+/**
+ * ITEM 422-B — the ADMT ask-hygiene pass must decide "supplied?" and "which
+ * keys does this ask name?" with EXACTLY the semantics the L3 detector below
+ * applies, or a repair could silence a finding the detector still raises (or
+ * vice versa). These two exports are the detector's own helpers, re-exposed
+ * verbatim. DETECTION SEMANTICS ARE UNCHANGED — no new logic lives here.
+ */
+export function admtIntakeFilled(intake: unknown, path: string): boolean {
+  return admtFilled(intake, path);
+}
+
+/** The body projection the L3 ask detector reads. */
+export function admtAskBody(ask: unknown): string {
+  return askText(ask) || text(ask);
+}
+
+
 function admtSurfaceSubstance(node: unknown): number {
   return text(node).replace(/[{}\[\]"“”:,]/g, " ").replace(/\s+/g, " ").trim().length;
 }
