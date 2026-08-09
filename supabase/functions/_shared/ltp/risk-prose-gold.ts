@@ -644,6 +644,8 @@ export interface RiskProseGoldTelemetry {
   /** r4 — global gate-TRUE placeholder sweep. */
   placeholders_swept: number;
   placeholder_paths: string[];
+  /** 428-D — reserved-action rows whose unnamed modal subject was named. */
+  reserved_actors_named: number;
 }
 
 /**
