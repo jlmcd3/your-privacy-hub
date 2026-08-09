@@ -3,6 +3,7 @@
 // status badges, citation links, and remediation steps.
 
 import { useEffect, useRef, useState } from "react";
+import { coerceActionListText } from "@/lib/action-record";
 import { useLocation, useParams, useSearchParams, Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -704,11 +705,11 @@ export default function ADMTCheckerResult() {
           </section>
         )}
 
-        {report.priority_actions?.length > 0 && (
+        {(coerceActionListText(report.priority_actions)?.length ?? 0) > 0 && (
           <section className="font-serif-text space-y-2">
             <h3 className="font-body text-display-card font-semibold">Priority Actions</h3>
             <div className="rounded-lg border border-red-200 bg-red-50/30 dark:bg-red-950/10 divide-y divide-red-100">
-              {report.priority_actions.map((action: string, i: number) => (
+              {(coerceActionListText(report.priority_actions) ?? []).map((action, i) => (
                 <div key={i} className="flex gap-3 px-4 py-3">
                   <span className="text-[11px] font-bold text-red-600 shrink-0 mt-0.5">{i + 1}</span>
                   <p className="text-[13px] leading-relaxed">{action}</p>
