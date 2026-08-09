@@ -110,6 +110,11 @@ export default function BiometricChecker() {
     notice_before_collection: "",
     consent_artifact_type: "",
     release_artifact_description: "",
+    // INTAKE-4g — CEO-approved addition 2026-08-09. Optional narrative; GDPR
+    // withdrawal value, framed neutrally so it never implies BIPA grants a
+    // statutory withdrawal right.
+    biometric_consent_withdrawal: "",
+
     retention_schedule_text: "",
     retention_policy_public: "",
     destruction_trigger: "",
@@ -459,6 +464,17 @@ export default function BiometricChecker() {
                     onChange={(e) => setForm(f => ({ ...f, release_artifact_description: e.target.value }))} />
                 </div>
 
+                {/* INTAKE-4g — CEO-approved addition. Optional; BIPA-neutral. */}
+                <div className="space-y-1">
+                  <Label htmlFor="bio-withdrawal" className="text-sm font-semibold text-brand-navy">How can a person withdraw biometric consent, and what happens after withdrawal?</Label>
+                  <p className="text-meta text-muted-foreground">Give the route they use, how long it takes, and what happens to the stored template afterwards. Where GDPR applies, withdrawal must be as easy as giving consent. Leave blank if no withdrawal route exists today.</p>
+                  <textarea id="bio-withdrawal" className="w-full rounded border px-3 py-2 text-sm" rows={2}
+                    placeholder="Route, timing, what happens to the template"
+                    value={form.biometric_consent_withdrawal}
+                    onChange={(e) => setForm(f => ({ ...f, biometric_consent_withdrawal: e.target.value }))} />
+                </div>
+
+
                 <div className="space-y-1">
                   <Label htmlFor="bio-retention" className="text-sm font-semibold text-brand-navy">Retention schedule (as written)</Label>
                   <p className="text-meta text-muted-foreground">Quote the schedule as your policy states it, not a summary of it. Illinois measures the written schedule and the destruction trigger separately, so a period without a trigger is an incomplete answer.</p>
@@ -509,8 +525,9 @@ export default function BiometricChecker() {
 
                 {showTexas && (
                   <div className="border-t border-border pt-3 space-y-3">
-                    <p className="font-semibold text-brand-navy">Stage 3a — Texas (CUBI): the one-year destruction clock</p>
-                    <p className="text-meta text-muted-foreground">These four appear because Texas is selected. They fix when the clock starts, whether another law suspends it, and whether either statutory carve-out is reachable.</p>
+                    <p className="font-semibold text-brand-navy">Stage 3a — Texas (CUBI): notice, consent, and the one-year destruction clock</p>
+                    <p className="text-meta text-muted-foreground">You selected Texas. Under Tex. Bus. &amp; Com. Code § 503.001, you must tell the person and get their consent before you capture a biometric identifier for a commercial purpose, and destroy it within a reasonable time — no later than one year after the reason for collecting it ends. These four questions set when that clock starts, whether another law pauses it, and whether either statutory exception is open to you.</p>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <Tri label="Destroyed within one year of the collection purpose expiring?" value={form.tx_destruction_within_one_year} onChange={(v) => setForm(f => ({ ...f, tx_destruction_within_one_year: v }))} />
                       <Tri label="Does another law require the associated document to be kept longer?" value={form.tx_longer_retention_required_by_law} onChange={(v) => setForm(f => ({ ...f, tx_longer_retention_required_by_law: v }))} />

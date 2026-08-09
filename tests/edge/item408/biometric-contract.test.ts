@@ -91,10 +91,12 @@ Deno.test("item408 / biometric PARITY — every form control has a contract key"
   assertEquals(missing, [], `form keys absent from the contract: ${missing.join(", ")}`);
 });
 
-Deno.test("item408 / biometric PARITY — contract declares 37 fields, no duplicates", () => {
+Deno.test("item408 / biometric PARITY — contract declares 38 fields, no duplicates", () => {
   const keys = biometricContract.fields.map((f) => f.key);
   assertEquals(new Set(keys).size, keys.length, "duplicate contract key");
-  assertEquals(keys.length, 37);
+  // INTAKE-4g added the CEO-approved optional `biometric_consent_withdrawal`.
+  assertEquals(keys.length, 38);
+
   assertEquals(biometricContract.tool_type, "biometric_checker");
   assertEquals(biometricContract.table, "biometric_assessments");
 });

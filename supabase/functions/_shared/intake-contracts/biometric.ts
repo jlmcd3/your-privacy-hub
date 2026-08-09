@@ -265,6 +265,16 @@ export const biometricContract: IntakeContract = {
       requiredWhen: "Illinois, Texas or Washington is in scope",
       trigger: PRACTICES_TRIGGER,
     },
+    // INTAKE-4g — CEO-approved addition 2026-08-09. Optional narrative:
+    // withdrawal route and post-withdrawal handling. GDPR-scope value;
+    // BIPA-neutral framing (BIPA grants no statutory withdrawal right).
+    {
+      key: "biometric_consent_withdrawal",
+      kind: "narrative",
+      required: "optional",
+      emptyIsAnswer: true,
+    },
+
     // L463-L469 — retention schedule as written.
     {
       key: "retention_schedule_text",
