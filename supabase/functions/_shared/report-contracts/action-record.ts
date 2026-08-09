@@ -14,7 +14,7 @@
  * verdicts and identical formatter output.
  */
 
-export const ACTION_RECORD_CONTRACT_VERSION = "action-record@2026-08-09-item420";
+export const ACTION_RECORD_CONTRACT_VERSION = "action-record@2026-08-09-item422";
 
 export interface ActionRecord {
   action: string;
@@ -25,6 +25,9 @@ export interface ActionRecord {
   owner_role?: string;
   reserved_to?: string | null;
   rank?: number;
+  citation?: string;
+  proposition_key?: string;
+  insufficient_basis?: boolean;
 }
 
 /** Type guard — an object carrying a non-empty `action` string. */
