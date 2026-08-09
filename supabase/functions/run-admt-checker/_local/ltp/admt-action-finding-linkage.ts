@@ -23,6 +23,8 @@
  * Fail-open: any throw leaves `priority_actions` untouched.
  */
 
+import { resolveCitations } from "../../../_shared/admt-citation-registry.ts";
+
 export const ADMT_ACTION_LINKAGE_VERSION =
   "admt-action-finding-linkage@item422d-2026-08-09";
 
