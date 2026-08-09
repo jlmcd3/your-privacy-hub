@@ -307,6 +307,90 @@ export default function ADMTChecker() {
   const [adv, setAdv] = useState<Record<string, any>>({});
   const setA = (k: string, v: any) => setAdv((a) => ({ ...a, [k]: v }));
 
+  // ── INTAKE-4c — PREFILL BLOCK ────────────────────────────────────────────
+  // Every row below keeps its own key, its own options, and its own stored
+  // value. Where an earlier answer supplies the same fact we seed the later
+  // row once, while it is still untouched, and present it as a confirmation.
+  // No row is merged into another, and a customer edit ends the prefill for
+  // that row permanently.
+  const [prefillTouched, setPrefillTouched] = useState<Record<string, boolean>>({});
+  const [prefilled, setPrefilled] = useState<Record<string, boolean>>({});
+  const markTouched = (k: string) => setPrefillTouched((p) => (p[k] ? p : { ...p, [k]: true }));
+  const markPrefilled = (k: string) => setPrefilled((p) => (p[k] ? p : { ...p, [k]: true }));
+
+  const suggestedBand = useMemo(() => {
+    const digits = caConsumerCount.replace(/[^0-9]/g, "");
+    if (!digits) return "";
+    const n = Number(digits);
+    if (!Number.isFinite(n) || n <= 0) return "";
+    if (n < 1000) return "Under 1,000";
+    if (n <= 10000) return "1,000 – 10,000";
+    if (n <= 100000) return "10,001 – 100,000";
+    if (n <= 1000000) return "100,001 – 1,000,000";
+    return "Over 1,000,000";
+  }, [caConsumerCount]);
+
+  useEffect(() => {
+    if (bandTouched || affectedPopulationBand || !suggestedBand) return;
+    setAffectedPopulationBand(suggestedBand);
+    setBandPrefilled(true);
+  }, [suggestedBand, bandTouched, affectedPopulationBand]);
+
+  // adv.hi_reviewer_present — PREFILL ONLY, NEVER MERGE. The human-review
+  // answer in step 1 supplies the same fact; this row stays a question.
+  useEffect(() => {
+    if (prefillTouched.hi_reviewer_present || adv.hi_reviewer_present) return;
+    const map: Record<string, string> = {
+      "Yes — reviewer knows the system and can change the outcome": "Yes — on every decision",
+      "Yes — but reviewer rubber-stamps / lacks authority": "Sometimes / on a subset",
+      "No — fully automated": "No — fully automated",
+    };
+    const seed = map[humanReview];
+    if (!seed) return;
+    setA("hi_reviewer_present", seed);
+    markPrefilled("hi_reviewer_present");
+  }, [humanReview, adv.hi_reviewer_present, prefillTouched.hi_reviewer_present]);
+
+  // adv.vendor_product — the named third-party system supplies the product name.
+  useEffect(() => {
+    if (prefillTouched.vendor_product || adv.vendor_product) return;
+    const first = thirdPartyAdmt.split("\n").map((s) => s.trim()).filter(Boolean)[0];
+    if (!first) return;
+    setA("vendor_product", first);
+    markPrefilled("vendor_product");
+  }, [thirdPartyAdmt, adv.vendor_product, prefillTouched.vendor_product]);
+
+  // accessLogicDisclosure / accessOutcomeDisclosure — the § 7222(b) readiness
+  // answers supply the same facts the disclosure has to carry.
+  useEffect(() => {
+    if (prefillTouched.accessLogicDisclosure || accessLogicDisclosure.trim()) return;
+    const seed = (accessReadiness.b2_logic || "").trim();
+    if (!seed) return;
+    setAccessLogicDisclosure(seed);
+    markPrefilled("accessLogicDisclosure");
+  }, [accessReadiness.b2_logic, accessLogicDisclosure, prefillTouched.accessLogicDisclosure]);
+
+  useEffect(() => {
+    if (prefillTouched.accessOutcomeDisclosure || accessOutcomeDisclosure.trim()) return;
+    const seed = (accessReadiness.b3_outcome || "").trim();
+    if (!seed) return;
+    setAccessOutcomeDisclosure(seed);
+    markPrefilled("accessOutcomeDisclosure");
+  }, [accessReadiness.b3_outcome, accessOutcomeDisclosure, prefillTouched.accessOutcomeDisclosure]);
+
+  // noticeFullText — the element-by-element transcription supplies the same
+  // sentences; assembled once as a starting point for confirmation.
+  const noticeElementsJoined = useMemo(
+    () => Object.values(noticeElementText).map((v) => (v || "").trim()).filter(Boolean).join("\n\n"),
+    [noticeElementText],
+  );
+  useEffect(() => {
+    if (prefillTouched.noticeFullText || noticeFullText.trim() || !noticeElementsJoined) return;
+    setNoticeFullText(noticeElementsJoined);
+    markPrefilled("noticeFullText");
+  }, [noticeElementsJoined, noticeFullText, prefillTouched.noticeFullText]);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const provideOptOut =
     !optOutException.startsWith("Human appeal") &&
     !optOutException.startsWith("Hiring") &&
