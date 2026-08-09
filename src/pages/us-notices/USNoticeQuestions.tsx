@@ -135,13 +135,29 @@ export default function USNoticeQuestions() {
   }, [sessionId, navigate, toast, authorized]);
 
   // Build the question set and apply showIf + jurisdictionOnly filters.
-  const visibleQuestions = useMemo(() => {
-    if (selectedStates.length === 0) return [];
-    const all = buildQuestionSet(selectedStates);
-    return all.filter(
-      (q) => isQuestionInScope(q, selectedStates) && evaluateShowIf(q, answers),
-    );
-  }, [selectedStates, answers]);
+  const allQuestions = useMemo(
+    () => (selectedStates.length === 0 ? [] : buildQuestionSet(selectedStates)),
+    [selectedStates],
+  );
+
+  const visibleQuestions = useMemo(
+    () =>
+      allQuestions.filter(
+        (q) => isQuestionInScope(q, selectedStates) && evaluateShowIf(q, answers),
+      ),
+    [allQuestions, selectedStates, answers],
+  );
+
+  // INTAKE-2 — option-label lookup used by the prefill-confirm prompts.
+  const labelOf = useMemo(() => {
+    const index: Record<string, Record<string, string>> = {};
+    for (const q of allQuestions) {
+      if (!q.options) continue;
+      index[q.key] = Object.fromEntries(q.options.map((o) => [o.value, o.label]));
+    }
+    return (questionKey: string, value: string) => index[questionKey]?.[value] ?? value;
+  }, [allQuestions]);
+
 
   // Clamp index when the visible set shrinks (e.g. showIf hides current question).
   useEffect(() => {
