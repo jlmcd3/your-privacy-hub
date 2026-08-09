@@ -260,10 +260,14 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // because deleting an authority field on this product would delete a
   // verified corpus passage.
   biometric: ["b2_absence_claim_vs_record"],
-  // ITEM 415 LEG B — IR has no CSC pass yet. The list is EMPTY until leg C
-  // ships `ir-csc.ts`; an empty list cannot count a false absence, so the CSC
-  // arm of the gate turns purely on the telemetry being present and uncrashed.
-  "ir-playbook": [],
+  // ITEM 416 LEG C — the IR CSC pass
+  // (`generate-ir-playbook/_local/ltp/ir-csc.ts`) now runs, so the gate reads
+  // real evidence: an UNREPAIRED i2 violation is a false absence claim about a
+  // record that supplies the fact. i1 stays OUT of the gate (the item403-A g1
+  // precedent): it flags a section's ask and its repair is a single-writer
+  // splice, not a determination of record completeness. i3 is derived from
+  // i1/i2 and would double-count; i4 is a hygiene flag and never gates.
+  "ir-playbook": ["i2_absence_claim_vs_record"],
 
 
 

@@ -2,6 +2,7 @@
 // the FINAL rendered strings of BOTH artifacts assembled through the finalize
 // battery in-test.
 
+import { attachIrPlaybookDeliverables } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   IR_BANNED_SHARED,
@@ -62,13 +63,24 @@ const COMPLETE = {
   nextTabletopDate: "2026-11-04",
 };
 
+// ITEM 416 — LIVE PARITY. Production assembles the ANALYTIC deliverables
+// first and only then builds the two artifacts from the resulting mapping
+// (index.ts ~L1800-1827). The battery must be exercised against that same
+// shape, or coverage is asserted over a document the customer never receives.
 function assemble(intake: Record<string, unknown>): Record<string, unknown> {
-  const report: Record<string, unknown> = {
-    standing_playbook: buildStandingPlaybook(intake),
-    incident_worksheet: buildIncidentWorksheet(String(intake.organizationName ?? "")),
-    generated_at: new Date().toISOString(),
-  };
+  const report: Record<string, unknown> = { generated_at: new Date().toISOString() };
+  attachIrPlaybookDeliverables(report, intake);
+  report.standing_playbook = buildStandingPlaybook(intake, report.content_owner_mapping as never);
+  report.incident_worksheet = buildIncidentWorksheet(String(intake.organizationName ?? ""));
   return runIrFinalizeBattery(report, intake).report;
+}
+
+function assembleTelemetry(intake: Record<string, unknown>) {
+  const report: Record<string, unknown> = { generated_at: new Date().toISOString() };
+  attachIrPlaybookDeliverables(report, intake);
+  report.standing_playbook = buildStandingPlaybook(intake, report.content_owner_mapping as never);
+  report.incident_worksheet = buildIncidentWorksheet(String(intake.organizationName ?? ""));
+  return runIrFinalizeBattery(report, intake);
 }
 
 // PROSE leaves only: determination machinery and identity fields (`status`,
@@ -298,22 +310,14 @@ Deno.test("item414: R11 — the assembled prose lint is clean on both artifacts"
 // ── COVERAGE ────────────────────────────────────────────────────────────────
 
 Deno.test("item414: coverage — a complete record leaves no orphan", () => {
-  const report: Record<string, unknown> = {
-    standing_playbook: buildStandingPlaybook(COMPLETE),
-    incident_worksheet: buildIncidentWorksheet("Meridian Health Systems"),
-  };
-  const out = runIrFinalizeBattery(report, COMPLETE);
+  const out = assembleTelemetry(COMPLETE);
   assertEquals(out.coverage.crashed, false);
   assertEquals(out.coverage.orphans.map((o) => `${o.type}@${o.path}`), []);
   assert(out.coverage.counts.links_checked > 0);
 });
 
 Deno.test("item414: coverage — honest silence on a thin record is not an orphan", () => {
-  const report: Record<string, unknown> = {
-    standing_playbook: buildStandingPlaybook(THIN),
-    incident_worksheet: buildIncidentWorksheet("Meridian Health Systems"),
-  };
-  const out = runIrFinalizeBattery(report, THIN);
+  const out = assembleTelemetry(THIN);
   assertEquals(out.coverage.orphans.map((o) => `${o.type}@${o.path}`), []);
 });
 

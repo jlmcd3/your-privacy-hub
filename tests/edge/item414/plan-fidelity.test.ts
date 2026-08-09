@@ -18,7 +18,7 @@ import {
 import { buildIncidentWorksheet } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/incident-worksheet.ts";
 
 Deno.test("item414: the stamp is the item414 constant", () => {
-  assertEquals(IR_PIPELINE_STAMP, "ir-pipeline@item414-2026-08-09");
+  assertEquals(IR_PIPELINE_STAMP, "ir-pipeline@item416-2026-08-09");
   assertEquals(IR_PLAN_PRODUCT, "ir-playbook");
 });
 

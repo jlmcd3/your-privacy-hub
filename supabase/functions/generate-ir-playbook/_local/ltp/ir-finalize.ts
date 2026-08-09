@@ -31,18 +31,22 @@ import {
   type RecordCompleteTelemetry,
 } from "../../../_shared/ltp/record-complete.ts";
 import { irPlaybookContract } from "../../../_shared/intake-contracts/ir-playbook.ts";
+import { attachIrCsc, type IrCscTelemetry, runIrCsc } from "./ir-csc.ts";
 
 export { IR_PIPELINE_STAMP };
 
-// ITEM 415 LEG B — THE CSC PLACEHOLDER.
+// ITEM 416 LEG C — THE REAL CSC.
 //
-// The record-complete gate treats CSC telemetry as REQUIRED evidence: absent
-// or crashed telemetry fails the gate closed. IR's real cross-surface
-// consistency pass ships in leg C. Until then the battery emits this
-// PRESENT-but-empty pass so the gate turns on evidence it can read rather than
-// on evidence that does not exist yet, and `FALSE_ABSENCE_CHECK_IDS
-// ["ir-playbook"]` is [] so no violation can be counted. The object is
-// explicitly labelled a placeholder — nothing here claims a check ran.
+// Leg B shipped a PRESENT-but-empty placeholder here so the fail-closed
+// record-complete gate could turn on evidence it could read. Leg C replaces it
+// with the real cross-surface consistency pass (`ir-csc.ts`), and
+// `FALSE_ABSENCE_CHECK_IDS["ir-playbook"]` now names `i2_absence_claim_vs_record`,
+// so an UNREPAIRED false absence fails the gate.
+//
+// `irCscPlaceholder` is retained as a NAMED, HONEST shape for the fail-open
+// leg only: if the real pass throws, the battery still attaches telemetry that
+// says plainly that no check ran, and the gate — which requires uncrashed CSC
+// evidence — decides on that.
 export const IR_CSC_PLACEHOLDER_VERSION = "ir-csc-placeholder@item415-2026-08-09";
 
 export interface IrCscPlaceholder {
@@ -68,11 +72,13 @@ export function irCscPlaceholder(): IrCscPlaceholder {
 export interface IrFinalizeResult {
   readonly report: Record<string, unknown>;
   readonly coverage: CoverageTelemetry;
+  readonly csc: IrCscTelemetry | IrCscPlaceholder;
   readonly prose_lint: ProseLintResult | null;
   readonly repaired_paths: readonly string[];
   readonly restored_checklist_cells: number;
   readonly record_complete: RecordCompleteTelemetry | null;
 }
+
 
 export function runIrFinalizeBattery(
   reportIn: Record<string, unknown>,
@@ -92,16 +98,22 @@ export function runIrFinalizeBattery(
     console.warn("[generate-ir-playbook] prose gold skipped:", (e as Error)?.message);
   }
 
-  // (b) CSC PLACEHOLDER — present-but-empty evidence for the gate.
-  let csc: IrCscPlaceholder | null = null;
+  // (b) CSC — the real cross-surface consistency pass. Repairs are single-
+  // writer splices from `buildStandingPlaybook`; on a silent record it does
+  // nothing and every absence sentence survives byte-for-byte.
+  let csc: IrCscTelemetry | IrCscPlaceholder = irCscPlaceholder();
   try {
-    csc = irCscPlaceholder();
-    const meta = ((report as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
-    const internal = (meta.internal ??= {}) as Record<string, unknown>;
-    internal.ir_csc = csc;
+    csc = runIrCsc(report, { intake });
+    attachIrCsc(report, csc as IrCscTelemetry);
   } catch (e) {
-    console.warn("[generate-ir-playbook] csc placeholder skipped:", (e as Error)?.message);
+    console.warn("[generate-ir-playbook] csc skipped:", (e as Error)?.message);
+    try {
+      const meta = ((report as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
+      const internal = (meta.internal ??= {}) as Record<string, unknown>;
+      internal.ir_csc = csc;
+    } catch { /* non-fatal */ }
   }
+
 
   // (c) COVERAGE — standing playbook only; the worksheet is blank by design.
   let coverage: CoverageTelemetry;
@@ -170,6 +182,9 @@ export function runIrFinalizeBattery(
     repaired_paths: repaired.length,
     restored_checklist_cells: restored,
     coverage_orphans: coverage.counts.orphans,
+    csc_violations: (csc as IrCscTelemetry)?.violations?.length ?? 0,
+    csc_repairs: (csc as IrCscTelemetry)?.repairs ?? 0,
+    csc_crashed: Boolean((csc as IrCscTelemetry)?.crashed),
     coverage_links_checked: coverage.counts.links_checked,
     prose_lint_findings: lint?.findings?.length ?? null,
   }));
@@ -177,6 +192,7 @@ export function runIrFinalizeBattery(
   return {
     report,
     coverage,
+    csc,
     prose_lint: lint,
     repaired_paths: repaired,
     restored_checklist_cells: restored,
