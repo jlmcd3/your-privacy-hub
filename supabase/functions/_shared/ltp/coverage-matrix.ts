@@ -1681,8 +1681,8 @@ interface IrCoverageLink {
 }
 
 const IR_LINKS: readonly IrCoverageLink[] = [
-  { section: "activation", keys: ["activationCriteria"] },
-  { section: "severity", keys: ["severityMatrix", "severityThresholds"] },
+  { section: "activation_criteria", keys: ["activationCriteria"] },
+  { section: "severity_matrix", keys: ["severityMatrix", "severityThresholds"] },
   { section: "response_team", keys: ["responseTeamRoster"] },
   {
     section: "key_contacts",
@@ -1691,11 +1691,11 @@ const IR_LINKS: readonly IrCoverageLink[] = [
       "forensicVendorContact", "lawEnforcementContact",
     ],
   },
-  { section: "first_24_hours", keys: ["itIsolationAuthority"] },
+  { section: "first_24_hours_checklist", keys: ["itIsolationAuthority"] },
   { section: "evidence_preservation", keys: ["keySystems", "logSources"] },
-  { section: "contractual_notification", keys: ["breachNoticeContracts"] },
-  { section: "data_classification", keys: ["dataTypes"] },
-  { section: "testing_maintenance", keys: ["nextTabletopDate"] },
+  { section: "contractual_notifications", keys: ["breachNoticeContracts"] },
+  { section: "breach_classification", keys: ["dataTypes"] },
+  { section: "testing_training", keys: ["nextTabletopDate"] },
   { section: "first_hour_checklist", keys: ["firstHourConfirmations"] },
 ];
 
