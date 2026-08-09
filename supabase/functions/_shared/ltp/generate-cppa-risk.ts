@@ -410,7 +410,7 @@ export function applyRiskRecordCompleteFraming(
     // ITEM 425 — the typed record carries the affirmative as its single
     // `statement` voice; `.prose` is the LEGACY-envelope field and is not
     // written onto a typed record.
-    const rec = rs as Record<string, unknown>;
+    const rec = rs as unknown as Record<string, unknown>;
     const st = typeof rec.statement === "string" ? rec.statement : "";
     rec.statement = st.includes(text) ? st : (st ? `${text}\n\n${st}`.trim() : text);
   } else if (rs && typeof rs === "object") {
