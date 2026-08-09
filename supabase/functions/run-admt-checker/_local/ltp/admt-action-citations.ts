@@ -154,3 +154,53 @@ export function resolveAdmtActionCitations(
   }
   return diag;
 }
+
+/**
+ * ITEM 422-C — TERMINAL SEAL ON `priority_actions` CITATIONS.
+ *
+ * The pilot's rank-5 null did NOT come from the resolver's key branch alone:
+ * `human_involvement` DOES resolve, but only to the DEFINITIONAL § 7001(e)(1)
+ * row, and the downstream sole-§7001 governing-anchor discipline (W24-H6 /
+ * H6-v2) clears definitional anchors to "" while preserving the key. That is
+ * correct anchor discipline — but a customer surface must still never render
+ * an empty pinpoint. This seal runs LAST, after every W/H pass, and replaces
+ * any empty/absent citation with the registry's honest downgrade, clearing
+ * the key so no reader believes a proposition resolved.
+ *
+ * `top_3_actions` is NOT read and NOT written here. Deterministic, fail-open.
+ */
+export interface AdmtActionSealDiag {
+  version: string;
+  sealed: number;
+  total: number;
+  crashed: boolean;
+}
+
+export function sealAdmtActionCitations(report: unknown): AdmtActionSealDiag {
+  const diag: AdmtActionSealDiag = {
+    version: ADMT_ACTION_CITATION_VERSION,
+    sealed: 0,
+    total: 0,
+    crashed: false,
+  };
+  try {
+    const r = report as Record<string, unknown> | null;
+    if (!r || typeof r !== "object") return diag;
+    const raw = r.priority_actions;
+    if (!Array.isArray(raw) || raw.length === 0) return diag;
+    for (const entry of raw) {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+      const e = entry as Record<string, unknown>;
+      diag.total++;
+      if (str(e.citation)) continue;
+      e.citation = ADMT_SUBCHAPTER_FALLBACK;
+      e.proposition_key = "";
+      e._citation_source = "terminal_seal_downgrade";
+      diag.sealed++;
+    }
+  } catch (err) {
+    diag.crashed = true;
+    console.warn("[admt-action-citations] seal failed (non-fatal):", (err as Error)?.message);
+  }
+  return diag;
+}
