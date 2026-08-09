@@ -65,7 +65,14 @@ Deno.test("ITEM 421 (FIX-2 retirement): the pinpoint occurs exactly once in the 
   const r = buildRiskActionRecord(input());
   const occurrences = r.action.split("11 CCR § 7152(a)(3)").length - 1;
   assertEquals(occurrences, 1, `pinpoint occurs ${occurrences}× in the stored action`);
-  assertStringIncludes(r.action, "that provision");
+
+  // Where the composed clauses would state the pinpoint twice, every later
+  // occurrence becomes "that provision" — one pinpoint per action, always.
+  const twice = buildRiskActionRecord(input({
+    headline_label: "Document the safeguard required by 11 CCR § 7152(a)(3)",
+  }));
+  assertEquals(twice.action.split("11 CCR § 7152(a)(3)").length - 1, 1);
+  assertStringIncludes(twice.action, "that provision");
 });
 
 Deno.test("ITEM 421 (FIX-2 retirement): the role has exactly one home and one value", () => {

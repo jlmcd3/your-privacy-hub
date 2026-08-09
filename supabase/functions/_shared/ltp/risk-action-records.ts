@@ -48,7 +48,8 @@ export function dedupePinpoint(text: string, pinpoint: string): string {
 export function deadlineFields(row: DeadlineRow): { deadline: string; deadline_basis?: string } {
   const label = String(row?.deadline_label ?? "").trim();
   const basis = String(row?.anchor_pinpoint ?? "").trim();
-  const stripped = label.replace(/\s*\((?:11 CCR )?§[^)]*\)\s*$/, "").trim();
+  // Trailing statutory parenthetical, tolerant of nested parens ("(11 CCR § 7155(b))").
+  const stripped = label.replace(/\s*\((?:[^()]|\([^()]*\))*§(?:[^()]|\([^()]*\))*\)\s*$/, "").trim();
   return {
     deadline: stripped || label,
     deadline_basis: basis && !basis.startsWith("(") ? basis : undefined,
