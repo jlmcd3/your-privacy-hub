@@ -97,16 +97,22 @@ export function runIrFinalizeBattery(
     console.warn("[generate-ir-playbook] prose gold skipped:", (e as Error)?.message);
   }
 
-  // (b) CSC PLACEHOLDER — present-but-empty evidence for the gate.
-  let csc: IrCscPlaceholder | null = null;
+  // (b) CSC — the real cross-surface consistency pass. Repairs are single-
+  // writer splices from `buildStandingPlaybook`; on a silent record it does
+  // nothing and every absence sentence survives byte-for-byte.
+  let csc: IrCscTelemetry | IrCscPlaceholder = irCscPlaceholder();
   try {
-    csc = irCscPlaceholder();
-    const meta = ((report as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
-    const internal = (meta.internal ??= {}) as Record<string, unknown>;
-    internal.ir_csc = csc;
+    csc = runIrCsc(report, { intake });
+    attachIrCsc(report, csc as IrCscTelemetry);
   } catch (e) {
-    console.warn("[generate-ir-playbook] csc placeholder skipped:", (e as Error)?.message);
+    console.warn("[generate-ir-playbook] csc skipped:", (e as Error)?.message);
+    try {
+      const meta = ((report as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
+      const internal = (meta.internal ??= {}) as Record<string, unknown>;
+      internal.ir_csc = csc;
+    } catch { /* non-fatal */ }
   }
+
 
   // (c) COVERAGE — standing playbook only; the worksheet is blank by design.
   let coverage: CoverageTelemetry;
