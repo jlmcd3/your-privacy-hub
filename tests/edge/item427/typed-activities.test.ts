@@ -216,3 +216,21 @@ Deno.test("ITEM 427 emission is idempotent — re-running the writer changes not
   normalizeRiskActivities(report, INTAKE);
   assertEquals(JSON.stringify(report.risk_assessment_by_activity), once);
 });
+
+Deno.test("ITEM 427 serializer allow-list keeps every canonical leaf", async () => {
+  const { serializeCustomerReport } = await import(
+    "../../../supabase/functions/_shared/report-serialize.ts"
+  );
+  const { CPPA_RISK_REPORT_SCHEMA } = await import(
+    "../../../supabase/functions/_shared/report-schemas/cppa-risk.ts"
+  );
+  const report = reportWithAnalytics();
+  normalizeRiskActivities(report, INTAKE);
+  const out = serializeCustomerReport(report, CPPA_RISK_REPORT_SCHEMA) as Record<string, unknown>;
+  const row = (out.risk_assessment_by_activity as any[])[0];
+  for (const leaf of RISK_ACTIVITY_LEAVES) {
+    assert(leaf in row, `serializer pruned canonical leaf: ${String(leaf)}`);
+  }
+  assert(Array.isArray(row.section_7152_mapping));
+  assert(typeof row.section_7152_mapping[0].pinpoint === "string");
+});
