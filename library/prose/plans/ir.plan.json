@@ -1,0 +1,206 @@
+{
+  "product": "ir-playbook",
+  "version": "prose-plans-2026-08-09-item414",
+  "centre_of_gravity": "two_artifact_readiness",
+  "thesis": "This product ships two documents from one record, and each has its own voice. The standing playbook is a durable instruction that stands until the organisation changes it: it says what this organisation will do, who does it, and against which law, and where the organisation has not yet recorded something it names that gap once, in one ledger, and tells the reader exactly what would fill it. The incident worksheet is a blank operational form: it never asserts, never analyses and never arrives pre-filled, because a specimen entry in a live incident is worse than an empty line. Drafting templates set the shape of both documents and are named as templates; only statute, regulation and regulator guidance are ever cited as authority.",
+  "supersedes": null,
+  "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved. For this plan the approving authority is the review panel acting under standing CEO delegation: a unanimous review-panel verdict stands as CEO approval.",
+  "seed_default_approved": false,
+  "registers": [
+    {
+      "id": "standing_playbook",
+      "artifact": "standing_playbook",
+      "voice": "Durable, instructional, second-order. The document tells the organisation what it will do before an incident exists. Present tense, no hedging about the future, no incident facts. Every unrecorded element is named once in the ledger and once at the section it belongs to, each time saying what would fill it.",
+      "tense": "present_standing",
+      "asserts": true,
+      "may_be_prefilled": true
+    },
+    {
+      "id": "incident_worksheet",
+      "artifact": "incident_worksheet",
+      "voice": "Operational, imperative, incident-time. Instruction lines only: how the form is used, what belongs in a column, what must not be inferred. No analysis, no citation, no verdict, no specimen entry, and no cell content of any kind.",
+      "tense": "imperative_operational",
+      "asserts": false,
+      "may_be_prefilled": false
+    }
+  ],
+  "banned_register": {
+    "shared": [
+      "record_insufficient",
+      "information_needed",
+      "intake field:",
+      "intake fields:",
+      "[TO BE COMPLETED]",
+      "on the record",
+      "on this record",
+      "on the present record",
+      "TEST-STATES",
+      "RESOLVED_MET",
+      "RESOLVED_NOT_MET",
+      "RESOLVED_CHECK_REQUIRED",
+      "INDETERMINATE",
+      "CANDIDATE",
+      "We could not verify this item from the information provided",
+      "The information provided does not resolve"
+    ],
+    "standing_playbook": [
+      "Not recorded.",
+      "Not stated.",
+      "Unknown.",
+      "as instructed",
+      "per the rulebook",
+      "in accordance with NIST",
+      "as NIST requires",
+      "as CISA requires",
+      "as the ICO toolkit requires"
+    ],
+    "incident_worksheet": [
+      "we determine",
+      "the assessment finds",
+      "Art. 33",
+      "Article 33",
+      "45 C.F.R.",
+      "e.g.",
+      "for example"
+    ]
+  },
+  "hipaa_anchor_discipline": {
+    "rule": "Any 45 C.F.R. subsection emitted by this product must be one of the verified anchors, and Part 164 anchors are operative only where the record establishes covered-entity or business-associate status.",
+    "verified_anchors": [
+      "160.103",
+      "164.402",
+      "164.404",
+      "164.406",
+      "164.408",
+      "164.410",
+      "164.412",
+      "164.514"
+    ]
+  },
+  "authority_vs_template": {
+    "templates_never_authority": [
+      "NIST SP 800-61r3",
+      "CISA federal incident-response playbooks",
+      "ICO breach-management toolkit"
+    ],
+    "rule": "These documents fix section order, table shape and column sets. They are drafting templates for the organisation's own record. No assertion in either artifact rests on them, they are never quoted as requirements, and they never enter the authority exhibit."
+  },
+  "provenance": {
+    "method": "live_render_mining",
+    "extracted_at": "2026-08-09",
+    "render_table": "quality_run_documents",
+    "render_doc_ids": [
+      "b6e26ca0-194d-4dd5-8ef7-3b3204f84f45",
+      "333770f8-de66-4da1-98d8-652f6ea0e36a"
+    ],
+    "render_scores": [94.95, 94.15],
+    "approval_note": "panel-delegated approval per CEO delegation 2026-08-06",
+    "fact_exempt_rule": "The walked renders are an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from them may reach a customer document, and none of them may be seeded into a fixture as record truth.",
+    "supersession_note": "No prior prose_document_plans row existed for product ir-playbook; this row is an insert, not a supersession. Nothing is orphaned.",
+    "walk_note": "The roadmap's 'Not recorded.' litany was not found verbatim in either walked render. The equivalent defect the renders do evidence is an absence litany of a different surface form: seven empty tables each repeating a parenthesised intake-field name, a top-level list of nine asks carrying one verbatim duplicate, and eight identical 'Not confirmed' cells. The ratified treatment addresses that pattern."
+  },
+  "exemplars": [
+    {
+      "class": "absence_litany",
+      "register": "standing_playbook",
+      "section_id": "unrecorded_ledger",
+      "rule": "Absence is named once, in one ledger, and each section says what would fill it in customer words.",
+      "before": "Activation criteria — the standing triggers that put this playbook into force (intake field: activationCriteria). Severity thresholds — the levels this organisation grades an incident against and what each level escalates to (intake fields: severityMatrix, severityThresholds). Key contracts carrying a breach-notice clause, each with its counterparty, notice deadline and clause reference (intake field: breachNoticeContracts). Key contracts carrying a breach-notice clause, each with its counterparty, notice deadline and clause reference (intake field: breachNoticeContracts).",
+      "after": "Seven sections of this playbook are incomplete because the organisation has not yet recorded what they require: activation criteria, the severity matrix, the response team and alternates, key contacts, evidence preservation, contractual notification obligations, and testing and training. Each of those sections states what would fill it."
+    },
+    {
+      "class": "field_label_leak",
+      "register": "standing_playbook",
+      "section_id": "activation_criteria",
+      "rule": "A form field name is machinery. Say what the reader must write down, not which box it came from.",
+      "before": "Activation criteria — the standing triggers that put this playbook into force (intake field: activationCriteria).",
+      "after": "This section is complete once the organisation records the standing triggers that put the playbook into force, with the source of each trigger and what it activates."
+    },
+    {
+      "class": "apparatus_in_a_table_cell",
+      "register": "standing_playbook",
+      "section_id": "first_hour_checklist",
+      "rule": "A fixed checklist item is template text, not a record claim. It is never replaced by an unverifiability notice, because the item is what the organisation will do, not something the record asserts.",
+      "before": "We could not verify this item from the information provided; it is listed under information needed.",
+      "after": "Notify outside counsel and open the privilege protocol before substantive investigation notes are written."
+    },
+    {
+      "class": "worksheet_placeholder_in_standing_register",
+      "register": "standing_playbook",
+      "section_id": "first_24_hours_checklist",
+      "rule": "A blank-form placeholder belongs to the worksheet. In a standing reference the same absence is an instruction to the organisation.",
+      "before": "[TO BE COMPLETED]",
+      "after": "To be completed by the organisation"
+    },
+    {
+      "class": "banned_phrase",
+      "register": "standing_playbook",
+      "section_id": "contractual_notification_finding",
+      "rule": "Courtroom idiom is not counsel's voice. Say what the record does or does not state.",
+      "before": "The determination cannot be made: whether any counterparty must be notified, and by when, is not answerable on this record.",
+      "after": "The determination cannot be made: whether any counterparty must be notified, and by when, is not answerable from what the organisation has recorded."
+    },
+    {
+      "class": "mould_litany",
+      "register": "standing_playbook",
+      "section_id": "first_24_hours_checklist",
+      "rule": "Four consecutive rows built from one mould are a litany. Name the element each provision requires.",
+      "before": "Notification content — GDPR Art. 33(3)(a): supply the element as the provision states it. Notification content — GDPR Art. 33(3)(b): supply the element as the provision states it. Notification content — GDPR Art. 33(3)(c): supply the element as the provision states it. Notification content — GDPR Art. 33(3)(d): supply the element as the provision states it.",
+      "after": "Establish the nature of the breach and the categories and approximate numbers concerned, for GDPR Art. 33(3)(a). Give the name and contact details of the contact point, for GDPR Art. 33(3)(b). Describe the likely consequences of the breach, for GDPR Art. 33(3)(c). Describe the measures taken or proposed, for GDPR Art. 33(3)(d)."
+    },
+    {
+      "class": "strong_surface_register",
+      "register": "standing_playbook",
+      "section_id": "containment_eradication_recovery",
+      "rule": "The 'after' register for instructional standing prose: one idea per sentence, the reason carried inside the instruction, scope stated honestly as generic.",
+      "before": null,
+      "after": "Containment: cut the attacker's access path before evidence is disturbed — disable compromised credentials, revoke sessions and tokens, and isolate affected hosts at the network layer rather than powering them down."
+    },
+    {
+      "class": "strong_surface_register",
+      "register": "standing_playbook",
+      "section_id": "communications",
+      "rule": "The 'after' register for a standing rule with a consequence: state the rule, then the reason a reader would otherwise argue with.",
+      "before": null,
+      "after": "No statement characterises cause, attribution, volume or affected-population size before the forensic record supports it — a retracted number is itself a reportable event in the regulator's eyes."
+    },
+    {
+      "class": "strong_surface_register",
+      "register": "incident_worksheet",
+      "section_id": "decision_log",
+      "rule": "The 'after' register for the worksheet: how the form is used and what a column must contain, with no example and no analysis.",
+      "before": null,
+      "after": "One row per decision taken, recorded when it is taken. The rationale column records what was known at the time, so that the decision can later be assessed on the information then available."
+    },
+    {
+      "class": "authority_vs_template",
+      "register": "standing_playbook",
+      "section_id": "template_note",
+      "rule": "Template provenance is disclosed and demoted in the same sentence it is named.",
+      "before": null,
+      "after": "Those documents are drafting templates for this organisation's own record. They are not authority and nothing in this playbook is asserted on their basis."
+    }
+  ],
+  "sections": [
+    { "id": "template_note", "title": "How this playbook was drafted", "artifact": "standing_playbook", "arc_stage": "frame", "lead": "record", "source_key": "standing_playbook.template_note", "themes": ["template_not_authority", "provenance"], "required": true, "status": "approved" },
+    { "id": "unrecorded_ledger", "title": "What this playbook still needs", "artifact": "standing_playbook", "arc_stage": "frame", "lead": "determination", "source_key": "standing_playbook.unrecorded_ledger", "themes": ["one_ledger", "named_sections", "what_would_fill_it"], "required": false, "status": "approved" },
+    { "id": "activation_criteria", "title": "Activation criteria", "artifact": "standing_playbook", "arc_stage": "activation", "lead": "record", "source_key": "standing_playbook.activation_criteria", "themes": ["trigger", "source_of_trigger", "activates"], "required": true, "status": "approved" },
+    { "id": "severity_matrix", "title": "Severity matrix", "artifact": "standing_playbook", "arc_stage": "activation", "lead": "record", "source_key": "standing_playbook.severity_matrix", "themes": ["levels", "thresholds", "escalation"], "required": true, "status": "approved" },
+    { "id": "response_team", "title": "Response team and alternates", "artifact": "standing_playbook", "arc_stage": "people", "lead": "record", "source_key": "standing_playbook.response_team", "themes": ["roles", "primary", "alternate", "single_point_of_failure"], "required": true, "status": "approved" },
+    { "id": "key_contacts", "title": "Key contacts", "artifact": "standing_playbook", "arc_stage": "people", "lead": "record", "source_key": "standing_playbook.key_contacts", "themes": ["counsel", "privilege", "insurer", "forensics", "law_enforcement"], "required": true, "status": "approved" },
+    { "id": "first_hour_checklist", "title": "First-hour checklist", "artifact": "standing_playbook", "arc_stage": "first_response", "lead": "record", "source_key": "standing_playbook.first_hour_checklist", "themes": ["fixed_items", "owner", "standing_confirmation"], "required": true, "status": "approved" },
+    { "id": "first_24_hours_checklist", "title": "First-24-hours checklist", "artifact": "standing_playbook", "arc_stage": "first_response", "lead": "record", "source_key": "standing_playbook.first_24_hours_checklist", "themes": ["phasing", "owner", "notification_content"], "required": true, "status": "approved" },
+    { "id": "evidence_preservation", "title": "Evidence preservation", "artifact": "standing_playbook", "arc_stage": "first_response", "lead": "record", "source_key": "standing_playbook.evidence_preservation", "themes": ["estate", "log_rotation", "preservation_action"], "required": true, "status": "approved" },
+    { "id": "containment_eradication_recovery", "title": "Containment, eradication and recovery", "artifact": "standing_playbook", "arc_stage": "analysis", "lead": "determination", "source_key": "standing_playbook.containment_eradication_recovery", "themes": ["order_of_operations", "generic_scope", "decision_log"], "required": true, "status": "approved" },
+    { "id": "breach_classification", "title": "Breach classification framework", "artifact": "standing_playbook", "arc_stage": "analysis", "lead": "record", "source_key": "standing_playbook.breach_classification", "themes": ["cia_taxonomy", "data_categories", "elevated_severity"], "required": true, "status": "approved" },
+    { "id": "statutory_notification_determinations", "title": "Statutory notification determinations", "artifact": "standing_playbook", "arc_stage": "notification", "lead": "determination", "source_key": "standing_playbook.statutory_notification_determinations", "themes": ["by_reference", "no_restatement", "single_writer"], "required": true, "status": "approved" },
+    { "id": "contractual_notification_finding", "title": "Contractual notification obligations — determination", "artifact": "standing_playbook", "arc_stage": "notification", "lead": "determination", "source_key": "standing_playbook.contractual_notification_finding", "themes": ["contractual_clock", "parallel_duties", "shorter_period_governs"], "required": true, "status": "approved" },
+    { "id": "contractual_notifications", "title": "Contractual notification obligations", "artifact": "standing_playbook", "arc_stage": "notification", "lead": "record", "source_key": "standing_playbook.contractual_notifications", "themes": ["counterparty", "deadline", "clause_reference"], "required": true, "status": "approved" },
+    { "id": "communications", "title": "Communications and holding statements", "artifact": "standing_playbook", "arc_stage": "communications", "lead": "determination", "source_key": "standing_playbook.communications", "themes": ["single_spokesperson", "holding_statement", "privilege", "no_premature_numbers"], "required": true, "status": "approved" },
+    { "id": "testing_training", "title": "Testing and training", "artifact": "standing_playbook", "arc_stage": "assurance", "lead": "determination", "source_key": "standing_playbook.testing_training", "themes": ["cadence", "exercise_findings_are_remediation", "new_joiners"], "required": true, "status": "approved" },
+    { "id": "incident_log", "title": "Incident log", "artifact": "incident_worksheet", "arc_stage": "capture", "lead": "record", "source_key": "incident_worksheet.incident_log", "themes": ["contemporaneous", "observation_not_conclusion", "utc"], "required": true, "status": "approved" },
+    { "id": "decision_log", "title": "Decision log", "artifact": "incident_worksheet", "arc_stage": "decision", "lead": "record", "source_key": "incident_worksheet.decision_log", "themes": ["decision", "decided_by", "rationale_at_the_time"], "required": true, "status": "approved" },
+    { "id": "after_action_review", "title": "After-action review", "artifact": "incident_worksheet", "arc_stage": "review", "lead": "record", "source_key": "incident_worksheet.after_action_review", "themes": ["chronology", "detection", "departures", "changes_required"], "required": true, "status": "approved" },
+    { "id": "remediation_tracker", "title": "Remediation tracker", "artifact": "incident_worksheet", "arc_stage": "remediation", "lead": "record", "source_key": "incident_worksheet.remediation_tracker", "themes": ["action", "owner", "deadline", "status"], "required": true, "status": "approved" }
+  ]
+}

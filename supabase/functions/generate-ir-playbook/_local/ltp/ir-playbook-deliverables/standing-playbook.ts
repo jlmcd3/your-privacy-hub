@@ -21,7 +21,7 @@
  */
 import type { DeliverableStatus } from "./types.ts";
 import type { ContentOwnerMapping } from "./types.ts";
-import { HIGH_RISK_DATA_TYPES, TO_BE_COMPLETED } from "./elements.ts";
+import { HIGH_RISK_DATA_TYPES, STANDING_TO_COMPLETE } from "./elements.ts";
 
 export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-item369-2026-08-04";
 
@@ -78,6 +78,11 @@ export interface StandingPlaybook {
   readonly section_order: readonly string[];
   readonly sections: readonly PlaybookSection[];
   readonly information_needed: readonly string[];
+  /**
+   * ITEM 414 (IR-1) — ONE ledger sentence naming the sections the record does
+   * not yet complete. Absent entirely on a complete record.
+   */
+  readonly unrecorded_ledger?: string;
   readonly status: DeliverableStatus;
 }
 
@@ -183,38 +188,38 @@ function buildActivationCriteria(intake: unknown): PlaybookTableSection {
     "Activation criteria",
     ["Trigger", "Source of the trigger", "Activates"],
     rows,
-    "Activation criteria — the standing triggers that put this playbook into force (intake field: activationCriteria).",
+    "Record the standing triggers that put this playbook into force, the source of each trigger and what it activates; that completes this section.",
   );
 }
 
 function buildSeverityMatrix(intake: unknown): PlaybookTableSection {
   const structured = records(get(intake, "severityMatrix")).map((r) => [
-    str(r.level) || TO_BE_COMPLETED,
-    str(r.definition) || TO_BE_COMPLETED,
-    str(r.escalation) || TO_BE_COMPLETED,
+    str(r.level) || STANDING_TO_COMPLETE,
+    str(r.definition) || STANDING_TO_COMPLETE,
+    str(r.escalation) || STANDING_TO_COMPLETE,
   ]);
-  const flat = structured.length ? [] : list(get(intake, "severityThresholds")).map((t) => [t, "Threshold recorded by the organisation", TO_BE_COMPLETED]);
+  const flat = structured.length ? [] : list(get(intake, "severityThresholds")).map((t) => [t, "Threshold recorded by the organisation", STANDING_TO_COMPLETE]);
   return tableOrGap(
     "severity_matrix",
     "Severity matrix",
     ["Severity level", "Definition / threshold", "Escalation on reaching this level"],
     structured.length ? structured : flat,
-    "Severity thresholds — the levels this organisation grades an incident against and what each level escalates to (intake fields: severityMatrix, severityThresholds).",
+    "Record the severity levels an incident is graded against, the threshold for each level and what reaching it escalates to; that completes this section.",
   );
 }
 
 function buildResponseTeam(intake: unknown): PlaybookTableSection {
   const rows = records(get(intake, "responseTeamRoster")).map((r) => [
-    str(r.role) || TO_BE_COMPLETED,
-    str(r.primary) || TO_BE_COMPLETED,
-    str(r.alternate) || TO_BE_COMPLETED,
+    str(r.role) || STANDING_TO_COMPLETE,
+    str(r.primary) || STANDING_TO_COMPLETE,
+    str(r.alternate) || STANDING_TO_COMPLETE,
   ]);
   return tableOrGap(
     "response_team",
     "Response team and alternates",
     ["Role", "Primary", "Alternate"],
     rows,
-    "Response-team roster — each role with a named primary and a named alternate (intake field: responseTeamRoster).",
+    "Record each response role with a named primary and a named alternate; that completes this section.",
     "A role with no named alternate is a single point of failure in an out-of-hours incident.",
   );
 }
@@ -227,8 +232,8 @@ function buildKeyContacts(intake: unknown): PlaybookTableSection {
   if (counsel || counselContact) {
     rows.push([
       "Outside counsel",
-      counsel || TO_BE_COMPLETED,
-      counselContact || TO_BE_COMPLETED,
+      counsel || STANDING_TO_COMPLETE,
+      counselContact || STANDING_TO_COMPLETE,
       privilege === true
         ? "Privilege protocol in force: investigation is instructed through counsel and substantive analysis is directed to counsel."
         : privilege === false
@@ -242,14 +247,14 @@ function buildKeyContacts(intake: unknown): PlaybookTableSection {
     ["Law enforcement", "lawEnforcementContact"],
   ] as const) {
     const v = str(get(intake, key));
-    if (v) rows.push([label, v, TO_BE_COMPLETED, "Standing contact recorded before the incident."]);
+    if (v) rows.push([label, v, STANDING_TO_COMPLETE, "Standing contact recorded before the incident."]);
   }
   return tableOrGap(
     "key_contacts",
     "Key contacts",
     ["Contact type", "Name / firm", "Contact detail", "Note"],
     rows,
-    "Key contacts — outside counsel and the privilege protocol, the cyber insurer, the retained forensic vendor and the law-enforcement point of contact (intake fields: outsideCounselName, outsideCounselContact, privilegeProtocol, insurerContact, forensicVendorContact, lawEnforcementContact).",
+    "Record outside counsel and whether a privilege protocol is in force, the cyber insurer, the retained forensic vendor and the law-enforcement point of contact; that completes this section.",
   );
 }
 
@@ -272,6 +277,24 @@ function buildFirstHour(intake: unknown): PlaybookTableSection {
 }
 
 /**
+ * ITEM 414 (IR-6) — one action per Article 33(3) sub-point, named. The shipped
+ * defect was four consecutive rows built from a single mould, which is a
+ * litany (R7) and tells the reader nothing about what each element requires.
+ * These phrasings PARAPHRASE the sub-points; the verbatim provision text stays
+ * in `content_owner_mapping.elements[].requirement_verbatim`, which is corpus
+ * material and is never rewritten here.
+ */
+const ELEMENT_ACTIONS: Readonly<Record<string, string>> = {
+  a_nature:
+    "Establish the nature of the breach and the categories and approximate numbers of data subjects and records concerned",
+  b_dpo_contact:
+    "Give the name and contact details of the data protection officer or other contact point",
+  c_likely_consequences: "Describe the likely consequences of the breach",
+  d_measures:
+    "Describe the measures taken or proposed to address the breach, including any measures to mitigate its adverse effects",
+};
+
+/**
  * GENERALISATION of the Art. 33(3) content/owner mapping's phasing logic: the
  * first-24-hours arc is the same "what can be established now, what is
  * deferred, and who owns each" question, asked of the whole response rather
@@ -282,7 +305,7 @@ function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): Play
   const first = new Set(mapping?.phasing?.first_tranche ?? []);
   for (const el of mapping?.elements ?? []) {
     rows.push([
-      `Notification content — ${el.citation}: ${el.requirement_verbatim ? "supply the element as the provision states it" : "supply the element"}.`,
+      `${ELEMENT_ACTIONS[el.element] ?? "Supply the notification element the provision requires"}, for ${el.citation}.`,
       el.owner,
       first.has(el.element) ? "First tranche" : "Phased — deferred with a recorded reason",
     ]);
@@ -290,7 +313,7 @@ function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): Play
   const isolation = str(get(intake, "itIsolationAuthority"));
   rows.push([
     "Confirm who may authorise isolation of a production system without further approval.",
-    isolation || TO_BE_COMPLETED,
+    isolation || STANDING_TO_COMPLETE,
     "First 24 hours",
   ]);
   return {
@@ -302,7 +325,7 @@ function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): Play
     status: isolation ? "analysed" : "record_insufficient",
     ...(isolation
       ? {}
-      : { information_needed: "IT isolation authority — the role that may isolate a production system without further approval (intake field: itIsolationAuthority)." }),
+      : { information_needed: "Record which role may isolate a production system without further approval; that completes this section." }),
     note: "The phasing column generalises the Article 33(4) phasing plan: an item that cannot be established in the first tranche is deferred with a recorded reason, not dropped.",
   };
 }
@@ -318,7 +341,7 @@ function buildEvidencePreservation(intake: unknown): PlaybookTableSection {
     "Evidence preservation",
     ["System or log source", "Type", "Preservation action", "Owner"],
     rows,
-    "Key systems and log sources — the estate whose evidence must be preserved before it rotates (intake fields: keySystems, logSources).",
+    "Record the key systems and log sources whose evidence must be preserved before it rotates; that completes this section.",
     "Preservation is instructed in the first hour because most log sources rotate faster than an investigation concludes.",
   );
 }
@@ -340,7 +363,7 @@ function buildClassification(intake: unknown): PlaybookTableSection {
   const rows: string[][] = [];
   for (const limb of CIA_TAXONOMY) {
     if (categories.length === 0) {
-      rows.push([limb.limb, limb.definition, TO_BE_COMPLETED, TO_BE_COMPLETED]);
+      rows.push([limb.limb, limb.definition, STANDING_TO_COMPLETE, STANDING_TO_COMPLETE]);
       continue;
     }
     for (const cat of categories) {
@@ -363,7 +386,7 @@ function buildClassification(intake: unknown): PlaybookTableSection {
     status: categories.length ? "analysed" : "record_insufficient",
     ...(categories.length
       ? {}
-      : { information_needed: "Data categories the organisation holds — the classification framework maps the confidentiality / integrity / availability taxonomy onto them (intake field: dataTypes)." }),
+      : { information_needed: "Record the categories of personal data the organisation holds, which this classification framework is mapped onto; that completes this section." }),
   };
 }
 
@@ -389,9 +412,9 @@ function buildStatutoryPointer(): PlaybookPointerSection {
 function buildContractualNotifications(intake: unknown): PlaybookSection[] {
   const contracts = records(get(intake, "breachNoticeContracts"));
   const rows = contracts.map((c) => [
-    str(c.counterparty) || TO_BE_COMPLETED,
-    str(c.deadline) || TO_BE_COMPLETED,
-    str(c.clause) || TO_BE_COMPLETED,
+    str(c.counterparty) || STANDING_TO_COMPLETE,
+    str(c.deadline) || STANDING_TO_COMPLETE,
+    str(c.clause) || STANDING_TO_COMPLETE,
   ]);
   const tighter = contracts.filter((c) => /\b(?:2[0-3]|1?\d)\s*hours?\b/i.test(str(c.deadline)));
   const finding: PlaybookFindingSection = {
@@ -403,12 +426,12 @@ function buildContractualNotifications(intake: unknown): PlaybookSection[] {
     standard_citation: "Contract — as recorded in the organisation's own agreements",
     record_fact: contracts.length
       ? `${contracts.length} agreement(s) with a breach-notice clause recorded${tighter.length ? `, of which ${tighter.length} run(s) to a period shorter than 24 hours` : ""}.`
-      : "No agreement with a breach-notice clause is recorded on this intake.",
+      : "The organisation has recorded no agreement carrying a breach-notice clause.",
     application: contracts.length
       ? tighter.length
         ? "At least one recorded clause runs to a period shorter than the statutory notification window, so the operational clock for this playbook is the contractual one and the statutory filing is prepared inside it."
         : "The recorded clauses run alongside the statutory duties; each deadline is diarised separately because neither discharges the other."
-      : "The determination cannot be made: whether any counterparty must be notified, and by when, is not answerable on this record.",
+      : "The determination cannot be made: whether any counterparty must be notified, and by when, is not answerable from what the organisation has recorded.",
     verdict: contracts.length
       ? tighter.length
         ? "contractual_clock_governs"
@@ -417,14 +440,14 @@ function buildContractualNotifications(intake: unknown): PlaybookSection[] {
     status: contracts.length ? "analysed" : "record_insufficient",
     ...(contracts.length
       ? {}
-      : { information_needed: "Key contracts carrying a breach-notice clause, each with its counterparty, notice deadline and clause reference (intake field: breachNoticeContracts)." }),
+      : { information_needed: "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference; that completes this section." }),
   };
   const table = tableOrGap(
     "contractual_notifications",
     "Contractual notification obligations",
     ["Contract / counterparty", "Notice deadline", "Clause reference"],
     rows,
-    "Key contracts carrying a breach-notice clause, each with its counterparty, notice deadline and clause reference (intake field: breachNoticeContracts).",
+    "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference; that completes this section.",
   );
   return [finding, table];
 }
@@ -455,7 +478,7 @@ function buildTestingTraining(intake: unknown): PlaybookNoteSection {
     status: next ? "analysed" : "record_insufficient",
     ...(next
       ? {}
-      : { information_needed: "Next planned tabletop exercise date, if one is scheduled (intake field: nextTabletopDate)." }),
+      : { information_needed: "Record the date of the next planned tabletop exercise; that completes this section." }),
   };
 }
 
@@ -478,6 +501,29 @@ export const STANDING_SECTION_ORDER: readonly string[] = [
   "testing_training",
 ];
 
+/**
+ * ITEM 414 (IR-1) — THE LEDGER. One sentence, naming the incomplete sections
+ * by their headings, and pointing at the per-section sentence that says what
+ * would fill each. Nothing is asserted here that the sections do not already
+ * say; the change is register, not honesty. Emitted only where something is
+ * incomplete.
+ */
+function unrecordedLedger(incomplete: readonly PlaybookSection[]): string {
+  const names = incomplete.map((s) => s.heading.replace(/ — determination$/, "").toLowerCase());
+  const unique = [...new Set(names)];
+  const list = unique.length === 1
+    ? unique[0]
+    : `${unique.slice(0, -1).join(", ")} and ${unique[unique.length - 1]}`;
+  const noun = unique.length === 1 ? "One section" : `${WORD_COUNT[unique.length] ?? unique.length} sections`;
+  const verb = unique.length === 1 ? "is" : "are";
+  return `${noun} of this playbook ${verb} incomplete because the organisation has not yet recorded what ${unique.length === 1 ? "it requires" : "they require"}: ${list}. Each of those sections states what to record to complete it.`;
+}
+
+const WORD_COUNT: Readonly<Record<number, string>> = {
+  2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven",
+  8: "Eight", 9: "Nine", 10: "Ten", 11: "Eleven", 12: "Twelve",
+};
+
 export function buildStandingPlaybook(
   intake: unknown,
   mapping?: ContentOwnerMapping,
@@ -498,9 +544,17 @@ export function buildStandingPlaybook(
     buildCommunications(),
     buildTestingTraining(intake),
   ];
-  const information_needed = sections
-    .map((s) => s.information_needed)
-    .filter((x): x is string => Boolean(x));
+  // ITEM 414 (IR-1) — deduplicate: two sections that need the same thing say
+  // it once. The shipped defect carried the breach-notice-contract ask twice,
+  // byte-identical (R8).
+  const information_needed = [
+    ...new Set(
+      sections
+        .map((s) => s.information_needed)
+        .filter((x): x is string => Boolean(x)),
+    ),
+  ];
+  const incomplete = sections.filter((s) => Boolean(s.information_needed));
   return {
     version: STANDING_PLAYBOOK_VERSION,
     artifact: "standing_playbook",
@@ -509,6 +563,7 @@ export function buildStandingPlaybook(
     section_order: STANDING_SECTION_ORDER,
     sections,
     information_needed,
+    ...(incomplete.length ? { unrecorded_ledger: unrecordedLedger(incomplete) } : {}),
     status: information_needed.length ? "record_insufficient" : "analysed",
   };
 }
