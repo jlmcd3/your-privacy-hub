@@ -194,7 +194,7 @@ Deno.test("item409 · assertNoDrift is the STOP condition", () => {
 
 Deno.test("item409 · no builder literal carries a walked-render fact", async () => {
   const files = [
-    "../../../supabase/functions/_shared/ltp/biometric-prose-gold.ts",
+    "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-prose-gold.ts",
     "../../../supabase/functions/_shared/prose/biometric-reference-passages.ts",
   ];
   for (const f of files) {

@@ -44,7 +44,7 @@ The gap was Ops 2, 3, 5 — RECITES/RECITES/RECITES.
 | `build.ts` | The single writer. Pure, never throws, degrades instead of aborting. |
 
 **REUSE LAW.** Every element's verbatim text and every condition's verbatim text is taken
-from `supabase/functions/_shared/registry/admt-verified-authorities.ts`. No statutory text
+from `supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts`. No statutory text
 is retyped in the deliverables layer. The pin test asserts byte-identical containment in
 both directions, so a drifting registry breaks CI rather than shipping a paraphrase.
 

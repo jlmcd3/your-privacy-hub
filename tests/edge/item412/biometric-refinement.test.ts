@@ -423,7 +423,7 @@ Deno.test("item412 the call site wires refinement before the deterministic batte
 
 Deno.test("item412 the deps module meters one api_usage row per call, by product", async () => {
   const src = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/biometric-refinement-deps.ts", import.meta.url),
+    new URL("../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-refinement-deps.ts", import.meta.url),
   );
   assert(src.includes('product: "biometric"'));
   assert(src.includes("refine_critic"));

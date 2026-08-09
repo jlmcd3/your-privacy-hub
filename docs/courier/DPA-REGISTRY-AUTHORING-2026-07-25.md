@@ -26,7 +26,7 @@ Read-only audit of the DPA generator system prompt + assembly blocks identified 
 
 ## 2. Registry file
 
-`supabase/functions/_shared/registry/dpa-verified-authorities.ts` (new, data-only, NOT imported anywhere this turn).
+`supabase/functions/generate-dpa/_local/registry/dpa-verified-authorities.ts` (new, data-only, NOT imported anywhere this turn).
 
 - `DPA_VERIFIED_AUTHORITY_VERSION = "dpa-va-w1-2026-07-25"`
 - `DPA_VERIFIED_AUTHORITIES` — 33 rows conforming to `verified-authority-resolver.ts` (`VerifiedAuthorityRow`: `proposition_key`, `citation`, `subsection`, `verbatim_quote`, `depth_class`, `governing_anchor`, `verified_on`, `primary_source_url`)
@@ -109,7 +109,7 @@ Test file: `supabase/functions/_tests/dpa-registry.test.ts` — LIVE PostgREST f
 
 ## 7. Files touched (only)
 
-- `supabase/functions/_shared/registry/dpa-verified-authorities.ts` — NEW (data-only; not imported anywhere)
+- `supabase/functions/generate-dpa/_local/registry/dpa-verified-authorities.ts` — NEW (data-only; not imported anywhere)
 - `supabase/functions/_tests/dpa-registry.test.ts` — NEW (LIVE-corpus pin-test)
 - `docs/pipeline-state.md` — item 58 appended + header restamp
 - `docs/courier/DPA-REGISTRY-AUTHORING-2026-07-25.md` — this report

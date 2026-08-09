@@ -102,8 +102,8 @@ Deno.test("item404 · banned register is non-empty and excludes the word gap in 
 
 Deno.test("item404 · FACT-EXEMPT — no reference-render fact reaches a builder literal", async () => {
   const files = [
-    "../../../supabase/functions/_shared/ltp/cyber-prose-gold.ts",
-    "../../../supabase/functions/_shared/prose/plans/cyber.spine.ts",
+    "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-prose-gold.ts",
+    "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cyber.spine.ts",
   ];
   for (const f of files) {
     const src = await Deno.readTextFile(new URL(f, import.meta.url));

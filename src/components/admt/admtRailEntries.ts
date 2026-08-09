@@ -410,7 +410,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
 
   // ITEM 308 RETROFIT — intake-rail parity for the Chapter 3 (E)(1) additions.
   // regulationText is the verbatim registry text already carried by
-  // supabase/functions/_shared/registry/admt-verified-authorities.ts.
+  // supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts.
   notice_element_text: {
     coachLead: "Paste the words your notice actually publishes, element by element.",
     coachBody: "Copy the live wording for each element separately. We assess adequacy against your published text, not against a description of it.",

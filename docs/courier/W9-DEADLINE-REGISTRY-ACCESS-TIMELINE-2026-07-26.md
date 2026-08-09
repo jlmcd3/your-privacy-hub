@@ -8,7 +8,7 @@
 
 ## Fix
 
-1. **Registry entry added** to `supabase/functions/_shared/registry/admt-verified-authorities.ts`:
+1. **Registry entry added** to `supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts`:
    ```
    access_timeline: {
      proposition_key: "access_timeline",
@@ -82,7 +82,7 @@ Prior stamps echoed **unchanged** (h6, h7b, h7, w26, w25). Registry loaded repor
 
 ## Files touched
 
-- `supabase/functions/_shared/registry/admt-verified-authorities.ts` — version bump + `access_timeline` row + `ART3` governing-anchor label.
+- `supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts` — version bump + `access_timeline` row + `ART3` governing-anchor label.
 - `supabase/functions/run-admt-checker/_w9_admt_slots.ts` — DEADLINE_SPECS `access_timeline.deadline` updated from placeholder to concrete text.
 - `supabase/functions/run-admt-checker/_w9_admt_access_timeline_corpus.test.ts` — NEW colocated corpus-pin + before-fixture regression tests.
 - `supabase/functions/run-admt-checker/index.ts` — BUILD_STAMP bump + prior_stamps echo of h6.

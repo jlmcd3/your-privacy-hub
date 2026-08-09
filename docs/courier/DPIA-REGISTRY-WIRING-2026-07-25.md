@@ -47,7 +47,7 @@ Contract:
 
 ### (4) LEAK-PREV P2 — schema whitelist serializer
 
-New file `supabase/functions/_shared/report-schemas/dpia.ts` (`DPIA_REPORT_SCHEMA`, version `rs-dpia-w1-2026-07-25`).
+New file `supabase/functions/run-dpia-framework/_local/report-schemas/dpia.ts` (`DPIA_REPORT_SCHEMA`, version `rs-dpia-w1-2026-07-25`).
 
 Top-level allow-list: `section_0_overview`, `section_1_description`, `section_2_analysis`, `section_3_necessity_proportionality`, `section_4_risk_management`, `section_5_interested_parties`, `section_6_conclusion`, `executive_summary`, `dpia_metadata`, `framework_disclaimer`, `disclaimer`, `supervisory_authority_consultation`, `jurisdiction_validation`, `gdpr_meta`, `annotations`, `information_needed`, `open_items`, `completion_guidance`, `has_unresolved_placeholders`, `lint_warnings`, `deterministic_checks`, `citation_ledger`, `fsor_commentary`, `enforcement_context`, `enforcement_precedents`, `enforcement_meta`, `engagement_map`, `dpia_id`, `generated_at`, `prompt_version`, `build_stamp`, `_meta`, `_revision`.
 
@@ -96,7 +96,7 @@ ok | 9 passed | 0 failed (25ms)
 
 - `supabase/functions/run-dpia-framework/index.ts` — `BUILD_STAMP` restamp (`dpia-registry-wiring@2026-07-25T12:36:00Z`); wiring block inserted at lines 2194-2247 (engagement_map → `applyW1DpiaWire` → `runEmitGate` → `serializeCustomerReport` → `lifecycleUpdate`).
 - `supabase/functions/run-dpia-framework/_w1_dpia_wire.ts` — new; deterministic registry-first post-pass with WRITE-AROUND for unanchored propositions.
-- `supabase/functions/_shared/report-schemas/dpia.ts` — new; `DPIA_REPORT_SCHEMA` v `rs-dpia-w1-2026-07-25`.
+- `supabase/functions/run-dpia-framework/_local/report-schemas/dpia.ts` — new; `DPIA_REPORT_SCHEMA` v `rs-dpia-w1-2026-07-25`.
 - `supabase/functions/_shared/emit-gate.ts` — `EmitGateTool` union extended with `"dpia_framework"`.
 - `supabase/functions/_shared/customer-messages.ts` — `dpiaFrameworkContract` import; 48 DPIA labels added to `FIELD_LABELS`; contract fields added to `KNOWN_INTAKE_KEYS`.
 - `supabase/functions/_tests/w1-dpia-wire.test.ts` — new; 9 tests, 9/9 green.
@@ -114,4 +114,4 @@ ok | 9 passed | 0 failed (25ms)
 
 ## 7. Next per T2
 
-**LIA-REGISTRY-AUTHORING** — item 52. Authoring-only (registry data + courier), NO deploy. Mirrors DPIA-REGISTRY-AUTHORING (item 44) shape: enumerate LIA balancing-test citation surface, produce `supabase/functions/_shared/registry/lia-verified-authorities.ts` with quote-safe verbatim rows, list unanchorable propositions for the write-around path. Wiring/deploy turn (`LIA-REGISTRY-WIRING`) follows on approval, mirroring this item.
+**LIA-REGISTRY-AUTHORING** — item 52. Authoring-only (registry data + courier), NO deploy. Mirrors DPIA-REGISTRY-AUTHORING (item 44) shape: enumerate LIA balancing-test citation surface, produce `supabase/functions/run-li-assessment/_local/registry/lia-verified-authorities.ts` with quote-safe verbatim rows, list unanchorable propositions for the write-around path. Wiring/deploy turn (`LIA-REGISTRY-WIRING`) follows on approval, mirroring this item.

@@ -235,7 +235,7 @@ Deno.test("law block quotes approved rows only and degrades honestly", () => {
 
 Deno.test("no statutory text is compiled into the corpus module", async () => {
   const src = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/governance-corpus.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-governance-assessment/_local/ltp/governance-corpus.ts", import.meta.url),
   );
   assert(!/personal data shall be/i.test(src));
   assert(!/The controller shall be responsible for/i.test(src));

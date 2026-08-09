@@ -53,7 +53,7 @@ All in `supabase/functions/_shared/ltp/governance-deliverables/` (`types.ts`, `e
 6. **`risk_calibration_finding`** (Op. 1) — measures argued appropriate or not to *this* controller's nature, scope, context and purposes, using Art. 24(1)'s own named factors. Absent any one of the four, it degrades rather than generalising.
 7. **`review_and_update_finding`** (Op. 5) — reasoned from review cadence and last-review date. Art. 24(1)'s second sentence is held distinct from the appropriateness clause; the standard string is the sentence alone.
 
-Supporting registry: `supabase/functions/_shared/registry/governance-accountability-authorities.ts` — 33 rows anchored to the six articles, each pin-tested as an exact corpus substring.
+Supporting registry: `supabase/functions/run-governance-assessment/_local/registry/governance-accountability-authorities.ts` — 33 rows anchored to the six articles, each pin-tested as an exact corpus substring.
 
 ---
 

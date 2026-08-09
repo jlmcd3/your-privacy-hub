@@ -6,7 +6,7 @@
 precedent of authoring separate from wiring)
 **Team review:** five-lens (privacy-counsel / UI / tech-writing /
 prompt-engineering / CS) — passed at controller review 2026-07-25T10:37Z
-**Deliverable:** `supabase/functions/_shared/registry/dpia-verified-authorities.ts`
+**Deliverable:** `supabase/functions/run-dpia-framework/_local/registry/dpia-verified-authorities.ts`
 (`DPIA_VERIFIED_AUTHORITY_VERSION = "dpia-va-w1-2026-07-25"`)
 
 ---

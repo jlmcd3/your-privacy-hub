@@ -19,9 +19,9 @@ const ROOT = new URL("../../../", import.meta.url);
 
 /** LIA-owned builder surfaces. Non-LIA surfaces are out of scope by ruling. */
 const SURFACES = [
-  "supabase/functions/_shared/ltp/lia-deliverables/build.ts",
-  "supabase/functions/_shared/ltp/lia-deliverables/build-upgrade4.ts",
-  "supabase/functions/_shared/ltp/lia-deliverables/elements.ts",
+  "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts",
+  "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build-upgrade4.ts",
+  "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/elements.ts",
   "supabase/functions/_shared/prose/plans/lia.spine.ts",
   "supabase/functions/run-li-assessment/_lia_boilerplate_cap.ts",
   "supabase/functions/run-li-assessment/_lia_t6_fix.ts",

@@ -339,7 +339,7 @@ Deno.test("ITEM 407 — the call site wires refinement before the deterministic 
 
 Deno.test("ITEM 407 — the deps module meters one api_usage row per call, by product", async () => {
   const src = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/cyber-refinement-deps.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-refinement-deps.ts", import.meta.url),
   );
   assert(src.includes('product: "cppa-cyber"'));
   assert(src.includes("refine_critic"));
