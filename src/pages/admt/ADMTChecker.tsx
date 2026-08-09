@@ -582,6 +582,16 @@ export default function ADMTChecker() {
   const applyRestore = () => {
     const d = restoreData as Record<string, any> | null;
     if (!d) return;
+    // INTAKE-4c — a restored draft carries the customer's own answers on every
+    // prefill row, so the prefill must never overwrite them.
+    setBandTouched(true);
+    setPrefillTouched({
+      hi_reviewer_present: true,
+      vendor_product: true,
+      accessLogicDisclosure: true,
+      accessOutcomeDisclosure: true,
+      noticeFullText: true,
+    });
     if (typeof d.organization_name === "string") setOrganizationName(d.organization_name);
     if (typeof d.system_name === "string") setSystemName(d.system_name);
     if (typeof d.system_type === "string") setSystemType(d.system_type);
