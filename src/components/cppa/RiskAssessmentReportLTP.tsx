@@ -16,6 +16,8 @@ import {
   RiskAttestationBlock,
 } from "@/components/cppa/RiskAnalyticDeliverables";
 import AuthorityExhibit from "@/components/report/AuthorityExhibit";
+// ITEM 420 — dual-read priority actions (string | typed action record).
+import { coerceActionListText } from "@/lib/action-record";
 
 
 /** Renders `**bold**` spans inline; everything else is plain text. */
@@ -208,7 +210,7 @@ export default function RiskAssessmentReportLTP({
       <ListSection
         sectionKey="priority_actions"
         fallbackTitle="Priority Actions"
-        value={report?.priority_actions}
+        value={coerceActionListText(report?.priority_actions)}
       />
       <ListSection sectionKey="next_steps" fallbackTitle="Next Steps" value={report?.next_steps} />
       <ListSection

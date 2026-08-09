@@ -3,6 +3,7 @@
 // supabase/functions/run-cppa-risk-assessment/index.ts (OUTPUT FORMAT block).
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { coerceActionList, sortByRank, type ActionRecord } from "@/lib/action-record";
 
 // CPPA-HF6R Task A — render-layer intake-field-id label map (parity with
 // generate-report-pdf/index.ts RISK_INTAKE_FIELD_LABELS). Fail closed:
@@ -135,10 +136,8 @@ type Inconsistency = {
   resolution_required?: string;
 };
 
-type PriorityAction = {
-  action?: string;
-  statutory_basis?: string;
-  deadline?: string;
+type PriorityAction = ActionRecord & {
+  /** legacy alias for `severity` retained by the V4 table */
   priority?: string;
 };
 
@@ -237,12 +236,13 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
   const inconsistencies = report.inconsistency_flags || [];
   // QB-P25 B3 — priority_actions sorted by rank (ascending, 1 = highest);
   // entries missing a numeric rank sink to the end preserving input order.
-  const actionsRaw = report.priority_actions || [];
-  const actions = [...actionsRaw].sort((a: any, b: any) => {
-    const ar = typeof a?.rank === "number" ? a.rank : Number.POSITIVE_INFINITY;
-    const br = typeof b?.rank === "number" ? b.rank : Number.POSITIVE_INFINITY;
-    return ar - br;
-  });
+  // ITEM 420 — dual-read: a legacy string element becomes { action } so it is
+  // never dropped by this object-shaped table.
+  const actions = sortByRank(
+    (coerceActionList(report.priority_actions) ?? []).map(
+      (i) => (i.record ?? { action: i.text }) as PriorityAction,
+    ),
+  );
   const xtool = report.cross_tool_recommendations || {};
   const enf = report.enforcement_context;
 

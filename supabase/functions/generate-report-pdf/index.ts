@@ -14,6 +14,12 @@ import {
   headerForSection,
 } from "../_shared/report-contracts/cppa-risk-shape.ts";
 import { hasProse9Document } from "./_local/report-contracts/cppa-risk-prose9.ts";
+// ITEM 420 — dual-read (string | typed action record) priority-action rendering.
+import {
+  renderPriorityActionsSectionHtml,
+  renderPriorityActionsOrderedHtml,
+} from "./_local/priority-actions-html.ts";
+import { coerceActionList, sortByRank } from "../_shared/report-contracts/action-record.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
 // ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the
@@ -1505,7 +1511,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const activityPara = coerceNarrativeList(report.risk_assessment_by_activity);
   const scopeConf = coerceNarrativeList(report.scope_confirmation);
   const scopeTrig = coerceNarrativeList(report.scope_and_triggers);
-  const priority = coerceNarrativeList(report.priority_actions);
   const nextSteps = coerceNarrativeList(report.next_steps);
   const strengthen = coerceNarrativeList(report.strengthen_items);
   const exceptions = coerceNarrativeList(report.exception_analysis);
@@ -1569,7 +1574,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("risk_assessment_by_activity", "Risk Assessment by Activity", activityPara)}
     ${buildCPPARiskDeliverablesHTML(report)}
     ${listSection("exception_analysis", "Exception Analysis", exceptions)}
-    ${listSection("priority_actions", "Priority Actions", priority)}
+    ${renderPriorityActionsSectionHtml(report)}
     ${listSection("next_steps", "Next Steps", nextSteps)}
     ${listSection("strengthen_items", "What Would Strengthen the Record", strengthen)}
     ${listSection("information_needed", "Items for Your Review", infoNeeded)}
@@ -1598,12 +1603,12 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
   const activities = Array.isArray(report.risk_assessment_by_activity) ? report.risk_assessment_by_activity : [];
   const exceptions = Array.isArray(report.exception_analysis) ? report.exception_analysis : [];
   // QB-P25 B3 — sort priority actions by rank (1 = highest); missing ranks sink last.
-  const actionsRaw = Array.isArray(report.priority_actions) ? report.priority_actions : [];
-  const actions = [...actionsRaw].sort((a: any, b: any) => {
-    const ar = typeof a?.rank === "number" ? a.rank : Number.POSITIVE_INFINITY;
-    const br = typeof b?.rank === "number" ? b.rank : Number.POSITIVE_INFINITY;
-    return ar - br;
-  });
+  // ITEM 420 — dual-read: string elements become { action } records so the
+  // object-shaped layout below never drops a legacy entry.
+  const actionsRaw = (coerceActionList(report.priority_actions) ?? []).map(
+    (i: any) => i.record ?? { action: i.text },
+  );
+  const actions = sortByRank(actionsRaw as any[]);
   // QB-P25 B3 — lookup for strengthen_item_ids pointer resolution.
   const strengthenItemsMap: Record<string, any> = {};
   for (const it of (Array.isArray(report.strengthen_items) ? report.strengthen_items : [])) {
@@ -2298,9 +2303,7 @@ function buildADMTReportHTML(report: any, record: any): string {
     return `<section class="section"><h2>Access Rights — explanation readiness (§ 7222)</h2>${list.map(elementArticle).join("")}</section>`;
   })();
 
-  const priorityBlock = Array.isArray(report?.priority_actions) && report.priority_actions.length
-    ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a.replace(/^(\s*\d+[.)]\s*)+/, ""))}</li>`).join("")}</ol></section>`
-    : "";
+  const priorityBlock = renderPriorityActionsOrderedHtml(report);
 
   const riskNote = report?.risk_assessment_note
     ? `<div class="callout"><p class="label">Risk Assessment Note</p><p>${text(report.risk_assessment_note)}</p></div>`

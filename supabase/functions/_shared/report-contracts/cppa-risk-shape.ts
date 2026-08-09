@@ -208,3 +208,14 @@ export function assertShippedCoherence(
     evidence: `exec=${execMode}; balance=${asMode}`,
   }];
 }
+
+/** ITEM 420 — dual-read action helpers, re-exported from the canonical module. */
+export {
+  ACTION_RECORD_CONTRACT_VERSION,
+  isActionRecord,
+  formatActionHeadline,
+  coerceActionList,
+  coerceActionListText,
+  sortByRank,
+} from "./action-record.ts";
+export type { ActionRecord, ActionListItem } from "./action-record.ts";
