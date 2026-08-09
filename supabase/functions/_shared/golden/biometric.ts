@@ -248,6 +248,8 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       consent_artifact_type: "Standalone written release signed before collection",
       release_artifact_description:
         "One-page biometric consent form signed at induction, stating the specific purpose (shift clock-in), the term of collection and storage, and naming the retention schedule; countersigned copy retained in the personnel file.",
+      biometric_consent_withdrawal:
+        "Employees may withdraw consent at any time by written request to HR or by email to the privacy mailbox; withdrawal is logged the same day, the template is suspended from matching within one business day and destroyed within 30 days, and the employee reverts to badge clock-in with no adverse consequence.",
       retention_schedule_text:
         "Templates are destroyed on the earlier of (i) satisfaction of the initial purpose of collection or (ii) one year after the employee last interacts with the reader.",
       retention_policy_public: "Yes",
@@ -293,6 +295,7 @@ export const BIOMETRIC_GOLDEN: GoldenCase[] = [
       consent_artifact_type: "Clickwrap or in-product acceptance",
       release_artifact_description:
         "Membership terms of service contain a single sentence permitting 'biometric check-in'; there is no standalone release and no signature specific to biometrics.",
+      biometric_consent_withdrawal: "",
       retention_schedule_text: "",
       retention_policy_public: "No",
       destruction_trigger: "",

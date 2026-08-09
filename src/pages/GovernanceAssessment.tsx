@@ -637,8 +637,16 @@ const GovernanceAssessment = () => {
               <div>
                 <Label>Do you process personal data of EU or UK residents?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3(2) GDPR — extra-territorial scope)</span></Label>
                 <p className="text-meta text-muted-foreground mt-1">Offering goods or services to people in the EU or UK, or monitoring their behaviour, brings you in scope regardless of where the business sits.</p>
+                {/* INTAKE-4f — prefill as confirmation from the jurisdictions
+                    answer above. Click-gated; the stored value is unchanged. */}
+                {!euUkData && (jurisdictions.includes("EU (GDPR)") || jurisdictions.includes("United Kingdom (UK GDPR)")) && (
+                  <button type="button" onClick={() => setEuUkData("Yes")} className="mt-2 block text-xs underline text-primary">
+                    Use my earlier answer — you selected an EU/UK jurisdiction
+                  </button>
+                )}
                 <div className="mt-2"><Radio name="euuk" options={["Yes", "No"]} value={euUkData} onChange={(v) => setEuUkData(v as any)} /></div>
               </div>
+
               <div>
                 <Label>Technology tools that process personal data<Req /></Label>
                 <p className="text-meta text-muted-foreground mt-1">Select what is actually in use, including tools adopted by individual teams. Anything omitted here is outside every finding in the report.</p>
@@ -662,7 +670,15 @@ const GovernanceAssessment = () => {
               <div>
                 <Label>Do you process health, biometric, or other special category data?<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR)</span> <EnforcementSignalIcon signalKey="special_categories" signals={govEnforcementSignals} /></Label>
                 <p className="text-meta text-muted-foreground mt-1">Data that reveals a special category counts, even where it was never asked for. Processing without an Art. 9(2) condition is prohibited outright, not balanced.</p>
+                {/* INTAKE-4f — prefill as confirmation from the data-category
+                    answer above. Click-gated; the stored value is unchanged. */}
+                {!specialCategory && (dataCategories.includes("Health or medical data") || dataCategories.includes("Biometric data")) && (
+                  <button type="button" onClick={() => setSpecialCategory("Yes")} className="mt-2 block text-xs underline text-primary">
+                    Use my earlier answer — you selected health or biometric data
+                  </button>
+                )}
                 <div className="mt-2"><Radio name="spec" options={["Yes", "No"]} value={specialCategory} onChange={(v) => setSpecialCategory(v as any)} /></div>
+
                 {specialCategory === "Yes" && (
                   <div className="mt-3"><Label>Which categories?</Label><div className="mt-2"><Pills options={SPECIAL_CATS} value={specialCategoriesList} onChange={setSpecialCategoriesList} /></div></div>
                 )}
@@ -698,8 +714,9 @@ const GovernanceAssessment = () => {
               <div><Label>Incident response plan covering personal data breaches<Req /> <DefPopover termKey="gdpr_breach_notification" /> <span className="text-xs text-muted-foreground font-mono">(Art. 33 GDPR — 72 hours)</span> <EnforcementSignalIcon signalKey="breach_notification" signals={govEnforcementSignals} /></Label>
                 <p className="text-meta text-muted-foreground mt-1">Art. 33 runs 72 hours from awareness. An untested plan and a tested plan answer different questions about whether that clock can be met.</p>
                 <div className="mt-2"><Radio name="ir" options={["Yes, tested in last 12 months", "Yes, but not tested", "Documented but informal", "No"]} value={incidentResponse} onChange={setIncidentResponse} /></div></div>
-              <div><Label>Can you fulfil access, erasure, portability, and rectification requests across your external and cloud vendors?<Req /> <DefPopover termKey="gdpr_data_subject_rights" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 12, 15–20 GDPR)</span></Label>
-                <p className="text-meta text-muted-foreground mt-1">The duty runs to data held by processors too. Answer on whether a request has actually been carried end to end, not on whether a procedure exists.</p>
+              <div><Label>If someone asked for their data, could you find it, hand it over, or delete it — including data your vendors hold?<Req /> <DefPopover termKey="gdpr_data_subject_rights" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 12, 15–20 GDPR)</span></Label>
+                <p className="text-meta text-muted-foreground mt-1">This covers access, deletion, a copy to take elsewhere, and correction. It includes data sitting with your suppliers and cloud tools. Answer on what you have actually done, not on what the procedure says.</p>
+
                 <div className="mt-2"><Radio name="dsr" options={["Yes — documented and tested across all vendors", "Documented but not tested", "Ad hoc / not documented", "No process in place", "Unsure"]} value={dsrCapability} onChange={setDsrCapability} /></div>
                 {dsrCapability === "Yes — documented and tested across all vendors" && (
                   <div className="mt-3"><Label>Which rights have you tested end-to-end?</Label><div className="mt-2"><Pills options={["Access","Erasure","Portability","Rectification"]} value={dsrRightsTested} onChange={setDsrRightsTested} /></div></div>

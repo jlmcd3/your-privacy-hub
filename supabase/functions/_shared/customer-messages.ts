@@ -424,6 +424,8 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   notice_before_collection: "the notice given before collection",
   consent_artifact_type: "the form the subject's consent took",
   release_artifact_description: "what the signed release says",
+  biometric_consent_withdrawal: "how a person withdraws biometric consent and what happens afterwards",
+
   retention_schedule_text: "the written retention and destruction schedule",
   retention_policy_public: "whether the retention schedule is published",
   destruction_trigger: "what triggers destruction of the identifiers",

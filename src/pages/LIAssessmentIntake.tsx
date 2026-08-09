@@ -61,7 +61,29 @@ const Pills = ({ options, value, onChange }: { options: string[]; value: string[
   </div>
 );
 
+// INTAKE-4e — prefill-as-confirmation helper. Maps the customer's own
+// worst-case harm narrative onto the harm option strings VERBATIM. Returns []
+// when nothing matches, so the affordance simply does not appear. No key,
+// option or stored value is changed by this helper.
+const HARM_KEYWORDS: ReadonlyArray<readonly [string, readonly string[]]> = [
+  ["Financial loss", ["financial", "money", "cost", "monetary", "loss of funds"]],
+  ["Discrimination or unfair treatment", ["discrimin", "unfair", "bias"]],
+  ["Reputational damage", ["reputation", "embarrass", "defam"]],
+  ["Loss of autonomy or control over data", ["autonomy", "control over", "loss of control"]],
+  ["Distress or intrusion", ["distress", "intrus", "anxiety", "upset"]],
+  ["Exclusion from a service", ["exclusion", "excluded", "denied service", "refus"]],
+  ["Physical safety risk", ["physical", "safety", "harm to person", "violence"]],
+  ["Identity theft or fraud exposure", ["identity theft", "fraud", "impersonat"]],
+];
+
+export function HARM_PREFILL(detail: string): string[] {
+  const t = (detail || "").toLowerCase();
+  if (t.trim().length < 20) return [];
+  return HARM_KEYWORDS.filter(([, kws]) => kws.some((k) => t.includes(k))).map(([opt]) => opt);
+}
+
 const LIAssessmentIntake = () => {
+
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { clientId } = useActiveClient();
@@ -670,6 +692,18 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">Are vulnerable groups involved? (select all that apply)</Label>
+            {/* INTAKE-4e — prefill as confirmation. The children answer above
+                supplies the same fact; nothing is stored until the customer
+                clicks. Keys and stored values unchanged. */}
+            {childrenDataSubjects === "Yes" && !vulnerableSubjects.includes("Children under 16") && (
+              <button
+                type="button"
+                onClick={() => setVulnerableSubjects([...vulnerableSubjects.filter((v) => v !== "None"), "Children under 16"])}
+                className="mt-2 text-xs underline text-primary"
+              >
+                Use my earlier answer
+              </button>
+            )}
             <div className="mt-2">
               <Pills
                 options={["Children under 16", "Patients / health context", "Employees", "Job applicants", "Financially vulnerable", "Other", "None"]}
@@ -681,6 +715,7 @@ const LIAssessmentIntake = () => {
               <input value={vulnerableSubjectsOther} onChange={(e) => setVulnerableSubjectsOther(e.target.value)} placeholder="Name the group" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
             )}
           </div>
+
 
           <div>
             <Label className="text-base">If something went wrong, what's the worst-case impact on data subjects? *</Label>
@@ -714,7 +749,19 @@ const LIAssessmentIntake = () => {
           {/* UPGRADE-4 — harms as separate items, feeding the balance directly */}
           <div>
             <Label className="text-base">Which harms could this processing cause? (select all that apply)</Label>
+            {/* INTAKE-4e — prefill as confirmation from the worst-case answer
+                above. Click-gated; option strings are byte-identical. */}
+            {potentialHarms.length === 0 && HARM_PREFILL(potentialHarmDetail).length > 0 && (
+              <button
+                type="button"
+                onClick={() => setPotentialHarms(HARM_PREFILL(potentialHarmDetail))}
+                className="mt-2 text-xs underline text-primary"
+              >
+                Start from my earlier answer
+              </button>
+            )}
             <div className="mt-2" onFocusCapture={focusField("potential_harms")}>
+
               <Pills
                 options={[
                   "Financial loss",
@@ -785,7 +832,19 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">How can data subjects object or opt out? *</Label>
             <p className="text-xs text-muted-foreground mt-1">Give the route, the effort it costs the individual, and how quickly processing stops. A channel with no service standard is not a facilitated right to object.</p>
+            {/* INTAKE-4e — prefill as confirmation from the availability answer
+                above. Click-gated; the customer edits or replaces the text. */}
+            {optOutAvailable === "No opt-out is available" && !optOutMechanism.trim() && (
+              <button
+                type="button"
+                onClick={() => setOptOutMechanism("No opt-out is available. ")}
+                className="mt-2 text-xs underline text-primary"
+              >
+                Start from my earlier answer
+              </button>
+            )}
             <div onFocusCapture={focusField("opt_out_mechanism")}>
+
               <AssistedInput
                 className="mt-2"
                 value={optOutMechanism}
