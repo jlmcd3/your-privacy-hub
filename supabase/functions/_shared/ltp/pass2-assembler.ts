@@ -262,6 +262,8 @@ const NARRATIVE_CLASS_KEYS = new Set([
   "information_needed",
   "opening_summary",
   "submission_summary",
+  // ITEM 428 (PIECE B) — re-homed statutory surface, same harvest owner.
+  "submission_and_retention",
 ]);
 
 /** Existence check for manifest on the RenderPlan. */
@@ -464,7 +466,7 @@ function renderHarvestSection(
       decision: d.telemetry,
     };
   }
-  if (shard.key === "submission_summary") {
+  if (shard.key === "submission_summary" || shard.key === "submission_and_retention") {
     // ITEM 243 defect 2 — POSTURE DEAD-PATH FIX. The assembler's default
     // artifact previously invoked only the cyber-audit schedule text; the
     // § 7120(b) posture clauses authored in submission-postures.ts were

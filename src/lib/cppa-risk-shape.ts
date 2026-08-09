@@ -31,6 +31,8 @@ export const CPPA_RISK_HEADER_MAP: Readonly<Record<string, string>> = {
   activity_analytics: "The § 7152(a) analysis, activity by activity",
   information_needed: "Items for your review",
   submission_summary: "How to submit and retain this assessment",
+  // ITEM 428 (PIECE B) — re-homed statutory submission/retention surface.
+  submission_and_retention: "How to submit and retain this assessment",
 };
 
 export function headerForSection(key: string, fallback?: string): string {
@@ -96,6 +98,7 @@ export const LTP_SECTION_ORDER: readonly string[] = [
   "information_needed",
   "record_sufficiency",
   "submission_summary",
+  "submission_and_retention",
 ];
 
 /**

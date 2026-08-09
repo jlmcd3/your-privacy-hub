@@ -56,6 +56,15 @@ function scalar(v: unknown): string {
   return "";
 }
 
+/**
+ * True when the string is the deterministic statutory submission/retention
+ * block (§ 7157 / § 7155 / § 7121(a) / § 7120(b) prongs) rather than
+ * verdict-class prose. Statutory content never becomes the verdict voice.
+ */
+function isStatutoryBlock(s: string): boolean {
+  return /§\s*7157|§\s*7155|§\s*7121\(a\)|§\s*7120\(b\)/.test(s);
+}
+
 function obj(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {};
 }
@@ -89,19 +98,39 @@ export function normalizeRiskSummaryVoice(
   const org = obj(obj(intake).org_context);
   const legacy = obj(report.assessment_summary);
 
-  // 1. THE VERDICT VOICE.
+  // 1. THE VERDICT VOICE. `submission_summary` is NOT verdict material on the
+  // LTP path — it is the deterministic § 7157 / § 7155(c) / § 7121(a)
+  // statutory block. It is therefore consumed as a verdict input ONLY when the
+  // verdict surface is empty (a degraded legacy document that carries its only
+  // verdict-class prose there); otherwise merging it would give the executive
+  // summary a second voice and duplicate the fact strip (R2/R7).
   let verdict = scalar(report.executive_summary);
   let verdict_source: SummaryVoiceSummary["verdict_source"] = verdict ? "executive_summary" : "absent";
-  const submission = scalar(report.submission_summary);
-  if (!verdict && submission) {
+  const submissionRaw = report.submission_summary;
+  const submission = scalar(submissionRaw);
+  if (!verdict && submission && !isStatutoryBlock(submission)) {
     verdict = submission;
     verdict_source = "submission_summary";
   }
   if (verdict) report.executive_summary = verdict;
 
-  // 2. THE RETIRED SURFACE.
+  // 2. THE RETIRED SURFACE, RE-HOMED BYTE-IDENTICALLY.
+  // ITEM 428 (PIECE B) ruling: the § 7157(a)(1) submission timing, the
+  // § 7155(c) retention rule, the § 7121(a) cohort deadline sentence and the
+  // § 7120(b) prong postures are ratified, law-bearing content. They do not
+  // retire with the surface: the VALUE MOVES UNCHANGED — same string, same
+  // bytes, same object — onto `submission_and_retention`, the statutory
+  // surface that now owns that class. Nothing is reworded, dropped or merged.
   const submission_summary_retired = "submission_summary" in report;
-  if (submission_summary_retired) delete report.submission_summary;
+  if (submission_summary_retired) {
+    if (submissionRaw !== undefined && submissionRaw !== null && submissionRaw !== "") {
+      if (report.submission_and_retention === undefined) {
+        report.submission_and_retention = submissionRaw;
+      }
+    }
+    delete report.submission_summary;
+  }
+
 
   // 3. THE TYPED FACT STRIP.
   const strip: RiskFactStrip = buildFactStrip({
@@ -129,6 +158,6 @@ export function normalizeRiskSummaryVoice(
     verdict_source,
     submission_summary_retired,
     fact_strip_leaves: leaves,
-    surfaces: ["executive_summary", "assessment_summary", "processing_narrative"],
+    surfaces: ["executive_summary", "assessment_summary", "processing_narrative", "submission_and_retention"],
   };
 }

@@ -45,20 +45,29 @@ function flatten(v: unknown, out: string[] = []): string[] {
   return out;
 }
 
-Deno.test("[item362] qc_r1_2 — submission_summary carries the § 7120(b) prong statements", () => {
-  const text = flatten(report.submission_summary).join(" ");
-  assert(!text.includes(PLACEHOLDER), "submission_summary degraded to the placeholder");
-  assert(/§\s*7120\(b\)/.test(text), "no § 7120(b) prong reference on submission_summary");
+// ITEM 428 (PIECE B) — re-homed per item428 Piece B: content unchanged, surface
+// retired. The § 7120(b) prong postures, the § 7157(a)(1) submission timing,
+// the § 7155(c) retention rule and the § 7121(a)(3) cohort deadline now ship
+// on `submission_and_retention`, byte-for-byte as they shipped on
+// `submission_summary`. Each pin below re-points to the new address; every
+// content-level assertion is unchanged.
+const submissionSurface = () =>
+  flatten(report.submission_and_retention ?? report.submission_summary).join(" ");
+
+Deno.test("[item362] qc_r1_2 — submission_and_retention carries the § 7120(b) prong statements", () => {
+  const text = submissionSurface();
+  assert(!text.includes(PLACEHOLDER), "submission_and_retention degraded to the placeholder");
+  assert(/§\s*7120\(b\)/.test(text), "no § 7120(b) prong reference on submission_and_retention");
 });
 
 Deno.test("[item362] qc_r1_3 — § 7157 submission and § 7155 retention content present", () => {
-  const text = flatten(report.submission_summary).join(" ");
+  const text = submissionSurface();
   assert(/§\s*7157\(a\)\(1\)/.test(text), "missing § 7157(a)(1) submission timing");
   assert(/§\s*7155\(c\)/.test(text), "missing § 7155(c) retention rule");
 });
 
 Deno.test("[item362] qc_r1_4_cohort_determinism — resolved band names its § 7121(a) deadline", () => {
-  const text = flatten(report.submission_summary).join(" ");
+  const text = submissionSurface();
   assert(/§\s*7121\(a\)\(3\)/.test(text), "resolved $25M–$50M band did not name § 7121(a)(3)");
   assert(text.includes("April 1, 2030"), "resolved band did not name April 1, 2030");
 });

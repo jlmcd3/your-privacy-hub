@@ -183,6 +183,8 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     "executive_summary",
     "assessment_summary",
     "submission_summary",
+    // ITEM 428 (PIECE B) — statutory submission/retention surface.
+    "submission_and_retention",
     "attestation_block",
     // ITEM 371 / UPGRADE-2 — table of authorities, rendered before the disclaimer.
     "authority_exhibit",
@@ -317,6 +319,7 @@ export const CPPA_RISK_FRONTEND_READ_PATHS: readonly string[] = [
   "executive_summary",
   "assessment_summary",
   "submission_summary",
+  "submission_and_retention",
   "attestation_block",
   "document_metadata",
   "scope_confirmation",

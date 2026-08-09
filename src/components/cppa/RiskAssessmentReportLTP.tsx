@@ -318,6 +318,15 @@ export default function RiskAssessmentReportLTP({
         fallbackTitle="Submission Summary"
         value={report?.submission_summary}
       />
+      {/* ITEM 428 (PIECE B) — the re-homed statutory submission/retention
+          surface. Item428 documents carry the content here; legacy documents
+          carry it above, unchanged. */}
+      <ScalarSection
+        sectionKey="submission_and_retention"
+        fallbackTitle="Submission Summary"
+        value={report?.submission_and_retention}
+      />
+
 
       {/* UPGRADE-2 — § 7152(a)(8)-(9) attestation, at the END of the body. */}
       <RiskAttestationBlock block={report?.attestation_block} />

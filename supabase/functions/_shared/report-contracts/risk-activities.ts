@@ -255,7 +255,7 @@ export function analyticsDuplicationPaths(
   const hits: string[] = [];
   records.forEach((rec, i) => {
     for (const leaf of RISK_ACTIVITY_LEAVES) {
-      const val = (rec as Record<string, unknown>)[leaf as string];
+      const val = (rec as unknown as Record<string, unknown>)[leaf as string];
       if (typeof val === "string" && val.trim() && machine.has(val.trim())) {
         hits.push(`risk_assessment_by_activity[${i}].${String(leaf)}`);
       }

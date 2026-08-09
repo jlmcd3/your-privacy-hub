@@ -58,7 +58,13 @@ export const CPPA_RISK_SURFACE_CONTRACT: readonly SurfaceContractEntry[] = [
   { key: "risk_register", kind: "shaped", types: ["array"], note: "title/description/citation/status." },
   { key: "top_risks", kind: "shaped", types: ["array"], note: "title/description/citation/status." },
 
-  { key: "submission_summary", kind: "prose", types: ["string"] },
+  // ITEM 428 (PIECE B) — re-homed per item428 Piece B: content unchanged,
+  // surface retired. `submission_summary` no longer ships as a top-level
+  // customer surface; the identical § 7157 / § 7155(c) / § 7121(a) /
+  // § 7120(b) bytes ship on `submission_and_retention`. The retired key
+  // stays DECLARED-OPTIONAL so legacy persisted payloads still conform.
+  { key: "submission_summary", kind: "prose", types: ["string"], optional: true },
+  { key: "submission_and_retention", kind: "prose", types: ["string"] },
   { key: "executive_summary", kind: "prose", types: ["string"] },
   { key: "assessment_summary", kind: "shaped", types: ["object"] },
   { key: "scope_and_triggers", kind: "shaped", types: ["array", "object"] },

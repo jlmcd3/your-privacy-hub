@@ -276,6 +276,27 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
     note: 'HARVEST: T7 deterministic emitter. NOT a template, NOT on any deletion list. Subordinated to RenderPlan per CEO ruling: "…SO LONG AS THEY CANNOT OVERRIDE OR DIMINISH ENGINE B."',
   },
   {
+    // ITEM 428 (PIECE B) — the RE-HOMED statutory surface. `submission_summary`
+    // retires as a top-level customer key; the identical § 7157 / § 7155(c) /
+    // § 7121(a) / § 7120(b) bytes ship here. Same owner, same projection.
+    key: "submission_and_retention",
+    owner: {
+      kind: "harvest",
+      template_ids: ["T.risk.cohort"],
+      emitter: "_shared/ltp/cyber-audit-schedule.ts + § 7120 crosswalk clauses",
+      subordinated: true,
+    },
+    project: (plan) => ({
+      cohort_factors: plan.factor_table.filter((r) =>
+        /cohort|7121|7157|revenue|bought_sold_shared/i.test(r.factor_id)
+      ),
+      citation_bindings: plan.citation_bindings.filter((b) =>
+        /7120|7121|7157/.test(b.pinpoint)
+      ),
+    }),
+    note: "ITEM 428 Piece B: re-homed from submission_summary — content unchanged, surface retired.",
+  },
+  {
     key: "submission_summary",
     owner: {
       kind: "harvest",
@@ -699,6 +720,8 @@ const EXPECTED_EMISSION_MAP: Readonly<Record<string, ExpectedEmission>> = {
   // Harvest bindings — subordinated to plan; conditional emission.
   opening_summary: "conditional",
   submission_summary: "conditional",
+  // ITEM 428 (PIECE B) — re-homed statutory surface.
+  submission_and_retention: "conditional",
   // Body sections — conditional on non-empty template render.
   executive_summary: "conditional",
   assessment_summary: "conditional",

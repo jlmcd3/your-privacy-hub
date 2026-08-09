@@ -118,3 +118,18 @@ export function renderSubmissionSummarySectionHtml(report: Record<string, unknow
     ? `<section><h2>${text(headerForSection("submission_summary", "Submission Summary"))}</h2>${para(submission)}</section>`
     : "";
 }
+
+/**
+ * ITEM 428 (PIECE B) — THE RE-HOMED STATUTORY SURFACE.
+ *
+ * The § 7157(a)(1) submission timing, the § 7155(c) retention rule, the
+ * § 7121(a) cohort deadline sentence and the § 7120(b) prong postures now ship
+ * here, byte-for-byte as they shipped on the retired `submission_summary`.
+ * Same header, same paragraph render — only the key moved.
+ */
+export function renderSubmissionAndRetentionSectionHtml(report: Record<string, unknown>): string {
+  const body = coerceNarrativeScalar(report?.submission_and_retention);
+  return body
+    ? `<section><h2>${text(headerForSection("submission_and_retention", "Submission Summary"))}</h2>${para(body)}</section>`
+    : "";
+}
