@@ -1875,7 +1875,23 @@ let playbook_text = lint.clean;
           console.warn("[generate-ir-playbook] IR-PLAYBOOK-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
         }
 
+        // ── ITEM 414 — IR FINALIZE BATTERY (prose gold + coverage + R11 + stamp) ──
+        // THE seam: both artifacts are already on `report_data` and this is the
+        // only path to `terminal_complete`. Runs BEFORE the emit gate so the
+        // gate and the P2 serializer see the repaired prose. Fail-open.
+        try {
+          const { runIrFinalizeBattery } = await import("./_local/ltp/ir-finalize.ts");
+          const fin = runIrFinalizeBattery(
+            report_data as Record<string, unknown>,
+            (body as unknown) as Record<string, unknown>,
+          );
+          report_data = fin.report as Record<string, any>;
+        } catch (e) {
+          console.warn("[generate-ir-playbook] ITEM 414 finalize battery failed (non-fatal):", (e as Error)?.message);
+        }
+
         // ── LEAK-PREV-P1 — EMIT GATE ─────────────────────────────────────
+
         try {
           const { runEmitGate } = await import("../_shared/emit-gate.ts");
           runEmitGate(report_data as any, {
