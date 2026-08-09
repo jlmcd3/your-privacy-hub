@@ -77,9 +77,10 @@ export function formatActionHeadline(record: ActionRecord): string {
   const seen = norm(base);
   const parts: string[] = [base];
 
-  const pinpoint = typeof record.statutory_basis === "string"
-    ? stripMarkdown(record.statutory_basis)
-    : "";
+  const rawPinpoint = typeof record.statutory_basis === "string" && record.statutory_basis.trim()
+    ? record.statutory_basis
+    : (typeof record.citation === "string" ? record.citation : "");
+  const pinpoint = rawPinpoint ? stripMarkdown(rawPinpoint) : "";
   if (pinpoint && !seen.includes(norm(pinpoint))) {
     parts.push(terminate(`Statutory basis: ${pinpoint}`));
   }
