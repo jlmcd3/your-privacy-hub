@@ -23,7 +23,7 @@ const VERDICT =
   "The § 7152(a)(6) balancing on this record returns a high risk determination and the documented benefits outweigh the negative impacts.";
 
 Deno.test("428-B stamp", () => {
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428c-2026-08-09");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428d-2026-08-09");
   assertStringIncludes(RISK_SUMMARY_REHOME_VERSION, "item428");
 });
 

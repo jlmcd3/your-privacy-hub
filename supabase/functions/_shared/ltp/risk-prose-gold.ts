@@ -558,6 +558,73 @@ export function sweepDegradedPlaceholders(
   return res;
 }
 
+// ---------------------------------------------------------------------------
+// ITEM 428-D — NAMED ACTOR ON RESERVED-JUDGMENT ACTIONS
+//
+// Pilot 2be26383 (run #208) shipped rank 1 with the guidance sentence "…the
+// authorised decisionmaker must record a reasoned initiation decision…" on a
+// row whose `reserved_to` was "Chief Compliance Officer". The registry
+// guidance (`cppa-risk-conclusions.ts` j.initiation_decision) says "The
+// business must record …"; refinement had re-voiced the SUBJECT to an unnamed
+// actor, which is exactly the `rubric_actionability` defect ("vague, no
+// owner"). The row already CARRIES the named holder in `reserved_to`, so the
+// name is restored deterministically — no model call, no new fact.
+//
+// Only a MODAL SUBJECT is rewritten ("the authorised decisionmaker must …").
+// The same noun as an OBJECT ("naming the decisionmaker and the date of
+// decision") is a different sentence role and is never touched. Rows without
+// a `reserved_to` value are never touched.
+// ---------------------------------------------------------------------------
+
+/** Unnamed actors that may not stand as the subject of a reserved action. */
+const UNNAMED_ACTOR_SUBJECT_RES: readonly RegExp[] = [
+  /\bthe\s+authoris(?:ed|zed)\s+decision[\s-]?maker\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
+  /\bthe\s+decision[\s-]?maker\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
+  /\bthe\s+business\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
+  /\bthe\s+accountable\s+business\s+owner\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
+];
+
+/** Preserve sentence-initial capitalisation when swapping the subject in. */
+function actorFor(named: string, matched: string): string {
+  const n = named.trim();
+  if (!n) return matched;
+  return /^[A-Z]/.test(matched) ? n.charAt(0).toUpperCase() + n.slice(1) : n;
+}
+
+/** Rewrite unnamed modal subjects in ONE action string to the named holder. */
+export function nameReservedActor(action: string, reservedTo: string): string {
+  const named = String(reservedTo ?? "").trim();
+  let out = String(action ?? "");
+  if (!named || !out) return out;
+  // The holder is already the subject — nothing to restore.
+  for (const re of UNNAMED_ACTOR_SUBJECT_RES) {
+    re.lastIndex = 0;
+    out = out.replace(re, (m) => actorFor(named, m));
+  }
+  return out;
+}
+
+/**
+ * Walks `priority_actions` and restores the named holder as the subject of
+ * every reserved row's prose. Returns the number of rows rewritten.
+ * Register repair — true on ANY record, gate-independent.
+ */
+export function nameReservedActors(report: Record<string, unknown>): number {
+  const rows = (report as { priority_actions?: unknown }).priority_actions;
+  if (!Array.isArray(rows)) return 0;
+  let n = 0;
+  for (const row of rows) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) continue;
+    const r = row as Record<string, unknown>;
+    const holder = typeof r.reserved_to === "string" ? r.reserved_to : "";
+    const action = typeof r.action === "string" ? r.action : "";
+    if (!holder || !action) continue;
+    const next = nameReservedActor(action, holder);
+    if (next !== action) { r.action = next; n++; }
+  }
+  return n;
+}
+
 
 // ---------------------------------------------------------------------------
 // The single entry point
@@ -577,6 +644,8 @@ export interface RiskProseGoldTelemetry {
   /** r4 — global gate-TRUE placeholder sweep. */
   placeholders_swept: number;
   placeholder_paths: string[];
+  /** 428-D — reserved-action rows whose unnamed modal subject was named. */
+  reserved_actors_named: number;
 }
 
 /**
@@ -604,6 +673,7 @@ export function applyRiskProseGold(
     analytics_reasons_rewritten: 0,
     placeholders_swept: 0,
     placeholder_paths: [],
+    reserved_actors_named: 0,
   };
   try {
     // G-2 (register repair, every record) — with the r2 empty-surface guard.
@@ -613,6 +683,11 @@ export function applyRiskProseGold(
       if (stripped !== esBefore && stripped !== esBefore.trim()) t.exec_degraded_opener_stripped = true;
       report.executive_summary = stripped;
     }
+
+    // 428-D (register repair, every record) — a reserved action names its holder.
+    t.reserved_actors_named = nameReservedActors(report);
+
+
 
 
     // G-4 (register repair, every record; status swap gate-aware).
