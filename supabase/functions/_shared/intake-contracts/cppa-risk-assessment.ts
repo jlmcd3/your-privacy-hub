@@ -425,6 +425,12 @@ export const cppaRiskContract: IntakeContract = {
     // UPGRADE-2 (ITEM 4) — § 7152(a)(8) information providers. Legal counsel
     // who provided legal advice is excluded from this record.
     { key: "a8_information_providers", kind: "narrative", required: "always", askEligible: true },
+
+    // ITEM 380 INTAKE-4a — CEO-approved addition. Question lives in the form
+    // at src/pages/CPPARiskAssessment.tsx (~L1330, the block adjacent to the
+    // existing i9_has_existing_dpia question). Optional at the data layer so
+    // legacy stored rows (authored before this key existed) keep validating.
+    { key: "material_change_since_prior", kind: "enum", required: "optional", options: YES_NO_OPTS },
   ],
 
 };

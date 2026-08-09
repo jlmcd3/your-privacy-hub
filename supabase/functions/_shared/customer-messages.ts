@@ -97,6 +97,7 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   i8_contact_email: "contact email address",
   i9_has_existing_dpia: "existence of a prior DPIA",
   i9_existing_dpia_summary: "summary of prior DPIA",
+  material_change_since_prior: "material change since the last assessment",
   exceptions_intake: "regulatory exceptions",
   impact_intake: "impact assessment inputs",
   "impact_intake.likelihood": "likelihood of impact",
