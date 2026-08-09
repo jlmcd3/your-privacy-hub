@@ -46,6 +46,13 @@ export interface FlagCondition {
 export interface Question {
   key: string;
   text: string;
+  /**
+   * Presentation-only follow-up prompt shown under the question text. The
+   * answer is still persisted under the single `key` above, unchanged in shape
+   * — this splits a two-part question into two readable prompts rather than
+   * one long sentence.
+   */
+  followUpPrompt?: string;
   whyWeAsk: string;
   type: QuestionInputType;
   options?: QuestionOption[];
@@ -55,3 +62,4 @@ export interface Question {
   jurisdictionOnly?: string[];
   staticInfoCard?: { title: string; body: string };
 }
+
