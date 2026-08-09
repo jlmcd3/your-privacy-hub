@@ -156,6 +156,8 @@ const DPIAFramework = () => {
   // ITEM 310 — alternatives actually considered and rejected, per processing
   // operation. Feeds the deterministic least-intrusive-means test (Art. 35(7)(b)).
   const [alternativesConsidered, setAlternativesConsidered] = useState<Array<{ processing_operation: string; alternative: string; rejection_reason: string }>>([]);
+  // INTAKE-4d — CEO-approved addition. Residual risk after the safeguards (Art. 35(7)(d)).
+  const [residualRisks, setResidualRisks] = useState("");
 
   const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
 
@@ -392,6 +394,7 @@ const DPIAFramework = () => {
     data_subjects_views_sought: dataSubjectsViewsSought,
     data_subjects_views: dataSubjectsViews,
     alternatives_considered: alternativesConsidered,
+    residual_risks: residualRisks,
 
     // Jurisdiction resolver inputs (deterministic resolvers in run-dpia-framework)
     controller_country: controllerCountry,
@@ -415,7 +418,7 @@ const DPIAFramework = () => {
     supportingAssets, codesOfConduct, dataMinimisationJustification, dataQualityMeasures,
     dataSubjectRightsMechanisms, dpByDesignMeasures, dpoAdvice, dataSubjectsViewsSought,
     dataSubjectsViews, controllerCountry, controllerLand, controllerSector, centralAdminCountry,
-    euDecisionEstablishment, transferFlows, retentionRecordType, alternativesConsidered,
+    euDecisionEstablishment, transferFlows, retentionRecordType, alternativesConsidered, residualRisks,
   ]);
   const initialDraftJson = useMemo(() => JSON.stringify(draftData), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== initialDraftJson, [draftData, initialDraftJson]);
@@ -476,6 +479,7 @@ const DPIAFramework = () => {
     S(d.data_subjects_views_sought, setDataSubjectsViewsSought);
     S(d.data_subjects_views, setDataSubjectsViews);
     A(d.alternatives_considered, setAlternativesConsidered);
+    S(d.residual_risks, setResidualRisks);
     S(d.controller_country, setControllerCountry);
     S(d.controller_land, setControllerLand);
     if (["private","public","federal-public","telecom","postal",""].includes(d.controller_sector)) setControllerSector(d.controller_sector);
