@@ -3,6 +3,7 @@
 // supabase/functions/run-cppa-risk-assessment/index.ts (OUTPUT FORMAT block).
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { coerceExceptionView } from "@/lib/risk-exceptions";
 import { coerceActionList, sortByRank, type ActionRecord } from "@/lib/action-record";
 
 // CPPA-HF6R Task A — render-layer intake-field-id label map (parity with
@@ -78,6 +79,10 @@ type Exception = {
   documentation_status?: string;
   validity_assessment?: string;
   flags?: string[];
+  // ITEM 426 — canonical nine-leaf record.
+  missing_elements?: string[];
+  /** ITEM 426 — a legacy PROSE element projected into this table. */
+  __prose?: string;
 };
 
 // ── D1 enum display mapping (REBUILD-RISK-UI Task 3) ──
@@ -145,7 +150,8 @@ export type V4Report = {
   schema_version?: string;
   assessment_summary?: Summary;
   scope_and_triggers?: { triggered_activities_detail?: TriggerDetail[]; scope_notes?: string };
-  exception_analysis?: Exception[];
+  /** ITEM 426 — five shapes in the wild: absent, empty, string[], legacy object[], typed. */
+  exception_analysis?: Exception[] | string[] | string;
   risk_assessment_by_activity?: ActivityRisk[];
   inconsistency_flags?: Inconsistency[];
   enforcement_context?: {
@@ -231,7 +237,12 @@ const yn = (b?: boolean) => (b === true ? "Yes" : b === false ? "No" : "—");
 export default function RiskAssessmentReportV4({ report }: { report: V4Report }) {
   const s = report.assessment_summary || {};
   const triggers = report.scope_and_triggers?.triggered_activities_detail || [];
-  const exceptions = report.exception_analysis || [];
+  // ITEM 426 — five-shape tolerance through the single discriminator.
+  const exceptionView = coerceExceptionView(report.exception_analysis);
+  const exceptions: Exception[] = [
+    ...exceptionView.texts.map((t) => ({ __prose: t }) as Exception),
+    ...(exceptionView.rows as unknown as Exception[]),
+  ];
   const activities = report.risk_assessment_by_activity || [];
   const inconsistencies = report.inconsistency_flags || [];
   // QB-P25 B3 — priority_actions sorted by rank (ascending, 1 = highest);
@@ -337,6 +348,13 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
           <h2 className="font-body text-display-card font-semibold mb-3">§ 7152 Exception Analysis</h2>
           <Accordion type="multiple">
             {exceptions.map((e, i) => {
+              if (e.__prose) {
+                return (
+                  <div key={i} className="text-sm mb-2">
+                    <p>{e.__prose}</p>
+                  </div>
+                );
+              }
               // Branch on field presence: new advocate-drafter shape vs legacy shape.
               const resolvedStrengthen: any[] = Array.isArray(e.strengthen_item_ids)
                 ? e.strengthen_item_ids.map((id) => strengthenItemsMap[id]).filter(Boolean)
@@ -402,6 +420,15 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                       <>
                         {e.scope_described && <p><strong>Scope:</strong> {e.scope_described}</p>}
                         {e.safeguards_described && <p><strong>Safeguards:</strong> {e.safeguards_described}</p>}
+                        {e.documentation_status && <p><strong>Documentation:</strong> {e.documentation_status}</p>}
+                        {Array.isArray(e.missing_elements) && e.missing_elements.length > 0 && (
+                          <div>
+                            <p className="font-semibold">What the record still needs</p>
+                            <ul className="list-disc pl-5">
+                              {e.missing_elements.map((m, mi) => <li key={mi}>{m}</li>)}
+                            </ul>
+                          </div>
+                        )}
                         {e.validity_assessment && <p><strong>Validity:</strong> {e.validity_assessment}</p>}
                       </>
                     ) : (

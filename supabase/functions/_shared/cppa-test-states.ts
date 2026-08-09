@@ -10,6 +10,8 @@
 // ---------------------------------------------------------------------------
 // Types shared by both tools. Kept structurally identical to the originals.
 // ---------------------------------------------------------------------------
+import { EXCEPTION_PIN } from "./report-contracts/risk-exceptions.ts";
+
 export type TestState = {
   state: "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate";
   basis: string;
@@ -186,16 +188,8 @@ export function computeTestStates(
   // § 1798.145(m) (employment) is INOPERATIVE since 2023-01-01; § 1798.145(o) is
   // commercial-credit-reporting, NOT employment — the employment_context key now
   // carries a counsel-review flag rather than a statutory cite.
-  const EXCEPTION_PIN: Record<string, string> = {
-    fraud_detection: "Cal. Civ. Code § 1798.140(e)(2) (security-and-integrity business purpose; see § 1798.140(ac)); deletion requests: § 1798.105(d)(2)",
-    security_integrity: "Cal. Civ. Code § 1798.140(e)(2) (security-and-integrity business purpose; see § 1798.140(ac)); deletion requests: § 1798.105(d)(2)",
-    debugging: "Cal. Civ. Code § 1798.140(e)(3); deletion requests: § 1798.105(d)(3)",
-    transient_use: "Cal. Civ. Code § 1798.140(e)(4)",
-    internal_research: "Cal. Civ. Code § 1798.140(e)(7); deletion requests: § 1798.105(d)(6) (informed consent) or (d)(7)",
-    legal_compliance: "Cal. Civ. Code § 1798.145(a)(1)(A)–(B); deletion requests: § 1798.105(d)(8)",
-    consumer_request: "Cal. Civ. Code § 1798.105(d)(1) (complete the transaction / provide the requested good or service)",
-    employment_context: "NO CURRENT STATUTORY EXEMPTION — § 1798.145(m) inoperative since 2023-01-01; flag for counsel review",
-  };
+  // ITEM 426 — the pin registry now has ONE home:
+  // _shared/report-contracts/risk-exceptions.ts (values byte-preserved).
   const exceptionsIntake = (rawIntake.exceptions_intake ?? {}) as Record<string, any>;
   const claimed = Object.entries(exceptionsIntake).filter(([, v]: any) => v?.claimed).map(([k]) => k);
   map.M8 = {

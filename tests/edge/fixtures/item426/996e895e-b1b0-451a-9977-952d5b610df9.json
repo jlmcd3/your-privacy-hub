@@ -1,0 +1,12 @@
+{
+  "id": "996e895e-b1b0-451a-9977-952d5b610df9",
+  "report_data": {
+    "exception_analysis": [
+      {
+        "statutory_basis": "Cal. Civ. Code § 1798.140(e)(4)",
+        "facts_supporting": "The record describes bid-request data as processed solely within the OpenRTB pipeline and purportedly deleted within 300 milliseconds. If substantiated, this would fit the § 1798.140(e)(4) transient-use purpose, which requires that personal information not be sold, disclosed to a third party, or used to build a profile about the consumer.",
+        "argument_strength_rationale": "A colorable mapping exists because the 300-millisecond claim tracks the transient-use timeframe, but the record expressly states the exception is not supported by documented data-flow logs or vendor deletion confirmations, leaving all three § 1798.140(e)(4) elements — no sale, no third-party disclosure, no profile-building — unverified on the current record."
+      }
+    ]
+  }
+}
