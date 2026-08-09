@@ -33,7 +33,7 @@ import {
   type VerifiedAuthorityRegistry,
 } from "../../../_shared/verified-authority-resolver.ts";
 
-export const ADMT_ACTION_CITATION_VERSION = "admt-action-citations@item422b-2026-08-09";
+export const ADMT_ACTION_CITATION_VERSION = "admt-action-citations@item422c-2026-08-09";
 
 /** The registry's honest downgrade — the same phrase the W-battery uses. */
 export const ADMT_SUBCHAPTER_FALLBACK = "the applicable ADMT-subchapter provision";
