@@ -212,10 +212,13 @@ export default function EUNoticeQuestions() {
           allowedValuesFor(currentQ),
         )
       : null;
-  const proposalDisplay =
-    proposal && typeof proposal.suggested === "string"
-      ? labelOf(currentQ.key, proposal.suggested)
-      : "";
+  const rawSuggestion = proposal && typeof proposal.suggested === "string" ? proposal.suggested : "";
+  const proposalDisplay = rawSuggestion
+    ? ["yes", "no", "unsure"].includes(rawSuggestion)
+      ? rawSuggestion.charAt(0).toUpperCase() + rawSuggestion.slice(1)
+      : labelOf(currentQ.key, rawSuggestion)
+    : "";
+
 
 
   return (
