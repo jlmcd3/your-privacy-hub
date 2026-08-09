@@ -8,7 +8,7 @@
 import { describe, it, expect } from "vitest";
 import { buildQuestionSet } from "@/data/us-notice-questions";
 import { buildEuQuestionSections } from "@/data/eu-notice-questions";
-import { ROPA_ACTIVITY_QUESTIONS } from "@/data/ropa-questions";
+import { ROPA_QUESTION_REGISTRY } from "@/data/ropa-questions";
 import { EU_PREFILL_RULES, US_PREFILL_RULES } from "@/data/notice-prefill";
 
 const US_STATES = [
@@ -38,6 +38,9 @@ function shapeOf(questions: Q[]): string[] {
 }
 
 describe("INTAKE-2 — persisted contract identity", () => {
+  const ropaQuestions = Object.entries(ROPA_QUESTION_REGISTRY)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .flatMap(([, qs]) => qs) as unknown as Q[];
   const usQuestions = buildQuestionSet(US_STATES) as unknown as Q[];
   const euQuestions = buildEuQuestionSections([
     "GDPR",
@@ -59,7 +62,7 @@ describe("INTAKE-2 — persisted contract identity", () => {
   });
 
   it("RoPA activity keys, types and stored option values are unchanged", () => {
-    expect(shapeOf(ROPA_ACTIVITY_QUESTIONS as unknown as Q[])).toMatchSnapshot();
+    expect(shapeOf(ropaQuestions)).toMatchSnapshot();
   });
 
   it("every prefill rule targets an existing question and never invents keys", () => {
@@ -76,9 +79,7 @@ describe("INTAKE-2 — persisted contract identity", () => {
   });
 
   it("RoPA access_controls keeps its key and shape while splitting presentation", () => {
-    const q = (ROPA_ACTIVITY_QUESTIONS as unknown as (Q & {
-      followUpPrompt?: string;
-    })[]).find((x) => x.key === "access_controls");
+    const q = (ropaQuestions as (Q & { followUpPrompt?: string })[]).find((x) => x.key === "access_controls");
     expect(q).toBeDefined();
     expect(q!.type).toBe("text_long");
     expect(q!.followUpPrompt).toBeTruthy();
