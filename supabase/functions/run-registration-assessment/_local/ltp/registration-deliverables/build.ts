@@ -936,14 +936,15 @@ function buildNarrative(
   const dpoClause = dpo.verdict === "engaged"
     ? "a data protection officer must be designated"
     : dpo.verdict === "record_insufficient"
-    ? "the data protection officer question cannot be settled on this record"
+    // ITEM 413-B: A6 register — "on this record" is a banned phrase.
+    ? "the data protection officer question cannot be settled by the facts recorded"
     : "no data protection officer designation is required";
   const verdictOpener = registrable.length
     ? `${name} is registrable in ${registrable.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
     : conditional.length
     ? `${name}'s registration position is conditional in ${conditional.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
     : insufficient.length
-    ? `${name}'s registration position cannot be settled on this record in ${insufficient.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
+    ? `${name}'s registration position cannot be settled as the record stands in ${insufficient.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
     : `${name} is not registrable under any US state data-broker regime in this product's verified corpus; ${repClause}; ${dpoClause}.`;
 
   const overview = [
