@@ -364,19 +364,19 @@ export default function ADMTChecker() {
   // answers supply the same facts the disclosure has to carry.
   useEffect(() => {
     if (prefillTouched.accessLogicDisclosure || accessLogicDisclosure.trim()) return;
-    const seed = (accessReadiness.b2_logic || "").trim();
+    const seed = (accessReadiness.b2_logic_process || "").trim();
     if (!seed) return;
     setAccessLogicDisclosure(seed);
     markPrefilled("accessLogicDisclosure");
-  }, [accessReadiness.b2_logic, accessLogicDisclosure, prefillTouched.accessLogicDisclosure]);
+  }, [accessReadiness.b2_logic_process, accessLogicDisclosure, prefillTouched.accessLogicDisclosure]);
 
   useEffect(() => {
     if (prefillTouched.accessOutcomeDisclosure || accessOutcomeDisclosure.trim()) return;
-    const seed = (accessReadiness.b3_outcome || "").trim();
+    const seed = (accessReadiness.b3_outcome_process || "").trim();
     if (!seed) return;
     setAccessOutcomeDisclosure(seed);
     markPrefilled("accessOutcomeDisclosure");
-  }, [accessReadiness.b3_outcome, accessOutcomeDisclosure, prefillTouched.accessOutcomeDisclosure]);
+  }, [accessReadiness.b3_outcome_process, accessOutcomeDisclosure, prefillTouched.accessOutcomeDisclosure]);
 
   // noticeFullText — the element-by-element transcription supplies the same
   // sentences; assembled once as a starting point for confirmation.
@@ -1668,11 +1668,11 @@ export default function ADMTChecker() {
                     </p>
                     <div className="space-y-4">
                       {[
-                        ["b1_purpose", "The specific purpose you used the ADMT for, as to that consumer (§ 7222(b)(1))"],
-                        ["b2_logic", "The logic of the ADMT, including its assumptions and limitations (§ 7222(b)(2))"],
-                        ["b3_output_use", "The output produced, and how you used it in the decision (§ 7222(b)(3))"],
-                        ["b3_outcome", "The outcome of the decisionmaking process for that consumer (§ 7222(b)(3))"],
-                        ["b3_human_role", "The role any human played in the decisionmaking process (§ 7222(b)(3))"],
+                        ["b1_purpose", "Why you used the system for that person (§ 7222(b)(1))"],
+                        ["b2_logic", "How the system works, including what it assumes and where it falls short (§ 7222(b)(2))"],
+                        ["b3_output_use", "What the system produced, and how you used it (§ 7222(b)(3))"],
+                        ["b3_outcome", "What the person's decision ended up being (§ 7222(b)(3))"],
+                        ["b3_human_role", "What a human did, if anything (§ 7222(b)(3))"],
                       ].map(([k, label]) => (
                         <div key={k}>
                           <Label className="text-[12px]" data-rail-key={`access_readiness_${k}`} onFocus={() => focus(`access_readiness_${k}`)}>{label}</Label>
