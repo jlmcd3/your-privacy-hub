@@ -15,11 +15,11 @@
  */
 import { describe, it, expect } from "vitest";
 import { IR_CORPUS_SNAPSHOT } from "./__fixtures__/ir-corpus-snapshot";
-import { IR_PLAYBOOK_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/ir-playbook-verified-authorities";
+import { IR_PLAYBOOK_VERIFIED_AUTHORITIES } from "../../../supabase/functions/generate-ir-playbook/_local/registry/ir-playbook-verified-authorities";
 import {
   ANCHOR_KEYS,
   OWNERS,
-} from "../../../supabase/functions/_shared/ltp/ir-playbook-deliverables/elements";
+} from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/elements";
 import {
   attachIrPlaybookDeliverables,
   buildArt34ExemptionAnalysis,
@@ -28,7 +28,7 @@ import {
   buildIrPlaybookDeliverables,
   buildSaNotificationDetermination,
   separateExposure,
-} from "../../../supabase/functions/_shared/ltp/ir-playbook-deliverables/build";
+} from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build";
 import { IR_PLAYBOOK_GOLDEN } from "../../../supabase/functions/_shared/golden/ir-playbook";
 import { irPlaybookContract } from "../../../supabase/functions/_shared/intake-contracts/ir-playbook";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";

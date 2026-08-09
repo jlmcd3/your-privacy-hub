@@ -11,13 +11,13 @@
  */
 import { describe, expect, it } from "vitest";
 import { GOVERNANCE_CORPUS_SNAPSHOT } from "./__fixtures__/governance-corpus-snapshot";
-import { GOVERNANCE_ACCOUNTABILITY_AUTHORITIES } from "../../../supabase/functions/_shared/registry/governance-accountability-authorities";
+import { GOVERNANCE_ACCOUNTABILITY_AUTHORITIES } from "../../../supabase/functions/run-governance-assessment/_local/registry/governance-accountability-authorities";
 import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/governance-verified-authorities";
 import {
   ANCHOR_KEYS,
   ART30_ELEMENTS,
   DEMONSTRABILITY_DUTIES,
-} from "../../../supabase/functions/_shared/ltp/governance-deliverables/elements";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/elements";
 import {
   attachGovernanceDeliverables,
   buildArt30ElementFindings,
@@ -27,7 +27,7 @@ import {
   buildGovernanceDeliverables,
   buildReviewAndUpdateFinding,
   buildRiskCalibrationFinding,
-} from "../../../supabase/functions/_shared/ltp/governance-deliverables/build";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build";
 import { GOVERNANCE_GOLDEN } from "../../../supabase/functions/_shared/golden/governance";
 import { governanceContract } from "../../../supabase/functions/_shared/intake-contracts/governance-assessment";
 

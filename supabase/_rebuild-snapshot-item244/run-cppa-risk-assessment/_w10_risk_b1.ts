@@ -40,8 +40,8 @@ export const W12_RISK_D2_STAMP = "w12-risk-d2@2026-07-25T05:22:00Z";
 export const W19_RISK_TURNB_STAMP = "w19-risk-turnb@2026-07-25T08:26:51Z";
 
 // LEAK-PREV-P0 — customer-message catalog for guard-authored prose.
-import { renderMessage, P } from "../_shared/customer-messages.ts";
-import { buildFactLedger, type FactRow } from "../_shared/intake/fact-ledger.ts";
+import { renderMessage, P } from "../../functions/_shared/customer-messages.ts";
+import { buildFactLedger, type FactRow } from "../../functions/_shared/intake/fact-ledger.ts";
 
 export interface W10RiskB1Counters {
   flags_scanned: number;

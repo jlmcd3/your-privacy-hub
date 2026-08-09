@@ -4,9 +4,9 @@
 // keys.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
-import { ADMT_REPORT_SCHEMA, ADMT_FRONTEND_READ_PATHS } from "../../../supabase/functions/_shared/report-schemas/admt.ts";
+import { ADMT_REPORT_SCHEMA, ADMT_FRONTEND_READ_PATHS } from "../../../supabase/functions/run-admt-checker/_local/report-schemas/admt.ts";
 import { CPPA_RISK_REPORT_SCHEMA, CPPA_RISK_FRONTEND_READ_PATHS } from "../../../supabase/functions/_shared/report-schemas/cppa-risk.ts";
-import { CPPA_CYBER_REPORT_SCHEMA, CPPA_CYBER_FRONTEND_READ_PATHS } from "../../../supabase/functions/_shared/report-schemas/cppa-cyber.ts";
+import { CPPA_CYBER_REPORT_SCHEMA, CPPA_CYBER_FRONTEND_READ_PATHS } from "../../../supabase/functions/run-cppa-cybersecurity/_local/report-schemas/cppa-cyber.ts";
 
 function coversPath(schema: typeof ADMT_REPORT_SCHEMA, path: string): boolean {
   const [head, ...rest] = path.split(".");

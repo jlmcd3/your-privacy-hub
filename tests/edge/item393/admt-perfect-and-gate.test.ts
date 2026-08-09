@@ -21,7 +21,7 @@ import {
 import {
   REFERENCE_RENDER_TOKENS,
   ADMT_PIPELINE_STAMP,
-} from "../../../supabase/functions/_shared/prose/plans/admt.spine.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/prose/plans/admt.spine.ts";
 import { RUN_QUALITY_BATCH_SLUGS } from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
 import {
@@ -29,7 +29,7 @@ import {
   resolveToolVariant,
 } from "../../../supabase/functions/_shared/quality/fixture-variant.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
-import { ADMT_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/admt.ts";
+import { ADMT_REPORT_SCHEMA } from "../../../supabase/functions/run-admt-checker/_local/report-schemas/admt.ts";
 
 const INTAKE = ADMT_PERFECT[0].intake as Record<string, unknown>;
 

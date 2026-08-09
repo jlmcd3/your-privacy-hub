@@ -15,7 +15,7 @@ import {
   REGISTRATION_DELIVERABLES_VERSION,
 } from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-deliverables/build.ts";
 import { REGISTRATION_DUTY_AUTHORITIES } from "../../../supabase/functions/run-registration-assessment/_local/registry/registration-verified-authorities.ts";
-import { runRegistrationFinalizeBattery } from "../../../supabase/functions/_shared/ltp/registration-finalize.ts";
+import { runRegistrationFinalizeBattery } from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-finalize.ts";
 
 /**
  * A PERFECT-SHAPED REGISTRATION RECORD. Every key the form

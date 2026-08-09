@@ -24,7 +24,7 @@ import {
 import {
   BIOMETRIC_PIPELINE_STAMP,
   REFERENCE_RENDER_TOKENS,
-} from "../../../supabase/functions/_shared/prose/plans/biometric.spine.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
 import { RUN_QUALITY_BATCH_SLUGS } from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
 import {
@@ -32,7 +32,7 @@ import {
   resolveToolVariant,
 } from "../../../supabase/functions/_shared/quality/fixture-variant.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
-import { BIOMETRIC_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/biometric.ts";
+import { BIOMETRIC_REPORT_SCHEMA } from "../../../supabase/functions/check-biometric-compliance/_local/report-schemas/biometric.ts";
 import {
   checkPassagesSurviveAssembly,
   toReferencePassages,

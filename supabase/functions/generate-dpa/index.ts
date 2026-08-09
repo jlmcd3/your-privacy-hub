@@ -1571,7 +1571,7 @@ ${ADVISORY_VOICE_RULES}`;
     const applyArt28Annex = async (contractText: string): Promise<string> => {
       try {
         const { resolveProvisionForRender } = await import("../_shared/provision-store.ts");
-        const { checkArt28Coverage, renderArt28CoverageAnnex } = await import("../_shared/dpa-clause-coverage.ts");
+        const { checkArt28Coverage, renderArt28CoverageAnnex } = await import("./_local/dpa-clause-coverage.ts");
         if (!art28Provision) {
           art28Provision = await resolveProvisionForRender(supabase as unknown as { from: (t: string) => any }, "gdpr-art-28");
         }
@@ -1652,7 +1652,7 @@ ${ADVISORY_VOICE_RULES}`;
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER ──────────────────────
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { DPA_REPORT_SCHEMA } = await import("../_shared/report-schemas/dpa.ts");
+      const { DPA_REPORT_SCHEMA } = await import("./_local/report-schemas/dpa.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, DPA_REPORT_SCHEMA);
       if (!telemetry.crashed && serialized && typeof serialized === "object") {
         report_data = serialized as any;
@@ -1773,7 +1773,7 @@ ${ADVISORY_VOICE_RULES}`;
           }
           try {
             const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-            const { DPA_REPORT_SCHEMA } = await import("../_shared/report-schemas/dpa.ts");
+            const { DPA_REPORT_SCHEMA } = await import("./_local/report-schemas/dpa.ts");
             const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, DPA_REPORT_SCHEMA);
             if (!telemetry.crashed && serialized && typeof serialized === "object") {
               report_data = serialized as any;

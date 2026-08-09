@@ -37,7 +37,7 @@
 
 import {
   ADMT_VERIFIED_AUTHORITIES,
-} from "../_shared/registry/admt-verified-authorities.ts";
+} from "./_local/registry/admt-verified-authorities.ts";
 import { resolveByPropositionKey } from "../_shared/verified-authority-resolver.ts";
 
 export const W24_ADMT_ATTR_STAMP = "w24-admt-attr@2026-07-25T18:28:00Z";

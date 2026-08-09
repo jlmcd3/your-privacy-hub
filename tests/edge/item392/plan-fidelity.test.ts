@@ -14,7 +14,7 @@ import {
   ADMT_SECTION_SPECS,
   ADMT_THESIS,
   admtSectionTitle,
-} from "../../../supabase/functions/_shared/prose/plans/admt.spine.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/prose/plans/admt.spine.ts";
 
 const PLAN = JSON.parse(
   await Deno.readTextFile(new URL("../../../library/prose/plans/admt.plan.json", import.meta.url)),

@@ -35,9 +35,9 @@ import {
   dpiaCorpusProvisionsForExhibit,
   EMPTY_DPIA_CORPUS,
   isAllowedDpiaCitation,
-} from "../../../supabase/functions/_shared/ltp/dpia-corpus.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-corpus.ts";
 
-import { DPIA_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/dpia.ts";
+import { DPIA_REPORT_SCHEMA } from "../../../supabase/functions/run-dpia-framework/_local/report-schemas/dpia.ts";
 
 // ── ITEM 1a — assessment team ────────────────────────────────────────────
 

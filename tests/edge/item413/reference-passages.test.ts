@@ -18,7 +18,7 @@ import {
   isGdprArticleCorpusKey,
   REGISTRATION_REFERENCE_PASSAGE_VERSION,
   toRegistrationReferencePassages,
-} from "../../../supabase/functions/_shared/prose/registration-reference-passages.ts";
+} from "../../../supabase/functions/run-registration-assessment/_local/prose/registration-reference-passages.ts";
 import { REGISTRATION_DUTY_AUTHORITIES } from "../../../supabase/functions/run-registration-assessment/_local/registry/registration-verified-authorities.ts";
 
 const CORPUS: Record<string, string> = JSON.parse(

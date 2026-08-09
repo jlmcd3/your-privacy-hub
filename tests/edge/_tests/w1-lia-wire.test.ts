@@ -7,8 +7,8 @@ import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
   LIA_VERIFIED_AUTHORITY_VERSION,
-} from "../../../supabase/functions/_shared/registry/lia-verified-authorities.ts";
-import { LIA_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/lia.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/registry/lia-verified-authorities.ts";
+import { LIA_REPORT_SCHEMA } from "../../../supabase/functions/run-li-assessment/_local/report-schemas/lia.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 

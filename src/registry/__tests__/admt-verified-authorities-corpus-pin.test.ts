@@ -17,7 +17,7 @@
 // (PGHOST unset) — corpus-pin is a CI/dev-only guard.
 
 import { describe, it, expect } from "vitest";
-import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
+import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts";
 
 /** Rows known to be paraphrased. Shrink as corrections land. */
 const KNOWN_PARAPHRASED_KEYS = new Set<string>([

@@ -16,11 +16,11 @@
 //      likelihood, band, verdict or determination moves.
 
 import { describe, it, expect } from "vitest";
-import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/dpia-verified-authorities.ts";
+import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-dpia-framework/_local/registry/dpia-verified-authorities.ts";
 import {
   buildDpiaDeliverables,
   readDpiaRegime,
-} from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
 
 /** Typography-only normalisation — curly quotes/dashes, NBSP, whitespace. */
 function norm(s: string): string {

@@ -40,7 +40,7 @@
 //     (whitelist serializer preserves).
 // ─────────────────────────────────────────────────────────────────────────
 
-import { ADMT_VERIFIED_AUTHORITIES } from "../_shared/registry/admt-verified-authorities.ts";
+import { ADMT_VERIFIED_AUTHORITIES } from "./_local/registry/admt-verified-authorities.ts";
 
 export const W26_ADMT_CITATION_AUDIT_STAMP =
   "w26-admt-citation-audit@2026-07-25T23:34:00Z";

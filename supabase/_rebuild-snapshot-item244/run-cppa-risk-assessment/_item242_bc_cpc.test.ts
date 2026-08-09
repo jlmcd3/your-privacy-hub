@@ -3,16 +3,16 @@ import { assert, assertEquals, assertStringIncludes } from "https://deno.land/st
 import {
   PASS1_DERIVE_SYSTEM,
   PASS1_DERIVE_PROMPT_VERSION,
-} from "../_shared/ltp/content/pass1-derive-prompt.ts";
+} from "../../functions/_shared/ltp/content/pass1-derive-prompt.ts";
 import {
   screenPresentNoteCoherence,
   PASS1_COHERENCE_VERSION,
-} from "../_shared/ltp/pass1-present-note-coherence.ts";
+} from "../../functions/_shared/ltp/pass1-present-note-coherence.ts";
 import {
   MARKETING_PHRASE_PATTERNS,
   collectMarketingReviewFlags,
-} from "../_shared/ltp/value-screen.ts";
-import type { FactorTableEntry } from "../_shared/render-plan/schema.ts";
+} from "../../functions/_shared/ltp/value-screen.ts";
+import type { FactorTableEntry } from "../../functions/_shared/render-plan/schema.ts";
 
 Deno.test("CP-C — prompt version bumped to item242-cpC (rider-inclusive)", () => {
   // Rider (2026-07-28) further bumps the version to include the grounded-note law.

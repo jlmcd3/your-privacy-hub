@@ -110,7 +110,7 @@ export type CppaRiskShape = "prose9" | "ltp" | "v3" | "v4" | "unrecognized";
 
 /**
  * ITEM 369 — prose-9 envelope discriminator. MIRROR of `hasProse9Document` in
- * supabase/functions/_shared/report-contracts/cppa-risk-prose9.ts. Deno edge
+ * supabase/functions/generate-report-pdf/_local/report-contracts/cppa-risk-prose9.ts. Deno edge
  * code cannot import from src/, so this is the sanctioned mirror; both the PDF
  * exporter and this viewer MUST branch on this and nothing else.
  */

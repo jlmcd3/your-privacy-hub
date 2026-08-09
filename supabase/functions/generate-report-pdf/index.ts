@@ -13,7 +13,7 @@ import {
   coerceNarrativeList,
   headerForSection,
 } from "../_shared/report-contracts/cppa-risk-shape.ts";
-import { hasProse9Document } from "../_shared/report-contracts/cppa-risk-prose9.ts";
+import { hasProse9Document } from "./_local/report-contracts/cppa-risk-prose9.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
 // ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the

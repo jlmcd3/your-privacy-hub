@@ -34,7 +34,7 @@
 // `_meta.internal` verbatim.
 // ─────────────────────────────────────────────────────────────────────────
 
-import type { FactRow } from "../_shared/intake/fact-ledger.ts";
+import type { FactRow } from "../../functions/_shared/intake/fact-ledger.ts";
 
 export const W24_RISK_TURNA_STAMP = "w24-risk-turna@2026-07-25T18:14:00Z";
 export const W24_RISK_TURNA_VERSION = "risk-w24-turna-v2-2026-07-25";

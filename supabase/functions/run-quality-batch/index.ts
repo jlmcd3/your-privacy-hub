@@ -1297,7 +1297,7 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
 // regeneration. Drop persistent failures. Returns final accepted intakes plus
 // rejection metadata so the caller can enforce the >30% failure guard.
 async function generateValidatedIntakes(tool: string, count: number): Promise<{ intakes: any[]; rejected: { reason: string }[]; totalAttempted: number }> {
-  const { lintFixture } = await import("../_shared/quality/fixture-lint.ts");
+  const { lintFixture } = await import("./_local/quality/fixture-lint.ts");
   const initial = await generateIntakes(tool, count);
   const accepted: any[] = [];
   const rejected: { reason: string }[] = [];
@@ -2938,8 +2938,8 @@ async function runBatchInner(runId: string): Promise<void> {
         let shadowScoreVal: number | null = null;
         let coverageTagged: Array<{ sector: string; posture: string; branch: string }> | null = null;
         try {
-          const { evaluateGateV2 } = await import("../_shared/quality/gate-v2.ts");
-          const { shadowScore } = await import("../_shared/quality/shadow-score.ts");
+          const { evaluateGateV2 } = await import("./_local/quality/gate-v2.ts");
+          const { shadowScore } = await import("./_local/quality/shadow-score.ts");
           const { tagIntake } = await import("../_shared/quality/coverage-matrix.ts");
           // Pooled doc count across THIS tool's recent consecutive runs.
           const { data: recent } = await admin.from("quality_runs")

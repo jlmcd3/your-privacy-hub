@@ -22,7 +22,7 @@ import {
   CYBER_THESIS,
   CYBER_BANNED_REGISTER,
   REFERENCE_RENDER_TOKENS,
-} from "../../../supabase/functions/_shared/prose/plans/cyber.spine.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cyber.spine.ts";
 
 import {
   applyCyberCustomerRegister,
@@ -39,11 +39,11 @@ import {
   normalizeCyberEnforcementContext,
   repairComparativeCitation,
   stripAggregateArithmetic,
-} from "../../../supabase/functions/_shared/ltp/cyber-prose-gold.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-prose-gold.ts";
 
 import { lintAssembledProse } from "../../../supabase/functions/_shared/prose/assembled-prose-lint.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
-import { CPPA_CYBER_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/cppa-cyber.ts";
+import { CPPA_CYBER_REPORT_SCHEMA } from "../../../supabase/functions/run-cppa-cybersecurity/_local/report-schemas/cppa-cyber.ts";
 
 const planJson = JSON.parse(
   await Deno.readTextFile(new URL("../../../library/prose/plans/cyber.plan.json", import.meta.url)),
@@ -102,8 +102,8 @@ Deno.test("item404 · banned register is non-empty and excludes the word gap in 
 
 Deno.test("item404 · FACT-EXEMPT — no reference-render fact reaches a builder literal", async () => {
   const files = [
-    "../../../supabase/functions/_shared/ltp/cyber-prose-gold.ts",
-    "../../../supabase/functions/_shared/prose/plans/cyber.spine.ts",
+    "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-prose-gold.ts",
+    "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cyber.spine.ts",
   ];
   for (const f of files) {
     const src = await Deno.readTextFile(new URL(f, import.meta.url));

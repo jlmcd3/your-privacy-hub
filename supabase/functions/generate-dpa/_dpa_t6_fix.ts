@@ -40,7 +40,7 @@ import {
   DPA_VERIFIED_AUTHORITIES,
   DPA_UNANCHORED_PROPOSITIONS,
   DPA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/dpa-verified-authorities.ts";
+} from "./_local/registry/dpa-verified-authorities.ts";
 
 export const DPA_T6_FIX_STAMP = "dpa-t6fix@2026-07-26T01:55:00Z";
 

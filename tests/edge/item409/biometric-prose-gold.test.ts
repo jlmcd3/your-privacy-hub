@@ -26,7 +26,7 @@ import {
   BIOMETRIC_SECTION_SPECS,
   BIOMETRIC_THESIS,
   REFERENCE_RENDER_TOKENS,
-} from "../../../supabase/functions/_shared/prose/plans/biometric.spine.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
 
 import {
   applyBiometricCustomerRegister,
@@ -40,7 +40,7 @@ import {
   repairApparatusOpener,
   repairBiometricProse,
   repairRequirementsHeading,
-} from "../../../supabase/functions/_shared/ltp/biometric-prose-gold.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-prose-gold.ts";
 
 import {
   assertNoDrift,
@@ -53,7 +53,7 @@ import {
 import { BIOMETRIC_DUTY_ROWS } from "../../../supabase/functions/check-biometric-compliance/_local/registry/biometric-verified-authorities.ts";
 import { lintAssembledProse } from "../../../supabase/functions/_shared/prose/assembled-prose-lint.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
-import { BIOMETRIC_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/biometric.ts";
+import { BIOMETRIC_REPORT_SCHEMA } from "../../../supabase/functions/check-biometric-compliance/_local/report-schemas/biometric.ts";
 
 const planJson = JSON.parse(
   await Deno.readTextFile(new URL("../../../library/prose/plans/biometric.plan.json", import.meta.url)),
@@ -194,7 +194,7 @@ Deno.test("item409 · assertNoDrift is the STOP condition", () => {
 
 Deno.test("item409 · no builder literal carries a walked-render fact", async () => {
   const files = [
-    "../../../supabase/functions/_shared/ltp/biometric-prose-gold.ts",
+    "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-prose-gold.ts",
     "../../../supabase/functions/_shared/prose/biometric-reference-passages.ts",
   ];
   for (const f of files) {

@@ -24,15 +24,15 @@ import { describe, it, expect } from "vitest";
 import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
-} from "../../../supabase/functions/_shared/registry/lia-verified-authorities.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/registry/lia-verified-authorities.ts";
 import {
   buildAutomatedDecisionAnalysis,
-} from "../../../supabase/functions/_shared/ltp/lia-deliverables/build.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
 import {
   ANNEX_1_RESERVED_NOTE,
   EU_JURISDICTION,
   UK_JURISDICTION,
-} from "../../../supabase/functions/_shared/ltp/lia-deliverables/elements.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/elements.ts";
 
 /** Typography-only normalisation — curly quotes/dashes, NBSP, whitespace. */
 function norm(s: string): string {

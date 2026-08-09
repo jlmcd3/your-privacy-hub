@@ -17,7 +17,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   ADMT_VERIFIED_AUTHORITIES,
-} from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts";
 import {
   NOTICE_ELEMENT_SPECS,
   EXCEPTION_SPECS,

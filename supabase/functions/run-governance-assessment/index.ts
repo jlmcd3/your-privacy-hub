@@ -1209,8 +1209,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // resolver miss degrades honestly to a citation-only law block.
     let governanceCorpusLawBlock = "";
     try {
-      const { fetchGovernanceCorpus, buildGovernanceCorpusLawBlock } = await import(
-        "../_shared/ltp/governance-corpus.ts"
+      const { fetchGovernanceCorpus, buildGovernanceCorpusLawBlock } = await import("./_local/ltp/governance-corpus.ts"
       );
       const govCorpus = await fetchGovernanceCorpus(supabase);
       governanceCorpusLawBlock = buildGovernanceCorpusLawBlock(govCorpus);
@@ -1430,7 +1429,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // `readiness_rationale` from the headline and re-emits the tier as a
     // labelled non-statutory readability aid. Fail-open.
     try {
-      const { attachGovernanceDeliverables } = await import("../_shared/ltp/governance-deliverables/build.ts");
+      const { attachGovernanceDeliverables } = await import("./_local/ltp/governance-deliverables/build.ts");
       const govTelemetry = attachGovernanceDeliverables(
         reportData as Record<string, unknown>,
         ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
@@ -1453,9 +1452,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // sees the spliced document. One pass, no loops. Config-gated by
     // GOVERNANCE_REFINEMENT_ENABLED; fail-open.
     try {
-      const { runGovernanceRefinement } = await import("../_shared/ltp/governance-refinement.ts");
-      const { makeGovernanceRefinementDeps, GOVERNANCE_REFINEMENT_ENABLED } = await import(
-        "../_shared/ltp/governance-refinement-deps.ts"
+      const { runGovernanceRefinement } = await import("./_local/ltp/governance-refinement.ts");
+      const { makeGovernanceRefinementDeps, GOVERNANCE_REFINEMENT_ENABLED } = await import("./_local/ltp/governance-refinement-deps.ts"
       );
       const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
         "../_shared/ltp/coverage-matrix.ts"
@@ -1503,8 +1501,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // P2 serializer, so the gate reads the text the customer will read.
     // Fail-open: a throw leaves the report exactly as assembled.
     try {
-      const { applyGovernanceProseGold } = await import("../_shared/ltp/governance-prose-gold.ts");
-      const { GOVERNANCE_PIPELINE_STAMP } = await import("../_shared/prose/plans/governance.spine.ts");
+      const { applyGovernanceProseGold } = await import("./_local/ltp/governance-prose-gold.ts");
+      const { GOVERNANCE_PIPELINE_STAMP } = await import("./_local/prose/plans/governance.spine.ts");
       const gold = applyGovernanceProseGold(
         reportData as any,
         ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
@@ -1540,7 +1538,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // `assessment.intake_data`, the row the harness and the app both write —
     // never a trimmed projection (the item385 r2 lesson). Fail-open.
     try {
-      const { runGovernanceCsc, attachGovernanceCsc } = await import("../_shared/ltp/governance-csc.ts");
+      const { runGovernanceCsc, attachGovernanceCsc } = await import("./_local/ltp/governance-csc.ts");
       const govRecord = (((assessment as any).intake_data ?? intake ?? {})) as Record<string, unknown>;
       const csc = runGovernanceCsc(reportData as Record<string, unknown>, { intake: govRecord });
       attachGovernanceCsc(reportData as Record<string, unknown>, csc);
@@ -1630,8 +1628,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // before the universal disclaimer. Fail-open.
     try {
       const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
-      const { fetchGovernanceCorpus, governanceCorpusProvisionsForExhibit } = await import(
-        "../_shared/ltp/governance-corpus.ts"
+      const { fetchGovernanceCorpus, governanceCorpusProvisionsForExhibit } = await import("./_local/ltp/governance-corpus.ts"
       );
       const cited = new Set<string>();
       const walkCites = (v: unknown): void => {
@@ -1674,7 +1671,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // pre-serialized reportData (previous behaviour).
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { GOVERNANCE_REPORT_SCHEMA } = await import("../_shared/report-schemas/governance.ts");
+      const { GOVERNANCE_REPORT_SCHEMA } = await import("./_local/report-schemas/governance.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(reportData as any, GOVERNANCE_REPORT_SCHEMA);
       if (!telemetry.crashed && serialized && typeof serialized === "object") {
         reportData = serialized as any;

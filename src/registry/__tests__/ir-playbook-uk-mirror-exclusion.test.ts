@@ -18,7 +18,7 @@ import { describe, it, expect } from "vitest";
 import {
   IR_PLAYBOOK_VERIFIED_AUTHORITIES,
   IR_PLAYBOOK_UNANCHORED_PROPOSITIONS,
-} from "../../../supabase/functions/_shared/registry/ir-playbook-verified-authorities.ts";
+} from "../../../supabase/functions/generate-ir-playbook/_local/registry/ir-playbook-verified-authorities.ts";
 
 const UK_KEYS = ["uk_gdpr_art_33_mirror", "uk_gdpr_art_34_mirror"] as const;
 

@@ -62,7 +62,7 @@
 
 import {
   ADMT_VERIFIED_AUTHORITIES,
-} from "../_shared/registry/admt-verified-authorities.ts";
+} from "./_local/registry/admt-verified-authorities.ts";
 import {
   resolveByPropositionKey,
 } from "../_shared/verified-authority-resolver.ts";

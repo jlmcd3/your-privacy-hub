@@ -10,8 +10,8 @@ import {
   DPA_VERIFIED_AUTHORITIES,
   DPA_UNANCHORED_PROPOSITIONS,
   DPA_VERIFIED_AUTHORITY_VERSION,
-} from "../../../supabase/functions/_shared/registry/dpa-verified-authorities.ts";
-import { DPA_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/dpa.ts";
+} from "../../../supabase/functions/generate-dpa/_local/registry/dpa-verified-authorities.ts";
+import { DPA_REPORT_SCHEMA } from "../../../supabase/functions/generate-dpa/_local/report-schemas/dpa.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 

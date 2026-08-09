@@ -1,9 +1,9 @@
 // ITEM 242 CHECKPOINT A — deterministic-fix asserts (defects 3, 4, 6, 7).
 // Deno tests; no network.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { derivePlan } from "../_shared/ltp/derive.ts";
-import { composePriorityActionsForTest, composeRecordSufficiencyForTest } from "../_shared/ltp/section-composers/cppa-risk.ts";
-import { CPPA_RISK_FACTORS } from "../_shared/factors/cppa-risk-factors.ts";
+import { derivePlan } from "../../functions/_shared/ltp/derive.ts";
+import { composePriorityActionsForTest, composeRecordSufficiencyForTest } from "../../functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { CPPA_RISK_FACTORS } from "../../functions/_shared/factors/cppa-risk-factors.ts";
 
 const buildStamp = "test-item242-a";
 

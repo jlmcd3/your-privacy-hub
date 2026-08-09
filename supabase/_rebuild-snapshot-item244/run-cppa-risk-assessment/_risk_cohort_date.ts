@@ -42,7 +42,7 @@
 // every pipeline path that runs W24A-V3.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { classifyRevenueBand } from "../_shared/cppa-test-states.ts";
+import { classifyRevenueBand } from "../../functions/_shared/cppa-test-states.ts";
 
 // PRE-WAVED-EMITTER-FIXES-2026-07-27: extend from 25_50m-only to a full
 // V2 truth-table over ALL revenue bands. The § 7121(a) tier→deadline map

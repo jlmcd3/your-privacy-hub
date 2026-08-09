@@ -27,13 +27,13 @@ import {
   GOVERNANCE_CSC_SURFACES,
   intakeFilled,
   runGovernanceCsc,
-} from "../../../supabase/functions/_shared/ltp/governance-csc.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-csc.ts";
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { buildDpoDetermination } from "../../../supabase/functions/_shared/ltp/governance-deliverables/build.ts";
+import { buildDpoDetermination } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts";
 import {
   applyVerdictVoice,
   unboundPostureClaims,
-} from "../../../supabase/functions/_shared/ltp/governance-prose-gold.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-prose-gold.ts";
 import { GOVERNANCE_PERFECT } from "../../../supabase/functions/_shared/golden/governance-perfect.ts";
 
 const PERFECT = GOVERNANCE_PERFECT[0].intake as Record<string, unknown>;

@@ -12,7 +12,7 @@
 import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/admt-verified-authorities.ts";
+} from "./_local/registry/admt-verified-authorities.ts";
 // LEAK-PREV-P0 — machinery-authored fallbacks route through the catalog.
 import { renderMessage } from "../_shared/customer-messages.ts";
 

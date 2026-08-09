@@ -23,22 +23,22 @@ import {
   isCyberProtectedPath,
   cyberProtectedReason,
   runCyberRefinement,
-} from "../../../supabase/functions/_shared/ltp/cyber-refinement.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-refinement.ts";
 import {
   CRITIC_PROMPT_BASE,
   MAX_SPLICES,
   VERIFIER_PROMPT_BASE,
   type CriticFinding,
 } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
-import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/risk-refinement.ts";
-import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/lia-refinement.ts";
-import { ADMT_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/admt-refinement.ts";
-import { GOVERNANCE_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/governance-refinement.ts";
+import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement.ts";
+import { ADMT_REFINEMENT_CONFIG } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-refinement.ts";
+import { GOVERNANCE_REFINEMENT_CONFIG } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-refinement.ts";
 import {
   CYBER_SECTION_SPECS,
   CYBER_PIPELINE_STAMP,
-} from "../../../supabase/functions/_shared/prose/plans/cyber.spine.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cyber.spine.ts";
 import { SCHEDULE_LITERALS } from "../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
 
 const finding = (path: string, quote: string, replacement: string): CriticFinding => ({
@@ -339,7 +339,7 @@ Deno.test("ITEM 407 — the call site wires refinement before the deterministic 
 
 Deno.test("ITEM 407 — the deps module meters one api_usage row per call, by product", async () => {
   const src = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/cyber-refinement-deps.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-refinement-deps.ts", import.meta.url),
   );
   assert(src.includes('product: "cppa-cyber"'));
   assert(src.includes("refine_critic"));

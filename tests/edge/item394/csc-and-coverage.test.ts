@@ -13,7 +13,7 @@
 //   item394 gate reads a2 as the ADMT false-absence id
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runAdmtCsc } from "../../../supabase/functions/_shared/ltp/admt-csc.ts";
+import { runAdmtCsc } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-csc.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { ADMT_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";

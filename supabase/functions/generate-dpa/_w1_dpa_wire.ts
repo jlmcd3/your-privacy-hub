@@ -29,7 +29,7 @@ import {
   DPA_VERIFIED_AUTHORITIES,
   DPA_UNANCHORED_PROPOSITIONS,
   DPA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/dpa-verified-authorities.ts";
+} from "./_local/registry/dpa-verified-authorities.ts";
 
 // Fresh-clock stamp (item 52 doctrine: no forward-projecting stamps).
 export const W1_DPA_WIRE_STAMP = "w1-dpa-wire@2026-07-25T14:18:00Z";

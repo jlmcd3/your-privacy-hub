@@ -31,7 +31,7 @@ import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
   LIA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/lia-verified-authorities.ts";
+} from "./_local/registry/lia-verified-authorities.ts";
 
 export const W1_LIA_WIRE_STAMP = "w1-lia-wire@2026-07-25T13:06:13Z";
 

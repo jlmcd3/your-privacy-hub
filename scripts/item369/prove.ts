@@ -17,7 +17,7 @@ import {
 } from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
 import { lintDocumentStyle } from "../../archive/unwired/_shared/prose/style-lint.ts";
 import { auditSectionConnectives } from "../../archive/unwired/_shared/prose/plan-render.ts";
-import { hasProse9Document } from "../../supabase/functions/_shared/report-contracts/cppa-risk-prose9.ts";
+import { hasProse9Document } from "../../supabase/functions/generate-report-pdf/_local/report-contracts/cppa-risk-prose9.ts";
 
 const OUT = new URL("../../docs/reviews/item369/", import.meta.url);
 await Deno.mkdir(OUT, { recursive: true });

@@ -34,7 +34,7 @@
 // `_meta.internal` verbatim (item-32 stamp-echo gate).
 // ─────────────────────────────────────────────────────────────────────────
 
-import type { FactRow } from "../_shared/intake/fact-ledger.ts";
+import type { FactRow } from "../../functions/_shared/intake/fact-ledger.ts";
 
 export const W23_RISK_TURNB_STAMP = "w23-risk-turnb@2026-07-25T17:02:08Z";
 export const W23_RISK_TURNB_VERSION = "risk-w23-turnb-v2-2026-07-25";

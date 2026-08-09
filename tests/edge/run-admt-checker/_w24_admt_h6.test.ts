@@ -10,7 +10,7 @@ import {
   W24_ADMT_H6_STAMP,
   _internals,
 } from "../../../supabase/functions/run-admt-checker/_w24_admt_h6.ts";
-import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
+import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts";
 
 Deno.test("stamp format", () => {
   assert(W24_ADMT_H6_STAMP.startsWith("w24-admt-h6@"));

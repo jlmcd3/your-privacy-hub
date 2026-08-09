@@ -22,7 +22,7 @@ import {
   _modelProviderCallCount_reset,
 } from "../../../../../supabase/functions/_shared/ltp/replay/providers.ts";
 import { runReplayBatch, runReplayDoc } from "../../../../../archive/unwired/_shared/ltp/replay/runner.ts";
-import { compareDoc } from "../../../../../supabase/functions/_shared/ltp/replay/side-by-side.ts";
+import { compareDoc } from "../../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/side-by-side.ts";
 import { defaultSubstanceGateConfig, MINED_PRESENCE_BAND } from "../../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/presence-band.ts";
 import type { Pass1Provider, ReplayDoc } from "../../../../../supabase/functions/_shared/ltp/replay/types.ts";
 import type { DeriveInput } from "../../../../../supabase/functions/_shared/ltp/derive.ts";

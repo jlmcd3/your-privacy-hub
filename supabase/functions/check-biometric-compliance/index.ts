@@ -19,7 +19,7 @@ import { renderRegistryFor } from "./_local/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { serializeCustomerReport } from "../_shared/report-serialize.ts";
-import { BIOMETRIC_REPORT_SCHEMA } from "../_shared/report-schemas/biometric.ts";
+import { BIOMETRIC_REPORT_SCHEMA } from "./_local/report-schemas/biometric.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
@@ -29,7 +29,7 @@ import {
   applyBiometricProseGold,
   repairBiometricProse,
   stampBiometricPipeline,
-} from "../_shared/ltp/biometric-prose-gold.ts";
+} from "./_local/ltp/biometric-prose-gold.ts";
 
 import {
   assertNoDrift,
@@ -38,7 +38,7 @@ import {
   formatDrift,
   toReferencePassages,
 } from "../_shared/prose/biometric-reference-passages.ts";
-import { BIOMETRIC_PIPELINE_STAMP } from "../_shared/prose/plans/biometric.spine.ts";
+import { BIOMETRIC_PIPELINE_STAMP } from "./_local/prose/plans/biometric.spine.ts";
 import { BIOMETRIC_DUTY_ROWS } from "./_local/registry/biometric-verified-authorities.ts";
 
 /**
@@ -1490,9 +1490,8 @@ export async function runBiometricFinalizeBattery(
     // write back to the one surface that matters. `_meta` never reaches the
     // critic — the core strips it.
     try {
-      const { runBiometricRefinement } = await import("../_shared/ltp/biometric-refinement.ts");
-      const { makeBiometricRefinementDeps, BIOMETRIC_REFINEMENT_ENABLED } = await import(
-        "../_shared/ltp/biometric-refinement-deps.ts"
+      const { runBiometricRefinement } = await import("./_local/ltp/biometric-refinement.ts");
+      const { makeBiometricRefinementDeps, BIOMETRIC_REFINEMENT_ENABLED } = await import("./_local/ltp/biometric-refinement-deps.ts"
       );
       const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
         "../_shared/ltp/coverage-matrix.ts"
@@ -1625,7 +1624,7 @@ export async function runBiometricFinalizeBattery(
     // FAIL-OPEN, both passes.
     try {
       const cscStart = Date.now();
-      const { attachBiometricCsc } = await import("../_shared/ltp/biometric-csc.ts");
+      const { attachBiometricCsc } = await import("./_local/ltp/biometric-csc.ts");
       const bioRecord = ((body ?? {}) as unknown) as Record<string, unknown>;
       const csc = attachBiometricCsc(report_data as Record<string, unknown>, {
         intake: bioRecord,

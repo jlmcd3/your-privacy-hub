@@ -27,7 +27,7 @@ import {
   DPIA_VERIFIED_AUTHORITIES,
   DPIA_UNANCHORED_PROPOSITIONS,
   DPIA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/dpia-verified-authorities.ts";
+} from "./_local/registry/dpia-verified-authorities.ts";
 
 export const W1_DPIA_WIRE_STAMP = "w1-dpia-wire@2026-07-25T12:36:00Z";
 

@@ -66,8 +66,8 @@ import {
 } from "./_local/ltp/admt-deliverables/build.ts";
 console.log(`[run-admt-checker] boot admt_deliverables=${ADMT_DELIVERABLES_VERSION}`);
 // ITEM 392 — ADMT prose gold (plan encode + register repairs AG-1..AG-3).
-import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "../_shared/ltp/admt-prose-gold.ts";
-import { ADMT_PIPELINE_STAMP } from "../_shared/prose/plans/admt.spine.ts";
+import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "./_local/ltp/admt-prose-gold.ts";
+import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
 console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION}`);
 
 
@@ -81,7 +81,7 @@ import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa
 import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/admt-verified-authorities.ts";
+} from "./_local/registry/admt-verified-authorities.ts";
 import {
   resolveByPropositionKey,
   resolveByCitationString,
@@ -123,7 +123,7 @@ import {
   EMPTY_ADMT_CORPUS,
   fetchAdmtCorpus,
   admtCorpusProvisionsForExhibit,
-} from "../_shared/ltp/admt-corpus.ts";
+} from "./_local/ltp/admt-corpus.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
@@ -2649,9 +2649,8 @@ Return this JSON structure exactly:
     // downstream deterministic pass sees the spliced document.
     // One pass, no loops. Config-gated by ADMT_REFINEMENT_ENABLED; fail-open.
     try {
-      const { runAdmtRefinement } = await import("../_shared/ltp/admt-refinement.ts");
-      const { makeAdmtRefinementDeps, ADMT_REFINEMENT_ENABLED } = await import(
-        "../_shared/ltp/admt-refinement-deps.ts"
+      const { runAdmtRefinement } = await import("./_local/ltp/admt-refinement.ts");
+      const { makeAdmtRefinementDeps, ADMT_REFINEMENT_ENABLED } = await import("./_local/ltp/admt-refinement-deps.ts"
       );
       const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
         "../_shared/ltp/coverage-matrix.ts"
@@ -2719,7 +2718,7 @@ Return this JSON structure exactly:
     // BEFORE the record-complete gate, so the gate reads their telemetry off
     // `_meta.internal`. Both receive the FULL PERSISTED RECORD.
     try {
-      const { attachAdmtCsc } = await import("../_shared/ltp/admt-csc.ts");
+      const { attachAdmtCsc } = await import("./_local/ltp/admt-csc.ts");
       const csc = attachAdmtCsc(report as Record<string, unknown>, {
         intake: ((assessment as any).intake_data ?? {}) as Record<string, unknown>,
       });
@@ -2870,7 +2869,7 @@ Return this JSON structure exactly:
     let __p2_ok = false;
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { ADMT_REPORT_SCHEMA } = await import("../_shared/report-schemas/admt.ts");
+      const { ADMT_REPORT_SCHEMA } = await import("./_local/report-schemas/admt.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(report as any, ADMT_REPORT_SCHEMA);
       if (!telemetry.crashed) {
         report = serialized as any;

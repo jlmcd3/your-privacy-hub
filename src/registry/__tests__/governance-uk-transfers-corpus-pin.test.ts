@@ -23,11 +23,11 @@ import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_sh
 import {
   buildTransferAnalysis,
   readTransferFacts,
-} from "../../../supabase/functions/_shared/ltp/governance-deliverables/build.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts";
 import {
   EU_JURISDICTION,
   UK_JURISDICTION,
-} from "../../../supabase/functions/_shared/ltp/governance-deliverables/elements.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/elements.ts";
 
 /** Typography-only normalisation — curly quotes/dashes, NBSP, whitespace. */
 function norm(s: string): string {

@@ -27,10 +27,10 @@
 // Guidance below is PARAPHRASED, not verbatim —
 // EXCEPT entries that carry `verbatimPropositionKey`, whose `guidance` string
 // is the byte-exact `verbatim_quote` from the engine's verified-authority
-// registry (supabase/functions/_shared/registry/dpia-verified-authorities.ts,
+// registry (supabase/functions/run-dpia-framework/_local/registry/dpia-verified-authorities.ts,
 // WP248-PINNING 2026-08-01). Those entries are reused, never retyped.
 
-import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/dpia-verified-authorities";
+import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-dpia-framework/_local/registry/dpia-verified-authorities";
 
 export const EDPB_DPIA_SOURCE = {
   label: "EDPB DPIA Template Explainer v1.0 (adopted 10 March 2026)",

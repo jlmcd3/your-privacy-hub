@@ -11,12 +11,12 @@ import {
   buildGovernanceDeliverables,
   buildRemediationRecord,
   isAdverse,
-} from "../../../supabase/functions/_shared/ltp/governance-deliverables/build.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts";
 import {
   DOMAIN_LABELS,
   DOMAIN_TRACKER,
-} from "../../../supabase/functions/_shared/ltp/governance-deliverables/elements.ts";
-import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/governance.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/elements.ts";
+import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/run-governance-assessment/_local/report-schemas/governance.ts";
 
 const thin = {
   organization_name: "Thin Records Ltd",
@@ -186,7 +186,7 @@ import {
   GOVERNANCE_CORPUS_KEYS,
   governanceCorpusProvisionsForExhibit,
   isAllowedGovernanceCitation,
-} from "../../../supabase/functions/_shared/ltp/governance-corpus.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-corpus.ts";
 import { buildAuthorityExhibit } from "../../../supabase/functions/_shared/report-exhibits/authority-exhibit.ts";
 
 const CORPUS_FIXTURE = {
@@ -235,7 +235,7 @@ Deno.test("law block quotes approved rows only and degrades honestly", () => {
 
 Deno.test("no statutory text is compiled into the corpus module", async () => {
   const src = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/governance-corpus.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-governance-assessment/_local/ltp/governance-corpus.ts", import.meta.url),
   );
   assert(!/personal data shall be/i.test(src));
   assert(!/The controller shall be responsible for/i.test(src));

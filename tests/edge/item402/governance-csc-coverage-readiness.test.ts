@@ -26,8 +26,8 @@ import {
   GOVERNANCE_CSC_SURFACES,
   GOVERNANCE_LABEL_ABSENCE_RE,
   runGovernanceCsc,
-} from "../../../supabase/functions/_shared/ltp/governance-csc.ts";
-import { GOVERNANCE_ABSENCE_LABEL_PHRASINGS } from "../../../supabase/functions/_shared/ltp/governance-prose-gold.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-csc.ts";
+import { GOVERNANCE_ABSENCE_LABEL_PHRASINGS } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-prose-gold.ts";
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 import {
@@ -39,8 +39,8 @@ import { GOVERNANCE_PERFECT } from "../../../supabase/functions/_shared/golden/g
 import {
   GOVERNANCE_CRITIC_WATCHLIST,
   GOVERNANCE_WATCH_CLASSES,
-} from "../../../supabase/functions/_shared/ltp/governance-refinement-config.ts";
-import { LIA_CRITIC_WATCHLIST } from "../../../supabase/functions/_shared/ltp/lia-refinement-config.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-refinement-config.ts";
+import { LIA_CRITIC_WATCHLIST } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement-config.ts";
 
 const PERFECT = GOVERNANCE_PERFECT[0].intake as Record<string, unknown>;
 

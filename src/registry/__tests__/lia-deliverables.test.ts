@@ -20,7 +20,7 @@ import {
 import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
-} from "../../../supabase/functions/_shared/registry/lia-verified-authorities";
+} from "../../../supabase/functions/run-li-assessment/_local/registry/lia-verified-authorities";
 import {
   buildChildFactor,
   buildDetermination,
@@ -28,8 +28,8 @@ import {
   buildPublicAuthorityExclusion,
   buildReasonableExpectations,
   classifyRecordedMitigations,
-} from "../../../supabase/functions/_shared/ltp/lia-deliverables/build";
-import { ANCHOR_KEYS } from "../../../supabase/functions/_shared/ltp/lia-deliverables/elements";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build";
+import { ANCHOR_KEYS } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/elements";
 import { LIA_GOLDEN } from "../../../supabase/functions/_shared/golden/lia";
 
 const CORPUS = [
