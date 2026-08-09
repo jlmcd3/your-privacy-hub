@@ -28,9 +28,10 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
   },
   {
     key: "vam_sensitive_data_consent",
-    text: "If you process sensitive data (precise geolocation, racial/ethnic origin, religious beliefs, health, sexual orientation, citizenship/immigration, genetic/biometric data, children's data), do you obtain opt-in consent before processing?",
+    text: "Do you get opt-in consent before processing sensitive data?",
     whyWeAsk:
-      "Most Virginia-model states require affirmative opt-in consent before processing sensitive data. [Virginia CDPA § 59.1-578(A)(5), Colorado CPA § 6-1-1308(7)]",
+      "Sensitive data here means precise geolocation, racial or ethnic origin, religious beliefs, health, sexual orientation, citizenship or immigration status, genetic or biometric data, and children's data. Most Virginia-model states require affirmative opt-in consent before processing it. [Virginia CDPA § 59.1-578(A)(5), Colorado CPA § 6-1-1308(7)]",
+
     type: "single_choice",
     options: [
       { value: "yes_consent", label: "Yes — we obtain opt-in consent" },
