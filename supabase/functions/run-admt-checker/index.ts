@@ -71,6 +71,8 @@ import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
 import { normalizeAdmtPriorityActions, ADMT_ACTION_RECORD_WRITER_VERSION } from "./_local/ltp/admt-action-records.ts";
 // ITEM 422-B — registry-resolved citations on the typed priority actions.
 import { resolveAdmtActionCitations, sealAdmtActionCitations, ADMT_ACTION_CITATION_VERSION } from "./_local/ltp/admt-action-citations.ts";
+import { sweepAdmtOutOfRangeCitations, ADMT_RANGE_SWEEP_VERSION } from "./_local/ltp/admt-citation-range-sweep.ts";
+console.log(`[run-admt-checker] boot admt_range_sweep=${ADMT_RANGE_SWEEP_VERSION}`);
 console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION} action_records=${ADMT_ACTION_RECORD_WRITER_VERSION} action_citations=${ADMT_ACTION_CITATION_VERSION}`);
 
 
@@ -2690,6 +2692,21 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] ITEM 422-C seal failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 422-C DEFECT 3 — OUT-OF-RANGE CITATION SWEEP.
+    // Runs after the seal, over every citation-bearing surface in the report
+    // schema (structured pinpoints AND prose — the W9 G4 prose walker skips
+    // structured citation keys, which is how § 7021(b) reached deadline_table).
+    // Out-of-range pinpoints are WITHHELD, never rewritten to a guess.
+    try {
+      const rangeSweep = sweepAdmtOutOfRangeCitations(report);
+      console.log(JSON.stringify({
+        evt: "item422c_range_sweep", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...rangeSweep,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 422-C range sweep failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── ITEM 395 LEG D — ADMT REFINEMENT PASS ─────────────────────────
