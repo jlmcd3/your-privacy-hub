@@ -14,7 +14,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } 
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
-import { DPIA_VERIFIED_AUTHORITIES } from "../_shared/registry/dpia-verified-authorities.ts";
+import { DPIA_VERIFIED_AUTHORITIES } from "./_local/registry/dpia-verified-authorities.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
@@ -1161,8 +1161,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
   // miss degrades honestly to a citation-only law block.
   let dpiaCorpusLawBlock = "";
   try {
-    const { fetchDpiaCorpus, buildDpiaCorpusLawBlock } = await import(
-      "../_shared/ltp/dpia-corpus.ts"
+    const { fetchDpiaCorpus, buildDpiaCorpusLawBlock } = await import("./_local/ltp/dpia-corpus.ts"
     );
     const dpiaCorpus = await fetchDpiaCorpus(supabase);
     dpiaCorpusLawBlock = buildDpiaCorpusLawBlock(dpiaCorpus);
@@ -2421,7 +2420,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // risk_register[] and art36_consultation. Deterministic, pure, and
     // built from the record only. Fail-open.
     try {
-      const { attachDpiaDeliverables } = await import("../_shared/ltp/dpia-deliverables/build.ts");
+      const { attachDpiaDeliverables } = await import("./_local/ltp/dpia-deliverables/build.ts");
       const dmeta = attachDpiaDeliverables(
         reportData as Record<string, unknown>,
         (dpiaIntake ?? {}) as Record<string, unknown>,
@@ -2474,7 +2473,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // Config-gated by DPIA_REFINEMENT_ENABLED; fail-open in every branch.
     try {
       setRefinementSourceRowId(dpia_id ?? null); // ITEM 377 §2 — metering attribution
-      const { runDpiaRefinement } = await import("../_shared/ltp/dpia-refinement.ts");
+      const { runDpiaRefinement } = await import("./_local/ltp/dpia-refinement.ts");
       // ITEM 379 §3 — the deterministic COVERAGE list is computed BEFORE the
       // critic call and is the ONLY permitted anchor set for its
       // material-omission findings. It is recomputed after splice (below) for
@@ -2551,7 +2550,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // DPIA register. Runs after the emit gate, before frame substitution.
     // Fail-open.
     try {
-      const { applyBracketTagPass } = await import("../_shared/prose/bracket-tags.ts");
+      const { applyBracketTagPass } = await import("./_local/prose/bracket-tags.ts");
       const bt = applyBracketTagPass(reportData as any);
       console.log(JSON.stringify({ evt: "dpia_bracket_tags", fn: "run-dpia-framework", ...bt }));
     } catch (e) {
@@ -2619,8 +2618,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // are removed unless the intake itself contains them, so an inferred row
     // states its category and its basis and claims nothing further. Fail-open.
     try {
-      const { applyInferredGeneralisation } = await import(
-        "../_shared/prose/inferred-generalisation.ts"
+      const { applyInferredGeneralisation } = await import("./_local/prose/inferred-generalisation.ts"
       );
       const ig = applyInferredGeneralisation(reportData as any, dpiaIntake);
       console.log(JSON.stringify({ evt: "dpia_inferred_generalisation", fn: "run-dpia-framework", ...ig }));
@@ -2634,8 +2632,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // does not, the bare close is dropped rather than shipped as a content-
     // free instruction. Fail-open.
     try {
-      const { applyAdvisoryCloseRepair } = await import(
-        "../_shared/prose/advisory-close-repair.ts"
+      const { applyAdvisoryCloseRepair } = await import("./_local/prose/advisory-close-repair.ts"
       );
       const ac = applyAdvisoryCloseRepair(reportData as any);
       console.log(JSON.stringify({ evt: "dpia_advisory_close_repair", fn: "run-dpia-framework", ...ac }));
@@ -2648,8 +2645,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // annotations / precedent surfaces are kept; every other tag is removed
     // from prose, so the reader never meets a pointer to nothing. Fail-open.
     try {
-      const { applyEnforcementTagGate } = await import(
-        "../_shared/prose/enforcement-tag-gate.ts"
+      const { applyEnforcementTagGate } = await import("./_local/prose/enforcement-tag-gate.ts"
       );
       const et = applyEnforcementTagGate(reportData as any);
       console.log(JSON.stringify({ evt: "dpia_enforcement_tag_gate", fn: "run-dpia-framework", ...et }));
@@ -2787,8 +2783,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // immediately before the universal disclaimer. Fail-open.
     try {
       const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
-      const { fetchDpiaCorpus, dpiaCorpusProvisionsForExhibit } = await import(
-        "../_shared/ltp/dpia-corpus.ts"
+      const { fetchDpiaCorpus, dpiaCorpusProvisionsForExhibit } = await import("./_local/ltp/dpia-corpus.ts"
       );
       const cited = new Set<string>();
       const walkCites = (v: unknown): void => {
@@ -2866,7 +2861,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // the pre-serialized reportData (previous behaviour).
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { DPIA_REPORT_SCHEMA } = await import("../_shared/report-schemas/dpia.ts");
+      const { DPIA_REPORT_SCHEMA } = await import("./_local/report-schemas/dpia.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(reportData as any, DPIA_REPORT_SCHEMA);
       if (!telemetry.crashed && serialized && typeof serialized === "object") {
         reportData = serialized as any;

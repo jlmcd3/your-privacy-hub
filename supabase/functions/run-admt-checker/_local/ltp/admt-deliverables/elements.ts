@@ -14,7 +14,7 @@
  */
 import {
   ADMT_VERIFIED_AUTHORITIES,
-} from "../../../../_shared/registry/admt-verified-authorities.ts";
+} from "../../registry/admt-verified-authorities.ts";
 import { requireVerified } from "../../../../_shared/verified-authority-resolver.ts";
 import type { NoticeElementId } from "./types.ts";
 

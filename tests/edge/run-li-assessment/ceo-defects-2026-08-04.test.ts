@@ -12,7 +12,7 @@ import {
   enforceStorageLimitationCrossRead,
   retentionOnRecord,
 } from "../../../supabase/functions/run-li-assessment/_lia_storage_limitation.ts";
-import { ANNEX_1_RESERVED_NOTE } from "../../../supabase/functions/_shared/ltp/lia-deliverables/elements.ts";
+import { ANNEX_1_RESERVED_NOTE } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/elements.ts";
 import { SANCTIONED_COUNSEL_REGISTER } from "../../../supabase/functions/_shared/emit-gate.ts";
 import { runFormatChecksGeneric } from "../../../supabase/functions/_shared/grader/format-checks.ts";
 import { REPORT_DISCLAIMER } from "../../../supabase/functions/_shared/report-disclaimer.ts";

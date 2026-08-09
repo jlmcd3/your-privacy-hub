@@ -7,7 +7,7 @@
 // otherwise present as a silently blank section on screen and in the PDF.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { ADMT_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/admt.ts";
+import { ADMT_REPORT_SCHEMA } from "../../../supabase/functions/run-admt-checker/_local/report-schemas/admt.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 
 const top = new Set(ADMT_REPORT_SCHEMA.topLevel);

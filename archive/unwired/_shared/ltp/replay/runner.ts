@@ -11,9 +11,9 @@ import { assembleReport } from "../../../../../supabase/functions/_shared/ltp/pa
 import type { AssemblerResult, SectionTelemetry } from "../../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
 import { runProsePassStage } from "../../../../../supabase/functions/_shared/ltp/pass2r-llm.ts";
 import type { RenderPlan } from "../../../../../supabase/functions/_shared/render-plan/schema.ts";
-import { evaluateSubstance } from "../../../../../supabase/functions/_shared/ltp/replay/substance-gates.ts";
+import { evaluateSubstance } from "../../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/substance-gates.ts";
 
-import { compareDoc } from "../../../../../supabase/functions/_shared/ltp/replay/side-by-side.ts";
+import { compareDoc } from "../../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/side-by-side.ts";
 import {
   REPLAY_HARNESS_VERSION,
   type AggregateReport,

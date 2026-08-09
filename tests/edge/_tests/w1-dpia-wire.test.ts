@@ -6,7 +6,7 @@ import { applyW1DpiaWire, W1_DPIA_WIRE_STAMP } from "../../../supabase/functions
 import {
   DPIA_VERIFIED_AUTHORITIES,
   DPIA_UNANCHORED_PROPOSITIONS,
-} from "../../../supabase/functions/_shared/registry/dpia-verified-authorities.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/registry/dpia-verified-authorities.ts";
 
 // Pick one deterministic registry key + one unanchored key that both exist.
 const REGISTRY_KEYS = Object.keys(DPIA_VERIFIED_AUTHORITIES);

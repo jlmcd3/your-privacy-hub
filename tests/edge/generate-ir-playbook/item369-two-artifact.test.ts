@@ -11,16 +11,16 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   buildStandingPlaybook,
   STANDING_SECTION_ORDER,
-} from "../../../supabase/functions/_shared/ltp/ir-playbook-deliverables/standing-playbook.ts";
+} from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/standing-playbook.ts";
 import {
   buildIncidentWorksheet,
   WORKSHEET_FORM_ORDER,
-} from "../../../supabase/functions/_shared/ltp/ir-playbook-deliverables/incident-worksheet.ts";
+} from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/incident-worksheet.ts";
 import {
   IR_PLAYBOOK_REPORT_SCHEMA,
   IR_STANDING_SECTION_KEYS,
   IR_WORKSHEET_FORM_KEYS,
-} from "../../../supabase/functions/_shared/report-schemas/ir-playbook.ts";
+} from "../../../supabase/functions/generate-ir-playbook/_local/report-schemas/ir-playbook.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 
 const FULL_INTAKE = {
@@ -171,7 +171,7 @@ Deno.test("ITEM369 — the serializer keeps both artifacts and drops an unreview
 
 import { buildIRStandingPlaybookHTML, buildIRWorksheetHTML } from "../../../supabase/functions/generate-report-pdf/ir-artifacts-html.ts";
 import { applyUniversalDisclaimerHtml, REPORT_DISCLAIMER } from "../../../supabase/functions/_shared/report-disclaimer.ts";
-import { mapContentOwnerToEdpbTemplate } from "../../../supabase/functions/_shared/ltp/ir-playbook-deliverables/edpb-art33-template.ts";
+import { mapContentOwnerToEdpbTemplate } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/edpb-art33-template.ts";
 
 const EXHIBIT_TAG = `<section class="section authority-exhibit"`;
 

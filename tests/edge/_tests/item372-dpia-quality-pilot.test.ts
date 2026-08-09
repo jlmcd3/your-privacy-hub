@@ -19,7 +19,7 @@ import {
   describeTag,
   isBareTag,
   labelledBlank,
-} from "../../../supabase/functions/_shared/prose/bracket-tags.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/prose/bracket-tags.ts";
 import {
   buildDeterminationBlock,
   DETERMINATION_HEADING,
@@ -265,8 +265,7 @@ Deno.test("rider: the universal disclaimer and the sanctioned register stay exem
 // ---------------------------------------------------------------------------
 
 Deno.test("2b: orphan closing brackets are dropped; balanced brackets survive", async () => {
-  const { dropOrphanBrackets, applyBracketTagPass, countProseInterruptions } = await import(
-    "../../../supabase/functions/_shared/prose/bracket-tags.ts"
+  const { dropOrphanBrackets, applyBracketTagPass, countProseInterruptions } = await import("../../../supabase/functions/run-dpia-framework/_local/prose/bracket-tags.ts"
   );
   assertEquals(
     dropOrphanBrackets("The organisation named no processor. ]"),

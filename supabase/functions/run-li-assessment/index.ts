@@ -36,7 +36,7 @@ import { buildLiaEngagementMap } from "../_shared/engagement-map.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
 import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
-import { LIA_VERIFIED_AUTHORITIES } from "../_shared/registry/lia-verified-authorities.ts";
+import { LIA_VERIFIED_AUTHORITIES } from "./_local/registry/lia-verified-authorities.ts";
 
 // RUNTIME-1 — local reliability helpers (fence-compliant; per-function dir).
 import { withUpstreamRetry, heartbeat as liaHeartbeat, ensureTerminalFnRun as liaEnsureTerminal } from "./reliability.ts";
@@ -929,10 +929,10 @@ async function runAssessment(assessment_id: string, assessment: any, opts?: { re
     // provisions) plus the pin-verified EDPB 1/2024 excerpts. Approved rows
     // are quotable; everything else is named citation-only. Fail-open: on
     // any error the block is omitted and the prompt is unchanged.
-    let liaCorpus: import("../_shared/ltp/lia-corpus.ts").LiaCorpus | null = null;
+    let liaCorpus: import("./_local/ltp/lia-corpus.ts").LiaCorpus | null = null;
     let liaCorpusLawBlock = "";
     try {
-      const { fetchLiaCorpus, buildLiaCorpusLawBlock } = await import("../_shared/ltp/lia-corpus.ts");
+      const { fetchLiaCorpus, buildLiaCorpusLawBlock } = await import("./_local/ltp/lia-corpus.ts");
       liaCorpus = await fetchLiaCorpus(supabase);
       liaCorpusLawBlock = buildLiaCorpusLawBlock(liaCorpus);
       console.log(JSON.stringify({
@@ -1679,7 +1679,7 @@ Return JSON:
     // / necessity_details / balancing_details), not the trimmed intake object.
     // Fail-open.
     try {
-      const { attachLiaDeliverables } = await import("../_shared/ltp/lia-deliverables/build.ts");
+      const { attachLiaDeliverables } = await import("./_local/ltp/lia-deliverables/build.ts");
       const lmeta = attachLiaDeliverables(
         reportData as Record<string, unknown>,
         assessment as unknown as Record<string, unknown>,
@@ -1698,7 +1698,7 @@ Return JSON:
     // (attestation_block). Deterministic, built from the full persisted row.
     // Fail-open.
     try {
-      const { attachLiaUpgrade4 } = await import("../_shared/ltp/lia-deliverables/build-upgrade4.ts");
+      const { attachLiaUpgrade4 } = await import("./_local/ltp/lia-deliverables/build-upgrade4.ts");
       const umeta = attachLiaUpgrade4(
         reportData as Record<string, unknown>,
         assessment as unknown as Record<string, unknown>,
@@ -1804,7 +1804,7 @@ Return JSON:
     // at the end of the body, before the universal disclaimer. Fail-open.
     try {
       const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
-      const { liaCorpusProvisionsForExhibit } = await import("../_shared/ltp/lia-corpus.ts");
+      const { liaCorpusProvisionsForExhibit } = await import("./_local/ltp/lia-corpus.ts");
       const cited = new Set<string>();
       const walkCites = (v: unknown): void => {
         if (typeof v === "string") {
@@ -1828,7 +1828,7 @@ Return JSON:
       // This is the resumed isolate: the corpus resolved for the analysis pass
       // lives in the other isolate, so it is re-resolved here. Same closed-set
       // resolver, same pin verification — approved rows only.
-      const { fetchLiaCorpus } = await import("../_shared/ltp/lia-corpus.ts");
+      const { fetchLiaCorpus } = await import("./_local/ltp/lia-corpus.ts");
       const exhibitCorpus = await fetchLiaCorpus(supabase);
       const exhibit = buildAuthorityExhibit(
         [...cited],
@@ -1854,9 +1854,8 @@ Return JSON:
     // gate — so every downstream deterministic pass sees the spliced document.
     // One pass, no loops. Config-gated by LIA_REFINEMENT_ENABLED; fail-open.
     try {
-      const { runLiaRefinement } = await import("../_shared/ltp/lia-refinement.ts");
-      const { makeLiaRefinementDeps, LIA_REFINEMENT_ENABLED } = await import(
-        "../_shared/ltp/lia-refinement-deps.ts"
+      const { runLiaRefinement } = await import("./_local/ltp/lia-refinement.ts");
+      const { makeLiaRefinementDeps, LIA_REFINEMENT_ENABLED } = await import("./_local/ltp/lia-refinement-deps.ts"
       );
       const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
         "../_shared/ltp/coverage-matrix.ts"
@@ -1946,7 +1945,7 @@ Return JSON:
     // record-complete gate, whose `csc_false_absence` arm reads its
     // telemetry. Rides `_meta.internal.lia_csc`.
     try {
-      const { attachLiaCsc } = await import("../_shared/ltp/lia-csc.ts");
+      const { attachLiaCsc } = await import("./_local/ltp/lia-csc.ts");
       const { loadApprovedFrameSet } = await import("../_shared/prose/frame-substitution.ts");
       const cscFrameSet = await loadApprovedFrameSet(supabase, "lia").catch(() => undefined);
       // ITEM 385 r2 — the FULL persisted row, as the deliverables builder
@@ -2072,7 +2071,7 @@ Return JSON:
     // pre-serialized reportData (previous behaviour).
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { LIA_REPORT_SCHEMA } = await import("../_shared/report-schemas/lia.ts");
+      const { LIA_REPORT_SCHEMA } = await import("./_local/report-schemas/lia.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(reportData as any, LIA_REPORT_SCHEMA);
       if (!telemetry.crashed && serialized && typeof serialized === "object") {
         reportData = serialized as any;

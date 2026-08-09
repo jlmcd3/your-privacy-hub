@@ -26,10 +26,10 @@ import {
   biometricCarriesAbsence,
   biometricSurfaceBacked,
   runBiometricCsc,
-} from "../../../supabase/functions/_shared/ltp/biometric-csc.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-csc.ts";
 import {
   BIOMETRIC_ABSENCE_LABEL_PHRASINGS,
-} from "../../../supabase/functions/_shared/ltp/biometric-prose-gold.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-prose-gold.ts";
 import {
   attachCoverage,
   BIOMETRIC_COVERAGE_LINKS,
@@ -38,7 +38,7 @@ import {
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { BIOMETRIC_PERFECT } from "../../../supabase/functions/_shared/golden/biometric-perfect.ts";
 import { buildBiometricDeliverables } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts";
-import { BIOMETRIC_WATCH_CLASSES } from "../../../supabase/functions/_shared/ltp/biometric-refinement-config.ts";
+import { BIOMETRIC_WATCH_CLASSES } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-refinement-config.ts";
 
 const RECORD = ((BIOMETRIC_PERFECT as unknown as Array<{ intake: Record<string, unknown> }>)[0]
   ?.intake ?? BIOMETRIC_PERFECT) as Record<string, unknown>;

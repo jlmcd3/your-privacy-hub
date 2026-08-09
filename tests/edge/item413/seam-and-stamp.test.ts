@@ -6,8 +6,8 @@
 // moved to the shared seam before the new path ships.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { REGISTRATION_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/registration-finalize.ts";
-import { REGISTRATION_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/registration.ts";
+import { REGISTRATION_PIPELINE_STAMP } from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-finalize.ts";
+import { REGISTRATION_REPORT_SCHEMA } from "../../../supabase/functions/run-registration-assessment/_local/report-schemas/registration.ts";
 import { assembleRegistrationReport, PERFECT_INTAKE } from "./_assemble.ts";
 
 const INDEX = await Deno.readTextFile(

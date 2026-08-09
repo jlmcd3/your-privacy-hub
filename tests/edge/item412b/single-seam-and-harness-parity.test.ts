@@ -36,9 +36,9 @@ import {
   detectStatutoryTriggerDefects,
   repairBiometricProse,
   repairStatutoryTriggers,
-} from "../../../supabase/functions/_shared/ltp/biometric-prose-gold.ts";
-import { BIOMETRIC_PIPELINE_STAMP } from "../../../supabase/functions/_shared/prose/plans/biometric.spine.ts";
-import { BIOMETRIC_WATCH_CLASSES } from "../../../supabase/functions/_shared/ltp/biometric-refinement-config.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-prose-gold.ts";
+import { BIOMETRIC_PIPELINE_STAMP } from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
+import { BIOMETRIC_WATCH_CLASSES } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-refinement-config.ts";
 
 const SRC_URL = new URL(
   "../../../supabase/functions/check-biometric-compliance/index.ts",

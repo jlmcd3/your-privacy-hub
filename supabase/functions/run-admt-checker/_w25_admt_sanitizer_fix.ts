@@ -33,7 +33,7 @@
 //   • Telemetry only under `_meta.internal.admt_w25_sanitizer`.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { ADMT_VERIFIED_AUTHORITIES } from "../_shared/registry/admt-verified-authorities.ts";
+import { ADMT_VERIFIED_AUTHORITIES } from "./_local/registry/admt-verified-authorities.ts";
 import { resolveByPropositionKey } from "../_shared/verified-authority-resolver.ts";
 
 export const W25_ADMT_SANITIZER_STAMP = "w25-admt-sanitizer@2026-07-25T22:43:00Z";

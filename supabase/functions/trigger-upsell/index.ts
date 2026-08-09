@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { computeUpsellSignals } from '../_shared/upsell-signals.ts';
+import { computeUpsellSignals } from './_local/upsell-signals.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,

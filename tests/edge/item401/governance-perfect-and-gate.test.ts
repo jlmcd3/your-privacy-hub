@@ -28,9 +28,9 @@ import {
   emptyAskedKeys,
   FALSE_ABSENCE_CHECK_IDS,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { GOVERNANCE_PIPELINE_STAMP, REFERENCE_RENDER_TOKENS } from "../../../supabase/functions/_shared/prose/plans/governance.spine.ts";
+import { GOVERNANCE_PIPELINE_STAMP, REFERENCE_RENDER_TOKENS } from "../../../supabase/functions/run-governance-assessment/_local/prose/plans/governance.spine.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
-import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/governance.ts";
+import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/run-governance-assessment/_local/report-schemas/governance.ts";
 
 const INTAKE = GOVERNANCE_PERFECT[0].intake as Record<string, unknown>;
 

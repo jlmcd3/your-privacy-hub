@@ -17,18 +17,18 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { applyBracketTagPass, countProseInterruptions } from "../../../supabase/functions/_shared/prose/bracket-tags.ts";
+import { applyBracketTagPass, countProseInterruptions } from "../../../supabase/functions/run-dpia-framework/_local/prose/bracket-tags.ts";
 import {
   applyEnforcementTagGate,
   countEnforcementTags,
   renderedEnforcementIds,
-} from "../../../supabase/functions/_shared/prose/enforcement-tag-gate.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/prose/enforcement-tag-gate.ts";
 import {
   applyAdvisoryCloseRepair,
   countBareAdvisoryCloses,
   isBareAdvisoryClose,
-} from "../../../supabase/functions/_shared/prose/advisory-close-repair.ts";
-import { applyInferredGeneralisation } from "../../../supabase/functions/_shared/prose/inferred-generalisation.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/prose/advisory-close-repair.ts";
+import { applyInferredGeneralisation } from "../../../supabase/functions/run-dpia-framework/_local/prose/inferred-generalisation.ts";
 import { buildDeterminationBlock } from "../../../supabase/functions/_shared/report-exhibits/determination.ts";
 import { hasPlaceholderToken, rollUpAskCategories } from "../../../supabase/functions/_shared/prose/ask-categories.ts";
 import { GENERIC_ABSENCE } from "../../../supabase/functions/_shared/prose/frame-substitution.ts";

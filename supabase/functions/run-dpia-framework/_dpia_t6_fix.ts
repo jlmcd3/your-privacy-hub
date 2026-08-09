@@ -39,7 +39,7 @@ import {
   DPIA_VERIFIED_AUTHORITIES,
   DPIA_UNANCHORED_PROPOSITIONS,
   DPIA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/dpia-verified-authorities.ts";
+} from "./_local/registry/dpia-verified-authorities.ts";
 
 export const DPIA_T6_FIX_STAMP = "dpia-t6fix@2026-07-25T23:30:00Z";
 

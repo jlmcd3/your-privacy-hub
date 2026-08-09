@@ -14,7 +14,7 @@ import {
 import {
   ADM_DEFAULT_LABEL,
   ADM_REGIME_LABEL,
-} from "../../../supabase/functions/_shared/ltp/lia-deliverables/build.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
 
 const HEDGE =
   "The organisation should confirm whether the described position applies here.";

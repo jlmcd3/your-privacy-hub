@@ -9,7 +9,7 @@ import {
   stripUnsupportedTimelineClaim,
   W19_ADMT_TURNA_STAMP,
 } from "../../../supabase/functions/run-admt-checker/_w19_admt_turna.ts";
-import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
+import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts";
 
 const FALLBACK = "the applicable ADMT-subchapter provision";
 

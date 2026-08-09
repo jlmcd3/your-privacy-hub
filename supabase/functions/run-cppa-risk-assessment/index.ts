@@ -3362,7 +3362,7 @@ async function runPipeline(assessment_id: string) {
     // preserves `_meta.internal` unmodified (item-32 gate).
     try {
       const { runT7RiskPilotFix, T7_RISK_PILOTFIX_VERSION, T7_RISK_PILOTFIX_STAMP } =
-        await import("../_shared/openings/_t7_risk_pilotfix.ts");
+        await import("./_local/openings/_t7_risk_pilotfix.ts");
       const _fix = runT7RiskPilotFix(report_data as any);
       const _rd: any = report_data as any;
       const _meta = _rd._meta ?? (_rd._meta = {});
@@ -3427,7 +3427,7 @@ async function runPipeline(assessment_id: string) {
     // telemetry block. Fail-open.
     try {
       const { applyWaveB2Closure, WAVEB2_CLOSURE_STAMP, WAVEB2_CLOSURE_VERSION } =
-        await import("../_shared/ltp/waveb2-closure.ts");
+        await import("./_local/ltp/waveb2-closure.ts");
       const _wb2 = applyWaveB2Closure(report_data as any);
       report_data = _wb2.report as any;
       const _rd: any = report_data as any;
@@ -3480,7 +3480,7 @@ async function runPipeline(assessment_id: string) {
     // RETIRED per ITEM-204 (Defect B). Call retained as no-op for
     // telemetry-key stability; see cohort-append.ts header.
     try {
-      const { applyCohortAppendIfAbsent } = await import("../_shared/ltp/cohort-append.ts");
+      const { applyCohortAppendIfAbsent } = await import("./_local/ltp/cohort-append.ts");
       const _cohortIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const _cohortRes = applyCohortAppendIfAbsent(report_data, _cohortIntake);
       const _rdC: any = report_data as any;
@@ -3500,7 +3500,7 @@ async function runPipeline(assessment_id: string) {
     // ── ITEM-204 RESIDUAL — INFO-NEEDED NORMALIZE (id/topic) ──────────
     // Schema-conformance: every information_needed row carries id + topic.
     try {
-      const { normalizeInformationNeeded } = await import("../_shared/ltp/info-needed-normalize.ts");
+      const { normalizeInformationNeeded } = await import("./_local/ltp/info-needed-normalize.ts");
       const _inRes = normalizeInformationNeeded(report_data);
       const _rdI: any = report_data as any;
       _rdI._meta = _rdI._meta ?? {};

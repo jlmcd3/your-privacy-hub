@@ -14,11 +14,11 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { buildRegistrationDeliverables, REGISTRATION_DELIVERABLES_VERSION } from "./_local/ltp/registration-deliverables/build.ts";
 import { serializeCustomerReport } from "../_shared/report-serialize.ts";
-import { REGISTRATION_REPORT_SCHEMA } from "../_shared/report-schemas/registration.ts";
+import { REGISTRATION_REPORT_SCHEMA } from "./_local/report-schemas/registration.ts";
 import {
   REGISTRATION_PIPELINE_STAMP,
   runRegistrationFinalizeBattery,
-} from "../_shared/ltp/registration-finalize.ts";
+} from "./_local/ltp/registration-finalize.ts";
 import { REGISTRATION_DUTY_AUTHORITIES } from "./_local/registry/registration-verified-authorities.ts";
 
 

@@ -10,7 +10,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_VERSION,
-} from "../../../supabase/functions/_shared/registry/admt-verified-authorities.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts";
 import { buildDeadlineTable } from "../../../supabase/functions/run-admt-checker/_w9_admt_slots.ts";
 
 function norm(s: string): string {

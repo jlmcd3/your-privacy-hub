@@ -23,7 +23,7 @@ import {
 import {
   CRITIC_SYSTEM_PROMPT as DPIA_CRITIC_PROMPT,
   VERIFIER_SYSTEM_PROMPT as DPIA_VERIFIER_PROMPT,
-} from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 
 const stub = (payload: unknown) => () => Promise.resolve(JSON.stringify(payload));
 

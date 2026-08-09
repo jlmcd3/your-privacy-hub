@@ -13,14 +13,14 @@ import {
   applyCustomerRegister,
   readinessLineFromDetermination,
   isHollow,
-} from "../../../supabase/functions/_shared/ltp/governance-prose-gold.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-prose-gold.ts";
 import {
   GOVERNANCE_PIPELINE_STAMP,
   GOVERNANCE_SECTION_SPECS,
   GOVERNANCE_THESIS,
   GOVERNANCE_PLAN_ROW_ID,
   GOVERNANCE_PLAN_VERSION_LABEL,
-} from "../../../supabase/functions/_shared/prose/plans/governance.spine.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/prose/plans/governance.spine.ts";
 
 Deno.test("ITEM400 spine: stamp, thesis and nine-section arc", () => {
   assertEquals(GOVERNANCE_PIPELINE_STAMP, "governance-pipeline@item403-2026-08-07");

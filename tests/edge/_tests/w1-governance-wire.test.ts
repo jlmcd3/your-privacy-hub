@@ -11,7 +11,7 @@ import {
   GOVERNANCE_UNANCHORED_PROPOSITIONS,
   GOVERNANCE_VERIFIED_AUTHORITY_VERSION,
 } from "../../../supabase/functions/_shared/registry/governance-verified-authorities.ts";
-import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/governance.ts";
+import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/run-governance-assessment/_local/report-schemas/governance.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 

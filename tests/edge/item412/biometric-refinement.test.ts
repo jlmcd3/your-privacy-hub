@@ -42,23 +42,23 @@ import {
   isBiometricProtectedPath,
   biometricProtectedReason,
   runBiometricRefinement,
-} from "../../../supabase/functions/_shared/ltp/biometric-refinement.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-refinement.ts";
 import {
   CRITIC_PROMPT_BASE,
   MAX_SPLICES,
   VERIFIER_PROMPT_BASE,
   type CriticFinding,
 } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
-import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/risk-refinement.ts";
-import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/lia-refinement.ts";
-import { ADMT_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/admt-refinement.ts";
-import { GOVERNANCE_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/governance-refinement.ts";
-import { CYBER_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/cyber-refinement.ts";
+import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement.ts";
+import { ADMT_REFINEMENT_CONFIG } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-refinement.ts";
+import { GOVERNANCE_REFINEMENT_CONFIG } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-refinement.ts";
+import { CYBER_REFINEMENT_CONFIG } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-refinement.ts";
 import {
   BIOMETRIC_SECTION_SPECS,
   BIOMETRIC_PIPELINE_STAMP,
-} from "../../../supabase/functions/_shared/prose/plans/biometric.spine.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
 import type { ReferencePassage } from "../../../supabase/functions/_shared/prose/biometric-reference-passages.ts";
 
 const finding = (path: string, quote: string, replacement: string): CriticFinding => ({

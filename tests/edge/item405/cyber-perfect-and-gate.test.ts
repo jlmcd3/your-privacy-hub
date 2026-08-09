@@ -27,7 +27,7 @@ import {
 import {
   CYBER_PIPELINE_STAMP,
   REFERENCE_RENDER_TOKENS,
-} from "../../../supabase/functions/_shared/prose/plans/cyber.spine.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cyber.spine.ts";
 import { RUN_QUALITY_BATCH_SLUGS } from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
 import {
@@ -35,7 +35,7 @@ import {
   resolveToolVariant,
 } from "../../../supabase/functions/_shared/quality/fixture-variant.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
-import { CPPA_CYBER_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/cppa-cyber.ts";
+import { CPPA_CYBER_REPORT_SCHEMA } from "../../../supabase/functions/run-cppa-cybersecurity/_local/report-schemas/cppa-cyber.ts";
 import {
   applyCyberAuditSchedule,
   renderCyberAuditSchedule,

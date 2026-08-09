@@ -15,13 +15,13 @@ import {
   admtCarriesAbsence,
   ADMT_LABEL_ABSENCE_RE,
   runAdmtCsc,
-} from "../../../supabase/functions/_shared/ltp/admt-csc.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-csc.ts";
 import {
   ADMT_ABSENCE_LABEL_PHRASINGS,
   ADMT_CONCLUSION_LABELS,
   ADMT_RECORD_BACKED_LABEL,
   applyHedgeLedger,
-} from "../../../supabase/functions/_shared/ltp/admt-prose-gold.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-prose-gold.ts";
 import { ADMT_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
 
 const PERFECT = ADMT_PERFECT[0].intake as Record<string, unknown>;

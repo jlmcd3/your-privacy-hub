@@ -19,8 +19,8 @@ export const BUILD_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z";
 console.log(`[run-cppa-cybersecurity] boot build_stamp=${BUILD_STAMP}`);
 // ITEM 404 — CYBER PROSE GOLD (leg A). The pipeline stamp is a NEW constant;
 // this function carried only BUILD_STAMP before item404.
-import { applyCyberProseGold, CYBER_PROSE_GOLD_VERSION } from "../_shared/ltp/cyber-prose-gold.ts";
-import { CYBER_PIPELINE_STAMP } from "../_shared/prose/plans/cyber.spine.ts";
+import { applyCyberProseGold, CYBER_PROSE_GOLD_VERSION } from "./_local/ltp/cyber-prose-gold.ts";
+import { CYBER_PIPELINE_STAMP } from "./_local/prose/plans/cyber.spine.ts";
 console.log(`[run-cppa-cybersecurity] boot cyber_pipeline_stamp=${CYBER_PIPELINE_STAMP}`);
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 3/3 (CYBER).
 // Blocks wave-14/15 unsupported-positive, contradiction, and
@@ -1688,8 +1688,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // Runs AFTER W10 so the mean is available for demotion into a read-aid.
     // Fail-open.
     try {
-      const { attachCyberDeliverables } = await import(
-        "../_shared/ltp/cppa-cyber-deliverables/build.ts"
+      const { attachCyberDeliverables } = await import("./_local/ltp/cppa-cyber-deliverables/build.ts"
       );
       const item315 = attachCyberDeliverables(
         report as any,
@@ -1936,9 +1935,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // deterministic pass, and the gate, see the spliced document. One pass,
     // no loops. Config-gated by CYBER_REFINEMENT_ENABLED; fail-open.
     try {
-      const { runCyberRefinement } = await import("../_shared/ltp/cyber-refinement.ts");
-      const { makeCyberRefinementDeps, CYBER_REFINEMENT_ENABLED } = await import(
-        "../_shared/ltp/cyber-refinement-deps.ts"
+      const { runCyberRefinement } = await import("./_local/ltp/cyber-refinement.ts");
+      const { makeCyberRefinementDeps, CYBER_REFINEMENT_ENABLED } = await import("./_local/ltp/cyber-refinement-deps.ts"
       );
       const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
         "../_shared/ltp/coverage-matrix.ts"
@@ -2049,7 +2047,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // Both receive the FULL PERSISTED RECORD (`row.intake_data`), never a
     // trimmed projection (the item385-r2 lesson).
     try {
-      const { attachCyberCsc } = await import("../_shared/ltp/cyber-csc.ts");
+      const { attachCyberCsc } = await import("./_local/ltp/cyber-csc.ts");
       const csc = attachCyberCsc(report as Record<string, unknown>, {
         intake: (((row as any).intake_data ?? {})) as Record<string, unknown>,
       });
@@ -2202,7 +2200,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // never blocked. Telemetry lands on `_meta.internal.serializer`.
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { CPPA_CYBER_REPORT_SCHEMA } = await import("../_shared/report-schemas/cppa-cyber.ts");
+      const { CPPA_CYBER_REPORT_SCHEMA } = await import("./_local/report-schemas/cppa-cyber.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(report as any, CPPA_CYBER_REPORT_SCHEMA);
       if (!telemetry.crashed) report = serialized as any;
     } catch (e) {

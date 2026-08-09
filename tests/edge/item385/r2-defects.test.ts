@@ -15,18 +15,18 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 import { LIA_PERFECT } from "../../../supabase/functions/_shared/golden/lia-perfect.ts";
-import { buildLiaDeliverables } from "../../../supabase/functions/_shared/ltp/lia-deliverables/build.ts";
-import { buildLiaUpgrade4 } from "../../../supabase/functions/_shared/ltp/lia-deliverables/build-upgrade4.ts";
+import { buildLiaDeliverables } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
+import { buildLiaUpgrade4 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build-upgrade4.ts";
 import {
   classifiedOpenItems,
   planRegisterElements,
   repairDocumentationRecommendations,
-} from "../../../supabase/functions/_shared/ltp/lia-deliverables/doc-plan-register.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/doc-plan-register.ts";
 import {
   LIA_CSC_SURFACES,
   runLiaCsc,
-} from "../../../supabase/functions/_shared/ltp/lia-csc.ts";
-import { LIA_WATCH_CLASSES, LIA_CRITIC_WATCHLIST } from "../../../supabase/functions/_shared/ltp/lia-refinement-config.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-csc.ts";
+import { LIA_WATCH_CLASSES, LIA_CRITIC_WATCHLIST } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement-config.ts";
 
 const INTAKE = LIA_PERFECT[0].intake as Record<string, unknown>;
 const ABSENCE = "The record is silent here, and the question is carried forward.";

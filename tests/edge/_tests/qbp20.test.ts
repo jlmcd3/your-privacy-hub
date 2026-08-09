@@ -20,9 +20,9 @@ import { dpaGeneratorContract } from "../../../supabase/functions/_shared/intake
 import { irPlaybookContract } from "../../../supabase/functions/_shared/intake-contracts/ir-playbook.ts";
 import { biometricCheckerContract } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker.ts";
 import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
-import { lintFixture } from "../../../supabase/functions/_shared/quality/fixture-lint.ts";
-import { evaluateGateV2 } from "../../../supabase/functions/_shared/quality/gate-v2.ts";
-import { shadowScore } from "../../../supabase/functions/_shared/quality/shadow-score.ts";
+import { lintFixture } from "../../../supabase/functions/run-quality-batch/_local/quality/fixture-lint.ts";
+import { evaluateGateV2 } from "../../../supabase/functions/run-quality-batch/_local/quality/gate-v2.ts";
+import { shadowScore } from "../../../supabase/functions/run-quality-batch/_local/quality/shadow-score.ts";
 
 const CONTRACTS: Record<string, unknown> = {
   "cppa-admt": cppaAdmtContract,

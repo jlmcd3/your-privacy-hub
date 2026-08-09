@@ -13,7 +13,7 @@ import {
   readPath,
   runDpiaRefinement,
   type CriticFinding,
-} from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 
 const INTAKE = { organization_name: "Acme GmbH", processing_purpose: "fraud scoring" };
 

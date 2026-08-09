@@ -9,7 +9,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.t
 import {
   BIOMETRIC_REPORT_SCHEMA,
   BIOMETRIC_EMITTED_TOP_LEVEL,
-} from "../../../supabase/functions/_shared/report-schemas/biometric.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/report-schemas/biometric.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 
 Deno.test("BIOMETRIC: every emitted top-level key is schema-declared", () => {

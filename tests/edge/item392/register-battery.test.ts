@@ -16,12 +16,12 @@ import {
   ADMT_BANNED_REGISTER,
   ADMT_PIPELINE_STAMP,
   REFERENCE_RENDER_TOKENS,
-} from "../../../supabase/functions/_shared/prose/plans/admt.spine.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/prose/plans/admt.spine.ts";
 import {
   applyAdmtProseGold,
   ADMT_MACHINE_KEYED_FIELDS,
   isHedgeLitany,
-} from "../../../supabase/functions/_shared/ltp/admt-prose-gold.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-prose-gold.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 

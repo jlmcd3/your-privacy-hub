@@ -14,7 +14,7 @@ import {
   repairApparatusOpener,
   repairGlyphJoiner,
   repairLabelColonLitany,
-} from "../../../supabase/functions/_shared/ltp/registration-prose-gold.ts";
+} from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-prose-gold.ts";
 import { assembleRegistrationReport, PERFECT_INTAKE } from "./_assemble.ts";
 
 // ── RG-1 ────────────────────────────────────────────────────────────────────

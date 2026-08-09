@@ -11,7 +11,7 @@ import {
   runDpiaRefinement,
   VERIFIER_SYSTEM_PROMPT,
   type RefinementTelemetry,
-} from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 
 const INTAKE = { organization_name: "Acme GmbH" };
 

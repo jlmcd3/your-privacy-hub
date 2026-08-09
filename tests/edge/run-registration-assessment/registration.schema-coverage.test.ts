@@ -9,7 +9,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.t
 import {
   REGISTRATION_REPORT_SCHEMA,
   REGISTRATION_EMITTED_TOP_LEVEL,
-} from "../../../supabase/functions/_shared/report-schemas/registration.ts";
+} from "../../../supabase/functions/run-registration-assessment/_local/report-schemas/registration.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 
 Deno.test("REGISTRATION: every emitted top-level key is schema-declared", () => {

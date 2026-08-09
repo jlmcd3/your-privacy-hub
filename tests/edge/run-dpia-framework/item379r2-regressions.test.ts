@@ -6,7 +6,7 @@ import {
   isProtectedPath,
   protectedReason,
   runDpiaRefinement,
-} from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 import { stripMeta } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 

@@ -5,7 +5,7 @@
 // honest degradation preserved, only de-duplicated.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { applyAdmtProseGold, isHedgeLitany } from "../../../supabase/functions/_shared/ltp/admt-prose-gold.ts";
+import { applyAdmtProseGold, isHedgeLitany } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-prose-gold.ts";
 
 const HEDGE =
   "The information provided does not resolve this question; the missing intake dimensions are listed under information needed.";

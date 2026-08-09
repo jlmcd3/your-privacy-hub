@@ -44,7 +44,7 @@ import {
   CPPA_RISK_PROSE9_SHAPE_VERSION,
   type Prose9Section,
   type ProseDocumentEnvelope,
-} from "../../../../supabase/functions/_shared/report-contracts/cppa-risk-prose9.ts";
+} from "../../../../supabase/functions/generate-report-pdf/_local/report-contracts/cppa-risk-prose9.ts";
 
 export const ITEM369_PREVIEW_STAMP = "generate-cppa-risk-item363-preview@2026-08-02-item369";
 

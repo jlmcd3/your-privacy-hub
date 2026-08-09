@@ -8,7 +8,7 @@ import {
   NEUTRAL_LABEL,
   scrubProseString,
 } from "../../../supabase/functions/run-cppa-risk-assessment/_w18_risk_vocab.ts";
-import { LIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/lia-verified-authorities.ts";
+import { LIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-li-assessment/_local/registry/lia-verified-authorities.ts";
 import { GRADER_STAMP } from "../../../supabase/functions/ql3-orchestrator/index.ts";
 import { BUILD_STAMP as GRADER_BUILD_STAMP } from "../../../supabase/functions/grade-single-assessment/index.ts";
 

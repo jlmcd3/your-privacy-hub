@@ -29,8 +29,8 @@ import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
 
 import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
 import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
-import { evaluateSubstance } from "../_shared/ltp/replay/substance-gates.ts";
-import { compareDoc } from "../_shared/ltp/replay/side-by-side.ts";
+import { evaluateSubstance } from "./_local/ltp/replay/substance-gates.ts";
+import { compareDoc } from "./_local/ltp/replay/side-by-side.ts";
 import type { PerDocResult, ReplayDoc, SideBySideRow }
   from "../_shared/ltp/replay/types.ts";
 

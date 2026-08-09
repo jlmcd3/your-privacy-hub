@@ -21,8 +21,8 @@ import { describe, it, expect } from "vitest";
 import {
   DPIA_VERIFIED_AUTHORITIES,
   DPIA_UNANCHORED_PROPOSITIONS,
-} from "../../../supabase/functions/_shared/registry/dpia-verified-authorities.ts";
-import { ANCHOR_KEYS, DPIA_RISK_SPECS } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/elements.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/registry/dpia-verified-authorities.ts";
+import { ANCHOR_KEYS, DPIA_RISK_SPECS } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/elements.ts";
 import {
   buildArt36Consultation,
   buildDpiaDeliverables,
@@ -30,7 +30,7 @@ import {
   buildProportionality,
   buildRiskRegister,
   splitExposure,
-} from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
 import { DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";

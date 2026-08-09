@@ -15,19 +15,19 @@ import {
   isLiaProtectedPath,
   liaProtectedReason,
   runLiaRefinement,
-} from "../../../supabase/functions/_shared/ltp/lia-refinement.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement.ts";
 import {
   LIA_PROTECTED_LEAF_CLASSES,
   LIA_PROTECTED_SECTION_IDS,
   LIA_WATCH_CLASSES,
-} from "../../../supabase/functions/_shared/ltp/lia-refinement-config.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement-config.ts";
 import {
   CRITIC_PROMPT_BASE,
   MAX_SPLICES,
   VERIFIER_PROMPT_BASE,
   type CriticFinding,
 } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
-import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/risk-refinement.ts";
 import { LIA_SECTION_SPECS, LIA_PIPELINE_STAMP } from "../../../supabase/functions/_shared/prose/plans/lia.spine.ts";
 

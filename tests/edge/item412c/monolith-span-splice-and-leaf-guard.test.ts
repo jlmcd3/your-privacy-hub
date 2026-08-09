@@ -16,8 +16,8 @@ import {
   runBiometricRefinement,
   spanSplice,
   type RefinementDeps,
-} from "../../../supabase/functions/_shared/ltp/biometric-refinement.ts";
-import { BIOMETRIC_PIPELINE_STAMP } from "../../../supabase/functions/_shared/prose/plans/biometric.spine.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-refinement.ts";
+import { BIOMETRIC_PIPELINE_STAMP } from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
 
 const HEADER = "Northwind Clinical Diagnostics Corporation — Biometric Compliance Assessment\n\n";
 const IL =

@@ -1798,7 +1798,7 @@ let playbook_text = lint.clean;
         // and content_owner_mapping. Pure, built from the intake record only.
         // Op. 1's awareness/deadline arithmetic is NOT touched. Fail-open.
         try {
-          const { attachIrPlaybookDeliverables } = await import("../_shared/ltp/ir-playbook-deliverables/build.ts");
+          const { attachIrPlaybookDeliverables } = await import("./_local/ltp/ir-playbook-deliverables/build.ts");
           const irmeta = attachIrPlaybookDeliverables(
             report_data as Record<string, unknown>,
             (body as unknown) as Record<string, unknown>,
@@ -1819,8 +1819,8 @@ let playbook_text = lint.clean;
         // background dispatch and the ir_playbooks polling path are untouched.
         // Fail-open in every limb.
         try {
-          const { buildStandingPlaybook } = await import("../_shared/ltp/ir-playbook-deliverables/standing-playbook.ts");
-          const { buildIncidentWorksheet } = await import("../_shared/ltp/ir-playbook-deliverables/incident-worksheet.ts");
+          const { buildStandingPlaybook } = await import("./_local/ltp/ir-playbook-deliverables/standing-playbook.ts");
+          const { buildIncidentWorksheet } = await import("./_local/ltp/ir-playbook-deliverables/incident-worksheet.ts");
           const mapping = (report_data as any)?.content_owner_mapping;
           report_data.standing_playbook = buildStandingPlaybook(body as unknown, mapping);
           report_data.incident_worksheet = buildIncidentWorksheet((body as any)?.organizationName ?? "");
@@ -1841,7 +1841,7 @@ let playbook_text = lint.clean;
         // the live corpus and dropped to citation-only on drift. NIST/CISA/ICO
         // are template guidance and never enter the exhibit.
         try {
-          const { loadIrCorpus, irCorpusCitations } = await import("../_shared/ltp/ir-corpus.ts");
+          const { loadIrCorpus, irCorpusCitations } = await import("./_local/ltp/ir-corpus.ts");
           const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
           const corpus = await loadIrCorpus(supabase);
           const provisions = corpus.provisions
@@ -1888,7 +1888,7 @@ let playbook_text = lint.clean;
         // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER ──────────────────────
         try {
           const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-          const { IR_PLAYBOOK_REPORT_SCHEMA } = await import("../_shared/report-schemas/ir-playbook.ts");
+          const { IR_PLAYBOOK_REPORT_SCHEMA } = await import("./_local/report-schemas/ir-playbook.ts");
           const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, IR_PLAYBOOK_REPORT_SCHEMA);
           if (!telemetry.crashed && serialized && typeof serialized === "object") {
             report_data = serialized as any;

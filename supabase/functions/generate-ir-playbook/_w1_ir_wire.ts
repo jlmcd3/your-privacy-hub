@@ -32,7 +32,7 @@ import {
   IR_PLAYBOOK_VERIFIED_AUTHORITIES,
   IR_PLAYBOOK_UNANCHORED_PROPOSITIONS,
   IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/ir-playbook-verified-authorities.ts";
+} from "./_local/registry/ir-playbook-verified-authorities.ts";
 
 // Fresh-clock stamp (item 52 doctrine: no forward-projecting stamps).
 export const W1_IR_WIRE_STAMP = "w1-ir-wire@2026-07-25T14:50:00Z";

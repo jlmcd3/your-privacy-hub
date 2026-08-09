@@ -9,7 +9,7 @@ import {
   evaluateOwnerSlotPii,
   evaluateCrossSectionDuplication,
   evaluateActivityCountContradiction,
-} from "../../../supabase/functions/_shared/ltp/replay/substance-gates.ts";
+} from "../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/substance-gates.ts";
 import {
   renderSubmissionAndRetention,
   CYBER_AUDIT_SEPARATE_LEAD_IN,

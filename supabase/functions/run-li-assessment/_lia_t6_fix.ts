@@ -34,7 +34,7 @@ import {
   LIA_VERIFIED_AUTHORITIES,
   LIA_UNANCHORED_PROPOSITIONS,
   LIA_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/lia-verified-authorities.ts";
+} from "./_local/registry/lia-verified-authorities.ts";
 
 export const LIA_T6_FIX_STAMP = "lia-t6fix@2026-07-25T23:10:00Z";
 

@@ -15,25 +15,25 @@ import {
   isAdmtProtectedPath,
   admtProtectedReason,
   runAdmtRefinement,
-} from "../../../supabase/functions/_shared/ltp/admt-refinement.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-refinement.ts";
 import {
   ADMT_PROTECTED_LEAF_CLASSES,
   ADMT_PROTECTED_SPINE_SECTION_IDS,
   ADMT_WATCH_CLASSES,
-} from "../../../supabase/functions/_shared/ltp/admt-refinement-config.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-refinement-config.ts";
 import {
   CRITIC_PROMPT_BASE,
   MAX_SPLICES,
   VERIFIER_PROMPT_BASE,
   type CriticFinding,
 } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
-import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/risk-refinement.ts";
-import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/lia-refinement.ts";
+import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement.ts";
 import {
   ADMT_SECTION_SPECS,
   ADMT_PIPELINE_STAMP,
-} from "../../../supabase/functions/_shared/prose/plans/admt.spine.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/prose/plans/admt.spine.ts";
 
 const finding = (path: string, quote: string, replacement: string): CriticFinding => ({
   path,

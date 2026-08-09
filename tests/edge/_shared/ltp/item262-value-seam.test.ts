@@ -12,7 +12,7 @@ import {
   composeRecordSufficiencyForTest,
   composeSection,
 } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
-import { evaluateLabelResidue } from "../../../../supabase/functions/_shared/ltp/replay/substance-gates.ts";
+import { evaluateLabelResidue } from "../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/substance-gates.ts";
 import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
 
 function ledger(field: string, value: string, display: string) {

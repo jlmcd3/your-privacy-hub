@@ -14,7 +14,7 @@ import {
   LIA_BOILERPLATE_CAP,
   NEUTRAL_DOWNGRADE_LITERAL,
 } from "../../../supabase/functions/run-li-assessment/_lia_boilerplate_cap.ts";
-import { LIA_REPORT_SCHEMA } from "../../../supabase/functions/_shared/report-schemas/lia.ts";
+import { LIA_REPORT_SCHEMA } from "../../../supabase/functions/run-li-assessment/_local/report-schemas/lia.ts";
 import { liAssessmentStageBContract } from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
 
 /** Generated-shape fixture: 25 degraded leaves + 5 neutral downgrades. */

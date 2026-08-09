@@ -21,26 +21,26 @@ import {
   isGovernanceProtectedPath,
   governanceProtectedReason,
   runGovernanceRefinement,
-} from "../../../supabase/functions/_shared/ltp/governance-refinement.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-refinement.ts";
 import {
   GOVERNANCE_PROTECTED_ROOT_KEYS,
   GOVERNANCE_PROTECTED_LEAF_KEYS as CONFIG_LEAF_KEYS,
   GOVERNANCE_REFINEMENT_CONFIG_VERSION,
-} from "../../../supabase/functions/_shared/ltp/governance-refinement-config.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-refinement-config.ts";
 import {
   CRITIC_PROMPT_BASE,
   MAX_SPLICES,
   VERIFIER_PROMPT_BASE,
   type CriticFinding,
 } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
-import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/dpia-refinement.ts";
+import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/risk-refinement.ts";
-import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/lia-refinement.ts";
-import { ADMT_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/admt-refinement.ts";
+import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement.ts";
+import { ADMT_REFINEMENT_CONFIG } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-refinement.ts";
 import {
   GOVERNANCE_SECTION_SPECS,
   GOVERNANCE_PIPELINE_STAMP,
-} from "../../../supabase/functions/_shared/prose/plans/governance.spine.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/prose/plans/governance.spine.ts";
 
 const finding = (path: string, quote: string, replacement: string): CriticFinding => ({
   path,
