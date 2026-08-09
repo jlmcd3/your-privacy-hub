@@ -22,6 +22,13 @@ import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question, FlagCondition } from "@/data/ropa-questions/types";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import { PrefillConfirm } from "@/components/notices/PrefillConfirm";
+import {
+  EU_PREFILL_BY_TARGET,
+  allowedValuesFor,
+  resolvePrefill,
+} from "@/data/notice-prefill";
+
 
 function popoverKeyForQuestion(key: string): string | null {
   const k = key.toLowerCase();
