@@ -167,3 +167,21 @@ export function describeCppaRiskShape(
   };
 }
 
+
+/**
+ * ITEM 420 — the canonical action record is re-exported here so every existing
+ * consumer of the cppa-risk shape module gets the dual-read helpers without a
+ * second import path. Definition lives in src/lib/action-record.ts (mirror of
+ * supabase/functions/_shared/report-contracts/action-record.ts).
+ */
+export {
+  ACTION_RECORD_CONTRACT_VERSION,
+  isActionRecord,
+  formatActionHeadline,
+  coerceActionList,
+  coerceActionListText,
+  sortByRank,
+} from "@/lib/action-record";
+export type { ActionRecord, ActionListItem } from "@/lib/action-record";
+/** Priority actions on a cppa-risk report: legacy strings OR typed records. */
+export type PriorityActionsValue = ReadonlyArray<string | import("@/lib/action-record").ActionRecord>;
