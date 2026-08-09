@@ -141,7 +141,26 @@ function measure(spec: QuotaSpec, raw: unknown): SectionQuotaResult {
     if (!present) shortfalls.push("narrative_absent");
   } else {
     // list
-    if (Array.isArray(raw)) {
+    // ITEM 425 — the typed record_sufficiency record measures as its voice
+    // plus one item per ledger element (same substance, new shape).
+    if (raw && typeof raw === "object" && !Array.isArray(raw)
+        && Array.isArray((raw as { elements?: unknown }).elements)
+        && typeof (raw as { statement?: unknown }).statement === "string") {
+      const rec = raw as { statement: string; elements: unknown[] };
+      const lines = rec.elements.map((e) =>
+        e && typeof e === "object"
+          ? [
+              (e as { element?: unknown }).element,
+              (e as { status?: unknown }).status,
+              (e as { pinpoint?: unknown }).pinpoint,
+            ].filter((x) => typeof x === "string").join(": ")
+          : String(e)
+      );
+      const all = [rec.statement, ...lines].filter((x) => x.trim().length > 0);
+      present = all.length > 0;
+      items = all.length;
+      chars = all.reduce((n, x) => n + x.length, 0);
+    } else if (Array.isArray(raw)) {
       present = raw.length > 0;
       items = raw.length;
       for (const it of raw) {
