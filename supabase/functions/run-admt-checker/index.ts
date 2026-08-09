@@ -70,7 +70,7 @@ import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "./_local/ltp/admt-p
 import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
 import { normalizeAdmtPriorityActions, ADMT_ACTION_RECORD_WRITER_VERSION } from "./_local/ltp/admt-action-records.ts";
 // ITEM 422-B — registry-resolved citations on the typed priority actions.
-import { resolveAdmtActionCitations, ADMT_ACTION_CITATION_VERSION } from "./_local/ltp/admt-action-citations.ts";
+import { resolveAdmtActionCitations, sealAdmtActionCitations, ADMT_ACTION_CITATION_VERSION } from "./_local/ltp/admt-action-citations.ts";
 console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION} action_records=${ADMT_ACTION_RECORD_WRITER_VERSION} action_citations=${ADMT_ACTION_CITATION_VERSION}`);
 
 
@@ -2675,6 +2675,21 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] H6-ADMT-GOVERNING-ANCHOR failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 422-C — TERMINAL SEAL ON TYPED PRIORITY-ACTION CITATIONS.
+    // Runs AFTER every W/H anchor pass. A definitional-§7001 anchor cleared
+    // by the sole-§7001 discipline must not ship as an empty pinpoint: the
+    // honest ADMT-subchapter downgrade takes its place and the proposition
+    // key is cleared. Fail-open.
+    try {
+      const paSeal = sealAdmtActionCitations(report);
+      console.log(JSON.stringify({
+        evt: "item422c_action_citation_seal", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...paSeal,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 422-C seal failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── ITEM 395 LEG D — ADMT REFINEMENT PASS ─────────────────────────
