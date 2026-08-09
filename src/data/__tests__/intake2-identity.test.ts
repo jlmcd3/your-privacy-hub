@@ -43,13 +43,18 @@ describe("INTAKE-2 — persisted contract identity", () => {
     .flatMap(([, qs]) => qs) as unknown as Q[];
   const usQuestions = buildQuestionSet(US_STATES) as unknown as Q[];
   const euQuestions = buildEuQuestionSections([
-    "GDPR",
+    "EU_GDPR",
     "UK_GDPR",
-    "LGPD",
-    "APPI",
-    "DPDPA",
-    "POPIA",
-    "PIPEDA",
+    "CH_FADP",
+    "BR_LGPD",
+    "JP_APPI",
+    "IN_DPDPA",
+    "ZA_POPIA",
+    "CA_PIPEDA",
+    "AU_PRIVACY",
+    "KR_PIPA",
+    "SG_PDPA",
+    "AE_PDPL",
   ] as never)
     .flatMap((s: { questions: Q[] }) => s.questions);
 
