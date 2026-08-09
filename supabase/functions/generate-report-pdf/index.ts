@@ -26,6 +26,7 @@ import {
   renderRecordSufficiencySectionHtml,
   RECORD_SUFFICIENCY_TABLE_CSS,
 } from "./_local/record-sufficiency-html.ts";
+import { renderExceptionAnalysisSectionHtml } from "./_local/exception-analysis-html.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
 // ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the
@@ -1519,7 +1520,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const scopeTrig = coerceNarrativeList(report.scope_and_triggers);
   const nextSteps = coerceNarrativeList(report.next_steps);
   const strengthen = coerceNarrativeList(report.strengthen_items);
-  const exceptions = coerceNarrativeList(report.exception_analysis);
   const infoNeeded = coerceNarrativeList(report.information_needed);
   const generatedDate = new Date(record?.created_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
@@ -1579,7 +1579,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("processing_narrative", "How the business processes personal information", processingNarrative)}
     ${listSection("risk_assessment_by_activity", "Risk Assessment by Activity", activityPara)}
     ${buildCPPARiskDeliverablesHTML(report)}
-    ${listSection("exception_analysis", "Exception Analysis", exceptions)}
+    ${renderExceptionAnalysisSectionHtml(report)}
     ${renderPriorityActionsSectionHtml(report)}
     ${listSection("next_steps", "Next Steps", nextSteps)}
     ${listSection("strengthen_items", "What Would Strengthen the Record", strengthen)}
@@ -1607,7 +1607,13 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
   const summary = report.assessment_summary || {};
   const scope = report.scope_and_triggers || {};
   const activities = Array.isArray(report.risk_assessment_by_activity) ? report.risk_assessment_by_activity : [];
-  const exceptions = Array.isArray(report.exception_analysis) ? report.exception_analysis : [];
+  // ITEM 426 — five-shape tolerance: strings, legacy objects and canonical
+  // nine-leaf records all reach this table; the empty/absent states render nothing.
+  const exceptionView = coerceExceptionView(report.exception_analysis);
+  const exceptions: any[] = [
+    ...exceptionView.texts.map((t: string) => ({ __prose: t })),
+    ...exceptionView.rows,
+  ];
   // QB-P25 B3 — sort priority actions by rank (1 = highest); missing ranks sink last.
   // ITEM 420 — dual-read: string elements become { action } records so the
   // object-shaped layout below never drops a legacy entry.
@@ -1709,6 +1715,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 
     ${exceptions.length ? `<section><h2>Exception Analysis</h2>
       ${exceptions.map((e: any) => {
+        if (typeof e?.__prose === "string") return `<div class="card">${para(e.__prose)}</div>`;
         const resolvedStrengthen: any[] = Array.isArray(e.strengthen_item_ids)
           ? e.strengthen_item_ids.map((id: string) => strengthenItemsMap[id]).filter(Boolean)
           : [];
