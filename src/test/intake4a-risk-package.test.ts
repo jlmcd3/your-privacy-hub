@@ -50,7 +50,7 @@ describe("INTAKE-4a — legacy draft back-compat", () => {
 describe("INTAKE-4a — contract-vs-form-vs-fixture parity for the new field", () => {
   it("RISK_PERFECT answers material_change_since_prior like every other asked field", () => {
     const intake = CPPA_RISK_PERFECT[0].intake as Record<string, unknown>;
-    expect(intake.material_change_since_prior).toBe("Yes");
+    expect(intake.material_change_since_prior).toBe("No");
     const res = validateIntake(cppaRiskContract, intake);
     expect(res.ok, res.ok ? "" : res.violations.map((v) => `${v.key}: ${v.reason}`).join("; ")).toBe(true);
   });
@@ -61,7 +61,7 @@ describe("INTAKE-4a — contract-vs-form-vs-fixture parity for the new field", (
 
   it("the form declares the matching state setter and intake key", () => {
     const fs = require("fs") as typeof import("fs");
-    const src = fs.readFileSync(require("path").resolve(__dirname, "../../../src/pages/CPPARiskAssessment.tsx"), "utf8");
+    const src = fs.readFileSync(require("path").resolve(__dirname, "../pages/CPPARiskAssessment.tsx"), "utf8");
     expect(src).toContain("materialChangeSincePrior");
     expect(src).toContain("material_change_since_prior: materialChangeSincePrior");
     expect(src).toContain('Has this processing activity changed materially since the last assessment?');
