@@ -9,11 +9,7 @@ import { describe, it, expect } from "vitest";
 import { cppaAdmtContract } from "../../supabase/functions/_shared/intake-contracts/cppa-admt";
 import { ADMT_AFFECTED_POPULATION_BAND_OPTS } from "../pages/admt/ADMTChecker.enums";
 
-const keys = new Set(
-  cppaAdmtContract.sections.flatMap((s: { fields: { key: string }[] }) =>
-    s.fields.map((f) => f.key),
-  ),
-);
+const keys = new Set(cppaAdmtContract.fields.map((f) => f.key));
 
 describe("INTAKE-4c — ADMT contract stability", () => {
   it("keeps every prefill-touched row as its own intake key", () => {
@@ -29,9 +25,7 @@ describe("INTAKE-4c — ADMT contract stability", () => {
   });
 
   it("keeps the affected-population band optional and its options unchanged", () => {
-    const field = cppaAdmtContract.sections
-      .flatMap((s: { fields: { key: string; required: string; options?: readonly string[] }[] }) => s.fields)
-      .find((f) => f.key === "affected_population_band")!;
+    const field = cppaAdmtContract.fields.find((f) => f.key === "affected_population_band")!;
     expect(field.required).toBe("optional");
     expect(field.options).toEqual([...ADMT_AFFECTED_POPULATION_BAND_OPTS]);
   });
