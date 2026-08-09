@@ -39,7 +39,7 @@ describe("ITEM 420 — canonical action record", () => {
   });
 
   it("declares the contract version", () => {
-    expect(ACTION_RECORD_CONTRACT_VERSION).toBe("action-record@2026-08-09-item420");
+    expect(ACTION_RECORD_CONTRACT_VERSION).toBe("action-record@2026-08-09-item422");
   });
 
   it("isActionRecord accepts records and rejects everything else", () => {

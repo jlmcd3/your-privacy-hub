@@ -186,6 +186,7 @@ export const ADMT_MACHINE_KEYED_FIELDS: readonly string[] = [
   "access_gaps[].status",
   "documentation_to_maintain[].status",
   "top_3_actions[].insufficient_basis",
+  "priority_actions[].insufficient_basis", // ITEM 422 — typed action record
   "adequacy_finding.<element>.conclusion",
   "applicability_verdict.label",
   "scope_analysis.determination_basis",

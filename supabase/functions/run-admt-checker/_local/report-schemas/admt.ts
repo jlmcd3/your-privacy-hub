@@ -38,6 +38,10 @@ const FINDING_ENTRY_KEYS = [
   "severity",
   "deadline",
   "deadline_basis",
+  // ITEM 422 — canonical action-record fields on the action buckets.
+  "rank",
+  "owner_role",
+  "reserved_to",
   "topic",
   "bucket",
   "enforcement_exposure",

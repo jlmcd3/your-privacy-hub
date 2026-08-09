@@ -68,7 +68,8 @@ console.log(`[run-admt-checker] boot admt_deliverables=${ADMT_DELIVERABLES_VERSI
 // ITEM 392 — ADMT prose gold (plan encode + register repairs AG-1..AG-3).
 import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "./_local/ltp/admt-prose-gold.ts";
 import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
-console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION}`);
+import { normalizeAdmtPriorityActions, ADMT_ACTION_RECORD_WRITER_VERSION } from "./_local/ltp/admt-action-records.ts";
+console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION} action_records=${ADMT_ACTION_RECORD_WRITER_VERSION}`);
 
 
 
@@ -930,7 +931,17 @@ SCHEMA CONTRACT (POST-C1-FIX-1C): every scope/trigger boolean listed below MUST 
   },
 
   "priority_actions": [
-    "Numbered action item with specific deadline where known. Based only on gaps identified above."
+    // ITEM 422 — TYPED ACTION RECORD (canonical fleet shape). One object per
+    // action, in priority order. ONE HOME PER FACT: never restate the
+    // severity, the deadline, the owner, or the citation inside "action".
+    { "rank": 1,
+      "severity": "IMMEDIATE | SCHEDULED | ONGOING",
+      "action": "One-sentence directive (imperative). No leading number, no severity token, no owner name, no deadline, no §-token.",
+      "citation": "verified pinpoint OR the empty string",
+      "proposition_key": "<optional proposition_key from the VERIFIED-AUTHORITY REGISTRY>",
+      "deadline": "January 1, 2027 | December 31, 2027 | before initiation | the empty string when not applicable",
+      "owner_role": "Role that owns the action (e.g. Privacy Officer). Empty string when not determinable."
+    }
   ],
 
   "top_3_actions": [
@@ -1140,7 +1151,12 @@ ADDITIONAL DISCIPLINES:
         }
       }
       if (Array.isArray(report.priority_actions)) {
-        report.priority_actions = report.priority_actions.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
+        report.priority_actions = report.priority_actions.map((s: any) =>
+          typeof s === "string"
+            ? stripModelCitations(s)
+            : (s && typeof s === "object" && typeof s.action === "string"
+                ? { ...s, action: stripModelCitations(s.action) }
+                : s));
       }
       if (Array.isArray(report.compliant_elements)) {
         report.compliant_elements = report.compliant_elements.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
@@ -1395,7 +1411,7 @@ ADDITIONAL DISCIPLINES:
       for (const arr of [report.notice_gaps, report.opt_out_gaps, report.access_gaps]) {
         if (Array.isArray(arr)) for (const it of arr) { push(it?.finding); push(it?.remediation); push(it?.enforcement_exposure); }
       }
-      if (Array.isArray(report.priority_actions)) for (const s of report.priority_actions) push(s);
+      if (Array.isArray(report.priority_actions)) for (const s of report.priority_actions) push(typeof s === "string" ? s : (s as any)?.action);
       const lint = lintReportText(narrativeFields.join("\n\n"));
       if (hasHardViolations(lint)) {
         console.warn(`[run-admt-checker] lint hard violations: ${JSON.stringify(lint.violations)}`);
@@ -2397,6 +2413,20 @@ Return this JSON structure exactly:
       }));
     } catch (e) {
       console.warn("[run-admt-checker] W19-ADMT-JOIN2 failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // ── ITEM 422 — TYPED PRIORITY ACTIONS (SINGLE WRITE SITE).
+    // Brings `priority_actions` to the item420 canonical action record before
+    // the W-battery runs, so every downstream walker sees the entry shape it
+    // already applies to `top_3_actions`. Fail-open.
+    try {
+      const pa422 = normalizeAdmtPriorityActions(report);
+      console.log(JSON.stringify({
+        evt: "item422_priority_actions", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...pa422,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 422 normalise failed (non-fatal):", (e as Error)?.message);
     }
 
     // ── WAVE19-FIX TURN A (2026-07-25) — targeted A1/A2/A3/A4 sanitiser.

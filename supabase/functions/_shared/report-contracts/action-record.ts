@@ -14,7 +14,7 @@
  * verdicts and identical formatter output.
  */
 
-export const ACTION_RECORD_CONTRACT_VERSION = "action-record@2026-08-09-item420";
+export const ACTION_RECORD_CONTRACT_VERSION = "action-record@2026-08-09-item422";
 
 export interface ActionRecord {
   action: string;
@@ -25,6 +25,9 @@ export interface ActionRecord {
   owner_role?: string;
   reserved_to?: string | null;
   rank?: number;
+  citation?: string;
+  proposition_key?: string;
+  insufficient_basis?: boolean;
 }
 
 /** Type guard — an object carrying a non-empty `action` string. */
@@ -74,9 +77,10 @@ export function formatActionHeadline(record: ActionRecord): string {
   const seen = norm(base);
   const parts: string[] = [base];
 
-  const pinpoint = typeof record.statutory_basis === "string"
-    ? stripMarkdown(record.statutory_basis)
-    : "";
+  const rawPinpoint = typeof record.statutory_basis === "string" && record.statutory_basis.trim()
+    ? record.statutory_basis
+    : (typeof record.citation === "string" ? record.citation : "");
+  const pinpoint = rawPinpoint ? stripMarkdown(rawPinpoint) : "";
   if (pinpoint && !seen.includes(norm(pinpoint))) {
     parts.push(terminate(`Statutory basis: ${pinpoint}`));
   }
