@@ -290,6 +290,29 @@ export default function USNoticeQuestions() {
   const triggeredFlags =
     currentQuestion.flagIf?.filter((f) => evaluateFlag(f, value)) ?? [];
 
+  // INTAKE-2 — prefill-confirm: offered only while the question is still
+  // unanswered and the user has not asked to answer it themselves.
+  const answerEmpty =
+    value == null || value === "" || (Array.isArray(value) && value.length === 0);
+  const proposal =
+    answerEmpty && !editing[currentQuestion.key]
+      ? resolvePrefill(
+          US_PREFILL_BY_TARGET,
+          currentQuestion.key,
+          answers,
+          labelOf,
+          allowedValuesFor(currentQuestion),
+        )
+      : null;
+  const rawSuggestion =
+    proposal && typeof proposal.suggested === "string" ? proposal.suggested : "";
+  const proposalDisplay = rawSuggestion
+    ? ["yes", "no", "unsure"].includes(rawSuggestion)
+      ? rawSuggestion.charAt(0).toUpperCase() + rawSuggestion.slice(1)
+      : labelOf(currentQuestion.key, rawSuggestion)
+    : "";
+
+
   return (
     <USNoticeShell title="Questions — US Notice Builder" heading="Questions" step="questions" sessionId={sessionId}>
       {/* Progress */}
