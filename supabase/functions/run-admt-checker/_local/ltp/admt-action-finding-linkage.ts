@@ -130,13 +130,50 @@ export function findSourceFinding(
   return best;
 }
 
+/** A blanket subchapter range / neutral phrase is NOT a pinpoint. */
+export function isBlanketAnchor(c: string): boolean {
+  const s = c.replace(/\s+/g, " ").trim();
+  if (!s) return true;
+  if (/^11 CCR §§/.test(s)) return true;
+  if (/applicable ADMT-subchapter provision/i.test(s)) return true;
+  if (/^the ADMT subchapter$/i.test(s)) return true;
+  return false;
+}
+
+/**
+ * THE FINDING'S VERIFIED PINPOINT. Resolution order:
+ *   1. `element_id` through the ADMT citation registry — the document's own
+ *      deterministic Layer-3 resolution for that element (finest available).
+ *   2. the finding's own `citation`, when it is a real pinpoint.
+ * A blanket range / neutral fallback yields "" (no inheritance).
+ */
+export function resolveFindingPinpoint(
+  finding: Record<string, unknown>,
+  intake: unknown,
+): string {
+  const eid = str(finding.element_id);
+  if (eid) {
+    try {
+      const r = resolveCitations(eid as never, intake ?? {});
+      const joined = (r?.sections ?? []).join(" + ").trim();
+      if (joined && !isBlanketAnchor(joined)) return joined;
+    } catch { /* fall through */ }
+  }
+  const cit = str(finding.citation);
+  if (cit && !isBlanketAnchor(cit)) return cit;
+  return "";
+}
+
 /**
  * THE SINGLE INHERITANCE SITE. Runs directly after the item422 typed-record
  * normaliser and BEFORE `resolveAdmtActionCitations`. Entries that inherit
  * are marked `_citation_inherited = true` so the anchor gate leaves the
  * document's own resolution alone.
  */
-export function linkAdmtActionsToFindings(report: unknown): AdmtActionLinkageDiag {
+export function linkAdmtActionsToFindings(
+  report: unknown,
+  intake?: unknown,
+): AdmtActionLinkageDiag {
   const diag: AdmtActionLinkageDiag = {
     version: ADMT_ACTION_LINKAGE_VERSION,
     actions: 0,
@@ -164,13 +201,14 @@ export function linkAdmtActionsToFindings(report: unknown): AdmtActionLinkageDia
       const hit = findSourceFinding(text, r);
       if (!hit) { diag.unlinked++; continue; }
 
-      const cit = str(hit.finding.citation);
+      const cit = resolveFindingPinpoint(hit.finding, intake);
       if (!cit) { diag.unlinked++; continue; }
 
       diag.linked++;
-      // BYTE-IDENTICAL inheritance of the document's own resolved pinpoint.
-      e.citation = hit.finding.citation as string;
+      // Inheritance of the document's own resolved pinpoint for this element.
+      e.citation = cit;
       diag.inherited_citation++;
+
       const fpk = str(hit.finding.proposition_key);
       if (fpk) {
         e.proposition_key = fpk;
