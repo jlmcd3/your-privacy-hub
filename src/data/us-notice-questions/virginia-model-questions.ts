@@ -10,9 +10,10 @@ import type { Question } from "./types";
 export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
   {
     key: "vam_controller_processor_role",
-    text: "For the personal data covered by this notice, do you act as a 'controller' (you decide why and how data is processed) or a 'processor' (you process data on behalf of another business)?",
+    text: "For the data covered by this notice, are you a controller or a processor?",
     whyWeAsk:
-      "Virginia-model laws apply different obligations to controllers vs processors. Notice obligations primarily fall on controllers. [Virginia CDPA § 59.1-575]",
+      "A controller decides why and how personal data is processed; a processor handles it on another business's behalf. Virginia-model laws apply different obligations to each, and notice obligations primarily fall on controllers. [Virginia CDPA § 59.1-575]",
+
     type: "single_choice",
     options: [
       { value: "controller", label: "Controller — we decide the purposes and means of processing" },
