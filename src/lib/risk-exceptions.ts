@@ -90,7 +90,7 @@ export function coerceExceptionView(value: unknown): ExceptionView {
   }
   if (rows.length === 0 && texts.length === 0) return { ...EMPTY_VIEW, shape: "empty" };
   if (rows.length === 0) return { shape: "strings", present: true, texts, rows: [], typed: [] };
-  const typed = rows.filter(isRiskException);
+  const typed = rows.filter(isRiskException) as unknown as RiskException[];
   return {
     shape: typed.length === rows.length ? "typed" : "legacy_objects",
     present: true,
