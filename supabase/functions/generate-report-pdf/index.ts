@@ -29,6 +29,7 @@ import {
 import { renderExceptionAnalysisSectionHtml } from "./_local/exception-analysis-html.ts";
 import { renderActivityAnalysisSectionHtml } from "./_local/activity-analysis-html.ts";
 import { coerceExceptionView } from "../_shared/report-contracts/risk-exceptions.ts";
+import { coerceActivityView } from "../_shared/report-contracts/risk-activities.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
 // ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the
