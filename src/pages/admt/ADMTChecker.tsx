@@ -1170,7 +1170,8 @@ export default function ADMTChecker() {
                     </p>
                     <div className="space-y-3">
                       <div>
-                        <Label className="text-[12px]">Do you use personal information to train any ADMT system? (§ 7153)</Label>
+                        <Label className="text-[12px]">Do you use personal information to train any automated decision system?</Label>
+                        <p className="text-[11px] text-muted-foreground">Why we ask: § 7153 brings training on personal information into risk-assessment scope on its own, even where no significant decision is made.</p>
                         <div className="mt-1">
                           <Radio
                             name="training_data"
