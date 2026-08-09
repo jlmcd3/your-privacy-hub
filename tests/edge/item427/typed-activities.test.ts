@@ -226,7 +226,7 @@ Deno.test("ITEM 427 serializer allow-list keeps every canonical leaf", async () 
   );
   const report = reportWithAnalytics();
   normalizeRiskActivities(report, INTAKE);
-  const out = serializeCustomerReport(report, CPPA_RISK_REPORT_SCHEMA) as Record<string, unknown>;
+  const out = serializeCustomerReport(report, CPPA_RISK_REPORT_SCHEMA).report as Record<string, unknown>;
   const row = (out.risk_assessment_by_activity as any[])[0];
   for (const leaf of RISK_ACTIVITY_LEAVES) {
     assert(leaf in row, `serializer pruned canonical leaf: ${String(leaf)}`);
