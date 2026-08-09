@@ -30,7 +30,7 @@
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
-} from "../../../../_shared/verified-authority-resolver.ts";
+} from "../../../_shared/verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
 export const ADMT_VERIFIED_AUTHORITY_VERSION = "admt-va-w9-2026-07-26";

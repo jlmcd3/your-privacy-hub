@@ -22,7 +22,7 @@
 // No `entries`/`objects` allow-lists are declared: the deliverables blocks are
 // wholly customer-facing reasoned output and pruning them would remove content.
 
-import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../_shared/report-serialize.ts";
 
 export const BIOMETRIC_REPORT_SCHEMA: ReportSchema = {
   version: "rs-biometric-w2-2026-08-04",

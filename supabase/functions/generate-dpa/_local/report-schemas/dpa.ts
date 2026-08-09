@@ -15,7 +15,7 @@
 // section granularity that has ever been reviewed (DPIA/governance
 // precedent).
 
-import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../_shared/report-serialize.ts";
 
 export const DPA_REPORT_SCHEMA: ReportSchema = {
   version: "rs-dpa-w2-2026-08-04",

@@ -24,7 +24,7 @@
 // entry. Sections whose key sets are still evolving (three_part_test,
 // documentation_recommendations) remain top-level-only by design.
 
-import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../_shared/report-serialize.ts";
 
 /** Shared four-part analysis shape carried by every UPGRADE-4 finding. */
 const ANALYSIS_SHAPE_KEYS = [

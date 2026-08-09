@@ -34,7 +34,7 @@ import {
   type RefinementTelemetry,
   type CriticFinding,
   type SpliceResult,
-} from "../../../../_shared/ltp/refinement-core.ts";
+} from "../../../_shared/ltp/refinement-core.ts";
 import {
   ADMT_CRITIC_WATCHLIST,
   ADMT_VERIFIER_EXEMPLARS,

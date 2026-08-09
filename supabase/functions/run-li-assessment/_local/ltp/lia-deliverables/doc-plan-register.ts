@@ -30,7 +30,7 @@
 //
 // DETERMINISTIC, pure, no I/O.
 
-import { CONTROLLED_LITERALS, GENERIC_ABSENCE } from "../../../../../_shared/prose/frame-substitution.ts";
+import { CONTROLLED_LITERALS, GENERIC_ABSENCE } from "../../../../_shared/prose/frame-substitution.ts";
 import { buildLiaAttestation } from "./build-upgrade4.ts";
 
 export const LIA_DOC_PLAN_VERSION = "lia-doc-plan-2026-08-06-item385r2";

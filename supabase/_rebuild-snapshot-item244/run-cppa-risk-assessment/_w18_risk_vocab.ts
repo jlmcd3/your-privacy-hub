@@ -15,7 +15,7 @@
 //
 // Fail-open: per-node try/catch; a walker fault never breaks generation.
 
-import { cppaRiskContract } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
+import { cppaRiskContract } from "../../functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 
 export const W18_RISK_VOCABSCRUB_STAMP = "w18-risk-vocabscrub@2026-07-25T03:34:41Z";
 

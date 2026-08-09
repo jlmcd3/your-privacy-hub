@@ -36,7 +36,7 @@
 // Fail-open, non-blocking. Counters attach at _meta.internal.risk_w22a.
 // Anchor keys are never scrubbed.
 
-import type { FactRow } from "../_shared/intake/fact-ledger.ts";
+import type { FactRow } from "../../functions/_shared/intake/fact-ledger.ts";
 
 export const W22_RISK_TURNA_STAMP = "w22-risk-turna@2026-07-25T13:48:30Z";
 

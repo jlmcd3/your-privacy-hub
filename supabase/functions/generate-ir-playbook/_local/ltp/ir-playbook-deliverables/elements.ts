@@ -13,7 +13,7 @@
  * the EU rows.
  */
 import { IR_PLAYBOOK_VERIFIED_AUTHORITIES } from "../../registry/ir-playbook-verified-authorities.ts";
-import { requireVerified } from "../../../../../_shared/verified-authority-resolver.ts";
+import { requireVerified } from "../../../../_shared/verified-authority-resolver.ts";
 
 /** Resolve an IR registry row, or null when the key is absent. */
 export function row(key: string) {

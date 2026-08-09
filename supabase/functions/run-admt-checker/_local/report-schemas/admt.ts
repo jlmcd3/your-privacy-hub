@@ -8,7 +8,7 @@
 // (admt.schema-coverage.test.ts) statically re-derives that list and asserts
 // every path is present here.
 
-import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../_shared/report-serialize.ts";
 
 const FINDING_ENTRY_KEYS = [
   // rendered fields

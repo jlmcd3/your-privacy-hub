@@ -5,15 +5,15 @@ import {
   KIND_OPENERS,
   composePriorityActionsForTest,
   type ActionKind,
-} from "../_shared/ltp/section-composers/cppa-risk.ts";
-import { derivePlan } from "../_shared/ltp/derive.ts";
+} from "../../functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { derivePlan } from "../../functions/_shared/ltp/derive.ts";
 import {
   renderProngPosture,
   renderAllProngPostures,
   type ProngKey,
-} from "../_shared/ltp/submission-postures.ts";
-import { computeProngOutcomes, extendSubmissionBasisCrosswalk } from "../_shared/ltp/waveb-completion.ts";
-import { CCPA_7120_B_2_A, CCPA_7120_B_2_B, CCPA_1798_140_D_1_C } from "../_shared/openings/ccpa-7120-pin.ts";
+} from "../../functions/_shared/ltp/submission-postures.ts";
+import { computeProngOutcomes, extendSubmissionBasisCrosswalk } from "../../functions/_shared/ltp/waveb-completion.ts";
+import { CCPA_7120_B_2_A, CCPA_7120_B_2_B, CCPA_1798_140_D_1_C } from "../../functions/_shared/openings/ccpa-7120-pin.ts";
 
 const stamp = "test-item242-cpb-final";
 

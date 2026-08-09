@@ -41,7 +41,7 @@ import {
   type RefinementTelemetry,
   type CriticFinding,
   type SpliceResult,
-} from "../../../../_shared/ltp/refinement-core.ts";
+} from "../../../_shared/ltp/refinement-core.ts";
 import {
   GOVERNANCE_CRITIC_WATCHLIST,
   GOVERNANCE_VERIFIER_EXEMPLARS,

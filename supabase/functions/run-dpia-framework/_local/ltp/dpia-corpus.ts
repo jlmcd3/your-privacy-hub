@@ -24,7 +24,7 @@
  * statutory text. It stays code-owned and is deliberately absent from this
  * corpus.
  */
-import { resolveProvisionForRender } from "../../../../_shared/provision-store.ts";
+import { resolveProvisionForRender } from "../../../_shared/provision-store.ts";
 
 type SupabaseClient = { from: (table: string) => unknown };
 

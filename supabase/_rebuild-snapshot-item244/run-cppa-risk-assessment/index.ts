@@ -1,8 +1,8 @@
 // qb8 build active · cppa-risk r1b1.4-rca continuation-on-truncation + 330s self-report abort + compact cells
-import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
-import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
-import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
-import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
+import { attachDeterministicChecks, extractProseFromReport } from '../../functions/_shared/advisory-voice.ts';
+import { runFormatChecksGeneric } from '../../functions/_shared/grader/format-checks.ts';
+import { extractIntakeRoster } from '../../functions/_shared/grader/intake-roster.ts';
+import { runCppaHf1Checks } from '../../functions/_shared/grader/cppa-hf1-checks.ts';
 // CPPA-HF6R BUILD_STAMP retired — now an exported const (below).
 // W15 RISK-FACT-LEDGER-WIRING (2026-07-24) — shared intake fact-ledger
 // (sb-fl-w1) wired pre-VA-stamp to block wave-15 unsupported/contradictory
@@ -38,7 +38,7 @@ console.log(`[run-cppa-risk-assessment] boot ltp_mode=${LTP_MODE_BOOT} compositi
 console.log(`[run-cppa-risk-assessment] boot ltp_phase=t-m1-derive-authoritative pass1_authoritative=1 subsumed=_risk_citation_dup_fix,_w18_risk_vocab,_w15_risk_va`);
 console.log(`[run-cppa-risk-assessment] boot t7_risk_opening_pilot=SHIPPED spec=docs/design/OPENING-PARAGRAPH-DESIGN.md`);
 console.log(`[run-cppa-risk-assessment] boot pass1_model=${PASS1_MODEL} pass1_max_attempts=${PASS1_MAX_ATTEMPTS} pass1_stamp=${PASS1_MANIFEST.stamp}`);
-import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
+import { GRADER_CONTEXT_VERSION } from "../../functions/_shared/grader/context.ts";
 console.log(`[run-cppa-risk-assessment] boot band_realignment_t2a=LANDED grader_context_version=${GRADER_CONTEXT_VERSION} risk_opening_version=risk-opening-t7-pilotfix3@2026-07-26`);
 console.log(`[run-cppa-risk-assessment] boot waveb_completion=LANDED waveb2_closure=LANDED surfaces=purpose+priority_actions+inconsistency_flags+pii_narrative+crosswalk_7120b+atomic_tokens+info_needed_contradiction`);
 import {
@@ -59,10 +59,10 @@ import { applyW24aV3, W24A_V3_STAMP, W24A_V3_VERSION } from "./_w24a_v3.ts";
 import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION } from "./_risk_cohort_date.ts";
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
-import { runLegalTestPipelineShadow, LTP_STAMP } from "../_shared/ltp/pipeline.ts";
-import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../_shared/ltp/pass1-llm.ts";
-import { classifyPass1WriteAroundOrigin, type WriteAroundOrigin } from "../_shared/ltp/composition-hook-audit.ts";
-import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../_shared/ltp/pass2-assembler.ts";
+import { runLegalTestPipelineShadow, LTP_STAMP } from "../../functions/run-cppa-risk-assessment/_local/ltp/pipeline.ts";
+import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../../functions/_shared/ltp/pass1-llm.ts";
+import { classifyPass1WriteAroundOrigin, type WriteAroundOrigin } from "../../functions/_shared/ltp/composition-hook-audit.ts";
+import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../../functions/_shared/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -74,9 +74,9 @@ import {
   evaluateShippedValueScreen,
   SHIPPED_VALUE_SCREEN_VERSION,
   isRetiredSurfacePath,
-} from "../_shared/ltp/composition-finalize.ts";
+} from "../../functions/_shared/ltp/composition-finalize.ts";
 
-import { computeScenarioSignature } from "../_shared/future-building/signature.ts";
+import { computeScenarioSignature } from "../../functions/run-cppa-risk-assessment/_local/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
 console.log(`[run-cppa-risk-assessment] boot w23_stamp=${W23_RISK_TURNB_STAMP} w24_stamp=${W24_RISK_TURNA_STAMP} w24a_v3_stamp=${W24A_V3_STAMP} t7_pilotfix_stamp=t7-risk-pilotfix@2026-07-25T22:32:00Z t7_pilotfix2_stamp=t7-risk-pilotfix2@2026-07-26T01:10:00Z risk_cohort_date_stamp=${RISK_COHORT_DATE_STAMP} risk_intake_contradiction_stamp=${RISK_INTAKE_CONTRADICTION_STAMP} risk_citation_dup_fix_stamp=${RISK_CITATION_DUP_FIX_STAMP} build_stamp=${BUILD_STAMP}`);
 
@@ -85,23 +85,23 @@ import {
   buildFactLedger,
   enforceLedger,
   FACT_LEDGER_VERSION,
-} from "../_shared/intake/fact-ledger.ts";
+} from "../../functions/_shared/intake/fact-ledger.ts";
 console.log(`[run-cppa-risk-assessment] boot slots_stamp=${W9_RISK_SLOTS_STAMP}`);
 console.log(JSON.stringify({
   evt: "fact_ledger_loaded", fn: "run-cppa-risk-assessment",
   version: FACT_LEDGER_VERSION,
 }));
-import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
+import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../../functions/_shared/cppa-deadline-registry.ts";
 // W15 RISK-REGISTRY-WIRING — L1 verified-authority resolver + risk registry
 // (mirrors W9-ADMT-WIRE pattern in run-admt-checker/index.ts L28-L66).
 import {
   RISK_VERIFIED_AUTHORITIES,
   RISK_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/risk-verified-authorities.ts";
+} from "../../functions/_shared/registry/risk-verified-authorities.ts";
 import {
   resolveByPropositionKey,
   registrySize as vaRegistrySize,
-} from "../_shared/verified-authority-resolver.ts";
+} from "../../functions/_shared/verified-authority-resolver.ts";
 
 function buildRiskVerifiedAuthorityBlock(): string {
   const rows = Object.values(RISK_VERIFIED_AUTHORITIES);
@@ -145,26 +145,26 @@ console.log(JSON.stringify({
 // (tracked as a follow-up) before it can render the new output structure.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
-import { stampPromptVersion } from "../_shared/prompt-version.ts";
-import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
-import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
-import { BANNED_PHRASES } from "../_shared/citation-verifier.ts";
-import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../../functions/_shared/function-run-logger.ts";
+import { stampPromptVersion } from "../../functions/_shared/prompt-version.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../../functions/_shared/generation-policy.ts";
+import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../../functions/_shared/prompt-core.ts";
+import { BANNED_PHRASES } from "../../functions/_shared/citation-verifier.ts";
+import { lintReportText, hasHardViolations } from "../../functions/_shared/output-lint.ts";
 // [REVISED] authoritative § 7150(b) section strings — single source of truth
-import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../_shared/admt-citation-registry.ts";
-import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
-import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
-import { freezeOpenItemsOnFirstRun, rewriteI3CompositionAsks } from "../_shared/open-items.ts";
-import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
-import { renderSupplementalBlock } from "../_shared/supplemental-block.ts";
+import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../../functions/_shared/admt-citation-registry.ts";
+import { recordRunMeterAndVersion } from "../../functions/_shared/run-meter.ts";
+import { guardInformationNeeded } from "../../functions/_shared/insufficient-info-guard.ts";
+import { freezeOpenItemsOnFirstRun, rewriteI3CompositionAsks } from "../../functions/_shared/open-items.ts";
+import { handleRevisionMode } from "../../functions/_shared/revision-mode.ts"; // RC-B.1
+import { renderSupplementalBlock } from "../../functions/_shared/supplemental-block.ts";
 import { normalizeRiskV2 } from "./_qbp25_b3_pointers.ts";
-import { validateSourceFields } from "../_shared/source-fields-validator.ts";
-import { observeCitations } from "../_shared/citation-observe.ts";
-import { verifyCaller } from "../_shared/verify-caller.ts";
-import { requireEntitlement } from "../_shared/entitlement.ts";
-import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
-import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared/anthropic-call.ts";
+import { validateSourceFields } from "../../functions/run-cppa-risk-assessment/_local/source-fields-validator.ts";
+import { observeCitations } from "../../functions/_shared/citation-observe.ts";
+import { verifyCaller } from "../../functions/_shared/verify-caller.ts";
+import { requireEntitlement } from "../../functions/_shared/entitlement.ts";
+import { lifecycleUpdate } from "../../functions/_shared/lifecycle-write.ts";
+import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../../functions/_shared/anthropic-call.ts";
 import {
   computeRetryBudget,
   withRetryPersistFirst,
@@ -172,7 +172,7 @@ import {
   POST_LINT_LLM_BUDGET_MS,
   POST_LINT_LLM_CALL_TIMEOUT_MS,
   POST_LINT_PASS1_TIMEOUT_MS,
-} from "../_shared/ltp/retry-budget.ts";
+} from "../../functions/run-cppa-risk-assessment/_local/ltp/retry-budget.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -215,20 +215,20 @@ export {
   EMPTY_EXCEPTIONS,
   shimLegacyIntake,
   normaliseIntake,
-} from "../_shared/cppa-risk-normalise.ts";
+} from "../../functions/_shared/cppa-risk-normalise.ts";
 import {
   EMPTY_TRIGGERS,
   EMPTY_EXCEPTION,
   EMPTY_EXCEPTIONS,
   shimLegacyIntake,
   normaliseIntake,
-} from "../_shared/cppa-risk-normalise.ts";
-import type { ExceptionEntry, FiveStageIntake, TestState } from "../_shared/cppa-test-states.ts";
-export type { ExceptionEntry, FiveStageIntake } from "../_shared/cppa-test-states.ts";
-export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../_shared/cppa-test-states.ts";
-export type { RevenueBand, TestState } from "../_shared/cppa-test-states.ts";
-import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../_shared/cppa-test-states.ts";
-import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../_shared/blacklist-phrases.ts";
+} from "../../functions/_shared/cppa-risk-normalise.ts";
+import type { ExceptionEntry, FiveStageIntake, TestState } from "../../functions/_shared/cppa-test-states.ts";
+export type { ExceptionEntry, FiveStageIntake } from "../../functions/_shared/cppa-test-states.ts";
+export { classifyRevenueBand, computeTestStates, formatTestStatesBlock } from "../../functions/_shared/cppa-test-states.ts";
+export type { RevenueBand, TestState } from "../../functions/_shared/cppa-test-states.ts";
+import { classifyRevenueBand, computeTestStates, formatTestStatesBlock, detectTestStatesLeak } from "../../functions/_shared/cppa-test-states.ts";
+import { detectBlacklistPhrases, formatBlacklistRetrySuffix } from "../../functions/_shared/blacklist-phrases.ts";
 
 
 // POSTBATCH-1 — deterministic post-generation fallback for TEST-STATES leakage
@@ -3223,7 +3223,7 @@ async function runPipeline(assessment_id: string) {
     // and IMMEDIATELY BEFORE the terminal complete-write; gate telemetry
     // lands on `_meta.internal.emit_gate`. Fail-visible; never blocks.
     try {
-      const { runEmitGate } = await import("../_shared/emit-gate.ts");
+      const { runEmitGate } = await import("../../functions/_shared/emit-gate.ts");
       runEmitGate(report_data as any, {
         tool: "cppa_risk_assessment",
         intakeRoster: (row as any).intake_data ?? {},
@@ -3238,7 +3238,7 @@ async function runPipeline(assessment_id: string) {
     // pre serializer) so the schema whitelist emits the deterministic build.
     // Telemetry lands on `_meta.internal.risk_t7_opening`. Fail-visible; never blocks.
     try {
-      const { buildRiskOpening, RISK_OPENING_VERSION } = await import("../_shared/openings/risk-opening.ts");
+      const { buildRiskOpening, RISK_OPENING_VERSION } = await import("../../functions/_shared/openings/risk-opening.ts");
       const intake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const built = buildRiskOpening(intake as any);
       (report_data as any).opening_summary = built.text;
@@ -3274,7 +3274,7 @@ async function runPipeline(assessment_id: string) {
     // preserves `_meta.internal` unmodified (item-32 gate).
     try {
       const { runT7RiskPilotFix, T7_RISK_PILOTFIX_VERSION, T7_RISK_PILOTFIX_STAMP } =
-        await import("../_shared/openings/_t7_risk_pilotfix.ts");
+        await import("../../functions/run-cppa-risk-assessment/_local/openings/_t7_risk_pilotfix.ts");
       const _fix = runT7RiskPilotFix(report_data as any);
       const _rd: any = report_data as any;
       const _meta = _rd._meta ?? (_rd._meta = {});
@@ -3306,7 +3306,7 @@ async function runPipeline(assessment_id: string) {
     // recorded (never blocks — the scrubbers empty the surface first).
     try {
       const { applyWaveBCompletion, assertNoPiiInNarrative, WAVEB_COMPLETION_STAMP, WAVEB_COMPLETION_VERSION } =
-        await import("../_shared/ltp/waveb-completion.ts");
+        await import("../../functions/_shared/ltp/waveb-completion.ts");
       const _wbIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const _wb = applyWaveBCompletion(report_data as any, _wbIntake as any);
       report_data = _wb.report as any;
@@ -3339,7 +3339,7 @@ async function runPipeline(assessment_id: string) {
     // telemetry block. Fail-open.
     try {
       const { applyWaveB2Closure, WAVEB2_CLOSURE_STAMP, WAVEB2_CLOSURE_VERSION } =
-        await import("../_shared/ltp/waveb2-closure.ts");
+        await import("../../functions/run-cppa-risk-assessment/_local/ltp/waveb2-closure.ts");
       const _wb2 = applyWaveB2Closure(report_data as any);
       report_data = _wb2.report as any;
       const _rd: any = report_data as any;
@@ -3368,7 +3368,7 @@ async function runPipeline(assessment_id: string) {
     // Item 195 cohort-append is now a permanent no-op (retained call
     // preserves telemetry key stability for controller audits).
     try {
-      const { applyCyberAuditSchedule } = await import("../_shared/ltp/cyber-audit-schedule.ts");
+      const { applyCyberAuditSchedule } = await import("../../functions/_shared/ltp/cyber-audit-schedule.ts");
       const _schedRes = applyCyberAuditSchedule(report_data);
       const _rdS: any = report_data as any;
       _rdS._meta = _rdS._meta ?? {};
@@ -3392,7 +3392,7 @@ async function runPipeline(assessment_id: string) {
     // RETIRED per ITEM-204 (Defect B). Call retained as no-op for
     // telemetry-key stability; see cohort-append.ts header.
     try {
-      const { applyCohortAppendIfAbsent } = await import("../_shared/ltp/cohort-append.ts");
+      const { applyCohortAppendIfAbsent } = await import("../../functions/run-cppa-risk-assessment/_local/ltp/cohort-append.ts");
       const _cohortIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const _cohortRes = applyCohortAppendIfAbsent(report_data, _cohortIntake);
       const _rdC: any = report_data as any;
@@ -3412,7 +3412,7 @@ async function runPipeline(assessment_id: string) {
     // ── ITEM-204 RESIDUAL — INFO-NEEDED NORMALIZE (id/topic) ──────────
     // Schema-conformance: every information_needed row carries id + topic.
     try {
-      const { normalizeInformationNeeded } = await import("../_shared/ltp/info-needed-normalize.ts");
+      const { normalizeInformationNeeded } = await import("../../functions/run-cppa-risk-assessment/_local/ltp/info-needed-normalize.ts");
       const _inRes = normalizeInformationNeeded(report_data);
       const _rdI: any = report_data as any;
       _rdI._meta = _rdI._meta ?? {};
@@ -3910,8 +3910,8 @@ async function runPipeline(assessment_id: string) {
     // so availability is never blocked. Telemetry lands on
     // `_meta.internal.serializer`.
     try {
-      const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { CPPA_RISK_REPORT_SCHEMA } = await import("../_shared/report-schemas/cppa-risk.ts");
+      const { serializeCustomerReport } = await import("../../functions/_shared/report-serialize.ts");
+      const { CPPA_RISK_REPORT_SCHEMA } = await import("../../functions/_shared/report-schemas/cppa-risk.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, CPPA_RISK_REPORT_SCHEMA);
       if (!telemetry.crashed) report_data = serialized as any;
     } catch (e) {

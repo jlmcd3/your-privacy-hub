@@ -35,7 +35,7 @@
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
-} from "../../../../_shared/verified-authority-resolver.ts";
+} from "../../../_shared/verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
 export const LIA_VERIFIED_AUTHORITY_VERSION = "lia-va-w2-2026-08-01-item326";

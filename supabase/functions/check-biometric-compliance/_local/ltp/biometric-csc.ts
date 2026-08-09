@@ -44,7 +44,7 @@
 //
 // Telemetry rides `_meta.internal.biometric_csc`.
 
-import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../../_shared/ltp/dpia-csc.ts";
+import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../_shared/ltp/dpia-csc.ts";
 import { BIOMETRIC_ABSENCE_LABEL_PHRASINGS } from "./biometric-prose-gold.ts";
 
 export const BIOMETRIC_CSC_VERSION = "biometric-csc@item411-2026-08-08";

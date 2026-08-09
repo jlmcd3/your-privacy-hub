@@ -16,7 +16,7 @@
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
-} from "../../../../_shared/verified-authority-resolver.ts";
+} from "../../../_shared/verified-authority-resolver.ts";
 
 export const GOVERNANCE_ACCOUNTABILITY_VERSION =
   "governance-accountability-item313-2026-07-31";

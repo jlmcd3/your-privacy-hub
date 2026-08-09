@@ -27,7 +27,7 @@
 // Deterministic, in-place, never throws. Telemetry on
 // `_meta.internal.advisory_close_repair`.
 
-import { categorizeAsk, GENERIC_CATEGORY } from "../../../../_shared/prose/ask-categories.ts";
+import { categorizeAsk, GENERIC_CATEGORY } from "../../../_shared/prose/ask-categories.ts";
 
 export const ADVISORY_CLOSE_REPAIR_VERSION = "adv-close-repair-2026-08-05-item372r2";
 

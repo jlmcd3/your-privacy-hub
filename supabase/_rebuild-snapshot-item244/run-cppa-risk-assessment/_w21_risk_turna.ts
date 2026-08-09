@@ -42,7 +42,7 @@
 // Fail-open, non-blocking. Counters attach at _meta.internal.risk_w21a.
 // Build-stamp echo (A5) via `W21_RISK_TURNA_STAMP`, applied by index.ts.
 
-import type { FactRow } from "../_shared/intake/fact-ledger.ts";
+import type { FactRow } from "../../functions/_shared/intake/fact-ledger.ts";
 
 export const W21_RISK_TURNA_STAMP = "w21-risk-turna@2026-07-25T11:47:35Z";
 

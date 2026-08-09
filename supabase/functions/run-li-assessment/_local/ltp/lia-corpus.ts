@@ -20,7 +20,7 @@
  * HONEST DEGRADATION: a key that is not approved contributes NO excerpt. It
  * still appears, citation-only. Nothing is invented, nothing silently dropped.
  */
-import { resolveProvisionForRender } from "../../../../_shared/provision-store.ts";
+import { resolveProvisionForRender } from "../../../_shared/provision-store.ts";
 import { LIA_VERIFIED_AUTHORITIES } from "../registry/lia-verified-authorities.ts";
 
 type SupabaseClient = { from: (table: string) => unknown };

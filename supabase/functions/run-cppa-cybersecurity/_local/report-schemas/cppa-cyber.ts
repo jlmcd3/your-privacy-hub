@@ -6,7 +6,7 @@
 // src/pages/CPPACybersecurityDrift.tsx (frontend audit),
 // reconciled against run-cppa-cybersecurity report-assembly code.
 
-import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../_shared/report-serialize.ts";
 
 const CYBER_ENTRY_KEYS = [
   "id",

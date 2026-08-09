@@ -22,7 +22,7 @@
  * rail only. They are never corpus assertions, never quoted as authority, and
  * never reach this module. Nothing here may cite them.
  */
-import { resolveProvisionForRender } from "../../../../_shared/provision-store.ts";
+import { resolveProvisionForRender } from "../../../_shared/provision-store.ts";
 
 type SupabaseClient = {
   from: (table: string) => {

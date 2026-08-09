@@ -38,7 +38,7 @@
 //
 // Telemetry rides `_meta.internal.governance_csc`.
 
-import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../../_shared/ltp/dpia-csc.ts";
+import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../_shared/ltp/dpia-csc.ts";
 import { GOVERNANCE_ABSENCE_LABEL_PHRASINGS } from "./governance-prose-gold.ts";
 import {
   buildDomainRecordStatement,

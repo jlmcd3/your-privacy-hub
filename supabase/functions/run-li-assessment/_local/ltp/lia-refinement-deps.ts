@@ -10,10 +10,10 @@
 // Metering is identical to the other two products: one `api_usage` row per
 // model call, attributed by `function_name` suffix (`…:refine_critic` /
 // `…:refine_verifier`) with `source_row_id` = the assessment id.
-import { recordApiUsage } from "../../../../_shared/api-usage.ts";
-import { callAnthropicWithContinuation } from "../../../../_shared/anthropic-call.ts";
-import { currentGenerationModel, currentSourceRowId, generationMaxTokens } from "../../../../_shared/generation-model.ts";
-import type { RefinementDeps } from "../../../../_shared/ltp/refinement-core.ts";
+import { recordApiUsage } from "../../../_shared/api-usage.ts";
+import { callAnthropicWithContinuation } from "../../../_shared/anthropic-call.ts";
+import { currentGenerationModel, currentSourceRowId, generationMaxTokens } from "../../../_shared/generation-model.ts";
+import type { RefinementDeps } from "../../../_shared/ltp/refinement-core.ts";
 
 /** One line disables the whole critic → verifier → splicer pass. */
 export const LIA_REFINEMENT_ENABLED = true;

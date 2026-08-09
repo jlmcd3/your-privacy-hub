@@ -42,11 +42,11 @@
 // IMPORTED here by reference rather than re-typed: a second literal copy of the
 // same verbatim quote is a second thing to drift, and the Item 327 pin test
 // would not be guarding it. The corpus pin therefore covers both products.
-import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../../_shared/registry/governance-verified-authorities.ts";
+import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../_shared/registry/governance-verified-authorities.ts";
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
-} from "../../../../_shared/verified-authority-resolver.ts";
+} from "../../../_shared/verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
 export const IR_PLAYBOOK_VERIFIED_AUTHORITY_VERSION = "ir-va-w2-2026-08-01-item328";

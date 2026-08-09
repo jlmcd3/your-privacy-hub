@@ -11,7 +11,7 @@
 //   5. Instruction-leak phrases — "As an AI", "I cannot", "system prompt".
 //   6. Raw field-id tokens escaping into narrative — "q5b_...", "i2_...".
 
-import { BLACKLIST_RE } from "../../../../_shared/blacklist-phrases.ts";
+import { BLACKLIST_RE } from "../../../_shared/blacklist-phrases.ts";
 
 // Any statute §-number the graders recognise as legitimate. Anchored
 // against learnings 10-17. Extend as new statutes come into scope.

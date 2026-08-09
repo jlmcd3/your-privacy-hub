@@ -18,7 +18,7 @@
 // Top-level whitelist alone enforces "unknown-key-cannot-ship" at the
 // section granularity that has ever been reviewed (DPIA precedent).
 
-import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../_shared/report-serialize.ts";
 
 export const GOVERNANCE_REPORT_SCHEMA: ReportSchema = {
   version: "rs-governance-w4-2026-08-07-item402",

@@ -8,13 +8,13 @@
  * the golden-shape HARD ASSERT lives here: shortfall_keys non-empty ⇒
  * one hard failure entry per key.
  */
-import type { RenderPlan, FactorTableEntry } from "../../../../../_shared/render-plan/schema.ts";
-import type { AssemblerResult } from "../../../../../_shared/ltp/pass2-assembler.ts";
-import type { TemplateInstance } from "../../../../../_shared/ltp/section-composers/cppa-risk.ts";
-import { composeSection, KIND_OPENERS } from "../../../../../_shared/ltp/section-composers/cppa-risk.ts";
-import { evaluateGoldenShape } from "../../../../../_shared/ltp/golden-shape-quotas.ts";
-import { INTAKE_FIELD_DISPLAY_LABELS } from "../../../../../_shared/ltp/grounded-note.ts";
-import type { SubstanceGateConfig, SubstanceMetrics } from "../../../../../_shared/ltp/replay/types.ts";
+import type { RenderPlan, FactorTableEntry } from "../../../../_shared/render-plan/schema.ts";
+import type { AssemblerResult } from "../../../../_shared/ltp/pass2-assembler.ts";
+import type { TemplateInstance } from "../../../../_shared/ltp/section-composers/cppa-risk.ts";
+import { composeSection, KIND_OPENERS } from "../../../../_shared/ltp/section-composers/cppa-risk.ts";
+import { evaluateGoldenShape } from "../../../../_shared/ltp/golden-shape-quotas.ts";
+import { INTAKE_FIELD_DISPLAY_LABELS } from "../../../../_shared/ltp/grounded-note.ts";
+import type { SubstanceGateConfig, SubstanceMetrics } from "../../../../_shared/ltp/replay/types.ts";
 
 const RATIFIED_STEMS: ReadonlySet<string> = new Set(
   Object.values(KIND_OPENERS),

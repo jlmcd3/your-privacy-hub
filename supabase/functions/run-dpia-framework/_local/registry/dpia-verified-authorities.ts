@@ -24,7 +24,7 @@
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
-} from "../../../../_shared/verified-authority-resolver.ts";
+} from "../../../_shared/verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
 export const DPIA_VERIFIED_AUTHORITY_VERSION = "dpia-va-uk35-2026-08-01-item330";
