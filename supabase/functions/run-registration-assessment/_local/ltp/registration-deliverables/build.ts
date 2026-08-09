@@ -944,7 +944,7 @@ function buildNarrative(
     : conditional.length
     ? `${name}'s registration position is conditional in ${conditional.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
     : insufficient.length
-    ? `${name}'s registration position cannot be settled on this record in ${insufficient.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
+    ? `${name}'s registration position cannot be settled as the record stands in ${insufficient.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
     : `${name} is not registrable under any US state data-broker regime in this product's verified corpus; ${repClause}; ${dpoClause}.`;
 
   const overview = [
