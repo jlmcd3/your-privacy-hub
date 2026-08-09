@@ -13,6 +13,7 @@ import {
 import {
   normalizeRiskActivities,
   SECTION_7152_ELEMENT_MAP,
+  ACTIVITY_BASIS_KEY,
   resolveRegistryPinpoint,
 } from "../../../supabase/functions/_shared/ltp/risk-activity-emit.ts";
 import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
@@ -66,7 +67,7 @@ Deno.test("ITEM 427 reader: legacy eleven-leaf object[]", () => {
   assertEquals(v.present, true);
   assertEquals(v.rows.length, 1);
   assertEquals(v.rows[0].activity, "Credit underwriting");
-  assert(activityViewText(v).includes("Credit underwriting"));
+  assert(activityViewText(v).join(" ").includes("Credit underwriting"));
 });
 
 Deno.test("ITEM 427 reader: mixed string + object array", () => {
@@ -134,9 +135,11 @@ Deno.test("ITEM 427 writer: statutory_basis and every mapping pinpoint are regis
   const report = reportWithAnalytics();
   normalizeRiskActivities(report, INTAKE);
   const row = (report.risk_assessment_by_activity as any[])[0];
-  assert(/^11 CCR § 7152\(a\)/.test(row.statutory_basis), row.statutory_basis);
+  // The per-activity basis is the DUTY anchor (§ 7150(a)) resolved from the
+  // registry — never model-authored, never hand-typed here.
+  assertEquals(row.statutory_basis, resolveRegistryPinpoint(ACTIVITY_BASIS_KEY).pinpoint);
   assert(Array.isArray(row.section_7152_mapping) && row.section_7152_mapping.length > 0);
-  const known = new Set(Object.values(SECTION_7152_ELEMENT_PINPOINTS));
+  const known = new Set(SECTION_7152_ELEMENT_MAP.map((e) => resolveRegistryPinpoint(e.key).pinpoint));
   for (const m of row.section_7152_mapping) {
     assert(known.has(m.pinpoint), `model-authored pinpoint leaked: ${m.pinpoint}`);
   }
@@ -173,4 +176,16 @@ Deno.test("ITEM 427 anti-padding: empty array with no analytics is OMITTED, not 
   const summary = normalizeRiskActivities(report, {});
   assertEquals(summary.action, "omitted");
   assertEquals("risk_assessment_by_activity" in report, false);
+});
+
+Deno.test("ITEM 427 anti-padding: an untriggered scaffold row is not a triggered activity", async () => {
+  const { isTriggeredAnalyticsRow } = await import(
+    "../../../supabase/functions/_shared/ltp/risk-activity-emit.ts"
+  );
+  assertEquals(isTriggeredAnalyticsRow({ activity_name: "" }), false);
+  assertEquals(isTriggeredAnalyticsRow({ activity_name: "Credit underwriting" }), false);
+  assertEquals(
+    isTriggeredAnalyticsRow({ activity_name: "Credit underwriting", activity_purpose: "Decide financing" }),
+    true,
+  );
 });

@@ -248,6 +248,22 @@ export function buildActivityRecord(analyticsRaw: unknown): RiskActivityRecord {
   };
 }
 
+/**
+ * A TRIGGERED activity: the record names the activity AND supplies at least one
+ * substantive § 7152(a) input for it. Scaffold rows fail both halves.
+ */
+export function isTriggeredAnalyticsRow(raw: unknown): boolean {
+  const a = (raw ?? {}) as Record<string, unknown>;
+  if (!str(a.activity_name)) return false;
+  const benefits = Array.isArray(a.benefits) ? a.benefits : [];
+  const hasBenefit = benefits.some((b) => str((b as Record<string, unknown>)?.benefit));
+  const harms = Array.isArray(a.harm_causation) ? a.harm_causation : [];
+  const hasHarm = harms.some((h) => str((h as Record<string, unknown>)?.harm_label));
+  const guards = Array.isArray(a.safeguard_map) ? a.safeguard_map : [];
+  const hasGuard = guards.some((g) => str((g as Record<string, unknown>)?.safeguard));
+  return Boolean(str(a.activity_purpose) || hasBenefit || hasHarm || hasGuard);
+}
+
 export interface ActivityNormalizeSummary {
   action: "typed" | "left_legacy" | "omitted";
   emitted: number;
@@ -285,6 +301,11 @@ export function normalizeRiskActivities(
       analytics = [];
     }
   }
+
+  // THE ANTI-PADDING RULE. `buildActivityAnalytics` returns a scaffold row even
+  // for a record that names no activity; a scaffold row is NOT a triggered
+  // activity and must never become a thirteen-leaf record of absences.
+  analytics = analytics.filter(isTriggeredAnalyticsRow);
 
   if (analytics.length === 0) {
     if (hadKey && !view.present) {
