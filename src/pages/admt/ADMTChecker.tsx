@@ -1736,16 +1736,16 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
-                      What ADMT logic information do you disclose in your access responses? <Req />
+                      What do you tell someone about how the system reached its result? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Required: how the ADMT processed the consumer's PI to generate the output; parameters that generated the output; the specific output with respect to this consumer (§ 7222(b)(2)). Trade secrets may be withheld.
+                      Say how the system handled that person's information, what drove the output, and what the output was (§ 7222(b)(2)). Trade secrets may be withheld.{prefilled.accessLogicDisclosure && !prefillTouched.accessLogicDisclosure ? " We have carried over what you wrote above about how the system works — confirm it or replace it." : ""}
                     </p>
                     <Textarea
                       className="mt-2"
                       rows={3}
                       value={accessLogicDisclosure}
-                      onChange={(e) => setAccessLogicDisclosure(e.target.value)}
+                      onChange={(e) => { markTouched("accessLogicDisclosure"); setAccessLogicDisclosure(e.target.value); }}
                       data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
                       placeholder="Disclosed first, then withheld"
                     />
@@ -1753,16 +1753,16 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}>
-                      What decision outcome information do you disclose in your access responses? <Req />
+                      What do you tell someone about the decision itself? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Required: how the output was used in the significant decision; whether it was the sole factor; other factors; human's role if any; future use of the output if applicable (§ 7222(b)(3)).
+                      Say how the output was used in the decision, whether it decided the matter on its own, what else counted, what a human did, and any later use of the output (§ 7222(b)(3)).{prefilled.accessOutcomeDisclosure && !prefillTouched.accessOutcomeDisclosure ? " We have carried over what you wrote above about producing the outcome — confirm it or replace it." : ""}
                     </p>
                     <Textarea
                       className="mt-2"
                       rows={3}
                       value={accessOutcomeDisclosure}
-                      onChange={(e) => setAccessOutcomeDisclosure(e.target.value)}
+                      onChange={(e) => { markTouched("accessOutcomeDisclosure"); setAccessOutcomeDisclosure(e.target.value); }}
                       data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}
                       placeholder="Disclosed first, then withheld"
                     />
