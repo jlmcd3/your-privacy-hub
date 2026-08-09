@@ -79,6 +79,16 @@ import {
   IR_WATCH_CLASSES,
 } from "./ir-refinement-config.ts";
 import { IR_SECTION_SPECS } from "../prose/ir.spine.ts";
+// ITEM 417-B — refinement is budget-aware and fails open ON TIME, not only on
+// error. The isolate that died on the first live invocation threw nothing.
+import {
+  irCriticInputChars,
+  irRefinementAffordable,
+  irVerifierAffordable,
+  makeIrTimeBudget,
+  type IrBudgetVerdict,
+  type IrTimeBudget,
+} from "./ir-time-budget.ts";
 
 export type { CriticFinding, RefinementDeps, RefinementTelemetry, SpliceResult };
 export {
