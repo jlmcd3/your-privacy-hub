@@ -40,12 +40,13 @@ function asAnalysedRecord(intake: Record<string, unknown>): Record<string, unkno
   return { ...intake, assessment_id: "00000000-0000-4000-8000-000000000001", user_id: "00000000-0000-4000-8000-000000000002" };
 }
 
+// ITEM 416 — LIVE PARITY. Mirrors index.ts: analytic deliverables first, then
+// the two artifacts built from the resulting content/owner mapping.
 function assemble(intake: Record<string, unknown>) {
-  const report: Record<string, unknown> = {
-    standing_playbook: buildStandingPlaybook(intake),
-    incident_worksheet: buildIncidentWorksheet(String(intake.organizationName ?? "")),
-    generated_at: "2026-08-09T00:00:00.000Z",
-  };
+  const report: Record<string, unknown> = { generated_at: "2026-08-09T00:00:00.000Z" };
+  attachIrPlaybookDeliverables(report, intake);
+  report.standing_playbook = buildStandingPlaybook(intake, report.content_owner_mapping as never);
+  report.incident_worksheet = buildIncidentWorksheet(String(intake.organizationName ?? ""));
   return runIrFinalizeBattery(report, intake);
 }
 
@@ -169,8 +170,9 @@ Deno.test("item415: both artifacts ride the one persisted report the grader read
 
 // ── 3. THE GATE ─────────────────────────────────────────────────────────────
 
-Deno.test("item415: FALSE_ABSENCE_CHECK_IDS['ir-playbook'] is empty until leg C", () => {
-  assertEquals(FALSE_ABSENCE_CHECK_IDS["ir-playbook"], []);
+// ITEM 416 LEG C shipped the real CSC, so the gate now names a real check.
+Deno.test("item415: FALSE_ABSENCE_CHECK_IDS['ir-playbook'] names the leg-C check", () => {
+  assertEquals(FALSE_ABSENCE_CHECK_IDS["ir-playbook"], ["i2_absence_claim_vs_record"]);
 });
 
 Deno.test("item415: the CSC placeholder is present-but-empty and honest about it", () => {
@@ -238,11 +240,10 @@ Deno.test("item415: ZERO customer-visible change — both artifacts byte-identic
   for (const intake of [asAnalysedRecord(PERFECT), { ...asAnalysedRecord(PERFECT), activationCriteria: [] }]) {
     // The gate writes only into `_meta.internal`; strip it and compare.
     const withGate = assemble(intake).report;
-    const bare: Record<string, unknown> = {
-      standing_playbook: buildStandingPlaybook(intake),
-      incident_worksheet: buildIncidentWorksheet(String(intake.organizationName ?? "")),
-      generated_at: "2026-08-09T00:00:00.000Z",
-    };
+    const bare: Record<string, unknown> = { generated_at: "2026-08-09T00:00:00.000Z" };
+    attachIrPlaybookDeliverables(bare, intake);
+    bare.standing_playbook = buildStandingPlaybook(intake, bare.content_owner_mapping as never);
+    bare.incident_worksheet = buildIncidentWorksheet(String(intake.organizationName ?? ""));
     // Re-run the item414 battery legs only (gold + coverage + lint) by
     // comparing the artifacts, which no leg of leg B is permitted to touch.
     const ref = runIrFinalizeBattery(bare, intake).report;
