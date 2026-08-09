@@ -1628,7 +1628,8 @@ export default function ADMTChecker() {
                           </div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Confirm: you do not require account creation to submit an opt-out (§ 7221(e))</Label>
+                          <Label className="text-[12px]">Does someone have to create an account to opt out?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7221(e) bars requiring account creation as a condition of submitting the request.</p>
                           <div className="mt-1">
                             <Radio
                               name="no_account"
