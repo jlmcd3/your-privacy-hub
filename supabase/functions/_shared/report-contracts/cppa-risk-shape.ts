@@ -66,6 +66,9 @@ export const CPPA_RISK_HEADER_MAP: Readonly<Record<string, string>> = {
   // UPGRADE-2 — § 7152(a) deliverables + attestation.
   activity_analytics: "The § 7152(a) analysis, activity by activity",
   submission_summary: "How to submit and retain this assessment",
+  // ITEM 428 (PIECE B) — the statutory surface that now owns the § 7157 /
+  // § 7155(c) / § 7121(a) content re-homed from the retired submission_summary.
+  submission_and_retention: "How to submit and retain this assessment",
 };
 
 export function headerForSection(key: string, fallback?: string): string {

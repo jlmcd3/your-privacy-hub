@@ -585,7 +585,10 @@ const CHECKS: Check[] = [
 
           const m4 = states.M4;
           if (!m4 || !isResolved(m4.state)) return { passed: true };
-          const ss = (report as any)?.submission_summary ?? {};
+          // ITEM 428 (PIECE B) — re-homed per item428 Piece B: content unchanged,
+          // surface retired. Reads the new statutory surface, falling back to
+          // the retired key for legacy persisted documents.
+          const ss = (report as any)?.submission_and_retention ?? (report as any)?.submission_summary ?? {};
           const s = JSON.stringify(ss ?? "").toLowerCase();
           if (!/7120\s*\(b\)\s*\(2\)\s*\(b\)/.test(s)) {
             return { passed: false, evidence: `§ 7120(b)(2)(B) not referenced in submission_summary despite resolved M4 (${m4.state})` };
@@ -620,7 +623,10 @@ const CHECKS: Check[] = [
 
           const m5 = states.M5;
           if (!m5 || !isResolved(m5.state)) return { passed: true };
-          const ss = (report as any)?.submission_summary ?? {};
+          // ITEM 428 (PIECE B) — re-homed per item428 Piece B: content unchanged,
+          // surface retired. Reads the new statutory surface, falling back to
+          // the retired key for legacy persisted documents.
+          const ss = (report as any)?.submission_and_retention ?? (report as any)?.submission_summary ?? {};
           const s = JSON.stringify(ss ?? "").toLowerCase();
           if (!/7120\s*\(b\)\s*\(1\)/.test(s)) {
             return { passed: false, evidence: `§ 7120(b)(1) not referenced in submission_summary despite resolved M5 (${m5.state})` };
@@ -674,7 +680,10 @@ const CHECKS: Check[] = [
           const r = resolveForChecks(intake);
           const band = classifyRevenueBand(r.rawForStates.q1_revenue);
 
-          const ss = (report as any)?.submission_summary ?? {};
+          // ITEM 428 (PIECE B) — re-homed per item428 Piece B: content unchanged,
+          // surface retired. Reads the new statutory surface, falling back to
+          // the retired key for legacy persisted documents.
+          const ss = (report as any)?.submission_and_retention ?? (report as any)?.submission_summary ?? {};
           const s = JSON.stringify(ss ?? "").toLowerCase();
           // ISO or long form ("april 1, YYYY" / "april 1 YYYY").
           const cohortDateRegex = (year: string) =>

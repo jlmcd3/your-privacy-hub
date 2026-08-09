@@ -33,6 +33,7 @@ import {
   renderAssessmentSummarySectionHtml,
   renderExecutiveSummarySectionHtml,
   renderSubmissionSummarySectionHtml,
+  renderSubmissionAndRetentionSectionHtml,
 } from "./_local/summary-voice-html.ts";
 import { coerceExceptionView } from "../_shared/report-contracts/risk-exceptions.ts";
 import { coerceActivityView } from "../_shared/report-contracts/risk-activities.ts";
@@ -1590,6 +1591,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("information_needed", "Items for Your Review", infoNeeded)}
     ${renderRecordSufficiencySectionHtml(report)}
     ${renderSubmissionSummarySectionHtml(report)}
+    ${renderSubmissionAndRetentionSectionHtml(report)}
     ${buildCPPARiskAttestationHTML(report)}
     ${renderAuthorityExhibitHtml(report?.authority_exhibit)}
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.build_stamp ? ` · build ${text(meta.build_stamp)}` : ""}</div>
