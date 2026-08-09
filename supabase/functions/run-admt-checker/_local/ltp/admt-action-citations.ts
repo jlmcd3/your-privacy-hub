@@ -72,6 +72,21 @@ export function resolveActionCitation(
 ): "resolved_by_key" | "keyless_filled" | "anchor_downgraded" | "untouched" {
   const pk = str(entry.proposition_key);
   if (pk) {
+    // ITEM 422-C DEFECT 1 — CONTENT-ANCHORED ASSIGNMENT CHECK. A faithfully
+    // resolved but MIS-KEYED proposition ships a verified-but-wrong pinpoint
+    // (pilot ranks 3 and 6: § 7222(b)(2) on secure-transmission and
+    // denial-basis actions). Validate the assignment against the registry's
+    // own declared anchor vocabulary FIRST; on contradiction take the honest
+    // downgrade rather than a confident wrong pinpoint.
+    const anchorCheck = validatePropositionAssignment(entry, pk);
+    if (anchorCheck.verdict === "mismatch") {
+      entry.citation = ADMT_SUBCHAPTER_FALLBACK;
+      entry.proposition_key = "";
+      entry._citation_source = "registry_downgrade_mis_keyed";
+      entry._mis_keyed_from = pk;
+      entry._mis_keyed_contradicted_by = anchorCheck.contradicted_by ?? "";
+      return "anchor_downgraded";
+    }
     const row = resolveByPropositionKey(reg, pk);
     if (row) {
       entry.citation = row.subsection;
