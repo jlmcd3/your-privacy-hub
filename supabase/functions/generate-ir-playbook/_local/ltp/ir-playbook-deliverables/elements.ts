@@ -156,5 +156,13 @@ export const EXPOSURE_LEXICON: readonly RegExp[] = [
   /\b4\s*%|\b2\s*%|\bEUR\s?20|\b20 million\b/i,
 ];
 
-/** Placeholder the product uses for a deferral. */
+/** Placeholder the product uses for a deferral. WORKSHEET REGISTER ONLY. */
 export const TO_BE_COMPLETED = "[TO BE COMPLETED]";
+
+/**
+ * ITEM 414 (IR-4) — the STANDING register's form of the same absence. A blank
+ * form carries a placeholder; a durable reference document carries an
+ * instruction to the organisation that owns it.
+ */
+export const STANDING_TO_COMPLETE = "To be completed by the organisation";
+
