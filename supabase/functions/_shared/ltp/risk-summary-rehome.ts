@@ -1,6 +1,24 @@
 /**
  * ITEM 428-B (DEFECT 1) — RE-HOMED REFERRAL PROSE OFF THE SUMMARY SURFACES.
  *
+ * CEO RATIFICATION (2026-08-09, ITEM 428-C): the SUPPRESSION path is law.
+ * Where a lifted referral sentence is a restatement the deterministic reserved
+ * `priority_actions` rows already own, and it would not keep its host leaf
+ * gate-clean under `isSanctionedCounselRegister`, the sentence is suppressed
+ * from every customer surface and preserved VERBATIM under `_meta.internal`
+ * (a machine surface the gate never walks). No exemption is ever added to the
+ * gate for `e6_counsel_referral`.
+ *
+ * ITEM 428-C (DEFECT 1) adds a THIRD surface to this pass:
+ * `$.risk_assessment_by_activity`. The emit gate runs inside `seal(...)`,
+ * BEFORE the ITEM-427 canonical re-emission in `risk-activity-emit.ts`, so the
+ * gate honestly walks the pre-gate (model/template-composed) activity surface —
+ * on which a writer parked the reserved-determination referral sentence the
+ * reserved rows already carry. The sentence never reaches the persisted record
+ * (the 427 emitter rewrites the shape), so the fix is at the WRITER side of the
+ * gate: the same deterministic strip, over every string leaf of that surface.
+
+ *
  * The Piece-B consolidation left two writers parking reserved-determination /
  * counsel-referral prose on SUMMARY surfaces:
  *
