@@ -673,6 +673,7 @@ export function applyRiskProseGold(
     analytics_reasons_rewritten: 0,
     placeholders_swept: 0,
     placeholder_paths: [],
+    reserved_actors_named: 0,
   };
   try {
     // G-2 (register repair, every record) — with the r2 empty-surface guard.
@@ -682,6 +683,11 @@ export function applyRiskProseGold(
       if (stripped !== esBefore && stripped !== esBefore.trim()) t.exec_degraded_opener_stripped = true;
       report.executive_summary = stripped;
     }
+
+    // 428-D (register repair, every record) — a reserved action names its holder.
+    t.reserved_actors_named = nameReservedActors(report);
+
+
 
 
     // G-4 (register repair, every record; status swap gate-aware).
