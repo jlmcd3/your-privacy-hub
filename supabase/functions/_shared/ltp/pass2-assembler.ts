@@ -324,15 +324,20 @@ function renderTemplateSection(
   // templates. No new text is introduced by the join.
   const instances = composeSection(shard.key, plan);
   type Part = { id: string; ctx: Record<string, unknown> };
-  const renderList: { parts: Part[] }[] = instances
+  const renderList: { parts: Part[]; record?: unknown }[] = instances
     ? instances.map((i) => ({
         parts: (i.parts && i.parts.length > 0)
           ? i.parts.map((p) => ({ id: p.template_id, ctx: p.ctx as Record<string, unknown> }))
           : [{ id: i.template_id, ctx: i.ctx as Record<string, unknown> }],
+        // ITEM 421 — the composer's typed action record travels with the unit.
+        record: (i as { action_record?: unknown }).action_record,
       }))
     : shard.owner.template_ids
         .filter((id) => id !== "deterministic")
         .map((id) => ({ parts: [{ id, ctx: {} as Record<string, unknown> }] }));
+
+  // ITEM 421 — structured emission accumulator (priority_actions today).
+  const records: unknown[] = [];
 
   for (const unit of renderList) {
     const chunks: string[] = [];
@@ -362,10 +367,16 @@ function renderTemplateSection(
     }
     if (chunks.length > 0) {
       rendered.push(chunks.length === 1 ? chunks[0] : chunks.map((c) => c.trim()).join(" "));
+      if (unit.record && typeof unit.record === "object") records.push(unit.record);
     }
   }
 
-  const value = rendered.length > 0 ? rendered : undefined;
+  // ITEM 421 — TYPED PRIORITY ACTIONS. When every rendered unit carries a
+  // record, the shipped value is the record array; otherwise the string list
+  // ships exactly as before (fail-open, legacy-identical).
+  const structured = records.length > 0 && records.length === rendered.length ? records : undefined;
+  const value = structured ?? (rendered.length > 0 ? rendered : undefined);
+
   if (value !== undefined && NARRATIVE_CLASS_KEYS.has(shard.key)) {
     const pii = containsPii(value);
     if (pii) {
