@@ -2421,13 +2421,18 @@ Return this JSON structure exactly:
     // already applies to `top_3_actions`. Fail-open.
     try {
       const pa422 = normalizeAdmtPriorityActions(report);
+      // ITEM 422-B DEFECT 1 — the pinpoint on every typed record is RESOLVED
+      // FROM THE VERIFIED-AUTHORITY REGISTRY (key → reverse lookup → honest
+      // downgrade). A model-authored §-token never ships.
+      const pa422b = resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
       console.log(JSON.stringify({
         evt: "item422_priority_actions", fn: "run-admt-checker",
-        build_stamp: BUILD_STAMP, ...pa422,
+        build_stamp: BUILD_STAMP, ...pa422, citations: pa422b,
       }));
     } catch (e) {
       console.warn("[run-admt-checker] ITEM 422 normalise failed (non-fatal):", (e as Error)?.message);
     }
+
 
     // ── WAVE19-FIX TURN A (2026-07-25) — targeted A1/A2/A3/A4 sanitiser.
     // A1: registry-first fallback resolution (per-entry re-stamp).
