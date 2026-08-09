@@ -38,9 +38,9 @@
 //     for the Chapter 8 determinations, not for the standing playbook: it is a
 //     degraded record under the ITEM 369-IR two-artifact model, and it is the
 //     reason yesterday's batch render carried an absence ledger.
-//   * `MESSY_BY_TOOL["ir-playbook"]` — no messy IR entry exists; the messy
-//     registry has no `ir-playbook` key, so `casesForVariant("ir-playbook",
-//     "messy")` correctly returns [] and fails loudly.
+//   * `MESSY_BY_TOOL["ir-playbook"]` — two adversarial thin-record entries
+//     (`ir-messy-thin-forensic-record`, `ir-messy-mixed-jurisdiction`) that
+//     exercise the honest-degradation direction.
 // Both remain untouched and keep serving the degraded pilot.
 
 import type { GoldenCase } from "./types.ts";

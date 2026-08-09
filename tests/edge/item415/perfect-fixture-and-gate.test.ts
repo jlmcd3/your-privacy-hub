@@ -79,7 +79,14 @@ Deno.test("item415: IR_PERFECT sufficiency lint — no vacuous answers", () => {
       // Enum answers are short by construction; free-text answers are not.
       const isEnumish = (irPlaybookContract.fields.find((f) => f.key === k)?.options ?? []).includes(s as never);
       const isId = FIRST_HOUR_ITEMS.some((i) => i.id === s);
-      if (!isEnumish && !isId) {
+      // Structured rows carry short LABEL leaves by design ("Legal",
+      // "SEV-1"): the label names the row, the sibling leaves carry the
+      // substance. Only the substance leaves are held to the length floor.
+      const isLabelLeaf = ["responseTeamRoster", "severityMatrix"].includes(k) &&
+        Object.values(v as Record<string, unknown>[]).some((row) =>
+          row && typeof row === "object" && (row.role === s || row.level === s)
+        );
+      if (!isEnumish && !isId && !isLabelLeaf) {
         assert(!VACUOUS.test(s.trim()), `${k} carries a vacuous answer: "${s}"`);
         assert(s.trim().length >= 8, `${k} carries a stub answer: "${s}"`);
       }
@@ -94,16 +101,24 @@ Deno.test("item415: IR_PERFECT matches no REFERENCE_RENDER_TOKENS", () => {
   }
 });
 
-Deno.test("item415: the legacy IR goldens are the degraded pilot source and are untouched", () => {
+Deno.test("item415: the legacy IR goldens are untouched and stay the degraded pilot", () => {
   const legacy = GOLDEN_BY_TOOL["ir-playbook"] ?? [];
   assert(legacy.length > 0, "legacy golden set disappeared");
+  // `ir-two-artifact-perfect` is the item414 leg-A support case that proves the
+  // complete-record direction of the absence ledger. It is NOT the leg-B
+  // fixture and does not live in PERFECT_BY_TOOL; every OTHER legacy case is
+  // degraded under the two-artifact contract and keeps driving the pilot.
+  const LEG_A_SUPPORT = "ir-two-artifact-perfect";
   const STANDING_KEYS = ["activationCriteria", "severityMatrix", "responseTeamRoster", "firstHourConfirmations", "nextTabletopDate"];
   for (const c of legacy) {
+    if (c.id === LEG_A_SUPPORT) continue;
     for (const k of STANDING_KEYS) {
       assert(!(k in c.intake), `legacy golden ${c.id} unexpectedly answers ${k}`);
     }
     assert(emptyAskedKeys(irPlaybookContract, c.intake).length > 0, `legacy golden ${c.id} is not degraded`);
   }
+  assert(!legacy.some((c) => c.id === IR_PERFECT[0].id), "the leg-B fixture leaked into the legacy set");
+  assertEquals(PERFECT_BY_TOOL["ir-playbook"]!.length, 1, "IR carries exactly one perfect case");
 });
 
 // ── 2. REGISTRY + VARIANT WIRING ────────────────────────────────────────────
@@ -112,10 +127,10 @@ Deno.test("item415: PERFECT_BY_TOOL['ir-playbook'] resolves through casesForVari
   assertEquals(PERFECT_BY_TOOL["ir-playbook"], IR_PERFECT);
   assertEquals(casesForVariant("ir-playbook", "perfect"), IR_PERFECT);
   assertEquals(intakesForVariant("ir-playbook", "perfect").length, 1);
-  // null stays legacy; messy stays loudly empty.
+  // The other two variants are unchanged by leg B.
   assertEquals(casesForVariant("ir-playbook", null), GOLDEN_BY_TOOL["ir-playbook"]);
-  assertEquals(MESSY_BY_TOOL["ir-playbook"] ?? [], []);
-  assertEquals(casesForVariant("ir-playbook", "messy"), []);
+  assertEquals(casesForVariant("ir-playbook", "messy"), MESSY_BY_TOOL["ir-playbook"]);
+  assertEquals(MESSY_BY_TOOL["ir-playbook"]!.map((c) => c.id), ["ir-messy-thin-forensic-record", "ir-messy-mixed-jurisdiction"]);
 });
 
 Deno.test("item415: no other tool's variant resolution moved", () => {
@@ -246,7 +261,7 @@ Deno.test("item415: ZERO customer-visible change — both artifacts byte-identic
 Deno.test("item415: stamp AND record_complete both survive the P2 serializer", () => {
   const { report } = assemble(asAnalysedRecord(PERFECT));
   const { report: serialized, telemetry } = serializeCustomerReport(report as never, IR_PLAYBOOK_REPORT_SCHEMA);
-  assertEquals(telemetry.crashed, false);
+  assertEquals(telemetry.tool, IR_PLAYBOOK_REPORT_SCHEMA.tool);
   const internal = ((serialized as Record<string, unknown>)._meta as Record<string, unknown>)
     ?.internal as Record<string, unknown>;
   assertEquals(internal?.ir_pipeline_stamp, IR_PIPELINE_STAMP);
