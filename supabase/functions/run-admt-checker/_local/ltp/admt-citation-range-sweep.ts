@@ -166,9 +166,10 @@ function sweepNode(
 
   if (typeof node === "object") {
     const obj = node as Record<string, unknown>;
-    for (const [k, v] of Object.entries(obj)) {
+    for (const k of Object.keys(obj)) {
       if (k.startsWith("_")) continue; // reserved/internal subtrees
-      obj[k] = sweepNode(v, diag, surface, obj, k);
+      // read fresh: an earlier pinpoint withholding may have cleared a sibling
+      obj[k] = sweepNode(obj[k], diag, surface, obj, k);
     }
     return obj;
   }
