@@ -21,6 +21,9 @@ import { coerceActionListText } from "@/lib/action-record";
 import { coerceExceptionView, exceptionViewText } from "@/lib/risk-exceptions";
 // ITEM 427 — five-shape tolerance for risk_assessment_by_activity.
 import { coerceActivityView, activityViewText } from "@/lib/risk-activities";
+// ITEM 428 — typed fact strip on assessment_summary.
+import { RISK_FACT_STRIP_TYPE, factStripRows } from "@/lib/risk-fact-strip";
+
 // ITEM 425 — dual-read record sufficiency (string | string[] | legacy object | typed record).
 import {
   coerceSufficiencyView,
@@ -225,34 +228,54 @@ export default function RiskAssessmentReportLTP({
         value={report?.executive_summary}
       />
 
-      {(summaryNarrative ||
-        summary.company_name ||
-        summary.assessment_date ||
-        summary.overall_risk_level) && (
-        <SectionShell sectionKey="assessment_summary" fallbackTitle="Assessment Summary">
-          {summary.company_name && (
-            <p className="mb-1">
-              <span className="font-bold">Company:</span> {summary.company_name}
-            </p>
-          )}
-          {summary.assessment_date && (
-            <p className="mb-1">
-              <span className="font-bold">Assessment date:</span> {summary.assessment_date}
-            </p>
-          )}
-          {summary.overall_risk_level && (
-            <p className="mb-1">
-              <span className="font-bold">Overall risk level:</span> {summary.overall_risk_level}
-            </p>
-          )}
-          {summary.exceptions_status && (
-            <p className="mb-1">
-              <span className="font-bold">Exceptions:</span> {summary.exceptions_status}
-            </p>
-          )}
-          {summaryNarrative && <Paragraphs value={summaryNarrative} />}
-        </SectionShell>
+      {/* ITEM 428 (PIECE B) — the TYPED fact strip renders as a table, never
+          prose. Every legacy shape keeps its pre-item428 render. */}
+      {summary._typed === RISK_FACT_STRIP_TYPE ? (
+        factStripRows(summary).length > 0 && (
+          <SectionShell sectionKey="assessment_summary" fallbackTitle="Assessment Summary">
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                {factStripRows(summary).map(([k, v]) => (
+                  <tr key={k} className="border-b">
+                    <th className="text-left align-top font-bold p-2 w-1/3">{k}</th>
+                    <td className="align-top p-2">{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </SectionShell>
+        )
+      ) : (
+        (summaryNarrative ||
+          summary.company_name ||
+          summary.assessment_date ||
+          summary.overall_risk_level) && (
+          <SectionShell sectionKey="assessment_summary" fallbackTitle="Assessment Summary">
+            {summary.company_name && (
+              <p className="mb-1">
+                <span className="font-bold">Company:</span> {summary.company_name}
+              </p>
+            )}
+            {summary.assessment_date && (
+              <p className="mb-1">
+                <span className="font-bold">Assessment date:</span> {summary.assessment_date}
+              </p>
+            )}
+            {summary.overall_risk_level && (
+              <p className="mb-1">
+                <span className="font-bold">Overall risk level:</span> {summary.overall_risk_level}
+              </p>
+            )}
+            {summary.exceptions_status && (
+              <p className="mb-1">
+                <span className="font-bold">Exceptions:</span> {summary.exceptions_status}
+              </p>
+            )}
+            {summaryNarrative && <Paragraphs value={summaryNarrative} />}
+          </SectionShell>
+        )
       )}
+
 
       <ListSection sectionKey="scope_and_triggers" fallbackTitle="Scope & Triggers" value={scope} />
       <ListSection

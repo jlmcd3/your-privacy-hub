@@ -28,6 +28,7 @@ import {
   type RegistrationDutyRowLike,
 } from "../prose/registration-reference-passages.ts";
 import { attachCoverage, runCoverageMatrix, type CoverageTelemetry } from "../../../_shared/ltp/coverage-matrix.ts";
+import { structureConformanceTelemetry } from "../../../_shared/prose/structure-conformance.ts";
 import { attachProseLint, PROSE_LINT_VERSION, type ProseLintResult } from "../../../_shared/prose/assembled-prose-lint.ts";
 
 export { REGISTRATION_PIPELINE_STAMP };
@@ -109,6 +110,19 @@ export function runRegistrationFinalizeBattery(
   } catch (e) {
     console.warn("[run-registration-assessment] prose lint skipped:", (e as Error)?.message);
   }
+
+  // ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE: the assembled document
+  // against its approved plan. Detect-only, fail-open, ZERO mutation.
+  try {
+    const _doc = report as Record<string, unknown>;
+    const _meta = (_doc._meta ??= {}) as Record<string, unknown>;
+    const _internal = (_meta.internal ??= {}) as Record<string, unknown>;
+    _internal.structure_conformance = structureConformanceTelemetry("registration", _doc);
+    console.log(JSON.stringify({ evt: "structure_conformance", prod: "registration", telemetry: _internal.structure_conformance }));
+  } catch (e) {
+    console.warn("[item428] structure conformance failed (non-fatal):", (e as Error)?.message);
+  }
+
 
   console.log(JSON.stringify({
     evt: "registration_finalize_battery",

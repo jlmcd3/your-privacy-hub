@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { applyIrProseGold, IR_PIPELINE_STAMP, IR_PROSE_GOLD_VERSION } from "./ir-prose-gold.ts";
+import { structureConformanceTelemetry } from "../../../_shared/prose/structure-conformance.ts";
 import { attachCoverage, runCoverageMatrix, type CoverageTelemetry } from "../../../_shared/ltp/coverage-matrix.ts";
 import { attachProseLint, PROSE_LINT_VERSION, type ProseLintResult } from "../../../_shared/prose/assembled-prose-lint.ts";
 import { FIRST_HOUR_ITEMS } from "./ir-playbook-deliverables/standing-playbook.ts";
@@ -139,6 +140,20 @@ export function runIrFinalizeBattery(
   } catch (e) {
     console.warn("[generate-ir-playbook] prose lint skipped:", (e as Error)?.message);
   }
+
+  // ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE: the assembled document
+  // against its approved plan. Detect-only, fail-open, ZERO mutation.
+  try {
+    const _doc = report as Record<string, unknown>;
+    const _meta = (_doc._meta ??= {}) as Record<string, unknown>;
+    const _internal = (_meta.internal ??= {}) as Record<string, unknown>;
+    _internal.structure_conformance = ["standing_playbook", "incident_worksheet"].map((artifact) =>
+      structureConformanceTelemetry("ir-playbook", _doc, { artifact }));
+    console.log(JSON.stringify({ evt: "structure_conformance", prod: "ir-playbook", telemetry: _internal.structure_conformance }));
+  } catch (e) {
+    console.warn("[item428] structure conformance failed (non-fatal):", (e as Error)?.message);
+  }
+
 
   // (e) RECORD-COMPLETE GATE — fail-closed, LAST, so it reads the coverage and
   // CSC telemetry this same battery just attached. `intake` is the FULL record

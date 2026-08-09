@@ -2038,6 +2038,20 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[ITEM399-R11] cyber prose lint failed (non-fatal):", String(lintErr));
     }
 
+    // ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE: the assembled document
+    // against its approved plan. Detect-only, fail-open, ZERO mutation.
+    try {
+      const { structureConformanceTelemetry } = await import("../_shared/prose/structure-conformance.ts");
+      const _doc = report as Record<string, unknown>;
+      const _meta = (_doc._meta ??= {}) as Record<string, unknown>;
+      const _internal = (_meta.internal ??= {}) as Record<string, unknown>;
+      _internal.structure_conformance = structureConformanceTelemetry("cppa-cyber", _doc);
+      console.log(JSON.stringify({ evt: "structure_conformance", prod: "cppa-cyber", telemetry: _internal.structure_conformance }));
+    } catch (e) {
+      console.warn("[item428] structure conformance failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── ITEM 406 LEG C — CYBER CSC, THEN THE COVERAGE MATRIX ───────────
     // Both are deterministic, fail-open, and run AFTER item-404 prose gold
     // and the R11 lint and BEFORE the item-405 record-complete gate, so the

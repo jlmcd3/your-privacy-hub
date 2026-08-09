@@ -135,5 +135,5 @@ Deno.test("r5: risk-perfect-complete still opens the truth gate", () => {
 
 Deno.test("r5: stamps are bumped", () => {
   assertEquals(RECORD_COMPLETE_VERSION, "record-complete-2026-08-05-item380r5");
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item427-2026-08-09");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428-2026-08-09");
 });

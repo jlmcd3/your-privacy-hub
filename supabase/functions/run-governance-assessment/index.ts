@@ -1565,6 +1565,20 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] ITEM 402 coverage failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE: the assembled document
+    // against its approved plan. Detect-only, fail-open, ZERO mutation.
+    try {
+      const { structureConformanceTelemetry } = await import("../_shared/prose/structure-conformance.ts");
+      const _doc = reportData as Record<string, unknown>;
+      const _meta = (_doc._meta ??= {}) as Record<string, unknown>;
+      const _internal = (_meta.internal ??= {}) as Record<string, unknown>;
+      _internal.structure_conformance = structureConformanceTelemetry("governance", _doc);
+      console.log(JSON.stringify({ evt: "structure_conformance", prod: "governance", telemetry: _internal.structure_conformance }));
+    } catch (e) {
+      console.warn("[item428] structure conformance failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     // ── ITEM 401 LEG B — RECORD-COMPLETE GATE (FAIL-CLOSED) ────────────
     // The gate is the LAST deterministic post-pass, AFTER the item-400
     // governance prose gold and the item-402 evidence passes, and BEFORE the

@@ -59,6 +59,8 @@ import { RISK_PIPELINE_STAMP } from "./risk-stamp.ts";
 import { attachRiskCsc } from "./risk-csc.ts";
 // ITEM 427 — canonical `risk_assessment_by_activity` emission (LAW 3 write site).
 import { normalizeRiskActivities, RISK_ACTIVITIES_CONTRACT_VERSION } from "./risk-activity-emit.ts";
+import { normalizeRiskSummaryVoice } from "./risk-summary-voice.ts";
+import { structureConformanceTelemetry } from "../prose/structure-conformance.ts";
 import {
   normalizeRiskExceptions,
   RISK_EXCEPTIONS_CONTRACT_VERSION,
@@ -374,14 +376,38 @@ export function finalizeCppaRiskPayload(
     }, { fn: "generate-cppa-risk", product: "cppa_risk_assessment" });
   } catch { /* non-fatal */ }
 
+  // (6b) ITEM 428 (PIECE B) — ONE SUMMARY VOICE. THE SINGLE WRITE SITE for the
+  // summary-class surfaces: `executive_summary` is the one narrative verdict,
+  // `assessment_summary` becomes the TYPED fact strip, `submission_summary` is
+  // retired as a top-level surface (demoted to an input the verdict consumes).
+  // Runs AFTER the prose-gold pass, which is the last writer of the verdict.
+  try {
+    const voice = normalizeRiskSummaryVoice(report, rawIntake);
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_summary_voice = voice;
+  } catch (e) {
+    console.warn("[generate-cppa-risk] summary voice failed (non-fatal):", (e as Error)?.message);
+  }
+
   // (7) ITEM 399 R11 — ASSEMBLED-PROSE LINT. Last pass, detect-only,
   // fail-open. It reads the FINAL strings; it never edits them.
   try {
     attachProseLint(report);
   } catch { /* non-fatal */ }
 
+  // (8) ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE, detect-only, fail-open,
+  // ZERO MUTATION of any customer surface. Runs last so it sees the assembled
+  // document exactly as the reader will.
+  try {
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.structure_conformance = structureConformanceTelemetry("cppa-risk", report);
+  } catch { /* non-fatal */ }
+
   return { report, emit_gate_filtered: sealed.emit_gate_filtered };
 }
+
 
 /**
  * ITEM 380 §3 (RISK) — the determination-equivalent surface for cppa-risk is
