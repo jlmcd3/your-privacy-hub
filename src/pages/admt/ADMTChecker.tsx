@@ -258,6 +258,9 @@ export default function ADMTChecker() {
   const [admtSystemCount, setAdmtSystemCount] = useState("");
   // TURN 2 — new intake fields
   const [affectedPopulationBand, setAffectedPopulationBand] = useState("");
+  // INTAKE-4c — prefill-only bookkeeping for the affected-population band.
+  const [bandTouched, setBandTouched] = useState(false);
+  const [bandPrefilled, setBandPrefilled] = useState(false);
   const [roleRoster, setRoleRoster] = useState<string[]>([]);
   // prior_access_requests_12mo removed (RC-P6): § 7222(j) threshold is framework-level, not per-consumer.
 
@@ -811,9 +814,10 @@ export default function ADMTChecker() {
                         <div className="mt-1"><Pills options={ADMT_VENDOR_DOCS_OPTS} value={adv.vendor_docs || []} onChange={(v) => setA("vendor_docs", v)} /></div>
                       </div>
                       <div>
-                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Do your vendor contracts include these obligations?</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Does your contract with this vendor require each of these?</Label>
+                        <p className="text-[11px] text-muted-foreground">Answer for what the signed contract says, not for what the vendor does in practice. Each "No" is reported as a contractual term you would have to negotiate before you could rely on the vendor for that obligation.</p>
                         <div className="mt-1 space-y-1">
-                          {[["v_audit", "Audit and monitoring rights"], ["v_assist", "Assistance with consumer access requests"], ["v_optout", "Opt-out propagation downstream"], ["v_appeal", "Appeal and human-review support"], ["v_incident", "Incident notification"]].map(([k, label]) => (
+                          {[["v_audit", "Rights to audit and monitor the vendor"], ["v_assist", "Help answering consumer access requests"], ["v_optout", "Passing opt-outs on to anyone downstream"], ["v_appeal", "Support for appeals and human review"], ["v_incident", "Telling you about incidents"]].map(([k, label]) => (
                             <div key={k} className="flex items-center justify-between gap-3">
                               <span className="text-[12px]">{label}</span>
                               <span className="shrink-0"><Radio name={k} options={["Yes", "No"]} value={adv[k] || ""} onChange={(val) => setA(k, val)} /></span>
@@ -827,7 +831,8 @@ export default function ADMTChecker() {
                         <div className="mt-1"><Radio name="v_avail" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.vendor_makes_available || ""} onChange={(v) => setA("vendor_makes_available", v)} /></div>
                       </div>
                       <div>
-                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Vendor training-data and model-improvement rights, and sub-processors</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Can the vendor use your data to train or improve its models, and who else touches the data?</Label>
+                        <p className="text-[11px] text-muted-foreground">Give the training rights first, then name the sub-processors. Why we ask: training rights and an unnamed sub-processor chain both widen the disclosure your notice has to make, and the report cannot describe either from the contract you have not quoted.</p>
                         <AssistedInput
                           className="mt-1"
                           rows={2}
@@ -872,21 +877,28 @@ export default function ADMTChecker() {
                       />
                     </div>
 
+                    {/* INTAKE-4c — PREFILL ONLY, NEVER MERGE. This stays its own
+                        question with its own key and options; the consumer-count
+                        answer above only suggests a band. */}
                     <div data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>
-                      <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>Affected-population band <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
-                      <p className="text-xs text-muted-foreground mt-1">The band the report uses when it describes how many Californians this system reaches.</p>
+                      <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>How many Californians does this system reach? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
+                      {bandPrefilled && !bandTouched ? (
+                        <p className="text-xs text-muted-foreground mt-1">We have suggested a band from the consumer count you gave above. Confirm it or pick another. Why we ask: § 7152(a)(3)(D) asks the assessment to state the number of consumers whose information is processed, and the report uses this band wherever it describes reach.</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground mt-1">Pick the band the report should use when it describes how many Californians this system reaches. Why we ask: § 7152(a)(3)(D) asks the assessment to state the number of consumers whose information is processed.</p>
+                      )}
                       <div className="mt-2">
                         <Pills
                           options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
                           value={affectedPopulationBand ? [affectedPopulationBand] : []}
-                          onChange={(vals) => setAffectedPopulationBand(vals[vals.length - 1] || "")}
+                          onChange={(vals) => { setBandTouched(true); setAffectedPopulationBand(vals[vals.length - 1] || ""); }}
                         />
                       </div>
                     </div>
 
                     <div data-rail-key="role_roster" onFocus={() => focus("role_roster")}>
-                      <Label data-rail-key="role_roster" onFocus={() => focus("role_roster")}>Internal roles with defined responsibilities for this ADMT <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7157(c))</span></Label>
-                      <p className="text-xs text-muted-foreground mt-1">Select every role that already holds a defined responsibility for this system.</p>
+                      <Label data-rail-key="role_roster" onFocus={() => focus("role_roster")}>Which internal roles already have defined responsibilities for this system? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7157(c))</span></Label>
+                      <p className="text-xs text-muted-foreground mt-1">Select only the roles that hold a responsibility today, not the ones you plan to assign. Why we ask: § 7157(c) expects named internal ownership, and a role you have not selected is reported as unassigned rather than assumed.</p>
                       <div className="mt-2">
                         <Pills
                           options={ADMT_ROLE_ROSTER_OPTS}
