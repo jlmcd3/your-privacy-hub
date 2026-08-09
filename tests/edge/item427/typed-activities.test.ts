@@ -19,7 +19,7 @@ import {
 import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
 
 Deno.test("ITEM 427 stamp", () => {
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428-2026-08-09");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428b-2026-08-09");
 });
 
 // ── READERS: all five states ──────────────────────────────────────────
