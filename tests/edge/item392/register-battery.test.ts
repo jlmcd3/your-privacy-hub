@@ -242,5 +242,5 @@ Deno.test("ITEM 392 — the pipeline stamp is written at the finalize point", ()
   const r = degradedRecord() as any;
   const t = applyAdmtProseGold(r);
   assertEquals(t.stamp, ADMT_PIPELINE_STAMP);
-  assertEquals(r._meta.internal.admt_pipeline_stamp, "admt-pipeline@item422c-2026-08-09");
+  assertEquals(r._meta.internal.admt_pipeline_stamp, "admt-pipeline@item422d-2026-08-09");
 });
