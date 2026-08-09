@@ -10,6 +10,8 @@
 // ---------------------------------------------------------------------------
 // Types shared by both tools. Kept structurally identical to the originals.
 // ---------------------------------------------------------------------------
+import { EXCEPTION_PIN } from "./report-contracts/risk-exceptions.ts";
+
 export type TestState = {
   state: "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate";
   basis: string;
