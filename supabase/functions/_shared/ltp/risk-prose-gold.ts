@@ -580,7 +580,7 @@ export function sweepDegradedPlaceholders(
 const UNNAMED_ACTOR_SUBJECT_RES: readonly RegExp[] = [
   /\bthe\s+authoris(?:ed|zed)\s+decision[\s-]?maker\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
   /\bthe\s+decision[\s-]?maker\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
-  /\bthe\s+business\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/g,
+  /\bthe\s+business\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
   /\bthe\s+accountable\s+business\s+owner\b(?=\s+(?:must|shall|should|will|needs?\s+to)\b)/gi,
 ];
 
