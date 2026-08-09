@@ -105,17 +105,31 @@ export default function EUNoticeQuestions() {
     })();
   }, [sessionId, authorized, navigate, toast]);
 
-  const visibleQuestions = useMemo(() => {
+  const allQuestions = useMemo(() => {
     if (frameworks.length === 0) return [] as Question[];
-    const sections = buildEuQuestionSections(frameworks);
-    const all = sections.flatMap((s) => s.questions);
-    return all.filter((q) => evaluateShowIf(q, answers));
-  }, [frameworks, answers]);
+    return buildEuQuestionSections(frameworks).flatMap((s) => s.questions);
+  }, [frameworks]);
+
+  const visibleQuestions = useMemo(
+    () => allQuestions.filter((q) => evaluateShowIf(q, answers)),
+    [allQuestions, answers],
+  );
+
+  // INTAKE-2 — option-label lookup used by the prefill-confirm prompts.
+  const labelOf = useMemo(() => {
+    const index: Record<string, Record<string, string>> = {};
+    for (const q of allQuestions) {
+      if (!q.options) continue;
+      index[q.key] = Object.fromEntries(q.options.map((o) => [o.value, o.label]));
+    }
+    return (questionKey: string, value: string) => index[questionKey]?.[value] ?? value;
+  }, [allQuestions]);
 
   const currentQ = visibleQuestions[currentIndex];
   const progress = visibleQuestions.length > 0
     ? Math.round(((currentIndex + 1) / visibleQuestions.length) * 100)
     : 0;
+
 
   async function saveAnswer(q: Question, v: AnswerValue) {
     if (!sessionId) return;
