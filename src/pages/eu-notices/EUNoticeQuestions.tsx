@@ -74,6 +74,10 @@ export default function EUNoticeQuestions() {
   const [frameworks, setFrameworks] = useState<EuFrameworkCode[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
+  // INTAKE-2 — question keys where the user declined the prefill suggestion
+  // and asked to answer for themselves.
+  const [editing, setEditing] = useState<Record<string, boolean>>({});
+
 
   useEffect(() => {
     if (!sessionId || !authorized) return;
