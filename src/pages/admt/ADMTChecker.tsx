@@ -1615,7 +1615,8 @@ export default function ADMTChecker() {
                       <div className="rounded-md border p-4 space-y-3 bg-muted/20">
                         <p className="text-[12px] font-semibold">Confirm opt-out process compliance</p>
                         <div>
-                          <Label className="text-[12px]">Confirm: cookie banners are NOT your sole opt-out method (§ 7221(c)(4))</Label>
+                          <Label className="text-[12px]">Is a cookie banner your only way to opt out?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7221(c)(4) does not accept a cookie banner as the sole opt-out route, so the report has to know whether another route exists.</p>
                           <div className="mt-1">
                             <Radio
                               name="no_cookie"
