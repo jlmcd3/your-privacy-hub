@@ -1723,7 +1723,10 @@ function irCoverage(
   intake: Record<string, unknown>,
   t: CoverageTelemetry,
 ): void {
-  const docText = documentText(report.standing_playbook ?? report);
+  const sp = report.standing_playbook;
+  const docText = documentText(
+    (sp && typeof sp === "object" ? sp : report) as Record<string, unknown>,
+  );
 
   // L1 — supplied fact → the standing section that must carry it.
   for (const link of IR_LINKS) {
