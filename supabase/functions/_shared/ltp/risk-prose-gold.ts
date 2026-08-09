@@ -224,13 +224,34 @@ export function reservedJudgmentSentence(count: number): string {
 
 /**
  * G-1 — collapse the sufficiency surface to ONE voice plus the per-element
- * pinpoint list. Shape is preserved: an array stays an array of paragraphs.
+ * ledger.
+ *
+ * ITEM 425 — SHAPE LAW. The typed record (`{complete, statement, elements}`)
+ * keeps its shape: the single voice becomes `statement`, `complete` is the
+ * gate verdict this pass CONSUMES (never writes), and the per-element ledger
+ * stays in `elements` — where a stray emit-gate placeholder is not
+ * representable, because an element carries only a registry label, a registry
+ * pinpoint and a closed status clause. Legacy array/string inputs keep the
+ * pre-425 behaviour byte-for-byte (an array stays an array of paragraphs).
  */
 export function buildRecordSufficiency(
   current: unknown,
   affirmative: string,
   reservedSentence: string,
-): string[] {
+  recordComplete?: boolean,
+): string[] | RiskSufficiencyRecord {
+  const voice = [affirmative, reservedSentence].map((s) => s.trim()).filter(Boolean).join(" ");
+
+  // ITEM 425 — typed branch.
+  if (isRiskSufficiencyRecord(current)) {
+    const view = coerceSufficiencyView(current);
+    return {
+      complete: recordComplete === true ? true : view.complete === true,
+      statement: voice || view.statement,
+      elements: view.elements,
+    };
+  }
+
   const rows = Array.isArray(current)
     ? current.filter((x): x is string => typeof x === "string")
     : typeof current === "string"
@@ -246,9 +267,9 @@ export function buildRecordSufficiency(
       // honest degradation is preserved untouched.
       !isDegradedPlaceholderRow(r),
   );
-  const voice = [affirmative, reservedSentence].map((s) => s.trim()).filter(Boolean).join(" ");
   return [voice, ...elements];
 }
+
 
 /**
  * ITEM 384 r3 / RESIDUAL 1 — a row that is ONLY an emit-gate placeholder
