@@ -55,7 +55,7 @@
 import { isSanctionedCounselRegister } from "../emit-gate.ts";
 import { isActionRecord } from "../report-contracts/action-record.ts";
 
-export const RISK_SUMMARY_REHOME_VERSION = "risk-summary-rehome@item428b-2026-08-09";
+export const RISK_SUMMARY_REHOME_VERSION = "risk-summary-rehome@item428c-2026-08-09";
 
 /** Substance floor shared with the ITEM 384 r2 empty-surface guard. */
 const MIN_SURFACE_SUBSTANCE = 40;
@@ -68,6 +68,8 @@ export interface SummaryRehomeSummary {
   readonly exec_sentences_moved: number;
   /** True when an `assessment_summary.narrative` prose leaf was removed. */
   readonly narrative_removed: boolean;
+  /** ITEM 428-C — referral sentences lifted off `$.risk_assessment_by_activity`. */
+  readonly activity_sentences_moved: number;
   /** Sentences appended to a reserved-judgment action row. */
   readonly rehomed: number;
   /** Restatements suppressed (kept verbatim below, never on a customer leaf). */
@@ -76,6 +78,7 @@ export interface SummaryRehomeSummary {
   readonly carried_verdict: string;
   readonly crashed?: boolean;
 }
+
 
 function splitSentences(s: string): string[] {
   return String(s ?? "")
