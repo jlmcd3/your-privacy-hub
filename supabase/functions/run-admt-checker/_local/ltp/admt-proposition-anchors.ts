@@ -162,16 +162,34 @@ export function validatePropositionAssignment(
     const contentTokens = new Set(tokens(content));
     if (contentTokens.size === 0) return { verdict: "no_content" };
 
-    // (a) does the assigned proposition's own declared vocabulary appear?
-    for (const t of declared) if (contentTokens.has(t)) return { verdict: "ok" };
+    // (a) SUPPORT — how many of the assigned proposition's declared anchors
+    //     appear in the action's content.
+    let support = 0;
+    for (const t of declared) if (contentTokens.has(t)) support++;
 
-    // (b) does a DISTINCTIVE anchor of a different proposition appear?
+    // (b) CONTRADICTION — the strongest competing proposition, counted over
+    //     DISTINCTIVE declared anchors only (a term declared by exactly one
+    //     proposition across the registry).
+    const rival = new Map<string, number>();
+    let topKey = "";
+    let topTerm = "";
+    let topCount = 0;
     for (const t of contentTokens) {
       const owner = ADMT_DISTINCTIVE_ANCHORS.get(t);
-      if (owner && owner !== key) {
-        return { verdict: "mismatch", contradicted_by: t, contradicting_key: owner };
-      }
+      if (!owner || owner === key) continue;
+      const n = (rival.get(owner) ?? 0) + 1;
+      rival.set(owner, n);
+      if (n > topCount) { topCount = n; topKey = owner; topTerm = t; }
     }
+
+    // The assignment is rejected ONLY when a competing proposition is
+    // anchored more strongly than the assigned one. Ties and thin content
+    // leave the assignment untouched.
+    if (topCount > support) {
+      return { verdict: "mismatch", contradicted_by: topTerm, contradicting_key: topKey };
+    }
+    if (support > 0) return { verdict: "ok" };
+
     // Neither supported nor contradicted — not adjudicable, leave untouched.
     return { verdict: "no_content" };
   } catch {
