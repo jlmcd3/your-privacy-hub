@@ -31,7 +31,8 @@ export type CoverageProduct =
   | "governance"
   | "cppa-cyber"
   | "biometric"
-  | "registration";
+  | "registration"
+  | "ir-playbook";
 
 
 export interface CoverageOrphan {
@@ -1663,6 +1664,107 @@ function registrationCoverage(
   });
 }
 
+
+// ---------------------------------------------------------------------------
+// ITEM 414 — IR PLAYBOOK COVERAGE.
+//
+// IR is the only product that emits TWO artifacts, so the link table names the
+// artifact as well as the section. Coverage is asserted over the STANDING
+// PLAYBOOK only: the incident worksheet is blank BY DESIGN (item369), so an
+// empty worksheet form is correct output, never an orphan.
+// ---------------------------------------------------------------------------
+
+interface IrCoverageLink {
+  /** Standing-playbook section id the facts must reach. */
+  readonly section: string;
+  readonly keys: readonly string[];
+}
+
+const IR_LINKS: readonly IrCoverageLink[] = [
+  { section: "activation", keys: ["activationCriteria"] },
+  { section: "severity", keys: ["severityMatrix", "severityThresholds"] },
+  { section: "response_team", keys: ["responseTeamRoster"] },
+  {
+    section: "key_contacts",
+    keys: [
+      "outsideCounselName", "outsideCounselContact", "insurerContact",
+      "forensicVendorContact", "lawEnforcementContact",
+    ],
+  },
+  { section: "first_24_hours", keys: ["itIsolationAuthority"] },
+  { section: "evidence_preservation", keys: ["keySystems", "logSources"] },
+  { section: "contractual_notification", keys: ["breachNoticeContracts"] },
+  { section: "data_classification", keys: ["dataTypes"] },
+  { section: "testing_maintenance", keys: ["nextTabletopDate"] },
+  { section: "first_hour_checklist", keys: ["firstHourConfirmations"] },
+];
+
+export const IR_LINKED_INTAKE_KEYS: readonly string[] = [
+  ...new Set(IR_LINKS.flatMap((l) => l.keys)),
+];
+
+export const IR_COVERAGE_LINKS: readonly IrCoverageLink[] = IR_LINKS;
+
+const IR_SURFACE_MIN_CHARS = 24;
+
+function irSection(report: Record<string, unknown>, id: string): Record<string, unknown> | null {
+  const sp = report.standing_playbook as Record<string, unknown> | undefined;
+  const sections = Array.isArray(sp?.sections) ? sp!.sections as unknown[] : [];
+  for (const s of sections) {
+    if (s && typeof s === "object" && (s as Record<string, unknown>).id === id) {
+      return s as Record<string, unknown>;
+    }
+  }
+  return null;
+}
+
+function irCoverage(
+  report: Record<string, unknown>,
+  intake: Record<string, unknown>,
+  t: CoverageTelemetry,
+): void {
+  const docText = documentText(report.standing_playbook ?? report);
+
+  // L1 — supplied fact → the standing section that must carry it.
+  for (const link of IR_LINKS) {
+    const supplied = link.keys.filter((k) => regFilled(intake, k));
+    if (supplied.length === 0) continue; // honest silence
+    t.counts.links_checked++;
+    const sec = irSection(report, link.section);
+    if (sec && bioSurfaceSubstance(sec) >= IR_SURFACE_MIN_CHARS) continue;
+    t.orphans.push({
+      type: sec ? "supplied_fact_without_section" : "supplied_fact_with_no_emission_path",
+      path: `standing_playbook.sections.${link.section}`,
+      detail: sec
+        ? `the record supplies ${supplied.join(", ")} but the "${link.section}" section carries nothing that reflects it.`
+        : `the record supplies ${supplied.join(", ")} and no section of the standing playbook reads it.`,
+    });
+  }
+
+  // L2 — a section still asking for a fact the record in fact supplies.
+  for (const link of IR_LINKS) {
+    const sec = irSection(report, link.section);
+    const ask = sec && typeof sec.information_needed === "string" ? sec.information_needed : "";
+    if (!ask.trim()) continue;
+    t.counts.links_checked++;
+    const supplied = link.keys.filter((k) => regFilled(intake, k));
+    if (supplied.length === 0) continue;
+    t.orphans.push({
+      type: "ask_against_supplied_fact",
+      path: `standing_playbook.sections.${link.section}.information_needed`,
+      detail: `the section still asks although the record supplies ${supplied.join(", ")}.`,
+    });
+  }
+
+  // L3 — narrative facts the record fills that the document reflects nowhere.
+  t.unused_intake_facts = IR_LINKED_INTAKE_KEYS.filter((k) => {
+    const v = getPath(intake, k);
+    if (typeof v !== "string" || v.trim().length < 24) return false;
+    const words = contentWords(v);
+    return words.length > 0 && !words.some((w) => docText.includes(w));
+  });
+}
+
 // ---------------------------------------------------------------------------
 
 // the pass
@@ -1696,6 +1798,7 @@ export function runCoverageMatrix(
     else if (product === "cppa-cyber") cyberCoverage(report, intake, t);
     else if (product === "biometric") biometricCoverage(report, intake, t);
     else if (product === "registration") registrationCoverage(report, intake, t);
+    else if (product === "ir-playbook") irCoverage(report, intake, t);
 
     else riskCoverage(report, intake, t);
   } catch (e) {
