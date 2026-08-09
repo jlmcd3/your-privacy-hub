@@ -116,4 +116,8 @@ def main(plan_path, move=True):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    # `--rewrite-only` re-runs the specifier rewrite over an already-moved
+    # plan (idempotent; used to repair the 402-C-3 extension-less miss).
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    main(args[0], move="--rewrite-only" not in sys.argv)
+
