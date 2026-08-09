@@ -199,6 +199,25 @@ export default function EUNoticeQuestions() {
   const value = answers[currentQ.key];
   const flags = currentQ.flagIf?.filter((f) => evaluateFlag(f, value)) ?? [];
 
+  // INTAKE-2 — prefill-confirm: offered only while the question is still
+  // unanswered and the user has not asked to answer it themselves.
+  const answerEmpty = value == null || value === "" || (Array.isArray(value) && value.length === 0);
+  const proposal =
+    answerEmpty && !editing[currentQ.key]
+      ? resolvePrefill(
+          EU_PREFILL_BY_TARGET,
+          currentQ.key,
+          answers,
+          labelOf,
+          allowedValuesFor(currentQ),
+        )
+      : null;
+  const proposalDisplay =
+    proposal && typeof proposal.suggested === "string"
+      ? labelOf(currentQ.key, proposal.suggested)
+      : "";
+
+
   return (
     <EUNoticeShell title="Questions — EU & Global Notice Builder" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
       <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
