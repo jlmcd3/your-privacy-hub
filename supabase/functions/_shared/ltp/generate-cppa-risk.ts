@@ -147,11 +147,24 @@ function seal(report: Record<string, unknown>, intakeRoster: unknown): {
 } {
   const out = report;
   let filtered = 0;
+  // ITEM 428-B (DEFECT 1) — WRITER-SIDE FIX, BEFORE THE GATE. Reserved-
+  // determination referral prose is lifted off the summary surfaces and
+  // re-homed onto the reserved-judgment action rows; the fact strip's prose
+  // leaf is removed. The gate then sees what the writers should have written.
+  try {
+    const rehome = rehomeReservedReferrals(out);
+    const meta = (out._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_summary_rehome = rehome;
+  } catch (e) {
+    console.warn("[generate-cppa-risk] summary re-home failed (non-fatal):", (e as Error)?.message);
+  }
   try {
     runEmitGate(out, { tool: "cppa_risk_assessment", intakeRoster: (intakeRoster ?? {}) as never });
   } catch (e) {
     console.warn("[generate-cppa-risk] emit-gate failed (non-fatal):", (e as Error)?.message);
   }
+
   try {
     filtered = filterCustomerInformationNeeded(out);
   } catch { /* fail-open */ }
