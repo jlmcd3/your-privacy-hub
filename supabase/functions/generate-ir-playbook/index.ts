@@ -711,6 +711,15 @@ Deno.serve(serveWithGenerationModel(async (req) => {
     // poll forever.
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
     EdgeRuntime.waitUntil((async () => {
+      // ── ITEM 417-B — THE ISOLATE CLOCK STARTS HERE ────────────────────────
+      // The first live invocation after item417 was killed by the platform with
+      // NO error thrown: nothing caught, nothing persisted, the row left
+      // `processing`. Everything time-sensitive downstream measures from this
+      // instant. `terminalWritten` is the second half of the repair: no path
+      // this function controls may leave the row in `processing`.
+      const { makeIrTimeBudget } = await import("./_local/ltp/ir-time-budget.ts");
+      const irBudget = makeIrTimeBudget();
+      let terminalWritten = false;
       console.log(`[generate-ir-playbook] start v=${IR_VERSION} session=${rowId}`);
       try {
         // Step 1 — enforcement context
