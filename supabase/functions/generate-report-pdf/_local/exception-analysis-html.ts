@@ -86,11 +86,14 @@ export function renderExceptionAnalysisSectionHtml(report: unknown): string {
   const view: ExceptionView = coerceExceptionView(raw);
 
   if (!view.present) return "";
-  if (view.rows.length === 0) {
-    // LEGACY-IDENTICAL PATH — strings render exactly as the pre-change
-    // listSection() expression did, including any hole defect, verbatim.
+  // LEGACY-IDENTICAL PATH — every pre-ITEM-426 shape (strings, bare string,
+  // legacy object rows, empty, absent) renders exactly as the pre-change
+  // listSection() expression did, hole defects preserved verbatim. Only the
+  // CANONICAL nine-leaf record takes the new card layout.
+  if (view.shape !== "typed") {
     return cards(title, coerceNarrativeList(raw) ?? []);
   }
   const textCards = (coerceNarrativeList(view.texts) ?? []).map((s) => `<div class="card">${para(s)}</div>`);
   return `<section><h2>${title}</h2>${textCards.join("")}${view.rows.map(rowCard).join("")}</section>`;
 }
+
