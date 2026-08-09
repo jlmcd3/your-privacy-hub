@@ -270,8 +270,12 @@ Deno.test("item414: R6 — no comma splice in either artifact", () => {
 
 Deno.test("item414: R8 — no sentence ships twice in the standing playbook", () => {
   for (const intake of [THIN, COMPLETE]) {
-    const sp = assemble(intake).standing_playbook;
-    const text = strings(sp).map((l) => l.value).join("\n");
+    // Scoped to the RENDERED sections. `standing_playbook.information_needed`
+    // is the machine roll-up of the same asks (consumed by telemetry and the
+    // emit gate, not rendered as prose), so a section's ask necessarily
+    // appears there too; that is not a document shipping a sentence twice.
+    const sp = assemble(intake).standing_playbook as Record<string, unknown>;
+    const text = strings(sp.sections).map((l) => l.value).join("\n");
     assertEquals(duplicateSentences(text), []);
   }
 });
