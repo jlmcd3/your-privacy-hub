@@ -399,7 +399,7 @@ export function runIrCsc(
     const spliced = new Map<string, PlaybookSection>();
     const spliceSection = (id: string): boolean => {
       const next = sectionsOf(rebuild()).find(
-        (s) => (s as Record<string, unknown>).id === id,
+        (s) => (s as unknown as Record<string, unknown>).id === id,
       );
       if (!next) return false;
       spliced.set(id, next);
