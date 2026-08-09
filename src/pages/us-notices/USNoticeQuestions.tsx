@@ -82,6 +82,10 @@ export default function USNoticeQuestions() {
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
+  // INTAKE-2 — question keys where the user declined the prefill suggestion
+  // and asked to answer for themselves.
+  const [editing, setEditing] = useState<Record<string, boolean>>({});
+
 
   // Load session, selected states, and any existing answers.
   useEffect(() => {
