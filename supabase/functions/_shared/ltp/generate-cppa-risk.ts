@@ -34,6 +34,7 @@
  * recorded on the row.
  */
 import { resolveLtpIntake } from "./entry-intake.ts";
+import { isRiskSufficiencyRecord } from "../report-contracts/risk-sufficiency.ts";
 import { derivePlan } from "./derive.ts";
 import { modelProvider } from "./replay/providers.ts";
 import { assembleReport, buildTypeJWriteAroundBody } from "./pass2-assembler.ts";
@@ -405,6 +406,13 @@ export function applyRiskRecordCompleteFraming(
   const rs = report.record_sufficiency;
   if (Array.isArray(rs)) {
     if (!rs.some((p) => typeof p === "string" && p.includes(text))) rs.unshift(text);
+  } else if (isRiskSufficiencyRecord(rs)) {
+    // ITEM 425 — the typed record carries the affirmative as its single
+    // `statement` voice; `.prose` is the LEGACY-envelope field and is not
+    // written onto a typed record.
+    const rec = rs as Record<string, unknown>;
+    const st = typeof rec.statement === "string" ? rec.statement : "";
+    rec.statement = st.includes(text) ? st : (st ? `${text}\n\n${st}`.trim() : text);
   } else if (rs && typeof rs === "object") {
     (rs as Record<string, unknown>).prose = text;
   } else if (typeof rs === "string") {
