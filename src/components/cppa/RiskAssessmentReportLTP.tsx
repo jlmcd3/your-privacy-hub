@@ -260,7 +260,7 @@ export default function RiskAssessmentReportLTP({
       <ListSection
         sectionKey="exception_analysis"
         fallbackTitle="Exception Analysis"
-        value={report?.exception_analysis}
+        value={exceptionText}
       />
       <ListSection
         sectionKey="priority_actions"
