@@ -36,6 +36,10 @@ const RISK_ENTRY_KEYS = [
   "action",
   "deadline",
   "deadline_basis",
+  // ITEM 421 — canonical action-record fields (one home per fact).
+  "owner_role",
+  "reserved_to",
+  "rank",
   "dimensions",
   "enables",
   "insufficient_basis",
