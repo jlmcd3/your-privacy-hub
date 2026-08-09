@@ -71,6 +71,8 @@ import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
 import { normalizeAdmtPriorityActions, ADMT_ACTION_RECORD_WRITER_VERSION } from "./_local/ltp/admt-action-records.ts";
 // ITEM 422-B — registry-resolved citations on the typed priority actions.
 import { resolveAdmtActionCitations, sealAdmtActionCitations, ADMT_ACTION_CITATION_VERSION } from "./_local/ltp/admt-action-citations.ts";
+import { linkAdmtActionsToFindings, ADMT_ACTION_LINKAGE_VERSION } from "./_local/ltp/admt-action-finding-linkage.ts";
+import { sweepAdmtOperatorInstructions, ADMT_OPERATOR_SWEEP_VERSION } from "./_local/ltp/admt-operator-instruction-sweep.ts";
 import { sweepAdmtOutOfRangeCitations, ADMT_RANGE_SWEEP_VERSION } from "./_local/ltp/admt-citation-range-sweep.ts";
 console.log(`[run-admt-checker] boot admt_range_sweep=${ADMT_RANGE_SWEEP_VERSION}`);
 console.log(`[run-admt-checker] boot admt_pipeline_stamp=${ADMT_PIPELINE_STAMP} prose_gold=${ADMT_PROSE_GOLD_VERSION} action_records=${ADMT_ACTION_RECORD_WRITER_VERSION} action_citations=${ADMT_ACTION_CITATION_VERSION}`);
@@ -2402,6 +2404,19 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] W9-ADMT-PRE-EMIT failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 422-D DEFECT 2 — WRITER-SIDE OPERATOR-INSTRUCTION SWEEP.
+    // Runs BEFORE the deterministic-check attach so whatever the e4/e6
+    // detectors would find, the writer has already removed. Fail-open.
+    try {
+      const opSweep = sweepAdmtOperatorInstructions(report);
+      console.log(JSON.stringify({
+        evt: "item422d_operator_sweep", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...opSweep,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 422-D operator sweep failed (non-fatal):", (e as Error)?.message);
+    }
+
     try { const _prose = extractProseFromReport(report); const _roster = extractIntakeRoster((assessment as any).intake_data ?? {}); const _det = [...runFormatChecksGeneric(_prose, { intakeRoster: _roster }), ...runAdmtHf1Checks(_prose)].map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(report as any, _det as any); } catch(_) {}
 
     // ── W19-ADMT-FALLBACK-JOIN-2 (2026-07-25) — terminal sanitizer.
@@ -2425,13 +2440,17 @@ Return this JSON structure exactly:
     // already applies to `top_3_actions`. Fail-open.
     try {
       const pa422 = normalizeAdmtPriorityActions(report);
+      // ITEM 422-D DEFECT 1 — FINDING → ACTION PINPOINT INHERITANCE. A gap-
+      // derived action carries its source finding's resolved pinpoint; only
+      // standalone actions reach the 422-C anchor gate below.
+      const pa422d = linkAdmtActionsToFindings(report, (assessment as any)?.intake_data ?? {});
       // ITEM 422-B DEFECT 1 — the pinpoint on every typed record is RESOLVED
       // FROM THE VERIFIED-AUTHORITY REGISTRY (key → reverse lookup → honest
       // downgrade). A model-authored §-token never ships.
       const pa422b = resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
       console.log(JSON.stringify({
         evt: "item422_priority_actions", fn: "run-admt-checker",
-        build_stamp: BUILD_STAMP, ...pa422, citations: pa422b,
+        build_stamp: BUILD_STAMP, ...pa422, linkage: pa422d, citations: pa422b,
       }));
     } catch (e) {
       console.warn("[run-admt-checker] ITEM 422 normalise failed (non-fatal):", (e as Error)?.message);
