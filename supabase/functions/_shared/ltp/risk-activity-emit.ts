@@ -308,7 +308,7 @@ export function buildActivityRecord(analyticsRaw: unknown): RiskActivityRecord {
     current_safeguards: safeguards.current,
     safeguard_gaps: safeguards.gaps,
     section_7152_mapping: mapping,
-    benefits_outweigh_risks_conclusion: outweighConclusion(consequence.decision),
+    benefits_outweigh_risks_conclusion: outweighConclusion(consequence.decision, a),
     benefits_outweigh_risks_rationale: outweighRationale(a),
     _activity_key: str(a.activity_id) || undefined,
     _basis_source: basis.resolved && unresolved === 0
