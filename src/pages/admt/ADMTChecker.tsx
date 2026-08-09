@@ -1264,13 +1264,19 @@ export default function ADMTChecker() {
                     <Label className="text-[12px] font-semibold" data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}>
                       Paste your published Pre-use Notice in full
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1 mb-2">
-                      Paste the notice exactly as consumers see it. Your report quotes these words back and tests each § 7220(c) element against them. Leave blank if you have not published a notice yet — the report will say so rather than assume.
-                    </p>
+                    {prefilled.noticeFullText && !prefillTouched.noticeFullText ? (
+                      <p className="text-xs text-muted-foreground mt-1 mb-2">
+                        We have assembled this from the elements you pasted below. Confirm it reads as the published notice does, or replace it with the full text. Your report quotes these words back and tests each § 7220(c) element against them.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1 mb-2">
+                        Paste the notice exactly as consumers see it. Your report quotes these words back and tests each § 7220(c) element against them. Leave blank if you have not published a notice yet — the report will say so rather than assume.
+                      </p>
+                    )}
                     <Textarea
                       rows={8}
                       value={noticeFullText}
-                      onChange={(e) => setNoticeFullText(e.target.value)}
+                      onChange={(e) => { markTouched("noticeFullText"); setNoticeFullText(e.target.value); }}
                       data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}
                       placeholder="Paste the full notice text"
                     />
