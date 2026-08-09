@@ -60,6 +60,8 @@ import { attachRiskCsc } from "./risk-csc.ts";
 // ITEM 427 — canonical `risk_assessment_by_activity` emission (LAW 3 write site).
 import { normalizeRiskActivities, RISK_ACTIVITIES_CONTRACT_VERSION } from "./risk-activity-emit.ts";
 import { normalizeRiskSummaryVoice } from "./risk-summary-voice.ts";
+// ITEM 428-B — pre-gate re-home of reserved-determination referral prose.
+import { rehomeReservedReferrals } from "./risk-summary-rehome.ts";
 import { structureConformanceTelemetry } from "../prose/structure-conformance.ts";
 import {
   normalizeRiskExceptions,
