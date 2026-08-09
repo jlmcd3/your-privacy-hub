@@ -21,7 +21,7 @@ import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
 import { assessBenefitClaim, intakeAnchorText } from "./risk-csc.ts";
 
-export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-08-item413";
+export const COVERAGE_MATRIX_VERSION = "coverage-2026-08-09-item416";
 
 export type CoverageProduct =
   | "dpia"
@@ -49,6 +49,11 @@ export interface CoverageTelemetry {
   product: CoverageProduct;
   orphans: CoverageOrphan[];
   unused_intake_facts: string[];
+  /**
+   * ITEM 416 — facts whose ONLY reader is the generated narrative. Recorded
+   * honestly, never counted in `counts.orphans`, never gating.
+   */
+  permanent_orphans?: CoverageOrphan[];
   counts: {
     orphans: number;
     unused_intake_facts: number;
@@ -1868,10 +1873,7 @@ function irCoverage(
   });
 
   // Recorded, never counted: see the permanent-orphan note above.
-  if (permanent.length) {
-    (t as CoverageTelemetry & { permanent_orphans?: CoverageOrphan[] })
-      .permanent_orphans = permanent;
-  }
+  if (permanent.length) t.permanent_orphans = permanent;
 }
 
 

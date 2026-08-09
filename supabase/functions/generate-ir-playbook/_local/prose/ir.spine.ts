@@ -52,7 +52,7 @@ export const IR_PLAN_PRODUCT = "ir-playbook";
 export const IR_PLAN_VERSION = "prose-plans-2026-08-09-item414";
 
 /** The finalize-point stamp written into `_meta.internal.ir_pipeline_stamp`. */
-export const IR_PIPELINE_STAMP = "ir-pipeline@item414-2026-08-09";
+export const IR_PIPELINE_STAMP = "ir-pipeline@item416-2026-08-09";
 
 /** Transcribed verbatim from the approved plan row. */
 export const IR_THESIS =
