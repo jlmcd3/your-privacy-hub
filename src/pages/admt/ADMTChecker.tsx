@@ -1070,7 +1070,8 @@ export default function ADMTChecker() {
                       </div>
                     )}
                     <div>
-                      <Label className="text-[12px]">Will the output be used to feed future significant decisions? (§ 7222(b))</Label>
+                      <Label className="text-[12px]">Will this output be used to make later significant decisions?</Label>
+                      <p className="text-[11px] text-muted-foreground">Why we ask: § 7222(b) requires the access response to explain how the output was used, and an output reused downstream widens what you have to disclose.</p>
                       <div className="mt-1"><Radio name="adv_future" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.feeds_future_decisions || ""} onChange={(v) => setA("feeds_future_decisions", v)} /></div>
                     </div>
                     <div>
