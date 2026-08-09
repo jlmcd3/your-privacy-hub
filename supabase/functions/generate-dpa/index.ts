@@ -687,6 +687,21 @@ ${_fallbackLiteral}
       ? `\nAdditional frameworks named on the record: ${_additionalFrameworks.map((f) => `"${f}"`).join(", ")}`
       : "";
 
+    // INTAKE-2 — sub-processor change notice window. The record may set it;
+    // when it does not, the standing 30-day window is drafted as before, so
+    // documents generated from unchanged answers are unaffected.
+    const _rawNoticeDays = body.subprocessorChangeNoticePeriod;
+    const _parsedNoticeDays = typeof _rawNoticeDays === "number"
+      ? _rawNoticeDays
+      : typeof _rawNoticeDays === "string"
+        ? Number.parseInt(_rawNoticeDays.trim(), 10)
+        : Number.NaN;
+    const SUBPROC_NOTICE_DAYS =
+      Number.isFinite(_parsedNoticeDays) && _parsedNoticeDays > 0 && _parsedNoticeDays <= 365
+        ? Math.trunc(_parsedNoticeDays)
+        : 30;
+
+
     const PARTIES_BLOCK = `PARTIES
 Controller: ${body.controllerName} (${body.controllerJurisdiction})
 Processor: ${body.processorName} (${body.processorJurisdiction})
