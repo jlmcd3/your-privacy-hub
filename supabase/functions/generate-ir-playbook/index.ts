@@ -2025,8 +2025,10 @@ let playbook_text = lint.clean;
           report_data,
           updated_at: new Date().toISOString(),
         }, { fn: "generate-ir-playbook", phase: "terminal_complete" });
+        terminalWritten = completeWrite.ok === true;
         if (!completeWrite.ok) {
-          await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "terminal_fallback" });
+          const fb = await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", last_error: "terminal_complete_write_failed", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "terminal_fallback" });
+          terminalWritten = fb.ok === true;
         }
 
         // L2 — observe-only citation lint (never blocks, never mutates output).
@@ -2046,11 +2048,23 @@ let playbook_text = lint.clean;
       } catch (bgErr) {
         console.error("[generate-ir-playbook] background error:", bgErr);
         try {
-          await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "background_catch" });
+          const fw = await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", last_error: String((bgErr as Error)?.message ?? bgErr).slice(0, 500), updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "background_catch" });
+          terminalWritten = fw.ok === true;
         } catch (persistErr) {
           console.error("[generate-ir-playbook] failure-persist error:", persistErr);
         }
         await failFunctionRun(supabase, fnRun, bgErr, { metadata: { rowId } });
+      } finally {
+        // ── ITEM 417-B §3c — NO PATH LEAVES THE ROW `processing`. Last-resort
+        // terminal write for any limb that reached neither the complete write
+        // nor the background catch (e.g. a throw inside the catch itself).
+        if (!terminalWritten) {
+          try {
+            await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "failed", last_error: "terminated_without_terminal_write", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "terminal_guard" });
+          } catch (guardErr) {
+            console.error("[generate-ir-playbook] terminal-guard write failed:", String(guardErr));
+          }
+        }
       }
     })());
 
