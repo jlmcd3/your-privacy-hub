@@ -11,6 +11,7 @@ import {
   ADMT_ACTION_CITATION_VERSION,
   ADMT_SUBCHAPTER_FALLBACK,
   resolveAdmtActionCitations,
+  sealAdmtActionCitations,
 } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-action-citations.ts";
 import { normalizeAdmtPriorityActions } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-action-records.ts";
 import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts";
