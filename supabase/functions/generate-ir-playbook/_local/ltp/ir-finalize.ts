@@ -31,6 +31,7 @@ import {
   type RecordCompleteTelemetry,
 } from "../../../_shared/ltp/record-complete.ts";
 import { irPlaybookContract } from "../../../_shared/intake-contracts/ir-playbook.ts";
+import { attachIrCsc, type IrCscTelemetry, runIrCsc } from "./ir-csc.ts";
 
 export { IR_PIPELINE_STAMP };
 
@@ -181,6 +182,9 @@ export function runIrFinalizeBattery(
     repaired_paths: repaired.length,
     restored_checklist_cells: restored,
     coverage_orphans: coverage.counts.orphans,
+    csc_violations: (csc as IrCscTelemetry)?.violations?.length ?? 0,
+    csc_repairs: (csc as IrCscTelemetry)?.repairs ?? 0,
+    csc_crashed: Boolean((csc as IrCscTelemetry)?.crashed),
     coverage_links_checked: coverage.counts.links_checked,
     prose_lint_findings: lint?.findings?.length ?? null,
   }));
@@ -188,6 +192,7 @@ export function runIrFinalizeBattery(
   return {
     report,
     coverage,
+    csc,
     prose_lint: lint,
     repaired_paths: repaired,
     restored_checklist_cells: restored,
