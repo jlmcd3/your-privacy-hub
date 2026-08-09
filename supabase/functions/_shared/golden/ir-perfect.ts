@@ -39,7 +39,7 @@
 //     degraded record under the ITEM 369-IR two-artifact model, and it is the
 //     reason yesterday's batch render carried an absence ledger.
 //   * `MESSY_BY_TOOL["ir-playbook"]` — two adversarial thin-record entries
-//     (`ir-messy-thin-forensic-record`, `ir-messy-mixed-jurisdiction`) that
+//     (`ir-messy-thin-forensic-record`, `ir-messy-mixed-eu-uk-parallel-duties`) that
 //     exercise the honest-degradation direction.
 // Both remain untouched and keep serving the degraded pilot.
 

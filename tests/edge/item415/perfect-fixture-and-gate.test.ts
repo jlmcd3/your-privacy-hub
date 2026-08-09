@@ -130,7 +130,7 @@ Deno.test("item415: PERFECT_BY_TOOL['ir-playbook'] resolves through casesForVari
   // The other two variants are unchanged by leg B.
   assertEquals(casesForVariant("ir-playbook", null), GOLDEN_BY_TOOL["ir-playbook"]);
   assertEquals(casesForVariant("ir-playbook", "messy"), MESSY_BY_TOOL["ir-playbook"]);
-  assertEquals(MESSY_BY_TOOL["ir-playbook"]!.map((c) => c.id), ["ir-messy-thin-forensic-record", "ir-messy-mixed-jurisdiction"]);
+  assertEquals(MESSY_BY_TOOL["ir-playbook"]!.map((c) => c.id), ["ir-messy-thin-forensic-record", "ir-messy-mixed-eu-uk-parallel-duties"]);
 });
 
 Deno.test("item415: no other tool's variant resolution moved", () => {
