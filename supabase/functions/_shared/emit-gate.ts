@@ -103,6 +103,40 @@ const RESERVED = new Set<string>([
 // both the denominator and the detectors.
 const PROSE_MIN_LEN = 40;
 
+/**
+ * ITEM 428-B (DEFECT 3) — BYTE-PINNED LEAVES ARE LINT-EXEMPT.
+ *
+ * A pinned verbatim quotation (EDPB / ICO / statutory reference passages)
+ * reproduces its source EXACTLY, and a source sentence may legitimately end
+ * mid-clause without terminal punctuation. "Fixing" it would break the pin —
+ * the biometric reference-passage span-exclusion idiom. These leaves are
+ * therefore exempt from the WELL-FORMEDNESS sweep (terminal punctuation,
+ * doubled token, unbalanced parens); every leak detector (E4/E5/E6, internal
+ * vocab, template stubs) still runs against them unchanged.
+ *
+ * THE RULE: exemption is by LEAF KEY, closed list, byte-pinned classes only.
+ */
+export const BYTE_PINNED_LEAF_KEYS: ReadonlySet<string> = new Set([
+  "verbatim_quote",
+  "verbatim",
+  "harm_verbatim",
+  "quote_verbatim",
+  "pinned_quote",
+  "passage_verbatim",
+]);
+
+/** Last path segment, array indices stripped. */
+function leafKeyOf(path: string): string {
+  const noIdx = String(path ?? "").replace(/\[\d+\]$/g, "");
+  const i = noIdx.lastIndexOf(".");
+  return i >= 0 ? noIdx.slice(i + 1) : noIdx;
+}
+
+export function isBytePinnedLeaf(path: string): boolean {
+  return BYTE_PINNED_LEAF_KEYS.has(leafKeyOf(path));
+}
+
+
 // ── Well-formedness detectors (LEAK-PREV-P1) ────────────────────────────
 
 const DOUBLED_TOKEN_RE = /\b([A-Za-z]{3,})\s+\1\b/;
@@ -275,7 +309,10 @@ function detectFindings(
     }
   }
 
-  // Well-formedness.
+  // Well-formedness. ITEM 428-B — byte-pinned leaves are exempt (see
+  // BYTE_PINNED_LEAF_KEYS): a pinned quotation must survive untouched.
+  if (isBytePinnedLeaf(leaf.path)) return findings;
+
   const dt = s.match(DOUBLED_TOKEN_RE);
   if (dt) {
     findings.push({

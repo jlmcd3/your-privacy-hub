@@ -693,16 +693,21 @@ function assembleCore(
     enforce_violation: exitMode === "enforce" && coherenceViolations.length > 0,
   };
   if (shipped_coherence.enforce_violation) {
-    // Enforce: collapse the ship to insufficient exec + narrative so the
+    // Enforce: collapse the ship to the insufficient exec disclosure so the
     // customer never receives contradictory prose. The full failure is
     // captured in telemetry for the controller. LAW 3(a) preserved:
     // routed through Object.assign — no additional bracketed write site.
+    //
+    // ITEM 428-B (DEFECT 1b) — the companion `assessment_summary.narrative`
+    // write is REMOVED: `assessment_summary` is the typed fact strip and no
+    // writer may emit a prose leaf on it. The disclosure lives on the one
+    // narrative verdict surface.
     const disclosure =
       "On the present record, the information provided is not sufficient to complete the required benefit-and-impact analysis. The specific items needed to complete this assessment are set out under Items for your review.";
     Object.assign(report, {
       executive_summary: disclosure,
-      assessment_summary: { ...(report.assessment_summary as object ?? {}), narrative: disclosure },
     });
+
   }
   const emittedCount = sectionTele.filter((s) => s.emitted).length;
   const structural = structuralCompleteness(sectionTele);
@@ -779,7 +784,7 @@ export function buildTypeJWriteAroundBody(input: {
     schema_version: "cppa_risk_v4",
     opening_summary: disclosure,
     executive_summary: disclosure,
-    assessment_summary: { narrative: disclosure },
+    // ITEM 428-B (DEFECT 1b) — no prose leaf on the typed fact strip.
     submission_summary: renderCyberAuditSchedule(),
     risk_level: "reserved",
     overall_score: null,

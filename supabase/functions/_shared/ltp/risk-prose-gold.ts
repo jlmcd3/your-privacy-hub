@@ -193,11 +193,27 @@ export function buildExecutiveSummary(
   const narrative = summary && typeof summary === "object" && !Array.isArray(summary)
     ? String((summary as Record<string, unknown>).narrative ?? "")
     : asParagraph(summary);
+  // ITEM 428-B (DEFECT 1b) — the fact strip carries NO prose leaf, so the
+  // verdict sentence the narrative used to hold is carried by the pre-gate
+  // re-home pass on `_meta.internal.risk_summary_rehome.carried_verdict`.
+  const carriedVerdict = (() => {
+    try {
+      const meta = report._meta as Record<string, unknown> | undefined;
+      const internal = meta?.internal as Record<string, unknown> | undefined;
+      const rehome = internal?.risk_summary_rehome as Record<string, unknown> | undefined;
+      const v = rehome?.carried_verdict;
+      return typeof v === "string" ? v.trim() : "";
+    } catch {
+      return "";
+    }
+  })();
   const verdict =
     splitSentences(narrative).find((s) => VERDICT_SENTENCE_RE.test(s)) ??
-    (typeof report.risk_level === "string" && report.risk_level.trim()
-      ? `The § 7152(a)(6) balancing on this record returns a ${String(report.risk_level).toLowerCase()} risk determination.`
-      : "");
+    (carriedVerdict ||
+      (typeof report.risk_level === "string" && report.risk_level.trim()
+        ? `The § 7152(a)(6) balancing on this record returns a ${String(report.risk_level).toLowerCase()} risk determination.`
+        : ""));
+
   const processing = firstSentence(asParagraph(report.processing_narrative));
   const existing = stripDegradedOpeners(asParagraph(report.executive_summary));
   const lead = [verdict, processing].map((s) => s.trim()).filter(Boolean).join(" ");

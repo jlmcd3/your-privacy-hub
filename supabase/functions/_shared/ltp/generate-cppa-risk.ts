@@ -60,6 +60,8 @@ import { attachRiskCsc } from "./risk-csc.ts";
 // ITEM 427 — canonical `risk_assessment_by_activity` emission (LAW 3 write site).
 import { normalizeRiskActivities, RISK_ACTIVITIES_CONTRACT_VERSION } from "./risk-activity-emit.ts";
 import { normalizeRiskSummaryVoice } from "./risk-summary-voice.ts";
+// ITEM 428-B — pre-gate re-home of reserved-determination referral prose.
+import { rehomeReservedReferrals } from "./risk-summary-rehome.ts";
 import { structureConformanceTelemetry } from "../prose/structure-conformance.ts";
 import {
   normalizeRiskExceptions,
@@ -147,11 +149,24 @@ function seal(report: Record<string, unknown>, intakeRoster: unknown): {
 } {
   const out = report;
   let filtered = 0;
+  // ITEM 428-B (DEFECT 1) — WRITER-SIDE FIX, BEFORE THE GATE. Reserved-
+  // determination referral prose is lifted off the summary surfaces and
+  // re-homed onto the reserved-judgment action rows; the fact strip's prose
+  // leaf is removed. The gate then sees what the writers should have written.
+  try {
+    const rehome = rehomeReservedReferrals(out);
+    const meta = (out._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_summary_rehome = rehome;
+  } catch (e) {
+    console.warn("[generate-cppa-risk] summary re-home failed (non-fatal):", (e as Error)?.message);
+  }
   try {
     runEmitGate(out, { tool: "cppa_risk_assessment", intakeRoster: (intakeRoster ?? {}) as never });
   } catch (e) {
     console.warn("[generate-cppa-risk] emit-gate failed (non-fatal):", (e as Error)?.message);
   }
+
   try {
     filtered = filterCustomerInformationNeeded(out);
   } catch { /* fail-open */ }
