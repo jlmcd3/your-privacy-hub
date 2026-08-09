@@ -57,6 +57,8 @@ import { computeRecordNeeds } from "./section-composers/cppa-risk.ts";
 // ITEM 378 (CORRECTION) — refinement + CSC + stamp on the ROUTED LTP path.
 import { RISK_PIPELINE_STAMP } from "./risk-stamp.ts";
 import { attachRiskCsc } from "./risk-csc.ts";
+// ITEM 427 — canonical `risk_assessment_by_activity` emission (LAW 3 write site).
+import { normalizeRiskActivities, RISK_ACTIVITIES_CONTRACT_VERSION } from "./risk-activity-emit.ts";
 import {
   normalizeRiskExceptions,
   RISK_EXCEPTIONS_CONTRACT_VERSION,
