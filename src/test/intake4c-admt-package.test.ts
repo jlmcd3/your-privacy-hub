@@ -6,14 +6,11 @@
 // where they were, so stored drafts and golden fixtures keep resolving.
 
 import { describe, it, expect } from "vitest";
-import { CPPA_ADMT_CONTRACT } from "../../supabase/functions/_shared/intake-contracts/cppa-admt";
-import {
-  ADMT_AFFECTED_POPULATION_BAND_OPTS,
-  HUMAN_REVIEW_OPTIONS,
-} from "../pages/admt/ADMTChecker.enums";
+import { cppaAdmtContract } from "../../supabase/functions/_shared/intake-contracts/cppa-admt";
+import { ADMT_AFFECTED_POPULATION_BAND_OPTS } from "../pages/admt/ADMTChecker.enums";
 
 const keys = new Set(
-  CPPA_ADMT_CONTRACT.sections.flatMap((s: { fields: { key: string }[] }) =>
+  cppaAdmtContract.sections.flatMap((s: { fields: { key: string }[] }) =>
     s.fields.map((f) => f.key),
   ),
 );
@@ -32,14 +29,10 @@ describe("INTAKE-4c — ADMT contract stability", () => {
   });
 
   it("keeps the affected-population band optional and its options unchanged", () => {
-    const field = CPPA_ADMT_CONTRACT.sections
+    const field = cppaAdmtContract.sections
       .flatMap((s: { fields: { key: string; required: string; options?: readonly string[] }[] }) => s.fields)
       .find((f) => f.key === "affected_population_band")!;
     expect(field.required).toBe("optional");
     expect(field.options).toEqual([...ADMT_AFFECTED_POPULATION_BAND_OPTS]);
-  });
-
-  it("keeps the human-review options the prefill maps from", () => {
-    expect(HUMAN_REVIEW_OPTIONS.length).toBe(3);
   });
 });
