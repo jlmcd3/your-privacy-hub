@@ -18,6 +18,11 @@ import {
 import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 // ITEM 420 — dual-read priority actions (string | typed action record).
 import { coerceActionListText } from "@/lib/action-record";
+// ITEM 425 — dual-read record sufficiency (string | string[] | legacy object | typed record).
+import {
+  coerceSufficiencyView,
+  isRiskSufficiencyRecord,
+} from "@/lib/risk-sufficiency";
 
 
 /** Renders `**bold**` spans inline; everything else is plain text. */
@@ -106,6 +111,56 @@ function ListSection({
           </div>
         ))}
       </div>
+    </SectionShell>
+  );
+}
+
+/**
+ * ITEM 425 — record sufficiency. Legacy shapes keep the historical card list;
+ * the typed record renders its single voice plus an ELEMENTS TABLE, which is
+ * what ends the per-element litany by construction.
+ */
+function RecordSufficiencySection({ value }: { value: unknown }) {
+  if (!isRiskSufficiencyRecord(value)) {
+    return (
+      <ListSection
+        sectionKey="record_sufficiency"
+        fallbackTitle="Record Sufficiency"
+        value={value}
+      />
+    );
+  }
+  const view = coerceSufficiencyView(value);
+  if (!view.statement && view.elements.length === 0) return null;
+  return (
+    <SectionShell sectionKey="record_sufficiency" fallbackTitle="Record Sufficiency">
+      {view.statement && (
+        <div className="border rounded-lg p-4 bg-card mb-3">
+          <Paragraphs value={view.statement} />
+        </div>
+      )}
+      {view.elements.length > 0 && (
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left font-semibold p-2">Element</th>
+                <th className="text-left font-semibold p-2">Status on the record</th>
+                <th className="text-left font-semibold p-2">Authority</th>
+              </tr>
+            </thead>
+            <tbody>
+              {view.elements.map((el, i) => (
+                <tr key={i} className="border-t align-top">
+                  <td className="p-2">{el.element}</td>
+                  <td className="p-2">{el.status}</td>
+                  <td className="p-2 whitespace-nowrap">{el.pinpoint}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </SectionShell>
   );
 }
@@ -223,11 +278,7 @@ export default function RiskAssessmentReportLTP({
         fallbackTitle="Items for Your Review"
         value={report?.information_needed}
       />
-      <ListSection
-        sectionKey="record_sufficiency"
-        fallbackTitle="Record Sufficiency"
-        value={report?.record_sufficiency}
-      />
+      <RecordSufficiencySection value={report?.record_sufficiency} />
       <ScalarSection
         sectionKey="submission_summary"
         fallbackTitle="Submission Summary"
