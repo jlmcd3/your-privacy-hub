@@ -1,6 +1,7 @@
 // ITEM 415 LEG B — IR PERFECT FIXTURE, HARNESS WIRING AND THE FAIL-CLOSED
 // RECORD-COMPLETE GATE.
 
+import { attachIrPlaybookDeliverables } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { IR_PERFECT } from "../../../supabase/functions/_shared/golden/ir-perfect.ts";
 import {

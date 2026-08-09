@@ -2,6 +2,7 @@
 // the FINAL rendered strings of BOTH artifacts assembled through the finalize
 // battery in-test.
 
+import { attachIrPlaybookDeliverables } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   IR_BANNED_SHARED,
