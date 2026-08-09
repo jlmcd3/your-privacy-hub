@@ -2,9 +2,18 @@
 //
 // Intake shape (verified against src/pages/CPPACybersecurity.tsx):
 //   {
-//     profile: { entity_name, industry, incidents_12mo, framework, last_audit },
-//     controls: [ { key, label, maturity, notes } × 18 ]
+//     profile: { entity_name, industry, incidents_12mo, framework, last_audit,
+//                in_scope_frameworks, audit_scope_rationale,
+//                auditor_engagement_status, prior_audit_scope,
+//                remediation_owner },
+//     controls: [ { key, label, maturity, notes, evidence } × 18 ]
 //   }
+//
+// INTAKE-4b (2026-08-09): `profile.remediation_owner` added (optional);
+// rendered in the profile section of src/pages/CPPACybersecurity.tsx
+// immediately after `prior_audit_scope`. `profile.in_scope_frameworks` is
+// PREFILLED from `profile.framework` and presented as a confirmation —
+// prefill only, never merged; key, options and stored values unchanged.
 //
 // IMPORT-VS-LITERAL DECISION: Supabase edge-function bundling only ships
 // files under supabase/functions/, so this contract cannot import from
@@ -136,6 +145,13 @@ export const cppaCybersecurityContract: IntakeContract = {
     { key: "profile.auditor_engagement_status", kind: "enum", required: "optional",
       options: CYBER_AUDITOR_ENGAGEMENT_OPTIONS, askEligible: true },
     { key: "profile.prior_audit_scope", kind: "narrative", required: "optional",
+      askEligible: true },
+    // INTAKE-4b — CEO-approved addition 2026-08-09. "Who owns remediation of
+    // findings from this audit?" Rendered at
+    // src/pages/CPPACybersecurity.tsx (profile section, after
+    // prior_audit_scope). Optional at the data layer so pre-change drafts and
+    // stored rows validate unchanged.
+    { key: "profile.remediation_owner", kind: "text", required: "optional",
       askEligible: true },
     // controls[]
     { key: "controls[].key",     kind: "enum",      required: "always",

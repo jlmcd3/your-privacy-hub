@@ -193,6 +193,8 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "profile.last_audit": "most recent cybersecurity audit",
   "profile.in_scope_frameworks": "in-scope cybersecurity frameworks",
   "profile.audit_scope_rationale": "audit-scope rationale",
+  // INTAKE-4b — CEO-approved addition 2026-08-09.
+  "profile.remediation_owner": "owner of remediation for audit findings",
   "controls[].key": "control identifier",
   "controls[].label": "control label",
   "controls[].maturity": "control maturity level",

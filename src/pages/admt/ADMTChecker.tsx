@@ -258,6 +258,9 @@ export default function ADMTChecker() {
   const [admtSystemCount, setAdmtSystemCount] = useState("");
   // TURN 2 — new intake fields
   const [affectedPopulationBand, setAffectedPopulationBand] = useState("");
+  // INTAKE-4c — prefill-only bookkeeping for the affected-population band.
+  const [bandTouched, setBandTouched] = useState(false);
+  const [bandPrefilled, setBandPrefilled] = useState(false);
   const [roleRoster, setRoleRoster] = useState<string[]>([]);
   // prior_access_requests_12mo removed (RC-P6): § 7222(j) threshold is framework-level, not per-consumer.
 
@@ -303,6 +306,90 @@ export default function ADMTChecker() {
   const setNET = (k: string, v: string) => setNoticeElementText((p) => ({ ...p, [k]: v }));
   const [adv, setAdv] = useState<Record<string, any>>({});
   const setA = (k: string, v: any) => setAdv((a) => ({ ...a, [k]: v }));
+
+  // ── INTAKE-4c — PREFILL BLOCK ────────────────────────────────────────────
+  // Every row below keeps its own key, its own options, and its own stored
+  // value. Where an earlier answer supplies the same fact we seed the later
+  // row once, while it is still untouched, and present it as a confirmation.
+  // No row is merged into another, and a customer edit ends the prefill for
+  // that row permanently.
+  const [prefillTouched, setPrefillTouched] = useState<Record<string, boolean>>({});
+  const [prefilled, setPrefilled] = useState<Record<string, boolean>>({});
+  const markTouched = (k: string) => setPrefillTouched((p) => (p[k] ? p : { ...p, [k]: true }));
+  const markPrefilled = (k: string) => setPrefilled((p) => (p[k] ? p : { ...p, [k]: true }));
+
+  const suggestedBand = useMemo(() => {
+    const digits = caConsumerCount.replace(/[^0-9]/g, "");
+    if (!digits) return "";
+    const n = Number(digits);
+    if (!Number.isFinite(n) || n <= 0) return "";
+    if (n < 1000) return "Under 1,000";
+    if (n <= 10000) return "1,000 – 10,000";
+    if (n <= 100000) return "10,001 – 100,000";
+    if (n <= 1000000) return "100,001 – 1,000,000";
+    return "Over 1,000,000";
+  }, [caConsumerCount]);
+
+  useEffect(() => {
+    if (bandTouched || affectedPopulationBand || !suggestedBand) return;
+    setAffectedPopulationBand(suggestedBand);
+    setBandPrefilled(true);
+  }, [suggestedBand, bandTouched, affectedPopulationBand]);
+
+  // adv.hi_reviewer_present — PREFILL ONLY, NEVER MERGE. The human-review
+  // answer in step 1 supplies the same fact; this row stays a question.
+  useEffect(() => {
+    if (prefillTouched.hi_reviewer_present || adv.hi_reviewer_present) return;
+    const map: Record<string, string> = {
+      [HUMAN_REVIEW_OPTIONS[0]]: "Yes — on every decision",
+      [HUMAN_REVIEW_OPTIONS[1]]: "Sometimes / on a subset",
+      [HUMAN_REVIEW_OPTIONS[2]]: "No — fully automated",
+    };
+    const seed = map[humanReview];
+    if (!seed) return;
+    setA("hi_reviewer_present", seed);
+    markPrefilled("hi_reviewer_present");
+  }, [humanReview, adv.hi_reviewer_present, prefillTouched.hi_reviewer_present]);
+
+  // adv.vendor_product — the named third-party system supplies the product name.
+  useEffect(() => {
+    if (prefillTouched.vendor_product || adv.vendor_product) return;
+    const first = thirdPartyAdmt.split("\n").map((s) => s.trim()).filter(Boolean)[0];
+    if (!first) return;
+    setA("vendor_product", first);
+    markPrefilled("vendor_product");
+  }, [thirdPartyAdmt, adv.vendor_product, prefillTouched.vendor_product]);
+
+  // accessLogicDisclosure / accessOutcomeDisclosure — the § 7222(b) readiness
+  // answers supply the same facts the disclosure has to carry.
+  useEffect(() => {
+    if (prefillTouched.accessLogicDisclosure || accessLogicDisclosure.trim()) return;
+    const seed = (accessReadiness.b2_logic_process || "").trim();
+    if (!seed) return;
+    setAccessLogicDisclosure(seed);
+    markPrefilled("accessLogicDisclosure");
+  }, [accessReadiness.b2_logic_process, accessLogicDisclosure, prefillTouched.accessLogicDisclosure]);
+
+  useEffect(() => {
+    if (prefillTouched.accessOutcomeDisclosure || accessOutcomeDisclosure.trim()) return;
+    const seed = (accessReadiness.b3_outcome_process || "").trim();
+    if (!seed) return;
+    setAccessOutcomeDisclosure(seed);
+    markPrefilled("accessOutcomeDisclosure");
+  }, [accessReadiness.b3_outcome_process, accessOutcomeDisclosure, prefillTouched.accessOutcomeDisclosure]);
+
+  // noticeFullText — the element-by-element transcription supplies the same
+  // sentences; assembled once as a starting point for confirmation.
+  const noticeElementsJoined = useMemo(
+    () => Object.values(noticeElementText).map((v) => (v || "").trim()).filter(Boolean).join("\n\n"),
+    [noticeElementText],
+  );
+  useEffect(() => {
+    if (prefillTouched.noticeFullText || noticeFullText.trim() || !noticeElementsJoined) return;
+    setNoticeFullText(noticeElementsJoined);
+    markPrefilled("noticeFullText");
+  }, [noticeElementsJoined, noticeFullText, prefillTouched.noticeFullText]);
+  // ─────────────────────────────────────────────────────────────────────────
 
   const provideOptOut =
     !optOutException.startsWith("Human appeal") &&
@@ -495,6 +582,16 @@ export default function ADMTChecker() {
   const applyRestore = () => {
     const d = restoreData as Record<string, any> | null;
     if (!d) return;
+    // INTAKE-4c — a restored draft carries the customer's own answers on every
+    // prefill row, so the prefill must never overwrite them.
+    setBandTouched(true);
+    setPrefillTouched({
+      hi_reviewer_present: true,
+      vendor_product: true,
+      accessLogicDisclosure: true,
+      accessOutcomeDisclosure: true,
+      noticeFullText: true,
+    });
     if (typeof d.organization_name === "string") setOrganizationName(d.organization_name);
     if (typeof d.system_name === "string") setSystemName(d.system_name);
     if (typeof d.system_type === "string") setSystemType(d.system_type);
@@ -811,9 +908,10 @@ export default function ADMTChecker() {
                         <div className="mt-1"><Pills options={ADMT_VENDOR_DOCS_OPTS} value={adv.vendor_docs || []} onChange={(v) => setA("vendor_docs", v)} /></div>
                       </div>
                       <div>
-                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Do your vendor contracts include these obligations?</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Does your contract with this vendor require each of these?</Label>
+                        <p className="text-[11px] text-muted-foreground">Answer for what the signed contract says, not for what the vendor does in practice. Each "No" is reported as a contractual term you would have to negotiate before you could rely on the vendor for that obligation.</p>
                         <div className="mt-1 space-y-1">
-                          {[["v_audit", "Audit and monitoring rights"], ["v_assist", "Assistance with consumer access requests"], ["v_optout", "Opt-out propagation downstream"], ["v_appeal", "Appeal and human-review support"], ["v_incident", "Incident notification"]].map(([k, label]) => (
+                          {[["v_audit", "Rights to audit and monitor the vendor"], ["v_assist", "Help answering consumer access requests"], ["v_optout", "Passing opt-outs on to anyone downstream"], ["v_appeal", "Support for appeals and human review"], ["v_incident", "Telling you about incidents"]].map(([k, label]) => (
                             <div key={k} className="flex items-center justify-between gap-3">
                               <span className="text-[12px]">{label}</span>
                               <span className="shrink-0"><Radio name={k} options={["Yes", "No"]} value={adv[k] || ""} onChange={(val) => setA(k, val)} /></span>
@@ -827,7 +925,8 @@ export default function ADMTChecker() {
                         <div className="mt-1"><Radio name="v_avail" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.vendor_makes_available || ""} onChange={(v) => setA("vendor_makes_available", v)} /></div>
                       </div>
                       <div>
-                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Vendor training-data and model-improvement rights, and sub-processors</Label>
+                        <Label className="text-[12px]" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>Can the vendor use your data to train or improve its models, and who else touches the data?</Label>
+                        <p className="text-[11px] text-muted-foreground">Give the training rights first, then name the sub-processors. Why we ask: training rights and an unnamed sub-processor chain both widen the disclosure your notice has to make, and the report cannot describe either from the contract you have not quoted.</p>
                         <AssistedInput
                           className="mt-1"
                           rows={2}
@@ -872,21 +971,28 @@ export default function ADMTChecker() {
                       />
                     </div>
 
+                    {/* INTAKE-4c — PREFILL ONLY, NEVER MERGE. This stays its own
+                        question with its own key and options; the consumer-count
+                        answer above only suggests a band. */}
                     <div data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>
-                      <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>Affected-population band <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
-                      <p className="text-xs text-muted-foreground mt-1">The band the report uses when it describes how many Californians this system reaches.</p>
+                      <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>How many Californians does this system reach? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
+                      {bandPrefilled && !bandTouched ? (
+                        <p className="text-xs text-muted-foreground mt-1">We have suggested a band from the consumer count you gave above. Confirm it or pick another. Why we ask: § 7152(a)(3)(D) asks the assessment to state the number of consumers whose information is processed, and the report uses this band wherever it describes reach.</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground mt-1">Pick the band the report should use when it describes how many Californians this system reaches. Why we ask: § 7152(a)(3)(D) asks the assessment to state the number of consumers whose information is processed.</p>
+                      )}
                       <div className="mt-2">
                         <Pills
                           options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
                           value={affectedPopulationBand ? [affectedPopulationBand] : []}
-                          onChange={(vals) => setAffectedPopulationBand(vals[vals.length - 1] || "")}
+                          onChange={(vals) => { setBandTouched(true); setAffectedPopulationBand(vals[vals.length - 1] || ""); }}
                         />
                       </div>
                     </div>
 
                     <div data-rail-key="role_roster" onFocus={() => focus("role_roster")}>
-                      <Label data-rail-key="role_roster" onFocus={() => focus("role_roster")}>Internal roles with defined responsibilities for this ADMT <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7157(c))</span></Label>
-                      <p className="text-xs text-muted-foreground mt-1">Select every role that already holds a defined responsibility for this system.</p>
+                      <Label data-rail-key="role_roster" onFocus={() => focus("role_roster")}>Which internal roles already have defined responsibilities for this system? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7157(c))</span></Label>
+                      <p className="text-xs text-muted-foreground mt-1">Select only the roles that hold a responsibility today, not the ones you plan to assign. Why we ask: § 7157(c) expects named internal ownership, and a role you have not selected is reported as unassigned rather than assumed.</p>
                       <div className="mt-2">
                         <Pills
                           options={ADMT_ROLE_ROSTER_OPTS}
@@ -932,7 +1038,10 @@ export default function ADMTChecker() {
                     <p className="text-[12px] text-muted-foreground">Helps an auditor identify the exact system and decision under review, and shapes the access-response analysis.</p>
                     <div>
                       <Label className="text-[12px]">Vendor / product name &amp; version</Label>
-                      <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => setA("vendor_product", e.target.value)} placeholder="Product name and version" />
+                      {prefilled.vendor_product && !prefillTouched.vendor_product && (
+                        <p className="text-[11px] text-muted-foreground">Carried over from the third-party system you named. Confirm or correct it.</p>
+                      )}
+                      <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => { markTouched("vendor_product"); setA("vendor_product", e.target.value); }} placeholder="Product name and version" />
                     </div>
                     <div>
                       <Label className="text-[12px]">Where is the system hosted?</Label>
@@ -961,7 +1070,8 @@ export default function ADMTChecker() {
                       </div>
                     )}
                     <div>
-                      <Label className="text-[12px]">Will the output be used to feed future significant decisions? (§ 7222(b))</Label>
+                      <Label className="text-[12px]">Will this output be used to make later significant decisions?</Label>
+                      <p className="text-[11px] text-muted-foreground">Why we ask: § 7222(b) requires the access response to explain how the output was used, and an output reused downstream widens what you have to disclose.</p>
                       <div className="mt-1"><Radio name="adv_future" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.feeds_future_decisions || ""} onChange={(v) => setA("feeds_future_decisions", v)} /></div>
                     </div>
                     <div>
@@ -993,9 +1103,15 @@ export default function ADMTChecker() {
                     <p className="text-[11px] italic text-muted-foreground">You're seeing this because how much a human is involved decides whether the law applies at all — it's worth a moment.</p>
                     <p className="text-[12px] font-semibold">Human-involvement self-test (§ 7001(e)(1))</p>
                     <p className="text-[12px] text-muted-foreground">This is the gate for the entire regime: if a qualifying human is in the loop, the system does not "substantially replace" human decisionmaking and Article 11 obligations may not attach.</p>
+                    {/* INTAKE-4c — PREFILL ONLY, NEVER MERGE: this row keeps its
+                        own key and options; the step-1 human-review answer only
+                        seeds it for confirmation. */}
                     <div>
                       <Label className="text-[12px]">Is a human reviewer involved in the decision?</Label>
-                      <div className="mt-1"><Radio name="hi_present" options={["Yes — on every decision", "Sometimes / on a subset", "No — fully automated"]} value={adv.hi_reviewer_present || ""} onChange={(v) => setA("hi_reviewer_present", v)} /></div>
+                      {prefilled.hi_reviewer_present && !prefillTouched.hi_reviewer_present && (
+                        <p className="text-[11px] text-muted-foreground">Carried over from your human-review answer above. Confirm it or change it.</p>
+                      )}
+                      <div className="mt-1"><Radio name="hi_present" options={["Yes — on every decision", "Sometimes / on a subset", "No — fully automated"]} value={adv.hi_reviewer_present || ""} onChange={(v) => { markTouched("hi_reviewer_present"); setA("hi_reviewer_present", v); }} /></div>
                     </div>
                     {adv.hi_reviewer_present && !adv.hi_reviewer_present.startsWith("No") && (
                       <>
@@ -1008,15 +1124,18 @@ export default function ADMTChecker() {
                           <div className="mt-1"><Radio name="hi_stage" options={["Before the decision is issued", "After the decision (review of completed decisions)", "Appeal only"]} value={adv.hi_stage || ""} onChange={(v) => setA("hi_stage", v)} /></div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Does the reviewer know how to interpret the ADMT output? (§ 7001(e)(1)(A))</Label>
+                          <Label className="text-[12px]">Has the reviewer been trained to read what the system produces?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7001(e)(1)(A) counts a reviewer only if they know how to interpret and use the output.</p>
                           <div className="mt-1"><Radio name="hi_trained" options={["Yes", "No"]} value={adv.hi_trained || ""} onChange={(v) => setA("hi_trained", v)} /></div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Does the reviewer review the output plus other relevant information? (§ 7001(e)(1)(B))</Label>
+                          <Label className="text-[12px]">Does the reviewer look at anything besides the system's output?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7001(e)(1)(B) counts a reviewer only if they weigh the output together with other relevant information.</p>
                           <div className="mt-1"><Radio name="hi_other" options={["Yes", "No"]} value={adv.hi_reviews_other_info || ""} onChange={(v) => setA("hi_reviews_other_info", v)} /></div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Does the reviewer have authority to change the decision? (§ 7001(e)(1)(C))</Label>
+                          <Label className="text-[12px]">Can the reviewer change the decision?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7001(e)(1)(C) counts a reviewer only if they hold the authority to change the outcome, not merely to flag it.</p>
                           <div className="mt-1"><Radio name="hi_auth" options={["Yes", "No"]} value={adv.hi_authority_override || ""} onChange={(v) => setA("hi_authority_override", v)} /></div>
                         </div>
                         <div>
@@ -1051,7 +1170,8 @@ export default function ADMTChecker() {
                     </p>
                     <div className="space-y-3">
                       <div>
-                        <Label className="text-[12px]">Do you use personal information to train any ADMT system? (§ 7153)</Label>
+                        <Label className="text-[12px]">Do you use personal information to train any automated decision system?</Label>
+                        <p className="text-[11px] text-muted-foreground">Why we ask: § 7153 brings training on personal information into risk-assessment scope on its own, even where no significant decision is made.</p>
                         <div className="mt-1">
                           <Radio
                             name="training_data"
@@ -1144,13 +1264,19 @@ export default function ADMTChecker() {
                     <Label className="text-[12px] font-semibold" data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}>
                       Paste your published Pre-use Notice in full
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1 mb-2">
-                      Paste the notice exactly as consumers see it. Your report quotes these words back and tests each § 7220(c) element against them. Leave blank if you have not published a notice yet — the report will say so rather than assume.
-                    </p>
+                    {prefilled.noticeFullText && !prefillTouched.noticeFullText ? (
+                      <p className="text-xs text-muted-foreground mt-1 mb-2">
+                        We have assembled this from the elements you pasted below. Confirm it reads as the published notice does, or replace it with the full text. Your report quotes these words back and tests each § 7220(c) element against them.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1 mb-2">
+                        Paste the notice exactly as consumers see it. Your report quotes these words back and tests each § 7220(c) element against them. Leave blank if you have not published a notice yet — the report will say so rather than assume.
+                      </p>
+                    )}
                     <Textarea
                       rows={8}
                       value={noticeFullText}
-                      onChange={(e) => setNoticeFullText(e.target.value)}
+                      onChange={(e) => { markTouched("noticeFullText"); setNoticeFullText(e.target.value); }}
                       data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}
                       placeholder="Paste the full notice text"
                     />
@@ -1163,17 +1289,17 @@ export default function ADMTChecker() {
                       Paste your published Pre-use Notice, element by element
                     </p>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Optional but strongly recommended: we assess each § 7220(c) element against the words you actually publish. Leave an element blank if your notice does not cover it.
+                      Optional, but it changes the report: we test each § 7220(c) element against the words you actually publish, not against a description of them. Leave an element blank where your notice does not cover it — the report says so rather than assuming.
                     </p>
                     <div className="space-y-3">
                       {[
-                        ["purpose", "Specific purpose for using the ADMT"],
-                        ["optout", "Right to opt out, and how to submit the request"],
-                        ["access", "Right to access ADMT, and how to submit the request"],
-                        ["antiretaliation", "Prohibition on retaliation for exercising CCPA rights"],
-                        ["howworks_inputs", "How the ADMT processes personal information (inputs)"],
-                        ["howworks_output", "Type of output, and how it is used in the decision"],
-                        ["altprocess", "Alternative process for consumers who opt out"],
+                        ["purpose", "What you use the system for"],
+                        ["optout", "The right to opt out, and how to ask"],
+                        ["access", "The right to ask what the system did, and how to ask"],
+                        ["antiretaliation", "That you will not retaliate for using these rights"],
+                        ["howworks_inputs", "What information goes into the system"],
+                        ["howworks_output", "What the system produces, and how you use it"],
+                        ["altprocess", "What happens instead for someone who opts out"],
                       ].map(([k, label]) => (
                         <div key={k}>
                           <Label className="text-[12px]">{label}</Label>
@@ -1489,7 +1615,8 @@ export default function ADMTChecker() {
                       <div className="rounded-md border p-4 space-y-3 bg-muted/20">
                         <p className="text-[12px] font-semibold">Confirm opt-out process compliance</p>
                         <div>
-                          <Label className="text-[12px]">Confirm: cookie banners are NOT your sole opt-out method (§ 7221(c)(4))</Label>
+                          <Label className="text-[12px]">Is a cookie banner your only way to opt out?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7221(c)(4) does not accept a cookie banner as the sole opt-out route, so the report has to know whether another route exists.</p>
                           <div className="mt-1">
                             <Radio
                               name="no_cookie"
@@ -1501,7 +1628,8 @@ export default function ADMTChecker() {
                           </div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Confirm: you do not require account creation to submit an opt-out (§ 7221(e))</Label>
+                          <Label className="text-[12px]">Does someone have to create an account to opt out?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7221(e) bars requiring account creation as a condition of submitting the request.</p>
                           <div className="mt-1">
                             <Radio
                               name="no_account"
@@ -1540,11 +1668,11 @@ export default function ADMTChecker() {
                     </p>
                     <div className="space-y-4">
                       {[
-                        ["b1_purpose", "The specific purpose you used the ADMT for, as to that consumer (§ 7222(b)(1))"],
-                        ["b2_logic", "The logic of the ADMT, including its assumptions and limitations (§ 7222(b)(2))"],
-                        ["b3_output_use", "The output produced, and how you used it in the decision (§ 7222(b)(3))"],
-                        ["b3_outcome", "The outcome of the decisionmaking process for that consumer (§ 7222(b)(3))"],
-                        ["b3_human_role", "The role any human played in the decisionmaking process (§ 7222(b)(3))"],
+                        ["b1_purpose", "Why you used the system for that person (§ 7222(b)(1))"],
+                        ["b2_logic", "How the system works, including what it assumes and where it falls short (§ 7222(b)(2))"],
+                        ["b3_output_use", "What the system produced, and how you used it (§ 7222(b)(3))"],
+                        ["b3_outcome", "What the person's decision ended up being (§ 7222(b)(3))"],
+                        ["b3_human_role", "What a human did, if anything (§ 7222(b)(3))"],
                       ].map(([k, label]) => (
                         <div key={k}>
                           <Label className="text-[12px]" data-rail-key={`access_readiness_${k}`} onFocus={() => focus(`access_readiness_${k}`)}>{label}</Label>
@@ -1608,16 +1736,16 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
-                      What ADMT logic information do you disclose in your access responses? <Req />
+                      What do you tell someone about how the system reached its result? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Required: how the ADMT processed the consumer's PI to generate the output; parameters that generated the output; the specific output with respect to this consumer (§ 7222(b)(2)). Trade secrets may be withheld.
+                      Say how the system handled that person's information, what drove the output, and what the output was (§ 7222(b)(2)). Trade secrets may be withheld.{prefilled.accessLogicDisclosure && !prefillTouched.accessLogicDisclosure ? " We have carried over what you wrote above about how the system works — confirm it or replace it." : ""}
                     </p>
                     <Textarea
                       className="mt-2"
                       rows={3}
                       value={accessLogicDisclosure}
-                      onChange={(e) => setAccessLogicDisclosure(e.target.value)}
+                      onChange={(e) => { markTouched("accessLogicDisclosure"); setAccessLogicDisclosure(e.target.value); }}
                       data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
                       placeholder="Disclosed first, then withheld"
                     />
@@ -1625,16 +1753,16 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}>
-                      What decision outcome information do you disclose in your access responses? <Req />
+                      What do you tell someone about the decision itself? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Required: how the output was used in the significant decision; whether it was the sole factor; other factors; human's role if any; future use of the output if applicable (§ 7222(b)(3)).
+                      Say how the output was used in the decision, whether it decided the matter on its own, what else counted, what a human did, and any later use of the output (§ 7222(b)(3)).{prefilled.accessOutcomeDisclosure && !prefillTouched.accessOutcomeDisclosure ? " We have carried over what you wrote above about producing the outcome — confirm it or replace it." : ""}
                     </p>
                     <Textarea
                       className="mt-2"
                       rows={3}
                       value={accessOutcomeDisclosure}
-                      onChange={(e) => setAccessOutcomeDisclosure(e.target.value)}
+                      onChange={(e) => { markTouched("accessOutcomeDisclosure"); setAccessOutcomeDisclosure(e.target.value); }}
                       data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}
                       placeholder="Disclosed first, then withheld"
                     />

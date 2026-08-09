@@ -48,20 +48,27 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
 import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
 
-type Control = { key: string; label: string; description: string; citation: string };
+// INTAKE-4b — `notesHint` / `evidenceHint` carry the per-component plain-language
+// framing for the two rows the wording pass names (c4 inventory, c11 port and
+// protocol management). Every other component keeps the shared framing.
+type Control = { key: string; label: string; description: string; citation: string; notesHint?: string; evidenceHint?: string };
 
 const CONTROLS: Control[] = [
   { key: "c1_auth", label: "Authentication", description: "MFA (phishing-resistant where used), strong passwords, and controls over who can access PI.", citation: "§ 7123(c)(1)" },
   { key: "c2_encryption", label: "Encryption of personal information", description: "Encryption of personal information at rest and in transit.", citation: "§ 7123(c)(2)" },
   { key: "c3_account_access", label: "Account management and access controls", description: "Least-privilege access, privileged-account limits, account lifecycle, and physical-access restrictions to PI.", citation: "§ 7123(c)(3)" },
-  { key: "c4_inventory", label: "Inventory and management of personal information and systems", description: "Inventory of PI, data flows, hardware and software — including cloud and third-party systems.", citation: "§ 7123(c)(4)" },
+  { key: "c4_inventory", label: "Inventory and management of personal information and systems", description: "Inventory of PI, data flows, hardware and software — including cloud and third-party systems.", citation: "§ 7123(c)(4)",
+    notesHint: "Say what the inventory covers and how it is kept current — the systems, the data flows, who updates it and how often. Left blank, the finding rests on the rating alone.",
+    evidenceHint: "Select every artefact an auditor could test — the inventory export or CMDB extract, the data-flow map, the review record. Left blank, the evidence checklist records nothing on file for this component." },
   { key: "c5_secure_config", label: "Secure configuration of hardware and software", description: "Hardening, patch and change management, and masking — on-prem and cloud.", citation: "§ 7123(c)(5)" },
   { key: "c6_vuln_mgmt", label: "Vulnerability scanning and penetration testing", description: "Internal/external vulnerability scans, penetration testing, and vulnerability disclosure/reporting.", citation: "§ 7123(c)(6)" },
   { key: "c7_audit_logs", label: "Audit-log management", description: "Centralized storage, retention, and monitoring of logs.", citation: "§ 7123(c)(7)" },
   { key: "c8_network_mon", label: "Network monitoring and defenses", description: "Detection and defense against unauthorized access (tools such as IDS/IPS are examples, not mandates).", citation: "§ 7123(c)(8)" },
   { key: "c9_anti_malware", label: "Antivirus and anti-malware protections", description: "Deployment and maintenance of antivirus and anti-malware.", citation: "§ 7123(c)(9)" },
   { key: "c10_segmentation", label: "Segmentation of an information system", description: "Segmentation of information systems (e.g. firewalls, routers, switches).", citation: "§ 7123(c)(10)" },
-  { key: "c11_port_protocol", label: "Port and protocol management and protection", description: "Limitation and control of ports, services, and protocols to reduce attack surface.", citation: "§ 7123(c)(11)" },
+  { key: "c11_port_protocol", label: "Port and protocol management and protection", description: "Limitation and control of ports, services, and protocols to reduce attack surface.", citation: "§ 7123(c)(11)",
+    notesHint: "Say which ports, services and protocols are allowed, how exceptions are approved, and who reviews the rules. Left blank, the finding rests on the rating alone.",
+    evidenceHint: "Select every artefact an auditor could test — the firewall or security-group rule export, the approved-services baseline, the review record. Left blank, the evidence checklist records nothing on file for this component." },
   { key: "c12_awareness", label: "Cybersecurity awareness", description: "How the business keeps current on evolving threats and countermeasures (distinct from training).", citation: "§ 7123(c)(12)" },
   { key: "c13_training", label: "Cybersecurity education and training", description: "Training for employees, contractors, and anyone with system access — onboarding, annual, and post-breach.", citation: "§ 7123(c)(13)" },
   { key: "c14_secure_dev", label: "Secure development and coding practices", description: "Secure coding standards, code review, and security testing across the SDLC.", citation: "§ 7123(c)(14)" },
@@ -100,7 +107,15 @@ export default function CPPACybersecurity() {
     in_scope_frameworks: [] as string[], audit_scope_rationale: "",
     // ITEM 315 — § 7122 independence inputs (both optional).
     auditor_engagement_status: "", prior_audit_scope: "",
+    // INTAKE-4b — CEO-approved addition 2026-08-09 (optional).
+    remediation_owner: "",
   });
+  // INTAKE-4b — prefill-confirm for profile.in_scope_frameworks. The earlier
+  // "primary security framework in use" answer supplies the same fact for the
+  // first row of this list; it is PREFILLED and presented as a confirmation,
+  // never merged. Once the customer touches the row, the prefill stops.
+  const [inScopeTouched, setInScopeTouched] = useState(false);
+  const [inScopePrefilled, setInScopePrefilled] = useState(false);
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
@@ -109,11 +124,30 @@ export default function CPPACybersecurity() {
       const cur = s[k] || [];
       return { ...s, [k]: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
     });
-  const toggleInScopeFramework = (opt: string) =>
+  const toggleInScopeFramework = (opt: string) => {
+    setInScopeTouched(true);
     setProfile((p) => {
       const cur = p.in_scope_frameworks || [];
       return { ...p, in_scope_frameworks: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
     });
+  };
+
+  // INTAKE-4b PREFILL (never merge): the primary-framework answer prefills the
+  // in-scope list as a confirmation. Stored values are the same
+  // CYBER_IN_SCOPE_FRAMEWORKS strings, so the answer shape is byte-identical.
+  useEffect(() => {
+    if (inScopeTouched) return;
+    const fw = profile.framework;
+    if (!fw || !CYBER_IN_SCOPE_FRAMEWORKS.includes(fw as never)) {
+      if (inScopePrefilled) {
+        setInScopePrefilled(false);
+        setProfile((p) => ({ ...p, in_scope_frameworks: [] }));
+      }
+      return;
+    }
+    setInScopePrefilled(true);
+    setProfile((p) => (p.in_scope_frameworks.length === 1 && p.in_scope_frameworks[0] === fw ? p : { ...p, in_scope_frameworks: [fw] }));
+  }, [profile.framework, inScopeTouched, inScopePrefilled]);
 
   const [activeCyberRailKey, setActiveCyberRailKey] = useState<string | null>(null);
   const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
@@ -177,7 +211,9 @@ export default function CPPACybersecurity() {
   const applyRestore = () => {
     const d = restoreData as { profile?: any; maturity?: any; notes?: any; evidence?: any } | null;
     if (!d) return;
-    if (d.profile && typeof d.profile === "object") setProfile((prev) => ({ ...prev, ...d.profile }));
+    // INTAKE-4b — a restored draft carries the customer's own in-scope answer;
+    // the prefill must not overwrite it.
+    if (d.profile && typeof d.profile === "object") { setInScopeTouched(true); setProfile((prev) => ({ ...prev, ...d.profile })); }
     if (d.maturity && typeof d.maturity === "object") setMaturity(d.maturity);
     if (d.notes && typeof d.notes === "object") setNotes(d.notes);
     if (d.evidence && typeof d.evidence === "object") setEvidence(d.evidence);
@@ -358,7 +394,11 @@ export default function CPPACybersecurity() {
           </div>
           <div data-rail-key="in_scope_frameworks" onFocus={() => focusRail('in_scope_frameworks')}>
             <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
-            <p className="text-xs text-muted-foreground mt-1">Select every framework whose existing evidence you intend to leverage under § 7123(f). Left blank, the report treats the audit as standing alone and credits no prior framework work.</p>
+            {inScopePrefilled && !inScopeTouched ? (
+              <p className="text-xs text-muted-foreground mt-1">We have carried your primary framework over. Confirm it, and add any other framework whose existing evidence this audit will lean on. Left blank, the report treats the audit as standing alone and credits no prior framework work. Why we ask: § 7123(f) lets an audit leverage work already done under another framework, but only for what that framework actually covered.</p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">Pick every framework whose existing evidence this audit will lean on. Left blank, the report treats the audit as standing alone and credits no prior framework work. Why we ask: § 7123(f) lets an audit leverage work already done under another framework, but only for what that framework actually covered.</p>
+            )}
             <div className="mt-2 flex flex-wrap gap-2">
               {CYBER_IN_SCOPE_FRAMEWORKS.map((opt) => {
                 const selected = profile.in_scope_frameworks.includes(opt);
@@ -394,6 +434,15 @@ export default function CPPACybersecurity() {
             <p className="text-xs text-muted-foreground mt-1">What the last audit covered and where its records are held — § 7122(g) requires five-year retention of everything relevant to each audit. Left blank, the report makes no retention finding.</p>
             <Textarea id="cyber_prior_scope" rows={3} value={profile.prior_audit_scope} onChange={(e) => setProfile({ ...profile, prior_audit_scope: e.target.value })} className="mt-2" placeholder="Two or three sentences" />
           </div>
+          {/* INTAKE-4b — CEO-approved addition 2026-08-09. Optional at the data
+              layer; contract key profile.remediation_owner. */}
+          <div data-rail-key="remediation_owner" onFocus={() => focusRail('remediation_owner')}>
+            <Label htmlFor="cyber_remediation_owner">Who owns remediation of findings from this audit? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+            <p className="text-xs text-muted-foreground mt-1">Name the person or role accountable for closing what the audit finds. Left blank, the report assigns no owner and records remediation ownership as unstated. Why we ask: findings without a named owner are the most common reason remediation stalls, and an auditor will ask who is accountable.</p>
+            <Textarea id="cyber_remediation_owner" rows={2} value={profile.remediation_owner} onChange={(e) => setProfile({ ...profile, remediation_owner: e.target.value })} className="mt-2" placeholder="Name or role, e.g. VP Security Engineering" />
+          </div>
+
+
 
         </section>
 
@@ -422,7 +471,9 @@ export default function CPPACybersecurity() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs" htmlFor={`maturity_${c.key}`}>Maturity<Req /></Label>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Rate coverage as deployed today, not as designed or planned.</p>
+                  {/* INTAKE-4b wording pass — framing text only; the rung
+                      definitions in MATURITY are stored values and unchanged. */}
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Rate what is running today, not what is designed or planned. Why we ask: the audit records the programme as it stands, and an overstated rating is the finding an auditor tests first.</p>
                   <select id={`maturity_${c.key}`} data-rail-key={c.key} onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
                     <option value="">Select…</option>
                     {MATURITY.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -430,13 +481,13 @@ export default function CPPACybersecurity() {
                 </div>
                 <div>
                   <Label className="text-xs" htmlFor={`notes_${c.key}`}>Notes <span className="font-normal text-muted-foreground">(optional)</span></Label>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Name the tool, the estate it covers, and any carve-out. Left blank, the finding rests on the rating alone.</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{c.notesHint ?? "Name the tool, the estate it covers, and any carve-out. Left blank, the finding rests on the rating alone."}</p>
                   <Textarea id={`notes_${c.key}`} rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tool, scope, exceptions" />
                 </div>
               </div>
               <div className="mt-3">
                 <Label className="text-xs">Evidence available <span className="font-normal text-muted-foreground">(optional)</span></Label>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Select every artefact an auditor could test for this component. Left blank, the evidence checklist records nothing on file for it.</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{c.evidenceHint ?? "Select every artefact an auditor could test for this component. Left blank, the evidence checklist records nothing on file for it."}</p>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {CYBER_EVIDENCE_OPTS.map((opt) => {
                     const selected = (evidence[c.key] || []).includes(opt);

@@ -202,6 +202,8 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
         auditor_engagement_status: "External auditor engaged, independence confirmed in writing",
         prior_audit_scope:
           "FY2025 cybersecurity audit covering the same production estate; report, sampling worksheets, interview notes, and management letter retained in the GRC system under a five-year hold.",
+        // INTAKE-4b addition.
+        remediation_owner: "Director of Information Security, reporting to the CFO.",
       },
       controls: build(northwind, "Implemented with continuous monitoring"),
     },
@@ -516,6 +518,9 @@ export const CYBER_PERFECT: GoldenCase[] = [
         // What the prior engagement covered, so the auditor can scope by difference.
         prior_audit_scope:
           "The prior engagement was the SOC 2 Type II examination of the results platform and supporting infrastructure covering security, availability and confidentiality for the period 2025-07-01 to 2026-06-30. It did not cover the laboratory information system interfaces, the retention and disposal controls, or the third-party oversight programme, and it expressed no opinion on compliance with 11 CCR §§ 7121-7124.",
+        // INTAKE-4b — named accountable owner for closing audit findings.
+        remediation_owner:
+          "Priya Raghavan, Vice President of Security Engineering, accountable to the Audit Committee for closing every finding on the tracked remediation plan.",
       },
       controls: CONTROL_ROWS.map((c) => ({
         key: c.key,
