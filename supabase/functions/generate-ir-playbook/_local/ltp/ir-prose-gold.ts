@@ -179,6 +179,48 @@ export function repairBannedPhrases(text: string): string {
   return out;
 }
 
+// ── ITEM 416 LEG C — THE ABSENCE-LABEL REGISTER (the item396 linkage rule) ──
+//
+// EVERY absence phrasing this product's builders and this pass can WRITE is
+// enumerated here, and `ir-csc.ts` builds its detector FROM this list. The
+// linkage test in `tests/edge/item416` asserts that each phrasing is matched by
+// the detector, so a relabel in a builder can never escape its own detector —
+// the item396 defect class.
+//
+// These strings are honest output on a silent record and are preserved
+// byte-for-byte there. They are a DEFECT only on a surface the record backs,
+// which is exactly the predicate `ir-csc.ts` applies before it reads them.
+export const IR_ABSENCE_LABEL_PHRASINGS: readonly string[] = [
+  // standing-playbook.ts — the contractual determination on a silent record.
+  "The organisation has recorded no agreement carrying a breach-notice clause.",
+  "The determination cannot be made",
+  "is not answerable from what the organisation has recorded",
+  // standing-playbook.ts — the IR-1 ledger sentence.
+  "the organisation has not yet recorded what it requires",
+  "the organisation has not yet recorded what they require",
+  // ir-prose-gold.ts — the customer register's own replacement vocabulary.
+  "the organisation has not yet recorded this",
+  "what this playbook still needs",
+  // the pre-item414 apparatus the register replaces, kept detectable because a
+  // post-assembly pass can still reintroduce it.
+  "We could not verify this item from the information provided",
+  "it is listed under information needed",
+];
+
+/**
+ * DESIGNED OUTPUT on their own surfaces. These read like absence and are not:
+ * each records a fact about the organisation's own arrangements, or is the
+ * IR-4 standing placeholder that a durable reference is supposed to carry.
+ * `ir-csc.ts` strips them before it looks for a false absence.
+ */
+export const IR_DESIGNED_ABSENCE_EXEMPTIONS: readonly RegExp[] = [
+  /Privilege protocol not recorded\./gi,
+  /No privilege protocol recorded[^.]*\./gi,
+  new RegExp(STANDING_TO_COMPLETE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"),
+  /Not confirmed/gi,
+];
+
+
 // ── THE CUSTOMER REGISTER (one voice per surface) ───────────────────────────
 
 const INTERNAL_VOCABULARY: ReadonlyArray<[RegExp, string]> = [
