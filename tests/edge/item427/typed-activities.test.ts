@@ -12,7 +12,8 @@ import {
 } from "../../../supabase/functions/_shared/report-contracts/risk-activities.ts";
 import {
   normalizeRiskActivities,
-  SECTION_7152_ELEMENT_PINPOINTS,
+  SECTION_7152_ELEMENT_MAP,
+  resolveRegistryPinpoint,
 } from "../../../supabase/functions/_shared/ltp/risk-activity-emit.ts";
 import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
 
@@ -75,11 +76,12 @@ Deno.test("ITEM 427 reader: mixed string + object array", () => {
 });
 
 // ── DETERMINISTIC PINPOINTS ───────────────────────────────────────────
-Deno.test("ITEM 427 every § 7152(a) element pinpoint is registry-shaped", () => {
-  const entries = Object.entries(SECTION_7152_ELEMENT_PINPOINTS);
-  assert(entries.length >= 7, `expected the (a) element map, got ${entries.length}`);
-  for (const [el, pin] of entries) {
-    assert(/^11 CCR § 7152\(a\)\(\d+\)/.test(pin), `${el} has a non-registry pinpoint: ${pin}`);
+Deno.test("ITEM 427 every § 7152(a) element pinpoint is registry-resolved", () => {
+  assertEquals(SECTION_7152_ELEMENT_MAP.length, 7, "the (a) element map is the seven content elements");
+  for (const { element, key } of SECTION_7152_ELEMENT_MAP) {
+    const r = resolveRegistryPinpoint(key);
+    assert(r.resolved, `${element} (${key}) does not resolve in the registry`);
+    assert(/§ 7152\(a\)/.test(r.pinpoint), `${element} has a non-§7152(a) pinpoint: ${r.pinpoint}`);
   }
 });
 
@@ -98,17 +100,19 @@ function reportWithAnalytics() {
       {
         activity_id: "act_1",
         activity_name: "Credit underwriting",
-        purpose: "Decide financing.",
-        benefits: {
-          business: "Loss control.",
-          consumer: "Access to credit.",
-          other_stakeholders: "Dealer network stability.",
-          public: "Sound credit markets.",
-        },
-        negative_impacts: [
-          { harm_id: "E", label: "Economic harms", likelihood: "Possible", severity: "Moderate" },
+        activity_purpose: "Decide financing",
+        benefits: [
+          { beneficiary_class: "the business", benefit: "Loss control" },
+          { beneficiary_class: "the consumer", benefit: "Access to credit" },
+          { beneficiary_class: "other stakeholders", benefit: "Dealer network stability" },
+          { beneficiary_class: "the public", benefit: "Sound credit markets" },
         ],
-        safeguards: [{ safeguard: "Human review", status: "Implemented and tested" }],
+        harm_causation: [
+          { harm_label: "Economic harms", likelihood: "Possible", severity: "Moderate", cause: "A denial" },
+        ],
+        safeguard_map: [{ safeguard: "Human review", safeguard_status: "Implemented and tested" }],
+        consequence: { decision: "initiate" },
+        weighing: [{ beneficiary_class: "the consumer", reasoning: "Access is material" }],
       },
     ],
   } as Record<string, unknown>;
@@ -146,10 +150,10 @@ Deno.test("ITEM 427 writer: § 7152(a)(4) quartet — both added beneficiary cla
   assertEquals(row.benefits_to_public, "Sound credit markets.");
 });
 
-Deno.test("ITEM 427 writer: no analytics → surface is left exactly as found", () => {
+Deno.test("ITEM 427 writer: no analytics → legacy surface is left exactly as found", () => {
   const report = { risk_assessment_by_activity: ["legacy prose"] } as Record<string, unknown>;
   const before = JSON.stringify(report.risk_assessment_by_activity);
-  normalizeRiskActivities(report, INTAKE);
+  normalizeRiskActivities(report, {});
   assertEquals(JSON.stringify(report.risk_assessment_by_activity), before);
 });
 
@@ -162,4 +166,11 @@ Deno.test("ITEM 427 the two surfaces never assert the same fact in the same word
     report.activity_analytics,
   );
   assertEquals(dupes, [], `verbatim duplication across the two surfaces: ${dupes.join(", ")}`);
+});
+
+Deno.test("ITEM 427 anti-padding: empty array with no analytics is OMITTED, not padded", () => {
+  const report = { risk_assessment_by_activity: [] } as Record<string, unknown>;
+  const summary = normalizeRiskActivities(report, {});
+  assertEquals(summary.action, "omitted");
+  assertEquals("risk_assessment_by_activity" in report, false);
 });
