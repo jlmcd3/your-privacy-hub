@@ -29,6 +29,12 @@
  * CSC / coverage / refinement logic is touched here.
  */
 
+import {
+  coerceSufficiencyView,
+  isRiskSufficiencyRecord,
+  type RiskSufficiencyRecord,
+} from "../report-contracts/risk-sufficiency.ts";
+
 export const RISK_PROSE_GOLD_VERSION = "risk-prose-gold@item384-2026-08-06";
 
 /** Register-clean absence value. Replaces "not stated on the record". */
@@ -610,7 +616,9 @@ export function applyRiskProseGold(
 
     // G-1 / G-6 (one sufficiency voice, gate-true only).
     const rs = report.record_sufficiency;
-    const rsRewritable = Array.isArray(rs) || typeof rs === "string";
+    // ITEM 425 — the typed record joins the rewritable shapes; the legacy
+    // OBJECT envelope (no `elements`) still keeps the item-380 `.prose` write.
+    const rsRewritable = Array.isArray(rs) || typeof rs === "string" || isRiskSufficiencyRecord(rs);
     const before = Array.isArray(rs)
       ? (rs as unknown[]).filter(isLegacySufficiencyVoice).length
       : 0;
@@ -622,6 +630,7 @@ export function applyRiskProseGold(
         rs,
         opts.affirmative,
         reservedJudgmentSentence(opts.reservedCount),
+        true,
       );
     }
     t.sufficiency_voices_retired = before;
