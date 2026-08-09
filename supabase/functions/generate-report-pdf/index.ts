@@ -2142,7 +2142,6 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .determination { border:1px solid var(--border); border-left:4px solid var(--navy); border-radius:0 10px 10px 0; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
   .determination .verdict { font-weight:700; color:var(--navy); }
   ${AUTHORITY_EXHIBIT_CSS}
-  ${RECORD_SUFFICIENCY_TABLE_CSS}
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
@@ -2349,7 +2348,6 @@ function buildADMTReportHTML(report: any, record: any): string {
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
   ${AUTHORITY_EXHIBIT_CSS}
-  ${RECORD_SUFFICIENCY_TABLE_CSS}
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
