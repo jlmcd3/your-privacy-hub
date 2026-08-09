@@ -389,6 +389,19 @@ export default function DPAGenerator() {
                 )}
               </label>
 
+              <label className="block"><span className="font-semibold text-brand-navy">How much advance notice must the processor give before adding or replacing a subprocessor? <span className="text-xs text-muted-foreground font-mono">(optional — Art. 28(2) GDPR)</span></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Leave blank to use the standard 30 days. The general authorisation covers the subprocessors listed at signature; anyone added later has to be notified in advance so you can object.</span>
+                <input
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2"
+                  inputMode="numeric"
+                  placeholder="30"
+                  value={form.subprocessorChangeNoticePeriod}
+                  onChange={e => setForm(f => ({ ...f, subprocessorChangeNoticePeriod: e.target.value.replace(/[^0-9]/g, "") }))}
+                />
+                <span className="block text-meta text-muted-foreground mt-0.5">Days.</span>
+              </label>
+
+
               <label className="block"><span className="font-semibold text-brand-navy">Does the processing move personal data across the jurisdictions above, or onward to a third country?<Req /></span>
                 <span className="block text-meta text-muted-foreground mt-0.5">Remote support access and offshore sub-processors count, not only where the data is stored at rest.</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.transfersInvolved} onChange={e => setForm(f => ({ ...f, transfersInvolved: e.target.value as typeof f.transfersInvolved, transferMechanism: e.target.value === "Yes" ? f.transferMechanism : "" }))}>
