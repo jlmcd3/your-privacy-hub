@@ -164,5 +164,5 @@ Deno.test("the pipeline stamp is written at the finalize seam", () => {
   const meta = report._meta as Record<string, unknown>;
   const internal = meta.internal as Record<string, unknown>;
   assertEquals(internal.registration_pipeline_stamp, REGISTRATION_PIPELINE_STAMP);
-  assertEquals(REGISTRATION_PIPELINE_STAMP, "registration-pipeline@item413-2026-08-08");
+  assertEquals(REGISTRATION_PIPELINE_STAMP, "registration-pipeline@item413b-2026-08-09");
 });
