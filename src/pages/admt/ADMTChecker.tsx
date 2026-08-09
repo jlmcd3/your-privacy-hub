@@ -1038,7 +1038,10 @@ export default function ADMTChecker() {
                     <p className="text-[12px] text-muted-foreground">Helps an auditor identify the exact system and decision under review, and shapes the access-response analysis.</p>
                     <div>
                       <Label className="text-[12px]">Vendor / product name &amp; version</Label>
-                      <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => setA("vendor_product", e.target.value)} placeholder="Product name and version" />
+                      {prefilled.vendor_product && !prefillTouched.vendor_product && (
+                        <p className="text-[11px] text-muted-foreground">Carried over from the third-party system you named. Confirm or correct it.</p>
+                      )}
+                      <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => { markTouched("vendor_product"); setA("vendor_product", e.target.value); }} placeholder="Product name and version" />
                     </div>
                     <div>
                       <Label className="text-[12px]">Where is the system hosted?</Label>
