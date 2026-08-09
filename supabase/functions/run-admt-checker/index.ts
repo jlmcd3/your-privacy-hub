@@ -2399,6 +2399,20 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] W19-ADMT-JOIN2 failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── ITEM 422 — TYPED PRIORITY ACTIONS (SINGLE WRITE SITE).
+    // Brings `priority_actions` to the item420 canonical action record before
+    // the W-battery runs, so every downstream walker sees the entry shape it
+    // already applies to `top_3_actions`. Fail-open.
+    try {
+      const pa422 = normalizeAdmtPriorityActions(report);
+      console.log(JSON.stringify({
+        evt: "item422_priority_actions", fn: "run-admt-checker",
+        build_stamp: BUILD_STAMP, ...pa422,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] ITEM 422 normalise failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── WAVE19-FIX TURN A (2026-07-25) — targeted A1/A2/A3/A4 sanitiser.
     // A1: registry-first fallback resolution (per-entry re-stamp).
     // A2: splice-debris scrub ("the enumerated the applicable ..." etc.).
