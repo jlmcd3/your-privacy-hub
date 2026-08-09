@@ -16,10 +16,18 @@ const RISK_ENTRY_KEYS = [
   "purpose",
   "benefits_to_business",
   "benefits_to_consumers",
+  // ITEM 427 — the § 7152(a)(4) quartet completed on the typed activity
+  // record. Without these two the pruner would silently drop two of the four
+  // enumerated beneficiary classes.
+  "benefits_to_other_stakeholders",
+  "benefits_to_public",
   "current_safeguards",
   "safeguard_gaps",
+  "benefits_outweigh_risks_conclusion",
   "benefits_outweigh_risks_rationale",
   "section_7152_mapping",
+  // ITEM 427 — leaves of section_7152_mapping[] entries.
+  "pinpoint",
   "statutory_basis",
   "citation",
   "citations",
