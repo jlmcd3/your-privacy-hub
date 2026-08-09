@@ -156,6 +156,8 @@ const DPIAFramework = () => {
   // ITEM 310 — alternatives actually considered and rejected, per processing
   // operation. Feeds the deterministic least-intrusive-means test (Art. 35(7)(b)).
   const [alternativesConsidered, setAlternativesConsidered] = useState<Array<{ processing_operation: string; alternative: string; rejection_reason: string }>>([]);
+  // INTAKE-4d — CEO-approved addition. Residual risk after the safeguards (Art. 35(7)(d)).
+  const [residualRisks, setResidualRisks] = useState("");
 
   const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
 
@@ -392,6 +394,7 @@ const DPIAFramework = () => {
     data_subjects_views_sought: dataSubjectsViewsSought,
     data_subjects_views: dataSubjectsViews,
     alternatives_considered: alternativesConsidered,
+    residual_risks: residualRisks,
 
     // Jurisdiction resolver inputs (deterministic resolvers in run-dpia-framework)
     controller_country: controllerCountry,
@@ -415,7 +418,7 @@ const DPIAFramework = () => {
     supportingAssets, codesOfConduct, dataMinimisationJustification, dataQualityMeasures,
     dataSubjectRightsMechanisms, dpByDesignMeasures, dpoAdvice, dataSubjectsViewsSought,
     dataSubjectsViews, controllerCountry, controllerLand, controllerSector, centralAdminCountry,
-    euDecisionEstablishment, transferFlows, retentionRecordType, alternativesConsidered,
+    euDecisionEstablishment, transferFlows, retentionRecordType, alternativesConsidered, residualRisks,
   ]);
   const initialDraftJson = useMemo(() => JSON.stringify(draftData), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== initialDraftJson, [draftData, initialDraftJson]);
@@ -476,6 +479,7 @@ const DPIAFramework = () => {
     S(d.data_subjects_views_sought, setDataSubjectsViewsSought);
     S(d.data_subjects_views, setDataSubjectsViews);
     A(d.alternatives_considered, setAlternativesConsidered);
+    S(d.residual_risks, setResidualRisks);
     S(d.controller_country, setControllerCountry);
     S(d.controller_land, setControllerLand);
     if (["private","public","federal-public","telecom","postal",""].includes(d.controller_sector)) setControllerSector(d.controller_sector);
@@ -768,7 +772,7 @@ const DPIAFramework = () => {
               <Label className="text-sm font-semibold text-[hsl(var(--brand-navy))]">Does the data leave the EEA or the UK?</Label>
               <button type="button" onClick={() => setTransferFlows([...transferFlows, { importer: "", destination: "", originRegime: "EU", dpfCertified: false, ukExtensionCertified: false }])} className="text-xs underline text-brand-teal-text">+ Add a transfer</button>
             </div>
-            <p className="text-meta text-muted-foreground">One entry for each organisation outside the EEA or the UK that receives the data, including your own group companies and your suppliers' data centres. Your assessment names the transfer safeguard for each entry from what you record here. With none recorded, your assessment states that no cross-border transfer is on the record. Data that stays inside the EEA needs no entry.</p>
+            <p className="text-meta text-muted-foreground">Add one entry for every organisation outside the EEA or the UK that receives the data — your own group companies and your suppliers' data centres count. Your assessment names the safeguard for each entry you record. No entries means your assessment records no cross-border transfer. Data that stays inside the EEA needs no entry.</p>
             {transferFlows.map((f, i) => (
               <div key={i} className="mt-2 grid grid-cols-1 md:grid-cols-6 gap-2 items-end border rounded p-2 bg-background">
                 <div className="md:col-span-2"><Label className="text-xs">Who receives the data?</Label><Input value={f.importer} onChange={(e) => { const n = [...transferFlows]; n[i].importer = e.target.value; setTransferFlows(n); }} placeholder="Acme Inc" className="mt-1" /></div>
@@ -810,6 +814,12 @@ const DPIAFramework = () => {
               </div>
               <div data-coach-field="functional_description" data-rail-key='1.2' onFocus={() => handleTemplateRailFocus('1.2')}>
                 <Label>How does the processing work from end to end?</Label>
+                {!functionalDescription.trim() && description.trim().length > 40 && (
+                  <div className="mt-2 rounded-md border bg-muted/30 p-3">
+                    <p className="text-meta text-muted-foreground">You already described the steps earlier. Copy that answer here and confirm or edit it, or write a fresh one.</p>
+                    <button type="button" onClick={() => setFunctionalDescription(description)} className="text-xs underline text-brand-teal-text mt-1">Use my earlier answer</button>
+                  </div>
+                )}
                 <Textarea value={functionalDescription} onChange={(e) => setFunctionalDescription(e.target.value)} className="mt-2 min-h-16" />
                 <p className="text-meta text-muted-foreground mt-1">The life of the data in sequence: collection, use, storage, sharing, deletion. A strong answer follows one record all the way through, naming the system at each hop. Skipped, your assessment records the data flow as open.</p>
               </div>
@@ -871,6 +881,12 @@ const DPIAFramework = () => {
                 className="text-xs underline text-brand-teal-text"
               >+ Add an alternative</button>
             </div>
+            {alternativesConsidered.length === 0 && necessityProportionality.trim().length > 40 && (
+              <div className="mt-2 rounded-md border bg-muted/30 p-3">
+                <p className="text-meta text-muted-foreground">You mentioned the options you looked at in the necessity answer. Start an entry from it, then name the alternative and confirm the reason.</p>
+                <button type="button" onClick={() => setAlternativesConsidered([{ processing_operation: "", alternative: "", rejection_reason: necessityProportionality }])} className="text-xs underline text-brand-teal-text mt-1">Start from my earlier answer</button>
+              </div>
+            )}
             <p className="text-meta text-muted-foreground mt-1">One entry per option you looked at and set aside. A reason that says the alternative was slower or dearer does not establish necessity — the reason has to say why it would not achieve the purpose. Without at least one alternative and its rejection reason, the assessment cannot run the least-intrusive-means comparison and will record the point as open.</p>
             {alternativesConsidered.map((a, i) => (
               <div key={i} className="grid md:grid-cols-3 gap-2 mt-2 p-3 rounded-md border bg-muted/20">
@@ -908,6 +924,12 @@ const DPIAFramework = () => {
                 >remove</button>
               </div>
             ))}
+          </div>
+
+          <div data-coach-field="residual_risks">
+            <Label>What risk is left after your safeguards?</Label>
+            <Textarea value={residualRisks} onChange={(e) => setResidualRisks(e.target.value)} className="mt-2 min-h-20" />
+            <p className="text-meta text-muted-foreground mt-1">The risk that remains once the measures you have listed are in place, and whether your organisation accepts it. A strong answer is specific — "a false flag could still reach an occupational-health adviser; accepted because every flag is reviewed by a person before any contact". Skipped, your assessment records the residual risk as open (Art. 35(7)(d)).</p>
           </div>
 
 

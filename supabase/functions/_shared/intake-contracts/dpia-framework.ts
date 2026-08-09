@@ -141,6 +141,10 @@ export const dpiaFrameworkContract: IntakeContract = {
     // rejection_reason } records (DPIAFramework.tsx repeater).
     { key: "alternatives_considered", kind: "structured", required: "optional" },
 
+    // INTAKE-4d — CEO-approved addition. Residual risk left after the measures
+    // recorded above (Art. 35(7)(d)). Optional so legacy rows keep validating.
+    { key: "residual_risks", kind: "narrative", required: "optional" },
+
 
     // Jurisdiction resolver inputs
     { key: "controller_country", kind: "text", required: "optional" },

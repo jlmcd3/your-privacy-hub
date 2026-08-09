@@ -259,6 +259,7 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   processing_description: "processing description",
   stated_purpose: "stated purpose of the processing",
   alternatives_considered: "alternatives considered before processing",
+  residual_risks: "residual risk after the safeguards",
   purpose_details: "purpose details",
   "purpose_details.interest_holder": "interest holder",
   "purpose_details.interest_type": "type of legitimate interest",
