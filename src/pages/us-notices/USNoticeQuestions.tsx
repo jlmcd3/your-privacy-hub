@@ -25,6 +25,13 @@ import {
   type FlagCondition,
 } from "@/data/us-notice-questions";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { PrefillConfirm } from "@/components/notices/PrefillConfirm";
+import {
+  US_PREFILL_BY_TARGET,
+  allowedValuesFor,
+  resolvePrefill,
+} from "@/data/notice-prefill";
+
 
 type AnswerValue = string | string[] | null;
 
