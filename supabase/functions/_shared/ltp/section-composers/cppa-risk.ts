@@ -131,7 +131,14 @@ export interface TemplateInstance {
    * `template_id` on the carrier is the calibration-bearing part id.
    */
   readonly parts?: readonly TemplateInstance[];
+  /**
+   * ITEM 421 — STRUCTURED EMISSION. When present, the assembler ships this
+   * canonical action record for the instance instead of the rendered string.
+   * Only `priority_actions` carries it today.
+   */
+  readonly action_record?: ActionRecord;
 }
+
 
 // ── Registry-backed label + anchor lookups ───────────────────────────────
 
