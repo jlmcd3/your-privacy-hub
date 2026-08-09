@@ -162,6 +162,14 @@ export function resolveAdmtActionCitations(
     if (!Array.isArray(raw) || raw.length === 0) return diag;
     for (const entry of raw) {
       if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+      // ITEM 422-D DEFECT 1 — an action that INHERITED its source finding's
+      // pinpoint is already resolved BY THE DOCUMENT. The anchor gate never
+      // re-assigns what the finding resolved.
+      if ((entry as Record<string, unknown>)._citation_inherited === true) {
+        diag.untouched++;
+        diag.total++;
+        continue;
+      }
       const cls = resolveActionCitation(entry as Record<string, unknown>, reg);
       diag[cls]++;
       if (

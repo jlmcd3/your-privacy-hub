@@ -19,7 +19,7 @@ import {
 import { ADMT_PIPELINE_STAMP } from "../../../supabase/functions/run-admt-checker/_local/prose/plans/admt.spine.ts";
 
 Deno.test("ITEM 422: stamps are the ratified values", () => {
-  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item422c-2026-08-09");
+  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item422d-2026-08-09");
   assertEquals(ADMT_ACTION_RECORD_WRITER_VERSION, "admt-action-records@item422-2026-08-09");
   assertEquals(ACTION_RECORD_CONTRACT_VERSION, "action-record@2026-08-09-item422");
 });
