@@ -13,9 +13,10 @@ import type { Question } from "./types";
 export const FLORIDA_QUESTIONS: Question[] = [
   {
     key: "fl_scope_confirmation",
-    text: "Does your business meet Florida's FDBR threshold — global gross revenue over $1B AND at least one of: (a) >50% revenue from online ad sales, (b) operates an app store with 250k+ apps, or (c) operates a smart speaker/voice assistant?",
+    text: "Does your business meet Florida's FDBR threshold?",
     whyWeAsk:
-      "FDBR has an unusually narrow controller definition. Confirming scope avoids generating a Florida notice for a business that isn't actually covered. [Fla. Stat. § 501.702]",
+      "The threshold is global gross revenue over $1B plus at least one of: more than 50% of revenue from online ad sales; operating an app store with 250,000+ apps; or operating a smart speaker or voice assistant. FDBR has an unusually narrow controller definition, and confirming scope avoids generating a Florida notice for a business that isn't actually covered. [Fla. Stat. § 501.702]",
+
     type: "single_choice",
     options: [
       { value: "yes", label: "Yes — we meet the FDBR controller threshold" },

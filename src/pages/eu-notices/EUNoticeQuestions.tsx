@@ -22,6 +22,13 @@ import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question, FlagCondition } from "@/data/ropa-questions/types";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import { PrefillConfirm } from "@/components/notices/PrefillConfirm";
+import {
+  EU_PREFILL_BY_TARGET,
+  allowedValuesFor,
+  resolvePrefill,
+} from "@/data/notice-prefill";
+
 
 function popoverKeyForQuestion(key: string): string | null {
   const k = key.toLowerCase();
@@ -67,6 +74,10 @@ export default function EUNoticeQuestions() {
   const [frameworks, setFrameworks] = useState<EuFrameworkCode[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
+  // INTAKE-2 — question keys where the user declined the prefill suggestion
+  // and asked to answer for themselves.
+  const [editing, setEditing] = useState<Record<string, boolean>>({});
+
 
   useEffect(() => {
     if (!sessionId || !authorized) return;
@@ -98,17 +109,31 @@ export default function EUNoticeQuestions() {
     })();
   }, [sessionId, authorized, navigate, toast]);
 
-  const visibleQuestions = useMemo(() => {
+  const allQuestions = useMemo(() => {
     if (frameworks.length === 0) return [] as Question[];
-    const sections = buildEuQuestionSections(frameworks);
-    const all = sections.flatMap((s) => s.questions);
-    return all.filter((q) => evaluateShowIf(q, answers));
-  }, [frameworks, answers]);
+    return buildEuQuestionSections(frameworks).flatMap((s) => s.questions);
+  }, [frameworks]);
+
+  const visibleQuestions = useMemo(
+    () => allQuestions.filter((q) => evaluateShowIf(q, answers)),
+    [allQuestions, answers],
+  );
+
+  // INTAKE-2 — option-label lookup used by the prefill-confirm prompts.
+  const labelOf = useMemo(() => {
+    const index: Record<string, Record<string, string>> = {};
+    for (const q of allQuestions) {
+      if (!q.options) continue;
+      index[q.key] = Object.fromEntries(q.options.map((o) => [o.value, o.label]));
+    }
+    return (questionKey: string, value: string) => index[questionKey]?.[value] ?? value;
+  }, [allQuestions]);
 
   const currentQ = visibleQuestions[currentIndex];
   const progress = visibleQuestions.length > 0
     ? Math.round(((currentIndex + 1) / visibleQuestions.length) * 100)
     : 0;
+
 
   async function saveAnswer(q: Question, v: AnswerValue) {
     if (!sessionId) return;
@@ -174,6 +199,28 @@ export default function EUNoticeQuestions() {
   const value = answers[currentQ.key];
   const flags = currentQ.flagIf?.filter((f) => evaluateFlag(f, value)) ?? [];
 
+  // INTAKE-2 — prefill-confirm: offered only while the question is still
+  // unanswered and the user has not asked to answer it themselves.
+  const answerEmpty = value == null || value === "" || (Array.isArray(value) && value.length === 0);
+  const proposal =
+    answerEmpty && !editing[currentQ.key]
+      ? resolvePrefill(
+          EU_PREFILL_BY_TARGET,
+          currentQ.key,
+          answers,
+          labelOf,
+          allowedValuesFor(currentQ),
+        )
+      : null;
+  const rawSuggestion = proposal && typeof proposal.suggested === "string" ? proposal.suggested : "";
+  const proposalDisplay = rawSuggestion
+    ? ["yes", "no", "unsure"].includes(rawSuggestion)
+      ? rawSuggestion.charAt(0).toUpperCase() + rawSuggestion.slice(1)
+      : labelOf(currentQ.key, rawSuggestion)
+    : "";
+
+
+
   return (
     <EUNoticeShell title="Questions — EU & Global Notice Builder" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
       <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
@@ -201,10 +248,20 @@ export default function EUNoticeQuestions() {
             </p>
           )}
 
-          {currentQ.type === "text_short" && (
+          {proposal && (
+            <PrefillConfirm
+              proposal={proposal}
+              displayValue={proposalDisplay}
+              onConfirm={() => saveAnswer(currentQ, proposal.suggested)}
+              onDecline={() => setEditing((p) => ({ ...p, [currentQ.key]: true }))}
+            />
+          )}
+
+          {!proposal && currentQ.type === "text_short" && (
+
             <Input value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" />
           )}
-          {currentQ.type === "text_long" && (
+          {!proposal && currentQ.type === "text_long" && (
             <>
               {["third_party_recipients"].includes(currentQ.key) ? (
                 <ExhibitTextarea value={(value as string) ?? ""} onChange={(v) => saveAnswer(currentQ, v)} placeholder="Your answer" rows={4} />
@@ -214,7 +271,7 @@ export default function EUNoticeQuestions() {
               <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
             </>
           )}
-          {(currentQ.type === "yes_no" || currentQ.type === "yes_no_unsure") && (
+          {!proposal && (currentQ.type === "yes_no" || currentQ.type === "yes_no_unsure") && (
             <RadioGroup value={(value as string) ?? ""} onValueChange={(v) => saveAnswer(currentQ, v)}>
               <div className="flex items-center gap-2 py-1">
                 <RadioGroupItem value="yes" id={`${currentQ.key}-yes`} />
@@ -229,7 +286,7 @@ export default function EUNoticeQuestions() {
                   answers render unselected (no matching RadioGroupItem). */}
             </RadioGroup>
           )}
-          {currentQ.type === "single_choice" && currentQ.options && (
+          {!proposal && currentQ.type === "single_choice" && currentQ.options && (
             <RadioGroup value={(value as string) ?? ""} onValueChange={(v) => saveAnswer(currentQ, v)}>
               {currentQ.options.map((opt) => (
                 <div key={opt.value} className="flex items-center gap-2 py-1">
@@ -239,7 +296,7 @@ export default function EUNoticeQuestions() {
               ))}
             </RadioGroup>
           )}
-          {currentQ.type === "multi_choice" && currentQ.options && (
+          {!proposal && currentQ.type === "multi_choice" && currentQ.options && (
             <div className="space-y-1.5">
               {currentQ.options.map((opt) => {
                 const arr = Array.isArray(value) ? value : [];

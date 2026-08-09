@@ -9,8 +9,10 @@ const requiredText = (whyWeAsk: string): Pick<Question, "isRequired" | "whyWeAsk
 export const LGPD_QUESTIONS: Question[] = [
   {
     key: "lgpd_legal_basis",
-    text: "What is your legal basis under LGPD Art.7?",
-    whyWeAsk: "LGPD Art.7 requires identification of the legal basis for processing.",
+    text: "Why are you allowed to use this personal data in Brazil?",
+    whyWeAsk:
+      "LGPD Art. 7 lists the ten grounds a controller may rely on, and the notice has to name the one that applies. Pick every ground you rely on — the article number is shown against each option.",
+
     type: "multi_choice",
     isRequired: true,
     jurisdictionOnly: ["BR_LGPD"],

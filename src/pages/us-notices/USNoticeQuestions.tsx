@@ -25,6 +25,13 @@ import {
   type FlagCondition,
 } from "@/data/us-notice-questions";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { PrefillConfirm } from "@/components/notices/PrefillConfirm";
+import {
+  US_PREFILL_BY_TARGET,
+  allowedValuesFor,
+  resolvePrefill,
+} from "@/data/notice-prefill";
+
 
 type AnswerValue = string | string[] | null;
 
@@ -75,6 +82,10 @@ export default function USNoticeQuestions() {
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
+  // INTAKE-2 — question keys where the user declined the prefill suggestion
+  // and asked to answer for themselves.
+  const [editing, setEditing] = useState<Record<string, boolean>>({});
+
 
   // Load session, selected states, and any existing answers.
   useEffect(() => {
@@ -128,13 +139,29 @@ export default function USNoticeQuestions() {
   }, [sessionId, navigate, toast, authorized]);
 
   // Build the question set and apply showIf + jurisdictionOnly filters.
-  const visibleQuestions = useMemo(() => {
-    if (selectedStates.length === 0) return [];
-    const all = buildQuestionSet(selectedStates);
-    return all.filter(
-      (q) => isQuestionInScope(q, selectedStates) && evaluateShowIf(q, answers),
-    );
-  }, [selectedStates, answers]);
+  const allQuestions = useMemo(
+    () => (selectedStates.length === 0 ? [] : buildQuestionSet(selectedStates)),
+    [selectedStates],
+  );
+
+  const visibleQuestions = useMemo(
+    () =>
+      allQuestions.filter(
+        (q) => isQuestionInScope(q, selectedStates) && evaluateShowIf(q, answers),
+      ),
+    [allQuestions, selectedStates, answers],
+  );
+
+  // INTAKE-2 — option-label lookup used by the prefill-confirm prompts.
+  const labelOf = useMemo(() => {
+    const index: Record<string, Record<string, string>> = {};
+    for (const q of allQuestions) {
+      if (!q.options) continue;
+      index[q.key] = Object.fromEntries(q.options.map((o) => [o.value, o.label]));
+    }
+    return (questionKey: string, value: string) => index[questionKey]?.[value] ?? value;
+  }, [allQuestions]);
+
 
   // Clamp index when the visible set shrinks (e.g. showIf hides current question).
   useEffect(() => {
@@ -263,6 +290,29 @@ export default function USNoticeQuestions() {
   const triggeredFlags =
     currentQuestion.flagIf?.filter((f) => evaluateFlag(f, value)) ?? [];
 
+  // INTAKE-2 — prefill-confirm: offered only while the question is still
+  // unanswered and the user has not asked to answer it themselves.
+  const answerEmpty =
+    value == null || value === "" || (Array.isArray(value) && value.length === 0);
+  const proposal =
+    answerEmpty && !editing[currentQuestion.key]
+      ? resolvePrefill(
+          US_PREFILL_BY_TARGET,
+          currentQuestion.key,
+          answers,
+          labelOf,
+          allowedValuesFor(currentQuestion),
+        )
+      : null;
+  const rawSuggestion =
+    proposal && typeof proposal.suggested === "string" ? proposal.suggested : "";
+  const proposalDisplay = rawSuggestion
+    ? ["yes", "no", "unsure"].includes(rawSuggestion)
+      ? rawSuggestion.charAt(0).toUpperCase() + rawSuggestion.slice(1)
+      : labelOf(currentQuestion.key, rawSuggestion)
+    : "";
+
+
   return (
     <USNoticeShell title="Questions — US Notice Builder" heading="Questions" step="questions" sessionId={sessionId}>
       {/* Progress */}
@@ -308,11 +358,23 @@ export default function USNoticeQuestions() {
           )}
 
           {/* Input */}
-          <QuestionInput
-            question={currentQuestion}
-            value={value}
-            onChange={(v) => setAnswer(currentQuestion.key, v)}
-          />
+          {proposal ? (
+            <PrefillConfirm
+              proposal={proposal}
+              displayValue={proposalDisplay}
+              onConfirm={() => setAnswer(currentQuestion.key, proposal.suggested)}
+              onDecline={() =>
+                setEditing((p) => ({ ...p, [currentQuestion.key]: true }))
+              }
+            />
+          ) : (
+            <QuestionInput
+              question={currentQuestion}
+              value={value}
+              onChange={(v) => setAnswer(currentQuestion.key, v)}
+            />
+          )}
+
 
           {/* Triggered flags */}
           {triggeredFlags.length > 0 && (

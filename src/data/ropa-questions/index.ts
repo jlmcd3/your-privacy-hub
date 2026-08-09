@@ -179,9 +179,11 @@ function baseSequence(opts: {
     },
     {
       key: "access_controls",
-      text: "Who has access to this data, and how is that access controlled?",
+      text: "Who can access this data?",
+      followUpPrompt: "And how is that access controlled?",
       whyWeAsk:
         "Access control is where Art. 32 is tested in practice. Recording who holds access, on what basis it is granted, and when it is reviewed answers the question an auditor asks first.",
+
       type: "text_long",
       isRequired: false,
     },

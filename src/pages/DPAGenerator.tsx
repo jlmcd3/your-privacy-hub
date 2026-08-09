@@ -73,6 +73,8 @@ export default function DPAGenerator() {
     retentionChoice: "" as "" | "As directed by the Controller's documented instructions" | "For the duration of the principal agreement, then delete or return" | "Fixed period — specify",
     retentionFixedText: "",
     hasSubProcessors: false, subProcessorList: "",
+    // INTAKE-2 — optional advance-notice window (days) for subprocessor changes.
+    subprocessorChangeNoticePeriod: "",
     auditRightsChoice: "" as "" | "Documentation review — Processor provides audit reports/certifications on request" | "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice" | "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access" | "Custom — describe",
     auditRightsOtherText: "",
     transfersInvolved: "" as "" | "Yes" | "No",
@@ -150,6 +152,7 @@ export default function DPAGenerator() {
       retention,
       hasSubProcessors: form.hasSubProcessors,
       subProcessorList: form.subProcessorList,
+      subprocessorChangeNoticePeriod: form.subprocessorChangeNoticePeriod.trim() || undefined,
       auditRights,
       includeTransferClause,
       transferMechanism,
@@ -388,6 +391,19 @@ export default function DPAGenerator() {
                   <input className="w-full mt-2 border border-border rounded-lg px-3 py-2" placeholder="One or two sentences" value={form.auditRightsOtherText} onChange={e => setForm(f => ({ ...f, auditRightsOtherText: e.target.value }))} />
                 )}
               </label>
+
+              <label className="block"><span className="font-semibold text-brand-navy">How much advance notice must the processor give before adding or replacing a subprocessor? <span className="text-xs text-muted-foreground font-mono">(optional — Art. 28(2) GDPR)</span></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Leave blank to use the standard 30 days. The general authorisation covers the subprocessors listed at signature; anyone added later has to be notified in advance so you can object.</span>
+                <input
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2"
+                  inputMode="numeric"
+                  placeholder="30"
+                  value={form.subprocessorChangeNoticePeriod}
+                  onChange={e => setForm(f => ({ ...f, subprocessorChangeNoticePeriod: e.target.value.replace(/[^0-9]/g, "") }))}
+                />
+                <span className="block text-meta text-muted-foreground mt-0.5">Days.</span>
+              </label>
+
 
               <label className="block"><span className="font-semibold text-brand-navy">Does the processing move personal data across the jurisdictions above, or onward to a third country?<Req /></span>
                 <span className="block text-meta text-muted-foreground mt-0.5">Remote support access and offshore sub-processors count, not only where the data is stored at rest.</span>
