@@ -52,6 +52,8 @@ const FINDING_ENTRY_KEYS = [
   "description",
   "text",
   "title",
+  // ITEM 422-C — provenance when an out-of-range pinpoint is withheld.
+  "citation_withheld_reason",
 ] as const;
 
 const DEADLINE_TABLE_ENTRY_KEYS = [
@@ -61,6 +63,8 @@ const DEADLINE_TABLE_ENTRY_KEYS = [
   "subsection",
   "verbatim_quote",
   "information_needed",
+  // ITEM 422-C — provenance when an out-of-range pinpoint is withheld.
+  "citation_withheld_reason",
 ] as const;
 
 const SCOPE_ANALYSIS_KEYS = [

@@ -32,6 +32,7 @@ import {
   resolveByPropositionKey,
   type VerifiedAuthorityRegistry,
 } from "../../../_shared/verified-authority-resolver.ts";
+import { validatePropositionAssignment } from "./admt-proposition-anchors.ts";
 
 export const ADMT_ACTION_CITATION_VERSION = "admt-action-citations@item422c-2026-08-09";
 
@@ -53,6 +54,12 @@ export interface AdmtActionCitationDiag {
    * failed). Counted here AND in `anchor_downgraded`.
    */
   unresolved_key_downgraded: number;
+  /**
+   * ITEM 422-C DEFECT 1 — entries whose assigned proposition was contradicted
+   * by the registry's declared anchor vocabulary. Counted here AND in
+   * `anchor_downgraded`.
+   */
+  mis_keyed_downgraded: number;
   /** entries that already carried the fallback / no pinpoint at all. */
   untouched: number;
   total: number;
@@ -143,6 +150,7 @@ export function resolveAdmtActionCitations(
     keyless_filled: 0,
     anchor_downgraded: 0,
     unresolved_key_downgraded: 0,
+    mis_keyed_downgraded: 0,
     untouched: 0,
     total: 0,
     crashed: false,
@@ -160,6 +168,10 @@ export function resolveAdmtActionCitations(
         (entry as Record<string, unknown>)._citation_source ===
           "registry_downgrade_unresolved_key"
       ) diag.unresolved_key_downgraded++;
+      if (
+        (entry as Record<string, unknown>)._citation_source ===
+          "registry_downgrade_mis_keyed"
+      ) diag.mis_keyed_downgraded++;
       diag.total++;
     }
 

@@ -9,6 +9,7 @@
 // stamps the final values from intake + scope_analysis + the ADMT verified-
 // authority registry. No LLM calls. No fabrication. Fail-open on any error.
 
+import { isInVerifiedAdmtRange } from "./_local/ltp/admt-citation-range-sweep.ts";
 import {
   ADMT_VERIFIED_AUTHORITIES,
   ADMT_VERIFIED_AUTHORITY_VERSION,
@@ -50,6 +51,10 @@ export interface DeadlineTableRow {
   // obligation's citation/quote. Downstream renderers must display a neutral
   // "information needed" cell rather than fabricate a §-pinpoint or quote.
   information_needed: boolean;
+  // ITEM 422-C DEFECT 3 — set when the obligation is real but its verified
+  // section lies OUTSIDE the ADMT pinpoint range (§ 7001, §§ 7150-7157,
+  // §§ 7200-7222). The duty is stated; the pinpoint is withheld.
+  citation_withheld_reason?: string;
 }
 
 export interface AdequacyFinding {
@@ -190,7 +195,23 @@ export function buildDeadlineTable(_intake: any, _report: any): DeadlineTableRow
   const rows: DeadlineTableRow[] = [];
   for (const spec of DEADLINE_SPECS) {
     const a = auth(spec.pk);
-    if (a) {
+    // ITEM 422-C DEFECT 3 (a) — WRITER-LEVEL RANGE DISCIPLINE. access_timeline
+    // resolves to a corpus-verified but OUT-OF-RANGE pinpoint (11 CCR
+    // § 7021(b), Article 3). The 45-day duty is real and stays on the row; the
+    // out-of-range section number and its quote are withheld. Corpus rows are
+    // NOT edited — the withholding happens at emission.
+    const sec = a ? Number((/§\s*(7\d{3})/.exec(a.subsection) || [])[1]) : NaN;
+    if (a && !isInVerifiedAdmtRange(sec)) {
+      rows.push({
+        obligation: spec.obligation,
+        compliance_deadline: spec.deadline,
+        proposition_key: "",
+        subsection: "",
+        verbatim_quote: "",
+        information_needed: true,
+        citation_withheld_reason: "out_of_verified_admt_range",
+      });
+    } else if (a) {
       rows.push({
         obligation: spec.obligation,
         compliance_deadline: spec.deadline,
