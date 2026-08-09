@@ -11,6 +11,7 @@ import {
   ADMT_ACTION_CITATION_VERSION,
   ADMT_SUBCHAPTER_FALLBACK,
   resolveAdmtActionCitations,
+  sealAdmtActionCitations,
 } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-action-citations.ts";
 import { normalizeAdmtPriorityActions } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-action-records.ts";
 import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-admt-checker/_local/registry/admt-verified-authorities.ts";
@@ -25,8 +26,8 @@ const REG = ADMT_VERIFIED_AUTHORITIES as unknown as Record<string, { subsection:
 const FIRST_KEY = Object.keys(REG)[0];
 
 Deno.test("ITEM 422-B: stamps are the ratified values", () => {
-  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item422b-2026-08-09");
-  assertEquals(ADMT_ACTION_CITATION_VERSION, "admt-action-citations@item422b-2026-08-09");
+  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item422c-2026-08-09");
+  assertEquals(ADMT_ACTION_CITATION_VERSION, "admt-action-citations@item422c-2026-08-09");
   assertEquals(ADMT_ASK_HYGIENE_VERSION, "admt-ask-hygiene@item422b-2026-08-09");
 });
 
@@ -165,4 +166,52 @@ Deno.test("ITEM 422-B D2: a mixed ask is retained (the product never rewrites co
 Deno.test("ITEM 422-B D2: fail-open on degenerate input", () => {
   assertEquals(runAdmtAskHygiene(null, {}).asks_in, 0);
   assertEquals(runAdmtAskHygiene({ information_needed: "nope" }, {}).asks_in, 0);
+});
+
+/* ─── ITEM 422-C — THE PRESENT-BUT-UNRESOLVABLE KEY BRANCH ─────────────── */
+
+Deno.test("ITEM 422-C: an unknown proposition_key never ships a null citation", () => {
+  const report = {
+    priority_actions: [
+      { rank: 1, action: "Do the thing.", proposition_key: "no_such_key_at_all", citation: null },
+    ],
+  };
+  const diag = resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
+  const e = report.priority_actions[0] as Record<string, unknown>;
+  assertEquals(e.citation, ADMT_SUBCHAPTER_FALLBACK);
+  assertEquals(e.proposition_key, "");
+  assertEquals(e._citation_source, "registry_downgrade_unresolved_key");
+  assertEquals(diag.anchor_downgraded, 1);
+  assertEquals(diag.unresolved_key_downgraded, 1);
+  assertEquals(diag.untouched, 0);
+});
+
+Deno.test("ITEM 422-C: human_involvement DOES resolve — no alias needed", () => {
+  const report = {
+    priority_actions: [
+      { rank: 5, action: "Record the human-involvement standard.", proposition_key: "human_involvement" },
+    ],
+  };
+  resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
+  const e = report.priority_actions[0] as Record<string, unknown>;
+  assertEquals(e.proposition_key, "human_involvement");
+  assert(typeof e.citation === "string" && (e.citation as string).includes("7001"));
+});
+
+Deno.test("ITEM 422-C: the terminal seal closes an anchor cleared downstream", () => {
+  // Reproduces the pilot: the sole-§7001 discipline cleared the pinpoint to ""
+  // while preserving the key.
+  const report = {
+    priority_actions: [
+      { rank: 5, action: "Record the human-involvement standard.", proposition_key: "human_involvement", citation: "" },
+      { rank: 6, action: "Keep this one.", proposition_key: "", citation: "11 CCR § 7221(a)" },
+    ],
+  };
+  const diag = sealAdmtActionCitations(report);
+  assertEquals(diag.sealed, 1);
+  assertEquals(diag.total, 2);
+  const [a, b] = report.priority_actions as Record<string, unknown>[];
+  assertEquals(a.citation, ADMT_SUBCHAPTER_FALLBACK);
+  assertEquals(a.proposition_key, "");
+  assertEquals(b.citation, "11 CCR § 7221(a)");
 });

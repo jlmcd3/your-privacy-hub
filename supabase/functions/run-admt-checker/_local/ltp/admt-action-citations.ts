@@ -33,7 +33,7 @@ import {
   type VerifiedAuthorityRegistry,
 } from "../../../_shared/verified-authority-resolver.ts";
 
-export const ADMT_ACTION_CITATION_VERSION = "admt-action-citations@item422b-2026-08-09";
+export const ADMT_ACTION_CITATION_VERSION = "admt-action-citations@item422c-2026-08-09";
 
 /** The registry's honest downgrade — the same phrase the W-battery uses. */
 export const ADMT_SUBCHAPTER_FALLBACK = "the applicable ADMT-subchapter provision";
@@ -46,6 +46,13 @@ export interface AdmtActionCitationDiag {
   keyless_filled: number;
   /** entries whose model-authored pinpoint was replaced by the fallback. */
   anchor_downgraded: number;
+  /**
+   * ITEM 422-C — entries carrying a PRESENT proposition key that the registry
+   * does not resolve. They now take the same honest downgrade as a missing
+   * key instead of being left untouched (the one path where "null impossible"
+   * failed). Counted here AND in `anchor_downgraded`.
+   */
+  unresolved_key_downgraded: number;
   /** entries that already carried the fallback / no pinpoint at all. */
   untouched: number;
   total: number;
@@ -72,7 +79,15 @@ export function resolveActionCitation(
       entry._citation_source = "registry_key";
       return "resolved_by_key";
     }
+    // ITEM 422-C — PRESENT BUT UNRESOLVABLE KEY. Same honest downgrade as a
+    // missing key, and the key is CLEARED — the `top_3_actions` idiom: a
+    // proposition that did not resolve is never left asserted on the record.
+    entry.citation = ADMT_SUBCHAPTER_FALLBACK;
+    entry.proposition_key = "";
+    entry._citation_source = "registry_downgrade_unresolved_key";
+    return "anchor_downgraded";
   }
+
 
   const cit = str(entry.citation);
   if (cit && cit !== ADMT_SUBCHAPTER_FALLBACK) {
@@ -112,6 +127,7 @@ export function resolveAdmtActionCitations(
     resolved_by_key: 0,
     keyless_filled: 0,
     anchor_downgraded: 0,
+    unresolved_key_downgraded: 0,
     untouched: 0,
     total: 0,
     crashed: false,
@@ -125,11 +141,66 @@ export function resolveAdmtActionCitations(
       if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
       const cls = resolveActionCitation(entry as Record<string, unknown>, reg);
       diag[cls]++;
+      if (
+        (entry as Record<string, unknown>)._citation_source ===
+          "registry_downgrade_unresolved_key"
+      ) diag.unresolved_key_downgraded++;
       diag.total++;
     }
+
   } catch (e) {
     diag.crashed = true;
     console.warn("[admt-action-citations] failed (non-fatal):", (e as Error)?.message);
+  }
+  return diag;
+}
+
+/**
+ * ITEM 422-C — TERMINAL SEAL ON `priority_actions` CITATIONS.
+ *
+ * The pilot's rank-5 null did NOT come from the resolver's key branch alone:
+ * `human_involvement` DOES resolve, but only to the DEFINITIONAL § 7001(e)(1)
+ * row, and the downstream sole-§7001 governing-anchor discipline (W24-H6 /
+ * H6-v2) clears definitional anchors to "" while preserving the key. That is
+ * correct anchor discipline — but a customer surface must still never render
+ * an empty pinpoint. This seal runs LAST, after every W/H pass, and replaces
+ * any empty/absent citation with the registry's honest downgrade, clearing
+ * the key so no reader believes a proposition resolved.
+ *
+ * `top_3_actions` is NOT read and NOT written here. Deterministic, fail-open.
+ */
+export interface AdmtActionSealDiag {
+  version: string;
+  sealed: number;
+  total: number;
+  crashed: boolean;
+}
+
+export function sealAdmtActionCitations(report: unknown): AdmtActionSealDiag {
+  const diag: AdmtActionSealDiag = {
+    version: ADMT_ACTION_CITATION_VERSION,
+    sealed: 0,
+    total: 0,
+    crashed: false,
+  };
+  try {
+    const r = report as Record<string, unknown> | null;
+    if (!r || typeof r !== "object") return diag;
+    const raw = r.priority_actions;
+    if (!Array.isArray(raw) || raw.length === 0) return diag;
+    for (const entry of raw) {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+      const e = entry as Record<string, unknown>;
+      diag.total++;
+      if (str(e.citation)) continue;
+      e.citation = ADMT_SUBCHAPTER_FALLBACK;
+      e.proposition_key = "";
+      e._citation_source = "terminal_seal_downgrade";
+      diag.sealed++;
+    }
+  } catch (err) {
+    diag.crashed = true;
+    console.warn("[admt-action-citations] seal failed (non-fatal):", (err as Error)?.message);
   }
   return diag;
 }
