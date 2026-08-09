@@ -49,6 +49,11 @@ interface Body {
   retention?: string;
   hasSubProcessors: boolean;
   subProcessorList?: string;
+  // INTAKE-2 — optional advance-notice window (in days) the Processor must give
+  // before adding or replacing a sub-processor under the Art. 28(2) general
+  // authorisation. Absent/unparseable → the standing 30-day default applies.
+  subprocessorChangeNoticePeriod?: string | number;
+
   // HF1 Task 3 — legalFramework accepted as an object ({ primary, additionalFrameworks[] })
   // from the DPA intake; legacy string form remains accepted (BC only, framework is
   // still derived from documentType). additionalFrameworks[] is READ from intake and
