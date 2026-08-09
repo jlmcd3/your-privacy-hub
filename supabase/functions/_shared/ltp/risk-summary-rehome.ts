@@ -140,6 +140,48 @@ function pickReservedRow(
 }
 
 /**
+ * ITEM 428-C (DEFECT 1) — strip referral sentences from EVERY string leaf of
+ * the pre-gate `risk_assessment_by_activity` surface (legacy strings and typed
+ * records alike). Determination machinery is never swept: this walks customer
+ * prose leaves only, and a leaf whose whole content is the referral sentence
+ * becomes empty and is dropped from the array it sat in.
+ */
+function sweepActivityReferrals(report: Record<string, unknown>): string[] {
+  const moved: string[] = [];
+  const surface = report.risk_assessment_by_activity;
+  if (!Array.isArray(surface)) return moved;
+
+  const scrub = (value: unknown): unknown => {
+    if (typeof value === "string") {
+      if (!isReservedReferralSentence(value) && !/\bcounsel\b/i.test(value)) return value;
+      const { kept, moved: m } = strip(value);
+      if (m.length === 0) return value;
+      moved.push(...m);
+      return kept;
+    }
+    if (Array.isArray(value)) {
+      const next = value.map(scrub).filter((v) => !(typeof v === "string" && v.trim() === ""));
+      return next;
+    }
+    if (value && typeof value === "object") {
+      const rec = value as Record<string, unknown>;
+      for (const [k, v] of Object.entries(rec)) {
+        if (k.startsWith("_")) continue; // machine leaves
+        rec[k] = scrub(v);
+      }
+      return rec;
+    }
+    return value;
+  };
+
+  const next = (surface as unknown[])
+    .map(scrub)
+    .filter((v) => !(typeof v === "string" && v.trim() === ""));
+  report.risk_assessment_by_activity = next;
+  return moved;
+}
+
+/**
  * THE pass. Mutates `report` in place; never throws.
  */
 export function rehomeReservedReferrals(
@@ -149,11 +191,13 @@ export function rehomeReservedReferrals(
     version: RISK_SUMMARY_REHOME_VERSION,
     exec_sentences_moved: 0,
     narrative_removed: false,
+    activity_sentences_moved: 0,
     rehomed: 0,
     suppressed: [] as string[],
     carried_verdict: "",
   };
   if (!report || typeof report !== "object") return out;
+
 
   try {
     const moved: string[] = [];
