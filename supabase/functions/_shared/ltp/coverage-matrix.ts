@@ -1666,21 +1666,49 @@ function registrationCoverage(
 
 
 // ---------------------------------------------------------------------------
-// ITEM 414 — IR PLAYBOOK COVERAGE.
+// ITEM 414 / ITEM 416 LEG C — IR PLAYBOOK COVERAGE (COMPLETED TO THE CONTRACT).
 //
-// IR is the only product that emits TWO artifacts, so the link table names the
-// artifact as well as the section. Coverage is asserted over the STANDING
-// PLAYBOOK only: the incident worksheet is blank BY DESIGN (item369), so an
-// empty worksheet form is correct output, never an orphan.
+// IR is the only product that emits TWO artifacts, so a link names its target
+// as well as its keys. Coverage is asserted over the STANDING PLAYBOOK and the
+// analytic determinations: the incident worksheet is blank BY DESIGN
+// (item369), so an empty worksheet form is correct output, never an orphan.
+//
+// ITEM 416 completes the table to the FULL intake contract
+// (`_shared/intake-contracts/ir-playbook.ts`, 31 fields). Every field now has
+// exactly one declared destiny:
+//
+//   (a) `section`      — a standing-playbook section must carry it.
+//   (b) `report_path`  — an analytic determination surface must carry it
+//                        (the Chapter 8 keys: cause, counts, encryption,
+//                        containment, awareness, jurisdictions, processor).
+//   (c) `prose_only`   — the ONLY reader is the generated playbook narrative
+//                        (`playbook_text`). Checked when that surface exists;
+//                        declared as a PERMANENT ORPHAN, honestly and by name,
+//                        when it does not, instead of being counted as a
+//                        defect the pipeline could never fix.
+//
+// HONEST PERMANENT ORPHANS. `discoveryDateTime` and `organisationType` have no
+// deterministic reader anywhere in `ir-playbook-deliverables/`: both reach the
+// document only through the generation prompt. That is a real property of this
+// product, not a bug in the matrix, so it is RECORDED (`permanent_orphans`)
+// rather than counted in `counts.orphans`. Give either a deterministic reader
+// and its link moves out of this class.
 // ---------------------------------------------------------------------------
 
 interface IrCoverageLink {
-  /** Standing-playbook section id the facts must reach. */
-  readonly section: string;
   readonly keys: readonly string[];
+  /** Standing-playbook section id the facts must reach. */
+  readonly section?: string;
+  /** Top-level report path the facts must reach. */
+  readonly report_path?: string;
+  /** The only reader is the generated narrative. */
+  readonly prose_only?: true;
+  /** Why this fact has no deterministic reader. Required for `prose_only`. */
+  readonly note?: string;
 }
 
 const IR_LINKS: readonly IrCoverageLink[] = [
+  // ── (a) standing-playbook sections ──────────────────────────────────────
   { section: "activation_criteria", keys: ["activationCriteria"] },
   { section: "severity_matrix", keys: ["severityMatrix", "severityThresholds"] },
   { section: "response_team", keys: ["responseTeamRoster"] },
@@ -1688,7 +1716,7 @@ const IR_LINKS: readonly IrCoverageLink[] = [
     section: "key_contacts",
     keys: [
       "outsideCounselName", "outsideCounselContact", "insurerContact",
-      "forensicVendorContact", "lawEnforcementContact",
+      "forensicVendorContact", "lawEnforcementContact", "privilegeProtocol",
     ],
   },
   { section: "first_24_hours_checklist", keys: ["itIsolationAuthority"] },
@@ -1697,6 +1725,36 @@ const IR_LINKS: readonly IrCoverageLink[] = [
   { section: "breach_classification", keys: ["dataTypes"] },
   { section: "testing_training", keys: ["nextTabletopDate"] },
   { section: "first_hour_checklist", keys: ["firstHourConfirmations"] },
+  // ── (b) the analytic determinations (Chapter 8) ─────────────────────────
+  // The organisation's own name anchors the playbook title and the Art. 33(3)
+  // content/owner mapping.
+  { report_path: "standing_playbook.title", keys: ["organizationName"] },
+  { report_path: "sa_notification_determination", keys: ["cause", "affectedCount"] },
+  { report_path: "notification_duties", keys: ["jurisdictions"] },
+  {
+    report_path: "art34_exemption_analysis",
+    keys: ["encryptionStatus", "encryptionKeyStatus", "contained"],
+  },
+  {
+    report_path: "content_owner_mapping",
+    keys: [
+      "affectedRecordCount", "affectedDataSubjectCount",
+      "awarenessConfirmed", "processorInvolved", "processorName",
+    ],
+  },
+  // ── (c) narrative-only facts ────────────────────────────────────────────
+  {
+    prose_only: true,
+    keys: ["discoveryDateTime"],
+    note:
+      "the discovery timestamp is read by the generation prompt and by the awareness/deadline arithmetic in the narrative; no deliverable builder reads it.",
+  },
+  {
+    prose_only: true,
+    keys: ["organisationType"],
+    note:
+      "the organisation type is read by the generation prompt only; no deliverable builder reads it.",
+  },
 ];
 
 export const IR_LINKED_INTAKE_KEYS: readonly string[] = [
@@ -1704,6 +1762,11 @@ export const IR_LINKED_INTAKE_KEYS: readonly string[] = [
 ];
 
 export const IR_COVERAGE_LINKS: readonly IrCoverageLink[] = IR_LINKS;
+
+/** The facts whose only reader is the generated narrative, named honestly. */
+export const IR_PERMANENT_ORPHAN_KEYS: readonly string[] = [
+  ...new Set(IR_LINKS.filter((l) => l.prose_only).flatMap((l) => l.keys)),
+];
 
 const IR_SURFACE_MIN_CHARS = 24;
 
@@ -1723,17 +1786,50 @@ function irCoverage(
   intake: Record<string, unknown>,
   t: CoverageTelemetry,
 ): void {
-  const sp = report.standing_playbook;
-  const docText = documentText(
-    (sp && typeof sp === "object" ? sp : report) as Record<string, unknown>,
-  );
+  const docText = documentText(report);
+  const permanent: CoverageOrphan[] = [];
 
-  // L1 — supplied fact → the standing section that must carry it.
+  // L1 — supplied fact → the surface that must carry it.
   for (const link of IR_LINKS) {
     const supplied = link.keys.filter((k) => regFilled(intake, k));
     if (supplied.length === 0) continue; // honest silence
+
+    if (link.prose_only) {
+      const prose = typeof report.playbook_text === "string" ? report.playbook_text : "";
+      if (prose.trim().length >= IR_SURFACE_MIN_CHARS) {
+        t.counts.links_checked++;
+        continue; // the narrative exists and is this fact's only reader
+      }
+      permanent.push({
+        type: "supplied_fact_with_no_deterministic_reader",
+        path: "playbook_text",
+        detail: `the record supplies ${supplied.join(", ")} and ${link.note ?? "no deliverable builder reads it"}.`,
+      });
+      continue;
+    }
+
     t.counts.links_checked++;
-    const sec = irSection(report, link.section);
+
+    if (link.report_path) {
+      const node = getPath(report, link.report_path);
+      const substance = node === undefined || node === null
+        ? 0
+        : typeof node === "string"
+        ? node.trim().length
+        : bioSurfaceSubstance(node as Record<string, unknown>);
+      if (substance >= IR_SURFACE_MIN_CHARS) continue;
+      t.orphans.push({
+        type: node === undefined || node === null
+          ? "supplied_fact_with_no_emission_path"
+          : "supplied_fact_without_section",
+        path: link.report_path,
+        detail:
+          `the record supplies ${supplied.join(", ")} but "${link.report_path}" carries nothing that reflects it.`,
+      });
+      continue;
+    }
+
+    const sec = irSection(report, link.section!);
     if (sec && bioSurfaceSubstance(sec) >= IR_SURFACE_MIN_CHARS) continue;
     t.orphans.push({
       type: sec ? "supplied_fact_without_section" : "supplied_fact_with_no_emission_path",
@@ -1746,6 +1842,7 @@ function irCoverage(
 
   // L2 — a section still asking for a fact the record in fact supplies.
   for (const link of IR_LINKS) {
+    if (!link.section) continue;
     const sec = irSection(report, link.section);
     const ask = sec && typeof sec.information_needed === "string" ? sec.information_needed : "";
     if (!ask.trim()) continue;
@@ -1760,13 +1857,23 @@ function irCoverage(
   }
 
   // L3 — narrative facts the record fills that the document reflects nowhere.
+  // Permanent-orphan keys are excluded: their reader is the narrative itself,
+  // and naming them here would double-count one honest limitation.
   t.unused_intake_facts = IR_LINKED_INTAKE_KEYS.filter((k) => {
+    if (IR_PERMANENT_ORPHAN_KEYS.includes(k)) return false;
     const v = getPath(intake, k);
     if (typeof v !== "string" || v.trim().length < 24) return false;
     const words = contentWords(v);
     return words.length > 0 && !words.some((w) => docText.includes(w));
   });
+
+  // Recorded, never counted: see the permanent-orphan note above.
+  if (permanent.length) {
+    (t as CoverageTelemetry & { permanent_orphans?: CoverageOrphan[] })
+      .permanent_orphans = permanent;
+  }
 }
+
 
 // ---------------------------------------------------------------------------
 
