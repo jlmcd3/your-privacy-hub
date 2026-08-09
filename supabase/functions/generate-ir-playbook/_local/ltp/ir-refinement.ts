@@ -58,6 +58,7 @@ import {
   applySplicesWith,
   composePrompt,
   CRITIC_PROMPT_BASE,
+  emptyTelemetryFor,
   isProtectedPathFor,
   parseJsonLoose,
   parsePath,
