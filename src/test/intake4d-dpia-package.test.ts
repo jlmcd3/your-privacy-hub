@@ -6,11 +6,11 @@
 
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { DPIA_CONTRACT } from "../../supabase/functions/_shared/intake-contracts/dpia-framework";
+import { dpiaFrameworkContract } from "../../supabase/functions/_shared/intake-contracts/dpia-framework";
 import { DPIA_PERFECT } from "../../supabase/functions/_shared/golden/dpia";
 
 const page = readFileSync("src/pages/DPIAFramework.tsx", "utf8");
-const keys = DPIA_CONTRACT.fields.map((f) => f.key);
+const keys = dpiaFrameworkContract.fields.map((f) => f.key);
 
 describe("INTAKE-4d — DPIA intake package", () => {
   it("keeps the wording-pass and prefill rows on their original keys", () => {
@@ -32,7 +32,7 @@ describe("INTAKE-4d — DPIA intake package", () => {
   });
 
   it("carries residual_risks end to end as an optional addition", () => {
-    const f = DPIA_CONTRACT.fields.find((x) => x.key === "residual_risks");
+    const f = dpiaFrameworkContract.fields.find((x) => x.key === "residual_risks");
     expect(f).toBeTruthy();
     expect(f!.required).toBe("optional");
     expect(page).toContain("residual_risks: residualRisks");
