@@ -132,7 +132,7 @@ export function coerceActionList(v: unknown): readonly ActionListItem[] | undefi
   for (const x of v) {
     if (typeof x === "string") {
       const t = x.trim();
-      if (t.length > 0) out.push({ text: x });
+      if (t.length > 0) out.push({ text: t });
       continue;
     }
     if (isActionRecord(x)) {
