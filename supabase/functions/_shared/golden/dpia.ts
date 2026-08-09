@@ -395,6 +395,8 @@ export const DPIA_PERFECT: GoldenCase[] = [
         "Pseudonymised identifiers throughout the scoring pipeline; raw-text discard within 48 hours; minimum team size of eight for any manager-visible output; role separation between People Analytics and occupational health; access logging with monthly review; automated deletion enforcing both retention limits.",
       transfer_flows: [],
       retention_record_type: "Retention schedule reference HR-22 (workforce analytics) in the corporate retention register.",
+      residual_risks:
+        "After the measures above, two risks remain. A false positive can still reach an occupational-health adviser; it is accepted because every individual flag is reviewed by a named adviser before any contact and false positives are logged and fed into the quarterly model review. Employees may still moderate what they write on the platform; it is accepted for the twelve-month pilot only, is monitored through the staff forum, and is re-tested at the re-assessment gate before any continuation.",
       dpia_prepared_by:
         "J. Whitfield — Head of Privacy (Responsible); Dr. E. Mensah — Occupational-Health Adviser (Consulted); P. Novak — Data Protection Officer (Accountable)",
       dpia_approved_by_name: "S. Cartwright",
