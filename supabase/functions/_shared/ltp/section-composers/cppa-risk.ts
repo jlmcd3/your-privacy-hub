@@ -43,6 +43,7 @@ import { reservedActionLabel, ownerSentence, sentenceTerminate } from "../risk-p
 // ITEM 421 — typed priority-action emission (one home per fact).
 import { buildRiskActionRecord } from "../risk-action-records.ts";
 import type { ActionRecord } from "../../report-contracts/action-record.ts";
+import type { RiskSufficiencyElement } from "../../report-contracts/risk-sufficiency.ts";
 
 
 export { secondaryRecommendation };
@@ -137,6 +138,13 @@ export interface TemplateInstance {
    * Only `priority_actions` carries it today.
    */
   readonly action_record?: ActionRecord;
+  /**
+   * ITEM 425 — STRUCTURED EMISSION for `record_sufficiency`. When present the
+   * assembler ships the typed element on the record's `elements[]` instead of
+   * a prose ledger line. `pinpoint` is REGISTRY-SOURCED (the § 7152(a) anchor
+   * the sufficiency machinery already owns) — never model-authored.
+   */
+  readonly sufficiency_element?: RiskSufficiencyElement;
 }
 
 
@@ -1343,6 +1351,12 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
       element_status_clause: statusForFactor(f),
       __cite: { PINPOINT: f.anchor.pinpoint },
     },
+    // ITEM 425 — deterministic typed element (label + registry anchor).
+    sufficiency_element: {
+      element: factorLabel(f),
+      pinpoint: f.anchor.pinpoint,
+      status: statusForFactor(f),
+    },
   }));
   // The missing side, rendered from the same needs set information_needed
   // renders — same order, same labels, same count.
@@ -1355,6 +1369,14 @@ function composeRecordSufficiency(plan: RenderPlan): TemplateInstance[] {
         ? RESERVED_DECISION_STATUS_CLAUSE
         : RECORD_STATUS_CLAUSES[1],
       __cite: { PINPOINT: need.pinpoint },
+    },
+    // ITEM 425 — deterministic typed element (needs set + registry anchor).
+    sufficiency_element: {
+      element: need.label,
+      pinpoint: need.pinpoint,
+      status: need.kind === "reserved_decision"
+        ? RESERVED_DECISION_STATUS_CLAUSE
+        : RECORD_STATUS_CLAUSES[1],
     },
   }));
   return [affirmationsOpener, ...admtExplanation, prose, ...items, ...missingItems];
