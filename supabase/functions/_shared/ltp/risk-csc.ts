@@ -19,6 +19,8 @@
 //
 // Telemetry rides `_meta.internal.risk_csc`.
 
+import { coerceExceptionView } from "../report-contracts/risk-exceptions.ts";
+
 export const RISK_CSC_VERSION = "risk-csc-2026-08-05-item378";
 
 export type RiskCscCheckId =
@@ -400,11 +402,17 @@ export function runRiskCsc(
 
     // ── R2 — exception analysis vs the record ─────────────────────────────
     if (!exceptionsClaimedInIntake(intake)) {
-      const rows = Array.isArray(report.exception_analysis) ? report.exception_analysis : [];
+      // ITEM 426 — rows sourced through the five-shape reader so the canonical
+      // typed record reaches this check exactly as legacy object rows did.
+      // DETECTION SEMANTICS UNCHANGED: the same status/prose vocabulary decides,
+      // with the typed `claimed: true` leaf added as an equivalent of
+      // status="claimed" (the typed emission's own way of saying it).
+      const rows = coerceExceptionView(report.exception_analysis).rows;
       rows.forEach((rawRow, i) => {
         const row = rawRow as Record<string, unknown> | null;
         if (!row || typeof row !== "object") return;
-        const statusClaimed = /^(claimed|asserted)/i.test(str(row.status));
+        const statusClaimed = /^(claimed|asserted)/i.test(str(row.status)) ||
+          row.claimed === true;
         const prose = `${str(row.text)} ${str(row.description)} ${str(row.recorded_basis)} ${
           str(row.rationale)
         }`;
@@ -412,6 +420,7 @@ export function runRiskCsc(
           !EXCEPTION_NOT_CLAIMED_RE.test(prose);
         if (!statusClaimed && !proseClaimed) return;
         row.status = "not_claimed";
+        if (row.claimed === true) row.claimed = false;
         log({
           check_id: "r2_exception_vs_record",
           path: `exception_analysis[${i}]`,
