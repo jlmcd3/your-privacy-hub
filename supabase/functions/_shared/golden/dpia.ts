@@ -283,6 +283,8 @@ export const DPIA_PERFECT: GoldenCase[] = [
         "Diagnosis category held only in the occupational-health module under two named physician accounts; only the fitness verdict is released to line management; scheduling uses pseudonymised case identifiers; an automated job enforces the 18-month deletion; access logs are reviewed quarterly by the DPO.",
       transfer_flows: [],
       retention_record_type: "Retention schedule entry OH-07 in the corporate records-retention register.",
+      residual_risks:
+        "Two moderate risks remain after the measures above. Line managers can still infer a health reason from a fitness verdict; it is accepted because only the verdict is released, no diagnosis category leaves the occupational-health module, and access is limited to two named physicians under quarterly log review. A scheduling error could expose a case identifier to the wrong team; it is accepted because identifiers are pseudonymised, the mapping sits behind the physician accounts, and any exposure is caught by the quarterly access review and the 18-month deletion job.",
       dpia_prepared_by:
         "A. Okonjo — Privacy Counsel (Responsible); Dr. R. Lindqvist — Occupational-Health Physician (Consulted); D. Dasher — Data Protection Officer (Accountable)",
       dpia_approved_by_name: "M. Ferrante",
