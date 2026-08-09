@@ -378,5 +378,5 @@ Deno.test("item417 telemetry shape carries findings_log and full bucket accounti
 });
 
 Deno.test("item417 the stamp is item417", () => {
-  assertEquals(IR_PIPELINE_STAMP, "ir-pipeline@item417-2026-08-09");
+  assertEquals(IR_PIPELINE_STAMP, "ir-pipeline@item417b-2026-08-09");
 });
