@@ -358,11 +358,23 @@ export default function USNoticeQuestions() {
           )}
 
           {/* Input */}
-          <QuestionInput
-            question={currentQuestion}
-            value={value}
-            onChange={(v) => setAnswer(currentQuestion.key, v)}
-          />
+          {proposal ? (
+            <PrefillConfirm
+              proposal={proposal}
+              displayValue={proposalDisplay}
+              onConfirm={() => setAnswer(currentQuestion.key, proposal.suggested)}
+              onDecline={() =>
+                setEditing((p) => ({ ...p, [currentQuestion.key]: true }))
+              }
+            />
+          ) : (
+            <QuestionInput
+              question={currentQuestion}
+              value={value}
+              onChange={(v) => setAnswer(currentQuestion.key, v)}
+            />
+          )}
+
 
           {/* Triggered flags */}
           {triggeredFlags.length > 0 && (
