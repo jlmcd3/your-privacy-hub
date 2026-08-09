@@ -1289,17 +1289,17 @@ export default function ADMTChecker() {
                       Paste your published Pre-use Notice, element by element
                     </p>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Optional but strongly recommended: we assess each § 7220(c) element against the words you actually publish. Leave an element blank if your notice does not cover it.
+                      Optional, but it changes the report: we test each § 7220(c) element against the words you actually publish, not against a description of them. Leave an element blank where your notice does not cover it — the report says so rather than assuming.
                     </p>
                     <div className="space-y-3">
                       {[
-                        ["purpose", "Specific purpose for using the ADMT"],
-                        ["optout", "Right to opt out, and how to submit the request"],
-                        ["access", "Right to access ADMT, and how to submit the request"],
-                        ["antiretaliation", "Prohibition on retaliation for exercising CCPA rights"],
-                        ["howworks_inputs", "How the ADMT processes personal information (inputs)"],
-                        ["howworks_output", "Type of output, and how it is used in the decision"],
-                        ["altprocess", "Alternative process for consumers who opt out"],
+                        ["purpose", "What you use the system for"],
+                        ["optout", "The right to opt out, and how to ask"],
+                        ["access", "The right to ask what the system did, and how to ask"],
+                        ["antiretaliation", "That you will not retaliate for using these rights"],
+                        ["howworks_inputs", "What information goes into the system"],
+                        ["howworks_output", "What the system produces, and how you use it"],
+                        ["altprocess", "What happens instead for someone who opts out"],
                       ].map(([k, label]) => (
                         <div key={k}>
                           <Label className="text-[12px]">{label}</Label>
