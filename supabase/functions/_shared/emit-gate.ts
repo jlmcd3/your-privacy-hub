@@ -309,7 +309,10 @@ function detectFindings(
     }
   }
 
-  // Well-formedness.
+  // Well-formedness. ITEM 428-B — byte-pinned leaves are exempt (see
+  // BYTE_PINNED_LEAF_KEYS): a pinned quotation must survive untouched.
+  if (isBytePinnedLeaf(leaf.path)) return findings;
+
   const dt = s.match(DOUBLED_TOKEN_RE);
   if (dt) {
     findings.push({
