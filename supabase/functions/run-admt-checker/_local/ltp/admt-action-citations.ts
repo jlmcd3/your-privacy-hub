@@ -127,6 +127,7 @@ export function resolveAdmtActionCitations(
     resolved_by_key: 0,
     keyless_filled: 0,
     anchor_downgraded: 0,
+    unresolved_key_downgraded: 0,
     untouched: 0,
     total: 0,
     crashed: false,
@@ -140,8 +141,13 @@ export function resolveAdmtActionCitations(
       if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
       const cls = resolveActionCitation(entry as Record<string, unknown>, reg);
       diag[cls]++;
+      if (
+        (entry as Record<string, unknown>)._citation_source ===
+          "registry_downgrade_unresolved_key"
+      ) diag.unresolved_key_downgraded++;
       diag.total++;
     }
+
   } catch (e) {
     diag.crashed = true;
     console.warn("[admt-action-citations] failed (non-fatal):", (e as Error)?.message);
