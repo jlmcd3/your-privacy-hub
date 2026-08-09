@@ -16,7 +16,7 @@
  * ONLY and never enters this corpus: it is not asserted as authority, it is not
  * quotable, and `isAllowedGovernanceCitation` will never approve it.
  */
-import { resolveProvisionForRender } from "../../../_shared/provision-store.ts";
+import { resolveProvisionForRender } from "../../../../_shared/provision-store.ts";
 
 type SupabaseClient = { from: (table: string) => unknown };
 

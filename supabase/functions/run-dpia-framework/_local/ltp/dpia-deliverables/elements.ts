@@ -12,8 +12,8 @@
  * entry when the record actually triggers it.
  */
 import { DPIA_VERIFIED_AUTHORITIES } from "../../registry/dpia-verified-authorities.ts";
-import { requireVerified } from "../../../../_shared/verified-authority-resolver.ts";
-import type { Severity } from "../../../../_shared/ltp/dpia-deliverables/types.ts";
+import { requireVerified } from "../../../../../_shared/verified-authority-resolver.ts";
+import type { Severity } from "../../../../../_shared/ltp/dpia-deliverables/types.ts";
 
 /** Resolve a DPIA registry row, or null when the key is absent. */
 export function row(key: string) {

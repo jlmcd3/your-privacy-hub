@@ -24,7 +24,7 @@
 // have never been enumerated. `authority_exhibit` is new at the TOP level and
 // is allow-listed explicitly below (house pattern, matching governance).
 
-import type { ReportSchema } from "../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
 
 export const DPIA_REPORT_SCHEMA: ReportSchema = {
   version: "rs-dpia-w2-2026-08-05-item372",

@@ -7,9 +7,9 @@
  * the approved corpus (public.gdpr_articles, jurisdiction 'eu', Arts. 5, 24,
  * 30, 37, 38, 39). NOTHING is re-typed here.
  */
-import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../../_shared/registry/governance-verified-authorities.ts";
+import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../../../_shared/registry/governance-verified-authorities.ts";
 import { GOVERNANCE_ACCOUNTABILITY_AUTHORITIES } from "../../registry/governance-accountability-authorities.ts";
-import { requireVerified } from "../../../../_shared/verified-authority-resolver.ts";
+import { requireVerified } from "../../../../../_shared/verified-authority-resolver.ts";
 
 const MERGED = {
   ...GOVERNANCE_VERIFIED_AUTHORITIES,

@@ -27,8 +27,8 @@ import {
   toRegistrationReferencePassages,
   type RegistrationDutyRowLike,
 } from "../prose/registration-reference-passages.ts";
-import { attachCoverage, runCoverageMatrix, type CoverageTelemetry } from "../../../_shared/ltp/coverage-matrix.ts";
-import { attachProseLint, PROSE_LINT_VERSION, type ProseLintResult } from "../../../_shared/prose/assembled-prose-lint.ts";
+import { attachCoverage, runCoverageMatrix, type CoverageTelemetry } from "../../../../_shared/ltp/coverage-matrix.ts";
+import { attachProseLint, PROSE_LINT_VERSION, type ProseLintResult } from "../../../../_shared/prose/assembled-prose-lint.ts";
 
 export { REGISTRATION_PIPELINE_STAMP };
 

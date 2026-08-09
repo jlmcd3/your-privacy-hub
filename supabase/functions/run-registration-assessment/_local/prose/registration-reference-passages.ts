@@ -25,7 +25,7 @@ import {
   type PassageDrift,
   type PassageDriftReason,
   type ReferencePassage,
-} from "../../../_shared/prose/biometric-reference-passages.ts";
+} from "../../../../_shared/prose/biometric-reference-passages.ts";
 
 export const REGISTRATION_REFERENCE_PASSAGE_VERSION =
   "registration-reference-passages-2026-08-08-item413";

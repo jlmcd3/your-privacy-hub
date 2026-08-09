@@ -49,12 +49,12 @@
 // modules to a directory the batch functions bundle can fail specifier
 // resolution at deploy time; one new module per leg keeps the closure stable.
 
-import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../_shared/ltp/dpia-csc.ts";
+import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../../_shared/ltp/dpia-csc.ts";
 import {
   CYBER_ABSENCE_LABEL_PHRASINGS,
   isProtectedCyberString,
 } from "./cyber-prose-gold.ts";
-import { CYBER_CONTROL_SLUGS } from "../../../_shared/intake-contracts/cppa-cybersecurity.ts";
+import { CYBER_CONTROL_SLUGS } from "../../../../_shared/intake-contracts/cppa-cybersecurity.ts";
 
 export const CYBER_CSC_VERSION = "cyber-csc@item406-2026-08-07";
 

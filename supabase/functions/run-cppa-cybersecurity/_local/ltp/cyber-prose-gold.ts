@@ -33,7 +33,7 @@
 import {
   SCHEDULE_MARKER,
   RESOLVED_COHORT_MARKER,
-} from "../../../_shared/ltp/cyber-audit-schedule.ts";
+} from "../../../../_shared/ltp/cyber-audit-schedule.ts";
 import { CYBER_PIPELINE_STAMP } from "../prose/plans/cyber.spine.ts";
 
 export const CYBER_PROSE_GOLD_VERSION = "cyber-prose-gold-2026-08-07-item404";

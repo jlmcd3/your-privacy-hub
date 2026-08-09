@@ -12,7 +12,7 @@
  * submission_basis crosswalk clauses are already appended.
  */
 
-import { classifyRevenueBand } from "../../../_shared/cppa-test-states.ts";
+import { classifyRevenueBand } from "../../../../_shared/cppa-test-states.ts";
 
 export const COHORT_APPEND_STAMP = "ltp-cohort-append@2026-07-27T13:30:00Z";
 export const COHORT_APPEND_VERSION = "cohort-append-v1";

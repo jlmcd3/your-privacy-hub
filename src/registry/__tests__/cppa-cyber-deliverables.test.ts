@@ -18,7 +18,7 @@ import {
   CYBER_7122_CONDITIONS,
   CYBER_7123_COMPONENTS,
   CYBER_PROGRAM_OBLIGATIONS,
-} from "../../../supabase/functions/_shared/ltp/cppa-cyber-deliverables/components";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/components";
 import {
   attachCyberDeliverables,
   buildComponentCoverage,
@@ -28,7 +28,7 @@ import {
   buildMeanScoreAid,
   CYBER_AUDITOR_ENGAGEMENT_OPTIONS,
   readCyberFacts,
-} from "../../../supabase/functions/_shared/ltp/cppa-cyber-deliverables/build";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/build";
 import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-cyber";
 import {
   CYBER_AUDITOR_ENGAGEMENT_OPTIONS as CONTRACT_ENGAGEMENT_OPTIONS,

@@ -24,7 +24,7 @@
 // never touches `_meta` / `_staging`, and never invents a fact. Telemetry rides
 // `_meta.internal.bracket_tags`.
 
-import { INFO_NEEDED_LITERAL } from "../../../_shared/prose/frame-substitution.ts";
+import { INFO_NEEDED_LITERAL } from "../../../../_shared/prose/frame-substitution.ts";
 
 export const BRACKET_TAG_VERSION = "bracket-tags-2026-08-04-item372";
 

@@ -8,7 +8,7 @@
  * re-derived or re-typed here.
  */
 import { LIA_VERIFIED_AUTHORITIES } from "../../registry/lia-verified-authorities.ts";
-import { requireVerified } from "../../../../_shared/verified-authority-resolver.ts";
+import { requireVerified } from "../../../../../_shared/verified-authority-resolver.ts";
 
 /** Resolve an LIA registry row, or null when the key is absent. */
 export function row(key: string) {

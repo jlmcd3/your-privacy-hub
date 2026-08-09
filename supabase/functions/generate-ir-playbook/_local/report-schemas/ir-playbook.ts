@@ -20,7 +20,7 @@
 //
 // Fail-open serializer behaviour is unchanged.
 
-import type { ReportSchema } from "../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
 
 export const IR_STANDING_SECTION_KEYS: readonly string[] = [
   "kind",

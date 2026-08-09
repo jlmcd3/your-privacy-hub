@@ -54,7 +54,7 @@ import {
   type RefinementTelemetry,
   type CriticFinding,
   type SpliceResult,
-} from "../../../_shared/ltp/refinement-core.ts";
+} from "../../../../_shared/ltp/refinement-core.ts";
 import {
   BIOMETRIC_CRITIC_WATCHLIST,
   BIOMETRIC_VERIFIER_EXEMPLARS,

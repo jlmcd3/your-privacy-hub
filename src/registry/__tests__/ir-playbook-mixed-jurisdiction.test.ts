@@ -35,8 +35,8 @@ import {
   buildSaNotificationDetermination,
   buildTransferFraming,
   readIncidentFacts,
-} from "../../../supabase/functions/_shared/ltp/ir-playbook-deliverables/build";
-import { IR_PLAYBOOK_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/ir-playbook-verified-authorities";
+} from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build";
+import { IR_PLAYBOOK_VERIFIED_AUTHORITIES } from "../../../supabase/functions/generate-ir-playbook/_local/registry/ir-playbook-verified-authorities";
 import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/governance-verified-authorities";
 
 const baseIntake = {

@@ -25,7 +25,7 @@
 // structures (jurisdictions[], registration_deliverables) are wholly
 // customer-facing reasoned output, and pruning them would remove content.
 
-import type { ReportSchema } from "../../../_shared/report-serialize.ts";
+import type { ReportSchema } from "../../../../_shared/report-serialize.ts";
 
 export const REGISTRATION_REPORT_SCHEMA: ReportSchema = {
   version: "rs-registration-w2-2026-08-04",

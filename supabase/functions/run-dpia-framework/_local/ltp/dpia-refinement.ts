@@ -24,7 +24,7 @@ import {
   type RefinementTelemetry,
   type CriticFinding,
   type SpliceResult,
-} from "../../../_shared/ltp/refinement-core.ts";
+} from "../../../../_shared/ltp/refinement-core.ts";
 
 export {
   MAX_SPLICES,
@@ -34,7 +34,7 @@ export {
   parseJsonLoose,
   buildCriticUser,
   buildVerifierUser,
-} from "../../../_shared/ltp/refinement-core.ts";
+} from "../../../../_shared/ltp/refinement-core.ts";
 export type {
   CriticFinding,
   StructuralFinding,
@@ -45,7 +45,7 @@ export type {
   RefinementDeps,
   SpliceResult,
   PathSeg,
-} from "../../../_shared/ltp/refinement-core.ts";
+} from "../../../../_shared/ltp/refinement-core.ts";
 
 export const DPIA_REFINEMENT_VERSION = "refine-2026-08-05-item377-v1.1";
 

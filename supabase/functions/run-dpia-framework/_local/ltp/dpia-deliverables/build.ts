@@ -22,7 +22,7 @@ import type {
   ProportionalityFinding,
   RiskBand,
   RiskRegisterEntry,
-} from "../../../../_shared/ltp/dpia-deliverables/types.ts";
+} from "../../../../../_shared/ltp/dpia-deliverables/types.ts";
 
 export const DPIA_DELIVERABLES_VERSION =
   "dpia-analytic-deliverables-2026-08-01-wp248";

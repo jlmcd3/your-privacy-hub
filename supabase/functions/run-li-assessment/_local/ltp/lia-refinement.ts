@@ -33,7 +33,7 @@ import {
   type RefinementTelemetry,
   type CriticFinding,
   type SpliceResult,
-} from "../../../_shared/ltp/refinement-core.ts";
+} from "../../../../_shared/ltp/refinement-core.ts";
 import {
   LIA_CRITIC_WATCHLIST,
   LIA_VERIFIER_EXEMPLARS,

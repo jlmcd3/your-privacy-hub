@@ -30,7 +30,7 @@ import { GOVERNANCE_PIPELINE_STAMP } from "../prose/plans/governance.spine.ts";
 import {
   attachReadinessDetermination,
   readinessLine as readinessLineFromTypedField,
-} from "../../../_shared/ltp/governance-readiness.ts";
+} from "../../../../_shared/ltp/governance-readiness.ts";
 
 export const GOVERNANCE_PROSE_GOLD_VERSION = "governance-prose-gold@item402-2026-08-07";
 
