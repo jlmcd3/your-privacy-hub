@@ -11,18 +11,7 @@ import { buildEuQuestionSections } from "@/data/eu-notice-questions";
 import { ROPA_QUESTION_REGISTRY } from "@/data/ropa-questions";
 import { EU_PREFILL_RULES, US_PREFILL_RULES } from "@/data/notice-prefill";
 
-const US_STATES = [
-  "US_CA",
-  "US_VA",
-  "US_CO",
-  "US_CT",
-  "US_TX",
-  "US_MD",
-  "US_FL",
-  "US_OR",
-  "US_MT",
-  "US_UT",
-];
+const US_STATES = ["CA", "VA", "CO", "CT", "TX", "MD", "FL", "OR", "MT", "UT"];
 
 type Q = {
   key: string;
