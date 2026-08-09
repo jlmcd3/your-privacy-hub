@@ -40,6 +40,10 @@ import {
 
 // ITEM 384 (G-3) — counsel-register helpers for reserved-judgment actions.
 import { reservedActionLabel, ownerSentence, sentenceTerminate } from "../risk-prose-gold.ts";
+// ITEM 421 — typed priority-action emission (one home per fact).
+import { buildRiskActionRecord } from "../risk-action-records.ts";
+import type { ActionRecord } from "../../report-contracts/action-record.ts";
+
 
 export { secondaryRecommendation };
 
