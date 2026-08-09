@@ -57,6 +57,10 @@ import { computeRecordNeeds } from "./section-composers/cppa-risk.ts";
 // ITEM 378 (CORRECTION) — refinement + CSC + stamp on the ROUTED LTP path.
 import { RISK_PIPELINE_STAMP } from "./risk-stamp.ts";
 import { attachRiskCsc } from "./risk-csc.ts";
+import {
+  normalizeRiskExceptions,
+  RISK_EXCEPTIONS_CONTRACT_VERSION,
+} from "../report-contracts/risk-exceptions.ts";
 import { RISK_REFINEMENT_CONFIG, runRiskRefinement } from "./risk-refinement.ts";
 import { emptyTelemetryFor, type RefinementDeps, type RefinementTelemetry } from "./refinement-core.ts";
 // ITEM 379 — bidirectional coverage matrix + soft release ledger.
@@ -257,6 +261,22 @@ export function finalizeCppaRiskPayload(
     internal.risk_refinement = extras?.refinement ??
       emptyTelemetryFor(RISK_REFINEMENT_CONFIG, false, "refinement_not_invoked");
   } catch { /* non-fatal */ }
+
+  // (1b) ITEM 426 — `exception_analysis` CANONICAL EMISSION. LAW 3 SINGLE
+  // WRITE SITE for the SHAPE of that surface: claimed exceptions become
+  // nine-leaf records with REGISTRY-RESOLVED pinpoints, an explicit-none
+  // record gets the one honest sentence, and a record that never reached the
+  // exceptions question loses the key entirely (the empty-array padding the
+  // wild documents carry ends here). Runs BEFORE the CSC so r2 reads the
+  // typed shape.
+  try {
+    const exSummary = normalizeRiskExceptions(report, rawIntake);
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_exceptions = { version: RISK_EXCEPTIONS_CONTRACT_VERSION, ...exSummary };
+  } catch (e) {
+    console.warn("[generate-cppa-risk] exception normalize failed (non-fatal):", (e as Error)?.message);
+  }
 
   // (2) CSC — deterministic post-pass, after refinement, before persist.
   try {

@@ -793,7 +793,9 @@ export function buildTypeJWriteAroundBody(input: {
       { question: "Items for your review — please resubmit; the automated pass could not complete." },
     ],
     record_sufficiency: [],
-    exception_analysis: [],
+    // ITEM 426 (anti-padding) — `exception_analysis` is NOT stubbed here. A
+    // reserved-judgment document claims no exception and reached no exceptions
+    // question; the key is OMITTED rather than padded with an empty array.
     // ITEM 290 — "scope_confirmation" retired; no empty stub is emitted.
     scope_and_triggers: {},
     risk_assessment_by_activity: [],
