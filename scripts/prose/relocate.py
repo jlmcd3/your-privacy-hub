@@ -26,7 +26,7 @@ def all_code_files():
                 yield os.path.join(base, f)
 
 
-def main(plan_path):
+def main(plan_path, move=True):
     moves = {}
     for line in open(plan_path):
         line = line.strip()
@@ -36,13 +36,33 @@ def main(plan_path):
         moves[os.path.join(ROOT, src)] = os.path.join(ROOT, dst)
 
     # New location of any file (moved or not).
+    #
+    # GUARD (item 402-C-3-FIX): a specifier may be EXTENSION-LESS (the
+    # frontend convention: "…/governance-deliverables/elements"). Such a
+    # specifier resolves to a path that is not itself a move key — only
+    # `<path>.ts` is — so the naive `moves.get(p, p)` returned the path
+    # unchanged and the import was silently left pointing at the old
+    # location. Resolve through the same extension/index candidates the
+    # guard below uses, and hand back a path in the SAME shape (extension-
+    # less in, extension-less out) so the emitted specifier keeps the
+    # project's convention.
     def newloc(p):
-        return moves.get(p, p)
+        if p in moves:
+            return moves[p]
+        for ext in CODE_EXT:
+            if p + ext in moves:
+                return moves[p + ext][: -len(ext)]
+        idx = os.path.join(p, "index.ts")
+        if idx in moves:
+            return os.path.dirname(moves[idx])
+        return p
 
     # Move files on disk first so path math is done on the plan, not the disk.
-    for src, dst in moves.items():
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        os.replace(src, dst)
+    if move:
+        for src, dst in moves.items():
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            os.replace(src, dst)
+
 
     changed = 0
     for f in all_code_files():
