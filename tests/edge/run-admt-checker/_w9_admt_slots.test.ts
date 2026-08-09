@@ -39,12 +39,27 @@ Deno.test("applicability: insufficient_basis on null drivers", () => {
 });
 
 Deno.test("deadline_table sources from registry (>=3 rows, each stamped)", () => {
+  // ITEM 422-C DEFECT 3 — amended. Rows whose verified pinpoint falls OUTSIDE
+  // the ADMT range (§ 7001, §§ 7150-7157, §§ 7200-7222) withhold the pinpoint
+  // and are stamped citation_withheld_reason instead. Every OTHER row must
+  // still carry subsection + verbatim.
   const rows = buildDeadlineTable({}, {});
   assert(rows.length >= 3);
   for (const r of rows) {
+    if (r.citation_withheld_reason === "out_of_verified_admt_range") {
+      assertEquals(r.subsection, "");
+      assertEquals(r.verbatim_quote, "");
+      assertEquals(r.information_needed, true);
+      assert(r.compliance_deadline.length > 0, "withheld row lost its duty");
+      continue;
+    }
     assert(r.subsection.length > 0, `subsection empty for ${r.proposition_key}`);
     assert(r.verbatim_quote.length > 0, `verbatim missing for ${r.proposition_key}`);
   }
+  assert(
+    rows.some((r) => r.subsection.length > 0),
+    "no in-range row survived",
+  );
 });
 
 Deno.test("adequacy: A-B qualifies with all three Yes", () => {

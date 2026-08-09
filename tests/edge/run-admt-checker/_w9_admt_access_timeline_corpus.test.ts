@@ -57,37 +57,35 @@ Deno.test("access_timeline: corpus-pin — verbatim_quote is byte-identical subs
   );
 });
 
-Deno.test("BEFORE-FIXTURE (doc-d98f46e3 / quality_run 991b2fda): access_timeline row now emits subsection + verbatim quote, information_needed=false", () => {
-  // Before this turn, the deadline_table row for pk 'access_timeline' shipped
-  // with subsection="", verbatim_quote="", information_needed=true — this is
-  // the exact shape seen in doc-d98f46e3 (quality_run 991b2fda) that drove
-  // the "45-day timeline written around" HIGH finding. After the registry
-  // entry lands, the builder MUST populate subsection + verbatim and drop
-  // information_needed to false.
+Deno.test("ITEM 422-C: access_timeline duty survives, out-of-range § 7021(b) pinpoint is withheld", () => {
+  // AMENDED BY ITEM 422-C DEFECT 3. The registry row stays corpus-verified,
+  // but § 7021 sits in Article 3 — outside the ADMT pinpoint range — so the
+  // emitted row states the 45-day duty and withholds the section number
+  // rather than shipping an out-of-range citation to the customer.
   const rows = buildDeadlineTable({}, {});
-  const r = rows.find((x) => x.proposition_key === "access_timeline");
+  const r = rows.find((x) => x.obligation.includes("access-right response timeline"));
   assert(r, "access_timeline row missing from deadline_table");
-  assertEquals(r!.subsection, "11 CCR § 7021(b)");
-  assert(r!.verbatim_quote.length > 0, "verbatim_quote still empty");
-  assert(
-    r!.verbatim_quote.includes("45 calendar days"),
-    "verbatim_quote does not carry the 45-day text",
-  );
-  assertEquals(r!.information_needed, false);
+  assert(r!.compliance_deadline.includes("45 calendar days"), "the 45-day duty was lost");
+  assertEquals(r!.subsection, "");
+  assertEquals(r!.verbatim_quote, "");
+  assertEquals(r!.proposition_key, "");
+  assertEquals(r!.information_needed, true);
+  assertEquals(r!.citation_withheld_reason, "out_of_verified_admt_range");
 });
 
-Deno.test("BEFORE-FIXTURE: no deadline_table row carries information_needed=true (red slots test flips green)", () => {
-  const rows = buildDeadlineTable({}, {});
-  const stillPending = rows.filter((r) => r.information_needed === true);
-  assertEquals(stillPending, [], "unexpected information_needed rows in deadline_table");
-});
-
-Deno.test("BEFORE-FIXTURE: all deadline_table rows carry subsection + verbatim (mirrors _w9_admt_slots.test.ts red assertion)", () => {
+Deno.test("ITEM 422-C: every deadline_table row is either fully stamped or explicitly withheld", () => {
   const rows = buildDeadlineTable({}, {});
   assert(rows.length >= 3);
   for (const r of rows) {
-    assert(r.subsection.length > 0, `subsection empty for ${r.proposition_key}`);
-    assert(r.verbatim_quote.length > 0, `verbatim missing for ${r.proposition_key}`);
+    const withheld = r.citation_withheld_reason === "out_of_verified_admt_range";
+    if (withheld) {
+      assertEquals(r.subsection, "");
+      assertEquals(r.verbatim_quote, "");
+    } else {
+      assert(r.subsection.length > 0, `subsection empty for ${r.proposition_key}`);
+      assert(r.verbatim_quote.length > 0, `verbatim missing for ${r.proposition_key}`);
+      assertEquals(r.information_needed, false);
+    }
   }
 });
 
