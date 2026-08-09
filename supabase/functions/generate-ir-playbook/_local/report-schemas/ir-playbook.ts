@@ -1,5 +1,5 @@
 // LEAK-PREV-P2 — IR Playbook (generate-ir-playbook) customer-report schema.
-// Version: rs-ir-w2-2026-08-04 (IN-LINEAGE bump from rs-ir-w1-2026-07-25)
+// Version: rs-ir-w3-2026-08-09 (IN-LINEAGE bump from rs-ir-w1-2026-07-25)
 //
 // Top-level allow-list derived from generate-ir-playbook/index.ts
 // `report_data` construction. `_meta.internal` is preserved verbatim by the
@@ -55,7 +55,7 @@ export const IR_WORKSHEET_FORM_KEYS: readonly string[] = [
 ];
 
 export const IR_PLAYBOOK_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-ir-w2-2026-08-04",
+  version: "rs-ir-w3-2026-08-09",
   tool: "ir_playbook",
   topLevel: [
     // Core IR payload
@@ -96,6 +96,9 @@ export const IR_PLAYBOOK_REPORT_SCHEMA: ReportSchema = {
       "section_order",
       "sections",
       "information_needed",
+      // ITEM 414 (IR-1) — the single unrecorded-section ledger. Present only
+      // where the record leaves a section incomplete.
+      "unrecorded_ledger",
       "status",
     ],
     incident_worksheet: ["version", "artifact", "title", "blank_by_design", "forms"],

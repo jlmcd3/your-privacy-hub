@@ -247,7 +247,9 @@ export function applyIrProseGold(
       const src = value as Record<string, unknown>;
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(src)) {
-        out[k] = isProtectedIrKey(k) && typeof v === "string" ? v : walk(v, k, `${path}.${k}`);
+        // Protected keys are copied whole: determination machinery, corpus
+        // bytes and telemetry buckets are never rewritten by the register.
+        out[k] = isProtectedIrKey(k) ? v : walk(v, k, `${path}.${k}`);
       }
       return out;
     }
