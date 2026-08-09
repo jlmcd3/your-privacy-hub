@@ -27,6 +27,14 @@ function assembleLiaReport(intake: Record<string, unknown>): Record<string, unkn
     },
     ...core,
     ...up4,
+    // `three_part_test.balancing_test` is LLM-authored on the live path and is
+    // not emitted by the deterministic builders — hand-assembled here per the
+    // deviation note above.
+    three_part_test: {
+      balancing_test:
+        "The interest in preventing payment fraud outweighs the limited intrusion on customers, " +
+        "whose orders are scored only at checkout and who may ask for a human review.",
+    },
     benefit_and_beneficiary: {
       benefit: "Fraud losses are reduced and legitimate orders are released faster.",
       beneficiary: "Ravensmoor Cycles Ltd and its customers, who see fewer wrongful order holds.",
