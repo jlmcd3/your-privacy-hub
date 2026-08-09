@@ -71,7 +71,7 @@ not a drop-in swap. The flip item must decide the fate of
 
 | File | Role |
 | --- | --- |
-| `supabase/functions/generate-report-pdf/_local/report-contracts/cppa-risk-prose9.ts` | v2 envelope, `CPPA_RISK_PROSE9_SHAPE_VERSION`, `hasProse9Document`, `applyProse9Mapping` |
+| `supabase/functions/_shared/report-contracts/cppa-risk-prose9.ts` | v2 envelope, `CPPA_RISK_PROSE9_SHAPE_VERSION`, `hasProse9Document`, `applyProse9Mapping` |
 | `supabase/functions/_shared/ltp/generate-cppa-risk-item363-preview.ts` | `generateCppaRiskReportItem363Preview` — **not reachable from any route, cron or webhook**. Reuses the live `generateCppaRiskReport` for the baseline payload and the existing analytics/needs/EU-corpus call sites (REUSE LAW), then composes + renders the nine sections. |
 | `supabase/functions/generate-report-pdf/prose9-html.ts` | Prose-9 PDF renderer, extracted so the proof harness exercises the exporter's real code |
 | `supabase/functions/generate-report-pdf/index.ts` | Dispatch branch on `hasProse9Document`, ahead of `isLtpRiskShape` |

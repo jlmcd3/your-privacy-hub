@@ -87,7 +87,7 @@ Both zero — deploy window green (well before 15:15Z guard).
 ## 5. Files touched (atomic)
 
 - **NEW** `supabase/functions/generate-ir-playbook/_w1_ir_wire.ts`
-- **NEW** `supabase/functions/generate-ir-playbook/_local/report-schemas/ir-playbook.ts`
+- **NEW** `supabase/functions/_shared/report-schemas/ir-playbook.ts`
 - **NEW** `supabase/functions/_tests/w1-ir-wire.test.ts`
 - **MOD** `supabase/functions/_shared/emit-gate.ts` — union += `"ir_playbook"`
 - **MOD** `supabase/functions/_shared/customer-messages.ts` — irPlaybookContract import + labels + KNOWN_INTAKE_KEYS extension

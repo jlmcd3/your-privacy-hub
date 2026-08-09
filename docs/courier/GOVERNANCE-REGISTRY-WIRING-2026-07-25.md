@@ -26,7 +26,7 @@
    - `EmitGateTool` union extended with `"governance_assessment"`.
    - Wired in `run-governance-assessment/index.ts` AFTER wire post-pass and BEFORE P2 serializer.
 
-4. **LEAK-PREV P2 — whitelist serializer** — `supabase/functions/run-governance-assessment/_local/report-schemas/governance.ts`:
+4. **LEAK-PREV P2 — whitelist serializer** — `supabase/functions/_shared/report-schemas/governance.ts`:
    - New `GOVERNANCE_REPORT_SCHEMA` (id `rs-governance-w1-2026-07-25`, tool `governance_assessment`).
    - Top-level allow-list covers: assembly slots (executive_summary, top_risks, recommended_actions, top_recommendations, regulatory_hot_topics, domain_scores, domain_findings, overall_readiness_rating, readiness_rationale, interaction_effects, dpia_scope), metadata (framework_disclaimer, disclaimer, governance_metadata, jurisdiction_validation, gdpr_meta), cross-cutting arrays (annotations, information_needed, open_items, has_unresolved_placeholders, lint_warnings, deterministic_checks, citation_ledger, completion_guidance, fsor_commentary), engagement_map, enforcement_* trio, ids/timestamps (governance_id, assessment_id, generated_at, prompt_version, build_stamp), `_meta`, `_revision`.
    - Nested pruning intentionally omitted (per DPIA precedent — wide/evolving section shapes).

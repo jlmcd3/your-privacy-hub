@@ -10,7 +10,7 @@
 
 ## 1. Files touched (only)
 
-- `supabase/functions/generate-ir-playbook/_local/registry/ir-playbook-verified-authorities.ts` — new; data-only; imported NOWHERE this turn.
+- `supabase/functions/_shared/registry/ir-playbook-verified-authorities.ts` — new; data-only; imported NOWHERE this turn.
 - `supabase/functions/_tests/ir-registry.test.ts` — new; live-corpus pin-tests.
 - `docs/courier/IR-REGISTRY-AUTHORING-2026-07-25.md` — this file.
 - `docs/pipeline-state.md` — ledger item 59 appended + header restamp.

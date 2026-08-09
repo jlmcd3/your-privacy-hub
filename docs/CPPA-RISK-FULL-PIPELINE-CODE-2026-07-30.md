@@ -51,8 +51,8 @@ A cppa-risk assessment begins as an **intake** submission validated against the 
 - `supabase/functions/_shared/ltp/replay/gtm-materiality-register.ts`
 - `supabase/functions/_shared/ltp/replay/presence-band.ts`
 - `supabase/functions/_shared/ltp/replay/providers.ts`
-- `supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/side-by-side.ts`
-- `supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/substance-gates.ts`
+- `supabase/functions/_shared/ltp/replay/side-by-side.ts`
+- `supabase/functions/_shared/ltp/replay/substance-gates.ts`
 - `supabase/functions/_shared/ltp/replay/types.ts`
 - `supabase/functions/_shared/ltp/retry-budget.ts` — not imported by the harness at HEAD (Pass-2R retry accounting lives inline in pass2r-llm.ts); included as dispatched
 - `supabase/functions/_shared/ltp/section-composers/cppa-risk.ts`
@@ -12088,7 +12088,7 @@ const _modelProviderConformsToPass1Provider: Pass1Provider = modelProvider;
 void _modelProviderConformsToPass1Provider;
 ```
 
-## supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/side-by-side.ts
+## supabase/functions/_shared/ltp/replay/side-by-side.ts
 
 ```ts
 /**
@@ -12134,7 +12134,7 @@ export function compareDoc(
 }
 ```
 
-## supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/substance-gates.ts
+## supabase/functions/_shared/ltp/replay/substance-gates.ts
 
 ```ts
 /**

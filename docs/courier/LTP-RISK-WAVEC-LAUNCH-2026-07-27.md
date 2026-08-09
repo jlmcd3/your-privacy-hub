@@ -8,7 +8,7 @@
 ## Fixes
 
 ### (1) Token-substitution truncation guard
-`supabase/functions/run-cppa-risk-assessment/_local/ltp/waveb2-closure.ts` — scans narrative strings for
+`supabase/functions/_shared/ltp/waveb2-closure.ts` — scans narrative strings for
 citation fragments truncated mid-token (patterns: `§…`, `(pinpoint)…`,
 `\d[\d.]*\(pinpoint\)…`). Drops the containing sentence when detected.
 Truncation may never split a substituted citation span.
@@ -82,7 +82,7 @@ ok | 8 passed | 0 failed
 
 ## Files touched
 
-- `supabase/functions/run-cppa-risk-assessment/_local/ltp/waveb2-closure.ts` (NEW)
+- `supabase/functions/_shared/ltp/waveb2-closure.ts` (NEW)
 - `supabase/functions/_shared/ltp/waveb-completion.ts` (b2A tightening)
 - `supabase/functions/run-cppa-risk-assessment/_w9_risk_slots.ts`
   (attestation § 7157 anchor + validator)

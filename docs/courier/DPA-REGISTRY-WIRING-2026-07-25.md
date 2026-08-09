@@ -11,7 +11,7 @@
 ## Files touched (this turn only)
 
 1. NEW `supabase/functions/generate-dpa/_w1_dpa_wire.ts` — `applyW1DpaWire` deterministic post-pass; `W1_DPA_WIRE_STAMP = "w1-dpa-wire@2026-07-25T14:18:00Z"`. Walks report tree; for anchorable propositions resolves `proposition_key` against `DPA_VERIFIED_AUTHORITIES` (byte-exact verbatim + pinpoint from registry, never invented); for the 39 unanchored keys applies write-around (customer prose written around the gap, no "information needed" in customer output for citation-resolution gaps). Telemetry lands under `_meta.internal.dpa_w1` only. RESERVED subtrees skipped; anchor keys never mutated; fail-open.
-2. NEW `supabase/functions/generate-dpa/_local/report-schemas/dpa.ts` — `DPA_REPORT_SCHEMA` (id `rs-dpa-w1-2026-07-25`, top-level whitelist only).
+2. NEW `supabase/functions/_shared/report-schemas/dpa.ts` — `DPA_REPORT_SCHEMA` (id `rs-dpa-w1-2026-07-25`, top-level whitelist only).
 3. EDIT `supabase/functions/_shared/emit-gate.ts` — `EmitGateTool` union += `"dpa"`.
 4. EDIT `supabase/functions/_shared/customer-messages.ts` — `FIELD_LABELS` += 14 DPA-specific labels; `KNOWN_INTAKE_KEYS` += `dpaGeneratorContract` fields.
 5. EDIT `supabase/functions/generate-dpa/index.ts` — BUILD_STAMP bump + boot echo incl. `dpa_va_registry_loaded`; import + apply `applyW1DpaWire` → `runEmitGate({tool:"dpa"})` → `serializeCustomerReport(..., DPA_REPORT_SCHEMA)` inserted at the same pipeline position as governance (after deterministic checks / before terminal write) on both primary and repair paths. Stamp-echo whitelist entry preserves `_meta.internal.dpa_w1.stamp` through the P2 serializer.

@@ -10,7 +10,7 @@
 Deterministic post-emitter repair module for the 7 emitter-mechanical defect classes flagged by wave-26. The model NEVER writes/edits the opening or its neighbours; all fixes are detect-and-omit or registry-relabel. Whole-sentence excision doctrine (ledger item 84c) applied to every sentence-level scrub.
 
 ## Files (atomic single commit)
-- `supabase/functions/run-cppa-risk-assessment/_local/openings/_t7_risk_pilotfix.ts` (new)
+- `supabase/functions/_shared/openings/_t7_risk_pilotfix.ts` (new)
 - `supabase/functions/_shared/openings/_t7_risk_pilotfix.test.ts` (new)
 - `supabase/functions/run-cppa-risk-assessment/index.ts` (BUILD_STAMP bump + seam wire, ~30 lines)
 - `docs/courier/T7-RISK-PILOT-FIX-2026-07-25.md` (this file)

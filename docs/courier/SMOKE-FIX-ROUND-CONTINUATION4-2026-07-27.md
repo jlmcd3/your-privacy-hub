@@ -100,7 +100,7 @@ Landed as one consolidated deploy of `run-cppa-risk-assessment` + `quality-batch
 
 - `supabase/functions/_shared/quality/seed-row.ts` (pin-slice cap)
 - `supabase/functions/run-quality-batch/index.ts` (overshoot slice arm)
-- `supabase/functions/run-cppa-risk-assessment/_local/ltp/cohort-append.ts` (NEW)
+- `supabase/functions/_shared/ltp/cohort-append.ts` (NEW)
 - `supabase/functions/_shared/ltp/cohort-append.test.ts` (NEW)
 - `supabase/functions/_shared/ltp/renderer-181.ts` (NEW)
 - `supabase/functions/_shared/ltp/renderer-181.test.ts` (NEW)
