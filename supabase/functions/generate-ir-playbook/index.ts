@@ -1899,33 +1899,51 @@ let playbook_text = lint.clean;
         // duration of the pass (so the critic sees what the reader sees and the
         // splicer can reach the one monolith leaf), then detached. `_meta`
         // never reaches the critic — the core strips it.
+        //
+        // ITEM 417-B — BUDGET-AWARE. The pass is checked against the isolate
+        // clock (started at function entry) BEFORE the pre-coverage build and
+        // before the critic call, and again before the verifier call inside
+        // the pass. When the remaining budget cannot carry it, the pass is
+        // SKIPPED fail-open with full telemetry accounting
+        // (`_refinement.skipped_reason`) — the deterministic battery, the
+        // fail-closed gate and the persist all still run.
         try {
-          const { runIrRefinement } = await import("./_local/ltp/ir-refinement.ts");
+          const { runIrRefinement, irSkippedTelemetry } = await import("./_local/ltp/ir-refinement.ts");
           const { makeIrRefinementDeps, IR_REFINEMENT_ENABLED } = await import(
             "./_local/ltp/ir-refinement-deps.ts"
           );
-          const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
-            "../_shared/ltp/coverage-matrix.ts"
+          const { irCriticInputChars, irRefinementAffordable } = await import(
+            "./_local/ltp/ir-time-budget.ts"
           );
           // The FULL RECORD — the request body, exactly as the leg-C CSC and
           // coverage passes and the leg-B gate use it (the item385 r2 lesson).
           const refineIntake = ((body ?? {}) as unknown) as Record<string, unknown>;
           const refineDoc = report_data as Record<string, unknown>;
           refineDoc.playbook_text = playbook_text;
-          const preCoverage = runCoverageMatrix("ir-playbook", refineDoc, refineIntake);
           // RESURRECTION-BUG CLASS — the generation model is resolved HERE,
           // inside the request context, and carried explicitly into the deps.
           const refineModel = currentGenerationModel();
-          const refineTel = await runIrRefinement(
-            refineDoc,
-            refineIntake,
-            makeIrRefinementDeps(body.assessment_id ?? currentSourceRowId() ?? null, refineModel),
-            {
-              enabled: IR_REFINEMENT_ENABLED,
-              coverageList: coverageListForCritic(preCoverage),
-              coverageAnchors: coverageAnchorTokens(preCoverage),
-            },
-          );
+          const affordable = irRefinementAffordable(irBudget, irCriticInputChars(refineDoc));
+          let refineTel;
+          if (!affordable.ok) {
+            refineTel = irSkippedTelemetry(affordable.reason ?? "time_budget", affordable);
+          } else {
+            const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+              "../_shared/ltp/coverage-matrix.ts"
+            );
+            const preCoverage = runCoverageMatrix("ir-playbook", refineDoc, refineIntake);
+            refineTel = await runIrRefinement(
+              refineDoc,
+              refineIntake,
+              makeIrRefinementDeps(body.assessment_id ?? currentSourceRowId() ?? null, refineModel),
+              {
+                enabled: IR_REFINEMENT_ENABLED,
+                coverageList: coverageListForCritic(preCoverage),
+                coverageAnchors: coverageAnchorTokens(preCoverage),
+                budget: irBudget,
+              },
+            );
+          }
           playbook_text = typeof refineDoc.playbook_text === "string"
             ? refineDoc.playbook_text
             : playbook_text;
