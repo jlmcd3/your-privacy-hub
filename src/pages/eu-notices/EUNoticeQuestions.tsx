@@ -261,7 +261,7 @@ export default function EUNoticeQuestions() {
 
             <Input value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" />
           )}
-          {currentQ.type === "text_long" && (
+          {!proposal && currentQ.type === "text_long" && (
             <>
               {["third_party_recipients"].includes(currentQ.key) ? (
                 <ExhibitTextarea value={(value as string) ?? ""} onChange={(v) => saveAnswer(currentQ, v)} placeholder="Your answer" rows={4} />
@@ -271,7 +271,7 @@ export default function EUNoticeQuestions() {
               <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
             </>
           )}
-          {(currentQ.type === "yes_no" || currentQ.type === "yes_no_unsure") && (
+          {!proposal && (currentQ.type === "yes_no" || currentQ.type === "yes_no_unsure") && (
             <RadioGroup value={(value as string) ?? ""} onValueChange={(v) => saveAnswer(currentQ, v)}>
               <div className="flex items-center gap-2 py-1">
                 <RadioGroupItem value="yes" id={`${currentQ.key}-yes`} />
@@ -286,7 +286,7 @@ export default function EUNoticeQuestions() {
                   answers render unselected (no matching RadioGroupItem). */}
             </RadioGroup>
           )}
-          {currentQ.type === "single_choice" && currentQ.options && (
+          {!proposal && currentQ.type === "single_choice" && currentQ.options && (
             <RadioGroup value={(value as string) ?? ""} onValueChange={(v) => saveAnswer(currentQ, v)}>
               {currentQ.options.map((opt) => (
                 <div key={opt.value} className="flex items-center gap-2 py-1">
@@ -296,7 +296,7 @@ export default function EUNoticeQuestions() {
               ))}
             </RadioGroup>
           )}
-          {currentQ.type === "multi_choice" && currentQ.options && (
+          {!proposal && currentQ.type === "multi_choice" && currentQ.options && (
             <div className="space-y-1.5">
               {currentQ.options.map((opt) => {
                 const arr = Array.isArray(value) ? value : [];
