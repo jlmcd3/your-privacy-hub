@@ -32,6 +32,7 @@ import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2
 import { resolveLtpIntake } from "../../../../supabase/functions/_shared/ltp/entry-intake.ts";
 import { computeRecordNeeds } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
 import { runEmitGate } from "../../../../supabase/functions/_shared/emit-gate.ts";
+import { coerceSufficiencyView } from "../../../../supabase/functions/_shared/report-contracts/risk-sufficiency.ts";
 
 const DIR = new URL("../../fixtures/item350/", import.meta.url);
 const FIXTURES = ["perfect-a073d9c5", "messy-bd458f0d"] as const;
@@ -137,7 +138,7 @@ for (const name of FIXTURES) {
 
   Deno.test(`ITEM352 (b2) the stated gap COUNT equals the enumerated items (${name})`, async () => {
     const report = assembled(await planFor(name));
-    const text = asText(report.record_sufficiency);
+    const text = sufficiencyVoice(report);
     const m = text.match(/;\s*(\d+)\s+of these elements remain enumerated for your review/i);
     assert(m, "sufficiency opener must state a gap count");
     assertEquals(Number(m![1]), enumeratedMissing(report).length);
