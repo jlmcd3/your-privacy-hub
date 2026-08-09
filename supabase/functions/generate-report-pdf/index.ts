@@ -20,6 +20,12 @@ import {
   renderPriorityActionsOrderedHtml,
 } from "./_local/priority-actions-html.ts";
 import { coerceActionList, sortByRank } from "../_shared/report-contracts/action-record.ts";
+// ITEM 425 — dual-read (string | string[] | legacy object | typed record)
+// record-sufficiency rendering. `coerceNarrativeList` is untouched.
+import {
+  renderRecordSufficiencySectionHtml,
+  RECORD_SUFFICIENCY_TABLE_CSS,
+} from "./_local/record-sufficiency-html.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
 // ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the
@@ -1515,7 +1521,6 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   const strengthen = coerceNarrativeList(report.strengthen_items);
   const exceptions = coerceNarrativeList(report.exception_analysis);
   const infoNeeded = coerceNarrativeList(report.information_needed);
-  const recordSuf = coerceNarrativeList(report.record_sufficiency);
   const generatedDate = new Date(record?.created_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -1551,6 +1556,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
   .muted { color:var(--muted); font-size:10px; }
   blockquote { border-left:2px solid var(--border); margin:4px 0 4px 10px; padding-left:10px; color:var(--muted); font-size:10px; }
   ${AUTHORITY_EXHIBIT_CSS}
+  ${RECORD_SUFFICIENCY_TABLE_CSS}
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
@@ -1578,7 +1584,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
     ${listSection("next_steps", "Next Steps", nextSteps)}
     ${listSection("strengthen_items", "What Would Strengthen the Record", strengthen)}
     ${listSection("information_needed", "Items for Your Review", infoNeeded)}
-    ${listSection("record_sufficiency", "Record Sufficiency", recordSuf)}
+    ${renderRecordSufficiencySectionHtml(report)}
     ${submission ? `<section><h2>${text(headerForSection("submission_summary", "Submission Summary"))}</h2>${para(submission)}</section>` : ""}
     ${buildCPPARiskAttestationHTML(report)}
     ${renderAuthorityExhibitHtml(report?.authority_exhibit)}
@@ -2136,6 +2142,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .determination { border:1px solid var(--border); border-left:4px solid var(--navy); border-radius:0 10px 10px 0; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
   .determination .verdict { font-weight:700; color:var(--navy); }
   ${AUTHORITY_EXHIBIT_CSS}
+  ${RECORD_SUFFICIENCY_TABLE_CSS}
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
@@ -2342,6 +2349,7 @@ function buildADMTReportHTML(report: any, record: any): string {
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
   ${AUTHORITY_EXHIBIT_CSS}
+  ${RECORD_SUFFICIENCY_TABLE_CSS}
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
