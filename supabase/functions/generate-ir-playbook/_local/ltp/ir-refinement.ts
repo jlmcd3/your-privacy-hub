@@ -470,17 +470,48 @@ function emptyLeafGuard(): { count: number; items: IrLeafGuardRejection[] } {
   return { count: 0, items: [] };
 }
 
+/** ITEM 417-B — the IR-local run options: core options plus the time budget. */
+export interface IrRefinementRunOptions extends RefinementRunOptions {
+  /** The isolate budget, started at FUNCTION ENTRY. Omitted ⇒ a fresh budget. */
+  budget?: IrTimeBudget;
+}
+
+/** A fully-accounted telemetry record for a pass that never started. */
+export function irSkippedTelemetry(
+  reason: string,
+  verdict: IrBudgetVerdict | null,
+  monolithPaths: string[] = [...IR_MONOLITH_LEAF_PATHS],
+): IrRefinementTelemetry {
+  const t = emptyTelemetryFor(IR_REFINEMENT_CONFIG, true) as IrRefinementTelemetry;
+  t.leaf_guard_rejected = emptyLeafGuard();
+  t.span_spliced_paths = [];
+  t.monolith_paths_detected = monolithPaths;
+  t.artifact_pass_mode = "single_pass_over_persisted_record";
+  t.skipped_reason = reason;
+  t.time_budget = verdict;
+  return t;
+}
+
 export async function runIrRefinement(
   report: Record<string, unknown>,
   intake: Record<string, unknown>,
   deps: RefinementDeps,
-  opts: RefinementRunOptions = {},
+  opts: IrRefinementRunOptions = {},
 ): Promise<IrRefinementTelemetry> {
   // The monolith set: the enumerated contract ∪ anything the dynamic arm sees.
   const monolithPaths = Array.from(new Set([
     ...IR_MONOLITH_LEAF_PATHS,
     ...detectMonolithLeaves(report),
   ]));
+
+  // ── ITEM 417-B — GATE 1: CAN THE REMAINING BUDGET CARRY THE WHOLE PASS? ──
+  // Checked BEFORE the critic call. A skip here is fail-open: the document
+  // proceeds byte-identical into the deterministic battery and the gate.
+  const budget = opts.budget ?? makeIrTimeBudget();
+  const verdict = irRefinementAffordable(budget, irCriticInputChars(report));
+  if (opts.enabled !== false && !verdict.ok) {
+    return irSkippedTelemetry(verdict.reason ?? "time_budget", verdict, monolithPaths);
+  }
 
   // Pre-splice snapshot of every monolith leaf.
   const pre = new Map<string, string>();
@@ -493,6 +524,7 @@ export async function runIrRefinement(
   // span-level from the same (quote, replacement) pair the core used. The
   // critic call itself is untouched — this only observes its output.
   let proposals: CriticFinding[] = [];
+  let verifierBudgetVerdict: IrBudgetVerdict | null = null;
   const observingDeps: RefinementDeps = {
     critic: async (system, user) => {
       const raw = await deps.critic(system, user);
@@ -502,7 +534,15 @@ export async function runIrRefinement(
       } catch { /* fail-open: observation never breaks the pass */ }
       return raw;
     },
-    verifier: deps.verifier,
+    // ── GATE 2: the verifier call, re-checked against the budget the critic
+    // actually consumed. Throwing here is the core's own fail-open path:
+    // ZERO splices, `crashed = verifier_error:time_budget`, document intact.
+    verifier: async (system, user) => {
+      const v = irVerifierAffordable(budget);
+      verifierBudgetVerdict = v;
+      if (!v.ok) throw new Error("time_budget");
+      return await deps.verifier(system, user);
+    },
   };
 
   const base = await runRefinement(report, intake, observingDeps, IR_REFINEMENT_CONFIG, opts);
@@ -511,6 +551,10 @@ export async function runIrRefinement(
   tel.span_spliced_paths = [];
   tel.monolith_paths_detected = monolithPaths;
   tel.artifact_pass_mode = "single_pass_over_persisted_record";
+  tel.skipped_reason = verifierBudgetVerdict && !(verifierBudgetVerdict as IrBudgetVerdict).ok
+    ? "time_budget_verifier"
+    : null;
+  tel.time_budget = (verifierBudgetVerdict as IrBudgetVerdict | null) ?? verdict;
 
   for (const [path, before] of pre) {
     const after = readPath(report, path);
