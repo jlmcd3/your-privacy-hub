@@ -78,7 +78,10 @@ export const CPPA_RISK_SURFACE_CONTRACT: readonly SurfaceContractEntry[] = [
   { key: "priority_actions", kind: "shaped", types: ["array"] },
   { key: "next_steps", kind: "shaped", types: ["array"] },
   { key: "inconsistency_flags", kind: "shaped", types: ["array"] },
-  { key: "record_sufficiency", kind: "prose", types: ["array"] },
+  // ITEM 425 — re-typed surface. "array" is the LEGACY persisted shape (still
+  // rendered byte-identically); "object" is the canonical typed record
+  // { complete, statement, elements[] }. Both are contract-conformant.
+  { key: "record_sufficiency", kind: "prose", types: ["array", "object"] },
   { key: "information_needed", kind: "shaped", types: ["array"] },
   { key: "part_a", kind: "shaped", types: ["object"] },
   { key: "part_b", kind: "shaped", types: ["object"] },

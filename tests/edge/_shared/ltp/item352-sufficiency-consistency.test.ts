@@ -32,6 +32,7 @@ import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2
 import { resolveLtpIntake } from "../../../../supabase/functions/_shared/ltp/entry-intake.ts";
 import { computeRecordNeeds } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
 import { runEmitGate } from "../../../../supabase/functions/_shared/emit-gate.ts";
+import { coerceSufficiencyView } from "../../../../supabase/functions/_shared/report-contracts/risk-sufficiency.ts";
 
 const DIR = new URL("../../fixtures/item350/", import.meta.url);
 const FIXTURES = ["perfect-a073d9c5", "messy-bd458f0d"] as const;
@@ -63,21 +64,40 @@ async function md5(s: string): Promise<string> {
  * clauses). ITEM 358: an outstanding element is enumerated either as missing
  * record data or as a decision reserved to the customer; both are "enumerated
  * for your review" and both must match `information_needed` one-for-one.
+ *
+ * ITEM 425: the surface is re-typed. This reader is shape-tolerant — it goes
+ * through `coerceSufficiencyView`, so the SAME assertions hold on the legacy
+ * string[] shape and on the typed { complete, statement, elements[] } record.
+ * The semantics are unchanged: an element is outstanding when its status is
+ * one of the two closed clauses.
  */
 const MISSING_CLAUSE = "not present in the record as documented";
 const RESERVED_CLAUSE =
   "reserved to you for decision under the regulation; not a deficiency in the record as documented";
 function enumeratedMissing(report: Record<string, unknown>): string[] {
-  const raw = report.record_sufficiency;
-  const lines = Array.isArray(raw) ? raw.map(asText) : [asText(raw)];
+  const view = coerceSufficiencyView(report.record_sufficiency);
   const out: string[] = [];
-  for (const line of lines) {
+  if (view.elements.length > 0) {
+    for (const el of view.elements) {
+      if (el.status.includes(RESERVED_CLAUSE) || el.status.includes(MISSING_CLAUSE)) {
+        out.push(el.element.trim());
+      }
+    }
+    return out;
+  }
+  for (const line of view.paragraphs) {
     for (const clause of [RESERVED_CLAUSE, MISSING_CLAUSE]) {
       const idx = line.indexOf(`: ${clause}`);
       if (idx > 0) { out.push(line.slice(0, idx).trim()); break; }
     }
   }
   return out;
+}
+
+/** The sufficiency VOICE — the one paragraph that states the gap count. */
+function sufficiencyVoice(report: Record<string, unknown>): string {
+  const view = coerceSufficiencyView(report.record_sufficiency);
+  return view.statement || view.paragraphs.join(" ");
 }
 
 function informationNeededLabels(report: Record<string, unknown>): string[] {
@@ -118,7 +138,7 @@ for (const name of FIXTURES) {
 
   Deno.test(`ITEM352 (b2) the stated gap COUNT equals the enumerated items (${name})`, async () => {
     const report = assembled(await planFor(name));
-    const text = asText(report.record_sufficiency);
+    const text = sufficiencyVoice(report);
     const m = text.match(/;\s*(\d+)\s+of these elements remain enumerated for your review/i);
     assert(m, "sufficiency opener must state a gap count");
     assertEquals(Number(m![1]), enumeratedMissing(report).length);
