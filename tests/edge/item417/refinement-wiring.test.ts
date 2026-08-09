@@ -205,7 +205,11 @@ Deno.test("item417 the blank-by-design worksheet is a protected root at any dept
 Deno.test("item417 designed-output splice canary: the standing placeholder survives a full pass", async () => {
   const doc = baseDoc();
   const noteBefore = (doc.standing_playbook as any).template_note;
-  const tel = await runIrRefinement(doc, { organizationName: "Acme" }, deps([
+  // Two proposals, two different defences:
+  //   • the framing note is killed IN CODE (barred leaf, pre-GPT);
+  //   • the standing placeholder is designed output (xp-ir-3) and is killed by
+  //     the VERIFIER — the canary proves the pass carries both defences.
+  const findings = [
     {
       path: "$.standing_playbook.template_note",
       quote: "TEMPLATES",
@@ -222,13 +226,25 @@ Deno.test("item417 designed-output splice canary: the standing placeholder survi
       replacement: "The response team is the CISO and the DPO.",
       confidence: "high",
     },
-  ]));
-  // BARRED-LEAF CANARY — byte-identical.
+  ];
+  const tel = await runIrRefinement(doc, { organizationName: "Acme" }, {
+    critic: () => Promise.resolve(JSON.stringify({ findings, structural_findings: [] })),
+    verifier: () =>
+      Promise.resolve(JSON.stringify({
+        verdicts: [{
+          path: "$.standing_playbook.sections[1].body[0]",
+          verdict: "reject",
+          reason: "new-fact: the record does not name a response team",
+        }],
+      })),
+  });
+  // BARRED-LEAF CANARY — byte-identical, and killed before the verifier saw it.
   assertEquals((doc.standing_playbook as any).template_note, noteBefore);
-  // DESIGNED-OUTPUT CANARY — the standing placeholder is untouched: the
-  // proposal invents a roster the record does not carry.
+  assertEquals(tel.protected_rejected.count, 1);
+  assertEquals(tel.protected_rejected.items[0].leaf_key_or_rule, "template_note");
+  // DESIGNED-OUTPUT CANARY — the standing placeholder is untouched.
   assertEquals((doc.standing_playbook as any).sections[1].body[0], STANDING_TO_COMPLETE);
-  assert(tel.protected_rejected.count >= 1);
+  assertEquals(tel.spliced, 0);
 });
 
 // ── 4. FAIL-OPEN ────────────────────────────────────────────────────────────
@@ -294,7 +310,7 @@ Deno.test("item417 monolith guard: a whole-leaf replacement is rejected and the 
   const before = doc.playbook_text as string;
   const tel = await runIrRefinement(doc, {}, deps([{
     path: "$.playbook_text",
-    quote: before.slice(0, 80),
+    quote: before.slice(0, 800),
     class: "generic-boilerplate",
     anchor: "record",
     replacement: "A short rewritten playbook.",
