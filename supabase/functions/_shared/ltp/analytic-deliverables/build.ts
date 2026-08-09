@@ -471,6 +471,23 @@ function worstResidual(safeguards: readonly SafeguardMapEntry[]): ResidualBand {
   return worst;
 }
 
+/**
+ * ITEM 428-B (DEFECT 2) — QB8-1(f)(2) TERMINAL-PUNCTUATION GUARD.
+ *
+ * `case_against` RENDERS TO CUSTOMERS — the PDF builder
+ * (generate-report-pdf/index.ts `buildCPPARiskDeliverablesHTML`, "The case
+ * against" field) and the web viewer (src/components/cppa/
+ * RiskAnalyticDeliverables.tsx:200). It is therefore fixed at the WRITER, not
+ * exempted at the gate: the residual clause is carried verbatim from
+ * `residual_statement`, which may be a bare label ("Low — purge job audited
+ * quarterly"), leaving the composed sentence unterminated.
+ */
+function terminateClause(s: string): string {
+  const t = String(s ?? "").trim();
+  if (!t) return t;
+  return /[.!?:]$/.test(t) ? t : `${t}.`;
+}
+
 function caseAgainstText(
   harms: readonly HarmCausationEntry[],
   safeguards: readonly SafeguardMapEntry[],
@@ -481,11 +498,14 @@ function caseAgainstText(
   return analysed
     .map((h) => {
       const sg = byHarm.get(h.harm_id);
-      const residual = sg ? sg.residual_statement : `No safeguard is recorded for the impact at ${h.harm_pinpoint}.`;
+      const residual = sg
+        ? terminateClause(sg.residual_statement)
+        : `No safeguard is recorded for the impact at ${h.harm_pinpoint}.`;
       return `${h.harm_pinpoint} (${h.harm_label}): ${h.actor} could bring this about through ${h.pathway}, involving ${h.data_involved}. Recorded likelihood ${h.likelihood}; recorded severity ${h.severity}. ${residual}`;
     })
     .join(" ");
 }
+
 
 export function buildWeighing(
   benefits: readonly BenefitEntry[],
