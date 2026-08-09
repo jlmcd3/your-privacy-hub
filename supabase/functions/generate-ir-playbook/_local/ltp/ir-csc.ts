@@ -56,7 +56,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { carriesAbsenceLanguage, frameBodyNeedles } from "../../../_shared/ltp/dpia-csc.ts";
-import { IR_ABSENCE_LABEL_PHRASINGS } from "./ir-prose-gold.ts";
+import {
+  IR_ABSENCE_LABEL_PHRASINGS,
+  IR_DESIGNED_ABSENCE_EXEMPTIONS,
+} from "./ir-prose-gold.ts";
 import {
   buildStandingPlaybook,
   type PlaybookSection,
@@ -89,12 +92,25 @@ export const IR_LABEL_ABSENCE_RE = new RegExp(
   "i",
 );
 
+/**
+ * Removes the phrasings that only LOOK like absence. Each is designed output on
+ * its own surface (see `IR_DESIGNED_ABSENCE_EXEMPTIONS`), so stripping them
+ * before detection is what keeps this pass from "repairing" correct prose.
+ */
+export function stripDesignedAbsence(text: string): string {
+  let out = String(text ?? "");
+  for (const re of IR_DESIGNED_ABSENCE_EXEMPTIONS) {
+    out = out.replace(new RegExp(re.source, re.flags.includes("g") ? re.flags : `${re.flags}g`), " ");
+  }
+  return out;
+}
+
 /** The IR absence detector: the shared emit-gate catalog + the label class. */
 export function irCarriesAbsence(
   text: string,
   needles: readonly string[],
 ): string | null {
-  const t = String(text ?? "").replace(/\s+/g, " ");
+  const t = stripDesignedAbsence(text).replace(/\s+/g, " ");
   if (!t.trim()) return null;
   const catalog = carriesAbsenceLanguage(t, needles);
   if (catalog) return catalog;
