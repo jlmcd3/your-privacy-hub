@@ -166,3 +166,51 @@ Deno.test("ITEM 422-B D2: fail-open on degenerate input", () => {
   assertEquals(runAdmtAskHygiene(null, {}).asks_in, 0);
   assertEquals(runAdmtAskHygiene({ information_needed: "nope" }, {}).asks_in, 0);
 });
+
+/* ─── ITEM 422-C — THE PRESENT-BUT-UNRESOLVABLE KEY BRANCH ─────────────── */
+
+Deno.test("ITEM 422-C: an unknown proposition_key never ships a null citation", () => {
+  const report = {
+    priority_actions: [
+      { rank: 1, action: "Do the thing.", proposition_key: "no_such_key_at_all", citation: null },
+    ],
+  };
+  const diag = resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
+  const e = report.priority_actions[0] as Record<string, unknown>;
+  assertEquals(e.citation, ADMT_SUBCHAPTER_FALLBACK);
+  assertEquals(e.proposition_key, "");
+  assertEquals(e._citation_source, "registry_downgrade_unresolved_key");
+  assertEquals(diag.anchor_downgraded, 1);
+  assertEquals(diag.unresolved_key_downgraded, 1);
+  assertEquals(diag.untouched, 0);
+});
+
+Deno.test("ITEM 422-C: human_involvement DOES resolve — no alias needed", () => {
+  const report = {
+    priority_actions: [
+      { rank: 5, action: "Record the human-involvement standard.", proposition_key: "human_involvement" },
+    ],
+  };
+  resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
+  const e = report.priority_actions[0] as Record<string, unknown>;
+  assertEquals(e.proposition_key, "human_involvement");
+  assert(typeof e.citation === "string" && (e.citation as string).includes("7001"));
+});
+
+Deno.test("ITEM 422-C: the terminal seal closes an anchor cleared downstream", () => {
+  // Reproduces the pilot: the sole-§7001 discipline cleared the pinpoint to ""
+  // while preserving the key.
+  const report = {
+    priority_actions: [
+      { rank: 5, action: "Record the human-involvement standard.", proposition_key: "human_involvement", citation: "" },
+      { rank: 6, action: "Keep this one.", proposition_key: "", citation: "11 CCR § 7221(a)" },
+    ],
+  };
+  const diag = sealAdmtActionCitations(report);
+  assertEquals(diag.sealed, 1);
+  assertEquals(diag.total, 2);
+  const [a, b] = report.priority_actions as Record<string, unknown>[];
+  assertEquals(a.citation, ADMT_SUBCHAPTER_FALLBACK);
+  assertEquals(a.proposition_key, "");
+  assertEquals(b.citation, "11 CCR § 7221(a)");
+});
