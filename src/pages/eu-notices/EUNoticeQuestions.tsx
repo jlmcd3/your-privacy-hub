@@ -248,7 +248,17 @@ export default function EUNoticeQuestions() {
             </p>
           )}
 
-          {currentQ.type === "text_short" && (
+          {proposal && (
+            <PrefillConfirm
+              proposal={proposal}
+              displayValue={proposalDisplay}
+              onConfirm={() => saveAnswer(currentQ, proposal.suggested)}
+              onDecline={() => setEditing((p) => ({ ...p, [currentQ.key]: true }))}
+            />
+          )}
+
+          {!proposal && currentQ.type === "text_short" && (
+
             <Input value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" />
           )}
           {currentQ.type === "text_long" && (
