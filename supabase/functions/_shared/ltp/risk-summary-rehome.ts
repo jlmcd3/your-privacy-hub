@@ -1,6 +1,24 @@
 /**
  * ITEM 428-B (DEFECT 1) — RE-HOMED REFERRAL PROSE OFF THE SUMMARY SURFACES.
  *
+ * CEO RATIFICATION (2026-08-09, ITEM 428-C): the SUPPRESSION path is law.
+ * Where a lifted referral sentence is a restatement the deterministic reserved
+ * `priority_actions` rows already own, and it would not keep its host leaf
+ * gate-clean under `isSanctionedCounselRegister`, the sentence is suppressed
+ * from every customer surface and preserved VERBATIM under `_meta.internal`
+ * (a machine surface the gate never walks). No exemption is ever added to the
+ * gate for `e6_counsel_referral`.
+ *
+ * ITEM 428-C (DEFECT 1) adds a THIRD surface to this pass:
+ * `$.risk_assessment_by_activity`. The emit gate runs inside `seal(...)`,
+ * BEFORE the ITEM-427 canonical re-emission in `risk-activity-emit.ts`, so the
+ * gate honestly walks the pre-gate (model/template-composed) activity surface —
+ * on which a writer parked the reserved-determination referral sentence the
+ * reserved rows already carry. The sentence never reaches the persisted record
+ * (the 427 emitter rewrites the shape), so the fix is at the WRITER side of the
+ * gate: the same deterministic strip, over every string leaf of that surface.
+
+ *
  * The Piece-B consolidation left two writers parking reserved-determination /
  * counsel-referral prose on SUMMARY surfaces:
  *
@@ -37,7 +55,7 @@
 import { isSanctionedCounselRegister } from "../emit-gate.ts";
 import { isActionRecord } from "../report-contracts/action-record.ts";
 
-export const RISK_SUMMARY_REHOME_VERSION = "risk-summary-rehome@item428b-2026-08-09";
+export const RISK_SUMMARY_REHOME_VERSION = "risk-summary-rehome@item428c-2026-08-09";
 
 /** Substance floor shared with the ITEM 384 r2 empty-surface guard. */
 const MIN_SURFACE_SUBSTANCE = 40;
@@ -50,6 +68,8 @@ export interface SummaryRehomeSummary {
   readonly exec_sentences_moved: number;
   /** True when an `assessment_summary.narrative` prose leaf was removed. */
   readonly narrative_removed: boolean;
+  /** ITEM 428-C — referral sentences lifted off `$.risk_assessment_by_activity`. */
+  readonly activity_sentences_moved: number;
   /** Sentences appended to a reserved-judgment action row. */
   readonly rehomed: number;
   /** Restatements suppressed (kept verbatim below, never on a customer leaf). */
@@ -58,6 +78,7 @@ export interface SummaryRehomeSummary {
   readonly carried_verdict: string;
   readonly crashed?: boolean;
 }
+
 
 function splitSentences(s: string): string[] {
   return String(s ?? "")
@@ -119,6 +140,48 @@ function pickReservedRow(
 }
 
 /**
+ * ITEM 428-C (DEFECT 1) — strip referral sentences from EVERY string leaf of
+ * the pre-gate `risk_assessment_by_activity` surface (legacy strings and typed
+ * records alike). Determination machinery is never swept: this walks customer
+ * prose leaves only, and a leaf whose whole content is the referral sentence
+ * becomes empty and is dropped from the array it sat in.
+ */
+function sweepActivityReferrals(report: Record<string, unknown>): string[] {
+  const moved: string[] = [];
+  const surface = report.risk_assessment_by_activity;
+  if (!Array.isArray(surface)) return moved;
+
+  const scrub = (value: unknown): unknown => {
+    if (typeof value === "string") {
+      if (!isReservedReferralSentence(value) && !/\bcounsel\b/i.test(value)) return value;
+      const { kept, moved: m } = strip(value);
+      if (m.length === 0) return value;
+      moved.push(...m);
+      return kept;
+    }
+    if (Array.isArray(value)) {
+      const next = value.map(scrub).filter((v) => !(typeof v === "string" && v.trim() === ""));
+      return next;
+    }
+    if (value && typeof value === "object") {
+      const rec = value as Record<string, unknown>;
+      for (const [k, v] of Object.entries(rec)) {
+        if (k.startsWith("_")) continue; // machine leaves
+        rec[k] = scrub(v);
+      }
+      return rec;
+    }
+    return value;
+  };
+
+  const next = (surface as unknown[])
+    .map(scrub)
+    .filter((v) => !(typeof v === "string" && v.trim() === ""));
+  report.risk_assessment_by_activity = next;
+  return moved;
+}
+
+/**
  * THE pass. Mutates `report` in place; never throws.
  */
 export function rehomeReservedReferrals(
@@ -128,11 +191,13 @@ export function rehomeReservedReferrals(
     version: RISK_SUMMARY_REHOME_VERSION,
     exec_sentences_moved: 0,
     narrative_removed: false,
+    activity_sentences_moved: 0,
     rehomed: 0,
     suppressed: [] as string[],
     carried_verdict: "",
   };
   if (!report || typeof report !== "object") return out;
+
 
   try {
     const moved: string[] = [];
@@ -164,6 +229,13 @@ export function rehomeReservedReferrals(
         report.executive_summary = kept.length >= MIN_SURFACE_SUBSTANCE ? kept : "";
       }
     }
+
+    // (d) ITEM 428-C — the activity surface carries no referral prose either.
+    const activityMoved = sweepActivityReferrals(report);
+    out.activity_sentences_moved = activityMoved.length;
+    moved.push(...activityMoved);
+
+
 
     // (a) RE-HOME, BYTE-IDENTICALLY, ONTO THE RESERVED-JUDGMENT ROW.
     const rows = Array.isArray(report.priority_actions) ? report.priority_actions : [];

@@ -187,23 +187,92 @@ function safeguardLeaves(analytics: Record<string, unknown>): {
 }
 
 /**
+ * ITEM 428-C (DEFECT 2) — the weighing outcome the analytics actually reached,
+ * read off `weighing[].outweigh_determination`. Deterministic, no model.
+ */
+export function weighingOutcome(analytics: Record<string, unknown>): {
+  rows: number;
+  benefitsAll: boolean;
+  impactsAll: boolean;
+  impactsSome: string[];
+  close: boolean;
+  undetermined: boolean;
+} {
+  const rows = Array.isArray(analytics.weighing) ? analytics.weighing : [];
+  const det = rows.map((r) => String((r as Record<string, unknown>)?.outweigh_determination ?? ""));
+  const impactsSome = rows
+    .filter((r) => String((r as Record<string, unknown>)?.outweigh_determination ?? "") === "impacts_outweigh")
+    .map((r) => str((r as Record<string, unknown>)?.beneficiary_class))
+    .filter(Boolean);
+  return {
+    rows: rows.length,
+    benefitsAll: rows.length > 0 && det.every((d) => d === "benefits_outweigh"),
+    impactsAll: rows.length > 0 && det.every((d) => d === "impacts_outweigh"),
+    impactsSome,
+    close: det.includes("close_balance"),
+    undetermined: rows.length === 0 || det.includes("undetermined_on_the_record"),
+  };
+}
+
+/** The § 7152(a)(7) initiation reservation, in the deterministic register. */
+const INITIATION_RESERVED_CLAUSE =
+  "the decision whether to initiate the processing rests with the business under 11 CCR § 7152(a)(7)";
+
+/**
  * The § 7152(a)(7) conclusion, in CUSTOMER words. The machine `decision` enum
  * stays in `activity_analytics` (item 392 discipline) and is never copied here.
+ *
+ * ITEM 428-C (DEFECT 2): `reserved_insufficient_record` — the C0/C1 enum the
+ * consequence rules emit when § 7152(a)(8)-(9) review-and-approval information
+ * is absent, or a required analytic element is not supported — used to fall to
+ * the DEFAULT branch ("The record does not yet support a balance
+ * determination"), which contradicted a document whose weighing classes all
+ * concluded benefits-outweigh. The enum is CORRECT (the initiation decision is
+ * reserved by law on that record; it is not a weighing failure), so the
+ * conclusion now states the weighing outcome the analytics reached and notes
+ * the reservation. `prohibit` / `restrict` / `initiate_with_modifications` are
+ * mapped for the same reason — they are the emitted vocabulary of the same
+ * switch. The default branch remains for genuinely unresolved records.
  */
-export function outweighConclusion(decision: unknown): string {
+export function outweighConclusion(decision: unknown, analyticsRaw?: unknown): string {
+  const a = (analyticsRaw ?? {}) as Record<string, unknown>;
+  const w = weighingOutcome(a);
   switch (String(decision ?? "")) {
     case "initiate":
     case "benefits_outweigh":
       return "Yes — on this record the benefits of the processing outweigh the negative impacts to consumers' privacy.";
     case "do_not_initiate":
+    case "prohibit":
     case "impacts_outweigh":
       return "No — on this record the negative impacts to consumers' privacy outweigh the benefits of the processing.";
+    case "restrict":
+      return `On this record the negative impacts to consumers' privacy are not outweighed by the stated benefit for ${
+        w.impactsSome.length ? w.impactsSome.join(", ") : "at least one beneficiary class"
+      }, and the processing may proceed only as restricted to the uses that do weigh out; ${INITIATION_RESERVED_CLAUSE}.`;
+    case "initiate_with_modifications":
+      return `On this record the benefits of the processing outweigh the negative impacts to consumers' privacy once the recorded modifications are made; ${INITIATION_RESERVED_CLAUSE}.`;
     case "close_balance":
-      return "The benefits and the negative impacts are closely balanced on this record; the business and its counsel decide the balance.";
+      return `The benefits and the negative impacts are closely balanced on this record; ${INITIATION_RESERVED_CLAUSE}.`;
+    case "reserved":
+    case "reserved_insufficient_record":
+      if (w.benefitsAll) {
+        return `On this record the benefits of the processing outweigh the negative impacts to consumers' privacy for every beneficiary class 11 CCR § 7152(a)(4) enumerates; ${INITIATION_RESERVED_CLAUSE}.`;
+      }
+      if (w.impactsAll) {
+        return `On this record the negative impacts to consumers' privacy outweigh the benefits of the processing for every beneficiary class 11 CCR § 7152(a)(4) enumerates; ${INITIATION_RESERVED_CLAUSE}.`;
+      }
+      if (w.impactsSome.length > 0) {
+        return `On this record the negative impacts to consumers' privacy are not outweighed by the stated benefit for ${w.impactsSome.join(", ")}; ${INITIATION_RESERVED_CLAUSE}.`;
+      }
+      if (w.close && !w.undetermined) {
+        return `The benefits and the negative impacts are closely balanced on this record; ${INITIATION_RESERVED_CLAUSE}.`;
+      }
+      return "The record does not yet support a balance determination for this activity.";
     default:
       return "The record does not yet support a balance determination for this activity.";
   }
 }
+
 
 function outweighRationale(analytics: Record<string, unknown>): string {
   const weighing = Array.isArray(analytics.weighing) ? analytics.weighing : [];
@@ -239,7 +308,7 @@ export function buildActivityRecord(analyticsRaw: unknown): RiskActivityRecord {
     current_safeguards: safeguards.current,
     safeguard_gaps: safeguards.gaps,
     section_7152_mapping: mapping,
-    benefits_outweigh_risks_conclusion: outweighConclusion(consequence.decision),
+    benefits_outweigh_risks_conclusion: outweighConclusion(consequence.decision, a),
     benefits_outweigh_risks_rationale: outweighRationale(a),
     _activity_key: str(a.activity_id) || undefined,
     _basis_source: basis.resolved && unresolved === 0
