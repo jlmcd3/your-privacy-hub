@@ -73,6 +73,8 @@ export default function DPAGenerator() {
     retentionChoice: "" as "" | "As directed by the Controller's documented instructions" | "For the duration of the principal agreement, then delete or return" | "Fixed period — specify",
     retentionFixedText: "",
     hasSubProcessors: false, subProcessorList: "",
+    // INTAKE-2 — optional advance-notice window (days) for subprocessor changes.
+    subprocessorChangeNoticePeriod: "",
     auditRightsChoice: "" as "" | "Documentation review — Processor provides audit reports/certifications on request" | "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice" | "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access" | "Custom — describe",
     auditRightsOtherText: "",
     transfersInvolved: "" as "" | "Yes" | "No",
@@ -150,6 +152,7 @@ export default function DPAGenerator() {
       retention,
       hasSubProcessors: form.hasSubProcessors,
       subProcessorList: form.subProcessorList,
+      subprocessorChangeNoticePeriod: form.subprocessorChangeNoticePeriod.trim() || undefined,
       auditRights,
       includeTransferClause,
       transferMechanism,
