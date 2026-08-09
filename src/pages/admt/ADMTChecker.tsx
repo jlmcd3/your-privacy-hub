@@ -1103,9 +1103,15 @@ export default function ADMTChecker() {
                     <p className="text-[11px] italic text-muted-foreground">You're seeing this because how much a human is involved decides whether the law applies at all — it's worth a moment.</p>
                     <p className="text-[12px] font-semibold">Human-involvement self-test (§ 7001(e)(1))</p>
                     <p className="text-[12px] text-muted-foreground">This is the gate for the entire regime: if a qualifying human is in the loop, the system does not "substantially replace" human decisionmaking and Article 11 obligations may not attach.</p>
+                    {/* INTAKE-4c — PREFILL ONLY, NEVER MERGE: this row keeps its
+                        own key and options; the step-1 human-review answer only
+                        seeds it for confirmation. */}
                     <div>
                       <Label className="text-[12px]">Is a human reviewer involved in the decision?</Label>
-                      <div className="mt-1"><Radio name="hi_present" options={["Yes — on every decision", "Sometimes / on a subset", "No — fully automated"]} value={adv.hi_reviewer_present || ""} onChange={(v) => setA("hi_reviewer_present", v)} /></div>
+                      {prefilled.hi_reviewer_present && !prefillTouched.hi_reviewer_present && (
+                        <p className="text-[11px] text-muted-foreground">Carried over from your human-review answer above. Confirm it or change it.</p>
+                      )}
+                      <div className="mt-1"><Radio name="hi_present" options={["Yes — on every decision", "Sometimes / on a subset", "No — fully automated"]} value={adv.hi_reviewer_present || ""} onChange={(v) => { markTouched("hi_reviewer_present"); setA("hi_reviewer_present", v); }} /></div>
                     </div>
                     {adv.hi_reviewer_present && !adv.hi_reviewer_present.startsWith("No") && (
                       <>
@@ -1118,15 +1124,18 @@ export default function ADMTChecker() {
                           <div className="mt-1"><Radio name="hi_stage" options={["Before the decision is issued", "After the decision (review of completed decisions)", "Appeal only"]} value={adv.hi_stage || ""} onChange={(v) => setA("hi_stage", v)} /></div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Does the reviewer know how to interpret the ADMT output? (§ 7001(e)(1)(A))</Label>
+                          <Label className="text-[12px]">Has the reviewer been trained to read what the system produces?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7001(e)(1)(A) counts a reviewer only if they know how to interpret and use the output.</p>
                           <div className="mt-1"><Radio name="hi_trained" options={["Yes", "No"]} value={adv.hi_trained || ""} onChange={(v) => setA("hi_trained", v)} /></div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Does the reviewer review the output plus other relevant information? (§ 7001(e)(1)(B))</Label>
+                          <Label className="text-[12px]">Does the reviewer look at anything besides the system's output?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7001(e)(1)(B) counts a reviewer only if they weigh the output together with other relevant information.</p>
                           <div className="mt-1"><Radio name="hi_other" options={["Yes", "No"]} value={adv.hi_reviews_other_info || ""} onChange={(v) => setA("hi_reviews_other_info", v)} /></div>
                         </div>
                         <div>
-                          <Label className="text-[12px]">Does the reviewer have authority to change the decision? (§ 7001(e)(1)(C))</Label>
+                          <Label className="text-[12px]">Can the reviewer change the decision?</Label>
+                          <p className="text-[11px] text-muted-foreground">Why we ask: § 7001(e)(1)(C) counts a reviewer only if they hold the authority to change the outcome, not merely to flag it.</p>
                           <div className="mt-1"><Radio name="hi_auth" options={["Yes", "No"]} value={adv.hi_authority_override || ""} onChange={(v) => setA("hi_authority_override", v)} /></div>
                         </div>
                         <div>
