@@ -1875,7 +1875,69 @@ let playbook_text = lint.clean;
           console.warn("[generate-ir-playbook] IR-PLAYBOOK-REGISTRY-WIRING post-pass failed (non-fatal):", (e as Error)?.message);
         }
 
+        // ── ITEM 417 LEG D — IR REFINEMENT PASS ────────────────────────────
+        // CRITIC (Claude, the run's resolved generation model, one call) →
+        // VERIFIER (GPT-4o, one call) → DETERMINISTIC SPLICER. THE ORDER
+        // MIRRORS run-cppa-cybersecurity (item407) AND
+        // check-biometric-compliance (item412) EXACTLY: refinement runs AFTER
+        // generation and every content-shaping pass, and BEFORE the
+        // deterministic battery — prose gold → CSC → coverage → R11 → gate —
+        // so every downstream deterministic pass, and the fail-closed gate,
+        // see the spliced document. One pass, no loops. Fail-open.
+        //
+        // THE DOCUMENT. `playbook_text` carries the generated narrative and is
+        // held OUTSIDE `report_data`. It is attached under its own key for the
+        // duration of the pass (so the critic sees what the reader sees and the
+        // splicer can reach the one monolith leaf), then detached. `_meta`
+        // never reaches the critic — the core strips it.
+        try {
+          const { runIrRefinement } = await import("./_local/ltp/ir-refinement.ts");
+          const { makeIrRefinementDeps, IR_REFINEMENT_ENABLED } = await import(
+            "./_local/ltp/ir-refinement-deps.ts"
+          );
+          const { runCoverageMatrix, coverageListForCritic, coverageAnchorTokens } = await import(
+            "../_shared/ltp/coverage-matrix.ts"
+          );
+          // The FULL RECORD — the request body, exactly as the leg-C CSC and
+          // coverage passes and the leg-B gate use it (the item385 r2 lesson).
+          const refineIntake = ((body ?? {}) as unknown) as Record<string, unknown>;
+          const refineDoc = report_data as Record<string, unknown>;
+          refineDoc.playbook_text = playbook_text;
+          const preCoverage = runCoverageMatrix("ir-playbook", refineDoc, refineIntake);
+          // RESURRECTION-BUG CLASS — the generation model is resolved HERE,
+          // inside the request context, and carried explicitly into the deps.
+          const refineModel = currentGenerationModel();
+          const refineTel = await runIrRefinement(
+            refineDoc,
+            refineIntake,
+            makeIrRefinementDeps(body.assessment_id ?? currentSourceRowId() ?? null, refineModel),
+            {
+              enabled: IR_REFINEMENT_ENABLED,
+              coverageList: coverageListForCritic(preCoverage),
+              coverageAnchors: coverageAnchorTokens(preCoverage),
+            },
+          );
+          playbook_text = typeof refineDoc.playbook_text === "string"
+            ? refineDoc.playbook_text
+            : playbook_text;
+          delete refineDoc.playbook_text;
+          const _rf = ((report_data as any)._meta ??= {});
+          const _rfi = (_rf.internal ??= {});
+          _rfi.ir_refinement = refineTel;
+          // The CEO-named generic telemetry address, alongside the product key.
+          _rfi._refinement = refineTel;
+          console.log(JSON.stringify({
+            evt: "ir_refinement",
+            fn: "generate-ir-playbook",
+            generation_model: refineModel,
+            ...refineTel,
+          }));
+        } catch (e) {
+          console.warn("[generate-ir-playbook] ITEM 417 refinement pass failed (non-fatal):", (e as Error)?.message);
+        }
+
         // ── ITEM 414 — IR FINALIZE BATTERY (prose gold + coverage + R11 + stamp) ──
+
         // THE seam: both artifacts are already on `report_data` and this is the
         // only path to `terminal_complete`. Runs BEFORE the emit gate so the
         // gate and the P2 serializer see the repaired prose. Fail-open.
