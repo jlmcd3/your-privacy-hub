@@ -116,7 +116,7 @@ Deno.test("item422d D2 — linkage: whatever the detector detects, the writer re
   const { out, removed } = sweepLeaf(body);
   assertEquals(removed.length, 1);
   assert(!out.includes("Insert this block"));
-  assert(!sentenceLeaks(out.split(/(?<=\.)\s+/).find((s) => s.includes("Insert this block")) ?? "");
+  assert(!out.includes("bracketed field"));
 });
 
 Deno.test("item422d D2 — sweep relocates to the operator leaf and clears the detector", () => {
