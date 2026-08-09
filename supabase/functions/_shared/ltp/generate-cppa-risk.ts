@@ -278,6 +278,20 @@ export function finalizeCppaRiskPayload(
     console.warn("[generate-cppa-risk] exception normalize failed (non-fatal):", (e as Error)?.message);
   }
 
+  // (1c) ITEM 427 — `risk_assessment_by_activity` CANONICAL EMISSION. LAW 3
+  // SINGLE WRITE SITE for the SHAPE of that surface: one thirteen-leaf record
+  // per TRIGGERED activity, with `statutory_basis` and every
+  // `section_7152_mapping[].pinpoint` REGISTRY-RESOLVED. Runs BEFORE the CSC so
+  // r1_benefits_vs_intake reads the typed benefit leaves.
+  try {
+    const actSummary = normalizeRiskActivities(report, rawIntake);
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_activities = { version: RISK_ACTIVITIES_CONTRACT_VERSION, ...actSummary };
+  } catch (e) {
+    console.warn("[generate-cppa-risk] activity normalize failed (non-fatal):", (e as Error)?.message);
+  }
+
   // (2) CSC — deterministic post-pass, after refinement, before persist.
   try {
     attachRiskCsc(report, {
