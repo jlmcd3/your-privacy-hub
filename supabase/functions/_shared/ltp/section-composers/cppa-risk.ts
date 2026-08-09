@@ -1060,7 +1060,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
   // Family grouping (CEO §2.2). Non-family kinds pass through untouched.
   const sources = groupFamilies(rawSources);
 
-  return sources.map<TemplateInstance>((s) => {
+  return sources.map<TemplateInstance>((s, idx) => {
     const sel = selectDeadlineOrFallback(deadlineForAction(s.conclusion_id, s.is_documentation_gate, plan));
     // KIND opener stem prepended to element_short_label per courier §2.1.
     // For family-grouped rows the label already carries the family opener
@@ -1080,10 +1080,11 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
     // the ratified register; every other KIND is unchanged.
     const reservedTo = s.owner_role_titles_override ?? ownerForKind(s.kind, plan);
     const stem = isFamily ? KIND_OPENERS.gate_unresolved : KIND_OPENERS[s.kind];
+    const isReserved = s.kind === "type_j_reserved" && !isFamily;
     // ITEM 399 (FIX 2) — the template already renders `{{cite:PINPOINT}}`
     // immediately after the headline, so the headline drops its own copy of
     // the pinpoint: it appears exactly once per action string.
-    const prefixedLabel = s.kind === "type_j_reserved" && !isFamily
+    const prefixedLabel = isReserved
       ? `${reservedActionLabel(s.pinpoint, reservedTo, false)} ${lcFirst(s.element_short_label)}`
       : isFamily
         ? `${stem} ${s.element_short_label}`
@@ -1105,8 +1106,25 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
         owner_sentence: ownerSentence(reservedTo),
         __cite: { PINPOINT: s.pinpoint },
       },
+      // ITEM 421 — THE TYPED EMISSION. One home per fact; the headline is
+      // composed by the renderer via `formatActionHeadline`, never stored.
+      // `reservedTo` is the SINGLE role value: it reaches the headline (the
+      // reserved register) and the record's role field from this one binding.
+      action_record: buildRiskActionRecord({
+        headline_label: prefixedLabel,
+        entity_name: entity,
+        customer_recorded_fact_clause: factClause,
+        gap_or_consequence_clause: s.gap_or_consequence_clause,
+        compliance_guidance_sentence: s.compliance_guidance_sentence,
+        pinpoint: s.pinpoint,
+        owner: reservedTo,
+        is_reserved: isReserved,
+        deadline_row: sel.row,
+        rank: idx + 1,
+      }),
     };
   });
+
 }
 
 
