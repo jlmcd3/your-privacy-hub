@@ -46,6 +46,13 @@ export interface AdmtActionCitationDiag {
   keyless_filled: number;
   /** entries whose model-authored pinpoint was replaced by the fallback. */
   anchor_downgraded: number;
+  /**
+   * ITEM 422-C — entries carrying a PRESENT proposition key that the registry
+   * does not resolve. They now take the same honest downgrade as a missing
+   * key instead of being left untouched (the one path where "null impossible"
+   * failed). Counted here AND in `anchor_downgraded`.
+   */
+  unresolved_key_downgraded: number;
   /** entries that already carried the fallback / no pinpoint at all. */
   untouched: number;
   total: number;
@@ -72,7 +79,15 @@ export function resolveActionCitation(
       entry._citation_source = "registry_key";
       return "resolved_by_key";
     }
+    // ITEM 422-C — PRESENT BUT UNRESOLVABLE KEY. Same honest downgrade as a
+    // missing key, and the key is CLEARED — the `top_3_actions` idiom: a
+    // proposition that did not resolve is never left asserted on the record.
+    entry.citation = ADMT_SUBCHAPTER_FALLBACK;
+    entry.proposition_key = "";
+    entry._citation_source = "registry_downgrade_unresolved_key";
+    return "anchor_downgraded";
   }
+
 
   const cit = str(entry.citation);
   if (cit && cit !== ADMT_SUBCHAPTER_FALLBACK) {
