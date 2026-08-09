@@ -92,6 +92,11 @@ import { CYBER_PERFECT } from "./cppa-cyber.ts";
 // contract's own `tool_type` is the distinct value "biometric_checker", used
 // only for entitlements/metering).
 import { BIOMETRIC_PERFECT } from "./biometric-perfect.ts";
+// ITEM 415 leg B — IR playbook perfect fixture (×1). The slug is
+// "ir-playbook" everywhere: golden registry, RUN_QUALITY_BATCH_SLUGS,
+// dispatchGeneration and the item414 spine product name all agree, so unlike
+// biometric there is no slug/product split on this product.
+import { IR_PERFECT } from "./ir-perfect.ts";
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
@@ -102,6 +107,7 @@ export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
   "governance": GOVERNANCE_PERFECT,
   "cppa-cyber": CYBER_PERFECT,
   "biometric-checker": BIOMETRIC_PERFECT,
+  "ir-playbook": IR_PERFECT,
 };
 
 export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {

@@ -24,8 +24,46 @@ import { applyIrProseGold, IR_PIPELINE_STAMP, IR_PROSE_GOLD_VERSION } from "./ir
 import { attachCoverage, runCoverageMatrix, type CoverageTelemetry } from "../../../_shared/ltp/coverage-matrix.ts";
 import { attachProseLint, PROSE_LINT_VERSION, type ProseLintResult } from "../../../_shared/prose/assembled-prose-lint.ts";
 import { FIRST_HOUR_ITEMS } from "./ir-playbook-deliverables/standing-playbook.ts";
+import {
+  attachRecordComplete,
+  classifyPlaceholders,
+  computeRecordComplete,
+  type RecordCompleteTelemetry,
+} from "../../../_shared/ltp/record-complete.ts";
+import { irPlaybookContract } from "../../../_shared/intake-contracts/ir-playbook.ts";
 
 export { IR_PIPELINE_STAMP };
+
+// ITEM 415 LEG B — THE CSC PLACEHOLDER.
+//
+// The record-complete gate treats CSC telemetry as REQUIRED evidence: absent
+// or crashed telemetry fails the gate closed. IR's real cross-surface
+// consistency pass ships in leg C. Until then the battery emits this
+// PRESENT-but-empty pass so the gate turns on evidence it can read rather than
+// on evidence that does not exist yet, and `FALSE_ABSENCE_CHECK_IDS
+// ["ir-playbook"]` is [] so no violation can be counted. The object is
+// explicitly labelled a placeholder — nothing here claims a check ran.
+export const IR_CSC_PLACEHOLDER_VERSION = "ir-csc-placeholder@item415-2026-08-09";
+
+export interface IrCscPlaceholder {
+  readonly version: string;
+  readonly product: "ir-playbook";
+  readonly placeholder: true;
+  readonly checks_run: 0;
+  readonly violations: readonly never[];
+  readonly crashed: false;
+}
+
+export function irCscPlaceholder(): IrCscPlaceholder {
+  return {
+    version: IR_CSC_PLACEHOLDER_VERSION,
+    product: "ir-playbook",
+    placeholder: true,
+    checks_run: 0,
+    violations: [],
+    crashed: false,
+  };
+}
 
 export interface IrFinalizeResult {
   readonly report: Record<string, unknown>;
@@ -33,6 +71,7 @@ export interface IrFinalizeResult {
   readonly prose_lint: ProseLintResult | null;
   readonly repaired_paths: readonly string[];
   readonly restored_checklist_cells: number;
+  readonly record_complete: RecordCompleteTelemetry | null;
 }
 
 export function runIrFinalizeBattery(
@@ -53,7 +92,18 @@ export function runIrFinalizeBattery(
     console.warn("[generate-ir-playbook] prose gold skipped:", (e as Error)?.message);
   }
 
-  // (b) COVERAGE — standing playbook only; the worksheet is blank by design.
+  // (b) CSC PLACEHOLDER — present-but-empty evidence for the gate.
+  let csc: IrCscPlaceholder | null = null;
+  try {
+    csc = irCscPlaceholder();
+    const meta = ((report as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.ir_csc = csc;
+  } catch (e) {
+    console.warn("[generate-ir-playbook] csc placeholder skipped:", (e as Error)?.message);
+  }
+
+  // (c) COVERAGE — standing playbook only; the worksheet is blank by design.
   let coverage: CoverageTelemetry;
   try {
     coverage = runCoverageMatrix("ir-playbook", report, intake);
@@ -70,12 +120,44 @@ export function runIrFinalizeBattery(
     };
   }
 
-  // (c) R11 — assembled-prose lint over the FINAL strings of BOTH artifacts.
+  // (d) R11 — assembled-prose lint over the FINAL strings of BOTH artifacts.
   let lint: ProseLintResult | null = null;
   try {
     lint = attachProseLint(report);
   } catch (e) {
     console.warn("[generate-ir-playbook] prose lint skipped:", (e as Error)?.message);
+  }
+
+  // (e) RECORD-COMPLETE GATE — fail-closed, LAST, so it reads the coverage and
+  // CSC telemetry this same battery just attached. `intake` is the FULL record
+  // the function analyses (index.ts merges `ir_playbooks.intake_data` into
+  // `body` at L647 before any surface is built), so the gate's contract
+  // completeness check sees exactly what the generator saw.
+  let recordComplete: RecordCompleteTelemetry | null = null;
+  try {
+    const internal = ((((report as Record<string, unknown>)._meta ?? {}) as Record<string, unknown>)
+      .internal ?? {}) as Record<string, unknown>;
+    recordComplete = computeRecordComplete({
+      product: "ir-playbook",
+      contract: irPlaybookContract,
+      intake,
+      coverage: (internal.ir_coverage ?? null) as never,
+      csc: (internal.ir_csc ?? null) as never,
+    });
+    const classification = classifyPlaceholders(report, intake, recordComplete.value);
+    attachRecordComplete(report, recordComplete, classification);
+    console.log(JSON.stringify({
+      evt: "ir_record_complete",
+      fn: "generate-ir-playbook",
+      ir_pipeline_stamp: IR_PIPELINE_STAMP,
+      version: recordComplete.version,
+      value: recordComplete.value,
+      failed_conditions: recordComplete.failed_conditions,
+      counts: recordComplete.counts,
+      empty_required_keys: recordComplete.empty_required_keys.slice(0, 20),
+    }));
+  } catch (e) {
+    console.warn("[generate-ir-playbook] ITEM 415 record-complete gate failed (non-fatal):", (e as Error)?.message);
   }
 
   console.log(JSON.stringify({
@@ -92,5 +174,12 @@ export function runIrFinalizeBattery(
     prose_lint_findings: lint?.findings?.length ?? null,
   }));
 
-  return { report, coverage, prose_lint: lint, repaired_paths: repaired, restored_checklist_cells: restored };
+  return {
+    report,
+    coverage,
+    prose_lint: lint,
+    repaired_paths: repaired,
+    restored_checklist_cells: restored,
+    record_complete: recordComplete,
+  };
 }

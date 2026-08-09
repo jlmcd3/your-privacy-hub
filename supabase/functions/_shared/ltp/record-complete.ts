@@ -59,9 +59,19 @@ export const RECORD_COMPLETE_VERSION = "record-complete-2026-08-05-item380r5";
 // follows), so the fail-closed arms keep the gate value FALSE with
 // `coverage_orphans` + `csc_false_absence` in failed_conditions. That is
 // correct and intended for this leg.
+// ITEM 415 leg B — "ir-playbook" joins the union, FAIL-CLOSED. THE UNION KEY
+// IS THE SLUG `ir-playbook` (not a separate product name): the item414 spine
+// already fixed `IR_PLAN_PRODUCT = "ir-playbook"`, the coverage matrix is
+// registered under that same key, and the harness slug is identical, so this
+// product has no slug/product split of the kind biometric carries. IR has NO
+// CSC pass yet (leg C follows); the finalize battery therefore emits a
+// PLACEHOLDER `ir_csc` telemetry object so the gate reads PRESENT-but-empty
+// evidence rather than ABSENT evidence, and `FALSE_ABSENCE_CHECK_IDS
+// ["ir-playbook"]` stays [] until the real checks ship. Absent or crashed
+// telemetry still fails closed, unchanged.
 export type RecordCompleteProduct =
   | "dpia" | "cppa-risk" | "lia" | "cppa-admt" | "governance" | "cppa-cyber"
-  | "biometric";
+  | "biometric" | "ir-playbook";
 
 export type FailedCondition =
   | "contract_incomplete"
@@ -250,6 +260,10 @@ export const FALSE_ABSENCE_CHECK_IDS: Readonly<Record<RecordCompleteProduct, rea
   // because deleting an authority field on this product would delete a
   // verified corpus passage.
   biometric: ["b2_absence_claim_vs_record"],
+  // ITEM 415 LEG B — IR has no CSC pass yet. The list is EMPTY until leg C
+  // ships `ir-csc.ts`; an empty list cannot count a false absence, so the CSC
+  // arm of the gate turns purely on the telemetry being present and uncrashed.
+  "ir-playbook": [],
 
 
 
