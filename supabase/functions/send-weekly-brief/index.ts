@@ -12,6 +12,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendEmail } from "../_shared/resend.ts";
 import { PRODUCT_DISPLAY } from "../_shared/product-triggers.ts";
+import { SOURCES_TOKEN, hydrateEmailCitations } from "../_shared/email-citations.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,10 +51,14 @@ function renderBriefHtml(brief: any): string {
     ["Why This Matters", brief.why_this_matters],
   ];
 
+  // BRIEF-3: sections keep their raw `[ref:N]` markers here and gain a
+  // `[[sources]]` token; both are hydrated into real links AFTER translation
+  // (see hydrateEmailCitations) so the translator never touches hrefs.
   const body = sections
     .filter(([, v]) => typeof v === "string" && v.trim().length > 0)
-    .map(([h, v]) => `<h2>${h}</h2>\n<div>${v}</div>`)
+    .map(([h, v]) => `<h2>${h}</h2>\n<div>${v}</div>${SOURCES_TOKEN}`)
     .join("\n");
+
 
   // CTA-3: "From the toolkit" email block. Omitted entirely when absent/empty.
   const ctas: Array<{ slug: string; triggered_by?: string }> = Array.isArray(brief.toolkit_ctas)
@@ -312,12 +318,15 @@ Deno.serve(async (req) => {
   for (const { lang, emails, content, fallback, fromCache } of translationEntries) {
     stats.by_language[lang] = { count: emails.length, fallback, from_cache: fromCache };
     const subject = englishSubject;
+    // BRIEF-3: hydrate `[ref:N]` / `[[sources]]` into real links post-translation.
+    const finalHtml = hydrateEmailCitations(content, (brief as any).source_map ?? {});
     for (const to of emails) {
+
       try {
         const res = await sendEmail({
           to,
           subject,
-          html: content,
+          html: finalHtml,
           tags: [
             { name: "type", value: "weekly_brief" },
             { name: "lang", value: lang },
