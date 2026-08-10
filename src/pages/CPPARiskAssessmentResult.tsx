@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
 import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
@@ -173,6 +174,11 @@ export default function CPPARiskAssessmentResult() {
   };
 
   const report = (translated?.report_data ?? row?.report_data) || {};
+  // SO-1 WIRE-IN: the assembled byte-pinned skeleton IS the customer document
+  // when present; the legacy V3/V4 narrative bodies are superseded for it.
+  const skeletonDoc = isSkeletonDocument((report as any)?.skeleton_document)
+    ? (report as any).skeleton_document
+    : null;
   const status = row?.status;
   const isV3 = !!(row?.report_data && (row.report_data as any).schema_version === "v3-part-a-part-b" && (row.report_data as any).part_a);
   const isV4 = !isV3 && isV4Report(row?.report_data);
@@ -286,7 +292,7 @@ export default function CPPARiskAssessmentResult() {
                     )}
                   </div>
                 )}
-                {!isV3 && report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
+                {!skeletonDoc && !isV3 && report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
               </section>
             )}
 
@@ -305,8 +311,9 @@ export default function CPPARiskAssessmentResult() {
               ) : null;
             })()}
 
-            {isV3 && <RiskAssessmentReportV3 report={report as any} />}
-            {isV4 && <RiskAssessmentReportV4 report={report as any} />}
+            {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
+            {!skeletonDoc && isV3 && <RiskAssessmentReportV3 report={report as any} />}
+            {!skeletonDoc && isV4 && <RiskAssessmentReportV4 report={report as any} />}
 
             {reportReady && (
               <SecondaryActivityFollowUps

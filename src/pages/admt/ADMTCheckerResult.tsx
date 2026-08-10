@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ReportShell from "@/components/ReportShell";
 import AuthorityExhibit from "@/components/report/AuthorityExhibit";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 import {
   AdmtAccessReadinessSection,
   AdmtExceptionSection,
@@ -353,6 +354,11 @@ export default function ADMTCheckerResult() {
     ? { ...rawReport, scope_analysis: { ...(rawReport.scope_analysis ?? {}), ...readAdmtScope(rawReport) } }
     : rawReport;
 
+  // SO-2 WIRE-IN: when the edge function has assembled the byte-pinned
+  // skeleton, that document IS the customer document — the legacy narrative
+  // sections below are superseded for those reports.
+  const skeletonDoc = isSkeletonDocument(report?.skeleton_document) ? report.skeleton_document : null;
+
   if (assessment.status === "error" || !report) {
     return (
       <div className="min-h-screen flex flex-col bg-brand-cloud">
@@ -457,6 +463,9 @@ export default function ADMTCheckerResult() {
           </p>
         </div>
 
+        {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
+
+        {!skeletonDoc && (<>
         {report.scope_analysis && (
           <section className="font-serif-text space-y-4">
             <h3 className="font-body text-display-card font-semibold">Scope Analysis</h3>
@@ -882,6 +891,8 @@ export default function ADMTCheckerResult() {
         )}
 
 
+
+        </>)}
 
         {/* UPGRADE-3 ITEM 5 — table of authorities, immediately before the
             universal report disclaimer rendered by ReportShell. */}

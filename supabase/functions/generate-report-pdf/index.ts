@@ -1150,6 +1150,61 @@ ${AUTHORITY_EXHIBIT_CSS}
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// SO WIRE-IN — SKELETON DOCUMENT RENDERER.
+//
+// When a report carries `report_data.skeleton_document` (assembled by the
+// product's edge function through the CEO-ratified byte-pinned skeleton), the
+// PDF renders FROM that document rather than from the legacy narrative path.
+// The renderer is dumb on purpose: headings and paragraphs exactly as
+// assembled, no re-wording, no re-ordering, no added prose.
+// ─────────────────────────────────────────────────────────────────────────
+interface SkeletonDocLike {
+  title?: string;
+  subtitle?: string;
+  spine_version?: string;
+  sections?: Array<{ id?: string; title?: string; paragraphs?: Array<{ kind?: string; text?: string }> }>;
+}
+
+function readSkeletonDocument(reportData: any): SkeletonDocLike | null {
+  const d = reportData?.skeleton_document;
+  if (!d || typeof d !== "object") return null;
+  if (!Array.isArray(d.sections) || d.sections.length === 0) return null;
+  return d as SkeletonDocLike;
+}
+
+function skeletonSectionsHtml(doc: SkeletonDocLike): string {
+  return (doc.sections ?? []).map((sec) => {
+    const paras = (sec.paragraphs ?? []).map((p) => {
+      const t = typeof p?.text === "string" ? p.text : "";
+      if (!t.trim()) return "";
+      if (sec.id === "table_of_authorities") {
+        return `<pre style="font-family:'Courier New',monospace;font-size:10.5px;white-space:pre-wrap;margin:0 0 8px;">${escHtml(t)}</pre>`;
+      }
+      return t.split(/\n{2,}/).map((chunk) =>
+        `<p class="body-p" style="white-space:pre-line;">${escHtml(chunk)}</p>`).join("");
+    }).join("");
+    if (!paras) return "";
+    return `<section class="section" style="page-break-inside:avoid;margin-bottom:14px;">
+      <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;">${escHtml(sec.title ?? "")}</h2>
+      ${paras}
+    </section>`;
+  }).join("\n");
+}
+
+function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string): string {
+  const created = record?.created_at ? new Date(record.created_at) : new Date();
+  const metaLine = `Generated ${created.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`
+    + (doc.subtitle ? ` · ${doc.subtitle}` : "");
+  return buildTextReportHTML({
+    title: doc.title || fallbackTitle,
+    metaLine,
+    text: "",
+    showJurisdictionChip: false,
+    htmlPrefix: skeletonSectionsHtml(doc),
+  });
+}
+
+
 // CPPA shared compact renderers — prefer the synthesized agency_position_summary;
 // fall back to the sentence-truncated agency_response already stored in report
 // payloads. Never present comment_summary (the commenter's position) as agency voice.
@@ -3128,14 +3183,20 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      html = buildCPPARiskReportHTML(record.report_data, record);
+      const skel = readSkeletonDocument(record.report_data);
+      html = skel
+        ? buildSkeletonReportHTML(skel, record, "CPPA Privacy Risk Assessment")
+        : buildCPPARiskReportHTML(record.report_data, record);
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_admt") {
       if (!record.report_data) {
         return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      html = buildADMTReportHTML(record.report_data, record);
+      const skelAdmt = readSkeletonDocument(record.report_data);
+      html = skelAdmt
+        ? buildSkeletonReportHTML(skelAdmt, record, "ADMT Compliance Assessment")
+        : buildADMTReportHTML(record.report_data, record);
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_cybersecurity") {
       const intake = record.intake_data || {};
