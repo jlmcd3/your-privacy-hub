@@ -141,7 +141,7 @@ const AIPrivacyRegulations = () => (
 
 <li><strong><a href="/regulator/ico">ICO</a>:</strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
 
-<li><strong>CPPA (California):</strong> Adopted ADMT regulations in July 2025 (effective January 1, 2026). First enforcement actions expected H2 2026.</li>
+<li><strong>CPPA (California):</strong> Adopted the ADMT and related regulations on July 24, 2025 (OAL-approved September 23, 2025; effective January 1, 2026), with ADMT significant-decision compliance required from January 1, 2027.</li>
 
 </ul>
 
