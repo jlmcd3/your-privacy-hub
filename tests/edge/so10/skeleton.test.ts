@@ -19,14 +19,14 @@ import {
   ROPA_SKELETON_PARAGRAPHS,
   ROPA_SKELETON_PINPOINTS,
   ROPA_V3_BANNED_REGISTER,
-} from "../../../supabase/functions/_shared/prose/plans/ropa.spine.ts";
+} from "../../../supabase/functions/generate-ropa-document/register/ropa.spine.ts";
 import {
   assembleRopaRegister,
   ROPA_HOME_BASE_LABELS,
   ROPA_PIPELINE_STAMP,
   type RopaActivityInput,
   type RopaAssembleInput,
-} from "../../../supabase/functions/_shared/ltp/ropa-skeleton-assemble.ts";
+} from "../../../supabase/functions/generate-ropa-document/register/ropa-skeleton-assemble.ts";
 
 const ACTIVITY: RopaActivityInput = {
   id: "11111111-1111-4111-8111-111111111111",
