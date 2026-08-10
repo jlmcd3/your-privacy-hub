@@ -90,6 +90,20 @@ export function ResearchPageHeader({
               {description}
             </p>
 
+            {/* Legal currentness line. contextUpdated (live synthesis generation
+                time) wins over the page-authored lastUpdated; neither → nothing. */}
+            {(contextUpdatedLabel || lastUpdated) && (
+              <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="text-[10px] tracking-[0.12em] uppercase text-slate-400">
+                  Legally verified
+                </span>
+                <span className="font-mono text-[13px] leading-none text-slate-200">
+                  {contextUpdatedLabel ?? lastUpdated}
+                </span>
+              </div>
+            )}
+
+
             {stats && stats.length > 0 && (
               <div className="flex lg:hidden flex-wrap gap-x-8 gap-y-3 mt-4">
                 {stats.map((s) => (
