@@ -49,8 +49,11 @@ Deno.test("ITEM 422-C D1: a RIGHT assignment passes untouched", () => {
   assertEquals(entry._citation_source, "registry_key");
 });
 
-Deno.test("ITEM 422-C D1: a MIS-KEYED assignment takes the honest downgrade", () => {
-  // The pilot's rank 3 and rank 6 shapes.
+Deno.test("ITEM 422-C D1 (SO-FT-1): a MIS-KEYED assignment with unambiguous rival support is RE-KEYED", () => {
+  // The pilot's rank 3 and rank 6 shapes. Under item422c these took the
+  // honest downgrade because no rival proposition carried a verified row;
+  // SO-FT-1 supplied corpus rows for § 7222(g) and § 7222(f), so the
+  // content-anchored rival now wins outright and the pinpoint is recovered.
   const secureTx: Record<string, unknown> = {
     rank: 3,
     proposition_key: "access_logic",
@@ -61,19 +64,35 @@ Deno.test("ITEM 422-C D1: a MIS-KEYED assignment takes the honest downgrade", ()
     proposition_key: "access_logic",
     action: "Record the denial basis where a legal conflict prevents disclosure.",
   };
+  const expected: Record<string, string> = {
+    "3": "access_secure_tx",
+    "6": "access_denial",
+  };
   for (const e of [secureTx, denial]) {
     assertEquals(validatePropositionAssignment(e, "access_logic").verdict, "mismatch");
     resolveActionCitation(e, ADMT_VERIFIED_AUTHORITIES);
-    assertEquals(e.citation, ADMT_SUBCHAPTER_FALLBACK);
-    assertEquals(e.proposition_key, "");
-    assertEquals(e._citation_source, "registry_downgrade_mis_keyed");
+    const want = expected[String(e.rank)];
+    assertEquals(e.proposition_key, want);
+    assertEquals(e.citation, REG[want].subsection);
     assertEquals(e._mis_keyed_from, "access_logic");
-    assert(String(e._mis_keyed_contradicted_by).length > 0);
   }
-  // and the diag counts it
   const report = { priority_actions: [secureTx] };
   const diag = resolveAdmtActionCitations(report, ADMT_VERIFIED_AUTHORITIES);
   assertEquals(diag.crashed, false);
+});
+
+Deno.test("ITEM 422-C D1: a MIS-KEYED assignment with NO clear rival still takes the honest downgrade", () => {
+  const vague: Record<string, unknown> = {
+    rank: 9,
+    proposition_key: "access_logic",
+    action: "Review the process and confirm the outcome with the responsible owner.",
+  };
+  assertEquals(validatePropositionAssignment(vague, "access_logic").verdict, "mismatch");
+  resolveActionCitation(vague, ADMT_VERIFIED_AUTHORITIES);
+  assertEquals(vague.citation, ADMT_SUBCHAPTER_FALLBACK);
+  assertEquals(vague.proposition_key, "");
+  assertEquals(vague._citation_source, "registry_downgrade_mis_keyed");
+  assertEquals(vague._mis_keyed_from, "access_logic");
 });
 
 // ── DEFECT 2 — no null citation on any proposition-key state ────────────────
