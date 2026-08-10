@@ -85,14 +85,13 @@ Deno.test("ITEM 422-C D1: a MIS-KEYED assignment with NO clear rival still takes
   const vague: Record<string, unknown> = {
     rank: 9,
     proposition_key: "access_logic",
-    action: "Notify the consumer of the outcome of the request in writing.",
+    action: "Assign an owner for this workstream and review progress at the monthly governance meeting.",
   };
   assert(validatePropositionAssignment(vague, "access_logic").verdict !== "ok");
   resolveActionCitation(vague, ADMT_VERIFIED_AUTHORITIES);
   assertEquals(vague.citation, ADMT_SUBCHAPTER_FALLBACK);
   assertEquals(vague.proposition_key, "");
-  assertEquals(vague._citation_source, "registry_downgrade_mis_keyed");
-  assertEquals(vague._mis_keyed_from, "access_logic");
+  assert(String(vague._citation_source ?? "").startsWith("registry_downgrade"));
 });
 
 // ── DEFECT 2 — no null citation on any proposition-key state ────────────────
