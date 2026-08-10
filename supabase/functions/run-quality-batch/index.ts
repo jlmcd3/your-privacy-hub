@@ -249,7 +249,11 @@ async function claude(system: string, user: string, maxTokens = 4000, model = "c
   return d.content?.[0]?.text ?? "";
 }
 
-async function gpt4o(system: string, user: string, maxTokens = 3000): Promise<string> {
+// GRADER-SYM-1 (item 4): GPT budget raised 3000 → 5000 to match Claude's
+// 5000, and a finish_reason==="length" truncation is now logged loudly so a
+// cut-off skeleton-mode response is visible instead of being read as
+// "GPT found fewer defects".
+async function gpt4o(system: string, user: string, maxTokens = 5000): Promise<string> {
   if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -264,6 +268,10 @@ async function gpt4o(system: string, user: string, maxTokens = 3000): Promise<st
   });
   if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
+  const finish = d.choices?.[0]?.finish_reason;
+  if (finish === "length") {
+    console.warn(`[run-quality-batch] gpt_response_truncated finish_reason=length max_tokens=${maxTokens} — findings list may be cut short`);
+  }
   return d.choices?.[0]?.message?.content ?? "";
 }
 
@@ -1096,12 +1104,8 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
     intelligence:  claudeResult?.dimension_scores?.intelligence  ?? 60,
     formatting:    claudeResult?.dimension_scores?.formatting    ?? 60,
   };
-  for (const f of detFindings) {
-    if (!f.passed) {
-      const penalty = f.severity === "critical" ? 25 : f.severity === "high" ? 12 : f.severity === "medium" ? 6 : 2;
-      (scores as any)[f.dimension] = Math.max(0, (scores as any)[f.dimension] - penalty);
-    }
-  }
+  const penalized = applyDeterministicPenalties(scores as any, detFindings as any);
+  Object.assign(scores, penalized);
   const w = weightsFor(tool);
   // QB-P17 item 2 — keep the unrounded weighted score for gate comparisons.
   // overall_score_display is the human-facing rounded copy.
@@ -1134,7 +1138,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtu
     if (payload.truncated) {
       console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${useSkeleton ? SKELETON_GRADER_BUDGET : GRADER_PAYLOAD_BUDGET}`);
     }
-    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake, tool)}\nDOCUMENT TO EVALUATE:\n${payload.text}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
+    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake, tool)}\nDOCUMENT TO EVALUATE:\n${payload.text}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 5000);
 
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
@@ -1171,6 +1175,37 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtu
 //   "gpt_only"       — GPT failed it, Claude did not
 //   "agree_pass"     — both passed (not surfaced as a defect)
 // ===================================================================
+// GRADER-SYM-1 (items 2 & 3) — symmetry helpers.
+// Deterministic failures are code-verified ground truth about the SAME
+// document, so they must debit BOTH graders' dimension scores. Previously
+// only Claude's scores took the 25/12/6/2 severity deductions, which alone
+// could explain a large slice of the Claude↔GPT overall deltas.
+export function applyDeterministicPenalties(
+  scores: Record<string, number>,
+  detFindings: Array<{ passed?: boolean; severity?: string; dimension?: string }>,
+): Record<string, number> {
+  const out: Record<string, number> = { ...scores };
+  for (const f of detFindings ?? []) {
+    if (f.passed) continue;
+    const penalty = f.severity === "critical" ? 25 : f.severity === "high" ? 12 : f.severity === "medium" ? 6 : 2;
+    const dim = f.dimension ?? "";
+    if (!(dim in out)) continue;
+    out[dim] = Math.max(0, out[dim] - penalty);
+  }
+  return out;
+}
+
+// Same weighted formula Claude's path and the batch aggregate use. GPT's
+// self-reported `overall_score` is no longer trusted for storage.
+export function weightedOverall(scores: Record<string, number>, w: Record<string, number>): number {
+  return (scores.accuracy ?? 60) * w.accuracy
+    + (scores.citation ?? 60) * w.citation
+    + (scores.hallucination ?? 60) * w.hallucination
+    + (scores.analysis ?? 60) * w.analysis
+    + (scores.intelligence ?? 60) * w.intelligence
+    + (scores.formatting ?? 60) * w.formatting;
+}
+
 function categorizePerDoc(claudeFail: boolean, gptFail: boolean): string {
   if (claudeFail && gptFail)  return "agree";
   if (claudeFail && !gptFail) return "claude_only";
