@@ -33,7 +33,7 @@ import {
   ROPA_SKELETON_TITLE,
   ROPA_SKELETON_VERSION,
   ROPA_V3_BANNED_REGISTER,
-} from "../prose/plans/ropa.spine.ts";
+} from "./ropa.spine.ts";
 import {
   renderFixed,
   renderSkeletonDocument,
@@ -43,7 +43,7 @@ import {
   type ConformanceFinding,
   type RenderedSkeletonDocument,
   type SlotValues,
-} from "../prose/skeleton-render.ts";
+} from "../../_shared/prose/skeleton-render.ts";
 
 /** SO-10 pipeline stamp. Survives serialization on the persisted document. */
 export const ROPA_PIPELINE_STAMP = "ropa-pipeline@item-so10-2026-08-10";

@@ -57,7 +57,7 @@ import {
   type RopaActivityInput,
   type RopaAssembleInput,
   type RopaRegisterDocument,
-} from "../_shared/ltp/ropa-skeleton-assemble.ts";
+} from "./register/ropa-skeleton-assemble.ts";
 export { ROPA_PIPELINE_STAMP };
 
 
