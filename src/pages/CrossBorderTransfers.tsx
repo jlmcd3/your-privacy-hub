@@ -102,7 +102,7 @@ export default function CrossBorderTransfersPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="/cross-border-transfers" />
+        <link rel="canonical" href="https://www.enduserprivacy.com/cross-border-transfers" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
