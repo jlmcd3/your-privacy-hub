@@ -81,8 +81,8 @@ const REQUIREMENTS_MATRIX = `
 
 const STRICTEST_CHECKLIST = `
 <div class="rounded-xl border-l-4 border-accent bg-accent/5 p-5">
-  <p class="text-[11px] font-semibold uppercase tracking-wider text-accent mb-2">What your banner must do</p>
-  <p class="text-xs text-slate mb-3">Operationalised from the strictest applicable obligations — apply globally if your site reaches EU/UK and U.S. visitors.</p>
+  <p class="text-[11px] font-semibold uppercase tracking-wider text-accent mb-2">Strictest cross-jurisdiction deployment approach</p>
+  <p class="text-xs text-slate mb-3">This checklist applies a conservative common-denominator configuration suitable for services operating across EU/EEA, UK and U.S. jurisdictions. It may be stricter than the minimum rule in a particular jurisdiction; for example, UK PECR now permits certain qualifying statistical and appearance/functionality uses without prior consent if the statutory conditions are met.</p>
   <ol class="space-y-2 text-sm text-brand-navy list-decimal list-inside">
     <li>Block all non-essential cookies <strong>before</strong> the user makes a choice — including analytics, ads, social pixels, and chat widgets.</li>
     <li>Offer "Accept all", "Reject all" and "Manage preferences" with <strong>equal visual weight</strong> and the same number of clicks.</li>
