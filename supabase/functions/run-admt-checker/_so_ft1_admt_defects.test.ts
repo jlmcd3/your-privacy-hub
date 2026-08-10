@@ -120,14 +120,14 @@ Deno.test("defect 2 — blanket range in a labelled citation line is caught", ()
     "  Responsible: Privacy Officer",
   ].join("\n");
   const f = checkH7BlanketAdmtRange(text);
-  assertEquals(f.filter((x) => x.id === "h7_admt_blanket_range").length, 1);
+  assertEquals(f.filter((x) => x.check_id === "h7_admt_blanket_range" && x.passed === false).length, 1);
 });
 
 Deno.test("defect 2 — duty and range in different sentences of one record", () => {
   const text =
     "The business must log every aggregate-use response it provides to a consumer. The governing authority is 11 CCR §§ 7200–7222.";
   const f = checkH7BlanketAdmtRange(text);
-  assertEquals(f.filter((x) => x.id === "h7_admt_blanket_range").length, 1);
+  assertEquals(f.filter((x) => x.check_id === "h7_admt_blanket_range" && x.passed === false).length, 1);
 });
 
 Deno.test("defect 2 — scope framing in a long narrative still passes", () => {
@@ -138,7 +138,7 @@ Deno.test("defect 2 — scope framing in a long narrative still passes", () => {
     "the significant-decision analysis, the human-involvement analysis, and the downstream consequences for the " +
     "business must provide obligations that follow if the determination is confirmed on the record as supplied.";
   const f = checkH7BlanketAdmtRange(text);
-  assertEquals(f.filter((x) => x.id === "h7_admt_blanket_range").length, 0);
+  assertEquals(f.filter((x) => x.check_id === "h7_admt_blanket_range" && x.passed === false).length, 0);
 });
 
 Deno.test("defect 2 — clean record passes", () => {
@@ -147,7 +147,7 @@ Deno.test("defect 2 — clean record passes", () => {
     "  Citation: 11 CCR § 7221(n)(1)",
   ].join("\n");
   const f = checkH7BlanketAdmtRange(text);
-  assertEquals(f.filter((x) => x.id === "h7_admt_blanket_range").length, 0);
+  assertEquals(f.filter((x) => x.check_id === "h7_admt_blanket_range" && x.passed === false).length, 0);
 });
 
 Deno.test("defect 3 — the four boilerplate-stamped elements now resolve", () => {
