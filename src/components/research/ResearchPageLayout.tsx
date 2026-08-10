@@ -124,6 +124,7 @@ export function ResearchPageLayout({
   adAfterHeader = true,
   introBlock,
   sectionRailEntries,
+  sourcesLastVerified,
 }: ResearchPageLayoutProps) {
 
   const { isPremium } = usePremiumStatus();
