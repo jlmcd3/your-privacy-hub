@@ -2383,6 +2383,45 @@ Return this JSON structure exactly:
             const findingText = typeof it.finding === "string" ? it.finding.trim() : "";
             const substantive = findingText.length >= 40;
             if (substantive) {
+              // REGISTRY-FIRST: before conceding the pinpoint, re-resolve the
+              // element through the citation registry. Most of these entries
+              // simply never carried a proposition_key, and the element's pack
+              // now has a corpus-verified row.
+              let reanchored: { key: string; subsection: string } | null = null;
+              try {
+                const eid = typeof it.element_id === "string" ? it.element_id.trim() : "";
+                if (eid) {
+                  const res = resolveCitations(eid as ElementId, ((assessment as any)?.intake_data ?? {}));
+                  for (const cid of (res?.citationIds ?? [])) {
+                    const vrow = (ADMT_VERIFIED_AUTHORITIES as any)[cid as string];
+                    if (vrow?.subsection && !/^11\s*CCR\s*§\s*7001\b/.test(String(vrow.citation ?? ""))) {
+                      reanchored = { key: String(cid), subsection: String(vrow.subsection) };
+                      break;
+                    }
+                  }
+                }
+              } catch { /* fail-open — fall through to the honest downgrade */ }
+
+              if (reanchored) {
+                it.proposition_key = reanchored.key;
+                for (const f of ["citation", "regulatory_citation", "subsection"]) {
+                  if (typeof it[f] === "string") it[f] = reanchored.subsection;
+                }
+                const vrow = (ADMT_VERIFIED_AUTHORITIES as any)[reanchored.key];
+                if (typeof it.verbatim_quote === "string" && vrow?.verbatim_quote) {
+                  it.verbatim_quote = vrow.verbatim_quote;
+                }
+                delete it._va_stamp_unresolved;
+                it._w9_regen = {
+                  pass: 1,
+                  action: "reanchored_from_element_registry",
+                  violated_rule: violatedRule,
+                  row_note: ` (registry row: ${reanchored.subsection})`,
+                };
+                w9Regen.authority_downgraded_registry_coverage++;
+                continue;
+              }
+
               for (const f of ["citation", "regulatory_citation", "subsection"]) {
                 if (typeof it[f] === "string" && it[f].trim()) {
                   it[f] = ADMT_SUBCHAPTER_FALLBACK;
@@ -2398,6 +2437,7 @@ Return this JSON structure exactly:
               w9Regen.authority_downgraded_registry_coverage++;
               continue;
             }
+
 
             it.status = "insufficient_basis";
             // W19-ADMT-FALLBACK-JOIN-2 (2) — customer-safe reword.
