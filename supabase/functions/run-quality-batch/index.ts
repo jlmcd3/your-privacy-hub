@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "harness-fixgen-retirement@2026-07-26T21:15:00Z";
+export const BUILD_STAMP = "grader-symmetry-1@2026-08-10T22:30:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -2580,7 +2580,7 @@ async function runBatchInner(runId: string): Promise<void> {
         method: "deterministic_join_v2",
         claude_overall: claudeEval.overall_score,
         gpt_overall: gptEval.overall_score,
-        rubric_findings_compared: claudeRubricById.size,
+        rubric_findings_compared: new Set([...claudeRubricById.keys(), ...gptById.keys()]).size,
       } : null;
 
       await admin.from("quality_run_documents").update({
@@ -2606,30 +2606,56 @@ async function runBatchInner(runId: string): Promise<void> {
       //  - Deterministic failures → "deterministic" (code-verified ground truth)
       //  - Deterministic passes → no category (don't surface as defect)
       //  - Rubric (llm) findings → categorized by joining with gpt verdict for the SAME check_id
-      for (const f of claudeEval.findings) {
-        let perDocCategory: string | null = null;
-        let gptEvidence: string | null = null;
-        if (f.check_type === "deterministic") {
-          perDocCategory = f.passed ? null : "deterministic";
-        } else {
-          // llm rubric finding
-          const gptF = gptEval ? gptById.get(f.check_id) : null;
-          if (gptEval) {
-            const gptFail = gptF ? !gptF.passed : false;
-            gptEvidence = gptF?.evidence ?? null;
-            perDocCategory = categorizePerDoc(!f.passed, gptFail);
-          } else {
-            perDocCategory = !f.passed ? "claude_only" : null;
-          }
-        }
+      // Deterministic findings pass through unchanged (code-verified ground truth).
+      for (const f of claudeEval.findings.filter((x: any) => x.check_type === "deterministic")) {
         state.allDocFindings.push({
           ...f,
           doc_id: docRowId,
           scenario_set: scenarioSet,
-          cross_category: perDocCategory,
-          cross_evidence_gpt: gptEvidence,
-          rubric_addition: null, // F6: obsolete — deterministic categorization replaces the LLM reconciler
+          cross_category: f.passed ? null : "deterministic",
+          cross_evidence_gpt: null,
+          rubric_addition: null,
         });
+      }
+
+      // GRADER-SYM-1 item 1 — UNION RECONCILIATION.
+      // Previously the join walked Claude's findings only and looked GPT up by
+      // check_id, with a second pass appending GPT-only rows. Reconciliation is
+      // now driven by the union of check_ids: the canonical rubricFor(tool)
+      // checklist plus anything either grader actually returned. A check_id
+      // Claude's model silently omits can no longer swallow (or de-evidence)
+      // a GPT hit on the same check.
+      {
+        const _rubricMetaDoc = new Map(rubricFor(tool).map((r: any) => [r.id, r]));
+        const unionIds = new Set<string>([
+          ...Array.from(claudeRubricById.keys()),
+          ...Array.from(gptById.keys()),
+        ]);
+        for (const id of unionIds) {
+          const cF = claudeRubricById.get(id);
+          const gF = gptEval ? gptById.get(id) : null;
+          const claudeFail = cF ? !cF.passed : false;
+          const gptFail = gF ? !gF.passed : false;
+          if (!claudeFail && !gptFail) continue; // agree_pass / unmentioned — not a defect
+          const meta: any = _rubricMetaDoc.get(id);
+          const perDocCategory = gptEval
+            ? categorizePerDoc(claudeFail, gptFail)
+            : (claudeFail ? "claude_only" : null);
+          state.allDocFindings.push({
+            check_id: id,
+            check_type: cF ? "llm" : "gpt_only",
+            dimension: cF?.dimension ?? gF?.dimension ?? meta?.dimension ?? "accuracy",
+            severity: cF?.severity ?? gF?.severity ?? meta?.severity ?? "medium",
+            passed: false,
+            evidence: cF?.evidence ?? gF?.evidence ?? null,
+            doc_id: docRowId,
+            scenario_set: scenarioSet,
+            cross_category: perDocCategory,
+            cross_evidence_gpt: gF?.evidence ?? null,
+            claude_mentioned: !!cF,
+            rubric_addition: null,
+          });
+        }
       }
 
       // COUNSEL-VOICE-1 E-completion: merge per-tool deterministic format
@@ -2664,23 +2690,8 @@ async function runBatchInner(runId: string): Promise<void> {
       }
 
 
-      // GPT-only failures: rubric findings the model flagged that Claude didn't (claude passed
-      // or didn't return that id at all).
-      for (const gptFinding of gptFindings.filter((f: any) => !f.passed)) {
-        const claudeF = claudeRubricById.get(gptFinding.check_id);
-        const claudeFail = claudeF ? !claudeF.passed : false;
-        if (!claudeFail) {
-          // Not already counted via the Claude loop above (which only records categories for Claude findings).
-          state.allDocFindings.push({
-            check_id: gptFinding.check_id, check_type: "gpt_only",
-            dimension: gptFinding.dimension, severity: gptFinding.severity,
-            passed: false, evidence: gptFinding.evidence ?? null, doc_id: docRowId,
-            scenario_set: scenarioSet,
-            cross_category: "gpt_only", cross_evidence_gpt: gptFinding.evidence ?? null,
-            rubric_addition: null,
-          });
-        }
-      }
+      // GRADER-SYM-1 item 1 — the former standalone GPT-only pass is folded
+      // into the union reconciliation above (it double-counted otherwise).
 
       await persistState({ next_doc_index: i + 1 });
     }
