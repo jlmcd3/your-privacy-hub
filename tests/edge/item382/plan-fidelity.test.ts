@@ -14,6 +14,8 @@ import {
   LIA_THESIS,
   LIA_CENTRE_OF_GRAVITY,
   liaSectionTitle,
+  LIA_PLAN_SUPERSEDED_ROW_ID,
+  LIA_PLAN_SUPERSEDED_VERSION,
 } from "../../../supabase/functions/_shared/prose/plans/lia.spine.ts";
 
 const EXPECTED: readonly [string, string, string, string][] = [
@@ -34,8 +36,13 @@ const EXPECTED: readonly [string, string, string, string][] = [
 ];
 
 Deno.test("ITEM 382 — plan identity is pinned to the approved row", () => {
-  assertEquals(LIA_PLAN_ROW_ID, "c9b3d942-83b9-4aac-859d-b507c1f2ef37");
-  assertEquals(LIA_PLAN_VERSION, "prose-plans-2026-08-04-item364-d2");
+  // Re-pinned by ITEM SO-11 (2026-08-10): the item364-d2 row is superseded by
+  // the v3 render-law row. The 14-section arc asserted below is unchanged, which
+  // is the point of the re-pin — the supersede changed the RENDER, not the arc.
+  assertEquals(LIA_PLAN_ROW_ID, "1f4b7c96-1e6c-4d63-a4e5-2a4f4c0b3d11");
+  assertEquals(LIA_PLAN_VERSION, "prose-plans-2026-08-10-item-so11");
+  assertEquals(LIA_PLAN_SUPERSEDED_ROW_ID, "c9b3d942-83b9-4aac-859d-b507c1f2ef37");
+  assertEquals(LIA_PLAN_SUPERSEDED_VERSION, "prose-plans-2026-08-04-item364-d2");
 });
 
 Deno.test("ITEM 382 — the 14-section arc is encoded faithfully, in plan order", () => {

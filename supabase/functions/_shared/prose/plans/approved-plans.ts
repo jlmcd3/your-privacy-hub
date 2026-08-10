@@ -164,9 +164,13 @@ export const APPROVED_PLANS: Readonly<Record<string, ApprovedPlan>> = Object.fre
   },
   "lia": {
     product: "lia",
-    row_id: "c9b3d942-83b9-4aac-859d-b507c1f2ef37",
-    row_version: 1,
-    label: "prose-plans-2026-08-04-item364-d2",
+    // ITEM SO-11 — superseded row c9b3d942-83b9-4aac-859d-b507c1f2ef37
+    // (prose-plans-2026-08-04-item364-d2). The 14-section typed arc below is
+    // UNCHANGED — coverage, the record-complete gate and structure conformance
+    // all key off it. What the new row adds is the v3 render law.
+    row_id: "1f4b7c96-1e6c-4d63-a4e5-2a4f4c0b3d11",
+    row_version: 2,
+    label: "prose-plans-2026-08-10-item-so11",
     sections: [
     { id: "determination", title: "Determination", source_key: "lia_determination", required: true },
     { id: "classification", title: "The processing as the organisation described it", source_key: "classification", required: true },
