@@ -9,12 +9,16 @@ const TIERED_STATE_LAWS = `
   <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-5">
     <div class="flex items-center gap-2 mb-2">
       <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-600 text-white">Highest obligation</span>
-      <span class="text-xs text-rose-900 font-semibold">Private right of action · no cure period · per-scan damages</span>
+      <span class="text-xs text-rose-900 font-semibold">Private right of action · no general cure period · statutory damages</span>
     </div>
     <h3 class="text-brand-navy text-lg mb-1">Illinois — BIPA</h3>
     <p class="text-sm text-slate leading-relaxed">
-      <a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&amp;ChapterID=57" target="_blank" rel="noopener noreferrer">740 ILCS 14</a> requires written informed consent before collecting biometric identifiers, a publicly available retention and destruction schedule, no sale or trade of biometric data, and reasonable security. The <strong>private right of action</strong> allows $1,000 per negligent and $5,000 per intentional or reckless violation, and <a href="https://courts.illinois.gov/Opinions/SupremeCourt/2023/127891.pdf" target="_blank" rel="noopener noreferrer">Cothron v. White Castle</a> (2023) confirmed damages accrue <em>per scan</em>. Even a small employee population can produce nine-figure exposure.
+      <a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&amp;ChapterID=57" target="_blank" rel="noopener noreferrer">740 ILCS 14</a> requires written informed consent before collecting biometric identifiers, a publicly available retention and destruction schedule, no sale or trade of biometric data, and reasonable security. The <strong>private right of action</strong> continues to provide liquidated damages of $1,000 for negligent violations and $5,000 for intentional or reckless violations, or actual damages where greater, subject to the statute. Under <a href="https://www.ilga.gov/legislation/ilcs/fulltext.asp?DocName=074000140K20" target="_blank" rel="noopener noreferrer">Section 20(b)</a>, repeated collection of the same biometric identifier or biometric information from the same person using the same method of collection is a single violation for which that person is entitled to at most one recovery under Section 20; under Section 20(c), repeated disclosure of the same person's biometric information to the same recipient using the same method likewise permits at most one recovery for that repeated disclosure conduct.
     </p>
+    <p class="text-sm text-slate leading-relaxed mt-3">
+      In <a href="https://courts.illinois.gov/Opinions/SupremeCourt/2023/127891.pdf" target="_blank" rel="noopener noreferrer">Cothron v. White Castle</a> (2023), the Illinois Supreme Court held that claims under Sections 15(b) and 15(d) accrue each time biometric information is collected or disclosed without complying with BIPA. Illinois subsequently enacted <a href="https://www.ilga.gov/legislation/publicacts/fulltext.asp?Name=103-0769" target="_blank" rel="noopener noreferrer">Public Act 103-0769</a>, effective August 2, 2024, amending Section 20 to limit recovery for repeated same-person/same-method collection and repeated same-person/same-recipient/same-method disclosure. In April 2026, the Seventh Circuit held that the Section 20 amendment applies retroactively to cases that were pending when the amendment took effect (<em>Clay v. Union Pacific Railroad Co.</em> and consolidated appeals, decided April 1, 2026). The amendment limits recoveries; it does not rewrite the substantive duties in Section 15.
+    </p>
+
   </div>
 
   <div class="rounded-xl border-l-4 border-amber-500 bg-amber-50 p-5">
