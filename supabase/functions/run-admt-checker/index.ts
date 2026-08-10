@@ -71,7 +71,7 @@ import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "./_local/ltp/admt-p
 import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
 import { normalizeAdmtPriorityActions, ADMT_ACTION_RECORD_WRITER_VERSION } from "./_local/ltp/admt-action-records.ts";
 // ITEM 422-B — registry-resolved citations on the typed priority actions.
-import { resolveAdmtActionCitations, sealAdmtActionCitations, ADMT_ACTION_CITATION_VERSION } from "./_local/ltp/admt-action-citations.ts";
+import { resolveAdmtActionCitations, sealAdmtActionCitations, ADMT_ACTION_CITATION_VERSION, ADMT_SUBCHAPTER_FALLBACK } from "./_local/ltp/admt-action-citations.ts";
 import { linkAdmtActionsToFindings, ADMT_ACTION_LINKAGE_VERSION } from "./_local/ltp/admt-action-finding-linkage.ts";
 import { sweepAdmtOperatorInstructions, ADMT_OPERATOR_SWEEP_VERSION } from "./_local/ltp/admt-operator-instruction-sweep.ts";
 import { sweepAdmtOutOfRangeCitations, ADMT_RANGE_SWEEP_VERSION } from "./_local/ltp/admt-citation-range-sweep.ts";
