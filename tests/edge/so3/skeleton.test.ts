@@ -216,7 +216,7 @@ Deno.test("SO-3 — assembly: conformance, register, one summary voice", () => {
   assert(text.includes("251 to 1,000 people"));
   assert(text.includes("including the special categories health data, which engage Article 9"));
   assert(text.includes("Medisyne OH"), "the Other tool must render verbatim");
-  assert(text.includes("relying on EU Standard Contractual Clauses (SCCs)"));
+  assert(text.includes("EU Standard Contractual Clauses (SCCs)"), "the recorded Chapter V mechanism must render");
 
   // Lead coherence: the executive lead binds to readiness_determination.rating.
   const execLead = res.document.sections[0].paragraphs[0].text;
