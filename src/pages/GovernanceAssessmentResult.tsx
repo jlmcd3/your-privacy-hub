@@ -412,7 +412,7 @@ const GovernanceAssessmentResult = () => {
                   </section>
                 )}
 
-              {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
+              {!skeletonDoc && Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-4">Domain Findings</h2>
                   <Accordion type="multiple" value={openDomains} onValueChange={setOpenDomains}>
