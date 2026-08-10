@@ -295,6 +295,14 @@ const HF7_RECORD_BLOCK_SPLIT_RE = /\n\s*\n|\r?\n(?=\s*(?:[-•*\u2022]|\d+[.)]))
 const HF7_LABEL_FRAGMENT_RE =
   /^\s*(?:citation|authority|authorities|legal\s+basis|statutory\s+basis|pinpoint|source|responsible|owner|deadline|due)\s*:/i;
 const HF7_RECORD_BLOCK_MAX = 800;
+// Record-scoped duty test. Action records state their duty in the imperative
+// ("Cease ADMT processing…", "Log every aggregate-use response…") or with a
+// modal the narrow narrative list does not carry ("must log", "must cease").
+// A blanket range sitting in a record's LABELLED authority line is a
+// duty-anchor by construction — that line exists to answer "under what
+// authority is this action owed?".
+const HF7_RECORD_DUTY_RE =
+  /\b(?:must|shall|is\s+required\s+to|are\s+required\s+to)\s+[a-z]|^\s*(?:[-•*\u2022]|\d+[.)])?\s*(?:cease|ceasing|log|record|document|implement|adopt|establish|provide|notify|disclose|maintain|update|publish|deliver|respond)\b/im;
 
 export function checkH7BlanketAdmtRange(text: string): FormatFinding[] {
   if (!text) return [pass("h7_admt_blanket_range_ok", "citation_accuracy")];
@@ -306,7 +314,8 @@ export function checkH7BlanketAdmtRange(text: string): FormatFinding[] {
     if (!block || !block.trim()) continue;
     const lines = block.split(/\r?\n/).filter((l) => l.trim());
     const blockIsRecord = block.length <= HF7_RECORD_BLOCK_MAX;
-    const blockHasDuty = HF4_H6_ADMT_DUTY_VERBS.test(block);
+    const blockHasDuty = HF4_H6_ADMT_DUTY_VERBS.test(block)
+      || HF7_RECORD_DUTY_RE.test(block);
     const sentences = block.split(/(?<=[.!?])\s+|\r?\n/);
     for (const s of sentences) {
       if (!HF7_ADMT_RANGE_RE.test(s)) continue;
@@ -316,7 +325,8 @@ export function checkH7BlanketAdmtRange(text: string): FormatFinding[] {
       // Duty scope: the sentence itself, widened to the whole record block when
       // the block is one record or the citation sits in a labelled fragment.
       const hasDuty = HF4_H6_ADMT_DUTY_VERBS.test(s)
-        || ((blockIsRecord || inLabelFragment) && blockHasDuty);
+        || ((blockIsRecord || inLabelFragment) && blockHasDuty)
+        || (inLabelFragment && blockIsRecord);
       if (!hasDuty) {
         if (!scopeAllowanceUsed) { scopeAllowanceUsed = true; continue; }
         continue;
