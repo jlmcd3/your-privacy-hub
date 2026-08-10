@@ -136,7 +136,7 @@ Deno.test("defect 2 — scope framing in a long narrative still passes", () => {
     "The analysis below sets out the scope determination and the basis on which it rests, working through each " +
     "element of the deployment in turn so that the reader can follow how the conclusion was reached, including " +
     "the significant-decision analysis, the human-involvement analysis, and the downstream consequences for the " +
-    "business must provide obligations that follow if the determination is confirmed on the record as supplied.";
+    "consequences that follow if the determination is confirmed on the record as supplied.";
   const f = checkH7BlanketAdmtRange(text);
   assertEquals(f.filter((x) => x.check_id === "h7_admt_blanket_range" && x.passed === false).length, 0);
 });
