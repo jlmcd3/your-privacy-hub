@@ -27,15 +27,20 @@ export const DPIA_SKELETON_PROVENANCE =
 
 /**
  * SHA-256 over the CORRECTED skeleton's paragraph text, newline-joined, in
- * file order, computed DIRECTLY from the docx (all 22 `w:p` paragraphs, `w:t`
- * runs concatenated, XML entities unescaped, joined with "\n") — the same
- * method that produced the cppa-risk, cppa-admt, governance and cyber hashes.
+ * file order, computed DIRECTLY from the docx bytes (all 22 `w:p` paragraphs,
+ * `w:t` runs concatenated, XML entities unescaped, joined with "\n").
+ *
+ * PROVENANCE CORRECTION 2026-08-10: the first-recorded pair of hashes was
+ * computed over this module's reconstructed paragraph list rather than the
+ * literal file, so it did not trace to the docx. Both values below are now
+ * read straight from the archive member `word/document.xml` — no whitespace
+ * normalisation, no quote straightening, no reconstruction.
  *
  * Uncorrected v3 (for the audit trail):
- *   a69298dfa38ecd72fdeed57805fbc7da78b4b820cdaffedc6d1469047ea6aea5
+ *   097d5a6a6378a178315b23f93cc7d47a47e5ca17e4e0fae5b2b44f30233b5eb4
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "ad0a012c14ca74f52f4abfe6cb3ed617415d72e705a2c4e5216453ffff46cead";
+  "cf54ee9924e728e059aeeb097c00bcbcd71a011fe67d24541a1aafcf5a467421";
 
 export const DPIA_SKELETON_TITLE = "DATA PROTECTION IMPACT ASSESSMENT";
 export const DPIA_SKELETON_SUBTITLE = "Prepared under Article 35 GDPR - {name}, for {organizationName}";

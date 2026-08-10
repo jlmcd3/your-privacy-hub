@@ -98,7 +98,7 @@ Deno.test("SO-5: the CEO-dropped {dataSources} slot cannot return", () => {
   assert(!DPIA_SLOT_MAP.some((b) => b.slot === "dataSources"));
   assertEquals(
     DPIA_SKELETON_CONTENT_HASH,
-    "ad0a012c14ca74f52f4abfe6cb3ed617415d72e705a2c4e5216453ffff46cead",
+    "cf54ee9924e728e059aeeb097c00bcbcd71a011fe67d24541a1aafcf5a467421",
   );
 });
 
