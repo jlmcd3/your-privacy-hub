@@ -4,4 +4,6 @@
 // (run-cppa-risk-assessment) and the ROUTED LTP finalize point
 // (_shared/ltp/generate-cppa-risk.ts → finalizeCppaRiskPayload) write the
 // identical value at `_meta.internal.risk_pipeline_stamp`.
-export const RISK_PIPELINE_STAMP = "risk-pipeline@item428d-2026-08-09";
+// SO-1: bumped when the v3 counsel-register skeleton became render law
+// (cppa-risk.spine.ts, plan row superseded 2026-08-10).
+export const RISK_PIPELINE_STAMP = "risk-pipeline@item-so1-2026-08-10";
