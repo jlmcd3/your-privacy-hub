@@ -6,6 +6,7 @@
 // Body: { regulator_canonical: string, max_rows?: number, dry_run?: boolean }
 // Auth: Admin only via x-admin-token header matching ADMIN_SECRET_TOKEN.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { gateSubject } from "../_shared/enforcement-subject.ts";
 import { DOMParser, Element } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 import {
   extractKeyComplianceFailure,
@@ -442,6 +443,9 @@ async function extractRow(
       (row as Record<string, unknown>)[field] = null;
     }
   }
+
+  // BRIEF-2 intake gate: subject must be a party name, not a narrative slice.
+  row.subject = gateSubject(row.subject as string | null, text).subject;
 
   // Post-extraction deterministic fields
   row.law = profile.law_canonical;

@@ -5,6 +5,7 @@
 // All eight DPA scrape sources added 2026-05-19: OAIC, Datatilsynet DK/NO,
 // PDPC Singapore, OPC Canada, Texas AG, Colorado AG, HHS OCR.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { gateSubject } from "../_shared/enforcement-subject.ts";
 import { canonicalizeSourceUrl, isOaicEnforcementTitle, extractOaicSubject } from "./oaic.ts";
 import { isFtcEnforcementUrl, extractFtcSubject, isHhsOcrEnforcementUrl, extractHhsSubject, normalizeRegulatorLabel } from "./us-ingest.ts";
 import { parseRegisterDeterminations, normalizeEntity, datesWithin } from "./oaic-register.ts";
@@ -757,6 +758,12 @@ Deno.serve(async (req) => {
         // must be inserted so the register remains complete. The row is
         // stamped verification_status='requires_review' so downstream read
         // paths can hide it by default until moderator review.
+        // BRIEF-2 intake gate: a fragment or narrative slice never enters the
+        // corpus as a party name; recover from the item text when possible.
+        if (extractedSubject) {
+          extractedSubject = gateSubject(extractedSubject, (a as any).summary ?? a.title).subject;
+        }
+
         if (!extractedSubject && src.registerParser !== "oaic") {
           skipped++;
           continue;

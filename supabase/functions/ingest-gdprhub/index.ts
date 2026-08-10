@@ -12,6 +12,7 @@
 // GDPRhub runs MediaWiki 1.43 and exposes the action API at /api.php, so this
 // uses the structured API (category members + page wikitext) rather than HTML.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { gateSubject } from "../_shared/enforcement-subject.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -246,7 +247,8 @@ function buildLead(pageid: number, title: string, wikitext: string): Lead | null
     jurisdiction,
     case_reference: f.Case_Number_Name || f.ECLI || null,
     decision_date: parseDate(f.Date_Decided) ?? parseDate(f.Date_Published),
-    subject: f.Party_Name_1 || null,
+    // BRIEF-2 intake gate: never admit a narrative fragment as the party name.
+    subject: gateSubject(f.Party_Name_1, prose).subject,
     fine_amount: amount !== null ? `${currency ? currency + " " : ""}${f.Fine}`.trim() : null,
     fine_eur: currency && currency.toUpperCase() === "EUR" ? amount : null,
     currency,
