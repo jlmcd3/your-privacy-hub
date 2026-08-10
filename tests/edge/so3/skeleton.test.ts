@@ -24,7 +24,7 @@ import {
   GOVERNANCE_SLOT_MAP,
   GOVERNANCE_TYPED_SURFACES,
 } from "../../../supabase/functions/_shared/prose/plans/governance.slotmap.ts";
-import { governanceAssessmentContract } from "../../../supabase/functions/_shared/intake-contracts/governance-assessment.ts";
+import { governanceContract } from "../../../supabase/functions/_shared/intake-contracts/governance-assessment.ts";
 import {
   assembleGovernanceSkeletonDocument,
 } from "../../../supabase/functions/_shared/ltp/governance-skeleton-assemble.ts";
@@ -126,7 +126,7 @@ Deno.test("SO-3 — conditionals are inline, with fixed first words and an absen
   }
   // The v3 governance skeleton carries no standalone [CONDITIONAL] paragraph.
   const standalone = GOVERNANCE_SKELETON_SECTIONS.flatMap((s) => s.blocks)
-    .filter((b) => b.kind === "conditional");
+    .filter((b) => (b.kind as string) === "conditional");
   assertEquals(standalone.length, 0);
 });
 
@@ -162,7 +162,7 @@ Deno.test("SO-3 — slot map: every skeleton slot resolves, both directions", ()
 });
 
 Deno.test("SO-3 — every intake-bound slot names a key on the live contract", () => {
-  const keys = new Set(governanceAssessmentContract.fields.map((f) => f.key));
+  const keys = new Set(governanceContract.fields.map((f: { key: string }) => f.key));
   for (const b of GOVERNANCE_SLOT_MAP) {
     if (b.kind === "typed-surface") continue;
     for (const r of b.source.split(/\s*[|+]\s*/).map((x) => x.trim())) {
