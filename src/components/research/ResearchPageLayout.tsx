@@ -36,7 +36,28 @@ export interface ResearchSectionConfig {
   toolCtaPlacement?: "top" | "bottom";
   /** Optional one-sentence "does this apply to me?" callout rendered above content. */
   complianceTrigger?: string;
+  /** Optional callout: the black-letter obligation. Navy/slate accent. */
+  legalRequirement?: string;
+  /** Optional callout: what this means operationally. Teal accent. */
+  practicalImplication?: string;
+  /** Optional callout: recent/pending change. Same accent as complianceTrigger. */
+  currentDevelopment?: string;
 }
+
+/** Callout kinds rendered above section content, in definition order. */
+const SECTION_CALLOUTS: {
+  key: "complianceTrigger" | "legalRequirement" | "practicalImplication" | "currentDevelopment";
+  label: string;
+  border: string;
+  bg: string;
+  text: string;
+}[] = [
+  { key: "complianceTrigger", label: "Compliance trigger", border: "border-accent", bg: "bg-accent/5", text: "text-accent" },
+  { key: "legalRequirement", label: "Legal Requirement", border: "border-brand-navy", bg: "bg-brand-navy/5", text: "text-brand-navy" },
+  { key: "practicalImplication", label: "Practical Implication", border: "border-brand-teal", bg: "bg-brand-teal/5", text: "text-brand-teal-text" },
+  { key: "currentDevelopment", label: "Current Development", border: "border-accent", bg: "bg-accent/5", text: "text-accent" },
+];
+
 
 export interface AtAGlanceItem {
   /** Left-column label (typically 1–3 words). Rendered in Roboto Mono. */
@@ -108,6 +129,19 @@ export function ResearchPageLayout({
   const canonicalUrl = `${SITE_ORIGIN}${pathname}`;
   const [contextUpdated, setContextUpdated] = useState<string | undefined>(undefined);
   const hasRail = !!sectionRailEntries && Object.keys(sectionRailEntries).length > 0;
+
+  // E — dev-only authoring-discipline signal. One mid-page tool CTA is the
+  // intended maximum; never blocks rendering and is stripped in production.
+  if (import.meta.env.DEV) {
+    const ctaSections = sections.filter((s) => !!s.toolCta).map((s) => s.id);
+    if (ctaSections.length > 1) {
+      console.warn(
+        `[ResearchPageLayout] ${header.title}: ${ctaSections.length} sections set toolCta (${ctaSections.join(", ")}). Intended maximum is 1 mid-page CTA.`,
+      );
+    }
+  }
+
+
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -200,16 +234,19 @@ export function ResearchPageLayout({
                     <h3 className="font-display text-brand-navy mb-4 leading-tight text-[25px]">
                       <span className="text-brand-mist mr-2">{idx + 1}.</span>{sec.h2}
                     </h3>
-                    {sec.complianceTrigger && (
-                      <div className="mb-4 rounded-lg border-l-4 border-accent bg-accent/5 px-4 py-3">
-                        <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
-                          Compliance trigger
+                    {SECTION_CALLOUTS.map((c) => {
+                      const body = sec[c.key];
+                      if (!body) return null;
+                      return (
+                        <div key={c.key} className={`mb-4 rounded-lg border-l-4 ${c.border} ${c.bg} px-4 py-3`}>
+                          <div className={`text-[11px] font-bold tracking-wider uppercase ${c.text} mb-1`}>
+                            {c.label}
+                          </div>
+                          <p className="text-[16px] text-brand-navy leading-relaxed m-0">{body}</p>
                         </div>
-                        <p className="text-[16px] text-brand-navy leading-relaxed m-0">
-                          {sec.complianceTrigger}
-                        </p>
-                      </div>
-                    )}
+                      );
+                    })}
+
                     {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
                     {sec.content && (
                       <div
@@ -222,8 +259,10 @@ export function ResearchPageLayout({
                     {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
                   </section>
 
-                  {/* Single in-content AdSlot after the first content section (no-rail variant only). */}
-                  {idx === 0 && !hasRail && sections.length > 1 && <AdSlot format="in-content" />}
+                  {/* Single in-content AdSlot after the first content section —
+                      rendered in both the rail and no-rail branches. */}
+                  {idx === 0 && sections.length > 1 && <AdSlot format="in-content" />}
+
                 </div>
               );
             })}

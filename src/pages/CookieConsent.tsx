@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { COOKIE_CONSENT_SECTION_RAIL } from "@/components/research/researchRailEntries/cookieConsentRailEntries";
 import { getProduct } from "@/lib/productRegistry";
 import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
@@ -165,6 +166,7 @@ export default function CookieConsentPage() {
         })}</script>
       </Helmet>
       <ResearchPageLayout
+        adAfterHeader={false}
         metaTitle="Cookie Consent Requirements by Jurisdiction | End User Privacy"
         metaDescription="Side-by-side requirements matrix for cookie consent under GDPR, ePrivacy, UK PECR, CCPA/CPRA and U.S. state privacy laws — with an actionable banner checklist."
         header={{
@@ -251,6 +253,7 @@ export default function CookieConsentPage() {
           { label: "Jurisdictions Map", href: "/jurisdictions" },
           { label: "Subscribe to Intelligence", href: "/subscribe" },
         ]}
+        sectionRailEntries={COOKIE_CONSENT_SECTION_RAIL}
         intelligenceUpsellTopic="cookie consent and online tracking"
       />
     </>

@@ -19,6 +19,7 @@ const GlobalPrivacyLaws = () => (
       })}</script>
     </Helmet>
     <ResearchPageLayout
+        adAfterHeader={false}
     metaTitle="Global Privacy Laws Directory | End User Privacy"
     metaDescription="Browse 70+ privacy regimes by region, status, and EU GDPR adequacy. Comparative reference covering APAC, Latin America, Middle East, and Africa frameworks."
     header={{

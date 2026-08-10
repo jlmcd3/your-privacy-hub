@@ -150,6 +150,7 @@ export default function HealthDataPrivacyPage() {
         })}</script>
       </Helmet>
       <ResearchPageLayout
+        adAfterHeader={false}
         metaTitle="Health Data Privacy: HIPAA & State Laws | End User Privacy"
         metaDescription="Reference on health data privacy obligations across HIPAA, the FTC Health Breach Notification Rule, state consumer health data laws, and AI in healthcare."
         header={{
