@@ -455,6 +455,119 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     primary_source_url: CCR_URL,
   }),
 
+  // ---- SO-FT-1 (2026-08-10) — registry-coverage repair -----------------------
+  // These CITATION_REGISTRY ids were resolver-reachable (admt-citation-registry
+  // packs them for optout_processing / access_antiretaliation /
+  // access_secure_transmission / access_denial_basis / access_verification /
+  // access_aggregate_log) but had NO verified row here. The VA stamp therefore
+  // failed to resolve, H6 cleared the anchors, the entry fell to the blanket
+  // range, and the bounded regen pass mislabelled a registry-coverage failure
+  // as an intake-sufficiency failure. Quotes are corpus-verbatim substrings of
+  // provision_texts cppa-7221 / cppa-7222 (whitespace normalised).
+  access_antiretal: R({
+    proposition_key: "access_antiretal",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(b)(4)",
+    verbatim_quote:
+      "That the business is prohibited from retaliating against consumers for exercising their CCPA rights, and instructions for how the consumer can exercise their other CCPA rights. These instructions must include any links to an online request form or portal for making such a request, if offered by the business.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+  access_antiretal_link: R({
+    proposition_key: "access_antiretal_link",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(b)(4)(A)",
+    verbatim_quote:
+      "The business may comply with the instructions requirement by providing a link that takes the consumer directly to the specific section of the business\u2019s privacy policy that contains these instructions.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+  access_verify: R({
+    proposition_key: "access_verify",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(e)",
+    verbatim_quote:
+      "A business must comply with the verification requirements set forth in Article 5 for requests to access ADMT. If a business cannot verify the identity of the person making the request to access ADMT, the business must inform the requestor that it cannot verify their identity.",
+    depth_class: "subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+  access_denial: R({
+    proposition_key: "access_denial",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(f)",
+    verbatim_quote:
+      "If a business denies a consumer\u2019s verified request to exercise their right to access ADMT, in whole or in part, because of a conflict with federal or state law, or an exception to the CCPA, the business must inform the requestor and explain the basis for the denial, unless prohibited from doing so by law. If the request is denied only in part, the business must disclose the other information sought by the consumer.",
+    depth_class: "subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+  access_secure_tx: R({
+    proposition_key: "access_secure_tx",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(g)",
+    verbatim_quote:
+      "A business must use reasonable security measures when transmitting the requested information to the consumer.",
+    depth_class: "subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+  access_aggregate: R({
+    proposition_key: "access_aggregate",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(j)",
+    verbatim_quote:
+      "A business that used an ADMT with respect to a consumer more than four times within a 12-month period may provide an aggregate-level response to the consumer\u2019s request to access ADMT.",
+    depth_class: "subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+
+  // ---- Opt-out processing (§ 7221(m)–(n)) -----------------------------------
+  optout_preinit: R({
+    proposition_key: "optout_preinit",
+    citation: "11 CCR § 7221",
+    subsection: "11 CCR § 7221(m)",
+    verbatim_quote:
+      "If the consumer submits a request to opt-out of ADMT before the business has initiated that processing, the business must not initiate processing of the consumer\u2019s personal information using that ADMT.",
+    depth_class: "subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+  optout_cease15: R({
+    proposition_key: "optout_cease15",
+    citation: "11 CCR § 7221",
+    subsection: "11 CCR § 7221(n)(1)",
+    verbatim_quote:
+      "Ceasing to process the consumer\u2019s personal information using that ADMT as soon as feasibly possible, but no later than 15 business days from the date the business receives the request",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+  optout_notify_sp: R({
+    proposition_key: "optout_notify_sp",
+    citation: "11 CCR § 7221",
+    subsection: "11 CCR § 7221(n)(2)",
+    verbatim_quote:
+      "Notifying all the business\u2019s service providers, contractors, or other persons to whom the business has disclosed or made personal information available to process the consumer\u2019s personal information using that ADMT, that the consumer has made a request to opt-out of that ADMT and instructing them to comply with the consumer\u2019s request to opt-out of that ADMT within the same time frame.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-10",
+    primary_source_url: CCR_URL,
+  }),
+
+
+
   // ---- Consumer-request response timeline (§ 7021) --------------------------
   // W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (2026-07-26): section-level pinpoint
   // to 11 CCR § 7021 ("Timelines for Responding to Requests to Delete, Requests
