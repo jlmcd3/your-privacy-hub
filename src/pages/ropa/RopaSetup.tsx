@@ -264,6 +264,9 @@ export default function RopaSetup() {
           uk_rep_name: prof.uk_rep_name ?? "",
           uk_rep_email: prof.uk_rep_email ?? "",
         }));
+        // SO-10: the wizard's primary-region answer is persisted on the
+        // profile as `home_base` and rehydrates here.
+        if (prof.home_base) setPrimaryRegion(prof.home_base as string);
       }
       const { data: jurs } = await SUPA.from("ropa_jurisdiction_selections")
         .select("jurisdiction_code")
@@ -303,12 +306,14 @@ export default function RopaSetup() {
           eu_rep_email: profile.eu_rep_email || null,
           uk_rep_name: profile.uk_rep_name || null,
           uk_rep_email: profile.uk_rep_email || null,
+          // SO-10: persist the region the org operates from ({home_base}).
+          home_base: primaryRegion || null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "client_id" }
       );
     },
-    [profile, clientId],
+    [profile, clientId, primaryRegion],
     setSaveStatus
   );
 

@@ -34,8 +34,32 @@ import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 // against the corpus (gdpr_articles / cppa_authorities) and verifies every
 // `mustContain` phrase appears in the corpus full_text. Update the shared
 // module alongside any template edit that changes a statutory claim.
+//
+// SO-10 RECONCILIATION: these two "verified fixed prose" mechanisms have
+// disjoint scope and cannot disagree.
+//   * ROPA_LEGAL_TEXT_ASSERTIONS governs the LEGACY annex templates below,
+//     which paraphrase statutory content in-line (the Art. 37 DPO trigger
+//     note, the Art. 27 representative notes). It stays the guard for those.
+//   * The SO-10 byte-pinned skeleton shards (`prose/plans/ropa.spine.ts`)
+//     QUOTE NO STATUTE. Their only statutory content is pinpoints —
+//     Art. 30 GDPR and the Art. 30(1)(a)-(g) register mapping, plus Art. 27
+//     where the representative sentence renders. Those pinpoints are verified
+//     against `provision_texts` (gdpr-art-30, ukgdpr-art-30, gdpr-art-27,
+//     ukgdpr-art-27, all status = approved) by the SO-10 battery, which is the
+//     correct corpus table for a GDPR product.
+// Neither mechanism may be edited to make a statutory claim the other denies.
 import { ROPA_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
 export const LEGAL_TEXT_ASSERTIONS = ROPA_LEGAL_TEXT_ASSERTIONS;
+
+import {
+  assembleRopaRegister,
+  ROPA_PIPELINE_STAMP,
+  type RopaActivityInput,
+  type RopaAssembleInput,
+  type RopaRegisterDocument,
+} from "../_shared/ltp/ropa-skeleton-assemble.ts";
+export { ROPA_PIPELINE_STAMP };
+
 
 
 const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
@@ -405,6 +429,8 @@ interface AssembledData {
   flags: any[];
   refreshNotes: string[];
   settings: DocumentSettings;
+  /** SO-10: the assembled byte-pinned register. One assembly, three formats. */
+  register: RopaRegisterDocument;
 }
 
 interface CrossBorderTransfer {
@@ -447,6 +473,179 @@ function collectTransfers(d: AssembledData): CrossBorderTransfer[] {
       mechanism: mechanismStr,
       basis: basisStr,
     });
+  }
+  return out;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SO-10 — THE BYTE-PINNED REGISTER (one assembly, three formats)
+//
+// `assembleRopaRegister` is the single assembly point for this product. The
+// PDF (HTML), the DOCX and the XLSX all render the SAME assembled object, so
+// the three formats cannot drift. The assembled object is persisted on
+// `ropa_sessions.register_document`, which is what /ropa/documents reads.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildRopaAssembleInput(d: AssembledData): RopaAssembleInput {
+  const p = d.profile ?? {};
+  const activities: RopaActivityInput[] = (d.activities ?? []).map((a: any) => {
+    const ans = d.answersByActivity[a.id] ?? {};
+    const str = (v: unknown) => {
+      const t = answerToString(v);
+      return t === "—" ? "" : t;
+    };
+    const related = Array.isArray(ans.related_assessments)
+      ? (ans.related_assessments as unknown[]).map((v) => answerToString(v)).filter((v) => v && v !== "—")
+      : str(ans.related_assessments)
+        ? [str(ans.related_assessments)]
+        : [];
+    return {
+      id: String(a.id),
+      name: String(a.display_name ?? ""),
+      owner: str(ans.activity_owner),
+      purpose: str(ans.purpose),
+      lawfulBasis: ans.lawful_basis ? lawfulBasisLabel(ans.lawful_basis) : "",
+      dataSubjects: str(ans.data_subjects),
+      dataCategories: str(ans.data_categories ?? ans.personal_data_types),
+      collectionSources: str(ans.collection_sources),
+      processingOperations: ans.processing_operations
+        ? processingOperationsLabel(ans.processing_operations)
+        : "",
+      recipients: str(ans.processor_platform ?? ans.recipients),
+      retention: str(ans.retention_period),
+      retentionByCategory: retentionByCategory(ans),
+      security: str(ans.security_measures),
+      // INTAKE-2 rule: the two-part access-controls question is ONE recorded
+      // answer and renders as one fact, never as two.
+      accessControls: str(ans.access_controls),
+      transferDestination: str(
+        ans.transfer_destination ?? ans.transfer_country ?? ans.cross_border_destination,
+      ),
+      transferMechanism: str(ans.transfer_mechanism ?? ans.transfer_safeguard),
+      transferBasis: str(ans.transfer_basis ?? ans.transfer_lawful_basis),
+      rightsHandling: str(p?.rights_handling_process),
+      rightsOverride: str(ans.rights_handling_override),
+      relatedAssessments: related,
+      noticesDisplayed: str(ans.notices_displayed),
+      incidentLog: str(ans.incident_log),
+    };
+  });
+
+  return {
+    organisationName: String(d.client?.name ?? ""),
+    legalEntityType: String(p?.legal_entity_type ?? ""),
+    incorporationJurisdiction: String(p?.incorporation_jurisdiction ?? ""),
+    registrationNumber: String(p?.registration_number ?? ""),
+    registeredAddress: String(p?.registered_address ?? ""),
+    isController: p?.is_controller === true,
+    isProcessor: p?.is_processor === true,
+    dpoName: String(p?.dpo_name ?? ""),
+    dpoEmail: String(p?.dpo_email ?? ""),
+    dpoPhone: String(p?.dpo_phone ?? ""),
+    euRepName: String(p?.eu_rep_name ?? ""),
+    euRepEmail: String(p?.eu_rep_email ?? ""),
+    ukRepName: String(p?.uk_rep_name ?? ""),
+    ukRepEmail: String(p?.uk_rep_email ?? ""),
+    homeBase: String(p?.home_base ?? ""),
+    employeeBand: String(p?.employee_band ?? ""),
+    jurisdictionCodes: d.jurisdictions,
+    jurisdictionLabels: d.jurisdictions.map((j) => lawLabelShort(j)),
+    activities,
+  };
+}
+
+// ── Register renderers (shared by all three formats) ────────────────────────
+
+/** The Art. 30(1)(a)-(g) register table: header + one row per activity. */
+function registerTableAoa(reg: RopaRegisterDocument): string[][] {
+  const subitems = reg.activity_records[0]?.art30 ?? [];
+  const header = [
+    "Activity",
+    ...(subitems.length
+      ? subitems.map((c) => `${c.pinpoint} — ${c.label}`)
+      : ART30_HEADER_FALLBACK),
+  ];
+  const rows = reg.activity_records.map((r) => [
+    r.activity_name,
+    ...r.art30.map((c) => c.value),
+  ]);
+  return [header, ...rows];
+}
+
+const ART30_HEADER_FALLBACK = [
+  "Art. 30(1)(a) GDPR",
+  "Art. 30(1)(b) GDPR",
+  "Art. 30(1)(c) GDPR",
+  "Art. 30(1)(d) GDPR",
+  "Art. 30(1)(e) GDPR",
+  "Art. 30(1)(f) GDPR",
+  "Art. 30(1)(g) GDPR",
+];
+
+function registerHtml(reg: RopaRegisterDocument): string {
+  const sections = reg.document.sections
+    .map((sec) => {
+      const paras = sec.paragraphs
+        .map((p) =>
+          p.kind === "rule"
+            ? `<pre style="font-family:inherit;white-space:pre-wrap;margin:0 0 10px;">${escapeHtml(p.text)}</pre>`
+            : p.text
+                .split("\n\n")
+                .map((t) => `<p>${escapeHtml(t)}</p>`)
+                .join(""),
+        )
+        .join("");
+      const table =
+        sec.id === "processing_activities" && reg.activity_records.length
+          ? `<table class="kv"><thead><tr>${registerTableAoa(reg)[0]
+              .map((h) => `<th>${escapeHtml(h)}</th>`)
+              .join("")}</tr></thead><tbody>${registerTableAoa(reg)
+              .slice(1)
+              .map(
+                (row) =>
+                  `<tr>${row.map((v) => `<td>${escapeHtml(v)}</td>`).join("")}</tr>`,
+              )
+              .join("")}</tbody></table>`
+          : "";
+      return `<h2>${escapeHtml(sec.title)}</h2>${paras}${table}`;
+    })
+    .join("");
+
+  return `
+  <section class="register">
+    <h1 style="font-size:20px;margin-top:8px;">${escapeHtml(reg.document.title)}</h1>
+    <p class="footer-note">${escapeHtml(reg.document.subtitle)}</p>
+    ${sections}
+  </section>`;
+}
+
+function registerDocxChildren(reg: RopaRegisterDocument): any[] {
+  const out: any[] = [
+    p(reg.document.title, { heading: HeadingLevel.HEADING_1 }),
+    p(reg.document.subtitle, { size: 18 }),
+  ];
+  for (const sec of reg.document.sections) {
+    out.push(p(sec.title, { heading: HeadingLevel.HEADING_2 }));
+    for (const para of sec.paragraphs) {
+      for (const t of para.text.split("\n\n")) out.push(p(t, { size: 20 }));
+    }
+    if (sec.id === "processing_activities" && reg.activity_records.length) {
+      const aoa = registerTableAoa(reg);
+      out.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: aoa.map((row, i) =>
+            new TableRow({
+              tableHeader: i === 0,
+              children: row.map(
+                (v) => new TableCell({ children: [p(v, { size: 16, bold: i === 0 })] }),
+              ),
+            }),
+          ),
+        }),
+      );
+      out.push(p(""));
+    }
   }
   return out;
 }
@@ -637,6 +836,8 @@ function buildHtml(d: AssembledData): string {
   <div class="body">
 
   <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It is intended to document the processing activities carried out by the controller and, where relevant, the processor. <strong>This record must be reviewed and completed before it can be relied upon as a compliant Article 30 record.</strong></p>
+
+  ${registerHtml(d.register)}
 
   <h2>1. Client record</h2>
   <table class="kv">
@@ -908,6 +1109,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
         properties: {},
         children: [
           ...cover,
+          ...registerDocxChildren(d.register),
           p("1. Client record", { heading: HeadingLevel.HEADING_2 }),
           clientTable,
           p("This record satisfies the requirements of:", { size: 18 }),
@@ -957,6 +1159,39 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
 
 function buildXlsx(d: AssembledData): Uint8Array {
   const wb = XLSX.utils.book_new();
+
+  // Sheet 1 — the assembled register, rendered from the same object the PDF
+  // and DOCX render. Prose paragraphs in reading order.
+  const registerRows: string[][] = [
+    [d.register.document.title],
+    [d.register.document.subtitle],
+    [],
+  ];
+  for (const sec of d.register.document.sections) {
+    registerRows.push([sec.title]);
+    for (const para of sec.paragraphs) {
+      for (const t of para.text.split("\n\n")) registerRows.push([t]);
+    }
+    registerRows.push([]);
+  }
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(registerRows),
+    "Register",
+  );
+
+  // Sheet 2 — the Article 30(1)(a)-(g) repeating record, one row per activity.
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(
+      d.register.activity_records.length
+        ? registerTableAoa(d.register)
+        : [["No processing activity recorded"]],
+    ),
+    "Art. 30(1)(a)-(g)",
+  );
+
+
 
   // Sheet 1 — client record
   const clientSheet = XLSX.utils.aoa_to_sheet([
@@ -1321,7 +1556,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const data: AssembledData = {
+  const partial = {
     session,
     client: effectiveClient,
     profile,
@@ -1333,10 +1568,37 @@ Deno.serve(async (req: Request) => {
     settings,
   };
 
+  // SO-10: ONE assembly. PDF, DOCX and XLSX all render this object.
+  const register = assembleRopaRegister(buildRopaAssembleInput(partial as AssembledData));
+  if (!register.conformance.ok) {
+    console.error(
+      `[generate-ropa-document] session ${session.id} skeleton conformance FAIL`,
+      register.conformance.findings,
+    );
+    return jsonResponse(
+      {
+        error: "Register conformance check failed — document not generated.",
+        findings: register.conformance.findings,
+        stamp: ROPA_PIPELINE_STAMP,
+      },
+      500,
+    );
+  }
+  const data: AssembledData = { ...partial, register } as AssembledData;
+
   // ── Mark session as processing, then dispatch heavy work in background ──
   await admin
     .from("ropa_sessions")
-    .update({ status: "processing", generation_error: null })
+    .update({
+      status: "processing",
+      generation_error: null,
+      // Persisted output field for this product. RopaDocuments.tsx reads it.
+      register_document: {
+        ...register,
+        generated_at: new Date().toISOString(),
+        version_number: session.version_number ?? null,
+      },
+    })
     .eq("id", session.id);
 
   const runRopaDocument = async () => {
