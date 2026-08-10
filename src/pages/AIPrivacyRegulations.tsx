@@ -18,6 +18,7 @@ const AIPrivacyRegulations = () => (
       })}</script>
     </Helmet>
   <ResearchPageLayout
+        adAfterHeader={false}
     metaTitle="AI Privacy Regulations — EU AI Act, GDPR, ADMT | End User Privacy"
     metaDescription="Global overview of AI-specific privacy regulation: the EU AI Act, GDPR and AI training, national AI strategies, automated decision-making, and emerging enforcement."
     header={{

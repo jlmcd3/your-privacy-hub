@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { BIOMETRIC_PRIVACY_SECTION_RAIL } from "@/components/research/researchRailEntries/biometricPrivacyRailEntries";
 import { BiometricDecisionChecklist } from "@/components/research/BiometricDecisionChecklist";
 import { getProduct } from "@/lib/productRegistry";
 import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
@@ -88,6 +89,7 @@ export default function BiometricPrivacyPage() {
         })}</script>
       </Helmet>
       <ResearchPageLayout
+        adAfterHeader={false}
         metaTitle="Biometric Privacy Laws: BIPA, State Laws & GDPR | End User Privacy"
         metaDescription="Reference for privacy professionals on biometric data regulation — Illinois BIPA, Texas CUBI, Washington, GDPR Article 9, EU AI Act, and workplace compliance."
         header={{
@@ -171,6 +173,7 @@ export default function BiometricPrivacyPage() {
           { label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { label: "Subscribe to Intelligence", href: "/subscribe" },
         ]}
+        sectionRailEntries={BIOMETRIC_PRIVACY_SECTION_RAIL}
         intelligenceUpsellTopic="biometric privacy"
       />
     </>

@@ -113,6 +113,7 @@ export default function CrossBorderTransfersPage() {
         })}</script>
       </Helmet>
       <ResearchPageLayout
+        adAfterHeader={false}
         metaTitle="Cross-Border Data Transfers | End User Privacy"
         metaDescription="Reference on international data transfer mechanisms — GDPR Chapter V, the 2021 SCCs, the EU-U.S. Data Privacy Framework, Transfer Impact Assessments, and Asia-Pacific frameworks."
         header={{
