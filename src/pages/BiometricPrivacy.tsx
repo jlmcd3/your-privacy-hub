@@ -150,7 +150,7 @@ export default function BiometricPrivacyPage() {
             synthesisKey: "biometric__enforcement_history",
             content: ENFORCEMENT_HISTORY,
             complianceTrigger:
-              "BIPA's per-scan damages model has produced more nine- and ten-figure privacy recoveries than any other statute in the U.S.",
+              "BIPA has produced more nine- and ten-figure privacy recoveries than any other statute in the U.S., though Section 20 as amended now caps recovery for repeated same-person, same-method collection and disclosure.",
           },
           {
             id: "gdpr-eu",
