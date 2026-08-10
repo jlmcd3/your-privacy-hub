@@ -230,8 +230,12 @@ export function validatePropositionAssignment(
  *   - the validation verdict is "mismatch";
  *   - the contradicting proposition has a corpus-verified row;
  *   - that row is duty-imposing (NOT a § 7001 definitional anchor);
- *   - the rival's distinctive support is at least 2, or at least 1 while the
- *     assigned proposition has ZERO support.
+ *   - the rival's distinctive support is at least 2 AND exceeds the assigned
+ *     proposition's support by at least 2. A single distinctive token is a
+ *     coincidence, not an identification: one shared word ("qualifications",
+ *     "period") is enough to out-count a zero-support assignment while saying
+ *     nothing about which duty the action actually states. Below that bar the
+ *     honest downgrade stands.
  * Otherwise: null, and the caller keeps the honest downgrade.
  */
 export function rekeyPropositionAssignment(
@@ -243,7 +247,8 @@ export function rekeyPropositionAssignment(
     if (!key) return null;
     const rivalSupport = Number(v.contradicting_support ?? 0);
     const assigned = Number(v.assigned_support ?? 0);
-    if (!(rivalSupport >= 2 || (rivalSupport >= 1 && assigned === 0))) return null;
+    if (rivalSupport < 2 || rivalSupport - assigned < 2) return null;
+
     const row = (ADMT_VERIFIED_AUTHORITIES as Record<string, {
       subsection?: string;
       citation?: string;
