@@ -500,7 +500,7 @@ const GovernanceAssessmentResult = () => {
               {/* GOVERNANCE UPGRADE ITEM 5 — table of authorities, last in the
                   body and immediately before the universal disclaimer that
                   ReportShell renders. */}
-              <AuthorityExhibit exhibit={report?.authority_exhibit} />
+              {!skeletonDoc && <AuthorityExhibit exhibit={report?.authority_exhibit} />}
             </div>
           )}
           </div>
