@@ -1151,6 +1151,7 @@ export type Database = {
           id: string
           in_scope: boolean
           obligation_map: Json | null
+          scope_document: Json | null
           session_id: string | null
           user_id: string | null
         }
@@ -1160,6 +1161,7 @@ export type Database = {
           id?: string
           in_scope?: boolean
           obligation_map?: Json | null
+          scope_document?: Json | null
           session_id?: string | null
           user_id?: string | null
         }
@@ -1169,6 +1171,7 @@ export type Database = {
           id?: string
           in_scope?: boolean
           obligation_map?: Json | null
+          scope_document?: Json | null
           session_id?: string | null
           user_id?: string | null
         }

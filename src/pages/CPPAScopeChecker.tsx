@@ -40,6 +40,9 @@ import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
+import ScopeDocumentView from "@/components/cppa/ScopeDocumentView";
+import { renderScopeDocument } from "@/lib/scope/scope-skeleton-render";
+
 import { useToolStartedOnInteraction, fireEmailCaptured } from "@/lib/analyticsEvents";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { CheckCircle2, Shield, Zap } from 'lucide-react';
@@ -383,6 +386,12 @@ export default function CPPAScopeChecker() {
 
   const scopeEnforcementSignals = useEnforcementSignals(["sell_share", "sensitive_pi"]);
 
+  // SO-9 — deterministic scope assessment document (byte-pinned spine 24e551a1).
+  const scopeDocument = useMemo(
+    () => renderScopeDocument(answers, evaluation),
+    [answers, evaluation],
+  );
+
   const handleCheck = () => {
     setShowResults(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -401,12 +410,14 @@ export default function CPPAScopeChecker() {
           answers,
           obligation_map: evaluation,
           in_scope: evaluation.inScopeConfident,
+          scope_document: scopeDocument,
         });
       } catch {
         /* silent — persistence must not block UX */
       }
     })();
-  }, [showResults, answers, evaluation, user?.id]);
+  }, [showResults, answers, evaluation, scopeDocument, user?.id]);
+
 
   const reset = () => {
     setEntityName("");
@@ -620,6 +631,8 @@ export default function CPPAScopeChecker() {
           </div>
         )}
 
+        {showResults && <ScopeDocumentView doc={scopeDocument} />}
+
         {showResults && (
           <ResultsPanel
             evaluation={evaluation}
@@ -633,6 +646,7 @@ export default function CPPAScopeChecker() {
             isAuthed={!!user}
           />
         )}
+
         </div>
         <StatuteRail entry={scopeRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>

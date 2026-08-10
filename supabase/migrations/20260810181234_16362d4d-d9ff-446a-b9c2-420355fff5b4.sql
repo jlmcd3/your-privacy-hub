@@ -1,0 +1,1 @@
+ALTER TABLE public.cppa_scope_checks ADD COLUMN IF NOT EXISTS scope_document jsonb;
