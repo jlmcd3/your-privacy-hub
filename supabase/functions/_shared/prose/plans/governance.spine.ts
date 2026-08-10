@@ -42,9 +42,19 @@ export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-10-item-so3";
 export const GOVERNANCE_SKELETON_SOURCE_FILE = "Governance_Assessment_Skeleton_v3.docx";
 export const GOVERNANCE_SKELETON_PROVENANCE =
   "Governance_Assessment_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
-/** SHA-256 over the skeleton's paragraph text, newline-joined, in file order. */
+/**
+ * SHA-256 over the skeleton's paragraph text, newline-joined, in file order —
+ * computed DIRECTLY from Governance_Assessment_Skeleton_v3.docx (all 26 `w:p`
+ * paragraphs, `w:t` runs concatenated, joined with "\n"). This is the same
+ * method that produced the cppa-risk and cppa-admt hashes.
+ *
+ * SO-3 r2 CORRECTION: the previous value (91050ecf…) was computed over the
+ * encoded block representation in this file rather than over the docx, so it
+ * carried the encoding's own block boundaries and heading handling. The text
+ * content was and is correct word-for-word; only the hash input was wrong.
+ */
 export const GOVERNANCE_SKELETON_CONTENT_HASH =
-  "91050ecf75985fef19e871b67e99bb1d4d56efb40d82c05a1ec504a8da701f9d";
+  "e0717aba9ee74a0bef16c22feafd6a5abe39531d59d4db3b5c69fd29b574c92f";
 
 export const GOVERNANCE_SKELETON_TITLE = "PRIVACY GOVERNANCE ASSESSMENT";
 export const GOVERNANCE_SKELETON_SUBTITLE =

@@ -77,11 +77,26 @@ export function repairRegister(text: string): string {
   return out.replace(/\s{2,}/g, " ").trim();
 }
 
+// Abbreviations whose trailing period is NOT a sentence boundary. Without this
+// guard, "(GDPR Art. 5(2))" truncates the sentence at "Art." (SO-3 r2 defect).
+const ABBREV_TAIL =
+  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Inc|Ltd|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|Dr|Mr|Mrs|Ms|St|U\.S|U\.K|Ass'n)|\s[A-Z])\.$/;
+
 function firstSentence(text: string): string {
   const t = text.trim();
-  const m = t.match(/^[\s\S]*?[.!?](?=\s|$)/);
-  return (m ? m[0] : t).trim();
+  const re = /[.!?](?=\s|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t))) {
+    const end = m.index + 1;
+    const head = t.slice(0, end);
+    if (ABBREV_TAIL.test(head)) continue;
+    // A period immediately followed by a lowercase word or digit is not a stop.
+    if (/^\s+[a-z0-9]/.test(t.slice(end))) continue;
+    return head.trim();
+  }
+  return t;
 }
+
 
 function afterFirstSentence(text: string): string {
   const first = firstSentence(text);
@@ -256,7 +271,8 @@ function ratingLead(report: Bag, org: string): string {
   const rd = (report.readiness_determination ?? {}) as Bag;
   const rating = s(rd.rating);
   const phrase = RATING_PHRASE[rating] ?? "accountability is not yet determinable on the answers the company has given";
-  return `Assessed against Articles 5(2) and 24(1), ${phrase}: ${lower(org)} ${
+  // Org names are proper nouns — never case-fold them (SO-3 r2 defect).
+  return `Assessed against Articles 5(2) and 24(1), ${phrase}: ${org} ${
     rating === "Evidenced" ? "can demonstrate the compliance those provisions require" : "cannot yet demonstrate, in full, the compliance those provisions require"
   }.`;
 }
