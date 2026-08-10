@@ -105,6 +105,8 @@ export interface ResearchPageLayoutProps {
   introBlock?: ReactNode;
   /** Optional map of section.id → RailEntry. When provided, a sticky right-column rail tracks the in-view section and shows the controlling statute. */
   sectionRailEntries?: Record<string, RailEntry>;
+  /** Optional "Last verified" date for the sourcing methodology module. */
+  sourcesLastVerified?: string;
 }
 
 
@@ -122,6 +124,7 @@ export function ResearchPageLayout({
   adAfterHeader = true,
   introBlock,
   sectionRailEntries,
+  sourcesLastVerified,
 }: ResearchPageLayoutProps) {
 
   const { isPremium } = usePremiumStatus();
@@ -321,9 +324,9 @@ export function ResearchPageLayout({
         </div>
 
 
-        {/* Source methodology (C-1) */}
+        {/* Source methodology */}
         <div className="mt-10">
-          <SourceMethodology />
+          <SourceMethodology lastVerified={sourcesLastVerified} />
         </div>
 
         {/* Intelligence upsell */}
