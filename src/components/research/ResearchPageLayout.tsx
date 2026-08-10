@@ -105,6 +105,8 @@ export interface ResearchPageLayoutProps {
   introBlock?: ReactNode;
   /** Optional map of section.id → RailEntry. When provided, a sticky right-column rail tracks the in-view section and shows the controlling statute. */
   sectionRailEntries?: Record<string, RailEntry>;
+  /** Optional "Last verified" date for the sourcing methodology module. */
+  sourcesLastVerified?: string;
 }
 
 
