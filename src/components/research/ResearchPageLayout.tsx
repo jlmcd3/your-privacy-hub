@@ -324,9 +324,9 @@ export function ResearchPageLayout({
         </div>
 
 
-        {/* Source methodology (C-1) */}
+        {/* Source methodology */}
         <div className="mt-10">
-          <SourceMethodology />
+          <SourceMethodology lastVerified={sourcesLastVerified} />
         </div>
 
         {/* Intelligence upsell */}
