@@ -192,7 +192,7 @@ export function buildGovernanceSlotValues(intake: Bag): SlotValues {
   const transferClause = TRANSFERS_OCCUR.test(transferStatus)
     ? (isNA(mechanism) || /^none/i.test(mechanism)
       ? ", without the company having recorded the Chapter V mechanism it relies on"
-      : `, relying on ${lower(mechanism)}`)
+      : `, relying on ${mechanism}`)
     : "";
 
   return {
