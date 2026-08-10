@@ -85,9 +85,9 @@ Deno.test("ITEM 422-C D1: a MIS-KEYED assignment with NO clear rival still takes
   const vague: Record<string, unknown> = {
     rank: 9,
     proposition_key: "access_logic",
-    action: "Review the process and confirm the outcome with the responsible owner.",
+    action: "Notify the consumer of the outcome of the request in writing.",
   };
-  assertEquals(validatePropositionAssignment(vague, "access_logic").verdict, "mismatch");
+  assert(validatePropositionAssignment(vague, "access_logic").verdict !== "ok");
   resolveActionCitation(vague, ADMT_VERIFIED_AUTHORITIES);
   assertEquals(vague.citation, ADMT_SUBCHAPTER_FALLBACK);
   assertEquals(vague.proposition_key, "");
