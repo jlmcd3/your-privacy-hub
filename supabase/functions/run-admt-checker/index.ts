@@ -2341,7 +2341,12 @@ Return this JSON structure exactly:
     // marker after the second W6 sweep, name the violated rule + registry row
     // and downgrade the finding to typed insufficient-basis. NO fabrication,
     // NO looping, NO second LLM call. Every downgraded finding is counted.
-    const w9Regen = { evaluated: 0, downgraded_insufficient_basis: 0, still_failing_after_regen: 0 };
+    const w9Regen = {
+      evaluated: 0,
+      downgraded_insufficient_basis: 0,
+      authority_downgraded_registry_coverage: 0,
+      still_failing_after_regen: 0,
+    };
     try {
       const stillFailing = ((report as any)._w9_admt_wire?.pre_emit?.still_failing ?? 0) as number;
       if (stillFailing > 0) {
@@ -2363,6 +2368,37 @@ Return this JSON structure exactly:
             const row = pk ? (ADMT_VERIFIED_AUTHORITIES as any)[pk] : null;
             const violatedRule = pk ? `unresolved proposition_key "${pk}" against VERIFIED-AUTHORITY REGISTRY` : "post-W6 residual defect (finding underspecified)";
             const rowNote = row ? ` (registry row: ${row.subsection})` : "";
+
+            // SO-FT-1 — SEPARATE THE TWO CAUSES.
+            // An entry can arrive here for either of two unrelated reasons:
+            //   (i)  AUTHORITY did not resolve (registry coverage), while the
+            //        substantive finding is present and well-supported by the
+            //        intake; or
+            //   (ii) the FINDING itself is underspecified.
+            // Only (ii) is an intake-sufficiency failure. Stamping the
+            // "the intake did not include enough detail" text over (i) told the
+            // customer something untrue about their own answers and destroyed a
+            // good finding. For (i) the honest remedy is an AUTHORITY downgrade
+            // only: keep the finding and remediation, drop the pinpoint claim.
+            const findingText = typeof it.finding === "string" ? it.finding.trim() : "";
+            const substantive = findingText.length >= 40;
+            if (substantive) {
+              for (const f of ["citation", "regulatory_citation", "subsection"]) {
+                if (typeof it[f] === "string" && it[f].trim()) {
+                  it[f] = ADMT_SUBCHAPTER_FALLBACK;
+                }
+              }
+              if (typeof it.verbatim_quote === "string") it.verbatim_quote = "";
+              it._w9_regen = {
+                pass: 1,
+                action: "authority_downgraded_registry_coverage",
+                violated_rule: violatedRule,
+                row_note: rowNote,
+              };
+              w9Regen.authority_downgraded_registry_coverage++;
+              continue;
+            }
+
             it.status = "insufficient_basis";
             // W19-ADMT-FALLBACK-JOIN-2 (2) — customer-safe reword.
             // Answer-first, no pipeline/generator/re-run vocabulary; keeps
@@ -2378,6 +2414,7 @@ Return this JSON structure exactly:
             w9Regen.downgraded_insufficient_basis++;
           }
         }
+
         w9Regen.still_failing_after_regen = 0; // deterministic pass always terminates
       }
       (report as any)._w9_admt_regen = w9Regen;
