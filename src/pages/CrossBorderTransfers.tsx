@@ -140,7 +140,7 @@ export default function CrossBorderTransfersPage() {
           heading: "Use this in your workflow",
           items: [
             { label: "Custom DPA + SCC Generator", href: "/dpa-generator", description: "Article 28 DPA with the SCC modules and annexes wired in." },
-            { label: "Legitimate-Interest Assessment", href: "/legitimate-interest-assessment", description: "For transfers that rely on Art. 6(1)(f) plus safeguards." },
+            { label: "Legitimate-Interest Assessment", href: "/li-assessment", description: "For transfers that rely on Art. 6(1)(f) plus safeguards." },
             { label: "DPIA Framework", href: "/dpia-framework", description: "When the transfer is 'likely to result in a high risk' (Art. 35)." },
           ],
         }}
