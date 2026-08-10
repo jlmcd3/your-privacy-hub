@@ -25,30 +25,31 @@ const AIPrivacyRegulations = () => (
       title: "AI Privacy Regulations",
       statuteCite: "GDPR Art. 22 · EU AI Act · CPPA ADMT Rules — the AI–privacy stack",
       description:
-        "AI regulation is moving faster than any other area of privacy law. EDPB Opinion 28/2024 (adopted 17 December 2024) on personal data in AI models is the most significant regulatory statement at the AI–privacy intersection. The EU AI Act's high-risk provisions are phasing in through 2027. California's ADMT rules are effective. This reference covers the frameworks, the enforcement, and what each means for your compliance program.",
-      lastUpdated: "June 10, 2026",
+        "AI regulation is moving faster than any other area of privacy law. EDPB Opinion 28/2024 (adopted 17 December 2024) on personal data in AI models is the most significant regulatory statement at the AI–privacy intersection. The EU AI Act's general application date remains August 2, 2026, while Regulation (EU) 2026/1744 moved the Chapter III, Sections 1–3 high-risk requirements to December 2, 2027 (Article 6(2) / Annex III) and August 2, 2028 (Article 6(1) / Annex I). California's ADMT regulations are effective, with ADMT significant-decision compliance required from January 1, 2027. This reference covers the frameworks, the enforcement, and what each means for your compliance program.",
+      lastUpdated: "August 10, 2026",
       feedCategory: "ai-privacy",
       stats: [
         { value: "Aug 2024", label: "EU AI Act in force" },
         { value: "Art. 22", label: "GDPR right against ADM" },
         { value: "Dec 2024", label: "EDPB Opinion 28/2024 on AI models" },
-        { value: "Jan 2026", label: "CPPA ADMT rules effective" },
+        { value: "Jan 2027", label: "CPPA ADMT significant-decision compliance" },
       ],
     }}
     atAGlance={[
-      { label: "EU regime", value: "AI Act (in force Aug 2024) + GDPR Art. 22 (solely automated decisions)" },
-      { label: "California regime", value: "CPPA ADMT Rules — pre-use notice, opt-out, appeal for significant decisions" },
+      { label: "EU regime", value: "AI Act (in force Aug 2024; general application 2 Aug 2026) + GDPR Art. 22 (solely automated decisions)" },
+      { label: "California regime", value: "CPPA ADMT Rules — pre-use notice, opt-out where applicable, and access to meaningful information about the ADMT" },
       { label: "Authoritative anchor", value: "EDPB Opinion 28/2024 on personal data in AI models (17 Dec 2024)" },
-      { label: "Colorado", value: "SB 24-205 (Colorado AI Act) — high-risk AI duties phasing in Feb 2026" },
+      { label: "Colorado", value: "SB 26-189 (2026) — automated decision-making technology duties; developer requirements from Jan 1, 2027" },
     ]}
     merchandisingRail={{
       heading: "Use this in your workflow",
       items: [
-        { label: "CPPA ADMT Assessment", href: "/admt-checker", description: "Diagnose whether your system triggers ADMT pre-use notice, opt-out, and appeal." },
+        { label: "CPPA ADMT Assessment", href: "/cppa-admt-checker", description: "Diagnose whether your system triggers ADMT pre-use notice, opt-out, and access rights." },
         { label: "DPIA Framework", href: "/dpia-framework", description: "Art. 35 DPIA for high-risk AI processing." },
         { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material AI-privacy enforcement action and guidance, curated weekly." },
       ],
     }}
+
 
     pageSynthesisKey="ai_privacy__page"
     topToolCta={{
@@ -66,9 +67,10 @@ const AIPrivacyRegulations = () => (
         <p className="text-sm text-brand-navy leading-relaxed m-0">
           AI compliance is no longer prospective. The EU AI Act's prohibitions and
           general-purpose-model obligations are live, EDPB Opinion 28/2024 on AI training data guides supervisory authorities across the EEA, and
-          California's CPPA adopted its ADMT regulations in July 2025 (OAL-approved September 23, 2025; effective January 1, 2026) — first
-          enforcement actions are expected H2 2026.
+          California's CPPA adopted its ADMT regulations on July 24, 2025 (OAL-approved September 23, 2025; effective January 1, 2026), with
+          businesses using ADMT for significant decisions required to comply with the ADMT-specific requirements from January 1, 2027.
         </p>
+
       </div>
     }
     sections={linkGlossaryFirstMentions([
@@ -84,7 +86,7 @@ const AIPrivacyRegulations = () => (
           toolDescription: "High-risk AI systems under the EU AI Act and GDPR Article 35 require a DPIA. Generate one structured to EDPB WP 248 requirements.",
           href: "/dpia-framework",
         },
-        content: `<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a>, which entered into force in August 2024 with phased implementation through 2027, establishes the world's first comprehensive regulatory framework specifically for artificial intelligence. The Act classifies AI systems by risk level — unacceptable, high-risk, limited, and minimal — and imposes corresponding obligations. <a href="https://artificialintelligenceact.eu/annex/3/" target="_blank" rel="noopener noreferrer">High-risk AI systems</a> used in areas like employment, credit scoring, and law enforcement face requirements for conformity assessments, risk management systems, data governance, transparency, human oversight, and accuracy monitoring. The Act's interaction with the <a href="https://gdpr-info.eu/" target="_blank" rel="noopener noreferrer">GDPR</a> creates a dual compliance requirement for AI systems processing personal data.</p>`,
+        content: `<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a> entered into force in August 2024 and establishes the world's first comprehensive regulatory framework specifically for artificial intelligence. Its general application date remains August 2, 2026. <a href="https://eur-lex.europa.eu/eli/reg/2026/1744/oj" target="_blank" rel="noopener noreferrer">Regulation (EU) 2026/1744</a> changed the application dates for the high-risk-system requirements in Chapter III, Sections 1–3: for high-risk systems classified under Article 6(2) and Annex III those requirements apply from December 2, 2027, and for high-risk systems classified under Article 6(1) and Annex I they apply from August 2, 2028. The change concerns those specified high-risk provisions — it is not a postponement of the Act as a whole. The Act classifies AI systems by risk level — unacceptable, high-risk, limited, and minimal — and imposes corresponding obligations. <a href="https://artificialintelligenceact.eu/annex/3/" target="_blank" rel="noopener noreferrer">High-risk AI systems</a> used in areas like employment, credit scoring, and law enforcement face requirements for conformity assessments, risk management systems, data governance, transparency, human oversight, and accuracy monitoring. The Act's interaction with the <a href="https://gdpr-info.eu/" target="_blank" rel="noopener noreferrer">GDPR</a> creates a dual compliance requirement for AI systems processing personal data.</p>`,
       },
       {
         id: "gdpr-ai-training",
@@ -95,10 +97,10 @@ const AIPrivacyRegulations = () => (
         toolCtaPlacement: "top",
           toolCta: {
             toolName: "Legitimate Interest Assessment",
-            toolDescription: "The EDPB's Opinion 28/2024 requires a documented balancing test for each AI training use case. Generate a structured LIA aligned to EDPB guidance.",
+            toolDescription: "Where you rely on Article 6(1)(f) for AI development or deployment, the legitimate-interest, necessity, and balancing elements must be satisfied and documented. Generate a structured LIA aligned to EDPB guidance.",
             href: "/li-assessment",
           },
-        content: `<p>The <a href="/regulator/edpb">European Data Protection Board (EDPB)</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">Opinion 28/2024</a> on personal data in AI model training is the most significant regulatory statement at the AI–privacy intersection. The opinion establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
+        content: `<p>The <a href="/regulator/edpb">European Data Protection Board (EDPB)</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">Opinion 28/2024</a> on personal data in AI model training is the most significant regulatory statement at the AI–privacy intersection. The opinion addresses when AI models can be considered anonymous, the conditions for relying on legitimate interests, and the consequences of unlawful processing in the development phase. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Where a controller relies on <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6(1)(f)</a> legitimate interests for AI-model development or deployment involving personal data, it must satisfy the legitimate-interest analysis in the circumstances — including the legitimate-interest, necessity, and balancing elements addressed by the EDPB, together with the data subjects' reasonable expectations and any mitigating measures.</p>`,
       },
       {
         id: "admt",
@@ -113,7 +115,7 @@ const AIPrivacyRegulations = () => (
             "Generate a CPPA-aligned risk assessment for automated decision-making and high-risk processing.",
           href: "/cppa-risk-assessment",
         },
-        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">adopted its ADMT regulations in July 2025 (OAL-approved September 23, 2025; effective January 1, 2026)</a>, requiring businesses to provide pre-use notices and opt-out rights for automated decisions in employment, housing, and credit. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">Information Commissioner's Office (ICO)</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">AI and Biometrics Strategy (June 2025, updated March 2026) prioritizes automated decision-making in recruitment and biometric technologies; its February 2024 workplace biometrics guidance makes clear that biometric recognition generally needs an Article 9 condition — usually explicit consent — plus a DPIA</a>.</p><p style="margin-top:0.75rem"><a href="/cppa-admt-checker" style="color:var(--brand-teal);font-weight:600">Assess your ADMT compliance →</a> Gap analysis for pre-use notices, opt-out mechanisms, and access rights under 11 CCR §§ 7200–7222.</p>`,
+        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA Board <a href="https://cppa.ca.gov/regulations/ccpa_updates.html" target="_blank" rel="noopener noreferrer">adopted the CCPA Updates, Cybersecurity Audits, Risk Assessments, Automated Decisionmaking Technology (ADMT), and Insurance Regulations on July 24, 2025 (OAL-approved September 23, 2025; effective January 1, 2026)</a>. The effective date is not the ADMT compliance date: businesses that use ADMT to make significant decisions must comply with the ADMT-specific requirements beginning January 1, 2027. Those requirements are framed around pre-use notice, an opt-out where applicable, and access to meaningful information about the business's use of the ADMT. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">Information Commissioner's Office (ICO)</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">AI and Biometrics Strategy (June 2025, updated March 2026) prioritizes automated decision-making in recruitment and biometric technologies; its February 2024 workplace biometrics guidance makes clear that biometric recognition generally needs an Article 9 condition — usually explicit consent — plus a DPIA</a>.</p><p style="margin-top:0.75rem"><a href="/cppa-admt-checker" style="color:var(--brand-teal);font-weight:600">Assess your ADMT compliance →</a> Gap analysis for pre-use notices, opt-out mechanisms, and access rights under 11 CCR §§ 7200–7222.</p>`,
       },
       {
         id: "enforcement",
@@ -139,7 +141,7 @@ const AIPrivacyRegulations = () => (
 
 <li><strong><a href="/regulator/ico">ICO</a>:</strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
 
-<li><strong>CPPA (California):</strong> Adopted ADMT regulations in July 2025 (effective January 1, 2026). First enforcement actions expected H2 2026.</li>
+<li><strong>CPPA (California):</strong> Adopted the ADMT and related regulations on July 24, 2025 (OAL-approved September 23, 2025; effective January 1, 2026), with ADMT significant-decision compliance required from January 1, 2027.</li>
 
 </ul>
 
@@ -163,18 +165,18 @@ const AIPrivacyRegulations = () => (
 
 <li><strong><a href="/jurisdiction/brazil">Brazil:</a></strong> AI regulation bill PL 2338/2023 includes algorithmic impact assessments. Still advancing through Congress.</li>
 
-<li><strong>Colorado (U.S.):</strong> <a href="https://leg.colorado.gov/bills/sb24-205" target="_blank" rel="noopener noreferrer">SB 24-205</a> (effective 2026) requires impact assessments for consequential AI decisions — the first U.S. state AI Act equivalent.</li>
+<li><strong>Colorado (U.S.):</strong> <a href="https://leg.colorado.gov/bills/sb26-189" target="_blank" rel="noopener noreferrer">SB 26-189</a> (2026), enacted May 14, 2026, repealed and reenacted Colorado's 2024 AI provisions and establishes requirements for automated decision-making technology used to materially influence consequential decisions involving areas such as employment, housing, financial services, insurance, healthcare, education, and essential government services. Covered developer requirements begin January 1, 2027, with related deployer notice, data-access/correction, human-review, recordkeeping, and enforcement provisions.</li>
 
 </ul>
 
-<p><strong>Practical implication:</strong> China and the EU are the only jurisdictions with active AI-specific enforcement right now. The rest are still in guidance or legislative phases.</p>`,
+<p><strong>Practical implication:</strong> AI-related enforcement is developing through a combination of AI-specific rules and existing privacy, consumer-protection, discrimination, and data-protection laws in multiple jurisdictions — so exposure does not depend on whether a jurisdiction has passed a dedicated AI statute.</p>`,
       },
     ])}
     relatedLinks={[
       { label: "Biometric Privacy Guide", href: "/biometric-privacy" },
       { label: "GDPR Enforcement", href: "/gdpr-enforcement" },
       { label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
-      { label: "Enforcement Tracker", href: "/enforcement-tracker" },
+      { label: "Enforcement Tracker", href: "/enforcement" },
     ]}
     intelligenceUpsellTopic="AI privacy and the EU AI Act"
   />
