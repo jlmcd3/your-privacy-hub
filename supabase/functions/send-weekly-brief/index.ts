@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
         const res = await sendEmail({
           to,
           subject,
-          html: content,
+          html: finalHtml,
           tags: [
             { name: "type", value: "weekly_brief" },
             { name: "lang", value: lang },
