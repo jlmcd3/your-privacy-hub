@@ -3053,8 +3053,15 @@ Deno.serve(async (req) => {
 
     if (tool_type === "li_assessment") {
       const report = record.report_data as any;
-      html = buildLIReportHTML(report, record);
+      // SO-11 WIRE-IN: the byte-pinned LIA skeleton IS the customer document
+      // when the pipeline assembled one; the legacy narrative path survives
+      // only for reports generated before the wire-in.
+      const skelLia = readSkeletonDocument(report);
+      html = skelLia
+        ? buildSkeletonReportHTML(skelLia, record, "Legitimate Interests Assessment")
+        : buildLIReportHTML(report, record);
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
+
     } else if (tool_type === "governance_assessment") {
       const report = record.report_data as any;
       // SO-3 WIRE-IN: the byte-pinned governance skeleton IS the customer
