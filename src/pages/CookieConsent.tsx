@@ -173,13 +173,13 @@ export default function CookieConsentPage() {
           statuteCite: "ePrivacy Directive Art. 5(3) · prior informed consent for non-essential storage/access",
           description:
             "Most sites span EU, UK and U.S. visitors at once. Start with the side-by-side matrix and the strictest-applicable banner checklist — then drill into the per-jurisdiction rules below.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "August 10, 2026",
           feedCategory: "adtech-consent",
           stats: [
-            { value: "€150M", label: "CNIL Google fine" },
-            { value: "€60M", label: "CNIL Facebook fine" },
+            { value: "€325M", label: "CNIL Google fine (2025)" },
+            { value: "€150M", label: "CNIL SHEIN fine (2025)" },
             { value: "€250K", label: "IAB Europe TCF fine" },
-            { value: "100+", label: "ICO notices issued" },
+            { value: "£17.5M", label: "UK PECR penalty ceiling" },
           ],
         }}
         atAGlance={[
