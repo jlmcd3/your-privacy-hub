@@ -70,7 +70,7 @@ const ENFORCEMENT_HISTORY = `
     </tbody>
   </table>
 </div>
-<p class="text-[11px] text-brand-mist mt-2">Settlement amounts as reported by court filings and AG press releases; BIPA totals are net of attorneys' fees.</p>
+<p class="text-[11px] text-brand-mist mt-2">Amounts shown are reported verdict or settlement values. Settlement funds may be subject to court-approved attorneys' fees, costs, and administration expenses.</p>
 `;
 
 export default function BiometricPrivacyPage() {
