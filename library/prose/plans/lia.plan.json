@@ -1,6 +1,6 @@
 {
   "product": "lia",
-  "version": "prose-plans-2026-08-04-item364-d2",
+  "version": "prose-plans-2026-08-10-item-so11",
   "seed_default_approved": false,
   "approval_authority": "approval is recorded ONLY in the database columns prose_document_plans.approved / prose_frame_sets.approved (CEO sign-off). This file's seed_default_approved applies only when seeding inserts a brand-new row.",
   "provenance": {

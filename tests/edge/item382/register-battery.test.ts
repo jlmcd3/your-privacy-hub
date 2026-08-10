@@ -95,9 +95,10 @@ Deno.test("ITEM 382 — verdict enums never reach the reader as the banned idiom
 });
 
 Deno.test("ITEM 382 — the finalize-point stamp is the current LIA item stamp", () => {
-  // ITEM 385 leg 2 bumped the LIA pipeline stamp; the finalize point is
-  // unchanged, only its value.
-  assertEquals(LIA_PIPELINE_STAMP, "lia-pipeline@item399-2026-08-07");
+  // ITEM 385 leg 2 bumped the LIA pipeline stamp; ITEM SO-11 bumped it again
+  // for the v3 counsel-register encode. The finalize point is unchanged in
+  // both cases — only the value it writes.
+  assertEquals(LIA_PIPELINE_STAMP, "lia-pipeline@item-so11-2026-08-10");
 });
 
 Deno.test("ITEM 382 — the finalize point writes the stamp before the serializer", async () => {

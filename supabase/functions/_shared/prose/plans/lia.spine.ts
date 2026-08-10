@@ -1,7 +1,9 @@
 // ITEM 382 — LIA GOLD-STANDARD PROSE ENCODE.
 //
-// SOURCE OF TRUTH: `prose_document_plans` row c9b3d942-83b9-4aac-859d-b507c1f2ef37
-// (product = lia, approved = true, version `prose-plans-2026-08-04-item364-d2`).
+// SOURCE OF TRUTH: `prose_document_plans` row 1f4b7c96-1e6c-4d63-a4e5-2a4f4c0b3d11
+// (product = lia, approved = true, version `prose-plans-2026-08-10-item-so11`),
+// which SUPERSEDES row c9b3d942-83b9-4aac-859d-b507c1f2ef37
+// (version `prose-plans-2026-08-04-item364-d2`, now approved = false).
 // That row is the CEO's approval act. It is NEVER written by code. This module
 // is a FAITHFUL ENCODE of it: section ids, titles, arc stages, leads, source
 // keys and themes are transcribed verbatim so the runtime renders the arc the
