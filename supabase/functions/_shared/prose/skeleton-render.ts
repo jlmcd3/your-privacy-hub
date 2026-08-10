@@ -177,7 +177,12 @@ export function verifySkeletonConformance(
         // what the panel ratified.
         if (literal.length < 12) continue;
         const needle = literal.replace(/\s{2,}/g, " ");
-        if (!body.includes(needle)) {
+        // A literal that begins mid-sentence can open with the stop of the
+        // PRECEDING sentence (". The states whose laws ..."). When that
+        // preceding sentence is legitimately dropped by a null slot, its stop
+        // goes with it, so the surviving span is the needle minus the stub.
+        const stubless = needle.replace(/^[.!?;:,]+\s*/, "");
+        if (!body.includes(needle) && !body.includes(stubless)) {
           // Tolerate only the case where the whole sentence was dropped. A
           // literal that begins mid-sentence can start with a bare "." (the
           // stop of the PRECEDING sentence); that stub is punctuation, not a
@@ -189,6 +194,7 @@ export function verifySkeletonConformance(
 
           if (!dropped) findings.push({ section_id: section.id, missing_literal: needle.slice(0, 120) });
         }
+
       }
     }
   }

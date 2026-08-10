@@ -1765,8 +1765,33 @@ export async function runBiometricFinalizeBattery(
     } catch (e) {
       console.warn("[check-biometric-compliance] serializer failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── SO-6 WIRE-IN: assemble the customer document through the byte-pinned
+    // CEO-corrected v3 skeleton. Deterministic; reads the typed surfaces and
+    // mutates none of them. Runs AFTER the whitelist serializer so the
+    // assembled document survives it, and on the single finalization seam so
+    // both the live and stress paths carry it. Fail-open.
+    try {
+      const { assembleBiometricSkeletonDocument, BIOMETRIC_SKELETON_ASSEMBLER_STAMP } =
+        await import("../_shared/ltp/biometric-skeleton-assemble.ts");
+      const sk = assembleBiometricSkeletonDocument(
+        report_data as Record<string, unknown>,
+        (body ?? {}) as unknown as Record<string, unknown>,
+      );
+      (report_data as Record<string, unknown>).skeleton_document = sk.document;
+      console.log(JSON.stringify({
+        evt: "biometric_skeleton_assembled", fn: "check-biometric-compliance",
+        stamp: BIOMETRIC_SKELETON_ASSEMBLER_STAMP,
+        sections: sk.document.sections.length,
+        conformance_findings: sk.conformance.length,
+        register_findings: sk.register_findings,
+      }));
+    } catch (e) {
+      console.warn("[check-biometric-compliance] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+    }
   return assessment_text;
 }
+
 
 Deno.serve(serveWithGenerationModel(async (req) => {
   console.log(`[qb9-rcb1] check-biometric-compliance build active · core=${PROMPT_CORE_VERSION} · build_stamp=${BUILD_STAMP}`);
