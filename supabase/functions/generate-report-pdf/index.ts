@@ -3209,11 +3209,17 @@ Deno.serve(async (req) => {
       const parts = [record.document_a_text, record.document_b_text].filter(Boolean);
       const hasStructured = record.report_data && typeof record.report_data === "object"
         && Array.isArray((record.report_data as any).controls);
-      if (parts.length === 0 && hasStructured) {
+      // SO-4: when the report carries the byte-pinned skeleton document, that
+      // document IS the customer report — the legacy narrative path is bypassed.
+      const skelCyber = readSkeletonDocument(record.report_data);
+      if (skelCyber) {
+        html = buildSkeletonReportHTML(skelCyber, record, "CPPA Cybersecurity Audit Readiness Report");
+      } else if (parts.length === 0 && hasStructured) {
         // Structured report path: render via dedicated HTML template that
         // emits compact FSOR refs + formatted enforcement precedents and
         // never dumps internal field names or verbatim agency_response text.
         html = buildCPPACyberReportHTML(record.report_data, record);
+
       } else {
         const text = parts.length
           ? parts.join("\n\n──────────────────────────────\n\n")

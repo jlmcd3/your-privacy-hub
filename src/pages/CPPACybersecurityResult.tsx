@@ -32,6 +32,8 @@ import AuditorHandoffButton from "@/components/cppa/AuditorHandoffPackage";
 export { readinessColor, controlStatusColor } from "@/pages/CPPACybersecurityResult.helpers";
 export { CybersecurityReportBody } from "@/components/cppa/CybersecurityReportBody";
 import { CybersecurityReportBody } from "@/components/cppa/CybersecurityReportBody";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
+
 import { CheckCircle2 } from 'lucide-react';
 
 export default function CPPACybersecurityResult() {
@@ -203,9 +205,17 @@ export default function CPPACybersecurityResult() {
             </div>
           )}
 
-          {status === "complete" && reportReady && (
+          {status === "complete" && reportReady && (() => {
+            // SO-4: when the report carries the byte-pinned skeleton document,
+            // that document IS the customer document — the legacy narrative
+            // body is superseded for those reports.
+            const rdAny = (viewRow?.report_data as any);
+            const skeletonDoc = isSkeletonDocument(rdAny?.skeleton_document) ? rdAny.skeleton_document : null;
+            return (
             <div dir={dir} style={{ display: "contents" }}>
-              <CybersecurityReportBody row={viewRow} hideHeader />
+              {skeletonDoc
+                ? <SkeletonDocumentView doc={skeletonDoc} />
+                : <CybersecurityReportBody row={viewRow} hideHeader />}
               <EnforcementPrecedents
                 precedents={(viewRow?.report_data as any)?.enforcement_precedents}
                 variant="cppa"
@@ -214,7 +224,9 @@ export default function CPPACybersecurityResult() {
                 queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
               />
             </div>
-          )}
+            );
+          })()}
+
         </ReportShell>
       </main>
       <Footer />
