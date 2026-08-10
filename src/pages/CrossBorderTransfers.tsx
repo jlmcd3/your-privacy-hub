@@ -24,7 +24,7 @@ const MECHANISM_TABLE = `
         </td>
         <td class="px-4 py-3 text-slate">Any exporter transferring to a country on the EU/UK adequacy list.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-emerald-700">Low.</strong> No transfer-specific contract needed; a DPA still applies under Art. 28.</td>
-        <td class="px-4 py-3 text-slate">Default whenever the destination is covered — UK, Japan, Canada (commercial), Switzerland, South Korea, New Zealand, Israel, EU–US DPF certified importers.</td>
+        <td class="px-4 py-3 text-slate">Default whenever the destination is covered — UK (renewed December 19, 2025), Brazil (adopted January 26, 2026), Japan, Canada (commercial organisations), Switzerland, South Korea, New Zealand, Israel, the European Patent Organisation, and EU–US DPF-certified importers. Scope differs by decision — check the operative decision before relying on it.</td>
       </tr>
       <tr class="border-t border-brand-cloud align-top">
         <td class="px-4 py-3 font-semibold text-brand-navy">
