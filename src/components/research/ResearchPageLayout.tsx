@@ -221,16 +221,19 @@ export function ResearchPageLayout({
                     <h3 className="font-display text-brand-navy mb-4 leading-tight text-[25px]">
                       <span className="text-brand-mist mr-2">{idx + 1}.</span>{sec.h2}
                     </h3>
-                    {sec.complianceTrigger && (
-                      <div className="mb-4 rounded-lg border-l-4 border-accent bg-accent/5 px-4 py-3">
-                        <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
-                          Compliance trigger
+                    {SECTION_CALLOUTS.map((c) => {
+                      const body = sec[c.key];
+                      if (!body) return null;
+                      return (
+                        <div key={c.key} className={`mb-4 rounded-lg border-l-4 ${c.border} ${c.bg} px-4 py-3`}>
+                          <div className={`text-[11px] font-bold tracking-wider uppercase ${c.text} mb-1`}>
+                            {c.label}
+                          </div>
+                          <p className="text-[16px] text-brand-navy leading-relaxed m-0">{body}</p>
                         </div>
-                        <p className="text-[16px] text-brand-navy leading-relaxed m-0">
-                          {sec.complianceTrigger}
-                        </p>
-                      </div>
-                    )}
+                      );
+                    })}
+
                     {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
                     {sec.content && (
                       <div
