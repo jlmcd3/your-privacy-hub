@@ -49,10 +49,14 @@ function renderBriefHtml(brief: any): string {
     ["Why This Matters", brief.why_this_matters],
   ];
 
+  // BRIEF-3: sections keep their raw `[ref:N]` markers here and gain a
+  // `[[sources]]` token; both are hydrated into real links AFTER translation
+  // (see hydrateEmailCitations) so the translator never touches hrefs.
   const body = sections
     .filter(([, v]) => typeof v === "string" && v.trim().length > 0)
-    .map(([h, v]) => `<h2>${h}</h2>\n<div>${v}</div>`)
+    .map(([h, v]) => `<h2>${h}</h2>\n<div>${v}</div>${SOURCES_TOKEN}`)
     .join("\n");
+
 
   // CTA-3: "From the toolkit" email block. Omitted entirely when absent/empty.
   const ctas: Array<{ slug: string; triggered_by?: string }> = Array.isArray(brief.toolkit_ctas)
