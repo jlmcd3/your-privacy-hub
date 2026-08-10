@@ -3122,10 +3122,19 @@ Deno.serve(async (req) => {
       const irReport: any = record.report_data ?? {};
       const hasIrArtifacts = !!(irReport?.standing_playbook || irReport?.incident_worksheet);
       if (hasIrArtifacts) {
+        // SO-7 WIRE-IN: for Artifact A the byte-pinned IR skeleton IS the
+        // customer document when the pipeline assembled one; the legacy
+        // standing-playbook builder survives only for rows generated before
+        // the wire-in. Artifact B (the worksheet) is untouched — its blank
+        // fields are correct output and are never padded.
+        const skelIr = readSkeletonDocument(irReport);
         html = irArtifact === "incident_worksheet"
           ? buildIRWorksheetHTML(record)
+          : skelIr
+          ? buildSkeletonReportHTML(skelIr, record, "Incident Response Playbook")
           : buildIRStandingPlaybookHTML(record);
         generatedAt = record.created_at || new Date().toISOString();
+
       } else if (irArtifact === "incident_worksheet") {
         console.warn("[pdf-guard] 409 artifact_not_available", { tool_type, assessment_id, artifact: irArtifact });
         return new Response(

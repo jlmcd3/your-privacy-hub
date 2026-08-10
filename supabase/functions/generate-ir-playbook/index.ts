@@ -2002,6 +2002,32 @@ let playbook_text = lint.clean;
           console.warn("[generate-ir-playbook] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
         }
 
+        // ── SO-7 WIRE-IN: assemble the customer document through the
+        // byte-pinned CEO-corrected v3 skeleton. Deterministic; reads the
+        // typed surfaces and mutates none of them. Runs AFTER the whitelist
+        // serializer so the assembled document survives it. The worksheet's
+        // blank fields stay blank — nothing here pads them. Fail-open.
+        try {
+          const { assembleIRSkeletonDocument, IR_SKELETON_ASSEMBLER_STAMP } =
+            await import("../_shared/ltp/ir-skeleton-assemble.ts");
+          const sk = assembleIRSkeletonDocument(
+            report_data as unknown as Record<string, unknown>,
+            (body ?? {}) as unknown as Record<string, unknown>,
+          );
+          (report_data as any).skeleton_document = sk.document;
+          console.log(JSON.stringify({
+            evt: "ir_skeleton_assembled", fn: "generate-ir-playbook", rowId,
+            stamp: IR_SKELETON_ASSEMBLER_STAMP,
+            sections: sk.document.sections.length,
+            conformance_findings: sk.conformance.length,
+            register_findings: sk.register_findings,
+          }));
+        } catch (e) {
+          console.warn("[generate-ir-playbook] SO-7 skeleton assembly failed (non-fatal):", (e as Error)?.message);
+        }
+
+
+
 
         // Stage 1: metering + version retention (written BEFORE status:complete).
         await recordRunMeterAndVersion(supabase, {

@@ -31,6 +31,9 @@ import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 import StandingPlaybookView from "@/components/ir/StandingPlaybookView";
 import IncidentWorksheetView from "@/components/ir/IncidentWorksheetView";
 import AuthorityExhibit from "@/components/report/AuthorityExhibit";
+// SO-7 — the byte-pinned skeleton document, when the pipeline assembled one.
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
+
 
 const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
 
@@ -49,8 +52,14 @@ export default function IRPlaybookResult() {
   useToolCompletedOnce("ir_playbook", row?.status === "complete" && (!!row?.playbook_text || !!row?.report_data));
 
   const intake = row?.intake_data || {};
+  // SO-7: the assembled byte-pinned skeleton IS the customer document when
+  // present; the legacy narrative sections are suppressed behind it.
+  const skeletonDoc = isSkeletonDocument((row?.report_data as any)?.skeleton_document)
+    ? (row?.report_data as any).skeleton_document
+    : null;
 
   return (
+
     <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Your Incident Response Playbook | End User Privacy</title></Helmet>
       <Navbar />
@@ -149,7 +158,13 @@ export default function IRPlaybookResult() {
             })()}
 
             <div dir={dir} style={{ display: "contents" }}>
-            <AssessmentReport text={(translated?.playbook_text ?? row.playbook_text) || ""} sectionChipLabel={null} />
+            {/* SO-7 — where the pipeline assembled the byte-pinned skeleton,
+                that document IS the report; the legacy narrative and the
+                standing-playbook section view are suppressed behind it. The
+                worksheet (Artifact B) still ships its blank forms by design. */}
+            {skeletonDoc
+              ? <SkeletonDocumentView doc={skeletonDoc} />
+              : <AssessmentReport text={(translated?.playbook_text ?? row.playbook_text) || ""} sectionChipLabel={null} />}
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
@@ -170,15 +185,18 @@ export default function IRPlaybookResult() {
                 authority exhibit. The exhibit belongs to this artifact only and
                 sits immediately before the universal disclaimer, which
                 ReportShell renders as the final element. */}
-            <StandingPlaybookView
-              playbook={(row?.report_data as any)?.standing_playbook}
-              edpbTemplate={(row?.report_data as any)?.content_owner_mapping?.edpb_template}
-            />
+            {!skeletonDoc && (
+              <StandingPlaybookView
+                playbook={(row?.report_data as any)?.standing_playbook}
+                edpbTemplate={(row?.report_data as any)?.content_owner_mapping?.edpb_template}
+              />
+            )}
             <AuthorityExhibit exhibit={(row?.report_data as any)?.authority_exhibit} />
 
             {/* ITEM 369-IR — ARTIFACT B: blank forms, no exhibit, no analysis. */}
             <IncidentWorksheetView worksheet={(row?.report_data as any)?.incident_worksheet} />
             </div>
+
           </ReportShell>
         )}
       </main>
