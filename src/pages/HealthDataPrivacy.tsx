@@ -158,7 +158,7 @@ export default function HealthDataPrivacyPage() {
           statuteCite: "45 CFR Parts 160 & 164 (HIPAA) · 16 CFR Part 318 (FTC Health Breach Notification Rule)",
           description:
             "Three different regimes regulate health data in the U.S. — and they barely overlap. Use the tracks below to find the rules that actually apply to you.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "August 10, 2026",
           feedCategory: "health-data",
           stats: [
             { value: "60d", label: "HIPAA breach window" },
