@@ -3170,7 +3170,7 @@ Deno.serve(async (req) => {
         html = irArtifact === "incident_worksheet"
           ? buildIRWorksheetHTML(record)
           : skelIr
-          ? buildSkeletonReportHTML(skelIr, record, "Incident Response Playbook")
+          ? buildSkeletonReportHTML(skelIr, record, "Incident Response Playbook", "ir-playbook")
           : buildIRStandingPlaybookHTML(record);
         generatedAt = record.created_at || new Date().toISOString();
 
