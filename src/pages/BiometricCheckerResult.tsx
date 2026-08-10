@@ -18,6 +18,7 @@ import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
@@ -49,6 +50,10 @@ export default function BiometricCheckerResult() {
 
   const report = (translated?.report_data ?? row?.report_data) || {};
   const sourceText = (translated?.analysis_text ?? row?.analysis_text) || report?.assessment_text;
+  // SO-6: the assembled byte-pinned skeleton IS the customer document when present.
+  const skeletonDoc = isSkeletonDocument((report as any)?.skeleton_document)
+    ? (report as any).skeleton_document
+    : null;
   // Remove the repeated transitional sentence that appears between sections in
   // older stress-generated outputs.
   const text = sourceText
@@ -145,8 +150,14 @@ export default function BiometricCheckerResult() {
                 )}
               </div>
             )}
-            <AssessmentReport text={text || ""} sectionChipLabel={null} />
+            {/* SO-6 WIRE-IN: when the pipeline assembled the byte-pinned
+                skeleton, that document IS the report; the legacy narrative
+                survives only for reports generated before the wire-in. */}
+            {skeletonDoc
+              ? <SkeletonDocumentView doc={skeletonDoc} />
+              : <AssessmentReport text={text || ""} sectionChipLabel={null} />}
             {/* bipaCallout render site retired 2026-07-14 */}
+
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
