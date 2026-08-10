@@ -80,6 +80,28 @@ function renderBriefHtml(brief: any): string {
   }
 
   // BRIEF-1: Top 10 enforcement signals — FINAL section of the emailed brief.
+  //
+  // BRIEF-2 (title defect): a subset of `enforcement_actions.subject` values are
+  // sentence fragments captured by upstream extraction (they begin mid-clause,
+  // e.g. "had not appointed a data protection officer." or a 120-char cut of the
+  // decision narrative) rather than the entity name. Rendered raw they read as
+  // titles with the opening words missing. We detect unusable subjects and
+  // recover a name from the summary's leading proper-noun phrase, falling back
+  // to a regulator-derived label.
+  const looksLikeEntityName = (v: string): boolean => {
+    if (!v) return false;
+    if (/^[a-z]/.test(v)) return false;                 // begins mid-sentence
+    if (v.split(/\s+/).length > 9) return false;        // narrative, not a name
+    if (/\.\s*$/.test(v) && !/\b(Inc|Ltd|S\.L\.U|S\.A|N\.V|Pty|LLC|GmbH|Plc|A\/S)\.?\s*$/i.test(v)) return false;
+    if (/\b(failed|did not|had not|was not|considered|processing|pursuant|thereby|because|which)\b/i.test(v)) return false;
+    return true;
+  };
+  const entityFromSummary = (summary: string): string | null => {
+    if (!summary) return null;
+    const m = summary.match(/^([A-Z][\p{L}\p{N}&.,'’\-\s]{2,80}?)\s+(?:failed|did not|was|were|has|had|must|unlawfully|processed|collected|agreed|settled)\b/u);
+    const name = m?.[1]?.trim().replace(/[,\s]+$/, "");
+    return name && name.split(/\s+/).length <= 9 ? name : null;
+  };
   const signals: any[] = Array.isArray(brief.top_enforcement_signals) ? brief.top_enforcement_signals : [];
   let signalsHtml = "";
   if (signals.length > 0) {
@@ -91,7 +113,12 @@ function renderBriefHtml(brief: any): string {
         ? new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
         : "";
       const meta = [s.regulator, s.jurisdiction, dateStr, stars].filter(Boolean).join(" · ");
-      const title = s.subject || s.regulator || "";
+      const rawSubject = typeof s.subject === "string" ? s.subject.trim() : "";
+      const title = looksLikeEntityName(rawSubject)
+        ? rawSubject
+        : (entityFromSummary(typeof s.summary === "string" ? s.summary : "")
+          ?? (s.regulator ? `${s.regulator} enforcement action` : "Enforcement action"));
+
       const fine = s.fine
         ? `<span style="font-weight:600;color:#0d2a45;white-space:nowrap;margin-left:8px">${s.fine}</span>`
         : "";
