@@ -60,7 +60,7 @@ import {
   type SlotValues,
 } from "../prose/skeleton-render.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
-import { firstSentence, firstSentences } from "./dpia-skeleton-assemble.ts";
+import { firstSentence } from "./dpia-skeleton-assemble.ts";
 
 export const LIA_SKELETON_ASSEMBLER_STAMP =
   "lia-skeleton-assembler@so11-wire-in-2026-08-10";
