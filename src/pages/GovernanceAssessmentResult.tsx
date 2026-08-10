@@ -323,7 +323,7 @@ const GovernanceAssessmentResult = () => {
               )}
 
               {/* Immediate Actions */}
-              {Array.isArray(report?.immediate_actions) && report.immediate_actions.length > 0 && (
+              {!skeletonDoc && Array.isArray(report?.immediate_actions) && report.immediate_actions.length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-3">Immediate Actions</h2>
                   <ol className="list-decimal pl-5 space-y-2">
