@@ -76,6 +76,7 @@ const REQUIREMENTS_MATRIX = `
   </table>
 </div>
 <p class="text-[11px] text-brand-mist mt-2">"Required" = enforceable obligation. "Recommended" = best practice or strongly indicated by regulator guidance. "Not required" = no affirmative obligation, but the practical option in a multi-jurisdiction deployment is usually to apply the stricter rule.</p>
+<p class="text-[11px] text-brand-mist mt-2"><strong>UK divergence:</strong> following the Data (Use and Access) Act 2025, UK PECR contains five relevant exceptions to the prior-consent rule for storage and access: transmission of a communication; strictly necessary storage/access; statistical-purpose storage/access; appearance/functionality storage/access; and emergency-assistance location storage/access. The statistical-purpose and appearance/functionality exceptions apply only where the statutory conditions are met, including clear and comprehensive information and a simple, free means to object. The ICO treats the statistical exception as narrow — it does not cover individual tracking, profiling, advertising measurement, or cross-site tracking. Advertising-related storage/access still requires consent. These exceptions do not apply in the EU/EEA, where the ePrivacy Directive analysis is unchanged.</p>
 `;
 
 const STRICTEST_CHECKLIST = `
