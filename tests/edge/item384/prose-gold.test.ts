@@ -63,7 +63,7 @@ const SHIPPED_NEXT_STEPS = [
 // ---------------------------------------------------------------------------
 
 Deno.test("stamp — risk pipeline stamp is pinned to item384", () => {
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428d-2026-08-09");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item-so1-2026-08-10");
   assertEquals(RISK_PROSE_GOLD_VERSION, "risk-prose-gold@item384-2026-08-06");
 });
 
