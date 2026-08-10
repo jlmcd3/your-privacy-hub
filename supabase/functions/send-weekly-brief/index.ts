@@ -12,6 +12,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendEmail } from "../_shared/resend.ts";
 import { PRODUCT_DISPLAY } from "../_shared/product-triggers.ts";
+import { SOURCES_TOKEN, hydrateEmailCitations } from "../_shared/email-citations.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -316,7 +318,10 @@ Deno.serve(async (req) => {
   for (const { lang, emails, content, fallback, fromCache } of translationEntries) {
     stats.by_language[lang] = { count: emails.length, fallback, from_cache: fromCache };
     const subject = englishSubject;
+    // BRIEF-3: hydrate `[ref:N]` / `[[sources]]` into real links post-translation.
+    const finalHtml = hydrateEmailCitations(content, (brief as any).source_map ?? {});
     for (const to of emails) {
+
       try {
         const res = await sendEmail({
           to,
