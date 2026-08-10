@@ -21,11 +21,29 @@
 // literal carries a token from the reference render.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const LIA_PLAN_ROW_ID = "c9b3d942-83b9-4aac-859d-b507c1f2ef37";
-export const LIA_PLAN_VERSION = "prose-plans-2026-08-04-item364-d2";
+// ─────────────────────────────────────────────────────────────────────────────
+// ITEM SO-11 SUPERSEDE (2026-08-10). The item382/item364-d2 row
+// (c9b3d942-83b9-4aac-859d-b507c1f2ef37) is SUPERSEDED by the SO-11 row below.
+// The 14-section TYPED ARC is carried across UNCHANGED — coverage, refinement,
+// the record-complete gate and structure-conformance all key off it and none of
+// them is touched by this item. What the new row adds is the RENDER LAW: the
+// CEO-ratified v3 counsel-register skeleton encoded at the foot of this file,
+// which consumes those typed surfaces and replaces the enumerated section-by-
+// section recitation with the three-part-test weave. Presentation changes;
+// nothing substantive is dropped.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const LIA_PLAN_ROW_ID = "1f4b7c96-1e6c-4d63-a4e5-2a4f4c0b3d11";
+export const LIA_PLAN_VERSION = "prose-plans-2026-08-10-item-so11";
+/** The row this one supersedes, for the audit trail only. */
+export const LIA_PLAN_SUPERSEDED_ROW_ID = "c9b3d942-83b9-4aac-859d-b507c1f2ef37";
+export const LIA_PLAN_SUPERSEDED_VERSION = "prose-plans-2026-08-04-item364-d2";
+export const LIA_PLAN_PROVENANCE =
+  "LIA_Legitimate_Interests_Assessment_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
 
 /** The finalize-point stamp written into `_meta.internal.lia_pipeline_stamp`. */
-export const LIA_PIPELINE_STAMP = "lia-pipeline@item399-2026-08-07";
+export const LIA_PIPELINE_STAMP = "lia-pipeline@item-so11-2026-08-10";
+
 
 /** Transcribed verbatim from the approved plan row. */
 export const LIA_THESIS =
