@@ -95,18 +95,19 @@ export default function BiometricPrivacyPage() {
           title: "Biometric Privacy Laws: BIPA, State Laws & GDPR",
           statuteCite: "740 ILCS 14 (BIPA) · GDPR Art. 9(1) — special-category biometric identifiers",
           description:
-            "Biometric data is regulated more strictly than almost any other category — and exposure compounds quickly under BIPA's per-scan damages model. Start with the checklist to see what applies.",
-          lastUpdated: "June 10, 2026",
+            "Biometric data is regulated more strictly than almost any other category. Illinois BIPA retains a private right of action and substantial statutory damages, but a 2024 amendment limits recovery for repeated collection or disclosure involving the same person's biometric information under the same statutory circumstances. Start with the checklist to see what applies.",
+          lastUpdated: "August 10, 2026",
           feedCategory: "biometric",
           stats: [
-            { value: "$1K–$5K", label: "BIPA per-violation damages" },
+            { value: "$1K–$5K", label: "BIPA liquidated-damages tiers" },
             { value: "$650M", label: "Meta BIPA settlement" },
             { value: "$1.4B", label: "Texas–Meta settlement" },
             { value: "6+", label: "state biometric laws" },
           ],
         }}
         atAGlance={[
-          { label: "Toughest US regime", value: "Illinois BIPA — private right of action, $1K/$5K per violation" },
+          { label: "Toughest US regime", value: "Illinois BIPA — private right of action; $1K negligent / $5K intentional-or-reckless liquidated-damages tiers, subject to Section 20 recovery limits" },
+
           { label: "Companion state laws", value: "Texas CUBI, Washington HB 1493, Colorado § 6-1-1308(7)" },
           { label: "EU treatment", value: "GDPR Art. 9(1) — biometric ID data is special-category; Art. 9(2) basis required" },
           { label: "Recent watershed", value: "$1.4B Texas–Meta settlement (2024) confirms scale of exposure" },
