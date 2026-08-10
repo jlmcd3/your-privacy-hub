@@ -153,10 +153,20 @@ export interface ConformanceFinding {
  * A fixed block whose sentence was legitimately dropped by a `null` slot is
  * exempt only for the literals that sat inside that dropped sentence, so the
  * check runs per surviving paragraph rather than per source block.
+ *
+ * ITEM SO-11 refinement: when the caller passes the SAME `values` the renderer
+ * used, the exemption is computed EXACTLY rather than inferred. Each sentence of
+ * the block is rendered on its own; a sentence that renders empty was dropped by
+ * a null slot and its literals are exempt, and every OTHER sentence must byte-
+ * match in full. Without `values` the previous whole-literal heuristic stands,
+ * so every pre-SO-11 caller is unaffected. The heuristic could not see a literal
+ * that STRADDLES a sentence boundary — the tail of a surviving sentence plus the
+ * whole of a dropped one — and reported the survivor's tail as missing.
  */
 export function verifySkeletonConformance(
   doc: RenderedSkeletonDocument,
   sections: readonly SpineSectionLike[],
+  values?: SlotValues,
 ): ConformanceFinding[] {
   const findings: ConformanceFinding[] = [];
   const bySection = new Map(doc.sections.map((s) => [s.id, s]));
@@ -172,7 +182,31 @@ export function verifySkeletonConformance(
 
     for (const block of section.blocks) {
       if (block.kind !== "skeleton") continue;
+
+      if (values) {
+        for (const sentence of block.text.split(/(?<=\.)\s+/)) {
+          if (!sentence.trim()) continue;
+          // A sentence the renderer dropped is honestly absent, not missing.
+          if (!renderFixed(sentence, values)) continue;
+          // A bare lettered sub-head ("C. Scale.") governs the sentences after
+          // it. When every one of those was dropped, the product's assembler
+          // prunes the orphaned heading — that is the skeleton's own no-padding
+          // rule, not a conformance breach.
+          if (/^[A-D]\.\s+[A-Z][^.]*\.$/.test(sentence.trim()) && !body.includes(sentence.trim())) continue;
+          for (const literal of fixedLiterals(sentence)) {
+            if (literal.length < 12) continue;
+            const needle = literal.replace(/\s{2,}/g, " ");
+            const stubless = needle.replace(/^[.!?;:,]+\s*/, "");
+            if (!body.includes(needle) && !body.includes(stubless)) {
+              findings.push({ section_id: section.id, missing_literal: needle.slice(0, 120) });
+            }
+          }
+        }
+        continue;
+      }
+
       for (const literal of fixedLiterals(block.text)) {
+
         // Literals shorter than a clause are noise; the substantive spans are
         // what the panel ratified.
         if (literal.length < 12) continue;

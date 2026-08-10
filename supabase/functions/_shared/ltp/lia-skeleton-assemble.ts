@@ -347,22 +347,37 @@ export function renderLiaToa(ledger: readonly string[], assembledBody: string): 
 }
 
 /**
- * An orphaned lettered sub-head — "B. Potential impact." with every sentence
- * after it dropped by a null slot — is removed. The skeleton's own rule is that
- * an unanswered optional fact yields NO sentence; a bare heading over nothing
+ * An orphaned lettered sub-head — "C. Scale." with every sentence after it
+ * dropped by a null slot — is removed. The skeleton's own rule is that an
+ * unanswered optional fact yields NO sentence; a bare heading over nothing
  * would be exactly the padding the rule forbids.
+ *
+ * The sub-heads and their sentences share one paragraph, so this segments the
+ * paragraph at each heading rather than at sentence boundaries: a heading is
+ * itself sentence-terminated ("C. Scale."), so a naive sentence split tears the
+ * heading away from the body it governs and can never see that the body is gone.
  */
+const LIA_SUBHEAD = /(?:^|\s)[A-D]\.\s+[A-Z][^.]*\./g;
+
 function pruneOrphanSubheads(text: string): string {
-  return text
-    .split(/(?<=\.)\s+/)
-    .filter((sentence, i, all) => {
-      if (!/^[A-D]\.\s+[A-Z]/.test(sentence)) return true;
-      const next = all[i + 1];
-      return !!next && !/^[A-D]\.\s+[A-Z]/.test(next);
-    })
-    .join(" ")
-    .trim();
+  const marks = [...text.matchAll(LIA_SUBHEAD)];
+  if (marks.length === 0) return text.trim();
+
+  const kept: string[] = [];
+  const preamble = text.slice(0, marks[0].index ?? 0).trim();
+  if (preamble) kept.push(preamble);
+
+  for (let i = 0; i < marks.length; i++) {
+    const start = marks[i].index ?? 0;
+    const end = i + 1 < marks.length ? (marks[i + 1].index ?? text.length) : text.length;
+    const segment = text.slice(start, end).trim();
+    const heading = marks[i][0].trim();
+    const body = segment.slice(heading.length).trim();
+    if (body.length > 0) kept.push(segment);
+  }
+  return kept.join(" ").replace(/\s+/g, " ").trim();
 }
+
 
 // ── Assembly ────────────────────────────────────────────────────────────────
 
@@ -582,7 +597,10 @@ export function assembleLiaSkeletonDocument(
 
   return {
     document,
-    conformance: verifySkeletonConformance(document, LIA_SKELETON_SECTIONS),
+    // `values` is passed so the exemption for a sentence dropped by a null slot
+    // is computed EXACTLY, from the same values the renderer used, rather than
+    // inferred from the shape of the literal.
+    conformance: verifySkeletonConformance(document, LIA_SKELETON_SECTIONS, values),
     register_findings,
     lead_coherence: checkLeadCoherence(
       { exec: execLead, purpose: purposeLead, necessity: necessityLead, balancing: balancingLead, findings: findingsLead },
