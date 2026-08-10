@@ -90,6 +90,12 @@ const GovernanceAssessmentResult = () => {
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const intake = assessment?.intake_data || {};
   const status = assessment?.status;
+  // SO-3 WIRE-IN: the assembled byte-pinned skeleton IS the customer document
+  // when present; the legacy narrative bodies are superseded for it.
+  const skeletonDoc = isSkeletonDocument((report as any)?.skeleton_document)
+    ? (report as any).skeleton_document
+    : null;
+
 
   const domainList: any[] =
     report?.domain_findings && typeof report.domain_findings === "object" && !Array.isArray(report.domain_findings)
