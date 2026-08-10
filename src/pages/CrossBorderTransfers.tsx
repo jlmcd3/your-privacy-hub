@@ -121,19 +121,21 @@ export default function CrossBorderTransfersPage() {
           statuteCite: "GDPR Ch. V · Arts. 44–50 — legal basis for every restricted transfer",
           description:
             "International transfers sit on top of fragile legal foundations — Schrems II reset the world, and the DPF could be next. This is the working reference for the mechanisms still in force today.",
-          lastUpdated: "June 10, 2026",
+          description:
+            "International-transfer law remains dynamic. The EU-U.S. DPF remains in force after the General Court upheld the adequacy decision in Latombe in September 2025, while an appeal is pending before the Court of Justice. This is the working reference for the mechanisms in force today.",
+          lastUpdated: "August 10, 2026",
           feedCategory: "cross-border",
           stats: [
-            { value: "~15", label: "EU adequacy decisions" },
+            { value: "Art. 45", label: "EU adequacy route" },
             { value: "4 modules", label: "2021 SCCs" },
             { value: "Jul 2023", label: "EU–US DPF adopted" },
-            { value: "Schrems III", label: "challenge ongoing" },
+            { value: "C-703/25 P", label: "Latombe appeal pending" },
           ],
         }}
         atAGlance={[
           { label: "Primary law", value: "GDPR Chapter V (Arts. 44–50)" },
           { label: "Default mechanism", value: "2021 SCCs — pick the right module (C2C / C2P / P2P / P2C)" },
-          { label: "US route", value: "EU–US Data Privacy Framework (July 2023) — Schrems III pending" },
+          { label: "US route", value: "EU–US Data Privacy Framework (July 2023) — in force; Latombe appeal C-703/25 P pending" },
           { label: "Required companion", value: "Transfer Impact Assessment (TIA) documenting supplementary measures" },
         ]}
         merchandisingRail={{
