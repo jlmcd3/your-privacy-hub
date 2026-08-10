@@ -234,12 +234,27 @@ function composeExecutiveBody(report: Bag): string {
     }
   }
 
-  const open = asArray(report.information_needed).length;
+  // TRACEABILITY — a count is only stated where the counted items are also
+  // rendered in this same document. Each entry is named by the facts it asks
+  // for (its `dimensions`, falling back to the intake field key), with the
+  // determination it completes where the pipeline recorded one.
+  const openItems = asArray(report.information_needed)
+    .map((e) => {
+      const what = noStop(s(e.dimensions) || s(e.field));
+      if (!what) return "";
+      const enables = noStop(s(e.enables));
+      return enables ? `${what} — which completes ${lowerEnumLabel(enables)}` : what;
+    })
+    .filter(Boolean);
+  const open = openItems.length;
   if (open > 0) {
     sentences.push(
-      `${open === 1 ? "One point is" : `${open} points are`} left unanswered by the company's answers, and each is named where it bears on the determination rather than assumed.`,
+      `${open === 1 ? "One point is" : `${open} points are`} left unanswered by the company's answers, and each is named here and where it bears on the determination rather than assumed: ${openItems
+        .map((t, i) => `(${i + 1}) ${t}`)
+        .join("; ")}.`,
     );
   }
+
 
   const decision = decisionText(report);
   if (decision) sentences.push(stop(noStop(firstSentence(decision))));
