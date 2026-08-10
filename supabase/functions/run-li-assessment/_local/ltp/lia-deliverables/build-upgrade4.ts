@@ -689,6 +689,23 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
   );
   const record_fact = factParts.join(" ");
 
+  // SO-11 FIX 2 — the impact composition must engage the record's own facts
+  // (named harms, recorded pathway, recorded measures, exit route) and carry
+  // the strongest consideration against the conclusion, rather than restating
+  // the severity label the skeleton has already set out.
+  const q = (t: string) => `"${t.trim().replace(/\.$/, "")}"`;
+  const harmList = harms.length
+    ? harms.map((h) => h.harm).reduce((acc, cur, i, a) =>
+      i === 0 ? cur : i === a.length - 1 ? `${acc} and ${cur}` : `${acc}, ${cur}`, "")
+    : "";
+  const safeguardText = [
+    ...arr(get(intake, "balancing_details.safeguards")).map((x) => str(x)).filter((x) =>
+      x && x.toLowerCase() !== "other"
+    ),
+    str(get(intake, "balancing_details.safeguards_other")),
+  ].filter(Boolean).join("; ");
+  const optOutText = str(get(intake, "balancing_details.opt_out_mechanism"));
+
   let status: DeliverableStatus = "analysed";
   let information_needed: string | undefined;
   let application: string;
@@ -707,16 +724,41 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
       "balancing_details.potential_harms — the specific harms behind the severity rating already recorded.";
   } else if (worst_case_severity === "unstated") {
     status = "record_insufficient";
-    application =
-      `The record names ${harms.length} harm${harms.length === 1 ? "" : "s"} but does not say how serious the worst case would be, so each harm is carried into the balance below without a fixed weight.`;
+    application = [
+      `The record names ${harms.length} harm${
+        harms.length === 1 ? "" : "s"
+      } — ${harmList} — but characterises the worst case as ${
+        q(severityAnswer)
+      }, which is not one of the recorded severity bands, so the weight cannot be read off the label and has to be taken from the pathway described.`,
+      detail
+        ? `The pathway given is ${q(detail)}.`
+        : "No pathway is described, which is the strongest consideration against treating the harms as bounded.",
+      safeguardText
+        ? `The measures standing against that pathway are ${q(safeguardText)}.`
+        : "No mitigating measure is recorded against these harms.",
+      optOutText ? `A route by which the data subject can stop the processing is also recorded: ${q(optOutText)}.` : "",
+      "The consideration cutting the other way is that measures of this kind are operational rather than structural: they hold only for as long as they are applied as described, and if they lapse the same harms recur at the frequency of the processing itself.",
+      "Weighed on those facts the harms named are bounded and remediable, and each is carried into the balancing analysis individually below rather than collapsed into a single rating; the severity band itself remains open.",
+    ].filter(Boolean).join(" ");
     information_needed =
-      "balancing_details.potential_harm — the worst-case severity for the harms already listed.";
+      "balancing_details.potential_harm — the worst-case severity for the harms already listed, expressed in one of the recorded severity bands.";
   } else if (material_weight_against_controller) {
     application =
       `The record identifies ${harms.length} harm${harms.length === 1 ? "" : "s"} and characterises the worst case as ${worst_case_severity}. At that level the harms are not incidental to the balance; they are the principal weight on the data subjects' side, and the balance can only fall in the controller's favour if measures beyond those the Regulation already requires reduce them. Each harm is carried into the balancing analysis individually below rather than collapsed into a single severity rating.`;
   } else {
-    application =
-      `The record identifies ${harms.length} harm${harms.length === 1 ? "" : "s"} with a worst case characterised as ${worst_case_severity}. Each is carried into the balancing analysis individually below, so the balance is struck against named consequences rather than against a single rating.`;
+    application = [
+      `The record identifies ${harms.length} harm${
+        harms.length === 1 ? "" : "s"
+      } — ${harmList} — with a worst case characterised as ${worst_case_severity}.`,
+      detail ? `The pathway given is ${q(detail)}.` : "",
+      safeguardText
+        ? `What holds the harms at that level is not the characterisation but the measures recorded against them: ${
+          q(safeguardText)
+        }.`
+        : "No mitigating measure is recorded, so the characterisation rests on the nature of the harms alone.",
+      "Against that, a low characterisation is the controller's own and holds only while those measures hold; if they lapse, the harms are neither bounded nor reversible by anything the data subject can do.",
+      "Each harm is carried into the balancing analysis individually below, so the balance is struck against named consequences rather than against a single rating.",
+    ].filter(Boolean).join(" ");
   }
 
   return {
@@ -774,14 +816,29 @@ export function buildOptOutFeasibility(intake: unknown): OptOutFeasibilityFindin
   let information_needed: string | undefined;
   let application: string;
 
+  // SO-11 FIX 1 — the default position must be stated accurately: the general
+  // right to object to legitimate-interests processing is QUALIFIED (the
+  // controller may continue on compelling legitimate grounds that override the
+  // data subject's interests, rights and freedoms, or for the establishment,
+  // exercise or defence of legal claims) and is ABSOLUTE only for direct
+  // marketing. Stated in plain prose and attributed to the general right to
+  // object — deliberately no bare statutory pinpoint, which would ride on an
+  // unverified citation.
+  const OBJECTION_DEFAULT =
+    "Under the general right to object in the Regulation, a data subject objecting to processing grounded on legitimate interests must ordinarily do so on grounds relating to their particular situation, and the controller may continue where it demonstrates compelling legitimate grounds that override the data subject's interests, rights and freedoms, or where the processing is for the establishment, exercise or defence of legal claims. The right is qualified in that respect; it is unconditional only where the processing is for direct marketing, in which case the data subject may object at any time and the processing must stop.";
+
   switch (feasibility) {
     case "unconditional_opt_out_available":
       application =
-        `The record describes an opt-out the data subject can exercise without having to make out a case: "${mechanism || available}". An unconditional opt-out goes beyond the position the Regulation establishes by default, under which an objection to processing grounded on legitimate interests must be assessed on the data subject's particular situation. Because it goes further than the baseline, it counts towards the balance rather than being assumed as part of it.`;
+        `The record describes an opt-out the data subject can exercise without having to make out a case: "${
+          mechanism || available
+        }". ${OBJECTION_DEFAULT} An opt-out exercisable without cause therefore goes further than the default position for processing of this kind, and counts towards the balance rather than being assumed as part of it.`;
       break;
     case "conditional_opt_out_available":
       application =
-        `The record describes a route by which data subjects can object — "${mechanism || available}" — but one that is exercised on request or on assessment rather than unconditionally. That route reflects the position the Regulation already establishes; it is properly recorded, but it does not add weight to the controller's side of the balance, because a measure the Regulation already requires is not a mitigating measure.`;
+        `The record describes a route by which data subjects can object — "${
+          mechanism || available
+        }" — but one that is exercised on request or on assessment rather than unconditionally. ${OBJECTION_DEFAULT} The recorded route therefore matches the default rather than exceeding it; it is properly recorded, but a measure that reflects what is already required does not add weight to the controller's side of the balance.`;
       break;
     case "no_opt_out_available":
       application =
