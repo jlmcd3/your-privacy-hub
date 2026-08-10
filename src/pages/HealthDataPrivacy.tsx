@@ -58,8 +58,8 @@ const CONSUMER_HEALTH_TRACK = `
   <div class="grid gap-3 md:grid-cols-2">
     <div class="border-l-2 border-amber-500 pl-3">
       <p class="text-sm font-semibold text-brand-navy">FTC Health Breach Notification Rule</p>
-      <p class="text-xs text-slate mt-1">Covers vendors of personal health records and related entities not subject to HIPAA. "Breach" includes <em>unauthorized sharing</em> with ad platforms, not only security incidents. Enforced via consent orders and civil penalties (GoodRx — $1.5M; BetterHelp — $7.8M; Premom — consent order).</p>
-      <a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer" class="text-brand-teal-text text-xs mt-1 inline-block">FTC rule text ↗</a>
+      <p class="text-xs text-slate mt-1">Covers vendors of personal health records and related entities not subject to HIPAA. The FTC's 2024 amendments modernized the rule and clarified its application to health apps and similar technologies outside HIPAA. "Breach" includes <em>unauthorized sharing</em> or disclosure — for example with ad platforms — and is not limited to a hacking or security incident. Enforced via consent orders and civil penalties (GoodRx — $1.5M; BetterHelp — $7.8M; Premom — consent order).</p>
+      <a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer" class="text-brand-teal-text text-xs mt-1 inline-block">FTC rule &amp; guidance ↗</a>
     </div>
     <div class="border-l-2 border-amber-500 pl-3">
       <p class="text-sm font-semibold text-brand-navy">Washington My Health My Data Act (MHMDA)</p>
