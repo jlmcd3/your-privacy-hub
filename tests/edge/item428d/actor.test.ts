@@ -25,7 +25,7 @@ const PILOT_ACTION =
   + "the risk it addresses.";
 
 Deno.test("428-D stamp", () => {
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428d-2026-08-09");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item-so1-2026-08-10");
 });
 
 Deno.test("D1: the unnamed modal subject is replaced by the named holder", () => {

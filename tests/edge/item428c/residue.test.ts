@@ -21,7 +21,7 @@ const KEPT =
   "For every beneficiary class the stated benefit is supported by a record fact and outweighs the identified negative impacts.";
 
 Deno.test("428-C stamp", () => {
-  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item428d-2026-08-09");
+  assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item-so1-2026-08-10");
   assertStringIncludes(RISK_SUMMARY_REHOME_VERSION, "item428c");
 });
 

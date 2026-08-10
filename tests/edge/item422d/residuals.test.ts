@@ -26,7 +26,7 @@ import {
 import { ADMT_PIPELINE_STAMP } from "../../../supabase/functions/run-admt-checker/_local/prose/plans/admt.spine.ts";
 
 Deno.test("item422d — stamps", () => {
-  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item422d-2026-08-09");
+  assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item-so2-2026-08-10");
   assertEquals(ADMT_ACTION_LINKAGE_VERSION, "admt-action-finding-linkage@item422d-2026-08-09");
 });
 
