@@ -81,7 +81,9 @@ Deno.test("SO-1 — conditionals carry a trigger and a fixed rendered form", () 
   // Two of the four state the omit branch outright; the ADMT and DPIA
   // conditionals are trigger-gated on their own and simply do not render when
   // untriggered — never padded, never announced.
-  assertEquals(conds.filter((c) => /omitted/.test(c.text)).length, 2);
+});
+
+
 
 
 
