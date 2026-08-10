@@ -3278,7 +3278,13 @@ Deno.serve(async (req) => {
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "registration_assessment") {
-      html = buildRegistrationReportHTML(record);
+      // SO-8 WIRE-IN: the byte-pinned registration skeleton IS the customer
+      // document when the pipeline assembled one; the legacy builder survives
+      // only for rows generated before the wire-in.
+      const skelReg = readSkeletonDocument(record.result_summary);
+      html = skelReg
+        ? buildSkeletonReportHTML(skelReg, record, "Registration Assessment")
+        : buildRegistrationReportHTML(record);
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "registration_document") {
       html = buildTextReportHTML({

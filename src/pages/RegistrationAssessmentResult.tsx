@@ -18,6 +18,7 @@ import { Copy, Loader2, Mail, FileText } from 'lucide-react';
 import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import WordConversionPromptButton from "@/components/WordConversionPromptButton";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 
 import { PRICING_REGISTRY, PRICING } from "@/config/pricing";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
@@ -164,6 +165,11 @@ export default function RegistrationAssessmentResult() {
   }
 
   const summary = assessment.result_summary || {};
+  // SO-8 WIRE-IN: the assembled byte-pinned skeleton IS the customer document
+  // when present; the legacy narrative surfaces are superseded by it.
+  const skeletonDoc = isSkeletonDocument((summary as any)?.skeleton_document)
+    ? (summary as any).skeleton_document
+    : null;
   const jurisdictions: JurisdictionResult[] = summary.jurisdictions || [];
   const confidence = summary.confidence || assessment.confidence_tier || "medium";
   const selectedCount = selected.size;
@@ -287,6 +293,16 @@ export default function RegistrationAssessmentResult() {
                 </CardContent>
               </Card>
             )}
+
+            {/* SO-8: the byte-pinned skeleton document IS the customer report. */}
+            {skeletonDoc && (
+              <Card className="mb-6">
+                <CardContent className="py-6">
+                  <SkeletonDocumentView doc={skeletonDoc} />
+                </CardContent>
+              </Card>
+            )}
+
 
             {jurisdictions.length === 0 ? (
               <Card>

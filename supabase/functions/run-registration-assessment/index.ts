@@ -776,6 +776,33 @@ Deno.serve(async (req) => {
     // LEAK-PREV-P2 — single finalization point: whitelist-serialize the
     // assembled report immediately before the write (fail-open).
     const customer_result_summary = serializeCustomer(finalized_result_summary);
+
+    // ── SO-8 WIRE-IN: assemble the customer document through the byte-pinned
+    // v3 registration skeleton. Runs AFTER the schema serializer so the key is
+    // not stripped by the whitelist. Fully deterministic — no model call — and
+    // the typed surfaces are never mutated.
+    try {
+      const { assembleRegistrationSkeletonDocument, REGISTRATION_SKELETON_ASSEMBLER_STAMP } =
+        await import("../_shared/ltp/registration-skeleton-assemble.ts");
+      const sk = assembleRegistrationSkeletonDocument(
+        customer_result_summary as Record<string, unknown>,
+        intake as unknown as Record<string, unknown>,
+      );
+      (customer_result_summary as any).skeleton_document = sk.document;
+      console.log(JSON.stringify({
+        evt: "registration_skeleton_assembled",
+        fn: "run-registration-assessment",
+        stamp: REGISTRATION_SKELETON_ASSEMBLER_STAMP,
+        sections: sk.document.sections.length,
+        conformance_findings: sk.conformance.length,
+        register_findings: sk.register_findings,
+        lead_coherence: sk.lead_coherence,
+        duty_counts: sk.duty_counts,
+      }));
+    } catch (e) {
+      console.warn("[run-registration-assessment] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+    }
+
     let row;
     const persistPayload = {
       intake_data: intake,
