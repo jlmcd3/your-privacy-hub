@@ -2816,11 +2816,24 @@ Deno.serve(async (req) => {
             { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+        // Distinguish "no verified caller" (expired/missing session token) from
+        // a genuinely non-owning signed-in caller. Both used to read "forbidden".
+        if (!caller.userId) {
+          console.log(JSON.stringify({
+            evt: "pdf_auth_unverified", tool_type, assessment_id,
+            reason: (callerRaw as any).error ?? "no_token",
+          }));
+          return new Response(
+            JSON.stringify({ error: "auth_expired", message: "Session expired or missing — sign in again and retry." }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
         return new Response(
           JSON.stringify({ error: "forbidden" }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
     }
 
     // SEC-1b: sign-only mode — return a fresh short-TTL (600s) signed URL for
