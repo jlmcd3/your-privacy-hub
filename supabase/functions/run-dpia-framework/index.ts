@@ -48,6 +48,7 @@ import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared
 import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTerminal } from "./reliability.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, generationMaxTokens, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS: per-unit spend/latency metering
+import { detectPurposeConflation, conflationRepairInstruction } from "../_shared/dpia-purpose-guard.ts";
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
@@ -1003,7 +1004,7 @@ const PER_UNIT_BLACKLIST_BAN =
 const UNIT_INSTRUCTION: Record<UnitId, string> = {
   u1: "Generate the DPIA overview, metadata, and systematic description. Populate the repeatable tables (controllers, processors, data items, purposes) with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred from the intake.\n\nPROVENANCE (W3-T1, REQUIRED):\n- Every row of processed_personal_data, purposes, and functional_description MUST carry a `source` object of the form {\"intake_field\": <string>, \"basis\": \"stated\"|\"inferred\"}.\n- `basis: \"stated\"` means the row's substance is directly supported by the named intake_field's value. Use the exact intake key from the record (e.g. 'data_categories', 'purpose', 'description', 'processing_activity_name', 'functional_description', 'nature_scope_context').\n- `basis: \"inferred\"` means the row is a reasonable inference the intake does not directly enumerate; set intake_field to the closest supporting field the inference draws from, or \"inferred\" if none.\n- Do NOT invent enumerations (e.g. specific portal event types, purchase history categories, unnamed central-administration facts). If it isn't stated, mark it inferred and keep it high-level.\n\nReturn ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
   u2: "Generate the compliance analysis section. Provide one row per Article 5(1)(a–f) principle for measures_article5, one row per data-subject right group for measures_rights, and one row per other GDPR requirement for measures_other. Populate every table with substantive draft content; use \"[TO COMPLETE — …]\" only where a value genuinely cannot be inferred. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
-  u3: "Generate the necessity & proportionality section. CRITICAL: design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context) — this list will be reused verbatim by Section 4. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
+  u3: "Generate the necessity & proportionality section. CRITICAL: design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context) — this list will be reused verbatim by Section 4. PURPOSE DISCIPLINE (deterministically checked after generation): the necessity test and the benefit side of the proportionality balance are measured against the STATED PURPOSE field only. NEVER quote, paraphrase or treat the SECONDARY / COMPATIBLE USES answer as the purpose or as the benefit — a secondary-uses answer that reads like a purpose statement (e.g. \"None. The data is not used for any purpose beyond …\") is a scope-limitation statement and belongs in the minimisation analysis. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
   u4: "Generate the risk assessment & management section. CRITICAL — keep the EDPB design-risk vs incident-risk distinction: incident_risk_impacts = risks from non-default, accidental, unlawful or abnormal events (malfunctions, deviations from design, cyber threats to confidentiality / integrity / availability, malicious actors). inherent_risk_assessment = the combined list of risks drawn from BOTH design_risk_impacts (supplied below verbatim) and incident_risk_impacts, each scored likelihood × severity with modulating factors. residual_risk_assessment = those risks re-scored AFTER the additional mitigating measures. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
   u5: "Generate the interested-parties section, the conclusion, and the framework disclaimer. CONSISTENCY DUTIES (repair-only): conclusion conditions must link to section_4 measures; blockers named in section_6 must match information_needed entries in earlier sections; dpia_metadata ↔ section_6 must be consistent on unresolved determinations. You MAY reconcile contradictions between earlier units but MUST NOT introduce new legal determinations. Return ONLY the JSON structure below, no preamble:" + PER_UNIT_BLACKLIST_BAN,
 };
@@ -1267,7 +1268,8 @@ Processing activity name: ${intake.processing_activity_name || "not specified"}
 Sector: ${sector}
 Legal basis selected by user: ${legalBasisProposed}
 Description: ${processingDesc}
-Purpose: ${purpose}
+STATED PURPOSE (the ONLY value that may be quoted or paraphrased as "the purpose", and the ONLY basis for the benefit side of the proportionality balance): ${purpose}
+SECONDARY / COMPATIBLE USES (NOT the purpose — never quote this as the purpose and never use it as the benefit in balancing; where it says the data is not used beyond the primary purpose, that is evidence of scope limitation/minimisation): ${secondaryUses}
 Data categories: ${dataCategories}
 Data subjects: ${dataSubjects}
 Volume/frequency: ${volume}
@@ -1292,7 +1294,7 @@ Scope of this DPIA (in / out): ${dpiaScopeNote}
 Publication / external-sharing intent: ${publicationIntent}
 
 EDPB TEMPLATE — SECTIONS 1, 2 & 5 INPUTS (controller-provided; assess these as proposals, do not treat as settled conclusions):
-[Section 1 — description] Secondary / compatible uses: ${secondaryUses}; Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
+[Section 1 — description] Secondary / compatible uses: see SECONDARY / COMPATIBLE USES above (assess as a scope statement, never as the purpose); Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
 [Section 2 — compliance] Data minimisation justification: ${dataMinimisationJustification}; Data quality measures: ${dataQualityMeasures}; Measures supporting data subjects' rights: ${dataSubjectRightsMechanisms}; Data protection by design & default: ${dpByDesignMeasures}
 [Section 5 — interested parties] DPO advice: ${dpoAdvice}; Data subjects' views sought: ${dataSubjectsViewsSought}; Data subjects' views / justification: ${dataSubjectsViews}
 USE THESE INPUTS: fold them into section_1_description, section_2_analysis, and section_5_interested_parties. Where a value is "Not specified", keep the existing [TO COMPLETE] behaviour for that element rather than inventing content.
@@ -1760,9 +1762,53 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       await mergePreservingFail(dpia_id, unit, new Error(`unit_missing_keys:${missing.join(",")}`), elapsedMs, callTelemetry);
       return;
     }
+
+    // PURPOSE / SECONDARY-USES GUARD (u3 only). One bounded re-ask when the
+    // necessity/proportionality prose quotes the secondary-uses answer under a
+    // purpose or benefit framing. If the re-ask is still conflated we record
+    // the flag rather than failing the run.
+    let unitKeys = keys;
+    let purposeConflation: any = null;
+    if (unit === "u3") {
+      const intake = (shared?.intake ?? {}) as Record<string, any>;
+      const purposeText = String(intake.purpose ?? "");
+      const secondaryText = String(intake.secondary_uses ?? "");
+      let findings = detectPurposeConflation(unitKeys?.section_3_necessity_proportionality, purposeText, secondaryText);
+      if (findings.length > 0) {
+        console.error(`[unit:u3] purpose/secondary_uses conflation detected (${findings.length}) — one bounded re-ask`);
+        try {
+          const r2 = await dpiaWithRetry(() => callAnthropicWithContinuation({
+            model: currentGenerationModel(),
+            system: systemBlocks,
+            user: userPrompt + conflationRepairInstruction(purposeText, secondaryText),
+            maxTokens: UNIT_MAX_TOKENS[unit],
+            label: `run-dpia-framework:unit:u3:purpose-repair`,
+          }), { label: `dpia:unit:u3:purpose-repair` });
+          const repaired = parseJsonish(r2.text);
+          const stillMissing = UNIT_KEYS.u3.filter((k) => !repaired || typeof repaired !== "object" || !(k in repaired));
+          if (stillMissing.length === 0) {
+            const after = detectPurposeConflation(repaired.section_3_necessity_proportionality, purposeText, secondaryText);
+            if (after.length < findings.length) {
+              unitKeys = repaired;
+              findings = after;
+            }
+          }
+        } catch (e) {
+          console.error(`[unit:u3] purpose-repair re-ask failed:`, (e as Error)?.message ?? e);
+        }
+        purposeConflation = {
+          detected: true,
+          resolved: findings.length === 0,
+          remaining: findings.length,
+          excerpts: findings.slice(0, 3).map((f) => f.excerpt),
+        };
+      }
+    }
+
     await writeUnitStatus(dpia_id, unit, {
       status: "done",
-      keys,
+      keys: unitKeys,
+      ...(purposeConflation ? { purpose_conflation: purposeConflation } : {}),
       elapsed_ms: elapsedMs,
       output_tokens: r.outputTokens ?? null,
       stop_reason: r.stopReason ?? null,
