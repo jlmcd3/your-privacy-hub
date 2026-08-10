@@ -1694,6 +1694,29 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-governance-assessment] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── SO-3 WIRE-IN: assemble the customer document through the byte-pinned
+    // v3 governance skeleton. Runs AFTER the schema serializer so the key is
+    // not stripped by the whitelist. Deterministic; the typed surfaces are
+    // never mutated.
+    try {
+      const { assembleGovernanceSkeletonDocument, GOVERNANCE_SKELETON_ASSEMBLER_STAMP } =
+        await import("../_shared/ltp/governance-skeleton-assemble.ts");
+      const sk = assembleGovernanceSkeletonDocument(
+        reportData as unknown as Record<string, unknown>,
+        ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},
+      );
+      (reportData as any).skeleton_document = sk.document;
+      console.log(JSON.stringify({
+        evt: "governance_skeleton_assembled", assessment_id,
+        stamp: GOVERNANCE_SKELETON_ASSEMBLER_STAMP,
+        sections: sk.document.sections.length,
+        conformance_findings: sk.conformance.length,
+        register_findings: sk.register_findings,
+      }));
+    } catch (e) {
+      console.warn("[run-governance-assessment] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+    }
+
     const completeWrite = await lifecycleUpdate(supabase, "governance_assessments", assessment_id, {
       status: "complete",
       report_data: stampGenerationModel(reportData),

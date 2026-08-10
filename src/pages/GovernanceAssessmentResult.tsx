@@ -28,6 +28,7 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
 import GovernanceDomainV2Fields from "@/components/reports/GovernanceDomainV2Fields";
 import GovernanceTrackerFindings from "@/components/reports/GovernanceTrackerFindings";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { CheckCircle2 } from 'lucide-react';
 
@@ -89,6 +90,12 @@ const GovernanceAssessmentResult = () => {
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const intake = assessment?.intake_data || {};
   const status = assessment?.status;
+  // SO-3 WIRE-IN: the assembled byte-pinned skeleton IS the customer document
+  // when present; the legacy narrative bodies are superseded for it.
+  const skeletonDoc = isSkeletonDocument((report as any)?.skeleton_document)
+    ? (report as any).skeleton_document
+    : null;
+
 
   const domainList: any[] =
     report?.domain_findings && typeof report.domain_findings === "object" && !Array.isArray(report.domain_findings)
@@ -207,7 +214,7 @@ const GovernanceAssessmentResult = () => {
           {status === "complete" && (
             <div className="space-y-6 font-serif-text">
               {/* Executive Summary */}
-              {(report?.accountability_determination || report?.maturity_tier_readability_aid || report?.overall_readiness_rating || report?.executive_summary) && (
+              {!skeletonDoc && (report?.accountability_determination || report?.maturity_tier_readability_aid || report?.overall_readiness_rating || report?.executive_summary) && (
                 <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-3">Executive Summary</h2>
                   {(assessment?.organization_name || assessment?.intake_data?.organization_name) && (
@@ -292,7 +299,7 @@ const GovernanceAssessmentResult = () => {
               )}
 
               {/* Top risks */}
-              {Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
+              {!skeletonDoc && Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
                 <section>
                   <h2 className="font-body text-display-card font-semibold mb-3">Top Risks</h2>
                   <div className="grid md:grid-cols-3 gap-4">
@@ -316,7 +323,7 @@ const GovernanceAssessmentResult = () => {
               )}
 
               {/* Immediate Actions */}
-              {Array.isArray(report?.immediate_actions) && report.immediate_actions.length > 0 && (
+              {!skeletonDoc && Array.isArray(report?.immediate_actions) && report.immediate_actions.length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-3">Immediate Actions</h2>
                   <ol className="list-decimal pl-5 space-y-2">
@@ -331,14 +338,19 @@ const GovernanceAssessmentResult = () => {
                 </section>
               )}
 
+              {/* SO-3: the byte-pinned skeleton document IS the customer report. */}
+              {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
+
               {/* GOVERNANCE UPGRADE — generalised control walk + remediation */}
-              <GovernanceTrackerFindings
-                findings={(report as any)?.domain_element_findings}
-                remediationPlan={(report as any)?.remediation_plan}
-              />
+              {!skeletonDoc && (
+                <GovernanceTrackerFindings
+                  findings={(report as any)?.domain_element_findings}
+                  remediationPlan={(report as any)?.remediation_plan}
+                />
+              )}
 
               {/* Ten Domains — Domain Findings (handles Record OR Array shape) */}
-              {report?.domain_findings &&
+              {!skeletonDoc && report?.domain_findings &&
                 typeof report.domain_findings === "object" &&
                 !Array.isArray(report.domain_findings) &&
                 Object.values(report.domain_findings).length > 0 && (
@@ -400,7 +412,7 @@ const GovernanceAssessmentResult = () => {
                   </section>
                 )}
 
-              {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
+              {!skeletonDoc && Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-4">Domain Findings</h2>
                   <Accordion type="multiple" value={openDomains} onValueChange={setOpenDomains}>
@@ -473,7 +485,7 @@ const GovernanceAssessmentResult = () => {
                 </section>
               )}
 
-              {report?.interaction_effects && (
+              {!skeletonDoc && report?.interaction_effects && (
                 <section className="bg-muted/30 border rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-2">Cross-Domain Considerations</h2>
                   <p className="text-sm">{report.interaction_effects}</p>
@@ -488,7 +500,7 @@ const GovernanceAssessmentResult = () => {
               {/* GOVERNANCE UPGRADE ITEM 5 — table of authorities, last in the
                   body and immediately before the universal disclaimer that
                   ReportShell renders. */}
-              <AuthorityExhibit exhibit={report?.authority_exhibit} />
+              {!skeletonDoc && <AuthorityExhibit exhibit={report?.authority_exhibit} />}
             </div>
           )}
           </div>

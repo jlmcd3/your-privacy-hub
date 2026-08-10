@@ -3057,7 +3057,13 @@ Deno.serve(async (req) => {
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
     } else if (tool_type === "governance_assessment") {
       const report = record.report_data as any;
-      html = buildGovernanceReportHTML(report, record);
+      // SO-3 WIRE-IN: the byte-pinned governance skeleton IS the customer
+      // document when the pipeline assembled one; the legacy narrative path
+      // survives only for reports generated before the wire-in.
+      const skelGov = readSkeletonDocument(report);
+      html = skelGov
+        ? buildSkeletonReportHTML(skelGov, record, "Privacy Governance Assessment")
+        : buildGovernanceReportHTML(report, record);
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
     } else if (tool_type === "dpia_framework") {
       const report = record.report_data as any;
