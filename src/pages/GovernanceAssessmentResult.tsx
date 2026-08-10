@@ -485,7 +485,7 @@ const GovernanceAssessmentResult = () => {
                 </section>
               )}
 
-              {report?.interaction_effects && (
+              {!skeletonDoc && report?.interaction_effects && (
                 <section className="bg-muted/30 border rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-2">Cross-Domain Considerations</h2>
                   <p className="text-sm">{report.interaction_effects}</p>
