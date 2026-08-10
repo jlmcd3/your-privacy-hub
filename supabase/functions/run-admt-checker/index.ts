@@ -3031,6 +3031,25 @@ Return this JSON structure exactly:
       }
     }
 
+    // ── SO-2 WIRE-IN: assemble the customer document through the byte-pinned
+    // v3-3 skeleton. Deterministic; never mutates the typed surfaces.
+    try {
+      const sk = assembleAdmtSkeletonDocument(
+        report as Record<string, unknown>,
+        ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},
+      );
+      (report as any).skeleton_document = sk.document;
+      console.log(JSON.stringify({
+        evt: "admt_skeleton_assembled", assessment_id,
+        stamp: ADMT_SKELETON_ASSEMBLER_STAMP,
+        sections: sk.document.sections.length,
+        conformance_findings: sk.conformance.length,
+        register_findings: sk.register_findings,
+      }));
+    } catch (e) {
+      console.warn("[run-admt-checker] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, {
       status: "complete",
