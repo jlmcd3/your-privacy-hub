@@ -44,6 +44,18 @@ export interface QualityConsoleProps {
   caption?: string;
   /** Render the per-tool Perfect/Messy toggle and send variant fields. */
   showVariants?: boolean;
+  /**
+   * SO-FINAL-TEST — additive grader path selector.
+   * Omitted/"legacy": no `grader_mode` field is sent to the orchestrator and
+   * every batch/run query filters to `grader_mode IS NULL`, so
+   * /admin/quality-batch and /admin/final-test see exactly the rows and
+   * behaviour they saw before this prop existed.
+   * "skeleton": batches carry grader_mode="skeleton" and this console only
+   * ever reads its own rows.
+   */
+  graderMode?: "legacy" | "skeleton";
+  /** SO-FINAL-TEST — restrict the tool checkbox list (defaults to all TOOLS). */
+  toolsOverride?: string[];
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
@@ -194,9 +206,18 @@ export function QualityConsole({
   title = "Quality Batch",
   caption = "quality-batch-orchestrator",
   showVariants = false,
+  graderMode = "legacy",
+  toolsOverride,
 }: QualityConsoleProps = {}) {
+  // SO-FINAL-TEST — this console's tool universe and its row partition.
+  const CONSOLE_TOOLS = toolsOverride ?? TOOLS;
+  const isSkeletonMode = graderMode === "skeleton";
+  /** Restrict any quality_batch_runs / quality_runs query to this console's partition. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scope = (q: any): any =>
+    isSkeletonMode ? q.eq("grader_mode", "skeleton") : q.is("grader_mode", null);
   // Panel A state
-  const [selected, setSelected] = useState<Set<string>>(new Set(TOOLS));
+  const [selected, setSelected] = useState<Set<string>>(new Set(CONSOLE_TOOLS));
   const [batchSize, setBatchSize] = useState<number>(5);
   // ITEM 325 — per-tool fixture variant. Only read when showVariants is true.
   const [toolVariant, setToolVariant] = useState<Record<string, FixtureVariant>>({});
@@ -230,9 +251,9 @@ export function QualityConsole({
   // ─── Reattach on mount: adopt latest running batch if any ────────────────
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      const { data } = await scope(supabase
         .from("quality_batch_runs")
-        .select("*")
+        .select("*"))
         .order("started_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -298,9 +319,9 @@ export function QualityConsole({
   }
 
   async function loadLatestBatchLogs() {
-    const { data } = await supabase
+    const { data } = await scope(supabase
       .from("quality_batch_runs")
-      .select("*")
+      .select("*"))
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -366,8 +387,8 @@ export function QualityConsole({
     let cancelled = false;
     const load = async () => {
       const [{ data: rows }, { data: base }] = await Promise.all([
-        supabase.from("quality_batch_runs")
-          .select("*").order("started_at", { ascending: false }).limit(10),
+        scope(supabase.from("quality_batch_runs")
+          .select("*")).order("started_at", { ascending: false }).limit(10),
         supabase.from("quality_batch_baselines").select("*"),
       ]);
       if (cancelled) return;
@@ -386,9 +407,9 @@ export function QualityConsole({
   // ─── Recent child quality_runs (bottom drill-down card) ──────────────────
   async function refreshRuns() {
     setLoadingRuns(true);
-    const { data, error } = await supabase
+    const { data, error } = await scope(supabase
       .from("quality_runs")
-      .select(SELECT_COLS)
+      .select(SELECT_COLS))
       .order("started_at", { ascending: false })
       .limit(30);
     setLoadingRuns(false);
@@ -417,7 +438,7 @@ export function QualityConsole({
   }
 
   async function onStart() {
-    const tools = TOOLS.filter((t) => selected.has(t));
+    const tools = CONSOLE_TOOLS.filter((t) => selected.has(t));
     if (tools.length === 0) { toast.error("Select at least one tool"); return; }
     setStarting(true);
     try {
@@ -431,6 +452,8 @@ export function QualityConsole({
             ? { tool_variants: Object.fromEntries(tools.map((t) => [t, variantFor(t)])) }
             : {}),
           ...(showVariants && abModels ? { ab_models: true } : {}),
+          // SO-FINAL-TEST: omitted entirely on the legacy consoles.
+          ...(isSkeletonMode ? { grader_mode: "skeleton" } : {}),
         },
       });
       if (error) throw error;
@@ -551,7 +574,7 @@ export function QualityConsole({
 
   const testsCount = useMemo(() => {
     const m = new Map<string, number>();
-    for (const t of TOOLS) m.set(t, 0);
+    for (const t of CONSOLE_TOOLS) m.set(t, 0);
     for (const b of recentBatches) {
       const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as unknown as ToolResult[]) : [];
       for (const r of results) m.set(r.tool, (m.get(r.tool) ?? 0) + 1);
@@ -565,9 +588,9 @@ export function QualityConsole({
     try {
       // QB-P3 correction: aggregate over ALL quality_batch_runs.tool_results,
       // not just the last-10 the score matrix keeps in state.
-      const { data: allBatches, error: fetchErr } = await supabase
+      const { data: allBatches, error: fetchErr } = await scope(supabase
         .from("quality_batch_runs")
-        .select("tool_results");
+        .select("tool_results"));
       if (fetchErr) throw fetchErr;
       const perTool = new Map<string, { claudeSum: number; claudeN: number; gptSum: number; gptN: number }>();
       for (const b of (allBatches ?? [])) {
@@ -812,7 +835,7 @@ export function QualityConsole({
           <div>
             <Label>Tools (dispatched sequentially by the orchestrator)</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-              {TOOLS.map((t) => (
+              {CONSOLE_TOOLS.map((t) => (
                 <div key={t} className="flex items-center gap-2 text-sm">
                   <label className="flex items-center gap-2">
                     <Checkbox
@@ -852,7 +875,7 @@ export function QualityConsole({
                 type="button"
                 className="text-brand-teal-text underline hover:no-underline disabled:opacity-40"
                 disabled={isBatchRunning}
-                onClick={() => setSelected(new Set(TOOLS))}
+                onClick={() => setSelected(new Set(CONSOLE_TOOLS))}
               >Select all</button>
               <button
                 type="button"
@@ -984,7 +1007,7 @@ export function QualityConsole({
           <div className="pt-2 border-t space-y-2">
             <Label>Pinned rerun (golden fixtures)</Label>
             <div className="flex flex-wrap gap-2">
-              {TOOLS.map((t) => (
+              {CONSOLE_TOOLS.map((t) => (
                 <Button
                   key={t}
                   size="sm"
@@ -1019,7 +1042,7 @@ export function QualityConsole({
                 onChange={(e) => setResumeTool(e.target.value)}
                 className="h-10 rounded border bg-background px-2 text-sm"
               >
-                {TOOLS.map((t) => <option key={t} value={t}>{t}</option>)}
+                {CONSOLE_TOOLS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <Button variant="secondary" onClick={onResumeChildRun} disabled={resuming}>
@@ -1036,7 +1059,7 @@ export function QualityConsole({
       <CampaignControls />
 
       {/* Launch-gate scoreboard (Option-A findings-based) */}
-      <LaunchGateScoreboard tools={TOOLS} />
+      <LaunchGateScoreboard tools={CONSOLE_TOOLS} />
 
       {/* CPPA-PRODUCT-1 L5 — Findings-to-Backlog surface */}
       <QualityFindingBacklogPanel />
@@ -1117,7 +1140,7 @@ export function QualityConsole({
                 </tr>
               </thead>
               <tbody>
-                {TOOLS.map((tool) => {
+                {CONSOLE_TOOLS.map((tool) => {
                   const baseline = baselines.get(tool);
                   const baseAvg = baseline?.avg_score != null ? Number(baseline.avg_score) : null;
                   return (

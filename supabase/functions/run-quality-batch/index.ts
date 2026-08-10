@@ -18,6 +18,15 @@ import {
   GRADER_PAYLOAD_BUDGET,
   familyForBatchTool,
 } from "../_shared/grader/payload.ts";
+// SO-FINAL-TEST — ADDITIVE skeleton-document grader path. Used only when the
+// run row carries grader_mode="skeleton" (the /admin/SO-final-test console).
+// Legacy runs (grader_mode NULL) never touch this import's code paths.
+import {
+  buildSkeletonGraderPayload,
+  hasSkeletonDocument,
+  SKELETON_GRADER_BUDGET,
+  SKELETON_BLOCK_KIND_ADDENDUM,
+} from "../_shared/grader/skeleton-payload.ts";
 // R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
 import { matchFixtureSet } from "../_shared/golden/registry.ts";
 import { CONTRACT_BY_TOOL } from "./_local/intake-contracts/registry.ts";
@@ -1005,7 +1014,12 @@ function stampVariant(fixtureSet: string | null, variant: FixtureVariant | null)
   return fixtureSet ? `${fixtureSet} [variant=${variant}]` : `[variant=${variant}]`;
 }
 
-async function evaluateDocumentClaude(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null): Promise<any> {
+// SO-FINAL-TEST — grader mode. NULL/"legacy" is the untouched BODY_FIELDS path
+// used by /admin/quality-batch and /admin/final-test; "skeleton" grades
+// report.skeleton_document as the entire body.
+export type GraderMode = "legacy" | "skeleton";
+
+async function evaluateDocumentClaude(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<any> {
   // F3: deterministic checks scoped to this tool
   const applicableChecks = CHECKS.filter(c => !c.tools || c.tools.includes(tool));
   const detFindings = applicableChecks.map(c => {
@@ -1023,21 +1037,29 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
 
   // QLB-F3: body-first, metadata-stripped, equal-budget grader payload.
   const family = familyForBatchTool(tool);
-  const payload = family
+  const useSkeleton = graderMode === "skeleton" && hasSkeletonDocument(report);
+  if (graderMode === "skeleton" && !useSkeleton) {
+    console.warn(`[run-quality-batch] skeleton_grader_no_document tool=${tool} role=claude — falling back to legacy payload`);
+  }
+  const payload = useSkeleton
+    ? buildSkeletonGraderPayload(report, SKELETON_GRADER_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
+    : family
     ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
   if (payload.truncated) {
-    console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=claude original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
+    console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=claude original_length=${payload.original_length} budget=${useSkeleton ? SKELETON_GRADER_BUDGET : GRADER_PAYLOAD_BUDGET}`);
   }
 
   let claudeResult: any = null;
   try {
-    const sys = buildRubricSystemPrompt("claude", tool);
+    const sys = buildRubricSystemPrompt("claude", tool) + (useSkeleton ? SKELETON_BLOCK_KIND_ADDENDUM : "");
     const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake, tool)}\nREPORT:\n${payload.text}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
     claudeResult = tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
   }
+
+
 
   // QB-P17 item 1 — PARSE-FAILURE QUARANTINE. If Claude returned nothing
   // parseable, do NOT synthesize an all-60s eval — that made infrastructure
@@ -1088,7 +1110,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
   return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
@@ -1096,16 +1118,24 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtu
     const editorialNote = isEditorial(tool)
       ? `\n\nEDITORIAL RUBRIC OVERRIDE: This is editorial copy. Score "formatting" as 100 (N/A). Focus on (1) accuracy of facts and law, (2) citation fidelity, (3) no_adaptive_guidance.`
       : "";
-    const sys = buildRubricSystemPrompt("gpt", tool);
     // QLB-F3: same body-first payload + equal budget as Claude path.
     const family = familyForBatchTool(tool);
-    const payload = family
+    // SO-FINAL-TEST — additive skeleton path, mirroring the Claude branch.
+    const useSkeleton = graderMode === "skeleton" && hasSkeletonDocument(report);
+    if (graderMode === "skeleton" && !useSkeleton) {
+      console.warn(`[run-quality-batch] skeleton_grader_no_document tool=${tool} role=gpt — falling back to legacy payload`);
+    }
+    const sys = buildRubricSystemPrompt("gpt", tool) + (useSkeleton ? SKELETON_BLOCK_KIND_ADDENDUM : "");
+    const payload = useSkeleton
+      ? buildSkeletonGraderPayload(report, SKELETON_GRADER_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
+      : family
       ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
       : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
     if (payload.truncated) {
-      console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
+      console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${useSkeleton ? SKELETON_GRADER_BUDGET : GRADER_PAYLOAD_BUDGET}`);
     }
     const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake, tool)}\nDOCUMENT TO EVALUATE:\n${payload.text}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
+
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
@@ -1902,7 +1932,7 @@ async function runBatchInner(runId: string): Promise<void> {
   // Load run state
   const { data: runRow, error: runErr } = await admin
     .from("quality_runs")
-    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log, fixture_variant, engine_path")
+    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log, fixture_variant, engine_path, grader_mode")
     .eq("id", runId).single();
   if (runErr || !runRow) {
     clearInterval(heartbeat);
@@ -1921,6 +1951,9 @@ async function runBatchInner(runId: string): Promise<void> {
   // ITEM 335 — harness-only engine path. Default "production" preserves
   // existing behaviour; "ltp" only affects cppa-risk document generation.
   const enginePath: EnginePath = run.engine_path === "ltp" ? "ltp" : "production";
+  // SO-FINAL-TEST — grader mode for this run. NULL ⇒ "legacy" ⇒ byte-identical
+  // grading to /admin/final-test and /admin/quality-batch.
+  const graderMode: GraderMode = run.grader_mode === "skeleton" ? "skeleton" : "legacy";
 
   const state: PartialState = run.partial_state ?? emptyState();
   // Backfill held-out fields on resumed runs whose partial_state predates P-A.
@@ -2400,9 +2433,9 @@ async function runBatchInner(runId: string): Promise<void> {
 
       // Run Claude eval and GPT eval in parallel.
       const [claudeEval, gptResult] = await Promise.all([
-        withTimeout(evaluateDocumentClaude(tool, intake, reportData, fixtureVariant), EVALUATION_TIMEOUT_MS, "Claude eval")
+        withTimeout(evaluateDocumentClaude(tool, intake, reportData, fixtureVariant, graderMode), EVALUATION_TIMEOUT_MS, "Claude eval")
           .catch(e => { console.warn("Claude eval failed:", e.message); return null; }),
-        withTimeout(evaluateDocumentGPT(tool, intake, reportData, fixtureVariant), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
+        withTimeout(evaluateDocumentGPT(tool, intake, reportData, fixtureVariant, graderMode), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
           .catch(e => ({ eval: null as any, error: e.message })),
       ]);
 

@@ -386,7 +386,7 @@ export function applyStopRule(
 export { buildSeedRow } from "./_local/quality/seed-row.ts";
 import { buildSeedRow } from "./_local/quality/seed-row.ts";
 
-async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null; enginePath?: string | null; generationModel?: string | null; abPairId?: string | null } = {})
+async function seedAndResume(tool: string, batchSize: number, createdBy: string, campaignId: string | null = null, opts: { noPins?: boolean; pinsOverride?: unknown[] | null; variant?: FixtureVariant | null; enginePath?: string | null; generationModel?: string | null; abPairId?: string | null; graderMode?: string | null } = {})
   : Promise<{ ok: true; runId: string; runNumber: number } | { ok: false; err: string }> {
   const db = admin();
   // (a) Compute run_number the same way run-quality-batch does at ~L2544.
@@ -415,6 +415,8 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
   if (opts.abPairId) seed.ab_pair_id = opts.abPairId;
   // ITEM 335 — harness-only engine selector, propagated to the child run row.
   if (opts.enginePath === "ltp") seed.engine_path = "ltp";
+  // SO-FINAL-TEST — child run inherits the batch's grader path.
+  if (opts.graderMode === "skeleton") seed.grader_mode = "skeleton";
   if (campaignId) seed.campaign_id = campaignId; // QB-P9 linkage
   const { data: run, error: iErr } = await db.from("quality_runs")
     .insert(seed).select("id").single();
@@ -597,6 +599,7 @@ async function runUnit(runId: string) {
           inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, {
             variant: variantForTool,
             enginePath: (run as any).engine_path ?? null,
+            graderMode: (run as any).grader_mode ?? null,
             generationModel: genModel,
             abPairId,
           });
@@ -760,7 +763,11 @@ async function finalizeIfDone(runId: string) {
   })());
 }
 
-async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown)
+// SO-FINAL-TEST — `graderModeRaw` is additive. Absent/"legacy" ⇒ grader_mode
+// stays NULL on the batch row and every child run, which is byte-identical to
+// the pre-SO-FINAL-TEST path used by /admin/quality-batch and
+// /admin/final-test. Only "skeleton" changes anything.
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown, graderModeRaw?: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -821,6 +828,8 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     ...(toolVariants ? { tool_variants: toolVariants } : {}),
     // ITEM 335 — harness-only engine selector (cppa-risk LTP measurement).
     ...(String(enginePathRaw ?? "") === "ltp" ? { engine_path: "ltp" } : {}),
+    // SO-FINAL-TEST — additive grader path selector.
+    ...(String(graderModeRaw ?? "") === "skeleton" ? { grader_mode: "skeleton" } : {}),
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
@@ -1248,7 +1257,7 @@ async function handler(req: Request) {
   if (isCron && body?.action === "start") {
     const owner = await resolveAdminOwner();
     if (!owner) return json({ error: "no admin owner available for internal start" }, 500);
-    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models);
+    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     try {
       await admin().from("admin_action_log").insert({
@@ -1293,7 +1302,7 @@ async function handler(req: Request) {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }
