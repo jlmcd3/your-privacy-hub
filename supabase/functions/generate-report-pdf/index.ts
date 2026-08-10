@@ -1172,7 +1172,22 @@ function readSkeletonDocument(reportData: any): SkeletonDocLike | null {
   return d as SkeletonDocLike;
 }
 
-function skeletonSectionsHtml(doc: SkeletonDocLike): string {
+/**
+ * Skeleton sections → HTML.
+ *
+ * Pagination policy (2026-08-10):
+ *  - Sections FLOW. `page-break-inside:avoid` was inherited from the legacy
+ *    short card blocks and, on multi-page prose sections, forced one page per
+ *    section. Removed.
+ *  - Headings stay glued to their first paragraph (break-after:avoid) so no
+ *    heading is orphaned at the foot of a page. The base stylesheet has no
+ *    rule reaching this markup, so it is applied inline here.
+ *  - "table_of_authorities" always starts a fresh page (all nine SO spines
+ *    use that id).
+ *  - ir-playbook's "incident_worksheet" (Part Two) starts a fresh page.
+ *    Product-specific: no other spine has an explicit part structure.
+ */
+function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string }): string {
   return (doc.sections ?? []).map((sec) => {
     const paras = (sec.paragraphs ?? []).map((p) => {
       const t = typeof p?.text === "string" ? p.text : "";
@@ -1184,14 +1199,17 @@ function skeletonSectionsHtml(doc: SkeletonDocLike): string {
         `<p class="body-p" style="white-space:pre-line;">${escHtml(chunk)}</p>`).join("");
     }).join("");
     if (!paras) return "";
-    return `<section class="section" style="page-break-inside:avoid;margin-bottom:14px;">
-      <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;">${escHtml(sec.title ?? "")}</h2>
+    const forceBreak = sec.id === "table_of_authorities"
+      || (sec.id === "incident_worksheet" && opts?.product === "ir-playbook");
+    const breakCss = forceBreak ? "break-before:always;page-break-before:always;" : "";
+    return `<section class="section" style="${breakCss}margin-bottom:14px;">
+      <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;break-after:avoid;page-break-after:avoid;">${escHtml(sec.title ?? "")}</h2>
       ${paras}
     </section>`;
   }).join("\n");
 }
 
-function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string): string {
+function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string): string {
   const created = record?.created_at ? new Date(record.created_at) : new Date();
   const metaLine = `Generated ${created.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`
     + (doc.subtitle ? ` · ${doc.subtitle}` : "");
@@ -1200,9 +1218,10 @@ function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitl
     metaLine,
     text: "",
     showJurisdictionChip: false,
-    htmlPrefix: skeletonSectionsHtml(doc),
+    htmlPrefix: skeletonSectionsHtml(doc, { product }),
   });
 }
+
 
 
 // CPPA shared compact renderers — prefer the synthesized agency_position_summary;
@@ -3151,7 +3170,7 @@ Deno.serve(async (req) => {
         html = irArtifact === "incident_worksheet"
           ? buildIRWorksheetHTML(record)
           : skelIr
-          ? buildSkeletonReportHTML(skelIr, record, "Incident Response Playbook")
+          ? buildSkeletonReportHTML(skelIr, record, "Incident Response Playbook", "ir-playbook")
           : buildIRStandingPlaybookHTML(record);
         generatedAt = record.created_at || new Date().toISOString();
 
