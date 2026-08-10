@@ -130,6 +130,19 @@ export function ResearchPageLayout({
   const [contextUpdated, setContextUpdated] = useState<string | undefined>(undefined);
   const hasRail = !!sectionRailEntries && Object.keys(sectionRailEntries).length > 0;
 
+  // E — dev-only authoring-discipline signal. One mid-page tool CTA is the
+  // intended maximum; never blocks rendering and is stripped in production.
+  if (import.meta.env.DEV) {
+    const ctaSections = sections.filter((s) => !!s.toolCta).map((s) => s.id);
+    if (ctaSections.length > 1) {
+      console.warn(
+        `[ResearchPageLayout] ${header.title}: ${ctaSections.length} sections set toolCta (${ctaSections.join(", ")}). Intended maximum is 1 mid-page CTA.`,
+      );
+    }
+  }
+
+
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
