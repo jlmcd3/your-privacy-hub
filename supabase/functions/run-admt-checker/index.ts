@@ -876,7 +876,7 @@ SCHEMA CONTRACT (POST-C1-FIX-1C): every scope/trigger boolean listed below MUST 
       "element_id": "notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret",
       "element": "Plain-English name of the element (no section number)",
       "status": "compliant | gap | missing   // FULL mode only",
-      "finding": "Specific finding in plain language. FULL mode only. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
+      "finding": "SUBSTANTIVE ANALYSIS — 2 to 4 sentences, FULL mode only. Required shape: (1) what THIS element requires, in plain English; (2) what the intake actually says about the business's notice on this point, quoting or paraphrasing the specific intake facts (where the notice is delivered, what it says, when the consumer sees it, who receives it); (3) the reasoned conclusion — why those facts do or do not satisfy the element, naming the operative shortfall. A bare restatement of the element name, a list of required elements, or a sentence that could be pasted into any other business's report is a defect. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
       "citation": "",
       "remediation": "Specific action the business must take. FULL mode only. No section numbers.",
       "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only. NEVER dollar figures or narrative.",
