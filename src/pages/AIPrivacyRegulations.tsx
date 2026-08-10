@@ -165,18 +165,18 @@ const AIPrivacyRegulations = () => (
 
 <li><strong><a href="/jurisdiction/brazil">Brazil:</a></strong> AI regulation bill PL 2338/2023 includes algorithmic impact assessments. Still advancing through Congress.</li>
 
-<li><strong>Colorado (U.S.):</strong> <a href="https://leg.colorado.gov/bills/sb24-205" target="_blank" rel="noopener noreferrer">SB 24-205</a> (effective 2026) requires impact assessments for consequential AI decisions — the first U.S. state AI Act equivalent.</li>
+<li><strong>Colorado (U.S.):</strong> <a href="https://leg.colorado.gov/bills/sb26-189" target="_blank" rel="noopener noreferrer">SB 26-189</a> (2026), enacted May 14, 2026, repealed and reenacted Colorado's 2024 AI provisions and establishes requirements for automated decision-making technology used to materially influence consequential decisions involving areas such as employment, housing, financial services, insurance, healthcare, education, and essential government services. Covered developer requirements begin January 1, 2027, with related deployer notice, data-access/correction, human-review, recordkeeping, and enforcement provisions.</li>
 
 </ul>
 
-<p><strong>Practical implication:</strong> China and the EU are the only jurisdictions with active AI-specific enforcement right now. The rest are still in guidance or legislative phases.</p>`,
+<p><strong>Practical implication:</strong> AI-related enforcement is developing through a combination of AI-specific rules and existing privacy, consumer-protection, discrimination, and data-protection laws in multiple jurisdictions — so exposure does not depend on whether a jurisdiction has passed a dedicated AI statute.</p>`,
       },
     ])}
     relatedLinks={[
       { label: "Biometric Privacy Guide", href: "/biometric-privacy" },
       { label: "GDPR Enforcement", href: "/gdpr-enforcement" },
       { label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
-      { label: "Enforcement Tracker", href: "/enforcement-tracker" },
+      { label: "Enforcement Tracker", href: "/enforcement" },
     ]}
     intelligenceUpsellTopic="AI privacy and the EU AI Act"
   />
