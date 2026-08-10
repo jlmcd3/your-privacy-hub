@@ -114,7 +114,7 @@ const AUTHORITY_EXHIBIT_ENTRY_KEYS = ["version", "heading", "entries"] as const;
 
 
 export const LIA_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-lia-w2-2026-08-03-upgrade4",
+  version: "rs-lia-w3-2026-08-10-item-so11",
   tool: "li_assessment",
   topLevel: [
     // Core assembly
@@ -147,6 +147,10 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     "attestation_block",
     // UPGRADE-4 — shared authority exhibit (renders before the disclaimer)
     "authority_exhibit",
+
+    // ITEM SO-11 — the assembled byte-pinned skeleton document. This is the
+    // customer document; the PDF and the result page both read it.
+    "skeleton_document",
 
     "disclaimer",
     "data_currency_note",
