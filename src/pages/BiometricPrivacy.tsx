@@ -9,12 +9,16 @@ const TIERED_STATE_LAWS = `
   <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-5">
     <div class="flex items-center gap-2 mb-2">
       <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-600 text-white">Highest obligation</span>
-      <span class="text-xs text-rose-900 font-semibold">Private right of action · no cure period · per-scan damages</span>
+      <span class="text-xs text-rose-900 font-semibold">Private right of action · no general cure period · statutory damages</span>
     </div>
     <h3 class="text-brand-navy text-lg mb-1">Illinois — BIPA</h3>
     <p class="text-sm text-slate leading-relaxed">
-      <a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&amp;ChapterID=57" target="_blank" rel="noopener noreferrer">740 ILCS 14</a> requires written informed consent before collecting biometric identifiers, a publicly available retention and destruction schedule, no sale or trade of biometric data, and reasonable security. The <strong>private right of action</strong> allows $1,000 per negligent and $5,000 per intentional or reckless violation, and <a href="https://courts.illinois.gov/Opinions/SupremeCourt/2023/127891.pdf" target="_blank" rel="noopener noreferrer">Cothron v. White Castle</a> (2023) confirmed damages accrue <em>per scan</em>. Even a small employee population can produce nine-figure exposure.
+      <a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&amp;ChapterID=57" target="_blank" rel="noopener noreferrer">740 ILCS 14</a> requires written informed consent before collecting biometric identifiers, a publicly available retention and destruction schedule, no sale or trade of biometric data, and reasonable security. The <strong>private right of action</strong> continues to provide liquidated damages of $1,000 for negligent violations and $5,000 for intentional or reckless violations, or actual damages where greater, subject to the statute. Under <a href="https://www.ilga.gov/legislation/ilcs/fulltext.asp?DocName=074000140K20" target="_blank" rel="noopener noreferrer">Section 20(b)</a>, repeated collection of the same biometric identifier or biometric information from the same person using the same method of collection is a single violation for which that person is entitled to at most one recovery under Section 20; under Section 20(c), repeated disclosure of the same person's biometric information to the same recipient using the same method likewise permits at most one recovery for that repeated disclosure conduct.
     </p>
+    <p class="text-sm text-slate leading-relaxed mt-3">
+      In <a href="https://courts.illinois.gov/Opinions/SupremeCourt/2023/127891.pdf" target="_blank" rel="noopener noreferrer">Cothron v. White Castle</a> (2023), the Illinois Supreme Court held that claims under Sections 15(b) and 15(d) accrue each time biometric information is collected or disclosed without complying with BIPA. Illinois subsequently enacted <a href="https://www.ilga.gov/legislation/publicacts/fulltext.asp?Name=103-0769" target="_blank" rel="noopener noreferrer">Public Act 103-0769</a>, effective August 2, 2024, amending Section 20 to limit recovery for repeated same-person/same-method collection and repeated same-person/same-recipient/same-method disclosure. In April 2026, the Seventh Circuit held that the Section 20 amendment applies retroactively to cases that were pending when the amendment took effect (<em>Clay v. Union Pacific Railroad Co.</em> and consolidated appeals, decided April 1, 2026). The amendment limits recoveries; it does not rewrite the substantive duties in Section 15.
+    </p>
+
   </div>
 
   <div class="rounded-xl border-l-4 border-amber-500 bg-amber-50 p-5">
@@ -57,7 +61,7 @@ const ENFORCEMENT_HISTORY = `
     </thead>
     <tbody class="bg-card">
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3 font-semibold text-brand-navy">Meta (Texas AG)</td><td class="px-4 py-3 text-slate">Texas CUBI</td><td class="px-4 py-3 font-semibold text-rose-700">$1.4B</td><td class="px-4 py-3 text-slate">Unauthorised facial recognition in Tag Suggestions</td></tr>
-      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2022</td><td class="px-4 py-3 font-semibold text-brand-navy">BNSF Railway</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$228M (jury)</td><td class="px-4 py-3 text-slate">Fingerprint timekeeping by a third-party vendor</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3 font-semibold text-brand-navy">BNSF Railway</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$75M settlement</td><td class="px-4 py-3 text-slate">Fingerprint gate system; followed a $228M jury damages award that was later vacated</td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2022</td><td class="px-4 py-3 font-semibold text-brand-navy">Google</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$100M</td><td class="px-4 py-3 text-slate">Google Photos face grouping</td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 font-semibold text-brand-navy">Facebook / Meta</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$650M</td><td class="px-4 py-3 text-slate">Tag Suggestions face templates</td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3 font-semibold text-brand-navy">Rite Aid (FTC)</td><td class="px-4 py-3 text-slate">FTC Act §5</td><td class="px-4 py-3 font-semibold text-rose-700">5-year ban</td><td class="px-4 py-3 text-slate">Facial recognition for theft detection — disparate impact</td></tr>
@@ -66,7 +70,7 @@ const ENFORCEMENT_HISTORY = `
     </tbody>
   </table>
 </div>
-<p class="text-[11px] text-brand-mist mt-2">Settlement amounts as reported by court filings and AG press releases; BIPA totals are net of attorneys' fees.</p>
+<p class="text-[11px] text-brand-mist mt-2">Amounts shown are reported verdict or settlement values. Settlement funds may be subject to court-approved attorneys' fees, costs, and administration expenses.</p>
 `;
 
 export default function BiometricPrivacyPage() {
@@ -91,18 +95,19 @@ export default function BiometricPrivacyPage() {
           title: "Biometric Privacy Laws: BIPA, State Laws & GDPR",
           statuteCite: "740 ILCS 14 (BIPA) · GDPR Art. 9(1) — special-category biometric identifiers",
           description:
-            "Biometric data is regulated more strictly than almost any other category — and exposure compounds quickly under BIPA's per-scan damages model. Start with the checklist to see what applies.",
-          lastUpdated: "June 10, 2026",
+            "Biometric data is regulated more strictly than almost any other category. Illinois BIPA retains a private right of action and substantial statutory damages, but a 2024 amendment limits recovery for repeated collection or disclosure involving the same person's biometric information under the same statutory circumstances. Start with the checklist to see what applies.",
+          lastUpdated: "August 10, 2026",
           feedCategory: "biometric",
           stats: [
-            { value: "$1K–$5K", label: "BIPA per-violation damages" },
+            { value: "$1K–$5K", label: "BIPA liquidated-damages tiers" },
             { value: "$650M", label: "Meta BIPA settlement" },
             { value: "$1.4B", label: "Texas–Meta settlement" },
             { value: "6+", label: "state biometric laws" },
           ],
         }}
         atAGlance={[
-          { label: "Toughest US regime", value: "Illinois BIPA — private right of action, $1K/$5K per violation" },
+          { label: "Toughest US regime", value: "Illinois BIPA — private right of action; $1K negligent / $5K intentional-or-reckless liquidated-damages tiers, subject to Section 20 recovery limits" },
+
           { label: "Companion state laws", value: "Texas CUBI, Washington HB 1493, Colorado § 6-1-1308(7)" },
           { label: "EU treatment", value: "GDPR Art. 9(1) — biometric ID data is special-category; Art. 9(2) basis required" },
           { label: "Recent watershed", value: "$1.4B Texas–Meta settlement (2024) confirms scale of exposure" },
@@ -145,7 +150,7 @@ export default function BiometricPrivacyPage() {
             synthesisKey: "biometric__enforcement_history",
             content: ENFORCEMENT_HISTORY,
             complianceTrigger:
-              "BIPA's per-scan damages model has produced more nine- and ten-figure privacy recoveries than any other statute in the U.S.",
+              "BIPA has produced more nine- and ten-figure privacy recoveries than any other statute in the U.S., though Section 20 as amended now caps recovery for repeated same-person, same-method collection and disclosure.",
           },
           {
             id: "gdpr-eu",

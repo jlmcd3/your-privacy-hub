@@ -19,7 +19,7 @@ const REQUIREMENTS_MATRIX = `
       <tr class="border-t border-brand-cloud">
         <td class="px-4 py-3 font-medium text-brand-navy">Prior consent before non-essential cookies</td>
         <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">Required</span></td>
-        <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">Required</span></td>
+        <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Required unless a Schedule A1 exception applies</span></td>
         <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">Not required (opt-out model)</span></td>
         <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">Not required (opt-out)</span></td>
       </tr>
@@ -76,12 +76,13 @@ const REQUIREMENTS_MATRIX = `
   </table>
 </div>
 <p class="text-[11px] text-brand-mist mt-2">"Required" = enforceable obligation. "Recommended" = best practice or strongly indicated by regulator guidance. "Not required" = no affirmative obligation, but the practical option in a multi-jurisdiction deployment is usually to apply the stricter rule.</p>
+<p class="text-[11px] text-brand-mist mt-2"><strong>UK divergence:</strong> following the Data (Use and Access) Act 2025, UK PECR contains five relevant exceptions to the prior-consent rule for storage and access: transmission of a communication; strictly necessary storage/access; statistical-purpose storage/access; appearance/functionality storage/access; and emergency-assistance location storage/access. The statistical-purpose and appearance/functionality exceptions apply only where the statutory conditions are met, including clear and comprehensive information and a simple, free means to object. The ICO treats the statistical exception as narrow — it does not cover individual tracking, profiling, advertising measurement, or cross-site tracking. Advertising-related storage/access still requires consent. These exceptions do not apply in the EU/EEA, where the ePrivacy Directive analysis is unchanged.</p>
 `;
 
 const STRICTEST_CHECKLIST = `
 <div class="rounded-xl border-l-4 border-accent bg-accent/5 p-5">
-  <p class="text-[11px] font-semibold uppercase tracking-wider text-accent mb-2">What your banner must do</p>
-  <p class="text-xs text-slate mb-3">Operationalised from the strictest applicable obligations — apply globally if your site reaches EU/UK and U.S. visitors.</p>
+  <p class="text-[11px] font-semibold uppercase tracking-wider text-accent mb-2">Strictest cross-jurisdiction deployment approach</p>
+  <p class="text-xs text-slate mb-3">This checklist applies a conservative common-denominator configuration suitable for services operating across EU/EEA, UK and U.S. jurisdictions. It may be stricter than the minimum rule in a particular jurisdiction; for example, UK PECR now permits certain qualifying statistical and appearance/functionality uses without prior consent if the statutory conditions are met.</p>
   <ol class="space-y-2 text-sm text-brand-navy list-decimal list-inside">
     <li>Block all non-essential cookies <strong>before</strong> the user makes a choice — including analytics, ads, social pixels, and chat widgets.</li>
     <li>Offer "Accept all", "Reject all" and "Manage preferences" with <strong>equal visual weight</strong> and the same number of clicks.</li>
@@ -115,7 +116,8 @@ const GDPR_DETAIL = `
     <span class="text-brand-mist text-xs group-open:rotate-180 transition-transform">▾</span>
   </summary>
   <div class="px-5 pb-5 text-sm text-slate space-y-3">
-    <p>The Privacy and Electronic Communications Regulations (PECR), read with the UK GDPR, mirror the EU consent standard. The ICO has issued formal warnings to over 100 top UK websites and published <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/online-tracking/" target="_blank" rel="noopener noreferrer">cookie consent guidance</a> emphasising symmetrical Accept/Reject controls.</p>
+    <p>The Privacy and Electronic Communications Regulations (PECR), read with the UK GDPR, continue to require prior consent for storage and access technologies unless an exception applies. The <a href="https://www.legislation.gov.uk/ukpga/2025/18/contents" target="_blank" rel="noopener noreferrer">Data (Use and Access) Act 2025</a> introduced additional exceptions, including qualifying statistical-purpose and appearance/functionality uses. Those exceptions are purpose-specific and subject to conditions: statistical and appearance/functionality uses require clear and comprehensive information and a simple, free means to object. Advertising and cross-site/cross-device tracking do not qualify for these exceptions and continue to require consent.</p>
+    <p>The ICO published its final <a href="https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/" target="_blank" rel="noopener noreferrer">Guidance on the use of storage and access technologies</a> on April 29, 2026, and continues to emphasise symmetrical Accept/Reject controls. The Data (Use and Access) Act also strengthened the ICO's PECR enforcement powers, allowing monetary penalties of up to £17.5 million or 4% of worldwide annual turnover, whichever is higher, where applicable. The ICO reported in April 2026 that 99% of the UK's top 1,000 websites were meeting its cookie-banner compliance standards following its intervention programme.</p>
   </div>
 </details>
 
@@ -141,9 +143,9 @@ const GDPR_DETAIL = `
 `;
 
 const ENFORCEMENT = `<ul>
-<li><strong><a href="/regulator/cnil">National Commission on Informatics and Liberty (CNIL)</a></strong> — fined Google €150M and Facebook €60M (2022) for making cookie refusal harder than acceptance.</li>
+<li><strong><a href="/regulator/cnil">National Commission on Informatics and Liberty (CNIL)</a></strong> — fined Google €150M and Facebook €60M (2022) for making cookie refusal harder than acceptance. In September 2025, CNIL fined Google €325M in a decision that included cookie/consent violations, and fined SHEIN €150M for cookie violations.</li>
 <li><strong><a href="/regulator/apdgba">Belgian Data Protection Authority (APD/GBA)</a></strong> — fined IAB Europe €250K over the TCF framework's legal basis.</li>
-<li><strong><a href="/regulator/ico">Information Commissioner's Office (ICO)</a></strong> — issued formal warnings to over 100 top <a href="/jurisdiction/united-kingdom">UK</a> websites about non-compliant banners.</li>
+<li><strong><a href="/regulator/ico">Information Commissioner's Office (ICO)</a></strong> — ran a banner-compliance intervention programme across the <a href="/jurisdiction/united-kingdom">UK</a>'s most-visited websites; the ICO reported in April 2026 that 99% of the top 1,000 UK websites were meeting its cookie-banner standards.</li>
 <li><strong><a href="/regulator/aepd">Spanish Data Protection Agency (AEPD)</a></strong> — fined companies for pre-ticked consent boxes.</li>
 <li><strong>California AG / CPPA</strong> — Sephora ($1.2M, 2022) and Tilting Point ($500K, 2024) for failing to honour opt-outs / GPC.</li>
 </ul>`;
@@ -171,13 +173,13 @@ export default function CookieConsentPage() {
           statuteCite: "ePrivacy Directive Art. 5(3) · prior informed consent for non-essential storage/access",
           description:
             "Most sites span EU, UK and U.S. visitors at once. Start with the side-by-side matrix and the strictest-applicable banner checklist — then drill into the per-jurisdiction rules below.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "August 10, 2026",
           feedCategory: "adtech-consent",
           stats: [
-            { value: "€150M", label: "CNIL Google fine" },
-            { value: "€60M", label: "CNIL Facebook fine" },
+            { value: "€325M", label: "CNIL Google fine (2025)" },
+            { value: "€150M", label: "CNIL SHEIN fine (2025)" },
             { value: "€250K", label: "IAB Europe TCF fine" },
-            { value: "100+", label: "ICO notices issued" },
+            { value: "£17.5M", label: "UK PECR penalty ceiling" },
           ],
         }}
         atAGlance={[

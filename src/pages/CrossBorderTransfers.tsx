@@ -24,7 +24,7 @@ const MECHANISM_TABLE = `
         </td>
         <td class="px-4 py-3 text-slate">Any exporter transferring to a country on the EU/UK adequacy list.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-emerald-700">Low.</strong> No transfer-specific contract needed; a DPA still applies under Art. 28.</td>
-        <td class="px-4 py-3 text-slate">Default whenever the destination is covered — UK, Japan, Canada (commercial), Switzerland, South Korea, New Zealand, Israel, EU–US DPF certified importers.</td>
+        <td class="px-4 py-3 text-slate">Default whenever the destination is covered — UK (renewed December 19, 2025), Brazil (adopted January 26, 2026), Japan, Canada (commercial organisations), Switzerland, South Korea, New Zealand, Israel, the European Patent Organisation, and EU–US DPF-certified importers. Scope differs by decision — check the operative decision before relying on it.</td>
       </tr>
       <tr class="border-t border-brand-cloud align-top">
         <td class="px-4 py-3 font-semibold text-brand-navy">
@@ -79,9 +79,11 @@ const ADEQUACY_TABLE = `
       </tr>
     </thead>
     <tbody class="bg-card">
-      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">United Kingdom</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2025</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Renewal under review</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">United Kingdom</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2025</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">EU adequacy renewed December 19, 2025</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Brazil</td><td class="px-4 py-3 text-slate">Jan 2026</td><td class="px-4 py-3 text-slate">—</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (adopted Jan 26, 2026)</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">European Patent Organisation</td><td class="px-4 py-3 text-slate">Jul 2025</td><td class="px-4 py-3 text-slate">—</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (adopted Jul 15, 2025)</span></td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Japan</td><td class="px-4 py-3 text-slate">2019</td><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
-      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">South Korea</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">South Korea</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">Jul 2026 (first review)</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force — adequacy confirmed</span></td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Switzerland</td><td class="px-4 py-3 text-slate">2000</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Canada (commercial)</td><td class="px-4 py-3 text-slate">2001</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">New Zealand</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
@@ -89,7 +91,7 @@ const ADEQUACY_TABLE = `
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Argentina</td><td class="px-4 py-3 text-slate">2003</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Uruguay</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
       <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Andorra, Faroe Islands, Guernsey, Isle of Man, Jersey</td><td class="px-4 py-3 text-slate">2010–2013</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">United States (DPF-certified entities)</td><td class="px-4 py-3 text-slate">Jul 2023</td><td class="px-4 py-3 text-slate">2024 (first review)</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Schrems III challenge pending</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">United States (DPF-certified entities)</td><td class="px-4 py-3 text-slate">Jul 2023</td><td class="px-4 py-3 text-slate">2024 (first review)</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">DPF remains in force · Latombe appeal C-703/25 P pending</span></td></tr>
     </tbody>
   </table>
 </div>
@@ -100,7 +102,7 @@ export default function CrossBorderTransfersPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="/cross-border-transfers" />
+        <link rel="canonical" href="https://www.enduserprivacy.com/cross-border-transfers" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
@@ -118,27 +120,27 @@ export default function CrossBorderTransfersPage() {
           title: "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
           statuteCite: "GDPR Ch. V · Arts. 44–50 — legal basis for every restricted transfer",
           description:
-            "International transfers sit on top of fragile legal foundations — Schrems II reset the world, and the DPF could be next. This is the working reference for the mechanisms still in force today.",
-          lastUpdated: "June 10, 2026",
+            "International-transfer law remains dynamic. The EU-U.S. DPF remains in force after the General Court upheld the adequacy decision in Latombe in September 2025, while an appeal is pending before the Court of Justice. This is the working reference for the mechanisms in force today.",
+          lastUpdated: "August 10, 2026",
           feedCategory: "cross-border",
           stats: [
-            { value: "~15", label: "EU adequacy decisions" },
+            { value: "Art. 45", label: "EU adequacy route" },
             { value: "4 modules", label: "2021 SCCs" },
             { value: "Jul 2023", label: "EU–US DPF adopted" },
-            { value: "Schrems III", label: "challenge ongoing" },
+            { value: "C-703/25 P", label: "Latombe appeal pending" },
           ],
         }}
         atAGlance={[
           { label: "Primary law", value: "GDPR Chapter V (Arts. 44–50)" },
           { label: "Default mechanism", value: "2021 SCCs — pick the right module (C2C / C2P / P2P / P2C)" },
-          { label: "US route", value: "EU–US Data Privacy Framework (July 2023) — Schrems III pending" },
+          { label: "US route", value: "EU–US Data Privacy Framework (July 2023) — in force; Latombe appeal C-703/25 P pending" },
           { label: "Required companion", value: "Transfer Impact Assessment (TIA) documenting supplementary measures" },
         ]}
         merchandisingRail={{
           heading: "Use this in your workflow",
           items: [
             { label: "Custom DPA + SCC Generator", href: "/dpa-generator", description: "Article 28 DPA with the SCC modules and annexes wired in." },
-            { label: "Legitimate-Interest Assessment", href: "/legitimate-interest-assessment", description: "For transfers that rely on Art. 6(1)(f) plus safeguards." },
+            { label: "Legitimate-Interest Assessment", href: "/li-assessment", description: "For transfers that rely on Art. 6(1)(f) plus safeguards." },
             { label: "DPIA Framework", href: "/dpia-framework", description: "When the transfer is 'likely to result in a high risk' (Art. 35)." },
           ],
         }}
@@ -173,13 +175,14 @@ export default function CrossBorderTransfersPage() {
             synthesisKey: "crossborder__adequacy",
             content: ADEQUACY_TABLE,
             complianceTrigger:
-              "Adequacy is the simplest path — but the UK renewal and the EU–US DPF both sit under active legal challenge.",
+              "Adequacy is the simplest path — but each decision has its own scope, and the EU–US DPF is subject to a pending appeal before the Court of Justice.",
           },
           {
             id: "dpf",
             h2: "EU-U.S. Data Privacy Framework",
             synthesisKey: "crossborder__dpf",
-            content: `<p>The EU-U.S. Data Privacy Framework, adopted July 2023, replaced the invalidated <a href="https://curia.europa.eu/juris/document/document.jsf?docid=228677" target="_blank" rel="noopener noreferrer">Privacy Shield</a>. U.S. organizations self-certify to the <a href="https://www.dataprivacyframework.gov/s/article/How-to-Join-the-DPF-Program-Participants" target="_blank" rel="noopener noreferrer">Department of Commerce</a>; <a href="https://www.federalregister.gov/documents/2022/10/14/2022-22520/enhancing-safeguards-for-united-states-signals-intelligence-activities" target="_blank" rel="noopener noreferrer">Executive Order 14086</a> imposes proportionality on U.S. signals intelligence; the <a href="https://www.justice.gov/dprc" target="_blank" rel="noopener noreferrer">Data Protection Review Court</a> provides redress. The <a href="https://www.gov.uk/government/publications/uk-us-data-bridge" target="_blank" rel="noopener noreferrer">UK-U.S. Data Bridge</a> extends similar protections. Maintain SCCs as a fallback — <a href="https://noyb.eu/en" target="_blank" rel="noopener noreferrer">NOYB</a> has signaled Schrems III challenges.</p>`,
+            content: `<p>The EU-U.S. Data Privacy Framework, adopted July 2023, replaced the invalidated <a href="https://curia.europa.eu/juris/document/document.jsf?docid=228677" target="_blank" rel="noopener noreferrer">Privacy Shield</a>. U.S. organizations self-certify to the <a href="https://www.dataprivacyframework.gov/s/article/How-to-Join-the-DPF-Program-Participants" target="_blank" rel="noopener noreferrer">Department of Commerce</a>; <a href="https://www.federalregister.gov/documents/2022/10/14/2022-22520/enhancing-safeguards-for-united-states-signals-intelligence-activities" target="_blank" rel="noopener noreferrer">Executive Order 14086</a> imposes proportionality on U.S. signals intelligence; the <a href="https://www.justice.gov/dprc" target="_blank" rel="noopener noreferrer">Data Protection Review Court</a> provides redress. The <a href="https://www.gov.uk/government/publications/uk-us-data-bridge" target="_blank" rel="noopener noreferrer">UK-U.S. Data Bridge</a> extends similar protections.</p>
+<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023D1795" target="_blank" rel="noopener noreferrer">Commission's DPF adequacy decision</a> remains in force. On September 3, 2025, the EU General Court dismissed Philippe Latombe's challenge to that decision in Case T-553/23. Latombe appealed to the Court of Justice on October 31, 2025; the appeal, Case C-703/25 P, remains pending as of August 10, 2026. For operational questions, the EDPB published <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/other/information-note-data-transfers-under-gdpr-eu-us-data-privacy_en" target="_blank" rel="noopener noreferrer">version 2.0 of its EU-U.S. Data Privacy Framework FAQs for European businesses</a> in January 2026. Maintaining SCCs as a fallback remains a common resilience measure.</p>`,
           },
           {
             id: "tia",

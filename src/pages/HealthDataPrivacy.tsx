@@ -47,7 +47,7 @@ const HIPAA_TRACK = `
   <p class="text-xs text-brand-mist mt-3">If neither applies, jump to <a href="#consumer-health" class="text-brand-teal-text">Track 2 — Consumer health data laws</a>. HIPAA does <em>not</em> cover most health apps, wearables, or DTC wellness platforms.</p>
 </div>
 
-<p>HIPAA's <a href="https://www.hhs.gov/hipaa/for-professionals/privacy/index.html" target="_blank" rel="noopener noreferrer">Privacy Rule</a> and <a href="https://www.hhs.gov/hipaa/for-professionals/security/index.html" target="_blank" rel="noopener noreferrer">Security Rule</a> govern PHI use and disclosure by covered entities and business associates. Key obligations: the <strong>Minimum Necessary Standard</strong>, mandatory <a href="https://www.hhs.gov/hipaa/for-professionals/covered-entities/sample-business-associate-agreement-provisions/index.html" target="_blank" rel="noopener noreferrer">Business Associate Agreements</a>, the <a href="https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html" target="_blank" rel="noopener noreferrer">Breach Notification Rule</a> (60-day window), and the patient Right of Access (30 days). <a href="https://www.hhs.gov/ocr" target="_blank" rel="noopener noreferrer">HHS OCR</a> enforces through audits and civil monetary penalties ranging from $100 to $50,000 per violation, up to $2M annually per category.</p>
+<p>HIPAA's <a href="https://www.hhs.gov/hipaa/for-professionals/privacy/index.html" target="_blank" rel="noopener noreferrer">Privacy Rule</a> and <a href="https://www.hhs.gov/hipaa/for-professionals/security/index.html" target="_blank" rel="noopener noreferrer">Security Rule</a> govern PHI use and disclosure by covered entities and business associates. Key obligations: the <strong>Minimum Necessary Standard</strong>, mandatory <a href="https://www.hhs.gov/hipaa/for-professionals/covered-entities/sample-business-associate-agreement-provisions/index.html" target="_blank" rel="noopener noreferrer">Business Associate Agreements</a>, the <a href="https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html" target="_blank" rel="noopener noreferrer">Breach Notification Rule</a> (60-day window), and the patient Right of Access (30 days). <a href="https://www.hhs.gov/ocr" target="_blank" rel="noopener noreferrer">HHS OCR</a> enforces through audits and may impose tiered civil monetary penalties for HIPAA violations. Penalty ranges and annual caps are adjusted for inflation, so organizations should consult the current HHS penalty schedule and <a href="https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-A/part-102/section-102.3" target="_blank" rel="noopener noreferrer">45 CFR § 102.3</a> rather than relying on historical dollar amounts.</p>
 `;
 
 const CONSUMER_HEALTH_TRACK = `
@@ -58,8 +58,8 @@ const CONSUMER_HEALTH_TRACK = `
   <div class="grid gap-3 md:grid-cols-2">
     <div class="border-l-2 border-amber-500 pl-3">
       <p class="text-sm font-semibold text-brand-navy">FTC Health Breach Notification Rule</p>
-      <p class="text-xs text-slate mt-1">Covers vendors of personal health records and related entities not subject to HIPAA. "Breach" includes <em>unauthorized sharing</em> with ad platforms, not only security incidents. Enforced via consent orders and civil penalties (GoodRx — $1.5M; BetterHelp — $7.8M; Premom — consent order).</p>
-      <a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer" class="text-brand-teal-text text-xs mt-1 inline-block">FTC rule text ↗</a>
+      <p class="text-xs text-slate mt-1">Covers vendors of personal health records and related entities not subject to HIPAA. The FTC's 2024 amendments modernized the rule and clarified its application to health apps and similar technologies outside HIPAA. "Breach" includes <em>unauthorized sharing</em> or disclosure — for example with ad platforms — and is not limited to a hacking or security incident. Enforced via consent orders and civil penalties (GoodRx — $1.5M; BetterHelp — $7.8M; Premom — consent order).</p>
+      <a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer" class="text-brand-teal-text text-xs mt-1 inline-block">FTC rule &amp; guidance ↗</a>
     </div>
     <div class="border-l-2 border-amber-500 pl-3">
       <p class="text-sm font-semibold text-brand-navy">Washington My Health My Data Act (MHMDA)</p>
@@ -90,7 +90,7 @@ const STATE_HEALTH_TRACK = `
 `;
 
 const AI_HEALTH = `
-<p>The <strong>HHS AI Strategy</strong> currently provides voluntary frameworks; expect mandatory requirements by 2027. The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a> classifies AI systems used in healthcare as "high-risk." <a href="/us-state-privacy-laws">Colorado's AI Act</a> (<a href="https://leg.colorado.gov/bills/sb24-205" target="_blank" rel="noopener noreferrer">SB 24-205</a>, effective 2026) requires impact assessments for AI systems making consequential healthcare decisions. De-identification challenges loom: AI training on health data raises questions about re-identification risk and HIPAA exposure.</p>
+<p>The <strong>HHS AI Strategy</strong> currently provides voluntary frameworks rather than binding AI-specific mandates; today's obligations come from existing HIPAA, Section 1557, and FDA device rules as applied to AI tools, and any future duties would come through a named rulemaking. The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a> classifies AI systems used in healthcare as "high-risk." In the U.S., <a href="/us-state-privacy-laws">Colorado</a> enacted <a href="https://leg.colorado.gov/bills/sb26-189" target="_blank" rel="noopener noreferrer">SB 26-189</a> (2026), which repealed and reenacted the state's 2024 AI provisions (SB 24-205) and now governs covered automated decision-making technology used to materially influence consequential decisions, including decisions involving access to or eligibility for healthcare services. Covered developer obligations begin January 1, 2027, with corresponding deployer and consumer-protection requirements. De-identification challenges loom: AI training on health data raises questions about re-identification risk and HIPAA exposure.</p>
 `;
 
 const BREACH_COMPARISON = `
@@ -114,7 +114,7 @@ const BREACH_COMPARISON = `
       <tr class="border-t border-brand-cloud align-top">
         <td class="px-4 py-3 font-semibold text-brand-navy">FTC Health Breach Notification Rule</td>
         <td class="px-4 py-3 text-slate">Acquisition of identifiable health information without authorization, including <em>unauthorized sharing</em> with third-party ad platforms.</td>
-        <td class="px-4 py-3 text-slate"><strong class="text-rose-700">≤ 60 days</strong> for individuals. FTC within 10 business days if ≥500 affected; otherwise annually.</td>
+        <td class="px-4 py-3 text-slate">Affected individuals: <strong class="text-rose-700">≤ 60 calendar days</strong> after discovery, and without unreasonable delay. FTC: for breaches involving <strong>500 or more</strong> people, notify at the same time individual notices are sent — without unreasonable delay and no later than 60 calendar days after discovery. For breaches involving <strong>fewer than 500</strong> people, report to the FTC by the 60th day of the calendar year following the breach.</td>
         <td class="px-4 py-3 text-slate">Affected individuals, FTC, and prominent media outlets if ≥500 residents of a state are affected.</td>
       </tr>
       <tr class="border-t border-brand-cloud align-top">
@@ -158,7 +158,7 @@ export default function HealthDataPrivacyPage() {
           statuteCite: "45 CFR Parts 160 & 164 (HIPAA) · 16 CFR Part 318 (FTC Health Breach Notification Rule)",
           description:
             "Three different regimes regulate health data in the U.S. — and they barely overlap. Use the tracks below to find the rules that actually apply to you.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "August 10, 2026",
           feedCategory: "health-data",
           stats: [
             { value: "60d", label: "HIPAA breach window" },
