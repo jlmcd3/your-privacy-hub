@@ -45,6 +45,16 @@ type SessionRow = {
   payment_confirmed: boolean;
   org_name: string | null;
   client_id: string | null;
+  /**
+   * SO-10: the persisted output field for this product. `generate-ropa-document`
+   * writes the single assembled register here, and the PDF / DOCX / XLSX are
+   * all rendered from that same object.
+   */
+  register_document: {
+    stamp?: string;
+    skeleton_hash?: string;
+    completeness?: { complete?: boolean; activities_incomplete?: number };
+  } | null;
 };
 
 type DocVersion = {
@@ -133,7 +143,7 @@ export default function RopaDocuments() {
     try {
       let query = supabase
         .from("ropa_sessions")
-        .select("id,status,version_number,completed_at,last_activity_at,total_activities,open_flags_count,is_refresh,payment_confirmed,org_name,client_id")
+        .select("id,status,version_number,completed_at,last_activity_at,total_activities,open_flags_count,is_refresh,payment_confirmed,org_name,client_id,register_document")
         .in("status", ["in_progress", "review", "generated"])
         .order("last_activity_at", { ascending: false });
 
@@ -419,6 +429,15 @@ export default function RopaDocuments() {
                         {s.total_activities} {s.total_activities === 1 ? "activity" : "activities"}
                         {s.open_flags_count > 0 && ` · ${s.open_flags_count} open flags`}
                       </p>
+                      {s.register_document?.stamp && (
+                        <p className="font-mono text-xs text-muted-foreground mt-1">
+                          Register assembled · {s.register_document.stamp}
+                          {s.register_document.completeness &&
+                            (s.register_document.completeness.complete
+                              ? " · Article 30 fields complete"
+                              : ` · ${s.register_document.completeness.activities_incomplete ?? 0} activities with unrecorded Article 30 fields`)}
+                        </p>
+                      )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {generated ? (

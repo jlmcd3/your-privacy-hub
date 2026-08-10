@@ -7206,6 +7206,7 @@ export type Database = {
           employee_band: string | null
           eu_rep_email: string | null
           eu_rep_name: string | null
+          home_base: string | null
           incorporation_jurisdiction: string | null
           is_controller: boolean
           is_processor: boolean
@@ -7226,6 +7227,7 @@ export type Database = {
           employee_band?: string | null
           eu_rep_email?: string | null
           eu_rep_name?: string | null
+          home_base?: string | null
           incorporation_jurisdiction?: string | null
           is_controller?: boolean
           is_processor?: boolean
@@ -7246,6 +7248,7 @@ export type Database = {
           employee_band?: string | null
           eu_rep_email?: string | null
           eu_rep_name?: string | null
+          home_base?: string | null
           incorporation_jurisdiction?: string | null
           is_controller?: boolean
           is_processor?: boolean
@@ -7701,6 +7704,7 @@ export type Database = {
           paid_at: string | null
           parent_session_id: string | null
           payment_confirmed: boolean
+          register_document: Json | null
           started_at: string
           status: string
           total_activities: number
@@ -7725,6 +7729,7 @@ export type Database = {
           paid_at?: string | null
           parent_session_id?: string | null
           payment_confirmed?: boolean
+          register_document?: Json | null
           started_at?: string
           status?: string
           total_activities?: number
@@ -7749,6 +7754,7 @@ export type Database = {
           paid_at?: string | null
           parent_session_id?: string | null
           payment_confirmed?: boolean
+          register_document?: Json | null
           started_at?: string
           status?: string
           total_activities?: number
