@@ -710,7 +710,7 @@ const STAMP = "r1b2.4-ws6v21";
 // DPIA-REGISTRY-WIRING (2026-07-25) — registry-first citations + LEAK-PREV
 // P0/P1/P2 wired end-to-end. Telemetry echoes on `_meta.internal.dpia_w1_wire`
 // and `_meta.internal.emit_gate` (P2 serializer preserves them).
-export const BUILD_STAMP = "dpia-t6fix@2026-07-25T23:31:00Z";
+export const BUILD_STAMP = "dpia-pipeline@item-so5-2026-08-10";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
 export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item399-2026-08-07";
@@ -2883,6 +2883,31 @@ async function runStitch(dpia_id: string): Promise<void> {
     } catch (e) {
       console.warn("[run-dpia-framework] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
     }
+
+    // ── SO-5 WIRE-IN: assemble the customer document through the byte-pinned
+    // CEO-corrected v3 skeleton. Deterministic; reads the typed surfaces and
+    // mutates none of them. Runs AFTER the whitelist serializer so the
+    // assembled document survives it. Fail-open.
+    try {
+      const { assembleDpiaSkeletonDocument, DPIA_SKELETON_ASSEMBLER_STAMP } =
+        await import("../_shared/ltp/dpia-skeleton-assemble.ts");
+      const sk = assembleDpiaSkeletonDocument(
+        reportData as unknown as Record<string, unknown>,
+        (dpiaIntake ?? {}) as Record<string, unknown>,
+      );
+      (reportData as any).skeleton_document = sk.document;
+      console.log(JSON.stringify({
+        evt: "dpia_skeleton_assembled", fn: "run-dpia-framework", dpia_id,
+        stamp: DPIA_SKELETON_ASSEMBLER_STAMP,
+        sections: sk.document.sections.length,
+        conformance_findings: sk.conformance.length,
+        register_findings: sk.register_findings,
+      }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
