@@ -87,6 +87,18 @@ export function resolveActionCitation(
     // downgrade rather than a confident wrong pinpoint.
     const anchorCheck = validatePropositionAssignment(entry, pk);
     if (anchorCheck.verdict === "mismatch") {
+      // SO-FT-1 — prefer the RIGHT verified pinpoint over the neutral fallback
+      // when the contradicting proposition now has a corpus-verified row and
+      // unambiguous distinctive support. Otherwise: honest downgrade, as before.
+      const rekey = rekeyPropositionAssignment(anchorCheck);
+      if (rekey) {
+        entry.citation = rekey.subsection;
+        entry.proposition_key = rekey.proposition_key;
+        entry._citation_source = "registry_rekeyed_content_anchored";
+        entry._mis_keyed_from = pk;
+        entry._mis_keyed_contradicted_by = anchorCheck.contradicted_by ?? "";
+        return "resolved_by_key";
+      }
       entry.citation = ADMT_SUBCHAPTER_FALLBACK;
       entry.proposition_key = "";
       entry._citation_source = "registry_downgrade_mis_keyed";
@@ -94,6 +106,7 @@ export function resolveActionCitation(
       entry._mis_keyed_contradicted_by = anchorCheck.contradicted_by ?? "";
       return "anchor_downgraded";
     }
+
     const row = resolveByPropositionKey(reg, pk);
     if (row) {
       entry.citation = row.subsection;
