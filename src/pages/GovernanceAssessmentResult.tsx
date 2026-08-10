@@ -214,7 +214,7 @@ const GovernanceAssessmentResult = () => {
           {status === "complete" && (
             <div className="space-y-6 font-serif-text">
               {/* Executive Summary */}
-              {(report?.accountability_determination || report?.maturity_tier_readability_aid || report?.overall_readiness_rating || report?.executive_summary) && (
+              {!skeletonDoc && (report?.accountability_determination || report?.maturity_tier_readability_aid || report?.overall_readiness_rating || report?.executive_summary) && (
                 <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
                   <h2 className="font-body text-display-card font-semibold mb-3">Executive Summary</h2>
                   {(assessment?.organization_name || assessment?.intake_data?.organization_name) && (
