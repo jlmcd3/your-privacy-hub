@@ -19,6 +19,7 @@ import WordConversionPromptButton from "@/components/WordConversionPromptButton"
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
@@ -192,6 +193,12 @@ const LIAssessmentResult = () => {
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const status = assessment?.status;
   const overall = report?.three_part_test?.overall_assessment;
+  // SO-11 WIRE-IN: the assembled byte-pinned skeleton IS the customer document
+  // when present; the legacy narrative surfaces below are superseded by it and
+  // are kept only for assessments generated before the wire-in.
+  const skeletonDoc = isSkeletonDocument((report as any)?.skeleton_document)
+    ? (report as any).skeleton_document
+    : null;
   const docs = report?.documentation_recommendations;
 
   const metaParts: string[] = [];
@@ -347,6 +354,13 @@ const LIAssessmentResult = () => {
                   </p>
                 )}
               </section>
+
+              {/* SO-11: the byte-pinned skeleton document IS the customer report. */}
+              {skeletonDoc && (
+                <section className="rounded-lg border bg-card p-6">
+                  <SkeletonDocumentView doc={skeletonDoc} />
+                </section>
+              )}
 
               {/* Three-Part Test */}
               {(() => {
