@@ -114,7 +114,7 @@ const BREACH_COMPARISON = `
       <tr class="border-t border-brand-cloud align-top">
         <td class="px-4 py-3 font-semibold text-brand-navy">FTC Health Breach Notification Rule</td>
         <td class="px-4 py-3 text-slate">Acquisition of identifiable health information without authorization, including <em>unauthorized sharing</em> with third-party ad platforms.</td>
-        <td class="px-4 py-3 text-slate"><strong class="text-rose-700">≤ 60 days</strong> for individuals. FTC within 10 business days if ≥500 affected; otherwise annually.</td>
+        <td class="px-4 py-3 text-slate">Affected individuals: <strong class="text-rose-700">≤ 60 calendar days</strong> after discovery, and without unreasonable delay. FTC: for breaches involving <strong>500 or more</strong> people, notify at the same time individual notices are sent — without unreasonable delay and no later than 60 calendar days after discovery. For breaches involving <strong>fewer than 500</strong> people, report to the FTC by the 60th day of the calendar year following the breach.</td>
         <td class="px-4 py-3 text-slate">Affected individuals, FTC, and prominent media outlets if ≥500 residents of a state are affected.</td>
       </tr>
       <tr class="border-t border-brand-cloud align-top">
