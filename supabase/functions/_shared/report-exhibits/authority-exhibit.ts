@@ -82,6 +82,21 @@ export const CITATION_ONLY_PREAMBLE =
 /** Two or more citation-only entries collapse into the preamble note. */
 export const CITATION_ONLY_COMPACTION_THRESHOLD = 2;
 
+/**
+ * State statutory-code abbreviation formats in use across the citation
+ * registries. Kept as one named pattern so adding the next state is a
+ * one-line change here rather than a rediscovered bug in the exhibit.
+ *
+ * Covered: compiled-statute forms with no "Code"/"Stat."/"Act" token
+ * (9 V.S.A. § 2446, ORS 646A.593, RCW 19.375.020, 740 ILCS 14/15,
+ * C.R.S. § 6-1-1303, N.J.S.A., SDCL), plus the "<State> Code"/"Rev. Stat."/
+ * "Gen. Stat."/"Code Ann." families (Va. Code, Utah Code, Iowa Code,
+ * Ind. Code, Tenn. Code Ann., Neb. Rev. Stat., Conn. Gen. Stat.,
+ * Md. Code Com. Law, Del. Code Ann., N.Y. Gen. Bus. Law).
+ */
+const STATE_STATUTE_PATTERN =
+  /\b(?:[A-Z]\.){2,}[A-Z]?\.?\s*§|\bV\.?S\.?A\.?\b|\bORS\b|\bRCW\b|\bILCS\b|\bC\.R\.S\.|\bN\.J\.S\.A\.|\bSDCL\b|\bR\.?S\.?A\.?\s*§|\b(?:Rev\.|Gen\.|Comp\.)\s*(?:Stat|Laws)\b|\bCode Ann\.|\b[A-Z][a-z]{1,4}\.?\s*Code\b|\b(?:Utah|Iowa|Idaho|Alaska|Texas|Ohio|Oregon)\s+(?:Rev\.\s*)?(?:Code|Stat)\b|\bGen\. ?Bus\.|\bCom\. ?Law\b/;
+
 /** Classify a citation string into its table-of-authorities class. */
 export function classifyAuthority(citation: string): AuthorityClass {
   const c = String(citation || "");
@@ -90,6 +105,8 @@ export function classifyAuthority(citation: string): AuthorityClass {
     return "regulation";
   }
   if (/Civ\.? Code|Civil Code|U\.?S\.?C\.?|\bCode §|Stat\.|Act\b|Bus\. ?& ?Prof/i.test(c)) return "statute";
+  if (STATE_STATUTE_PATTERN.test(c)) return "statute";
+
   if (/EDPB|Guidance|Guidelines|Advisory|Enforcement|Opinion|FSOR|Agency|Commissioner|Bulletin|FAQ/i.test(c)) {
     return "administrative";
   }
