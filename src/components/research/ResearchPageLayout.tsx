@@ -36,7 +36,28 @@ export interface ResearchSectionConfig {
   toolCtaPlacement?: "top" | "bottom";
   /** Optional one-sentence "does this apply to me?" callout rendered above content. */
   complianceTrigger?: string;
+  /** Optional callout: the black-letter obligation. Navy/slate accent. */
+  legalRequirement?: string;
+  /** Optional callout: what this means operationally. Teal accent. */
+  practicalImplication?: string;
+  /** Optional callout: recent/pending change. Same accent as complianceTrigger. */
+  currentDevelopment?: string;
 }
+
+/** Callout kinds rendered above section content, in definition order. */
+const SECTION_CALLOUTS: {
+  key: "complianceTrigger" | "legalRequirement" | "practicalImplication" | "currentDevelopment";
+  label: string;
+  border: string;
+  bg: string;
+  text: string;
+}[] = [
+  { key: "complianceTrigger", label: "Compliance trigger", border: "border-accent", bg: "bg-accent/5", text: "text-accent" },
+  { key: "legalRequirement", label: "Legal Requirement", border: "border-brand-navy", bg: "bg-brand-navy/5", text: "text-brand-navy" },
+  { key: "practicalImplication", label: "Practical Implication", border: "border-brand-teal", bg: "bg-brand-teal/5", text: "text-brand-teal-text" },
+  { key: "currentDevelopment", label: "Current Development", border: "border-accent", bg: "bg-accent/5", text: "text-accent" },
+];
+
 
 export interface AtAGlanceItem {
   /** Left-column label (typically 1–3 words). Rendered in Roboto Mono. */
