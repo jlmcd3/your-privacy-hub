@@ -28,6 +28,7 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
 import GovernanceDomainV2Fields from "@/components/reports/GovernanceDomainV2Fields";
 import GovernanceTrackerFindings from "@/components/reports/GovernanceTrackerFindings";
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { CheckCircle2 } from 'lucide-react';
 
