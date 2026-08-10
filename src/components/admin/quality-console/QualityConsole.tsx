@@ -634,7 +634,13 @@ export function QualityConsole({
     const completed = toolResults.filter((r) => r.final_status === "complete" && r.quality_run_id);
     if (completed.length === 0) { toast.error("No complete tools in this batch."); return; }
 
+    // A long PDF loop outlives a stale access token; refresh once up front so
+    // every invoke carries a live session (expired token → 401 auth_expired).
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess?.session) { toast.error("Session expired — sign in again and retry."); return; }
+
     const tid = toast.loading(`Preparing PDFs for batch ${batch.id.slice(0, 8)}…`);
+
     try {
       const zip = new JSZip();
       let ok = 0, failed = 0, docTotal = 0;
