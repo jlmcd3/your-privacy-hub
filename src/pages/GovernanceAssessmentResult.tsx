@@ -299,7 +299,7 @@ const GovernanceAssessmentResult = () => {
               )}
 
               {/* Top risks */}
-              {Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
+              {!skeletonDoc && Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
                 <section>
                   <h2 className="font-body text-display-card font-semibold mb-3">Top Risks</h2>
                   <div className="grid md:grid-cols-3 gap-4">
