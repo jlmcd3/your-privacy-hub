@@ -1293,7 +1293,7 @@ Scope of this DPIA (in / out): ${dpiaScopeNote}
 Publication / external-sharing intent: ${publicationIntent}
 
 EDPB TEMPLATE — SECTIONS 1, 2 & 5 INPUTS (controller-provided; assess these as proposals, do not treat as settled conclusions):
-[Section 1 — description] Secondary / compatible uses: ${secondaryUses}; Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
+[Section 1 — description] Secondary / compatible uses: see SECONDARY / COMPATIBLE USES above (assess as a scope statement, never as the purpose); Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
 [Section 2 — compliance] Data minimisation justification: ${dataMinimisationJustification}; Data quality measures: ${dataQualityMeasures}; Measures supporting data subjects' rights: ${dataSubjectRightsMechanisms}; Data protection by design & default: ${dpByDesignMeasures}
 [Section 5 — interested parties] DPO advice: ${dpoAdvice}; Data subjects' views sought: ${dataSubjectsViewsSought}; Data subjects' views / justification: ${dataSubjectsViews}
 USE THESE INPUTS: fold them into section_1_description, section_2_analysis, and section_5_interested_parties. Where a value is "Not specified", keep the existing [TO COMPLETE] behaviour for that element rather than inventing content.
