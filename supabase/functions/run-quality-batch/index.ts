@@ -2487,6 +2487,21 @@ async function runBatchInner(runId: string): Promise<void> {
         continue;
       }
       const gptEval = gptResult.eval;
+      // GRADER-SYM-1 items 2 & 3 — before anything reads or stores GPT's
+      // numbers: debit GPT's dimension scores with the SAME deterministic
+      // failures Claude was debited for, then recompute GPT's per-doc overall
+      // with weightsFor(tool) instead of trusting the model's self-report.
+      if (gptEval?.dimension_scores) {
+        const _detForGpt = (claudeEval.findings ?? []).filter((f: any) => f.check_type === "deterministic");
+        const _gptRawSelfReported = gptEval.overall_score;
+        gptEval.dimension_scores = applyDeterministicPenalties(gptEval.dimension_scores as any, _detForGpt as any);
+        const _gw = weightsFor(tool);
+        gptEval.overall_score = weightedOverall(gptEval.dimension_scores as any, _gw as any);
+        gptEval.overall_score_display = Math.round(gptEval.overall_score);
+        gptEval.overall_score_self_reported = _gptRawSelfReported ?? null;
+        gptEval.scoring_method = "weighted_recompute_with_deterministic_penalties";
+      }
+
       if (gptEval) {
         await log("success", `${docLabel}: GPT-4o OK (overall ${gptEval.overall_score}/100)`);
       } else if (gptResult.skipReason) {
