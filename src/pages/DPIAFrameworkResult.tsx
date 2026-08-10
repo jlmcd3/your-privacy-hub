@@ -23,6 +23,9 @@ import RunMeterBar from "@/components/RunMeterBar";
 import InformationNeededBlock from "@/components/InformationNeededBlock";
 import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 import DeterminationBlock from "@/components/report/DeterminationBlock";
+// SO-5 WIRE-IN — the byte-pinned DPIA skeleton document is the customer view.
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
+
 
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
@@ -164,7 +167,14 @@ const DPIAFrameworkResult = () => {
   useToolCompletedOnce("dpia_framework", dpia?.status === "complete" && !!dpia?.report_data);
 
   const report = (translated?.report_data ?? dpia?.report_data) || {};
+  // SO-5: when the pipeline assembled the byte-pinned skeleton, that document
+  // IS the report. The legacy section grid survives only for reports generated
+  // before the wire-in.
+  const skeletonDoc = isSkeletonDocument((report as any)?.skeleton_document)
+    ? (report as any).skeleton_document
+    : null;
   const meta = report?.dpia_metadata || {};
+
   const ov = report?.section_0_overview;
   const ts = ov?.technical_sheet || {};
   const d1 = report?.section_1_description;
@@ -268,8 +278,20 @@ const DPIAFrameworkResult = () => {
             </div>
           )}
 
-          {status === "complete" && (
+          {status === "complete" && skeletonDoc && (
+            <div className="space-y-6">
+              <SkeletonDocumentView doc={skeletonDoc} />
+              <EnforcementPrecedents
+                precedents={report?.enforcement_precedents}
+                context="Recent regulator decisions on similar processing activities — review these alongside the risks and measures above."
+              />
+              <AuthorityExhibit exhibit={report?.authority_exhibit} />
+            </div>
+          )}
+
+          {status === "complete" && !skeletonDoc && (
             <div className="space-y-6 font-serif-text">
+
               {/* ITEM 372 METHOD 2a — determination first, before Section 0. */}
               <DeterminationBlock determination={(report as any)?.determination} />
 

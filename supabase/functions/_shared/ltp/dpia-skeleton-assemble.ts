@@ -1,0 +1,483 @@
+// ITEM SO-5 WIRE-IN — DPIA: ASSEMBLY THROUGH THE BYTE-PINNED SKELETON.
+//
+// This module assembles the document the CUSTOMER actually receives: the PDF
+// renderer and the result page both read `report_data.skeleton_document`,
+// which is what this file produces. It is DETERMINISTIC — every
+// [DETERMINATION LEAD] and [GENERATED] block is composed from typed surfaces
+// the DPIA pipeline already persists (`determination`, `art36_consultation`,
+// `necessity_findings`, `proportionality`, `risk_register`,
+// `section_6_conclusion`, `authority_exhibit`), and every {slot} is filled from
+// the live intake per `dpia.slotmap.ts`. No model call, no invented prose, no
+// mutation of the typed surfaces.
+//
+// The Article 36 branch is a CONDITIONAL bound to `art36_consultation`: the
+// executive lead states prior consultation only when that typed surface says
+// so. Determination outcome logic is NOT touched here — it is read.
+
+import {
+  DPIA_SKELETON_SECTIONS,
+  DPIA_SKELETON_TITLE,
+  DPIA_SKELETON_SUBTITLE,
+  DPIA_SKELETON_VERSION,
+  DPIA_V3_BANNED_REGISTER,
+} from "../prose/plans/dpia.spine.ts";
+import { DPIA_LEGAL_BASIS_PHRASE_MAP } from "../prose/plans/dpia.slotmap.ts";
+import {
+  renderSkeletonDocument,
+  skeletonDocumentToText,
+  verifySkeletonConformance,
+  type ComposedBlocks,
+  type RenderedSkeletonDocument,
+  type SlotValues,
+} from "../prose/skeleton-render.ts";
+import { repairRegister } from "./risk-skeleton-assemble.ts";
+
+export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@so5-wire-in-2026-08-10";
+
+type Bag = Record<string, unknown>;
+
+const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
+const arr = (v: unknown): string[] =>
+  Array.isArray(v)
+    ? v.map((x) => (typeof x === "string" ? x.trim() : s((x as Bag)?.label ?? (x as Bag)?.text))).filter(Boolean)
+    : s(v) ? [s(v)] : [];
+
+/** Some typed surfaces are persisted as JSON strings; read both shapes. */
+function asArray(v: unknown): Bag[] {
+  if (Array.isArray(v)) return v as Bag[];
+  const t = s(v);
+  if (t.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(t);
+      return Array.isArray(parsed) ? parsed as Bag[] : [];
+    } catch { /* fall through */ }
+  }
+  return [];
+}
+
+function asProse(items: readonly string[]): string {
+  const xs = items.filter(Boolean);
+  if (xs.length === 0) return "";
+  if (xs.length === 1) return xs[0];
+  return `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+}
+
+/** Drop a trailing period: the skeleton's fixed prose supplies its own. */
+const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
+const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
+
+// SO-3 DEFECT CLASS 1 — proper nouns are never case-folded. `lower()` is used
+// ONLY on curated enum labels, never on an organisation name, a person's name,
+// a sector label or any free-text answer.
+function lowerEnumLabel(v: string): string {
+  if (!v) return v;
+  // Leave acronyms and any label whose second character is upper-case alone.
+  if (/^[A-Z]{2,}/.test(v)) return v;
+  return v.charAt(0).toLowerCase() + v.slice(1);
+}
+
+// SO-3 DEFECT CLASS 2 — abbreviation-aware sentence boundaries. Without this
+// guard "GDPR Art. 35(7)" truncates a sentence at "Art.".
+const ABBREV_TAIL =
+  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Recital|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Inc|Ltd|GmbH|AG|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|Dr|Mr|Mrs|Ms|St|U\.S|U\.K)|\s[A-Z])\.$/;
+
+export function firstSentence(text: string): string {
+  const t = text.trim();
+  const re = /[.!?](?=\s|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t))) {
+    const end = m.index + 1;
+    const head = t.slice(0, end);
+    if (ABBREV_TAIL.test(head)) continue;
+    if (/^\s+[a-z0-9]/.test(t.slice(end))) continue;
+    return head.trim();
+  }
+  return t;
+}
+
+export function firstSentences(text: string, n: number): string {
+  let rest = text.trim();
+  const out: string[] = [];
+  while (rest && out.length < n) {
+    const one = firstSentence(rest);
+    if (!one) break;
+    out.push(one);
+    rest = rest.slice(one.length).trim();
+  }
+  return out.join(" ");
+}
+
+// ── Slot values ─────────────────────────────────────────────────────────────
+
+export function buildDpiaSlotValues(intake: Bag): SlotValues {
+  const version = s(intake.processing_version);
+  const launch = s(intake.estimated_launch_date);
+  const art9 = s(intake.article_9_condition);
+  const quality = s(intake.data_quality_measures);
+  const basis = s(intake.legal_basis_proposed);
+  const categories = arr(intake.data_categories).map(lowerEnumLabel);
+  const safeguards = arr(intake.existing_safeguards)
+    .filter((x) => !/^none$/i.test(x))
+    .map(lowerEnumLabel);
+  const reasons = arr(intake.reasons_to_conduct).map(lowerEnumLabel);
+  const team = s(intake.dpia_team);
+
+  return {
+    // Proper nouns — verbatim, never case-folded.
+    name: s(intake.processing_activity_name) || "the processing under assessment",
+    organizationName: s(intake.organization_name) || "The company",
+
+    reasonsToConduct: reasons.length ? asProse(reasons) : null,
+    description: noStop(s(intake.description)) || null,
+    VERSION_CLAUSE: version ? `, version ${version}` : "",
+    LAUNCH_CLAUSE: launch ? `, planned to commence ${launch}` : "",
+
+    purpose: noStop(s(intake.purpose)) || null,
+    dataSubjects: s(intake.data_subjects) || null,
+    dataCategories: categories.length ? asProse(categories) : null,
+    volume: noStop(s(intake.volume_frequency)) || null,
+    dataFlow: noStop(s(intake.functional_description)) || null,
+
+    LEGAL_BASIS_PHRASE: basis
+      ? (DPIA_LEGAL_BASIS_PHRASE_MAP[basis] ?? lowerEnumLabel(basis))
+      : null,
+    ARTICLE_9_SENTENCE: art9
+      ? `Because special categories of data are involved, the company relies on ${art9} under Article 9(2)`
+      : "",
+    necessityProportionality: noStop(s(intake.necessity_proportionality)) || null,
+    dataMinimisationJustification: noStop(s(intake.data_minimisation_justification)) || null,
+    QUALITY_CLAUSE: quality ? `; on accuracy, ${noStop(quality)}` : "",
+
+    safeguards: safeguards.length ? asProse(safeguards) : null,
+
+    dpiaPreparedBy: s(intake.dpia_prepared_by) || null,
+    dpiaTeam: noStop(team) || null,
+    DPO_ADVICE_SENTENCE: dpoSentence(intake),
+    controllerContact: s(intake.controller_contact) || null,
+
+    dpiaApprovedByName: s(intake.dpia_approved_by_name) || null,
+    dpiaScopeNote: noStop(s(intake.dpia_scope_note)) || null,
+    endDate: s(intake.estimated_end_date) || null,
+  };
+}
+
+function dpoSentence(intake: Bag): string {
+  const advice = s(intake.dpo_advice);
+  const info = s(intake.dpo_info);
+  if (advice) return `The company has recorded the advice of its data protection officer as follows: ${noStop(advice)}`;
+  if (info) return `The company has recorded its data protection officer as ${noStop(info)}`;
+  return "The company has not recorded that the advice of a data protection officer has been obtained";
+}
+
+// ── Composed blocks ─────────────────────────────────────────────────────────
+
+function art36Determination(report: Bag): string {
+  return s(((report.art36_consultation ?? {}) as Bag).determination).toLowerCase();
+}
+
+function decisionText(report: Bag): string {
+  const s6 = (report.section_6_conclusion ?? {}) as Bag;
+  return s(s6.decision);
+}
+
+function residualCounts(report: Bag): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const r of asArray(report.risk_register)) {
+    const band = s(r.residual_band) || s(r.inherent_band);
+    if (!band) continue;
+    out[band] = (out[band] ?? 0) + 1;
+  }
+  return out;
+}
+
+// VOCABULARY IS THE PIPELINE'S, NOT THIS FILE'S. `art36_consultation.
+// determination` is one of `consultation_required` | `consultation_not_required`
+// | `undetermined_on_the_record`; risk bands are `low` | `moderate` | `high` |
+// `undetermined`; necessity/proportionality verdicts are the
+// `*_on_the_record` / `least_intrusive_means_supported` family. These leads
+// READ those determinations and may not disagree with them.
+function composeExecutiveLead(report: Bag, org: string): string {
+  const art36 = art36Determination(report);
+  const decision = decisionText(report);
+  if (art36 === "consultation_required") {
+    return `On the company's answers, the processing requires prior consultation with the supervisory authority under Article 36 before it may proceed.`;
+  }
+  if (art36 === "undetermined_on_the_record") {
+    return `On the company's answers, whether the processing may proceed cannot yet be settled: the residual position on which Article 36 turns is open on the points named below.`;
+  }
+  if (/^DRAFT/i.test(decision)) {
+    return `On the company's answers, ${org} may not yet treat the processing as cleared: the assessment remains incomplete on the points named below.`;
+  }
+  return `On the company's answers, the processing may proceed subject to the measures identified in this assessment.`;
+}
+
+function composeExecutiveBody(report: Bag): string {
+  const bands = residualCounts(report);
+  const total = Object.values(bands).reduce((a, b) => a + b, 0);
+  const high = bands["high"] ?? 0;
+  const openBand = bands["undetermined"] ?? 0;
+  const sentences: string[] = [];
+
+  if (total > 0) {
+    sentences.push(
+      `The assessment carries ${total === 1 ? "one risk" : `${total} risks`} through to a residual position after the measures the company has recorded.`,
+    );
+    sentences.push(
+      high > 0
+        ? `${high === 1 ? "One of those risks remains" : `${high} of those risks remain`} at a high residual band on the answers given, and the assessment treats that band as proposed until the company re-scores it against the measures as implemented.`
+        : `None of those risks remains at a high residual band on the answers given, and each residual band is proposed until the company re-scores it against the measures as implemented.`,
+    );
+    if (openBand > 0) {
+      sentences.push(
+        `${openBand === 1 ? "One residual band is" : `${openBand} residual bands are`} undetermined because the company has not recorded the measures applied, and an undetermined band is not read in the company's favour.`,
+      );
+    }
+  }
+
+  const open = asArray(report.information_needed).length;
+  if (open > 0) {
+    sentences.push(
+      `${open === 1 ? "One point is" : `${open} points are`} left unanswered by the company's answers, and each is named where it bears on the determination rather than assumed.`,
+    );
+  }
+
+  const decision = decisionText(report);
+  if (decision) sentences.push(stop(noStop(firstSentence(decision))));
+
+  return repairRegister(sentences.join(" "));
+}
+
+const NECESSITY_UNMET = /undetermined_on_the_record|less_intrusive_alternative_available|disproportionate_on_the_record/;
+
+function composeNecessityLead(report: Bag): string {
+  const findings = [...asArray(report.necessity_findings), ...asArray(report.proportionality)];
+  const unmet = findings.filter((f) => NECESSITY_UNMET.test(s(f.verdict)));
+  if (findings.length === 0) {
+    return "Whether necessity and proportionality are made out cannot be determined on the company's answers alone; the analysis below sets out what the record does and does not support.";
+  }
+  return unmet.length === 0
+    ? "On the company's answers, necessity and proportionality are made out for the processing as described."
+    : `On the company's answers, necessity and proportionality are made out in part: ${unmet.length === 1 ? "one element is" : `${unmet.length} elements are`} not yet supported by the company's answers.`;
+}
+
+
+function composeNecessityBody(report: Bag): string {
+  const parts: string[] = [];
+  for (const f of asArray(report.necessity_findings).slice(0, 4)) {
+    const why = s(f.why);
+    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+  }
+  for (const p of asArray(report.proportionality).slice(0, 3)) {
+    const why = s(p.why);
+    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+  }
+  if (parts.length === 0) {
+    const s3 = report.section_3_necessity_proportionality;
+    const text = typeof s3 === "string" ? s3 : s((s3 as Bag)?.analysis ?? (s3 as Bag)?.summary);
+    if (text) parts.push(stop(noStop(firstSentences(text, 3))));
+  }
+  return repairRegister(parts.join(" "));
+}
+
+/** The pipeline's band vocabulary, most serious first. */
+const BAND_ORDER = ["high", "undetermined", "moderate", "low"];
+
+function topRisk(report: Bag): Bag | null {
+  const rows = asArray(report.risk_register);
+  if (rows.length === 0) return null;
+  const rank = (r: Bag) => {
+    const i = BAND_ORDER.indexOf((s(r.residual_band) || s(r.inherent_band)).toLowerCase());
+    return i < 0 ? BAND_ORDER.length : i;
+  };
+  return [...rows].sort((a, b) => rank(a) - rank(b))[0];
+}
+
+function composeRiskLead(report: Bag): string {
+  const top = topRisk(report);
+  if (!top) {
+    return "No risk register has been assembled on the company's answers, so no residual position can be stated.";
+  }
+  const label = noStop(s(top.risk_label)) || "the risk identified below";
+  const band = (s(top.residual_band) || s(top.inherent_band)).toLowerCase();
+  if (band === "undetermined") {
+    return `After the measures the company has recorded, the residual position on ${label} remains undetermined, and that is the most significant open point in this assessment.`;
+  }
+  return band
+    ? `After the measures the company has recorded, the most significant residual risk is ${label}, at a proposed residual band of ${band}.`
+    : `After the measures the company has recorded, the most significant residual risk is ${label}.`;
+}
+
+
+function composeRiskBody(report: Bag, values: SlotValues): string {
+  const rows = asArray(report.risk_register);
+  const blocks: string[] = [];
+  for (const r of rows) {
+    const label = noStop(s(r.risk_label));
+    if (!label) continue;
+    const bits: string[] = [];
+    const likelihood = s(r.likelihood);
+    const severity = s(r.severity);
+    const inherent = s(r.inherent_band);
+    const residual = s(r.residual_band);
+    const head = [
+      `${label}.`,
+      likelihood && severity ? `The company's answers put likelihood at ${likelihood} and severity at ${severity}.` : "",
+      inherent ? `Inherent band: ${inherent}.` : "",
+    ].filter(Boolean).join(" ");
+    bits.push(head);
+    const measures = arr(r.measures);
+    if (measures.length) {
+      bits.push(`The measure that answers it: ${asProse(measures.map(noStop))}.`);
+    } else {
+      bits.push("The company has recorded no measure against this risk.");
+    }
+    if (residual) {
+      bits.push(
+        residual.toLowerCase() === "undetermined"
+          ? "Residual band: undetermined, because the measures applied are not on the record."
+          : `Residual band, proposed until the company re-scores it: ${residual}.`,
+      );
+    }
+
+    blocks.push(bits.join(" "));
+  }
+
+  const safeguards = values.safeguards;
+  const safeguardSentence = safeguards
+    ? `The safeguards the company has recorded: ${safeguards}.`
+    : "The company has not recorded any safeguards for this processing.";
+  blocks.push(safeguardSentence);
+
+  return repairRegister(blocks.filter(Boolean).join("\n\n"));
+}
+
+function composeSignoffLead(report: Bag, intake: Bag): string {
+  const decision = decisionText(report);
+  const approver = s(intake.dpia_approved_by_name);
+  if (!decision) {
+    return approver
+      ? `No sign-off determination has been recorded, and ${approver} has not yet accepted the residual position.`
+      : "No sign-off determination has been recorded, and the assessment carries no approver.";
+  }
+  const head = noStop(firstSentence(decision));
+  return repairRegister(stop(`The sign-off determination recorded is ${head}`));
+}
+
+function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): string {
+  const parts: string[] = [];
+  const approver = s(intake.dpia_approved_by_name);
+  const title = s(intake.dpia_approved_by_title);
+  const basis = s(intake.dpia_signoff_basis);
+  const bands = residualCounts(report);
+  const total = Object.values(bands).reduce((a, b) => a + b, 0);
+
+  if (approver) {
+    parts.push(
+      `${approver}${title ? `, ${title},` : ""} is recorded as the person accepting the residual position${total ? ` across the ${total === 1 ? "single risk" : `${total} risks`} carried by this assessment` : ""}.`,
+    );
+  } else {
+    parts.push("No approver has been recorded, so the residual position set out above has not yet been accepted by anyone on the company's behalf.");
+  }
+  if (basis) parts.push(stop(`The basis recorded for that acceptance is ${noStop(basis)}`));
+  if (values.dpiaScopeNote) parts.push(stop(`The company has recorded the scope of this assessment as ${values.dpiaScopeNote}`));
+  if (values.endDate) parts.push(`The review window the company has recorded runs to ${values.endDate}.`);
+
+  const art36 = art36Determination(report);
+  if (art36 === "consultation_required" || art36 === "undetermined_on_the_record") {
+
+    const why = s(((report.art36_consultation ?? {}) as Bag).why);
+    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+  }
+  return repairRegister(parts.join(" "));
+}
+
+// ── Table of Authorities ────────────────────────────────────────────────────
+
+function dpiaToa(report: Bag, body: string): string {
+  const exhibit = (report.authority_exhibit ?? {}) as Bag;
+  const entries = Array.isArray(exhibit.entries) ? (exhibit.entries as Bag[]) : [];
+  const groups: Record<string, string[]> = {
+    "Regulations": [],
+    "Statutes": [],
+    "Guidance and Persuasive Authority": [],
+  };
+  const seen = new Set<string>();
+  for (const e of entries) {
+    const citation = s(e.citation);
+    if (!citation || seen.has(citation)) continue;
+    if (!body.includes(citation)) continue; // iff-cited
+    seen.add(citation);
+    const cls = s(e.authority_class);
+    const group = cls === "regulation" || /GDPR/i.test(citation)
+      ? "Regulations"
+      : cls === "statute"
+      ? "Statutes"
+      : "Guidance and Persuasive Authority";
+    groups[group].push(citation);
+  }
+  const lines: string[] = [];
+  for (const group of Object.keys(groups)) {
+    const inGroup = groups[group].sort();
+    if (!inGroup.length) continue;
+    lines.push(group === "Guidance and Persuasive Authority" ? `${group} (persuasive)` : group);
+    for (const c of inGroup) lines.push(`    ${c}`);
+  }
+  return lines.join("\n");
+}
+
+// ── Assembly ────────────────────────────────────────────────────────────────
+
+export interface DpiaSkeletonResult {
+  readonly document: RenderedSkeletonDocument;
+  readonly conformance: ReturnType<typeof verifySkeletonConformance>;
+  readonly register_findings: string[];
+}
+
+export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): DpiaSkeletonResult {
+  const intake = intakeInput ?? {};
+  const values = buildDpiaSlotValues(intake);
+  const org = s(intake.organization_name) || "the company";
+
+  const composed: ComposedBlocks = {
+    "executive_summary:0": composeExecutiveLead(report, org),
+    "executive_summary:2": composeExecutiveBody(report),
+
+    "lawfulness:0": composeNecessityLead(report),
+    "lawfulness:2": composeNecessityBody(report),
+
+    "risks_and_measures:0": composeRiskLead(report),
+    "risks_and_measures:1": composeRiskBody(report, values),
+
+    "consultation_and_signoff:1": composeSignoffLead(report, intake),
+    "consultation_and_signoff:2": composeSignoffBody(report, intake, values),
+  };
+
+  const draft = renderSkeletonDocument({
+    sections: DPIA_SKELETON_SECTIONS,
+    title: DPIA_SKELETON_TITLE,
+    subtitle: DPIA_SKELETON_SUBTITLE,
+    spineVersion: DPIA_SKELETON_VERSION,
+    values,
+    composed,
+  });
+
+  const toa = dpiaToa(report, skeletonDocumentToText(draft));
+
+  const document = renderSkeletonDocument({
+    sections: DPIA_SKELETON_SECTIONS,
+    title: DPIA_SKELETON_TITLE,
+    subtitle: DPIA_SKELETON_SUBTITLE,
+    spineVersion: DPIA_SKELETON_VERSION,
+    values,
+    composed: { ...composed, "table_of_authorities:0": toa },
+  });
+
+  const body = skeletonDocumentToText(document).toLowerCase();
+  const register_findings = DPIA_V3_BANNED_REGISTER.filter((b) => body.includes(b));
+
+  return {
+    document,
+    conformance: verifySkeletonConformance(document, DPIA_SKELETON_SECTIONS),
+    register_findings,
+  };
+}

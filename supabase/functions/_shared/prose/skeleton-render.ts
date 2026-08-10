@@ -178,8 +178,15 @@ export function verifySkeletonConformance(
         if (literal.length < 12) continue;
         const needle = literal.replace(/\s{2,}/g, " ");
         if (!body.includes(needle)) {
-          // Tolerate only the case where the whole sentence was dropped.
-          const dropped = needle.split(/(?<=\.)\s+/).every((s) => !body.includes(s.trim()));
+          // Tolerate only the case where the whole sentence was dropped. A
+          // literal that begins mid-sentence can start with a bare "." (the
+          // stop of the PRECEDING sentence); that stub is punctuation, not a
+          // substantive span, so it is not evidence the sentence survived.
+          const dropped = needle
+            .split(/(?<=\.)\s+/)
+            .filter((s) => s.trim().length >= 12)
+            .every((s) => !body.includes(s.trim()));
+
           if (!dropped) findings.push({ section_id: section.id, missing_literal: needle.slice(0, 120) });
         }
       }

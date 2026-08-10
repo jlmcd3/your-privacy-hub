@@ -3067,8 +3067,15 @@ Deno.serve(async (req) => {
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
     } else if (tool_type === "dpia_framework") {
       const report = record.report_data as any;
-      html = buildDPIAReportHTML(report, record);
+      // SO-5 WIRE-IN: the byte-pinned DPIA skeleton IS the customer document
+      // when the pipeline assembled one; the legacy narrative path survives
+      // only for reports generated before the wire-in.
+      const skelDpia = readSkeletonDocument(report);
+      html = skelDpia
+        ? buildSkeletonReportHTML(skelDpia, record, "Data Protection Impact Assessment")
+        : buildDPIAReportHTML(report, record);
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
+
     } else if (tool_type === "biometric_checker") {
       const intake = record.intake_data || {};
       const text = record.analysis_text || record.report_data?.assessment_text || "";
