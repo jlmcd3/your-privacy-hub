@@ -67,9 +67,10 @@ const AIPrivacyRegulations = () => (
         <p className="text-sm text-brand-navy leading-relaxed m-0">
           AI compliance is no longer prospective. The EU AI Act's prohibitions and
           general-purpose-model obligations are live, EDPB Opinion 28/2024 on AI training data guides supervisory authorities across the EEA, and
-          California's CPPA adopted its ADMT regulations in July 2025 (OAL-approved September 23, 2025; effective January 1, 2026) — first
-          enforcement actions are expected H2 2026.
+          California's CPPA adopted its ADMT regulations on July 24, 2025 (OAL-approved September 23, 2025; effective January 1, 2026), with
+          businesses using ADMT for significant decisions required to comply with the ADMT-specific requirements from January 1, 2027.
         </p>
+
       </div>
     }
     sections={linkGlossaryFirstMentions([
