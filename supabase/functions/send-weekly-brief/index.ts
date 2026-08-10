@@ -100,8 +100,15 @@ function renderBriefHtml(brief: any): string {
     if (!summary) return null;
     const m = summary.match(/^([A-Z][\p{L}\p{N}&.,'’\-\s]{2,80}?)\s+(?:failed|did not|was|were|has|had|must|unlawfully|processed|collected|agreed|settled)\b/u);
     const name = m?.[1]?.trim().replace(/[,\s]+$/, "");
-    return name && name.split(/\s+/).length <= 9 ? name : null;
+    if (!name || name.split(/\s+/).length > 9) return null;
+    // Generic anonymised openers carry no identifying value — prefer the
+    // regulator label over "The bank" / "The company".
+    if (/^(the\s+)?(bank|company|organi[sz]ation|court|firm|controller|processor|defendant|respondent|authority|entity|business|employer|hospital|municipality)$/i.test(name)) {
+      return null;
+    }
+    return name;
   };
+
   const signals: any[] = Array.isArray(brief.top_enforcement_signals) ? brief.top_enforcement_signals : [];
   let signalsHtml = "";
   if (signals.length > 0) {
