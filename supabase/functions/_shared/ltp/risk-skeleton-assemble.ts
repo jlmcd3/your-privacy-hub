@@ -7,9 +7,11 @@
 // surfaces items 420–427 already put on the report, and every {slot} is filled
 // from the live intake per `cppa-risk.slotmap.ts`.
 //
-// The result is written to `report_data.skeleton_document` and is the shipped
-// narrative document; the typed card surfaces remain as the structured data the
-// skeleton's sections draw on.
+// The result is written to `report_data.skeleton_document`, and that document
+// is what ships: `generate-report-pdf` renders the customer PDF from it, and
+// `CPPARiskAssessmentResult.tsx` renders the in-app document body from it. The
+// typed card surfaces remain as the structured data the skeleton's sections
+// draw on.
 //
 // ATTRIBUTION RULE: the company's facts are attributed to the company. The v3
 // banned register ("the record shows" family, "on this record") is rewritten
