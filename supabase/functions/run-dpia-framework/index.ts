@@ -1267,7 +1267,8 @@ Processing activity name: ${intake.processing_activity_name || "not specified"}
 Sector: ${sector}
 Legal basis selected by user: ${legalBasisProposed}
 Description: ${processingDesc}
-Purpose: ${purpose}
+STATED PURPOSE (the ONLY value that may be quoted or paraphrased as "the purpose", and the ONLY basis for the benefit side of the proportionality balance): ${purpose}
+SECONDARY / COMPATIBLE USES (NOT the purpose — never quote this as the purpose and never use it as the benefit in balancing; where it says the data is not used beyond the primary purpose, that is evidence of scope limitation/minimisation): ${secondaryUses}
 Data categories: ${dataCategories}
 Data subjects: ${dataSubjects}
 Volume/frequency: ${volume}
