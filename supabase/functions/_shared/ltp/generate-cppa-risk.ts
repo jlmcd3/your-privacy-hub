@@ -88,6 +88,11 @@ import {
 } from "./record-complete.ts";
 // ITEM 384 — the gold-standard prose pass (G-1, G-2, G-4, G-6).
 import { applyRiskProseGold } from "./risk-prose-gold.ts";
+// ITEM SO-1 (WIRE-IN) — assembly through the byte-pinned v3 skeleton.
+import {
+  assembleRiskSkeletonDocument,
+  RISK_SKELETON_ASSEMBLER_STAMP,
+} from "./risk-skeleton-assemble.ts";
 // ITEM 399 R11 — assembled-prose lint (detect-only telemetry).
 import { attachProseLint } from "../prose/assembled-prose-lint.ts";
 import { cppaRiskContract } from "../intake-contracts/cppa-risk-assessment.ts";
@@ -419,6 +424,36 @@ export function finalizeCppaRiskPayload(
     const internal = (meta.internal ??= {}) as Record<string, unknown>;
     internal.structure_conformance = structureConformanceTelemetry("cppa-risk", report);
   } catch { /* non-fatal */ }
+
+  // (9) ITEM SO-1 (WIRE-IN) — ASSEMBLY THROUGH THE BYTE-PINNED SKELETON.
+  // The v3 counsel-register skeleton is this product's render law. The
+  // narrative document the reader receives is assembled HERE, from the typed
+  // surfaces every pass above has finished writing, so the skeleton sees the
+  // final strings. Deterministic; no model; no mutation of the typed surfaces.
+  try {
+    const built = assembleRiskSkeletonDocument(
+      report,
+      (rawIntake && typeof rawIntake === "object" ? rawIntake : {}) as Record<string, unknown>,
+    );
+    report.skeleton_document = built.document;
+    const meta = (report._meta ??= {}) as Record<string, unknown>;
+    const internal = (meta.internal ??= {}) as Record<string, unknown>;
+    internal.risk_skeleton = {
+      stamp: RISK_SKELETON_ASSEMBLER_STAMP,
+      spine_version: built.document.spine_version,
+      sections: built.document.sections.length,
+      conformance_findings: built.conformance,
+      register_findings: built.register_findings,
+    };
+    console.log(JSON.stringify({
+      evt: "risk_skeleton_assembled", fn: "generate-cppa-risk",
+      sections: built.document.sections.length,
+      conformance_findings: built.conformance.length,
+      register_findings: built.register_findings.length,
+    }));
+  } catch (e) {
+    console.warn("[generate-cppa-risk] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+  }
 
   return { report, emit_gate_filtered: sealed.emit_gate_filtered };
 }
