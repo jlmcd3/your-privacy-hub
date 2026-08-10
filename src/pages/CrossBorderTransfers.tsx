@@ -120,8 +120,6 @@ export default function CrossBorderTransfersPage() {
           title: "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
           statuteCite: "GDPR Ch. V · Arts. 44–50 — legal basis for every restricted transfer",
           description:
-            "International transfers sit on top of fragile legal foundations — Schrems II reset the world, and the DPF could be next. This is the working reference for the mechanisms still in force today.",
-          description:
             "International-transfer law remains dynamic. The EU-U.S. DPF remains in force after the General Court upheld the adequacy decision in Latombe in September 2025, while an appeal is pending before the Court of Justice. This is the working reference for the mechanisms in force today.",
           lastUpdated: "August 10, 2026",
           feedCategory: "cross-border",
