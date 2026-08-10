@@ -8,7 +8,7 @@ import { runAdmtHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
 // ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 // RC-P6: training_data_use enum shrunk to Yes/No; prior_access_requests_12mo removed.
-export const BUILD_STAMP = "w27-admt-upgrade3@2026-08-03T00:00:00Z";
+export const BUILD_STAMP = "so-ft1-admt-defects@2026-08-10T00:00:00Z";
 console.log(`[run-admt-checker] boot build_stamp=${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "admt_build_stamp", fn: "run-admt-checker", build_stamp: BUILD_STAMP, prior_stamps: { h6: "h6-admt-governing-anchor@2026-07-26T01:30:00Z", h7b: "h7b-admt-citation-relabel@2026-07-26T01:20:00Z", h7: "h7-admt-blanket-range@2026-07-25T23:48:00Z", w26: "w26-admt-citation-audit@2026-07-25T23:34:00Z", w25: "w25-admt-sanitizer@2026-07-25T22:44:15Z" } }));
 // S-B INTAKE-FACT-LEDGER (sb-fl-w1) — wiring turn 2/3 (ADMT).
@@ -71,7 +71,7 @@ import { applyAdmtProseGold, ADMT_PROSE_GOLD_VERSION } from "./_local/ltp/admt-p
 import { ADMT_PIPELINE_STAMP } from "./_local/prose/plans/admt.spine.ts";
 import { normalizeAdmtPriorityActions, ADMT_ACTION_RECORD_WRITER_VERSION } from "./_local/ltp/admt-action-records.ts";
 // ITEM 422-B — registry-resolved citations on the typed priority actions.
-import { resolveAdmtActionCitations, sealAdmtActionCitations, ADMT_ACTION_CITATION_VERSION } from "./_local/ltp/admt-action-citations.ts";
+import { resolveAdmtActionCitations, sealAdmtActionCitations, ADMT_ACTION_CITATION_VERSION, ADMT_SUBCHAPTER_FALLBACK } from "./_local/ltp/admt-action-citations.ts";
 import { linkAdmtActionsToFindings, ADMT_ACTION_LINKAGE_VERSION } from "./_local/ltp/admt-action-finding-linkage.ts";
 import { sweepAdmtOperatorInstructions, ADMT_OPERATOR_SWEEP_VERSION } from "./_local/ltp/admt-operator-instruction-sweep.ts";
 import { sweepAdmtOutOfRangeCitations, ADMT_RANGE_SWEEP_VERSION } from "./_local/ltp/admt-citation-range-sweep.ts";
@@ -263,6 +263,8 @@ When a trade-secret carve-out finding is generated:
     - § 7221(b)(2)-(3): The employment/education exception. In HR or employment screening contexts, always analyze this exception explicitly — not just § 7221(b)(1) (human appeal). The employment exception applies when the ADMT is used SOLELY to assess the applicant's ability to perform at work, works for the business's purpose, AND does not unlawfully discriminate. If the intake describes an employment/hiring use case and the business has not claimed an exception, flag § 7221(b)(2)-(3) as a potential exception to evaluate, and explain the three-part test.
 
 11. PRE-USE NOTICE COMPLETENESS: When triggers_significant_decision is TRUE, the notice_gaps array MUST always be populated — either with specific gaps, or with a "compliant" entry for each assessed element. Never return an empty notice_gaps array for an in-scope ADMT deployment that makes significant decisions. If the intake answers indicate the Pre-use Notice satisfies all § 7220(c) elements, populate the array with compliant entries. An empty array signals an assessment error, not full compliance.
+
+11a. PRE-USE NOTICE SECTION IS AN ANALYSIS, NOT AN ELEMENT LIST: the Pre-use Notice section must READ as reasoning about THIS business's notice. Each notice_gaps entry states what the element requires, what this intake actually shows about the notice (its delivery point, its wording, its timing, its audience), and the reasoned conclusion connecting the two. A section whose entries only name the elements and their authorities — an element roll-call with citations attached — is a defect, even when every element is present and every citation is correct. Two independent tests, both of which must fail before the section is acceptable: (i) could this text be lifted into another business's report unchanged? (ii) does any entry's finding contain no fact drawn from the intake? If either is true, the entry is not yet an analysis. Where the intake genuinely does not supply the notice text, say precisely that and state what the notice must contain for the element to be satisfied — that is still analysis; a bare citation is not.
 
 13. USE THE ADMT DETAIL INPUTS — incorporate the structured detail fields, and never invent values not provided:
     - Human-involvement self-test → drive scope_analysis.human_review_qualifies and human_review_reasoning. Qualifying human involvement under § 7001(e)(1) requires ALL THREE: (A) knows how to interpret the output, (B) reviews the output plus other relevant information, and (C) has authority to change the decision — applied BEFORE the decision is issued. If any element is "No", or the reviewer acts only after the decision, conclude the review does NOT qualify and §§ 7200–7222 ADMT obligations apply.
@@ -876,7 +878,7 @@ SCHEMA CONTRACT (POST-C1-FIX-1C): every scope/trigger boolean listed below MUST 
       "element_id": "notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret",
       "element": "Plain-English name of the element (no section number)",
       "status": "compliant | gap | missing   // FULL mode only",
-      "finding": "Specific finding in plain language. FULL mode only. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
+      "finding": "SUBSTANTIVE ANALYSIS — 2 to 4 sentences, FULL mode only. Required shape: (1) what THIS element requires, in plain English; (2) what the intake actually says about the business's notice on this point, quoting or paraphrasing the specific intake facts (where the notice is delivered, what it says, when the consumer sees it, who receives it); (3) the reasoned conclusion — why those facts do or do not satisfy the element, naming the operative shortfall. A bare restatement of the element name, a list of required elements, or a sentence that could be pasted into any other business's report is a defect. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
       "citation": "",
       "remediation": "Specific action the business must take. FULL mode only. No section numbers.",
       "enforcement_exposure": "per_violation | per_consumer_scalable | na   // ENUM; FULL mode only. NEVER dollar figures or narrative.",
@@ -2341,7 +2343,12 @@ Return this JSON structure exactly:
     // marker after the second W6 sweep, name the violated rule + registry row
     // and downgrade the finding to typed insufficient-basis. NO fabrication,
     // NO looping, NO second LLM call. Every downgraded finding is counted.
-    const w9Regen = { evaluated: 0, downgraded_insufficient_basis: 0, still_failing_after_regen: 0 };
+    const w9Regen = {
+      evaluated: 0,
+      downgraded_insufficient_basis: 0,
+      authority_downgraded_registry_coverage: 0,
+      still_failing_after_regen: 0,
+    };
     try {
       const stillFailing = ((report as any)._w9_admt_wire?.pre_emit?.still_failing ?? 0) as number;
       if (stillFailing > 0) {
@@ -2363,6 +2370,77 @@ Return this JSON structure exactly:
             const row = pk ? (ADMT_VERIFIED_AUTHORITIES as any)[pk] : null;
             const violatedRule = pk ? `unresolved proposition_key "${pk}" against VERIFIED-AUTHORITY REGISTRY` : "post-W6 residual defect (finding underspecified)";
             const rowNote = row ? ` (registry row: ${row.subsection})` : "";
+
+            // SO-FT-1 — SEPARATE THE TWO CAUSES.
+            // An entry can arrive here for either of two unrelated reasons:
+            //   (i)  AUTHORITY did not resolve (registry coverage), while the
+            //        substantive finding is present and well-supported by the
+            //        intake; or
+            //   (ii) the FINDING itself is underspecified.
+            // Only (ii) is an intake-sufficiency failure. Stamping the
+            // "the intake did not include enough detail" text over (i) told the
+            // customer something untrue about their own answers and destroyed a
+            // good finding. For (i) the honest remedy is an AUTHORITY downgrade
+            // only: keep the finding and remediation, drop the pinpoint claim.
+            const findingText = typeof it.finding === "string" ? it.finding.trim() : "";
+            const substantive = findingText.length >= 40;
+            if (substantive) {
+              // REGISTRY-FIRST: before conceding the pinpoint, re-resolve the
+              // element through the citation registry. Most of these entries
+              // simply never carried a proposition_key, and the element's pack
+              // now has a corpus-verified row.
+              let reanchored: { key: string; subsection: string } | null = null;
+              try {
+                const eid = typeof it.element_id === "string" ? it.element_id.trim() : "";
+                if (eid) {
+                  const res = resolveCitations(eid as ElementId, ((assessment as any)?.intake_data ?? {}));
+                  for (const cid of (res?.citationIds ?? [])) {
+                    const vrow = (ADMT_VERIFIED_AUTHORITIES as any)[cid as string];
+                    if (vrow?.subsection && !/^11\s*CCR\s*§\s*7001\b/.test(String(vrow.citation ?? ""))) {
+                      reanchored = { key: String(cid), subsection: String(vrow.subsection) };
+                      break;
+                    }
+                  }
+                }
+              } catch { /* fail-open — fall through to the honest downgrade */ }
+
+              if (reanchored) {
+                it.proposition_key = reanchored.key;
+                for (const f of ["citation", "regulatory_citation", "subsection"]) {
+                  if (typeof it[f] === "string") it[f] = reanchored.subsection;
+                }
+                const vrow = (ADMT_VERIFIED_AUTHORITIES as any)[reanchored.key];
+                if (typeof it.verbatim_quote === "string" && vrow?.verbatim_quote) {
+                  it.verbatim_quote = vrow.verbatim_quote;
+                }
+                delete it._va_stamp_unresolved;
+                it._w9_regen = {
+                  pass: 1,
+                  action: "reanchored_from_element_registry",
+                  violated_rule: violatedRule,
+                  row_note: ` (registry row: ${reanchored.subsection})`,
+                };
+                w9Regen.authority_downgraded_registry_coverage++;
+                continue;
+              }
+
+              for (const f of ["citation", "regulatory_citation", "subsection"]) {
+                if (typeof it[f] === "string" && it[f].trim()) {
+                  it[f] = ADMT_SUBCHAPTER_FALLBACK;
+                }
+              }
+              if (typeof it.verbatim_quote === "string") it.verbatim_quote = "";
+              it._w9_regen = {
+                pass: 1,
+                action: "authority_downgraded_registry_coverage",
+                violated_rule: violatedRule,
+                row_note: rowNote,
+              };
+              w9Regen.authority_downgraded_registry_coverage++;
+              continue;
+            }
+
+
             it.status = "insufficient_basis";
             // W19-ADMT-FALLBACK-JOIN-2 (2) — customer-safe reword.
             // Answer-first, no pipeline/generator/re-run vocabulary; keeps
@@ -2378,6 +2456,7 @@ Return this JSON structure exactly:
             w9Regen.downgraded_insufficient_basis++;
           }
         }
+
         w9Regen.still_failing_after_regen = 0; // deterministic pass always terminates
       }
       (report as any)._w9_admt_regen = w9Regen;

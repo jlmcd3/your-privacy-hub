@@ -44,7 +44,7 @@ import { ADMT_VERIFIED_AUTHORITIES } from "../registry/admt-verified-authorities
 import { CITATION_REGISTRY } from "../../../_shared/admt-citation-registry.ts";
 
 export const ADMT_PROPOSITION_ANCHOR_VERSION =
-  "admt-proposition-anchors@item422c-2026-08-09";
+  "admt-proposition-anchors@so-ft1-2026-08-10";
 
 /** Function words and legal boilerplate that carry no anchoring content. */
 const STOPLIST = new Set<string>([
@@ -83,8 +83,17 @@ function buildVocabulary(): AnchorVocabulary {
     for (const t of tokens(text)) vocab[key].add(t);
   };
   try {
-    for (const [key, row] of Object.entries(CITATION_REGISTRY as Record<string, { label?: string }>)) {
+    for (const [key, row] of Object.entries(
+      CITATION_REGISTRY as Record<string, { label?: string; snippet?: string }>,
+    )) {
       add(key, String(row?.label ?? ""));
+      // SO-FT-1: the registry's own `snippet` is a THIRD declared, registry-owned
+      // anchor source. It carries the distinctive short form of the element
+      // ("secure transmission", "denial basis", "aggregate >4x") that the label's
+      // formal phrasing ("reasonable security measures when transmitting
+      // response") does not surface. No synonym expansion is introduced — the
+      // terms are still declared by the registry and nowhere else.
+      add(key, String(row?.snippet ?? ""));
     }
   } catch { /* fail-open */ }
   try {
@@ -142,6 +151,10 @@ export interface AnchorValidation {
   contradicted_by?: string;
   /** the proposition that declares `contradicted_by`. */
   contradicting_key?: string;
+  /** count of the assigned proposition's declared anchors found in content. */
+  assigned_support?: number;
+  /** count of DISTINCTIVE anchors of `contradicting_key` found in content. */
+  contradicting_support?: number;
 }
 
 /**
@@ -186,13 +199,66 @@ export function validatePropositionAssignment(
     // anchored more strongly than the assigned one. Ties and thin content
     // leave the assignment untouched.
     if (topCount > support) {
-      return { verdict: "mismatch", contradicted_by: topTerm, contradicting_key: topKey };
+      return {
+        verdict: "mismatch",
+        contradicted_by: topTerm,
+        contradicting_key: topKey,
+        assigned_support: support,
+        contradicting_support: topCount,
+      };
     }
-    if (support > 0) return { verdict: "ok" };
+    if (support > 0) return { verdict: "ok", assigned_support: support };
 
     // Neither supported nor contradicted — not adjudicable, leave untouched.
     return { verdict: "no_content" };
   } catch {
     return { verdict: "no_content" }; // fail-open: never downgrade on a crash
+  }
+}
+
+/**
+ * SO-FT-1 — RE-KEY ON UNAMBIGUOUS DISTINCTIVE SUPPORT.
+ *
+ * The item422-C header states re-keying was withheld because the correct
+ * propositions (`access_secure_tx`, `access_denial`, `access_aggregate`,
+ * `optout_cease15`, …) had NO corpus-verified row. That coverage gap is now
+ * closed in ADMT_VERIFIED_AUTHORITIES, so a contradicted assignment can be
+ * moved to the RIGHT verified pinpoint instead of dropped to the neutral
+ * fallback — but only when the rival's support is unambiguous.
+ *
+ * Conditions (all required):
+ *   - the validation verdict is "mismatch";
+ *   - the contradicting proposition has a corpus-verified row;
+ *   - that row is duty-imposing (NOT a § 7001 definitional anchor);
+ *   - the rival's distinctive support is at least 2 AND exceeds the assigned
+ *     proposition's support by at least 2. A single distinctive token is a
+ *     coincidence, not an identification: one shared word ("qualifications",
+ *     "period") is enough to out-count a zero-support assignment while saying
+ *     nothing about which duty the action actually states. Below that bar the
+ *     honest downgrade stands.
+ * Otherwise: null, and the caller keeps the honest downgrade.
+ */
+export function rekeyPropositionAssignment(
+  v: AnchorValidation,
+): { proposition_key: string; subsection: string } | null {
+  try {
+    if (v.verdict !== "mismatch") return null;
+    const key = String(v.contradicting_key || "").trim();
+    if (!key) return null;
+    const rivalSupport = Number(v.contradicting_support ?? 0);
+    const assigned = Number(v.assigned_support ?? 0);
+    if (rivalSupport < 2 || rivalSupport - assigned < 2) return null;
+
+    const row = (ADMT_VERIFIED_AUTHORITIES as Record<string, {
+      subsection?: string;
+      citation?: string;
+      proposition_key?: string;
+    }>)[key];
+    if (!row || typeof row.subsection !== "string" || !row.subsection.trim()) return null;
+    // Definitional § 7001 rows are never promoted onto a duty-bearing action.
+    if (/^11\s*CCR\s*\u00a7\s*7001\b/.test(String(row.citation ?? ""))) return null;
+    return { proposition_key: key, subsection: row.subsection };
+  } catch {
+    return null; // fail-open — caller falls back to the honest downgrade
   }
 }

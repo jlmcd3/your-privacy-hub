@@ -281,35 +281,73 @@ export const HF7_ADMT_RANGE_RE =
 export const HF7_NEGATION_RE =
   /\b(?:not\s+triggered|do(?:es)?\s+not\s+attach|not\s+required|do(?:es)?\s+not\s+apply|is\s+not\s+triggered|are\s+not\s+triggered|not\s+applicable|no\s+obligation(?:s)?|does\s+not\s+attach|do\s+not\s+attach)\b/i;
 
+/**
+ * SO-FT-1 — a typed action record renders as a short block whose duty sits in
+ * one sentence and whose authority sits in a labelled fragment on the next
+ * line ("Citation: 11 CCR §§ 7200–7222"). Sentence-scoped evaluation therefore
+ * missed exactly the shape the check exists to catch. The unit of evaluation is
+ * now the RECORD BLOCK (bullet / line / paragraph) whenever that block is short
+ * enough to be one record, or whenever the range sits in a labelled fragment.
+ * Long narrative paragraphs keep the original sentence-scoped behaviour so
+ * scope framing elsewhere in a paragraph cannot manufacture a hit.
+ */
+const HF7_RECORD_BLOCK_SPLIT_RE = /\n\s*\n|\r?\n(?=\s*(?:[-•*\u2022]|\d+[.)]))/;
+const HF7_LABEL_FRAGMENT_RE =
+  /^\s*(?:citation|authority|authorities|legal\s+basis|statutory\s+basis|pinpoint|source|responsible|owner|deadline|due)\s*:/i;
+const HF7_RECORD_BLOCK_MAX = 800;
+// Record-scoped duty test. Action records state their duty in the imperative
+// ("Cease ADMT processing…", "Log every aggregate-use response…") or with a
+// modal the narrow narrative list does not carry ("must log", "must cease").
+// A blanket range sitting in a record's LABELLED authority line is a
+// duty-anchor by construction — that line exists to answer "under what
+// authority is this action owed?".
+const HF7_RECORD_DUTY_RE =
+  /\b(?:must|shall|is\s+required\s+to|are\s+required\s+to)\s+[a-z]|^\s*(?:[-•*\u2022]|\d+[.)])?\s*(?:cease|ceasing|log|record|document|implement|adopt|establish|provide|notify|disclose|maintain|update|publish|deliver|respond)\b/im;
+
 export function checkH7BlanketAdmtRange(text: string): FormatFinding[] {
   if (!text) return [pass("h7_admt_blanket_range_ok", "citation_accuracy")];
-  const sentences = text.split(/(?<=[.!?])\s+/);
   const findings: FormatFinding[] = [];
   let scopeAllowanceUsed = false;
-  for (const s of sentences) {
-    if (!HF7_ADMT_RANGE_RE.test(s)) continue;
-    const hasDuty = HF4_H6_ADMT_DUTY_VERBS.test(s);
-    if (!hasDuty) {
-      // Non-duty scope framing — permit the first, flag additional ones.
-      if (!scopeAllowanceUsed) {
-        scopeAllowanceUsed = true;
+
+  const blocks = String(text).split(HF7_RECORD_BLOCK_SPLIT_RE);
+  for (const block of blocks) {
+    if (!block || !block.trim()) continue;
+    const lines = block.split(/\r?\n/).filter((l) => l.trim());
+    const blockIsRecord = block.length <= HF7_RECORD_BLOCK_MAX;
+    const blockHasDuty = HF4_H6_ADMT_DUTY_VERBS.test(block)
+      || HF7_RECORD_DUTY_RE.test(block);
+    const sentences = block.split(/(?<=[.!?])\s+|\r?\n/);
+    for (const s of sentences) {
+      if (!HF7_ADMT_RANGE_RE.test(s)) continue;
+      const inLabelFragment = lines.some(
+        (l) => HF7_LABEL_FRAGMENT_RE.test(l) && HF7_ADMT_RANGE_RE.test(l) && l.includes(s.trim()),
+      ) || HF7_LABEL_FRAGMENT_RE.test(s);
+      // Duty scope: the sentence itself, widened to the whole record block when
+      // the block is one record or the citation sits in a labelled fragment.
+      const hasDuty = HF4_H6_ADMT_DUTY_VERBS.test(s)
+        || ((blockIsRecord || inLabelFragment) && blockHasDuty)
+        || (inLabelFragment && blockIsRecord);
+      if (!hasDuty) {
+        if (!scopeAllowanceUsed) { scopeAllowanceUsed = true; continue; }
         continue;
       }
-      // Subsequent non-duty range mentions are permitted (headings,
-      // recitations of the rulebook's own title). No hit.
-      continue;
+      // R-TURN-1 item 2 negation guard — evaluated on the duty-bearing scope.
+      if (HF7_NEGATION_RE.test(s)) continue;
+      if (inLabelFragment && HF7_NEGATION_RE.test(block)) continue;
+      const evidence = (inLabelFragment ? block : s).replace(/\s+/g, " ").trim();
+      findings.push(fail("h7_admt_blanket_range", "citation_accuracy", "medium",
+        `blanket §§ 7220–7222 range used as duty-anchor: "${evidence.slice(0, 400)}"`));
+      break; // one finding per record block
     }
-    // R-TURN-1 item 2 negation guard.
-    if (HF7_NEGATION_RE.test(s)) continue;
-    findings.push(fail("h7_admt_blanket_range", "citation_accuracy", "medium",
-      `blanket §§ 7220–7222 range used as duty-anchor: "${s.slice(0, 400)}"`));
     if (findings.length >= 5) break;
   }
+
   if (findings.length === 0) {
     findings.push(pass("h7_admt_blanket_range_ok", "citation_accuracy"));
   }
   return findings;
 }
+
 
 // ── Runners ───────────────────────────────────────────────────────────
 /** CPPA-Risk / CPPA-Cyber: H1 + H2 + H4 + H5 (no H3/H6/H7 — ADMT-scoped). */

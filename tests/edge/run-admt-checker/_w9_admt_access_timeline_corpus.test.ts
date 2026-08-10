@@ -32,8 +32,8 @@ const CPPA_AUTHORITIES_7021_FULL_TEXT_SUBSTRING = norm(
   "later than 45 calendar days after receipt of the request.",
 );
 
-Deno.test("access_timeline: registry version bumped to w9-2026-07-26", () => {
-  assertEquals(ADMT_VERIFIED_AUTHORITY_VERSION, "admt-va-w9-2026-07-26");
+Deno.test("access_timeline: registry version is the SO-FT-1 value", () => {
+  assertEquals(ADMT_VERIFIED_AUTHORITY_VERSION, "admt-va-so-ft1-2026-08-10");
 });
 
 Deno.test("access_timeline: registry row shape (section-level § 7021, no subdivision-deeper pinpoint)", () => {
