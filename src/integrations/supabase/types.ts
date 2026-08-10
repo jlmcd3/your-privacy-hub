@@ -4572,6 +4572,7 @@ export type Database = {
           declared_count: number | null
           engine_path: string | null
           fixture_variant: string | null
+          grader_mode: string | null
           id: string
           instrument_version: string | null
           last_error: string | null
@@ -4597,6 +4598,7 @@ export type Database = {
           declared_count?: number | null
           engine_path?: string | null
           fixture_variant?: string | null
+          grader_mode?: string | null
           id?: string
           instrument_version?: string | null
           last_error?: string | null
@@ -4622,6 +4624,7 @@ export type Database = {
           declared_count?: number | null
           engine_path?: string | null
           fixture_variant?: string | null
+          grader_mode?: string | null
           id?: string
           instrument_version?: string | null
           last_error?: string | null
@@ -5678,6 +5681,7 @@ export type Database = {
           gpt_score_intelligence: number | null
           gpt_score_overall: number | null
           grader_context_version: string | null
+          grader_mode: string | null
           id: string
           intakes: Json | null
           last_heartbeat_at: string | null
@@ -5725,6 +5729,7 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           grader_context_version?: string | null
+          grader_mode?: string | null
           id?: string
           intakes?: Json | null
           last_heartbeat_at?: string | null
@@ -5772,6 +5777,7 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           grader_context_version?: string | null
+          grader_mode?: string | null
           id?: string
           intakes?: Json | null
           last_heartbeat_at?: string | null

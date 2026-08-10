@@ -159,6 +159,7 @@ const QualityLoop3 = lazy(() => import("./pages/admin/QualityLoop3"));
 const QualityBatch = lazy(() => import("./pages/admin/QualityBatch"));
 // ITEM 325 — variant-aware sibling console (Perfect / Messy fixtures).
 const FinalTest = lazy(() => import("./pages/admin/FinalTest"));
+const SOFinalTest = lazy(() => import("./pages/admin/SOFinalTest"));
 const QualityBatch2 = lazy(() => import("./pages/admin/QualityBatch2"));
 const QualityBatch2Review = lazy(() => import("./pages/admin/QualityBatch2Review"));
 const FunctionHealth = lazy(() => import("./pages/admin/FunctionHealth"));
@@ -682,6 +683,19 @@ const App = () => (
                   <AdminOnly fallback={<NotFound />}>
                     <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
                       <FinalTest />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            {/* SO-FINAL-TEST — separate page, separate grader path, separate rows. */}
+            <Route
+              path="/admin/SO-final-test"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <SOFinalTest />
                     </Suspense>
                   </AdminOnly>
                 </ProtectedRoute>
