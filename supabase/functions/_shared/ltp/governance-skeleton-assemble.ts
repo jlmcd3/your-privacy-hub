@@ -213,7 +213,10 @@ export function buildGovernanceSlotValues(intake: Bag): SlotValues {
   return {
     organizationName: org,
 
-    sector: labelled({}, s(intake.sector)) ?? s(intake.sector),
+    // Sector is a reader label, not prose — render it verbatim. Sentence-initial
+    // lowercasing mangled compound labels ("healthcare/Life Sciences"), same
+    // defect class as the org-name case-fold (SO-3 r3 defect).
+    sector: s(intake.sector),
     orgSize: ORG_SIZE_PROSE[s(intake.org_size)] ?? s(intake.org_size),
     jurisdictions: asProse(arr(intake.jurisdictions)) || null,
     EU_UK_SENTENCE: isNA(euUk)

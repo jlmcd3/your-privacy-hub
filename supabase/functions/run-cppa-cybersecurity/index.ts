@@ -2221,8 +2221,39 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-cppa-cybersecurity] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── SO-4 WIRE-IN: assemble the customer document through the byte-pinned
+    // v3 skeleton. Deterministic; never mutates the typed surfaces. Runs AFTER
+    // the whitelist serializer so the assembled document is not stripped.
+    // ITEM-204: the § 7121 phase-in schedule is quoted from the approved
+    // corpus row, all three tiers, with no cohort computed here.
+    try {
+      const { assembleCyberSkeletonDocument, CYBER_SKELETON_ASSEMBLER_STAMP } =
+        await import("../_shared/ltp/cyber-skeleton-assemble.ts");
+      const phaseIn = String(
+        (cyberAuthoritySource as any)?.provisions?.["cppa-7121"]?.status === "approved"
+          ? (cyberAuthoritySource as any)?.provisions?.["cppa-7121"]?.excerpt ?? ""
+          : "",
+      );
+      const sk = assembleCyberSkeletonDocument(
+        report as unknown as Record<string, unknown>,
+        ((row as any)?.intake_data as Record<string, unknown>) ?? {},
+        phaseIn,
+      );
+      (report as any).skeleton_document = sk.document;
+      console.log(JSON.stringify({
+        evt: "cyber_skeleton_assembled", assessment_id,
+        stamp: CYBER_SKELETON_ASSEMBLER_STAMP,
+        sections: sk.document.sections.length,
+        phase_in_pinned: phaseIn.length > 0,
+        conformance_findings: sk.conformance.length,
+        register_findings: sk.register_findings,
+      }));
+    } catch (e) {
+      console.warn("[run-cppa-cybersecurity] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+    }
 
     const completeWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "complete", report_data: stampGenerationModel(report), obligation_snapshot }, { fn: "run-cppa-cybersecurity", phase: "terminal_complete" });
+
     if (!completeWrite.ok) {
       await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "error", last_error: `terminal_fallback: complete-write failed: ${(completeWrite.message ?? "unknown").slice(0, 1500)}` }, { fn: "run-cppa-cybersecurity", phase: "terminal_fallback" });
     }
