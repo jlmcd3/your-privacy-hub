@@ -338,14 +338,19 @@ const GovernanceAssessmentResult = () => {
                 </section>
               )}
 
+              {/* SO-3: the byte-pinned skeleton document IS the customer report. */}
+              {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
+
               {/* GOVERNANCE UPGRADE — generalised control walk + remediation */}
-              <GovernanceTrackerFindings
-                findings={(report as any)?.domain_element_findings}
-                remediationPlan={(report as any)?.remediation_plan}
-              />
+              {!skeletonDoc && (
+                <GovernanceTrackerFindings
+                  findings={(report as any)?.domain_element_findings}
+                  remediationPlan={(report as any)?.remediation_plan}
+                />
+              )}
 
               {/* Ten Domains — Domain Findings (handles Record OR Array shape) */}
-              {report?.domain_findings &&
+              {!skeletonDoc && report?.domain_findings &&
                 typeof report.domain_findings === "object" &&
                 !Array.isArray(report.domain_findings) &&
                 Object.values(report.domain_findings).length > 0 && (
