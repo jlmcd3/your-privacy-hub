@@ -19,7 +19,7 @@ const REQUIREMENTS_MATRIX = `
       <tr class="border-t border-brand-cloud">
         <td class="px-4 py-3 font-medium text-brand-navy">Prior consent before non-essential cookies</td>
         <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">Required</span></td>
-        <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">Required</span></td>
+        <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Required unless a Schedule A1 exception applies</span></td>
         <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">Not required (opt-out model)</span></td>
         <td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">Not required (opt-out)</span></td>
       </tr>
