@@ -2075,10 +2075,48 @@ Return JSON:
     } catch (e) {
       console.warn("[run-li-assessment] record-complete gate failed (non-fatal):", (e as Error)?.message);
     }
-
-
+    // ── ITEM SO-11 WIRE-IN — THE BYTE-PINNED SKELETON IS THE DOCUMENT ──
+    // The CEO-ratified v3 counsel-register skeleton is assembled here, from the
+    // typed analytic surfaces already on `reportData` plus the live intake row.
+    // Deterministic, no model call, and ZERO mutation of any typed surface: the
+    // assembled document is written to a NEW key, `skeleton_document`.
+    // Conformance, register and lead-coherence findings ride in
+    // `_meta.internal.lia_skeleton`; they are telemetry here and are asserted
+    // by the SO-11 battery and the pilot, so a failure is never silently shipped.
+    try {
+      const { assembleLiaSkeletonDocument, LIA_SKELETON_ASSEMBLER_STAMP } =
+        await import("../_shared/ltp/lia-skeleton-assemble.ts");
+      const assembled = assembleLiaSkeletonDocument(
+        reportData as Record<string, unknown>,
+        assessment as unknown as Record<string, unknown>,
+      );
+      (reportData as Record<string, unknown>).skeleton_document = assembled.document;
+      const _m = ((reportData as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
+      const _i = ((_m as Record<string, unknown>).internal ??= {}) as Record<string, unknown>;
+      _i.lia_skeleton = {
+        assembler: LIA_SKELETON_ASSEMBLER_STAMP,
+        pipeline_stamp: LIA_PIPELINE_STAMP,
+        spine_version: assembled.document.spine_version,
+        conformance_findings: assembled.conformance,
+        register_findings: assembled.register_findings,
+        lead_coherence: assembled.lead_coherence,
+        conditionals_fired: assembled.conditionals_fired,
+      };
+      console.log(JSON.stringify({
+        evt: "lia_skeleton_assembled", fn: "run-li-assessment",
+        pipeline_stamp: LIA_PIPELINE_STAMP,
+        sections: assembled.document.sections.length,
+        conditionals_fired: assembled.conditionals_fired,
+        conformance: assembled.conformance.length,
+        register: assembled.register_findings.length,
+        lead_coherence: assembled.lead_coherence.length,
+      }));
+    } catch (e) {
+      console.warn("[item-so11] skeleton assembly failed (non-fatal):", (e as Error)?.message);
+    }
 
     // ── LEAK-PREV-P2 — SCHEMA-DRIVEN SERIALIZER (2026-07-25) ───────────
+
     // Whitelist top-level keys; internal telemetry survives via
     // `_meta.internal` reduction inside the serializer (stamp-echo key
     // `_meta.internal.lia_w1` — dispatch §3). On crash, we keep the
