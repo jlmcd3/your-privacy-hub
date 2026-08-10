@@ -27,7 +27,7 @@ const FIRST_KEY = Object.keys(REG)[0];
 
 Deno.test("ITEM 422-B: stamps are the ratified values", () => {
   assertEquals(ADMT_PIPELINE_STAMP, "admt-pipeline@item-so2-2026-08-10");
-  assertEquals(ADMT_ACTION_CITATION_VERSION, "admt-action-citations@item422c-2026-08-09");
+  assertEquals(ADMT_ACTION_CITATION_VERSION, "admt-action-citations@so-ft1-2026-08-10");
   assertEquals(ADMT_ASK_HYGIENE_VERSION, "admt-ask-hygiene@item422b-2026-08-09");
 });
 

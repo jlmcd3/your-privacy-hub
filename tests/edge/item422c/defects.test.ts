@@ -29,7 +29,7 @@ import { ADMT_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-admt-
 const REG = ADMT_VERIFIED_AUTHORITIES as unknown as Record<string, { subsection: string }>;
 
 Deno.test("ITEM 422-C: module versions are the ratified values", () => {
-  assertEquals(ADMT_PROPOSITION_ANCHOR_VERSION, "admt-proposition-anchors@item422c-2026-08-09");
+  assertEquals(ADMT_PROPOSITION_ANCHOR_VERSION, "admt-proposition-anchors@so-ft1-2026-08-10");
   assertEquals(ADMT_RANGE_SWEEP_VERSION, "admt-citation-range-sweep@item422c-2026-08-09");
 });
 
