@@ -175,7 +175,7 @@ export default function CrossBorderTransfersPage() {
             synthesisKey: "crossborder__adequacy",
             content: ADEQUACY_TABLE,
             complianceTrigger:
-              "Adequacy is the simplest path — but the UK renewal and the EU–US DPF both sit under active legal challenge.",
+              "Adequacy is the simplest path — but each decision has its own scope, and the EU–US DPF is subject to a pending appeal before the Court of Justice.",
           },
           {
             id: "dpf",
