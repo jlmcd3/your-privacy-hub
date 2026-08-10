@@ -246,8 +246,10 @@ export function ResearchPageLayout({
                     {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
                   </section>
 
-                  {/* Single in-content AdSlot after the first content section (no-rail variant only). */}
-                  {idx === 0 && !hasRail && sections.length > 1 && <AdSlot format="in-content" />}
+                  {/* Single in-content AdSlot after the first content section —
+                      rendered in both the rail and no-rail branches. */}
+                  {idx === 0 && sections.length > 1 && <AdSlot format="in-content" />}
+
                 </div>
               );
             })}
