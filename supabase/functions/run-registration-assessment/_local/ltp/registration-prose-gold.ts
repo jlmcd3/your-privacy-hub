@@ -35,7 +35,7 @@ import type { ReferencePassage } from "../prose/registration-reference-passages.
 export const REGISTRATION_PROSE_GOLD_VERSION =
   "registration-prose-gold-2026-08-08-item413";
 
-export const REGISTRATION_PIPELINE_STAMP = "registration-pipeline@item413b-2026-08-09";
+export const REGISTRATION_PIPELINE_STAMP = "registration-pipeline@item-so8-2026-08-10";
 
 // ── PROTECTED LEAVES ────────────────────────────────────────────────────────
 // Determination machinery, verbatim corpus bytes and identity fields. A repair
