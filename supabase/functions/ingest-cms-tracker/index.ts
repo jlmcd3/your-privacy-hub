@@ -2,6 +2,7 @@
 // Uses the site's DataTables JSON endpoint to retrieve the full dataset (~3,000 fines).
 // Public-interest aggregator of European GDPR fines.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { gateSubject } from "../_shared/enforcement-subject.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -176,13 +177,15 @@ Deno.serve(async (req) => {
       parsed++;
       if (existingIds.has(r.etid)) { skipped++; continue; }
 
+      // BRIEF-2 intake gate: reject narrative fragments, recover from summary.
+      const gatedSubject = gateSubject(r.controller, r.summary).subject;
       toInsert.push({
         etid: r.etid,
         source_database: "CMS",
         source_url: r.source_url || r.permalink,
         regulator: r.authority,
         jurisdiction: r.country || "EU",
-        subject: r.controller || null,
+        subject: gatedSubject,
         sector: r.sector || null,
         law: "GDPR",
         violation: r.articles || null,
@@ -193,7 +196,7 @@ Deno.serve(async (req) => {
         fine_eur: r.fine_eur,
         fine_eur_equivalent: r.fine_eur,
         // SWEEP-2 T12: null-subject CMS rows are stamped for moderator review.
-        ...(r.controller ? {} : { verification_status: "requires_review" as const }),
+        ...(gatedSubject ? {} : { verification_status: "requires_review" as const, review_reason: "corpus_defect_subject" }),
       });
     }
 

@@ -13,6 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendEmail } from "../_shared/resend.ts";
 import { PRODUCT_DISPLAY } from "../_shared/product-triggers.ts";
 import { SOURCES_TOKEN, hydrateEmailCitations } from "../_shared/email-citations.ts";
+import { looksLikeEntityName, entityFromNarrative } from "../_shared/enforcement-subject.ts";
 
 
 const corsHeaders = {
@@ -94,26 +95,9 @@ function renderBriefHtml(brief: any): string {
   // titles with the opening words missing. We detect unusable subjects and
   // recover a name from the summary's leading proper-noun phrase, falling back
   // to a regulator-derived label.
-  const looksLikeEntityName = (v: string): boolean => {
-    if (!v) return false;
-    if (/^[a-z]/.test(v)) return false;                 // begins mid-sentence
-    if (v.split(/\s+/).length > 9) return false;        // narrative, not a name
-    if (/\.\s*$/.test(v) && !/\b(Inc|Ltd|S\.L\.U|S\.A|N\.V|Pty|LLC|GmbH|Plc|A\/S)\.?\s*$/i.test(v)) return false;
-    if (/\b(failed|did not|had not|was not|considered|processing|pursuant|thereby|because|which)\b/i.test(v)) return false;
-    return true;
-  };
-  const entityFromSummary = (summary: string): string | null => {
-    if (!summary) return null;
-    const m = summary.match(/^([A-Z][\p{L}\p{N}&.,'’\-\s]{2,80}?)\s+(?:failed|did not|was|were|has|had|must|unlawfully|processed|collected|agreed|settled)\b/u);
-    const name = m?.[1]?.trim().replace(/[,\s]+$/, "");
-    if (!name || name.split(/\s+/).length > 9) return null;
-    // Generic anonymised openers carry no identifying value — prefer the
-    // regulator label over "The bank" / "The company".
-    if (/^(the\s+)?(bank|company|organi[sz]ation|court|firm|controller|processor|defendant|respondent|authority|entity|business|employer|hospital|municipality)$/i.test(name)) {
-      return null;
-    }
-    return name;
-  };
+  // The detection + recovery rule lives in _shared/enforcement-subject.ts so
+  // the emailer, the intake gate and the backfill all agree on it.
+
 
   const signals: any[] = Array.isArray(brief.top_enforcement_signals) ? brief.top_enforcement_signals : [];
   let signalsHtml = "";
@@ -129,7 +113,7 @@ function renderBriefHtml(brief: any): string {
       const rawSubject = typeof s.subject === "string" ? s.subject.trim() : "";
       const title = looksLikeEntityName(rawSubject)
         ? rawSubject
-        : (entityFromSummary(typeof s.summary === "string" ? s.summary : "")
+        : (entityFromNarrative(typeof s.summary === "string" ? s.summary : "")
           ?? (s.regulator ? `${s.regulator} enforcement action` : "Enforcement action"));
 
       const fine = s.fine
