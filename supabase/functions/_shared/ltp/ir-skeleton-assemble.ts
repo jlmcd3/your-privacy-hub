@@ -478,7 +478,16 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     blocks.push(bits.join(" "));
   }
 
+  // SO-FT2 FIX 4 — contractual clocks applied to this incident's facts.
+  const contractual = composeContractualTriggers(intake);
+  if (contractual) blocks.push(contractual);
+
+  // SO-FT2 FIX 5 — containment / eradication / recovery, applied.
+  const plan = composeContainmentPlan(intake);
+  if (plan) blocks.push(plan);
+
   // The action plan, in time order, from the typed content/owner mapping.
+
   const mapping = (report.content_owner_mapping ?? {}) as Bag;
   const elements = asArray(mapping.elements);
   if (elements.length) {
