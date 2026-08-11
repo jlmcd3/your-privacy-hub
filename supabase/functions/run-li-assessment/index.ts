@@ -1785,6 +1785,19 @@ Return JSON:
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
 
+    // SO-FT2 FIX 8 — remove controller-harm characterisations the record does
+    // not support (fail-open; telemetry only).
+    try {
+      const harmScrub = stripUnsupportedHarmClaims(reportData as Record<string, unknown>, liaIntakeObject);
+      if (harmScrub.removed > 0) {
+        ((( reportData as any)._meta ??= {}).internal ??= {}).lia_unsupported_harm_scrub = harmScrub;
+        console.log(JSON.stringify({ evt: "_lia_unsupported_harm_scrub", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...harmScrub }));
+      }
+    } catch (e) {
+      console.warn("[run-li-assessment] unsupported-harm scrub failed (non-fatal):", (e as Error)?.message);
+    }
+
+
     const liaFallback = applyDeterministicPostGenFallbackLia(reportData, liaTestStates);
     const finalBlacklistHits = detectBlacklistPhrases(reportData).length;
     logPostGenLint(supabase, {
