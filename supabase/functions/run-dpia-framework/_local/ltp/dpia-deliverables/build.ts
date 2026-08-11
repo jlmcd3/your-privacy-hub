@@ -140,6 +140,29 @@ interface Operation {
   readonly purpose_text: string;
 }
 
+/**
+ * SO-FT FIX (2026-08-11): `secondary_uses` answers are frequently negations
+ * ("None. Not used beyond the primary purpose."). Those are scope-limitation
+ * statements, not a second processing operation — manufacturing `op_secondary`
+ * from them makes proportionality weigh a negation as a benefit. Only the clean
+ * negation case is suppressed; anything ambiguous keeps the old behaviour.
+ */
+const SECONDARY_NEGATION: readonly RegExp[] = [
+  /^\s*(none|n\/a|no|nil|not applicable)\b/i,
+  /^\s*(there\s+are\s+)?no\s+(other|secondary|further|additional)\s+(use|uses|purpose|purposes)\b/i,
+  /^\s*(the\s+)?data\s+is\s+not\s+used\s+(for\s+any\s+purpose\s+)?beyond\b/i,
+  /^\s*not\s+used\s+(for\s+any\s+purpose\s+)?beyond\b/i,
+  /^\s*(the\s+)?[\w\s]{0,40}?\bis\s+not\s+used\s+for\s+any\s+(other\s+)?purpose\b/i,
+];
+
+/** True only when the answer is clearly a negation / scope-limitation. */
+export function isSecondaryUseNegation(text: string): boolean {
+  const t = text.trim();
+  if (!t) return false;
+  const head = t.slice(0, 200);
+  return SECONDARY_NEGATION.some((re) => re.test(head));
+}
+
 export function buildOperations(intake: unknown): Operation[] {
   const primaryPurpose = str(get(intake, "purpose"));
   const activity = str(get(intake, "processing_activity_name")) || "the assessed processing";
