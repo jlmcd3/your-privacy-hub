@@ -16,6 +16,8 @@ import type {
   AlternativeConsidered,
   Art36Consultation,
   DpiaDeliverables,
+  LegalBasisFinding,
+  LegitimateInterestsTest,
   Likelihood,
   NecessityFinding,
   NecessityVerdict,
@@ -526,6 +528,188 @@ export function buildArt36Consultation(
   };
 }
 
+
+// ---------------------------------------------------------------------
+// 5. Art. 6(1) — legal basis (PILOT 2026-08-11, ITEM 310 pattern)
+//
+// Single writer for report.legal_basis. Reads the closed set of intake
+// fields that bear on lawful basis (legal_basis_proposed, purpose,
+// secondary_uses, data_subjects, necessity_proportionality,
+// data_minimisation_justification, data_categories, existing_safeguards,
+// alternatives_considered) and, where Art. 6(1)(f) is selected, runs the
+// three-part legitimate-interests test as a decision tree. A part the
+// record does not support is reported unmet with a specific
+// `information_needed` string — never filled with invention.
+// ---------------------------------------------------------------------
+
+const ART6_SUBSECTIONS: readonly { readonly re: RegExp; readonly sub: string; readonly label: string }[] = [
+  { re: /consent/i, sub: "Art. 6(1)(a)", label: "Consent (Art. 6(1)(a))" },
+  { re: /contract/i, sub: "Art. 6(1)(b)", label: "Contract (Art. 6(1)(b))" },
+  { re: /legal obligation/i, sub: "Art. 6(1)(c)", label: "Legal obligation (Art. 6(1)(c))" },
+  { re: /vital interest/i, sub: "Art. 6(1)(d)", label: "Vital interests (Art. 6(1)(d))" },
+  { re: /public task|public interest|official authority/i, sub: "Art. 6(1)(e)", label: "Public task (Art. 6(1)(e))" },
+  { re: /legitimate interest/i, sub: "Art. 6(1)(f)", label: "Legitimate interests (Art. 6(1)(f))" },
+];
+
+/** Vulnerable-subject signals that raise the balancing bar (Art. 6(1)(f) final clause). */
+const VULNERABLE_SUBJECTS: readonly RegExp[] = [
+  /\bchild(ren)?\b/i,
+  /\bminors?\b/i,
+  /\bemployees?\b/i,
+  /\bpatients?\b/i,
+  /\bvulnerable\b/i,
+];
+
+const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data", "Children's data"];
+
+function readArt6(basisText: string): { sub: string; label: string } | null {
+  for (const e of ART6_SUBSECTIONS) if (e.re.test(basisText)) return { sub: e.sub, label: e.label };
+  return null;
+}
+
+export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
+  const regime = readDpiaRegime(intake);
+  const li = anchor("legitimate_interests", regime);
+  const lawfulness = anchor("lawfulness", regime);
+  const necessityTest = anchor("necessity_test", regime);
+
+  const basisText = str(get(intake, "legal_basis_proposed"));
+  const subjects = str(get(intake, "data_subjects"));
+  const narrative = str(get(intake, "necessity_proportionality"));
+  const minimisation = str(get(intake, "data_minimisation_justification"));
+  const combined = [narrative, minimisation].filter(Boolean).join(" ");
+  const categories = arr(get(intake, "data_categories"));
+  const safeguards = arr(get(intake, "existing_safeguards")).filter((x) => x !== "None");
+
+  return buildOperations(intake).map((op) => {
+    const purpose = op.purpose_text;
+    const art6 = readArt6(basisText);
+
+    // ── No basis recorded, or no purpose to attach it to ──────────────
+    if (!art6) {
+      return {
+        operation_id: op.operation_id,
+        purpose: purpose || NOT_STATED,
+        article_6_basis: basisText || NOT_STATED,
+        justification:
+          `The record does not identify which Art. 6(1) basis is relied on for "${op.operation_label}"` +
+          (basisText ? ` — it records "${basisText}", which does not resolve to one of the six bases.` : ".") +
+          ` Lawfulness is the first principle the processing must satisfy: ${lawfulness.verbatim}` +
+          " No lawful basis can be assessed on this record.",
+        verdict: "undetermined_on_the_record" as const,
+        citation: lawfulness.citation || cit(regime, "Art. 5(1)(a)"),
+        authority_verbatim: lawfulness.verbatim,
+        status: "record_insufficient" as const,
+        information_needed:
+          `The Art. 6(1) basis relied on for "${op.operation_label}" — one of consent, contract, legal obligation, vital interests, public task, or legitimate interests — stated for this purpose specifically.`,
+      };
+    }
+
+    if (!purpose) {
+      return {
+        operation_id: op.operation_id,
+        purpose: NOT_STATED,
+        article_6_basis: art6.label,
+        justification:
+          `The record proposes ${art6.label} but states no purpose for "${op.operation_label}". ` +
+          "Every Art. 6(1) basis is measured against the purpose the processing pursues, so the basis cannot be assessed until the purpose is on the record.",
+        verdict: "undetermined_on_the_record" as const,
+        citation: cit(regime, art6.sub),
+        authority_verbatim: art6.sub === "Art. 6(1)(f)" ? li.verbatim : "",
+        status: "record_insufficient" as const,
+        information_needed:
+          `The specific purpose pursued by "${op.operation_label}", stated as an outcome, so the proposed ${art6.label} can be tested against it.`,
+      };
+    }
+
+    // ── Non-6(1)(f) bases: state the basis against the recorded purpose ─
+    if (art6.sub !== "Art. 6(1)(f)") {
+      return {
+        operation_id: op.operation_id,
+        purpose,
+        article_6_basis: art6.label,
+        justification:
+          `The record relies on ${art6.label} for the recorded purpose ("${purpose}"). ` +
+          `That reliance is assessed against the lawfulness principle: ${lawfulness.verbatim} ` +
+          "This assessment records the basis the controller has selected and the purpose it is selected for; whether the conditions of that basis are met in operation is a matter for the controller's lawfulness record, which this assessment does not substitute.",
+        verdict: "basis_supported_on_the_record" as const,
+        citation: cit(regime, art6.sub),
+        authority_verbatim: lawfulness.verbatim,
+        status: "analysed" as const,
+      };
+    }
+
+    // ── Art. 6(1)(f): the three-part test, run as a decision tree ──────
+    const alternatives = alternativesFor(intake, op);
+    const impactStated = matches(combined, IMPACT_LEXICON);
+    const vulnerable =
+      VULNERABLE_SUBJECTS.some((re) => re.test(subjects)) ||
+      categories.includes("Children's data");
+    const special = categories.some((c) => SPECIAL_CATEGORY_CATS.includes(c));
+
+    const purpose_test_met = purpose.length > 0;
+    const purpose_test_why = purpose_test_met
+      ? `Part one (purpose test): the record states the interest pursued — "${purpose}" — which is an identified interest of the controller capable of being weighed.`
+      : "Part one (purpose test): no interest is stated on the record, so there is nothing to weigh.";
+
+    const necessity_test_met = alternatives.length > 0 && alternatives.every((x) => x.rejection_reason !== NOT_STATED);
+    const necessity_test_why = necessity_test_met
+      ? `Part two (necessity test): the record identifies ${alternatives.length} alternative means (${alternatives.map((x) => x.alternative).join("; ")}) and states why each would not achieve the stated interest, applying the test the guidance sets: ${necessityTest.verbatim}`
+      : `Part two (necessity test): the record does not show that the stated interest cannot reasonably be achieved by a less intrusive means${alternatives.length > 0 ? ", because the alternatives it records carry no rejection reason" : ", because no alternative means are recorded as considered"}. On this record necessity for the purposes of Art. 6(1)(f) is not established.`;
+
+    const balancing_test_met = impactStated && (!vulnerable || safeguards.length > 0) && !special;
+    const balancing_test_why = !impactStated
+      ? `Part three (balancing test): the record does not describe the impact of the processing on ${subjects || "the data subjects"}, so their interests and fundamental rights cannot be set against the controller's interest.`
+      : special
+      ? `Part three (balancing test): the record describes the impact on ${subjects || "the data subjects"} but the data set includes special-category or children's data (${categories.filter((c) => SPECIAL_CATEGORY_CATS.includes(c)).join("; ")}), which raises the weight on the data subjects' side; the record does not show that the controller's interest survives that weighting.`
+      : vulnerable && safeguards.length === 0
+      ? `Part three (balancing test): the data subjects described (${subjects}) are in a position of dependency or reduced ability to object, and no safeguards are recorded that would reduce the effect on them, so the balance is not made out on this record.`
+      : `Part three (balancing test): the record describes the effect on ${subjects || "the data subjects"} and records the measures that reduce it (${safeguards.join("; ") || "the measures stated"}), so the controller's interest is not shown to be overridden on this record.`;
+
+    const legitimate_interests_test: LegitimateInterestsTest = {
+      purpose_test_met,
+      purpose_test_why,
+      necessity_test_met,
+      necessity_test_why,
+      balancing_test_met,
+      balancing_test_why,
+    };
+
+    const unmet: string[] = [];
+    if (!purpose_test_met) unmet.push("purpose test");
+    if (!necessity_test_met) unmet.push("necessity test");
+    if (!balancing_test_met) unmet.push("balancing test");
+
+    const head =
+      `The record relies on ${art6.label} for the recorded purpose ("${purpose}"). ` +
+      `The basis reads: ${li.verbatim} ` +
+      "It is made out only where all three of its parts hold on the record.";
+    const justification = [head, purpose_test_why, necessity_test_why, balancing_test_why].join(" ");
+
+    const information_needed = unmet.length === 0
+      ? undefined
+      : `For "${op.operation_label}", the record does not support the ${unmet.join(" or the ")}. ` +
+        (!purpose_test_met ? "State the interest pursued as an outcome. " : "") +
+        (!necessity_test_met ? "Record each less intrusive means considered and the specific reason it would not achieve that interest. " : "") +
+        (!balancing_test_met ? `Describe the effect of the processing on ${subjects || "the data subjects"} — what they lose, what they would not expect, and what they cannot avoid — and the measures that reduce it${special ? ", and state the Art. 9 condition relied on for the special-category items" : ""}.` : "");
+
+    return {
+      operation_id: op.operation_id,
+      purpose,
+      article_6_basis: art6.label,
+      justification,
+      verdict: unmet.length === 0
+        ? ("basis_supported_on_the_record" as const)
+        : ("undetermined_on_the_record" as const),
+      citation: li.citation || cit(regime, "Art. 6(1)(f)"),
+      authority_verbatim: li.verbatim,
+      legitimate_interests_test,
+      status: unmet.length === 0 ? ("analysed" as const) : ("record_insufficient" as const),
+      ...(information_needed ? { information_needed } : {}),
+    };
+  });
+}
+
 // ---------------------------------------------------------------------
 // Envelope + attach
 // ---------------------------------------------------------------------
@@ -536,6 +720,7 @@ export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
     proportionality: buildProportionality(intake),
     risk_register,
     art36_consultation: buildArt36Consultation(intake, risk_register),
+    legal_basis: buildLegalBasis(intake),
   };
 }
 
@@ -549,6 +734,23 @@ export function attachDpiaDeliverables(
     report.proportionality = built.proportionality;
     report.risk_register = built.risk_register;
     report.art36_consultation = built.art36_consultation;
+
+    // PILOT 2026-08-11 — single writer for legal basis. The deterministic
+    // findings become the surface, and the model-authored
+    // section_2_analysis.legal_basis blob is superseded by them so the
+    // skeleton reads one composed argument, not two.
+    report.legal_basis = built.legal_basis;
+    const s2 = report.section_2_analysis;
+    if (s2 && typeof s2 === "object") {
+      (s2 as Record<string, unknown>).legal_basis = built.legal_basis.map((f) => ({
+        purpose: f.purpose,
+        article_6_basis: f.article_6_basis,
+        justification: f.justification,
+        status: f.status,
+        ...(f.information_needed ? { information_needed: f.information_needed } : {}),
+      }));
+    }
+
     return {
       version: DPIA_DELIVERABLES_VERSION,
       ok: true,
@@ -558,6 +760,8 @@ export function attachDpiaDeliverables(
       risks: built.risk_register.length,
       risks_high_residual: built.risk_register.filter((r) => r.residual_band === "high").length,
       art36: built.art36_consultation.determination,
+      legal_basis: built.legal_basis.length,
+      legal_basis_insufficient: built.legal_basis.filter((b) => b.status === "record_insufficient").length,
       separation_repairs: built.art36_consultation.separation_repairs,
     };
   } catch (e) {
