@@ -151,7 +151,7 @@ Deno.test("assembly — re-homed composers land on their v4 blocks and tables re
       { risk_id: "r3_children", risk_label: "Children", risk_class: "design", severity: "Severe", source: "x", affected_rights: "y", residual_band: "moderate", measures: ["Age gating"] },
     ],
     gap_ledger: [{ field: "retention_period", dimensions: "the retention period for the triage scores", provision: "GDPR Art. 5(1)(e)", enables: "the retention determination" }],
-    authority_exhibit: { entries: [] },
+    authority_exhibit: { entries: [{ citation: "GDPR Art. 35", authority_class: "regulation" }] },
   };
   const intake = {
     organization_name: "Northwind Clinics Ltd",
