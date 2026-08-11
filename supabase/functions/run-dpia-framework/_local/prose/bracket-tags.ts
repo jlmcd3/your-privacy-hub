@@ -54,6 +54,8 @@ export interface BracketTagCounters {
   lifted_from_prose: number;
   /** asks appended to `information_needed` */
   asks_added: number;
+  /** PROMPT 4 — content-free asks skipped rather than pushed */
+  empty_asks_skipped: number;
   /** bracketed interruptions left inside prose sentences afterwards */
   interruptions_remaining: number;
   crashed: boolean;
@@ -151,8 +153,15 @@ function pushAsk(
   seen: Set<string>,
   path: string,
   what: string,
+  counters?: BracketTagCounters,
 ): boolean {
-  const dimensions = what || "the entry this document leaves blank";
+  // PROMPT 4 — a content-free ask ("the entry this document leaves blank")
+  // tells the reader nothing and is never pushed; it is counted instead.
+  const dimensions = (what ?? "").trim();
+  if (!dimensions) {
+    if (counters) counters.empty_asks_skipped += 1;
+    return false;
+  }
   const key = dimensions.toLowerCase();
   if (seen.has(key)) return false;
   seen.add(key);
@@ -170,6 +179,7 @@ export function applyBracketTagPass(
     labelled_blanks: 0,
     lifted_from_prose: 0,
     asks_added: 0,
+    empty_asks_skipped: 0,
     interruptions_remaining: 0,
     crashed: false,
   };
@@ -202,7 +212,7 @@ export function applyBracketTagPass(
       }
 
       for (const t of tags) {
-        if (pushAsk(asks, seen, path, describeTag(t))) c.asks_added += 1;
+        if (pushAsk(asks, seen, path, describeTag(t), c)) c.asks_added += 1;
       }
       c.lifted_from_prose += tags.length;
       const stripped = tidy(value.replace(BRACKET_TAG_RE, " "));
