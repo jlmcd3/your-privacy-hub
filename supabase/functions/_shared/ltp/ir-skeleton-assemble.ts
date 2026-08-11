@@ -152,8 +152,22 @@ export function buildDeadlinesProse(report: Bag): string {
       `under ${label}, notification to ${authority || "the competent supervisory authority"} without undue delay and, where feasible, not later than 72 hours after awareness (${citation})`,
     );
   }
+  // SO-FT FIX 3 (2026-08-11): the recorded US-state clocks are stated here in
+  // their OWN statutory terms. They ran silent before this fix, which left the
+  // 72-hour GDPR figure standing as if it were the whole timeline.
+  for (const d of asArray(report.state_notification_duties)) {
+    const state = s(d.state_label);
+    const citation = s(d.citation);
+    const individual = s(d.individual_deadline);
+    const regulator = s(d.regulator_deadline);
+    if (!state || !individual) continue;
+    clauses.push(
+      `under the law of ${state}, ${individual}${regulator ? `, together with ${regulator}` : ""}${citation ? ` (${citation})` : ""}`,
+    );
+  }
   return asProse(clauses);
 }
+
 
 export function buildIrSlotValues(report: Bag, intake: Bag): SlotValues {
   const escalation = buildEscalationProse(intake);
