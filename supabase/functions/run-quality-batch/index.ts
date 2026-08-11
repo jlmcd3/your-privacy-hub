@@ -2311,6 +2311,7 @@ async function runBatchInner(runId: string): Promise<void> {
           doc_index: number; doc_row_id: string;
           source_table: string; source_row_id: string;
           gen_started_at: number; isolate_count: number;
+          resurrect_attempts?: number;
         } | undefined;
         const isTransient = !POLL_TOOLS.has(tool);
 
@@ -2318,6 +2319,7 @@ async function runBatchInner(runId: string): Promise<void> {
         let sourceRowId: string;
         let genStartedAt: number;
         let isolateCount: number;
+        let resurrectAttempts = 0;
 
         if (pendingGen && pendingGen.doc_index === i) {
           docRowId = pendingGen.doc_row_id;
@@ -2325,7 +2327,9 @@ async function runBatchInner(runId: string): Promise<void> {
           sourceRowId = pendingGen.source_row_id;
           genStartedAt = pendingGen.gen_started_at;
           isolateCount = (pendingGen.isolate_count ?? 1) + 1;
+          resurrectAttempts = pendingGen.resurrect_attempts ?? 0;
           await log("info", `${docLabel}: resuming poll of ${sourceTable}/${sourceRowId} (isolate ${isolateCount}, gen elapsed ${Math.round((Date.now() - genStartedAt) / 1000)}s)`);
+
         } else {
           await log("info", `${docLabel}: building…`);
           const { data: docRow } = await admin.from("quality_run_documents").insert({
