@@ -1799,6 +1799,20 @@ Return JSON:
       console.warn("[run-li-assessment] unsupported-harm scrub failed (non-fatal):", (e as Error)?.message);
     }
 
+    // PROPOSAL 2026-08-11 (LIA) — every balancing factor's intake_evidence must
+    // point at a fact the record actually contains. Unresolvable pointers are
+    // dropped so a weighed impact can no longer ride an invented fact.
+    try {
+      const ptr = verifyLiaIntakeEvidence(reportData as Record<string, unknown>, liaIntakeObject);
+      if (ptr.checked > 0) {
+        (((reportData as any)._meta ??= {}).internal ??= {}).lia_intake_pointer_check = ptr;
+        console.log(JSON.stringify({ evt: "_lia_intake_pointer_check", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...ptr }));
+      }
+    } catch (e) {
+      console.warn("[run-li-assessment] intake-pointer check failed (non-fatal):", (e as Error)?.message);
+    }
+
+
 
     const liaFallback = applyDeterministicPostGenFallbackLia(reportData, liaTestStates);
     const finalBlacklistHits = detectBlacklistPhrases(reportData).length;
