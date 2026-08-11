@@ -1376,20 +1376,18 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const description = contractForTool
     ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
     : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
-  // QB-P14 item 1 — dpia's schema is the largest; QB-P6 richness rules push
-  // intake generation past 180s. Give dpia the same 300s ceiling cppa-risk
-  // already gets; every other tool keeps the 180s default.
-  // SO-FT timeout sweep (2026-08-11) — cppa-risk and cppa-cyber both died on
-  // "Signal timed out" in the 00:47 batch. Same remedy already proven for dpia:
-  // chunk the verbose schema AND lift the ceiling. Non-verbose default raised
-  // 180s → 240s (cppa-cyber's prior success finished within 5s of the old cap).
-  const intakeTimeoutMs = (tool === "cppa-risk" || tool === "dpia" || tool === "cppa-cyber") ? 300_000 : 240_000;
+  // SO-FT INTAKE-STREAM (2026-08-11): the fixed-ceiling approach kept failing —
+  // cppa-cyber died at 180s, cppa-risk at 300s ("Signal timed out"), each taking
+  // its whole child run with it. Intake generation now STREAMS, so the guard is
+  // an idle-gap deadline (120s with no bytes) plus a generous total ceiling,
+  // instead of a total-duration guess. Verbose schemas also chunk smaller (2)
+  // so each call is shorter and a retry is cheap.
+  const idleTimeoutMs = 120_000;
+  const totalTimeoutMs = 600_000;
 
-  // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt, cppa-cyber) produce ~1.5-2k tokens per intake;
-  // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
-  // then concatenate.
   const VERBOSE = new Set(["lia", "dpia", "governance", "cppa-risk", "cppa-admt", "cppa-cyber"]);
-  const chunkSize = VERBOSE.has(tool) ? 3 : count;
+  const chunkSize = VERBOSE.has(tool) ? 2 : count;
+
 
   // QB-P6 — expanded intake-generator system prompt. Preserves the original
   // sentence verbatim and adds five richness rules (a)–(e).
