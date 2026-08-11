@@ -113,7 +113,7 @@ export default function CrossBorderTransfersPage() {
       </Helmet>
       <ResearchPageLayout
         adAfterHeader={false}
-        sourcesLastVerified="August 10, 2026"
+        sourcesLastVerified="August 11, 2026"
         metaTitle="Cross-Border Data Transfers | End User Privacy"
         metaDescription="Reference on international data transfer mechanisms — GDPR Chapter V, the 2021 SCCs, the EU-U.S. Data Privacy Framework, Transfer Impact Assessments, and Asia-Pacific frameworks."
         header={{
@@ -121,8 +121,8 @@ export default function CrossBorderTransfersPage() {
           title: "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
           statuteCite: "GDPR Ch. V · Arts. 44–50 — legal basis for every restricted transfer",
           description:
-            "International-transfer law remains dynamic. The EU-U.S. DPF remains in force after the General Court upheld the adequacy decision in Latombe in September 2025, while an appeal is pending before the Court of Justice. This is the working reference for the mechanisms in force today.",
-          lastUpdated: "August 10, 2026",
+            "International-transfer law remains dynamic. The EU-U.S. DPF remains in force after the General Court upheld the adequacy decision in Latombe in September 2025, while an appeal is pending before the Court of Justice. The U.S. Supreme Court's June 29, 2026 decision in Trump v. Slaughter has added a new layer of uncertainty for U.S.-bound transfers. This is the working reference for the mechanisms in force today.",
+          lastUpdated: "August 11, 2026",
           feedCategory: "cross-border",
           stats: [
             { value: "Art. 45", label: "EU adequacy route" },
