@@ -683,12 +683,21 @@ export function QualityConsole({
               : "";
             zip.file(`${tr.tool}/${String(d.doc_number).padStart(2, "0")}-${shortRow}${modelSuffix}.pdf`, blob);
             ok += 1;
-          } catch (e) {
+          } catch (e: any) {
             console.error("pdf fetch failed", tr.tool, d.source_row_id, e);
             failed += 1;
+            // Mid-loop token death: stop instead of failing every remaining doc.
+            if (e?.context?.status === 401) {
+              const { data: r } = await supabase.auth.refreshSession();
+              if (!r?.session) {
+                toast.error("Session expired mid-export — sign in again and retry.", { id: tid });
+                return;
+              }
+            }
           }
         }
       }
+
       if (ok === 0) {
         toast.error(`Zip aborted — 0 of ${docTotal} PDFs rendered.`, { id: tid });
         return;
