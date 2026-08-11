@@ -21,7 +21,7 @@ Deno.test("quote-aware: periods inside a quoted span are not sentence boundaries
 
 Deno.test("quote-aware: curly quotes behave the same", () => {
   const text = "It says \u201COne. Two. Three.\u201D That settles it. A third sentence follows.";
-  const out = firstSentencesQuoteAware(text, 2);
+  const out = firstSentencesQuoteAware(text, 1);
   assert(out.includes("Three.\u201D"), out);
   assert(out.includes("That settles it."), out);
   assert(!out.includes("A third sentence"), out);
