@@ -127,6 +127,8 @@ Deno.test("branch d — approved", () => {
   assertEquals(d.determination, "approved");
   assertEquals(d.conditions, []);
   assertStringIncludes(d.why, "low or moderate residual band");
+  // PROMPT 4 rider — ratified closing clause.
+  assertStringIncludes(d.why, "no determination this assessment makes is left open");
 });
 
 Deno.test("consultation beats draft_incomplete when both hold", () => {
