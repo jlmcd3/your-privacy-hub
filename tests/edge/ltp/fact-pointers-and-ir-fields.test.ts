@@ -109,3 +109,25 @@ EU GDPR — the notification deadline is computed in the timeline table below.`;
     expect(codes).toContain("ir_forward_promise_unfulfilled");
   });
 });
+
+import { detectFabricatedNumericScores } from "../../../supabase/functions/_shared/ltp/fact-pointers.ts";
+
+describe("cyber numeric-score fabrication", () => {
+  it("flags invented per-control numeric scores in prose", () => {
+    const report = {
+      executive_summary: "MFA and logging are rated 88 and 91 respectively.",
+      controls: [
+        { control: "Authentication", score: 75, finding: "Rated Implemented; the intake records SSO with MFA." },
+        { control: "Logging", score: 70, evidence: "Maturity 87 per the intake record." },
+      ],
+    };
+    const hits = detectFabricatedNumericScores(report);
+    expect(hits.map((h) => h.path)).toEqual(expect.arrayContaining(["executive_summary", "controls[1].evidence"]));
+    expect(hits.some((h) => h.path === "controls[0].finding")).toBe(false);
+  });
+
+  it("does not flag control counts", () => {
+    const report = { executive_summary: "12 controls rated Implemented across the scored components." };
+    expect(detectFabricatedNumericScores(report)).toEqual([]);
+  });
+});
