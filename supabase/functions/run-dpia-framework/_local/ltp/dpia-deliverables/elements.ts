@@ -190,6 +190,13 @@ export const ANCHOR_KEYS = {
   legal_obligation: "lawful_basis_legal_obligation",
   vital_interests: "lawful_basis_vital_interests",
   public_task: "lawful_basis_public_task",
+  // PROMPT 7 (2026-08-11) — Section-2 coverage anchors.
+  special_categories: "special_categories_prohibition",
+  minimisation: "principle_data_minimisation",
+  purpose_limitation: "principle_purpose_limitation",
+  dpbd: "data_protection_by_design",
+  processor_contract: "processor_written_contract",
+  security: "security_appropriate_measures",
 } as const;
 
 
