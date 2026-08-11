@@ -9,9 +9,11 @@ interface RopaAccessGateProps {
 }
 
 /**
- * Gates all /ropa/* pages. RoPA Builder is included with any active
- * subscription (monthly or annual). Free / unauthenticated users see an
- * upgrade wall instead of the RoPA flow.
+ * Gates all /ropa/* pages. RoPA Builder requires an active subscription.
+ * v12 (2026-08-11): access is no longer free-for-all inside the gate —
+ * annual plans get the first build plus one update a year at no charge,
+ * everything else is $29, priced server-side in create-tool-checkout.
+ * Free / unauthenticated users still see the upgrade wall.
  */
 export function RopaAccessGate({ children }: RopaAccessGateProps) {
   const { user, isPremium, isLoading } = useSubscriptionTier();
@@ -38,12 +40,14 @@ export function RopaAccessGate({ children }: RopaAccessGateProps) {
           <Lock className="w-5 h-5" />
         </div>
         <h2 className="font-serif text-brand-navy mb-3">
-          RoPA Builder is included with a subscription
+          RoPA Builder requires a subscription
         </h2>
         <p className="text-muted-foreground mb-6 leading-relaxed">
           The Record of Processing Activities builder is available to
-          Intelligence and Professional subscribers — both monthly and
-          annual plans. It is not sold as a standalone product.
+          Intelligence and Professional subscribers. On annual plans the first
+          build is free and each subscription year includes one free update;
+          additional updates are $29. On monthly plans every build or update is
+          $29. It is not sold as a standalone product.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild size="lg" className="bg-brand-navy text-white hover:bg-brand-navy/90">
