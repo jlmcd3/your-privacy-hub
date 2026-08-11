@@ -274,15 +274,25 @@ function composeActions(report: Bag): { lead: string; body: string } {
   const lead = `The analysis identifies ${actions.length === 1 ? "one action" : `${actions.length} actions`} for the company to take, ordered below by severity.`;
   const body = actions
     .map((a, i) => {
+      // SO-FT2 FIX 7 — every action carries a responsible party. The
+      // § 7152(a)(5) negative-impact-category gap-filling item reached the
+      // rendered document with no `Responsible:` line because its emitter
+      // supplies neither `reserved_to` nor `owner`; the other three action
+      // templates do. Rather than leave one action ownerless, fall back to
+      // the accountable business owner named on the assessment record, which
+      // is the same default the action composer uses for documentation gaps.
+      const responsible = s(a.reserved_to) || s(a.owner) || s((a as Bag).owner_role_titles)
+        || "the accountable business owner named on the assessment record";
       const bits = [
         `${i + 1}. ${repairRegister(s(a.action))}`,
         s(a.statutory_basis) ? `Citation: ${s(a.statutory_basis)}.` : "",
-        s(a.reserved_to) || s(a.owner) ? `Responsible: ${s(a.reserved_to) || s(a.owner)}.` : "",
+        `Responsible: ${responsible}.`,
         s(a.deadline) ? `Timeframe: ${s(a.deadline)}${s(a.deadline_basis) ? ` (${s(a.deadline_basis)})` : ""}.` : "",
       ].filter(Boolean);
       return bits.join(" ");
     })
     .join("\n\n");
+
   return { lead, body };
 }
 
