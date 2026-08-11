@@ -388,6 +388,9 @@ function governanceToa(report: Bag, body: string): string {
     const citation = s(e.citation);
     if (!citation || seen.has(citation)) continue;
     if (!body.includes(citation)) continue; // iff-cited
+    // SO-FT FIX 2 (2026-08-11): rows that exist only to explain an omission
+    // (UK GDPR Art. 44) never enter the Table of Authorities.
+    if (e.applicable === false || isNonApplicableAuthority(citation)) continue;
     seen.add(citation);
     const cls = s(e.authority_class);
     const group = cls === "regulation" || /GDPR/i.test(citation)
