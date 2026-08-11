@@ -1019,7 +1019,7 @@ export const PRICING = {
     us_notice:    { name: 'US Privacy Notice Builder',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     dpia:         { name: 'Data Protection Impact Assessment',  dollars: 109, display: '$109',  stripePriceId: 'dpia_standalone_v2' },
     dpa:          { name: 'Custom DPA Generator',               dollars: 49,  display: '$49',  stripePriceId: 'dpa_standalone_v2' },
-    ropa:         { name: 'RoPA Builder',                       dollars: 0,   display: 'Included with subscription', stripePriceId: null },
+    ropa:         { name: 'RoPA Builder',                       dollars: 29,  display: 'Free (annual) · $29/generation (monthly)', stripePriceId: 'ropa_paid_generation' },
     eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     registration: { name: 'Registration Filings',               dollars: 59,  display: '$59',  stripePriceId: 'registration_standalone' },
     governance:   { name: 'GDPR Governance Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
@@ -1175,16 +1175,38 @@ export function isSmartTool(toolKey: string): boolean {
 /** v9 Layer 1 — included with ANY active subscription (monthly or annual).
  *  IR, Biometric, and DPA remain purchasable standalone by non-subscribers. */
 export const INCLUDED_TOOL_KEYS = [
-  'ropa', 'us_notice', 'eu_notice', 'ir_playbook', 'biometric', 'dpa',
+  'us_notice', 'eu_notice', 'ir_playbook', 'biometric', 'dpa',
 ] as const;
-const INCLUDED_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice','irPlaybook','biometric','dpa']);
+const INCLUDED_TOOL_CAMEL = new Set(['usNotice','euNotice','irPlaybook','biometric','dpa']);
 export function isIncludedTool(toolKey: string): boolean {
   return (INCLUDED_TOOL_KEYS as readonly string[]).includes(toolKey) || INCLUDED_TOOL_CAMEL.has(toolKey);
 }
 
 /** v9 Layer 3 — Smart Tools redeemable with the annual credit.
- *  CPPA tools and Registration are deliberately EXCLUDED. */
-export const ANNUAL_CREDIT_ELIGIBLE_KEYS = ['governance','lia','dpia'] as const;
+ *  CPPA tools and Registration are deliberately EXCLUDED.
+ *  v12 (2026-08-11): 'ropa' added, but it draws on its OWN credit pool
+ *  (pool='ropa', flat 1 per subscription year for BOTH Intelligence annual
+ *  and Professional annual) — never the 1-vs-3 Smart Tool pool. */
+export const ANNUAL_CREDIT_ELIGIBLE_KEYS = ['governance','lia','dpia','ropa'] as const;
+
+/** Credit pool a tool key draws from. RoPA has its own flat 1/yr pool. */
+export const ROPA_CREDIT_POOL = 'ropa' as const;
+export const SMART_TOOL_CREDIT_POOL = 'smart_tool' as const;
+export function creditPoolForTool(toolKey: string): 'ropa' | 'smart_tool' {
+  return toolKey === 'ropa' ? ROPA_CREDIT_POOL : SMART_TOOL_CREDIT_POOL;
+}
+/** Flat grant size per subscription year, by pool. RoPA is 1 for both tiers. */
+export const ROPA_ANNUAL_CREDITS_PER_YEAR = 1;
+
+/** v12 (2026-08-11) RoPA pricing policy — ratified.
+ *  ANNUAL subscribers (Intelligence annual or Professional annual, identical
+ *  treatment): the first RoPA generation is free and never charged; each
+ *  subscription year thereafter carries ONE free update; a second or later
+ *  update in the same year is $29 (ropa_paid_generation).
+ *  MONTHLY subscribers (Intelligence or Professional monthly): every RoPA
+ *  action — initial generation or update — is $29. No free tier, no cap.
+ *  RoPA is therefore OUT of the flat Layer-1 included bundle; Notices, IR
+ *  Playbook, Biometric and DPA stay included unchanged. */
 
 // v10 (2026-06-11): Layer-2 subscriber per-use rates are ANNUAL-SUBSCRIBER-ONLY.
 // Monthly subscribers pay standalone on Layer-2 tools.
