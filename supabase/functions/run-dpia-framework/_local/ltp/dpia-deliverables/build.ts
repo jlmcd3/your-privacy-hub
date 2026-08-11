@@ -446,6 +446,8 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
     out.push({
       risk_id: spec.risk_id,
       risk_label: spec.risk_label,
+      // PROMPT 8 — EDPB § 3.1 design-risk vs § 4.1.1 incident-risk.
+      risk_class: spec.risk_class,
       source: spec.source_template,
       affected_rights: spec.affected_rights,
       likelihood,

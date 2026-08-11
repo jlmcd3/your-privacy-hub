@@ -41,9 +41,37 @@ export type SlotValues = Record<string, string | null | undefined>;
 /** Composed prose for the non-fixed blocks, keyed `${sectionId}:${index}`. */
 export type ComposedBlocks = Record<string, string | null | undefined>;
 
+/**
+ * PROMPT 8 (CEO-ratified 2026-08-11) — TABLE BLOCKS.
+ *
+ * A `table` block in a spine carries NO prose at all: its `text` names the
+ * typed surface it renders (e.g. `processing_inventory.controllers`). The
+ * product's assembler supplies the rendered table, keyed `${sectionId}:${i}`
+ * exactly like a composed block. Cells are verbatim from the typed surface —
+ * this module never writes a cell and never invents a row.
+ *
+ * NO-PADDING LAW applies unchanged: a table block with no rows is OMITTED
+ * ENTIRELY, never rendered as an empty grid and never announced.
+ */
+export interface RenderedTable {
+  /** `${sectionId}:${blockIndex}` — the block this table answers. */
+  readonly key: string;
+  /** The typed surface path the spine named. */
+  readonly surface: string;
+  readonly title: string;
+  readonly columns: readonly string[];
+  readonly rows: readonly (readonly string[])[];
+  /** Optional single-line note printed under the table (verbatim). */
+  readonly note?: string;
+}
+
+export type SkeletonTables = Record<string, RenderedTable | null | undefined>;
+
 export interface RenderedParagraph {
   readonly kind: string;
   readonly text: string;
+  /** Present only on `kind: "table"` paragraphs. */
+  readonly table?: RenderedTable;
 }
 
 export interface RenderedSection {
@@ -58,6 +86,8 @@ export interface RenderedSkeletonDocument {
   readonly title: string;
   readonly subtitle: string;
   readonly sections: readonly RenderedSection[];
+  /** PROMPT 8 — every table rendered in this document, in document order. */
+  readonly tables?: readonly RenderedTable[];
 }
 
 const SENTINEL = "\u0000";
@@ -112,22 +142,35 @@ export interface RenderSkeletonArgs {
   readonly spineVersion: string;
   readonly values: SlotValues;
   readonly composed: ComposedBlocks;
+  /** PROMPT 8 — rendered tables for `table` blocks, keyed `${sectionId}:${i}`. */
+  readonly tables?: SkeletonTables;
 }
 
 export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkeletonDocument {
   const sections: RenderedSection[] = [];
+  const tables: RenderedTable[] = [];
 
   for (const section of args.sections) {
     const paragraphs: RenderedParagraph[] = [];
     section.blocks.forEach((block, i) => {
+      const key = `${section.id}:${i}`;
       if (block.kind === "skeleton") {
         const text = renderFixed(block.text, args.values);
         if (text) paragraphs.push({ kind: "skeleton", text });
         return;
       }
+      if (block.kind === "table") {
+        const t = args.tables?.[key];
+        // NO-PADDING LAW: a table with no rows is honestly absent.
+        if (!t || !Array.isArray(t.rows) || t.rows.length === 0) return;
+        const table: RenderedTable = { ...t, key, surface: t.surface || block.text.trim() };
+        tables.push(table);
+        paragraphs.push({ kind: "table", text: "", table });
+        return;
+      }
       // lead / generated / conditional / rule — all supplied by the product
       // composer. No content means the block is honestly absent.
-      const composed = args.composed[`${section.id}:${i}`];
+      const composed = args.composed[key];
       if (composed && composed.trim()) {
         paragraphs.push({ kind: block.kind, text: repairRegister(composed.trim()) });
       }
@@ -143,7 +186,18 @@ export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkelet
     title: args.title,
     subtitle: renderFixed(args.subtitle, args.values),
     sections,
+    ...(tables.length > 0 ? { tables } : {}),
   };
+}
+
+/** Flatten one rendered table to text (title, header row, cells). */
+export function skeletonTableToText(t: RenderedTable): string {
+  const lines: string[] = [];
+  if (t.title) lines.push(t.title);
+  if (t.columns.length) lines.push(t.columns.join(" | "));
+  for (const row of t.rows) lines.push(row.join(" | "));
+  if (t.note) lines.push(t.note);
+  return lines.join("\n");
 }
 
 export interface ConformanceFinding {
@@ -246,7 +300,11 @@ export function skeletonDocumentToText(doc: RenderedSkeletonDocument): string {
   const parts: string[] = [doc.title, doc.subtitle, ""];
   for (const s of doc.sections) {
     parts.push(s.title, "");
-    for (const p of s.paragraphs) parts.push(p.text, "");
+    for (const p of s.paragraphs) {
+      // PROMPT 8 — table cells are document content: the Table of Authorities'
+      // iff-cited test and the grader both read this flattening.
+      parts.push(p.table ? skeletonTableToText(p.table) : p.text, "");
+    }
   }
   return parts.join("\n").trimEnd();
 }
