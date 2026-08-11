@@ -287,7 +287,7 @@ export function buildChildFactor(intake: unknown): ChildFactorFinding {
     determination = "children_in_scope";
     weighs = true;
     application =
-      `Article 6(1)(f) singles the child out as the case in which the data subject's interests are most likely to override the controller's. On this record children are among the data subjects, so that clause is engaged rather than hypothetical. ${support.verbatim} weighs against the controller's interest here, and ${protection.verbatim.charAt(0).toLowerCase()}${protection.verbatim.slice(1)}`;
+      `Article 6(1)(f) singles the child out as the case in which the data subject's interests are most likely to override the controller's. On the record as documented children are among the data subjects, so that clause is engaged rather than hypothetical. ${support.verbatim} weighs against the controller's interest here, and ${protection.verbatim.charAt(0).toLowerCase()}${protection.verbatim.slice(1)}`;
   } else if (saysNo || (vulnerableAnswered && !childInVulnerable)) {
     determination = "children_not_in_scope";
     application = saysNo
@@ -532,7 +532,7 @@ export function buildDetermination(
         } so the choice is available before the processing runs and not only after it, and to name the role that operates it.`
         : "Give the data subjects an unconditional, standing means of stopping this specific use at the point where they would first encounter it, going beyond the Article 21 objection right the GDPR already requires.",
       why_it_moves_the_balance:
-        `Expectation is only partly satisfied on this record, so the factor sits on the data-subject side of the balance until the individual can decline the specific use${
+        `Expectation is only partly satisfied on the record as documented, so the factor sits on the data-subject side of the balance until the individual can decline the specific use${
           recordedStop ? " at the point the use is met" : ""
         }. ${beyond.verbatim}, and an unconditional stop on this use is such a safeguard.`,
       goes_beyond_gdpr_obligation: true,
@@ -605,7 +605,7 @@ export function buildDetermination(
     status = "record_insufficient";
     const names = [...new Set(open)].map(factorLabel);
     rawWhy =
-      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — are not established on this record, and the mitigations below are the steps that would close each of them. ${conditions.verbatim}`;
+      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — are not established on the record as documented, and the mitigations below are the steps that would close each of them. ${conditions.verbatim}`;
     information_needed = [
       ...new Set(
         [
@@ -628,11 +628,11 @@ export function buildDetermination(
     rebalance = true;
     const names = [...new Set(failing)].map(factorLabel);
     rawWhy =
-      `Legitimate interests carries this processing only if the mitigations below are adopted: the interest and its necessity hold on this record, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands, and where the mitigations are adopted the balancing test must be performed again before the processing is relied on. ${frameStatuteQuote("Article 6(1)(f)", basis.verbatim)} ${overrideAnchor.verbatim}`;
+      `Legitimate interests carries this processing only if the mitigations below are adopted: the interest and its necessity hold on the record as documented, but ${names.join(" and ")} sit on the data subject's side of the balance as it stands, and where the mitigations are adopted the balancing test must be performed again before the processing is relied on. ${frameStatuteQuote("Article 6(1)(f)", basis.verbatim)} ${overrideAnchor.verbatim}`;
   } else {
     outcome = "legitimate_interests_available";
     rawWhy =
-      `Legitimate interests carries this processing as the record stands: the interest is stated, the record shows the comparison against less intrusive means, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. ${frameStatuteQuote("Article 6(1)(f)", basis.verbatim)} This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
+      `Legitimate interests carries this processing as the record stands: the interest is stated, the comparison against less intrusive means is documented, and no factor weighed above places the data subjects' interests, rights and freedoms above the interest pursued. ${frameStatuteQuote("Article 6(1)(f)", basis.verbatim)} This determination is bound to the record as it stands; if a recorded safeguard is not implemented as stated, or the processing reaches data subjects outside the recorded relationship, the balance must be re-run.`;
   }
 
   const { kept, moved, repairs } = splitExposure(rawWhy);
@@ -700,7 +700,7 @@ export const ADM_DEFAULT_LABEL: Record<string, string> = {
     "prohibited unless an Article 22(2) exception applies",
   both_defaults_stated:
     "governed by two different defaults, each stated on its own terms",
-  not_applicable: "not applicable on this record",
+  not_applicable: "not applicable on the record as documented",
 };
 
 export function buildAutomatedDecisionAnalysis(

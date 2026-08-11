@@ -302,7 +302,7 @@ function provisionalPostureInstance(plan: RenderPlan): TemplateInstance | null {
   if (completeness.complete) return null;
   const support = anyPresentBenefit(plan)
     ? "the benefits, negative impacts, and safeguards recorded so far are stated as documented, and the record does not yet support a completed benefit-and-impact conclusion in either direction"
-    : "the record does not yet document benefits that can be weighed against the negative impacts identified, so no benefit-and-impact conclusion is supported on this record";
+    : "the record does not yet document benefits that can be weighed against the negative impacts identified, so no benefit-and-impact conclusion is supported on the record as documented";
   const outstanding = joinList(completeness.reasons.map((r) => COMPLETENESS_REASON_CLAUSES[r]));
   if (!outstanding) return null; // fill-or-omit
   return {
@@ -483,7 +483,7 @@ function balanceInstance(plan: RenderPlan): TemplateInstance {
       template_id: "T.risk.summary.docs",
       ctx: {
         docs_completion_clause:
-          "records negative impacts that the documented benefits and safeguards do not, on this record, support a benefits-outweigh conclusion against; the weighing is reserved to the customer and qualified legal counsel and the record does not yet complete",
+          "records negative impacts that the documented benefits and safeguards do not, on the record as documented, support a benefits-outweigh conclusion against; the weighing is reserved to the customer and qualified legal counsel and the record does not yet complete",
         __cite: { PINPOINT_7152A: BALANCE_ANCHOR.pinpoint },
       },
     };
@@ -1006,7 +1006,7 @@ function composePriorityActions(plan: RenderPlan): TemplateInstance[] {
       element_short_label: label,
       pinpoint: f.anchor.pinpoint,
       customer_recorded_fact_clause: f.present_in_intake
-        ? `the record shows ${lcFirst(label)} but the supporting detail is thin`
+        ? `the company has indicated ${lcFirst(label)} but the supporting detail is thin`
         : `${lcFirst(label)} is not present on ${entity}'s record`,
       gap_or_consequence_clause: `the § 7152(a) record cannot be relied upon for ${lcFirst(label)} without further documentation`,
       compliance_guidance_sentence: `Document ${lcFirst(label)} in the assessment record with the specificity ${f.anchor.pinpoint} requires.`,

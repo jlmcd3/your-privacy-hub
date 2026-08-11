@@ -13,6 +13,12 @@
 //     ENTIRELY. Never padded, never announced.
 //   * a sentence-level slot resolved to `null` drops its whole sentence; an
 //     inline clause slot resolved to `""` drops just the clause.
+//   * D3 SUPERSESSION: every COMPOSED block is swept through `repairRegister`
+//     on the way into the document, so no composer — model-authored or a
+//     hardcoded template string — can land the v3 banned register family in a
+//     shipped document. Fixed spine prose is byte-pinned law and untouched.
+
+import { repairRegister } from "../ltp/register-repair.ts";
 
 export interface SpineBlockLike {
   readonly kind: string;
@@ -123,7 +129,7 @@ export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkelet
       // composer. No content means the block is honestly absent.
       const composed = args.composed[`${section.id}:${i}`];
       if (composed && composed.trim()) {
-        paragraphs.push({ kind: block.kind, text: composed.trim() });
+        paragraphs.push({ kind: block.kind, text: repairRegister(composed.trim()) });
       }
     });
     if (paragraphs.length > 0) {

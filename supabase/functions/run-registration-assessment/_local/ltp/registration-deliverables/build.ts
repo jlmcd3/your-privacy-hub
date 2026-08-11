@@ -372,7 +372,7 @@ function vtLimbs(intake: I): ThresholdAnalysis["limbs"] {
         ? "Cannot be evaluated: the record does not state whether a direct relationship exists."
         : noRel
         ? "The absence of a direct relationship engages the Vermont definition."
-        : "Vermont's statute illustrates a direct relationship by reference to past or present customers, clients, subscribers, users and registered users; the record shows that relationship exists and the definition is not engaged.",
+        : "Vermont's statute illustrates a direct relationship by reference to past or present customers, clients, subscribers, users and registered users; the company has indicated that relationship exists and the definition is not engaged.",
     },
   ];
 }
@@ -645,7 +645,7 @@ function buildFilingReadiness(intake: I, spec: StateSpec): FilingReadiness {
     ready_to_file === true
       ? `Every element ${row.citation} requires the filing to contain is documented, so the filing is ready on its face. Readiness on its face is not a substitute for review of the filing itself.`
       : ready_to_file === false
-      ? `The record shows ${missing.length} element(s) ${row.citation} requires are not yet documented: ${missing.map((m) => m.item).join("; ")}. The filing is not ready.`
+      ? `The company has not documented ${missing.length} element(s) ${row.citation} requires: ${missing.map((m) => m.item).join("; ")}. The filing is not ready.`
       : `Readiness cannot be assessed: the record is silent on ${unknown.length} element(s) ${row.citation} requires.`;
 
   return {
@@ -704,7 +704,7 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     application = `Article 3(2) is engaged, so Art. 27(1) prima facie requires a written designation. The record does not show large-scale special-category processing, large-scale monitoring or broker activity, so the ${exemptionRow.citation} exemption for occasional low-risk processing is live but not established: the record does not evidence that the processing is occasional, and "occasional" is the limb the exemption turns on.`;
   } else {
     verdict = "engaged";
-    application = `Article 3(2) is engaged and the ${exemptionRow.citation} exemption is unavailable: the record shows processing that is not occasional and that involves large-scale monitoring, special categories or brokered data. A representative in ${territory} must be designated in writing.`;
+    application = `Article 3(2) is engaged and the ${exemptionRow.citation} exemption is unavailable: the company has indicated processing that is not occasional and that involves large-scale monitoring, special categories or brokered data. A representative in ${territory} must be designated in writing.`;
   }
 
   return {
@@ -901,7 +901,7 @@ function buildCorpusPending(intake: I): CorpusPendingFlag[] {
       ],
       status: "record_insufficient",
       note:
-        "The record indicates AI systems are in use, which raises the question whether the EU database registration duties apply. This assessment does not answer it: the operative text of Reg. (EU) 2024/1689 is not yet in this product's verified corpus, and stating a conclusion without the provision in front of it would be assertion rather than analysis. Not yet assessable — corpus pending.",
+        "The company has indicated AI systems are in use, which raises the question whether the EU database registration duties apply. This assessment does not answer it: the operative text of Reg. (EU) 2024/1689 is not yet in this product's verified corpus, and stating a conclusion without the provision in front of it would be assertion rather than analysis. Not yet assessable — corpus pending.",
     },
   ];
 }

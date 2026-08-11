@@ -696,10 +696,10 @@ function buildIlDuties(
       ? `Destruction trigger described: "${trigger}".`
       : "The record describes no destruction trigger.",
     !schedule
-      ? "The duty to comply with an established schedule presupposes one. The record establishes no schedule, so compliance cannot be shown."
+      ? "The duty to comply with an established schedule presupposes one. No schedule is documented, so compliance cannot be shown."
       : trigger
       ? `The record describes an operative destruction trigger, which is what compliance with the established schedule consists of on these facts. § 15(a) qualifies the duty only by a valid warrant or subpoena.`
-      : "The record establishes a schedule but describes no trigger on which destruction actually occurs, so compliance cannot be assessed.",
+      : "A schedule is documented, but no trigger on which destruction actually occurs is described, so compliance cannot be assessed.",
     !schedule ? "not_satisfied" : trigger ? "satisfied" : "record_insufficient",
     !schedule || trigger
       ? undefined
@@ -1515,7 +1515,7 @@ function buildConsequence(
     unresolved_on_record,
     exposure_surfaces,
     separation_note:
-      "The two lists above state what the record shows about compliance with the duties themselves. The exposure surfaces state who may enforce and by what route. They are kept apart deliberately: a duty is satisfied or not on its own terms, and who can sue on a breach does not change that answer.",
+      "The two lists above state what the company has indicated about compliance with the duties themselves. The exposure surfaces state who may enforce and by what route. They are kept apart deliberately: a duty is satisfied or not on its own terms, and who can sue on a breach does not change that answer.",
   };
 }
 

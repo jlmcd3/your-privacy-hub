@@ -164,10 +164,10 @@ export function buildDemonstrabilityFindings(intake: unknown): DemonstrabilityFi
     }
 
     const application = present === "yes"
-      ? `The record shows this duty is discharged and, on its face, evidenced: ${d.artifact.charAt(0).toLowerCase()}${d.artifact.slice(1)} would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable — confirm it against the source system before relying on this finding.`
+      ? `The company has indicated this duty is discharged and, on its face, evidenced: ${d.artifact.charAt(0).toLowerCase()}${d.artifact.slice(1)} would be the artifact produced on request. Article 5(2) is satisfied for this duty only if that artifact is current and retrievable — confirm it against the source system before relying on this finding.`
       : present === "partial"
-      ? `The record shows the duty is partly discharged. ${d.artifact} would exist in incomplete form, which is enough to describe the measure but not enough to demonstrate compliance with it: an authority asking for the artifact would receive a partial answer.`
-      : `The record shows the duty is not discharged. There is no ${d.artifact.charAt(0).toLowerCase()}${d.artifact.slice(1)} to produce, so this duty is currently unevidenced for the purposes of Article 5(2).`;
+      ? `The company has indicated the duty is partly discharged. ${d.artifact} would exist in incomplete form, which is enough to describe the measure but not enough to demonstrate compliance with it: an authority asking for the artifact would receive a partial answer.`
+      : `The company has indicated the duty is not discharged. There is no ${d.artifact.charAt(0).toLowerCase()}${d.artifact.slice(1)} to produce, so this duty is currently unevidenced for the purposes of Article 5(2).`;
 
     return {
       key: d.key,
@@ -320,7 +320,7 @@ export function buildArt30ExemptionDetermination(intake: unknown): Art30Exemptio
       standard: a.verbatim,
       record_fact: `The record puts headcount in the ${size} band, below 250 persons. ${defeated.map((c) => c.basis).join(" ")}`,
       application:
-        `The exemption is defeated. Any one of the three conditions removes it, and on this record ${defeated.length === 1 ? "one applies" : `${defeated.length} apply`}: ${defeated.map((c) => c.label).join("; ")}. The Article 30(1) record duty therefore applies in full notwithstanding the headcount.`,
+        `The exemption is defeated. Any one of the three conditions removes it, and on the record as documented ${defeated.length === 1 ? "one applies" : `${defeated.length} apply`}: ${defeated.map((c) => c.label).join("; ")}. The Article 30(1) record duty therefore applies in full notwithstanding the headcount.`,
       verdict: "not_applicable",
       status: "analysed",
       under_250_employees: true,
@@ -354,7 +354,7 @@ export function buildArt30ExemptionDetermination(intake: unknown): Art30Exemptio
     standard: a.verbatim,
     record_fact: `The record puts headcount in the ${size} band, below 250 persons, with no special-category processing, no standing processing and no likely risk to rights and freedoms established.`,
     application:
-      "On this record none of the three defeating conditions is met, so the exemption is available. It is a narrow one: it lapses the moment processing becomes other than occasional, touches Article 9(1) data, or becomes likely to result in a risk to rights and freedoms.",
+      "On the record as documented none of the three defeating conditions is met, so the exemption is available. It is a narrow one: it lapses the moment processing becomes other than occasional, touches Article 9(1) data, or becomes likely to result in a risk to rights and freedoms.",
     verdict: "satisfied",
     status: "analysed",
     under_250_employees: true,
@@ -387,8 +387,8 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
 
   const triggerReasons = [
     limbA ? `(a) applies: the record puts the controller in the ${f.sector} sector, processing carried out by a public authority or body.` : "",
-    limbB ? `(b) applies: the record shows core activities at the ${f.size} scale involving ${f.dataCategories.join(", ")}, which is regular and systematic monitoring of data subjects on a large scale.` : "",
-    limbC ? `(c) applies: the record shows large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}).` : "",
+    limbB ? `(b) applies: the company has indicated core activities at the ${f.size} scale involving ${f.dataCategories.join(", ")}, which is regular and systematic monitoring of data subjects on a large scale.` : "",
+    limbC ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}).` : "",
   ].filter(Boolean);
 
   const designation_trigger: Finding = !f.dpoStatus || f.dpoStatus === "n/a"
@@ -412,7 +412,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       record_fact: `The record answers the DPO question "${f.dpoStatus}" for a ${f.size} organisation in the ${f.sector || "unstated"} sector.`,
       application: required
         ? `Designation is mandatory here, not discretionary. ${triggerReasons.join(" ")} ${hasFormal ? "A formal DPO is designated, which meets the trigger; what remains to be tested is position and task coverage, not existence." : hasInformal ? "An informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal and the contact details have been published and communicated to the supervisory authority." : "No designation is recorded, so the Article 37(1) duty is unmet on the face of the record."}`
-        : `None of the three limbs of Article 37(1) is established on this record: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation is therefore voluntary. ${hasFormal ? "A DPO has nonetheless been designated; once designated, Articles 38 and 39 apply in full — the voluntary character of the appointment does not soften them." : "Nothing in the record requires one."}`,
+        : `None of the three limbs of Article 37(1) is established on the record as documented: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation is therefore voluntary. ${hasFormal ? "A DPO has nonetheless been designated; once designated, Articles 38 and 39 apply in full — the voluntary character of the appointment does not soften them." : "Nothing in the record requires one."}`,
       verdict: required ? (hasFormal ? "satisfied" : "not_satisfied") : "not_applicable",
       status: "analysed",
     };
@@ -452,7 +452,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       standard: indep.verbatim,
       record_fact: none ? "No data protection officer or privacy lead is recorded." : "The record does not answer the DPO question.",
       application: none
-        ? "Article 38 has no subject on this record: there is no designated officer whose position could be tested. If designation is required under Article 37(1), the Article 38 duties crystallise on appointment."
+        ? "Article 38 has no subject on the record as documented: there is no designated officer whose position could be tested. If designation is required under Article 37(1), the Article 38 duties crystallise on appointment."
         : "",
       verdict: none ? "not_applicable" : "record_insufficient",
       status: none ? "analysed" : "record_insufficient",
@@ -489,7 +489,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       standard: tasks.verbatim,
       record_fact: none ? "No data protection officer is recorded." : "The record does not answer the DPO question.",
       application: none
-        ? "Article 39 has no subject on this record. Where no officer is designated the tasks it lists are not extinguished — they remain controller duties under Articles 5(2) and 24(1) and must be owned by someone."
+        ? "Article 39 has no subject on the record as documented. Where no officer is designated the tasks it lists are not extinguished — they remain controller duties under Articles 5(2) and 24(1) and must be owned by someone."
         : "",
       verdict: none ? "not_applicable" : "record_insufficient",
       status: none ? "analysed" : "record_insufficient",
@@ -659,7 +659,7 @@ export function buildAccountabilityDetermination(
 
   const reasoning = status === "record_insufficient"
     ? `The record does not yet support a determination. ${unknownCount} of ${demonstrability.length} accountability duties are unanswered, and the Article 24(1) factors or review evidence are incomplete. Article 5(2) places the burden on the controller to be able to demonstrate compliance, so an unanswered duty is not neutral — it is an unevidenced duty until the artifact is produced.`
-    : `Demonstrability: ${evidenced} of ${demonstrability.length} accountability duties on this record are evidenced by an artifact the controller could produce to a supervisory authority; ${unevidenced.length} ${unevidenced.length === 1 ? "is" : "are"} not. Appropriateness: ${riskCalibration.verdict === "satisfied" ? "the measure set is calibrated to the nature, scope, context and purposes Article 24(1) names" : "the measure set is not calibrated to the nature, scope, context and purposes Article 24(1) names"}. Review: ${review.verdict === "satisfied" ? "the measures are reviewed and updated on a defined cadence that has actually been executed" : review.verdict === "partially_satisfied" ? "the review cadence is defined but too infrequent to carry the second sentence of Article 24(1) unaided" : "the measures are not on a defined review cadence"}. Taken together the controller ${worst === "satisfied" ? "can, on this record, demonstrate compliance with measures appropriate to its risk" : worst === "partially_satisfied" ? "can demonstrate compliance in part only; the unevidenced duties below are where an authority's first request would land" : "cannot presently demonstrate compliance to the standard Article 5(2) sets"}.`;
+    : `Demonstrability: ${evidenced} of ${demonstrability.length} accountability duties on the record as documented are evidenced by an artifact the controller could produce to a supervisory authority; ${unevidenced.length} ${unevidenced.length === 1 ? "is" : "are"} not. Appropriateness: ${riskCalibration.verdict === "satisfied" ? "the measure set is calibrated to the nature, scope, context and purposes Article 24(1) names" : "the measure set is not calibrated to the nature, scope, context and purposes Article 24(1) names"}. Review: ${review.verdict === "satisfied" ? "the measures are reviewed and updated on a defined cadence that has actually been executed" : review.verdict === "partially_satisfied" ? "the review cadence is defined but too infrequent to carry the second sentence of Article 24(1) unaided" : "the measures are not on a defined review cadence"}. Taken together the controller ${worst === "satisfied" ? "can, on the record as documented, demonstrate compliance with measures appropriate to its risk" : worst === "partially_satisfied" ? "can demonstrate compliance in part only; the unevidenced duties below are where an authority's first request would land" : "cannot presently demonstrate compliance to the standard Article 5(2) sets"}.`;
 
   return {
     standard_demonstrability: acct.verbatim,

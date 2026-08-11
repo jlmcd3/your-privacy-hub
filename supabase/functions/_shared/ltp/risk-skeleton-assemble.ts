@@ -51,18 +51,13 @@ function asProse(items: readonly string[]): string {
   return `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }
 
-/** Deterministic register repair — attribution voice is law (v3 bans). */
-export function repairRegister(text: string): string {
-  let out = text;
-  out = out.replace(/\bOn this record\b/g, "On the record as documented");
-  out = out.replace(/\bon this record\b/g, "on the record as documented");
-  out = out.replace(/\bThe record shows\b/g, "The company has indicated");
-  out = out.replace(/\bthe record shows\b/g, "the company has indicated");
-  out = out.replace(/\b[Tt]he record (reflects|indicates|demonstrates|establishes)\b/g,
-    (_m, _v) => "the company has indicated");
-  out = out.replace(/\bAs the record makes clear,?\s*/g, "");
-  return out.replace(/\s{2,}/g, " ").trim();
-}
+/**
+ * Deterministic register repair — attribution voice is law (v3 bans).
+ * Canonical implementation now lives in `./register-repair.ts` so the render
+ * layer can apply it too; re-exported here so every existing import is stable.
+ */
+export { repairRegister } from "./register-repair.ts";
+import { repairRegister } from "./register-repair.ts";
 
 function firstSentence(text: string): string {
   const t = text.trim();

@@ -447,7 +447,7 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
       "necessity_details.why_consent_not_used — whether consent under Article 6(1)(a) could deliver this purpose, and if not, what specifically it would fail to achieve.";
   } else {
     application =
-      `Every alternative the record names, consent included, carries a recorded reason for being inadequate. The necessity limb is therefore supported by a comparison rather than an assertion: the record shows what else was available and what each option would have failed to achieve.`;
+      `Every alternative the record names, consent included, carries a recorded reason for being inadequate. The necessity limb is therefore supported by a comparison rather than an assertion: the comparison identifies what else was available and what each option would have failed to achieve.`;
   }
 
   return {
