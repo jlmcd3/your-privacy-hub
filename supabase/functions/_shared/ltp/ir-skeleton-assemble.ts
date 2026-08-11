@@ -425,7 +425,9 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
   const duties = asArray(report.notification_duties);
   if (duties.length === 0) return "";
   const clock = buildAwarenessClockClause(intake);
+  let clockStated = false;
   const blocks: string[] = [];
+
 
   for (const d of duties) {
     const label = s(d.regime_label) || "the regime in scope";
