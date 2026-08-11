@@ -455,8 +455,13 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
         ),
       );
     }
+    // SO-FT2 FIX 3 — the actual awareness moment and the computed deadline,
+    // stated next to the duty rather than deferred to an analysis the reader
+    // never sees.
+    if (clock && verdict !== "notification_not_required_unlikely_risk") bits.push(clock);
     const why = s(sa.why);
     if (why) bits.push(stop(noStop(firstSentences(why, 3))));
+
     const parallel = s(sa.parallel_duty_note);
     if (parallel) bits.push(stop(noStop(firstSentences(parallel, 2))));
     const needed = s(sa.information_needed);
