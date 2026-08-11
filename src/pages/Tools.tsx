@@ -394,7 +394,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
       "Activities are organised per-platform and per-jurisdiction. Each entry captures the lawful basis, data categories, recipients, retention rules, and international transfer safeguards in the structure supervisory authorities expect to see — with prompts calibrated to your sector and the platforms you've already named.",
-      "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. RoPA Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
+      "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. RoPA Builder requires an Intelligence or Professional subscription and is not sold as a standalone product. On annual plans the first build is free and each subscription year includes one free update; additional updates are $29. On monthly plans each build or update is $29.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -561,7 +561,7 @@ const PRICING_GRID: [string, string][] = [
   ["DPA Generator", `Included with subscription · ${PRICING.tools.dpa.display} standalone`],
   ["Incident Response Playbook", `Included with subscription · ${PRICING.tools.ir_playbook.display} standalone`],
   ["Biometric Privacy Check", `Included with subscription · ${PRICING.tools.biometric.display} standalone`],
-  ["RoPA Builder", "Included with subscription"],
+  ["RoPA Builder", "Free on annual plans (first build + 1 update/yr), then $29 · $29 per build on monthly"],
   ["U.S. Privacy Notice Builder", "Included with subscription"],
   ["EU/UK Privacy Notice Builder", "Included with subscription"],
   ["Registration Manager", `${PRICING.tools.registration.display} (Convenience)`],

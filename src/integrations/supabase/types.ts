@@ -99,6 +99,7 @@ export type Database = {
           environment: string
           granted_at: string
           id: string
+          pool: string
           redeemed_assessment_id: string | null
           redeemed_at: string | null
           redeemed_tool: string | null
@@ -111,6 +112,7 @@ export type Database = {
           environment?: string
           granted_at?: string
           id?: string
+          pool?: string
           redeemed_assessment_id?: string | null
           redeemed_at?: string | null
           redeemed_tool?: string | null
@@ -123,6 +125,7 @@ export type Database = {
           environment?: string
           granted_at?: string
           id?: string
+          pool?: string
           redeemed_assessment_id?: string | null
           redeemed_at?: string | null
           redeemed_tool?: string | null

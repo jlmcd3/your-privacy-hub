@@ -372,13 +372,25 @@ export async function handleSubscriptionEvent(
       .toISOString()
       .split("T")[0];
     const creditsToGrant = subscriptionType === "pro_annual" ? 3 : 1;
-    const rows = Array.from({ length: creditsToGrant }, (_, i) => ({
+    const rows: Record<string, unknown>[] = Array.from({ length: creditsToGrant }, (_, i) => ({
       user_id: userId,
       client_id: null,
       cycle_start: cycleStart,
       credit_index: i + 1,
       environment: env,
+      pool: "smart_tool",
     }));
+    // v12 (2026-08-11) — RoPA draws on its OWN pool: flat 1 per subscription
+    // year for BOTH Intelligence annual and Professional annual. Never the
+    // 1-vs-3 Smart Tool formula.
+    rows.push({
+      user_id: userId,
+      client_id: null,
+      cycle_start: cycleStart,
+      credit_index: 1,
+      environment: env,
+      pool: "ropa",
+    } as any);
     const { error: creditErr } = await sb
       .from("annual_tool_credits")
       .insert(rows);

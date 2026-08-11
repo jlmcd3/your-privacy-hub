@@ -96,7 +96,7 @@ const TOOLS: Tool[] = [
     icon: Database,
     title: "RoPA Builder",
     blurb: "Build and maintain your Article 30 Record of Processing Activities — calibrated to your platforms and jurisdictions.",
-    price: "Included with any subscription",
+    price: "Free on annual plans · $29 per build on monthly",
     cta: "Build RoPA",
     href: "/ropa-builder",
   },
@@ -157,9 +157,10 @@ export default function ProToolsBanner() {
             </h2>
             <p className="text-blue-100 text-sm md:text-base leading-relaxed">
               Structured assessments and generated documents that draw from 3,700+ enforcement
-              decisions — designed for professional review. RoPA, U.S. and EU/UK notices, IR
+              decisions — designed for professional review. U.S. and EU/UK notices, IR
               Playbook, Biometric Check, and the DPA Generator are included with any active
-              subscription. {ANNUAL_CREDIT.marketingLabel}.
+              subscription; RoPA is free on annual plans (first build plus one update a year,
+              then $29) and $29 per build on monthly plans. {ANNUAL_CREDIT.marketingLabel}.
             </p>
           </div>
           <Button
