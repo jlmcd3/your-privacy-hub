@@ -1001,9 +1001,12 @@ export function buildDecision(
       determination: "draft_incomplete",
       conditions: [],
       blockers,
-      why:
-        `This assessment is not yet capable of a sign-off determination: ${blockers.length === 1 ? "one point the determination turns on is" : `${blockers.length || openBands.length} points the determination turns on are`} unresolved on the company's answers${blockers.length ? ` — ${blockers.join(" ")}` : ""}`.trim().replace(/\s+$/, "") +
-        (blockers.length ? "" : "."),
+      why: (() => {
+        const n = blockers.length || openBands.length;
+        const head =
+          `This assessment is not yet capable of a sign-off determination: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved on the company's answers`;
+        return blockers.length ? `${head} — ${blockers.join(" ")}` : `${head}.`;
+      })(),
       citation: art36Citation,
       rule_id: "dpia_decision_v1",
     };
