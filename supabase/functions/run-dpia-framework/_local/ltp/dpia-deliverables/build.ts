@@ -837,7 +837,6 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         narrative: combined,
         reasons,
         codes,
-974,
         categories,
       });
 
