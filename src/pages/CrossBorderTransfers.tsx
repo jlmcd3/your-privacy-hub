@@ -113,7 +113,7 @@ export default function CrossBorderTransfersPage() {
       </Helmet>
       <ResearchPageLayout
         adAfterHeader={false}
-        sourcesLastVerified="August 10, 2026"
+        sourcesLastVerified="August 11, 2026"
         metaTitle="Cross-Border Data Transfers | End User Privacy"
         metaDescription="Reference on international data transfer mechanisms — GDPR Chapter V, the 2021 SCCs, the EU-U.S. Data Privacy Framework, Transfer Impact Assessments, and Asia-Pacific frameworks."
         header={{
@@ -121,8 +121,8 @@ export default function CrossBorderTransfersPage() {
           title: "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
           statuteCite: "GDPR Ch. V · Arts. 44–50 — legal basis for every restricted transfer",
           description:
-            "International-transfer law remains dynamic. The EU-U.S. DPF remains in force after the General Court upheld the adequacy decision in Latombe in September 2025, while an appeal is pending before the Court of Justice. This is the working reference for the mechanisms in force today.",
-          lastUpdated: "August 10, 2026",
+            "International-transfer law remains dynamic. The EU-U.S. DPF remains in force after the General Court upheld the adequacy decision in Latombe in September 2025, while an appeal is pending before the Court of Justice. The U.S. Supreme Court's June 29, 2026 decision in Trump v. Slaughter has added a new layer of uncertainty for U.S.-bound transfers. This is the working reference for the mechanisms in force today.",
+          lastUpdated: "August 11, 2026",
           feedCategory: "cross-border",
           stats: [
             { value: "Art. 45", label: "EU adequacy route" },
@@ -202,7 +202,8 @@ export default function CrossBorderTransfersPage() {
               { label: "EO 14086", href: "https://www.federalregister.gov/documents/2022/10/14/2022-22520/enhancing-safeguards-for-united-states-signals-intelligence-activities" },
             ],
             content: `<p>The EU-U.S. Data Privacy Framework, adopted July 2023, replaced the invalidated <a href="https://curia.europa.eu/juris/document/document.jsf?docid=228677" target="_blank" rel="noopener noreferrer">Privacy Shield</a>. U.S. organizations self-certify to the <a href="https://www.dataprivacyframework.gov/s/article/How-to-Join-the-DPF-Program-Participants" target="_blank" rel="noopener noreferrer">Department of Commerce</a>; <a href="https://www.federalregister.gov/documents/2022/10/14/2022-22520/enhancing-safeguards-for-united-states-signals-intelligence-activities" target="_blank" rel="noopener noreferrer">Executive Order 14086</a> imposes proportionality on U.S. signals intelligence; the <a href="https://www.justice.gov/dprc" target="_blank" rel="noopener noreferrer">Data Protection Review Court</a> provides redress. The <a href="https://www.gov.uk/government/publications/uk-us-data-bridge" target="_blank" rel="noopener noreferrer">UK-U.S. Data Bridge</a> extends similar protections.</p>
-<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023D1795" target="_blank" rel="noopener noreferrer">Commission's DPF adequacy decision</a> remains in force. On September 3, 2025, the EU General Court dismissed Philippe Latombe's challenge to that decision in Case T-553/23. Latombe appealed to the Court of Justice on October 31, 2025; the appeal, Case C-703/25 P, remains pending as of August 10, 2026. For operational questions, the EDPB published <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/other/information-note-data-transfers-under-gdpr-eu-us-data-privacy_en" target="_blank" rel="noopener noreferrer">version 2.0 of its EU-U.S. Data Privacy Framework FAQs for European businesses</a> in January 2026. Maintaining SCCs as a fallback remains a common resilience measure.</p>`,
+<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023D1795" target="_blank" rel="noopener noreferrer">Commission's DPF adequacy decision</a> remains in force. On September 3, 2025, the EU General Court dismissed Philippe Latombe's challenge to that decision in Case T-553/23. Latombe appealed to the Court of Justice on October 31, 2025; the appeal, Case C-703/25 P, remains pending as of August 10, 2026. For operational questions, the EDPB published <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/other/information-note-data-transfers-under-gdpr-eu-us-data-privacy_en" target="_blank" rel="noopener noreferrer">version 2.0 of its EU-U.S. Data Privacy Framework FAQs for European businesses</a> in January 2026. Maintaining SCCs as a fallback remains a common resilience measure.</p>
+<p>The U.S. Supreme Court's June 29, 2026 decision in <em>Trump v. Slaughter</em> has raised serious questions about the EU–U.S. Data Privacy Framework. For EU–U.S. data flows, the ruling could undermine the DPF's legal foundation, forcing companies to seek alternative safeguards (e.g., SCCs, SCCs with adequacy, or binding corporate rules). For U.S. companies, there is no immediate change in current transfers, but there is heightened need to monitor political and legal developments and prepare for potential future restrictions. The decision highlights the fragility of relying on U.S. enforcement agencies for international data protection, especially in the absence of a comprehensive U.S. federal privacy law.</p>`,
           },
           {
             id: "tia",
