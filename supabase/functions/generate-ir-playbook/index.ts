@@ -980,6 +980,17 @@ operative figure. State explicitly: "This threshold applies only to confirmed [S
 residents. Conduct a geographic segmentation of the affected population before assessing
 this threshold. [TO BE COMPLETED: confirmed [State] resident count]."
 
+REQUIRED LABELLED FIELDS — MANDATORY, VERBATIM LABELS (a deferral is not content):
+— For EVERY jurisdiction in Section 3, the entry MUST end with a line beginning exactly
+  "Computed deadline: " followed by the actual date (and time where the statute runs in
+  hours), or by "not applicable — notification trigger not met on current facts".
+  NEVER write that the deadline is computed, set out, or detailed elsewhere: the computed
+  value belongs on that line, in that section.
+— Section 3 MUST also contain a line beginning exactly
+  "Contractual notification obligations — Triggered: " followed by "Yes" or "No", an em
+  dash, and one sentence of rationale naming the controller/processor contract fact in the
+  record that decides it, or stating that the record documents no such contract term.
+
 ARTICLE 33 CLOCK START: For all EU GDPR and UK GDPR jurisdictions, the 72-hour deadline
 runs from the CONTROLLER AWARENESS TIMESTAMP — the moment the controller achieved
 reasonable certainty that a personal data breach occurred — not merely from the initial
@@ -1012,6 +1023,14 @@ A documentation checklist of records to create and maintain under GDPR Article 3
 
 ## Section 7: POST-INCIDENT ACTIONS
 Remediation steps, root cause analysis requirements, and follow-up obligations.
+
+REQUIRED LABELLED FIELDS — MANDATORY, VERBATIM LABELS: Section 7 MUST contain these three
+lines, each carrying at least one full sentence applying the phase to THIS incident's facts
+(the attack vector, systems, and data actually recorded in the intake) — never a generic
+description of the phase:
+"Containment — applied to this incident: ..."
+"Eradication — applied to this incident: ..."
+"Recovery — applied to this incident: ..."
 
 ANNOTATIONS: After Section 7, add a line:
 ===ANNOTATIONS===
