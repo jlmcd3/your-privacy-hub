@@ -29,6 +29,10 @@ export interface ProductHeroProps {
   ctaLabel?: string;
   /** Optional explicit element id to focus/scroll to; defaults to first form field in <main>. */
   ctaTargetId?: string;
+  /** Set false on landing pages that already supply their own primary CTA via children. */
+  showIntakeCta?: boolean;
+  /** Extra action elements rendered in the hero action row. */
+  children?: ReactNode;
   className?: string;
 }
 
@@ -61,6 +65,8 @@ export function ProductHero({
   citationLine,
   ctaLabel = "Start the assessment",
   ctaTargetId,
+  showIntakeCta = true,
+  children,
   className = "",
 }: ProductHeroProps) {
   return (
@@ -84,6 +90,8 @@ export function ProductHero({
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">{valueProposition}</p>
         ) : null}
         <div className="mt-5 flex flex-wrap items-center gap-4">
+          {children}
+          {showIntakeCta ? (
           <button
             type="button"
             onClick={() => focusIntakeStart(ctaTargetId)}
@@ -91,6 +99,7 @@ export function ProductHero({
           >
             {ctaLabel} →
           </button>
+          ) : null}
           {sampleReportToolSlug ? (
             <SampleReportLink toolSlug={sampleReportToolSlug} tone="onDark" variant="link" />
           ) : null}
