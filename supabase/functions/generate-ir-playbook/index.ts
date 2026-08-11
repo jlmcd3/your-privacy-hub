@@ -37,6 +37,7 @@ import {
   type IrBody as _IrBodyShared,
 } from "../_shared/ir/test-states.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // PROPOSAL 2026-08-11 — main-generation cost visibility
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
