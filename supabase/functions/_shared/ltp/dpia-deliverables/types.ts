@@ -179,6 +179,8 @@ export interface DpiaDeliverables {
   readonly gap_ledger: readonly DpiaGapLedgerEntry[];
   /** PROMPT 4 — present only when the record states a different risk count. */
   readonly risk_count_note?: DpiaRiskCountNote;
+  /** PROMPT 6 — deterministic descriptive inventory (section 0/1 content). */
+  readonly processing_inventory: DpiaProcessingInventory;
 }
 
 // ── 6. Deterministic sign-off decision (PROMPT 3, 2026-08-11) ────────
