@@ -33,6 +33,9 @@ import {
 } from "./elements.ts";
 import type { NotificationRegime } from "./elements.ts";
 import { mapContentOwnerToEdpbTemplate } from "./edpb-art33-template.ts";
+// SO-FT FIX 3 (2026-08-11): US state breach clocks, parallel to the GDPR-family
+// regime sets — the Part One summary previously named neither.
+import { buildStateNotificationDuties } from "./us-state-duties.ts";
 
 import type {
   Art34ExemptionAnalysis,
@@ -732,11 +735,20 @@ export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDelivera
     };
   });
 
+  // SO-FT FIX 3: the recorded US-state jurisdictions carry their OWN statutory
+  // clocks. They are stated in parallel with the GDPR-family duties, never
+  // folded into them and never given the Art. 33 72-hour phrasing.
+  const state_notification_duties = buildStateNotificationDuties(
+    f.jurisdictions,
+    str(get(intake, "incidentDateTime")) || str(get(intake, "discoveryDateTime")),
+  );
+
   const sa = notification_duties[0].sa_notification_determination;
   const ds = notification_duties[0].data_subject_communication_determination;
   const mapping = buildContentOwnerMapping(intake);
   return {
     notification_duties,
+    state_notification_duties,
     sa_notification_determination: sa,
     data_subject_communication_determination: ds,
     art34_exemption_analysis: exemptions,
@@ -752,6 +764,7 @@ export function attachIrPlaybookDeliverables(
   try {
     const built = buildIrPlaybookDeliverables(intake);
     report.notification_duties = built.notification_duties;
+    report.state_notification_duties = built.state_notification_duties;
     report.sa_notification_determination = built.sa_notification_determination;
     report.data_subject_communication_determination = built.data_subject_communication_determination;
     report.art34_exemption_analysis = built.art34_exemption_analysis;
@@ -761,6 +774,7 @@ export function attachIrPlaybookDeliverables(
       ok: true,
       regimes: built.notification_duties.map((d) => d.regime),
       mixed_regime: built.notification_duties.length > 1,
+      state_duties: built.state_notification_duties.map((d) => `${d.jurisdiction}:${d.verified ? "verified" : "to_be_confirmed"}`),
       regime_verdicts: built.notification_duties.map(
         (d) => `${d.regime}:${d.sa_notification_determination.verdict}/${d.data_subject_communication_determination.verdict}`,
       ),

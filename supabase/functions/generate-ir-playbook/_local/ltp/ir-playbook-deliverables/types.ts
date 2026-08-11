@@ -251,6 +251,8 @@ export interface RegimeDutySet {
   readonly transfer_framing: TransferFraming;
 }
 
+import type { StateDutySet } from "./us-state-duties.ts";
+
 export interface IrPlaybookDeliverables {
   /**
    * ITEM 328: every GDPR-family regime the record puts in scope, each with its
@@ -259,6 +261,12 @@ export interface IrPlaybookDeliverables {
    * renderer contract — they are a view onto this array, not a substitute.
    */
   readonly notification_duties: readonly RegimeDutySet[];
+  /**
+   * SO-FT FIX 3 (2026-08-11): the US-state breach-notification clocks the
+   * record engages, each on its own statutory basis. Parallel to — never a
+   * substitute for — the GDPR-family sets above.
+   */
+  readonly state_notification_duties: readonly StateDutySet[];
   readonly sa_notification_determination: SaNotificationDetermination;
   readonly data_subject_communication_determination: DataSubjectCommunicationDetermination;
   readonly art34_exemption_analysis: Art34ExemptionAnalysis;
