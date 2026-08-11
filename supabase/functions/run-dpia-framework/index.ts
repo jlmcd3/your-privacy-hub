@@ -845,8 +845,9 @@ const U1_SKELETON = `{
       "reference_materials": "guidelines / standards used (include EDPB DPIA template and WP248 rev.01)",
       "reasons_to_conduct": ["the controller-selected reasons, mapped to Art. 35(3) sub-paragraphs and the WP248 criteria they correspond to"],
       "scope": "what this DPIA covers and what it excludes, and why",
-      "completion_date": "[TO COMPLETE — DD/MM/YYYY]",
-      "formal_validation_date": "[TO COMPLETE — DD/MM/YYYY, approval as complete by a responsible official]",
+      "completion_date": "[TO COMPLETE — the date this DPIA was completed]",
+      "formal_validation_date": "[TO COMPLETE — the sign-off date and the name/title of the accountable senior responsible official per the RACI]",
+
       "publication_intent": "from intake (No / published / shared externally)"
     },
     "completion_guidance": "What the organisation must confirm or complete in Section 0"
@@ -1764,38 +1765,44 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       return;
     }
 
-    // PURPOSE / SECONDARY-USES GUARD (u3 only). One bounded re-ask when the
-    // necessity/proportionality prose quotes the secondary-uses answer under a
-    // purpose or benefit framing. If the re-ask is still conflated we record
-    // the flag rather than failing the run.
+    // PURPOSE / SECONDARY-USES GUARD (u2 + u3). One bounded re-ask when the
+    // generated prose quotes the secondary-uses answer under a purpose or
+    // benefit framing. u3 = necessity/proportionality; u2 = lawfulness /
+    // legal-basis analysis, where the same conflation recurs. If the re-ask is
+    // still conflated we record the flag rather than failing the run.
     let unitKeys = keys;
     let purposeConflation: any = null;
-    if (unit === "u3") {
+    const CONFLATION_GUARDED_KEY: Record<string, string> = {
+      u2: "section_2_analysis",
+      u3: "section_3_necessity_proportionality",
+    };
+    const guardedKey = CONFLATION_GUARDED_KEY[unit];
+    if (guardedKey) {
       const intake = (shared?.intake ?? {}) as Record<string, any>;
       const purposeText = String(intake.purpose ?? "");
       const secondaryText = String(intake.secondary_uses ?? "");
-      let findings = detectPurposeConflation(unitKeys?.section_3_necessity_proportionality, purposeText, secondaryText);
+      let findings = detectPurposeConflation(unitKeys?.[guardedKey], purposeText, secondaryText);
       if (findings.length > 0) {
-        console.error(`[unit:u3] purpose/secondary_uses conflation detected (${findings.length}) — one bounded re-ask`);
+        console.error(`[unit:${unit}] purpose/secondary_uses conflation detected (${findings.length}) — one bounded re-ask`);
         try {
           const r2 = await dpiaWithRetry(() => callAnthropicWithContinuation({
             model: currentGenerationModel(),
             system: systemBlocks,
             user: userPrompt + conflationRepairInstruction(purposeText, secondaryText),
             maxTokens: UNIT_MAX_TOKENS[unit],
-            label: `run-dpia-framework:unit:u3:purpose-repair`,
-          }), { label: `dpia:unit:u3:purpose-repair` });
+            label: `run-dpia-framework:unit:${unit}:purpose-repair`,
+          }), { label: `dpia:unit:${unit}:purpose-repair` });
           const repaired = parseJsonish(r2.text);
-          const stillMissing = UNIT_KEYS.u3.filter((k) => !repaired || typeof repaired !== "object" || !(k in repaired));
+          const stillMissing = UNIT_KEYS[unit].filter((k) => !repaired || typeof repaired !== "object" || !(k in repaired));
           if (stillMissing.length === 0) {
-            const after = detectPurposeConflation(repaired.section_3_necessity_proportionality, purposeText, secondaryText);
+            const after = detectPurposeConflation(repaired[guardedKey], purposeText, secondaryText);
             if (after.length < findings.length) {
               unitKeys = repaired;
               findings = after;
             }
           }
         } catch (e) {
-          console.error(`[unit:u3] purpose-repair re-ask failed:`, (e as Error)?.message ?? e);
+          console.error(`[unit:${unit}] purpose-repair re-ask failed:`, (e as Error)?.message ?? e);
         }
         purposeConflation = {
           detected: true,
@@ -1805,6 +1812,7 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
         };
       }
     }
+
 
     await writeUnitStatus(dpia_id, unit, {
       status: "done",

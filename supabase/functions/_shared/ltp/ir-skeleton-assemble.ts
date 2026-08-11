@@ -311,11 +311,124 @@ function composeProcessors(intake: Bag): string {
   return repairRegister(parts.join(" "));
 }
 
+/**
+ * SO-FT2 FIX 3 — the awareness moment and the computed 72-hour outer limit,
+ * stated as reader-visible text. Pure arithmetic over the recorded discovery
+ * timestamp; no wall clock is read.
+ */
+export function buildAwarenessClockClause(intake: Bag): string {
+  const raw = s(intake.discoveryDateTime);
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return "";
+  const fmt = (x: Date) => `${x.toISOString().slice(0, 10)} at ${x.toISOString().slice(11, 16)} UTC`;
+  const deadline = new Date(d.getTime() + 72 * 60 * 60 * 1000);
+  const awareness = s(intake.awarenessConfirmed);
+  const basis = /assumed/i.test(awareness)
+    ? "awareness is recorded as ASSUMED against that timestamp pending confirmation"
+    : /confirmed/i.test(awareness)
+    ? "awareness is recorded as CONFIRMED against that timestamp"
+    : "the record does not state whether awareness is confirmed or assumed against that timestamp";
+  return stop(
+    `The company records discovery at ${fmt(d)}, and ${basis}, so the 72-hour outer limit runs to ${fmt(deadline)}`,
+  );
+}
+
+/**
+ * SO-FT2 FIX 4 — every named contractual counterparty carrying a notification
+ * or response clock is checked against this incident's recorded facts, the
+ * same treatment the processor already receives.
+ */
+export function composeContractualTriggers(intake: Bag): string {
+  const incidentRecorded = Boolean(s(intake.cause) || s(intake.discoveryDateTime));
+  if (!incidentRecorded) return "";
+  const lines: string[] = [];
+  for (const c of asArray(intake.breachNoticeContracts)) {
+    const party = s(c.counterparty);
+    const deadline = s(c.deadline);
+    const clause = s(c.clause);
+    if (!party) continue;
+    lines.push(
+      `${party}: on the facts recorded — a ${s(intake.cause) || "recorded incident"} affecting personal data — the contractual notification condition is triggered${deadline ? `, and the clock is ${noStop(deadline)}` : ""}${clause ? ` (${clause})` : ""}.`,
+    );
+  }
+  const insurer = s(intake.insurerContact);
+  if (isRecorded(insurer)) {
+    lines.push(
+      `Cyber insurer (${insurer}): the policy notification condition is triggered by this incident and is a condition of cover, so the notification is made on the policy's own clock and is not deferred to the statutory clocks above.`,
+    );
+  }
+  const forensic = s(intake.forensicVendorContact);
+  if (isRecorded(forensic)) {
+    lines.push(
+      `Forensic vendor (${forensic}): the engagement's response clock is triggered — the recorded cause requires forensic scoping to establish what was accessed, which is the same fact set the Art. 33(3) notification content needs.`,
+    );
+  }
+  const counsel = s(intake.outsideCounselName);
+  if (isRecorded(counsel)) {
+    lines.push(
+      `Outside counsel (${counsel}): the engagement trigger is met${intake.privilegeProtocol === true ? ", and the recorded privilege protocol applies to the investigation work product from the point of instruction" : ""}.`,
+    );
+  }
+  if (!lines.length) return "";
+  return [
+    "The named contractual clocks, checked against this incident's facts:",
+    ...lines,
+  ].join("\n");
+}
+
+/**
+ * SO-FT2 FIX 5 — the standing containment / eradication / recovery
+ * arrangements applied to the recorded facts, rather than a single
+ * containment-state sentence.
+ */
+export function composeContainmentPlan(intake: Bag): string {
+  const contained = s(intake.contained);
+  if (!contained) return "";
+  const authority = s(intake.itIsolationAuthority);
+  const systems = arr(intake.keySystems);
+  const logs = arr(intake.logSources);
+  const parts: string[] = [];
+  if (contained === "Yes") {
+    parts.push(
+      stop(
+        `Containment is recorded as achieved, so the standing arrangements move to eradication: confirm the access route recorded as the cause is closed on ${systems.length ? asProse(systems.slice(0, 3)) : "the affected systems"}, and rotate the credentials and keys that route reached`,
+      ),
+    );
+  } else {
+    parts.push(
+      stop(
+        `Containment is recorded as ${IR_CONTAINMENT_STATE_MAP[contained] ?? lowerEnumLabel(contained)}, so the next containment step under the standing arrangements is the isolation decision${authority ? `, which the company has reserved to ${authority}` : ""}, taken over ${systems.length ? asProse(systems.slice(0, 3)) : "the affected systems"} before any rebuild begins`,
+      ),
+    );
+    parts.push(
+      stop(
+        "Evidence preservation runs ahead of that step and not after it: the first-hour arrangements require the relevant logs and images to be preserved before systems are isolated, rebuilt or re-imaged, because isolation can destroy the evidence the notification content depends on",
+      ),
+    );
+    parts.push(
+      stop(
+        `The eradication step the standing arrangements call for is removal of the access route recorded as the cause and rotation of every credential and key it reached, verified against ${logs.length ? asProse(logs.slice(0, 3)) : "the recorded log sources"}`,
+      ),
+    );
+  }
+  parts.push(
+    stop(
+      `Recovery is validated, not assumed: restore service only on evidence that the route is closed, and monitor ${logs.length ? asProse(logs.slice(0, 3)) : "the recorded log sources"} for recurrence across the first 24 hours after restoration before the incident is closed`,
+    ),
+  );
+  return repairRegister(parts.join(" "));
+}
+
 /** Part Two body — the notification analysis, jurisdiction by jurisdiction. */
-function composeNotificationAnalysis(report: Bag): string {
+function composeNotificationAnalysis(report: Bag, intake: Bag): string {
   const duties = asArray(report.notification_duties);
   if (duties.length === 0) return "";
+  const clock = buildAwarenessClockClause(intake);
+  let clockStated = false;
   const blocks: string[] = [];
+
+
   for (const d of duties) {
     const label = s(d.regime_label) || "the regime in scope";
     const authority = s(d.supervisory_authority);
@@ -344,8 +457,17 @@ function composeNotificationAnalysis(report: Bag): string {
         ),
       );
     }
+    // SO-FT2 FIX 3 — the actual awareness moment and the computed deadline,
+    // stated next to the duty rather than deferred to an analysis the reader
+    // never sees. Stated ONCE, on the first duty that runs to a clock.
+    if (clock && !clockStated && verdict !== "notification_not_required_unlikely_risk") {
+      bits.push(clock);
+      clockStated = true;
+    }
+
     const why = s(sa.why);
     if (why) bits.push(stop(noStop(firstSentences(why, 3))));
+
     const parallel = s(sa.parallel_duty_note);
     if (parallel) bits.push(stop(noStop(firstSentences(parallel, 2))));
     const needed = s(sa.information_needed);
@@ -362,7 +484,16 @@ function composeNotificationAnalysis(report: Bag): string {
     blocks.push(bits.join(" "));
   }
 
+  // SO-FT2 FIX 4 — contractual clocks applied to this incident's facts.
+  const contractual = composeContractualTriggers(intake);
+  if (contractual) blocks.push(contractual);
+
+  // SO-FT2 FIX 5 — containment / eradication / recovery, applied.
+  const plan = composeContainmentPlan(intake);
+  if (plan) blocks.push(plan);
+
   // The action plan, in time order, from the typed content/owner mapping.
+
   const mapping = (report.content_owner_mapping ?? {}) as Bag;
   const elements = asArray(mapping.elements);
   if (elements.length) {
@@ -438,7 +569,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
 
     "incident_worksheet:0": composeWorksheetLead(report, intake, values),
     "incident_worksheet:2": composeProcessors(intake),
-    "incident_worksheet:4": composeNotificationAnalysis(report),
+    "incident_worksheet:4": composeNotificationAnalysis(report, intake),
   };
 
   const draft = renderSkeletonDocument({

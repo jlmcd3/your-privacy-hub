@@ -258,8 +258,15 @@ export function buildSaNotificationDetermination(
     const drivers = aggravating.map((x) => x.factor.toLowerCase()).slice(0, 4);
     application =
       `Article 33(1) requires notification unless the breach is "unlikely to result in a risk to the rights and freedoms of natural persons". That is a negative condition the controller must establish, not a presumption in its favour. On this record it is not established: ${drivers.length ? drivers.join("; ") : "the mitigating facts recorded do not remove the possibility of a risk to the affected individuals"}.${mitigating.length ? ` The mitigating facts the record does supply — ${mitigating.map((m) => m.factor.toLowerCase()).join("; ")} — reduce the severity but do not make a risk unlikely.` : ""} The duty therefore stands.`;
+    // SO-FT2 FIX 3 (2026-08-11): the old deferral sentence pointed the reader
+    // at "the awareness and deadline analysis", which no section of the
+    // rendered document contained. The awareness moment and the computed
+    // outer limit are now stated in Part Two next to each duty determination
+    // (ir-skeleton-assemble.ts), so the deferral is dropped rather than left
+    // pointing at nothing.
     whyRaw =
-      `Notification to ${authority} is required, because the Article 33(1) exception is not made out on these facts. The clock and the filing deadline are computed separately in the awareness and deadline analysis and are not restated here.${f.processorInvolved ? ` A processor is involved${f.processorName ? ` (${f.processorName})` : ""}, so the Article 33(2) notification from processor to controller is part of the same record.` : ""}`;
+      `Notification to ${authority} is required, because the Article 33(1) exception is not made out on these facts.${f.processorInvolved ? ` A processor is involved${f.processorName ? ` (${f.processorName})` : ""}, so the Article 33(2) notification from processor to controller is part of the same record.` : ""}`;
+
   }
 
   const sep = separateExposure(whyRaw);

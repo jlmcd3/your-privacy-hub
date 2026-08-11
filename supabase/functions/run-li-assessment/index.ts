@@ -201,7 +201,9 @@ const LIA_ANALYSIS_EXTRA_RULES = [
   "NECESSITY TEST — NO VAGUE DURATION WORDS: do not describe a retention period as 'short' without stating a specific period per data category and purpose, or flagging the absence as an open item. 'Short' is not a documented necessity analysis; either state the actual period from the intake or flag: '[TO COMPLETE — specific retention period per data category and purpose].'",
   "CONSISTENT DATA-CATEGORY CAPITALISATION: once a data category name is introduced (e.g. 'account data'), use the same capitalisation and article usage every subsequent reference within the document — do not alternate between 'account data', 'the account data', and 'Account data' for the same category.",
   "MARK QUOTED VS PARAPHRASED PURPOSE TEXT: if a purpose statement is presented in quotation marks as if directly from the intake, it must be the exact intake wording. If it is a paraphrase or interpretation (e.g. bundling multiple stated purposes into one sentence), do not use quotation marks — write it as analysis: 'The stated purpose appears to bundle [X] and [Y] without separate articulation...' rather than presenting an interpretive paraphrase as a direct quotation.",
+  "SO-FT2 FIX 8 — EVERY WEIGHED HARM CITES A NAMED RECORD FACT: a harm the balancing test weighs (to the controller or to data subjects) is asserted ONLY where the record supplies a named fact supporting it — a figure, a count, a described consequence. NEVER introduce a harm category the intake nowhere mentions. In particular, do NOT assert reputational harm, brand damage, or loss of goodwill unless the intake names reputation, brand, goodwill, customer trust, or press/media exposure; a cost figure and an order count support financial harm only. Where a harm is genuinely supported, name the supporting fact in the same sentence ('the GBP 96,400 stock and carriage cost recorded in the intake').",
   "DO NOT ASSERT WHAT THE CONTROLLER HAS OR HASN'T DONE INTERNALLY: phrase gaps as properties of the assessment output, not as verified facts about the controller's internal state. Use 'the assessment does not reflect a quantified analysis of the probability or severity of this harm' rather than 'the controller has not quantified this harm' — the tool only sees what's in the output, not the controller's actual internal documentation.",
+
   "DO NOT CONFLATE ARTICLE 13 AND 14 TIMING FOR RIGHT TO OBJECT: Article 13 (data obtained directly from the subject) requires information provided 'at the time when personal data are obtained.' Article 14 (data NOT obtained directly) requires it 'at the latest at the time of first communication.' These are different triggers for different collection scenarios — do not use 'at the latest at the time of first communication' as if it were the universal standard; specify which article applies based on whether the data was obtained directly from the subject.",
   "PUBLIC-AUTHORITY STATUS IS A CLASSIFICATION FACT: whether the controller is a public authority is a threshold determination, not an open analytical question. Determine it in the classification section from the intake; if the intake does not state it, flag it there as missing intake data — do NOT leave \"Is [X] a public authority?\" sitting in open_questions.",
   "PRECEDENT SOURCES — DISTINGUISH REFERENCE FROM RETRIEVAL: closest_accepted_precedent and closest_rejected_precedent may draw on a reference precedent database distinct from the enforcement_precedents retrieval. When enforcement_precedents is empty but you cite a closest precedent, add a brief note that the closest precedent is drawn from the reference database and is illustrative — not a retrieved enforcement decision — so the empty retrieval and the cited precedent do not read as a contradiction.",
@@ -400,6 +402,75 @@ export const LIA_M_HUMAN_MAP: Record<string, string> = {
   M10: "the potential-harm review",
   M11: "the employment-context review",
 };
+// ── SO-FT2 FIX 8 — UNSUPPORTED CONTROLLER-HARM CHARACTERISATIONS ──────
+// Evidence: run 170daeed asserted twice that "reputational harm from
+// dispatching against stolen card details" was a real and immediate business
+// harm, while the only harm facts in the record were a stock/carriage cost
+// figure and fraud-order counts. A harm the balancing test weighs must be
+// tied to a named fact in the intake. Where the intake nowhere mentions
+// reputation / brand / goodwill / customer trust, the characterisation is
+// unsupported and is removed — as a conjunct where it sits in a list, and as
+// a whole sentence where the sentence exists only to assert it.
+export const LIA_UNSUPPORTED_HARM_TERMS: Array<{ term: RegExp; evidence: RegExp }> = [
+  { term: /reputational (?:harm|damage|risk|exposure)/i, evidence: /reputation|brand|goodwill|public trust|customer trust|press|media coverage/i },
+  { term: /(?:brand|reputation) damage/i, evidence: /reputation|brand|goodwill/i },
+  { term: /loss of goodwill/i, evidence: /goodwill|reputation|brand/i },
+];
+
+export function stripUnsupportedHarmClaims(
+  report: Record<string, unknown>,
+  intake: unknown,
+): { removed: number; terms: string[] } {
+  const intakeText = (() => {
+    try { return JSON.stringify(intake ?? {}); } catch { return ""; }
+  })();
+  const active = LIA_UNSUPPORTED_HARM_TERMS.filter((t) => !t.evidence.test(intakeText));
+  if (active.length === 0) return { removed: 0, terms: [] };
+  let removed = 0;
+  const hit: string[] = [];
+
+  const scrubString = (text: string): string => {
+    let out = text;
+    for (const { term } of active) {
+      const src = term.source;
+      // 1. Drop whole sentences whose subject is the unsupported harm.
+      out = out
+        .split(/(?<=[.!?])\s+/)
+        .filter((sentence) => {
+          if (!new RegExp(src, "i").test(sentence)) return true;
+          const stripped = sentence.replace(new RegExp(src, "ig"), "").trim();
+          // A sentence that carries other substance is repaired, not dropped.
+          if (stripped.replace(/[^a-z]/gi, "").length > 40) return true;
+          removed++; hit.push(sentence.trim().slice(0, 80));
+          return false;
+        })
+        .join(" ");
+      // 2. Repair list conjuncts: "A and <harm>", "<harm> and A", "A, <harm>,".
+      const before = out;
+      out = out
+        .replace(new RegExp(`,?\\s+and\\s+${src}\\b`, "ig"), "")
+        .replace(new RegExp(`\\b${src}\\s+and\\s+`, "ig"), "")
+        .replace(new RegExp(`\\b${src}\\s*,\\s*`, "ig"), "")
+        .replace(new RegExp(`,\\s*${src}\\b`, "ig"), "");
+      if (out !== before) { removed++; hit.push(String(src)); }
+    }
+    return out.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
+  };
+
+  const walk = (node: unknown): unknown => {
+    if (typeof node === "string") return scrubString(node);
+    if (Array.isArray(node)) return node.map(walk);
+    if (node && typeof node === "object") {
+      const o = node as Record<string, unknown>;
+      for (const k of Object.keys(o)) o[k] = walk(o[k]);
+      return o;
+    }
+    return node;
+  };
+  walk(report);
+  return { removed, terms: Array.from(new Set(hit)).slice(0, 5) };
+}
+
 
 // State tokens rewritten to plain conclusions (shared token family with
 // dpia/risk). Applied by applyDeterministicPostGenFallbackLia below.
@@ -1715,6 +1786,19 @@ Return JSON:
     const guarded = guardInformationNeeded(reportData, liaIntakeObject, "li_assessment");
     Object.assign(reportData, guarded.report);
     ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
+
+    // SO-FT2 FIX 8 — remove controller-harm characterisations the record does
+    // not support (fail-open; telemetry only).
+    try {
+      const harmScrub = stripUnsupportedHarmClaims(reportData as Record<string, unknown>, liaIntakeObject);
+      if (harmScrub.removed > 0) {
+        ((( reportData as any)._meta ??= {}).internal ??= {}).lia_unsupported_harm_scrub = harmScrub;
+        console.log(JSON.stringify({ evt: "_lia_unsupported_harm_scrub", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...harmScrub }));
+      }
+    } catch (e) {
+      console.warn("[run-li-assessment] unsupported-harm scrub failed (non-fatal):", (e as Error)?.message);
+    }
+
 
     const liaFallback = applyDeterministicPostGenFallbackLia(reportData, liaTestStates);
     const finalBlacklistHits = detectBlacklistPhrases(reportData).length;
