@@ -107,6 +107,58 @@ export function firstSentences(text: string, n: number): string {
   return out.join(" ");
 }
 
+/**
+ * Quote-aware sentence truncation. Periods inside a double-quoted span
+ * (straight " or curly “ ”) are never treated as sentence boundaries.
+ * Spans are masked before boundary counting and unmasked after slicing.
+ */
+const QUOTE_MASK_CHAR = "\u0001";
+
+export function firstSentencesQuoteAware(text: string, n: number): string {
+  const src = String(text ?? "");
+  const spans: string[] = [];
+  let masked = "";
+  let open: string | null = null;
+  let buf = "";
+  for (const ch of src) {
+    if (open === null) {
+      if (ch === '"' || ch === "\u201C") {
+        open = ch === '"' ? '"' : "\u201D";
+        buf = ch;
+      } else {
+        masked += ch;
+      }
+    } else {
+      buf += ch;
+      if (ch === open) {
+        spans.push(buf);
+        masked += QUOTE_MASK_CHAR.repeat(buf.length);
+        buf = "";
+        open = null;
+      }
+    }
+  }
+  if (open !== null) {
+    // Unterminated quote — mask the remainder so its periods never split.
+    spans.push(buf);
+    masked += QUOTE_MASK_CHAR.repeat(buf.length);
+  }
+
+  // Masking is length-preserving, so masked indices map 1:1 onto the source.
+  let idx = 0;
+  while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
+  const start = idx;
+  let taken = 0;
+  while (idx < masked.length && taken < n) {
+    const one = firstSentence(masked.slice(idx));
+    if (!one) break;
+    idx += one.length;
+    taken += 1;
+    while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
+  }
+  return src.slice(start, idx).trim();
+}
+
 // ── Slot values ─────────────────────────────────────────────────────────────
 
 export function buildDpiaSlotValues(intake: Bag): SlotValues {
@@ -329,15 +381,15 @@ function composeNecessityLead(report: Bag): string {
 }
 
 
-function composeNecessityBody(report: Bag): string {
+export function composeNecessityBody(report: Bag): string {
   const parts: string[] = [];
   for (const f of asArray(report.necessity_findings).slice(0, 4)) {
     const why = s(f.why);
-    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
   }
   for (const p of asArray(report.proportionality).slice(0, 3)) {
     const why = s(p.why);
-    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
   }
   if (parts.length === 0) {
     const s3 = report.section_3_necessity_proportionality;
@@ -376,7 +428,7 @@ function composeRiskLead(report: Bag): string {
 }
 
 
-function composeRiskBody(report: Bag, values: SlotValues): string {
+export function composeRiskBody(report: Bag, values: SlotValues): string {
   const rows = asArray(report.risk_register);
   const blocks: string[] = [];
   for (const r of rows) {
@@ -389,7 +441,7 @@ function composeRiskBody(report: Bag, values: SlotValues): string {
     const residual = s(r.residual_band);
     const head = [
       `${label}.`,
-      likelihood && severity ? `The company's answers put likelihood at ${likelihood} and severity at ${severity}.` : "",
+      likelihood && severity ? `On the safeguards the company has recorded, this assessment places likelihood at ${likelihood}; severity is rated ${severity} under this assessment's pre-set risk taxonomy.` : "",
       inherent ? `Inherent band: ${inherent}.` : "",
     ].filter(Boolean).join(" ");
     bits.push(head);
@@ -454,7 +506,7 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
   if (art36 === "consultation_required" || art36 === "undetermined_on_the_record") {
 
     const why = s(((report.art36_consultation ?? {}) as Bag).why);
-    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
   }
   return repairRegister(parts.join(" "));
 }
