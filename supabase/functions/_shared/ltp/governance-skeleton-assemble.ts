@@ -375,6 +375,14 @@ function composeDeterminationBody(report: Bag, intake: Bag): string {
 
 // ── Table of Authorities (governance grouping: GDPR is a Regulation) ────────
 
+// SO-FT FIX 2 (2026-08-11): authorities named only to disclaim them.
+const NON_APPLICABLE_AUTHORITIES = ["uk gdpr art. 44", "uk gdpr article 44"];
+function isNonApplicableAuthority(citation: string): boolean {
+  const c = citation.replace(/\s+/g, " ").trim().toLowerCase();
+  return NON_APPLICABLE_AUTHORITIES.some((n) => c === n || c.startsWith(`${n} `));
+}
+
+
 function governanceToa(report: Bag, body: string): string {
   const exhibit = (report.authority_exhibit ?? {}) as Bag;
   const entries = Array.isArray(exhibit.entries) ? (exhibit.entries as Bag[]) : [];
