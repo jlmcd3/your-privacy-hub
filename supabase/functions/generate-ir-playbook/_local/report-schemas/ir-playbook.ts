@@ -74,6 +74,7 @@ export const IR_PLAYBOOK_REPORT_SCHEMA: ReportSchema = {
     "content_owner_mapping",
     // ITEM 328 — per-regime duty sets.
     "notification_duties",
+    "state_notification_duties",
     // ITEM 369-IR — the two rendered artifacts + the standing playbook's exhibit.
     "standing_playbook",
     "incident_worksheet",
