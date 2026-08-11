@@ -99,8 +99,14 @@ export function checkIrRequiredFields(playbookText: string): IrFieldFinding[] {
   // the computed-deadline marker is the anchor the prose defers to.
   const hasComputedDeadline = /Computed deadline:\s*\S{4,}/i.test(text);
   if (!hasComputedDeadline) {
-    const promises = text.match(FORWARD_PROMISE_RE) ?? [];
-    const deadlinePromises = promises.filter((p) => /deadline|clock|notif/i.test(p));
+    const re = new RegExp(FORWARD_PROMISE_RE.source, FORWARD_PROMISE_RE.flags);
+    const deadlinePromises: string[] = [];
+    let pm: RegExpExecArray | null;
+    while ((pm = re.exec(text)) !== null) {
+      // Look at the sentence around the promise, not just the promise clause.
+      const context = text.slice(Math.max(0, pm.index - 90), pm.index + pm[0].length + 20);
+      if (/deadline|clock|notif/i.test(context)) deadlinePromises.push(pm[0]);
+    }
     if (deadlinePromises.length > 0) {
       findings.push({
         code: "ir_forward_promise_unfulfilled",
