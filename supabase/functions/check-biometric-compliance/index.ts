@@ -2280,6 +2280,15 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
           if (retryRes.ok) {
             const retryData = await retryRes.json();
             const retryFull = retryData.content?.[0]?.text ?? "";
+            // PROPOSAL 2026-08-11 — lint-retry regeneration is a real model call; meter it.
+            recordApiUsage({
+              function_name: "check-biometric-compliance:lint_retry",
+              product: "biometric",
+              model: currentGenerationModel(),
+              input_tokens: retryData?.usage?.input_tokens ?? null,
+              output_tokens: retryData?.usage?.output_tokens ?? null,
+              source_row_id: currentSourceRowId() ?? null,
+            });
             console.log(`[check-biometric-compliance] gen done stop=${retryData.stop_reason ?? null} chars=${retryFull.length}`);
             let retryText = retryFull;
             const sep2 = retryFull.indexOf("===ANNOTATIONS===");
@@ -2408,6 +2417,15 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
           if (retryRes.ok) {
             const retryData = await retryRes.json();
             const retryFull = retryData.content?.[0]?.text ?? "";
+            // PROPOSAL 2026-08-11 — gate-retry regeneration is a real model call; meter it.
+            recordApiUsage({
+              function_name: "check-biometric-compliance:gate_retry",
+              product: "biometric",
+              model: currentGenerationModel(),
+              input_tokens: retryData?.usage?.input_tokens ?? null,
+              output_tokens: retryData?.usage?.output_tokens ?? null,
+              source_row_id: currentSourceRowId() ?? null,
+            });
             console.log(`[check-biometric-compliance] r1b2 retry done chars=${retryFull.length}`);
             let retryText = retryFull;
             const sep2 = retryFull.indexOf("===ANNOTATIONS===");
