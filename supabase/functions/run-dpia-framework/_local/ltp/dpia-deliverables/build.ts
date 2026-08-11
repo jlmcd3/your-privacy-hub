@@ -18,6 +18,8 @@ import type {
   DpiaDeliverables,
   LegalBasisFinding,
   DpiaDecision,
+  DpiaGapLedgerEntry,
+  DpiaRiskCountNote,
   LegitimateInterestsTest,
   Likelihood,
   NecessityFinding,
@@ -1281,6 +1283,7 @@ export function attachDpiaDeliverables(
 ): Record<string, unknown> {
   try {
     const built = buildDpiaDeliverables(intake);
+    const ledger = buildGapLedgerDetailed(intake, built);
     report.necessity_findings = built.necessity_findings;
     report.proportionality = built.proportionality;
     report.risk_register = built.risk_register;
@@ -1296,6 +1299,12 @@ export function attachDpiaDeliverables(
     // for report.decision; the u5 section_6_conclusion.decision string is now
     // a fallback for documents generated before this change.
     report.decision = built.decision;
+
+    // PROMPT 4 (2026-08-11) — deterministic gap ledger. Single writer for
+    // report.gap_ledger; the bracket-tag-harvested information_needed array
+    // remains for documents generated before this change.
+    report.gap_ledger = built.gap_ledger;
+    if (built.risk_count_note) report.risk_count_note = built.risk_count_note;
     const s2 = report.section_2_analysis;
     if (s2 && typeof s2 === "object") {
       (s2 as Record<string, unknown>).legal_basis = built.legal_basis.map((f) => ({
@@ -1320,6 +1329,11 @@ export function attachDpiaDeliverables(
       legal_basis: built.legal_basis.length,
       legal_basis_insufficient: built.legal_basis.filter((b) => b.status === "record_insufficient").length,
       separation_repairs: built.art36_consultation.separation_repairs,
+      gap_ledger_entries: ledger.gap_ledger.length,
+      gap_ledger_dropped_empty: ledger.dropped_empty,
+      gap_ledger_dropped_unmapped: ledger.dropped_unmapped,
+      gap_ledger_merged: ledger.merged,
+      risk_count_note: built.risk_count_note ? 1 : 0,
     };
   } catch (e) {
     return {
