@@ -32,10 +32,11 @@ import {
   type RenderedSkeletonDocument,
   type SlotValues,
 } from "../prose/skeleton-render.ts";
+import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
-export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@so5-wire-in-2026-08-10";
+export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@prompt8-spine-v4-2026-08-11";
 
 type Bag = Record<string, unknown>;
 
@@ -212,6 +213,12 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
     DPO_ADVICE_SENTENCE: dpoSentence(intake),
     controllerContact: s(intake.controller_contact) || null,
 
+    // PROMPT 8 (spine v4) — Section 1 and Section 5 slots.
+    natureScopeContext: spliceVerbatim(s(intake.nature_scope_context)) || null,
+    functionalDescription: spliceVerbatim(s(intake.functional_description)) || null,
+    supportingAssets: spliceVerbatim(s(intake.supporting_assets)) || null,
+    dataSubjectsViews: dataSubjectsViewsSlot(intake),
+
     dpiaApprovedByName: s(intake.dpia_approved_by_name) || null,
     dpiaScopeNote: noStop(s(intake.dpia_scope_note)) || null,
     endDate: humanizeDateISO(s(intake.estimated_end_date)) || null,
@@ -259,6 +266,20 @@ export function descriptionSlots(
     VERSION_CLAUSE: "",
     LAUNCH_CLAUSE: `. ${tail}`,
   };
+}
+
+/**
+ * PROMPT 8 — Section 5. The spine reads "the company has recorded:
+ * {dataSubjectsViews}". Absence is stated honestly rather than left blank.
+ */
+function dataSubjectsViewsSlot(intake: Bag): string {
+  const views = spliceVerbatim(s(intake.data_subjects_views));
+  if (views) return noStop(views);
+  const sought = s(intake.data_subjects_views_sought);
+  if (/^(no|not sought|none)/i.test(sought)) {
+    return "that the views of data subjects or their representatives were not sought for this processing";
+  }
+  return "no views of data subjects or their representatives";
 }
 
 function dpoSentence(intake: Bag): string {
@@ -634,6 +655,22 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
   return repairRegister(parts.join(" "));
 }
 
+/**
+ * PROMPT 8 — Section 6 conditional, bound to `art36_consultation`. The spine's
+ * fixed prose carries only the slot; the branch may not disagree with the typed
+ * determination.
+ */
+function composeArt36Sentence(report: Bag): string {
+  const det = art36Determination(report);
+  if (det === "consultation_required") {
+    return "Because the residual risk remains high notwithstanding the measures the company has recorded, Article 36(1) requires the controller to consult the supervisory authority before the processing begins";
+  }
+  if (det === "undetermined_on_the_record") {
+    return "Whether Article 36(1) requires prior consultation cannot be settled on the company's answers, because the residual position on which that duty turns is open on the points named above";
+  }
+  return "On this assessment's determination, no prior consultation with the supervisory authority under Article 36(1) is required";
+}
+
 // ── Table of Authorities ────────────────────────────────────────────────────
 
 function dpiaToa(report: Bag, body: string): string {
@@ -712,19 +749,28 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     Object.entries(rawValues).map(([k, v]) => [k, typeof v === "string" ? repairDpiaPlaceholders(v) : v]),
   ) as SlotValues;
   const org = s(intake.organization_name) || "the company";
+  // Bound to the typed surface, so it is composed from the report, not the intake.
+  (values as Bag).ART36_SENTENCE = repairDpiaPlaceholders(composeArt36Sentence(report));
+
+  // PROMPT 8 — typed surfaces rendered as tables. NO-PADDING LAW: a surface
+  // with no rows yields null and the renderer drops the block entirely.
+  const tables = buildDpiaSkeletonTables(report, intake);
 
   const composedRaw: ComposedBlocks = {
     "executive_summary:0": composeExecutiveLead(report, org),
     "executive_summary:2": composeExecutiveBody(report),
 
-    "lawfulness:0": composeNecessityLead(report),
-    "lawfulness:2": composeNecessityBody(report),
+    // PROMPT 8 (spine v4) — the v3 sections `lawfulness`,
+    // `risks_and_measures` and `consultation_and_signoff` are retired; the same
+    // ratified composers are re-homed onto the EDPB sections.
+    "section_3_necessity_proportionality:1": composeNecessityLead(report),
+    "section_3_necessity_proportionality:2": composeNecessityBody(report),
 
-    "risks_and_measures:0": composeRiskLead(report),
-    "risks_and_measures:1": composeRiskBody(report, values),
+    "section_4_risk_management:2": composeRiskLead(report),
+    "section_4_risk_management:4": composeRiskBody(report, values),
 
-    "consultation_and_signoff:1": composeSignoffLead(report, intake),
-    "consultation_and_signoff:2": composeSignoffBody(report, intake, values),
+    "section_6_conclusion:2": composeSignoffLead(report, intake),
+    "section_6_conclusion:3": composeSignoffBody(report, intake, values),
   };
   const composed: ComposedBlocks = Object.fromEntries(
     Object.entries(composedRaw).map(([k, v]) => [k, typeof v === "string" ? repairDpiaPlaceholders(v) : v]),
@@ -737,6 +783,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     spineVersion: DPIA_SKELETON_VERSION,
     values,
     composed,
+    tables,
   });
 
   const toa = dpiaToa(report, skeletonDocumentToText(draft));
@@ -748,6 +795,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     spineVersion: DPIA_SKELETON_VERSION,
     values,
     composed: { ...composed, "table_of_authorities:0": toa },
+    tables,
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();
