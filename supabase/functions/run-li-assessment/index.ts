@@ -400,6 +400,75 @@ export const LIA_M_HUMAN_MAP: Record<string, string> = {
   M10: "the potential-harm review",
   M11: "the employment-context review",
 };
+// ── SO-FT2 FIX 8 — UNSUPPORTED CONTROLLER-HARM CHARACTERISATIONS ──────
+// Evidence: run 170daeed asserted twice that "reputational harm from
+// dispatching against stolen card details" was a real and immediate business
+// harm, while the only harm facts in the record were a stock/carriage cost
+// figure and fraud-order counts. A harm the balancing test weighs must be
+// tied to a named fact in the intake. Where the intake nowhere mentions
+// reputation / brand / goodwill / customer trust, the characterisation is
+// unsupported and is removed — as a conjunct where it sits in a list, and as
+// a whole sentence where the sentence exists only to assert it.
+export const LIA_UNSUPPORTED_HARM_TERMS: Array<{ term: RegExp; evidence: RegExp }> = [
+  { term: /reputational (?:harm|damage|risk|exposure)/i, evidence: /reputation|brand|goodwill|public trust|customer trust|press|media coverage/i },
+  { term: /(?:brand|reputation) damage/i, evidence: /reputation|brand|goodwill/i },
+  { term: /loss of goodwill/i, evidence: /goodwill|reputation|brand/i },
+];
+
+export function stripUnsupportedHarmClaims(
+  report: Record<string, unknown>,
+  intake: unknown,
+): { removed: number; terms: string[] } {
+  const intakeText = (() => {
+    try { return JSON.stringify(intake ?? {}); } catch { return ""; }
+  })();
+  const active = LIA_UNSUPPORTED_HARM_TERMS.filter((t) => !t.evidence.test(intakeText));
+  if (active.length === 0) return { removed: 0, terms: [] };
+  let removed = 0;
+  const hit: string[] = [];
+
+  const scrubString = (text: string): string => {
+    let out = text;
+    for (const { term } of active) {
+      const src = term.source;
+      // 1. Drop whole sentences whose subject is the unsupported harm.
+      out = out
+        .split(/(?<=[.!?])\s+/)
+        .filter((sentence) => {
+          if (!new RegExp(src, "i").test(sentence)) return true;
+          const stripped = sentence.replace(new RegExp(src, "ig"), "").trim();
+          // A sentence that carries other substance is repaired, not dropped.
+          if (stripped.replace(/[^a-z]/gi, "").length > 40) return true;
+          removed++; hit.push(sentence.trim().slice(0, 80));
+          return false;
+        })
+        .join(" ");
+      // 2. Repair list conjuncts: "A and <harm>", "<harm> and A", "A, <harm>,".
+      const before = out;
+      out = out
+        .replace(new RegExp(`,?\\s+and\\s+${src}\\b`, "ig"), "")
+        .replace(new RegExp(`\\b${src}\\s+and\\s+`, "ig"), "")
+        .replace(new RegExp(`\\b${src}\\s*,\\s*`, "ig"), "")
+        .replace(new RegExp(`,\\s*${src}\\b`, "ig"), "");
+      if (out !== before) { removed++; hit.push(String(src)); }
+    }
+    return out.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
+  };
+
+  const walk = (node: unknown): unknown => {
+    if (typeof node === "string") return scrubString(node);
+    if (Array.isArray(node)) return node.map(walk);
+    if (node && typeof node === "object") {
+      const o = node as Record<string, unknown>;
+      for (const k of Object.keys(o)) o[k] = walk(o[k]);
+      return o;
+    }
+    return node;
+  };
+  walk(report);
+  return { removed, terms: Array.from(new Set(hit)).slice(0, 5) };
+}
+
 
 // State tokens rewritten to plain conclusions (shared token family with
 // dpia/risk). Applied by applyDeterministicPostGenFallbackLia below.
