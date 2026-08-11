@@ -455,6 +455,93 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── v12 (2026-08-11) RoPA PRICING GATE ────────────────────────────────
+    // Ratified policy, server-authoritative:
+    //   ANNUAL subscribers (Intelligence annual and Professional annual are
+    //   treated IDENTICALLY): the FIRST RoPA generation is free; each
+    //   subscription year carries ONE free update, drawn from the RoPA credit
+    //   pool (pool='ropa', flat 1/yr); a second or later update inside the
+    //   same year is $29.
+    //   MONTHLY subscribers: every RoPA action — initial or update — is $29.
+    // Non-subscribers are already rejected by SUBSCRIPTION_ONLY_TOOLS above.
+    const ROPA_TOOLS = new Set(["ropa_initial", "ropa_refresh"]);
+    let ropaPaidCharge = false;
+    if (isPremium && ROPA_TOOLS.has(tool_type) && user_id) {
+      const ropaBypass = async (mode: "first_free" | "annual_credit", creditId?: string) => {
+        const { data: row, error: insErr } = await supabase
+          .from(tool.table)
+          .insert({
+            user_id,
+            client_id: client_id || null,
+            status: "pending",
+            intake_data: intake_data || {},
+            purchased_as_standalone: false,
+            is_subscriber_credit: true,
+            purchase_price_cents: 0,
+          })
+          .select("id")
+          .single();
+        if (insErr || !row) {
+          return new Response(JSON.stringify({ error: "Failed to create assessment row" }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (creditId) {
+          await supabase
+            .from("annual_tool_credits")
+            .update({
+              redeemed_at: new Date().toISOString(),
+              redeemed_tool: "ropa",
+              redeemed_assessment_id: row.id,
+            })
+            .eq("id", creditId);
+        }
+        const successPath = `/ropa/review/${row.id}?purchased=true&${mode === "first_free" ? "subscriber_free=true" : "annual_credit=true"}`;
+        return new Response(
+          JSON.stringify({
+            bypassed: true,
+            assessment_id: row.id,
+            url: successPath,
+            redirect_path: successPath,
+            ropa_pricing_mode: mode,
+            ...(creditId ? { annual_credit_redeemed: true } : {}),
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      };
+
+      if (!isAnnualSubscriber) {
+        // Monthly subscriber → always $29, no free path, no credit.
+        ropaPaidCharge = true;
+      } else {
+        // Has this user ever produced a RoPA before? The FIRST one is free.
+        const { count: priorCount } = await supabase
+          .from("ropa_sessions")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user_id);
+        if ((priorCount ?? 0) === 0) return await ropaBypass("first_free");
+
+        // Otherwise it is an update: try the RoPA annual credit (live only —
+        // a sandbox checkout must never burn a live credit).
+        if (checkoutEnv === "live") {
+          let rq = supabase
+            .from("annual_tool_credits")
+            .select("id")
+            .eq("user_id", user_id)
+            .eq("environment", "live")
+            .eq("pool", "ropa")
+            .is("redeemed_at", null)
+            .order("cycle_start", { ascending: false })
+            .limit(1);
+          rq = client_id ? rq.eq("client_id", client_id) : rq.is("client_id", null);
+          const { data: ropaCredit } = await rq.maybeSingle();
+          if (ropaCredit) return await ropaBypass("annual_credit", (ropaCredit as any).id);
+        }
+        // Credit already spent this year → $29.
+        ropaPaidCharge = true;
+      }
+    }
+
     // ── v9 Annual Credit redemption (Governance / LIA / DPIA only) ──
     // Server is authoritative. Verify an unredeemed credit row exists for
     // this user + scope (client_id or personal/null). Valid → mark
@@ -548,10 +635,14 @@ Deno.serve(async (req) => {
       ANNUAL_GATED_TOOLS.has(tool_type) && !isAnnualSubscriber;
     const useSubscriberPrice =
       isPremium && !!tool.subscriber_lookup && !gatedToolRequiresAnnual;
-    const lookupKey = useSubscriberPrice ? tool.subscriber_lookup! : tool.standalone_lookup;
-    const fallbackCents = useSubscriberPrice
-      ? tool.fallback_subscriber_cents
-      : tool.fallback_standalone_cents;
+    // v12: a chargeable RoPA action is always the flat $29 generation price,
+    // regardless of tier or subscriber discounting.
+    const lookupKey = ropaPaidCharge
+      ? "ropa_paid_generation"
+      : (useSubscriberPrice ? tool.subscriber_lookup! : tool.standalone_lookup);
+    const fallbackCents = ropaPaidCharge
+      ? 2900
+      : (useSubscriberPrice ? tool.fallback_subscriber_cents : tool.fallback_standalone_cents);
 
     const env = checkoutEnv;
     const stripe = createStripeClient(env);
