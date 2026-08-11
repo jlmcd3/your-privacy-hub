@@ -132,9 +132,46 @@ export interface Art36Consultation {
   readonly information_needed?: string;
 }
 
+// ── 5. Art. 6(1) — legal basis (SO/PILOT 2026-08-11) ─────────────────
+// Deterministic per-purpose lawful-basis finding. For Art. 6(1)(f) the
+// three-part test (purpose / necessity / balancing) is run as a decision
+// tree over the record; a part the record does not support is reported as
+// unmet with a specific `information_needed` string and NEVER invented.
+export type LegalBasisVerdict =
+  | "basis_supported_on_the_record"
+  | "basis_not_supported_on_the_record"
+  | "undetermined_on_the_record";
+
+export interface LegitimateInterestsTest {
+  /** Part 1 — is there a legitimate interest, and is it stated? */
+  readonly purpose_test_met: boolean;
+  readonly purpose_test_why: string;
+  /** Part 2 — is the processing necessary for that interest? */
+  readonly necessity_test_met: boolean;
+  readonly necessity_test_why: string;
+  /** Part 3 — is the interest overridden by the data subjects' rights? */
+  readonly balancing_test_met: boolean;
+  readonly balancing_test_why: string;
+}
+
+export interface LegalBasisFinding {
+  readonly operation_id: string;
+  readonly purpose: string;
+  readonly article_6_basis: string;
+  readonly justification: string;
+  readonly verdict: LegalBasisVerdict;
+  readonly citation: string;
+  /** VERBATIM registry text — never re-typed, never paraphrased. */
+  readonly authority_verbatim: string;
+  readonly legitimate_interests_test?: LegitimateInterestsTest;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
+
 export interface DpiaDeliverables {
   readonly necessity_findings: readonly NecessityFinding[];
   readonly proportionality: readonly ProportionalityFinding[];
   readonly risk_register: readonly RiskRegisterEntry[];
   readonly art36_consultation: Art36Consultation;
+  readonly legal_basis: readonly LegalBasisFinding[];
 }
