@@ -238,14 +238,16 @@ function composeExecutiveBody(report: Bag): string {
   // rendered in this same document. Each entry is named by the facts it asks
   // for (its `dimensions`, falling back to the intake field key), with the
   // determination it completes where the pipeline recorded one.
-  const openItems = asArray(report.information_needed)
-    .map((e) => {
-      const what = noStop(s(e.dimensions) || s(e.field));
-      if (!what) return "";
-      const enables = noStop(s(e.enables));
-      return enables ? `${what} — which completes ${lowerEnumLabel(enables)}` : what;
-    })
-    .filter(Boolean);
+  const openItems = mergeOpenGapItems(
+    asArray(report.information_needed).map((e) => ({
+      what: noStop(s(e.dimensions) || s(e.field)),
+      enables: noStop(s(e.enables)),
+    })),
+  ).map(({ what, enables }) =>
+    enables.length > 0
+      ? `${what} — which completes ${enables.map((x) => lowerEnumLabel(x)).join(" and ")}`
+      : what
+  );
   const open = openItems.length;
   if (open > 0) {
     sentences.push(
