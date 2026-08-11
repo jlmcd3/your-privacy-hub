@@ -155,6 +155,7 @@ import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { normalizeQbp25A3 } from "./_qbp25_a3_normalize.ts";
 import { verifyCitationPairs, buildParagraphIndex } from "../_shared/citation-pair-verifier.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // PROPOSAL 2026-08-11 — main-generation cost visibility
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
