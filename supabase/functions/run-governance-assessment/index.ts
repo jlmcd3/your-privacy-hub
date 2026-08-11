@@ -12,6 +12,7 @@ console.log(`[run-governance-assessment] boot governance-registry-wiring@2026-07
 console.log(`[run-governance-assessment] boot gov-t6fix@2026-07-25T23:47:00Z stage=post-w1 pre-emitgate`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { verifyGovernanceBasisPointers } from "../_shared/ltp/fact-pointers.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
