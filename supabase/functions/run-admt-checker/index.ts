@@ -155,6 +155,7 @@ import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 import { normalizeQbp25A3 } from "./_qbp25_a3_normalize.ts";
 import { verifyCitationPairs, buildParagraphIndex } from "../_shared/citation-pair-verifier.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // PROPOSAL 2026-08-11 — main-generation cost visibility
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -505,6 +506,16 @@ ACTION ITEM GENERATION RULES (rubric_actionability proposed fix, BINDING):
 };
 
 
+/**
+ * PROPOSAL 2026-08-11 CROSS-CUTTING FIX — MAIN-GENERATION COST VISIBILITY.
+ *
+ * Every call made here is now metered into `api_usage` exactly the way the
+ * critic/verifier refinement calls already are (`function_name` =
+ * `run-admt-checker:<label>`, `source_row_id` = the assessment id). Before
+ * this, ADMT's PRIMARY drafting calls — the most expensive part of the tool —
+ * were invisible in telemetry, so the per-document cost could not be measured.
+ * Metering is fire-and-forget and never blocks or fails generation.
+ */
 async function callAnthropic(
   system: string | SystemBlock[],
   user: string,
@@ -534,6 +545,17 @@ async function callAnthropic(
   const d = await res.json();
   const text = d.content?.[0]?.text ?? "";
   const stopReason: string | null = d.stop_reason ?? null;
+  recordApiUsage({
+    function_name: `run-admt-checker:${label}`,
+    product: "admt",
+    model: currentGenerationModel(),
+    input_tokens: d?.usage?.input_tokens ?? null,
+    output_tokens: d?.usage?.output_tokens ?? null,
+    cache_read_tokens: d?.usage?.cache_read_input_tokens ?? null,
+    cache_creation_tokens: d?.usage?.cache_creation_input_tokens ?? null,
+    duration_ms: Date.now() - t0,
+    source_row_id: currentSourceRowId() ?? null,
+  });
   console.log(
     `[run-admt-checker] label=${label} elapsed=${Date.now() - t0}ms stop=${stopReason} chars=${text.length}`
   );
