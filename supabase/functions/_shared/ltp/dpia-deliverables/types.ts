@@ -174,4 +174,27 @@ export interface DpiaDeliverables {
   readonly risk_register: readonly RiskRegisterEntry[];
   readonly art36_consultation: Art36Consultation;
   readonly legal_basis: readonly LegalBasisFinding[];
+  readonly decision: DpiaDecision;
+}
+
+// ── 6. Deterministic sign-off decision (PROMPT 3, 2026-08-11) ────────
+// Single writer for report.decision. Computed by pure branching over the
+// typed surfaces above; it never reads model prose. DISAMBIGUATION: this is
+// NOT report_data.determination (ITEM 372 METHOD 2a), which is a legacy
+// prose block that decides nothing.
+export type DpiaDetermination =
+  | "approved"
+  | "conditionally_approved"
+  | "consultation_required"
+  | "draft_incomplete";
+
+export interface DpiaDecision {
+  readonly determination: DpiaDetermination;
+  /** conditionally_approved: the measures / open bands clearance rides on. */
+  readonly conditions: readonly string[];
+  /** draft_incomplete: the information_needed texts that block resolution. */
+  readonly blockers: readonly string[];
+  readonly why: string;
+  readonly citation: string;
+  readonly rule_id: "dpia_decision_v1";
 }

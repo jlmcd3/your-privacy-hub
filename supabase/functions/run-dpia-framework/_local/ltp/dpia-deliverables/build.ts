@@ -17,6 +17,7 @@ import type {
   Art36Consultation,
   DpiaDeliverables,
   LegalBasisFinding,
+  DpiaDecision,
   LegitimateInterestsTest,
   Likelihood,
   NecessityFinding,
@@ -931,18 +932,131 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
   });
 }
 
+
+// ---------------------------------------------------------------------
+// 6. Deterministic sign-off decision (PROMPT 3, 2026-08-11)
+//
+// Pure branching over the typed surfaces. Supersedes the u5 model string
+// at section_6_conclusion.decision as the skeleton's decision source. This
+// is NOT report_data.determination (ITEM 372 METHOD 2a), which is a legacy
+// prose block and decides nothing.
+// ---------------------------------------------------------------------
+function labels(rows: readonly { readonly risk_label: string }[]): string {
+  return [...new Set(rows.map((r) => r.risk_label))].join("; ");
+}
+
+export function buildDecision(
+  intake: unknown,
+  deliverables: {
+    readonly necessity_findings: readonly NecessityFinding[];
+    readonly proportionality: readonly ProportionalityFinding[];
+    readonly risk_register: readonly RiskRegisterEntry[];
+    readonly art36_consultation: Art36Consultation;
+    readonly legal_basis: readonly LegalBasisFinding[];
+  },
+): DpiaDecision {
+  const regime = readDpiaRegime(intake);
+  const a = anchor("art36", regime);
+  const art36Citation = a.citation || cit(regime, "Art. 36(1)");
+  const register = deliverables.risk_register;
+  const authority = regime === "UK"
+    ? "the Commissioner"
+    : "the competent supervisory authority";
+
+  // (a) Prior consultation settles the outcome before anything else.
+  if (deliverables.art36_consultation.determination === "consultation_required") {
+    const driving = register.filter((r) => r.residual_band === "high");
+    const named = labels(driving);
+    return {
+      determination: "consultation_required",
+      conditions: [],
+      blockers: [],
+      why:
+        `This processing may not begin on the company's answers as they stand: ${driving.length === 1 ? "one risk" : `${driving.length} risks`}${named ? ` — ${named} —` : ""} remain at a high residual band after the measures the company has recorded, and the controller must consult ${authority} under Art. 36(1) before the processing begins.`,
+      citation: art36Citation,
+      rule_id: "dpia_decision_v1",
+    };
+  }
+
+  // (b) An unresolvable record cannot carry a determination either way.
+  const openBands = register.filter((r) => r.residual_band === "undetermined");
+  const insufficient: readonly { readonly information_needed?: string }[] = [
+    ...openBands,
+    ...deliverables.necessity_findings.filter((f) => f.status === "record_insufficient"),
+    ...deliverables.proportionality.filter((f) => f.status === "record_insufficient"),
+    ...deliverables.legal_basis.filter((f) => f.status === "record_insufficient"),
+    ...(deliverables.art36_consultation.status === "record_insufficient"
+      ? [deliverables.art36_consultation]
+      : []),
+  ];
+  if (openBands.length > 0 || insufficient.length > 0) {
+    const blockers = [
+      ...new Set(
+        insufficient
+          .map((f) => str(f.information_needed))
+          .filter((t) => t.length > 0),
+      ),
+    ];
+    return {
+      determination: "draft_incomplete",
+      conditions: [],
+      blockers,
+      why: (() => {
+        const n = blockers.length || openBands.length;
+        const head =
+          `This assessment is not yet capable of a sign-off determination: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved on the company's answers`;
+        return blockers.length ? `${head} — ${blockers.join(" ")}` : `${head}.`;
+      })(),
+      citation: art36Citation,
+      rule_id: "dpia_decision_v1",
+    };
+  }
+
+  // (c) High residual risk without an Art. 36 trigger rides on its measures.
+  const high = register.filter((r) => r.residual_band === "high");
+  if (high.length > 0) {
+    const conditions: string[] = [];
+    for (const r of high) {
+      if (r.measures.length > 0) conditions.push(...r.measures);
+      else conditions.push(`a recorded measure for ${r.risk_label}`);
+    }
+    const deduped = [...new Set(conditions)];
+    return {
+      determination: "conditionally_approved",
+      conditions: deduped,
+      blockers: [],
+      why:
+        `This processing may proceed on a conditional basis only: ${high.length === 1 ? "one risk" : `${high.length} risks`} — ${labels(high)} — sit at a high residual band, and clearance is conditional on ${deduped.join("; ")}.`,
+      citation: art36Citation,
+      rule_id: "dpia_decision_v1",
+    };
+  }
+
+  // (d) Everything settled at or below a moderate residual band.
+  return {
+    determination: "approved",
+    conditions: [],
+    blockers: [],
+    why:
+      `This processing may proceed as assessed: every risk identified on the company's answers sits at a low or moderate residual band after the measures the company has recorded, and no element of the assessment is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
+    citation: art36Citation,
+    rule_id: "dpia_decision_v1",
+  };
+}
+
 // ---------------------------------------------------------------------
 // Envelope + attach
 // ---------------------------------------------------------------------
 export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
   const risk_register = buildRiskRegister(intake);
-  return {
+  const core = {
     necessity_findings: buildNecessityFindings(intake),
     proportionality: buildProportionality(intake),
     risk_register,
     art36_consultation: buildArt36Consultation(intake, risk_register),
     legal_basis: buildLegalBasis(intake),
   };
+  return { ...core, decision: buildDecision(intake, core) };
 }
 
 export function attachDpiaDeliverables(
@@ -961,6 +1075,11 @@ export function attachDpiaDeliverables(
     // section_2_analysis.legal_basis blob is superseded by them so the
     // skeleton reads one composed argument, not two.
     report.legal_basis = built.legal_basis;
+
+    // PROMPT 3 (2026-08-11) — deterministic sign-off decision. Single writer
+    // for report.decision; the u5 section_6_conclusion.decision string is now
+    // a fallback for documents generated before this change.
+    report.decision = built.decision;
     const s2 = report.section_2_analysis;
     if (s2 && typeof s2 === "object") {
       (s2 as Record<string, unknown>).legal_basis = built.legal_basis.map((f) => ({
@@ -981,6 +1100,7 @@ export function attachDpiaDeliverables(
       risks: built.risk_register.length,
       risks_high_residual: built.risk_register.filter((r) => r.residual_band === "high").length,
       art36: built.art36_consultation.determination,
+      decision: built.decision.determination,
       legal_basis: built.legal_basis.length,
       legal_basis_insufficient: built.legal_basis.filter((b) => b.status === "record_insufficient").length,
       separation_repairs: built.art36_consultation.separation_repairs,

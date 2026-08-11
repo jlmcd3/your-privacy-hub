@@ -273,7 +273,24 @@ function art36Determination(report: Bag): string {
   return s(((report.art36_consultation ?? {}) as Bag).determination).toLowerCase();
 }
 
+// PROMPT 3 (2026-08-11) — the decision is read from the deterministic
+// `report.decision` surface (buildDecision, rule_id dpia_decision_v1). The
+// u5-authored `section_6_conclusion.decision` string is a FALLBACK, used only
+// for documents generated before that surface existed.
+function decisionSurface(report: Bag): Bag | null {
+  const d = report.decision;
+  return d && typeof d === "object" && s((d as Bag).determination)
+    ? (d as Bag)
+    : null;
+}
+
+function determination(report: Bag): string {
+  return s(decisionSurface(report)?.determination);
+}
+
 function decisionText(report: Bag): string {
+  const d = decisionSurface(report);
+  if (d) return s(d.why);
   const s6 = (report.section_6_conclusion ?? {}) as Bag;
   return s(s6.decision);
 }
@@ -303,8 +320,15 @@ function composeExecutiveLead(report: Bag, org: string): string {
   if (art36 === "undetermined_on_the_record") {
     return `On the company's answers, whether the processing may proceed cannot yet be settled: the residual position on which Article 36 turns is open on the points named below.`;
   }
-  if (/^DRAFT/i.test(decision)) {
+  const det = determination(report);
+  if (det === "draft_incomplete" || (!det && /^DRAFT/i.test(decision))) {
     return `On the company's answers, ${org} may not yet treat the processing as cleared: the assessment remains incomplete on the points named below.`;
+  }
+  if (det === "conditionally_approved") {
+    return `On the company's answers, the processing may proceed conditionally: clearance rides on the measures named below being operated as recorded.`;
+  }
+  if (det === "approved") {
+    return `On the company's answers, the processing may proceed as assessed, subject to the measures identified in this assessment.`;
   }
   return `On the company's answers, the processing may proceed subject to the measures identified in this assessment.`;
 }
@@ -519,7 +543,22 @@ export function composeRiskBody(report: Bag, values: SlotValues): string {
 
 function composeSignoffLead(report: Bag, intake: Bag): string {
   const decision = decisionText(report);
+  const det = determination(report);
   const approver = s(intake.dpia_approved_by_name);
+  if (det) {
+    const head = det === "consultation_required"
+      ? "prior consultation with the supervisory authority before the processing begins"
+      : det === "draft_incomplete"
+      ? "that the assessment is not yet capable of sign-off"
+      : det === "conditionally_approved"
+      ? "conditional approval, subject to the conditions recorded in this assessment"
+      : "approval of the processing as assessed";
+    return repairRegister(stop(
+      `The sign-off determination recorded is ${head}${
+        approver ? `, and ${approver} is recorded against it` : ", and no approver is recorded against it"
+      }`,
+    ));
+  }
   if (!decision) {
     return approver
       ? `No sign-off determination has been recorded, and ${approver} has not yet accepted the residual position.`
@@ -547,6 +586,24 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
   if (basis) parts.push(stop(`The basis recorded for that acceptance is as follows: ${spliceVerbatim(basis)}`));
   if (values.dpiaScopeNote) parts.push(stop(`The company has recorded the scope of this assessment as ${values.dpiaScopeNote}`));
   if (values.endDate) parts.push(`The review window the company has recorded runs to ${values.endDate}.`);
+
+  const det = determination(report);
+  if (det === "conditionally_approved") {
+    const list = Array.isArray((report.decision as Bag)?.conditions)
+      ? ((report.decision as Bag).conditions as unknown[]).map((c) => s(c)).filter(Boolean)
+      : [];
+    if (list.length) {
+      parts.push(`Clearance is conditional on ${list.join("; ")}.`);
+    }
+  }
+  if (det === "draft_incomplete") {
+    const list = Array.isArray((report.decision as Bag)?.blockers)
+      ? ((report.decision as Bag).blockers as unknown[]).map((c) => s(c)).filter(Boolean)
+      : [];
+    if (list.length) {
+      parts.push(`Sign-off is held open by the following: ${list.join(" ")}`);
+    }
+  }
 
   const art36 = art36Determination(report);
   if (art36 === "consultation_required" || art36 === "undetermined_on_the_record") {

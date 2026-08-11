@@ -1,0 +1,188 @@
+// PROMPT 3 (2026-08-11) — deterministic sign-off decision (dpia_decision_v1).
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { buildDecision } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
+import type {
+  Art36Consultation,
+  RiskRegisterEntry,
+} from "../ltp/dpia-deliverables/types.ts";
+
+const INTAKE = { jurisdictions: ["EU (GDPR)"] };
+
+function art36(
+  determination: Art36Consultation["determination"],
+  status: Art36Consultation["status"] = "analysed",
+  information_needed?: string,
+): Art36Consultation {
+  return {
+    determination,
+    why: "",
+    exposure_note: "",
+    separation_repairs: 0,
+    driving_risk_ids: [],
+    citation: "GDPR Art. 36(1)",
+    authority_verbatim: "",
+    procedural_note: "",
+    procedural_citation: "GDPR Art. 36(3)",
+    status,
+    ...(information_needed ? { information_needed } : {}),
+  };
+}
+
+function risk(
+  over: Partial<RiskRegisterEntry> & { risk_id: string },
+): RiskRegisterEntry {
+  return {
+    risk_label: "Unauthorised access to health records",
+    source: "",
+    affected_rights: "",
+    likelihood: "Possible",
+    severity: "Severe",
+    inherent_band: "high",
+    measures: [],
+    residual_band: "moderate",
+    citation: "GDPR Art. 35(7)(c)",
+    authority_verbatim: "",
+    status: "analysed",
+    ...over,
+  } as RiskRegisterEntry;
+}
+
+function deliverables(over: Partial<{
+  risk_register: RiskRegisterEntry[];
+  art36_consultation: Art36Consultation;
+}> = {}) {
+  return {
+    necessity_findings: [],
+    proportionality: [],
+    risk_register: over.risk_register ?? [],
+    art36_consultation: over.art36_consultation ?? art36("consultation_not_required"),
+    legal_basis: [],
+  };
+}
+
+Deno.test("branch a — consultation_required", () => {
+  const d = buildDecision(
+    INTAKE,
+    deliverables({
+      risk_register: [risk({ risk_id: "r1", residual_band: "high" })],
+      art36_consultation: art36("consultation_required"),
+    }),
+  );
+  assertEquals(d.determination, "consultation_required");
+  assertEquals(d.rule_id, "dpia_decision_v1");
+  assertStringIncludes(d.why, "Art. 36(1)");
+  assertStringIncludes(d.why, "Unauthorised access to health records");
+  assertEquals(d.conditions, []);
+  assertEquals(d.blockers, []);
+});
+
+Deno.test("branch b — draft_incomplete on an undetermined residual band", () => {
+  const d = buildDecision(
+    INTAKE,
+    deliverables({
+      risk_register: [
+        risk({
+          risk_id: "r1",
+          residual_band: "undetermined",
+          status: "record_insufficient",
+          information_needed: "The measures actually applied against re-identification.",
+        }),
+      ],
+    }),
+  );
+  assertEquals(d.determination, "draft_incomplete");
+  assertEquals(d.blockers, ["The measures actually applied against re-identification."]);
+  assertStringIncludes(d.why, "not yet capable of a sign-off determination");
+});
+
+Deno.test("branch c — conditionally_approved; missing measure becomes its own condition", () => {
+  const d = buildDecision(
+    INTAKE,
+    deliverables({
+      risk_register: [
+        risk({ risk_id: "r1", residual_band: "high", measures: ["Pseudonymisation at ingest"] }),
+        risk({ risk_id: "r2", risk_label: "Excessive retention", residual_band: "high", measures: [] }),
+      ],
+    }),
+  );
+  assertEquals(d.determination, "conditionally_approved");
+  assertEquals(d.conditions, [
+    "Pseudonymisation at ingest",
+    "a recorded measure for Excessive retention",
+  ]);
+  assertStringIncludes(d.why, "conditional on");
+});
+
+Deno.test("branch d — approved", () => {
+  const d = buildDecision(
+    INTAKE,
+    deliverables({
+      risk_register: [risk({ risk_id: "r1", residual_band: "low", measures: ["Access controls"] })],
+    }),
+  );
+  assertEquals(d.determination, "approved");
+  assertEquals(d.conditions, []);
+  assertStringIncludes(d.why, "low or moderate residual band");
+});
+
+Deno.test("consultation beats draft_incomplete when both hold", () => {
+  const d = buildDecision(
+    INTAKE,
+    deliverables({
+      risk_register: [
+        risk({ risk_id: "r1", residual_band: "high" }),
+        risk({
+          risk_id: "r2",
+          residual_band: "undetermined",
+          status: "record_insufficient",
+          information_needed: "Open point.",
+        }),
+      ],
+      art36_consultation: art36("consultation_required"),
+    }),
+  );
+  assertEquals(d.determination, "consultation_required");
+  assertEquals(d.blockers, []);
+});
+
+Deno.test("blockers deduplicate across surfaces", () => {
+  const shared = "Record the retention period for the assessed processing.";
+  const base = deliverables({
+    risk_register: [
+      risk({
+        risk_id: "r1",
+        residual_band: "undetermined",
+        status: "record_insufficient",
+        information_needed: shared,
+      }),
+    ],
+  });
+  const d = buildDecision(INTAKE, {
+    ...base,
+    // deno-lint-ignore no-explicit-any
+    necessity_findings: [{ status: "record_insufficient", information_needed: shared } as any],
+    // deno-lint-ignore no-explicit-any
+    legal_basis: [{ status: "record_insufficient", information_needed: shared } as any],
+  });
+  assertEquals(d.determination, "draft_incomplete");
+  assertEquals(d.blockers, [shared]);
+});
+
+Deno.test("legacy report without `decision` still composes via the fallback", async () => {
+  const { assembleDpiaSkeletonDocument } = await import("../ltp/dpia-skeleton-assemble.ts");
+  assert(typeof assembleDpiaSkeletonDocument === "function");
+  const out = assembleDpiaSkeletonDocument(
+    {
+      section_6_conclusion: { decision: "DRAFT — INCOMPLETE. Retention period outstanding." },
+      risk_register: [],
+      art36_consultation: { determination: "consultation_not_required" },
+    } as Record<string, unknown>,
+    { organization_name: "Acme GmbH", processing_activity_name: "Absence triage" } as Record<string, unknown>,
+  );
+  const text = JSON.stringify(out.document);
+  assertStringIncludes(text, "may not yet treat the processing as cleared");
+});
