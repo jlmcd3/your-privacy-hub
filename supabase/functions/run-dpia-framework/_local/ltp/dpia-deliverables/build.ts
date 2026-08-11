@@ -1120,7 +1120,7 @@ export function buildGapLedgerDetailed(
   };
 
   for (const f of deliverables.necessity_findings) {
-    if (!str(f.information_needed)) continue;
+    if (f.information_needed === undefined) continue;
     push(
       f.purpose_stated ? GAP_FIELD_ALTERNATIVES : GAP_FIELD_PURPOSE,
       str(f.information_needed),
@@ -1130,7 +1130,7 @@ export function buildGapLedgerDetailed(
   }
 
   for (const f of deliverables.proportionality) {
-    if (!str(f.information_needed)) continue;
+    if (f.information_needed === undefined) continue;
     push(
       GAP_FIELD_NECPROP,
       str(f.information_needed),
@@ -1140,7 +1140,7 @@ export function buildGapLedgerDetailed(
   }
 
   for (const f of deliverables.legal_basis) {
-    if (!str(f.information_needed)) continue;
+    if (f.information_needed === undefined) continue;
     push(
       legalBasisGapField(f),
       str(f.information_needed),
@@ -1150,7 +1150,7 @@ export function buildGapLedgerDetailed(
   }
 
   for (const r of deliverables.risk_register) {
-    if (!str(r.information_needed)) continue;
+    if (r.information_needed === undefined) continue;
     push(
       GAP_FIELD_SAFEGUARDS,
       str(r.information_needed),
@@ -1160,7 +1160,7 @@ export function buildGapLedgerDetailed(
   }
 
   const a36 = deliverables.art36_consultation;
-  if (str(a36.information_needed)) {
+  if (a36.information_needed !== undefined) {
     push(
       GAP_FIELD_RESIDUAL,
       str(a36.information_needed),
