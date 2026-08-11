@@ -634,10 +634,17 @@ export function QualityConsole({
     const completed = toolResults.filter((r) => r.final_status === "complete" && r.quality_run_id);
     if (completed.length === 0) { toast.error("No complete tools in this batch."); return; }
 
-    // A long PDF loop outlives a stale access token; refresh once up front so
-    // every invoke carries a live session (expired token → 401 auth_expired).
-    const { data: sess } = await supabase.auth.getSession();
-    if (!sess?.session) { toast.error("Session expired — sign in again and retry."); return; }
+    // A long PDF loop outlives a stale access token. getSession() only reads
+    // localStorage, so a revoked/expired session still looks valid and every
+    // invoke 401s with auth_expired. Validate against the auth server (and
+    // force a refresh) before starting.
+    let { data: { user: liveUser } } = await supabase.auth.getUser();
+    if (!liveUser) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      liveUser = refreshed?.user ?? null;
+    }
+    if (!liveUser) { toast.error("Session expired — sign in again and retry."); return; }
+
 
     const tid = toast.loading(`Preparing PDFs for batch ${batch.id.slice(0, 8)}…`);
 
@@ -676,12 +683,21 @@ export function QualityConsole({
               : "";
             zip.file(`${tr.tool}/${String(d.doc_number).padStart(2, "0")}-${shortRow}${modelSuffix}.pdf`, blob);
             ok += 1;
-          } catch (e) {
+          } catch (e: any) {
             console.error("pdf fetch failed", tr.tool, d.source_row_id, e);
             failed += 1;
+            // Mid-loop token death: stop instead of failing every remaining doc.
+            if (e?.context?.status === 401) {
+              const { data: r } = await supabase.auth.refreshSession();
+              if (!r?.session) {
+                toast.error("Session expired mid-export — sign in again and retry.", { id: tid });
+                return;
+              }
+            }
           }
         }
       }
+
       if (ok === 0) {
         toast.error(`Zip aborted — 0 of ${docTotal} PDFs rendered.`, { id: tid });
         return;
