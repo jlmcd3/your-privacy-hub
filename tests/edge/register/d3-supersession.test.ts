@@ -33,8 +33,8 @@ const PROMPT_SURFACES = [
   "supabase/functions/run-cppa-risk-assessment/index.ts",
   "supabase/functions/run-cppa-cybersecurity/index.ts",
   "supabase/functions/run-li-assessment/index.ts",
-  "supabase/functions/run-governance-tracker/index.ts",
-  "supabase/functions/run-ir-playbook/index.ts",
+  "supabase/functions/run-governance-assessment/index.ts",
+  "supabase/functions/generate-ir-playbook/index.ts",
   "supabase/functions/check-biometric-compliance/index.ts",
   "supabase/functions/generate-dpa/index.ts",
 ];
