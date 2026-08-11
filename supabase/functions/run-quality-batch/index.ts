@@ -1687,11 +1687,21 @@ export async function resurrectGenerator(
 
 async function pollGenerationRow(
   admin: Admin, sourceTable: string, sourceRowId: string, deadlineMs: number,
-  opts?: { tool?: string; log?: (level: string, msg: string) => Promise<void> | void },
+  opts?: {
+    tool?: string;
+    log?: (level: string, msg: string) => Promise<void> | void;
+    // SO-FT RESURRECT-CALIBRATION: attempts must survive the poll-resume
+    // boundary. Each fresh isolate previously restarted the counter at 0, so
+    // MAX_RESURRECTIONS never bound a long doc — the log shows "attempt 1"
+    // over and over across isolates. Caller seeds and receives the count.
+    initialResurrectAttempts?: number;
+    onResurrect?: (attempts: number) => void;
+  },
 ): Promise<PollOutcome> {
   const deadline = Date.now() + deadlineMs;
   const intervalMs = sourceTable === "biometric_assessments" ? 2500 : 5000;
-  let resurrectAttempts = 0;
+  let resurrectAttempts = opts?.initialResurrectAttempts ?? 0;
+
   while (Date.now() < deadline) {
     await new Promise(r => setTimeout(r, intervalMs));
     try {
