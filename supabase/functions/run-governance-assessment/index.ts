@@ -1313,6 +1313,21 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       };
     }
 
+    // PROPOSAL 2026-08-11 (Governance) — verify each regulatory_basis_v2
+    // engagement pointer resolves to a fact the intake actually contains, so a
+    // real citation cannot attach itself to an invented engaging fact.
+    let govPointerCheck: ReturnType<typeof verifyGovernanceBasisPointers> | null = null;
+    try {
+      govPointerCheck = verifyGovernanceBasisPointers(strippedDomainFindings, intake);
+      if (govPointerCheck.checked > 0) {
+        console.log(JSON.stringify({ evt: "_gov_basis_pointer_check", fn: "run-governance-assessment", ...govPointerCheck }));
+      }
+    } catch (e) {
+      console.warn("[run-governance-assessment] basis-pointer check failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
 
     let reportData: any = {
       generated_at: new Date().toISOString(),
