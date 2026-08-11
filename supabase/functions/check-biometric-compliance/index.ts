@@ -80,6 +80,7 @@ import {
   BIOMETRIC_REGISTRY_VERSION,
 } from "./_local/registry/biometric-select.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+import { recordApiUsage } from "../_shared/api-usage.ts"; // PROPOSAL 2026-08-11 — main-generation cost visibility
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
