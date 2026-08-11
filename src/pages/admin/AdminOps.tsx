@@ -1027,6 +1027,107 @@ function LintTelemetryPanel() {
   );
 }
 
+// PROPOSAL 2026-08-11 FOLLOW-UP — release ledger surfacing.
+// Read-only visibility for documents persisted with release_ledger.clean === false.
+// Walks the persisted documents (dpia_frameworks, cppa_assessments), not a derived log stream.
+type LedgerRow = {
+  key: string;
+  when: string | null;
+  product: string;
+  docId: string;
+  counts: Array<[string, number]>;
+};
+const LEDGER_COUNT_KEYS = [
+  "blocking_findings_open",
+  "csc_flags_unrepaired",
+  "coverage_orphans",
+  "unused_material_facts",
+  "citation_failures",
+] as const;
+
+function ReleaseLedgerPanel() {
+  const [rows, setRows] = useState<LedgerRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const since = new Date(Date.now() - 30 * 24 * MS_HOUR).toISOString();
+    const [dpia, risk] = await Promise.all([
+      supabase.from("dpia_frameworks").select("*").gte("created_at", since)
+        .order("created_at", { ascending: false }).limit(300),
+      supabase.from("cppa_assessments").select("*").gte("created_at", since)
+        .order("created_at", { ascending: false }).limit(300),
+    ]);
+    const collect = (data: any[] | null, product: string): LedgerRow[] =>
+      (data ?? [])
+        .filter((r: any) => r?.report_data?._meta?.internal?.release_ledger?.clean === false)
+        .map((r: any) => {
+          const led = r.report_data._meta.internal.release_ledger ?? {};
+          return {
+            key: `${product}-${r.id}`,
+            when: r.updated_at ?? r.created_at ?? null,
+            product: product === "cppa" ? `cppa-${r.module ?? "risk"}` : product,
+            docId: String(r.id),
+            counts: LEDGER_COUNT_KEYS
+              .map((k) => [k, Number(led[k] ?? 0)] as [string, number])
+              .filter(([, v]) => v > 0),
+          };
+        });
+    const all = [...collect(dpia.data as any, "dpia"), ...collect(risk.data as any, "cppa")]
+      .sort((a, b) => (b.when ?? "").localeCompare(a.when ?? ""));
+    setRows(all);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <section className="mb-10">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Release ledger — non-clean documents</h2>
+          <p className="text-xs text-gray-500">
+            Persisted docs from the last 30 days where <code>report_data._meta.internal.release_ledger.clean === false</code>.
+            Read-only; the ledger never blocks or alters a document.
+          </p>
+        </div>
+        <Button onClick={load} disabled={loading} variant="outline" size="sm">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />Refresh
+        </Button>
+      </div>
+      <div className="overflow-x-auto rounded border border-gray-800">
+        <table className="w-full text-sm text-black">
+          <thead className="bg-gray-100"><tr>
+            <th className="text-left px-3 py-2 font-medium">When</th>
+            <th className="text-left px-3 py-2 font-medium">Product</th>
+            <th className="text-left px-3 py-2 font-medium">Doc</th>
+            <th className="text-left px-3 py-2 font-medium">Non-zero ledger counts</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.key} className="border-t border-gray-800">
+                <td className="px-3 py-2 text-xs">{r.when ? fmtTime(r.when) : "—"}</td>
+                <td className="px-3 py-2 font-mono text-xs">{r.product}</td>
+                <td className="px-3 py-2 font-mono text-xs">{r.docId.slice(0, 8)}…</td>
+                <td className="px-3 py-2 text-xs">
+                  {r.counts.length === 0 ? "—" : r.counts.map(([k, v]) => (
+                    <span key={k} className="mr-2 rounded bg-gray-800/70 border border-gray-700 px-1.5 py-0.5 text-white">
+                      {k}: {v}
+                    </span>
+                  ))}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && !loading && (
+              <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-500">No non-clean release ledgers in window.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+
 // ---------- Page shell ----------
 function AdminOpsInner() {
   return (
@@ -1042,6 +1143,7 @@ function AdminOpsInner() {
         <OpsActionsPanel />
         <RecentBatchesPanel />
         <LintTelemetryPanel />
+        <ReleaseLedgerPanel />
         <ManualEntitlementsPanel />
         <FunctionsPanel />
         <GenerationPanel />
