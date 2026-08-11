@@ -31,6 +31,7 @@ import {
   type SlotValues,
 } from "../prose/skeleton-render.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
+import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
 export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@so5-wire-in-2026-08-10";
 
@@ -179,16 +180,15 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
     name: s(intake.processing_activity_name) || "the processing under assessment",
     organizationName: s(intake.organization_name) || "The company",
 
-    reasonsToConduct: reasons.length ? asProse(reasons) : null,
-    description: noStop(s(intake.description)) || null,
-    VERSION_CLAUSE: version ? `, version ${version}` : "",
-    LAUNCH_CLAUSE: launch ? `, planned to commence ${launch}` : "",
+    // PROMPT 2A(a) — must read grammatically after "…is required because ".
+    reasonsToConduct: reasons.length ? `the processing involves ${asProse(reasons)}` : null,
+    ...descriptionSlots(noStop(s(intake.description)), version, humanizeDateISO(launch)),
 
     purpose: noStop(s(intake.purpose)) || null,
     dataSubjects: s(intake.data_subjects) || null,
     dataCategories: categories.length ? asProse(categories) : null,
     volume: noStop(s(intake.volume_frequency)) || null,
-    dataFlow: noStop(s(intake.functional_description)) || null,
+    dataFlow: spliceVerbatim(s(intake.functional_description)) || null,
 
     LEGAL_BASIS_PHRASE: basis
       ? (DPIA_LEGAL_BASIS_PHRASE_MAP[basis] ?? lowerEnumLabel(basis))
@@ -196,8 +196,11 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
     ARTICLE_9_SENTENCE: art9
       ? `Because special categories of data are involved, the company relies on ${art9} under Article 9(2)`
       : "",
-    necessityProportionality: noStop(s(intake.necessity_proportionality)) || null,
-    dataMinimisationJustification: noStop(s(intake.data_minimisation_justification)) || null,
+    necessityProportionality: spliceVerbatim(s(intake.necessity_proportionality)) || null,
+    // Spine reads "the company states {slot}" — the colon lives in the value.
+    dataMinimisationJustification: s(intake.data_minimisation_justification)
+      ? `: ${spliceVerbatim(s(intake.data_minimisation_justification))}`
+      : null,
     QUALITY_CLAUSE: quality ? `; on accuracy, ${noStop(quality)}` : "",
 
     safeguards: safeguards.length ? asProse(safeguards) : null,
@@ -209,7 +212,50 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
 
     dpiaApprovedByName: s(intake.dpia_approved_by_name) || null,
     dpiaScopeNote: noStop(s(intake.dpia_scope_note)) || null,
-    endDate: s(intake.estimated_end_date) || null,
+    endDate: humanizeDateISO(s(intake.estimated_end_date)) || null,
+  };
+}
+
+/**
+ * PROMPT 2A(b) — the spine renders
+ *   "The processing under assessment is {description}{VERSION_CLAUSE}{LAUNCH_CLAUSE}."
+ * A version/launch clause appended to a MULTI-sentence description modifies the
+ * wrong clause. When the description runs to more than one sentence we emit the
+ * version/launch material as one separate following sentence instead, carried
+ * on LAUNCH_CLAUSE so the spine's own terminal stop closes it.
+ */
+export function descriptionSlots(
+  description: string,
+  version: string,
+  launchHuman: string,
+): { description: string | null; VERSION_CLAUSE: string; LAUNCH_CLAUSE: string } {
+  const desc = description.trim();
+  if (!desc) {
+    return {
+      description: null,
+      VERSION_CLAUSE: version ? `, version ${version}` : "",
+      LAUNCH_CLAUSE: launchHuman ? `, planned to commence ${launchHuman}` : "",
+    };
+  }
+  const multi = firstSentencesQuoteAware(desc, 1).trim() !== desc;
+  if (!multi) {
+    return {
+      description: desc,
+      VERSION_CLAUSE: version ? `, version ${version}` : "",
+      LAUNCH_CLAUSE: launchHuman ? `, planned to commence ${launchHuman}` : "",
+    };
+  }
+  if (!version && !launchHuman) {
+    return { description: noStop(desc), VERSION_CLAUSE: "", LAUNCH_CLAUSE: "" };
+  }
+  const cover = version
+    ? `This assessment covers version ${version} of the processing`
+    : "This assessment covers the processing";
+  const tail = launchHuman ? `${cover}, planned to commence ${launchHuman}` : cover;
+  return {
+    description: noStop(desc),
+    VERSION_CLAUSE: "",
+    LAUNCH_CLAUSE: `. ${tail}`,
   };
 }
 
@@ -498,7 +544,7 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
   } else {
     parts.push("No approver has been recorded, so the residual position set out above has not yet been accepted by anyone on the company's behalf.");
   }
-  if (basis) parts.push(stop(`The basis recorded for that acceptance is ${noStop(basis)}`));
+  if (basis) parts.push(stop(`The basis recorded for that acceptance is as follows: ${spliceVerbatim(basis)}`));
   if (values.dpiaScopeNote) parts.push(stop(`The company has recorded the scope of this assessment as ${values.dpiaScopeNote}`));
   if (values.endDate) parts.push(`The review window the company has recorded runs to ${values.endDate}.`);
 
