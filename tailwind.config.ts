@@ -150,7 +150,6 @@ export default {
         sm: ['0.875rem', { lineHeight: '1.55' }],
         base: ['1rem', { lineHeight: '1.65' }],
         // --- EUP Brand v7 type scale (Section 1.2) ---
-        'display-hero': ['48px', { lineHeight: '1.1', letterSpacing: '-0.015em' }],
         'display-section': ['32px', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
         'display-card': ['18px', { lineHeight: '1.3' }],
         'body-large': ['15px', { lineHeight: '1.55' }],
@@ -165,7 +164,6 @@ export default {
         'fluid-lg': ['clamp(1rem, 0.95rem + 0.3vw, 1.1875rem)', { lineHeight: '1.5' }],
         'fluid-xl': ['clamp(1.125rem, 1.05rem + 0.45vw, 1.375rem)', { lineHeight: '1.4' }],
         'fluid-2xl': ['clamp(1.375rem, 1.25rem + 0.75vw, 1.875rem)', { lineHeight: '1.25' }],
-        'fluid-hero': ['clamp(2rem, 1.4rem + 3vw, 3.5rem)', { lineHeight: '1.1' }],
       },
       spacing: {
         'fluid-sm': 'clamp(0.5rem, 0.4rem + 0.4vw, 0.75rem)',
