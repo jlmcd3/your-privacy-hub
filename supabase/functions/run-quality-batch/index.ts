@@ -2417,14 +2417,20 @@ async function runBatchInner(runId: string): Promise<void> {
 
         const remainingTotal = DOC_TOTAL_TIMEOUT_MS - (Date.now() - genStartedAt);
         const isolateBudget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, remainingTotal));
-        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget, { tool, log });
+        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget, {
+          tool, log,
+          initialResurrectAttempts: resurrectAttempts,
+          onResurrect: (n) => { resurrectAttempts = n; },
+        });
 
         if (outcome.status === "deadline") {
           (state as any).pending_gen = {
             doc_index: i, doc_row_id: docRowId,
             source_table: sourceTable, source_row_id: sourceRowId,
             gen_started_at: genStartedAt, isolate_count: isolateCount,
+            resurrect_attempts: resurrectAttempts,
           };
+
           await log("info", `${docLabel}: poll deadline reached (isolate ${isolateCount}, ${Math.round(isolateBudget/1000)}s) — persisting pending_gen and self-reinvoking to CONTINUE polling (poll-resume boundary)`);
           await persistState({});
           await selfReinvoke(runId);
