@@ -663,12 +663,30 @@ Deno.serve(serveWithGenerationModel(async (req) => {
        failFunctionRun(supabase, fnRun, new Error("pipeline_budget_exceeded"), { metadata: { assessment_id, budget_ms: PIPELINE_BUDGET_MS } });
      } catch (_) { /* swallow — best-effort diagnostic write */ }
    }, PIPELINE_BUDGET_MS);
-   try {
-    const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
-    if (!procWrite.ok) {
-      await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${procWrite.message}`), { metadata: { assessment_id, phase: "pre_generation" } });
-      return;
-    }
+    let heartbeat: ReturnType<typeof setInterval> | undefined;
+    try {
+      const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
+      if (!procWrite.ok) {
+        await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${procWrite.message}`), { metadata: { assessment_id, phase: "pre_generation" } });
+        return;
+      }
+      // LIVENESS HEARTBEAT — the batch harness (run-quality-batch) decides a
+      // chain is stalled from `updated_at` staleness. ADMT's long model stages
+      // (gap-analysis alone runs 250s+) leave the row untouched for >480s, so a
+      // perfectly healthy run looked stalled and got resurrected into a
+      // duplicate concurrent generation. Touch the row every 60s while the
+      // pipeline is alive; a real stall still goes stale.
+      heartbeat = setInterval(() => {
+       try {
+         (supabase as any)
+           .from("cppa_assessments")
+           .update({ updated_at: new Date().toISOString() })
+           .eq("id", assessment_id)
+           .eq("status", "processing")
+           .then(() => {}, () => {});
+       } catch (_) { /* best-effort */ }
+     }, 60_000);
+
     const intake = assessment.intake_data as any;
 
 
@@ -3184,9 +3202,11 @@ Return this JSON structure exactly:
       report_data: { error: String(e) },
     }, { fn: "run-admt-checker", phase: "terminal_error_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
-   } finally {
-    clearTimeout(budgetTimer);
-    console.log(`[run-admt-checker] HF3-F: pipeline elapsed=${Date.now() - pipelineStart}ms budget=${PIPELINE_BUDGET_MS}ms`);
+    } finally {
+     clearTimeout(budgetTimer);
+     try { clearInterval(heartbeat); } catch (_) { /* not yet started */ }
+     console.log(`[run-admt-checker] HF3-F: pipeline elapsed=${Date.now() - pipelineStart}ms budget=${PIPELINE_BUDGET_MS}ms`);
+
    }
   })());
 
