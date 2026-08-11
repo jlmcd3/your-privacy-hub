@@ -19,6 +19,12 @@ import type {
   LegalBasisFinding,
   DpiaDecision,
   DpiaGapLedgerEntry,
+  DpiaProcessingInventory,
+  DpiaInventoryController,
+  DpiaInventoryDataItem,
+  DpiaInventoryProcessor,
+  DpiaInventoryPurpose,
+  DpiaInventorySecondaryUse,
   DpiaRiskCountNote,
   LegitimateInterestsTest,
   Likelihood,
@@ -1097,6 +1103,131 @@ function legalBasisGapField(f: LegalBasisFinding): string {
   return GAP_FIELD_BASIS;
 }
 
+
+// ---------------------------------------------------------------------
+// PROMPT 6 (2026-08-11) — deterministic processing inventory.
+//
+// The descriptive content of EDPB §§0/1 as TYPED, intake-traceable rows.
+// LAW: verbatim-or-absent. Every row names the intake contract key it came
+// from; nothing is inferred, enriched or enumerated beyond the record's own
+// words, and there are no model calls anywhere in this builder.
+// ---------------------------------------------------------------------
+const SPECIAL_CATEGORY_CATS_LOCAL = [
+  "Health or medical data",
+  "Biometric data",
+] as const;
+
+const ASK_DPO =
+  "whether a data protection officer is designated for this processing, and if so their name and contact details";
+const ASK_PROCESSOR_OBLIGATIONS =
+  "the obligations and tasks each processor is bound to under the Art. 28 processing contract";
+const ASK_ART9_CONDITION =
+  "which Art. 9(2) condition is relied on for the special-category data recorded here";
+
+export function buildProcessingInventory(intake: unknown): DpiaProcessingInventory {
+  // ── controllers: exactly one row ────────────────────────────────────
+  const dpo = str(get(intake, "dpo_info"));
+  // eu_decision_establishment_country carries emptyIsAnswer semantics: an
+  // empty string is the answer "decisions are made elsewhere", never a gap.
+  const central = str(get(intake, "central_administration_country"));
+  const euDecision = str(get(intake, "eu_decision_establishment_country"));
+  const establishment = euDecision || central;
+  const controller: DpiaInventoryController = {
+    name: str(get(intake, "organization_name")),
+    responsible_unit: str(get(intake, "controller_contact")),
+    main_establishment_or_representative: establishment,
+    dpo,
+    status: dpo ? "analysed" : "record_insufficient",
+    ...(dpo ? {} : { information_needed: ASK_DPO }),
+    source_field: "organization_name",
+  };
+
+  // ── processors ──────────────────────────────────────────────────────
+  const processorNames = arr(get(intake, "third_party_processors"));
+  const obligations = str(get(intake, "processor_obligations"));
+  const processors: DpiaInventoryProcessor[] = [];
+  if (processorNames.length === 0) {
+    // Absence of processors is a substantive answer, not a gap.
+    processors.push({
+      name: "None identified",
+      obligations_and_tasks: "",
+      status: "analysed",
+      source_field: "third_party_processors",
+    });
+  } else {
+    for (const name of processorNames) {
+      processors.push({
+        name,
+        obligations_and_tasks: obligations,
+        status: obligations ? "analysed" : "record_insufficient",
+        ...(obligations ? {} : { information_needed: ASK_PROCESSOR_OBLIGATIONS }),
+        source_field: "third_party_processors",
+      });
+    }
+  }
+
+  // ── data items ──────────────────────────────────────────────────────
+  const art9 = str(get(intake, "article_9_condition"));
+  const data_items: DpiaInventoryDataItem[] = arr(get(intake, "data_categories")).map((item) => {
+    const special = (SPECIAL_CATEGORY_CATS_LOCAL as readonly string[]).includes(item);
+    if (!special) {
+      return {
+        item,
+        special_category: false,
+        status: "analysed" as const,
+        source_field: "data_categories",
+      };
+    }
+    return {
+      item,
+      special_category: true,
+      ...(art9 ? { art9_condition_label: art9 } : {}),
+      status: (art9 ? "analysed" : "record_insufficient") as "analysed" | "record_insufficient",
+      ...(art9 ? {} : { information_needed: ASK_ART9_CONDITION }),
+      source_field: "data_categories",
+    };
+  });
+
+  // ── purposes: op-aligned with buildOperations ───────────────────────
+  const purposes: DpiaInventoryPurpose[] = buildOperations(intake).map((op) => ({
+    purpose_text: op.purpose_text,
+    operation_id: op.operation_id,
+    source_field: op.operation_id === "op_secondary" ? "secondary_uses" : "purpose",
+  }));
+
+  // ── secondary uses ──────────────────────────────────────────────────
+  const secondaryText = str(get(intake, "secondary_uses"));
+  const secondary_uses: DpiaInventorySecondaryUse[] = secondaryText
+    ? [{
+      use_text: secondaryText,
+      negation: isSecondaryUseNegation(secondaryText),
+      source_field: "secondary_uses",
+    }]
+    : [];
+
+  // ── planning + scale ────────────────────────────────────────────────
+  const launch = str(get(intake, "estimated_launch_date"));
+  const end = str(get(intake, "estimated_end_date"));
+  const version = str(get(intake, "processing_version"));
+
+  return {
+    controllers: [controller],
+    processors,
+    data_items,
+    purposes,
+    secondary_uses,
+    planning: {
+      ...(launch ? { launch_date: launch } : {}),
+      ...(end ? { end_date: end } : {}),
+      ...(version ? { version } : {}),
+    },
+    scale: {
+      volume_frequency_verbatim: str(get(intake, "volume_frequency")),
+      source_field: "volume_frequency",
+    },
+  };
+}
+
 export function buildGapLedgerDetailed(
   _intake: unknown,
   deliverables: {
@@ -1106,6 +1237,7 @@ export function buildGapLedgerDetailed(
     readonly art36_consultation: Art36Consultation;
     readonly legal_basis: readonly LegalBasisFinding[];
     readonly decision: DpiaDecision;
+    readonly processing_inventory?: DpiaProcessingInventory;
   },
 ): GapLedgerResult {
   type Raw = { field: string; dimensions: string; provision: string; enables: string };
@@ -1157,6 +1289,26 @@ export function buildGapLedgerDetailed(
       r.citation,
       `the residual band for ${r.risk_label}`,
     );
+  }
+
+  // PROMPT 6 — processing-inventory asks join the same aggregation.
+  const inv = deliverables.processing_inventory;
+  if (inv) {
+    for (const c of inv.controllers) {
+      if (c.information_needed === undefined) continue;
+      push("dpo_info", str(c.information_needed), "GDPR Art. 37",
+        `the controller record for ${c.name || "the controller"}`);
+    }
+    for (const p of inv.processors) {
+      if (p.information_needed === undefined) continue;
+      push("processor_obligations", str(p.information_needed), "GDPR Art. 28",
+        `the processor record for ${p.name}`);
+    }
+    for (const d of inv.data_items) {
+      if (d.information_needed === undefined) continue;
+      push("article_9_condition", str(d.information_needed), "GDPR Art. 9(2)",
+        `the special-category entry for ${d.item}`);
+    }
   }
 
   const a36 = deliverables.art36_consultation;
@@ -1267,7 +1419,8 @@ export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
     legal_basis: buildLegalBasis(intake),
   };
   const decision = buildDecision(intake, core);
-  const withDecision = { ...core, decision };
+  const processing_inventory = buildProcessingInventory(intake);
+  const withDecision = { ...core, decision, processing_inventory };
   const risk_count_note = buildRiskCountNote(intake, risk_register);
   return {
     ...withDecision,
@@ -1345,6 +1498,10 @@ export function attachDpiaDeliverables(
     // report.gap_ledger; the bracket-tag-harvested information_needed array
     // remains for documents generated before this change.
     report.gap_ledger = built.gap_ledger;
+
+    // PROMPT 6 (2026-08-11) — deterministic processing inventory. Single
+    // writer for report.processing_inventory. Nothing renders it yet.
+    report.processing_inventory = built.processing_inventory;
     if (built.risk_count_note) report.risk_count_note = built.risk_count_note;
     const s2 = report.section_2_analysis;
     if (s2 && typeof s2 === "object") {
@@ -1375,6 +1532,13 @@ export function attachDpiaDeliverables(
       gap_ledger_dropped_unmapped: ledger.dropped_unmapped,
       gap_ledger_merged: ledger.merged,
       risk_count_note: built.risk_count_note ? 1 : 0,
+      inventory_processors: built.processing_inventory.processors.length,
+      inventory_data_items: built.processing_inventory.data_items.length,
+      inventory_purposes: built.processing_inventory.purposes.length,
+      inventory_insufficient:
+        built.processing_inventory.controllers.filter((c) => c.status === "record_insufficient").length +
+        built.processing_inventory.processors.filter((p) => p.status === "record_insufficient").length +
+        built.processing_inventory.data_items.filter((d) => d.status === "record_insufficient").length,
     };
   } catch (e) {
     return {
