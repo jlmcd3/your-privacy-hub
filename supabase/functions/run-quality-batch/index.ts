@@ -1629,9 +1629,20 @@ type PollOutcome =
 // heartbeat can no longer strand a wave digest (wave 8 stall cost us the read).
 const RESUMABLE_GENERATORS = new Set(["dpia", "cppa-admt"]);
 const RESURRECT_STALE_MS = 180_000;
-const MAX_RESURRECTIONS = 2;
+// SO-FT RESURRECT-CALIBRATION (2026-08-11): cppa-admt's normal generation has
+// phases that legitimately run >3 minutes without touching updated_at, so the
+// flat 180s threshold fired on HEALTHY chains — the 00:47 batch resurrected the
+// same doc every ~3 minutes, spawning duplicate generator chains that pushed
+// doc 2 and doc 3 from ~300s to ~900s. Give admt a threshold above its longest
+// observed quiet phase; dpia keeps 180s.
+const RESURRECT_STALE_MS_BY_TOOL: Record<string, number> = { "cppa-admt": 480_000 };
+export const MAX_RESURRECTIONS = 2;
 const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker" };
 const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id" };
+
+export function resurrectStaleMs(tool?: string): number {
+  return (tool && RESURRECT_STALE_MS_BY_TOOL[tool]) || RESURRECT_STALE_MS;
+}
 
 export function shouldResurrect(opts: {
   tool?: string;
@@ -1644,8 +1655,9 @@ export function shouldResurrect(opts: {
   if (!opts.updatedAtIso) return false;
   const t = Date.parse(opts.updatedAtIso);
   if (!Number.isFinite(t)) return false;
-  return opts.nowMs - t > RESURRECT_STALE_MS;
+  return opts.nowMs - t > resurrectStaleMs(opts.tool);
 }
+
 
 export async function resurrectGenerator(
   tool: string, sourceRowId: string,
