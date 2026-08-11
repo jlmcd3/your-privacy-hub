@@ -567,6 +567,198 @@ function readArt6(basisText: string): { sub: string; label: string } | null {
   return null;
 }
 
+// ── PHASE 0 PROMPT 2 (2026-08-11) — per-basis branching, Art. 6(1)(a)–(e) ──
+//
+// DEFECT 1 fix: each sub-basis resolves its OWN anchor. Where the verified
+// registry carries no row for that sub-basis the verbatim is the empty string;
+// Art. 5(1)(a) lawfulness text is never substituted for an Art. 6(1) citation.
+// DEFECT 2 fix: each sub-basis carries its own deterministic record test,
+// reading only existing intake fields.
+
+/** Anchor key per Art. 6(1) sub-basis. Missing registry rows → empty verbatim. */
+const ART6_ANCHOR_KEYS = {
+  "Art. 6(1)(a)": "consent",
+  "Art. 6(1)(b)": "contract",
+  "Art. 6(1)(c)": "legal_obligation",
+  "Art. 6(1)(d)": "vital_interests",
+  "Art. 6(1)(e)": "public_task",
+  "Art. 6(1)(f)": "legitimate_interests",
+} as const;
+
+/** Consent capture / withdrawal language (6(1)(a)). */
+const CONSENT_LEXICON: readonly RegExp[] = [
+  /\bwithdraw(al|n|ing)?\b/i,
+  /\bopt[- ]?in\b/i,
+  /\bconsent (is )?(collected|captured|obtained|recorded|given)\b/i,
+  /\bconsent (banner|form|screen|record|management)\b/i,
+  /\bunsubscribe\b/i,
+  /\bpreference cent(re|er)\b/i,
+];
+
+/** Contracting-party language (6(1)(b)). */
+const CONTRACT_PARTY_LEXICON: readonly RegExp[] = [
+  /\bcustomers?\b/i,
+  /\bclients?\b/i,
+  /\bsubscribers?\b/i,
+  /\bemployees?\b/i,
+  /\bparty\b|\bparties\b/i,
+  /\baccount holders?\b/i,
+  /\bpolicyholders?\b/i,
+  /\bapplicants?\b/i,
+];
+
+/** A NAMED legal instrument (6(1)(c) and 6(1)(e)). */
+const NAMED_INSTRUMENT_LEXICON: readonly RegExp[] = [
+  /\b[A-Z][A-Za-z]+ Act\b/,
+  /\bAct \d{4}\b/,
+  /\bRegulation \(EU\)/i,
+  /\bDirective \d{2,4}\/\d+/i,
+  /\bDirective \(EU\)/i,
+  /\b§\s?\d/,
+  /\bArt(icle)?\.?\s?\d+/,
+  /\bsection \d+/i,
+  /\bCode\b.*\b(civil|labour|labor|tax|commercial|health)\b/i,
+  /\b(statute|statutory instrument)\b/i,
+];
+
+/** Life / safety / emergency language (6(1)(d)). */
+const VITAL_INTEREST_LEXICON: readonly RegExp[] = [
+  /\bvital interest/i,
+  /\blife[- ]threatening\b/i,
+  /\bemergenc(y|ies)\b/i,
+  /\bsafety of\b/i,
+  /\bsave (a )?li(fe|ves)\b/i,
+  /\bmedical emergency\b/i,
+  /\bdisaster\b/i,
+];
+
+/** Closing sentence carried by EVERY basis branch, unchanged in substance. */
+const BASIS_CLOSER =
+  "This assessment records the basis the controller has selected and the purpose it is selected for; " +
+  "whether the conditions of that basis are met in operation is a matter for the controller's lawfulness record, " +
+  "which this assessment does not substitute.";
+
+interface BasisCheck {
+  readonly met: boolean;
+  /** What the record does or does not establish, in the fixed register. */
+  readonly finding: string;
+  readonly information_needed?: string;
+  /** (d) only: the record does not describe the scenario at all. */
+  readonly undetermined?: boolean;
+}
+
+function checkNonLiBasis(
+  sub: string,
+  fields: {
+    readonly subjects: string;
+    readonly rightsMechanisms: string;
+    readonly description: string;
+    readonly natureScopeContext: string;
+    readonly narrative: string;
+    readonly reasons: string;
+    readonly codes: string;
+    readonly categories: readonly string[];
+  },
+): BasisCheck {
+  const instrumentScan = [
+    fields.narrative,
+    fields.natureScopeContext,
+    fields.reasons,
+    fields.codes,
+  ].filter(Boolean).join(" ");
+
+  switch (sub) {
+    case "Art. 6(1)(a)": {
+      const scan = [fields.rightsMechanisms, fields.description, fields.natureScopeContext]
+        .filter(Boolean).join(" ");
+      const met = matches(scan, CONSENT_LEXICON);
+      return met
+        ? {
+          met: true,
+          finding:
+            "The record describes how consent is obtained and how it can be withdrawn, which is what reliance on consent requires it to establish.",
+        }
+        : {
+          met: false,
+          finding:
+            "The record does not describe how consent is collected or how it can be withdrawn, so reliance on consent is not established on the record.",
+          information_needed:
+            "How consent is collected for this processing — the moment of capture and what the data subject is told — and how withdrawal is offered and acted on.",
+        };
+    }
+    case "Art. 6(1)(b)": {
+      const met = matches(fields.subjects, CONTRACT_PARTY_LEXICON);
+      return met
+        ? {
+          met: true,
+          finding:
+            `The data subjects the record describes — "${fields.subjects}" — are parties to a relationship of the kind Art. 6(1)(b) contemplates, so the basis attaches to the recorded purpose.`,
+        }
+        : {
+          met: false,
+          finding:
+            "The record does not establish that the data subjects are party to the contract, or that the processing takes pre-contractual steps at their request.",
+          information_needed:
+            "The contract relied on, named, and the data subject's status as a party to it (or the pre-contractual step taken at the data subject's request).",
+        };
+    }
+    case "Art. 6(1)(c)": {
+      const met = matches(instrumentScan, NAMED_INSTRUMENT_LEXICON);
+      return met
+        ? {
+          met: true,
+          finding:
+            "The record names the instrument the obligation arises under, so the obligation relied on can be identified rather than assumed.",
+        }
+        : {
+          met: false,
+          finding:
+            "The record does not name the law that establishes the obligation; it describes the obligation generally, which does not identify the instrument the basis depends on.",
+          information_needed:
+            "The specific Union or Member State law establishing the legal obligation relied on — named as an instrument, not described generally.",
+        };
+    }
+    case "Art. 6(1)(d)": {
+      const health = fields.categories.includes("Health or medical data");
+      const scenario = matches([fields.narrative, fields.description, fields.natureScopeContext]
+        .filter(Boolean).join(" "), VITAL_INTEREST_LEXICON);
+      return (health || scenario)
+        ? {
+          met: true,
+          finding:
+            "The record describes a life or safety scenario of the kind Art. 6(1)(d) is confined to, so the basis attaches to the recorded purpose.",
+        }
+        : {
+          met: false,
+          undetermined: true,
+          finding:
+            "The record does not describe the vital-interest scenario — no life, safety or emergency circumstance is stated, and the data set does not include health or medical data — so the basis cannot be tested on this record.",
+          information_needed:
+            "The life or safety circumstance relied on, and why the processing is necessary to protect the vital interests of the data subject or another natural person.",
+        };
+    }
+    case "Art. 6(1)(e)": {
+      const met = matches(instrumentScan, NAMED_INSTRUMENT_LEXICON);
+      return met
+        ? {
+          met: true,
+          finding:
+            "The record names the instrument the task or official authority is laid down in, so the public-task footing can be identified rather than assumed.",
+        }
+        : {
+          met: false,
+          finding:
+            "The record does not name the law laying down the task carried out in the public interest or the official authority relied on.",
+          information_needed:
+            "The specific Union or Member State law laying down the task carried out in the public interest or the official authority vested in the controller — named as an instrument, not described generally.",
+        };
+    }
+    default:
+      return { met: false, finding: "" };
+  }
+}
+
+
 export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
   const regime = readDpiaRegime(intake);
   const li = anchor("legitimate_interests", regime);
