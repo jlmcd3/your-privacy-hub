@@ -58,6 +58,9 @@ export const DPIA_REPORT_SCHEMA: ReportSchema = {
     "authority_exhibit",
     // PROMPT 3 (2026-08-11) — deterministic sign-off decision surface.
     "decision",
+    // PROMPT 4 (2026-08-11) — deterministic gap ledger + risk-count reconciliation.
+    "gap_ledger",
+    "risk_count_note",
     // ITEM 372 METHOD 2a — executive determination block (renders first).
     "determination",
 

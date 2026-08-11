@@ -411,8 +411,20 @@ function composeExecutiveBody(report: Bag): string {
   // rendered in this same document. Each entry is named by the facts it asks
   // for (its `dimensions`, falling back to the intake field key), with the
   // determination it completes where the pipeline recorded one.
+  // PROMPT 4 — risk-count reconciliation, stated only when the builder found
+  // an explicit, differing count in the company's own residual-risk account.
+  const rcn = report.risk_count_note;
+  if (rcn && typeof rcn === "object" && s((rcn as Bag).note)) {
+    sentences.push(stop(noStop(s((rcn as Bag).note))));
+  }
+
+  // PROMPT 4 — the typed gap ledger is the source of open points. The
+  // bracket-tag-harvested `information_needed` array is read only for
+  // documents generated before the ledger existed.
+  const ledger = asArray(report.gap_ledger);
+  const gapSource = Array.isArray(report.gap_ledger) ? ledger : asArray(report.information_needed);
   const openItems = mergeOpenGapItems(
-    asArray(report.information_needed).map((e) => ({
+    gapSource.map((e) => ({
       what: noStop(s(e.dimensions) || s(e.field)),
       enables: noStop(s(e.enables)),
     })),
