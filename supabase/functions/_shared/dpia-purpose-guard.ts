@@ -39,9 +39,42 @@ export interface ConflationFinding {
   readonly excerpt: string;
 }
 
+// SO-FT FIX 1b (2026-08-11): literal-substring detection only caught a verbatim
+// quotation. On regeneration the model reworded the secondary-uses answer and
+// slipped straight past the guard, so the repair re-ask never fired. Paraphrase
+// detection compares normalised significant-word overlap between each framed
+// sentence and the secondary-uses answer.
+export const PARAPHRASE_THRESHOLD = 0.6;
+
+const STOPWORDS = new Set([
+  "the", "a", "an", "of", "to", "for", "and", "or", "in", "on", "at", "by", "with",
+  "that", "this", "is", "are", "be", "as", "its", "it", "from", "which", "any",
+  "not", "no", "used", "use", "data", "beyond", "other", "than", "we", "our",
+]);
+
+function sigWords(t: string): Set<string> {
+  return new Set(
+    t.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+      .filter((w) => w.length > 2 && !STOPWORDS.has(w)),
+  );
+}
+
+/** Shared significant words / smaller set size. 0 when either side is empty. */
+export function wordOverlap(a: string, b: string): number {
+  const A = sigWords(a), B = sigWords(b);
+  if (A.size < 3 || B.size < 3) return 0;
+  let shared = 0;
+  for (const w of A) if (B.has(w)) shared++;
+  return shared / Math.min(A.size, B.size);
+}
+
+function sentences(t: string): string[] {
+  return t.split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter((x) => x.length > 0);
+}
+
 /**
- * Returns the occurrences where secondary-uses text is quoted inside a
- * purpose/benefit framing. Empty array means clean.
+ * Returns the occurrences where secondary-uses text is quoted OR paraphrased
+ * inside a purpose/benefit framing. Empty array means clean.
  */
 export function detectPurposeConflation(
   section: unknown,
@@ -53,12 +86,14 @@ export function detectPurposeConflation(
   if (sec.length < MIN_CHUNK) return [];
   // Nothing to disambiguate when the two answers overlap in substance.
   if (pur && (pur.includes(sec) || sec.includes(pur))) return [];
+  if (pur && wordOverlap(pur, sec) >= PARAPHRASE_THRESHOLD) return [];
 
   const findings: ConflationFinding[] = [];
   const haystacks = collectProse(section).map(norm);
   // Slide a window over the secondary-uses text; the first hit per haystack is
   // enough — one quotation is one defect.
   for (const hay of haystacks) {
+    let hit = false;
     for (let i = 0; i + MIN_CHUNK <= sec.length; i += 8) {
       const chunk = sec.slice(i, i + MIN_CHUNK);
       if (pur.includes(chunk)) continue; // shared wording, not a mix-up
@@ -67,11 +102,28 @@ export function detectPurposeConflation(
       const before = hay.slice(Math.max(0, at - FRAME_WINDOW), at);
       if (!FRAME.test(before)) continue;
       findings.push({ chunk, excerpt: hay.slice(Math.max(0, at - 80), at + MIN_CHUNK + 40) });
+      hit = true;
+      break;
+    }
+    if (hit) continue;
+
+    // Paraphrase pass — sentence-level overlap under a purpose/benefit frame.
+    let cursor = 0;
+    for (const sent of sentences(hay)) {
+      const at = hay.indexOf(sent, cursor);
+      cursor = at < 0 ? cursor : at + sent.length;
+      const framed = FRAME.test(sent) ||
+        FRAME.test(hay.slice(Math.max(0, (at < 0 ? 0 : at) - FRAME_WINDOW), at < 0 ? 0 : at));
+      if (!framed) continue;
+      if (pur && wordOverlap(sent, pur) >= wordOverlap(sent, sec)) continue; // reads on the purpose
+      if (wordOverlap(sent, sec) < PARAPHRASE_THRESHOLD) continue;
+      findings.push({ chunk: sec.slice(0, MIN_CHUNK), excerpt: sent.slice(0, 200) });
       break;
     }
   }
   return findings;
 }
+
 
 /** Corrective instruction appended to the single bounded u3 re-ask. */
 export function conflationRepairInstruction(purpose: string, secondaryUses: string): string {
