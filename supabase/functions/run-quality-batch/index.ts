@@ -1762,11 +1762,13 @@ async function pollGenerationRow(
         const updatedAtIso = (meta as any)?.updated_at ?? null;
         if (shouldResurrect({ tool: opts.tool, updatedAtIso, nowMs: Date.now(), attempts: resurrectAttempts })) {
           resurrectAttempts++;
+          opts.onResurrect?.(resurrectAttempts);
           const staleS = updatedAtIso ? Math.round((Date.now() - Date.parse(updatedAtIso)) / 1000) : -1;
           const res = await resurrectGenerator(opts.tool, sourceRowId);
-          const msg = `resurrecting ${opts.tool} chain, attempt ${resurrectAttempts} — stale ${staleS}s (${res.ok ? "dispatched" : "failed"}: ${res.detail})`;
+          const msg = `resurrecting ${opts.tool} chain, attempt ${resurrectAttempts}/${MAX_RESURRECTIONS} — stale ${staleS}s > ${Math.round(resurrectStaleMs(opts.tool) / 1000)}s (${res.ok ? "dispatched" : "failed"}: ${res.detail})`;
           if (opts.log) await opts.log(res.ok ? "info" : "warn", msg);
           else console.warn(`[pollGenerationRow] ${msg}`);
+
         }
       }
     } catch (e) {
