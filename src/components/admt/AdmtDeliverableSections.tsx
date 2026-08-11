@@ -41,7 +41,7 @@ function VerdictPill({ verdict }: { verdict: Str }) {
 function ShapeLawBlock({ f }: { f: Record<string, unknown> }) {
   const rows: [string, string][] = [
     ["Standard", txt(f.standard)],
-    ["What the record shows", txt(f.record_fact) || txt(f.process_on_the_record)],
+    ["What the company has indicated", txt(f.record_fact) || txt(f.process_on_the_record)],
     ["Application", txt(f.application)],
     ["Why", txt(f.why)],
   ];

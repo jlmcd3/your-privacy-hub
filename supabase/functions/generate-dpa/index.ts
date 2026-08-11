@@ -1304,7 +1304,7 @@ GRADER-CAL-1 C2 — FRAMEWORK-ASSERTION HEDGE (BINDING):
 When the record does NOT engage a particular framework (e.g. GDPR is not engaged because no EU/UK data subjects appear in the record), do NOT assert that framework's obligations as governing law. Where a comparative note is helpful, frame it explicitly as comparative / prospective and label it: "For comparison, the GDPR framework would require … — this DPA is not currently governed by that framework on the record supplied."
 
 GRADER-CAL-1 C3 — Art. 35(3)(b) SPECIAL-CATEGORY HEDGE (BINDING):
-Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the record shows special-category (Art. 9) or criminal-offence (Art. 10) data processed on a large scale. Absent that record predicate, frame the reference as: "If in future the processing expands to include large-scale special-category or criminal-offence data, Art. 35(3)(b) would engage — on the current record it does not."
+Do not assert Art. 35(3)(b) DPIA obligations against a controller unless the record as documented establishes special-category (Art. 9) or criminal-offence (Art. 10) data processed on a large scale. Absent that record predicate, frame the reference as: "If in future the processing expands to include large-scale special-category or criminal-offence data, Art. 35(3)(b) would engage — on the current record it does not."
 
 GRADER-CAL-1 C4 — RECORD-DISCIPLINE FOR RECITAL-ONLY POINTS (BINDING):
 Where a point is drawn from a Recital rather than an operative Article, prefer soft-guidance phrasing ("the Recital 78 guidance points toward …") over assertive obligation language ("must", "shall"). Recitals inform interpretation; they do not create standalone obligations.

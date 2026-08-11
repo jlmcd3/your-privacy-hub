@@ -2351,7 +2351,7 @@ function buildADMTReportHTML(report: any, record: any): string {
   // ── UPGRADE-3 (ADMT) — SHAPE-LAW deliverables, lawfulness rendered first ──
   const shapeRows = (f: any) => [
     ["Standard", f?.standard],
-    ["What the record shows", f?.record_fact ?? f?.process_on_the_record],
+    ["What the company has indicated", f?.record_fact ?? f?.process_on_the_record],
     ["Application", f?.application],
     ["Why", f?.why],
     ["Information needed", f?.information_needed],
