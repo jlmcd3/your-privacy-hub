@@ -501,12 +501,44 @@ export interface DpiaSkeletonResult {
   readonly register_findings: string[];
 }
 
+/**
+ * PROPOSAL 2026-08-11 — PLACEHOLDER LEAK REPAIR.
+ *
+ * The prompt's PLACEHOLDER FORMAT RULE requires the single form
+ * `[TO COMPLETE — description]`. Generation still occasionally emits the
+ * D-era bare variants ([DD/MM/YYYY], [INSERT DATE], [NAME / EMAIL],
+ * [Organisation Name], [REF], [Date], [insert …]) and those reach the reader
+ * verbatim. This normaliser is deterministic and runs on every composed block
+ * and every slot value before render, so a prompt miss can no longer ship.
+ */
+const PLACEHOLDER_REPAIRS: Array<[RegExp, string]> = [
+  [/\[\s*(?:DD\/MM\/YYYY|MM\/DD\/YYYY|YYYY-MM-DD)\s*\]/gi, "[TO COMPLETE — date]"],
+  [/\[\s*INSERT\s+DATE\s*\]/gi, "[TO COMPLETE — date]"],
+  [/\[\s*DATE\s*\]/gi, "[TO COMPLETE — date]"],
+  [/\[\s*NAME\s*\/\s*EMAIL\s*\]/gi, "[TO COMPLETE — name and contact email]"],
+  [/\[\s*(?:ORGANISATION|ORGANIZATION)\s+NAME\s*\]/gi, "[TO COMPLETE — organisation name]"],
+  [/\[\s*REF\s*\]/gi, "[TO COMPLETE — reference]"],
+  [/\[\s*INSERT\s*\]/gi, "[TO COMPLETE — value]"],
+  [/\[\s*insert\s+([^\]]{1,80})\]/gi, (_m: string, d: string) => `[TO COMPLETE — ${d.trim()}]`] as unknown as [RegExp, string],
+];
+
+export function repairDpiaPlaceholders(text: string): string {
+  let out = text;
+  for (const [re, rep] of PLACEHOLDER_REPAIRS) {
+    out = out.replace(re, rep as string & ((...a: string[]) => string));
+  }
+  return out;
+}
+
 export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): DpiaSkeletonResult {
   const intake = intakeInput ?? {};
-  const values = buildDpiaSlotValues(intake);
+  const rawValues = buildDpiaSlotValues(intake);
+  const values: SlotValues = Object.fromEntries(
+    Object.entries(rawValues).map(([k, v]) => [k, typeof v === "string" ? repairDpiaPlaceholders(v) : v]),
+  ) as SlotValues;
   const org = s(intake.organization_name) || "the company";
 
-  const composed: ComposedBlocks = {
+  const composedRaw: ComposedBlocks = {
     "executive_summary:0": composeExecutiveLead(report, org),
     "executive_summary:2": composeExecutiveBody(report),
 
@@ -519,6 +551,9 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     "consultation_and_signoff:1": composeSignoffLead(report, intake),
     "consultation_and_signoff:2": composeSignoffBody(report, intake, values),
   };
+  const composed: ComposedBlocks = Object.fromEntries(
+    Object.entries(composedRaw).map(([k, v]) => [k, typeof v === "string" ? repairDpiaPlaceholders(v) : v]),
+  ) as ComposedBlocks;
 
   const draft = renderSkeletonDocument({
     sections: DPIA_SKELETON_SECTIONS,
