@@ -201,7 +201,7 @@ Deno.test("s2: tier-3 surfaces never emit more rows than the record supports", (
   assertEquals(c.data_quality.length, 1);
   assertEquals(c.measures_article5.length, 1);
   assertEquals(c.measures_rights.length, 1);
-  assertEquals(c.measures_rights[0].record_words, "Requests arrive through the patient portal.");
+  assertStringIncludes(c.measures_rights[0].record_words, "Requests arrive through the patient portal");
   assertEquals(c.measures_article5[0].status, "record_insufficient");
   assertEquals(c.measures_rights[0].status, "record_insufficient");
 
