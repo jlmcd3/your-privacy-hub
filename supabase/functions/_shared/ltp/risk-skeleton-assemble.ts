@@ -276,7 +276,11 @@ function composeActions(report: Bag): { lead: string; body: string } {
       // templates do. Rather than leave one action ownerless, fall back to
       // the accountable business owner named on the assessment record, which
       // is the same default the action composer uses for documentation gaps.
-      const responsible = s(a.reserved_to) || s(a.owner) || s((a as Bag).owner_role_titles)
+      // The canonical ActionRecord contract resolves responsible party in the
+      // order: reserved_to, then owner_role (action-record.ts:99-101). Match
+      // that order here and keep the legacy `owner` / `owner_role_titles`
+      // fallbacks for emitters that still use them.
+      const responsible = s(a.reserved_to) || s(a.owner_role) || s(a.owner) || s((a as Bag).owner_role_titles)
         || "the accountable business owner named on the assessment record";
       const bits = [
         `${i + 1}. ${repairRegister(s(a.action))}`,
