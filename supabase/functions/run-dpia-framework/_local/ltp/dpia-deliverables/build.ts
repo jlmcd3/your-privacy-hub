@@ -1038,7 +1038,7 @@ export function buildDecision(
     conditions: [],
     blockers: [],
     why:
-      `This processing may proceed as assessed: every risk identified on the company's answers sits at a low or moderate residual band after the measures the company has recorded, and no element of the assessment is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
+      `This processing may proceed as assessed: every risk identified on the company's answers sits at a low or moderate residual band after the measures the company has recorded, and no determination this assessment makes is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
     citation: art36Citation,
     rule_id: "dpia_decision_v1",
   };
