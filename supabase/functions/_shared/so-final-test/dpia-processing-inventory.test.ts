@@ -177,10 +177,19 @@ Deno.test("inventory: asks fold into the gap ledger under contract keys", () => 
   delete i.processor_obligations;
   const built = buildDpiaDeliverables(i);
   const ledger = buildGapLedger(i, built);
-  for (const key of ["dpo_info", "processor_obligations", "article_9_condition"]) {
+  for (const key of ["dpo_info", "processor_obligations"]) {
     assert(ledger.some((e) => e.field === key), `missing ledger entry for ${key}`);
     assert(CONTRACT_KEYS.has(key));
   }
+  // The Art. 9(2) ask is admitted under `article_9_condition` unless the
+  // existing dedup merges it into an overlapping lawful-basis ask; either way
+  // it must be represented exactly once.
+  assert(
+    ledger.some((e) => e.field === "article_9_condition") ||
+      ledger.some((e) => /special-category entry for/.test(e.enables)),
+    "Art. 9(2) ask neither admitted nor merged",
+  );
+  assert(CONTRACT_KEYS.has("article_9_condition"));
   for (const e of ledger) {
     assert(e.dimensions.length > 0);
     assert(e.field.length > 0);
