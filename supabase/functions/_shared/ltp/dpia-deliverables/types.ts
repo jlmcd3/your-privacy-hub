@@ -88,9 +88,18 @@ export interface ProportionalityFinding {
 }
 
 // ── 3. Art. 35(7)(c) risk register ───────────────────────────────────
+/**
+ * PROMPT 8 (CEO-ratified 2026-08-11) — EDPB template risk split:
+ * "design" = risk the processing poses as designed (§ 3.1); "incident" = risk
+ * arising from deviation, malfunction or attack (§ 4.1.1).
+ */
+export type DpiaRiskClass = "design" | "incident";
+
 export interface RiskRegisterEntry {
   readonly risk_id: string;
   readonly risk_label: string;
+  /** Absent on registers assembled before spine v4. */
+  readonly risk_class?: DpiaRiskClass;
   /** What in the record gives rise to the risk. */
   readonly source: string;
   readonly affected_rights: string;

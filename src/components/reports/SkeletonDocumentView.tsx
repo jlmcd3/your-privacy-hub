@@ -4,9 +4,21 @@
 // skeleton_document`. This component is the in-app renderer for that payload,
 // and is the same content the PDF renders — one document, two surfaces.
 
+/** PROMPT 8 — a typed surface rendered as a table (spine `table` blocks). */
+export interface SkeletonTable {
+  key?: string;
+  surface?: string;
+  title?: string;
+  columns: string[];
+  rows: string[][];
+  note?: string;
+}
+
 export interface SkeletonParagraph {
   kind: string;
   text: string;
+  /** Present only on `kind: "table"` paragraphs. */
+  table?: SkeletonTable;
 }
 
 export interface SkeletonSection {
@@ -42,7 +54,9 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
         <section key={section.id} className="space-y-3">
           <h3 className="font-body text-display-card font-semibold">{section.title}</h3>
           {section.paragraphs.map((p, i) =>
-            section.id === "table_of_authorities" ? (
+            p.kind === "table" && p.table ? (
+              <SkeletonTableView key={i} table={p.table} />
+            ) : section.id === "table_of_authorities" ? (
               <pre
                 key={i}
                 className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-foreground"
@@ -60,5 +74,49 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
         </section>
       ))}
     </article>
+  );
+}
+
+function SkeletonTableView({ table }: { table: SkeletonTable }) {
+  if (!table.rows?.length) return null;
+  return (
+    <figure className="my-4 space-y-2">
+      {table.title && (
+        <figcaption className="font-body text-sm font-semibold text-foreground">
+          {table.title}
+        </figcaption>
+      )}
+      <div className="overflow-x-auto rounded-md border border-border">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr className="bg-muted/60">
+              {table.columns.map((c, i) => (
+                <th
+                  key={i}
+                  scope="col"
+                  className="border-b border-border px-3 py-2 text-left font-body font-semibold text-foreground"
+                >
+                  {c}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((row, r) => (
+              <tr key={r} className="align-top even:bg-muted/20">
+                {row.map((cell, c) => (
+                  <td key={c} className="border-b border-border px-3 py-2 leading-relaxed text-foreground">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {table.note && (
+        <figcaption className="text-xs text-muted-foreground">{table.note}</figcaption>
+      )}
+    </figure>
   );
 }

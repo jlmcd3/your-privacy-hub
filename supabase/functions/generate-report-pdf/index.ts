@@ -1162,7 +1162,48 @@ interface SkeletonDocLike {
   title?: string;
   subtitle?: string;
   spine_version?: string;
-  sections?: Array<{ id?: string; title?: string; paragraphs?: Array<{ kind?: string; text?: string }> }>;
+  sections?: Array<{
+    id?: string;
+    title?: string;
+    paragraphs?: Array<{ kind?: string; text?: string; table?: SkeletonTableLike }>;
+  }>;
+}
+
+/** PROMPT 8 — typed surfaces rendered as tables by the spine's `table` blocks. */
+interface SkeletonTableLike {
+  title?: string;
+  columns?: string[];
+  rows?: string[][];
+  note?: string;
+}
+
+/**
+ * A table is rendered exactly as assembled: no cell is re-worded, re-ordered or
+ * padded. A table with no rows never reaches here (no-padding law), but the
+ * guard is kept so a malformed payload prints nothing rather than an empty grid.
+ */
+function skeletonTableHtml(t: SkeletonTableLike): string {
+  const cols = Array.isArray(t.columns) ? t.columns : [];
+  const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
+  if (rows.length === 0 || cols.length === 0) return "";
+  const head = cols
+    .map((c) => `<th style="border:0.5pt solid #b9c6d2;background:#eef3f7;padding:4px 6px;text-align:left;font-weight:bold;">${escHtml(c)}</th>`)
+    .join("");
+  const body = rows
+    .map((r) =>
+      `<tr>${cols
+        .map((_c, i) => `<td style="border:0.5pt solid #b9c6d2;padding:4px 6px;vertical-align:top;">${escHtml(String(r[i] ?? ""))}</td>`)
+        .join("")}</tr>`
+    )
+    .join("");
+  return `<div style="margin:0 0 10px;">
+    ${t.title ? `<div style="font-weight:bold;font-size:10.5px;margin:0 0 4px;break-after:avoid;page-break-after:avoid;">${escHtml(t.title)}</div>` : ""}
+    <table style="width:100%;border-collapse:collapse;font-size:9.5px;line-height:1.35;">
+      <thead><tr>${head}</tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    ${t.note ? `<div style="font-size:9px;color:#4a5b6a;margin:3px 0 0;">${escHtml(t.note)}</div>` : ""}
+  </div>`;
 }
 
 function readSkeletonDocument(reportData: any): SkeletonDocLike | null {
@@ -1190,6 +1231,7 @@ function readSkeletonDocument(reportData: any): SkeletonDocLike | null {
 function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string }): string {
   return (doc.sections ?? []).map((sec) => {
     const paras = (sec.paragraphs ?? []).map((p) => {
+      if (p?.kind === "table" && p.table) return skeletonTableHtml(p.table);
       const t = typeof p?.text === "string" ? p.text : "";
       if (!t.trim()) return "";
       if (sec.id === "table_of_authorities") {

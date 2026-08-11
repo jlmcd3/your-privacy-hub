@@ -2972,7 +2972,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     }
 
     // ── SO-5 WIRE-IN: assemble the customer document through the byte-pinned
-    // CEO-corrected v3 skeleton. Deterministic; reads the typed surfaces and
+    // CEO-ratified v4 (EDPB-harmonised) skeleton. Deterministic; reads the typed surfaces and
     // mutates none of them. Runs AFTER the whitelist serializer so the
     // assembled document survives it. Fail-open.
     try {

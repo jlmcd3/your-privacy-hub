@@ -24,9 +24,21 @@ export function row(key: string) {
   }
 }
 
+/**
+ * PROMPT 8 (CEO-ratified 2026-08-11) — EDPB template risk split.
+ *   "design"   — the risk the processing poses AS DESIGNED, with no failure,
+ *                deviation or attack assumed (EDPB template § 3.1).
+ *   "incident" — the risk arising from deviation, malfunction or attack
+ *                (EDPB template § 4.1.1).
+ * Every spec carries exactly one class; the register propagates it.
+ */
+export type DpiaRiskClass = "design" | "incident";
+
 export interface RiskSpec {
   readonly risk_id: string;
   readonly risk_label: string;
+  /** PROMPT 8 — EDPB § 3.1 (design) vs § 4.1.1 (incident). */
+  readonly risk_class: DpiaRiskClass;
   readonly affected_rights: string;
   /** Intrinsic severity of the risk type when it materialises. */
   readonly severity: Severity;
@@ -58,6 +70,7 @@ const SPECIAL_CATS = ["Health or medical data", "Biometric data"];
 export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   {
     risk_id: "r1_unauthorised_access",
+    risk_class: "incident",
     risk_label: "Unauthorised access to, or disclosure of, the personal data held",
     affected_rights: "Confidentiality of personal data; Art. 5(1)(f) integrity and confidentiality",
     severity: "Significant",
@@ -73,6 +86,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r2_special_category_exposure",
+    risk_class: "design",
     risk_label: "Exposure of special-category data",
     affected_rights: "Art. 9 protection of special categories; privacy and non-discrimination",
     severity: "Severe",
@@ -88,6 +102,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r3_children",
+    risk_class: "design",
     risk_label: "Processing of children's data without age-appropriate protection",
     affected_rights: "Rights of children as vulnerable data subjects; Recital 38 considerations",
     severity: "Severe",
@@ -98,6 +113,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r4_excessive_collection",
+    risk_class: "design",
     risk_label: "Collection or retention of more personal data than the purpose requires",
     affected_rights: "Art. 5(1)(c) data minimisation; Art. 5(1)(e) storage limitation",
     severity: "Moderate",
@@ -108,6 +124,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r5_third_country_transfer",
+    risk_class: "incident",
     risk_label: "Loss of protection on transfer to a third country",
     affected_rights: "Chapter V protections travelling with the data",
     severity: "Significant",
@@ -118,6 +135,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r6_processor_chain",
+    risk_class: "incident",
     risk_label: "Loss of control over the data in the processor chain",
     affected_rights: "Art. 28 controller control over processing; Art. 5(2) accountability",
     severity: "Moderate",
@@ -128,6 +146,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r7_retention_overrun",
+    risk_class: "design",
     risk_label: "Retention of personal data beyond the period the purpose supports",
     affected_rights: "Art. 5(1)(e) storage limitation; Art. 17 erasure",
     severity: "Moderate",
@@ -138,6 +157,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r8_automated_significant_effect",
+    risk_class: "design",
     risk_label: "Automated evaluation producing legal or similarly significant effects",
     affected_rights: "Art. 22 rights in automated decision-making; fairness under Art. 5(1)(a)",
     severity: "Severe",
@@ -151,6 +171,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   },
   {
     risk_id: "r9_secondary_use",
+    risk_class: "design",
     risk_label: "Use of the data for a purpose the data subject did not expect",
     affected_rights: "Art. 5(1)(b) purpose limitation; Art. 6(4) compatibility",
     severity: "Significant",
