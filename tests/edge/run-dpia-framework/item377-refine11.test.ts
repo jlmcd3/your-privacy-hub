@@ -95,7 +95,10 @@ Deno.test("item377 (b) — protected_rejected items carry path + reason", async 
   });
   assertEquals(tel.protected_rejected.count, 1);
   assertEquals(tel.protected_rejected.items[0].path, "$.risk_register[0].severity");
-  assertEquals(tel.protected_rejected.items[0].leaf_key_or_rule, "severity");
+  // PROMPT 5B (2026-08-11): risk_register is now a barred typed surface, so
+  // the path-prefix bar reports before the `severity` leaf rule does. Still
+  // rejected, still counted — the attributed rule is the stricter one.
+  assertEquals(tel.protected_rejected.items[0].leaf_key_or_rule, "typed_surface:risk_register");
 });
 
 Deno.test("item377 (c) — findings_log present and quote-truncated to 160 chars", async () => {

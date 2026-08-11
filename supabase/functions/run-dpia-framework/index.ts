@@ -2764,6 +2764,22 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] cross-surface consistency check failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── PROMPT 5B (2026-08-11) — RISK-COUNT INTEGRITY ──────────────────
+    // CSC C3 can REMOVE register rows after the deliverables attach built
+    // risk_count_note, which is how run 24de247c persisted register_count = 4
+    // against a 3-row register. The note is rebuilt here against the FINAL
+    // register so `risk_count_note.register_count === risk_register.length`
+    // holds at persist. Fail-open.
+    try {
+      const { reconcileRiskCountNote } = await import("./_local/ltp/dpia-deliverables/build.ts");
+      const rmeta = reconcileRiskCountNote(reportData as Record<string, unknown>, dpiaIntake ?? {});
+      const _rc = ((reportData as any)._meta ??= {});
+      (_rc.internal ??= {}).dpia_risk_count_reconcile = rmeta;
+      console.log(JSON.stringify({ evt: "dpia_risk_count_reconcile", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...rmeta }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] risk-count reconcile failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ── ITEM 379 — BIDIRECTIONAL COVERAGE MATRIX (flag-only) + RELEASE LEDGER.
     // Deterministic, no model, no repairs. Runs after refinement, alongside
     // CSC. Telemetry rides `_meta.internal.dpia_coverage`; the soft release

@@ -64,7 +64,16 @@ W-COPYEDIT Assembly-seam copy defects (ITEM 399 R11; the perfect-exemplar regist
 export const DPIA_VERIFIER_EXEMPLARS =
   `DESIGNED-OUTPUT PATTERNS (these are deliberate product output; a proposal altering any of them fails condition 4 and must be REJECTED): the final disclaimer; quoted statutory text; "[TO BE COMPLETED …]"/"[TO BE ASSESSED]" placeholders where the intake is silent on the item; "(default — confirm)" markers; the canonical closes "…further clarification is advisable." / "…further internal investigation is advisable."; drafting-voice references to "the record"; the EDPB DPIA template v1.0 structure and its § 0.5 assessment-team/validation fields; plain-prose FSOR/Agency-position citations; corpus-verified recent law (SB 446 notice windows; Cal. Civ. Code § 1798.140(ag); UK GDPR Art. 6(11) per the DUAA 2025). Conversely: a placeholder or absence statement covering something the intake DOES supply is NOT protected — that is a record-contradiction, and its correction should be APPROVED when conditions 1–3 hold.`;
 
-export const CRITIC_SYSTEM_PROMPT = composePrompt(CRITIC_PROMPT_BASE, DPIA_CRITIC_WATCHLIST);
+// PROMPT 5B (2026-08-11) — CONTAINMENT REMIT. Advisory only: the splicer's
+// path-prefix bar is the control. This block exists so the critic stops
+// spending tokens proposing rewrites that will be refused in code.
+export const DPIA_CRITIC_CONTAINMENT =
+  `OUT OF SCOPE — TYPED SURFACES (do not propose findings on these; they are deterministic single-writer surfaces built from the record, and any proposal naming them is refused before it is read): necessity_findings, proportionality, risk_register, art36_consultation, legal_basis (including section_2_analysis.legal_basis), decision, gap_ledger, risk_count_note, engagement_map, processing_inventory, section2_coverage, authority_exhibit, skeleton_document. Confine every finding to the narrative sections.`;
+
+export const CRITIC_SYSTEM_PROMPT = composePrompt(
+  composePrompt(CRITIC_PROMPT_BASE, DPIA_CRITIC_WATCHLIST),
+  DPIA_CRITIC_CONTAINMENT,
+);
 export const VERIFIER_SYSTEM_PROMPT = composePrompt(VERIFIER_PROMPT_BASE, DPIA_VERIFIER_EXEMPLARS);
 
 // -- Protected surfaces ------------------------------------------------------
@@ -89,6 +98,30 @@ export const PROTECTED_LEAF_KEYS = [
   "severity",
 ];
 
+// PROMPT 5B (2026-08-11) — TYPED-SURFACE BAR.
+// Every root below is a SINGLE-WRITER deterministic surface (ITEM 310/311 and
+// the Conversion). The splicer may not write anywhere inside them, at any
+// depth and regardless of leaf key; rejections are counted in
+// telemetry.protected_rejected as `typed_surface:<root>`.
+// processing_inventory and section2_coverage are listed forward-proof for
+// Prompts 6–7. The critic prompt repeats the containment rule to save spend,
+// but THIS list is the enforcement.
+export const DPIA_PROTECTED_PATH_PREFIXES = [
+  "necessity_findings",
+  "proportionality",
+  "risk_register",
+  "art36_consultation",
+  "legal_basis",
+  "decision",
+  "gap_ledger",
+  "risk_count_note",
+  "engagement_map",
+  "processing_inventory",
+  "section2_coverage",
+  "authority_exhibit",
+  "skeleton_document",
+];
+
 export const DPIA_REFINEMENT_CONFIG: RefinementConfig = {
   product: "dpia",
   version: DPIA_REFINEMENT_VERSION,
@@ -96,6 +129,7 @@ export const DPIA_REFINEMENT_CONFIG: RefinementConfig = {
   verifierSystemPrompt: VERIFIER_SYSTEM_PROMPT,
   protectedRootKeys: PROTECTED_ROOT_KEYS,
   protectedLeafKeys: PROTECTED_LEAF_KEYS,
+  protectedPathPrefixes: DPIA_PROTECTED_PATH_PREFIXES,
 };
 
 export function isProtectedPath(path: string): boolean {

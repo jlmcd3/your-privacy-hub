@@ -117,6 +117,13 @@ export interface RefinementConfig {
   readonly verifierSystemPrompt: string;
   readonly protectedRootKeys: readonly string[];
   readonly protectedLeafKeys: readonly string[];
+  /**
+   * PROMPT 5B (2026-08-11) — PATH-PREFIX BAR. Root keys whose ENTIRE subtree
+   * is off-limits to the splicer, regardless of leaf key. Used to protect
+   * single-writer TYPED deliverable surfaces from model-authored rewrites.
+   * Optional: a config that does not set it behaves exactly as before.
+   */
+  readonly protectedPathPrefixes?: readonly string[];
 }
 
 // -- Protected surfaces (defense in depth; the prompts say the same) ---------
@@ -133,6 +140,18 @@ export function protectedReasonFor(path: string, cfg: RefinementConfig): string 
   // target. The critic never sees it; if a proposal names it anyway, the
   // splicer refuses it in code.
   if (segs[0] === "_meta") return "_meta_subtree";
+  // PROMPT 5B (2026-08-11) — PATH-PREFIX BAR. Any path that enters a configured
+  // typed-deliverable surface is refused outright, at any depth and regardless
+  // of leaf key. Mirrors of a typed surface nested inside a narrative section
+  // (e.g. $.section_2_analysis.legal_basis[0].justification) are barred too, so
+  // the bar cannot be evaded by naming the mirror. No-op when a product config
+  // sets no prefixes.
+  const prefixes = cfg.protectedPathPrefixes;
+  if (prefixes && prefixes.length > 0) {
+    for (const s of segs) {
+      if (typeof s === "string" && prefixes.includes(s)) return `typed_surface:${s}`;
+    }
+  }
   for (const s of segs) {
     if (typeof s === "string" && cfg.protectedRootKeys.includes(s)) return s;
   }
