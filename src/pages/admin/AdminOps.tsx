@@ -1143,6 +1143,7 @@ function AdminOpsInner() {
         <OpsActionsPanel />
         <RecentBatchesPanel />
         <LintTelemetryPanel />
+        <ReleaseLedgerPanel />
         <ManualEntitlementsPanel />
         <FunctionsPanel />
         <GenerationPanel />
