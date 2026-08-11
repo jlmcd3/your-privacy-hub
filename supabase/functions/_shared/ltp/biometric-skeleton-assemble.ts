@@ -387,11 +387,21 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
   const unlawful = asArray(c.unlawful_now);
   const unresolved = asArray(c.unresolved_on_record);
   if (unlawful.length > 0) {
-    const first = unlawful[0];
-    const duty = noStop(s(first.duty));
-    const cite = s(first.citation);
+    // SO-FT FIX 4 (2026-08-11): name EVERY not-met duty, not just unlawful[0].
+    const acts = unlawful
+      .map((u) => {
+        const duty = noStop(s(u.duty));
+        const cite = s(u.citation);
+        if (!duty && !cite) return "";
+        return `${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}`;
+      })
+      .filter(Boolean);
+    if (acts.length === 0) acts.push("the duties named above");
+    const clause = acts.length === 1
+      ? `the single next act is to remedy ${acts[0]}`
+      : `the next acts are to remedy ${asProse(acts)}`;
     return repairRegister(stop(
-      `The operative conclusion is that the programme is out of compliance on the duties named above, and the single next act is to remedy ${duty || "the first duty named"}${cite ? ` at ${cite}` : ""}`,
+      `The operative conclusion is that the programme is out of compliance on the duties named above, and ${clause}`,
     ));
   }
   if (unresolved.length > 0) {
