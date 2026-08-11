@@ -17,6 +17,11 @@ export const SLUG_TO_TOOL_TYPE: Record<string, string> = {
   "dpa-generator": "dpa_generator",
   "ir-playbook": "ir_playbook",
   "biometric-checker": "biometric_checker",
+  // SO-final-test: "registration" is a dispatchable slug (RUN_QUALITY_BATCH_SLUGS
+  // + SO_SKELETON_TOOLS) and generate-report-pdf renders "registration_assessment".
+  // Its absence here made the zip export silently skip every registration doc.
+  "registration": "registration_assessment",
+
 };
 
 export const TOOL_TYPE_TO_SLUG: Record<string, string> = Object.fromEntries(
