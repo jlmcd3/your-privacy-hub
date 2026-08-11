@@ -35,6 +35,7 @@ import { InfoPopover } from "@/components/InfoPopover";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { ProductHero } from "@/components/ProductHero";
 import MethodologyBox from "@/components/cppa/MethodologyBox";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 
@@ -980,30 +981,23 @@ export default function CPPARiskAssessment() {
         <link rel="canonical" href="https://enduserprivacy.com/cppa-risk-assessment" />
       </Helmet>
       {/* UX-1c: compact tool-landing hero (≤280px), two-line copy + one CTA row. */}
-      <header className="bg-brand-ocean text-white">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            {headerLabel}
-          </span>
-          <h1 className="text-hero-h1 text-white mb-2">The risk assessment California now requires.</h1>
-          <p className="text-slate-300 text-lg max-w-3xl mb-4">
-            If you sell or share personal data, process sensitive data, or use automated decision-making — existing activities must be assessed by December 31, 2027.
-          </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <a
-              href="#run-assessment"
-              className="inline-flex flex-col items-start bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] text-white font-semibold px-5 py-2.5 rounded-lg no-underline transition-colors"
-            >
-              <span>{`Start your assessment — $${pricing.standalonePrice}`}</span>
-              <span className="text-[12px] font-normal text-white/85">{`Subscribers: $${pricing.subscriberPrice}`}</span>
-            </a>
-            <SampleReportLink toolSlug="cppa_risk" tone="onDark" variant="link" label="See a sample report" />
-          </div>
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            11 CCR § 7150 · submission-ready for the Apr 1, 2028 attestation
-          </p>
-        </div>
-      </header>
+      <ProductHero
+        geography="us"
+        eyebrowLabel={headerLabel}
+        title="The risk assessment California now requires."
+        valueProposition="If you sell or share personal data, process sensitive data, or use automated decision-making — existing activities must be assessed by December 31, 2027."
+        sampleReportToolSlug="cppa_risk"
+        citationLine="11 CCR § 7150 · submission-ready for the Apr 1, 2028 attestation"
+        showIntakeCta={false}
+      >
+        <a
+          href="#run-assessment"
+          className="inline-flex flex-col items-start bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] text-white font-semibold px-5 py-2.5 rounded-lg no-underline transition-colors"
+        >
+          <span>{`Start your assessment — $${pricing.standalonePrice}`}</span>
+          <span className="text-[12px] font-normal text-white/85">{`Subscribers: $${pricing.subscriberPrice}`}</span>
+        </a>
+      </ProductHero>
       {/* UX-1c: RequirementBadge and framework context relocated below the fold — legal text preserved intact. */}
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-3">
         <RequirementBadge tier="conditional" text="California (11 CCR § 7150) requires a privacy risk assessment if you sell or share personal information, process sensitive data, or use automated decision-making. Existing activities must be assessed by December 31, 2027." className="max-w-3xl" />
