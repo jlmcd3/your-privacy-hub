@@ -1276,6 +1276,47 @@ export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
   };
 }
 
+/**
+ * PROMPT 5B (2026-08-11) — COUNT INTEGRITY.
+ *
+ * ROOT CAUSE: `risk_count_note` is built inside `buildDpiaDeliverables` from
+ * the register as first built, but the CSC check C3
+ * (`c3_secondary_use_predicate`, _shared/ltp/dpia-csc.ts) REMOVES register rows
+ * whose predicate rests on secondary uses the record denies, and it runs after
+ * the attach. Run 24de247c therefore persisted register_count = 4 against a
+ * 3-row register.
+ *
+ * FIX: reconcile the note against the FINAL persisted register, after every
+ * pass that may prune rows. Recomputes the note from `report.risk_register` and
+ * drops it entirely when the counts now agree. Pure apart from the two keys it
+ * writes; fail-open.
+ */
+export function reconcileRiskCountNote(
+  report: Record<string, unknown>,
+  intake: unknown,
+): Record<string, unknown> {
+  try {
+    const register = Array.isArray(report.risk_register)
+      ? (report.risk_register as RiskRegisterEntry[])
+      : [];
+    const before = (report.risk_count_note as DpiaRiskCountNote | undefined)?.register_count ?? null;
+    const rebuilt = buildRiskCountNote(intake, register);
+    if (rebuilt) report.risk_count_note = rebuilt;
+    else delete report.risk_count_note;
+    return {
+      ok: true,
+      register_count: register.length,
+      note_register_count_before: before,
+      note_present: rebuilt ? 1 : 0,
+      diverged: before !== null && before !== register.length,
+    };
+  } catch (e) {
+    return { ok: false, error: (e as Error)?.message ?? String(e) };
+  }
+}
+
+
+
 
 export function attachDpiaDeliverables(
   report: Record<string, unknown>,
