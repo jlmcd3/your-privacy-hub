@@ -137,6 +137,13 @@ export default function BiometricPrivacyPage() {
             id: "state-laws",
             h2: "State biometric laws — ranked by obligation stringency",
             synthesisKey: "biometric__state_laws",
+            legalRequirement:
+              "Illinois BIPA requires a written, publicly available retention-and-destruction schedule (740 ILCS 14/15(a)), informed written consent before collection (§ 15(b)), and a prohibition on profiting from biometric identifiers (§ 15(c)). Texas CUBI and Washington HB 1493 impose notice-and-consent and reasonable-security duties but are enforced only by the state attorney general.",
+            readTheText: [
+              { label: "740 ILCS 14 (BIPA)", href: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&ChapterID=57" },
+              { label: "Tex. Bus. & Com. Code § 503.001 (CUBI)", href: "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm" },
+              { label: "Wash. Rev. Code 19.375", href: "https://app.leg.wa.gov/rcw/default.aspx?cite=19.375" },
+            ],
             content: TIERED_STATE_LAWS,
             toolCta: {
               toolName: getProduct("biometric-checker").name,
@@ -150,6 +157,11 @@ export default function BiometricPrivacyPage() {
             id: "enforcement-history",
             h2: "Enforcement history — notable settlements and verdicts",
             synthesisKey: "biometric__enforcement_history",
+            legalRequirement:
+              "BIPA § 20 gives any person aggrieved by a violation a private right of action, with liquidated damages of $1,000 for negligent violations or $5,000 for intentional or reckless violations, plus attorney's fees and costs. The 2024 amendment limits recovery where the same private entity collects or discloses the same person's biometric identifier by the same method more than once.",
+            readTheText: [
+              { label: "740 ILCS 14/20", href: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&ChapterID=57" },
+            ],
             content: ENFORCEMENT_HISTORY,
             complianceTrigger:
               "BIPA has produced more nine- and ten-figure privacy recoveries than any other statute in the U.S., though Section 20 as amended now caps recovery for repeated same-person, same-method collection and disclosure.",
@@ -158,12 +170,24 @@ export default function BiometricPrivacyPage() {
             id: "gdpr-eu",
             h2: "GDPR Article 9 and EU AI Act — Biometric data in Europe",
             synthesisKey: "biometric__gdpr_eu",
+            legalRequirement:
+              "Biometric data is special-category data under GDPR Art. 9(1) only where it is processed for the purpose of uniquely identifying a natural person. Where it is, processing is prohibited unless an Art. 9(2) condition applies — most commonly explicit consent — and an Art. 6 lawful basis is still required in addition.",
+            readTheText: [
+              { label: "GDPR Art. 9", href: "https://gdpr-info.eu/art-9-gdpr/" },
+              { label: "EU AI Act (Reg. 2024/1689)", href: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" },
+            ],
             content: `<p>Under <a href="https://gdpr-info.eu/art-9-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 9</a>, biometric data processed for the purpose of uniquely identifying an individual is a special category requiring explicit consent or another Article 9 lawful basis. The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a> further restricts biometric identification systems in public spaces, with narrow law-enforcement exceptions. Clearview AI has been fined €20M each by the DPAs of France, Italy, and Greece for scraping facial images; the UK ICO's £7.5M fine was overturned on jurisdictional grounds by the First-tier Tribunal in 2023.</p>`,
           },
           {
             id: "workplace",
             h2: "Workplace biometric use",
             synthesisKey: "biometric__workplace",
+            legalRequirement:
+              "Workplace biometric programmes carry the same BIPA § 15 notice, consent and retention duties as consumer-facing uses, with no employment exception. Federal agency guidance adds a second layer: the EEOC treats biometric screening tools as capable of producing disparate impact, and the NLRB has taken the position that introducing biometric monitoring can be a mandatory subject of bargaining.",
+            readTheText: [
+              { label: "740 ILCS 14/15", href: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&ChapterID=57" },
+              { label: "EEOC — AI and algorithmic fairness", href: "https://www.eeoc.gov/artificial-intelligence-and-algorithmic-fairness" },
+            ],
             content: `<p>Biometric timekeeping, access control, and identity verification in the workplace are among the highest-risk use cases. BIPA litigation is dominated by workplace claims — fingerprint time clocks, facial recognition entry systems, and palm scanners. <a href="https://www.eeoc.gov/artificial-intelligence-and-algorithmic-fairness" target="_blank" rel="noopener noreferrer">EEOC guidance</a> warns that biometric screening tools may create disparate impact liability. The <a href="https://www.nlrb.gov/" target="_blank" rel="noopener noreferrer">NLRB</a> has indicated that implementation of biometric monitoring may be a mandatory subject of bargaining.</p>`,
           },
         ])}
@@ -173,7 +197,7 @@ export default function BiometricPrivacyPage() {
           { label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { label: "Subscribe to Intelligence", href: "/subscribe" },
         ]}
-        sectionRailEntries={BIOMETRIC_PRIVACY_SECTION_RAIL}
+
         intelligenceUpsellTopic="biometric privacy"
       />
     </>
