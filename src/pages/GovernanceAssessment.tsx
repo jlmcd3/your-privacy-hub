@@ -32,6 +32,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
@@ -537,27 +538,21 @@ const GovernanceAssessment = () => {
           />
         </section>
       ) : (<>
-      <header className="bg-brand-navy text-white py-12">
-
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Governance Assessment · ${pricing.price}
-          </span>
-          <h1 className="text-hero-h1 text-white mb-3">GDPR Governance Assessment</h1>
-          <RequirementBadge variant="hero" tier="supports" text="GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
-          <p className="text-slate-400 text-sm mt-3">
-            {isPremium
-              ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."
-              : "Estimated completion time: 10-15 minutes. Sign in to save your completed report to My Reports."}
-          </p>
-          <div className="mt-4"><SampleReportLink toolSlug="governance" tone="onDark" variant="link" /></div>
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            GDPR Art. 5(2) · documented evidence that you can demonstrate compliance across ten governance domains
-          </p>
-        </div>
-      </header>
+      <ProductHero
+        geography="gdpr"
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Governance Assessment · ${pricing.price}</>}
+        title="GDPR Governance Assessment"
+        legalTrigger={{ tier: "supports", text: "GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability." }}
+        valueProposition="A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding."
+        sampleReportToolSlug="governance"
+        citationLine="GDPR Art. 5(2) · documented evidence that you can demonstrate compliance across ten governance domains"
+      />
+      <ProductHeroSubstrip
+        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost."
+        methodologyLine={isPremium
+          ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."
+          : "Estimated completion time: 10-15 minutes. Sign in to save your completed report to My Reports."}
+      />
       <ToolAlsoAvailableRow currentTool="governance" />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           

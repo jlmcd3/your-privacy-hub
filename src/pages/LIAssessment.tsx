@@ -21,6 +21,7 @@ import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
@@ -201,28 +202,19 @@ const LIAssessment = () => {
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
       </Helmet>
       {/* Header */}
-      <header className="bg-brand-navy text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}
-          </span>
-          <h1 className="text-hero-h1 text-white mb-3">
-            Legitimate Interest Assessment
-          </h1>
-          <RequirementBadge variant="hero" tier="expected" text="To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-            Get an instant read on whether your processing can rest on legitimate interests, then continue to a full three-part test grounded in the precedents you'll actually face.
-          </p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
-          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
-          <div className="mt-4">
-            <SampleReportLink toolSlug="li_assessment" tone="onDark" variant="link" />
-          </div>
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            GDPR Art. 6(1)(f) · three-part balancing test regulators expect on file before you rely on it
-          </p>
-        </div>
-      </header>
+      <ProductHero
+        geography="gdpr"
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}</>}
+        title="Legitimate Interest Assessment"
+        legalTrigger={{ tier: "expected", text: "To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record." }}
+        valueProposition="Get an instant read on whether your processing can rest on legitimate interests, then continue to a full three-part test grounded in the precedents you'll actually face."
+        sampleReportToolSlug="li_assessment"
+        citationLine="GDPR Art. 6(1)(f) · three-part balancing test regulators expect on file before you rely on it"
+      />
+      <ProductHeroSubstrip
+        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost."
+        methodologyLine="Need more? Add 4 additional generations for half the tool price."
+      />
       <ToolAlsoAvailableRow currentTool="lia" />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
