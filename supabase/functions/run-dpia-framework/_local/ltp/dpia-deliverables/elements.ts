@@ -180,4 +180,15 @@ export const ANCHOR_KEYS = {
   // PILOT 2026-08-11 — Art. 6(1)(f) legal-basis builder anchors.
   legitimate_interests: "lawful_basis_legitimate_interests",
   lawfulness: "principle_lawfulness_fairness_transparency",
+  // PHASE 0 PROMPT 2 (2026-08-11) — per-basis anchors for Art. 6(1)(a)–(e).
+  // These resolve through the same regime-aware `row()` path as every other
+  // anchor. Where the verified registry carries no row for the sub-basis the
+  // anchor resolves to empty strings, and the caller MUST leave
+  // authority_verbatim empty rather than quote a different provision.
+  consent: "lawful_basis_consent",
+  contract: "lawful_basis_contract",
+  legal_obligation: "lawful_basis_legal_obligation",
+  vital_interests: "lawful_basis_vital_interests",
+  public_task: "lawful_basis_public_task",
 } as const;
+
