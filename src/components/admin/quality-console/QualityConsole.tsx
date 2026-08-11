@@ -634,10 +634,17 @@ export function QualityConsole({
     const completed = toolResults.filter((r) => r.final_status === "complete" && r.quality_run_id);
     if (completed.length === 0) { toast.error("No complete tools in this batch."); return; }
 
-    // A long PDF loop outlives a stale access token; refresh once up front so
-    // every invoke carries a live session (expired token → 401 auth_expired).
-    const { data: sess } = await supabase.auth.getSession();
-    if (!sess?.session) { toast.error("Session expired — sign in again and retry."); return; }
+    // A long PDF loop outlives a stale access token. getSession() only reads
+    // localStorage, so a revoked/expired session still looks valid and every
+    // invoke 401s with auth_expired. Validate against the auth server (and
+    // force a refresh) before starting.
+    let { data: { user: liveUser } } = await supabase.auth.getUser();
+    if (!liveUser) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      liveUser = refreshed?.user ?? null;
+    }
+    if (!liveUser) { toast.error("Session expired — sign in again and retry."); return; }
+
 
     const tid = toast.loading(`Preparing PDFs for batch ${batch.id.slice(0, 8)}…`);
 
