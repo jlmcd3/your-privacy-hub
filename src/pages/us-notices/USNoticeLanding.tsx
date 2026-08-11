@@ -1,5 +1,4 @@
 import { ProductHero } from "@/components/ProductHero";
-import { PageHero } from "@/components/PageHero";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";

@@ -8,7 +8,6 @@ import { RequirementBadge } from "@/components/RequirementBadge";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { ProductHero } from "@/components/ProductHero";
-import { PageHero } from "@/components/PageHero";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import SampleReportLink from "@/components/SampleReportLink";
