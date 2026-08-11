@@ -11,7 +11,9 @@
  * SEPARATION LAW: enforcement-exposure sentences are mechanically relocated
  * out of art36_consultation.why into .exposure_note (Item 308 pattern).
  */
-import { ANCHOR_KEYS, DPIA_RISK_SPECS, row, type RiskFacts } from "./elements.ts";
+import { ANCHOR_KEYS, DPIA_RISK_SPECS, DPIA_SAFEGUARD_SPECS, row, type RiskFacts } from "./elements.ts";
+import { transferMechanism, type TransferFlow } from "../../../../_shared/dpia-jurisdiction-registry.ts";
+import { spliceVerbatim } from "../../../../_shared/ltp/verbatim-splice.ts";
 import type {
   AlternativeConsidered,
   Art36Consultation,
@@ -26,6 +28,14 @@ import type {
   DpiaInventoryPurpose,
   DpiaInventorySecondaryUse,
   DpiaRiskCountNote,
+  DpiaSection2Coverage,
+  DpiaSpecialCategoryConditionRow,
+  DpiaTransferRow,
+  DpiaProcessorContractRow,
+  DpiaMinimisationRetentionRow,
+  DpiaMeasureRow,
+  DpiaCoverageRow,
+  DpiaIntakeStructureRecommendation,
   LegitimateInterestsTest,
   Likelihood,
   NecessityFinding,
@@ -1134,7 +1144,13 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
   const establishment = euDecision || central;
   const controller: DpiaInventoryController = {
     name: str(get(intake, "organization_name")),
-    responsible_unit: str(get(intake, "controller_contact")),
+    // PROMPT 7 RIDER (2026-08-11): `controller_contact` is the CONTACT FOR
+    // THIS ASSESSMENT (the spine renders it as such), not an organisational
+    // unit — putting it in a "Responsible unit" cell is a misattribution. The
+    // intake carries no responsible-unit field, so this is honest absence: a
+    // record-completeness residual, NOT a verdict-blocking ask, and therefore
+    // no gap_ledger entry is raised for it.
+    responsible_unit: "",
     main_establishment_or_representative: establishment,
     dpo,
     status: dpo ? "analysed" : "record_insufficient",
