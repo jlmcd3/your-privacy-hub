@@ -25,6 +25,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
@@ -570,21 +571,19 @@ const DPIAFramework = () => {
           />
         </main>
       ) : (<>
-      <header className="bg-brand-navy text-white py-12">
-
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3"><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Data Protection Impact Assessment · ${pricing.price}</span>
-          <h1 className="text-hero-h1 text-white mb-3">Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></h1>
-          <RequirementBadge variant="hero" tier="required" text="A DPIA is required under GDPR Article 35 before high-risk processing — large-scale special-category data, systematic profiling, or large-scale monitoring of public areas." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg">Build a defensible impact assessment for one high-risk processing activity. Your intake maps to the accountability record your DPO or counsel needs to sign off.</p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
-          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
-          <div className="mt-4"><SampleReportLink toolSlug="dpia" tone="onDark" variant="link" /></div>
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            GDPR Art. 35 · accountability record your DPO or counsel signs off before high-risk processing begins
-          </p>
-        </div>
-      </header>
+      <ProductHero
+        geography="gdpr"
+        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Data Protection Impact Assessment · ${pricing.price}</>}
+        title={<>Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></>}
+        legalTrigger={{ tier: "required", text: "A DPIA is required under GDPR Article 35 before high-risk processing — large-scale special-category data, systematic profiling, or large-scale monitoring of public areas." }}
+        valueProposition="Build a defensible impact assessment for one high-risk processing activity. Your intake maps to the accountability record your DPO or counsel needs to sign off."
+        sampleReportToolSlug="dpia"
+        citationLine="GDPR Art. 35 · accountability record your DPO or counsel signs off before high-risk processing begins"
+      />
+      <ProductHeroSubstrip
+        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost."
+        methodologyLine="Need more? Add 4 additional generations for half the tool price."
+      />
       <ToolAlsoAvailableRow currentTool="dpia" />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           

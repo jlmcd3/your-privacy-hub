@@ -13,6 +13,7 @@ import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
 import { Button } from "@/components/ui/button";
 import { Label as UILabel } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -675,33 +676,27 @@ export default function ADMTChecker() {
         <link rel="canonical" href="https://enduserprivacy.com/cppa-admt-checker" />
       </Helmet>
 
-      <header className="bg-brand-ocean text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            CPPA AUDIT READINESS · MODULE 3 · ${pricing.price}
-          </span>
-          <h1 className="text-hero-h1 text-white mb-3">ADMT Compliance Assessment</h1>
-          <RequirementBadge variant="hero" tier="conditional" text="If you use automated decision-making for significant decisions — hiring, lending, housing, healthcare — California requires pre-use notice, an opt-out, and a risk assessment by January 1, 2027." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg max-w-3xl">
-            Assess your automated decisionmaking against the CPPA's final regulations — pre-use notice, opt-out, and access rights. You get a gap report with specific remediation steps for each deficit, cited to the rule.
-          </p>
-          <p className="text-slate-400 text-sm mt-3 max-w-3xl">
-            Compliance deadline: <strong className="text-amber-300">January 1, 2027</strong> for businesses already using ADMT for significant decisions.
-          </p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
-          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
-          <ToolCTABlock
-            toolSlug="admt"
-            ctaPosition="hero"
-            onDark
-            pagePath="/cppa-admt-checker"
-            primaryLabel={`Start an ADMT Compliance Assessment — $${pricing.price}`}
-          />
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            11 CCR §§ 7200–7222 · pre-use notice, opt-out, and access rights on the Jan 1, 2027 clock
-          </p>
-        </div>
-      </header>
+      <ProductHero
+        geography="us"
+        eyebrowLabel={<>CPPA AUDIT READINESS · MODULE 3 · ${pricing.price}</>}
+        title="ADMT Compliance Assessment"
+        legalTrigger={{ tier: "conditional", text: "If you use automated decision-making for significant decisions — hiring, lending, housing, healthcare — California requires pre-use notice, an opt-out, and a risk assessment by January 1, 2027." }}
+        valueProposition="Assess your automated decisionmaking against the CPPA's final regulations — pre-use notice, opt-out, and access rights. You get a gap report with specific remediation steps for each deficit, cited to the rule."
+        citationLine="11 CCR §§ 7200–7222 · pre-use notice, opt-out, and access rights on the Jan 1, 2027 clock"
+        showIntakeCta={false}
+      >
+        <ToolCTABlock
+          toolSlug="admt"
+          ctaPosition="hero"
+          onDark
+          pagePath="/cppa-admt-checker"
+          primaryLabel={`Start an ADMT Compliance Assessment — $${pricing.price}`}
+        />
+      </ProductHero>
+      <ProductHeroSubstrip
+        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost. Need more? Add 4 additional generations for half the tool price."
+        methodologyLine={<>Compliance deadline: <strong>January 1, 2027</strong> for businesses already using ADMT for significant decisions.</>}
+      />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
         <ToolTierNote isCppa={true} />

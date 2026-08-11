@@ -1,4 +1,4 @@
-import { PageHero } from "@/components/PageHero";
+import { ProductHero } from "@/components/ProductHero";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
@@ -50,10 +50,12 @@ export default function EUNoticeLanding() {
           </div>
         )}
       </div>
-      <PageHero
-        chip={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> EU & Global Notice Builder · Included with any subscription</>}
+      <ProductHero
+        geography="global"
+        eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> EU & Global Notice Builder · Included with any subscription</>}
         title="EU & Global Privacy Notice Builder"
-        description="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks, in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        showIntakeCta={false}
+        valueProposition="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks, in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg">
@@ -68,7 +70,7 @@ export default function EUNoticeLanding() {
             <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>My notice projects</Link>
           </Button>
         </div>
-      </PageHero>
+      </ProductHero>
       <main className="flex-1">
 
         <section className="py-12">

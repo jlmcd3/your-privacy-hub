@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import SampleReportLink from "@/components/SampleReportLink";
+import { ProductHero } from "@/components/ProductHero";
 import {
   Accordion,
   AccordionContent,
@@ -115,40 +116,31 @@ export default function RopaLanding() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
       </div>
-      <header className="bg-brand-navy text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Included with any subscription
-          </span>
-          <h1 className="font-serif text-white mb-3">
-            Build an audit-ready Record of Processing Activities (RoPA) in minutes
-          </h1>
-          <RequirementBadge variant="hero" tier="required" text="GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-            Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+
-            frameworks. Included with every Intelligence and Professional subscription,
-            monthly or annual. Not sold as a standalone product.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
-              <Link to="/get-intelligence" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>
-                View subscription plans <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
-            >
-              <Link to="/#brief">
-                See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
-              </Link>
-            </Button>
-            <SampleReportLink toolSlug="ropa" tone="onDark" />
-          </div>
-        </div>
-      </header>
+      <ProductHero
+        geography="gdpr"
+        eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Included with any subscription</>}
+        title="Build an audit-ready Record of Processing Activities (RoPA) in minutes"
+        legalTrigger={{ tier: "required", text: "GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data." }}
+        valueProposition="Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Included with every Intelligence and Professional subscription, monthly or annual. Not sold as a standalone product."
+        sampleReportToolSlug="ropa"
+        showIntakeCta={false}
+      >
+        <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
+          <Link to="/get-intelligence" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>
+            View subscription plans <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Link>
+        </Button>
+        <Button
+          asChild
+          size="lg"
+          variant="outline"
+          className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
+        >
+          <Link to="/#brief">
+            See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
+          </Link>
+        </Button>
+      </ProductHero>
       <main className="flex-1">
 
         {/* TRUST BAR */}
