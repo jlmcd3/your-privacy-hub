@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
-import { BIOMETRIC_PRIVACY_SECTION_RAIL } from "@/components/research/researchRailEntries/biometricPrivacyRailEntries";
 import { BiometricDecisionChecklist } from "@/components/research/BiometricDecisionChecklist";
 import { getProduct } from "@/lib/productRegistry";
 import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
