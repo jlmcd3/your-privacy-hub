@@ -197,14 +197,7 @@
 }
 
 /* --- Brand v7 typography primitives (Section 2) --- */
-.text-display-hero {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* UX-1a: 32→44px */
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: hsl(var(--brand-navy));
-}
+
 .text-display-section {
   font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(1.5625rem, 1.35rem + 0.75vw, 1.9375rem); /* UX-1a: 25→31px */
