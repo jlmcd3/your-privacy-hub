@@ -173,9 +173,9 @@ Deno.test("blockers deduplicate across surfaces", () => {
 });
 
 Deno.test("legacy report without `decision` still composes via the fallback", async () => {
-  const { assembleDpiaSkeleton } = await import("../ltp/dpia-skeleton-assemble.ts");
-  assert(typeof assembleDpiaSkeleton === "function");
-  const out = assembleDpiaSkeleton(
+  const { assembleDpiaSkeletonDocument } = await import("../ltp/dpia-skeleton-assemble.ts");
+  assert(typeof assembleDpiaSkeletonDocument === "function");
+  const out = assembleDpiaSkeletonDocument(
     {
       section_6_conclusion: { decision: "DRAFT — INCOMPLETE. Retention period outstanding." },
       risk_register: [],
@@ -183,6 +183,6 @@ Deno.test("legacy report without `decision` still composes via the fallback", as
     } as Record<string, unknown>,
     { organization_name: "Acme GmbH", processing_activity_name: "Absence triage" } as Record<string, unknown>,
   );
-  const text = typeof out === "string" ? out : JSON.stringify(out);
+  const text = JSON.stringify(out.document);
   assertStringIncludes(text, "may not yet treat the processing as cleared");
 });
