@@ -192,3 +192,74 @@ export const ANCHOR_KEYS = {
   public_task: "lawful_basis_public_task",
 } as const;
 
+
+/**
+ * PROMPT 7 (2026-08-11) — safeguard spec table for the Section-2 security
+ * coverage rows. NOT statutory text: each entry is PRE-AUTHORED fixed prose
+ * describing what the customer's own recorded selection means in operational
+ * terms. One entry per option of the DPIA intake's `existing_safeguards` enum
+ * (src/pages/DPIAFramework.enums.ts → SAFEGUARDS), including "None", which is
+ * an explicit determination row and never silence.
+ *
+ * CONTENT LAW: descriptive, never a legal conclusion; no fine/penalty framing;
+ * the word "gap" never appears. The builder renders the description as-is and
+ * attributes it to the selection the record actually carries.
+ */
+export interface SafeguardSpec {
+  /** VERBATIM intake enum option. */
+  readonly measure: string;
+  readonly description: string;
+}
+
+export const DPIA_SAFEGUARD_SPECS: readonly SafeguardSpec[] = [
+  {
+    measure: "Encryption at rest",
+    description:
+      "Stored copies of the personal data are held in encrypted form, so that access to the underlying storage does not by itself disclose the data.",
+  },
+  {
+    measure: "Encryption in transit",
+    description:
+      "The personal data is carried over encrypted channels between the systems that handle it, so that it is not readable while in transit across a network.",
+  },
+  {
+    measure: "Access controls",
+    description:
+      "Access to the personal data is restricted to identified accounts with defined permissions, so that only the people whose role requires the data can reach it.",
+  },
+  {
+    measure: "Data minimisation",
+    description:
+      "The data set is limited to the fields the recorded purpose requires, so that data outside that purpose is not collected or held in the first place.",
+  },
+  {
+    measure: "Pseudonymisation",
+    description:
+      "Direct identifiers are replaced with reference values held separately, so that the records cannot be attributed to an individual without the additional information.",
+  },
+  {
+    measure: "Staff training",
+    description:
+      "The people who handle the personal data receive instruction on how it may be used and on the handling rules that apply to it.",
+  },
+  {
+    measure: "DPA signed with processor",
+    description:
+      "A written processing contract is in place with the processor, setting the instructions and handling terms the processor is bound to.",
+  },
+  {
+    measure: "Anonymisation",
+    description:
+      "Data is transformed so that individuals can no longer be identified from it, and the transformed output is handled outside the identifiable data set.",
+  },
+  {
+    measure: "Contractual restrictions",
+    description:
+      "Contract terms limit what recipients of the personal data may do with it, including onward disclosure and use for their own purposes.",
+  },
+  {
+    measure: "None",
+    description:
+      "The record states that no safeguard from the list was selected for this processing, so this assessment proceeds on the basis that no technical or organisational measure is recorded here.",
+  },
+] as const;
