@@ -151,7 +151,7 @@ export function buildOperations(intake: unknown): Operation[] {
     },
   ];
   const secondary = str(get(intake, "secondary_uses"));
-  if (secondary) {
+  if (secondary && !isSecondaryUseNegation(secondary)) {
     ops.push({
       operation_id: "op_secondary",
       operation_label: `${activity} — secondary use`,
