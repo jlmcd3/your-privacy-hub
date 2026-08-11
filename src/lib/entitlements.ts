@@ -13,11 +13,16 @@
  *  - Client / matter workspace management is an ANNUAL-Professional feature.
  *    The $150/client/year add-on is annual-only; monthly Professional does
  *    NOT unlock client management.
- *  - Layer-1 tools (RoPA, US Notice, EU Notice, IR Playbook, Biometric,
+ *  - Layer-1 tools (US Notice, EU Notice, IR Playbook, Biometric,
  *    Custom DPA) are included with ANY active subscription including
  *    monthly.
+ *  - v12 (2026-08-11): RoPA is NOT in the flat Layer-1 bundle. Annual
+ *    subscribers get the first generation free plus one free update per
+ *    subscription year (own credit pool, 1/yr both tiers); every other RoPA
+ *    action, and every monthly-subscriber RoPA action, is $29.
  *  - Annual credits: Intelligence annual = 1/yr, Professional annual = 3/yr.
- *    Redeemable on Governance / LIA / DPIA only.
+ *    Redeemable on Governance / LIA / DPIA. RoPA is credit-eligible but draws
+ *    on its own separate 1/yr pool, not this one.
  */
 
 import {
