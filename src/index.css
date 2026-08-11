@@ -159,8 +159,8 @@
 /* ============================================================
    TYPOGRAPHY UTILITY CLASSES — Brand v7
    ------------------------------------------------------------
-   Heading family is DM Serif Display (Georgia fallback). Body
-   family is DM Sans. See EUP Brand Guidelines v7 §1–§2.
+   The font-family declared in every rule below is Inter
+   (system-ui fallback), for both headings and body.
    ============================================================ */
 
 /* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
