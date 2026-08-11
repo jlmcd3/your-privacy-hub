@@ -492,23 +492,26 @@ export function runEmitGate(
       }
     }
 
+    // SAFETY-VALVE INVERSION FIX (2026-08-11) — the old >30% branch SKIPPED
+    // degradation entirely, so the worse a document was, the less repair it
+    // received. Degradation is now unconditional; the high ratio is recorded
+    // as telemetry only, never as a reason to leave defects in place.
     const ratio = leaves.length === 0
       ? 0
       : leavesToDegrade.length / leaves.length;
+    gateReport.degradation_ratio = ratio;
     if (ratio > SAFETY_VALVE_RATIO) {
-      gateReport.enforcement_skipped_reason =
-        `safety_valve: ${leavesToDegrade.length}/${leaves.length} nodes (>${Math.round(SAFETY_VALVE_RATIO * 100)}%)`;
+      gateReport.high_degradation_ratio = true;
       console.warn(JSON.stringify({
-        evt: "emit_gate_safety_valve",
+        evt: "emit_gate_high_degradation_ratio",
         version: EMIT_GATE_VERSION,
         tool: gateReport.tool,
         degraded_candidates: leavesToDegrade.length,
         prose_nodes: leaves.length,
       }));
-    } else {
-      for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
-      gateReport.degraded_count = leavesToDegrade.length;
     }
+    for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
+    gateReport.degraded_count = leavesToDegrade.length;
     // ITEM 352 — internal gate rows never reach the customer array.
     gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
     if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;
