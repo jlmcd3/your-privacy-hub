@@ -381,15 +381,15 @@ function composeNecessityLead(report: Bag): string {
 }
 
 
-function composeNecessityBody(report: Bag): string {
+export function composeNecessityBody(report: Bag): string {
   const parts: string[] = [];
   for (const f of asArray(report.necessity_findings).slice(0, 4)) {
     const why = s(f.why);
-    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
   }
   for (const p of asArray(report.proportionality).slice(0, 3)) {
     const why = s(p.why);
-    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
   }
   if (parts.length === 0) {
     const s3 = report.section_3_necessity_proportionality;
@@ -428,7 +428,7 @@ function composeRiskLead(report: Bag): string {
 }
 
 
-function composeRiskBody(report: Bag, values: SlotValues): string {
+export function composeRiskBody(report: Bag, values: SlotValues): string {
   const rows = asArray(report.risk_register);
   const blocks: string[] = [];
   for (const r of rows) {
@@ -441,7 +441,7 @@ function composeRiskBody(report: Bag, values: SlotValues): string {
     const residual = s(r.residual_band);
     const head = [
       `${label}.`,
-      likelihood && severity ? `The company's answers put likelihood at ${likelihood} and severity at ${severity}.` : "",
+      likelihood && severity ? `On the safeguards the company has recorded, this assessment places likelihood at ${likelihood}; severity is rated ${severity} under this assessment's pre-set risk taxonomy.` : "",
       inherent ? `Inherent band: ${inherent}.` : "",
     ].filter(Boolean).join(" ");
     bits.push(head);
@@ -506,7 +506,7 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
   if (art36 === "consultation_required" || art36 === "undetermined_on_the_record") {
 
     const why = s(((report.art36_consultation ?? {}) as Bag).why);
-    if (why) parts.push(stop(noStop(firstSentences(why, 2))));
+    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
   }
   return repairRegister(parts.join(" "));
 }
