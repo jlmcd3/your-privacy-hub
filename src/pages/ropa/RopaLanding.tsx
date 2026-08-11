@@ -292,16 +292,18 @@ export default function RopaLanding() {
         {/* FOOTER CTA */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
           <h2 className="font-serif text-foreground mb-4">
-            Included with any subscription.
+            Free on annual plans.
           </h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            RoPA Builder is included with every Intelligence and Professional
-            subscription (monthly or annual). It is not sold as a standalone
-            product.
+            RoPA Builder requires an Intelligence or Professional subscription
+            and is not sold as a standalone product. On annual plans the first
+            build is free and each subscription year includes one free update;
+            additional updates are $29. On monthly plans every build or update
+            is $29.
           </p>
           <Button asChild size="lg">
-            <Link to="/subscribe" onClick={() => { fireConversion("subscribe_cta_click", { cta_label: "Included with any subscription", cta_position: "article-footer" }); fireConversion("tool_start_click", { tool_slug: "ropa", page_path: "/ropa-builder", user_type: userType }); }}>
-              Included with any subscription: Subscribe <ArrowRight className="ml-1.5 h-4 w-4" />
+            <Link to="/subscribe" onClick={() => { fireConversion("subscribe_cta_click", { cta_label: "Free on annual plans", cta_position: "article-footer" }); fireConversion("tool_start_click", { tool_slug: "ropa", page_path: "/ropa-builder", user_type: userType }); }}>
+              Free on annual plans: Subscribe <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>
         </section>
