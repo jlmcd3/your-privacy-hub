@@ -211,6 +211,57 @@ function composeExecutiveLead(report: Bag, org: string): string {
   return `On the company's answers, the processing may proceed subject to the measures identified in this assessment.`;
 }
 
+// SO-FT FIX 1 (2026-08-11): the pipeline emits the same underlying gap more
+// than once, phrased differently ("record the national provision" /
+// "confirm national provision"), and the executive body rendered each as its
+// own numbered point — inflating the "N points left unanswered" count. Merge
+// near-duplicates before rendering: keep the most specific phrasing (longest,
+// as the fuller phrasing carries the qualifiers) and union the `enables`
+// references.
+const GAP_STOPWORDS = new Set([
+  "the", "a", "an", "of", "to", "for", "and", "or", "in", "on", "at", "by", "with",
+  "that", "this", "is", "are", "be", "as", "its", "it", "from", "which", "any",
+  "record", "confirm", "provide", "state", "identify", "specify", "supply", "give",
+]);
+
+function gapTokens(t: string): Set<string> {
+  return new Set(
+    t.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+      .filter((w) => w.length > 2 && !GAP_STOPWORDS.has(w)),
+  );
+}
+
+export function gapOverlap(a: string, b: string): number {
+  const A = gapTokens(a), B = gapTokens(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let shared = 0;
+  for (const w of A) if (B.has(w)) shared++;
+  return shared / Math.min(A.size, B.size);
+}
+
+export function mergeOpenGapItems(
+  entries: { what: string; enables: string }[],
+  threshold = 0.6,
+): { what: string; enables: string[] }[] {
+  const out: { what: string; enables: string[] }[] = [];
+  for (const e of entries) {
+    const what = (e.what ?? "").trim();
+    if (!what) continue;
+    const enables = (e.enables ?? "").trim();
+    const hit = out.find((o) => gapOverlap(o.what, what) >= threshold);
+    if (hit) {
+      // Most specific phrasing wins.
+      if (what.length > hit.what.length) hit.what = what;
+      if (enables && !hit.enables.some((x) => x.toLowerCase() === enables.toLowerCase())) {
+        hit.enables.push(enables);
+      }
+      continue;
+    }
+    out.push({ what, enables: enables ? [enables] : [] });
+  }
+  return out;
+}
+
 function composeExecutiveBody(report: Bag): string {
   const bands = residualCounts(report);
   const total = Object.values(bands).reduce((a, b) => a + b, 0);
