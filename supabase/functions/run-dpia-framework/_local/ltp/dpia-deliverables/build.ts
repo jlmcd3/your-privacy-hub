@@ -1285,7 +1285,7 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
  * static, dated, registry-backed table `transferMechanism()` in
  * _shared/dpia-jurisdiction-registry.ts (each row carries `lastVerified`).
  */
-const TRANSFER_RULE_ID = "dpia_transfers_intra_eea_v1";
+export const TRANSFER_RULE_ID = "dpia_transfers_intra_eea_v1";
 
 /** Regime-strict anchor: never quotes an EU row under a UK citation. */
 function anchorStrict(
@@ -1628,6 +1628,7 @@ export function buildGapLedgerDetailed(
     readonly legal_basis: readonly LegalBasisFinding[];
     readonly decision: DpiaDecision;
     readonly processing_inventory?: DpiaProcessingInventory;
+    readonly section2_coverage?: DpiaSection2Coverage;
   },
 ): GapLedgerResult {
   type Raw = { field: string; dimensions: string; provision: string; enables: string };
@@ -1698,6 +1699,43 @@ export function buildGapLedgerDetailed(
       if (d.information_needed === undefined) continue;
       push("article_9_condition", str(d.information_needed), "GDPR Art. 9(2)",
         `the special-category entry for ${d.item}`);
+    }
+  }
+
+  // PROMPT 7 — Section-2 coverage asks join the same aggregation. Rows that
+  // carry no ask (intra-EEA processing, adequacy, "no transfer on the record",
+  // recorded safeguards) contribute nothing — an abstention only reaches the
+  // ledger when it names a fact that would resolve it.
+  const s2c = deliverables.section2_coverage;
+  if (s2c) {
+    const s2push = (field: string, r: { information_needed?: string; citation?: string }, enables: string) => {
+      if (r.information_needed === undefined) return;
+      push(field, str(r.information_needed), str(r.citation), enables);
+    };
+    for (const r of s2c.special_category_conditions) {
+      s2push("article_9_condition", r, `the special-category condition for ${r.item}`);
+    }
+    for (const r of s2c.transfers) {
+      s2push("transfer_flows", r, `the transfer determination for ${r.destination || "the flow recorded"}`);
+    }
+    s2push("existing_safeguards", s2c.processor_contract, "the Art. 28 processing-contract determination");
+    for (const r of s2c.data_minimisation_retention) {
+      s2push("retention_period", r, `the retention determination for ${r.item}`);
+    }
+    for (const r of s2c.measures_dpbd) {
+      s2push("dp_by_design_measures", r, "the data-protection-by-design coverage row");
+    }
+    for (const r of s2c.measures_security) {
+      s2push("existing_safeguards", r, "the security-measures coverage table");
+    }
+    for (const r of s2c.data_quality) {
+      s2push("data_quality_measures", r, "the accuracy coverage row");
+    }
+    for (const r of s2c.measures_article5) {
+      s2push("data_minimisation_justification", r, "a principle-by-principle Art. 5 coverage table");
+    }
+    for (const r of s2c.measures_rights) {
+      s2push("data_subject_rights_mechanisms", r, "a right-by-right coverage table");
     }
   }
 
@@ -1810,7 +1848,8 @@ export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
   };
   const decision = buildDecision(intake, core);
   const processing_inventory = buildProcessingInventory(intake);
-  const withDecision = { ...core, decision, processing_inventory };
+  const section2_coverage = buildSection2Coverage(intake, { processing_inventory });
+  const withDecision = { ...core, decision, processing_inventory, section2_coverage };
   const risk_count_note = buildRiskCountNote(intake, risk_register);
   return {
     ...withDecision,
@@ -1892,6 +1931,10 @@ export function attachDpiaDeliverables(
     // PROMPT 6 (2026-08-11) — deterministic processing inventory. Single
     // writer for report.processing_inventory. Nothing renders it yet.
     report.processing_inventory = built.processing_inventory;
+
+    // PROMPT 7 (2026-08-11) — deterministic Section-2 coverage. Single writer
+    // for report.section2_coverage. Nothing renders it yet.
+    report.section2_coverage = built.section2_coverage;
     if (built.risk_count_note) report.risk_count_note = built.risk_count_note;
     const s2 = report.section_2_analysis;
     if (s2 && typeof s2 === "object") {
