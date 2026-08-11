@@ -4,6 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { PARALLEL_ITEM_VARIETY_RULE } from "../_shared/parallel-item-variety.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { checkIrRequiredFields } from "../_shared/ltp/ir-required-fields.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
@@ -979,6 +980,17 @@ operative figure. State explicitly: "This threshold applies only to confirmed [S
 residents. Conduct a geographic segmentation of the affected population before assessing
 this threshold. [TO BE COMPLETED: confirmed [State] resident count]."
 
+REQUIRED LABELLED FIELDS — MANDATORY, VERBATIM LABELS (a deferral is not content):
+— For EVERY jurisdiction in Section 3, the entry MUST end with a line beginning exactly
+  "Computed deadline: " followed by the actual date (and time where the statute runs in
+  hours), or by "not applicable — notification trigger not met on current facts".
+  NEVER write that the deadline is computed, set out, or detailed elsewhere: the computed
+  value belongs on that line, in that section.
+— Section 3 MUST also contain a line beginning exactly
+  "Contractual notification obligations — Triggered: " followed by "Yes" or "No", an em
+  dash, and one sentence of rationale naming the controller/processor contract fact in the
+  record that decides it, or stating that the record documents no such contract term.
+
 ARTICLE 33 CLOCK START: For all EU GDPR and UK GDPR jurisdictions, the 72-hour deadline
 runs from the CONTROLLER AWARENESS TIMESTAMP — the moment the controller achieved
 reasonable certainty that a personal data breach occurred — not merely from the initial
@@ -1011,6 +1023,14 @@ A documentation checklist of records to create and maintain under GDPR Article 3
 
 ## Section 7: POST-INCIDENT ACTIONS
 Remediation steps, root cause analysis requirements, and follow-up obligations.
+
+REQUIRED LABELLED FIELDS — MANDATORY, VERBATIM LABELS: Section 7 MUST contain these three
+lines, each carrying at least one full sentence applying the phase to THIS incident's facts
+(the attack vector, systems, and data actually recorded in the intake) — never a generic
+description of the phase:
+"Containment — applied to this incident: ..."
+"Eradication — applied to this incident: ..."
+"Recovery — applied to this incident: ..."
 
 ANNOTATIONS: After Section 7, add a line:
 ===ANNOTATIONS===
@@ -1778,6 +1798,22 @@ let playbook_text = lint.clean;
             }
           } catch (e) {
             console.error("[IR Playbook][IR-HF1 T2 cross-part] errored (non-fatal):", e);
+          }
+
+          // PROPOSAL 2026-08-11 (IR) — deterministic existence check for the
+          // three fields the prose used to merely promise: the computed
+          // notification deadline, the contractual-notification trigger, and
+          // the application of containment / eradication / recovery to this
+          // incident. A promise that never rendered is a defect, and it is
+          // invisible to orchestration because it reads like content.
+          try {
+            for (const f of checkIrRequiredFields(playbook_text)) {
+              lintWarnings.push({ rule: "IR-REQUIRED-FIELD", posture: "log_only", match: f.detail });
+              postGenNotes.push({ code: f.code, detail: f.detail });
+              console.log(JSON.stringify({ evt: "_ir_required_field", fn: "generate-ir-playbook", code: f.code, detail: f.detail }));
+            }
+          } catch (e) {
+            console.error("[IR Playbook][required-fields] errored (non-fatal):", e);
           }
         } catch (e) {
           console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);

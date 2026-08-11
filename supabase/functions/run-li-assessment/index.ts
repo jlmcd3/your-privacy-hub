@@ -16,6 +16,7 @@ console.log(`[run-li-assessment] boot ${BUILD_STAMP} ${LIA_PIPELINE_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { verifyLiaIntakeEvidence } from "../_shared/ltp/fact-pointers.ts";
 import { invokeGated } from "../_shared/invoke-gated.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
@@ -1798,6 +1799,20 @@ Return JSON:
     } catch (e) {
       console.warn("[run-li-assessment] unsupported-harm scrub failed (non-fatal):", (e as Error)?.message);
     }
+
+    // PROPOSAL 2026-08-11 (LIA) — every balancing factor's intake_evidence must
+    // point at a fact the record actually contains. Unresolvable pointers are
+    // dropped so a weighed impact can no longer ride an invented fact.
+    try {
+      const ptr = verifyLiaIntakeEvidence(reportData as Record<string, unknown>, liaIntakeObject);
+      if (ptr.checked > 0) {
+        (((reportData as any)._meta ??= {}).internal ??= {}).lia_intake_pointer_check = ptr;
+        console.log(JSON.stringify({ evt: "_lia_intake_pointer_check", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...ptr }));
+      }
+    } catch (e) {
+      console.warn("[run-li-assessment] intake-pointer check failed (non-fatal):", (e as Error)?.message);
+    }
+
 
 
     const liaFallback = applyDeterministicPostGenFallbackLia(reportData, liaTestStates);

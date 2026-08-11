@@ -12,6 +12,7 @@ console.log(`[run-governance-assessment] boot governance-registry-wiring@2026-07
 console.log(`[run-governance-assessment] boot gov-t6fix@2026-07-25T23:47:00Z stage=post-w1 pre-emitgate`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { verifyGovernanceBasisPointers } from "../_shared/ltp/fact-pointers.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
@@ -1312,6 +1313,21 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       };
     }
 
+    // PROPOSAL 2026-08-11 (Governance) — verify each regulatory_basis_v2
+    // engagement pointer resolves to a fact the intake actually contains, so a
+    // real citation cannot attach itself to an invented engaging fact.
+    let govPointerCheck: ReturnType<typeof verifyGovernanceBasisPointers> | null = null;
+    try {
+      govPointerCheck = verifyGovernanceBasisPointers(strippedDomainFindings, intake);
+      if (govPointerCheck.checked > 0) {
+        console.log(JSON.stringify({ evt: "_gov_basis_pointer_check", fn: "run-governance-assessment", ...govPointerCheck }));
+      }
+    } catch (e) {
+      console.warn("[run-governance-assessment] basis-pointer check failed (non-fatal):", (e as Error)?.message);
+    }
+
+
+
 
     let reportData: any = {
       generated_at: new Date().toISOString(),
@@ -1381,6 +1397,12 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const dpiaScope = synthesis.dpia_scope || [];
 
     (reportData as any)._meta = { ...((reportData as any)._meta ?? {}), prompt_version: stampPromptVersion("governance-assessment", "r1b2.2-cv1-r") };
+    if (govPointerCheck && govPointerCheck.checked > 0) {
+      (reportData as any)._meta.internal = {
+        ...(((reportData as any)._meta ?? {}).internal ?? {}),
+        gov_basis_pointer_check: govPointerCheck,
+      };
+    }
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
