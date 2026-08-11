@@ -544,6 +544,17 @@ async function callAnthropic(
   const d = await res.json();
   const text = d.content?.[0]?.text ?? "";
   const stopReason: string | null = d.stop_reason ?? null;
+  recordApiUsage({
+    function_name: `run-admt-checker:${label}`,
+    product: "admt",
+    model: currentGenerationModel(),
+    input_tokens: d?.usage?.input_tokens ?? null,
+    output_tokens: d?.usage?.output_tokens ?? null,
+    cache_read_tokens: d?.usage?.cache_read_input_tokens ?? null,
+    cache_creation_tokens: d?.usage?.cache_creation_input_tokens ?? null,
+    duration_ms: Date.now() - t0,
+    source_row_id: currentSourceRowId() ?? null,
+  });
   console.log(
     `[run-admt-checker] label=${label} elapsed=${Date.now() - t0}ms stop=${stopReason} chars=${text.length}`
   );
