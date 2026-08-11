@@ -60,18 +60,19 @@ Deno.test("emit-gate: well-formed prose passes through untouched", () => {
   assertEquals(report._meta.internal.emit_gate.findings.length, 0);
 });
 
-Deno.test("emit-gate: >30% safety valve triggers skip + reason", () => {
+Deno.test("emit-gate: >30% flagged still degrades every leaf + records high ratio", () => {
   const bad = "Reconcile on i1b_min_pi and i5_admt_logic; supply the missing intake dimensions and re-run.";
   const report: any = {
     a: bad, b: bad, c: bad, d: bad, e: wellFormed,
   };
   runEmitGate(report, { tool: "cppa_admt" });
   const gr = report._meta.internal.emit_gate;
-  assertExists(gr.enforcement_skipped_reason);
-  assert(gr.enforcement_skipped_reason.startsWith("safety_valve"));
-  assertEquals(gr.degraded_count, 0, "no mutation under valve");
-  // Prose untouched under safety valve.
-  assertEquals(report.a, bad);
+  assertEquals(gr.high_degradation_ratio, true);
+  assertEquals(gr.enforcement_skipped_reason, undefined, "no skipping any more");
+  assert(gr.degradation_ratio > 0.3);
+  assertEquals(gr.degraded_count, 4, "every flagged leaf degraded");
+  assertEquals(report.a.includes("i1b_min_pi"), false, "prose repaired despite high ratio");
+  assertEquals(report.e, wellFormed, "well-formed leaf untouched");
 });
 
 Deno.test("emit-gate: crash → report unchanged + crashed=true", () => {

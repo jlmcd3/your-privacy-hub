@@ -28,7 +28,7 @@ import { checkH2InternalVocab } from "./grader/cppa-hf1-checks.ts";
 import { extractIntakeRoster } from "./grader/intake-roster.ts";
 import { renderMessage } from "./customer-messages.ts";
 
-export const EMIT_GATE_VERSION = "eg-w1-2026-07-25";
+export const EMIT_GATE_VERSION = "eg-w2-2026-08-11";
 
 export type EmitGateTool =
   | "cppa_admt"
@@ -56,7 +56,15 @@ export interface EmitGateReport {
   degraded_count: number;
   prose_node_count: number;
   findings: EmitGateFinding[];
+  /** Legacy field. No longer set: degradation is unconditional as of
+   *  eg-w2-2026-08-11 (safety-valve inversion fix). Retained so older
+   *  persisted reports still type-check. */
   enforcement_skipped_reason?: string;
+  /** True when >SAFETY_VALVE_RATIO of prose leaves were flagged. Purely
+   *  informational — every flagged leaf is still degraded. */
+  high_degradation_ratio?: boolean;
+  /** Flagged-leaf fraction of all prose leaves (0..1). */
+  degradation_ratio?: number;
   crashed?: boolean;
   /** ITEM 352 — internal bookkeeping for degraded LTP-shape prose nodes. */
   degraded_paths?: string[];
@@ -484,23 +492,26 @@ export function runEmitGate(
       }
     }
 
+    // SAFETY-VALVE INVERSION FIX (2026-08-11) — the old >30% branch SKIPPED
+    // degradation entirely, so the worse a document was, the less repair it
+    // received. Degradation is now unconditional; the high ratio is recorded
+    // as telemetry only, never as a reason to leave defects in place.
     const ratio = leaves.length === 0
       ? 0
       : leavesToDegrade.length / leaves.length;
+    gateReport.degradation_ratio = ratio;
     if (ratio > SAFETY_VALVE_RATIO) {
-      gateReport.enforcement_skipped_reason =
-        `safety_valve: ${leavesToDegrade.length}/${leaves.length} nodes (>${Math.round(SAFETY_VALVE_RATIO * 100)}%)`;
+      gateReport.high_degradation_ratio = true;
       console.warn(JSON.stringify({
-        evt: "emit_gate_safety_valve",
+        evt: "emit_gate_high_degradation_ratio",
         version: EMIT_GATE_VERSION,
         tool: gateReport.tool,
         degraded_candidates: leavesToDegrade.length,
         prose_nodes: leaves.length,
       }));
-    } else {
-      for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
-      gateReport.degraded_count = leavesToDegrade.length;
     }
+    for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
+    gateReport.degraded_count = leavesToDegrade.length;
     // ITEM 352 — internal gate rows never reach the customer array.
     gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
     if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;

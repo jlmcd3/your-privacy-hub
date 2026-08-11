@@ -2234,7 +2234,8 @@ async function runStitch(dpia_id: string): Promise<void> {
                 if (r.findings.length > 0) {
                   flagged += 1;
                   for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
-                  node[i] = r.text;
+                  // CITATION-PAIR FIX (2026-08-11) — findings are recorded, never
+                  // written back: the bracketed warning must not reach a customer.
                 }
               } else if (v && typeof v === "object") walkAndVerify(v);
             }
@@ -2249,7 +2250,7 @@ async function runStitch(dpia_id: string): Promise<void> {
               if (r.findings.length > 0) {
                 flagged += 1;
                 for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
-                (node as any)[k] = r.text;
+                // CITATION-PAIR FIX (2026-08-11) — record only, no write-back.
               }
             } else if (v && typeof v === "object") walkAndVerify(v);
           }
@@ -2267,6 +2268,21 @@ async function runStitch(dpia_id: string): Promise<void> {
           by_pair: allFindings.reduce((acc, f) => { acc[f.pair] = (acc[f.pair] || 0) + 1; return acc; }, {} as Record<string, number>),
           sample: allFindings.slice(0, 3),
         }));
+        // CITATION-PAIR FIX (2026-08-11) — findings land in internal telemetry so a
+        // human can query them (same surface as _meta.internal.release_ledger).
+        try {
+          const rd: any = reportData as any;
+          rd._meta = rd._meta && typeof rd._meta === "object" ? rd._meta : {};
+          rd._meta.internal = rd._meta.internal && typeof rd._meta.internal === "object" ? rd._meta.internal : {};
+          rd._meta.internal.citation_pair_findings = {
+            fn: "run-dpia-framework",
+            scanned_strings: scanned,
+            flagged_strings: flagged,
+            findings_total: allFindings.length,
+            by_pair: allFindings.reduce((acc, x) => { acc[x.pair] = (acc[x.pair] || 0) + 1; return acc; }, {} as Record<string, number>),
+            findings: allFindings.slice(0, 50),
+          };
+        } catch { /* telemetry is best-effort */ }
       } catch (e) {
         console.warn("[run-dpia-framework] citation-pair verifier failed (non-fatal):", (e as Error)?.message);
       }
