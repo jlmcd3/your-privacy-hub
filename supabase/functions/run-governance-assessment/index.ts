@@ -1397,6 +1397,12 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const dpiaScope = synthesis.dpia_scope || [];
 
     (reportData as any)._meta = { ...((reportData as any)._meta ?? {}), prompt_version: stampPromptVersion("governance-assessment", "r1b2.2-cv1-r") };
+    if (govPointerCheck && govPointerCheck.checked > 0) {
+      (reportData as any)._meta.internal = {
+        ...(((reportData as any)._meta ?? {}).internal ?? {}),
+        gov_basis_pointer_check: govPointerCheck,
+      };
+    }
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
