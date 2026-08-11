@@ -61,6 +61,9 @@ export const DPIA_REPORT_SCHEMA: ReportSchema = {
     // PROMPT 4 (2026-08-11) — deterministic gap ledger + risk-count reconciliation.
     "gap_ledger",
     "risk_count_note",
+    // PROMPT 6 / PROMPT 7 (2026-08-11) — deterministic typed surfaces.
+    "processing_inventory",
+    "section2_coverage",
     // ITEM 372 METHOD 2a — executive determination block (renders first).
     "determination",
 

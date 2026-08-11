@@ -112,6 +112,17 @@ Deno.test("inventory: special category without art9 condition carries an ask", (
   assertEquals(contact.information_needed, undefined);
 });
 
+// PROMPT 7 RIDER (2026-08-11) — `controller_contact` is the assessment
+// contact, not an organisational unit. Honest absence, and no ask.
+Deno.test("inventory: responsible_unit is empty and raises no ask", () => {
+  const built = buildDpiaDeliverables(intake());
+  const c = built.processing_inventory.controllers[0];
+  assertEquals(c.responsible_unit, "");
+  const ledger = buildGapLedger({}, built);
+  assert(!ledger.some((e) => /responsible unit/i.test(e.dimensions)));
+  assert(!ledger.some((e) => e.field === "controller_contact"));
+});
+
 Deno.test("inventory: eu_decision_establishment_country empty-is-answer emits no ask", () => {
   const inv = buildProcessingInventory(
     intake({ eu_decision_establishment_country: "", central_administration_country: "IE" }),
