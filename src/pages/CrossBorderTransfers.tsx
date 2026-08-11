@@ -3,7 +3,6 @@ import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { TransferMechanismSelector } from "@/components/research/TransferMechanismSelector";
 import { getProduct } from "@/lib/productRegistry";
 import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
-import { CROSS_BORDER_SECTION_RAIL } from "@/components/research/researchRailEntries/crossBorderRailEntries";
 
 const MECHANISM_TABLE = `
 <div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
@@ -161,6 +160,12 @@ export default function CrossBorderTransfersPage() {
             id: "eu-mechanisms",
             h2: "Transfer mechanisms at a glance",
             synthesisKey: "crossborder__eu_mechanisms",
+            legalRequirement:
+              "Chapter V bars any transfer to a third country unless one of the Articles 44–49 conditions is met: an adequacy decision (Art. 45), appropriate safeguards (Art. 46 — SCCs, BCRs, codes of conduct, certifications), or a derogation (Art. 49). Article 44 is the gateway clause: every onward transfer must independently satisfy Chapter V.",
+            readTheText: [
+              { label: "GDPR Arts. 44–49", href: "https://gdpr-info.eu/chapter-5/" },
+              { label: "2021 SCCs (Decision 2021/914)", href: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32021D0914" },
+            ],
             content: MECHANISM_TABLE,
             toolCta: {
               toolName: "SCC & DPA Generator",
@@ -175,6 +180,12 @@ export default function CrossBorderTransfersPage() {
             id: "adequacy",
             h2: "Current adequacy decisions",
             synthesisKey: "crossborder__adequacy",
+            legalRequirement:
+              "An adequacy decision is a Commission finding that a third country, territory, sector or international organisation ensures an essentially equivalent level of protection; transfers under it require no transfer-specific instrument, though an Art. 28 controller–processor agreement still applies. Decisions are reviewed at least every four years (Art. 45(3)).",
+            readTheText: [
+              { label: "GDPR Art. 45", href: "https://gdpr-info.eu/art-45-gdpr/" },
+              { label: "Commission adequacy decisions", href: "https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/adequacy-decisions_en" },
+            ],
             content: ADEQUACY_TABLE,
             complianceTrigger:
               "Adequacy is the simplest path — but each decision has its own scope, and the EU–US DPF is subject to a pending appeal before the Court of Justice.",
@@ -183,6 +194,13 @@ export default function CrossBorderTransfersPage() {
             id: "dpf",
             h2: "EU-U.S. Data Privacy Framework",
             synthesisKey: "crossborder__dpf",
+            legalRequirement:
+              "Transfers to U.S. organisations on the Data Privacy Framework List rest on Commission Implementing Decision (EU) 2023/1795, underwritten by Executive Order 14086 and the Data Protection Review Court. Recipients outside the List still require an Art. 46 instrument.",
+            readTheText: [
+              { label: "Decision (EU) 2023/1795", href: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023D1795" },
+              { label: "Data Privacy Framework List", href: "https://www.dataprivacyframework.gov/" },
+              { label: "EO 14086", href: "https://www.federalregister.gov/documents/2022/10/14/2022-22520/enhancing-safeguards-for-united-states-signals-intelligence-activities" },
+            ],
             content: `<p>The EU-U.S. Data Privacy Framework, adopted July 2023, replaced the invalidated <a href="https://curia.europa.eu/juris/document/document.jsf?docid=228677" target="_blank" rel="noopener noreferrer">Privacy Shield</a>. U.S. organizations self-certify to the <a href="https://www.dataprivacyframework.gov/s/article/How-to-Join-the-DPF-Program-Participants" target="_blank" rel="noopener noreferrer">Department of Commerce</a>; <a href="https://www.federalregister.gov/documents/2022/10/14/2022-22520/enhancing-safeguards-for-united-states-signals-intelligence-activities" target="_blank" rel="noopener noreferrer">Executive Order 14086</a> imposes proportionality on U.S. signals intelligence; the <a href="https://www.justice.gov/dprc" target="_blank" rel="noopener noreferrer">Data Protection Review Court</a> provides redress. The <a href="https://www.gov.uk/government/publications/uk-us-data-bridge" target="_blank" rel="noopener noreferrer">UK-U.S. Data Bridge</a> extends similar protections.</p>
 <p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023D1795" target="_blank" rel="noopener noreferrer">Commission's DPF adequacy decision</a> remains in force. On September 3, 2025, the EU General Court dismissed Philippe Latombe's challenge to that decision in Case T-553/23. Latombe appealed to the Court of Justice on October 31, 2025; the appeal, Case C-703/25 P, remains pending as of August 10, 2026. For operational questions, the EDPB published <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/other/information-note-data-transfers-under-gdpr-eu-us-data-privacy_en" target="_blank" rel="noopener noreferrer">version 2.0 of its EU-U.S. Data Privacy Framework FAQs for European businesses</a> in January 2026. Maintaining SCCs as a fallback remains a common resilience measure.</p>`,
           },
@@ -190,12 +208,24 @@ export default function CrossBorderTransfersPage() {
             id: "tia",
             h2: "Transfer Impact Assessments",
             synthesisKey: "crossborder__tia",
+            legalRequirement:
+              "Schrems II requires controllers relying on Art. 46 tools to verify case-by-case whether the destination country's law and practice undermine the instrument, and to add supplementary measures where they do. SCC Clause 14(a) makes that warranty contractual; EDPB Recommendations 01/2020 set out the six-step method.",
+            readTheText: [
+              { label: "Schrems II (C-311/18)", href: "https://curia.europa.eu/juris/document/document.jsf?docid=228677" },
+              { label: "EDPB Recommendations 01/2020", href: "https://www.edpb.europa.eu/our-work-tools/our-documents/recommendations/recommendations-012020-measures-supplement-transfer_en" },
+            ],
             content: `<p>Post-Schrems II, TIAs are required when relying on SCCs or BCRs. The <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/recommendations/recommendations-012020-measures-supplement-transfer_en" target="_blank" rel="noopener noreferrer">EDPB's Recommendations 01/2020</a> provide the authoritative framework: map transfers, identify the mechanism, assess recipient country surveillance law, evaluate practical risk, implement supplementary measures (encryption, pseudonymization, split processing), and document.</p>`,
           },
           {
             id: "derogations",
             h2: "Article 49 derogations",
             synthesisKey: "crossborder__derogations",
+            legalRequirement:
+              "Article 49 applies only where neither adequacy nor appropriate safeguards are available, and the EDPB reads its grounds as last-resort, occasional and non-systematic. The compelling-legitimate-interests sub-derogation in the final paragraph of Art. 49(1) additionally requires a documented balancing test and notification to the supervisory authority.",
+            readTheText: [
+              { label: "GDPR Art. 49", href: "https://gdpr-info.eu/art-49-gdpr/" },
+              { label: "EDPB Guidelines 2/2018", href: "https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22018-derogations-article-49-under-regulation-2016679_en" },
+            ],
             content: `<p>Article 49 permits transfers without an adequacy decision or appropriate safeguards in narrow circumstances — explicit consent, contract necessity, important reasons of public interest, legal claims, vital interests, or transfers from a public register. The "compelling legitimate interests" sub-derogation is interpreted by the <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22018-derogations-article-49-under-regulation-2016679_en" target="_blank" rel="noopener noreferrer">EDPB Guidelines 2/2018</a> as a measure of last resort, non-systematic, and requiring a documented balancing test plus DPA notification.</p>`,
             toolCta: {
               toolName: "Legitimate Interest Assessment",
@@ -209,6 +239,13 @@ export default function CrossBorderTransfersPage() {
             id: "apac",
             h2: "Asia-Pacific Transfer Frameworks",
             synthesisKey: "crossborder__apac",
+            legalRequirement:
+              "APAC regimes diverge sharply. China's PIPL (Arts. 38–43) sets a tiered export regime — CAC security assessment, CAC standard contract, or certification. Japan's APPI and South Korea's PIPA use equivalent-protection models and hold reciprocal EU adequacy. India's DPDP Act permits transfers except to a future blacklist; Singapore's PDPA applies a comparable-protection standard.",
+            readTheText: [
+              { label: "PIPL Arts. 38–43", href: "https://personalinformation.protection.cac.gov.cn/" },
+              { label: "APPI (PPC)", href: "https://www.ppc.go.jp/en/legal/" },
+              { label: "Singapore PDPA", href: "https://sso.agc.gov.sg/Act/PDPA2012" },
+            ],
             content: `<ul>
 <li><strong><a href="/jurisdiction/china">China PIPL</a></strong> (Articles 38–43) — security assessments, standard contracts, or certification. Enforced by the <a href="/regulator/cac">Cyberspace Administration of China (CAC)</a>.</li>
 <li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — equivalent-protection model; mutual EU adequacy. Enforced by the <a href="/regulator/ppc">Personal Information Protection Commission (PPC)</a>.</li>
@@ -222,6 +259,12 @@ export default function CrossBorderTransfersPage() {
             id: "enforcement",
             h2: "Cross-Border Transfer Enforcement",
             synthesisKey: "crossborder__enforcement",
+            legalRequirement:
+              "Enforcement has concentrated in CJEU rulings and a small number of headline DPA decisions. The DPC's €1.2B Meta decision (IN-21-9-1, May 2023) was grounded in continued EU–U.S. transfers without an adequate Art. 46 mechanism, and the DSB and CNIL Google Analytics decisions established that effective supplementary measures — not paper SCCs — are what regulators examine.",
+            readTheText: [
+              { label: "DPC Meta decision IN-21-9-1", href: "https://www.dataprotection.ie/en/news-media/data-protection-commission-announces-conclusion-inquiry-meta-ireland" },
+              { label: "Schrems II (C-311/18)", href: "https://curia.europa.eu/juris/document/document.jsf?docid=228677" },
+            ],
             content: `<p>Cross-border enforcement has been concentrated in CJEU rulings and major DPA actions: <strong>Schrems II</strong> invalidated Privacy Shield; the Irish <a href="/regulator/dpc">Data Protection Commission (DPC)</a>'s <strong>€1.2B Meta fine</strong> targeted EU-U.S. transfers; the Austrian <a href="/regulator/dsb">Austrian Data Protection Authority (DSB)</a> and <a href="/regulator/cnil">National Commission on Informatics and Liberty (CNIL)</a> ruled <strong>Google Analytics</strong> transfers unlawful absent supplementary measures. China's <a href="/regulator/cac">CAC</a> has actively enforced <a href="/jurisdiction/china">PIPL</a> cross-border transfer requirements against multinational and domestic operators.</p>`,
           },
         ])}
@@ -232,7 +275,6 @@ export default function CrossBorderTransfersPage() {
           { label: "Subscribe to Intelligence", href: "/subscribe" },
         ]}
         intelligenceUpsellTopic="cross-border data transfers"
-        sectionRailEntries={CROSS_BORDER_SECTION_RAIL}
       />
     </>
   );
