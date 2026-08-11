@@ -177,4 +177,7 @@ export const ANCHOR_KEYS = {
   // cite verbatim guidance instead of being barred as unanchored.
   high_risk_criteria: "high_risk_criteria_edpb_wp248",
   risk_severity: "risk_severity_edpb_wp248",
+  // PILOT 2026-08-11 — Art. 6(1)(f) legal-basis builder anchors.
+  legitimate_interests: "lawful_basis_legitimate_interests",
+  lawfulness: "principle_lawfulness_fairness_transparency",
 } as const;

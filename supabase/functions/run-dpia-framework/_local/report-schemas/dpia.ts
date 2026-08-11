@@ -51,6 +51,8 @@ export const DPIA_REPORT_SCHEMA: ReportSchema = {
     "proportionality",
     "risk_register",
     "art36_consultation",
+    // PILOT 2026-08-11 — deterministic Art. 6(1) legal-basis findings.
+    "legal_basis",
     // DPIA UPGRADE ITEM 4 — shared authority exhibit (renders at the end of the
     // body, immediately before the universal disclaimer).
     "authority_exhibit",
