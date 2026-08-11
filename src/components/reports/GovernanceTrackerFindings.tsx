@@ -149,7 +149,7 @@ export default function GovernanceTrackerFindings({
                       {f.standard}
                     </blockquote>
                     <p className="text-sm mb-1"><strong>Your answer:</strong> {f.customer_answer}</p>
-                    <p className="text-sm mb-1"><strong>What the record shows:</strong> {f.record_fact}</p>
+                    <p className="text-sm mb-1"><strong>What the company has indicated:</strong> {f.record_fact}</p>
                     <p className="text-sm mb-1"><strong>Application:</strong> {f.application}</p>
                     <p className="text-xs text-muted-foreground">{f.evidence_reviewed}</p>
                     {f.information_needed && (
