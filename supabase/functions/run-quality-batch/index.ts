@@ -1405,26 +1405,28 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     const remaining = count - out.length;
     const n = Math.min(chunkSize, remaining);
     chunkIdx++;
-    // One retry with backoff on a timed-out / failed chunk call. A whole batch
-    // must not die because a single generator call clipped its ceiling.
+    // Up to THREE attempts with backoff on a failed chunk call. A whole batch
+    // must not die because a single generator call stalled.
     let raw: string | undefined;
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        raw = await claude(
+        raw = await claudeStreamed(
           sys,
           `Generate ${n} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nThis is chunk ${chunkIdx}; vary scenarios from any prior chunks. Return a JSON array of exactly ${n} objects.`,
           16000,
           "claude-sonnet-4-6",
-          AbortSignal.timeout(intakeTimeoutMs)
+          { idleTimeoutMs, totalTimeoutMs },
         );
+        if ((raw ?? "").trim().length === 0) throw new Error("empty stream response");
         break;
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        if (attempt === 2) throw e;
-        console.warn(`[generateIntakes] ${tool} chunk ${chunkIdx} attempt 1 failed (${msg}) — retrying in 5s`);
+        if (attempt === 3) throw e;
+        console.warn(`[generateIntakes] ${tool} chunk ${chunkIdx} attempt ${attempt} failed (${msg}) — retrying in 5s`);
         await new Promise((r) => setTimeout(r, 5000));
       }
     }
+
 
     const parsed = tryParse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) {
