@@ -107,6 +107,66 @@ export function firstSentences(text: string, n: number): string {
   return out.join(" ");
 }
 
+/**
+ * Quote-aware sentence truncation. Periods inside a double-quoted span
+ * (straight " or curly “ ”) are never treated as sentence boundaries.
+ * Spans are masked before boundary counting and unmasked after slicing.
+ */
+const QUOTE_MASK_CHAR = "\u0001";
+
+export function firstSentencesQuoteAware(text: string, n: number): string {
+  const src = String(text ?? "");
+  const spans: string[] = [];
+  let masked = "";
+  let open: string | null = null;
+  let buf = "";
+  for (const ch of src) {
+    if (open === null) {
+      if (ch === '"' || ch === "\u201C") {
+        open = ch === '"' ? '"' : "\u201D";
+        buf = ch;
+      } else {
+        masked += ch;
+      }
+    } else {
+      buf += ch;
+      if (ch === open) {
+        spans.push(buf);
+        masked += QUOTE_MASK_CHAR.repeat(buf.length);
+        buf = "";
+        open = null;
+      }
+    }
+  }
+  if (open !== null) {
+    // Unterminated quote — mask the remainder so its periods never split.
+    spans.push(buf);
+    masked += QUOTE_MASK_CHAR.repeat(buf.length);
+  }
+
+  const slicedMask = firstSentences(masked, n);
+  if (!spans.length) return slicedMask;
+
+  // Map the masked slice back onto the source by walking both in step.
+  const start = masked.indexOf(slicedMask);
+  if (start < 0) return firstSentences(src, n);
+  const end = start + slicedMask.length;
+  let out = "";
+  let i = 0;
+  let spanIdx = 0;
+  while (i < masked.length && i < end) {
+    if (masked[i] === QUOTE_MASK_CHAR) {
+      const span = spans[spanIdx++] ?? "";
+      if (i >= start) out += span;
+      i += span.length;
+      continue;
+    }
+    if (i >= start) out += masked[i];
+    i += 1;
+  }
+  return out.trim();
+}
+
 // ── Slot values ─────────────────────────────────────────────────────────────
 
 export function buildDpiaSlotValues(intake: Bag): SlotValues {
