@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "cv1r2-regen-poll-resume@2026-08-11T01:45:00Z";
+export const BUILD_STAMP = "intake-stream+resurrect-calibration@2026-08-11T02:00:00Z";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -248,6 +248,61 @@ async function claude(system: string, user: string, maxTokens = 4000, model = "c
   const d = await r.json();
   return d.content?.[0]?.text ?? "";
 }
+
+// SO-FT INTAKE-STREAM (2026-08-11): non-streaming Anthropic calls at
+// max_tokens=16000 routinely exceed any fixed signal ceiling — cppa-cyber died
+// at 180s and cppa-risk at 300s in the 00:47 batch, taking the whole child run
+// with them. Streaming keeps bytes flowing so the only deadline that matters is
+// an idle-gap deadline, not a total-duration guess. Used by generateIntakes.
+async function claudeStreamed(
+  system: string, user: string, maxTokens: number, model: string,
+  opts?: { idleTimeoutMs?: number; totalTimeoutMs?: number },
+): Promise<string> {
+  const idleMs = opts?.idleTimeoutMs ?? 120_000;
+  const totalMs = opts?.totalTimeoutMs ?? 900_000;
+  const controller = new AbortController();
+  const totalTimer = setTimeout(() => controller.abort(), totalMs);
+  let idleTimer = setTimeout(() => controller.abort(), idleMs);
+  const bump = () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => controller.abort(), idleMs); };
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model, max_tokens: maxTokens, system, stream: true, messages: [{ role: "user", content: user }] }),
+      signal: controller.signal,
+    });
+    if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    if (!r.body) throw new Error("Claude stream: empty body");
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    let text = "";
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bump();
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t.startsWith("data:")) continue;
+        const payload = t.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") text += evt.delta.text ?? "";
+          if (evt.type === "error") throw new Error(`Claude stream error: ${JSON.stringify(evt.error).slice(0, 200)}`);
+        } catch { /* partial / non-JSON keepalive */ }
+      }
+    }
+    return text;
+  } finally {
+    clearTimeout(idleTimer);
+    clearTimeout(totalTimer);
+  }
+}
+
 
 // GRADER-SYM-1 (item 4): GPT budget raised 3000 → 5000 to match Claude's
 // 5000, and a finish_reason==="length" truncation is now logged loudly so a
@@ -1321,20 +1376,18 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const description = contractForTool
     ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
     : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
-  // QB-P14 item 1 — dpia's schema is the largest; QB-P6 richness rules push
-  // intake generation past 180s. Give dpia the same 300s ceiling cppa-risk
-  // already gets; every other tool keeps the 180s default.
-  // SO-FT timeout sweep (2026-08-11) — cppa-risk and cppa-cyber both died on
-  // "Signal timed out" in the 00:47 batch. Same remedy already proven for dpia:
-  // chunk the verbose schema AND lift the ceiling. Non-verbose default raised
-  // 180s → 240s (cppa-cyber's prior success finished within 5s of the old cap).
-  const intakeTimeoutMs = (tool === "cppa-risk" || tool === "dpia" || tool === "cppa-cyber") ? 300_000 : 240_000;
+  // SO-FT INTAKE-STREAM (2026-08-11): the fixed-ceiling approach kept failing —
+  // cppa-cyber died at 180s, cppa-risk at 300s ("Signal timed out"), each taking
+  // its whole child run with it. Intake generation now STREAMS, so the guard is
+  // an idle-gap deadline (120s with no bytes) plus a generous total ceiling,
+  // instead of a total-duration guess. Verbose schemas also chunk smaller (2)
+  // so each call is shorter and a retry is cheap.
+  const idleTimeoutMs = 120_000;
+  const totalTimeoutMs = 600_000;
 
-  // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt, cppa-cyber) produce ~1.5-2k tokens per intake;
-  // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
-  // then concatenate.
   const VERBOSE = new Set(["lia", "dpia", "governance", "cppa-risk", "cppa-admt", "cppa-cyber"]);
-  const chunkSize = VERBOSE.has(tool) ? 3 : count;
+  const chunkSize = VERBOSE.has(tool) ? 2 : count;
+
 
   // QB-P6 — expanded intake-generator system prompt. Preserves the original
   // sentence verbatim and adds five richness rules (a)–(e).
@@ -1352,26 +1405,28 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     const remaining = count - out.length;
     const n = Math.min(chunkSize, remaining);
     chunkIdx++;
-    // One retry with backoff on a timed-out / failed chunk call. A whole batch
-    // must not die because a single generator call clipped its ceiling.
+    // Up to THREE attempts with backoff on a failed chunk call. A whole batch
+    // must not die because a single generator call stalled.
     let raw: string | undefined;
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        raw = await claude(
+        raw = await claudeStreamed(
           sys,
           `Generate ${n} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nThis is chunk ${chunkIdx}; vary scenarios from any prior chunks. Return a JSON array of exactly ${n} objects.`,
           16000,
           "claude-sonnet-4-6",
-          AbortSignal.timeout(intakeTimeoutMs)
+          { idleTimeoutMs, totalTimeoutMs },
         );
+        if ((raw ?? "").trim().length === 0) throw new Error("empty stream response");
         break;
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        if (attempt === 2) throw e;
-        console.warn(`[generateIntakes] ${tool} chunk ${chunkIdx} attempt 1 failed (${msg}) — retrying in 5s`);
+        if (attempt === 3) throw e;
+        console.warn(`[generateIntakes] ${tool} chunk ${chunkIdx} attempt ${attempt} failed (${msg}) — retrying in 5s`);
         await new Promise((r) => setTimeout(r, 5000));
       }
     }
+
 
     const parsed = tryParse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) {
@@ -1574,9 +1629,20 @@ type PollOutcome =
 // heartbeat can no longer strand a wave digest (wave 8 stall cost us the read).
 const RESUMABLE_GENERATORS = new Set(["dpia", "cppa-admt"]);
 const RESURRECT_STALE_MS = 180_000;
-const MAX_RESURRECTIONS = 2;
+// SO-FT RESURRECT-CALIBRATION (2026-08-11): cppa-admt's normal generation has
+// phases that legitimately run >3 minutes without touching updated_at, so the
+// flat 180s threshold fired on HEALTHY chains — the 00:47 batch resurrected the
+// same doc every ~3 minutes, spawning duplicate generator chains that pushed
+// doc 2 and doc 3 from ~300s to ~900s. Give admt a threshold above its longest
+// observed quiet phase; dpia keeps 180s.
+const RESURRECT_STALE_MS_BY_TOOL: Record<string, number> = { "cppa-admt": 480_000 };
+export const MAX_RESURRECTIONS = 2;
 const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker" };
 const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id" };
+
+export function resurrectStaleMs(tool?: string): number {
+  return (tool && RESURRECT_STALE_MS_BY_TOOL[tool]) || RESURRECT_STALE_MS;
+}
 
 export function shouldResurrect(opts: {
   tool?: string;
@@ -1589,8 +1655,9 @@ export function shouldResurrect(opts: {
   if (!opts.updatedAtIso) return false;
   const t = Date.parse(opts.updatedAtIso);
   if (!Number.isFinite(t)) return false;
-  return opts.nowMs - t > RESURRECT_STALE_MS;
+  return opts.nowMs - t > resurrectStaleMs(opts.tool);
 }
+
 
 export async function resurrectGenerator(
   tool: string, sourceRowId: string,
@@ -1620,11 +1687,21 @@ export async function resurrectGenerator(
 
 async function pollGenerationRow(
   admin: Admin, sourceTable: string, sourceRowId: string, deadlineMs: number,
-  opts?: { tool?: string; log?: (level: string, msg: string) => Promise<void> | void },
+  opts?: {
+    tool?: string;
+    log?: (level: string, msg: string) => Promise<void> | void;
+    // SO-FT RESURRECT-CALIBRATION: attempts must survive the poll-resume
+    // boundary. Each fresh isolate previously restarted the counter at 0, so
+    // MAX_RESURRECTIONS never bound a long doc — the log shows "attempt 1"
+    // over and over across isolates. Caller seeds and receives the count.
+    initialResurrectAttempts?: number;
+    onResurrect?: (attempts: number) => void;
+  },
 ): Promise<PollOutcome> {
   const deadline = Date.now() + deadlineMs;
   const intervalMs = sourceTable === "biometric_assessments" ? 2500 : 5000;
-  let resurrectAttempts = 0;
+  let resurrectAttempts = opts?.initialResurrectAttempts ?? 0;
+
   while (Date.now() < deadline) {
     await new Promise(r => setTimeout(r, intervalMs));
     try {
@@ -1685,11 +1762,13 @@ async function pollGenerationRow(
         const updatedAtIso = (meta as any)?.updated_at ?? null;
         if (shouldResurrect({ tool: opts.tool, updatedAtIso, nowMs: Date.now(), attempts: resurrectAttempts })) {
           resurrectAttempts++;
+          opts.onResurrect?.(resurrectAttempts);
           const staleS = updatedAtIso ? Math.round((Date.now() - Date.parse(updatedAtIso)) / 1000) : -1;
           const res = await resurrectGenerator(opts.tool, sourceRowId);
-          const msg = `resurrecting ${opts.tool} chain, attempt ${resurrectAttempts} — stale ${staleS}s (${res.ok ? "dispatched" : "failed"}: ${res.detail})`;
+          const msg = `resurrecting ${opts.tool} chain, attempt ${resurrectAttempts}/${MAX_RESURRECTIONS} — stale ${staleS}s > ${Math.round(resurrectStaleMs(opts.tool) / 1000)}s (${res.ok ? "dispatched" : "failed"}: ${res.detail})`;
           if (opts.log) await opts.log(res.ok ? "info" : "warn", msg);
           else console.warn(`[pollGenerationRow] ${msg}`);
+
         }
       }
     } catch (e) {
@@ -2232,6 +2311,7 @@ async function runBatchInner(runId: string): Promise<void> {
           doc_index: number; doc_row_id: string;
           source_table: string; source_row_id: string;
           gen_started_at: number; isolate_count: number;
+          resurrect_attempts?: number;
         } | undefined;
         const isTransient = !POLL_TOOLS.has(tool);
 
@@ -2239,6 +2319,7 @@ async function runBatchInner(runId: string): Promise<void> {
         let sourceRowId: string;
         let genStartedAt: number;
         let isolateCount: number;
+        let resurrectAttempts = 0;
 
         if (pendingGen && pendingGen.doc_index === i) {
           docRowId = pendingGen.doc_row_id;
@@ -2246,7 +2327,9 @@ async function runBatchInner(runId: string): Promise<void> {
           sourceRowId = pendingGen.source_row_id;
           genStartedAt = pendingGen.gen_started_at;
           isolateCount = (pendingGen.isolate_count ?? 1) + 1;
+          resurrectAttempts = pendingGen.resurrect_attempts ?? 0;
           await log("info", `${docLabel}: resuming poll of ${sourceTable}/${sourceRowId} (isolate ${isolateCount}, gen elapsed ${Math.round((Date.now() - genStartedAt) / 1000)}s)`);
+
         } else {
           await log("info", `${docLabel}: building…`);
           const { data: docRow } = await admin.from("quality_run_documents").insert({
@@ -2334,14 +2417,20 @@ async function runBatchInner(runId: string): Promise<void> {
 
         const remainingTotal = DOC_TOTAL_TIMEOUT_MS - (Date.now() - genStartedAt);
         const isolateBudget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, remainingTotal));
-        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget, { tool, log });
+        const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget, {
+          tool, log,
+          initialResurrectAttempts: resurrectAttempts,
+          onResurrect: (n) => { resurrectAttempts = n; },
+        });
 
         if (outcome.status === "deadline") {
           (state as any).pending_gen = {
             doc_index: i, doc_row_id: docRowId,
             source_table: sourceTable, source_row_id: sourceRowId,
             gen_started_at: genStartedAt, isolate_count: isolateCount,
+            resurrect_attempts: resurrectAttempts,
           };
+
           await log("info", `${docLabel}: poll deadline reached (isolate ${isolateCount}, ${Math.round(isolateBudget/1000)}s) — persisting pending_gen and self-reinvoking to CONTINUE polling (poll-resume boundary)`);
           await persistState({});
           await selfReinvoke(runId);
