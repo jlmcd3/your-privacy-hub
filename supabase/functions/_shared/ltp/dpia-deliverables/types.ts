@@ -175,6 +175,10 @@ export interface DpiaDeliverables {
   readonly art36_consultation: Art36Consultation;
   readonly legal_basis: readonly LegalBasisFinding[];
   readonly decision: DpiaDecision;
+  /** PROMPT 4 — deterministic open-points ledger. */
+  readonly gap_ledger: readonly DpiaGapLedgerEntry[];
+  /** PROMPT 4 — present only when the record states a different risk count. */
+  readonly risk_count_note?: DpiaRiskCountNote;
 }
 
 // ── 6. Deterministic sign-off decision (PROMPT 3, 2026-08-11) ────────
@@ -197,4 +201,28 @@ export interface DpiaDecision {
   readonly why: string;
   readonly citation: string;
   readonly rule_id: "dpia_decision_v1";
+}
+
+// ── 7. Deterministic gap ledger (PROMPT 4, 2026-08-11) ───────────────
+// Single writer for report.gap_ledger. Sourced EXCLUSIVELY from the typed
+// surfaces above; it never harvests bracket placeholders out of prose.
+// INVARIANT: an entry with an empty `dimensions` or an empty `field` is
+// never emitted — a content-free ask is a builder bug upstream, not
+// something to show a customer.
+export interface DpiaGapLedgerEntry {
+  /** Intake contract key that would resolve the gap. */
+  readonly field: string;
+  /** The specific facts to add. Never a legal conclusion. */
+  readonly dimensions: string;
+  /** Already-cited provision the fact completes, from the finding. */
+  readonly provision: string;
+  /** Which determination completes with it. */
+  readonly enables: string;
+}
+
+/** Reconciliation between the register's row count and the customer's own count. */
+export interface DpiaRiskCountNote {
+  readonly register_count: number;
+  readonly stated_count: number;
+  readonly note: string;
 }
