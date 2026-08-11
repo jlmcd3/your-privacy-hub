@@ -249,6 +249,61 @@ async function claude(system: string, user: string, maxTokens = 4000, model = "c
   return d.content?.[0]?.text ?? "";
 }
 
+// SO-FT INTAKE-STREAM (2026-08-11): non-streaming Anthropic calls at
+// max_tokens=16000 routinely exceed any fixed signal ceiling — cppa-cyber died
+// at 180s and cppa-risk at 300s in the 00:47 batch, taking the whole child run
+// with them. Streaming keeps bytes flowing so the only deadline that matters is
+// an idle-gap deadline, not a total-duration guess. Used by generateIntakes.
+async function claudeStreamed(
+  system: string, user: string, maxTokens: number, model: string,
+  opts?: { idleTimeoutMs?: number; totalTimeoutMs?: number },
+): Promise<string> {
+  const idleMs = opts?.idleTimeoutMs ?? 120_000;
+  const totalMs = opts?.totalTimeoutMs ?? 900_000;
+  const controller = new AbortController();
+  const totalTimer = setTimeout(() => controller.abort(), totalMs);
+  let idleTimer = setTimeout(() => controller.abort(), idleMs);
+  const bump = () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => controller.abort(), idleMs); };
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model, max_tokens: maxTokens, system, stream: true, messages: [{ role: "user", content: user }] }),
+      signal: controller.signal,
+    });
+    if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    if (!r.body) throw new Error("Claude stream: empty body");
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    let text = "";
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bump();
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t.startsWith("data:")) continue;
+        const payload = t.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") text += evt.delta.text ?? "";
+          if (evt.type === "error") throw new Error(`Claude stream error: ${JSON.stringify(evt.error).slice(0, 200)}`);
+        } catch { /* partial / non-JSON keepalive */ }
+      }
+    }
+    return text;
+  } finally {
+    clearTimeout(idleTimer);
+    clearTimeout(totalTimer);
+  }
+}
+
+
 // GRADER-SYM-1 (item 4): GPT budget raised 3000 → 5000 to match Claude's
 // 5000, and a finish_reason==="length" truncation is now logged loudly so a
 // cut-off skeleton-mode response is visible instead of being read as
