@@ -1,3 +1,4 @@
+import { ProductHero } from "@/components/ProductHero";
 import { PageHero } from "@/components/PageHero";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -94,10 +95,12 @@ export default function USNoticeLanding() {
           </div>
         )}
       </div>
-      <PageHero
-        chip={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> US Privacy Notice Builder · Included with any subscription</>}
+      <ProductHero
+        geography="us"
+        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> US Privacy Notice Builder · Included with any subscription</>}
         title="Generate US privacy notices for all 20 states, in one session."
-        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        valueProposition="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        showIntakeCta={false}
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="min-h-[48px]">
@@ -114,7 +117,7 @@ export default function USNoticeLanding() {
             <Link to="/us-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/us-notice-builder", user_type: userType })}>View my notice projects</Link>
           </Button>
         </div>
-      </PageHero>
+      </ProductHero>
       <main className="flex-1">
 
         {/* TRUST BAR */}

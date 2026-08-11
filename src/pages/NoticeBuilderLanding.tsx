@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import { ProductHero } from "@/components/ProductHero";
 import { PageHero } from "@/components/PageHero";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
@@ -72,10 +73,12 @@ export default function NoticeBuilderLanding() {
         )}
       </div>
 
-      <PageHero
-        chip={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Privacy Notice Builder · US & EU/Global · Included with any subscription</>}
+      <ProductHero
+        geography="global"
+        showIntakeCta={false}
+        eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Privacy Notice Builder · US & EU/Global · Included with any subscription</>}
         title="Generate your privacy notices: US states and EU/Global frameworks, in one place."
-        description="Two guided builders, one workspace. Cover all 20 US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        valueProposition="Two guided builders, one workspace. Cover all 20 US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg">
@@ -96,7 +99,7 @@ export default function NoticeBuilderLanding() {
           <SampleReportLink toolSlug="us_notice" label="View a sample US notice" tone="onDark" variant="link" />
           <SampleReportLink toolSlug="eu_notice" label="View a sample EU/Global notice" tone="onDark" variant="link" />
         </div>
-      </PageHero>
+      </ProductHero>
 
       <main className="flex-1">
         <section className="border-b border-border bg-muted/30">
