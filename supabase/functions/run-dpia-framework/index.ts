@@ -845,8 +845,9 @@ const U1_SKELETON = `{
       "reference_materials": "guidelines / standards used (include EDPB DPIA template and WP248 rev.01)",
       "reasons_to_conduct": ["the controller-selected reasons, mapped to Art. 35(3) sub-paragraphs and the WP248 criteria they correspond to"],
       "scope": "what this DPIA covers and what it excludes, and why",
-      "completion_date": "[TO COMPLETE — DD/MM/YYYY]",
-      "formal_validation_date": "[TO COMPLETE — DD/MM/YYYY, approval as complete by a responsible official]",
+      "completion_date": "[TO COMPLETE — the date this DPIA was completed]",
+      "formal_validation_date": "[TO COMPLETE — the sign-off date and the name/title of the accountable senior responsible official per the RACI]",
+
       "publication_intent": "from intake (No / published / shared externally)"
     },
     "completion_guidance": "What the organisation must confirm or complete in Section 0"
