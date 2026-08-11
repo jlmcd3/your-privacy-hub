@@ -2079,6 +2079,22 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[ITEM399-R11] cyber prose lint failed (non-fatal):", String(lintErr));
     }
 
+    // PROPOSAL 2026-08-11 (CPPA-Cyber) — deterministic detection of invented
+    // numeric maturity scores in prose (SO-FT2 FIX 6 was prompt-only).
+    // Detect-only, fail-open; telemetry lands on _meta.internal.
+    try {
+      const { detectFabricatedNumericScores } = await import("../_shared/ltp/fact-pointers.ts");
+      const hits = detectFabricatedNumericScores(report as Record<string, unknown>);
+      if (hits.length > 0) {
+        const m: any = (report as any)._meta ?? ((report as any)._meta = {});
+        m.internal = m.internal ?? {};
+        m.internal.cyber_numeric_score_fabrication = { count: hits.length, hits: hits.slice(0, 10) };
+        console.log(JSON.stringify({ evt: "_cyber_numeric_score_fabrication", fn: "run-cppa-cybersecurity", count: hits.length, hits: hits.slice(0, 10) }));
+      }
+    } catch (e) {
+      console.warn("[cyber] numeric-score fabrication check failed (non-fatal):", (e as Error)?.message);
+    }
+
     // ITEM 428 (PIECE A) — STRUCTURAL CONFORMANCE: the assembled document
     // against its approved plan. Detect-only, fail-open, ZERO mutation.
     try {

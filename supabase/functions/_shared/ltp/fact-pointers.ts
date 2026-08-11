@@ -184,3 +184,49 @@ export function verifyGovernanceBasisPointers(
   walk(report);
   return t;
 }
+
+/**
+ * CPPA-CYBER — fabricated numeric maturity scores.
+ *
+ * PROPOSAL 2026-08-11: the intake's per-control `maturity` field carries
+ * QUALITATIVE labels only; there is no 0–100 scale in the record. The prompt
+ * bans invented numbers (SO-FT2 FIX 6) but nothing verified the output. This
+ * scans the customer-facing prose fields for numeric score claims and reports
+ * them; the structured `controls[].score` band value is not prose and is not
+ * examined.
+ */
+export interface NumericScoreFinding { path: string; quote: string }
+
+const PROSE_FIELDS = ["finding", "evidence", "differentiator", "remediation"];
+const NUMERIC_SCORE_RE =
+  /\b(?:scores?|scored|rated|rating|maturity)\b[^.\n]{0,40}?\b(\d{1,3})\s*(?:\/\s*100|out of 100|%)?\b/gi;
+
+export function detectFabricatedNumericScores(
+  report: Record<string, unknown> | null | undefined,
+): NumericScoreFinding[] {
+  const out: NumericScoreFinding[] = [];
+  const scan = (path: string, text: unknown) => {
+    const s = String(text ?? "");
+    if (!s) return;
+    const re = new RegExp(NUMERIC_SCORE_RE.source, NUMERIC_SCORE_RE.flags);
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(s)) !== null) {
+      const n = Number(m[1]);
+      if (!Number.isFinite(n) || n < 0 || n > 100) continue;
+      // A count sentence ("3 controls rated Implemented") is not a score claim.
+      if (/\bcontrols?\b|\bcomponents?\b/i.test(m[0])) continue;
+      out.push({ path, quote: m[0].trim().slice(0, 120) });
+      if (out.length >= 25) return;
+    }
+  };
+  if (!report || typeof report !== "object") return out;
+  scan("executive_summary", (report as any).executive_summary);
+  const controls = (report as any).controls;
+  if (Array.isArray(controls)) {
+    controls.forEach((c: any, i: number) => {
+      if (!c || typeof c !== "object") return;
+      for (const f of PROSE_FIELDS) scan(`controls[${i}].${f}`, c[f]);
+    });
+  }
+  return out;
+}
