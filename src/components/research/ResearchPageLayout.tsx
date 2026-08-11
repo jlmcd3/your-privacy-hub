@@ -42,7 +42,15 @@ export interface ResearchSectionConfig {
   practicalImplication?: string;
   /** Optional callout: recent/pending change. Same accent as complianceTrigger. */
   currentDevelopment?: string;
+  /**
+   * Optional "Read the text" links — primary sources for this section, rendered
+   * as a compact mono line beneath the section callouts. Replaces the sticky
+   * reference rail on pages whose sections span more authorities than one card
+   * can carry.
+   */
+  readTheText?: { label: string; href: string }[];
 }
+
 
 /** Callout kinds rendered above section content, in definition order. */
 const SECTION_CALLOUTS: {
