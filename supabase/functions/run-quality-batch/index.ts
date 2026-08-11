@@ -1324,13 +1324,18 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   // QB-P14 item 1 — dpia's schema is the largest; QB-P6 richness rules push
   // intake generation past 180s. Give dpia the same 300s ceiling cppa-risk
   // already gets; every other tool keeps the 180s default.
-  const intakeTimeoutMs = (tool === "cppa-risk" || tool === "dpia") ? 300_000 : 180_000;
+  // SO-FT timeout sweep (2026-08-11) — cppa-risk and cppa-cyber both died on
+  // "Signal timed out" in the 00:47 batch. Same remedy already proven for dpia:
+  // chunk the verbose schema AND lift the ceiling. Non-verbose default raised
+  // 180s → 240s (cppa-cyber's prior success finished within 5s of the old cap).
+  const intakeTimeoutMs = (tool === "cppa-risk" || tool === "dpia" || tool === "cppa-cyber") ? 300_000 : 240_000;
 
-  // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt) produce ~1.5-2k tokens per intake;
+  // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt, cppa-cyber) produce ~1.5-2k tokens per intake;
   // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
   // then concatenate.
-  const VERBOSE = new Set(["lia", "dpia", "governance", "cppa-risk", "cppa-admt"]);
+  const VERBOSE = new Set(["lia", "dpia", "governance", "cppa-risk", "cppa-admt", "cppa-cyber"]);
   const chunkSize = VERBOSE.has(tool) ? 3 : count;
+
   // QB-P6 — expanded intake-generator system prompt. Preserves the original
   // sentence verbatim and adds five richness rules (a)–(e).
   const sys = `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.
