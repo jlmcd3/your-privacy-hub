@@ -589,10 +589,6 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
 
   const det = determination(report);
   if (det === "conditionally_approved") {
-    const conds = asArray({ x: (report.decision as Bag)?.conditions }.x as unknown).length
-      ? []
-      : [];
-    void conds;
     const list = Array.isArray((report.decision as Bag)?.conditions)
       ? ((report.decision as Bag).conditions as unknown[]).map((c) => s(c)).filter(Boolean)
       : [];
