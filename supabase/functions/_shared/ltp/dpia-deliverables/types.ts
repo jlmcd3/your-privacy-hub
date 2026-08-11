@@ -179,6 +179,8 @@ export interface DpiaDeliverables {
   readonly gap_ledger: readonly DpiaGapLedgerEntry[];
   /** PROMPT 4 — present only when the record states a different risk count. */
   readonly risk_count_note?: DpiaRiskCountNote;
+  /** PROMPT 6 — deterministic descriptive inventory (section 0/1 content). */
+  readonly processing_inventory: DpiaProcessingInventory;
 }
 
 // ── 6. Deterministic sign-off decision (PROMPT 3, 2026-08-11) ────────
@@ -225,4 +227,69 @@ export interface DpiaRiskCountNote {
   readonly register_count: number;
   readonly stated_count: number;
   readonly note: string;
+}
+
+// ── 8. Deterministic processing inventory (PROMPT 6, 2026-08-11) ─────
+// Single writer for report.processing_inventory. Every row is composed
+// from the intake's own words (verbatim-or-absent); nothing is inferred,
+// enriched, or enumerated beyond the record. `source_field` is always an
+// intake-contract key so each row is traceable to the answer it came from.
+export interface DpiaInventoryController {
+  readonly name: string;
+  readonly responsible_unit: string;
+  readonly main_establishment_or_representative: string;
+  readonly dpo: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+export interface DpiaInventoryProcessor {
+  readonly name: string;
+  readonly obligations_and_tasks: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+export interface DpiaInventoryDataItem {
+  readonly item: string;
+  readonly special_category: boolean;
+  readonly art9_condition_label?: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+export interface DpiaInventoryPurpose {
+  readonly purpose_text: string;
+  readonly operation_id: string;
+  readonly source_field: string;
+}
+
+export interface DpiaInventorySecondaryUse {
+  readonly use_text: string;
+  readonly negation: boolean;
+  readonly source_field: string;
+}
+
+export interface DpiaInventoryPlanning {
+  readonly launch_date?: string;
+  readonly end_date?: string;
+  readonly version?: string;
+}
+
+export interface DpiaInventoryScale {
+  readonly volume_frequency_verbatim: string;
+  readonly source_field: string;
+}
+
+export interface DpiaProcessingInventory {
+  readonly controllers: readonly DpiaInventoryController[];
+  readonly processors: readonly DpiaInventoryProcessor[];
+  readonly data_items: readonly DpiaInventoryDataItem[];
+  readonly purposes: readonly DpiaInventoryPurpose[];
+  readonly secondary_uses: readonly DpiaInventorySecondaryUse[];
+  readonly planning: DpiaInventoryPlanning;
+  readonly scale: DpiaInventoryScale;
 }
