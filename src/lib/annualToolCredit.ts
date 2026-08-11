@@ -14,7 +14,7 @@
  * The client lib is read-only — never mutate the table from the browser.
  */
 import { supabase } from '@/integrations/supabase/client';
-import { ANNUAL_CREDIT_ELIGIBLE_KEYS } from '@/config/pricing';
+import { ANNUAL_CREDIT_ELIGIBLE_KEYS, creditPoolForTool } from '@/config/pricing';
 import { getStripeEnvironment } from '@/lib/env';
 
 
@@ -35,6 +35,10 @@ export function isAnnualCreditEligible(toolKey: string): boolean {
   return (ANNUAL_CREDIT_ELIGIBLE_KEYS as readonly string[]).includes(toolKey);
 }
 
+/** Credit pool a tool draws on. RoPA has its own flat 1/yr pool (v12). */
+export type CreditPool = 'smart_tool' | 'ropa';
+export { creditPoolForTool };
+
 /**
  * Read the user's available annual credit (optionally scoped to a client).
  * Returns the most recently granted unredeemed credit, if any.
@@ -42,12 +46,14 @@ export function isAnnualCreditEligible(toolKey: string): boolean {
 export async function getAvailableAnnualCredit(
   userId:    string,
   clientId?: string | null,
+  pool: CreditPool = 'smart_tool',
 ): Promise<AnnualCreditStatus> {
   let q = supabase
     .from('annual_tool_credits')
     .select('id, cycle_start')
     .eq('user_id', userId)
     .eq('environment', getStripeEnvironment())
+    .eq('pool', pool)
     .is('redeemed_at', null)
     .order('cycle_start', { ascending: false })
     .limit(1);
@@ -74,12 +80,14 @@ export async function getAvailableAnnualCredit(
 export async function countAvailableAnnualCredits(
   userId:    string,
   clientId?: string | null,
+  pool: CreditPool = 'smart_tool',
 ): Promise<number> {
   let q = supabase
     .from('annual_tool_credits')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('environment', getStripeEnvironment())
+    .eq('pool', pool)
     .is('redeemed_at', null);
 
 
@@ -92,4 +100,17 @@ export async function countAvailableAnnualCredits(
   const { count, error } = await q;
   if (error) return 0;
   return count ?? 0;
+}
+
+/**
+ * RoPA annual credit (v12, 2026-08-11). Separate pool: exactly ONE per
+ * subscription year for BOTH Intelligence annual and Professional annual —
+ * deliberately NOT the 1-vs-3 Smart Tool grant. Covers the first RoPA update
+ * of each subscription year; later updates cost $29.
+ */
+export async function getAvailableRopaCredit(
+  userId:    string,
+  clientId?: string | null,
+): Promise<AnnualCreditStatus> {
+  return await getAvailableAnnualCredit(userId, clientId, 'ropa');
 }
