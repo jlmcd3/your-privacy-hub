@@ -1244,6 +1244,380 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
   };
 }
 
+// ---------------------------------------------------------------------
+// PROMPT 7 (2026-08-11) — deterministic Section-2 coverage tables.
+//
+// Single writer for report.section2_coverage. Zero model calls; every
+// citation resolves through the anchor registry or `cit()`; every row is
+// either the record's own words or an honest abstention. Nothing renders
+// this yet.
+//
+// TIERING LAW (the reason this builder is not uniform):
+//   TIER 1 rows run real decision trees, because structured intake exists
+//     (special-category enum, the transfer_flows repeater, the safeguards
+//     enum + the processor list).
+//   TIER 2 rows run coverage logic over measures the record NAMES in
+//     narrative fields — present/absent, quoted, never re-argued.
+//   TIER 3 rows are abstentions: the intake is too thin for per-principle
+//     or per-right tables, so the builder emits ONE coverage row and says
+//     what a real table would need. It never fabricates structure.
+// ---------------------------------------------------------------------
+
+/**
+ * INTRA-EEA PROCESSING RULE — encoded from prompt text to code.
+ * PROVENANCE: run-dpia-framework/index.ts extraRules, "INTRA-EEA PROCESSING
+ * RULE" (the prompt rule is the spec; this comment reproduces it):
+ *
+ *   "Personal data flows between EU/EEA member states are NOT Chapter V
+ *    'transfers' and do NOT require adequacy decisions, SCCs, or BCRs. Use
+ *    the term 'intra-EEA processing' (NEVER 'intra-EEA transfers'). For an
+ *    EEA-established processor processing data solely within the EEA, only a
+ *    GDPR Article 28 DPA is required. An EU-established processor that uses
+ *    non-EEA infrastructure (e.g. an Irish-incorporated company using US data
+ *    centres) still triggers Chapter V for the non-EEA processing leg,
+ *    regardless of the processor's place of establishment. UK <-> EU flows:
+ *    an EU adequacy decision for the UK has been in force since 28 June 2021,
+ *    and the UK treats the EU/EEA as adequate under UK adequacy regulations —
+ *    both directions therefore flow freely without SCCs or IDTA, subject to
+ *    confirming that the adequacy decision remains in force."
+ *
+ * The adequacy list itself is NOT retyped here: determinations come from the
+ * static, dated, registry-backed table `transferMechanism()` in
+ * _shared/dpia-jurisdiction-registry.ts (each row carries `lastVerified`).
+ */
+const TRANSFER_RULE_ID = "dpia_transfers_intra_eea_v1";
+
+/** Regime-strict anchor: never quotes an EU row under a UK citation. */
+function anchorStrict(
+  key: keyof typeof ANCHOR_KEYS,
+  regime: DpiaRegime,
+  fallbackSubsection: string,
+): { citation: string; verbatim: string } {
+  const base = ANCHOR_KEYS[key];
+  const r = regime === "UK" ? row(`uk_${base}`) : row(base);
+  if (r) return { citation: r.subsection, verbatim: r.verbatim_quote };
+  return { citation: cit(regime, fallbackSubsection), verbatim: "" };
+}
+
+const ASK_ART9_CONDITION_FOR = (item: string) =>
+  `which Art. 9(2) condition is relied on for the ${item.toLowerCase()} recorded here`;
+const ASK_CHAPTER_V = (dest: string) =>
+  `which Chapter V instrument is executed for the flow to ${dest}, the date it was signed, and the transfer risk assessment supporting it`;
+const ASK_DPA = "whether a written processing contract is in place with each named processor, and the date it was signed";
+const ASK_RETENTION = "the retention period applied to this data, and the event the period runs from";
+const ASK_DPBD = "the technical and organisational measures built into the design of this processing, and when each was implemented";
+const ASK_SAFEGUARDS_LIST = "which technical and organisational measures are applied to this processing";
+const ASK_DATA_QUALITY = "the measures that keep this data accurate and up to date, and how often they run";
+const ASK_ART5_TABLE =
+  "a principle-by-principle account (lawfulness, fairness and transparency; purpose limitation; minimisation; accuracy; storage limitation; integrity and confidentiality) naming the measure that carries each one";
+const ASK_RIGHTS_TABLE =
+  "a right-by-right account (access, rectification, erasure, restriction, portability, objection) naming the route and the response time for each";
+
+const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendation[] = [
+  {
+    field: "data_quality_measures",
+    today: "single free-text narrative",
+    would_enable: "a per-measure data-quality table (measure, owner, frequency) with a real per-row status, instead of one quoted paragraph",
+  },
+  {
+    field: "article_5_principle_measures",
+    today: "not collected — Art. 5 content is inferred from narrative fields",
+    would_enable: "a per-principle repeater (principle, measure, evidence) so the Art. 5 coverage table can carry a determination per principle",
+  },
+  {
+    field: "data_subject_rights_mechanisms",
+    today: "single free-text narrative covering all rights at once",
+    would_enable: "a per-right repeater (right, route, response time, identity check) so the rights table can carry a determination per right",
+  },
+  {
+    field: "data_minimisation_justification",
+    today: "single free-text narrative covering the whole data set",
+    would_enable: "a per-data-item necessity justification, so minimisation is decided per field rather than per activity",
+  },
+];
+
+export function buildSection2Coverage(
+  intake: unknown,
+  deliverables: { readonly processing_inventory: DpiaProcessingInventory },
+): DpiaSection2Coverage {
+  const regime = readDpiaRegime(intake);
+  const inv = deliverables.processing_inventory;
+
+  // ── TIER 1a — special-category conditions ───────────────────────────
+  const a9 = anchorStrict("special_categories", regime, "Art. 9(2)");
+  const np = spliceVerbatim(str(get(intake, "necessity_proportionality")));
+  const special_category_conditions: DpiaSpecialCategoryConditionRow[] = inv.data_items
+    .filter((d) => d.special_category)
+    .map((d) => {
+      const label = str(d.art9_condition_label);
+      if (!label) {
+        return {
+          item: d.item,
+          condition_label: "",
+          justification: `The record identifies ${d.item.toLowerCase()} in scope but names no Art. 9(2) condition for it.`,
+          citation: a9.citation,
+          authority_verbatim: a9.verbatim,
+          status: "record_insufficient" as const,
+          information_needed: ASK_ART9_CONDITION_FOR(d.item),
+          source_field: "article_9_condition",
+        };
+      }
+      const justification = np
+        ? `The record relies on ${label} for ${d.item.toLowerCase()}. On the company's own account of necessity and proportionality, ${np}`
+        : `The record relies on ${label} for ${d.item.toLowerCase()}.`;
+      return {
+        item: d.item,
+        condition_label: label,
+        justification,
+        citation: a9.citation,
+        authority_verbatim: a9.verbatim,
+        status: "analysed" as const,
+        source_field: "article_9_condition",
+      };
+    });
+
+  // ── TIER 1b — transfers (emptyIsAnswer: zero rows is a determination) ─
+  const chapterVCite = cit(regime, "Chapter V (Arts. 44–49)");
+  const rawFlows = get(intake, "transfer_flows");
+  const flows = Array.isArray(rawFlows) ? rawFlows : [];
+  const transfers: DpiaTransferRow[] = [];
+  if (flows.length === 0) {
+    transfers.push({
+      origin_regime: regime,
+      destination: "",
+      importer: "",
+      determination: "no_transfer_on_the_record",
+      mechanism_label: "",
+      mechanism_citation: "",
+      transfer_risk_assessment_required: false,
+      finding:
+        "No cross-border transfer is on the record for this processing, so no Chapter V mechanism is engaged by this assessment.",
+      citation: chapterVCite,
+      status: "analysed",
+      source_field: "transfer_flows",
+      registry_verified_on: "",
+    });
+  } else {
+    for (const f of flows as Record<string, unknown>[]) {
+      const dest = str(f.destination ?? f.destinationCountry).toUpperCase();
+      const origin: "EU" | "UK" = f.originRegime === "UK" ? "UK" : "EU";
+      const flow: TransferFlow = {
+        originRegime: origin,
+        destinationCountry: dest,
+        importerEntity: str(f.importer ?? f.importerEntity) || undefined,
+        importerDpfCertified: !!(f.dpfCertified ?? f.importerDpfCertified),
+        importerUkExtensionCertified: !!(f.ukExtensionCertified ?? f.importerUkExtensionCertified),
+      };
+      const mech = transferMechanism(flow);
+      const intra = mech.id === "EEA-internal";
+      const determination = intra
+        ? "intra_eea_processing" as const
+        : mech.tiaRequired
+        ? "chapter_v_mechanism_required" as const
+        : "adequacy" as const;
+      const importer = str(f.importer ?? f.importerEntity);
+      const who = importer ? `${importer} in ${dest || "the destination stated"}` : (dest || "the destination stated");
+      const finding = intra
+        // INTRA-EEA PROCESSING RULE, encoded: never "transfer", never a Chapter V ask.
+        ? `The flow to ${who} stays within the EEA. This is intra-EEA processing, not a Chapter V transfer, and the Art. 28 processing contract is the instrument that governs it.`
+        : determination === "adequacy"
+        ? `The flow to ${who} is covered by ${mech.mechanism}, so the data travels on that basis without a separate Chapter V instrument.`
+        : `The flow to ${who} leaves the ${origin === "UK" ? "United Kingdom" : "EEA"} for a destination with no adequacy cover on the record, so ${mech.mechanism} is the mechanism this assessment expects.`;
+      transfers.push({
+        origin_regime: origin,
+        destination: dest,
+        importer,
+        determination,
+        mechanism_label: mech.mechanism,
+        mechanism_citation: mech.citation,
+        transfer_risk_assessment_required: !!mech.tiaRequired,
+        finding,
+        citation: chapterVCite,
+        status: determination === "chapter_v_mechanism_required" ? "record_insufficient" : "analysed",
+        ...(determination === "chapter_v_mechanism_required"
+          ? { information_needed: ASK_CHAPTER_V(dest || "the destination stated") }
+          : {}),
+        source_field: "transfer_flows",
+        registry_verified_on: str(mech.lastVerified),
+      });
+    }
+  }
+
+  // ── TIER 1c — Art. 28 processor contract ────────────────────────────
+  const a28 = anchorStrict("processor_contract", regime, "Art. 28(3)");
+  const safeguards = arr(get(intake, "existing_safeguards"));
+  const processorNames = arr(get(intake, "third_party_processors"));
+  const dpaRecorded = safeguards.includes("DPA signed with processor");
+  const processor_contract: DpiaProcessorContractRow = processorNames.length === 0
+    ? {
+      processors: [],
+      dpa_recorded: dpaRecorded,
+      finding:
+        "The record names no third-party processor for this processing, so no Art. 28 processing contract is engaged by this assessment.",
+      citation: a28.citation,
+      authority_verbatim: a28.verbatim,
+      status: "analysed",
+      source_field: "third_party_processors",
+    }
+    : dpaRecorded
+    ? {
+      processors: processorNames,
+      dpa_recorded: true,
+      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded for the processor chain described.`,
+      citation: a28.citation,
+      authority_verbatim: a28.verbatim,
+      status: "analysed",
+      source_field: "existing_safeguards",
+    }
+    : {
+      processors: processorNames,
+      dpa_recorded: false,
+      finding: `The record names ${processorNames.join(", ")} as processors but does not record a signed processing contract among the safeguards selected.`,
+      citation: a28.citation,
+      authority_verbatim: a28.verbatim,
+      status: "record_insufficient",
+      information_needed: ASK_DPA,
+      source_field: "existing_safeguards",
+    };
+
+  // ── TIER 2a — minimisation & retention, per data item ───────────────
+  const aMin = anchorStrict("minimisation", regime, "Art. 5(1)(c)");
+  const minJust = str(get(intake, "data_minimisation_justification"));
+  const retention = str(get(intake, "retention_period"));
+  const data_minimisation_retention: DpiaMinimisationRetentionRow[] = inv.data_items.map((d) => ({
+    item: d.item,
+    need_justification: minJust,
+    retention_period: retention,
+    citation: aMin.citation,
+    authority_verbatim: aMin.verbatim,
+    status: (retention ? "analysed" : "record_insufficient") as "analysed" | "record_insufficient",
+    ...(retention ? {} : { information_needed: ASK_RETENTION }),
+    source_field: "data_minimisation_justification",
+  }));
+
+  // ── TIER 2b — data protection by design ─────────────────────────────
+  const aDpbd = anchorStrict("dpbd", regime, "Art. 25(1)");
+  const dpbd = str(get(intake, "dp_by_design_measures"));
+  const measures_dpbd: DpiaMeasureRow[] = [
+    dpbd
+      ? {
+        measure: "Data protection by design and by default",
+        description: dpbd,
+        citation: aDpbd.citation,
+        authority_verbatim: aDpbd.verbatim,
+        status: "analysed" as const,
+        source_field: "dp_by_design_measures",
+      }
+      : {
+        measure: "Data protection by design and by default",
+        description: "",
+        citation: aDpbd.citation,
+        authority_verbatim: aDpbd.verbatim,
+        status: "record_insufficient" as const,
+        information_needed: ASK_DPBD,
+        source_field: "dp_by_design_measures",
+      },
+  ];
+
+  // ── TIER 2c — security safeguards, one row per recorded selection ───
+  const aSec = anchorStrict("security", regime, "Art. 32(1)");
+  const measures_security: DpiaMeasureRow[] = [];
+  if (safeguards.length === 0) {
+    measures_security.push({
+      measure: "Not recorded",
+      description: "",
+      citation: aSec.citation,
+      authority_verbatim: aSec.verbatim,
+      status: "record_insufficient",
+      information_needed: ASK_SAFEGUARDS_LIST,
+      source_field: "existing_safeguards",
+    });
+  } else {
+    for (const sel of safeguards) {
+      const spec = DPIA_SAFEGUARD_SPECS.find((sp) => sp.measure === sel);
+      measures_security.push({
+        measure: sel,
+        description: spec
+          ? spec.description
+          : "The record selects this measure; the record does not describe it further.",
+        citation: aSec.citation,
+        authority_verbatim: aSec.verbatim,
+        status: "analysed",
+        source_field: "existing_safeguards",
+      });
+    }
+  }
+
+  // ── TIER 3a — data quality (verbatim or abstention) ─────────────────
+  const dq = str(get(intake, "data_quality_measures"));
+  const data_quality: DpiaCoverageRow[] = [
+    dq
+      ? {
+        heading: "Accuracy of the data held",
+        record_words: dq,
+        finding: "The record's account of how this data is kept accurate is set out in the company's own words.",
+        citation: cit(regime, "Art. 5(1)(d)"),
+        authority_verbatim: "",
+        status: "analysed" as const,
+        source_field: "data_quality_measures",
+      }
+      : {
+        heading: "Accuracy of the data held",
+        record_words: "",
+        finding: "The record does not describe any measure that keeps this data accurate and up to date, so this assessment makes no finding on accuracy.",
+        citation: cit(regime, "Art. 5(1)(d)"),
+        authority_verbatim: "",
+        status: "record_insufficient" as const,
+        information_needed: ASK_DATA_QUALITY,
+        source_field: "data_quality_measures",
+      },
+  ];
+
+  // ── TIER 3b — Art. 5 principles (single coverage row, never a table) ─
+  const aPurpose = anchorStrict("purpose_limitation", regime, "Art. 5(1)");
+  const measures_article5: DpiaCoverageRow[] = [{
+    heading: "Measures carrying the Art. 5 principles",
+    record_words: minJust ? spliceVerbatim(minJust) : "",
+    finding: minJust
+      ? "On the record supplied, the measures bearing on the Art. 5 principles are described at the level of the activity as a whole, in the company's own words, and not principle by principle."
+      : "The record describes no measure against the Art. 5 principles, so this assessment records coverage at the level of the activity as a whole and makes no principle-by-principle finding.",
+    citation: aPurpose.citation,
+    authority_verbatim: aPurpose.verbatim,
+    status: "record_insufficient",
+    information_needed: ASK_ART5_TABLE,
+    source_field: "data_minimisation_justification",
+  }];
+
+  // ── TIER 3c — data-subject rights (single coverage row) ─────────────
+  const rights = str(get(intake, "data_subject_rights_mechanisms"));
+  const measures_rights: DpiaCoverageRow[] = [{
+    heading: "Routes by which data subjects exercise their rights",
+    record_words: rights ? spliceVerbatim(rights) : "",
+    finding: rights
+      ? "The routes recorded for rights requests are set out in the company's own words, covering the rights together rather than one by one."
+      : "The record describes no route by which data subjects exercise their rights, so this assessment makes no finding on any individual right.",
+    citation: cit(regime, "Arts. 12–22"),
+    authority_verbatim: "",
+    status: "record_insufficient",
+    information_needed: ASK_RIGHTS_TABLE,
+    source_field: "data_subject_rights_mechanisms",
+  }];
+
+  return {
+    special_category_conditions,
+    transfers,
+    processor_contract,
+    data_minimisation_retention,
+    measures_dpbd,
+    measures_security,
+    data_quality,
+    measures_article5,
+    measures_rights,
+    intake_structure_recommendations: INTAKE_STRUCTURE_RECOMMENDATIONS,
+    rule_id: "dpia_section2_coverage_v1",
+  };
+}
+
 export function buildGapLedgerDetailed(
   _intake: unknown,
   deliverables: {
