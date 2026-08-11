@@ -56,6 +56,8 @@ export const DPIA_REPORT_SCHEMA: ReportSchema = {
     // DPIA UPGRADE ITEM 4 — shared authority exhibit (renders at the end of the
     // body, immediately before the universal disclaimer).
     "authority_exhibit",
+    // PROMPT 3 (2026-08-11) — deterministic sign-off decision surface.
+    "decision",
     // ITEM 372 METHOD 2a — executive determination block (renders first).
     "determination",
 
