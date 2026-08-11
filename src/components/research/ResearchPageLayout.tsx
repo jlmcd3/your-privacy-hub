@@ -258,6 +258,27 @@ export function ResearchPageLayout({
                       );
                     })}
 
+                    {sec.readTheText && sec.readTheText.length > 0 && (
+                      <p className="mb-5 font-mono text-[13px] leading-relaxed text-brand-navy/80 m-0">
+                        <span className="font-bold tracking-wider uppercase text-brand-mist mr-2">Read the text</span>
+                        {sec.readTheText.map((src, i) => (
+                          <span key={src.href}>
+                            {i > 0 && <span className="text-brand-mist mx-1">·</span>}
+                            <a
+                              href={src.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-brand-teal-text no-underline hover:underline"
+                            >
+                              {src.label} ↗
+                            </a>
+                          </span>
+                        ))}
+                      </p>
+                    )}
+
+
+
                     {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
                     {sec.content && (
                       <div
