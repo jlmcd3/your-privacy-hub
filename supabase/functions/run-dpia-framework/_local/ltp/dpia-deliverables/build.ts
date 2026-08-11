@@ -772,6 +772,18 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
   const combined = [narrative, minimisation].filter(Boolean).join(" ");
   const categories = arr(get(intake, "data_categories"));
   const safeguards = arr(get(intake, "existing_safeguards")).filter((x) => x !== "None");
+  const rightsMechanisms = str(get(intake, "data_subject_rights_mechanisms"));
+  const description = str(get(intake, "description"));
+  const natureScopeContext = str(get(intake, "nature_scope_context"));
+  const reasons = arr(get(intake, "reasons_to_conduct")).join("; ") ||
+    str(get(intake, "reasons_to_conduct"));
+  const codes = str(get(intake, "codes_of_conduct"));
+
+  /** Per-basis anchor; empty verbatim where the registry has no row. */
+  const basisAnchor = (sub: string) => {
+    const key = (ART6_ANCHOR_KEYS as Record<string, keyof typeof ANCHOR_KEYS>)[sub];
+    return key ? anchor(key, regime) : { citation: "", verbatim: "" };
+  };
 
   return buildOperations(intake).map((op) => {
     const purpose = op.purpose_text;
@@ -807,29 +819,47 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
           "Every Art. 6(1) basis is measured against the purpose the processing pursues, so the basis cannot be assessed until the purpose is on the record.",
         verdict: "undetermined_on_the_record" as const,
         citation: cit(regime, art6.sub),
-        authority_verbatim: art6.sub === "Art. 6(1)(f)" ? li.verbatim : "",
+        authority_verbatim: basisAnchor(art6.sub).verbatim,
         status: "record_insufficient" as const,
         information_needed:
           `The specific purpose pursued by "${op.operation_label}", stated as an outcome, so the proposed ${art6.label} can be tested against it.`,
       };
     }
 
-    // ── Non-6(1)(f) bases: state the basis against the recorded purpose ─
+    // ── Non-6(1)(f) bases: per-basis record test against the purpose ───
     if (art6.sub !== "Art. 6(1)(f)") {
+      const a = basisAnchor(art6.sub);
+      const check = checkNonLiBasis(art6.sub, {
+        subjects,
+        rightsMechanisms,
+        description,
+        natureScopeContext,
+        narrative: combined,
+        reasons,
+        codes,
+974,
+        categories,
+      });
+
+      const opening = `The record relies on ${art6.label} for the recorded purpose ("${purpose}").` +
+        (a.verbatim ? ` The basis reads: ${a.verbatim}` : "");
+
       return {
         operation_id: op.operation_id,
         purpose,
         article_6_basis: art6.label,
-        justification:
-          `The record relies on ${art6.label} for the recorded purpose ("${purpose}"). ` +
-          `That reliance is assessed against the lawfulness principle: ${lawfulness.verbatim} ` +
-          "This assessment records the basis the controller has selected and the purpose it is selected for; whether the conditions of that basis are met in operation is a matter for the controller's lawfulness record, which this assessment does not substitute.",
-        verdict: "basis_supported_on_the_record" as const,
+        justification: [opening, check.finding, BASIS_CLOSER].filter(Boolean).join(" "),
+        verdict: check.met
+          ? ("basis_supported_on_the_record" as const)
+          : ("undetermined_on_the_record" as const),
         citation: cit(regime, art6.sub),
-        authority_verbatim: lawfulness.verbatim,
-        status: "analysed" as const,
+        // DEFECT 1: never Art. 5(1)(a) text under an Art. 6(1) citation.
+        authority_verbatim: a.verbatim,
+        status: check.met ? ("analysed" as const) : ("record_insufficient" as const),
+        ...(check.information_needed ? { information_needed: check.information_needed } : {}),
       };
     }
+
 
     // ── Art. 6(1)(f): the three-part test, run as a decision tree ──────
     const alternatives = alternativesFor(intake, op);
