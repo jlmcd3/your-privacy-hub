@@ -118,7 +118,7 @@ export default function RopaLanding() {
       </div>
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Included with any subscription</>}
+        eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Free on annual plans</>}
         title="Build an audit-ready Record of Processing Activities (RoPA) in minutes"
         legalTrigger={{ tier: "required", text: "GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data." }}
         valueProposition="Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Included with every Intelligence and Professional subscription, monthly or annual. Not sold as a standalone product."

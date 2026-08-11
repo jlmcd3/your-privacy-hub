@@ -30,7 +30,7 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: priceLine(LIA_PRICE, LIA_SUB) },
   { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: priceLine(PRICING.tools.dpia.display, DPIA_SUB) },
   { href: "/governance-assessment", title: "GDPR Governance Assessment", sub: priceLine(PRICING.tools.governance.display, GOV_SUB) },
-  { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free with subscription" },
+  { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free on annual plans" },
 ];
 
 const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
@@ -74,7 +74,7 @@ export default function SearchFirstHero() {
                     to="/ropa-builder"
                     className="inline-flex items-center justify-center border border-white/40 text-white font-semibold px-6 py-3 rounded-lg no-underline hover:bg-white/10"
                   >
-                    Build your RoPA free →
+                    Build your RoPA →
                   </Link>
                 </div>
 

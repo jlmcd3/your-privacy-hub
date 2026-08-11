@@ -31,7 +31,7 @@ export default function FreeVsPaidStrip() {
       <p className="text-[11px] text-muted-foreground truncate">
         <BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Free to browse · Free weekly digest included{" "}
         <span className="text-border mx-1.5">·</span>
-        <span className="text-amber-600 font-semibold">{`⭐ Intelligence ${INTELLIGENCE_PRICING.monthlyShort()} — full archive, watchlists, enforcement tracking, plus RoPA + Notice Builders included · Annual Professional adds 3 free Smart Tool runs/yr (Intelligence annual: 1)`}</span>
+        <span className="text-amber-600 font-semibold">{`⭐ Intelligence ${INTELLIGENCE_PRICING.monthlyShort()} — full archive, watchlists, enforcement tracking, plus Notice Builders included and RoPA free on annual plans (first build + 1 update/yr, then $29) · Annual Professional adds 3 free Smart Tool runs/yr (Intelligence annual: 1)`}</span>
         <span className="text-border mx-1.5">·</span>
         <Link to="/subscribe" className="text-primary font-semibold no-underline hover:underline">
           See what`s included →
