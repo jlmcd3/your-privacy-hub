@@ -2394,19 +2394,54 @@ async function runBatchInner(runId: string): Promise<void> {
       // enforced by the `regen_round` marker on report_data (persisted, so a
       // resumed isolate cannot re-trigger). Never targets a score; the
       // trigger is deterministic-check failure only.
+      //
+      // REGEN POLL-RESUME BOUNDARY (2026-08-11): the regeneration poll used a
+      // single fixed 300s window inside one isolate. Slow generators (cppa-admt
+      // routinely needs 600-900s across 2-4 isolates on the primary path) could
+      // never land inside it, so every eligible admt doc logged "regeneration
+      // did not produce a doc". The regen now uses the same pending-state +
+      // self-reinvoke machinery as the primary generation poll, bounded by the
+      // same 20min doc-total budget, and logs the actual failure reason.
       try {
         const _rdA1 = reportData as any;
-        const detChecksAttempt1: any[] = Array.isArray(_rdA1?._meta?.internal?.deterministic_checks)
+        const detChecksAttempt1Live: any[] = Array.isArray(_rdA1?._meta?.internal?.deterministic_checks)
           ? _rdA1._meta.internal.deterministic_checks
           : (Array.isArray(_rdA1?.deterministic_checks) ? _rdA1.deterministic_checks : []);
 
+        const pendingRegen = (state as any).pending_regen as {
+          doc_index: number; doc_row_id: string; nonce: string;
+          source_table: string; source_row_id: string;
+          started_at: number; isolate_count: number; prior_checks: any[];
+        } | undefined;
+        const resumingRegen = !!pendingRegen && pendingRegen.doc_index === i;
+
         const alreadyRegenerated = Number((reportData as any)?.regen_round ?? 0) > 0;
-        if (
+
+        let nonce = "";
+        let detChecksAttempt1 = detChecksAttempt1Live;
+        let regenTable: string | null = null;
+        let regenRowId: string | null = null;
+        let regenStartedAt = Date.now();
+        let regenIsolate = 1;
+        let reportData2: any = null;
+        let failReason: string | null = null;
+        let proceed = false;
+
+        if (resumingRegen) {
+          nonce = pendingRegen!.nonce;
+          detChecksAttempt1 = Array.isArray(pendingRegen!.prior_checks) ? pendingRegen!.prior_checks : detChecksAttempt1Live;
+          regenTable = pendingRegen!.source_table;
+          regenRowId = pendingRegen!.source_row_id;
+          regenStartedAt = pendingRegen!.started_at;
+          regenIsolate = (pendingRegen!.isolate_count ?? 1) + 1;
+          proceed = true;
+          await log("info", `${docLabel}: CV1-R2 resuming regen poll of ${regenTable}/${regenRowId} (isolate ${regenIsolate}, elapsed ${Math.round((Date.now() - regenStartedAt) / 1000)}s)`);
+        } else if (
           !alreadyRegenerated
           && evalSourceRowId
           && isCounselVoiceRegenEligible(detChecksAttempt1)
         ) {
-          const nonce = crypto.randomUUID();
+          nonce = crypto.randomUUID();
           await log("info", `${docLabel}: CV1-R2 counsel-voice regen eligible — dispatching single regeneration round (nonce=${nonce})`);
           // Claim the nonce in revision_dispatch_ledger BEFORE any dispatch,
           // matching the existing regenerate-assessment discipline. If the
@@ -2428,59 +2463,103 @@ async function runBatchInner(runId: string): Promise<void> {
             // the in-runtime dispatch surface; regenerate-assessment is
             // scoped to revision-with-answered-items and cannot be used
             // for a plain re-draft.
-            let reportData2: any = null;
             try {
               if (POLL_TOOLS.has(tool)) {
-                const d2 = await dispatchGeneration(admin, tool, intake, userId, enginePath);
-                if (d2) {
-                  const outcome2 = await pollGenerationRow(admin, d2.sourceTable, d2.sourceRowId, POLL_DEADLINE_MS, { tool, log });
-                  if (outcome2.status === "complete") reportData2 = outcome2.reportData;
+                const d2: any = await dispatchGeneration(admin, tool, intake, userId, enginePath);
+                if (d2 && "error" in d2) {
+                  failReason = `dispatch failed — ${String(d2.error).slice(0, 200)}`;
+                } else if (d2?.sourceRowId) {
+                  d2.invocation?.catch?.(() => { /* surfaced via poll outcome */ });
+                  regenTable = d2.sourceTable;
+                  regenRowId = d2.sourceRowId;
+                  proceed = true;
+                } else {
+                  failReason = "dispatch returned no generator row";
                 }
               } else {
                 const b2 = await buildDocument(admin, tool, intake, userId);
                 if (b2) reportData2 = b2.reportData;
+                else failReason = "inline build returned nothing";
               }
             } catch (e) {
-              await log("warn", `${docLabel}: CV1-R2 regen dispatch threw — ${(e as Error).message}`);
-            }
-            if (reportData2) {
-              // Stamp regen_round=1 on the fresh reportData and persist onto
-              // the SAME quality_run_documents row. Attempt-1 findings are
-              // preserved separately below with a regen_round=0 marker.
-              reportData2.regen_round = 1;
-              reportData2.regen_nonce = nonce;
-              reportData2.regen_prior_deterministic_checks = detChecksAttempt1;
-              await admin.from("quality_run_documents").update({
-                report_data: reportData2,
-              }).eq("id", docRowId);
-              // Persist attempt-1 deterministic checks as a distinct finding
-              // batch so reviewers can tell the two attempts apart. Downstream
-              // merge (below) will add attempt-2 checks in the normal path.
-              const priorRows = detChecksAttempt1.map((f: any) => ({
-                run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
-                check_id: f.check_id, check_type: "deterministic",
-                dimension: f.dimension ?? "formatting",
-                severity: f.severity ?? "medium",
-                passed: !!f.passed,
-                evidence: f.evidence
-                  ? `[regen_round=0] ${String(f.evidence).slice(0, 380)}`
-                  : "[regen_round=0]",
-                scenario_set: scenarioSet,
-              }));
-              if (priorRows.length) {
-                try { await admin.from("quality_findings").insert(priorRows); }
-                catch (e) { console.warn("[cv1-r2] prior-attempt findings insert non-fatal:", (e as Error).message); }
-              }
-              await log("success", `${docLabel}: CV1-R2 regeneration complete — evaluating attempt 2`);
-              reportData = reportData2;
-            } else {
-              await log("warn", `${docLabel}: CV1-R2 regeneration did not produce a doc — recording attempt-1 result and moving on`);
+              failReason = `dispatch threw — ${(e as Error).message}`;
             }
           }
+        }
+
+        if (proceed && regenTable && regenRowId) {
+          const elapsed = Date.now() - regenStartedAt;
+          if (elapsed > DOC_TOTAL_TIMEOUT_MS) {
+            failReason = `generator did not reach terminal state within budget (${Math.round(elapsed / 1000)}s)`;
+            delete (state as any).pending_regen;
+          } else {
+            const budget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, DOC_TOTAL_TIMEOUT_MS - elapsed));
+            const outcome2 = await pollGenerationRow(admin, regenTable, regenRowId, budget, { tool, log });
+            if (outcome2.status === "complete") {
+              reportData2 = outcome2.reportData;
+              delete (state as any).pending_regen;
+            } else if (outcome2.status === "error") {
+              failReason = outcome2.error;
+              delete (state as any).pending_regen;
+            } else {
+              // Deadline: hand off to a fresh isolate that CONTINUES polling
+              // the regen row. Re-arm the eval-resume markers so the next
+              // isolate lands back in this doc's evaluation phase.
+              (state as any).pending_regen = {
+                doc_index: i, doc_row_id: docRowId, nonce,
+                source_table: regenTable, source_row_id: regenRowId,
+                started_at: regenStartedAt, isolate_count: regenIsolate,
+                prior_checks: detChecksAttempt1,
+              };
+              (state as any).pending_eval_doc_id = docRowId;
+              (state as any).pending_eval_doc_index = i;
+              await log("info", `${docLabel}: CV1-R2 regen poll deadline (isolate ${regenIsolate}, ${Math.round(budget / 1000)}s) — self-reinvoking to CONTINUE polling the regen row`);
+              await persistState({});
+              await selfReinvoke(runId);
+              clearInterval(heartbeat);
+              return;
+            }
+          }
+        }
+
+        if (reportData2) {
+          // Stamp regen_round=1 on the fresh reportData and persist onto
+          // the SAME quality_run_documents row. Attempt-1 findings are
+          // preserved separately below with a regen_round=0 marker.
+          reportData2.regen_round = 1;
+          reportData2.regen_nonce = nonce;
+          reportData2.regen_prior_deterministic_checks = detChecksAttempt1;
+          await admin.from("quality_run_documents").update({
+            report_data: reportData2,
+          }).eq("id", docRowId);
+          // Persist attempt-1 deterministic checks as a distinct finding
+          // batch so reviewers can tell the two attempts apart. Downstream
+          // merge (below) will add attempt-2 checks in the normal path.
+          const priorRows = detChecksAttempt1.map((f: any) => ({
+            run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
+            check_id: f.check_id, check_type: "deterministic",
+            dimension: f.dimension ?? "formatting",
+            severity: f.severity ?? "medium",
+            passed: !!f.passed,
+            evidence: f.evidence
+              ? `[regen_round=0] ${String(f.evidence).slice(0, 380)}`
+              : "[regen_round=0]",
+            scenario_set: scenarioSet,
+          }));
+          if (priorRows.length) {
+            try { await admin.from("quality_findings").insert(priorRows); }
+            catch (e) { console.warn("[cv1-r2] prior-attempt findings insert non-fatal:", (e as Error).message); }
+          }
+          await log("success", `${docLabel}: CV1-R2 regeneration complete — evaluating attempt 2`);
+          reportData = reportData2;
+        } else if (failReason) {
+          delete (state as any).pending_regen;
+          await log("warn", `${docLabel}: CV1-R2 regeneration did not produce a doc (${failReason}) — recording attempt-1 result and moving on`);
         }
       } catch (e) {
         console.warn("[cv1-r2] auto-regen block non-fatal:", (e as Error).message);
       }
+
 
       // ---------- Evaluation phase ----------
       await log("info", `${docLabel}: evaluating Claude + GPT-4o + cross-review in parallel…`);
