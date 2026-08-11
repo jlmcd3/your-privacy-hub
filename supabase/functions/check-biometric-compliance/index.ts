@@ -2157,6 +2157,14 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     // trips on long Sonnet generations.
     let fullText = "";
     let stopReason: string | null = null;
+    // PROPOSAL 2026-08-11 CROSS-CUTTING FIX — MAIN-GENERATION COST VISIBILITY.
+    // Usage is read off the SSE stream and metered into `api_usage` exactly the
+    // way the critic/verifier refinement calls already are.
+    const genStartedMs = Date.now();
+    let genInputTokens: number | null = null;
+    let genOutputTokens: number | null = null;
+    let genCacheRead: number | null = null;
+    let genCacheCreate: number | null = null;
     {
       const reader = aiRes.body.getReader();
       const decoder = new TextDecoder();
@@ -2178,10 +2186,31 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
             } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
               stopReason = evt.delta.stop_reason;
             }
+            if (evt.type === "message_start" && evt.message?.usage) {
+              const u = evt.message.usage;
+              genInputTokens = u.input_tokens ?? genInputTokens;
+              genOutputTokens = u.output_tokens ?? genOutputTokens;
+              genCacheRead = u.cache_read_input_tokens ?? genCacheRead;
+              genCacheCreate = u.cache_creation_input_tokens ?? genCacheCreate;
+            }
+            if (evt.type === "message_delta" && evt.usage?.output_tokens != null) {
+              genOutputTokens = evt.usage.output_tokens;
+            }
           } catch { /* ignore malformed line */ }
         }
       }
     }
+    recordApiUsage({
+      function_name: "check-biometric-compliance:main_generation",
+      product: "biometric",
+      model,
+      input_tokens: genInputTokens,
+      output_tokens: genOutputTokens,
+      cache_read_tokens: genCacheRead,
+      cache_creation_tokens: genCacheCreate,
+      duration_ms: Date.now() - genStartedMs,
+      source_row_id: currentSourceRowId() ?? null,
+    });
     const aiData: any = { stop_reason: stopReason };
     console.log(`[check-biometric-compliance] gen done stop=${aiData.stop_reason ?? null} chars=${fullText.length}`);
     let assessment_text = fullText
