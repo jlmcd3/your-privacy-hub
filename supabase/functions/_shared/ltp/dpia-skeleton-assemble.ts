@@ -144,27 +144,19 @@ export function firstSentencesQuoteAware(text: string, n: number): string {
     masked += QUOTE_MASK_CHAR.repeat(buf.length);
   }
 
-  const slicedMask = firstSentences(masked, n);
-  if (!spans.length) return slicedMask;
-
-  // Map the masked slice back onto the source by walking both in step.
-  const start = masked.indexOf(slicedMask);
-  if (start < 0) return firstSentences(src, n);
-  const end = start + slicedMask.length;
-  let out = "";
-  let i = 0;
-  let spanIdx = 0;
-  while (i < masked.length && i < end) {
-    if (masked[i] === QUOTE_MASK_CHAR) {
-      const span = spans[spanIdx++] ?? "";
-      if (i >= start) out += span;
-      i += span.length;
-      continue;
-    }
-    if (i >= start) out += masked[i];
-    i += 1;
+  // Masking is length-preserving, so masked indices map 1:1 onto the source.
+  let idx = 0;
+  while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
+  const start = idx;
+  let taken = 0;
+  while (idx < masked.length && taken < n) {
+    const one = firstSentence(masked.slice(idx));
+    if (!one) break;
+    idx += one.length;
+    taken += 1;
+    while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
   }
-  return out.trim();
+  return src.slice(start, idx).trim();
 }
 
 // ── Slot values ─────────────────────────────────────────────────────────────
