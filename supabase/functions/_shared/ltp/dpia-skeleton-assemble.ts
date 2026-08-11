@@ -6,7 +6,9 @@
 // [DETERMINATION LEAD] and [GENERATED] block is composed from typed surfaces
 // the DPIA pipeline already persists (`determination`, `art36_consultation`,
 // `necessity_findings`, `proportionality`, `risk_register`,
-// `section_6_conclusion`, `authority_exhibit`), and every {slot} is filled from
+// `authority_exhibit`, plus the legacy `section_6_conclusion.decision` string
+// which is read ONLY as the pre-decision fallback in `decisionText`), and every
+// {slot} is filled from
 // the live intake per `dpia.slotmap.ts`. No model call, no invented prose, no
 // mutation of the typed surfaces.
 //
@@ -463,6 +465,10 @@ function composeNecessityLead(report: Bag): string {
 }
 
 
+/** PROMPT 5: defect notice replacing the former raw-u3 fallback. */
+export const DPIA_NP_VOID_NOTICE =
+  "The necessity and proportionality analysis for this assessment could not be composed from the record's structured surfaces; this document should be regenerated, and this sentence is a defect notice rather than an analysis.";
+
 export function composeNecessityBody(report: Bag): string {
   const parts: string[] = [];
   for (const f of asArray(report.necessity_findings).slice(0, 4)) {
@@ -474,9 +480,11 @@ export function composeNecessityBody(report: Bag): string {
     if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
   }
   if (parts.length === 0) {
-    const s3 = report.section_3_necessity_proportionality;
-    const text = typeof s3 === "string" ? s3 : s((s3 as Bag)?.analysis ?? (s3 as Bag)?.summary);
-    if (text) parts.push(stop(noStop(firstSentences(text, 3))));
+    // PROMPT 5 (2026-08-11): no AI-text fallback. buildOperations always yields
+    // at least one operation, so empty typed arrays mean the ITEM-310 attach
+    // failed outright. Emit a defect notice, never unreviewed model prose.
+    console.warn(JSON.stringify({ telemetry: "dpia_skeleton_np_void", necessity_findings: 0, proportionality: 0 }));
+    return DPIA_NP_VOID_NOTICE;
   }
   return repairRegister(parts.join(" "));
 }
