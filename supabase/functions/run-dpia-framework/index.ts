@@ -1,5 +1,6 @@
 // qb9 dpia-r1b2.3 sectioned-generation (U1..U5 phase-fan-out; Amendments 1+2)
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { PARALLEL_ITEM_VARIETY_RULE } from "../_shared/parallel-item-variety.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // run-meter deploy-check v1
@@ -1198,7 +1199,7 @@ function buildSystemBlocksForUnit(shared: SharedContextData): SystemBlock[] {
   const blocks = buildSystemContent({
     toolModule: DPIA_TOOL_MODULE,
     currentDate: today,
-    injected: [DPIA_POST_CUTOFF_AUTHORITIES, gdprAuthorityContext, shared.dpiaCorpusLawBlock, resolvedBlock, testStatesBlock].filter(Boolean).join("\n\n"),
+    injected: [DPIA_POST_CUTOFF_AUTHORITIES, gdprAuthorityContext, shared.dpiaCorpusLawBlock, resolvedBlock, testStatesBlock, PARALLEL_ITEM_VARIETY_RULE /* SO-FT FIX 6 (2026-08-11) */].filter(Boolean).join("\n\n"),
   });
   // Prompt-caching breakpoint at the end of the shared prefix (courier §5).
   // buildSystemContent already caches blocks 1+2; force cache on block 3

@@ -104,13 +104,18 @@ export function buildJurisdictionProse(intake: Bag): string {
   const home = s(intake.organization_country);
   if (home) codes.push(home);
   for (const c of strList(intake.markets_served)) codes.push(c);
+  // SO-FT FIX 5 (2026-08-11): dedupe on the RESOLVED LABEL, not the raw code.
+  // "UK" and "GB" are different codes that both resolve to "United Kingdom",
+  // so code-level dedup rendered "United Kingdom and United Kingdom".
   const seen = new Set<string>();
   const names: string[] = [];
   for (const c of codes) {
     const key = c.toUpperCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    names.push(REGISTRATION_JURISDICTION_LABELS[key] ?? c);
+    const label = REGISTRATION_JURISDICTION_LABELS[key] ?? c;
+    const labelKey = label.trim().toLowerCase();
+    if (!labelKey || seen.has(labelKey)) continue;
+    seen.add(labelKey);
+    names.push(label);
   }
   return asProse(names);
 }

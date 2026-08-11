@@ -671,6 +671,17 @@ export const GOVERNANCE_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
  *
  * DO NOT paraphrase these into verbatim_quote strings — narrow-but-solid rule.
  */
+/**
+ * SO-FT FIX 2 (2026-08-11) — authorities that exist in this registry ONLY to
+ * explain that they are NOT in force / NOT applicable (e.g. the omitted UK
+ * GDPR Art. 44). They must never be harvested into a Table of Authorities:
+ * doing so contradicts the body text, which names them only to disclaim them.
+ */
+export const GOVERNANCE_NON_APPLICABLE_AUTHORITIES: readonly string[] = [
+  "UK GDPR Art. 44",
+  "UK GDPR Article 44",
+];
+
 export const GOVERNANCE_UNANCHORED_PROPOSITIONS: readonly string[] = [
   // GDPR surface not in approved P1 set
   "art_4_definitions",                        // Art. 4 not in P1 (definitions-only per rule anyway)

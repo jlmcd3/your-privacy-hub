@@ -1645,9 +1645,21 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       const { fetchGovernanceCorpus, governanceCorpusProvisionsForExhibit } = await import("./_local/ltp/governance-corpus.ts"
       );
       const cited = new Set<string>();
+      // SO-FT FIX 2 (2026-08-11): a sentence that names an authority ONLY to
+      // disclaim it ("There is no UK GDPR Article 44 in force", "must not be
+      // cited to Art. 44", "does not apply") was harvested like a real
+      // citation, so the Table of Authorities contradicted the body. Skip a
+      // match whose immediate context carries negation phrasing.
+      const NEGATION =
+        /\b(there is no|there are no|is not in force|are not in force|must not be cited|may not be cited|does not apply|do not apply|is omitted|are omitted|no longer|not applicable|inapplicable)\b/i;
+      const NEG_WINDOW = 140;
       const walkCites = (v: unknown): void => {
         if (typeof v === "string") {
           for (const m of v.matchAll(/(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+(?:\([a-z0-9]+\))*/gi)) {
+            const at = m.index ?? 0;
+            const before = v.slice(Math.max(0, at - NEG_WINDOW), at);
+            const after = v.slice(at + m[0].length, at + m[0].length + NEG_WINDOW).split(/(?<=[.!?])\s/)[0] ?? "";
+            if (NEGATION.test(before) || NEGATION.test(after)) continue;
             cited.add(m[0].replace(/\s+/g, " ").trim());
           }
           return;
