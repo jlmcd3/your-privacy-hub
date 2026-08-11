@@ -28,7 +28,7 @@ import { checkH2InternalVocab } from "./grader/cppa-hf1-checks.ts";
 import { extractIntakeRoster } from "./grader/intake-roster.ts";
 import { renderMessage } from "./customer-messages.ts";
 
-export const EMIT_GATE_VERSION = "eg-w1-2026-07-25";
+export const EMIT_GATE_VERSION = "eg-w2-2026-08-11";
 
 export type EmitGateTool =
   | "cppa_admt"

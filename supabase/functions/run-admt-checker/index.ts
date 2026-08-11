@@ -1402,7 +1402,8 @@ ADDITIONAL DISCIPLINES:
               if (r.findings.length > 0) {
                 flagged += 1;
                 for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
-                node[i] = r.text;
+                // CITATION-PAIR FIX (2026-08-11) — findings are recorded, never
+              // written back: the bracketed warning must not reach a customer.
               }
             } else if (v && typeof v === "object") walkAndVerify(v);
           }
@@ -1417,7 +1418,7 @@ ADDITIONAL DISCIPLINES:
             if (r.findings.length > 0) {
               flagged += 1;
               for (const f of r.findings) allFindings.push({ pair: f.pair, reason: f.reason });
-              (node as any)[k] = r.text;
+              // CITATION-PAIR FIX (2026-08-11) — record only, no write-back.
             }
           } else if (v && typeof v === "object") walkAndVerify(v);
         }
