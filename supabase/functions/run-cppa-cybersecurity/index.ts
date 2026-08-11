@@ -1541,6 +1541,46 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {}, "cppa_cybersecurity");
     report = guarded.report;
 
+    // SO-FT2 FIX 6 — FABRICATED NUMERIC MATURITY SCORES. The intake's
+    // per-control `maturity` values are qualitative labels; there is no
+    // numeric scale in the record. Where every recorded maturity value is
+    // qualitative, any prose parenthetical asserting numeric scores
+    // ("(scores 88, 87 and 89 respectively)") is invented and is stripped,
+    // leaving the category comparison intact.
+    try {
+      const intakeForScores = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const maturities = (Array.isArray((intakeForScores as any).controls) ? (intakeForScores as any).controls : [])
+        .map((c: any) => c?.maturity)
+        .filter((v: unknown) => v !== undefined && v !== null);
+      const anyNumericMaturity = maturities.some((v: unknown) =>
+        typeof v === "number" || (typeof v === "string" && /^\s*\d+(\.\d+)?\s*$/.test(v))
+      );
+      if (!anyNumericMaturity) {
+        const SCORE_PAREN = /\s*\((?:with\s+)?scores?\s+\d{1,3}(?:\s*,\s*\d{1,3})*(?:\s*,?\s*and\s+\d{1,3})?(?:\s+respectively)?\)/gi;
+        let stripped = 0;
+        const scrub = (node: unknown): unknown => {
+          if (typeof node === "string") {
+            const out = node.replace(SCORE_PAREN, () => { stripped++; return ""; });
+            return out;
+          }
+          if (Array.isArray(node)) return node.map(scrub);
+          if (node && typeof node === "object") {
+            const o = node as Record<string, unknown>;
+            for (const k of Object.keys(o)) o[k] = scrub(o[k]);
+            return o;
+          }
+          return node;
+        };
+        scrub(report);
+        if (stripped > 0) {
+          console.error(`[CPPA Cyber] SO-FT2 FIX 6 — stripped ${stripped} fabricated numeric-score parenthetical(s)`);
+        }
+      }
+    } catch (e) {
+      console.error("[CPPA Cyber] numeric-maturity guard failed (non-fatal):", (e as Error)?.message ?? e);
+    }
+
+
     // CPPA-HF6R Task C — deterministic count-vs-list reconciliation for
     // exec-summary enumerations. Scans executive_summary for phrases like
     // "Nine of the 18 components: A; B; C" or "Five additional …: X; Y"
