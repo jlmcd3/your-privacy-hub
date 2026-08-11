@@ -664,11 +664,28 @@ Deno.serve(serveWithGenerationModel(async (req) => {
      } catch (_) { /* swallow — best-effort diagnostic write */ }
    }, PIPELINE_BUDGET_MS);
    try {
-    const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
-    if (!procWrite.ok) {
-      await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${procWrite.message}`), { metadata: { assessment_id, phase: "pre_generation" } });
-      return;
-    }
+     const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-admt-checker", phase: "pre_generation" });
+     if (!procWrite.ok) {
+       await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${procWrite.message}`), { metadata: { assessment_id, phase: "pre_generation" } });
+       return;
+     }
+     // LIVENESS HEARTBEAT — the batch harness (run-quality-batch) decides a
+     // chain is stalled from `updated_at` staleness. ADMT's long model stages
+     // (gap-analysis alone runs 250s+) leave the row untouched for >480s, so a
+     // perfectly healthy run looked stalled and got resurrected into a
+     // duplicate concurrent generation. Touch the row every 60s while the
+     // pipeline is alive; a real stall still goes stale.
+     const heartbeat = setInterval(() => {
+       try {
+         (supabase as any)
+           .from("cppa_assessments")
+           .update({ updated_at: new Date().toISOString() })
+           .eq("id", assessment_id)
+           .eq("status", "processing")
+           .then(() => {}, () => {});
+       } catch (_) { /* best-effort */ }
+     }, 60_000);
+
     const intake = assessment.intake_data as any;
 
 
