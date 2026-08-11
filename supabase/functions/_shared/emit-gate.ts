@@ -56,7 +56,15 @@ export interface EmitGateReport {
   degraded_count: number;
   prose_node_count: number;
   findings: EmitGateFinding[];
+  /** Legacy field. No longer set: degradation is unconditional as of
+   *  eg-w2-2026-08-11 (safety-valve inversion fix). Retained so older
+   *  persisted reports still type-check. */
   enforcement_skipped_reason?: string;
+  /** True when >SAFETY_VALVE_RATIO of prose leaves were flagged. Purely
+   *  informational — every flagged leaf is still degraded. */
+  high_degradation_ratio?: boolean;
+  /** Flagged-leaf fraction of all prose leaves (0..1). */
+  degradation_ratio?: number;
   crashed?: boolean;
   /** ITEM 352 — internal bookkeeping for degraded LTP-shape prose nodes. */
   degraded_paths?: string[];
