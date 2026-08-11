@@ -78,6 +78,7 @@ const Index = () => (
     </div>
 
     <HomepagePricingStrip />
+
     </main>
     <Footer />
   </div>
