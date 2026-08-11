@@ -2,6 +2,7 @@
 // run-meter deploy-check v1
 // generate-ir-playbook: produces a 7-section breach response playbook.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { PARALLEL_ITEM_VARIETY_RULE } from "../_shared/parallel-item-variety.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
@@ -1045,7 +1046,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         const irSystem: SystemBlock[] = buildSystemContent({
           toolModule: IR_TOOL_MODULE,
           currentDate: today,
-          injected: registryInjections + "\n\n" + ADVISORY_VOICE_RULES,
+          injected: registryInjections + "\n\n" + ADVISORY_VOICE_RULES + "\n\n" + PARALLEL_ITEM_VARIETY_RULE, // SO-FT FIX 6 (2026-08-11)
           cache: true,
         });
 

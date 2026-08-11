@@ -1,5 +1,6 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { PARALLEL_ITEM_VARIETY_RULE } from "../_shared/parallel-item-variety.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 // BUILD_STAMP — real exported constant (was previously a comment; telemetry could
@@ -2117,7 +2118,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       variant: isStressRun ? "lean" : "full",
       currentDate: today,
       cache: true,
-      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}\n\n${registryStatutesBlock}\n\n${registryUnresolvedBlock}\n\n${registryComposeDirective}`,
+      injected: `${renderRegistryFor("biometric-checker")}\n\n${biometricTestStatesBlock}\n\n${registryStatutesBlock}\n\n${registryUnresolvedBlock}\n\n${registryComposeDirective}\n\n${PARALLEL_ITEM_VARIETY_RULE}`, // SO-FT FIX 6 (2026-08-11)
     });
     // Pilot override: service-role callers can fully replace the system prompt to
     // A/B-test a candidate fix on the held-out scenarios (see validate-fix function).

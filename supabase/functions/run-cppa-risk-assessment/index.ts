@@ -1,5 +1,6 @@
 // qb8 build active · cppa-risk r1b1.4-rca continuation-on-truncation + 330s self-report abort + compact cells
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+import { PARALLEL_ITEM_VARIETY_RULE } from "../_shared/parallel-item-variety.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
 import { runCppaHf1Checks } from '../_shared/grader/cppa-hf1-checks.ts';
@@ -1032,6 +1033,7 @@ async function runPipeline(assessment_id: string) {
       testStatesBlock,
       riskDeadlineBlock,
       RISK_VERIFIED_AUTHORITY_BLOCK,
+      PARALLEL_ITEM_VARIETY_RULE, // SO-FT FIX 6 (2026-08-11)
     ].filter(Boolean).join("\n\n");
     const system = buildSystemContent({
       toolModule: CPPA_RISK_TOOL_MODULE,
