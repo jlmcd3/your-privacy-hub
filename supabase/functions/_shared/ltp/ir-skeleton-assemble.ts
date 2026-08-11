@@ -563,7 +563,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
 
     "incident_worksheet:0": composeWorksheetLead(report, intake, values),
     "incident_worksheet:2": composeProcessors(intake),
-    "incident_worksheet:4": composeNotificationAnalysis(report),
+    "incident_worksheet:4": composeNotificationAnalysis(report, intake),
   };
 
   const draft = renderSkeletonDocument({
