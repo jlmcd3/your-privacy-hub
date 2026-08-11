@@ -1050,8 +1050,16 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           cache: true,
         });
 
-        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000, extraSystem?: SystemBlock[]): Promise<{ text: string; stopReason: string | null }> {
+        /**
+         * PROPOSAL 2026-08-11 CROSS-CUTTING FIX — MAIN-GENERATION COST VISIBILITY.
+         * Token usage is read off the stream itself (`message_start` carries
+         * input/cache tokens, `message_delta` carries the running output
+         * count) and metered into `api_usage` the same way the critic and
+         * verifier calls already are. Fire-and-forget; never blocks.
+         */
+        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000, extraSystem?: SystemBlock[], usageLabel = "main_generation"): Promise<{ text: string; stopReason: string | null }> {
           const systemPayload = extraSystem && extraSystem.length ? [...irSystem, ...extraSystem] : irSystem;
+          const t0 = Date.now();
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -1075,6 +1083,10 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           }
           let out = "";
           let stopReason: string | null = null;
+          let inputTokens: number | null = null;
+          let outputTokens: number | null = null;
+          let cacheRead: number | null = null;
+          let cacheCreate: number | null = null;
           const reader = res.body!.getReader();
           const decoder = new TextDecoder();
           let buf = "";
@@ -1095,9 +1107,30 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
                 } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
                   stopReason = evt.delta.stop_reason;
                 }
+                if (evt.type === "message_start" && evt.message?.usage) {
+                  const u = evt.message.usage;
+                  inputTokens = u.input_tokens ?? inputTokens;
+                  outputTokens = u.output_tokens ?? outputTokens;
+                  cacheRead = u.cache_read_input_tokens ?? cacheRead;
+                  cacheCreate = u.cache_creation_input_tokens ?? cacheCreate;
+                }
+                if (evt.type === "message_delta" && evt.usage?.output_tokens != null) {
+                  outputTokens = evt.usage.output_tokens;
+                }
               } catch { /* keepalive */ }
             }
           }
+          recordApiUsage({
+            function_name: `generate-ir-playbook:${usageLabel}`,
+            product: "ir-playbook",
+            model: currentGenerationModel(),
+            input_tokens: inputTokens,
+            output_tokens: outputTokens,
+            cache_read_tokens: cacheRead,
+            cache_creation_tokens: cacheCreate,
+            duration_ms: Date.now() - t0,
+            source_row_id: (body as any)?.assessment_id ?? currentSourceRowId() ?? null,
+          });
           return { text: out, stopReason };
         }
 
