@@ -1799,6 +1799,22 @@ let playbook_text = lint.clean;
           } catch (e) {
             console.error("[IR Playbook][IR-HF1 T2 cross-part] errored (non-fatal):", e);
           }
+
+          // PROPOSAL 2026-08-11 (IR) — deterministic existence check for the
+          // three fields the prose used to merely promise: the computed
+          // notification deadline, the contractual-notification trigger, and
+          // the application of containment / eradication / recovery to this
+          // incident. A promise that never rendered is a defect, and it is
+          // invisible to orchestration because it reads like content.
+          try {
+            for (const f of checkIrRequiredFields(playbook_text)) {
+              lintWarnings.push({ rule: "IR-REQUIRED-FIELD", posture: "log_only", match: f.detail });
+              postGenNotes.push({ code: f.code, detail: f.detail });
+              console.log(JSON.stringify({ evt: "_ir_required_field", fn: "generate-ir-playbook", code: f.code, detail: f.detail }));
+            }
+          } catch (e) {
+            console.error("[IR Playbook][required-fields] errored (non-fatal):", e);
+          }
         } catch (e) {
           console.error("[IR Playbook][REBUILD-IR post-gen] errored (non-fatal):", e);
         }
