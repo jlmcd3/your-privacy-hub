@@ -3201,9 +3201,11 @@ Return this JSON structure exactly:
       report_data: { error: String(e) },
     }, { fn: "run-admt-checker", phase: "terminal_error_catch" });
     await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
-   } finally {
-    clearTimeout(budgetTimer);
-    console.log(`[run-admt-checker] HF3-F: pipeline elapsed=${Date.now() - pipelineStart}ms budget=${PIPELINE_BUDGET_MS}ms`);
+    } finally {
+     clearTimeout(budgetTimer);
+     try { clearInterval(heartbeat); } catch (_) { /* not yet started */ }
+     console.log(`[run-admt-checker] HF3-F: pipeline elapsed=${Date.now() - pipelineStart}ms budget=${PIPELINE_BUDGET_MS}ms`);
+
    }
   })());
 
