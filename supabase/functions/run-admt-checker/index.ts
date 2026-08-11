@@ -505,6 +505,16 @@ ACTION ITEM GENERATION RULES (rubric_actionability proposed fix, BINDING):
 };
 
 
+/**
+ * PROPOSAL 2026-08-11 CROSS-CUTTING FIX — MAIN-GENERATION COST VISIBILITY.
+ *
+ * Every call made here is now metered into `api_usage` exactly the way the
+ * critic/verifier refinement calls already are (`function_name` =
+ * `run-admt-checker:<label>`, `source_row_id` = the assessment id). Before
+ * this, ADMT's PRIMARY drafting calls — the most expensive part of the tool —
+ * were invisible in telemetry, so the per-document cost could not be measured.
+ * Metering is fire-and-forget and never blocks or fails generation.
+ */
 async function callAnthropic(
   system: string | SystemBlock[],
   user: string,
