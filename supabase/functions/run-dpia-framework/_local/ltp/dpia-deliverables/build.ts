@@ -18,6 +18,8 @@ import type {
   DpiaDeliverables,
   LegalBasisFinding,
   DpiaDecision,
+  DpiaGapLedgerEntry,
+  DpiaRiskCountNote,
   LegitimateInterestsTest,
   Likelihood,
   NecessityFinding,
@@ -1038,9 +1040,217 @@ export function buildDecision(
     conditions: [],
     blockers: [],
     why:
-      `This processing may proceed as assessed: every risk identified on the company's answers sits at a low or moderate residual band after the measures the company has recorded, and no element of the assessment is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
+      `This processing may proceed as assessed: every risk identified on the company's answers sits at a low or moderate residual band after the measures the company has recorded, and no determination this assessment makes is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
     citation: art36Citation,
     rule_id: "dpia_decision_v1",
+  };
+}
+
+// ---------------------------------------------------------------------
+// PROMPT 4 (2026-08-11) — deterministic gap ledger.
+//
+// Single writer for report.gap_ledger. Every entry is sourced from a TYPED
+// finding that already carries an ask; nothing is harvested out of prose.
+// INVARIANT: an entry with empty `dimensions` or empty `field` is never
+// emitted — a content-free ask is a builder bug upstream, and it is counted
+// in telemetry rather than shown to a customer.
+// ---------------------------------------------------------------------
+
+/** Intake contract keys this ledger may name (dpia-framework.ts). */
+const GAP_FIELD_PURPOSE = "purpose";
+const GAP_FIELD_ALTERNATIVES = "alternatives_considered";
+const GAP_FIELD_NECPROP = "necessity_proportionality";
+const GAP_FIELD_BASIS = "legal_basis_proposed";
+const GAP_FIELD_SAFEGUARDS = "existing_safeguards";
+const GAP_FIELD_RESIDUAL = "residual_risks";
+
+const GAP_STOPWORDS = new Set([
+  "the", "and", "for", "that", "this", "with", "which", "from", "was", "were",
+  "are", "its", "each", "any", "has", "have", "been", "their", "they", "record",
+  "recorded", "company", "companys", "stated", "state", "states",
+]);
+
+function gapTokens(t: string): Set<string> {
+  return new Set(
+    t.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+      .filter((w) => w.length > 2 && !GAP_STOPWORDS.has(w)),
+  );
+}
+
+function gapOverlap(a: string, b: string): number {
+  const A = gapTokens(a), B = gapTokens(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let shared = 0;
+  for (const w of A) if (B.has(w)) shared++;
+  return shared / Math.min(A.size, B.size);
+}
+
+export interface GapLedgerResult {
+  readonly gap_ledger: DpiaGapLedgerEntry[];
+  readonly dropped_empty: number;
+  readonly dropped_unmapped: number;
+  readonly merged: number;
+}
+
+function legalBasisGapField(f: LegalBasisFinding): string {
+  if (/6\(1\)\(f\)|legitimate interest/i.test(f.article_6_basis)) return GAP_FIELD_NECPROP;
+  return GAP_FIELD_BASIS;
+}
+
+export function buildGapLedgerDetailed(
+  _intake: unknown,
+  deliverables: {
+    readonly necessity_findings: readonly NecessityFinding[];
+    readonly proportionality: readonly ProportionalityFinding[];
+    readonly risk_register: readonly RiskRegisterEntry[];
+    readonly art36_consultation: Art36Consultation;
+    readonly legal_basis: readonly LegalBasisFinding[];
+    readonly decision: DpiaDecision;
+  },
+): GapLedgerResult {
+  type Raw = { field: string; dimensions: string; provision: string; enables: string };
+  const raw: Raw[] = [];
+  let dropped_empty = 0;
+
+  const push = (field: string, dimensions: string, provision: string, enables: string) => {
+    const d = str(dimensions);
+    const fld = str(field);
+    if (!d || !fld) { dropped_empty += 1; return; }
+    raw.push({ field: fld, dimensions: d, provision: str(provision), enables });
+  };
+
+  for (const f of deliverables.necessity_findings) {
+    if (f.information_needed === undefined) continue;
+    push(
+      f.purpose_stated ? GAP_FIELD_ALTERNATIVES : GAP_FIELD_PURPOSE,
+      str(f.information_needed),
+      f.citation,
+      `the necessity finding for ${f.operation_label}`,
+    );
+  }
+
+  for (const f of deliverables.proportionality) {
+    if (f.information_needed === undefined) continue;
+    push(
+      GAP_FIELD_NECPROP,
+      str(f.information_needed),
+      f.citation,
+      `the proportionality finding for ${f.operation_label}`,
+    );
+  }
+
+  for (const f of deliverables.legal_basis) {
+    if (f.information_needed === undefined) continue;
+    push(
+      legalBasisGapField(f),
+      str(f.information_needed),
+      f.citation,
+      `the lawful-basis finding for ${f.purpose || "the processing"}`,
+    );
+  }
+
+  for (const r of deliverables.risk_register) {
+    if (r.information_needed === undefined) continue;
+    push(
+      GAP_FIELD_SAFEGUARDS,
+      str(r.information_needed),
+      r.citation,
+      `the residual band for ${r.risk_label}`,
+    );
+  }
+
+  const a36 = deliverables.art36_consultation;
+  if (a36.information_needed !== undefined) {
+    push(
+      GAP_FIELD_RESIDUAL,
+      str(a36.information_needed),
+      a36.citation,
+      "the prior-consultation determination",
+    );
+  }
+
+  // Decision blockers are the same asks aggregated; they carry no field of
+  // their own, so they are only admitted where they match an ask already
+  // collected above. Anything unmatched is counted, never improvised.
+  let dropped_unmapped = 0;
+  for (const b of deliverables.decision.blockers) {
+    const t = str(b);
+    if (!t) { dropped_empty += 1; continue; }
+    if (!raw.some((r) => gapOverlap(r.dimensions, t) >= 0.6)) dropped_unmapped += 1;
+  }
+
+  // Deduplicate by normalized dimensions text (mergeOpenGapItems style).
+  const out: DpiaGapLedgerEntry[] = [];
+  let merged = 0;
+  for (const e of raw) {
+    const hitIdx = out.findIndex((o) => gapOverlap(o.dimensions, e.dimensions) >= 0.6);
+    if (hitIdx >= 0) {
+      merged += 1;
+      const hit = out[hitIdx];
+      // Most specific phrasing wins; provision/enables are preserved.
+      out[hitIdx] = {
+        field: hit.field,
+        dimensions: e.dimensions.length > hit.dimensions.length ? e.dimensions : hit.dimensions,
+        provision: hit.provision || e.provision,
+        enables: hit.enables.toLowerCase() === e.enables.toLowerCase()
+          ? hit.enables
+          : `${hit.enables} and ${e.enables}`,
+      };
+      continue;
+    }
+    out.push({ ...e });
+  }
+
+  return { gap_ledger: out, dropped_empty, dropped_unmapped, merged };
+}
+
+export function buildGapLedger(
+  intake: unknown,
+  deliverables: Parameters<typeof buildGapLedgerDetailed>[1],
+): DpiaGapLedgerEntry[] {
+  return buildGapLedgerDetailed(intake, deliverables).gap_ledger;
+}
+
+// ---------------------------------------------------------------------
+// PROMPT 4 — risk-count reconciliation.
+// ---------------------------------------------------------------------
+const NUMBER_WORDS: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5,
+  six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+};
+
+/** Explicit count of remaining risks stated in the residual_risks narrative. */
+export function statedResidualRiskCount(narrative: unknown): number | null {
+  const text = str(narrative);
+  if (!text) return null;
+  for (const sentence of text.split(/(?<=[.!?])\s+/)) {
+    if (!/\brisks?\b/i.test(sentence)) continue;
+    const word = sentence.match(
+      /\b(one|two|three|four|five|six|seven|eight|nine|ten)\b(?=[^.!?]*\brisks?\b)/i,
+    );
+    if (word) return NUMBER_WORDS[word[1].toLowerCase()];
+    const digit = sentence.match(/\b(\d{1,2})\b(?=[^.!?]*\brisks?\b)/);
+    if (digit) {
+      const n = Number(digit[1]);
+      if (n > 0) return n;
+    }
+  }
+  return null;
+}
+
+export function buildRiskCountNote(
+  intake: unknown,
+  register: readonly RiskRegisterEntry[],
+): DpiaRiskCountNote | undefined {
+  const stated_count = statedResidualRiskCount(get(intake, "residual_risks"));
+  if (stated_count === null) return undefined;
+  const register_count = register.length;
+  if (stated_count === register_count) return undefined;
+  return {
+    register_count,
+    stated_count,
+    note:
+      `This assessment's risk register carries ${register_count} risks. The company's own account of residual risk describes ${stated_count}; the register is the operative count for this assessment, and the company's account is recorded in its own words in the sign-off section.`,
   };
 }
 
@@ -1056,8 +1266,16 @@ export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
     art36_consultation: buildArt36Consultation(intake, risk_register),
     legal_basis: buildLegalBasis(intake),
   };
-  return { ...core, decision: buildDecision(intake, core) };
+  const decision = buildDecision(intake, core);
+  const withDecision = { ...core, decision };
+  const risk_count_note = buildRiskCountNote(intake, risk_register);
+  return {
+    ...withDecision,
+    gap_ledger: buildGapLedger(intake, withDecision),
+    ...(risk_count_note ? { risk_count_note } : {}),
+  };
 }
+
 
 export function attachDpiaDeliverables(
   report: Record<string, unknown>,
@@ -1065,6 +1283,7 @@ export function attachDpiaDeliverables(
 ): Record<string, unknown> {
   try {
     const built = buildDpiaDeliverables(intake);
+    const ledger = buildGapLedgerDetailed(intake, built);
     report.necessity_findings = built.necessity_findings;
     report.proportionality = built.proportionality;
     report.risk_register = built.risk_register;
@@ -1080,6 +1299,12 @@ export function attachDpiaDeliverables(
     // for report.decision; the u5 section_6_conclusion.decision string is now
     // a fallback for documents generated before this change.
     report.decision = built.decision;
+
+    // PROMPT 4 (2026-08-11) — deterministic gap ledger. Single writer for
+    // report.gap_ledger; the bracket-tag-harvested information_needed array
+    // remains for documents generated before this change.
+    report.gap_ledger = built.gap_ledger;
+    if (built.risk_count_note) report.risk_count_note = built.risk_count_note;
     const s2 = report.section_2_analysis;
     if (s2 && typeof s2 === "object") {
       (s2 as Record<string, unknown>).legal_basis = built.legal_basis.map((f) => ({
@@ -1104,6 +1329,11 @@ export function attachDpiaDeliverables(
       legal_basis: built.legal_basis.length,
       legal_basis_insufficient: built.legal_basis.filter((b) => b.status === "record_insufficient").length,
       separation_repairs: built.art36_consultation.separation_repairs,
+      gap_ledger_entries: ledger.gap_ledger.length,
+      gap_ledger_dropped_empty: ledger.dropped_empty,
+      gap_ledger_dropped_unmapped: ledger.dropped_unmapped,
+      gap_ledger_merged: ledger.merged,
+      risk_count_note: built.risk_count_note ? 1 : 0,
     };
   } catch (e) {
     return {
