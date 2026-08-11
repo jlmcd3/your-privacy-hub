@@ -181,6 +181,8 @@ export interface DpiaDeliverables {
   readonly risk_count_note?: DpiaRiskCountNote;
   /** PROMPT 6 — deterministic descriptive inventory (section 0/1 content). */
   readonly processing_inventory: DpiaProcessingInventory;
+  /** PROMPT 7 — deterministic Section-2 coverage tables. */
+  readonly section2_coverage: DpiaSection2Coverage;
 }
 
 // ── 6. Deterministic sign-off decision (PROMPT 3, 2026-08-11) ────────
@@ -292,4 +294,119 @@ export interface DpiaProcessingInventory {
   readonly secondary_uses: readonly DpiaInventorySecondaryUse[];
   readonly planning: DpiaInventoryPlanning;
   readonly scale: DpiaInventoryScale;
+}
+
+// ── 9. Deterministic Section-2 coverage (PROMPT 7, 2026-08-11) ───────
+// Single writer for report.section2_coverage. Tiered by how much
+// STRUCTURED intake actually backs each table:
+//   TIER 1 — real decision trees (special-category conditions, transfers,
+//            Art. 28 processor contract).
+//   TIER 2 — coverage logic over named measures (minimisation/retention,
+//            data protection by design, security safeguards).
+//   TIER 3 — the intake is too thin for per-row trees: verbatim + honest
+//            abstention only (data quality, Art. 5 principles, rights).
+// LAW: zero model calls; verbatim-or-absent; every citation resolves
+// through the anchor registry or `cit()`; abstention is a determination,
+// never silence and never fabricated structure.
+
+export interface DpiaSpecialCategoryConditionRow {
+  readonly item: string;
+  /** Art. 9(2) condition label VERBATIM from the intake enum. */
+  readonly condition_label: string;
+  readonly justification: string;
+  readonly citation: string;
+  readonly authority_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+export type DpiaTransferDetermination =
+  | "no_transfer_on_the_record"
+  | "intra_eea_processing"
+  | "adequacy"
+  | "chapter_v_mechanism_required";
+
+export interface DpiaTransferRow {
+  readonly origin_regime: "EU" | "UK";
+  readonly destination: string;
+  readonly importer: string;
+  readonly determination: DpiaTransferDetermination;
+  /** Registry mechanism label; empty for the no-transfer determination. */
+  readonly mechanism_label: string;
+  readonly mechanism_citation: string;
+  readonly transfer_risk_assessment_required: boolean;
+  readonly finding: string;
+  readonly citation: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+  /** Date the registry row backing this determination was last verified. */
+  readonly registry_verified_on: string;
+}
+
+export interface DpiaProcessorContractRow {
+  readonly processors: readonly string[];
+  readonly dpa_recorded: boolean;
+  readonly finding: string;
+  readonly citation: string;
+  readonly authority_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+export interface DpiaMinimisationRetentionRow {
+  readonly item: string;
+  readonly need_justification: string;
+  readonly retention_period: string;
+  readonly citation: string;
+  readonly authority_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+export interface DpiaMeasureRow {
+  readonly measure: string;
+  readonly description: string;
+  readonly citation: string;
+  readonly authority_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+export interface DpiaCoverageRow {
+  readonly heading: string;
+  /** What the record's own words establish — verbatim or empty. */
+  readonly record_words: string;
+  readonly finding: string;
+  readonly citation: string;
+  readonly authority_verbatim: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+  readonly source_field: string;
+}
+
+/** INTERNAL — never rendered to a customer. Report-back channel for intake work. */
+export interface DpiaIntakeStructureRecommendation {
+  readonly field: string;
+  readonly today: string;
+  readonly would_enable: string;
+}
+
+export interface DpiaSection2Coverage {
+  readonly special_category_conditions: readonly DpiaSpecialCategoryConditionRow[];
+  readonly transfers: readonly DpiaTransferRow[];
+  readonly processor_contract: DpiaProcessorContractRow;
+  readonly data_minimisation_retention: readonly DpiaMinimisationRetentionRow[];
+  readonly measures_dpbd: readonly DpiaMeasureRow[];
+  readonly measures_security: readonly DpiaMeasureRow[];
+  readonly data_quality: readonly DpiaCoverageRow[];
+  readonly measures_article5: readonly DpiaCoverageRow[];
+  readonly measures_rights: readonly DpiaCoverageRow[];
+  /** INTERNAL, not customer-facing. */
+  readonly intake_structure_recommendations: readonly DpiaIntakeStructureRecommendation[];
+  readonly rule_id: "dpia_section2_coverage_v1";
 }
