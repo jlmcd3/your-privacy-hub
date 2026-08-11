@@ -170,7 +170,7 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Annual",
     description:
-      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, every Layer-1 tool (RoPA, Notice Builders, IR Playbook, Biometric, DPA), and 3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value).",
+      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, every Layer-1 tool (Notice Builders, IR Playbook, Biometric, DPA), RoPA (first generation free, plus one free update each subscription year — $29 per additional update), and 3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value).",
     amountCents: 49000,
     currency: "usd",
     displayPrice: "$490",
@@ -411,12 +411,18 @@ export const PRICING_REGISTRY = {
     displaySuffix: " flat",
     active: false,
   },
+  // v12 (2026-08-11) — RoPA is no longer flatly included with any
+  // subscription. ANNUAL subscribers: first generation free, then one free
+  // update per subscription year (its own annual-credit pool, flat 1/yr for
+  // BOTH Intelligence and Professional). MONTHLY subscribers: every RoPA
+  // action costs $29. See ropa_paid_generation below.
   ropa_initial_subscriber: {
     kind: "addon",
     lookupKey: "ropa_initial_subscriber",
     productKey: "rofa",
-    productName: "RoPA Builder — Initial (Subscriber)",
-    description: "Free for subscribers (monthly + annual) — bypasses Stripe checkout.",
+    productName: "RoPA Builder — Initial (Annual Subscriber)",
+    description:
+      "Free for ANNUAL subscribers — the first RoPA generation, once, bypasses Stripe checkout. Monthly subscribers pay ropa_paid_generation ($29).",
     amountCents: 0,
     currency: "usd",
     displayPrice: "Free",
@@ -429,14 +435,28 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "ropa_refresh_subscriber",
     productKey: "rofa",
-    productName: "RoPA Builder — Annual Refresh (Subscriber)",
-    description: "Free for subscribers (monthly + annual) — bypasses Stripe checkout.",
+    productName: "RoPA Builder — Annual Update (Annual Subscriber, credit)",
+    description:
+      "Free for ANNUAL subscribers on the FIRST update of each subscription year, redeemed against the RoPA annual credit (1 per year, both tiers). Later updates in the same year cost ropa_paid_generation ($29).",
     amountCents: 0,
     currency: "usd",
     displayPrice: "Free",
     displaySuffix: "",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_free",
+    active: true,
+  },
+  ropa_paid_generation: {
+    kind: "one_time",
+    lookupKey: "ropa_paid_generation",
+    productKey: "rofa",
+    productName: "RoPA Builder — Generation or Update",
+    description:
+      "$29 RoPA generation/update. Charged to monthly subscribers on every RoPA action, and to annual subscribers on the second-or-later update within a subscription year. NOTE: a $29 one-time Stripe Price with this lookup key must exist in Stripe before go-live.",
+    amountCents: 2900,
+    currency: "usd",
+    displayPrice: "$29",
+    displaySuffix: "",
     active: true,
   },
   us_notice_v7_standalone: {
