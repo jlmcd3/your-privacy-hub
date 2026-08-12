@@ -432,7 +432,7 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
 
   if (total > 0) {
     sentences.push(
-      `The assessment carries ${total === 1 ? "one risk" : `${total} risks`} through to a residual position after the measures the company has recorded.`,
+      `The assessment carries ${total === 1 ? "one risk" : `${numberWord(total)} risks`} through to a residual position after the measures the company has recorded.`,
     );
     sentences.push(
       high > 0
