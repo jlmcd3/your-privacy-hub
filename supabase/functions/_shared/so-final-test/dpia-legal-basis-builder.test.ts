@@ -71,7 +71,8 @@ Deno.test("6(1)(c): named instrument on the record → analysed", () => {
     necessity_proportionality: "Retention is required by the Employment Rights Act 1996, section 12.",
   });
   assertEquals(f.status, "analysed");
-  assert(f.justification.includes("names the instrument"));
+  // PROMPT 8A ratified wording (2026-08-12).
+  assert(f.justification.includes("identifies the instrument"), f.justification);
 });
 
 Deno.test("6(1)(c): obligation described generally → record_insufficient with the ratified ask", () => {
