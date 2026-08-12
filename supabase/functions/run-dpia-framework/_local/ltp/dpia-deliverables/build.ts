@@ -150,6 +150,19 @@ function cit(regime: DpiaRegime, subsection: string): string {
   return `${regime === "UK" ? "UK GDPR" : "GDPR"} ${subsection}`;
 }
 
+/**
+ * PROMPT 8E item 6 — ToA regime prefix. A registry row resolved under the UK
+ * regime may carry the unprefixed "GDPR Art. …" citation string (the UK rows
+ * fall back to the EU row where no uk_ row exists). Sibling entries in a UK
+ * document all read "UK GDPR …", so the bare form reads as a miscitation.
+ * Prefix-only: the pinpoint and every other byte are untouched.
+ */
+function regimePrefixed(regime: DpiaRegime, citation: string): string {
+  if (regime !== "UK" || !citation) return citation;
+  if (/\bUK GDPR\b/.test(citation)) return citation;
+  return citation.replace(/\bGDPR\b/, "UK GDPR");
+}
+
 
 function matches(text: string, res: readonly RegExp[]): boolean {
   return res.some((re) => re.test(text));
@@ -593,13 +606,19 @@ export function buildArt36Consultation(
   } else if (high.length > 0) {
     determination = "consultation_required";
     rawWhy =
-      `${a.verbatim} Based on the information the company provided, ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — are deemed high risks after the mitigating measures the company has recorded, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
+      `${a.verbatim} Based on the information the company provided, ${
+        high.length === 1
+          ? `one risk — ${high[0].risk_label} — is deemed a high risk`
+          : `${nWord(high.length)} risks — ${high.map((r) => r.risk_label).join("; ")} — are deemed high risks`
+      } after the mitigating measures the company has recorded, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
   } else if (undetermined.length > 0 || insufficient.length > 0) {
     determination = "undetermined_on_the_record";
     status = "record_insufficient";
     const names = [...new Set([...undetermined, ...insufficient].map((r) => r.risk_label))];
     rawWhy =
-      `Art. 36(1) turns on whether a high risk remains once mitigating measures are taken into account. Based on the information the company provided, the remaining risk level for ${names.length} risk(s) — ${names.join("; ")} — cannot be settled, so the prior-consultation question is open rather than answered either way.`;
+      `Art. 36(1) turns on whether a high risk remains once mitigating measures are taken into account. Based on the information the company provided, the remaining risk level for ${
+        names.length === 1 ? `one risk — ${names[0]} —` : `${nWord(names.length)} risks — ${names.join("; ")} —`
+      } cannot be settled, so the prior-consultation question is open rather than answered either way.`;
     information_needed =
       `The measures applied to: ${names.join("; ")}, and the effect each has on the likelihood or severity of that risk.`;
   } else {
@@ -909,7 +928,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
           ` Lawfulness is the first principle the processing must satisfy: ${lawfulness.verbatim}` +
           " No lawful basis can be assessed on this record.",
         verdict: "undetermined_on_the_record" as const,
-        citation: lawfulness.citation || cit(regime, "Art. 5(1)(a)"),
+        citation: regimePrefixed(regime, lawfulness.citation) || cit(regime, "Art. 5(1)(a)"),
         authority_verbatim: lawfulness.verbatim,
         status: "record_insufficient" as const,
         information_needed:
@@ -1031,7 +1050,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       verdict: unmet.length === 0
         ? ("basis_supported_on_the_record" as const)
         : ("undetermined_on_the_record" as const),
-      citation: li.citation || cit(regime, "Art. 6(1)(f)"),
+      citation: regimePrefixed(regime, li.citation) || cit(regime, "Art. 6(1)(f)"),
       authority_verbatim: li.verbatim,
       legitimate_interests_test,
       status: unmet.length === 0 ? ("analysed" as const) : ("record_insufficient" as const),
@@ -1445,7 +1464,7 @@ const ASK_SAFEGUARDS_LIST = "which technical and organisational measures are app
 const ASK_DATA_QUALITY =
   "The measures that keep the personal data accurate and up to date for this purpose, and how data quality is checked.";
 const ASK_ART5_TABLE =
-  "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated per principle, with each measure's implementation status.";
+  "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated principle by principle, and whether each measure has been deployed.";
 const ASK_RIGHTS_TABLE =
   "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.";
 
