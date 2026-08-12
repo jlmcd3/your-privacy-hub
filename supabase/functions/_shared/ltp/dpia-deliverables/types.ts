@@ -324,6 +324,12 @@ export interface DpiaSpecialCategoryConditionRow {
   readonly condition_label: string;
   readonly justification: string;
   readonly citation: string;
+  /**
+   * PROMPT 10B(1) — the Art. 9(2)(x) pinpoint, ledgered through the existing
+   * gdpr-art-9 registry row so the table of authorities consolidates it under
+   * GDPR Art. 9. Present only when the intake names a condition.
+   */
+  readonly condition_citation?: string;
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
