@@ -1139,7 +1139,10 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
 
     // ── Art. 6(1)(f): the three-part test, run as a decision tree ──────
     const alternatives = alternativesFor(intake, op);
-    const impactStated = matches(combined, IMPACT_LEXICON);
+    // PROMPT 8J item 3 — the impact side may be described anywhere the record
+    // argues it (views sought, residual risks, potential harms), not only in
+    // necessity_proportionality + data_minimisation_justification.
+    const impactStated = matches(combined, IMPACT_LEXICON) || impactEvidence(intake).length > 0;
     const vulnerable =
       VULNERABLE_SUBJECTS.some((re) => re.test(subjects)) ||
       categories.includes("Children's data");
