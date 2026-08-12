@@ -748,17 +748,28 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
  * fixed prose carries only the slot; the branch may not disagree with the typed
  * determination.
  */
-function composeArt36Sentence(report: Bag): string {
-  const det = art36Determination(report);
-  if (det === "consultation_required") {
-    return "Because the remaining risk level is high despite the mitigating measures the company has recorded, Article 36(1) requires the controller to consult the supervisory authority before the processing begins";
-  }
-  if (det === "undetermined_on_the_record") {
-    return "Whether Article 36(1) requires prior consultation cannot be settled based on the information the company provided, because the remaining risk levels on which that duty turns are open on the points named above";
-  }
+// PROMPT 8F item 1 (CEO-ratified 2026-08-12) — byte-exact DPO disclosure
+// sentence. Disclose, don't flip: the typed determination is never altered.
+export const ART36_DPO_DISCLOSURE =
+  "The company's data protection officer has advised that the supervisory authority be consulted on this processing; that advice is recorded here alongside this assessment's own determination on Article 36(1), which is stated above and is unchanged by it.";
 
-  return "On this assessment's determination, no prior consultation with the supervisory authority under Article 36(1) is required";
+function composeArt36Sentence(report: Bag): string {
+  const a36 = (report.art36_consultation ?? {}) as Bag;
+  const det = art36Determination(report);
+  let base: string;
+  if (det === "consultation_required") {
+    base = "Because the remaining risk level is high despite the mitigating measures the company has recorded, Article 36(1) requires the controller to consult the supervisory authority before the processing begins";
+  } else if (det === "undetermined_on_the_record") {
+    base = "Whether Article 36(1) requires prior consultation cannot be settled based on the information the company provided, because the remaining risk levels on which that duty turns are open on the points named above";
+  } else {
+    base = "On this assessment's determination, no prior consultation with the supervisory authority under Article 36(1) is required";
+  }
+  if (a36.dpo_recommends_consultation === true && det !== "consultation_required") {
+    return `${base}. ${noStop(ART36_DPO_DISCLOSURE)}`;
+  }
+  return base;
 }
+
 
 // ── Table of Authorities ────────────────────────────────────────────────────
 
