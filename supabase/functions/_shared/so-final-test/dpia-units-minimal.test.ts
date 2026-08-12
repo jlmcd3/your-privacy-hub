@@ -15,6 +15,7 @@ import {
 } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
 import { assembleDpiaSkeletonDocument } from "../ltp/dpia-skeleton-assemble.ts";
 import { runDpiaCsc } from "../ltp/dpia-csc.ts";
+import { runEmitGate } from "../emit-gate.ts";
 
 const RETIRED_NOTE =
   "Retired under DPIA_UNITS_MINIMAL: this section is composed from the typed deterministic surfaces (processing_inventory, section2_coverage, necessity_findings, proportionality, risk_register, legal_basis, decision) and the skeleton document, which have no remaining reader for raw unit output.";
@@ -98,6 +99,13 @@ Deno.test("flag-on: csc walks the stubs without throwing", () => {
   attachDpiaDeliverables(report, intake());
   const res = runDpiaCsc(report as never, intake() as never);
   assert(res && typeof res === "object");
+});
+
+Deno.test("flag-on: the emit gate walks the stubs without throwing", () => {
+  const report = reportWithStubs();
+  attachDpiaDeliverables(report, intake());
+  const out = runEmitGate(report, { tool: "dpia_framework" });
+  assert(out && typeof out === "object");
 });
 
 Deno.test("flag-on: the enforcement corpus is untouched by unit retirement", () => {
