@@ -103,7 +103,7 @@ Deno.test("filtered findings are persisted flagged, and freeform is untouched", 
     new URL("../../../supabase/functions/run-quality-batch/index.ts", import.meta.url),
   );
   // calibration only runs on the skeleton payload path
-  assertEquals(src.split("applySkeletonCalibration(").length - 1, 3); // import + claude + gpt
+  assertEquals(src.split("applySkeletonCalibration(").length - 1, 2); // claude + gpt call sites
   assert(src.includes("useSkeleton\n    ? applySkeletonCalibration"));
   assert(src.includes("filtered_from_scoring: true"));
   assert(src.includes("calibration_rule: c.rule"));
