@@ -17,7 +17,7 @@
 // stamps the instrument; the calibration rules themselves apply ONLY under
 // grader_mode="skeleton" (see _shared/grader/skeleton-calibration.ts).
 export const GRADER_CONTEXT_VERSION =
-  "gc-2026-08-12-skeleton-cal-1[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4]";
+  "gc-2026-08-12-skeleton-cal-2[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5]";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 

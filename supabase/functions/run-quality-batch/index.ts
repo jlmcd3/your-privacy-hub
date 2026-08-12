@@ -1155,7 +1155,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
   // PROMPT 10A — CONVERTED-DOCUMENT CALIBRATION. Skeleton mode only. Filtered
   // findings are removed from SCORING but persisted (flagged) by the caller.
   const skelCal = useSkeleton
-    ? applySkeletonCalibration(filteredRaw as any)
+    ? applySkeletonCalibration(filteredRaw as any, { report })
     : { kept: filteredRaw as any[], filtered: [] as any[], counts: null as any };
   const calibrationFiltered = skelCal.filtered.map((x: any) => {
     const meta = rubricMeta.get(x.check_id);
@@ -1238,7 +1238,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtu
     }
     // PROMPT 10A — same calibration on the GPT cross-review path (skeleton only).
     const gptCal = useSkeleton
-      ? applySkeletonCalibration(gptKept as any)
+      ? applySkeletonCalibration(gptKept as any, { report })
       : { kept: gptKept as any[], filtered: [] as any[], counts: null as any };
     const gptCalibrationFiltered = gptCal.filtered.map((x: any) => {
       const meta = rubricMeta.get(x.check_id);
