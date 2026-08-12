@@ -24,6 +24,9 @@ import {
   DPIA_V3_BANNED_REGISTER,
 } from "../prose/plans/dpia.spine.ts";
 import { DPIA_LEGAL_BASIS_PHRASE_MAP } from "../prose/plans/dpia.slotmap.ts";
+// PROMPT 9A — compact-label presentation (registry + R4 merge). Presentation
+// only: nothing here changes an ask, a template sentence, or the gap table.
+import { mergeLabeledAsks, renderMergedLabel } from "./dpia-ask-labels.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
@@ -486,12 +489,25 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   // documents generated before the ledger existed.
   const ledger = asArray(report.gap_ledger);
   const gapSource = Array.isArray(report.gap_ledger) ? ledger : asArray(report.information_needed);
-  const merged = mergeOpenGapItems(
-    gapSource.map((e) => ({
-      what: noStop(s(e.dimensions) || s(e.field)),
-      enables: noStop(s(e.enables)),
-    })),
-  );
+  // PROMPT 9A (R1/R4) — the executive list renders the ratified COMPACT LABEL.
+  // The full ask stays in the gap table. Documents generated before 9A carry no
+  // `display_label`, so they fall back to the ask text exactly as before.
+  const labelled = gapSource.some((e) => s(e.display_label).length > 0);
+  const merged = labelled
+    ? mergeLabeledAsks(
+      gapSource.map((e) => ({
+        ask_class: s(e.ask_class) || undefined,
+        label: noStop(s(e.display_label)),
+        enables: noStop(s(e.enables)),
+        scope_op: s(e.scope_op) || undefined,
+      })),
+    ).map((m) => ({ what: renderMergedLabel(m), enables: m.enables }))
+    : mergeOpenGapItems(
+      gapSource.map((e) => ({
+        what: noStop(s(e.dimensions) || s(e.field)),
+        enables: noStop(s(e.enables)),
+      })),
+    );
   // PROMPT 8A item 3 (CEO revision 2026-08-12) — DETERMINISTIC ORDERING RULE
   // for the open points named in the executive body: decision blockers first
   // (entries that complete a determination, i.e. carry a non-empty `enables`),

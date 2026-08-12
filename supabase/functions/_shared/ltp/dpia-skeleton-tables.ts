@@ -435,7 +435,10 @@ function decisionTable(report: Bag): RenderedTable | null {
   return particulars("decision", "Determination", [
     ["Determination", label(d.determination)],
     ["Conditions", strList(d.conditions).join("; ")],
-    ["Matters holding sign-off open", strList(d.blockers).join(" ")],
+    // PROMPT 9A (R1/R3) — the blockers are already ratified compact labels,
+    // merged per R4. One short line each; no terminal stop is added, so no
+    // doubled-stop or ". —" sequence can be produced at the seam.
+    ["Matters holding sign-off open", strList(d.blockers).join("\n")],
     ["Why", s(d.why)],
     ["Authority", s(d.citation)],
   ]);
