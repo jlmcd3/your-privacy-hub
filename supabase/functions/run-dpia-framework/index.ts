@@ -722,6 +722,56 @@ console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 // One line to disable the whole critic → verifier → splicer pass.
 export const DPIA_REFINEMENT_ENABLED = true;
 
+// ── PROMPT 9 (2026-08-12) — CONFIG-GATED RETIREMENT OF u2/u3/u4 ─────────────
+// With the typed surfaces and skeleton tables live, raw u2 (section_2_analysis),
+// u3 (section_3_necessity_proportionality) and u4 (section_4_risk_management)
+// output has no remaining reader in the assembled skeleton document. This flag
+// stops generating them. Unlike DPIA_REFINEMENT_ENABLED (a module const) it is
+// env-driven so it can be flipped per-deploy without a code change.
+// DEFAULT: false. Flipping it on is a deploy-time decision after a soak batch.
+export const DPIA_UNITS_MINIMAL_DEFAULT = false;
+export const DPIA_UNITS_MINIMAL: boolean = (() => {
+  const raw = Deno.env.get("DPIA_UNITS_MINIMAL");
+  if (raw == null || raw.trim() === "") return DPIA_UNITS_MINIMAL_DEFAULT;
+  return /^(1|true|yes|on)$/i.test(raw.trim());
+})();
+
+export const DPIA_RETIRED_UNITS: readonly string[] = ["u2", "u3", "u4"];
+export const DPIA_RETIRED_UNIT_NOTE =
+  "Retired under DPIA_UNITS_MINIMAL: this section is composed from the typed deterministic surfaces (processing_inventory, section2_coverage, necessity_findings, proportionality, risk_register, legal_basis, decision) and the skeleton document, which have no remaining reader for raw unit output.";
+
+/** True only when the flag is on AND the unit is one of the retired three. */
+export function isRetiredUnit(unit: string): boolean {
+  return DPIA_UNITS_MINIMAL && DPIA_RETIRED_UNITS.includes(unit);
+}
+
+/** Typed stub written in place of a retired unit's keys, so downstream
+ *  walkers (refinement, csc, wire, emit-gate, boilerplate cap, citation-pair
+ *  verifier) never see `undefined`. */
+export function retiredUnitStubKeys(unit: string): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of (UNIT_KEYS[unit as UnitId] ?? [])) {
+    out[k] = { retired: true, note: DPIA_RETIRED_UNIT_NOTE };
+  }
+  return out;
+}
+
+/** Fresh-run staging entry for a unit, honouring the flag. Retired units are
+ *  instantly complete — no phantom pending states in the status machinery. */
+export function initialUnitState(unit: UnitId, base: "pending" | "blocked"): Record<string, unknown> {
+  if (isRetiredUnit(unit)) {
+    return {
+      status: "done",
+      retired: true,
+      keys: retiredUnitStubKeys(unit),
+      elapsed_ms: 0,
+      last_heartbeat_at: new Date().toISOString(),
+    };
+  }
+  return { status: base };
+}
+
+
 // ITEM 377 §2 — METERING. api_usage has no label/purpose column, so the two
 // refinement calls are attributed by `function_name` suffix
 // ("…:refine_critic" / "…:refine_verifier") and by `source_row_id` (dpia_id),
@@ -1670,6 +1720,17 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     console.error(`[unit:${unit}] no _staging.shared — cannot execute; skipping`);
     return;
   }
+  // PROMPT 9 — retired unit: never call the model; write the typed stub and
+  // advance. Defensive: bootstrap already seeds these as done.
+  if (isRetiredUnit(unit)) {
+    console.log(`[unit:${unit}] retired under DPIA_UNITS_MINIMAL — no model call`);
+    if (staging.units?.[unit]?.status !== "done") {
+      await writeUnitStatus(dpia_id, unit, initialUnitState(unit, "pending"));
+    }
+    const nextRetired = await advancePhaseIfReady(dpia_id);
+    for (const u of nextRetired) selfInvokeUnit(dpia_id, u);
+    return;
+  }
   // Skip-if-already-done (idempotency for sweeper re-entry).
   if (staging.units?.[unit]?.status === "done") {
     console.log(`[unit:${unit}] already done — skip`);
@@ -1777,7 +1838,11 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       u3: "section_3_necessity_proportionality",
     };
     const guardedKey = CONFLATION_GUARDED_KEY[unit];
-    if (guardedKey) {
+    // PROMPT 9 — the guard is skipped for retired units. Its conflation
+    // concern is already encoded deterministically in buildOperations'
+    // isSecondaryUseNegation and the operations model, which read the intake
+    // fields directly rather than the generated prose.
+    if (guardedKey && !isRetiredUnit(unit)) {
       const intake = (shared?.intake ?? {}) as Record<string, any>;
       const purposeText = String(intake.purpose ?? "");
       const secondaryText = String(intake.secondary_uses ?? "");
@@ -2504,6 +2569,40 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] ITEM-310 deliverables failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── PROMPT 9 (2026-08-12) — DETERMINISTIC ENFORCEMENT ANNOTATIONS ──────
+    // Replaces u4's model-selected annotations[]. The enforcement corpus is
+    // preserved untouched (reportData.enforcement_precedents / enforcement_meta
+    // are attached by the shared-context stage and the flag does not reach
+    // them); only the RELEVANCE LINK becomes deterministic. Fail-open.
+    try {
+      const { attachEnforcementAnnotations } = await import("./_local/ltp/dpia-deliverables/build.ts");
+      const emeta = attachEnforcementAnnotations(reportData as Record<string, unknown>);
+      const _e = ((reportData as any)._meta ??= {});
+      (_e.internal ??= {}).dpia_enforcement_annotations = emeta;
+      // Legacy compatibility: AnnotationCallout reads report.annotations
+      // ({ enforcement_action_id, relevance }). Fill it only when the retired
+      // u4 left it empty, so pre-flag documents keep their own annotations.
+      const legacy = (reportData as any).annotations;
+      if (!Array.isArray(legacy) || legacy.length === 0) {
+        (reportData as any).annotations = ((reportData as any).enforcement_annotations ?? []).map(
+          (a: any) => ({ enforcement_action_id: a.enforcement_action_id, relevance: a.relevance }),
+        );
+      }
+      console.log(JSON.stringify({ evt: "dpia_enforcement_annotations", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...emeta }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] enforcement annotations failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // PROMPT 9 — per-run record of the retirement flag state.
+    try {
+      const _f = ((reportData as any)._meta ??= {});
+      (_f.internal ??= {}).dpia_units_minimal = {
+        enabled: DPIA_UNITS_MINIMAL,
+        retired_units: DPIA_UNITS_MINIMAL ? DPIA_RETIRED_UNITS : [],
+      };
+      console.log(JSON.stringify({ evt: "dpia_units_minimal", fn: "run-dpia-framework", dpia_id, enabled: DPIA_UNITS_MINIMAL }));
+    } catch { /* telemetry only */ }
+
     // ── DPIA UPGRADE ITEM 1 — THE TWO STRUCTURAL FIELDS ────────────────
     // section_0_overview.assessment_team (EDPB template v1.0 § 0.5 para 6) and
     // section_6_conclusion.validation_approval (§ 0.5 para 10). Single writer,
@@ -2776,6 +2875,10 @@ async function runStitch(dpia_id: string): Promise<void> {
       const _rc = ((reportData as any)._meta ??= {});
       (_rc.internal ??= {}).dpia_risk_count_reconcile = rmeta;
       console.log(JSON.stringify({ evt: "dpia_risk_count_reconcile", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...rmeta }));
+      // PROMPT 9 — re-link annotations against the FINAL register (a CSC pass
+      // may have pruned rows); same deterministic builder, no invented links.
+      const { attachEnforcementAnnotations: reAttach } = await import("./_local/ltp/dpia-deliverables/build.ts");
+      reAttach(reportData as Record<string, unknown>);
     } catch (e) {
       console.warn("[run-dpia-framework] risk-count reconcile failed (non-fatal):", (e as Error)?.message);
     }
@@ -3073,6 +3176,14 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     const staging = rd._staging;
     let mutated = false;
     for (const u of PHASE1) {
+      // PROMPT 9 — a retired unit is re-seeded as complete, never re-queued.
+      if (isRetiredUnit(u)) {
+        if (staging.units[u]?.status !== "done") {
+          staging.units[u] = initialUnitState(u, "pending");
+          mutated = true;
+        }
+        continue;
+      }
       if (staging.units[u]?.status !== "done") {
         staging.units[u] = { ...(staging.units[u] ?? {}), status: staging.units[u]?.status === "processing" ? "pending" : (staging.units[u]?.status ?? "pending") };
         if (staging.units[u].status === "error") staging.units[u].status = "pending";
@@ -3081,6 +3192,10 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     }
     // Reset any errored/stuck U4/U5 back to blocked so advancePhaseIfReady can re-dispatch.
     for (const u of ["u4", "u5"] as UnitId[]) {
+      if (isRetiredUnit(u)) {
+        if (staging.units[u]?.status !== "done") { staging.units[u] = initialUnitState(u, "blocked"); mutated = true; }
+        continue;
+      }
       const st = staging.units[u]?.status;
       if (st === "error" || st === "processing" || st === "dispatching") {
         staging.units[u] = { ...(staging.units[u] ?? {}), status: "blocked" };
@@ -3092,7 +3207,7 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     }
     // Dispatch missing PHASE1 units in parallel.
     const dispatch: UnitId[] = [];
-    for (const u of PHASE1) if (staging.units[u]?.status !== "done") dispatch.push(u);
+    for (const u of PHASE1) if (!isRetiredUnit(u) && staging.units[u]?.status !== "done") dispatch.push(u);
     for (const u of dispatch) selfInvokeUnit(dpia_id, u);
     // Always try phase-advance on resume: with U4-only-on-U3 gating, U4 may be
     // dispatchable even while U1/U2 are still (re)running from this same resume.
@@ -3109,11 +3224,13 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     version: STAMP,
     shared,
     units: {
-      u1: { status: "pending" as const },
-      u2: { status: "pending" as const },
-      u3: { status: "pending" as const },
-      u4: { status: "blocked" as const },
-      u5: { status: "blocked" as const },
+      // PROMPT 9 — retired units (flag on) are seeded as instantly complete
+      // with typed stub keys; nothing dispatches them and no phase waits on them.
+      u1: initialUnitState("u1", "pending"),
+      u2: initialUnitState("u2", "pending"),
+      u3: initialUnitState("u3", "pending"),
+      u4: initialUnitState("u4", "blocked"),
+      u5: initialUnitState("u5", "blocked"),
     },
   };
   const orgName = shared.orgName;
@@ -3128,8 +3245,10 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     return;
   }
 
-  // Fan out phase 1.
-  for (const u of PHASE1) selfInvokeUnit(dpia_id, u);
+  // Fan out phase 1 (retired units are already seeded as complete).
+  for (const u of PHASE1) if (!isRetiredUnit(u)) selfInvokeUnit(dpia_id, u);
+  console.log(JSON.stringify({ evt: "dpia_units_minimal", fn: "run-dpia-framework", dpia_id, enabled: DPIA_UNITS_MINIMAL, retired: DPIA_UNITS_MINIMAL ? DPIA_RETIRED_UNITS : [] }));
+  if (DPIA_UNITS_MINIMAL) { const n = await advancePhaseIfReady(dpia_id); for (const u of n) selfInvokeUnit(dpia_id, u); }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

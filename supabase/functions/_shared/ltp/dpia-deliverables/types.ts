@@ -419,3 +419,22 @@ export interface DpiaSection2Coverage {
   readonly intake_structure_recommendations: readonly DpiaIntakeStructureRecommendation[];
   readonly rule_id: "dpia_section2_coverage_v1";
 }
+
+// ── 12. Deterministic enforcement annotations (PROMPT 9, 2026-08-12) ──
+// Replaces u4's model-selected annotations[]. Each annotation links one
+// enforcement-corpus row to one risk-register row by an OBSERVED overlap
+// (statutory provision, or a category theme). Relevance text is a fixed
+// template over the corpus row's own summary field, verbatim. A precedent
+// with no overlap carries no annotation — it is listed, never force-matched.
+export type DpiaEnforcementMatchType = "provision" | "category";
+
+export interface DpiaEnforcementAnnotation {
+  readonly enforcement_action_id: string;
+  readonly risk_id: string;
+  readonly risk_label: string;
+  readonly match_type: DpiaEnforcementMatchType;
+  readonly match_label: string;
+  readonly relevance: string;
+  readonly precedent_significance: number | null;
+  readonly rule_id: "dpia_enforcement_annotations_v1";
+}

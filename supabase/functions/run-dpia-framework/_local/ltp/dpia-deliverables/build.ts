@@ -43,6 +43,8 @@ import type {
   ProportionalityFinding,
   RiskBand,
   RiskRegisterEntry,
+  DpiaEnforcementAnnotation,
+  DpiaEnforcementMatchType,
 } from "../../../../_shared/ltp/dpia-deliverables/types.ts";
 
 export const DPIA_DELIVERABLES_VERSION =
@@ -2018,4 +2020,180 @@ export function attachDpiaDeliverables(
       error: (e as Error)?.message ?? String(e),
     };
   }
+}
+
+// ── PROMPT 9 (2026-08-12) — DETERMINISTIC ENFORCEMENT ANNOTATIONS ─────
+// u4's annotations[] (a model-selected enforcement_action_id plus a freeform
+// relevance sentence) retires with u4. This builder replaces it: every link
+// is an OBSERVED overlap between a corpus row's own columns and a register
+// row, and the relevance sentence is a fixed template over the corpus row's
+// own summary field, verbatim. No model call. No invented relevance.
+// A precedent with no overlap is carried WITHOUT an annotation.
+
+/** Category themes read off the corpus row's own columns. */
+const ENFORCEMENT_CATEGORY_THEMES: readonly {
+  readonly key: string;
+  readonly label: string;
+  readonly risk_id: RegExp;
+  readonly matchesPrecedent: (p: Record<string, unknown>) => boolean;
+}[] = [
+  {
+    key: "special_category",
+    label: "special-category personal data",
+    risk_id: /special_category/i,
+    matchesPrecedent: (p) =>
+      p.biometric_related === true ||
+      arrHas(p.data_categories, /health|medical|biometric|genetic|racial|religio|sexual|special/i) ||
+      arrHas(p.violation_types, /special.?categor|article.?9\b|sensitive/i),
+  },
+  {
+    key: "children",
+    label: "children's personal data",
+    risk_id: /children/i,
+    matchesPrecedent: (p) =>
+      arrHas(p.data_categories, /child|minor|under.?18|age/i) ||
+      arrHas(p.violation_types, /child|minor|age.?verification/i),
+  },
+  {
+    key: "transfer",
+    label: "international transfers of personal data",
+    risk_id: /transfer|third_country/i,
+    matchesPrecedent: (p) =>
+      arrHas(p.violation_types, /transfer|third.?count|chapter.?v|schrems|adequacy/i) ||
+      arrHas(p.provisions_normalized, /:(44|45|46|47|48|49)$/) ||
+      arrHas(p.statutory_provisions, /article.?(44|45|46|49)\b/i),
+  },
+  {
+    key: "security",
+    label: "the security of processing",
+    risk_id: /unauthorised_access|security|breach/i,
+    matchesPrecedent: (p) =>
+      p.breach_related === true ||
+      arrHas(p.violation_types, /security|breach|confidential|integrity/i) ||
+      arrHas(p.provisions_normalized, /:(32|33|34)$/) ||
+      arrHas(p.statutory_provisions, /article.?(32|33|34)\b/i),
+  },
+];
+
+function arrHas(v: unknown, re: RegExp): boolean {
+  if (Array.isArray(v)) return v.some((x) => typeof x === "string" && re.test(x));
+  if (typeof v === "string") return re.test(v);
+  return false;
+}
+
+/** Article numbers named by a register row's citation, e.g. "Art. 32 GDPR" → ["32"]. */
+function citationArticleNumbers(citation: unknown): string[] {
+  if (typeof citation !== "string") return [];
+  const out: string[] = [];
+  const re = /\bArt(?:icle)?\.?\s*(\d+)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(citation)) !== null) out.push(m[1]);
+  return out;
+}
+
+/** Article numbers named by a corpus row's own provision columns. */
+function precedentArticleNumbers(p: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  const push = (s: unknown) => {
+    if (typeof s !== "string") return;
+    const re = /(?:^|[:\s])(?:art(?:icle)?\.?\s*)?(\d{1,3})(?:\(|\b)/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(s)) !== null) out.push(m[1]);
+  };
+  const cols = [p.provisions_normalized, p.statutory_provisions];
+  for (const c of cols) {
+    if (Array.isArray(c)) c.forEach(push);
+    else push(c);
+  }
+  return out;
+}
+
+/** The corpus row's own summary field, verbatim. Absent → no annotation. */
+function precedentSummary(p: Record<string, unknown>): string {
+  for (const k of ["key_compliance_failure", "violation", "subject"]) {
+    const v = p[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return "";
+}
+
+function precedentId(p: Record<string, unknown>): string {
+  const v = p.id;
+  return typeof v === "string" && v.trim() ? v.trim() : (typeof v === "number" ? String(v) : "");
+}
+
+export function buildEnforcementAnnotations(
+  precedents: unknown,
+  risk_register: unknown,
+): DpiaEnforcementAnnotation[] {
+  const rows: Record<string, unknown>[] = Array.isArray(precedents)
+    ? precedents.filter((p): p is Record<string, unknown> => !!p && typeof p === "object")
+    : [];
+  const register: RiskRegisterEntry[] = Array.isArray(risk_register)
+    ? (risk_register as RiskRegisterEntry[]).filter((r) => !!r && typeof r === "object")
+    : [];
+  if (rows.length === 0 || register.length === 0) return [];
+
+  const out: DpiaEnforcementAnnotation[] = [];
+  for (const p of rows) {
+    const id = precedentId(p);
+    const summary = precedentSummary(p);
+    if (!id || !summary) continue; // listed, never force-matched
+
+    let hit: { risk: RiskRegisterEntry; type: DpiaEnforcementMatchType; label: string } | null = null;
+
+    // 1. Provision overlap — the precedent's own provisions vs the risk row's citation.
+    const pArts = new Set(precedentArticleNumbers(p));
+    if (pArts.size > 0) {
+      for (const r of register) {
+        const shared = citationArticleNumbers(r.citation).find((n) => pArts.has(n));
+        if (shared) {
+          hit = { risk: r, type: "provision", label: `Article ${shared}` };
+          break;
+        }
+      }
+    }
+
+    // 2. Category overlap — corpus themes vs the register row's risk_id.
+    if (!hit) {
+      for (const theme of ENFORCEMENT_CATEGORY_THEMES) {
+        if (!theme.matchesPrecedent(p)) continue;
+        const r = register.find((x) => theme.risk_id.test(String(x.risk_id ?? "")));
+        if (r) {
+          hit = { risk: r, type: "category", label: theme.label };
+          break;
+        }
+      }
+    }
+
+    if (!hit) continue; // no overlap → carried without an annotation
+
+    out.push({
+      enforcement_action_id: id,
+      risk_id: String(hit.risk.risk_id ?? ""),
+      risk_label: String(hit.risk.risk_label ?? ""),
+      match_type: hit.type,
+      match_label: hit.label,
+      relevance:
+        `This action concerned ${summary}; it bears on ${hit.risk.risk_label} because both involve ${hit.label}.`,
+      precedent_significance:
+        typeof p.precedent_significance === "number" ? p.precedent_significance : null,
+      rule_id: "dpia_enforcement_annotations_v1",
+    });
+  }
+  return out;
+}
+
+/**
+ * PROMPT 9 — single writer for report.enforcement_annotations. Reads the
+ * precedents already attached to the report by the shared-context stage
+ * (the corpus fetch is untouched by unit retirement) and the FINAL register.
+ */
+export function attachEnforcementAnnotations(
+  report: Record<string, unknown>,
+): { attached: number; precedents: number } {
+  const precedents = Array.isArray(report.enforcement_precedents) ? report.enforcement_precedents : [];
+  const annotations = buildEnforcementAnnotations(precedents, report.risk_register);
+  report.enforcement_annotations = annotations;
+  return { attached: annotations.length, precedents: precedents.length };
 }
