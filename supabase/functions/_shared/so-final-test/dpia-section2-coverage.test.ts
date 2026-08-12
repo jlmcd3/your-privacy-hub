@@ -202,8 +202,14 @@ Deno.test("s2: tier-3 surfaces never emit more rows than the record supports", (
   assertEquals(c.measures_article5.length, 1);
   assertEquals(c.measures_rights.length, 1);
   assertStringIncludes(c.measures_rights[0].record_words, "Requests arrive through the patient portal");
-  assertEquals(c.measures_article5[0].status, "record_insufficient");
-  assertEquals(c.measures_rights[0].status, "record_insufficient");
+  // PROMPT 10B(2) — present-but-unstructured is credit-first: analysed, with a
+  // completeness residual and no ask.
+  assertEquals(c.measures_article5[0].status, "analysed");
+  assertEquals(c.measures_rights[0].status, "analysed");
+  assertEquals(c.measures_article5[0].information_needed, undefined);
+  assertEquals(c.measures_rights[0].information_needed, undefined);
+  assertStringIncludes(String(c.measures_article5[0].residual_note), "per-principle breakdown");
+  assertStringIncludes(String(c.measures_rights[0].residual_note), "per-right breakdown");
 
   const thin = coverage({
     data_quality_measures: "",
@@ -215,6 +221,11 @@ Deno.test("s2: tier-3 surfaces never emit more rows than the record supports", (
   assertEquals(thin.measures_article5.length, 1);
   assertEquals(thin.measures_rights.length, 1);
   assertEquals(thin.measures_rights[0].record_words, "");
+  // ABSENT source → the ratified 8C ask stands and remains ledger-bound.
+  assertEquals(thin.measures_article5[0].status, "record_insufficient");
+  assertEquals(thin.measures_rights[0].status, "record_insufficient");
+  assertEquals(thin.measures_article5[0].residual_note, undefined);
+  assertEquals(thin.measures_rights[0].residual_note, undefined);
 });
 
 Deno.test("s2: intake_structure_recommendations is internal and names contract keys", () => {
