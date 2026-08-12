@@ -1562,16 +1562,22 @@ export function usedNames(intakes: any[]): string[] {
 // call, checking `deadlineAt` BETWEEN calls. Returns "deadline" with the
 // partial progress when the isolate budget is exhausted — the caller persists
 // it and self-reinvokes.
-async function generateValidatedIntakesChunked(
+export async function generateValidatedIntakesChunked(
   tool: string,
   count: number,
   prior: IntakeGenProgress,
   ctx: {
     deadlineAt: number;
     onScenario?: (done: number, total: number, secs: number, ok: boolean) => Promise<void>;
+    // Test seams — production leaves these undefined.
+    _generate?: (tool: string, n: number, extraGuidance?: string) => Promise<any[]>;
+    _screen?: (tool: string, item: any) => Promise<{ ok: true; intake: any } | { ok: false; reason: string }>;
+    _now?: () => number;
   },
 ): Promise<{ progress: IntakeGenProgress; status: "complete" | "deadline" }> {
-  const { lintFixture } = await import("./_local/quality/fixture-lint.ts");
+  const now = ctx._now ?? (() => Date.now());
+  const genOne = ctx._generate ?? generateIntakes;
+  const { lintFixture } = ctx._screen ? { lintFixture: (() => null) as any } : await import("./_local/quality/fixture-lint.ts");
   const progress: IntakeGenProgress = {
     accepted: [...(prior.accepted ?? [])],
     rejected: [...(prior.rejected ?? [])],
