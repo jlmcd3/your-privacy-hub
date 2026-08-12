@@ -42,6 +42,8 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
  * template does not match, and boilerplate that is not a registered template
  * passes straight through.
  */
+import { DPIA_ASK_LABELS } from "../ltp/dpia-ask-labels.ts";
+
 export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string[]>> =
   Object.freeze({
     // composeRiskBody — per-risk scoring head (rules 1 and 4). PROMPT 8D bytes.
@@ -112,20 +114,36 @@ export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string
       "The company's account above covers this ground",
       "would complete the table but no determination in this assessment turns on it",
     ],
-    // PROMPT 9A — the ratified compact ask labels. A finding that quotes the
-    // label text of an open point is quoting a pinned registry entry, not
-    // pipeline boilerplate.
-    tmpl_ask_labels: [
-      "which completes",
-    ],
+    // PROMPT 9A — the R4 scope suffixes, ratified with the label registry.
     tmpl_ask_label_scope_two: [
       "for both the primary and the secondary use",
     ],
     tmpl_ask_label_scope_many: [
       "operations named in this assessment",
     ],
+    // PROMPT 9A — one entry per ratified compact ask label (`tmpl_ask_label_<id>`),
+    // derived from the pinned registry so the calibrated spans can never drift
+    // from the label bytes. Slots are cut out; the fixed prose around them is
+    // what a grader finding would quote.
+    ...askLabelSpans(),
 
   });
+
+/**
+ * PROMPT 9A — the fixed (slot-free) segments of every ratified ask label.
+ * A finding matches only when it quotes ALL of a label's fixed segments.
+ */
+function askLabelSpans(): Record<string, readonly string[]> {
+  const out: Record<string, readonly string[]> = {};
+  for (const [id, template] of Object.entries(DPIA_ASK_LABELS)) {
+    const spans = template
+      .split(/\{[a-z_]+\}/gu)
+      .map((x) => x.replace(/\s+/gu, " ").trim())
+      .filter((x) => x.length > 8);
+    if (spans.length > 0) out[`tmpl_ask_label_${id}`] = Object.freeze(spans);
+  }
+  return out;
+}
 
 const norm = (s: string) => String(s ?? "").replace(/\s+/g, " ").trim();
 
