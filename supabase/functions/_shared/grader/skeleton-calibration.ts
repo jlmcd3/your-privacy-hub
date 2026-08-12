@@ -112,6 +112,18 @@ export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string
       "The company's account above covers this ground",
       "would complete the table but no determination in this assessment turns on it",
     ],
+    // PROMPT 9A — the ratified compact ask labels. A finding that quotes the
+    // label text of an open point is quoting a pinned registry entry, not
+    // pipeline boilerplate.
+    tmpl_ask_labels: [
+      "which completes",
+    ],
+    tmpl_ask_label_scope_two: [
+      "for both the primary and the secondary use",
+    ],
+    tmpl_ask_label_scope_many: [
+      "operations named in this assessment",
+    ],
 
   });
 
