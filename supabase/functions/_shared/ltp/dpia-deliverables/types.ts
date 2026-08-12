@@ -401,6 +401,12 @@ export interface DpiaCoverageRow {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /**
+   * PROMPT 10B(2) — credit-first residual. Set when the source field IS
+   * supplied but unstructured: the row is analysed, no gap-ledger entry is
+   * raised, and this fixed note records the completeness residual.
+   */
+  readonly residual_note?: string;
   readonly source_field: string;
 }
 
