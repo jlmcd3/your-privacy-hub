@@ -6,32 +6,12 @@ import {
   screenIntake,
 } from "../../../supabase/functions/run-quality-batch/index.ts";
 
+import { DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
+
 // A contract-valid dpia intake, so the lint path (not contract validation) is
 // what the repair assertions exercise.
 function validIntake(over: Record<string, unknown> = {}): Record<string, unknown> {
-  return {
-    organization_name: "Britannia Mutual",
-    processing_activity_name: "Workforce sentiment analytics",
-    purpose: "To understand how staff experience organisational change.",
-    description: "Weekly sentiment scoring of internal survey free-text.",
-    data_categories: ["Contact details", "Employment data"],
-    data_subjects: "Employees",
-    volume_frequency: "About 3,000 employees, weekly.",
-    jurisdictions: ["UK (UK GDPR)"],
-    legal_basis_proposed: "Legitimate interests (Art. 6(1)(f))",
-    necessity_proportionality: "Only free-text survey responses are scored.",
-    retention_period: "12 months from collection",
-    data_minimisation_justification: "Only the survey text is processed.",
-    data_quality_measures: "Survey exports are reconciled weekly.",
-    data_subject_rights_mechanisms: "Requests arrive through the HR portal.",
-    dp_by_design_measures: "Pseudonymisation at ingest.",
-    existing_safeguards: ["Encryption at rest", "Access controls"],
-    third_party_processors: ["Acme Cloud"],
-    processor_obligations: "Processing only on documented instructions.",
-    transfer_flows: [],
-    secondary_uses: "None",
-    ...over,
-  };
+  return { ...(DPIA_GOLDEN[0].intake as Record<string, unknown>), ...over };
 }
 
 Deno.test("9C item 3: the repair prompt carries the rejected intake verbatim", async () => {
