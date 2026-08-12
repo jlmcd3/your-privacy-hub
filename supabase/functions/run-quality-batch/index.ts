@@ -1518,7 +1518,7 @@ export async function screenIntake(
         retryGuidance = retryGuidance ? `${retryGuidance}\n\n${fb}` : fb;
       }
       retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
-      const retry = await generateIntakes(tool, 1, retryGuidance);
+      const retry = await generateIntakes_(tool, 1, retryGuidance);
       const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
       if (relint) return { ok: false, reason: `lint: ${linted.reason}; retry: ${(relint as any).reason ?? "reject"}` };
       candidate = retry[0];
@@ -1529,9 +1529,11 @@ export async function screenIntake(
 
   const r = validateIntake(tool, candidate);
   if (r.ok) return { ok: true, intake: candidate };
-  console.warn(`[validateIntake] ${tool}: ${r.reason} — regenerating once`);
+  console.warn(`[validateIntake] ${tool}: ${r.reason} — repairing once`);
   try {
-    const retry = await generateIntakes(tool, 1, extraGuidance);
+    // PROMPT 9C item 3 — repair, not regenerate.
+    const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with the listed facts added; change nothing else. Every field not named above must come back byte-identical.\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
+    const retry = await generateIntakes_(tool, 1, repairGuidance);
     const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
     if (r2.ok) return { ok: true, intake: retry[0] };
     console.warn(`intake rejected (${tool}): ${r2.reason}`);
