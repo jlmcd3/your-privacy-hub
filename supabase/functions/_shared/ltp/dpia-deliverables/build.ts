@@ -12,8 +12,8 @@
  * out of art36_consultation.why into .exposure_note (Item 308 pattern).
  */
 import { ANCHOR_KEYS, DPIA_RISK_SPECS, DPIA_SAFEGUARD_SPECS, row, type RiskFacts } from "./elements.ts";
-import { transferMechanism, type TransferFlow } from "../../../../_shared/dpia-jurisdiction-registry.ts";
-import { spliceVerbatim } from "../../../../_shared/ltp/verbatim-splice.ts";
+import { transferMechanism, type TransferFlow } from "../../dpia-jurisdiction-registry.ts";
+import { spliceVerbatim } from "../verbatim-splice.ts";
 import { attachMinimalUnitSurfaces } from "./minimal-units.ts";
 import type {
   AlternativeConsidered,
@@ -46,7 +46,7 @@ import type {
   RiskRegisterEntry,
   DpiaEnforcementAnnotation,
   DpiaEnforcementMatchType,
-} from "../../../../_shared/ltp/dpia-deliverables/types.ts";
+} from "./types.ts";
 
 export const DPIA_DELIVERABLES_VERSION =
   "dpia-analytic-deliverables-2026-08-01-wp248";

@@ -26,8 +26,8 @@
 import {
   dataSubjectsViewsSlot,
   dpoSentence,
-} from "../../../../_shared/ltp/dpia-skeleton-assemble.ts";
-import type { DpiaDecision, DpiaDetermination } from "../../../../_shared/ltp/dpia-deliverables/types.ts";
+} from "../dpia-skeleton-assemble.ts";
+import type { DpiaDecision, DpiaDetermination } from "./types.ts";
 
 export const DPIA_MINIMAL_UNITS_VERSION = "dpia-minimal-unit-surfaces-2026-08-12-prompt10";
 
