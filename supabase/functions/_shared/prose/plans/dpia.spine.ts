@@ -57,13 +57,22 @@ export const DPIA_SKELETON_CONTENT_HASH_V3 =
   "cf54ee9924e728e059aeeb097c00bcbcd71a011fe67d24541a1aafcf5a467421";
 
 /**
- * v4 SPINE HASH — SHA-256 over the ratified v4 fixed prose: every `skeleton`
- * block's `text` in DPIA_SKELETON_SECTIONS order, joined with "\n". This is the
- * byte-pin the encode-time conformance check reads. Recomputed and re-ratified
- * whenever a sentence changes; a drift is a HARD STOP, not a fix-up.
+ * v4 SPINE HASH — RETAINED FOR THE AUDIT TRAIL ONLY. v4's fixed prose was
+ * superseded by the CEO-ratified v4.1 revision of 2026-08-12.
+ */
+export const DPIA_SKELETON_CONTENT_HASH_V4 =
+  "011f9f425d4cc275bdf023a97be89cafa46d9b561d0c5ca24e7957426d411cae";
+
+/**
+ * v4.1 SPINE HASH — SHA-256 over the ratified v4.1 fixed prose: every
+ * `skeleton` block's `text` in DPIA_SKELETON_SECTIONS order, joined with "\n"
+ * (16 blocks). This is the byte-pin the encode-time conformance check reads.
+ * Recomputed and re-ratified whenever a sentence changes; a drift is a HARD
+ * STOP, not a fix-up.
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "011f9f425d4cc275bdf023a97be89cafa46d9b561d0c5ca24e7957426d411cae";
+  "5e538c3c50a0d8098acdffd9067166d92cb343da7f1b117158df9f7d66a4d7b2";
+
 
 export const DPIA_SKELETON_TITLE = "DATA PROTECTION IMPACT ASSESSMENT";
 export const DPIA_SKELETON_SUBTITLE = "Prepared under Article 35 GDPR - {name}, for {organizationName}";
