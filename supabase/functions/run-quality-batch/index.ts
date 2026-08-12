@@ -1614,7 +1614,7 @@ export async function generateValidatedIntakesChunked(
     }
     const screened = ctx._screen
       ? await ctx._screen(tool, item)
-      : await screenIntake(tool, item, lintFixture as any, extraGuidance);
+      : await screenIntake(tool, item, ((x: any) => lintFixtureForTool(tool, x)) as any, extraGuidance);
     if (screened.ok) progress.accepted.push(screened.intake);
     else progress.rejected.push({ reason: screened.reason });
     await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok);

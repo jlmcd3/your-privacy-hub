@@ -96,3 +96,61 @@ function scanString(s: string): { reason: string } | null {
   }
   return null;
 }
+
+// PROMPT 8H item 1(b) — TOOL-AWARE STRUCTURED-SHAPE SCREEN.
+//
+// The contract render pins the inner record keys of dpia's structured arrays
+// (alternatives_considered, transfer_flows). Model drift must FAIL validation
+// rather than flow into a batch, so the shape is enforced here too.
+export function lintDpiaStructuredShapes(intake: unknown): LintHit | null {
+  const o = (intake ?? {}) as Record<string, unknown>;
+
+  const alts = o["alternatives_considered"];
+  if (Array.isArray(alts)) {
+    for (let i = 0; i < alts.length; i++) {
+      const it = alts[i];
+      if (it === null || typeof it !== "object" || Array.isArray(it)) {
+        return { reason: "alternatives_considered item is not a record", path: `$.alternatives_considered[${i}]` };
+      }
+      const r = it as Record<string, unknown>;
+      const v = r["rejection_reason"];
+      if (typeof v !== "string" || v.trim() === "") {
+        return {
+          reason: "alternatives_considered item missing rejection_reason (contract shape drift)",
+          path: `$.alternatives_considered[${i}]`,
+          sample: JSON.stringify(r).slice(0, 120),
+        };
+      }
+    }
+  }
+
+  const flows = o["transfer_flows"];
+  if (Array.isArray(flows)) {
+    for (let i = 0; i < flows.length; i++) {
+      const it = flows[i];
+      if (it === null || typeof it !== "object" || Array.isArray(it)) {
+        return { reason: "transfer_flows item is not a record", path: `$.transfer_flows[${i}]` };
+      }
+      const r = it as Record<string, unknown>;
+      const v = r["destination_country"];
+      if (typeof v !== "string" || v.trim() === "") {
+        return {
+          reason: "transfer_flows item missing destination_country (contract shape drift)",
+          path: `$.transfer_flows[${i}]`,
+          sample: JSON.stringify(r).slice(0, 120),
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+/** Tool-aware entry point: the generic collision screen plus any per-tool
+ *  structured-shape screens. */
+export function lintFixtureForTool(tool: string, intake: unknown): LintHit | null {
+  const generic = lintFixture(intake);
+  if (generic) return generic;
+  if (tool === "dpia") return lintDpiaStructuredShapes(intake);
+  return null;
+}
