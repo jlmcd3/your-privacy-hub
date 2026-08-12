@@ -90,21 +90,56 @@ const DPO_AUTHORITY_RE = [
   "article ?36",
 ].join("|");
 
+// PROMPT 8J item 2 (CEO-ruled 2026-08-12) — NEGATION GUARD.
+// Evidence: run c3762c61 doc 4 — dpo_advice said the residual risks "do not
+// meet the threshold for prior consultation with the ICO", yet the flag went
+// true and the ratified disclosure sentence asserted the opposite of the
+// record. The flag now requires a POSITIVE recommendation stance governing the
+// consult-verb + authority match, and is false where that match sits under
+// negation or threshold-not-met language. The disclosure sentence is untouched.
+const DPO_STANCE_RE =
+  /\b(recommend\w*|advis\w*|should|must|ought|urge\w*|propos\w*|require[sd]?|intends? to|will)\b/i;
+const DPO_NEGATION_RE = new RegExp(
+  [
+    "\\b(?:do|does|did|would|will|could|is|are|was|were|has|have)\\s+not\\b",
+    "\\bdon't\\b|\\bdoesn't\\b|\\bdidn't\\b|\\bwouldn't\\b|\\bwon't\\b|\\bisn't\\b|\\baren't\\b",
+    "\\bnot\\s+(?:met|meet|required|necessary|needed|recommended|warranted|triggered)\\b",
+    "\\bno\\s+(?:need|requirement|basis)\\b",
+    "\\bfall(?:s)?\\s+(?:below|short)\\b",
+    "\\bbelow\\s+the\\s+threshold\\b",
+    "\\bdeclin\\w*\\s+to\\s+recommend\\b",
+    "\\badvis\\w*\\s+against\\b",
+    "\\brecommend\\w*\\s+against\\b",
+    "\\bagainst\\s+consult\\w*\\b",
+    "\\bunnecessary\\b",
+  ].join("|"),
+  "i",
+);
+
 export function dpoRecommendsConsultation(advice: string): boolean {
   const s = String(advice ?? "");
   if (!s.trim()) return false;
-  const re = new RegExp(
+  const fwd = new RegExp(
     `\\b(consult|refer|escalat|notif)\\w*\\b[^.]{0,120}\\b(?:${DPO_AUTHORITY_RE})\\b`,
     "i",
   );
-  if (re.test(s)) return true;
   // Reverse order: "the Garante should be consulted before go-live".
   const rev = new RegExp(
     `\\b(?:${DPO_AUTHORITY_RE})\\b[^.]{0,120}\\b(consult|refer|escalat|notif)\\w*\\b`,
     "i",
   );
-  return rev.test(s);
+  // Sentence-scoped: the stance and the negation are read from the same
+  // clause that carries the consult + authority match.
+  for (const sentence of s.split(/(?<=[.;!?])\s+|\n+/)) {
+    if (!sentence.trim()) continue;
+    if (!fwd.test(sentence) && !rev.test(sentence)) continue;
+    if (DPO_NEGATION_RE.test(sentence)) continue;
+    if (!DPO_STANCE_RE.test(sentence)) continue;
+    return true;
+  }
+  return false;
 }
+
 
 
 const NOT_STATED = "not stated on the record";
@@ -120,6 +155,35 @@ const IMPACT_LEXICON: readonly RegExp[] = [
   /\baffects? (the )?(data subjects?|individuals?|employees?|patients?|customers?)\b/i,
   /\bloss of control\b/i,
 ];
+
+/**
+ * PROMPT 8J item 3 (CEO-ruled 2026-08-12) — IMPACT-SIDE READER SCOPE.
+ * Evidence: run c3762c61 doc 3 — Section 3 said "the impact on the data
+ * subjects is not described on the record" while the intake described impact
+ * in residual_risks and data_subjects_views. The impact-described test now
+ * reads those fields and the potential-harm content too. Verdict logic and
+ * every sentence's bytes are unchanged; only the evidence widens.
+ */
+const IMPACT_SOURCE_FIELDS: readonly string[] = [
+  "necessity_proportionality",
+  "data_minimisation_justification",
+  "data_subjects_views",
+  "residual_risks",
+  "potential_harms",
+  "potential_harm_detail",
+  "risks_to_individuals",
+];
+
+/** The intake segments that actually argue the impact side, joined. */
+function impactEvidence(intake: unknown): string {
+  const segs: string[] = [];
+  for (const f of IMPACT_SOURCE_FIELDS) {
+    const v = get(intake, f);
+    const text = Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean).join(" ") : str(v);
+    if (text && matches(text, IMPACT_LEXICON)) segs.push(text);
+  }
+  return segs.join(" ");
+}
 
 /** Language that argues the BENEFIT side of the balance. */
 const BENEFIT_LEXICON: readonly RegExp[] = [
@@ -302,21 +366,45 @@ export function buildOperations(intake: unknown): Operation[] {
   return ops;
 }
 
-/** Alternatives the record says were considered, grouped by operation id. */
+/**
+ * Alternatives the record says were considered, grouped by operation id.
+ *
+ * PROMPT 8J item 1 (CEO-ruled 2026-08-12) — AN ALTERNATIVE IS NEVER DROPPED.
+ * Evidence: run c3762c61 docs 3–5 — every alternatives_considered entry was
+ * silently dropped because the free-text processing_operation never
+ * byte-equals the derived operation_label, producing false "records no
+ * alternative means that were considered and rejected" findings and their
+ * draft_incomplete / sign-off cascades. Routing order: exact label / id /
+ * "primary" (unchanged), then token overlap against the SECONDARY operation's
+ * label (gapOverlap, 0.6, and it must beat the primary label), then primary.
+ */
 function alternativesFor(intake: unknown, op: Operation): AlternativeConsidered[] {
   const raw = get(intake, "alternatives_considered");
   if (!Array.isArray(raw)) return [];
+  const ops = buildOperations(intake);
+  const secondary = ops.find((o) => o.operation_id === "op_secondary");
+  const primary = ops[0];
+
+  /** The operation id this entry belongs to — always one of the ops. */
+  const routeTo = (target: string): string => {
+    if (!target) return "op_primary";
+    for (const o of ops) {
+      if (target === o.operation_label || target === o.operation_id) return o.operation_id;
+    }
+    if (/primary/i.test(target)) return "op_primary";
+    if (secondary) {
+      const sec = gapOverlap(target, secondary.operation_label);
+      const pri = gapOverlap(target, primary.operation_label);
+      if (sec >= 0.6 && sec > pri) return "op_secondary";
+    }
+    return "op_primary";
+  };
+
   const out: AlternativeConsidered[] = [];
   for (const e of raw) {
     if (!e || typeof e !== "object") continue;
     const rec = e as Record<string, unknown>;
-    const target = str(rec.processing_operation);
-    const belongs = target
-      ? target === op.operation_label ||
-        target === op.operation_id ||
-        (op.operation_id === "op_primary" && /primary/i.test(target))
-      : op.operation_id === "op_primary";
-    if (!belongs) continue;
+    if (routeTo(str(rec.processing_operation)) !== op.operation_id) continue;
     const alternative = str(rec.alternative);
     const rejection_reason = str(rec.rejection_reason);
     if (!alternative) continue;
@@ -419,7 +507,9 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
 
   return buildOperations(intake).map((op) => {
     const benefitSide = op.purpose_text || (matches(combined, BENEFIT_LEXICON) ? combined : "");
-    const impactSide = matches(combined, IMPACT_LEXICON) ? combined : "";
+    // PROMPT 8J item 3 — widened impact evidence (fallback only; the existing
+    // narrative + minimisation reading is byte-preserved where it matches).
+    const impactSide = matches(combined, IMPACT_LEXICON) ? combined : impactEvidence(intake);
     const argued_both_directions = benefitSide.length > 0 && impactSide.length > 0;
 
     let verdict: ProportionalityFinding["verdict"];
@@ -1049,7 +1139,10 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
 
     // ── Art. 6(1)(f): the three-part test, run as a decision tree ──────
     const alternatives = alternativesFor(intake, op);
-    const impactStated = matches(combined, IMPACT_LEXICON);
+    // PROMPT 8J item 3 — the impact side may be described anywhere the record
+    // argues it (views sought, residual risks, potential harms), not only in
+    // necessity_proportionality + data_minimisation_justification.
+    const impactStated = matches(combined, IMPACT_LEXICON) || impactEvidence(intake).length > 0;
     const vulnerable =
       VULNERABLE_SUBJECTS.some((re) => re.test(subjects)) ||
       categories.includes("Children's data");
