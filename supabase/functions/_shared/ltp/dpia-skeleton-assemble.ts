@@ -287,7 +287,7 @@ export function descriptionSlots(
  * PROMPT 8 — Section 5. The spine reads "the company has recorded:
  * {dataSubjectsViews}". Absence is stated honestly rather than left blank.
  */
-function dataSubjectsViewsSlot(intake: Bag): string {
+export function dataSubjectsViewsSlot(intake: Bag): string {
   const views = spliceVerbatim(s(intake.data_subjects_views));
   if (views) return noStop(views);
   const sought = s(intake.data_subjects_views_sought);
@@ -297,7 +297,7 @@ function dataSubjectsViewsSlot(intake: Bag): string {
   return "no views of data subjects or their representatives";
 }
 
-function dpoSentence(intake: Bag): string {
+export function dpoSentence(intake: Bag): string {
   const advice = s(intake.dpo_advice);
   const info = s(intake.dpo_info);
   if (advice) return `The company has recorded the advice of its data protection officer as follows: ${noStop(advice)}`;
