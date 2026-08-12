@@ -139,7 +139,15 @@ export const dpiaFrameworkContract: IntakeContract = {
     // PERFORMED without the alternatives the controller actually considered
     // and rejected. Array of { processing_operation, alternative,
     // rejection_reason } records (DPIAFramework.tsx repeater).
-    { key: "alternatives_considered", kind: "structured", required: "optional" },
+    // PROMPT 8H item 1(a) — inner record shape is pinned; run #182 drifted to
+    // {alternative, reason_rejected} with no processing_operation.
+    { key: "alternatives_considered", kind: "structured", required: "optional",
+      itemKeys: [
+        { key: "processing_operation", kind: "text" },
+        { key: "alternative", kind: "text" },
+        { key: "rejection_reason", kind: "narrative" },
+      ],
+      shapeNote: "NEVER emit reason_rejected; the key is rejection_reason." },
 
     // INTAKE-4d — CEO-approved addition. Residual risk left after the measures
     // recorded above (Art. 35(7)(d)). Optional so legacy rows keep validating.
@@ -163,7 +171,14 @@ export const dpiaFrameworkContract: IntakeContract = {
     // ITEM 380 r5c — emptyIsAnswer. DPIAFramework.tsx:752-756 presents the
     // transfer-flow repeater unconditionally; zero rows states that
     // "no cross-border transfer is on the record".
-    { key: "transfer_flows", kind: "structured", required: "optional", emptyIsAnswer: true },
+    { key: "transfer_flows", kind: "structured", required: "optional", emptyIsAnswer: true,
+      itemKeys: [
+        { key: "recipient", kind: "text" },
+        { key: "destination_country", kind: "text", note: "ISO-2, e.g. \"DE\", \"US\"" },
+        { key: "transfer_mechanism", kind: "text" },
+        { key: "notes", kind: "text" },
+      ],
+      shapeNote: "Emit an EMPTY ARRAY where no cross-border flow exists." },
     { key: "retention_record_type", kind: "text", required: "optional" },
 
     // System key

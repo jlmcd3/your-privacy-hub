@@ -29,6 +29,13 @@ function renderField(f: IntakeField): string {
   if (f.requiredWhen) {
     bits.push(`requiredWhen: ${f.requiredWhen}`);
   }
+  if (f.kind === "structured" && f.itemKeys && f.itemKeys.length) {
+    const keys = f.itemKeys
+      .map(k => `${k.key} (${k.kind}${k.note ? `, ${k.note}` : ""})`)
+      .join(", ");
+    bits.push(`array of records with EXACTLY these keys: ${keys} — no other keys, no renamed keys`);
+    if (f.shapeNote) bits.push(f.shapeNote);
+  }
   if (f.hiddenValue !== undefined) {
     bits.push(`hiddenValue when gated off: ${JSON.stringify(f.hiddenValue)}`);
   }
