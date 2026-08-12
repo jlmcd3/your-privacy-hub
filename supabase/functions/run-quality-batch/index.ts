@@ -1618,7 +1618,13 @@ export async function generateValidatedIntakesChunked(
 
     if (screened.ok) progress.accepted.push(screened.intake);
     else progress.rejected.push({ reason: screened.reason });
-    await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok);
+    await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok, screened.ok ? undefined : screened.reason);
+    // PROMPT 9C item 4 — FAIL FAST on the perfect variant. One scenario that
+    // exhausts its single retry is enough evidence; do not spend another two
+    // model calls rediscovering the same deficiency list.
+    if (!screened.ok && ctx.variant === "perfect") {
+      return { progress, status: "complete" };
+    }
   }
 
   return { progress, status: "complete" };
