@@ -2569,6 +2569,40 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.warn("[run-dpia-framework] ITEM-310 deliverables failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── PROMPT 9 (2026-08-12) — DETERMINISTIC ENFORCEMENT ANNOTATIONS ──────
+    // Replaces u4's model-selected annotations[]. The enforcement corpus is
+    // preserved untouched (reportData.enforcement_precedents / enforcement_meta
+    // are attached by the shared-context stage and the flag does not reach
+    // them); only the RELEVANCE LINK becomes deterministic. Fail-open.
+    try {
+      const { attachEnforcementAnnotations } = await import("./_local/ltp/dpia-deliverables/build.ts");
+      const emeta = attachEnforcementAnnotations(reportData as Record<string, unknown>);
+      const _e = ((reportData as any)._meta ??= {});
+      (_e.internal ??= {}).dpia_enforcement_annotations = emeta;
+      // Legacy compatibility: AnnotationCallout reads report.annotations
+      // ({ enforcement_action_id, relevance }). Fill it only when the retired
+      // u4 left it empty, so pre-flag documents keep their own annotations.
+      const legacy = (reportData as any).annotations;
+      if (!Array.isArray(legacy) || legacy.length === 0) {
+        (reportData as any).annotations = ((reportData as any).enforcement_annotations ?? []).map(
+          (a: any) => ({ enforcement_action_id: a.enforcement_action_id, relevance: a.relevance }),
+        );
+      }
+      console.log(JSON.stringify({ evt: "dpia_enforcement_annotations", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...emeta }));
+    } catch (e) {
+      console.warn("[run-dpia-framework] enforcement annotations failed (non-fatal):", (e as Error)?.message);
+    }
+
+    // PROMPT 9 — per-run record of the retirement flag state.
+    try {
+      const _f = ((reportData as any)._meta ??= {});
+      (_f.internal ??= {}).dpia_units_minimal = {
+        enabled: DPIA_UNITS_MINIMAL,
+        retired_units: DPIA_UNITS_MINIMAL ? DPIA_RETIRED_UNITS : [],
+      };
+      console.log(JSON.stringify({ evt: "dpia_units_minimal", fn: "run-dpia-framework", dpia_id, enabled: DPIA_UNITS_MINIMAL }));
+    } catch { /* telemetry only */ }
+
     // ── DPIA UPGRADE ITEM 1 — THE TWO STRUCTURAL FIELDS ────────────────
     // section_0_overview.assessment_team (EDPB template v1.0 § 0.5 para 6) and
     // section_6_conclusion.validation_approval (§ 0.5 para 10). Single writer,
@@ -2841,6 +2875,10 @@ async function runStitch(dpia_id: string): Promise<void> {
       const _rc = ((reportData as any)._meta ??= {});
       (_rc.internal ??= {}).dpia_risk_count_reconcile = rmeta;
       console.log(JSON.stringify({ evt: "dpia_risk_count_reconcile", fn: "run-dpia-framework", build_stamp: BUILD_STAMP, ...rmeta }));
+      // PROMPT 9 — re-link annotations against the FINAL register (a CSC pass
+      // may have pruned rows); same deterministic builder, no invented links.
+      const { attachEnforcementAnnotations: reAttach } = await import("./_local/ltp/dpia-deliverables/build.ts");
+      reAttach(reportData as Record<string, unknown>);
     } catch (e) {
       console.warn("[run-dpia-framework] risk-count reconcile failed (non-fatal):", (e as Error)?.message);
     }
