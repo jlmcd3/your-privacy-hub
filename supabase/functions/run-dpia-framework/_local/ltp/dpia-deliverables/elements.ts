@@ -138,7 +138,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
     source_template:
       "The record declares at least one transfer flow leaving the origin regime, so the level of protection depends on the Chapter V mechanism relied on.",
     mitigating_safeguards: ["Contractual restrictions", "Encryption in transit", "Encryption at rest"],
-    trigger: (f) => f.transferCount > 0,
+    trigger: (f) => f.transferLeavesRegime,
   },
   {
     risk_id: "r6_processor_chain",
