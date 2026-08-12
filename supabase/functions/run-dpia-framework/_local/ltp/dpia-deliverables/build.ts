@@ -642,6 +642,10 @@ export function buildArt36Consultation(
       ? `${proc.verbatim} the respective responsibilities of the controller, joint controllers and processors; the purposes and means of the intended processing; the measures and safeguards; the contact details of the data protection officer where applicable; and this data protection impact assessment.`
       : "Art. 36(3) applies only where a consultation is required; on this determination no consultation submission arises.",
     procedural_citation: proc.citation || cit(regime, "Art. 36(3)"),
+    // PROMPT 8E item 7 — DORMANT. Read only; no renderer consumes it and the
+    // determination above is untouched by it.
+    dpo_recommends_consultation: /\b(consult|refer|escalate)\w*\b[^.]{0,80}\b(supervisory authority|ico|commissioner|regulator|dpa)\b/i
+      .test(str(get(intake, "dpo_advice"))),
     status,
     ...(information_needed ? { information_needed } : {}),
   };
