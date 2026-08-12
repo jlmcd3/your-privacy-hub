@@ -74,13 +74,13 @@ Deno.test("branch a — consultation_required", () => {
   );
   assertEquals(d.determination, "consultation_required");
   assertEquals(d.rule_id, "dpia_decision_v1");
-  assertStringIncludes(d.why, "Art. 36(1)");
+  assertStringIncludes(d.why, "Article 36(1)");
   assertStringIncludes(d.why, "Unauthorised access to health records");
   assertEquals(d.conditions, []);
   assertEquals(d.blockers, []);
 });
 
-Deno.test("branch b — draft_incomplete on an undetermined residual band", () => {
+Deno.test("branch b — draft_incomplete on an undetermined remaining risk level", () => {
   const d = buildDecision(
     INTAKE,
     deliverables({
@@ -96,7 +96,7 @@ Deno.test("branch b — draft_incomplete on an undetermined residual band", () =
   );
   assertEquals(d.determination, "draft_incomplete");
   assertEquals(d.blockers, ["The measures actually applied against re-identification."]);
-  assertStringIncludes(d.why, "not yet capable of a sign-off determination");
+  assertStringIncludes(d.why, "cannot yet be determined");
 });
 
 Deno.test("branch c — conditionally_approved; missing measure becomes its own condition", () => {
@@ -126,7 +126,7 @@ Deno.test("branch d — approved", () => {
   );
   assertEquals(d.determination, "approved");
   assertEquals(d.conditions, []);
-  assertStringIncludes(d.why, "low or moderate residual band");
+  assertStringIncludes(d.why, "deemed low or moderate");
   // PROMPT 4 rider — ratified closing clause.
   assertStringIncludes(d.why, "no determination this assessment makes is left open");
 });
@@ -186,5 +186,6 @@ Deno.test("legacy report without `decision` still composes via the fallback", as
     { organization_name: "Acme GmbH", processing_activity_name: "Absence triage" } as Record<string, unknown>,
   );
   const text = JSON.stringify(out.document);
-  assertStringIncludes(text, "may not yet treat the processing as cleared");
+  // PROMPT 8D branch 13g: an empty register carries its own sentence.
+  assertStringIncludes(text, "no determination on whether the processing may proceed can rest on a register that is empty");
 });

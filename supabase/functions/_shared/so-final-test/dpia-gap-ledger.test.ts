@@ -196,8 +196,8 @@ Deno.test("reconciliation: note appears when the stated count differs from the r
   assert(note);
   assertEquals(note!.register_count, 3);
   assertEquals(note!.stated_count, 2);
-  assertStringIncludes(note!.note, "risk register carries 3 risks");
-  assertStringIncludes(note!.note, "describes 2");
+  assertStringIncludes(note!.note, "This assessment reviews 3 risks");
+  assertStringIncludes(note!.note, "The company self-identified 2 of these risks; this assessment surfaces 1 more");
 });
 
 Deno.test("reconciliation: nothing attached when the counts agree", () => {
