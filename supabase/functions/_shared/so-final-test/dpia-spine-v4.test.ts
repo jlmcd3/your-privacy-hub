@@ -1,4 +1,6 @@
-// PROMPT 8 (CEO-ratified 2026-08-11) — DPIA SPINE v4 conformance battery.
+// PROMPT 8B (CEO-ratified 2026-08-12) — DPIA SPINE v4.1 conformance battery.
+// v4.1 is a fixed-prose revision only: the byte-pin moves, the structure and the
+// slot inventory do not.
 //
 // Covers: the byte-pin over the ratified fixed prose, the section order against
 // the EDPB harmonised template, every table surface having a builder, the
@@ -12,6 +14,7 @@ import {
 import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import {
   DPIA_SKELETON_CONTENT_HASH,
+  DPIA_SKELETON_CONTENT_HASH_V4,
   DPIA_SKELETON_PINPOINTS,
   DPIA_SKELETON_SECTIONS,
   DPIA_SKELETON_TABLE_SURFACES,
@@ -40,32 +43,85 @@ const EDPB_ORDER = [
   "table_of_authorities",
 ];
 
-Deno.test("spine v4 — fixed prose is byte-pinned to the ratified hash", async () => {
+Deno.test("spine v4.1 — fixed prose is byte-pinned to the ratified hash", async () => {
   const text = DPIA_SKELETON_SECTIONS
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text))
     .join("\n");
   assertEquals(await sha256(text), DPIA_SKELETON_CONTENT_HASH);
 });
 
-Deno.test("spine v4 — sections follow the EDPB harmonised order", () => {
+Deno.test("spine v4.1 — the superseded v4 hash is retained for the audit trail", () => {
+  assertEquals(
+    DPIA_SKELETON_CONTENT_HASH_V4,
+    "011f9f425d4cc275bdf023a97be89cafa46d9b561d0c5ca24e7957426d411cae",
+  );
+  assert(DPIA_SKELETON_CONTENT_HASH !== DPIA_SKELETON_CONTENT_HASH_V4);
+});
+
+Deno.test("spine v4.1 — the slot inventory is identical to v4", () => {
+  const slots = DPIA_SKELETON_SECTIONS
+    .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text))
+    .flatMap((t) => [...t.matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)/g)].map((m) => m[1]))
+    .sort();
+  assertEquals(slots, [
+    "ART36_SENTENCE",
+    "DPO_ADVICE_SENTENCE",
+    "LAUNCH_CLAUSE",
+    "VERSION_CLAUSE",
+    "dataSubjectsViews",
+    "description",
+    "functionalDescription",
+    "natureScopeContext",
+    "organizationName",
+    "organizationName",
+    "organizationName",
+    "organizationName",
+    "organizationName",
+    "reasonsToConduct",
+    "supportingAssets",
+  ]);
+});
+
+Deno.test("spine v4.1 — the ratified wording edits are the shipped bytes", () => {
+  const fixed = DPIA_SKELETON_SECTIONS
+    .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text));
+  assertEquals(fixed.length, 16);
+  assertStringIncludes(fixed[0], "{organizationName} believes that this assessment may be required because");
+  assertStringIncludes(fixed[1], "that absence is noted rather than filled.");
+  assertStringIncludes(fixed[3], "reproduced as identified by the company.");
+  assertStringIncludes(fixed[4], "{organizationName} describes below:");
+  assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding against the company.");
+  assertStringIncludes(fixed[8], "Chapter V's conditions for such transfer are satisfied");
+  assertStringIncludes(fixed[9], "means that are less intrusive.");
+  assertStringIncludes(fixed[10], "The risks inherent in the processing's design \u2014 that is,");
+  assertStringIncludes(fixed[11], "in light of the protective or mitigating measures it identifies.");
+  assertStringIncludes(fixed[12], "the company states: {dataSubjectsViews");
+  assertStringIncludes(fixed[15], "could not determine from the company's answers");
+  // The v4 wording must be gone.
+  const all = fixed.join("\n");
+  assert(!all.includes("has indicated that this assessment is required"));
+  assert(!all.includes("the record does not carry the point"));
+});
+
+Deno.test("spine v4.1 — sections follow the EDPB harmonised order", () => {
   assertEquals(DPIA_SKELETON_SECTIONS.map((s) => s.id), EDPB_ORDER);
 });
 
-Deno.test("spine v4 — the retired v3 sections are gone", () => {
+Deno.test("spine v4.1 — the retired v3 sections are gone", () => {
   const ids = new Set(DPIA_SKELETON_SECTIONS.map((s) => s.id));
   for (const retired of ["the_processing", "lawfulness", "risks_and_measures", "consultation_and_signoff"]) {
     assert(!ids.has(retired), `retired v3 section still present: ${retired}`);
   }
 });
 
-Deno.test("spine v4 — every table surface has a builder", () => {
+Deno.test("spine v4.1 — every table surface has a builder", () => {
   const built = buildDpiaTablesBySurface({}, {});
   for (const surface of DPIA_SKELETON_TABLE_SURFACES) {
     assert(surface in built, `no builder for table surface ${surface}`);
   }
 });
 
-Deno.test("spine v4 — pinpoints carry only corpus keys, no literal statute text", () => {
+Deno.test("spine v4.1 — pinpoints carry only corpus keys, no literal statute text", () => {
   for (const p of DPIA_SKELETON_PINPOINTS) {
     assert(/^[a-z0-9-]+$/.test(p.corpus_key), `bad corpus key ${p.corpus_key}`);
     assert(p.citation.length < 40, `pinpoint citation looks like quoted text: ${p.citation}`);
@@ -141,7 +197,7 @@ Deno.test("keyed tables land on the spine's own table block indices", () => {
   }
 });
 
-Deno.test("assembly — re-homed composers land on their v4 blocks and tables render", () => {
+Deno.test("assembly — re-homed composers land on their v4.1 blocks and tables render", () => {
   const report = {
     decision: { determination: "approved", conditions: [], blockers: [], why: "Nothing is left open.", citation: "GDPR Art. 35" },
     art36_consultation: { determination: "consultation_not_required", why: "" },

@@ -24,3 +24,4 @@ Routing: React Router `<Link>` for internal. External links use `target="_blank"
 - [Ingestion Pipeline](mem://architecture/ingestion-pipeline) — Rate limits, translation rules, sanitization, data sources
 - [Database Schema](mem://architecture/database) — Key tables, constraints, environment IDs, and backfill logic
 - [Security & Cron](mem://architecture/security-and-cron) — RLS policies, edge function auth, scheduling constraints
+- [Spine ratification](mem://process/spine-ratification) — CEO ratification process for spine/fixed-prose changes; DPIA spine hash lineage
