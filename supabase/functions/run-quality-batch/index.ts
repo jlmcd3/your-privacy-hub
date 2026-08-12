@@ -2144,6 +2144,10 @@ type PartialState = {
   gptPostFilterDrops: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number };
   // QB-P14 item 4 — audit trail of every finding the post-filter suppressed.
   postFilterSuppressed: Array<{ doc_index: number; grader: "claude" | "gpt"; rule: string; check_id: string; evidence: string }>;
+  // PROMPT 8G — partial intake-generation progress, so a deadline-interrupted
+  // generation phase resumes at the next scenario in a fresh isolate.
+  intakeGen?: IntakeGenProgress;
+  intakeGenIsolates?: number;
 };
 
 function emptyState(): PartialState {
