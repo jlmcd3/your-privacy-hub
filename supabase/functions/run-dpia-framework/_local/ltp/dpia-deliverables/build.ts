@@ -156,6 +156,35 @@ const IMPACT_LEXICON: readonly RegExp[] = [
   /\bloss of control\b/i,
 ];
 
+/**
+ * PROMPT 8J item 3 (CEO-ruled 2026-08-12) — IMPACT-SIDE READER SCOPE.
+ * Evidence: run c3762c61 doc 3 — Section 3 said "the impact on the data
+ * subjects is not described on the record" while the intake described impact
+ * in residual_risks and data_subjects_views. The impact-described test now
+ * reads those fields and the potential-harm content too. Verdict logic and
+ * every sentence's bytes are unchanged; only the evidence widens.
+ */
+const IMPACT_SOURCE_FIELDS: readonly string[] = [
+  "necessity_proportionality",
+  "data_minimisation_justification",
+  "data_subjects_views",
+  "residual_risks",
+  "potential_harms",
+  "potential_harm_detail",
+  "risks_to_individuals",
+];
+
+/** The intake segments that actually argue the impact side, joined. */
+function impactEvidence(intake: unknown): string {
+  const segs: string[] = [];
+  for (const f of IMPACT_SOURCE_FIELDS) {
+    const v = get(intake, f);
+    const text = Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean).join(" ") : str(v);
+    if (text && matches(text, IMPACT_LEXICON)) segs.push(text);
+  }
+  return segs.join(" ");
+}
+
 /** Language that argues the BENEFIT side of the balance. */
 const BENEFIT_LEXICON: readonly RegExp[] = [
   /\bbenefit(s)?\b/i,
