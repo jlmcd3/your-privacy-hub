@@ -125,7 +125,7 @@ Deno.test("annotations: provision overlap links a precedent to a register row, f
     [{
       id: "ea-1",
       key_compliance_failure: "a failure to secure patient records",
-      provisions_normalized: ["gdpr:32"],
+      provisions_normalized: ["gdpr:35"],
       precedent_significance: 4,
     }],
     register,
@@ -135,8 +135,25 @@ Deno.test("annotations: provision overlap links a precedent to a register row, f
   assertEquals(anns[0].match_type, "provision");
   assertEquals(
     anns[0].relevance,
-    `This action concerned a failure to secure patient records; it bears on ${anns[0].risk_label} because both involve Article 32.`,
+    `This action concerned a failure to secure patient records; it bears on ${anns[0].risk_label} because both involve Article 35.`,
   );
+});
+
+Deno.test("annotations: category overlap links a security precedent when no provision matches", () => {
+  const register = buildRiskRegister(intake());
+  const anns = buildEnforcementAnnotations(
+    [{
+      id: "ea-sec",
+      key_compliance_failure: "a failure to secure patient records",
+      provisions_normalized: ["gdpr:32"],
+      breach_related: true,
+      precedent_significance: 4,
+    }],
+    register,
+  );
+  assertEquals(anns.length, 1);
+  assertEquals(anns[0].match_type, "category");
+  assertEquals(anns[0].match_label, "the security of processing");
 });
 
 Deno.test("annotations: a precedent with no overlap carries no annotation", () => {
