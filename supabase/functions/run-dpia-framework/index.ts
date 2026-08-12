@@ -722,6 +722,56 @@ console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 // One line to disable the whole critic → verifier → splicer pass.
 export const DPIA_REFINEMENT_ENABLED = true;
 
+// ── PROMPT 9 (2026-08-12) — CONFIG-GATED RETIREMENT OF u2/u3/u4 ─────────────
+// With the typed surfaces and skeleton tables live, raw u2 (section_2_analysis),
+// u3 (section_3_necessity_proportionality) and u4 (section_4_risk_management)
+// output has no remaining reader in the assembled skeleton document. This flag
+// stops generating them. Unlike DPIA_REFINEMENT_ENABLED (a module const) it is
+// env-driven so it can be flipped per-deploy without a code change.
+// DEFAULT: false. Flipping it on is a deploy-time decision after a soak batch.
+export const DPIA_UNITS_MINIMAL_DEFAULT = false;
+export const DPIA_UNITS_MINIMAL: boolean = (() => {
+  const raw = Deno.env.get("DPIA_UNITS_MINIMAL");
+  if (raw == null || raw.trim() === "") return DPIA_UNITS_MINIMAL_DEFAULT;
+  return /^(1|true|yes|on)$/i.test(raw.trim());
+})();
+
+export const DPIA_RETIRED_UNITS: readonly string[] = ["u2", "u3", "u4"];
+export const DPIA_RETIRED_UNIT_NOTE =
+  "Retired under DPIA_UNITS_MINIMAL: this section is composed from the typed deterministic surfaces (processing_inventory, section2_coverage, necessity_findings, proportionality, risk_register, legal_basis, decision) and the skeleton document, which have no remaining reader for raw unit output.";
+
+/** True only when the flag is on AND the unit is one of the retired three. */
+export function isRetiredUnit(unit: string): boolean {
+  return DPIA_UNITS_MINIMAL && DPIA_RETIRED_UNITS.includes(unit);
+}
+
+/** Typed stub written in place of a retired unit's keys, so downstream
+ *  walkers (refinement, csc, wire, emit-gate, boilerplate cap, citation-pair
+ *  verifier) never see `undefined`. */
+export function retiredUnitStubKeys(unit: string): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of (UNIT_KEYS[unit as UnitId] ?? [])) {
+    out[k] = { retired: true, note: DPIA_RETIRED_UNIT_NOTE };
+  }
+  return out;
+}
+
+/** Fresh-run staging entry for a unit, honouring the flag. Retired units are
+ *  instantly complete — no phantom pending states in the status machinery. */
+export function initialUnitState(unit: UnitId, base: "pending" | "blocked"): Record<string, unknown> {
+  if (isRetiredUnit(unit)) {
+    return {
+      status: "done",
+      retired: true,
+      keys: retiredUnitStubKeys(unit),
+      elapsed_ms: 0,
+      last_heartbeat_at: new Date().toISOString(),
+    };
+  }
+  return { status: base };
+}
+
+
 // ITEM 377 §2 — METERING. api_usage has no label/purpose column, so the two
 // refinement calls are attributed by `function_name` suffix
 // ("…:refine_critic" / "…:refine_verifier") and by `source_row_id` (dpia_id),
