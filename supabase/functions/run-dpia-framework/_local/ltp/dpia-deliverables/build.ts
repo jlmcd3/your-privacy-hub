@@ -1099,7 +1099,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       : `For "${op.operation_label}", the record does not support the ${unmet.join(" or the ")}. ` +
         (!purpose_test_met ? "State the interest pursued as an outcome. " : "") +
         (!necessity_test_met ? "Record each less intrusive means considered and the specific reason it would not achieve that interest. " : "") +
-        (!balancing_test_met ? `Describe the effect of the processing on ${subjects || "the data subjects"} — what they lose, what they would not expect, and what they cannot avoid — and the measures that reduce it${special ? ", and state the Art. 9 condition relied on for the special-category items" : ""}.` : "");
+        (!balancing_test_met ? `Describe the effect of the processing on ${subjects || "the data subjects"} — what they lose, what they would not expect, and what they cannot avoid — and the measures that reduce it${special && !art9Selected ? ", and state the Art. 9 condition relied on for the special-category items" : ""}.` : "");
 
     return {
       operation_id: op.operation_id,
