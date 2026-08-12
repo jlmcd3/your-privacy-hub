@@ -15,6 +15,15 @@ import { ANCHOR_KEYS, DPIA_RISK_SPECS, DPIA_SAFEGUARD_SPECS, row, type RiskFacts
 import { transferMechanism, type TransferFlow } from "../../dpia-jurisdiction-registry.ts";
 import { spliceVerbatim } from "../verbatim-splice.ts";
 import { attachMinimalUnitSurfaces } from "./minimal-units.ts";
+// PROMPT 9A — the ratified compact-label registry. Presentation only: the full
+// ask (`information_needed` / `dimensions`) is untouched by anything here.
+import {
+  type DpiaAskClass,
+  mergeLabeledAsks,
+  quotedOp,
+  renderMergedLabel,
+  resolveAskLabel,
+} from "../dpia-ask-labels.ts";
 import type {
   AlternativeConsidered,
   Art36Consultation,
@@ -437,6 +446,8 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
     let why: string;
     let status: NecessityFinding["status"] = "analysed";
     let information_needed: string | undefined;
+    // PROMPT 9A — the ask-class tag travels with the ask it labels.
+    let ask_class: DpiaAskClass | undefined;
 
     if (!purpose_stated) {
       verdict = "undetermined_on_the_record";
@@ -445,6 +456,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
         "No purpose is recorded for this operation, and necessity is measured against a purpose; without one there is nothing for the least-intrusive-means test to compare against.";
       information_needed =
         `The specific purpose pursued by "${op.operation_label}", stated as an outcome rather than an activity.`;
+      ask_class = "ask_necessity_purpose";
     } else if (alternatives.length === 0) {
       verdict = "undetermined_on_the_record";
       status = "record_insufficient";
@@ -454,6 +466,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
         "Until the alternatives that were actually weighed are recorded, that comparison cannot be run on this record.";
       information_needed =
         `For "${op.operation_label}": each less-intrusive alternative that was actually considered (for example a narrower data set, aggregated or pseudonymised data, a shorter retention period, or a manual process), and the specific reason each was rejected.`;
+      ask_class = "ask_necessity_alternatives";
     } else {
       const usefulnessOnly = alternatives.filter((x) => x.rejected_for_usefulness_only);
       const unexplained = alternatives.filter((x) => x.rejection_reason === NOT_STATED);
@@ -464,6 +477,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
           `${alternatives.length === 1 ? "One alternative is" : `${nWord(alternatives.length)} alternatives are`} recorded for this operation, but ${unexplained.length === 1 ? "one carries" : `${nWord(unexplained.length)} carry`} no rejection reason, so the comparison between them and the chosen means is incomplete.`;
         information_needed =
           `The reason each of the following alternatives was rejected: ${unexplained.map((x) => x.alternative).join("; ")}.`;
+        ask_class = "ask_necessity_reasons";
       } else if (usefulnessOnly.length > 0) {
         verdict = "less_intrusive_alternative_available";
         why =
@@ -489,6 +503,13 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
       authority_verbatim: a.verbatim,
       status,
       ...(information_needed ? { information_needed } : {}),
+      ...(ask_class
+        ? {
+          ask_class,
+          display_label: resolveAskLabel(ask_class, { op: op.operation_label }),
+          scope_op: quotedOp(op.operation_label),
+        }
+        : {}),
     };
   });
 }
@@ -516,6 +537,7 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
     let why: string;
     let status: ProportionalityFinding["status"] = "analysed";
     let information_needed: string | undefined;
+    let ask_class: DpiaAskClass | undefined;
 
     if (!argued_both_directions) {
       verdict = "undetermined_on_the_record";
@@ -524,7 +546,8 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
         ? "The record argues neither side of the balance for this operation: no benefit is stated and no impact on the data subjects is described, so there is nothing to weigh."
         : "The record argues only the benefit side of the balance. Proportionality is a two-sided test and cannot be concluded from a statement of benefit alone; the impact on the data subjects is not described on this record.";
       information_needed =
-        `For "${op.operation_label}": the impact the processing has on the data subjects (${subjects || "the individuals concerned"}) at the recorded scale (${volume || "the recorded volume"}) — what they lose, what they would not expect, and what they cannot avoid — stated separately from the benefit.`;
+        (ask_class = "ask_proportionality_impact",
+        `For "${op.operation_label}": the impact the processing has on the data subjects (${subjects || "the individuals concerned"}) at the recorded scale (${volume || "the recorded volume"}) — what they lose, what they would not expect, and what they cannot avoid — stated separately from the benefit.`);
     } else {
       // Both sides present. The balance tips against the processing where the
       // impact side names an effect the record does not answer with a measure.
@@ -552,6 +575,13 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
       authority_verbatim: a.verbatim,
       status,
       ...(information_needed ? { information_needed } : {}),
+      ...(ask_class
+        ? {
+          ask_class,
+          display_label: resolveAskLabel(ask_class, { op: op.operation_label }),
+          scope_op: quotedOp(op.operation_label),
+        }
+        : {}),
     };
   });
 }
@@ -702,6 +732,8 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
         ? {
           information_needed:
             `The measures actually applied against "${spec.risk_label}" — the record names none of: ${spec.mitigating_safeguards.join("; ")}. Record the measure, who operates it, and how its effect is evidenced.`,
+          ask_class: "ask_risk_measures",
+          display_label: resolveAskLabel("ask_risk_measures", { risk: spec.risk_label }),
         }
         : {}),
     });
@@ -741,6 +773,7 @@ export function buildArt36Consultation(
   let rawWhy: string;
   let status: Art36Consultation["status"] = "analysed";
   let information_needed: string | undefined;
+  let ask_class: DpiaAskClass | undefined;
 
   if (register.length === 0) {
     determination = "undetermined_on_the_record";
@@ -749,6 +782,7 @@ export function buildArt36Consultation(
       "No risk was identified on this record, so there is no residual-risk finding for the Art. 36(1) test to read.";
     information_needed =
       "A completed description of the processing sufficient to identify the risks to the rights and freedoms of the data subjects.";
+    ask_class = "ask_art36_description";
   } else if (high.length > 0) {
     determination = "consultation_required";
     rawWhy =
@@ -767,6 +801,7 @@ export function buildArt36Consultation(
       } cannot be settled, so the prior-consultation question is open rather than answered either way.`;
     information_needed =
       `The measures applied to: ${names.join("; ")}, and the effect each has on the likelihood or severity of that risk.`;
+    ask_class = "ask_art36_open_measures";
   } else {
     determination = "consultation_not_required";
     rawWhy =
@@ -793,6 +828,7 @@ export function buildArt36Consultation(
     dpo_recommends_consultation: dpoRecommendsConsultation(str(get(intake, "dpo_advice"))),
     status,
     ...(information_needed ? { information_needed } : {}),
+    ...(ask_class ? { ask_class, display_label: resolveAskLabel(ask_class) } : {}),
   };
 }
 
@@ -1029,6 +1065,15 @@ function checkNonLiBasis(
 }
 
 
+/** PROMPT 9A — Art. 6(1) sub-basis → ratified ask-class id. */
+const NON_LI_ASK_CLASS: Record<string, DpiaAskClass> = {
+  "Art. 6(1)(a)": "ask_lb_consent",
+  "Art. 6(1)(b)": "ask_lb_contract",
+  "Art. 6(1)(c)": "ask_lb_legal_obligation",
+  "Art. 6(1)(d)": "ask_lb_vital",
+  "Art. 6(1)(e)": "ask_lb_public_task",
+};
+
 export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
   const regime = readDpiaRegime(intake);
   const li = anchor("legitimate_interests", regime);
@@ -1082,6 +1127,10 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         status: "record_insufficient" as const,
         information_needed:
           `The Art. 6(1) basis relied on for "${op.operation_label}" — one of consent, contract, legal obligation, vital interests, public task, or legitimate interests — stated for this purpose specifically.`,
+        operation_label: op.operation_label,
+        ask_class: "ask_lb_basis_unresolved",
+        display_label: resolveAskLabel("ask_lb_basis_unresolved", { op: op.operation_label }),
+        scope_op: quotedOp(op.operation_label),
       };
     }
 
@@ -1099,6 +1148,10 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         status: "record_insufficient" as const,
         information_needed:
           `The specific purpose pursued by "${op.operation_label}", stated as an outcome, so the proposed ${art6.label} can be tested against it.`,
+        operation_label: op.operation_label,
+        ask_class: "ask_lb_purpose_for_test",
+        display_label: resolveAskLabel("ask_lb_purpose_for_test", { op: op.operation_label }),
+        scope_op: quotedOp(op.operation_label),
       };
     }
 
@@ -1133,6 +1186,14 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         authority_verbatim: a.verbatim,
         status: check.met ? ("analysed" as const) : ("record_insufficient" as const),
         ...(check.information_needed ? { information_needed: check.information_needed } : {}),
+        operation_label: op.operation_label,
+        ...(check.information_needed && NON_LI_ASK_CLASS[art6.sub]
+          ? {
+            ask_class: NON_LI_ASK_CLASS[art6.sub],
+            display_label: resolveAskLabel(NON_LI_ASK_CLASS[art6.sub], { op: op.operation_label }),
+            scope_op: quotedOp(op.operation_label),
+          }
+          : {}),
       };
     }
 
@@ -1194,8 +1255,28 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         (!necessity_test_met ? "Record each less intrusive means considered and the specific reason it would not achieve that interest. " : "") +
         (!balancing_test_met ? `Describe the effect of the processing on ${subjects || "the data subjects"} — what they lose, what they would not expect, and what they cannot avoid — and the measures that reduce it${special && !art9Selected ? ", and state the Art. 9 condition relied on for the special-category items" : ""}.` : "");
 
+    // PROMPT 9A — the 6(1)(f) compound ask decomposes into its ratified parts.
+    // The compound ask itself is UNCHANGED and remains the gap-table text; each
+    // unmet part contributes its own labeled entry on the composed surfaces.
+    const ask_parts: { ask_class: string; display_label: string }[] = [];
+    const addPart = (id: DpiaAskClass) =>
+      ask_parts.push({ ask_class: id, display_label: resolveAskLabel(id, { op: op.operation_label }) });
+    if (!purpose_test_met) addPart("ask_lia_purpose");
+    if (!necessity_test_met) addPart("ask_lia_necessity");
+    if (!balancing_test_met) addPart("ask_lia_balancing");
+    if (special && !art9Selected) addPart("ask_lia_art9");
+
     return {
       operation_id: op.operation_id,
+      operation_label: op.operation_label,
+      ...(ask_parts.length
+        ? {
+          ask_parts,
+          ask_class: ask_parts[0].ask_class,
+          display_label: ask_parts[0].display_label,
+          scope_op: quotedOp(op.operation_label),
+        }
+        : {}),
       purpose,
       article_6_basis: art6.label,
       justification,
@@ -1220,6 +1301,16 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
 // is NOT report_data.determination (ITEM 372 METHOD 2a), which is a legacy
 // prose block and decides nothing.
 // ---------------------------------------------------------------------
+/**
+ * PROMPT 9A (R3) — the {blockers} slot filling. Compact labels carry no
+ * terminal punctuation, so the seam supplies exactly one stop and no ". —" or
+ * doubled-stop sequence can be produced.
+ */
+export function blockerSlot(blockers: readonly string[]): string {
+  const items = blockers.map((b) => str(b).trim().replace(/[\s.;,]+$/u, "")).filter(Boolean);
+  return items.length ? `${items.join("; ")}.` : "";
+}
+
 function labels(rows: readonly { readonly risk_label: string }[]): string {
   return [...new Set(rows.map((r) => r.risk_label))].join("; ");
 }
@@ -1280,7 +1371,13 @@ export function buildDecision(
 
   // (b) An unresolvable record cannot carry a determination either way.
   const openBands = register.filter((r) => r.residual_band === "undetermined");
-  const insufficient: readonly { readonly information_needed?: string }[] = [
+  const insufficient: readonly {
+    readonly information_needed?: string;
+    readonly ask_class?: string;
+    readonly display_label?: string;
+    readonly scope_op?: string;
+    readonly ask_parts?: readonly { readonly ask_class: string; readonly display_label: string }[];
+  }[] = [
     ...openBands,
     ...deliverables.necessity_findings.filter((f) => f.status === "record_insufficient"),
     ...deliverables.proportionality.filter((f) => f.status === "record_insufficient"),
@@ -1290,13 +1387,22 @@ export function buildDecision(
       : []),
   ];
   if (openBands.length > 0 || insufficient.length > 0) {
-    const blockers = [
-      ...new Set(
-        insufficient
-          .map((f) => str(f.information_needed))
-          .filter((t) => t.length > 0),
-      ),
-    ];
+    // PROMPT 9A (R1/R4) — blockers render the ratified COMPACT LABEL, merged
+    // across operations by ask-class. The full ask is unchanged and keeps its
+    // gap-table row; the template around the slot is untouched.
+    const blockerItems: { ask_class?: string; label: string; scope_op?: string }[] = [];
+    for (const f of insufficient) {
+      const parts = f.ask_parts ?? [];
+      if (parts.length > 0) {
+        for (const part of parts) {
+          blockerItems.push({ ask_class: part.ask_class, label: part.display_label, scope_op: f.scope_op });
+        }
+        continue;
+      }
+      const label = str(f.display_label) || str(f.information_needed);
+      if (label) blockerItems.push({ ask_class: f.ask_class, label, scope_op: f.scope_op });
+    }
+    const blockers = mergeLabeledAsks(blockerItems).map(renderMergedLabel);
     return {
       determination: "draft_incomplete",
       conditions: [],
@@ -1307,12 +1413,12 @@ export function buildDecision(
         if (openBands.length > 0) {
           const head =
             `Given that ${openBands.length === 1 ? "one risk level remains" : `${openBands.length} risk levels remain`} undetermined, whether the processing being assessed may proceed cannot yet be determined; the levels must be set before this assessment can carry a determination.`;
-          return blockers.length ? `${head} The following are still needed — ${blockers.join(" ")}` : head;
+          return blockers.length ? `${head} The following are still needed — ${blockerSlot(blockers)}` : head;
         }
         const n = blockers.length;
         const head =
           `Given the points still open, whether the processing being assessed may proceed cannot yet be determined: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved based on the information the company provided`;
-        return blockers.length ? `${head} — ${blockers.join(" ")}` : `${head}.`;
+        return blockers.length ? `${head} — ${blockerSlot(blockers)}` : `${head}.`;
       })(),
       citation: art36Citation,
       rule_id: "dpia_decision_v1",
@@ -1459,7 +1565,7 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
     main_establishment_or_representative: establishment,
     dpo,
     status: dpo ? "analysed" : "record_insufficient",
-    ...(dpo ? {} : { information_needed: ASK_DPO }),
+    ...(dpo ? {} : { information_needed: ASK_DPO, ask_class: "ask_dpo", display_label: resolveAskLabel("ask_dpo") }),
     source_field: "organization_name",
   };
 
@@ -1481,7 +1587,13 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
         name,
         obligations_and_tasks: obligations,
         status: obligations ? "analysed" : "record_insufficient",
-        ...(obligations ? {} : { information_needed: ASK_PROCESSOR_OBLIGATIONS }),
+        ...(obligations
+          ? {}
+          : {
+            information_needed: ASK_PROCESSOR_OBLIGATIONS,
+            ask_class: "ask_processor_contract",
+            display_label: resolveAskLabel("ask_processor_contract", { name }),
+          }),
         source_field: "third_party_processors",
       });
     }
@@ -1504,7 +1616,13 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
       special_category: true,
       ...(art9 ? { art9_condition_label: art9 } : {}),
       status: (art9 ? "analysed" : "record_insufficient") as "analysed" | "record_insufficient",
-      ...(art9 ? {} : { information_needed: ASK_ART9_CONDITION }),
+      ...(art9
+        ? {}
+        : {
+          information_needed: ASK_ART9_CONDITION,
+          ask_class: "ask_art9_condition",
+          display_label: resolveAskLabel("ask_art9_condition", { item }),
+        }),
       source_field: "data_categories",
     };
   });
@@ -1686,6 +1804,8 @@ export function buildSection2Coverage(
           authority_verbatim: a9.verbatim,
           status: "record_insufficient" as const,
           information_needed: ASK_ART9_CONDITION_FOR(d.item),
+          ask_class: "ask_art9_condition",
+          display_label: resolveAskLabel("ask_art9_condition", { item: d.item }),
           source_field: "article_9_condition",
         };
       }
@@ -1765,7 +1885,11 @@ export function buildSection2Coverage(
         citation: chapterVCite,
         status: determination === "chapter_v_mechanism_required" ? "record_insufficient" : "analysed",
         ...(determination === "chapter_v_mechanism_required"
-          ? { information_needed: ASK_CHAPTER_V(dest || "the destination stated") }
+          ? {
+            information_needed: ASK_CHAPTER_V(dest || "the destination stated"),
+            ask_class: "ask_transfer_mechanism",
+            display_label: resolveAskLabel("ask_transfer_mechanism", { dest }),
+          }
           : {}),
         source_field: "transfer_flows",
         registry_verified_on: str(mech.lastVerified),
@@ -1807,6 +1931,8 @@ export function buildSection2Coverage(
       authority_verbatim: a28.verbatim,
       status: "record_insufficient",
       information_needed: ASK_DPA,
+      ask_class: "ask_dpa_contracts",
+      display_label: resolveAskLabel("ask_dpa_contracts"),
       source_field: "existing_safeguards",
     };
 
@@ -1821,7 +1947,13 @@ export function buildSection2Coverage(
     citation: aMin.citation,
     authority_verbatim: aMin.verbatim,
     status: (retention ? "analysed" : "record_insufficient") as "analysed" | "record_insufficient",
-    ...(retention ? {} : { information_needed: ASK_RETENTION }),
+    ...(retention
+      ? {}
+      : {
+        information_needed: ASK_RETENTION,
+        ask_class: "ask_retention",
+        display_label: resolveAskLabel("ask_retention", { item: d.item }),
+      }),
     source_field: "data_minimisation_justification",
   }));
 
@@ -1845,6 +1977,8 @@ export function buildSection2Coverage(
         authority_verbatim: aDpbd.verbatim,
         status: "record_insufficient" as const,
         information_needed: ASK_DPBD,
+        ask_class: "ask_dpbd",
+        display_label: resolveAskLabel("ask_dpbd"),
         source_field: "dp_by_design_measures",
       },
   ];
@@ -1899,6 +2033,8 @@ export function buildSection2Coverage(
         authority_verbatim: "",
         status: "record_insufficient" as const,
         information_needed: ASK_DATA_QUALITY,
+        ask_class: "ask_data_quality",
+        display_label: resolveAskLabel("ask_data_quality"),
         source_field: "data_quality_measures",
       },
   ];
@@ -1929,6 +2065,8 @@ export function buildSection2Coverage(
         authority_verbatim: aPurpose.verbatim,
         status: "record_insufficient" as const,
         information_needed: ASK_ART5_TABLE,
+        ask_class: "ask_art5_table",
+        display_label: resolveAskLabel("ask_art5_table"),
         source_field: "data_minimisation_justification",
       },
   ];
@@ -1957,6 +2095,8 @@ export function buildSection2Coverage(
         authority_verbatim: "",
         status: "record_insufficient" as const,
         information_needed: ASK_RIGHTS_TABLE,
+        ask_class: "ask_rights_table",
+        display_label: resolveAskLabel("ask_rights_table"),
         source_field: "data_subject_rights_mechanisms",
       },
   ];
@@ -1989,15 +2129,52 @@ export function buildGapLedgerDetailed(
     readonly section2_coverage?: DpiaSection2Coverage;
   },
 ): GapLedgerResult {
-  type Raw = { field: string; dimensions: string; provision: string; enables: string };
+  // PROMPT 9A (R1) — an entry carries BOTH forms: `dimensions` (the full ask,
+  // unchanged, and the only thing the gap table renders) and the ratified
+  // compact `display_label` the composed surfaces render.
+  type AskTag = {
+    readonly ask_class?: string;
+    readonly display_label?: string;
+    readonly scope_op?: string;
+    readonly ask_parts?: readonly { readonly ask_class: string; readonly display_label: string }[];
+  };
+  type Raw = {
+    field: string;
+    dimensions: string;
+    provision: string;
+    enables: string;
+    ask_class?: string;
+    display_label?: string;
+    scope_op?: string;
+  };
   const raw: Raw[] = [];
   let dropped_empty = 0;
 
-  const push = (field: string, dimensions: string, provision: string, enables: string) => {
+  const push = (field: string, dimensions: string, provision: string, enables: string, tag?: AskTag) => {
     const d = str(dimensions);
     const fld = str(field);
     if (!d || !fld) { dropped_empty += 1; return; }
-    raw.push({ field: fld, dimensions: d, provision: str(provision), enables });
+    const base = { field: fld, dimensions: d, provision: str(provision), enables };
+    const parts = tag?.ask_parts ?? [];
+    if (parts.length > 0) {
+      // The compound ask keeps ONE gap-table row (identical `dimensions`);
+      // each unmet part is its own labeled entry for the composed surfaces.
+      for (const part of parts) {
+        raw.push({
+          ...base,
+          ask_class: part.ask_class,
+          display_label: part.display_label,
+          ...(tag?.scope_op ? { scope_op: tag.scope_op } : {}),
+        });
+      }
+      return;
+    }
+    raw.push({
+      ...base,
+      ...(tag?.ask_class ? { ask_class: tag.ask_class } : {}),
+      ...(tag?.display_label ? { display_label: tag.display_label } : {}),
+      ...(tag?.scope_op ? { scope_op: tag.scope_op } : {}),
+    });
   };
 
   for (const f of deliverables.necessity_findings) {
@@ -2006,7 +2183,8 @@ export function buildGapLedgerDetailed(
       f.purpose_stated ? GAP_FIELD_ALTERNATIVES : GAP_FIELD_PURPOSE,
       str(f.information_needed),
       f.citation,
-      `the necessity finding for ${f.operation_label}`,
+      `the necessity finding for ${quotedOp(f.operation_label)}`,
+      f,
     );
   }
 
@@ -2016,7 +2194,8 @@ export function buildGapLedgerDetailed(
       GAP_FIELD_NECPROP,
       str(f.information_needed),
       f.citation,
-      `the proportionality finding for ${f.operation_label}`,
+      `the proportionality finding for ${quotedOp(f.operation_label)}`,
+      f,
     );
   }
 
@@ -2026,7 +2205,9 @@ export function buildGapLedgerDetailed(
       legalBasisGapField(f),
       str(f.information_needed),
       f.citation,
-      `the lawful-basis finding for ${f.purpose || "the processing"}`,
+      // PROMPT 9A (R2) — the QUOTED operation label, never purpose text.
+      `the lawful-basis finding for ${quotedOp(f.operation_label ?? "")}`,
+      f,
     );
   }
 
@@ -2037,6 +2218,7 @@ export function buildGapLedgerDetailed(
       str(r.information_needed),
       r.citation,
       `the remaining risk level for ${r.risk_label}`,
+      r,
     );
   }
 
@@ -2046,17 +2228,17 @@ export function buildGapLedgerDetailed(
     for (const c of inv.controllers) {
       if (c.information_needed === undefined) continue;
       push("dpo_info", str(c.information_needed), "GDPR Art. 37",
-        `the controller record for ${c.name || "the controller"}`);
+        `the controller record for ${c.name || "the controller"}`, c);
     }
     for (const p of inv.processors) {
       if (p.information_needed === undefined) continue;
       push("processor_obligations", str(p.information_needed), "GDPR Art. 28",
-        `the processor record for ${p.name}`);
+        `the processor record for ${p.name}`, p);
     }
     for (const d of inv.data_items) {
       if (d.information_needed === undefined) continue;
       push("article_9_condition", str(d.information_needed), "GDPR Art. 9(2)",
-        `the special-category entry for ${d.item}`);
+        `the special-category entry for ${d.item}`, d);
     }
   }
 
@@ -2066,9 +2248,13 @@ export function buildGapLedgerDetailed(
   // ledger when it names a fact that would resolve it.
   const s2c = deliverables.section2_coverage;
   if (s2c) {
-    const s2push = (field: string, r: { information_needed?: string; citation?: string }, enables: string) => {
+    const s2push = (
+      field: string,
+      r: { information_needed?: string; citation?: string } & AskTag,
+      enables: string,
+    ) => {
       if (r.information_needed === undefined) return;
-      push(field, str(r.information_needed), str(r.citation), enables);
+      push(field, str(r.information_needed), str(r.citation), enables, r);
     };
     for (const r of s2c.special_category_conditions) {
       s2push("article_9_condition", r, `the special-category condition for ${r.item}`);
@@ -2104,6 +2290,7 @@ export function buildGapLedgerDetailed(
       str(a36.information_needed),
       a36.citation,
       "the prior-consultation determination",
+      a36,
     );
   }
 
@@ -2114,25 +2301,40 @@ export function buildGapLedgerDetailed(
   for (const b of deliverables.decision.blockers) {
     const t = str(b);
     if (!t) { dropped_empty += 1; continue; }
-    if (!raw.some((r) => gapOverlap(r.dimensions, t) >= 0.6)) dropped_unmapped += 1;
+    // PROMPT 9A — blockers are compact labels; they map onto an ask by either
+    // form (the label they were resolved from, or the full ask text).
+    const mapped = raw.some((r) =>
+      gapOverlap(r.dimensions, t) >= 0.6 ||
+      (r.display_label !== undefined && gapOverlap(r.display_label, t) >= 0.6)
+    );
+    if (!mapped) dropped_unmapped += 1;
   }
 
   // Deduplicate by normalized dimensions text (mergeOpenGapItems style).
   const out: DpiaGapLedgerEntry[] = [];
   let merged = 0;
   for (const e of raw) {
-    const hitIdx = out.findIndex((o) => gapOverlap(o.dimensions, e.dimensions) >= 0.6);
+    const hitIdx = out.findIndex((o) =>
+      gapOverlap(o.dimensions, e.dimensions) >= 0.6 &&
+      // Decomposed parts share the compound ask byte-for-byte but are distinct
+      // labeled entries; everything else merges exactly as it did before 9A.
+      !(o.dimensions === e.dimensions && (o.ask_class ?? "") !== (e.ask_class ?? ""))
+    );
     if (hitIdx >= 0) {
       merged += 1;
       const hit = out[hitIdx];
       // Most specific phrasing wins; provision/enables are preserved.
+      const winner = e.dimensions.length > hit.dimensions.length ? e : hit;
       out[hitIdx] = {
         field: hit.field,
-        dimensions: e.dimensions.length > hit.dimensions.length ? e.dimensions : hit.dimensions,
+        dimensions: winner.dimensions,
         provision: hit.provision || e.provision,
         enables: hit.enables.toLowerCase() === e.enables.toLowerCase()
           ? hit.enables
           : `${hit.enables} and ${e.enables}`,
+        ...(winner.ask_class ? { ask_class: winner.ask_class } : {}),
+        ...(winner.display_label ? { display_label: winner.display_label } : {}),
+        ...(hit.scope_op || e.scope_op ? { scope_op: hit.scope_op || e.scope_op } : {}),
       };
       continue;
     }

@@ -62,6 +62,12 @@ export interface NecessityFinding {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
 }
 
 // ── 2. Art. 35(7)(b) proportionality (its own deliverable) ───────────
@@ -85,6 +91,12 @@ export interface ProportionalityFinding {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
 }
 
 // ── 3. Art. 35(7)(c) risk register ───────────────────────────────────
@@ -116,6 +128,12 @@ export interface RiskRegisterEntry {
   readonly guidance_verbatim?: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
 }
 
 // ── 4. Art. 36(1) prior-consultation determination ───────────────────
@@ -147,6 +165,12 @@ export interface Art36Consultation {
   readonly dpo_recommends_consultation?: boolean;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
 }
 
 // ── 5. Art. 6(1) — legal basis (SO/PILOT 2026-08-11) ─────────────────
@@ -173,6 +197,10 @@ export interface LegitimateInterestsTest {
 
 export interface LegalBasisFinding {
   readonly operation_id: string;
+  /** PROMPT 9A (R2) — the operation label, named quoted on every surface. */
+  readonly operation_label?: string;
+  /** PROMPT 9A — the 6(1)(f) compound ask, decomposed into labeled parts. */
+  readonly ask_parts?: readonly { readonly ask_class: string; readonly display_label: string }[];
   readonly purpose: string;
   readonly article_6_basis: string;
   readonly justification: string;
@@ -183,6 +211,12 @@ export interface LegalBasisFinding {
   readonly legitimate_interests_test?: LegitimateInterestsTest;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
 }
 
 export interface DpiaDeliverables {
@@ -231,6 +265,12 @@ export interface DpiaDecision {
 // never emitted — a content-free ask is a builder bug upstream, not
 // something to show a customer.
 export interface DpiaGapLedgerEntry {
+  /** PROMPT 9A — ask-class id; the compact-label registry key. */
+  readonly ask_class?: string;
+  /** PROMPT 9A — the ratified compact label, slots resolved. Never the ask. */
+  readonly display_label?: string;
+  /** PROMPT 9A — quoted operation label this entry fired for (R4 scope). */
+  readonly scope_op?: string;
   /** Intake contract key that would resolve the gap. */
   readonly field: string;
   /** The specific facts to add. Never a legal conclusion. */
@@ -260,6 +300,12 @@ export interface DpiaInventoryController {
   readonly dpo: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
 }
 
@@ -268,6 +314,12 @@ export interface DpiaInventoryProcessor {
   readonly obligations_and_tasks: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
 }
 
@@ -277,6 +329,12 @@ export interface DpiaInventoryDataItem {
   readonly art9_condition_label?: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
 }
 
@@ -341,6 +399,12 @@ export interface DpiaSpecialCategoryConditionRow {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
 }
 
@@ -363,6 +427,12 @@ export interface DpiaTransferRow {
   readonly citation: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
   /** Date the registry row backing this determination was last verified. */
   readonly registry_verified_on: string;
@@ -376,6 +446,12 @@ export interface DpiaProcessorContractRow {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
 }
 
@@ -387,6 +463,12 @@ export interface DpiaMinimisationRetentionRow {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
 }
 
@@ -397,6 +479,12 @@ export interface DpiaMeasureRow {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   readonly source_field: string;
 }
 
@@ -409,6 +497,12 @@ export interface DpiaCoverageRow {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
+  readonly ask_class?: string;
+  /// PROMPT 9A — the ratified compact label, slots resolved.
+  readonly display_label?: string;
+  /// PROMPT 9A — quoted operation label this ask fired for (R4 merge scope).
+  readonly scope_op?: string;
   /**
    * PROMPT 10B(2) — credit-first residual. Set when the source field IS
    * supplied but unstructured: the row is analysed, no gap-ledger entry is
