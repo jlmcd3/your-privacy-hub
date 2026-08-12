@@ -573,45 +573,65 @@ function composeRiskLead(report: Bag): string {
 }
 
 
-export function composeRiskBody(report: Bag, values: SlotValues): string {
+// PROMPT 8A item 1 (CEO-ratified 2026-08-12) — per-risk analytic template. The
+// re-scoring caveat is carried ONCE, by the first risk that states a residual
+// band; every later risk closes "on the same proposed basis".
+export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {}): string {
   const rows = asArray(report.risk_register);
+  const who = rescorer(intake);
   const blocks: string[] = [];
+  let caveatSpent = false;
   for (const r of rows) {
     const label = noStop(s(r.risk_label));
     if (!label) continue;
-    const bits: string[] = [];
     const likelihood = s(r.likelihood);
     const severity = s(r.severity);
     const inherent = s(r.inherent_band);
     const residual = s(r.residual_band);
-    const head = [
-      `${label}.`,
-      likelihood && severity ? `On the safeguards the company has recorded, this assessment places likelihood at ${likelihood}; severity is rated ${severity} under this assessment's pre-set risk taxonomy.` : "",
-      inherent ? `Inherent band: ${inherent}.` : "",
-    ].filter(Boolean).join(" ");
-    bits.push(head);
-    const measures = arr(r.measures);
-    if (measures.length) {
-      bits.push(`The measure that answers it: ${asProse(measures.map(noStop))}.`);
-    } else {
-      bits.push("The company has recorded no measure against this risk.");
-    }
-    if (residual) {
-      bits.push(
-        residual.toLowerCase() === "undetermined"
-          ? "Residual band: undetermined, because the measures applied are not on the record."
-          : `Residual band, proposed until the company re-scores it: ${residual}.`,
+    const measures = arr(r.measures).map(noStop);
+
+    // 1.5 — likelihood or severity absent: the band is not decomposed.
+    if (!(likelihood && severity)) {
+      blocks.push(
+        `${label} carries an inherent band of ${inherent || "undetermined"} on this assessment's pre-set taxonomy; likelihood and severity are not both recorded, so the band is not decomposed here.`,
       );
+      continue;
     }
 
-    blocks.push(bits.join(" "));
+    const head =
+      `${label} is assessed at ${likelihood} likelihood and ${severity} severity on this assessment's pre-set taxonomy, an inherent band of ${inherent || "undetermined"}.`;
+
+    // 1.4 — residual band undetermined.
+    if (!residual || residual.toLowerCase() === "undetermined") {
+      blocks.push(
+        `${head} ${
+          measures.length
+            ? `The company's recorded ${asProse(measures)} answer it, and the residual band is undetermined, because the company does not record the measures applied.`
+            : "The company records no measure against it, and the residual band is undetermined, because the company does not record the measures applied."
+        }`,
+      );
+      continue;
+    }
+
+    // 1.1 (first, carries the caveat) / 1.2 (subsequent) / 1.3 (no measure).
+    const tail = caveatSpent
+      ? `the residual band is ${residual} on the same proposed basis.`
+      : `the residual band — proposed until ${who} re-scores it against the measures as implemented — is ${residual}.`;
+    caveatSpent = true;
+    blocks.push(
+      measures.length
+        ? `${head} The company's recorded ${asProse(measures)} answer it, and ${tail}`
+        : `${head} The company records no measure against it, and ${tail}`,
+    );
   }
 
   const safeguards = values.safeguards;
-  const safeguardSentence = safeguards
-    ? `The safeguards the company has recorded: ${safeguards}.`
-    : "The company has not recorded any safeguards for this processing.";
-  blocks.push(safeguardSentence);
+  // 1.6 / 1.7 — safeguards closer.
+  blocks.push(
+    safeguards
+      ? `Across the processing as a whole the company records ${safeguards}.`
+      : "The company records no safeguards for this processing.",
+  );
 
   return repairRegister(blocks.filter(Boolean).join("\n\n"));
 }
