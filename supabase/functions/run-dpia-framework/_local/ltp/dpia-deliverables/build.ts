@@ -1343,11 +1343,13 @@ const ASK_DPA = "whether a written processing contract is in place with each nam
 const ASK_RETENTION = "the retention period applied to this data, and the event the period runs from";
 const ASK_DPBD = "the technical and organisational measures built into the design of this processing, and when each was implemented";
 const ASK_SAFEGUARDS_LIST = "which technical and organisational measures are applied to this processing";
-const ASK_DATA_QUALITY = "the measures that keep this data accurate and up to date, and how often they run";
+// PROMPT 8C item 2 (ratified 2026-08-12): Tier-3 asks name the facts wanted.
+const ASK_DATA_QUALITY =
+  "The measures that keep the personal data accurate and up to date for this purpose, and how data quality is checked.";
 const ASK_ART5_TABLE =
-  "a principle-by-principle account (lawfulness, fairness and transparency; purpose limitation; minimisation; accuracy; storage limitation; integrity and confidentiality) naming the measure that carries each one";
+  "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated per principle, with each measure's implementation status.";
 const ASK_RIGHTS_TABLE =
-  "a right-by-right account (access, rectification, erasure, restriction, portability, objection) naming the route and the response time for each";
+  "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.";
 
 const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendation[] = [
   {
