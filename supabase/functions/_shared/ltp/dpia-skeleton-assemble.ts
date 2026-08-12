@@ -812,7 +812,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
 
   const composedRaw: ComposedBlocks = {
     "executive_summary:0": composeExecutiveLead(report, org),
-    "executive_summary:2": composeExecutiveBody(report),
+    "executive_summary:2": composeExecutiveBody(report, intake),
 
     // PROMPT 8 (spine v4) — the v3 sections `lawfulness`,
     // `risks_and_measures` and `consultation_and_signoff` are retired; the same
@@ -821,7 +821,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     "section_3_necessity_proportionality:2": composeNecessityBody(report),
 
     "section_4_risk_management:2": composeRiskLead(report),
-    "section_4_risk_management:4": composeRiskBody(report, values),
+    "section_4_risk_management:4": composeRiskBody(report, values, intake),
 
     "section_6_conclusion:2": composeSignoffLead(report, intake),
     "section_6_conclusion:3": composeSignoffBody(report, intake, values),
