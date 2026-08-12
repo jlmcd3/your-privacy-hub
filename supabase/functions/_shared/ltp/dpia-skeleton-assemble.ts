@@ -24,6 +24,9 @@ import {
   DPIA_V3_BANNED_REGISTER,
 } from "../prose/plans/dpia.spine.ts";
 import { DPIA_LEGAL_BASIS_PHRASE_MAP } from "../prose/plans/dpia.slotmap.ts";
+// PROMPT 9A — compact-label presentation (registry + R4 merge). Presentation
+// only: nothing here changes an ask, a template sentence, or the gap table.
+import { mergeLabeledAsks, renderMergedLabel } from "./dpia-ask-labels.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
