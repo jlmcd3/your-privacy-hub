@@ -36,6 +36,21 @@ export interface FieldTrigger {
   equals: readonly string[];
 }
 
+/**
+ * PROMPT 8H item 1(a) — item-shape spec for `kind: "structured"` fields.
+ *
+ * `kind: "structured"` deliberately leaves the inner shape unconstrained in
+ * the contract render, which let the model drift (run #182 emitted
+ * alternatives_considered items keyed {alternative, reason_rejected}).
+ * When `itemKeys` is present, the renderer states the EXACT record keys.
+ */
+export interface StructuredItemKey {
+  key: string;
+  kind: FieldKind;
+  /** Optional one-clause note rendered after the key (e.g. "ISO-2"). */
+  note?: string;
+}
+
 export interface IntakeField {
   /** Dotted path; use "[]" for array-of-records (e.g. "controls[].maturity"). */
   key: string;
@@ -65,6 +80,10 @@ export interface IntakeField {
    * silently inherit the exclusion.
    */
   emptyIsAnswer?: true;
+  /** PROMPT 8H — for kind="structured" arrays: the EXACT per-record keys. */
+  itemKeys?: readonly StructuredItemKey[];
+  /** PROMPT 8H — optional prose note rendered alongside `itemKeys`. */
+  shapeNote?: string;
 }
 
 
