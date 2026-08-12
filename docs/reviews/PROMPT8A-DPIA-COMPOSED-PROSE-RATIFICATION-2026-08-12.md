@@ -1,6 +1,10 @@
 # PROMPT 8A — Ratification package: DPIA composed-template prose
 
-Status: **PROPOSED — nothing committed.** Evidence: gate document 79015e98.
+Status: **CEO-RATIFIED AND LANDED 2026-08-12** (one revision: item 3's inline
+enumeration reads "The first three are:", backed by a deterministic ordering —
+decision blockers first, then gap-ledger order — documented in code and asserted
+by test, never stated in customer prose). Assembler stamp
+`dpia-skeleton-assembler@prompt8a-ratified-prose-2026-08-12`. Evidence: gate document 79015e98.
 Voice rules applied: the CEO voice rules ratified 2026-08-11 with spine v4.1.
 
 Sites:
@@ -47,8 +51,8 @@ Slot conventions used below: `{n:word}` = number word for one–nine, digits fro
 
 ## 3. composeExecutiveBody — open-points sentence
 
-**3.1**
-> The company's answers leave {n:word} points open; each is listed in the gap table and raised again where it bears on a determination. The most consequential are: {first three items, semicolon-separated}.
+**3.1** (as ratified, CEO revision 2026-08-12)
+> The company's answers leave {n:word} points open; each is listed in the gap table and raised again where it bears on a determination. The first three are: {first three items, semicolon-separated}.
 
 **3.2 Singular:**
 > The company's answers leave one point open; it is listed in the gap table and raised again where it bears on a determination. It is: {item}.
