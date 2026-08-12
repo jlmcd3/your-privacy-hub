@@ -751,12 +751,35 @@ function dpiaToa(report: Bag, body: string): string {
   }
   const lines: string[] = [];
   for (const group of Object.keys(groups)) {
-    const inGroup = groups[group].sort();
+    const inGroup = consolidatePinpoints(groups[group].sort());
     if (!inGroup.length) continue;
     lines.push(group === "Guidance and Persuasive Authority" ? `${group} (persuasive)` : group);
     for (const c of inGroup) lines.push(`    ${c}`);
   }
   return lines.join("\n");
+}
+
+/**
+ * PROMPT 10B(1) — consolidate pinpoints of the same article onto one ToA line
+ * ("GDPR Art. 9(1), (2)(h)"). Citations without an article-with-pinpoint shape
+ * pass through untouched.
+ */
+function consolidatePinpoints(citations: string[]): string[] {
+  const order: string[] = [];
+  const pins = new Map<string, string[]>();
+  for (const c of citations) {
+    const m = /^(.*Art\.\s*\d+[a-z]?)(\(.+\))$/.exec(c);
+    const base = m ? m[1] : c;
+    if (!pins.has(base)) {
+      pins.set(base, []);
+      order.push(base);
+    }
+    if (m && !pins.get(base)!.includes(m[2])) pins.get(base)!.push(m[2]);
+  }
+  return order.map((base) => {
+    const p = pins.get(base)!;
+    return p.length ? `${base}${p[0]}${p.slice(1).map((x) => `, ${x}`).join("")}` : base;
+  });
 }
 
 // ── Assembly ────────────────────────────────────────────────────────────────
