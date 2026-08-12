@@ -51,6 +51,62 @@ import type {
 export const DPIA_DELIVERABLES_VERSION =
   "dpia-analytic-deliverables-2026-08-01-wp248";
 
+// PROMPT 8H item 2 — DPO-advice consultation matcher.
+//
+// The 8E regex only recognised generic references ("supervisory authority",
+// "ICO", "regulator"); run #182 doc 4 recommended "prior consultation with the
+// Autoriteit Persoonsgegevens (AP)" and was missed. The matcher is still
+// anchored to a consult/refer/escalate verb (so "consulted the DPO" — an
+// internal consultation — stays false) but now also accepts NAMED EU/UK
+// supervisory authorities and an "Art(icle) 36" reference near the verb.
+// The ratified Section 6 disclosure sentence is byte-untouched.
+const DPO_AUTHORITY_RE = [
+  "supervisory authority",
+  "supervisory authorities",
+  "lead authority",
+  "ico",
+  "information commissioner",
+  "commissioner",
+  "regulator",
+  "dpa",
+  "autoriteit persoonsgegevens",
+  "cnil",
+  "hbdi",
+  "bfdi",
+  "garante",
+  "aepd",
+  "datenschutzbeh\u00f6rde",
+  "datenschutzbehorde",
+  "dpc",
+  "data protection commission",
+  "imy",
+  "datatilsynet",
+  "uodo",
+  "cnpd",
+  "apd",
+  "gba",
+  "gegevensbeschermingsautoriteit",
+  "art\\.? ?36",
+  "article ?36",
+].join("|");
+
+export function dpoRecommendsConsultation(advice: string): boolean {
+  const s = String(advice ?? "");
+  if (!s.trim()) return false;
+  const re = new RegExp(
+    `\\b(consult|refer|escalate|notif)\\w*\\b[^.]{0,120}\\b(?:${DPO_AUTHORITY_RE})\\b`,
+    "i",
+  );
+  if (re.test(s)) return true;
+  // Reverse order: "the Garante should be consulted before go-live".
+  const rev = new RegExp(
+    `\\b(?:${DPO_AUTHORITY_RE})\\b[^.]{0,120}\\b(consult|refer|escalate|notif)\\w*\\b`,
+    "i",
+  );
+  return rev.test(s);
+}
+
+
 const NOT_STATED = "not stated on the record";
 
 /** Language that argues the IMPACT side of the balance. */
@@ -644,8 +700,7 @@ export function buildArt36Consultation(
     procedural_citation: proc.citation || cit(regime, "Art. 36(3)"),
     // PROMPT 8E item 7 — DORMANT. Read only; no renderer consumes it and the
     // determination above is untouched by it.
-    dpo_recommends_consultation: /\b(consult|refer|escalate)\w*\b[^.]{0,80}\b(supervisory authority|ico|commissioner|regulator|dpa)\b/i
-      .test(str(get(intake, "dpo_advice"))),
+    dpo_recommends_consultation: dpoRecommendsConsultation(str(get(intake, "dpo_advice"))),
     status,
     ...(information_needed ? { information_needed } : {}),
   };
