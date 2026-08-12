@@ -139,7 +139,7 @@ Deno.test("SO-5: leads read the typed determinations and never disagree with the
   );
   const t = skeletonDocumentToText(required.document);
   assert(t.includes("requires prior consultation with the supervisory authority under Article 36"));
-  assert(t.includes("at a proposed residual band of high"));
+  assert(t.includes("at a preliminary remaining risk level of high"));
 
   const open = assembleDpiaSkeletonDocument(
     {

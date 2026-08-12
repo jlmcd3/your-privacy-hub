@@ -54,9 +54,9 @@ Deno.test("dpia skeleton: every information_needed entry is visible in the docum
   }
 
   // The stated count matches the number of items actually rendered.
-  // PROMPT 8A item 3 (ratified 2026-08-12): the count sentence is number-worded
+  // PROMPT 8D (ratified 2026-08-12): the count sentence is number-worded
   // and, at three or fewer items, the list is complete ("They are: …").
-  assert(/leave three points open/.test(text), text.slice(0, 800));
+  assert(/three points are still open/.test(text), text.slice(0, 800));
   assert(/They are: /.test(text), text.slice(0, 800));
 });
 

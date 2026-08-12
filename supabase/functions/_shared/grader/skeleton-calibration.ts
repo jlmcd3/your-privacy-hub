@@ -42,47 +42,63 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
  */
 export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string[]>> =
   Object.freeze({
-    // composeRiskBody — per-risk scoring head (rules 1 and 4).
+    // composeRiskBody — per-risk scoring head (rules 1 and 4). PROMPT 8D bytes.
     tmpl_risk_scoring_head: [
       "is assessed at",
       "likelihood and",
-      "severity on this assessment's pre-set taxonomy",
-      "an inherent band of",
+      "severity under this assessment's pre-set risk taxonomy",
+      "an initial risk level of",
     ],
-    // composeRiskBody — band not decomposed (likelihood/severity not both recorded).
+    // composeRiskBody — level not broken down (likelihood/severity not both recorded).
     tmpl_risk_band_not_decomposed: [
-      "carries an inherent band of",
-      "on this assessment's pre-set taxonomy",
-      "likelihood and severity are not both recorded, so the band is not decomposed here",
+      "carries an initial risk level of",
+      "under this assessment's pre-set risk taxonomy",
+      "likelihood and severity are not both recorded, so that level is not broken down here",
     ],
-    // composeRiskBody — measures answer the risk.
+    // composeRiskBody — measures mitigate the risk.
     tmpl_risk_measures_answer: [
       "The company's recorded",
-      "answer it, and the residual band",
+      "mitigate it, and the remaining risk level",
     ],
     // composeRiskBody — no measure recorded.
     tmpl_risk_no_measure: [
-      "The company records no measure against it, and the residual band",
+      "The company records no measure against it, and the remaining risk level",
     ],
     // composeRiskBody — re-scoring caveat, stated once.
     tmpl_risk_caveat_first: [
-      "the residual band — proposed until",
-      "re-scores it against the measures as implemented",
+      "the remaining risk level — preliminary until",
+      "re-scores it against the mitigating measures once they have been deployed",
     ],
     // composeRiskBody — later rows reference the caveat.
     tmpl_risk_caveat_subsequent: [
-      "the residual band is",
-      "on the same proposed basis",
+      "the remaining risk level is",
+      "on the same preliminary basis",
     ],
     // composeRiskBody — safeguards closer.
     tmpl_risk_safeguards_closer: [
       "Across the processing as a whole the company records",
+    ],
+    // composeExecutiveBody — the CEO canonical model (PROMPT 8D).
+    tmpl_executive_canonical: [
+      "This assessment reviews",
+      "the measures the company has put in place to mitigate",
+    ],
+    // composeExecutiveBody — the preliminary-levels caveat.
+    tmpl_executive_preliminary: [
+      "the risk levels in this document are preliminary until",
+      "re-scores them against the mitigating measures once they have been deployed",
+    ],
+    // buildRiskCountNote — the plain-form reconciliation disclosure (PROMPT 8D).
+    tmpl_risk_count_note: [
+      "The company self-identified",
+      "this assessment surfaces",
     ],
     // buildSection2Coverage — credit-first residual note (PROMPT 10B).
     tmpl_coverage_residual_note: [
       "The company's account above covers this ground",
       "would complete the table but no determination in this assessment turns on it",
     ],
+
   });
 
 const norm = (s: string) => String(s ?? "").replace(/\s+/g, " ").trim();

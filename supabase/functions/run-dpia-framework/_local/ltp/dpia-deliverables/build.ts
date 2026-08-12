@@ -543,19 +543,20 @@ export function buildArt36Consultation(
   } else if (high.length > 0) {
     determination = "consultation_required";
     rawWhy =
-      `${a.verbatim} On this record ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — remain at a high residual band after the measures the record states, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
+      `${a.verbatim} Based on the information the company provided, ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — are deemed high risks after the mitigating measures the company has recorded, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
   } else if (undetermined.length > 0 || insufficient.length > 0) {
     determination = "undetermined_on_the_record";
     status = "record_insufficient";
     const names = [...new Set([...undetermined, ...insufficient].map((r) => r.risk_label))];
     rawWhy =
-      `Art. 36(1) turns on whether a high residual risk remains after mitigation. On this record the residual position for ${names.length} risk(s) — ${names.join("; ")} — cannot be settled, so the prior-consultation question is open rather than answered either way.`;
+      `Art. 36(1) turns on whether a high risk remains once mitigating measures are taken into account. Based on the information the company provided, the remaining risk level for ${names.length} risk(s) — ${names.join("; ")} — cannot be settled, so the prior-consultation question is open rather than answered either way.`;
     information_needed =
       `The measures applied to: ${names.join("; ")}, and the effect each has on the likelihood or severity of that risk.`;
   } else {
     determination = "consultation_not_required";
     rawWhy =
-      `${a.verbatim} On this record every identified risk sits at a low or moderate residual band after the measures the record states, so the Art. 36(1) condition is not met and prior consultation is not triggered by this assessment. This determination is bound to the measures as recorded; if a measure is not implemented as stated, the determination must be re-run.`;
+      `${a.verbatim} Based on the information the company provided, every identified risk is deemed low or moderate after the mitigating measures the company has recorded, so the Art. 36(1) condition is not met and prior consultation is not triggered by this assessment. This determination is bound to the measures as recorded; if a measure is not operated as stated, the determination must be re-run.`;
+
   }
 
   const { kept, moved, repairs } = splitExposure(rawWhy);
@@ -942,7 +943,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       : special
       ? `Part three (balancing test): the record describes the impact on ${subjects || "the data subjects"} but the data set includes special-category or children's data (${categories.filter((c) => SPECIAL_CATEGORY_CATS.includes(c)).join("; ")}), which raises the weight on the data subjects' side; the record does not show that the controller's interest survives that weighting.`
       : vulnerable && safeguards.length === 0
-      ? `Part three (balancing test): the data subjects described (${subjects}) are in a position of dependency or reduced ability to object, and no safeguards are recorded that would reduce the effect on them, so the balance is not made out on this record.`
+      ? `Part three (balancing test): the data subjects described (${subjects}) are in a position of dependency or reduced ability to object, and no safeguards are recorded that would reduce the effect on them, so the balance is not established based on the information the company provided.`
       : `Part three (balancing test): the record describes the effect on ${subjects || "the data subjects"} and records the measures that reduce it (${safeguards.join("; ") || "the measures stated"}), so the controller's interest is not shown to be overridden on this record.`;
 
     const legitimate_interests_test: LegitimateInterestsTest = {
@@ -962,7 +963,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
     const head =
       `The company relies on ${art6.label} for the recorded purpose ("${purpose}"). ` +
       `The basis reads: ${li.verbatim} ` +
-      "It is made out only where all three of its parts hold on the record.";
+      "It is established only where all three of its parts hold based on the information the company provided.";
     const justification = [head, purpose_test_why, necessity_test_why, balancing_test_why].join(" ");
 
     const information_needed = unmet.length === 0
@@ -1020,6 +1021,14 @@ export function buildDecision(
     ? "the Commissioner"
     : "the competent supervisory authority";
 
+  // PROMPT 8D (CEO-ratified 2026-08-12) — the grounded plain-language why
+  // templates. Branch discipline: no template is stretched across facts it was
+  // not written for, and the no-measures, undetermined-level and zero-risk
+  // fact patterns each carry their own sentence. Determination MAPPING, CEO-
+  // ruled: the no-measures branch resolves to `conditionally_approved` (or
+  // stays `draft_incomplete` where the record is already unresolvable) and
+  // NEVER to `approved`; the zero-risk branch is `draft_incomplete`.
+
   // (a) Prior consultation settles the outcome before anything else.
   if (deliverables.art36_consultation.determination === "consultation_required") {
     const driving = register.filter((r) => r.residual_band === "high");
@@ -1029,7 +1038,20 @@ export function buildDecision(
       conditions: [],
       blockers: [],
       why:
-        `This processing may not begin on the company's answers as they stand: ${driving.length === 1 ? "one risk" : `${driving.length} risks`}${named ? ` — ${named} —` : ""} remain at a high residual band after the measures the company has recorded, and the controller must consult ${authority} under Art. 36(1) before the processing begins.`,
+        `Given the noted risks and the mitigating measures, the processing being assessed may not begin as things stand: ${driving.length === 1 ? "one risk" : `${driving.length} risks`}${named ? ` — ${named} —` : ""} ${driving.length === 1 ? "is deemed a high risk" : "are deemed high risks"} after the mitigating measures the company has recorded, and the controller must consult ${authority} under Article 36(1) before the processing begins.`,
+      citation: art36Citation,
+      rule_id: "dpia_decision_v1",
+    };
+  }
+
+  // (a2) PROMPT 8D branch 13g — an empty register carries no determination.
+  if (register.length === 0) {
+    return {
+      determination: "draft_incomplete",
+      conditions: [],
+      blockers: [],
+      why:
+        "No risk has been identified by the company or otherwise identified in this assessment, so there is nothing on which a determination can rest; a determination requires at least one risk to be assessed.",
       citation: art36Citation,
       rule_id: "dpia_decision_v1",
     };
@@ -1059,9 +1081,16 @@ export function buildDecision(
       conditions: [],
       blockers,
       why: (() => {
-        const n = blockers.length || openBands.length;
+        // PROMPT 8D branch 13f — undetermined risk levels get their own
+        // sentence; the generic open-points sentence is 13b.
+        if (openBands.length > 0) {
+          const head =
+            `Given that ${openBands.length === 1 ? "one risk level remains" : `${openBands.length} risk levels remain`} undetermined, whether the processing being assessed may proceed cannot yet be determined; the levels must be set before this assessment can carry a determination.`;
+          return blockers.length ? `${head} The following are still needed — ${blockers.join(" ")}` : head;
+        }
+        const n = blockers.length;
         const head =
-          `This assessment is not yet capable of a sign-off determination: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved on the company's answers`;
+          `Given the points still open, whether the processing being assessed may proceed cannot yet be determined: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved based on the information the company provided`;
         return blockers.length ? `${head} — ${blockers.join(" ")}` : `${head}.`;
       })(),
       citation: art36Citation,
@@ -1069,7 +1098,7 @@ export function buildDecision(
     };
   }
 
-  // (c) High residual risk without an Art. 36 trigger rides on its measures.
+  // (c) High remaining risk without an Art. 36 trigger rides on its measures.
   const high = register.filter((r) => r.residual_band === "high");
   if (high.length > 0) {
     const conditions: string[] = [];
@@ -1083,23 +1112,39 @@ export function buildDecision(
       conditions: deduped,
       blockers: [],
       why:
-        `This processing may proceed on a conditional basis only: ${high.length === 1 ? "one risk" : `${high.length} risks`} — ${labels(high)} — sit at a high residual band, and clearance is conditional on ${deduped.join("; ")}.`,
+        `Given the noted risks and the mitigating measures, the processing being assessed may proceed on conditions: ${high.length === 1 ? "one risk" : `${high.length} risks`} — ${labels(high)} — ${high.length === 1 ? "is deemed a high risk" : "are deemed high risks"}, and clearance is conditional on ${deduped.join("; ")}.`,
       citation: art36Citation,
       rule_id: "dpia_decision_v1",
     };
   }
 
-  // (d) Everything settled at or below a moderate residual band.
+  // (c2) PROMPT 8D branch 13e — a register on which no measure is recorded at
+  // all has not been tested against anything. Mapped to conditional approval,
+  // never approval.
+  if (register.every((r) => r.measures.length === 0)) {
+    return {
+      determination: "conditionally_approved",
+      conditions: ["recording the mitigating measures the company will rely on for each risk in this register"],
+      blockers: [],
+      why:
+        "Given the noted risks and the absence of any recorded mitigating measure, the processing being assessed may proceed only once the company records the measures it will rely on: no risk level in this document has been tested against a measure.",
+      citation: art36Citation,
+      rule_id: "dpia_decision_v1",
+    };
+  }
+
+  // (d) Everything settled at or below a moderate remaining risk level.
   return {
     determination: "approved",
     conditions: [],
     blockers: [],
     why:
-      `This processing may proceed as assessed: every risk identified on the company's answers sits at a low or moderate residual band after the measures the company has recorded, and no determination this assessment makes is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
+      `Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate, and no determination this assessment makes is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
     citation: art36Citation,
     rule_id: "dpia_decision_v1",
   };
 }
+
 
 // ---------------------------------------------------------------------
 // PROMPT 4 (2026-08-11) — deterministic gap ledger.
@@ -1770,7 +1815,7 @@ export function buildGapLedgerDetailed(
       GAP_FIELD_SAFEGUARDS,
       str(r.information_needed),
       r.citation,
-      `the residual band for ${r.risk_label}`,
+      `the remaining risk level for ${r.risk_label}`,
     );
   }
 
@@ -1918,12 +1963,19 @@ export function buildRiskCountNote(
   if (stated_count === null) return undefined;
   const register_count = register.length;
   if (stated_count === register_count) return undefined;
+  // PROMPT 8D (CEO-ratified 2026-08-12) — the reconciliation disclosure in
+  // plain form. Flag 3 variant: where the company's own account describes MORE
+  // risks than the register carries, "surfaces {n} more" would be false, so the
+  // reversed sentence is used instead.
+  const note = stated_count < register_count
+    ? `This assessment reviews ${register_count} risks. The company self-identified ${stated_count} of these risks; this assessment surfaces ${register_count - stated_count} more. The register is the count this assessment works from, and the company's own account is recorded in its own words in the sign-off section.`
+    : `This assessment reviews ${register_count} risks. The company's own account describes ${stated_count}, which is ${stated_count - register_count} more than this assessment carries in its register; the register is the count this assessment works from, and the company's own account is recorded in its own words in the sign-off section.`;
   return {
     register_count,
     stated_count,
-    note:
-      `This assessment's risk register carries ${register_count} risks. The company's own account of residual risk describes ${stated_count}; the register is the operative count for this assessment and includes risks this assessment itself projects from the record alongside those the company names, and the company's account is recorded in its own words in the sign-off section.`,
+    note,
   };
+
 }
 
 // ---------------------------------------------------------------------

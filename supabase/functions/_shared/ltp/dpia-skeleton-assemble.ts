@@ -40,7 +40,7 @@ import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice
 // composed prose: running prose spells "Article 35(1)"; parenthetical citations
 // use "(Art. 35(1))"; the `citation` field and the Table of Authorities keep the
 // registry's full form verbatim.
-export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@prompt8a-ratified-prose-2026-08-12";
+export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@prompt8d-plain-language-2026-08-12";
 
 /** PROMPT 8A slot convention `{n:word}`: one–nine as words, digits from 10 up. */
 const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
@@ -347,29 +347,41 @@ function residualCounts(report: Bag): Record<string, number> {
 // determination` is one of `consultation_required` | `consultation_not_required`
 // | `undetermined_on_the_record`; risk bands are `low` | `moderate` | `high` |
 // `undetermined`; necessity/proportionality verdicts are the
-// `*_on_the_record` / `least_intrusive_means_supported` family. These leads
-// READ those determinations and may not disagree with them.
-function composeExecutiveLead(report: Bag, org: string): string {
+// `*_on_the_record` / `least_intrusive_means_supported` family. Composed prose
+// READS those determinations and may not disagree with them.
+//
+// PROMPT 8D (CEO-ratified 2026-08-12) — the executive [DETERMINATION LEAD] is
+// RETIRED with spine v4.2. Its five branch sentences are replaced by the
+// grounded decision sentence that CLOSES the executive body, below.
+function composeExecutiveDecisionSentence(report: Bag, total: number): string {
   const art36 = art36Determination(report);
-  const decision = decisionText(report);
-  if (art36 === "consultation_required") {
-    return `On the company's answers, the processing requires prior consultation with the supervisory authority under Article 36 before it may proceed.`;
+  const det = determination(report);
+  if (total === 0) {
+    return "This assessment reviews no risks, because the company has recorded none and none is otherwise identified here; no determination on whether the processing may proceed can rest on a register that is empty.";
+  }
+  if (art36 === "consultation_required" || det === "consultation_required") {
+    const authority = /the Commissioner/.test(decisionText(report))
+      ? "the Commissioner"
+      : "the competent supervisory authority";
+    return `Given the noted risks and the mitigating measures, the processing being assessed may not begin until the company has consulted ${authority} under Article 36(1).`;
   }
   if (art36 === "undetermined_on_the_record") {
-    return `On the company's answers, whether the processing may proceed cannot yet be settled: the residual position on which Article 36 turns is open on the points named below.`;
+    return "Given the points still open, whether prior consultation is required cannot yet be determined, and the processing being assessed should not begin until it is.";
   }
-  const det = determination(report);
-  if (det === "draft_incomplete" || (!det && /^DRAFT/i.test(decision))) {
-    return `On the company's answers, ${org} may not yet treat the processing as cleared: the assessment remains incomplete on the points named below.`;
+  if (det === "draft_incomplete") {
+    return "Given the points still open, this assessment cannot yet determine whether the processing being assessed may proceed.";
   }
   if (det === "conditionally_approved") {
-    return `On the company's answers, the processing may proceed conditionally: clearance rides on the measures named below being operated as recorded.`;
+    return "Given the noted risks and the mitigating measures, the processing being assessed may proceed on the conditions set out below.";
   }
   if (det === "approved") {
-    return `On the company's answers, the processing may proceed as assessed, subject to the measures identified in this assessment.`;
+    return "Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate.";
   }
-  return `On the company's answers, the processing may proceed subject to the measures identified in this assessment.`;
+  // Pre-decision documents only: the legacy u5 string is the sole fallback.
+  const legacy = decisionText(report);
+  return legacy ? stop(noStop(firstSentence(legacy))) : "";
 }
+
 
 // SO-FT FIX 1 (2026-08-11): the pipeline emits the same underlying gap more
 // than once, phrased differently ("record the national provision" /
@@ -430,21 +442,33 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   const openBand = bands["undetermined"] ?? 0;
   const sentences: string[] = [];
 
+  // PROMPT 8D (CEO-ratified 2026-08-12) — the CANONICAL MODEL.
   if (total > 0) {
     sentences.push(
-      `The assessment carries ${total === 1 ? "one risk" : `${numberWord(total)} risks`} through to a residual position after the measures the company has recorded.`,
+      total === 1
+        ? "This assessment reviews one risk and the measures the company has put in place to mitigate it."
+        : `This assessment reviews ${numberWord(total)} risks and the measures the company has put in place to mitigate them.`,
     );
+    const preliminary =
+      `the risk levels in this document are preliminary until ${who} re-scores them against the mitigating measures once they have been deployed`;
     sentences.push(
       high > 0
-        ? `${high === 1 ? "One of those risks remains" : `${numberWord(high)} of those risks remain`} at a high residual band on the answers given, and the assessment treats that band as proposed until ${who} re-scores it against the measures as implemented.`
-        : `None of those risks remains at a high residual band on the answers given, and each residual band is proposed until ${who} re-scores it against the measures as implemented.`,
+        ? `${
+          high === 1
+            ? "One of these risks is deemed a high risk"
+            : `${numberWord(high)} of these risks are deemed high risks`
+        } based on the information the company provided, and ${preliminary}.`
+        : `None is deemed a high risk based on the information the company provided, and ${preliminary}.`,
     );
     if (openBand > 0) {
       sentences.push(
-        `${openBand === 1 ? "One residual band is" : `${numberWord(openBand)} residual bands are`} undetermined because the company has not recorded the measures applied, and an undetermined band is not read in the company's favour.`,
+        `${
+          openBand === 1 ? "One remaining risk level is" : `${numberWord(openBand)} remaining risk levels are`
+        } undetermined because the company has not recorded the measures it applies, and an undetermined level is not read in the company's favour.`,
       );
     }
   }
+
 
   // TRACEABILITY — a count is only stated where the counted items are also
   // rendered in this same document. Each entry is named by the facts it asks
@@ -485,11 +509,11 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   const open = openItems.length;
   if (open === 1) {
     sentences.push(
-      `The company's answers leave one point open; it is listed in the gap table and raised again where it bears on a determination. It is: ${openItems[0]}.`,
+      `Based on the information the company provided, one point is still open; it is listed in the gap table and raised again where it bears on a determination. It is: ${openItems[0]}.`,
     );
   } else if (open > 1) {
     const lead =
-      `The company's answers leave ${numberWord(open)} points open; each is listed in the gap table and raised again where it bears on a determination.`;
+      `Based on the information the company provided, ${numberWord(open)} points are still open; each is listed in the gap table and raised again where it bears on a determination.`;
     sentences.push(
       open <= 3
         ? `${lead} They are: ${openItems.join("; ")}.`
@@ -497,12 +521,13 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
     );
   }
 
-
-  const decision = decisionText(report);
-  if (decision) sentences.push(stop(noStop(firstSentence(decision))));
+  // PROMPT 8D — the grounded decision statement CLOSES the executive body.
+  const closing = composeExecutiveDecisionSentence(report, total);
+  if (closing) sentences.push(closing);
 
   return repairRegister(sentences.join(" "));
 }
+
 
 const NECESSITY_UNMET = /undetermined_on_the_record|less_intrusive_alternative_available|disproportionate_on_the_record/;
 
@@ -510,13 +535,14 @@ function composeNecessityLead(report: Bag): string {
   const findings = [...asArray(report.necessity_findings), ...asArray(report.proportionality)];
   const unmet = findings.filter((f) => NECESSITY_UNMET.test(s(f.verdict)));
   if (findings.length === 0) {
-    return "Whether necessity and proportionality are made out cannot be determined on the company's answers alone; the analysis below sets out what the record does and does not support.";
+    return "Whether necessity and proportionality are established cannot be determined based on the information the company provided alone; the analysis below sets out what that information does and does not support.";
   }
   return unmet.length === 0
-    ? "Necessity and proportionality are made out on the company's answers for the processing as described."
-    : `Necessity and proportionality are made out in part on the company's answers: ${
+    ? "Necessity and proportionality are established based on the information the company provided, for the processing as described."
+    : `Necessity and proportionality are established in part based on the information the company provided: ${
       unmet.length === 1 ? "one element is" : `${numberWord(unmet.length)} elements are`
     } not yet supported.`;
+
 }
 
 
@@ -560,22 +586,26 @@ function topRisk(report: Bag): Bag | null {
 function composeRiskLead(report: Bag): string {
   const top = topRisk(report);
   if (!top) {
-    return "No risk register has been assembled on the company's answers, so no residual position can be stated.";
+    return "No risk register has been assembled based on the information the company provided, so no remaining risk level can be stated.";
   }
   const label = noStop(s(top.risk_label)) || "the risk identified below";
   const band = (s(top.residual_band) || s(top.inherent_band)).toLowerCase();
   if (band === "undetermined") {
-    return `After the measures the company has recorded, the residual position on ${label} remains undetermined, and that is the most significant open point in this assessment.`;
+    return `After the mitigating measures the company has recorded, the remaining risk level for ${label} is undetermined, and that is the most significant open point in this assessment.`;
   }
   return band
-    ? `After the measures the company has recorded, the most significant residual risk is ${label}, at a proposed residual band of ${band}.`
-    : `After the measures the company has recorded, the most significant residual risk is ${label}.`;
+    ? `After the mitigating measures the company has recorded, the most significant remaining risk is ${label}, at a preliminary remaining risk level of ${band}.`
+    : `After the mitigating measures the company has recorded, the most significant remaining risk is ${label}.`;
+
 }
 
 
-// PROMPT 8A item 1 (CEO-ratified 2026-08-12) — per-risk analytic template. The
-// re-scoring caveat is carried ONCE, by the first risk that states a residual
-// band; every later risk closes "on the same proposed basis".
+// PROMPT 8A item 1, as revised by the PROMPT 8D plain-language sweep
+// (CEO-ratified 2026-08-12) — per-risk analytic template. The re-scoring
+// caveat is carried ONCE, by the first risk that states a remaining risk
+// level; every later risk closes "on the same preliminary basis". The
+// initial/remaining distinction is vocabulary law: a row carrying both renders
+// both, and neither is ever collapsed to a bare "risk level".
 export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {}): string {
   const rows = asArray(report.risk_register);
   const who = rescorer(intake);
@@ -590,24 +620,26 @@ export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {
     const residual = s(r.residual_band);
     const measures = arr(r.measures).map(noStop);
 
-    // 1.5 — likelihood or severity absent: the band is not decomposed.
+    // 1.5 — likelihood or severity absent: the level is not broken down.
     if (!(likelihood && severity)) {
       blocks.push(
-        `${label} carries an inherent band of ${inherent || "undetermined"} on this assessment's pre-set taxonomy; likelihood and severity are not both recorded, so the band is not decomposed here.`,
+        `${label} carries an initial risk level of ${inherent || "undetermined"} under this assessment's pre-set risk taxonomy; likelihood and severity are not both recorded, so that level is not broken down here.`,
       );
       continue;
     }
 
     const head =
-      `${label} is assessed at ${likelihood} likelihood and ${severity} severity on this assessment's pre-set taxonomy, an inherent band of ${inherent || "undetermined"}.`;
+      `${label} is assessed at ${likelihood} likelihood and ${severity} severity under this assessment's pre-set risk taxonomy, an initial risk level of ${inherent || "undetermined"}.`;
 
-    // 1.4 — residual band undetermined.
+    // 1.4 — remaining risk level undetermined. The causal clause is carried
+    // only by the measures-present branch: in the no-measures branch it would
+    // restate its own antecedent (PROMPT 8D meaning flag 4).
     if (!residual || residual.toLowerCase() === "undetermined") {
       blocks.push(
         `${head} ${
           measures.length
-            ? `The company's recorded ${asProse(measures)} answer it, and the residual band is undetermined, because the company does not record the measures applied.`
-            : "The company records no measure against it, and the residual band is undetermined, because the company does not record the measures applied."
+            ? `The company's recorded ${asProse(measures)} mitigate it, and the remaining risk level is undetermined, because the company does not record the measures it applies.`
+            : "The company records no measure against it, and the remaining risk level is undetermined."
         }`,
       );
       continue;
@@ -615,14 +647,15 @@ export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {
 
     // 1.1 (first, carries the caveat) / 1.2 (subsequent) / 1.3 (no measure).
     const tail = caveatSpent
-      ? `the residual band is ${residual} on the same proposed basis.`
-      : `the residual band — proposed until ${who} re-scores it against the measures as implemented — is ${residual}.`;
+      ? `the remaining risk level is ${residual} on the same preliminary basis.`
+      : `the remaining risk level — preliminary until ${who} re-scores it against the mitigating measures once they have been deployed — is ${residual}.`;
     caveatSpent = true;
     blocks.push(
       measures.length
-        ? `${head} The company's recorded ${asProse(measures)} answer it, and ${tail}`
+        ? `${head} The company's recorded ${asProse(measures)} mitigate it, and ${tail}`
         : `${head} The company records no measure against it, and ${tail}`,
     );
+
   }
 
   const safeguards = values.safeguards;
@@ -644,7 +677,7 @@ function composeSignoffLead(report: Bag, intake: Bag): string {
     const head = det === "consultation_required"
       ? "prior consultation with the supervisory authority before the processing begins"
       : det === "draft_incomplete"
-      ? "that the assessment is not yet capable of sign-off"
+      ? "that the assessment cannot yet be signed off"
       : det === "conditionally_approved"
       ? "conditional approval, subject to the conditions recorded in this assessment"
       : "approval of the processing as assessed";
@@ -656,7 +689,7 @@ function composeSignoffLead(report: Bag, intake: Bag): string {
   }
   if (!decision) {
     return approver
-      ? `No sign-off determination has been recorded, and ${approver} has not yet accepted the residual position.`
+      ? `No sign-off determination has been recorded, and ${approver} has not yet accepted the remaining risk levels.`
       : "No sign-off determination has been recorded, and the assessment carries no approver.";
   }
   const head = noStop(firstSentence(decision));
@@ -673,11 +706,12 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
 
   if (approver) {
     parts.push(
-      `${approver}${title ? `, ${title},` : ""} is recorded as the person accepting the residual position${total ? ` across the ${total === 1 ? "single risk" : `${total} risks`} carried by this assessment` : ""}.`,
+      `${approver}${title ? `, ${title},` : ""} is recorded as the person accepting the remaining risk levels${total ? ` across the ${total === 1 ? "single risk" : `${total} risks`} this assessment reviews` : ""}.`,
     );
   } else {
-    parts.push("No approver has been recorded, so the residual position set out above has not yet been accepted by anyone on the company's behalf.");
+    parts.push("No approver has been recorded, so the remaining risk levels set out above have not yet been accepted by anyone on the company's behalf.");
   }
+
   if (basis) parts.push(stop(`The basis recorded for that acceptance is as follows: ${spliceVerbatim(basis)}`));
   if (values.dpiaScopeNote) parts.push(stop(`The company has recorded the scope of this assessment as ${values.dpiaScopeNote}`));
   if (values.endDate) parts.push(`The review window the company has recorded runs to ${values.endDate}.`);
@@ -717,11 +751,12 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
 function composeArt36Sentence(report: Bag): string {
   const det = art36Determination(report);
   if (det === "consultation_required") {
-    return "Because the residual risk remains high notwithstanding the measures the company has recorded, Article 36(1) requires the controller to consult the supervisory authority before the processing begins";
+    return "Because the remaining risk level is high despite the mitigating measures the company has recorded, Article 36(1) requires the controller to consult the supervisory authority before the processing begins";
   }
   if (det === "undetermined_on_the_record") {
-    return "Whether Article 36(1) requires prior consultation cannot be settled on the company's answers, because the residual position on which that duty turns is open on the points named above";
+    return "Whether Article 36(1) requires prior consultation cannot be settled based on the information the company provided, because the remaining risk levels on which that duty turns are open on the points named above";
   }
+
   return "On this assessment's determination, no prior consultation with the supervisory authority under Article 36(1) is required";
 }
 
@@ -825,7 +860,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   const values: SlotValues = Object.fromEntries(
     Object.entries(rawValues).map(([k, v]) => [k, typeof v === "string" ? repairDpiaPlaceholders(v) : v]),
   ) as SlotValues;
-  const org = s(intake.organization_name) || "the company";
+  
   // Bound to the typed surface, so it is composed from the report, not the intake.
   (values as Bag).ART36_SENTENCE = repairDpiaPlaceholders(composeArt36Sentence(report));
 
@@ -834,8 +869,10 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   const tables = buildDpiaSkeletonTables(report, intake);
 
   const composedRaw: ComposedBlocks = {
-    "executive_summary:0": composeExecutiveLead(report, org),
-    "executive_summary:2": composeExecutiveBody(report, intake),
+    // PROMPT 8D (spine v4.2): the executive lead block is deleted, so the body
+    // is block index 1 and carries the closing decision sentence itself.
+    "executive_summary:1": composeExecutiveBody(report, intake),
+
 
     // PROMPT 8 (spine v4) — the v3 sections `lawfulness`,
     // `risks_and_measures` and `consultation_and_signoff` are retired; the same

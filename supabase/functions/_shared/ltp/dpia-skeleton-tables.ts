@@ -55,9 +55,9 @@ const strList = (v: unknown): string[] =>
 export const DPIA_TABLE_LABELS: Record<string, string> = {
   analysed: "Analysed on the record",
   record_insufficient: "The record does not carry the point",
-  basis_supported_on_the_record: "Basis supported on the company's answers",
-  basis_not_supported_on_the_record: "Basis not supported on the company's answers",
-  undetermined_on_the_record: "Undetermined on the company's answers",
+  basis_supported_on_the_record: "Basis supported based on the information the company provided",
+  basis_not_supported_on_the_record: "Basis not supported based on the information the company provided",
+  undetermined_on_the_record: "Undetermined based on the information the company provided",
   no_transfer_on_the_record: "No cross-border transfer is on the record",
   intra_eea_processing: "Processing remains within the EEA",
   adequacy: "Adequacy decision relied on",
@@ -65,7 +65,7 @@ export const DPIA_TABLE_LABELS: Record<string, string> = {
   approved: "Approved",
   conditionally_approved: "Approved subject to conditions",
   consultation_required: "Prior consultation with the supervisory authority required",
-  draft_incomplete: "Not capable of sign-off on the answers given",
+  draft_incomplete: "Cannot yet be signed off from the company's input",
   low: "Low",
   moderate: "Moderate",
   high: "High",
@@ -347,7 +347,7 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
       "Cross-border transfers",
       label("no_transfer_on_the_record"),
       DASH,
-      "The company has declared no transfer of the data outside the origin regime, so Chapter V is not engaged on the answers given.",
+      "The company has declared no transfer of the data outside the origin regime, so Chapter V is not engaged based on the information the company provided.",
       DASH,
       label("analysed"),
       DASH,
@@ -402,7 +402,7 @@ function riskExposureTable(
   ]);
   return table(surface, title, [
     "Risk",
-    "What raises it on the company's answers",
+    "What raises it, from the company's input",
     "Rights affected",
     "Severity",
   ], rows);
@@ -421,10 +421,10 @@ function riskRegisterTable(rowsIn: Bag[]): RenderedTable | null {
     "Risk",
     "Likelihood",
     "Severity",
-    "Inherent band",
+    "Initial risk level",
     "Measures the company has recorded",
-    "Residual band",
-  ], rows, "Residual bands are proposed until the company re-scores them against the measures as implemented.");
+    "Remaining risk level",
+  ], rows, "Remaining risk levels are preliminary until the company re-scores them against the mitigating measures once they have been deployed.");
 }
 
 // ── Section 6 — conclusion ──────────────────────────────────────────────────

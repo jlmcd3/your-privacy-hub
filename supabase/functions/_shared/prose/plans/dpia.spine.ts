@@ -1,17 +1,23 @@
-// ITEM SO-5 / PROMPT 8B — SPECIFIED OUTPUT ENCODE: Impact Assessment Builder
-// (DPIA). SPINE v4.1 — EDPB harmonised DPIA template structure, Sections 0–6,
-// with the CEO-ratified prose revision of 2026-08-12.
+// ITEM SO-5 / PROMPT 8D — SPECIFIED OUTPUT ENCODE: Impact Assessment Builder
+// (DPIA). SPINE v4.2 — EDPB harmonised DPIA template structure, Sections 0–6,
+// with the CEO-ratified plain-language sweep of 2026-08-12.
 //
 // RENDER LAW. v3 (the CEO-corrected `Impact_Assessment_Builder_DPIA_Skeleton_
-// v3.docx` of 2026-08-10) was superseded on 2026-08-11 by spine v4; v4's fixed
-// prose is in turn superseded from 2026-08-12 by the v4.1 bytes below, which
-// the CEO reviewed and ratified in full. Structure — sections, block order,
-// block kinds and slot inventory — is UNCHANGED from v4; only fixed-prose
-// wording moved.
+// v3.docx` of 2026-08-10) was superseded on 2026-08-11 by spine v4; v4 by the
+// v4.1 prose ratification of 2026-08-12; and v4.1 by v4.2 (PROMPT 8D, CEO-
+// ratified 2026-08-12), which DELETES the executive-summary [DETERMINATION
+// LEAD] block. The decision statement now closes the executive body per the
+// CEO's canonical model. No `skeleton` block's bytes changed at v4.2.
+//
+// HASH BASIS v2 (CEO-approved 2026-08-12): the pin is taken over the FULL
+// spine serialization — section id, title, order, and each block's kind and
+// text — so a structural change such as this one moves the pin. The former
+// skeleton-only basis is retained as `DPIA_SKELETON_CONTENT_HASH` for audit.
 //
 // RATIFICATION PROCESS RULE (standing, CEO, 2026-08-12, all products): the
 // review document put to the CEO for any spine change is generated from the
 // SHIPPED spine bytes, never from a stored .docx.
+
 
 //
 // Nothing here may be reworded, re-punctuated or "improved" by code, by
@@ -31,14 +37,18 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-12-prompt8b-v4-1";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-12-prompt8d-v4-2";
 export const DPIA_SKELETON_SOURCE_FILE =
-  "DPIA spine v4.1 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
+  "DPIA spine v4.2 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4.1 (CEO-ratified 2026-08-12), spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
 export const DPIA_SKELETON_PROVENANCE =
-  "PROMPT 8B spine v4.1 — CEO prose ratification of 2026-08-12, generated from the shipped v4 spine bytes; structure and slot inventory unchanged from PROMPT 8 spine v4 (CEO ratification 2026-08-11)";
+  "PROMPT 8D spine v4.2 — CEO ratification of 2026-08-12 (plain-language sweep), generated from the shipped v4.1 spine bytes; one structural change, the deletion of the executive-summary [DETERMINATION LEAD] block. Fixed prose unchanged.";
+
+/** The superseded v4.1 spine version string, kept for documents already assembled. */
+export const DPIA_SKELETON_VERSION_V41 = "prose-plans-2026-08-12-prompt8b-v4-1";
 
 /** The superseded v4 spine version string, kept for documents already assembled. */
 export const DPIA_SKELETON_VERSION_V4 = "prose-plans-2026-08-11-prompt8-v4";
+
 
 /** The superseded v3 spine version string, kept for documents already assembled. */
 export const DPIA_SKELETON_VERSION_V3 = "prose-plans-2026-08-10-item-so5";
@@ -64,14 +74,18 @@ export const DPIA_SKELETON_CONTENT_HASH_V4 =
   "011f9f425d4cc275bdf023a97be89cafa46d9b561d0c5ca24e7957426d411cae";
 
 /**
- * v4.1 SPINE HASH — SHA-256 over the ratified v4.1 fixed prose: every
- * `skeleton` block's `text` in DPIA_SKELETON_SECTIONS order, joined with "\n"
- * (16 blocks). This is the byte-pin the encode-time conformance check reads.
- * Recomputed and re-ratified whenever a sentence changes; a drift is a HARD
- * STOP, not a fix-up.
+ * FIXED-PROSE HASH (BASIS v1) — SHA-256 over every `skeleton` block's `text` in
+ * DPIA_SKELETON_SECTIONS order, joined with "\n" (16 blocks).
+ *
+ * RETAINED FOR THE AUDIT TRAIL. As of v4.2 this is NOT the shipped pin: the
+ * CEO approved hash basis v2 (full spine serialization) on 2026-08-12, and
+ * `DPIA_SPINE_HASH` below is the pin conformance reads. This value is
+ * unchanged from v4.1 because v4.2 changed no fixed prose, which is exactly
+ * why the basis was widened.
  */
 export const DPIA_SKELETON_CONTENT_HASH =
   "5e538c3c50a0d8098acdffd9067166d92cb343da7f1b117158df9f7d66a4d7b2";
+
 
 
 export const DPIA_SKELETON_TITLE = "DATA PROTECTION IMPACT ASSESSMENT";
@@ -119,9 +133,11 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "executive_summary",
     title: "Executive Summary",
     blocks: [
-      { kind: "lead", text: "[DETERMINATION LEAD] One sentence: whether the processing may proceed, may proceed subject to identified measures, or requires prior consultation under Article 36." },
+      // PROMPT 8D (v4.2): the [DETERMINATION LEAD] block is DELETED. The
+      // decision statement closes the executive body per the canonical model.
       { kind: "skeleton", text: "Article 35 requires a data protection impact assessment where processing is likely to result in a high risk to the rights and freedoms of natural persons. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
-      { kind: "generated", text: "[GENERATED] Three to four sentences: the risk posture after measures, in counsel's voice; no restatement of the lead." },
+      { kind: "generated", text: "[GENERATED] The executive body per the canonical model: the risks reviewed and the measures mitigating them; whether any is deemed high; the self-identified/surfaced split; the open points; and the grounded decision statement, which closes the section." },
+
     ],
   },
   {
@@ -247,3 +263,36 @@ export const DPIA_SKELETON_PINPOINTS: readonly { readonly citation: string; read
 /** Table blocks, in document order — the surfaces the assembler must supply. */
 export const DPIA_SKELETON_TABLE_SURFACES: readonly string[] = DPIA_SKELETON_SECTIONS
   .flatMap((s) => s.blocks.filter((b) => b.kind === "table").map((b) => b.text));
+
+/**
+ * HASH BASIS v2 (CEO-approved 2026-08-12) — the FULL spine serialization.
+ *
+ * One line per section header (`## <id> | <title>`) and one line per block
+ * (`<kind>\t<text>`), in document order, joined with "\n". Section identity,
+ * titles, block order, block kinds and block text are ALL inside the pin, so a
+ * structural change — a deleted lead, a re-ordered table — moves the hash even
+ * when no fixed prose changed. Basis v1 (`DPIA_SKELETON_CONTENT_HASH`) is
+ * retained above for the audit trail.
+ */
+export function serializeDpiaSpine(
+  sections: readonly DpiaSkeletonSection[] = DPIA_SKELETON_SECTIONS,
+): string {
+  const lines: string[] = [];
+  for (const section of sections) {
+    lines.push(`## ${section.id} | ${section.title}`);
+    for (const block of section.blocks) lines.push(`${block.kind}\t${block.text}`);
+  }
+  return lines.join("\n");
+}
+
+/**
+ * v4.2 SPINE HASH — SHA-256 over `serializeDpiaSpine()`. This is the shipped
+ * byte-pin. Recomputed and re-ratified on every ratified spine change; a drift
+ * is a HARD STOP, not a fix-up.
+ */
+export const DPIA_SPINE_HASH =
+  "fe0ced551e06dddd0444feb7834dd4911b63f83b52198090cd1cd95e86a76190";
+
+/** The v4.1 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V41 =
+  "55fad638b771095e83cf1b85b0af38b9c58e6fb1646da017a4153f2e95853cba";

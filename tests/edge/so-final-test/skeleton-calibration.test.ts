@@ -12,7 +12,7 @@ import {
 import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
 
 const RISK_TEMPLATE =
-  "Unauthorised disclosure of health data is assessed at likely likelihood and severe severity on this assessment's pre-set taxonomy, an inherent band of high. The company records no measure against it, and the residual band is high on the same proposed basis.";
+  "Unauthorised disclosure of health data is assessed at likely likelihood and severe severity under this assessment's pre-set risk taxonomy, an initial risk level of high. The company records no measure against it, and the remaining risk level is high on the same preliminary basis.";
 
 Deno.test("rule 1 — ratified template repetition is not boilerplate", () => {
   const { kept, filtered, counts } = applySkeletonCalibration([
