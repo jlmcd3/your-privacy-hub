@@ -1453,7 +1453,7 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
       try {
         raw = await claudeStreamed(
           sys,
-          `Generate ${n} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nThis is chunk ${chunkIdx}; vary scenarios from any prior chunks. Return a JSON array of exactly ${n} objects.`,
+          `Generate ${n} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nThis is chunk ${chunkIdx}; vary scenarios from any prior chunks. Return a JSON array of exactly ${n} objects.${extraGuidance ? `\n\n${extraGuidance}` : ""}`,
           16000,
           "claude-sonnet-4-6",
           { idleTimeoutMs, totalTimeoutMs },
