@@ -2006,18 +2006,53 @@ const NUMBER_WORDS: Record<string, number> = {
 };
 
 /** Explicit count of remaining risks stated in the residual_risks narrative. */
+/**
+ * PROMPT 8E item 4 (CEO-ratified 2026-08-12) — hardened extraction.
+ *
+ * Evidence: run 8996eafc doc 4 read "UK GDPR Art. 37" as a stated count of 37.
+ * (a) a digit preceded by Art./Article/§/Section/Recital (whitespace allowed,
+ *     and surviving the sentence splitter's break after "Art.") is a pinpoint,
+ *     never a count; digits inside a larger token (dates, "37(1)") likewise;
+ * (b) where the narrative enumerates its risks ("1. … 2. … 3. …"), the count of
+ *     enumerated items is preferred over any in-sentence number;
+ * (c) the plausibility bound lives in buildRiskCountNote.
+ */
+const CITATION_PREFIX = /(?:art(?:icle)?\.?|§+|section|recital)\s*$/i;
+
+function enumeratedItemCount(text: string): number | null {
+  const seen = new Set<number>();
+  for (const m of text.matchAll(/(?:^|\n|\s)(\d{1,2})[.)]\s+(?=\S)/g)) {
+    seen.add(Number(m[1]));
+  }
+  let n = 0;
+  while (seen.has(n + 1)) n++;
+  return n >= 2 ? n : null;
+}
+
 export function statedResidualRiskCount(narrative: unknown): number | null {
   const text = str(narrative);
   if (!text) return null;
-  for (const sentence of text.split(/(?<=[.!?])\s+/)) {
+
+  const enumerated = enumeratedItemCount(text);
+  if (enumerated !== null) return enumerated;
+
+  // Split on sentence ends, but never on the full stop inside "Art." / "art."
+  const sentences = text.split(/(?<![Aa]rt|[Nn]o|[Ss]ec)(?<=[.!?])\s+/);
+  for (const sentence of sentences) {
     if (!/\brisks?\b/i.test(sentence)) continue;
     const word = sentence.match(
       /\b(one|two|three|four|five|six|seven|eight|nine|ten)\b(?=[^.!?]*\brisks?\b)/i,
     );
     if (word) return NUMBER_WORDS[word[1].toLowerCase()];
-    const digit = sentence.match(/\b(\d{1,2})\b(?=[^.!?]*\brisks?\b)/);
-    if (digit) {
-      const n = Number(digit[1]);
+    for (const m of sentence.matchAll(/(\d{1,2})/g)) {
+      const idx = m.index ?? 0;
+      const before = sentence.slice(0, idx);
+      const after = sentence.slice(idx + m[1].length);
+      // part of a larger token (dates, "37(1)", "2026-08", "v1.0")
+      if (/[\w./\-]$/.test(before) || /^[\w./\-(]/.test(after)) continue;
+      if (CITATION_PREFIX.test(before)) continue;
+      if (!/^[^.!?]*\brisks?\b/i.test(after)) continue;
+      const n = Number(m[1]);
       if (n > 0) return n;
     }
   }
@@ -2032,19 +2067,24 @@ export function buildRiskCountNote(
   if (stated_count === null) return undefined;
   const register_count = register.length;
   if (stated_count === register_count) return undefined;
-  // PROMPT 8D (CEO-ratified 2026-08-12) — the reconciliation disclosure in
-  // plain form. Flag 3 variant: where the company's own account describes MORE
-  // risks than the register carries, "surfaces {n} more" would be false, so the
-  // reversed sentence is used instead.
+  // ITEM 4(c) — plausibility bound. An extraction that dwarfs the register is
+  // very likely a misread pinpoint; say nothing rather than reconcile nonsense.
+  if (register_count > 0 && stated_count > register_count * 3) return undefined;
+  // PROMPT 8E item 1 — CEO-ratified 8D bytes. No lead-in sentence: the
+  // canonical executive sentence already states the count and this note renders
+  // immediately after it. Flag 3 variant carries the reversed case.
   const note = stated_count < register_count
-    ? `This assessment reviews ${register_count} risks. The company self-identified ${stated_count} of these risks; this assessment surfaces ${register_count - stated_count} more. The register is the count this assessment works from, and the company's own account is recorded in its own words in the sign-off section.`
-    : `This assessment reviews ${register_count} risks. The company's own account describes ${stated_count}, which is ${stated_count - register_count} more than this assessment carries in its register; the register is the count this assessment works from, and the company's own account is recorded in its own words in the sign-off section.`;
+    ? `The company self-identified ${nWord(stated_count)} of these risks; this assessment surfaces ${
+      nWord(register_count - stated_count)
+    } more. The company's own account is recorded in its own words in the sign-off section.`
+    : `The company self-identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
+      nWord(register_count)
+    } after consolidation, and the company's own account is recorded in its own words in the sign-off section.`;
   return {
     register_count,
     stated_count,
     note,
   };
-
 }
 
 // ---------------------------------------------------------------------
