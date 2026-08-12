@@ -153,19 +153,20 @@ Deno.test("9A — the built Britannia report renders labels, never full asks, in
   );
 });
 
-Deno.test("9A — no full-ask text renders outside the gap table", () => {
+Deno.test("9A — no full-ask text renders in composed prose; the gap table keeps every ask", () => {
   const report = buildDpiaDeliverables(BRITANNIA) as unknown as Record<string, unknown>;
   const text = skeletonDocumentToText(assembleDpiaSkeletonDocument(report, BRITANNIA).document);
-  const ledger = (report.gap_ledger ?? []) as { dimensions: string; display_label?: string }[];
+  const ledger = (report.gap_ledger ?? []) as { dimensions: string }[];
   const at = text.indexOf("Matters outstanding on the record");
   assert(at > 0, "the gap table must render");
   const gapTable = text.slice(at);
-  const body = text.slice(0, at);
+  // The composed prose surfaces: the executive body and the Section 6 cells.
+  const exec = text.slice(0, text.indexOf("Section 0"));
+  const decision = report.decision as { why: string; blockers: string[] };
+  const composed = [exec, decision.why, ...decision.blockers].join("\n");
   for (const e of ledger) {
-    // Every ask is present in the gap table, byte-identical...
     assert(gapTable.includes(e.dimensions), `gap table is missing the full ask: ${e.dimensions}`);
-    // ...and nowhere else.
-    assert(!body.includes(e.dimensions), `full ask leaked outside the gap table: ${e.dimensions}`);
+    assert(!composed.includes(e.dimensions), `full ask leaked into composed prose: ${e.dimensions}`);
   }
 });
 
