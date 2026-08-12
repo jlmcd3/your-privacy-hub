@@ -94,7 +94,7 @@ const BRITANNIA = {
   legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
   necessity_proportionality:
     "Sentiment analytics is necessary because no other source gives an estate-wide view; a sampled manual survey was considered and rejected because it could not produce comparable results across sites.",
-  processors: ["Britannia Insight Ltd"],
+  third_party_processors: ["Britannia Insight Ltd"],
   retention_period: "24 months from collection",
   existing_safeguards: ["Access controls", "Pseudonymisation of survey identifiers"],
 };
@@ -155,7 +155,7 @@ const DOC4 = {
     "The same scores are re-used to prioritise outbound sales calls, which is a separate operation.",
   necessity_proportionality: "",
   alternatives_considered: [],
-  processors: ["Helvetia Analytics AG"],
+  third_party_processors: ["Helvetia Analytics AG"],
 };
 
 Deno.test("9A (R4) — the Matters cell renders short labelled lines, merged across operations", () => {
