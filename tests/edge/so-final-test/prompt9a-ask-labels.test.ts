@@ -24,6 +24,7 @@ import {
   blockerSlot,
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 // ── 1. THE RATIFIED BYTES ───────────────────────────────────────────────────
 
@@ -101,7 +102,7 @@ const BRITANNIA = {
 Deno.test("9A — the Britannia executive paragraph renders the ratified labels", () => {
   const report = buildDpiaDeliverables(BRITANNIA) as unknown as Record<string, unknown>;
   const doc = assembleDpiaSkeletonDocument(report, BRITANNIA);
-  const text = doc.text;
+  const text = skeletonDocumentToText(doc.document);
 
   assert(
     text.includes(
@@ -119,10 +120,12 @@ Deno.test("9A — the Britannia executive paragraph renders the ratified labels"
 
 Deno.test("9A — no full-ask text renders outside the gap table", () => {
   const report = buildDpiaDeliverables(BRITANNIA) as unknown as Record<string, unknown>;
-  const doc = assembleDpiaSkeletonDocument(report, BRITANNIA);
+  const text = skeletonDocumentToText(assembleDpiaSkeletonDocument(report, BRITANNIA).document);
   const ledger = (report.gap_ledger ?? []) as { dimensions: string; display_label?: string }[];
-  const gapTable = doc.text.slice(doc.text.indexOf("Matters outstanding on the record"));
-  const body = doc.text.slice(0, doc.text.indexOf("Matters outstanding on the record"));
+  const at = text.indexOf("Matters outstanding on the record");
+  assert(at > 0, "the gap table must render");
+  const gapTable = text.slice(at);
+  const body = text.slice(0, at);
   for (const e of ledger) {
     // Every ask is present in the gap table, byte-identical...
     assert(gapTable.includes(e.dimensions), `gap table is missing the full ask: ${e.dimensions}`);
