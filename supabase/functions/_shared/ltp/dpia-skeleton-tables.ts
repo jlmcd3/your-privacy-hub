@@ -250,7 +250,9 @@ function specialCategoryTable(cov: Bag): RenderedTable | null {
     cell(r.item),
     cell(r.condition_label),
     cell(r.justification),
-    cell(r.citation),
+    // PROMPT 10B(1): the Art. 9(2)(x) pinpoint renders beside the Art. 9(1)
+    // anchor, so the iff-cited ToA rule can see it in the body.
+    cell([r.citation, r.condition_citation].filter(Boolean).join("; ")),
     label(r.status),
     cell(r.information_needed),
   ]);
