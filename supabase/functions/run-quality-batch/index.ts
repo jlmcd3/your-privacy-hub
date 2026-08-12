@@ -2310,17 +2310,46 @@ async function runBatchInner(runId: string): Promise<void> {
     }
     if (intakes.length < batchSize && nextIdxSafe === 0) {
       const needed = batchSize - pinnedCount;
-      await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents${pinnedCount > 0 ? `, ${pinnedCount} pinned + ${needed} generated` : ""})`);
-      await log(OPENAI_API_KEY ? "success" : "warn",
-        OPENAI_API_KEY
-          ? `OPENAI_API_KEY detected — GPT-4o cross-review enabled`
-          : `OPENAI_API_KEY NOT detected — GPT-4o cross-review will be SKIPPED for every doc`);
+      const priorGen: IntakeGenProgress = state.intakeGen ?? emptyIntakeGenProgress();
+      const intakeIsolate = (state.intakeGenIsolates ?? 0) + 1;
+      state.intakeGenIsolates = intakeIsolate;
+      if (intakeIsolate === 1) {
+        await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents${pinnedCount > 0 ? `, ${pinnedCount} pinned + ${needed} generated` : ""})`);
+        await log(OPENAI_API_KEY ? "success" : "warn",
+          OPENAI_API_KEY
+            ? `OPENAI_API_KEY detected — GPT-4o cross-review enabled`
+            : `OPENAI_API_KEY NOT detected — GPT-4o cross-review will be SKIPPED for every doc`);
+      }
       await upd({ status: "generating" });
-      await log("info", `Generating ${needed} intake scenarios via Claude…`);
+      // PROMPT 8G — one scenario per model call, deadline checked BETWEEN
+      // calls, partial set persisted + self-reinvoked on deadline.
+      if (priorGen.totalAttempted > 0) {
+        await log("info", `Generating ${needed} intake scenarios via Claude… (resuming at scenario ${priorGen.totalAttempted + 1}/${needed}, isolate ${intakeIsolate})`);
+      } else {
+        await log("info", `Generating ${needed} intake scenarios via Claude…`);
+      }
       let intakeWarning: string | null = null;
       try {
-        const gen = await generateValidatedIntakes(tool, needed);
-        intakes = [...intakes, ...gen.intakes];
+        const { progress: gen, status: genStatus } = await generateValidatedIntakesChunked(
+          tool,
+          needed,
+          priorGen,
+          {
+            deadlineAt: Date.now() + INTAKE_ISOLATE_BUDGET_MS,
+            onScenario: async (done, total, secs, ok) => {
+              await log(ok ? "info" : "warn", `Scenario ${done}/${total} generated (${secs.toFixed(1)}s)${ok ? "" : " — rejected"}`);
+            },
+          },
+        );
+        state.intakeGen = gen;
+        if (genStatus === "deadline") {
+          await persistState();
+          await log("info", `Intake generation deadline (isolate ${intakeIsolate}, ${Math.round(INTAKE_ISOLATE_BUDGET_MS / 1000)}s) — persisted ${gen.accepted.length} accepted / ${gen.totalAttempted} attempted and self-reinvoking to CONTINUE at scenario ${gen.totalAttempted + 1}/${needed}`);
+          await selfReinvoke(runId);
+          clearInterval(heartbeat);
+          return;
+        }
+        intakes = [...intakes, ...gen.accepted];
         if (gen.rejected.length > 0) {
           await log("warn", `Intake validation: ${gen.rejected.length}/${gen.totalAttempted} rejected after retry (${tool}). Reasons: ${gen.rejected.slice(0, 3).map(r => r.reason).join(" | ")}`);
         }
@@ -2336,7 +2365,9 @@ async function runBatchInner(runId: string): Promise<void> {
           clearInterval(heartbeat);
           return;
         }
-        await log("success", `Intakes ready: ${intakes.length} total (${pinnedCount} pinned + ${gen.intakes.length} generated / ${gen.totalAttempted} attempted)`);
+        state.intakeGen = undefined;
+        await persistState();
+        await log("success", `Intakes ready: ${intakes.length} total (${pinnedCount} pinned + ${gen.accepted.length} generated / ${gen.totalAttempted} attempted)`);
       } catch (e) {
         await log("error", `Intake generation failed: ${(e as Error).message}`);
         await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}`, completed_at: new Date().toISOString() });
