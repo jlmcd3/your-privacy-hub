@@ -151,6 +151,62 @@ const R2_CONCESSION_RES: readonly RegExp[] = [
 const R3_PROVENANCE_RE =
   /includes risks this assessment itself projects/i;
 
+// RULE 5 — INITIAL/REMAINING CONFLATION. CEO-approved 2026-08-12.
+//
+// EVIDENCE: run b82ba671 (batch run #182), documents 3 and 4 — high-severity
+// citation/actionability findings quoting the ratified executive sentence
+// "None is deemed a high risk based on the information the company provided"
+// and calling it contradicted by Section 4's "initial risk level of high".
+// The persisted risk registers for both documents carry NO row with
+// residual_band === "high": the executive sentence speaks to the REMAINING
+// level and is correct; the grader conflated the initial (inherent) level
+// with the remaining one.
+//
+// The matcher is deliberately narrow: all three conditions must hold.
+//   (a) the finding quotes the executive high-risk sentence (or its
+//       {n}-are-deemed variants) and calls it contradicted/inconsistent;
+//   (b) the contradiction it cites is an INITIAL/inherent-level statement,
+//       and it does NOT cite a remaining/residual high level;
+//   (c) the persisted register shows no residual_band === "high".
+// A genuine remaining-high contradiction, or a register that really does
+// carry a residual high, passes straight through.
+const R5_EXEC_SENTENCE_RES: readonly RegExp[] = [
+  /None is deemed a high risk based on the information the company provided/i,
+  /\bof these risks (?:is deemed a high risk|are deemed high risks)\b/i,
+];
+const R5_CONTRADICTION_RE =
+  /\b(contradict\w*|inconsisten\w*|conflict\w*|at odds with|is not consistent with)\b/i;
+const R5_INITIAL_RES: readonly RegExp[] = [
+  /\binitial risk level of high\b/i,
+  /\binherent risk level of high\b/i,
+  /\binitial (?:risk )?(?:level|rating|band)\b[^.]{0,60}\bhigh\b/i,
+  /\bsevere severity\b[^.]{0,80}\binitial\b/i,
+  /\binitial\b[^.]{0,80}\bsevere severity\b/i,
+];
+const R5_REMAINING_HIGH_RES: readonly RegExp[] = [
+  /\b(remaining|residual) risk level (?:of |is |: )?high\b/i,
+  /\bhigh\b[^.]{0,40}\b(remaining|residual) risk level\b/i,
+  /\b(remaining|residual) (?:risk )?(?:level|band|rating)\b[^.]{0,60}\bhigh\b/i,
+];
+
+/** True when the persisted report's risk register carries a residual high row. */
+export function registerHasResidualHigh(report: unknown): boolean {
+  const rows = (report as Record<string, unknown> | null | undefined)?.["risk_register"];
+  if (!Array.isArray(rows)) return false;
+  return rows.some((r) =>
+    String((r as Record<string, unknown>)?.residual_band ?? "").trim().toLowerCase() === "high"
+  );
+}
+
+function matchesRule5(ev: string, report: unknown): boolean {
+  if (!R5_EXEC_SENTENCE_RES.some((r) => r.test(ev))) return false;
+  if (!R5_CONTRADICTION_RE.test(ev)) return false;
+  if (R5_REMAINING_HIGH_RES.some((r) => r.test(ev))) return false;
+  if (!R5_INITIAL_RES.some((r) => r.test(ev))) return false;
+  if (registerHasResidualHigh(report)) return false;
+  return true;
+}
+
 export type SkeletonCalFiltered = {
   rule: SkeletonCalRuleId;
   template_id: string | null;
@@ -158,11 +214,19 @@ export type SkeletonCalFiltered = {
   finding: LlmFinding;
 };
 
+export type SkeletonCalContext = {
+  /** The persisted report whose register rule 5 consults. */
+  readonly report?: unknown;
+};
+
 /**
- * Applies the four CEO-approved skeleton calibration rules. Callers MUST gate
+ * Applies the five CEO-approved skeleton calibration rules. Callers MUST gate
  * on grader_mode === "skeleton" — this function does not know the mode.
  */
-export function applySkeletonCalibration(findings: LlmFinding[]): {
+export function applySkeletonCalibration(
+  findings: LlmFinding[],
+  ctx: SkeletonCalContext = {},
+): {
   kept: LlmFinding[];
   filtered: SkeletonCalFiltered[];
   counts: Record<SkeletonCalRuleId, number>;
@@ -172,6 +236,7 @@ export function applySkeletonCalibration(findings: LlmFinding[]): {
     cal_skeleton_2: 0,
     cal_skeleton_3: 0,
     cal_skeleton_4: 0,
+    cal_skeleton_5: 0,
   };
   const filtered: SkeletonCalFiltered[] = [];
   const kept: LlmFinding[] = [];
