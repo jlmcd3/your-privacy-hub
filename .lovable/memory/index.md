@@ -11,11 +11,15 @@ Cron: pg_cron jobs must use hardcoded function URLs.
 Content: All AI-enriched analysis fields are completely ungated for all users.
 Subscriptions: Intelligence $20/mo ($200/yr, save $40). Professional $49/mo ($490/yr, save $98) + $150/client/yr add-on. Never hardcode price strings in UI — always import from `src/config/pricing.ts` (PRICING / PRICING_REGISTRY / INTELLIGENCE_PRICING / PLATFORM_PRICING). Contextual ads shown to ALL users including Professional — never claim "ad-free".
 Routing: React Router `<Link>` for internal. External links use `target="_blank"`.
+Prose: All customer-facing fixed sentences follow the [EUP Prose Voice Standard](mem://brand/prose-voice-standard) (CEO-issued v1, 2026-08-12); prompts referencing "the Standard" mean that document.
+
 
 ## Memories
 - [Project Overview](mem://project/overview) — What EndUserPrivacy.com is and its core features
 - [Design System](mem://design/typography-and-colors) — Fonts, UI colors, article card styling, and document layouts
 - [Brand Voice](mem://brand/voice-policy) — Banned words, allowed terminology, product identity
+- [EUP Prose Voice Standard](mem://brand/prose-voice-standard) — CEO-issued v1 rules for every customer-facing fixed sentence (company-as-actor, cited statutory conditions, credit-first honesty, no machine vocabulary)
+
 - RoPA pricing (v12, 2026-08-11): NOT in the flat included bundle. Annual plans: first build free + 1 free update/yr (own `pool='ropa'` credit, 1/yr both tiers); every other RoPA action and every monthly-plan action is $29 (`ropa_paid_generation`).
 - [Monetization](mem://features/monetization) — Pricing (Intel $20/$200, Prof $49/$490 + $150/client), tool tiers, annual credits, gating, ad policy
 - [Newsfeed Rules](mem://features/newsfeed) — Access limits, breaking news logic, URL sync, ungated fields
