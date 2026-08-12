@@ -24,7 +24,7 @@ Deno.test("9C item 3: the repair prompt carries the rejected intake verbatim", a
   );
   assertEquals(firstCall, false);
   assertStringIncludes(seen, "REPAIR MODE");
-  assertStringIncludes(seen, "return this same object with the listed facts added; change nothing else".toUpperCase().slice(0, 0) + "change nothing else");
+  assertStringIncludes(seen, "return this same object with the listed facts added; change nothing else");
   assertStringIncludes(seen, JSON.stringify(rejected));
   assert(res.ok === false || res.ok === true);
 });
