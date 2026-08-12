@@ -71,7 +71,8 @@ Deno.test("6(1)(c): named instrument on the record → analysed", () => {
     necessity_proportionality: "Retention is required by the Employment Rights Act 1996, section 12.",
   });
   assertEquals(f.status, "analysed");
-  assert(f.justification.includes("names the instrument"));
+  // PROMPT 8A ratified wording (2026-08-12).
+  assert(f.justification.includes("identifies the instrument"), f.justification);
 });
 
 Deno.test("6(1)(c): obligation described generally → record_insufficient with the ratified ask", () => {
@@ -152,4 +153,28 @@ Deno.test("closing sentence is carried by every non-(f) branch", () => {
     const f = one({ legal_basis_proposed: basis });
     assert(f.justification.includes("does not substitute"));
   }
+});
+
+// ── PROMPT 8C (2026-08-12) — Art. 9 cross-reference on non-(f) bases ──
+const ART9_XREF =
+  " Because special categories of personal data are involved, this basis is read together with the Article 9(2) condition addressed in the special-categories table below.";
+
+Deno.test("8C: non-(f) basis with an Art. 9 condition carries the cross-reference", () => {
+  const [f] = buildLegalBasis({
+    ...BASE,
+    legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
+    article_9_condition: "Health or social care (Art. 9(2)(h))",
+  });
+  assert(f.justification.endsWith(ART9_XREF), f.justification);
+});
+
+Deno.test("8C: no Art. 9 condition → no cross-reference; (f) branch never carries it", () => {
+  const [plain] = buildLegalBasis({ ...BASE, legal_basis_proposed: "Legal obligation (Art. 6(1)(c))" });
+  assert(!plain.justification.includes("special-categories table below"));
+  const [lf] = buildLegalBasis({
+    ...BASE,
+    legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+    article_9_condition: "Health or social care (Art. 9(2)(h))",
+  });
+  assert(!lf.justification.includes("special-categories table below"));
 });

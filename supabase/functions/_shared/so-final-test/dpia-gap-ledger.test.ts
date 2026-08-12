@@ -5,6 +5,7 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  buildDpiaDeliverables,
   buildGapLedger,
   buildGapLedgerDetailed,
   buildRiskCountNote,
@@ -220,4 +221,36 @@ Deno.test("reconciliation: nothing attached when the narrative states no count",
     undefined,
   );
   assertEquals(buildRiskCountNote({}, [risk({ risk_id: "r1" })]), undefined);
+});
+
+// ── PROMPT 8C (2026-08-12) — dimensions never carry retired meta-text ──
+const RETIRED_META_DIMENSIONS = [
+  "The record does not settle this point, and it is carried in the information needed list.",
+  "the measures that keep this data accurate and up to date, and how often they run",
+  "a principle-by-principle account (lawfulness, fairness and transparency; purpose limitation; minimisation; accuracy; storage limitation; integrity and confidentiality) naming the measure that carries each one",
+  "a right-by-right account (access, rectification, erasure, restriction, portability, objection) naming the route and the response time for each",
+];
+
+Deno.test("8C: gap-ledger dimensions are fact-naming, never the retired meta-strings", () => {
+  const intake = {
+    organization_name: "Northwind Clinics Ltd",
+    processing_activity_name: "Patient triage scoring",
+    purpose: "To triage patients arriving at urgent care.",
+    data_categories: ["Contact details", "Health or medical data"],
+    data_subjects: "Patients",
+    jurisdictions: ["EU (GDPR)"],
+    legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
+    article_9_condition: "Health or social care (Art. 9(2)(h))",
+  };
+  const deliverables = buildDpiaDeliverables(intake) as unknown as {
+    gap_ledger: Array<{ dimensions: string }>;
+  };
+  const ledger = deliverables.gap_ledger ?? [];
+  assert(ledger.length > 0);
+  for (const e of ledger) {
+    assert(e.dimensions.trim().length > 0);
+    for (const retired of RETIRED_META_DIMENSIONS) {
+      assert(e.dimensions !== retired, `retired meta-string in ledger: ${e.dimensions}`);
+    }
+  }
 });

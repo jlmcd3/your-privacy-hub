@@ -826,6 +826,12 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
   const reasons = arr(get(intake, "reasons_to_conduct")).join("; ") ||
     str(get(intake, "reasons_to_conduct"));
   const codes = str(get(intake, "codes_of_conduct"));
+  // PROMPT 8C item 1 (ratified 2026-08-12): where the intake carries an
+  // Art. 9(2) condition, the non-(f) justification points at the
+  // special-categories table. Byte-exact; never in the (f) branch.
+  const art9Selected = str(get(intake, "article_9_condition"));
+  const ART9_CROSS_REFERENCE =
+    " Because special categories of personal data are involved, this basis is read together with the Article 9(2) condition addressed in the special-categories table below.";
 
   /** Per-basis anchor; empty verbatim where the registry has no row. */
   const basisAnchor = (sub: string) => {
@@ -895,7 +901,8 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         operation_id: op.operation_id,
         purpose,
         article_6_basis: art6.label,
-        justification: [opening, check.finding, BASIS_CLOSER].filter(Boolean).join(" "),
+        justification: [opening, check.finding, BASIS_CLOSER].filter(Boolean).join(" ") +
+          (art9Selected ? ART9_CROSS_REFERENCE : ""),
         verdict: check.met
           ? ("basis_supported_on_the_record" as const)
           : ("undetermined_on_the_record" as const),
@@ -1336,11 +1343,13 @@ const ASK_DPA = "whether a written processing contract is in place with each nam
 const ASK_RETENTION = "the retention period applied to this data, and the event the period runs from";
 const ASK_DPBD = "the technical and organisational measures built into the design of this processing, and when each was implemented";
 const ASK_SAFEGUARDS_LIST = "which technical and organisational measures are applied to this processing";
-const ASK_DATA_QUALITY = "the measures that keep this data accurate and up to date, and how often they run";
+// PROMPT 8C item 2 (ratified 2026-08-12): Tier-3 asks name the facts wanted.
+const ASK_DATA_QUALITY =
+  "The measures that keep the personal data accurate and up to date for this purpose, and how data quality is checked.";
 const ASK_ART5_TABLE =
-  "a principle-by-principle account (lawfulness, fairness and transparency; purpose limitation; minimisation; accuracy; storage limitation; integrity and confidentiality) naming the measure that carries each one";
+  "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated per principle, with each measure's implementation status.";
 const ASK_RIGHTS_TABLE =
-  "a right-by-right account (access, rectification, erasure, restriction, portability, objection) naming the route and the response time for each";
+  "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.";
 
 const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendation[] = [
   {

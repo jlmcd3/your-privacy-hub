@@ -288,3 +288,24 @@ Deno.test("s2: attaches as a single-writer surface on the envelope", () => {
   assertEquals(built.section2_coverage.rule_id, "dpia_section2_coverage_v1");
   assertEquals(built.section2_coverage.transfers.length, 1);
 });
+
+// ── PROMPT 8C (2026-08-12) — Tier-3 asks name facts ──────────────────
+Deno.test("8C: tier-3 asks are the ratified fact-naming strings", () => {
+  const thin = coverage({
+    data_quality_measures: "",
+    data_subject_rights_mechanisms: "",
+    data_minimisation_justification: "",
+  });
+  assertEquals(
+    thin.data_quality[0].information_needed,
+    "The measures that keep the personal data accurate and up to date for this purpose, and how data quality is checked.",
+  );
+  assertEquals(
+    thin.measures_article5[0].information_needed,
+    "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated per principle, with each measure's implementation status.",
+  );
+  assertEquals(
+    thin.measures_rights[0].information_needed,
+    "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.",
+  );
+});
