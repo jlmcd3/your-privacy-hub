@@ -43,6 +43,8 @@ import type {
   ProportionalityFinding,
   RiskBand,
   RiskRegisterEntry,
+  DpiaEnforcementAnnotation,
+  DpiaEnforcementMatchType,
 } from "../../../../_shared/ltp/dpia-deliverables/types.ts";
 
 export const DPIA_DELIVERABLES_VERSION =
