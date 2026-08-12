@@ -80,6 +80,8 @@ Deno.test("branch a — consultation_required", () => {
   assertEquals(d.blockers, []);
 });
 
+// PROMPT 9B re-pin (2026-08-12) — blockers carry the 9A COMPACT LABEL
+// (mergeLabeledAsks → renderMergedLabel), not the full ask text.
 Deno.test("branch b — draft_incomplete on an undetermined remaining risk level", () => {
   const d = buildDecision(
     INTAKE,
@@ -90,14 +92,18 @@ Deno.test("branch b — draft_incomplete on an undetermined remaining risk level
           residual_band: "undetermined",
           status: "record_insufficient",
           information_needed: "The measures actually applied against re-identification.",
-        }),
+          ask_class: "ask_risk_measures",
+          display_label: "the measures applied against re-identification",
+          // deno-lint-ignore no-explicit-any
+        } as any),
       ],
     }),
   );
   assertEquals(d.determination, "draft_incomplete");
-  assertEquals(d.blockers, ["The measures actually applied against re-identification."]);
+  assertEquals(d.blockers, ["the measures applied against re-identification"]);
   assertStringIncludes(d.why, "cannot yet be determined");
 });
+
 
 Deno.test("branch c — conditionally_approved; missing measure becomes its own condition", () => {
   const d = buildDecision(
@@ -151,28 +157,53 @@ Deno.test("consultation beats draft_incomplete when both hold", () => {
   assertEquals(d.blockers, []);
 });
 
+// PROMPT 9B re-pin — dedup is now by ask_class + resolved compact label
+// (R1/R4); the full ask keeps its gap-table row only.
 Deno.test("blockers deduplicate across surfaces", () => {
   const shared = "Record the retention period for the assessed processing.";
+  const label = "the retention period applied to the assessed processing";
+  const tagged = {
+    status: "record_insufficient",
+    information_needed: shared,
+    ask_class: "ask_retention_period",
+    display_label: label,
+  };
   const base = deliverables({
-    risk_register: [
-      risk({
-        risk_id: "r1",
-        residual_band: "undetermined",
-        status: "record_insufficient",
-        information_needed: shared,
-      }),
-    ],
+    // deno-lint-ignore no-explicit-any
+    risk_register: [risk({ risk_id: "r1", residual_band: "undetermined", ...tagged } as any)],
   });
   const d = buildDecision(INTAKE, {
     ...base,
     // deno-lint-ignore no-explicit-any
-    necessity_findings: [{ status: "record_insufficient", information_needed: shared } as any],
+    necessity_findings: [{ ...tagged } as any],
     // deno-lint-ignore no-explicit-any
-    legal_basis: [{ status: "record_insufficient", information_needed: shared } as any],
+    legal_basis: [{ ...tagged } as any],
   });
   assertEquals(d.determination, "draft_incomplete");
-  assertEquals(d.blockers, [shared]);
+  assertEquals(d.blockers, [label]);
 });
+
+// PROMPT 9B — the R4 scope suffix reaches the blockers slot.
+Deno.test("blockers merge across operations with the R4 scope suffix", () => {
+  const label = "the retention period applied to the assessed processing";
+  const tagged = (op: string) => ({
+    status: "record_insufficient",
+    information_needed: "Record the retention period for the assessed processing.",
+    ask_class: "ask_retention_period",
+    display_label: label,
+    scope_op: op,
+  });
+  const d = buildDecision(INTAKE, {
+    ...deliverables({
+      // deno-lint-ignore no-explicit-any
+      risk_register: [risk({ risk_id: "r1", residual_band: "undetermined", ...tagged("the primary use") } as any)],
+    }),
+    // deno-lint-ignore no-explicit-any
+    necessity_findings: [tagged("the secondary use") as any],
+  });
+  assertEquals(d.blockers, [`${label} — for both the primary and the secondary use`]);
+});
+
 
 Deno.test("legacy report without `decision` still composes via the fallback", async () => {
   const { assembleDpiaSkeletonDocument } = await import("../ltp/dpia-skeleton-assemble.ts");
