@@ -636,6 +636,48 @@ export function flowLeavesOriginRegime(
   return true;
 }
 
+// PROMPT 9C item 1 (CEO-authorised) — TRANSFER-FLOW ALIAS WIDENING.
+// The Section-2 coverage reader accepted only the UI shape
+// (destination / importer / dpfCertified / ukExtensionCertified) while
+// flowLeavesOriginRegime already accepted the contract's snake_case shape.
+// This reader is the single alias surface for both shapes. Branch logic is
+// unchanged: it only widens WHICH keys are read.
+const DPF_TEXT = /\b(eu[-\s]?u\.?s\.?\s+data\s+privacy\s+framework|data\s+privacy\s+framework|\bdpf\b)\b/i;
+const UK_EXT_TEXT = /\b(uk\s+extension|uk[-\s]?u\.?s\.?\s+data\s+bridge|data\s+bridge)\b/i;
+
+export function readTransferFlowAliases(f: Record<string, unknown>): {
+  dest: string;
+  origin: "EU" | "UK";
+  importer: string;
+  dpfCertified: boolean;
+  ukExtensionCertified: boolean;
+  mechanismText: string;
+} {
+  const dest = str(f.destination ?? f.destinationCountry ?? f.destination_country).trim();
+  const originRaw = String(f.originRegime ?? f.origin_regime ?? "").toUpperCase();
+  const importer = str(f.importer ?? f.importerEntity ?? f.recipient ?? f.importer_entity).trim();
+  const mechanismText = [f.transfer_mechanism, f.mechanism, f.transferMechanism, f.safeguard]
+    .map((x) => str(x))
+    .join(" ")
+    .trim();
+  const dpfFlag = f.dpf_certified ?? f.dpfCertified ?? f.importerDpfCertified;
+  const ukFlag = f.uk_extension_certified ?? f.ukExtensionCertified ?? f.importerUkExtensionCertified;
+  // Mechanism text corroborates certification ONLY where the booleans are absent.
+  const dpfCertified = dpfFlag == null ? DPF_TEXT.test(mechanismText) : !!dpfFlag;
+  const ukExtensionCertified = ukFlag == null
+    ? (DPF_TEXT.test(mechanismText) && UK_EXT_TEXT.test(mechanismText)) || UK_EXT_TEXT.test(mechanismText)
+    : !!ukFlag;
+  return {
+    dest,
+    origin: originRaw === "UK" ? "UK" : "EU",
+    importer,
+    dpfCertified,
+    ukExtensionCertified,
+    mechanismText,
+  };
+}
+
+
 
 function facts(intake: unknown): RiskFacts {
   const transfers = get(intake, "transfer_flows");
