@@ -2830,6 +2830,25 @@ async function runBatchInner(runId: string): Promise<void> {
       }));
       if (findingRows.length) await admin.from("quality_findings").insert(findingRows);
 
+      // PROMPT 10A — CALIBRATION VISIBILITY. Findings removed from SCORING by the
+      // skeleton calibration rules are still persisted, flagged
+      // filtered_from_scoring=true with their rule id, so nothing disappears.
+      const calRows = [
+        ...(((claudeEval as any)?.calibration_filtered ?? []) as any[]).map((c) => ({ c, who: "llm" })),
+        ...(((gptResult as any)?.calibrationFiltered ?? []) as any[]).map((c) => ({ c, who: "llm_gpt" })),
+      ].map(({ c, who }) => ({
+        run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
+        check_id: c.check_id, check_type: who, dimension: c.dimension,
+        severity: c.severity, passed: false, evidence: c.evidence ?? null,
+        scenario_set: scenarioSet,
+        filtered_from_scoring: true,
+        calibration_rule: c.rule,
+      }));
+      if (calRows.length) {
+        await admin.from("quality_findings").insert(calRows);
+        await log("info", `${docLabel}: calibration filtered ${calRows.length} finding(s) — ${calRows.map((r) => `${r.calibration_rule}/${r.check_id}`).join(", ")}`);
+      }
+
       // Push Claude findings with per-doc cross-category.
       //  - Deterministic failures → "deterministic" (code-verified ground truth)
       //  - Deterministic passes → no category (don't surface as defect)
