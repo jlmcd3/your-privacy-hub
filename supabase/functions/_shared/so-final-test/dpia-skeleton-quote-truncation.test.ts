@@ -56,12 +56,13 @@ Deno.test("risk body attributes scoring to the assessment, not the customer", ()
     },
     {} as never,
   );
-  assert(
-    body.includes(
-      "On the safeguards the company has recorded, this assessment places likelihood at possible; " +
-        "severity is rated significant under this assessment's pre-set risk taxonomy.",
-    ),
-    body,
-  );
+  // Ruling 2026-08-12: the 8A ratified template is authoritative. This test
+  // protects the ATTRIBUTION PROPERTY (scoring belongs to the assessment, never
+  // the customer), not any one superseded sentence.
+  assert(body.includes("on this assessment's pre-set taxonomy"), body);
+  assert(body.includes("possible"), body);
+  assert(body.includes("significant"), body);
   assertEquals(body.includes("company's answers put likelihood"), false);
+  assertEquals(/\bthe company (?:puts|rates|scores|places) (?:likelihood|severity)\b/i.test(body), false);
+  assertEquals(/\bthe company's answers (?:put|rate|score|place)\b/i.test(body), false);
 });
