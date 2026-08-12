@@ -99,6 +99,12 @@ export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string
       "The company self-identified",
       "after consolidation",
     ],
+    // PROMPT 8F item 1 — composeArt36Sentence, the ratified DPO-advice
+    // disclosure that rides beside the typed Art. 36 determination.
+    tmpl_art36_dpo_disclosure: [
+      "The company's data protection officer has advised that the supervisory authority be consulted on this processing",
+      "which is stated above and is unchanged by it",
+    ],
     // buildSection2Coverage — credit-first residual note (PROMPT 10B).
     tmpl_coverage_residual_note: [
       "The company's account above covers this ground",

@@ -24,20 +24,20 @@ Deno.test("prompt8a: per-risk template carries the re-scoring caveat exactly onc
   const body = composeRiskBody({ risk_register: register }, { safeguards: "encryption at rest" } as never, {
     dpia_approved_by_name: "Dr. Anna Meier",
   });
-  assertEquals(body.match(/re-scores it against the measures as implemented/g)?.length, 1);
-  assertStringIncludes(body, "proposed until Dr. Anna Meier re-scores it");
-  assertStringIncludes(body, "the residual band is low on the same proposed basis");
+  assertEquals(body.match(/re-scores it against the mitigating measures once they have been deployed/g)?.length, 1);
+  assertStringIncludes(body, "preliminary until Dr. Anna Meier re-scores it against the mitigating measures once they have been deployed");
+  assertStringIncludes(body, "the remaining risk level is low on the same preliminary basis");
   assertStringIncludes(
     body,
-    "is assessed at high likelihood and high severity on this assessment's pre-set taxonomy, an inherent band of high",
+    "is assessed at high likelihood and high severity under this assessment's pre-set risk taxonomy, an initial risk level of high",
   );
-  assertStringIncludes(body, "the residual band is undetermined");
+  assertStringIncludes(body, "the remaining risk level is undetermined");
   assert(!BANNED.test(body), body);
 });
 
 Deno.test("prompt8a: rescorer falls back to 'the company' when no approver is recorded", () => {
   const body = composeRiskBody({ risk_register: register.slice(0, 1) }, { safeguards: "" } as never, {});
-  assertStringIncludes(body, "proposed until the company re-scores it");
+  assertStringIncludes(body, "preliminary until the company re-scores it against the mitigating measures once they have been deployed");
   assertStringIncludes(body, "The company records no safeguards for this processing.");
 });
 
@@ -57,7 +57,7 @@ Deno.test("prompt8a: open points order decision blockers first, then ledger orde
   ];
   const doc = assembleDpiaSkeletonDocument({ gap_ledger, risk_register: [] } as never, {} as never);
   const exec = JSON.stringify(doc);
-  assertStringIncludes(exec, "The company's answers leave five points open");
+  assertStringIncludes(exec, "five points are still open");
   assertStringIncludes(exec, "The first three are:");
   const idxProcessors = exec.indexOf("processor obligations");
   const idxTransfer = exec.indexOf("transfer mechanism");

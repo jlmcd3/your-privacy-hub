@@ -8,7 +8,7 @@
 // composed DPIA prose.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { composeRiskBody } from "../ltp/dpia-skeleton-assemble.ts";
+import { composeRiskBody, ART36_DPO_DISCLOSURE, assembleDpiaSkeletonDocument } from "../ltp/dpia-skeleton-assemble.ts";
 
 const REPORT = {
   risk_register: [
@@ -166,4 +166,35 @@ Deno.test("item 4 — a citation-only narrative yields no count", () => {
 
 Deno.test("item 4 — the plausibility bound suppresses the note entirely", () => {
   assertEquals(buildRiskCountNote({ residual_risks: "We identified 37 risks." }, REG(3)), undefined);
+});
+
+// ── PROMPT 8F item 1 — ratified DPO-advice disclosure ───────────────────
+Deno.test("8F — the DPO disclosure sentence carries the ratified bytes", () => {
+  assertEquals(
+    ART36_DPO_DISCLOSURE,
+    "The company's data protection officer has advised that the supervisory authority be consulted on this processing; that advice is recorded here alongside this assessment's own determination on Article 36(1), which is stated above and is unchanged by it.",
+  );
+});
+
+function art36Paragraphs(det: string, dpo: boolean): string {
+  const doc = assembleDpiaSkeletonDocument(
+    {
+      risk_register: [],
+      gap_ledger: [],
+      art36_consultation: { determination: det, dpo_recommends_consultation: dpo },
+    } as never,
+    {} as never,
+  );
+  return JSON.stringify(doc);
+}
+
+Deno.test("8F — disclosure renders beside a non-consultation determination", () => {
+  const out = art36Paragraphs("consultation_not_required", true);
+  assert(out.includes("no prior consultation with the supervisory authority under Article 36(1) is required"), out);
+  assert(out.includes("has advised that the supervisory authority be consulted on this processing"), out);
+});
+
+Deno.test("8F — no disclosure where consultation is already required, or where the DPO gave no such advice", () => {
+  assertEquals(art36Paragraphs("consultation_required", true).includes("has advised that the supervisory authority be consulted"), false);
+  assertEquals(art36Paragraphs("consultation_not_required", false).includes("has advised that the supervisory authority be consulted"), false);
 });
