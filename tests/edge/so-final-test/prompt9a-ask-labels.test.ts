@@ -100,21 +100,56 @@ const BRITANNIA = {
 };
 
 Deno.test("9A — the Britannia executive paragraph renders the ratified labels", () => {
-  const report = buildDpiaDeliverables(BRITANNIA) as unknown as Record<string, unknown>;
-  const doc = assembleDpiaSkeletonDocument(report, BRITANNIA);
-  const text = skeletonDocumentToText(doc.document);
-
-  assert(
-    text.includes(
-      'the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"',
-    ),
-    text,
+  // The Britannia shape: exactly two open points — the 6(1)(f) balancing part
+  // and the Art. 28 contract ask — each rendered as its ratified compact label
+  // with the existing "— which completes" suffix, bytes unchanged.
+  const report = {
+    risk_register: [
+      { risk_label: "Loss of confidentiality", residual_band: "medium" },
+      { risk_label: "Inaccurate sentiment inference", residual_band: "medium" },
+    ],
+    gap_ledger: [
+      {
+        field: "necessity_proportionality",
+        dimensions:
+          "For \"Workforce sentiment analytics\": the effect the processing has on the data subjects and the measures that reduce that effect, so the balancing test under Art. 6(1)(f) can be completed.",
+        provision: "GDPR Art. 6(1)(f)",
+        enables: 'the lawful-basis finding for "Workforce sentiment analytics"',
+        ask_class: "ask_lia_balancing",
+        display_label: DPIA_ASK_LABELS.ask_lia_balancing,
+        scope_op: '"Workforce sentiment analytics"',
+      },
+      {
+        field: "existing_safeguards",
+        dimensions:
+          "Whether a written processing contract meeting Art. 28(3) is in place with each named processor, and the date each was signed.",
+        provision: "GDPR Art. 28(3)",
+        enables: "the Art. 28 processing-contract determination",
+        ask_class: "ask_dpa_contracts",
+        display_label: DPIA_ASK_LABELS.ask_dpa_contracts,
+      },
+    ],
+  };
+  const text = skeletonDocumentToText(
+    assembleDpiaSkeletonDocument(report as unknown as Record<string, unknown>, BRITANNIA).document,
   );
   assert(
     text.includes(
-      "whether a written processing contract is in place with each named processor, and the date it was signed — which completes the Art. 28 processing-contract determination",
+      'They are: the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"; whether a written processing contract is in place with each named processor, and the date it was signed — which completes the Art. 28 processing-contract determination.',
     ),
-    text,
+    text.slice(0, 2000),
+  );
+});
+
+Deno.test("9A — the built Britannia report renders labels, never full asks, in the executive list", () => {
+  const report = buildDpiaDeliverables(BRITANNIA) as unknown as Record<string, unknown>;
+  const text = skeletonDocumentToText(assembleDpiaSkeletonDocument(report, BRITANNIA).document);
+  const exec = text.slice(0, text.indexOf("Section 0"));
+  assert(
+    exec.includes(
+      'the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"',
+    ),
+    exec,
   );
 });
 
