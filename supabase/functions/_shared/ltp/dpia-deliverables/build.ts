@@ -1849,15 +1849,17 @@ export function buildSection2Coverage(
     });
   } else {
     for (const f of flows as Record<string, unknown>[]) {
-      const dest = str(f.destination ?? f.destinationCountry).toUpperCase();
-      const origin: "EU" | "UK" = f.originRegime === "UK" ? "UK" : "EU";
+      const r = readTransferFlowAliases(f);
+      const dest = r.dest.toUpperCase();
+      const origin: "EU" | "UK" = r.origin === "UK" ? "UK" : "EU";
       const flow: TransferFlow = {
         originRegime: origin,
         destinationCountry: dest,
-        importerEntity: str(f.importer ?? f.importerEntity) || undefined,
-        importerDpfCertified: !!(f.dpfCertified ?? f.importerDpfCertified),
-        importerUkExtensionCertified: !!(f.ukExtensionCertified ?? f.importerUkExtensionCertified),
+        importerEntity: r.importer || undefined,
+        importerDpfCertified: r.dpfCertified,
+        importerUkExtensionCertified: r.ukExtensionCertified,
       };
+
       const mech = transferMechanism(flow);
       const intra = mech.id === "EEA-internal";
       const determination = intra
