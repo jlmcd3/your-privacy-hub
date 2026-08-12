@@ -31,11 +31,14 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-11-prompt8-v4";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-12-prompt8b-v4-1";
 export const DPIA_SKELETON_SOURCE_FILE =
-  "DPIA spine v4 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-11; supersedes Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
+  "DPIA spine v4.1 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
 export const DPIA_SKELETON_PROVENANCE =
-  "PROMPT 8 spine v4 — CEO ratification of 2026-08-11 on docs/reviews/PROMPT8-DPIA-SPINE-V4-RATIFICATION-2026-08-11.md; carried v3 sentences re-approved in the same pass (CEO directive 2026-08-11)";
+  "PROMPT 8B spine v4.1 — CEO prose ratification of 2026-08-12, generated from the shipped v4 spine bytes; structure and slot inventory unchanged from PROMPT 8 spine v4 (CEO ratification 2026-08-11)";
+
+/** The superseded v4 spine version string, kept for documents already assembled. */
+export const DPIA_SKELETON_VERSION_V4 = "prose-plans-2026-08-11-prompt8-v4";
 
 /** The superseded v3 spine version string, kept for documents already assembled. */
 export const DPIA_SKELETON_VERSION_V3 = "prose-plans-2026-08-10-item-so5";
