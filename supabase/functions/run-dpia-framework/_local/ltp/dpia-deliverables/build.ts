@@ -1411,6 +1411,9 @@ export function buildSection2Coverage(
         condition_label: label,
         justification,
         citation: a9.citation,
+        // PROMPT 10B(1) — ledger the Art. 9(2)(x) pinpoint through the same
+        // registry row, so the ToA can consolidate it under GDPR Art. 9.
+        condition_citation: art9PinpointCitation(label, regime),
         authority_verbatim: a9.verbatim,
         status: "analysed" as const,
         source_field: "article_9_condition",
