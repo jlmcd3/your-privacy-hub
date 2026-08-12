@@ -402,11 +402,13 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
 // ---------------------------------------------------------------------
 function facts(intake: unknown): RiskFacts {
   const transfers = get(intake, "transfer_flows");
+  const flows = Array.isArray(transfers) ? (transfers as Record<string, unknown>[]) : [];
   return {
     dataCategories: arr(get(intake, "data_categories")),
     safeguards: arr(get(intake, "existing_safeguards")).filter((s) => s !== "None"),
     processors: arr(get(intake, "third_party_processors")),
-    transferCount: Array.isArray(transfers) ? transfers.length : 0,
+    transferCount: flows.length,
+    transferLeavesRegime: flows.some((f) => flowLeavesOriginRegime(f, readDpiaRegime(intake))),
     retentionStated: str(get(intake, "retention_period")).length > 0,
     reasons: arr(get(intake, "reasons_to_conduct")),
     secondaryUses: str(get(intake, "secondary_uses")),
