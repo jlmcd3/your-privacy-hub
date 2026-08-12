@@ -94,13 +94,13 @@ export function dpoRecommendsConsultation(advice: string): boolean {
   const s = String(advice ?? "");
   if (!s.trim()) return false;
   const re = new RegExp(
-    `\\b(consult|refer|escalate|notif)\\w*\\b[^.]{0,120}\\b(?:${DPO_AUTHORITY_RE})\\b`,
+    `\\b(consult|refer|escalat|notif)\\w*\\b[^.]{0,120}\\b(?:${DPO_AUTHORITY_RE})\\b`,
     "i",
   );
   if (re.test(s)) return true;
   // Reverse order: "the Garante should be consulted before go-live".
   const rev = new RegExp(
-    `\\b(?:${DPO_AUTHORITY_RE})\\b[^.]{0,120}\\b(consult|refer|escalate|notif)\\w*\\b`,
+    `\\b(?:${DPO_AUTHORITY_RE})\\b[^.]{0,120}\\b(consult|refer|escalat|notif)\\w*\\b`,
     "i",
   );
   return rev.test(s);
