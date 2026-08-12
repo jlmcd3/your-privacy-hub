@@ -30,7 +30,7 @@ const hasR5 = (register: readonly { risk_id: string }[]) =>
 Deno.test("item 5 — doc-3 shape: intra-EEA flows only, r5 does not fire", () => {
   const register = buildRiskRegister({
     ...BASE,
-    jurisdictions: ["EU"],
+    jurisdictions: ["EU (GDPR)"],
     transfer_flows: [
       { destination_country: "DE", mechanism: "Intra-EEA — no third-country transfer" },
       { destination_country: "NL", mechanism: "Intra-EEA — no third-country transfer" },
@@ -42,7 +42,7 @@ Deno.test("item 5 — doc-3 shape: intra-EEA flows only, r5 does not fire", () =
 Deno.test("item 5 — doc-5 shape: a US flow leaves the EEA, r5 fires", () => {
   const register = buildRiskRegister({
     ...BASE,
-    jurisdictions: ["EU"],
+    jurisdictions: ["EU (GDPR)"],
     transfer_flows: [
       { destination_country: "DE", mechanism: "Intra-EEA" },
       { destination_country: "US", mechanism: "Salesforce — SCCs" },
@@ -54,7 +54,7 @@ Deno.test("item 5 — doc-5 shape: a US flow leaves the EEA, r5 fires", () => {
 Deno.test("item 5 — UK regime: a US flow leaves the United Kingdom, r5 fires", () => {
   const register = buildRiskRegister({
     ...BASE,
-    jurisdictions: ["UK"],
+    jurisdictions: ["United Kingdom (UK GDPR)"],
     transfer_flows: [{ destination_country: "US", mechanism: "UK IDTA" }],
   });
   assert(hasR5(register), JSON.stringify(register.map((r) => r.risk_id)));
@@ -63,21 +63,21 @@ Deno.test("item 5 — UK regime: a US flow leaves the United Kingdom, r5 fires",
 Deno.test("item 5 — UK regime: a UK-only flow does not fire r5", () => {
   const register = buildRiskRegister({
     ...BASE,
-    jurisdictions: ["UK"],
+    jurisdictions: ["United Kingdom (UK GDPR)"],
     transfer_flows: [{ destination_country: "GB", mechanism: "Domestic only" }],
   });
   assertEquals(hasR5(register), false);
 });
 
 Deno.test("item 6 — the UK legal-basis anchor carries the UK GDPR prefix", () => {
-  const findings = buildLegalBasis({ ...BASE, jurisdictions: ["UK"] });
+  const findings = buildLegalBasis({ ...BASE, jurisdictions: ["United Kingdom (UK GDPR)"] });
   const cites = findings.map((f) => f.citation).join(" | ");
   assert(cites.includes("UK GDPR Art. 6(1)(f)"), cites);
   assertEquals(/(?<!UK )GDPR Art\. 6\(1\)\(f\)/.test(cites), false, cites);
 });
 
 Deno.test("item 6 — the EU anchor is untouched", () => {
-  const findings = buildLegalBasis({ ...BASE, jurisdictions: ["EU"] });
+  const findings = buildLegalBasis({ ...BASE, jurisdictions: ["EU (GDPR)"] });
   const cites = findings.map((f) => f.citation).join(" | ");
   assert(cites.includes("GDPR Art. 6(1)(f)"), cites);
   assertEquals(cites.includes("UK GDPR"), false, cites);
