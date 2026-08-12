@@ -337,21 +337,45 @@ export function buildOperations(intake: unknown): Operation[] {
   return ops;
 }
 
-/** Alternatives the record says were considered, grouped by operation id. */
+/**
+ * Alternatives the record says were considered, grouped by operation id.
+ *
+ * PROMPT 8J item 1 (CEO-ruled 2026-08-12) — AN ALTERNATIVE IS NEVER DROPPED.
+ * Evidence: run c3762c61 docs 3–5 — every alternatives_considered entry was
+ * silently dropped because the free-text processing_operation never
+ * byte-equals the derived operation_label, producing false "records no
+ * alternative means that were considered and rejected" findings and their
+ * draft_incomplete / sign-off cascades. Routing order: exact label / id /
+ * "primary" (unchanged), then token overlap against the SECONDARY operation's
+ * label (gapOverlap, 0.6, and it must beat the primary label), then primary.
+ */
 function alternativesFor(intake: unknown, op: Operation): AlternativeConsidered[] {
   const raw = get(intake, "alternatives_considered");
   if (!Array.isArray(raw)) return [];
+  const ops = buildOperations(intake);
+  const secondary = ops.find((o) => o.operation_id === "op_secondary");
+  const primary = ops[0];
+
+  /** The operation id this entry belongs to — always one of the ops. */
+  const routeTo = (target: string): string => {
+    if (!target) return "op_primary";
+    for (const o of ops) {
+      if (target === o.operation_label || target === o.operation_id) return o.operation_id;
+    }
+    if (/primary/i.test(target)) return "op_primary";
+    if (secondary) {
+      const sec = gapOverlap(target, secondary.operation_label);
+      const pri = gapOverlap(target, primary.operation_label);
+      if (sec >= 0.6 && sec > pri) return "op_secondary";
+    }
+    return "op_primary";
+  };
+
   const out: AlternativeConsidered[] = [];
   for (const e of raw) {
     if (!e || typeof e !== "object") continue;
     const rec = e as Record<string, unknown>;
-    const target = str(rec.processing_operation);
-    const belongs = target
-      ? target === op.operation_label ||
-        target === op.operation_id ||
-        (op.operation_id === "op_primary" && /primary/i.test(target))
-      : op.operation_id === "op_primary";
-    if (!belongs) continue;
+    if (routeTo(str(rec.processing_operation)) !== op.operation_id) continue;
     const alternative = str(rec.alternative);
     const rejection_reason = str(rec.rejection_reason);
     if (!alternative) continue;
