@@ -1559,7 +1559,7 @@ export async function generateValidatedIntakesChunked(
   prior: IntakeGenProgress,
   ctx: {
     deadlineAt: number;
-    onScenario?: (done: number, total: number, secs: number, ok: boolean) => Promise<void>;
+    onScenario?: (done: number, total: number, secs: number, ok: boolean, reason?: string) => Promise<void>;
     /** PROMPT 8K — closed-loop lint applies to variant=perfect only. */
     variant?: "perfect" | "messy" | null;
     // Test seams — production leaves these undefined.
