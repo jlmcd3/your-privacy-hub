@@ -320,3 +320,36 @@ Deno.test("8C: tier-3 asks are the ratified fact-naming strings", () => {
     "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.",
   );
 });
+
+// ── PROMPT 10B (2026-08-12) ──────────────────────────────────────────
+Deno.test("10B-1: a named Art. 9(2) condition ledgers its pinpoint under Art. 9", () => {
+  const r = coverage().special_category_conditions[0];
+  // The registry row (Art. 9(1)) still anchors the verbatim…
+  assertEquals(r.citation, row("special_categories_prohibition")!.subsection);
+  // …and the pinpoint carried by the intake enum rides alongside it.
+  assertEquals(r.condition_citation, "GDPR Art. 9(2)(h)");
+});
+
+Deno.test("10B-1: an unnamed condition carries no invented pinpoint", () => {
+  const r = coverage({ article_9_condition: "" }).special_category_conditions[0];
+  assertEquals(r.condition_citation, undefined);
+});
+
+Deno.test("10B-2: present-but-unstructured tier-3 raises no gap-ledger entry", () => {
+  const i = intake();
+  const d = buildDpiaDeliverables(i) as Record<string, any>;
+  const ledger = (d.gap_ledger ?? []) as Array<{ field: string }>;
+  assertEquals(ledger.filter((g) => g.field === "data_minimisation_justification").length, 0);
+  assertEquals(ledger.filter((g) => g.field === "data_subject_rights_mechanisms").length, 0);
+});
+
+Deno.test("10B-2: absent tier-3 sources still raise the 8C asks in the ledger", () => {
+  const i = intake({
+    data_subject_rights_mechanisms: "",
+    data_minimisation_justification: "",
+  });
+  const d = buildDpiaDeliverables(i) as Record<string, any>;
+  const ledger = (d.gap_ledger ?? []) as Array<{ field: string; ask: string }>;
+  assert(ledger.some((g) => g.field === "data_subject_rights_mechanisms"));
+  assert(ledger.some((g) => g.field === "data_minimisation_justification"));
+});
