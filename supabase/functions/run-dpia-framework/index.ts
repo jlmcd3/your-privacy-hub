@@ -3123,6 +3123,14 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     const staging = rd._staging;
     let mutated = false;
     for (const u of PHASE1) {
+      // PROMPT 9 — a retired unit is re-seeded as complete, never re-queued.
+      if (isRetiredUnit(u)) {
+        if (staging.units[u]?.status !== "done") {
+          staging.units[u] = initialUnitState(u, "pending");
+          mutated = true;
+        }
+        continue;
+      }
       if (staging.units[u]?.status !== "done") {
         staging.units[u] = { ...(staging.units[u] ?? {}), status: staging.units[u]?.status === "processing" ? "pending" : (staging.units[u]?.status ?? "pending") };
         if (staging.units[u].status === "error") staging.units[u].status = "pending";
