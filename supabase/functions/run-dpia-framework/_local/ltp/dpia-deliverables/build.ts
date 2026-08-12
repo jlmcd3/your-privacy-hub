@@ -826,6 +826,12 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
   const reasons = arr(get(intake, "reasons_to_conduct")).join("; ") ||
     str(get(intake, "reasons_to_conduct"));
   const codes = str(get(intake, "codes_of_conduct"));
+  // PROMPT 8C item 1 (ratified 2026-08-12): where the intake carries an
+  // Art. 9(2) condition, the non-(f) justification points at the
+  // special-categories table. Byte-exact; never in the (f) branch.
+  const art9Selected = str(get(intake, "article_9_condition"));
+  const ART9_CROSS_REFERENCE =
+    " Because special categories of personal data are involved, this basis is read together with the Article 9(2) condition addressed in the special-categories table below.";
 
   /** Per-basis anchor; empty verbatim where the registry has no row. */
   const basisAnchor = (sub: string) => {
