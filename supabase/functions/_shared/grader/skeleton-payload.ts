@@ -104,7 +104,19 @@ entitled to criticise:
   quality, ordering aesthetics, or phrasing.
 
 When you cite evidence, quote the paragraph text verbatim and name the section
-id and the block kind it came from.`;
+id and the block kind it came from.
+
+CALIBRATION FOR CONVERTED DOCUMENTS (CEO-approved 2026-08-12; skeleton mode only):
+- A ratified per-row template that repeats across the rows of a typed register
+  is legal drafting, not boilerplate. Do not raise generic-boilerplate findings
+  on repetition of a ratified template alone.
+- Where the document reproduces the controller's own recorded selection (for
+  example its legal basis) faithfully and carries the non-substitution caveat,
+  that is fidelity to the record, not a misapplied citation.
+- A reconciliation or count that carries its own provenance disclosure, and an
+  analytic conclusion expressly attributed to this assessment's own pre-set
+  taxonomy, are disclosed outputs of the assessment — they are not unsupported
+  claims about the business requiring intake support.`;
 
 /**
  * Build the grader payload from report.skeleton_document ALONE.
