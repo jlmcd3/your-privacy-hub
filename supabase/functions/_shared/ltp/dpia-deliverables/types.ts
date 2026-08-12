@@ -324,6 +324,12 @@ export interface DpiaSpecialCategoryConditionRow {
   readonly condition_label: string;
   readonly justification: string;
   readonly citation: string;
+  /**
+   * PROMPT 10B(1) — the Art. 9(2)(x) pinpoint, ledgered through the existing
+   * gdpr-art-9 registry row so the table of authorities consolidates it under
+   * GDPR Art. 9. Present only when the intake names a condition.
+   */
+  readonly condition_citation?: string;
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
@@ -395,6 +401,12 @@ export interface DpiaCoverageRow {
   readonly authority_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /**
+   * PROMPT 10B(2) — credit-first residual. Set when the source field IS
+   * supplied but unstructured: the row is analysed, no gap-ledger entry is
+   * raised, and this fixed note records the completeness residual.
+   */
+  readonly residual_note?: string;
   readonly source_field: string;
 }
 

@@ -1354,6 +1354,26 @@ const ASK_ART5_TABLE =
 const ASK_RIGHTS_TABLE =
   "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.";
 
+// PROMPT 10B(2) — credit-first residuals. Fired when the source field IS
+// supplied but unstructured: no determination turns on the breakdown, so it is
+// a record-completeness residual, never a gap-ledger entry.
+const RESIDUAL_ART5_TABLE =
+  "The company's account above covers this ground; a per-principle breakdown would complete the table but no determination in this assessment turns on it.";
+const RESIDUAL_RIGHTS_TABLE =
+  "The company's account above covers this ground; a per-right breakdown would complete the table but no determination in this assessment turns on it.";
+
+/**
+ * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's
+ * condition enum label into a citation string anchored on the same GDPR Art. 9
+ * registry row. No new corpus rows; no literal statute text.
+ */
+function art9PinpointCitation(label: string, regime: DpiaRegime): string {
+  const prefix = regime === "UK" ? "UK GDPR" : "GDPR";
+  const m = /9\(2\)\(([a-z])\)/i.exec(label);
+  return m ? `${prefix} Art. 9(2)(${m[1].toLowerCase()})` : `${prefix} Art. 9(2)`;
+}
+
+
 const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendation[] = [
   {
     field: "data_quality_measures",
@@ -1411,6 +1431,9 @@ export function buildSection2Coverage(
         condition_label: label,
         justification,
         citation: a9.citation,
+        // PROMPT 10B(1) — ledger the Art. 9(2)(x) pinpoint through the same
+        // registry row, so the ToA can consolidate it under GDPR Art. 9.
+        condition_citation: art9PinpointCitation(label, regime),
         authority_verbatim: a9.verbatim,
         status: "analysed" as const,
         source_field: "article_9_condition",
@@ -1615,34 +1638,62 @@ export function buildSection2Coverage(
   ];
 
   // ── TIER 3b — Art. 5 principles (single coverage row, never a table) ─
+  // PROMPT 10B(2): source PRESENT → analysed + credit-first residual (no ask,
+  // no ledger entry); source ABSENT → the 8C ask, ledgered as before.
   const aPurpose = anchorStrict("purpose_limitation", regime, "Art. 5(1)");
-  const measures_article5: DpiaCoverageRow[] = [{
-    heading: "Measures carrying the Art. 5 principles",
-    record_words: minJust ? spliceVerbatim(minJust) : "",
-    finding: minJust
-      ? "On the record supplied, the measures bearing on the Art. 5 principles are described at the level of the activity as a whole, in the company's own words, and not principle by principle."
-      : "The record describes no measure against the Art. 5 principles, so this assessment records coverage at the level of the activity as a whole and makes no principle-by-principle finding.",
-    citation: aPurpose.citation,
-    authority_verbatim: aPurpose.verbatim,
-    status: "record_insufficient",
-    information_needed: ASK_ART5_TABLE,
-    source_field: "data_minimisation_justification",
-  }];
+  const measures_article5: DpiaCoverageRow[] = [
+    minJust
+      ? {
+        heading: "Measures carrying the Art. 5 principles",
+        record_words: spliceVerbatim(minJust),
+        finding:
+          "On the record supplied, the measures bearing on the Art. 5 principles are described at the level of the activity as a whole, in the company's own words, and not principle by principle.",
+        citation: aPurpose.citation,
+        authority_verbatim: aPurpose.verbatim,
+        status: "analysed" as const,
+        residual_note: RESIDUAL_ART5_TABLE,
+        source_field: "data_minimisation_justification",
+      }
+      : {
+        heading: "Measures carrying the Art. 5 principles",
+        record_words: "",
+        finding:
+          "The record describes no measure against the Art. 5 principles, so this assessment records coverage at the level of the activity as a whole and makes no principle-by-principle finding.",
+        citation: aPurpose.citation,
+        authority_verbatim: aPurpose.verbatim,
+        status: "record_insufficient" as const,
+        information_needed: ASK_ART5_TABLE,
+        source_field: "data_minimisation_justification",
+      },
+  ];
 
   // ── TIER 3c — data-subject rights (single coverage row) ─────────────
   const rights = str(get(intake, "data_subject_rights_mechanisms"));
-  const measures_rights: DpiaCoverageRow[] = [{
-    heading: "Routes by which data subjects exercise their rights",
-    record_words: rights ? spliceVerbatim(rights) : "",
-    finding: rights
-      ? "The routes recorded for rights requests are set out in the company's own words, covering the rights together rather than one by one."
-      : "The record describes no route by which data subjects exercise their rights, so this assessment makes no finding on any individual right.",
-    citation: cit(regime, "Arts. 12–22"),
-    authority_verbatim: "",
-    status: "record_insufficient",
-    information_needed: ASK_RIGHTS_TABLE,
-    source_field: "data_subject_rights_mechanisms",
-  }];
+  const measures_rights: DpiaCoverageRow[] = [
+    rights
+      ? {
+        heading: "Routes by which data subjects exercise their rights",
+        record_words: spliceVerbatim(rights),
+        finding:
+          "The routes recorded for rights requests are set out in the company's own words, covering the rights together rather than one by one.",
+        citation: cit(regime, "Arts. 12–22"),
+        authority_verbatim: "",
+        status: "analysed" as const,
+        residual_note: RESIDUAL_RIGHTS_TABLE,
+        source_field: "data_subject_rights_mechanisms",
+      }
+      : {
+        heading: "Routes by which data subjects exercise their rights",
+        record_words: "",
+        finding:
+          "The record describes no route by which data subjects exercise their rights, so this assessment makes no finding on any individual right.",
+        citation: cit(regime, "Arts. 12–22"),
+        authority_verbatim: "",
+        status: "record_insufficient" as const,
+        information_needed: ASK_RIGHTS_TABLE,
+        source_field: "data_subject_rights_mechanisms",
+      },
+  ];
 
   return {
     special_category_conditions,

@@ -250,7 +250,9 @@ function specialCategoryTable(cov: Bag): RenderedTable | null {
     cell(r.item),
     cell(r.condition_label),
     cell(r.justification),
-    cell(r.citation),
+    // PROMPT 10B(1): the Art. 9(2)(x) pinpoint renders beside the Art. 9(1)
+    // anchor, so the iff-cited ToA rule can see it in the body.
+    cell([r.citation, r.condition_citation].filter(Boolean).join("; ")),
     label(r.status),
     cell(r.information_needed),
   ]);
@@ -287,7 +289,9 @@ function coverageTable(surface: string, title: string, rowsIn: Bag[]): RenderedT
   const rows = rowsIn.map((r) => [
     cell(r.heading),
     cell(r.record_words),
-    cell(r.finding),
+    // PROMPT 10B(2): the credit-first residual note rides with the finding; it
+    // is never an ask, so it never occupies the "still needed" column.
+    cell([r.finding, r.residual_note].filter(Boolean).join(" ")),
     cell(r.citation),
     label(r.status),
     cell(r.information_needed),
