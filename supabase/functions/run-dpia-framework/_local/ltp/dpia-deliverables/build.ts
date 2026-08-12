@@ -400,6 +400,54 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
 // ---------------------------------------------------------------------
 // 3. Art. 35(7)(c) — risk register
 // ---------------------------------------------------------------------
+
+/**
+ * PROMPT 8E item 5 (CEO-ratified 2026-08-12) — regime-aware transfer test.
+ *
+ * `destination_country` is the PRIMARY signal; mechanism / notes text is
+ * corroboration only. EU regime: a flow leaves where the destination is
+ * outside the EEA. UK regime: a flow leaves where the destination is outside
+ * the United Kingdom. Where no destination is recorded, an explicit
+ * intra-EEA / no-third-country statement in the flow's own text settles it as
+ * NOT leaving; otherwise the flow is treated as leaving (unchanged, and the
+ * Chapter V ask already names what is missing).
+ */
+const EEA_ISO2 = new Set([
+  "DE","IE","FR","ES","NL","IT","SE","DK","BE","AT","FI","LU","GR","PT","NO","PL",
+  "CZ","HU","RO","BG","HR","SI","SK","EE","LV","LT","MT","CY","IS","LI",
+]);
+const EEA_NAMES =
+  /\b(germany|ireland|france|spain|netherlands|italy|sweden|denmark|belgium|austria|finland|luxembourg|greece|portugal|norway|poland|czech|hungary|romania|bulgaria|croatia|slovenia|slovakia|estonia|latvia|lithuania|malta|cyprus|iceland|liechtenstein|eea|european economic area|eu)\b/i;
+const UK_NAMES = /\b(uk|gb|united kingdom|great britain|england|scotland|wales|northern ireland)\b/i;
+const NO_TRANSFER_TEXT =
+  /\b(no third[- ]country transfer|no cross[- ]border transfer|intra[- ]eea|within the eea|eea[- ]internal|domestic only|uk[- ]only)\b/i;
+
+export function flowLeavesOriginRegime(
+  flow: Record<string, unknown>,
+  recordRegime: DpiaRegime,
+): boolean {
+  const origin: DpiaRegime = String(flow.originRegime ?? flow.origin_regime ?? "").toUpperCase() === "UK"
+    ? "UK"
+    : String(flow.originRegime ?? flow.origin_regime ?? "").toUpperCase() === "EU"
+    ? "EU"
+    : recordRegime;
+  const dest = str(flow.destination ?? flow.destinationCountry ?? flow.destination_country).trim();
+  const corroboration = [flow.mechanism, flow.notes, flow.note, flow.safeguard]
+    .map((x) => str(x))
+    .join(" ");
+
+  if (!dest) return !NO_TRANSFER_TEXT.test(corroboration);
+
+  const code = dest.toUpperCase();
+  if (origin === "UK") {
+    if (code === "UK" || code === "GB" || UK_NAMES.test(dest)) return false;
+    return true;
+  }
+  if (EEA_ISO2.has(code) || EEA_NAMES.test(dest)) return false;
+  return true;
+}
+
+
 function facts(intake: unknown): RiskFacts {
   const transfers = get(intake, "transfer_flows");
   const flows = Array.isArray(transfers) ? (transfers as Record<string, unknown>[]) : [];
