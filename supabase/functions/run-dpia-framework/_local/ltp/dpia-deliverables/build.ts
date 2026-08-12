@@ -1354,6 +1354,26 @@ const ASK_ART5_TABLE =
 const ASK_RIGHTS_TABLE =
   "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.";
 
+// PROMPT 10B(2) — credit-first residuals. Fired when the source field IS
+// supplied but unstructured: no determination turns on the breakdown, so it is
+// a record-completeness residual, never a gap-ledger entry.
+const RESIDUAL_ART5_TABLE =
+  "The company's account above covers this ground; a per-principle breakdown would complete the table but no determination in this assessment turns on it.";
+const RESIDUAL_RIGHTS_TABLE =
+  "The company's account above covers this ground; a per-right breakdown would complete the table but no determination in this assessment turns on it.";
+
+/**
+ * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's
+ * condition enum label into a citation string anchored on the same GDPR Art. 9
+ * registry row. No new corpus rows; no literal statute text.
+ */
+function art9PinpointCitation(label: string, regime: DpiaRegime): string {
+  const prefix = regime === "UK" ? "UK GDPR" : "GDPR";
+  const m = /9\(2\)\(([a-z])\)/i.exec(label);
+  return m ? `${prefix} Art. 9(2)(${m[1].toLowerCase()})` : `${prefix} Art. 9(2)`;
+}
+
+
 const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendation[] = [
   {
     field: "data_quality_measures",
