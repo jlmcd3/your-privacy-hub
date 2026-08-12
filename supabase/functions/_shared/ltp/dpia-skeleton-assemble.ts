@@ -36,7 +36,22 @@ import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
-export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@prompt8-spine-v4-2026-08-11";
+// PROMPT 8A (CEO-ratified 2026-08-12) — CITATION STYLE RULING for all DPIA
+// composed prose: running prose spells "Article 35(1)"; parenthetical citations
+// use "(Art. 35(1))"; the `citation` field and the Table of Authorities keep the
+// registry's full form verbatim.
+export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@prompt8a-ratified-prose-2026-08-12";
+
+/** PROMPT 8A slot convention `{n:word}`: one–nine as words, digits from 10 up. */
+const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+export function numberWord(n: number): string {
+  return n >= 0 && n <= 9 ? NUMBER_WORDS[n] : String(n);
+}
+
+/** PROMPT 8A `{rescorer}`: the recorded approver, else "the company". */
+function rescorer(intake: Bag): string {
+  return s(intake?.dpia_approved_by_name) || "the company";
+}
 
 type Bag = Record<string, unknown>;
 
@@ -407,7 +422,8 @@ export function mergeOpenGapItems(
   return out;
 }
 
-function composeExecutiveBody(report: Bag): string {
+function composeExecutiveBody(report: Bag, intake: Bag): string {
+  const who = rescorer(intake);
   const bands = residualCounts(report);
   const total = Object.values(bands).reduce((a, b) => a + b, 0);
   const high = bands["high"] ?? 0;
@@ -420,12 +436,12 @@ function composeExecutiveBody(report: Bag): string {
     );
     sentences.push(
       high > 0
-        ? `${high === 1 ? "One of those risks remains" : `${high} of those risks remain`} at a high residual band on the answers given, and the assessment treats that band as proposed until the company re-scores it against the measures as implemented.`
-        : `None of those risks remains at a high residual band on the answers given, and each residual band is proposed until the company re-scores it against the measures as implemented.`,
+        ? `${high === 1 ? "One of those risks remains" : `${numberWord(high)} of those risks remain`} at a high residual band on the answers given, and the assessment treats that band as proposed until ${who} re-scores it against the measures as implemented.`
+        : `None of those risks remains at a high residual band on the answers given, and each residual band is proposed until ${who} re-scores it against the measures as implemented.`,
     );
     if (openBand > 0) {
       sentences.push(
-        `${openBand === 1 ? "One residual band is" : `${openBand} residual bands are`} undetermined because the company has not recorded the measures applied, and an undetermined band is not read in the company's favour.`,
+        `${openBand === 1 ? "One residual band is" : `${numberWord(openBand)} residual bands are`} undetermined because the company has not recorded the measures applied, and an undetermined band is not read in the company's favour.`,
       );
     }
   }
@@ -481,8 +497,10 @@ function composeNecessityLead(report: Bag): string {
     return "Whether necessity and proportionality are made out cannot be determined on the company's answers alone; the analysis below sets out what the record does and does not support.";
   }
   return unmet.length === 0
-    ? "On the company's answers, necessity and proportionality are made out for the processing as described."
-    : `On the company's answers, necessity and proportionality are made out in part: ${unmet.length === 1 ? "one element is" : `${unmet.length} elements are`} not yet supported by the company's answers.`;
+    ? "Necessity and proportionality are made out on the company's answers for the processing as described."
+    : `Necessity and proportionality are made out in part on the company's answers: ${
+      unmet.length === 1 ? "one element is" : `${numberWord(unmet.length)} elements are`
+    } not yet supported.`;
 }
 
 
