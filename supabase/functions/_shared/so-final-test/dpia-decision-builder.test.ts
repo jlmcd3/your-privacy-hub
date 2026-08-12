@@ -80,6 +80,8 @@ Deno.test("branch a — consultation_required", () => {
   assertEquals(d.blockers, []);
 });
 
+// PROMPT 9B re-pin (2026-08-12) — blockers carry the 9A COMPACT LABEL
+// (mergeLabeledAsks → renderMergedLabel), not the full ask text.
 Deno.test("branch b — draft_incomplete on an undetermined remaining risk level", () => {
   const d = buildDecision(
     INTAKE,
@@ -90,14 +92,18 @@ Deno.test("branch b — draft_incomplete on an undetermined remaining risk level
           residual_band: "undetermined",
           status: "record_insufficient",
           information_needed: "The measures actually applied against re-identification.",
-        }),
+          ask_class: "ask_risk_measures",
+          display_label: "the measures applied against re-identification",
+          // deno-lint-ignore no-explicit-any
+        } as any),
       ],
     }),
   );
   assertEquals(d.determination, "draft_incomplete");
-  assertEquals(d.blockers, ["The measures actually applied against re-identification."]);
+  assertEquals(d.blockers, ["the measures applied against re-identification"]);
   assertStringIncludes(d.why, "cannot yet be determined");
 });
+
 
 Deno.test("branch c — conditionally_approved; missing measure becomes its own condition", () => {
   const d = buildDecision(
