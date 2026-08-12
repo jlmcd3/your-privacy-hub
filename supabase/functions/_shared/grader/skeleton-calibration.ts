@@ -275,6 +275,12 @@ export function applySkeletonCalibration(
       if (t) { drop("cal_skeleton_4", t); continue; }
     }
 
+    // RULE 5 — initial/remaining conflation against the ratified executive
+    // high-risk sentence (run b82ba671 docs 3 and 4).
+    if (matchesRule5(ev, ctx.report)) { drop("cal_skeleton_5", null); continue; }
+
+
+
     kept.push(f);
   }
 
