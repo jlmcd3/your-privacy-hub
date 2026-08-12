@@ -59,6 +59,13 @@ export interface RiskFacts {
   readonly safeguards: readonly string[];
   readonly processors: readonly string[];
   readonly transferCount: number;
+  /**
+   * PROMPT 8E item 5 (CEO-ratified 2026-08-12) — regime-aware transfer signal.
+   * True only where at least one recorded flow LEAVES the origin regime (EU:
+   * destination outside the EEA; UK: destination outside the UK). Intra-EEA
+   * flows are processing, not transfers, and must not fire r5.
+   */
+  readonly transferLeavesRegime: boolean;
   readonly retentionStated: boolean;
   readonly reasons: readonly string[];
   readonly secondaryUses: string;
@@ -131,7 +138,7 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
     source_template:
       "The record declares at least one transfer flow leaving the origin regime, so the level of protection depends on the Chapter V mechanism relied on.",
     mitigating_safeguards: ["Contractual restrictions", "Encryption in transit", "Encryption at rest"],
-    trigger: (f) => f.transferCount > 0,
+    trigger: (f) => f.transferLeavesRegime,
   },
   {
     risk_id: "r6_processor_chain",

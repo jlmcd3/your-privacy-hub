@@ -313,7 +313,7 @@ Deno.test("8C: tier-3 asks are the ratified fact-naming strings", () => {
   );
   assertEquals(
     thin.measures_article5[0].information_needed,
-    "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated per principle, with each measure's implementation status.",
+    "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated principle by principle, and whether each measure has been deployed.",
   );
   assertEquals(
     thin.measures_rights[0].information_needed,

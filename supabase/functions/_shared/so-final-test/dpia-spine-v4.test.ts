@@ -18,6 +18,8 @@ import {
   DPIA_SKELETON_PINPOINTS,
   DPIA_SKELETON_SECTIONS,
   DPIA_SKELETON_TABLE_SURFACES,
+  DPIA_SPINE_HASH,
+  serializeDpiaSpine,
 } from "../prose/plans/dpia.spine.ts";
 import {
   buildDpiaSkeletonTables,
@@ -253,4 +255,10 @@ Deno.test("assembly — no table block renders an empty grid", () => {
       assert(p.table && p.table.rows.length > 0, `empty table rendered in ${section.id}`);
     }
   }
+});
+
+// PROMPT 8E item 8(b) — the v4.2 wide-basis pin gains its consumer. Until now
+// DPIA_SPINE_HASH was declared and never asserted.
+Deno.test("spine v4.2 — the wide-basis serialization matches DPIA_SPINE_HASH", async () => {
+  assertEquals(await sha256(serializeDpiaSpine()), DPIA_SPINE_HASH);
 });

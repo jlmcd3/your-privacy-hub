@@ -150,6 +150,19 @@ function cit(regime: DpiaRegime, subsection: string): string {
   return `${regime === "UK" ? "UK GDPR" : "GDPR"} ${subsection}`;
 }
 
+/**
+ * PROMPT 8E item 6 — ToA regime prefix. A registry row resolved under the UK
+ * regime may carry the unprefixed "GDPR Art. …" citation string (the UK rows
+ * fall back to the EU row where no uk_ row exists). Sibling entries in a UK
+ * document all read "UK GDPR …", so the bare form reads as a miscitation.
+ * Prefix-only: the pinpoint and every other byte are untouched.
+ */
+function regimePrefixed(regime: DpiaRegime, citation: string): string {
+  if (regime !== "UK" || !citation) return citation;
+  if (/\bUK GDPR\b/.test(citation)) return citation;
+  return citation.replace(/\bGDPR\b/, "UK GDPR");
+}
+
 
 function matches(text: string, res: readonly RegExp[]): boolean {
   return res.some((re) => re.test(text));
@@ -400,13 +413,63 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
 // ---------------------------------------------------------------------
 // 3. Art. 35(7)(c) — risk register
 // ---------------------------------------------------------------------
+
+/**
+ * PROMPT 8E item 5 (CEO-ratified 2026-08-12) — regime-aware transfer test.
+ *
+ * `destination_country` is the PRIMARY signal; mechanism / notes text is
+ * corroboration only. EU regime: a flow leaves where the destination is
+ * outside the EEA. UK regime: a flow leaves where the destination is outside
+ * the United Kingdom. Where no destination is recorded, an explicit
+ * intra-EEA / no-third-country statement in the flow's own text settles it as
+ * NOT leaving; otherwise the flow is treated as leaving (unchanged, and the
+ * Chapter V ask already names what is missing).
+ */
+const EEA_ISO2 = new Set([
+  "DE","IE","FR","ES","NL","IT","SE","DK","BE","AT","FI","LU","GR","PT","NO","PL",
+  "CZ","HU","RO","BG","HR","SI","SK","EE","LV","LT","MT","CY","IS","LI",
+]);
+const EEA_NAMES =
+  /\b(germany|ireland|france|spain|netherlands|italy|sweden|denmark|belgium|austria|finland|luxembourg|greece|portugal|norway|poland|czech|hungary|romania|bulgaria|croatia|slovenia|slovakia|estonia|latvia|lithuania|malta|cyprus|iceland|liechtenstein|eea|european economic area|eu)\b/i;
+const UK_NAMES = /\b(uk|gb|united kingdom|great britain|england|scotland|wales|northern ireland)\b/i;
+const NO_TRANSFER_TEXT =
+  /\b(no third[- ]country transfer|no cross[- ]border transfer|intra[- ]eea|within the eea|eea[- ]internal|domestic only|uk[- ]only)\b/i;
+
+export function flowLeavesOriginRegime(
+  flow: Record<string, unknown>,
+  recordRegime: DpiaRegime,
+): boolean {
+  const origin: DpiaRegime = String(flow.originRegime ?? flow.origin_regime ?? "").toUpperCase() === "UK"
+    ? "UK"
+    : String(flow.originRegime ?? flow.origin_regime ?? "").toUpperCase() === "EU"
+    ? "EU"
+    : recordRegime;
+  const dest = str(flow.destination ?? flow.destinationCountry ?? flow.destination_country).trim();
+  const corroboration = [flow.mechanism, flow.notes, flow.note, flow.safeguard]
+    .map((x) => str(x))
+    .join(" ");
+
+  if (!dest) return !NO_TRANSFER_TEXT.test(corroboration);
+
+  const code = dest.toUpperCase();
+  if (origin === "UK") {
+    if (code === "UK" || code === "GB" || UK_NAMES.test(dest)) return false;
+    return true;
+  }
+  if (EEA_ISO2.has(code) || EEA_NAMES.test(dest)) return false;
+  return true;
+}
+
+
 function facts(intake: unknown): RiskFacts {
   const transfers = get(intake, "transfer_flows");
+  const flows = Array.isArray(transfers) ? (transfers as Record<string, unknown>[]) : [];
   return {
     dataCategories: arr(get(intake, "data_categories")),
     safeguards: arr(get(intake, "existing_safeguards")).filter((s) => s !== "None"),
     processors: arr(get(intake, "third_party_processors")),
-    transferCount: Array.isArray(transfers) ? transfers.length : 0,
+    transferCount: flows.length,
+    transferLeavesRegime: flows.some((f) => flowLeavesOriginRegime(f, readDpiaRegime(intake))),
     retentionStated: str(get(intake, "retention_period")).length > 0,
     reasons: arr(get(intake, "reasons_to_conduct")),
     secondaryUses: str(get(intake, "secondary_uses")),
@@ -543,13 +606,19 @@ export function buildArt36Consultation(
   } else if (high.length > 0) {
     determination = "consultation_required";
     rawWhy =
-      `${a.verbatim} Based on the information the company provided, ${high.length} risk(s) — ${high.map((r) => r.risk_label).join("; ")} — are deemed high risks after the mitigating measures the company has recorded, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
+      `${a.verbatim} Based on the information the company provided, ${
+        high.length === 1
+          ? `one risk — ${high[0].risk_label} — is deemed a high risk`
+          : `${nWord(high.length)} risks — ${high.map((r) => r.risk_label).join("; ")} — are deemed high risks`
+      } after the mitigating measures the company has recorded, so the condition in Art. 36(1) is met and the controller must consult ${regime === "UK" ? "the Commissioner" : "the competent supervisory authority"} before the processing begins.`;
   } else if (undetermined.length > 0 || insufficient.length > 0) {
     determination = "undetermined_on_the_record";
     status = "record_insufficient";
     const names = [...new Set([...undetermined, ...insufficient].map((r) => r.risk_label))];
     rawWhy =
-      `Art. 36(1) turns on whether a high risk remains once mitigating measures are taken into account. Based on the information the company provided, the remaining risk level for ${names.length} risk(s) — ${names.join("; ")} — cannot be settled, so the prior-consultation question is open rather than answered either way.`;
+      `Art. 36(1) turns on whether a high risk remains once mitigating measures are taken into account. Based on the information the company provided, the remaining risk level for ${
+        names.length === 1 ? `one risk — ${names[0]} —` : `${nWord(names.length)} risks — ${names.join("; ")} —`
+      } cannot be settled, so the prior-consultation question is open rather than answered either way.`;
     information_needed =
       `The measures applied to: ${names.join("; ")}, and the effect each has on the likelihood or severity of that risk.`;
   } else {
@@ -573,6 +642,10 @@ export function buildArt36Consultation(
       ? `${proc.verbatim} the respective responsibilities of the controller, joint controllers and processors; the purposes and means of the intended processing; the measures and safeguards; the contact details of the data protection officer where applicable; and this data protection impact assessment.`
       : "Art. 36(3) applies only where a consultation is required; on this determination no consultation submission arises.",
     procedural_citation: proc.citation || cit(regime, "Art. 36(3)"),
+    // PROMPT 8E item 7 — DORMANT. Read only; no renderer consumes it and the
+    // determination above is untouched by it.
+    dpo_recommends_consultation: /\b(consult|refer|escalate)\w*\b[^.]{0,80}\b(supervisory authority|ico|commissioner|regulator|dpa)\b/i
+      .test(str(get(intake, "dpo_advice"))),
     status,
     ...(information_needed ? { information_needed } : {}),
   };
@@ -859,7 +932,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
           ` Lawfulness is the first principle the processing must satisfy: ${lawfulness.verbatim}` +
           " No lawful basis can be assessed on this record.",
         verdict: "undetermined_on_the_record" as const,
-        citation: lawfulness.citation || cit(regime, "Art. 5(1)(a)"),
+        citation: regimePrefixed(regime, lawfulness.citation) || cit(regime, "Art. 5(1)(a)"),
         authority_verbatim: lawfulness.verbatim,
         status: "record_insufficient" as const,
         information_needed:
@@ -981,7 +1054,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       verdict: unmet.length === 0
         ? ("basis_supported_on_the_record" as const)
         : ("undetermined_on_the_record" as const),
-      citation: li.citation || cit(regime, "Art. 6(1)(f)"),
+      citation: regimePrefixed(regime, li.citation) || cit(regime, "Art. 6(1)(f)"),
       authority_verbatim: li.verbatim,
       legitimate_interests_test,
       status: unmet.length === 0 ? ("analysed" as const) : ("record_insufficient" as const),
@@ -1395,7 +1468,7 @@ const ASK_SAFEGUARDS_LIST = "which technical and organisational measures are app
 const ASK_DATA_QUALITY =
   "The measures that keep the personal data accurate and up to date for this purpose, and how data quality is checked.";
 const ASK_ART5_TABLE =
-  "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated per principle, with each measure's implementation status.";
+  "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated principle by principle, and whether each measure has been deployed.";
 const ASK_RIGHTS_TABLE =
   "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.";
 
@@ -1937,18 +2010,53 @@ const NUMBER_WORDS: Record<string, number> = {
 };
 
 /** Explicit count of remaining risks stated in the residual_risks narrative. */
+/**
+ * PROMPT 8E item 4 (CEO-ratified 2026-08-12) — hardened extraction.
+ *
+ * Evidence: run 8996eafc doc 4 read "UK GDPR Art. 37" as a stated count of 37.
+ * (a) a digit preceded by Art./Article/§/Section/Recital (whitespace allowed,
+ *     and surviving the sentence splitter's break after "Art.") is a pinpoint,
+ *     never a count; digits inside a larger token (dates, "37(1)") likewise;
+ * (b) where the narrative enumerates its risks ("1. … 2. … 3. …"), the count of
+ *     enumerated items is preferred over any in-sentence number;
+ * (c) the plausibility bound lives in buildRiskCountNote.
+ */
+const CITATION_PREFIX = /(?:art(?:icle)?\.?|§+|section|recital)\s*$/i;
+
+function enumeratedItemCount(text: string): number | null {
+  const seen = new Set<number>();
+  for (const m of text.matchAll(/(?:^|\n|\s)(\d{1,2})[.)]\s+(?=\S)/g)) {
+    seen.add(Number(m[1]));
+  }
+  let n = 0;
+  while (seen.has(n + 1)) n++;
+  return n >= 2 ? n : null;
+}
+
 export function statedResidualRiskCount(narrative: unknown): number | null {
   const text = str(narrative);
   if (!text) return null;
-  for (const sentence of text.split(/(?<=[.!?])\s+/)) {
+
+  const enumerated = enumeratedItemCount(text);
+  if (enumerated !== null) return enumerated;
+
+  // Split on sentence ends, but never on the full stop inside "Art." / "art."
+  const sentences = text.split(/(?<![Aa]rt|[Nn]o|[Ss]ec)(?<=[.!?])\s+/);
+  for (const sentence of sentences) {
     if (!/\brisks?\b/i.test(sentence)) continue;
     const word = sentence.match(
       /\b(one|two|three|four|five|six|seven|eight|nine|ten)\b(?=[^.!?]*\brisks?\b)/i,
     );
     if (word) return NUMBER_WORDS[word[1].toLowerCase()];
-    const digit = sentence.match(/\b(\d{1,2})\b(?=[^.!?]*\brisks?\b)/);
-    if (digit) {
-      const n = Number(digit[1]);
+    for (const m of sentence.matchAll(/(\d{1,2})/g)) {
+      const idx = m.index ?? 0;
+      const before = sentence.slice(0, idx);
+      const after = sentence.slice(idx + m[1].length);
+      // part of a larger token (dates, "37(1)", "2026-08", "v1.0")
+      if (/[\w./\-]$/.test(before) || /^[\w./\-(]/.test(after)) continue;
+      if (CITATION_PREFIX.test(before)) continue;
+      if (!/^[^.!?]*\brisks?\b/i.test(after)) continue;
+      const n = Number(m[1]);
       if (n > 0) return n;
     }
   }
@@ -1963,19 +2071,24 @@ export function buildRiskCountNote(
   if (stated_count === null) return undefined;
   const register_count = register.length;
   if (stated_count === register_count) return undefined;
-  // PROMPT 8D (CEO-ratified 2026-08-12) — the reconciliation disclosure in
-  // plain form. Flag 3 variant: where the company's own account describes MORE
-  // risks than the register carries, "surfaces {n} more" would be false, so the
-  // reversed sentence is used instead.
+  // ITEM 4(c) — plausibility bound. An extraction that dwarfs the register is
+  // very likely a misread pinpoint; say nothing rather than reconcile nonsense.
+  if (register_count > 0 && stated_count > register_count * 3) return undefined;
+  // PROMPT 8E item 1 — CEO-ratified 8D bytes. No lead-in sentence: the
+  // canonical executive sentence already states the count and this note renders
+  // immediately after it. Flag 3 variant carries the reversed case.
   const note = stated_count < register_count
-    ? `This assessment reviews ${register_count} risks. The company self-identified ${stated_count} of these risks; this assessment surfaces ${register_count - stated_count} more. The register is the count this assessment works from, and the company's own account is recorded in its own words in the sign-off section.`
-    : `This assessment reviews ${register_count} risks. The company's own account describes ${stated_count}, which is ${stated_count - register_count} more than this assessment carries in its register; the register is the count this assessment works from, and the company's own account is recorded in its own words in the sign-off section.`;
+    ? `The company self-identified ${nWord(stated_count)} of these risks; this assessment surfaces ${
+      nWord(register_count - stated_count)
+    } more. The company's own account is recorded in its own words in the sign-off section.`
+    : `The company self-identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
+      nWord(register_count)
+    } after consolidation, and the company's own account is recorded in its own words in the sign-off section.`;
   return {
     register_count,
     stated_count,
     note,
   };
-
 }
 
 // ---------------------------------------------------------------------
