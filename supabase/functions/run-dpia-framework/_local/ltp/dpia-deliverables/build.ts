@@ -90,21 +90,56 @@ const DPO_AUTHORITY_RE = [
   "article ?36",
 ].join("|");
 
+// PROMPT 8J item 2 (CEO-ruled 2026-08-12) — NEGATION GUARD.
+// Evidence: run c3762c61 doc 4 — dpo_advice said the residual risks "do not
+// meet the threshold for prior consultation with the ICO", yet the flag went
+// true and the ratified disclosure sentence asserted the opposite of the
+// record. The flag now requires a POSITIVE recommendation stance governing the
+// consult-verb + authority match, and is false where that match sits under
+// negation or threshold-not-met language. The disclosure sentence is untouched.
+const DPO_STANCE_RE =
+  /\b(recommend\w*|advis\w*|should|must|ought|urge\w*|propos\w*|require[sd]?|intends? to|will)\b/i;
+const DPO_NEGATION_RE = new RegExp(
+  [
+    "\\b(?:do|does|did|would|will|could|is|are|was|were|has|have)\\s+not\\b",
+    "\\bdon't\\b|\\bdoesn't\\b|\\bdidn't\\b|\\bwouldn't\\b|\\bwon't\\b|\\bisn't\\b|\\baren't\\b",
+    "\\bnot\\s+(?:met|meet|required|necessary|needed|recommended|warranted|triggered)\\b",
+    "\\bno\\s+(?:need|requirement|basis)\\b",
+    "\\bfall(?:s)?\\s+(?:below|short)\\b",
+    "\\bbelow\\s+the\\s+threshold\\b",
+    "\\bdeclin\\w*\\s+to\\s+recommend\\b",
+    "\\badvis\\w*\\s+against\\b",
+    "\\brecommend\\w*\\s+against\\b",
+    "\\bagainst\\s+consult\\w*\\b",
+    "\\bunnecessary\\b",
+  ].join("|"),
+  "i",
+);
+
 export function dpoRecommendsConsultation(advice: string): boolean {
   const s = String(advice ?? "");
   if (!s.trim()) return false;
-  const re = new RegExp(
+  const fwd = new RegExp(
     `\\b(consult|refer|escalat|notif)\\w*\\b[^.]{0,120}\\b(?:${DPO_AUTHORITY_RE})\\b`,
     "i",
   );
-  if (re.test(s)) return true;
   // Reverse order: "the Garante should be consulted before go-live".
   const rev = new RegExp(
     `\\b(?:${DPO_AUTHORITY_RE})\\b[^.]{0,120}\\b(consult|refer|escalat|notif)\\w*\\b`,
     "i",
   );
-  return rev.test(s);
+  // Sentence-scoped: the stance and the negation are read from the same
+  // clause that carries the consult + authority match.
+  for (const sentence of s.split(/(?<=[.;!?])\s+|\n+/)) {
+    if (!sentence.trim()) continue;
+    if (!fwd.test(sentence) && !rev.test(sentence)) continue;
+    if (DPO_NEGATION_RE.test(sentence)) continue;
+    if (!DPO_STANCE_RE.test(sentence)) continue;
+    return true;
+  }
+  return false;
 }
+
 
 
 const NOT_STATED = "not stated on the record";
