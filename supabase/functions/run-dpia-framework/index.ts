@@ -3159,11 +3159,13 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     version: STAMP,
     shared,
     units: {
-      u1: { status: "pending" as const },
-      u2: { status: "pending" as const },
-      u3: { status: "pending" as const },
-      u4: { status: "blocked" as const },
-      u5: { status: "blocked" as const },
+      // PROMPT 9 — retired units (flag on) are seeded as instantly complete
+      // with typed stub keys; nothing dispatches them and no phase waits on them.
+      u1: initialUnitState("u1", "pending"),
+      u2: initialUnitState("u2", "pending"),
+      u3: initialUnitState("u3", "pending"),
+      u4: initialUnitState("u4", "blocked"),
+      u5: initialUnitState("u5", "blocked"),
     },
   };
   const orgName = shared.orgName;
