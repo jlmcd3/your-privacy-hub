@@ -93,6 +93,12 @@ export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string
       "The company self-identified",
       "this assessment surfaces",
     ],
+    // PROMPT 8E item 1 — the reversed (stated > register) variant carries
+    // "after consolidation" in place of "this assessment surfaces".
+    tmpl_risk_count_note_reversed: [
+      "The company self-identified",
+      "after consolidation",
+    ],
     // buildSection2Coverage — credit-first residual note (PROMPT 10B).
     tmpl_coverage_residual_note: [
       "The company's account above covers this ground",

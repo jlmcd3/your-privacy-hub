@@ -137,6 +137,14 @@ export interface Art36Consultation {
   /** Art. 36(3) — what must accompany a consultation, when one is required. */
   readonly procedural_note: string;
   readonly procedural_citation: string;
+  /**
+   * PROMPT 8E item 7 (CEO direction, DORMANT) — disclose, don't flip. True where
+   * the intake's `dpo_advice` records a recommendation to consult the
+   * supervisory authority. The DETERMINATION IS UNCHANGED by this flag; no
+   * renderer reads it in this prompt. Wiring awaits CEO ratification of the
+   * proposed Section 6 disclosure sentence.
+   */
+  readonly dpo_recommends_consultation?: boolean;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
 }
