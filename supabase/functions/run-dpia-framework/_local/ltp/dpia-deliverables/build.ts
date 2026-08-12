@@ -14,6 +14,7 @@
 import { ANCHOR_KEYS, DPIA_RISK_SPECS, DPIA_SAFEGUARD_SPECS, row, type RiskFacts } from "./elements.ts";
 import { transferMechanism, type TransferFlow } from "../../../../_shared/dpia-jurisdiction-registry.ts";
 import { spliceVerbatim } from "../../../../_shared/ltp/verbatim-splice.ts";
+import { attachMinimalUnitSurfaces } from "./minimal-units.ts";
 import type {
   AlternativeConsidered,
   Art36Consultation,
@@ -1943,6 +1944,7 @@ export function reconcileRiskCountNote(
 export function attachDpiaDeliverables(
   report: Record<string, unknown>,
   intake: unknown,
+  opts?: { unitsMinimal?: boolean },
 ): Record<string, unknown> {
   try {
     const built = buildDpiaDeliverables(intake);
@@ -1976,6 +1978,15 @@ export function attachDpiaDeliverables(
     // for report.section2_coverage. Nothing renders it yet.
     report.section2_coverage = built.section2_coverage;
     if (built.risk_count_note) report.risk_count_note = built.risk_count_note;
+
+    // PROMPT 10 (2026-08-12) — with u1/u5 retired there is no model author for
+    // dpia_metadata, framework_disclaimer, section_5_interested_parties or
+    // section_6_conclusion. Build them deterministically. Inert when the flag
+    // is off: pre-existing unit output is left exactly as the model wrote it.
+    let minimalUnits: Record<string, unknown> | null = null;
+    if (opts?.unitsMinimal) {
+      minimalUnits = attachMinimalUnitSurfaces(report, intake, built.decision);
+    }
     const s2 = report.section_2_analysis;
     if (s2 && typeof s2 === "object") {
       (s2 as Record<string, unknown>).legal_basis = built.legal_basis.map((f) => ({
@@ -2000,6 +2011,7 @@ export function attachDpiaDeliverables(
       legal_basis: built.legal_basis.length,
       legal_basis_insufficient: built.legal_basis.filter((b) => b.status === "record_insufficient").length,
       separation_repairs: built.art36_consultation.separation_repairs,
+      ...(minimalUnits ? { minimal_units: minimalUnits } : {}),
       gap_ledger_entries: ledger.gap_ledger.length,
       gap_ledger_dropped_empty: ledger.dropped_empty,
       gap_ledger_dropped_unmapped: ledger.dropped_unmapped,

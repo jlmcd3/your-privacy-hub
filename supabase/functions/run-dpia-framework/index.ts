@@ -721,6 +721,12 @@ console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
 // One line to disable the whole critic → verifier → splicer pass.
 export const DPIA_REFINEMENT_ENABLED = true;
+// PROMPT 10 PART 2 — PRECEDENCE: DPIA_UNITS_MINIMAL wins. With every unit
+// retired there is no freeform prose for the critic's omission checklist to
+// patrol, so its two model calls per document buy nothing. The machinery is
+// untouched and stays available to every other tool; only this tool's
+// effective switch is forced off. Defined below the flag (see
+// dpiaRefinementEffective()).
 
 // ── PROMPT 9 (2026-08-12) — CONFIG-GATED RETIREMENT OF u2/u3/u4 ─────────────
 // With the typed surfaces and skeleton tables live, raw u2 (section_2_analysis),
@@ -736,7 +742,16 @@ export const DPIA_UNITS_MINIMAL: boolean = (() => {
   return /^(1|true|yes|on)$/i.test(raw.trim());
 })();
 
-export const DPIA_RETIRED_UNITS: readonly string[] = ["u2", "u3", "u4"];
+// PROMPT 10 (2026-08-12) — FINAL RETIREMENT. u1 and u5 join the retired set
+// under the SAME flag. Their four legacy-shape surfaces (dpia_metadata,
+// framework_disclaimer, section_5_interested_parties, section_6_conclusion)
+// are built deterministically in attachDpiaDeliverables → minimal-units.ts.
+/** PROMPT 10 PART 2 — the effective refinement switch for this tool. */
+export function dpiaRefinementEffective(): boolean {
+  return DPIA_REFINEMENT_ENABLED && !DPIA_UNITS_MINIMAL;
+}
+
+export const DPIA_RETIRED_UNITS: readonly string[] = ["u1", "u2", "u3", "u4", "u5"];
 export const DPIA_RETIRED_UNIT_NOTE =
   "Retired under DPIA_UNITS_MINIMAL: this section is composed from the typed deterministic surfaces (processing_inventory, section2_coverage, necessity_findings, proportionality, risk_register, legal_basis, decision) and the skeleton document, which have no remaining reader for raw unit output.";
 
@@ -2560,6 +2575,8 @@ async function runStitch(dpia_id: string): Promise<void> {
       const dmeta = attachDpiaDeliverables(
         reportData as Record<string, unknown>,
         (dpiaIntake ?? {}) as Record<string, unknown>,
+        // PROMPT 10 PART 1 — deterministic u1/u5 surfaces under the flag.
+        { unitsMinimal: DPIA_UNITS_MINIMAL },
       );
       const _m = ((reportData as any)._meta ??= {});
       (_m.internal ??= {}).dpia_deliverables = dmeta;
@@ -2661,7 +2678,7 @@ async function runStitch(dpia_id: string): Promise<void> {
         (dpiaIntake ?? {}) as Record<string, unknown>,
         { critic: refinementCriticCall, verifier: refinementVerifierCall },
         {
-          enabled: DPIA_REFINEMENT_ENABLED,
+          enabled: dpiaRefinementEffective(),
           coverageList: coverageListForCritic(preCoverage),
           coverageAnchors: coverageAnchorTokens(preCoverage),
         },
@@ -3094,6 +3111,24 @@ async function runStitch(dpia_id: string): Promise<void> {
         register_findings: sk.register_findings,
       }));
     } catch (e) {
+      // PROMPT 10 PART 3 — FAIL-CLOSED under the retirement flag. With every
+      // unit retired there is no unit-composed body to fall back to, so a
+      // half-empty legacy render would be worse than an honest failure. The
+      // legacy (pre-conversion) render path is untouched when the flag is off.
+      if (DPIA_UNITS_MINIMAL) {
+        console.log(JSON.stringify({
+          evt: "dpia_skeleton_assembly_failed", fn: "run-dpia-framework", dpia_id,
+          units_minimal: true, error: (e as Error)?.message ?? String(e),
+        }));
+        delete (reportData as any).skeleton_document;
+        await mergePreservingFail(
+          dpia_id,
+          "stitch",
+          new Error(`dpia_skeleton_assembly_failed: ${(e as Error)?.message ?? String(e)}`),
+          Date.now() - stitchStart,
+        );
+        return;
+      }
       console.warn("[run-dpia-framework] skeleton assembly failed (non-fatal):", (e as Error)?.message);
     }
 
