@@ -1586,10 +1586,10 @@ export async function generateValidatedIntakesChunked(
 
   while (progress.totalAttempted < count) {
     // Interior deadline checkpoint — BETWEEN calls, never inside one await.
-    if (Date.now() >= ctx.deadlineAt) {
+    if (now() >= ctx.deadlineAt) {
       return { progress, status: "deadline" };
     }
-    const t0 = Date.now();
+    const t0 = now();
     const avoid = usedNames(progress.accepted);
     const extraGuidance = avoid.length
       ? `NAME VARIETY: do NOT reuse or vary these already-used company names: ${avoid.slice(-12).join(", ")}. Pick an entirely different company name and sector posture.`
@@ -1597,11 +1597,11 @@ export async function generateValidatedIntakesChunked(
 
     let batch: any[];
     try {
-      batch = await generateIntakes(tool, 1, extraGuidance);
+      batch = await genOne(tool, 1, extraGuidance);
     } catch (e) {
       progress.totalAttempted += 1;
       progress.rejected.push({ reason: `generation failed — ${(e as Error).message}` });
-      await ctx.onScenario?.(progress.totalAttempted, count, (Date.now() - t0) / 1000, false);
+      await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, false);
       continue;
     }
 
@@ -1609,13 +1609,15 @@ export async function generateValidatedIntakesChunked(
     progress.totalAttempted += 1;
     if (!item) {
       progress.rejected.push({ reason: "generator returned no item" });
-      await ctx.onScenario?.(progress.totalAttempted, count, (Date.now() - t0) / 1000, false);
+      await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, false);
       continue;
     }
-    const screened = await screenIntake(tool, item, lintFixture as any, extraGuidance);
+    const screened = ctx._screen
+      ? await ctx._screen(tool, item)
+      : await screenIntake(tool, item, lintFixture as any, extraGuidance);
     if (screened.ok) progress.accepted.push(screened.intake);
     else progress.rejected.push({ reason: screened.reason });
-    await ctx.onScenario?.(progress.totalAttempted, count, (Date.now() - t0) / 1000, screened.ok);
+    await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok);
   }
 
   return { progress, status: "complete" };
