@@ -794,12 +794,16 @@ export function QualityConsole({
           lines.push("");
         }
 
-        const { data: findings } = await supabase
+        const { data: allFindings } = await supabase
           .from("quality_findings")
-          .select("check_id, check_type, dimension, severity, evidence, doc_id, passed")
+          .select("check_id, check_type, dimension, severity, evidence, doc_id, passed, filtered_from_scoring, calibration_rule")
           .eq("run_id", tr.quality_run_id)
           .eq("passed", false)
           .order("dimension", { ascending: true });
+        // PROMPT 10A — calibration-filtered findings are reported separately;
+        // they are excluded from scoring but never hidden.
+        const findings = (allFindings ?? []).filter((f: any) => !f.filtered_from_scoring);
+        const calibrationFiltered = (allFindings ?? []).filter((f: any) => f.filtered_from_scoring);
         lines.push("### Failed findings (grouped by dimension)");
         lines.push("");
         const byDim = new Map<string, typeof findings>();
@@ -821,6 +825,22 @@ export function QualityConsole({
             }
             lines.push("");
           }
+        }
+
+        // PROMPT 10A — visibility stays, scoring noise goes.
+        lines.push("### Filtered (calibration)");
+        lines.push("");
+        if (calibrationFiltered.length === 0) {
+          lines.push("_No calibration-filtered findings._");
+          lines.push("");
+        } else {
+          lines.push("_Excluded from scoring under the skeleton calibration rules; retained here in full._");
+          lines.push("");
+          for (const f of calibrationFiltered as any[]) {
+            const ev = (f.evidence ?? "").toString().replace(/\s+/g, " ").slice(0, 400);
+            lines.push(`- **[${f.calibration_rule}] ${f.check_id}** _(${f.check_type}, ${f.dimension}/${f.severity})_ — ${ev}`);
+          }
+          lines.push("");
         }
       }
 

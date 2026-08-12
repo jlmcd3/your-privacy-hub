@@ -4989,12 +4989,14 @@ export type Database = {
       }
       quality_findings: {
         Row: {
+          calibration_rule: string | null
           check_id: string
           check_type: string
           created_at: string | null
           dimension: string
           doc_id: string | null
           evidence: string | null
+          filtered_from_scoring: boolean
           id: string
           passed: boolean
           run_id: string
@@ -5004,12 +5006,14 @@ export type Database = {
           tool: string
         }
         Insert: {
+          calibration_rule?: string | null
           check_id: string
           check_type: string
           created_at?: string | null
           dimension: string
           doc_id?: string | null
           evidence?: string | null
+          filtered_from_scoring?: boolean
           id?: string
           passed: boolean
           run_id: string
@@ -5019,12 +5023,14 @@ export type Database = {
           tool: string
         }
         Update: {
+          calibration_rule?: string | null
           check_id?: string
           check_type?: string
           created_at?: string | null
           dimension?: string
           doc_id?: string | null
           evidence?: string | null
+          filtered_from_scoring?: boolean
           id?: string
           passed?: boolean
           run_id?: string

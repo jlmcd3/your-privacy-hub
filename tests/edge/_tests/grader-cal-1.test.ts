@@ -374,8 +374,12 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
   assertEquals(fails.length, 0, JSON.stringify(fails));
 });
 
-Deno.test("GRADER-CAL-5R: instrument version bumped to grader-cal-5r", () => {
-  assertEquals(GRADER_CONTEXT_VERSION, "gc-2026-07-27-s6-eu-uk-ca-au-sg");
+// PROMPT 10A (2026-08-12) — instrument bumped to the skeleton-calibration epoch.
+Deno.test("instrument version pinned to the skeleton-calibration epoch", () => {
+  assertEquals(
+    GRADER_CONTEXT_VERSION,
+    "gc-2026-08-12-skeleton-cal-1[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4]",
+  );
 });
 
 // ---------------------------------------------------------------------------

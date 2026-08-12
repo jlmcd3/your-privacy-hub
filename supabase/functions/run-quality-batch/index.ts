@@ -37,6 +37,9 @@ import type { FixtureVariant } from "../_shared/quality/fixture-variant.ts";
 import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter over LLM findings.
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
+// PROMPT 10A — skeleton-mode grader calibration (CEO-approved 2026-08-12).
+// Applied ONLY when graderMode === "skeleton"; freeform grading is untouched.
+import { applySkeletonCalibration, SKELETON_CAL_VERSION } from "../_shared/grader/skeleton-calibration.ts";
 // CV1-R2 T4c — counsel-voice auto-regen trigger predicate.
 import { isCounselVoiceRegenEligible, resolveEvalSourceRef } from "./_local/grader/counsel-voice-regen.ts";
 import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
@@ -1144,7 +1147,27 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
     console.log(`[GRADER-CAL-1][claude] tool=${tool} dropped a2=${cal1Dropped.a2} a3=${cal1Dropped.a3} a4=${cal1Dropped.a4} r15c2=${cal1Dropped.r15c2} dpa_defaults=${cal1Dropped.dpa_defaults}`);
   }
 
-  const llmFindings = filteredRaw
+  // PROMPT 10A — CONVERTED-DOCUMENT CALIBRATION. Skeleton mode only. Filtered
+  // findings are removed from SCORING but persisted (flagged) by the caller.
+  const skelCal = useSkeleton
+    ? applySkeletonCalibration(filteredRaw as any)
+    : { kept: filteredRaw as any[], filtered: [] as any[], counts: null as any };
+  const calibrationFiltered = skelCal.filtered.map((x: any) => {
+    const meta = rubricMeta.get(x.check_id);
+    return {
+      check_id: x.check_id,
+      rule: x.rule,
+      template_id: x.template_id ?? null,
+      dimension: meta?.dimension ?? "analysis",
+      severity: meta?.severity ?? "medium",
+      evidence: (x.finding?.evidence ?? null) as string | null,
+    };
+  });
+  if (calibrationFiltered.length) {
+    console.log(`[SKELETON-CAL][claude] tool=${tool} version=${SKELETON_CAL_VERSION} filtered=${calibrationFiltered.map((c) => c.rule).join(",")}`);
+  }
+
+  const llmFindings = skelCal.kept
     .filter(f => rubricMeta.has((f as any).check_id))
     .map(f => {
       const meta = rubricMeta.get((f as any).check_id)!;
@@ -1166,7 +1189,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
   // overall_score_display is the human-facing rounded copy.
   const overall_raw = scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting;
   const overall = Math.round(overall_raw);
-  return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed };
+  return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed, calibration_filtered: calibrationFiltered, calibration_counts: skelCal.counts };
 }
 
 async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
@@ -1208,13 +1231,31 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtu
     if (gptDropped.a2 || gptDropped.a3 || gptDropped.a4 || gptDropped.r15c2 || gptDropped.dpa_defaults) {
       console.log(`[GRADER-CAL-1][gpt] tool=${tool} dropped a2=${gptDropped.a2} a3=${gptDropped.a3} a4=${gptDropped.a4} r15c2=${gptDropped.r15c2} dpa_defaults=${gptDropped.dpa_defaults}`);
     }
-    parsed.findings = gptKept
+    // PROMPT 10A — same calibration on the GPT cross-review path (skeleton only).
+    const gptCal = useSkeleton
+      ? applySkeletonCalibration(gptKept as any)
+      : { kept: gptKept as any[], filtered: [] as any[], counts: null as any };
+    const gptCalibrationFiltered = gptCal.filtered.map((x: any) => {
+      const meta = rubricMeta.get(x.check_id);
+      return {
+        check_id: x.check_id,
+        rule: x.rule,
+        template_id: x.template_id ?? null,
+        dimension: meta?.dimension ?? "analysis",
+        severity: meta?.severity ?? "medium",
+        evidence: (x.finding?.evidence ?? null) as string | null,
+      };
+    });
+    if (gptCalibrationFiltered.length) {
+      console.log(`[SKELETON-CAL][gpt] tool=${tool} version=${SKELETON_CAL_VERSION} filtered=${gptCalibrationFiltered.map((c) => c.rule).join(",")}`);
+    }
+    parsed.findings = gptCal.kept
       .filter((f: any) => rubricMeta.has(f.check_id))
       .map((f: any) => {
         const meta = rubricMeta.get(f.check_id)!;
         return { check_id: f.check_id, dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null };
       });
-    return { eval: parsed, postFilterDropped: gptDropped, postFilterSuppressed: gptSuppressed };
+    return { eval: parsed, postFilterDropped: gptDropped, postFilterSuppressed: gptSuppressed, calibrationFiltered: gptCalibrationFiltered };
 
   } catch (e) {
     return { eval: null, error: (e as Error).message };
@@ -2788,6 +2829,25 @@ async function runBatchInner(runId: string): Promise<void> {
         scenario_set: scenarioSet,
       }));
       if (findingRows.length) await admin.from("quality_findings").insert(findingRows);
+
+      // PROMPT 10A — CALIBRATION VISIBILITY. Findings removed from SCORING by the
+      // skeleton calibration rules are still persisted, flagged
+      // filtered_from_scoring=true with their rule id, so nothing disappears.
+      const calRows = [
+        ...(((claudeEval as any)?.calibration_filtered ?? []) as any[]).map((c) => ({ c, who: "llm" })),
+        ...(((gptResult as any)?.calibrationFiltered ?? []) as any[]).map((c) => ({ c, who: "llm_gpt" })),
+      ].map(({ c, who }) => ({
+        run_id: runId, doc_id: docRowId, tool, run_number: runNumber,
+        check_id: c.check_id, check_type: who, dimension: c.dimension,
+        severity: c.severity, passed: false, evidence: c.evidence ?? null,
+        scenario_set: scenarioSet,
+        filtered_from_scoring: true,
+        calibration_rule: c.rule,
+      }));
+      if (calRows.length) {
+        await admin.from("quality_findings").insert(calRows);
+        await log("info", `${docLabel}: calibration filtered ${calRows.length} finding(s) — ${calRows.map((r) => `${r.calibration_rule}/${r.check_id}`).join(", ")}`);
+      }
 
       // Push Claude findings with per-doc cross-category.
       //  - Deterministic failures → "deterministic" (code-verified ground truth)
