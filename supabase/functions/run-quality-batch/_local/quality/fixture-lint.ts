@@ -154,3 +154,39 @@ export function lintFixtureForTool(tool: string, intake: unknown): LintHit | nul
   if (tool === "dpia") return lintDpiaStructuredShapes(intake);
   return null;
 }
+
+// PROMPT 8K (2026-08-12) — CLOSED-LOOP PERFECT LINT.
+//
+// For variant=perfect, the fixture lint additionally runs the PRODUCT's own
+// deliverables builder over the candidate intake and rejects unless the
+// product finds nothing missing. See ./perfect-closed-loop.ts for the rule
+// set and the CEO-parked 6(1)(f)+special-category carve-out. Any other
+// variant (including the legacy null path) is byte-identical to before.
+
+import {
+  checkPerfectDpiaIntake,
+  deficiencyLines,
+  type PerfectDeficiency,
+} from "./perfect-closed-loop.ts";
+
+export interface VariantLintHit extends LintHit {
+  /** Specific, per-deficiency feedback for the generator retry path. */
+  deficiencies?: PerfectDeficiency[];
+}
+
+export function lintFixtureForVariant(
+  tool: string,
+  variant: "perfect" | "messy" | null | undefined,
+  intake: unknown,
+): VariantLintHit | null {
+  const base = lintFixtureForTool(tool, intake);
+  if (base) return base;
+  if (variant !== "perfect" || tool !== "dpia") return null;
+  const res = checkPerfectDpiaIntake(intake);
+  if (res.ok) return null;
+  const lines = deficiencyLines(res.deficiencies);
+  return {
+    reason: `closed-loop perfect: ${lines.slice(0, 4).join(" | ")}${lines.length > 4 ? ` (+${lines.length - 4} more)` : ""}`,
+    deficiencies: res.deficiencies,
+  };
+}

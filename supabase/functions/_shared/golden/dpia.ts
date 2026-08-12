@@ -319,7 +319,10 @@ export const DPIA_PERFECT: GoldenCase[] = [
       data_subjects: "UK-based employees of Britannia HR Ltd (3,000 people).",
       volume_frequency: "3,000 employees; one scoring run per week.",
       jurisdictions: ["United Kingdom (UK GDPR)"],
-      legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+      // PROMPT 8K carve-out (CEO-parked policy): a perfect fixture must not
+      // combine 6(1)(f) with special-category data. This employer duty is
+      // instrument-named so the legal-basis surface is sufficient.
+      legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
       article_9_condition: "Preventive/occupational medicine, health or social care (Art. 9(2)(h))",
       necessity_proportionality:
         "Early detection of burnout requires a signal that is timely and does not depend on self-reporting, which the annual survey cannot provide. The intrusion — inference of a health-adjacent state from workplace posts — is confined by discarding raw text within 48 hours, releasing individual flags only to the two occupational-health advisers, and showing line managers nothing below team level with a minimum team size of eight. The benefit accrues to the employees flagged: an offer of support they would otherwise receive only after absence begins.",
@@ -334,6 +337,7 @@ export const DPIA_PERFECT: GoldenCase[] = [
         "Pseudonymisation",
         "Staff training",
         "Contractual restrictions",
+        "DPA signed with processor",
       ],
       third_party_processors: ["Other: Sentiment-analysis provider (Clearwater Analytics UK Ltd, London)"],
       reasons_to_conduct: [
@@ -382,7 +386,7 @@ export const DPIA_PERFECT: GoldenCase[] = [
       secondary_uses:
         "None. The annexed purpose-limitation policy prohibits use of any output for performance management, discipline, or redundancy selection, and output separation enforces it: the systems that hold sentiment outputs expose no interface to HR case management.",
       nature_scope_context:
-        "Nature: automated scoring of collaboration-tool posts, aggregation to team level, restricted individual flagging, scheduled deletion. Scope: 3,000 employees, one weekly run, roughly 400,000 posts scored per week, raw text held under 48 hours. Context: an employment relationship with an acknowledged power imbalance; the staff forum was consulted twice; individual outputs reach only the two occupational-health advisers; the processing is a pilot with a fixed end date and a re-assessment gate.",
+        "Nature: automated scoring of collaboration-tool posts, aggregation to team level, restricted individual flagging, scheduled deletion. Scope: 3,000 employees, one weekly run, roughly 400,000 posts scored per week, raw text held under 48 hours. Context: the employer duty in section 2(1) of the Health and Safety at Work etc. Act 1974, read with regulation 3 of the Management of Health and Safety at Work Regulations 1999 (SI 1999/3242), is the obligation this processing discharges, and paragraph 2 of Part 1 of Schedule 1 to the Data Protection Act 2018 supplies the UK condition for the health data; the written Art. 28 processing contract with Clearwater Analytics UK Ltd was signed on 14 March 2026. An employment relationship with an acknowledged power imbalance; the staff forum was consulted twice; individual outputs reach only the two occupational-health advisers; the processing is a pilot with a fixed end date and a re-assessment gate.",
       functional_description:
         "The collaboration platform's export API delivers posts to Clearwater's scoring service in its London data centre; scores return to the People Analytics workspace where raw text is deleted within 48 hours; team-level trends (teams of eight or more) render on the manager dashboard; individual-level flags route only to the occupational-health case system; deletion jobs enforce the 90-day and 12-month limits.",
       supporting_assets:
