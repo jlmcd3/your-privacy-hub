@@ -1493,17 +1493,21 @@ async function screenIntake(
   const linted = lintFixture(item);
   let candidate = item;
   if (linted) {
-    console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${(linted as any).path} — regenerating once`);
+    console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${(linted as any).path} — repairing once`);
     try {
       // PROMPT 8K — FEEDBACK LOOP: when the closed-loop perfect lint rejects,
       // the SPECIFIC deficiency list is fed to the generator as retry guidance
       // (retry cap unchanged: ONE single-item regeneration).
+      // PROMPT 9C item 3 — RETRY BECOMES REPAIR: the rejected intake is handed
+      // back verbatim so the model ADDS the missing facts instead of inventing
+      // a fresh scenario that fails on a different axis.
       let retryGuidance = extraGuidance;
       if (Array.isArray((linted as any).deficiencies) && (linted as any).deficiencies.length) {
         const { perfectRetryGuidance } = await import("./_local/quality/perfect-closed-loop.ts");
         const fb = perfectRetryGuidance((linted as any).deficiencies);
         retryGuidance = retryGuidance ? `${retryGuidance}\n\n${fb}` : fb;
       }
+      retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
       const retry = await generateIntakes(tool, 1, retryGuidance);
       const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
       if (relint) return { ok: false, reason: `lint: ${linted.reason}; retry: ${(relint as any).reason ?? "reject"}` };
