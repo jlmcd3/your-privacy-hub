@@ -1720,6 +1720,17 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
     console.error(`[unit:${unit}] no _staging.shared — cannot execute; skipping`);
     return;
   }
+  // PROMPT 9 — retired unit: never call the model; write the typed stub and
+  // advance. Defensive: bootstrap already seeds these as done.
+  if (isRetiredUnit(unit)) {
+    console.log(`[unit:${unit}] retired under DPIA_UNITS_MINIMAL — no model call`);
+    if (staging.units?.[unit]?.status !== "done") {
+      await writeUnitStatus(dpia_id, unit, initialUnitState(unit, "pending"));
+    }
+    const nextRetired = await advancePhaseIfReady(dpia_id);
+    for (const u of nextRetired) selfInvokeUnit(dpia_id, u);
+    return;
+  }
   // Skip-if-already-done (idempotency for sweeper re-entry).
   if (staging.units?.[unit]?.status === "done") {
     console.log(`[unit:${unit}] already done — skip`);
@@ -1827,7 +1838,11 @@ async function runUnit(dpia_id: string, unit: UnitId): Promise<void> {
       u3: "section_3_necessity_proportionality",
     };
     const guardedKey = CONFLATION_GUARDED_KEY[unit];
-    if (guardedKey) {
+    // PROMPT 9 — the guard is skipped for retired units. Its conflation
+    // concern is already encoded deterministically in buildOperations'
+    // isSecondaryUseNegation and the operations model, which read the intake
+    // fields directly rather than the generated prose.
+    if (guardedKey && !isRetiredUnit(unit)) {
       const intake = (shared?.intake ?? {}) as Record<string, any>;
       const purposeText = String(intake.purpose ?? "");
       const secondaryText = String(intake.secondary_uses ?? "");
@@ -3139,6 +3154,10 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     }
     // Reset any errored/stuck U4/U5 back to blocked so advancePhaseIfReady can re-dispatch.
     for (const u of ["u4", "u5"] as UnitId[]) {
+      if (isRetiredUnit(u)) {
+        if (staging.units[u]?.status !== "done") { staging.units[u] = initialUnitState(u, "blocked"); mutated = true; }
+        continue;
+      }
       const st = staging.units[u]?.status;
       if (st === "error" || st === "processing" || st === "dispatching") {
         staging.units[u] = { ...(staging.units[u] ?? {}), status: "blocked" };
@@ -3150,7 +3169,7 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     }
     // Dispatch missing PHASE1 units in parallel.
     const dispatch: UnitId[] = [];
-    for (const u of PHASE1) if (staging.units[u]?.status !== "done") dispatch.push(u);
+    for (const u of PHASE1) if (!isRetiredUnit(u) && staging.units[u]?.status !== "done") dispatch.push(u);
     for (const u of dispatch) selfInvokeUnit(dpia_id, u);
     // Always try phase-advance on resume: with U4-only-on-U3 gating, U4 may be
     // dispatchable even while U1/U2 are still (re)running from this same resume.
@@ -3188,8 +3207,10 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
     return;
   }
 
-  // Fan out phase 1.
-  for (const u of PHASE1) selfInvokeUnit(dpia_id, u);
+  // Fan out phase 1 (retired units are already seeded as complete).
+  for (const u of PHASE1) if (!isRetiredUnit(u)) selfInvokeUnit(dpia_id, u);
+  console.log(JSON.stringify({ evt: "dpia_units_minimal", fn: "run-dpia-framework", dpia_id, enabled: DPIA_UNITS_MINIMAL, retired: DPIA_UNITS_MINIMAL ? DPIA_RETIRED_UNITS : [] }));
+  if (DPIA_UNITS_MINIMAL) { const n = await advancePhaseIfReady(dpia_id); for (const u of n) selfInvokeUnit(dpia_id, u); }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
