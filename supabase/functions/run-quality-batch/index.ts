@@ -200,6 +200,10 @@ const HEARTBEAT_INTERVAL_MS = 10_000;
 // doc failed with an evidence string and PROCEED to the next doc.
 const POLL_DEADLINE_MS = 300_000;
 const DOC_TOTAL_TIMEOUT_MS = 20 * 60_000;
+// PROMPT 8G — per-isolate wall-clock budget for the INTAKE GENERATION phase.
+// The isolate hard-kill is ~400s; leave headroom for the in-flight scenario
+// call plus persistence + self-reinvoke. Checked BETWEEN scenario calls.
+const INTAKE_ISOLATE_BUDGET_MS = 200_000;
 // Tools whose generators write status='complete' on the source row (poll
 // path). Editorial/transient tools return payloads inline and bypass this.
 const POLL_TOOLS = new Set([
