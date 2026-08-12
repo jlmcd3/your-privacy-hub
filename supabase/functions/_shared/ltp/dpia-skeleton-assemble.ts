@@ -36,7 +36,22 @@ import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
-export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@prompt8-spine-v4-2026-08-11";
+// PROMPT 8A (CEO-ratified 2026-08-12) — CITATION STYLE RULING for all DPIA
+// composed prose: running prose spells "Article 35(1)"; parenthetical citations
+// use "(Art. 35(1))"; the `citation` field and the Table of Authorities keep the
+// registry's full form verbatim.
+export const DPIA_SKELETON_ASSEMBLER_STAMP = "dpia-skeleton-assembler@prompt8a-ratified-prose-2026-08-12";
+
+/** PROMPT 8A slot convention `{n:word}`: one–nine as words, digits from 10 up. */
+const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+export function numberWord(n: number): string {
+  return n >= 0 && n <= 9 ? NUMBER_WORDS[n] : String(n);
+}
+
+/** PROMPT 8A `{rescorer}`: the recorded approver, else "the company". */
+function rescorer(intake: Bag): string {
+  return s(intake?.dpia_approved_by_name) || "the company";
+}
 
 type Bag = Record<string, unknown>;
 
@@ -407,7 +422,8 @@ export function mergeOpenGapItems(
   return out;
 }
 
-function composeExecutiveBody(report: Bag): string {
+function composeExecutiveBody(report: Bag, intake: Bag): string {
+  const who = rescorer(intake);
   const bands = residualCounts(report);
   const total = Object.values(bands).reduce((a, b) => a + b, 0);
   const high = bands["high"] ?? 0;
@@ -416,16 +432,16 @@ function composeExecutiveBody(report: Bag): string {
 
   if (total > 0) {
     sentences.push(
-      `The assessment carries ${total === 1 ? "one risk" : `${total} risks`} through to a residual position after the measures the company has recorded.`,
+      `The assessment carries ${total === 1 ? "one risk" : `${numberWord(total)} risks`} through to a residual position after the measures the company has recorded.`,
     );
     sentences.push(
       high > 0
-        ? `${high === 1 ? "One of those risks remains" : `${high} of those risks remain`} at a high residual band on the answers given, and the assessment treats that band as proposed until the company re-scores it against the measures as implemented.`
-        : `None of those risks remains at a high residual band on the answers given, and each residual band is proposed until the company re-scores it against the measures as implemented.`,
+        ? `${high === 1 ? "One of those risks remains" : `${numberWord(high)} of those risks remain`} at a high residual band on the answers given, and the assessment treats that band as proposed until ${who} re-scores it against the measures as implemented.`
+        : `None of those risks remains at a high residual band on the answers given, and each residual band is proposed until ${who} re-scores it against the measures as implemented.`,
     );
     if (openBand > 0) {
       sentences.push(
-        `${openBand === 1 ? "One residual band is" : `${openBand} residual bands are`} undetermined because the company has not recorded the measures applied, and an undetermined band is not read in the company's favour.`,
+        `${openBand === 1 ? "One residual band is" : `${numberWord(openBand)} residual bands are`} undetermined because the company has not recorded the measures applied, and an undetermined band is not read in the company's favour.`,
       );
     }
   }
@@ -446,22 +462,38 @@ function composeExecutiveBody(report: Bag): string {
   // documents generated before the ledger existed.
   const ledger = asArray(report.gap_ledger);
   const gapSource = Array.isArray(report.gap_ledger) ? ledger : asArray(report.information_needed);
-  const openItems = mergeOpenGapItems(
+  const merged = mergeOpenGapItems(
     gapSource.map((e) => ({
       what: noStop(s(e.dimensions) || s(e.field)),
       enables: noStop(s(e.enables)),
     })),
-  ).map(({ what, enables }) =>
+  );
+  // PROMPT 8A item 3 (CEO revision 2026-08-12) — DETERMINISTIC ORDERING RULE
+  // for the open points named in the executive body: decision blockers first
+  // (entries that complete a determination, i.e. carry a non-empty `enables`),
+  // then every remaining entry in gap-ledger order. The sort is stable, so
+  // ordering inside each group is the ledger's own order. The rule is stated
+  // here and asserted by test; it NEVER appears in customer prose.
+  const ordered = merged
+    .map((e, i) => ({ ...e, i }))
+    .sort((a, b) => (a.enables.length > 0 ? 0 : 1) - (b.enables.length > 0 ? 0 : 1) || a.i - b.i);
+  const openItems = ordered.map(({ what, enables }) =>
     enables.length > 0
       ? `${what} — which completes ${enables.map((x) => lowerEnumLabel(x)).join(" and ")}`
       : what
   );
   const open = openItems.length;
-  if (open > 0) {
+  if (open === 1) {
     sentences.push(
-      `${open === 1 ? "One point is" : `${open} points are`} left unanswered by the company's answers, and each is named here and where it bears on the determination rather than assumed: ${openItems
-        .map((t, i) => `(${i + 1}) ${t}`)
-        .join("; ")}.`,
+      `The company's answers leave one point open; it is listed in the gap table and raised again where it bears on a determination. It is: ${openItems[0]}.`,
+    );
+  } else if (open > 1) {
+    const lead =
+      `The company's answers leave ${numberWord(open)} points open; each is listed in the gap table and raised again where it bears on a determination.`;
+    sentences.push(
+      open <= 3
+        ? `${lead} They are: ${openItems.join("; ")}.`
+        : `${lead} The first three are: ${openItems.slice(0, 3).join("; ")}.`,
     );
   }
 
@@ -481,8 +513,10 @@ function composeNecessityLead(report: Bag): string {
     return "Whether necessity and proportionality are made out cannot be determined on the company's answers alone; the analysis below sets out what the record does and does not support.";
   }
   return unmet.length === 0
-    ? "On the company's answers, necessity and proportionality are made out for the processing as described."
-    : `On the company's answers, necessity and proportionality are made out in part: ${unmet.length === 1 ? "one element is" : `${unmet.length} elements are`} not yet supported by the company's answers.`;
+    ? "Necessity and proportionality are made out on the company's answers for the processing as described."
+    : `Necessity and proportionality are made out in part on the company's answers: ${
+      unmet.length === 1 ? "one element is" : `${numberWord(unmet.length)} elements are`
+    } not yet supported.`;
 }
 
 
@@ -539,45 +573,65 @@ function composeRiskLead(report: Bag): string {
 }
 
 
-export function composeRiskBody(report: Bag, values: SlotValues): string {
+// PROMPT 8A item 1 (CEO-ratified 2026-08-12) — per-risk analytic template. The
+// re-scoring caveat is carried ONCE, by the first risk that states a residual
+// band; every later risk closes "on the same proposed basis".
+export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {}): string {
   const rows = asArray(report.risk_register);
+  const who = rescorer(intake);
   const blocks: string[] = [];
+  let caveatSpent = false;
   for (const r of rows) {
     const label = noStop(s(r.risk_label));
     if (!label) continue;
-    const bits: string[] = [];
     const likelihood = s(r.likelihood);
     const severity = s(r.severity);
     const inherent = s(r.inherent_band);
     const residual = s(r.residual_band);
-    const head = [
-      `${label}.`,
-      likelihood && severity ? `On the safeguards the company has recorded, this assessment places likelihood at ${likelihood}; severity is rated ${severity} under this assessment's pre-set risk taxonomy.` : "",
-      inherent ? `Inherent band: ${inherent}.` : "",
-    ].filter(Boolean).join(" ");
-    bits.push(head);
-    const measures = arr(r.measures);
-    if (measures.length) {
-      bits.push(`The measure that answers it: ${asProse(measures.map(noStop))}.`);
-    } else {
-      bits.push("The company has recorded no measure against this risk.");
-    }
-    if (residual) {
-      bits.push(
-        residual.toLowerCase() === "undetermined"
-          ? "Residual band: undetermined, because the measures applied are not on the record."
-          : `Residual band, proposed until the company re-scores it: ${residual}.`,
+    const measures = arr(r.measures).map(noStop);
+
+    // 1.5 — likelihood or severity absent: the band is not decomposed.
+    if (!(likelihood && severity)) {
+      blocks.push(
+        `${label} carries an inherent band of ${inherent || "undetermined"} on this assessment's pre-set taxonomy; likelihood and severity are not both recorded, so the band is not decomposed here.`,
       );
+      continue;
     }
 
-    blocks.push(bits.join(" "));
+    const head =
+      `${label} is assessed at ${likelihood} likelihood and ${severity} severity on this assessment's pre-set taxonomy, an inherent band of ${inherent || "undetermined"}.`;
+
+    // 1.4 — residual band undetermined.
+    if (!residual || residual.toLowerCase() === "undetermined") {
+      blocks.push(
+        `${head} ${
+          measures.length
+            ? `The company's recorded ${asProse(measures)} answer it, and the residual band is undetermined, because the company does not record the measures applied.`
+            : "The company records no measure against it, and the residual band is undetermined, because the company does not record the measures applied."
+        }`,
+      );
+      continue;
+    }
+
+    // 1.1 (first, carries the caveat) / 1.2 (subsequent) / 1.3 (no measure).
+    const tail = caveatSpent
+      ? `the residual band is ${residual} on the same proposed basis.`
+      : `the residual band — proposed until ${who} re-scores it against the measures as implemented — is ${residual}.`;
+    caveatSpent = true;
+    blocks.push(
+      measures.length
+        ? `${head} The company's recorded ${asProse(measures)} answer it, and ${tail}`
+        : `${head} The company records no measure against it, and ${tail}`,
+    );
   }
 
   const safeguards = values.safeguards;
-  const safeguardSentence = safeguards
-    ? `The safeguards the company has recorded: ${safeguards}.`
-    : "The company has not recorded any safeguards for this processing.";
-  blocks.push(safeguardSentence);
+  // 1.6 / 1.7 — safeguards closer.
+  blocks.push(
+    safeguards
+      ? `Across the processing as a whole the company records ${safeguards}.`
+      : "The company records no safeguards for this processing.",
+  );
 
   return repairRegister(blocks.filter(Boolean).join("\n\n"));
 }
@@ -758,7 +812,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
 
   const composedRaw: ComposedBlocks = {
     "executive_summary:0": composeExecutiveLead(report, org),
-    "executive_summary:2": composeExecutiveBody(report),
+    "executive_summary:2": composeExecutiveBody(report, intake),
 
     // PROMPT 8 (spine v4) — the v3 sections `lawfulness`,
     // `risks_and_measures` and `consultation_and_signoff` are retired; the same
@@ -767,7 +821,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     "section_3_necessity_proportionality:2": composeNecessityBody(report),
 
     "section_4_risk_management:2": composeRiskLead(report),
-    "section_4_risk_management:4": composeRiskBody(report, values),
+    "section_4_risk_management:4": composeRiskBody(report, values, intake),
 
     "section_6_conclusion:2": composeSignoffLead(report, intake),
     "section_6_conclusion:3": composeSignoffBody(report, intake, values),

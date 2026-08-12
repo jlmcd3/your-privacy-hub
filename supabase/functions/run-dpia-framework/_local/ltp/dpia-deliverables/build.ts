@@ -152,6 +152,31 @@ function matches(text: string, res: readonly RegExp[]): boolean {
   return res.some((re) => re.test(text));
 }
 
+/**
+ * PROMPT 8A item 5 — the SPAN the scan actually matched, never a
+ * re-derivation: the first matching lexicon hit plus a short surrounding
+ * window, trimmed to word boundaries.
+ */
+export function matchSpan(text: string, res: readonly RegExp[], window = 40): string {
+  for (const re of res) {
+    const m = re.exec(text);
+    if (!m) continue;
+    const start = Math.max(0, (m.index ?? 0) - window);
+    const end = Math.min(text.length, (m.index ?? 0) + m[0].length + window);
+    let span = text.slice(start, end);
+    if (start > 0) span = span.replace(/^\S*\s+/, "");
+    if (end < text.length) span = span.replace(/\s+\S*$/, "");
+    return span.trim().replace(/\s+/g, " ");
+  }
+  return "";
+}
+
+/** PROMPT 8A slot convention `{n:word}`: one–nine as words, digits from 10 up. */
+const N_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+export function nWord(n: number): string {
+  return n >= 0 && n <= 9 ? N_WORDS[n] : String(n);
+}
+
 // ---------------------------------------------------------------------
 // Operations — the unit each of deliverables 1 and 2 iterates over.
 // ---------------------------------------------------------------------
@@ -276,18 +301,18 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
         verdict = "undetermined_on_the_record";
         status = "record_insufficient";
         why =
-          `${alternatives.length} alternative(s) are recorded for this operation, but ${unexplained.length} carry no rejection reason, so the comparison between them and the chosen means is incomplete.`;
+          `${alternatives.length === 1 ? "One alternative is" : `${nWord(alternatives.length)} alternatives are`} recorded for this operation, but ${unexplained.length === 1 ? "one carries" : `${nWord(unexplained.length)} carry`} no rejection reason, so the comparison between them and the chosen means is incomplete.`;
         information_needed =
           `The reason each of the following alternatives was rejected: ${unexplained.map((x) => x.alternative).join("; ")}.`;
       } else if (usefulnessOnly.length > 0) {
         verdict = "less_intrusive_alternative_available";
         why =
-          `${usefulnessOnly.length} of the ${alternatives.length} recorded alternative(s) — ${usefulnessOnly.map((x) => x.alternative).join("; ")} — were rejected on usefulness or cost grounds rather than because they would fail to achieve the purpose. ` +
+          `${nWord(usefulnessOnly.length)} of the ${nWord(alternatives.length)} recorded ${alternatives.length === 1 ? "alternative" : "alternatives"} — ${usefulnessOnly.map((x) => x.alternative).join("; ")} — were rejected on usefulness or cost grounds rather than because they would fail to achieve the purpose. ` +
           `${useful.verbatim} On this record a realistic less intrusive alternative remains available, so the chosen means is not established as necessary for this purpose.`;
       } else {
         verdict = "least_intrusive_means_supported";
         why =
-          `The record identifies ${alternatives.length} alternative(s) — ${alternatives.map((x) => x.alternative).join("; ")} — and states for each why it would not achieve the recorded purpose ("${op.purpose_text}"). ` +
+          `The company has recorded ${alternatives.length === 1 ? "one alternative" : `${nWord(alternatives.length)} alternatives`} — ${alternatives.map((x) => x.alternative).join("; ")} — and states ${alternatives.length === 1 ? "why it" : "for each why it"} would not achieve the recorded purpose ("${op.purpose_text}"). ` +
           `Applying the stated test — ${test.verbatim} — no realistic less intrusive alternative is left standing on this record, and the chosen means is supported as necessary.`;
       }
     }
@@ -345,11 +370,11 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
       if (measures.length === 0) {
         verdict = "disproportionate_on_the_record";
         why =
-          `The record puts both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSide}" — but records no safeguard applied against that impact, so as the record stands the impact on the data subjects is not answered and the processing is not proportionate on these facts.`;
+          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSide}" — but records no safeguard applied against that impact, so as the record stands the impact on the data subjects is not answered and the processing is not proportionate on these facts.`;
       } else {
         verdict = "proportionate_on_the_record";
         why =
-          `The record puts both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSide}" — and records ${measures.length} safeguard(s) (${measures.join("; ")}) applied against that impact. On these facts the impact is answered and the processing is proportionate to the recorded purpose.`;
+          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSide}" — and records ${measures.length === 1 ? "one safeguard" : `${nWord(measures.length)} safeguards`} (${measures.join("; ")}) applied against that impact. On these facts the impact is answered and the processing is proportionate to the recorded purpose.`;
       }
     }
 
@@ -724,12 +749,13 @@ function checkNonLiBasis(
         };
     }
     case "Art. 6(1)(c)": {
-      const met = matches(instrumentScan, NAMED_INSTRUMENT_LEXICON);
+      const span = matchSpan(instrumentScan, NAMED_INSTRUMENT_LEXICON);
+      const met = span.length > 0;
       return met
         ? {
           met: true,
           finding:
-            "The record names the instrument the obligation arises under, so the obligation relied on can be identified rather than assumed.",
+            `The company identifies the instrument the obligation arises under — "${span}" — so the obligation relied on can be identified rather than assumed.`,
         }
         : {
           met: false,
@@ -759,12 +785,13 @@ function checkNonLiBasis(
         };
     }
     case "Art. 6(1)(e)": {
-      const met = matches(instrumentScan, NAMED_INSTRUMENT_LEXICON);
+      const span = matchSpan(instrumentScan, NAMED_INSTRUMENT_LEXICON);
+      const met = span.length > 0;
       return met
         ? {
           met: true,
           finding:
-            "The record names the instrument the task or official authority is laid down in, so the public-task footing can be identified rather than assumed.",
+            `The company identifies the instrument the task or official authority is laid down in — "${span}" — so the public-task footing can be identified rather than assumed.`,
         }
         : {
           met: false,
@@ -861,7 +888,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         categories,
       });
 
-      const opening = `The record relies on ${art6.label} for the recorded purpose ("${purpose}").` +
+      const opening = `The company relies on ${art6.label} for the recorded purpose ("${purpose}").` +
         (a.verbatim ? ` The basis reads: ${a.verbatim}` : "");
 
       return {
@@ -923,7 +950,7 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
     if (!balancing_test_met) unmet.push("balancing test");
 
     const head =
-      `The record relies on ${art6.label} for the recorded purpose ("${purpose}"). ` +
+      `The company relies on ${art6.label} for the recorded purpose ("${purpose}"). ` +
       `The basis reads: ${li.verbatim} ` +
       "It is made out only where all three of its parts hold on the record.";
     const justification = [head, purpose_test_why, necessity_test_why, balancing_test_why].join(" ");
@@ -1356,7 +1383,7 @@ export function buildSection2Coverage(
         return {
           item: d.item,
           condition_label: "",
-          justification: `The record identifies ${d.item.toLowerCase()} in scope but names no Art. 9(2) condition for it.`,
+          justification: `The company has recorded ${d.item.toLowerCase()} in scope but names no Art. 9(2) condition for it.`,
           citation: a9.citation,
           authority_verbatim: a9.verbatim,
           status: "record_insufficient" as const,
@@ -1365,8 +1392,8 @@ export function buildSection2Coverage(
         };
       }
       const justification = np
-        ? `The record relies on ${label} for ${d.item.toLowerCase()}. On the company's own account of necessity and proportionality, ${np}`
-        : `The record relies on ${label} for ${d.item.toLowerCase()}.`;
+        ? `The company relies on ${label} for ${d.item.toLowerCase()}. On the company's own account of necessity and proportionality, ${np}`
+        : `The company relies on ${label} for ${d.item.toLowerCase()}.`;
       return {
         item: d.item,
         condition_label: label,
@@ -1455,7 +1482,7 @@ export function buildSection2Coverage(
       processors: [],
       dpa_recorded: dpaRecorded,
       finding:
-        "The record names no third-party processor for this processing, so no Art. 28 processing contract is engaged by this assessment.",
+        "The company has recorded no third-party processor for this processing, so no Art. 28 processing contract is engaged by this assessment.",
       citation: a28.citation,
       authority_verbatim: a28.verbatim,
       status: "analysed",
@@ -1474,7 +1501,7 @@ export function buildSection2Coverage(
     : {
       processors: processorNames,
       dpa_recorded: false,
-      finding: `The record names ${processorNames.join(", ")} as processors but does not record a signed processing contract among the safeguards selected.`,
+      finding: `The company has recorded ${processorNames.join(", ")} as processors but does not record a signed processing contract among the safeguards selected.`,
       citation: a28.citation,
       authority_verbatim: a28.verbatim,
       status: "record_insufficient",
@@ -1832,7 +1859,7 @@ export function buildRiskCountNote(
     register_count,
     stated_count,
     note:
-      `This assessment's risk register carries ${register_count} risks. The company's own account of residual risk describes ${stated_count}; the register is the operative count for this assessment, and the company's account is recorded in its own words in the sign-off section.`,
+      `This assessment's risk register carries ${register_count} risks. The company's own account of residual risk describes ${stated_count}; the register is the operative count for this assessment and includes risks this assessment itself projects from the record alongside those the company names, and the company's account is recorded in its own words in the sign-off section.`,
   };
 }
 

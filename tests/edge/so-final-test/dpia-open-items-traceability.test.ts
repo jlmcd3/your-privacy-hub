@@ -54,11 +54,14 @@ Deno.test("dpia skeleton: every information_needed entry is visible in the docum
   }
 
   // The stated count matches the number of items actually rendered.
-  assert(/3 points are left unanswered/.test(text), text.slice(0, 800));
+  // PROMPT 8A item 3 (ratified 2026-08-12): the count sentence is number-worded
+  // and, at three or fewer items, the list is complete ("They are: …").
+  assert(/leave three points open/.test(text), text.slice(0, 800));
+  assert(/They are: /.test(text), text.slice(0, 800));
 });
 
 Deno.test("dpia skeleton: no count sentence when there are no open items", () => {
   const { document } = assembleDpiaSkeletonDocument(reportWith([]), INTAKE);
   const text = skeletonDocumentToText(document);
-  assertEquals(/points are left unanswered|point is left unanswered/.test(text), false);
+  assertEquals(/points open|point open/.test(text), false);
 });
