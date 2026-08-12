@@ -1485,46 +1485,132 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
 // Validate a generated batch; for each failing intake, attempt ONE single-item
 // regeneration. Drop persistent failures. Returns final accepted intakes plus
 // rejection metadata so the caller can enforce the >30% failure guard.
-async function generateValidatedIntakes(tool: string, count: number): Promise<{ intakes: any[]; rejected: { reason: string }[]; totalAttempted: number }> {
-  const { lintFixture } = await import("./_local/quality/fixture-lint.ts");
-  const initial = await generateIntakes(tool, count);
-  const accepted: any[] = [];
-  const rejected: { reason: string }[] = [];
+//
+// PROMPT 8G (2026-08-12) — CHUNK-SAFE INTAKE GENERATION. The previous shape
+// produced ALL scenarios inside ONE model call inside ONE isolate. For VERBOSE
+// tools (dpia's spec grew again at 8F) that single blocking await can run past
+// the 400s isolate hard-kill, and a single await has no interior deadline
+// checkpoint — so the guard never fires and the reaper later absorbs the run
+// (runs #178 and #180, 2026-08-12; the #62 class, reproducible). Generation is
+// now ONE SCENARIO PER MODEL CALL with the isolate deadline checked BETWEEN
+// calls; on deadline the caller persists the partial intake set and
+// self-reinvokes into a fresh isolate, resuming at the next scenario — exactly
+// the per-doc chunking pattern.
 
-  for (const item of initial) {
-    // QB-P20 item 3 — fixture lint (grader-collision screen). Applied
-    // BEFORE contract validation so blacklist/hedge/leak hits are
-    // rejected on first sight; on hit we regenerate once, then reject.
-    const linted = lintFixture(item);
-    let candidate = item;
-    if (linted) {
-      console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${linted.path} — regenerating once`);
-      try {
-        const retry = await generateIntakes(tool, 1);
-        const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
-        if (relint) { rejected.push({ reason: `lint: ${linted.reason}; retry: ${(relint as any).reason ?? "reject"}` }); continue; }
-        candidate = retry[0];
-      } catch (e) {
-        rejected.push({ reason: `lint regenerate failed — ${(e as Error).message}` });
-        continue;
-      }
-    }
-    const r = validateIntake(tool, candidate);
-    if (r.ok) { accepted.push(candidate); continue; }
-    console.warn(`[validateIntake] ${tool}: ${r.reason} — regenerating once`);
+// Screen ONE generated intake: fixture lint (grader-collision screen) applied
+// BEFORE contract validation, each with ONE single-item regeneration.
+async function screenIntake(
+  tool: string,
+  item: any,
+  lintFixture: (x: any) => { reason: string; path?: string } | null | undefined,
+  extraGuidance?: string,
+): Promise<{ ok: true; intake: any } | { ok: false; reason: string }> {
+  const linted = lintFixture(item);
+  let candidate = item;
+  if (linted) {
+    console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${(linted as any).path} — regenerating once`);
     try {
-      const retry = await generateIntakes(tool, 1);
-      const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
-      if (r2.ok) { accepted.push(retry[0]); continue; }
-      console.warn(`intake rejected (${tool}): ${r2.reason}`);
-      rejected.push({ reason: r2.reason ?? "unknown" });
+      const retry = await generateIntakes(tool, 1, extraGuidance);
+      const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
+      if (relint) return { ok: false, reason: `lint: ${linted.reason}; retry: ${(relint as any).reason ?? "reject"}` };
+      candidate = retry[0];
     } catch (e) {
-      console.warn(`intake rejected (${tool}): regenerate failed — ${(e as Error).message}`);
-      rejected.push({ reason: (e as Error).message });
+      return { ok: false, reason: `lint regenerate failed — ${(e as Error).message}` };
     }
   }
-  return { intakes: accepted, rejected, totalAttempted: initial.length };
+  const r = validateIntake(tool, candidate);
+  if (r.ok) return { ok: true, intake: candidate };
+  console.warn(`[validateIntake] ${tool}: ${r.reason} — regenerating once`);
+  try {
+    const retry = await generateIntakes(tool, 1, extraGuidance);
+    const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
+    if (r2.ok) return { ok: true, intake: retry[0] };
+    console.warn(`intake rejected (${tool}): ${r2.reason}`);
+    return { ok: false, reason: r2.reason ?? "unknown" };
+  } catch (e) {
+    console.warn(`intake rejected (${tool}): regenerate failed — ${(e as Error).message}`);
+    return { ok: false, reason: (e as Error).message };
+  }
 }
+
+export type IntakeGenProgress = {
+  accepted: any[];
+  rejected: { reason: string }[];
+  totalAttempted: number;
+};
+
+export function emptyIntakeGenProgress(): IntakeGenProgress {
+  return { accepted: [], rejected: [], totalAttempted: 0 };
+}
+
+// Company names already used, so each fresh single-scenario call can be told
+// what to avoid (rule (e) NAME VARIETY has no cross-call memory otherwise).
+export function usedNames(intakes: any[]): string[] {
+  const out: string[] = [];
+  for (const i of intakes) {
+    const n = i?.organization_name ?? i?.organisation_name ?? i?.company_name ?? i?.subscriberName;
+    if (typeof n === "string" && n.trim()) out.push(n.trim());
+  }
+  return out;
+}
+
+// Chunk-safe, resumable intake generation. Generates ONE scenario per model
+// call, checking `deadlineAt` BETWEEN calls. Returns "deadline" with the
+// partial progress when the isolate budget is exhausted — the caller persists
+// it and self-reinvokes.
+async function generateValidatedIntakesChunked(
+  tool: string,
+  count: number,
+  prior: IntakeGenProgress,
+  ctx: {
+    deadlineAt: number;
+    onScenario?: (done: number, total: number, secs: number, ok: boolean) => Promise<void>;
+  },
+): Promise<{ progress: IntakeGenProgress; status: "complete" | "deadline" }> {
+  const { lintFixture } = await import("./_local/quality/fixture-lint.ts");
+  const progress: IntakeGenProgress = {
+    accepted: [...(prior.accepted ?? [])],
+    rejected: [...(prior.rejected ?? [])],
+    totalAttempted: prior.totalAttempted ?? 0,
+  };
+
+  while (progress.totalAttempted < count) {
+    // Interior deadline checkpoint — BETWEEN calls, never inside one await.
+    if (Date.now() >= ctx.deadlineAt) {
+      return { progress, status: "deadline" };
+    }
+    const t0 = Date.now();
+    const avoid = usedNames(progress.accepted);
+    const extraGuidance = avoid.length
+      ? `NAME VARIETY: do NOT reuse or vary these already-used company names: ${avoid.slice(-12).join(", ")}. Pick an entirely different company name and sector posture.`
+      : undefined;
+
+    let batch: any[];
+    try {
+      batch = await generateIntakes(tool, 1, extraGuidance);
+    } catch (e) {
+      progress.totalAttempted += 1;
+      progress.rejected.push({ reason: `generation failed — ${(e as Error).message}` });
+      await ctx.onScenario?.(progress.totalAttempted, count, (Date.now() - t0) / 1000, false);
+      continue;
+    }
+
+    const item = batch[0];
+    progress.totalAttempted += 1;
+    if (!item) {
+      progress.rejected.push({ reason: "generator returned no item" });
+      await ctx.onScenario?.(progress.totalAttempted, count, (Date.now() - t0) / 1000, false);
+      continue;
+    }
+    const screened = await screenIntake(tool, item, lintFixture as any, extraGuidance);
+    if (screened.ok) progress.accepted.push(screened.intake);
+    else progress.rejected.push({ reason: screened.reason });
+    await ctx.onScenario?.(progress.totalAttempted, count, (Date.now() - t0) / 1000, screened.ok);
+  }
+
+  return { progress, status: "complete" };
+}
+
 
 // r1b1.4 POLL-RESUME: dispatch-only step. Insert the generator row and fire
 // its edge function; return the source table/row id. Caller then polls the
