@@ -1867,7 +1867,7 @@ export function buildSection2Coverage(
         : mech.tiaRequired
         ? "chapter_v_mechanism_required" as const
         : "adequacy" as const;
-      const importer = str(f.importer ?? f.importerEntity);
+      const importer = r.importer;
       const who = importer ? `${importer} in ${dest || "the destination stated"}` : (dest || "the destination stated");
       const finding = intra
         // INTRA-EEA PROCESSING RULE, encoded: never "transfer", never a Chapter V ask.
