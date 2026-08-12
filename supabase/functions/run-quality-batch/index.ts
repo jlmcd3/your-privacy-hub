@@ -120,7 +120,14 @@ QB-P22 item 3 — Each tools[] entry names exactly ONE product — never slash-a
 QB-P6 — narrative fields must name tools, owners, and dates.
 8F/8H — populate the sign-off block (dpia_prepared_by, dpia_approved_by_name, dpia_approved_by_title, dpia_approval_date, dpia_signoff_basis) on MOST scenarios; leave it blank on a minority to exercise the no-approver branch. Give roughly half the scenarios intra-EEA/intra-UK-only transfer flows and the other half at least one genuine third-country destination outside the origin regime, so the third-country risk trigger is exercised both ways. residual_risks is the company's own residual-risk account in its own words and may cite article numbers.
 8K — PERFECT-VARIANT CARVE-OUT (CEO-parked policy, 2026-08-12): a perfect scenario must NEVER combine legal_basis_proposed "Legitimate interests" with special-category data_categories (health, biometric, genetic, racial/ethnic origin, political opinions, religious beliefs, trade-union membership, sex life/sexual orientation, criminal convictions). The current balancing rule guarantees a gap on that combination and the design question sits with the CEO; such a scenario is rejected by the closed-loop lint.
-8K — CLOSED-LOOP PERFECT: on the perfect variant an intake is accepted only if the product's own deliverables builder finds nothing missing — empty gap ledger, no record_insufficient finding, no undetermined remaining-risk band, and a complete sign-off block (approver name, title, date, basis).`,
+8K — CLOSED-LOOP PERFECT: on the perfect variant an intake is accepted only if the product's own deliverables builder finds nothing missing — empty gap ledger, no record_insufficient finding, no undetermined remaining-risk band, and a complete sign-off block (approver name, title, date, basis).
+9C — PERFECT VARIANT, SECONDARY-OPERATION RULES (mechanical; the lint enforces them exactly as written). Exactly one of these two must hold:
+RULE A — secondary_uses is a clean negation: one of "None", "No secondary uses", "Not applicable" and nothing else.
+RULE B — secondary_uses names a secondary use, AND the intake supplies ALL THREE of:
+  (b1) an entry in alternatives_considered whose processing_operation is BYTE-EQUAL to "<processing_activity_name> — secondary use" (em dash U+2014, single spaces), with a non-empty rejection_reason;
+  (b2) an Art. 6(1) legal-basis statement for that secondary operation, naming the sub-paragraph, stated separately from the primary operation's basis;
+  (b3) an impact statement for that secondary operation describing the effect ON DATA SUBJECTS, textually distinct from any benefit statement (a benefit restated is a violation).
+9C — TRANSFER FLOWS on the perfect variant: every transfer_flows item is an object with non-empty destination_country, recipient, and transfer_mechanism; a certification claim uses dpf_certified / uk_extension_certified booleans.`,
   "lia": `Vary sectors (Healthcare, FinTech, Logistics, Retail, AdTech, HR) and posture — some well-balanced, some weak safeguards, some questionable necessity.
 QB-P6 — the three JSONB narrative blocks must name tools, owners, and dates.`,
   "dpa-generator": `Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU and some cross-border transfers. GRADER-1 T5: when the intake facts imply a Controller-to-Processor SCC arrangement (2021 EU SCCs, Commission Implementing Decision (EU) 2021/914), any free-text narrative in \`services\` or \`subProcessorList\` that references SCC modules MUST use "Module Two (Controller-to-Processor)" — NEVER "Modules 1 and 2" (Module 1 is Controller-to-Controller and is internally contradictory with a controller-to-processor arrangement). Module Three applies to Processor-to-(Sub-)Processor onward transfers; Module Four applies to Processor-to-Controller reverse flows. Do not conflate module numbers. FF-DPA nd4 — UK/EU ADEQUACY FACT (verified as of July 2026): The EU→UK adequacy decision (renewed 19 December 2025, valid to 27 December 2031) IS in force; the UK→EEA position is UK adequacy regulations under s.17A DPA 2018. Fixture intake narratives, services descriptions, and any free-text notes MUST NOT assert "post-Brexit adequacy does not apply", "no adequacy decision is in place between the EU and the UK", or characterise a UK-to-EEA transfer as requiring the UK IDTA. Cross-border EU↔UK fixtures should either omit adequacy commentary from the narrative or state the transfer is covered by the applicable adequacy instrument.
@@ -1484,27 +1491,34 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
 
 // Screen ONE generated intake: fixture lint (grader-collision screen) applied
 // BEFORE contract validation, each with ONE single-item regeneration.
-async function screenIntake(
+export async function screenIntake(
   tool: string,
   item: any,
   lintFixture: (x: any) => { reason: string; path?: string; deficiencies?: any[] } | null | undefined,
   extraGuidance?: string,
+  /** Test seam — production leaves this undefined. */
+  _generate?: (tool: string, n: number, extraGuidance?: string) => Promise<any[]>,
 ): Promise<{ ok: true; intake: any } | { ok: false; reason: string }> {
+  const generateIntakes_ = _generate ?? generateIntakes;
   const linted = lintFixture(item);
   let candidate = item;
   if (linted) {
-    console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${(linted as any).path} — regenerating once`);
+    console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${(linted as any).path} — repairing once`);
     try {
       // PROMPT 8K — FEEDBACK LOOP: when the closed-loop perfect lint rejects,
       // the SPECIFIC deficiency list is fed to the generator as retry guidance
       // (retry cap unchanged: ONE single-item regeneration).
+      // PROMPT 9C item 3 — RETRY BECOMES REPAIR: the rejected intake is handed
+      // back verbatim so the model ADDS the missing facts instead of inventing
+      // a fresh scenario that fails on a different axis.
       let retryGuidance = extraGuidance;
       if (Array.isArray((linted as any).deficiencies) && (linted as any).deficiencies.length) {
         const { perfectRetryGuidance } = await import("./_local/quality/perfect-closed-loop.ts");
         const fb = perfectRetryGuidance((linted as any).deficiencies);
         retryGuidance = retryGuidance ? `${retryGuidance}\n\n${fb}` : fb;
       }
-      const retry = await generateIntakes(tool, 1, retryGuidance);
+      retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
+      const retry = await generateIntakes_(tool, 1, retryGuidance);
       const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
       if (relint) return { ok: false, reason: `lint: ${linted.reason}; retry: ${(relint as any).reason ?? "reject"}` };
       candidate = retry[0];
@@ -1515,9 +1529,11 @@ async function screenIntake(
 
   const r = validateIntake(tool, candidate);
   if (r.ok) return { ok: true, intake: candidate };
-  console.warn(`[validateIntake] ${tool}: ${r.reason} — regenerating once`);
+  console.warn(`[validateIntake] ${tool}: ${r.reason} — repairing once`);
   try {
-    const retry = await generateIntakes(tool, 1, extraGuidance);
+    // PROMPT 9C item 3 — repair, not regenerate.
+    const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with the listed facts added; change nothing else. Every field not named above must come back byte-identical.\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
+    const retry = await generateIntakes_(tool, 1, repairGuidance);
     const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
     if (r2.ok) return { ok: true, intake: retry[0] };
     console.warn(`intake rejected (${tool}): ${r2.reason}`);
@@ -1559,7 +1575,7 @@ export async function generateValidatedIntakesChunked(
   prior: IntakeGenProgress,
   ctx: {
     deadlineAt: number;
-    onScenario?: (done: number, total: number, secs: number, ok: boolean) => Promise<void>;
+    onScenario?: (done: number, total: number, secs: number, ok: boolean, reason?: string) => Promise<void>;
     /** PROMPT 8K — closed-loop lint applies to variant=perfect only. */
     variant?: "perfect" | "messy" | null;
     // Test seams — production leaves these undefined.
@@ -1618,7 +1634,13 @@ export async function generateValidatedIntakesChunked(
 
     if (screened.ok) progress.accepted.push(screened.intake);
     else progress.rejected.push({ reason: screened.reason });
-    await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok);
+    await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok, screened.ok ? undefined : screened.reason);
+    // PROMPT 9C item 4 — FAIL FAST on the perfect variant. One scenario that
+    // exhausts its single retry is enough evidence; do not spend another two
+    // model calls rediscovering the same deficiency list.
+    if (!screened.ok && ctx.variant === "perfect") {
+      return { progress, status: "complete" };
+    }
   }
 
   return { progress, status: "complete" };
@@ -2368,8 +2390,8 @@ async function runBatchInner(runId: string): Promise<void> {
             deadlineAt: Date.now() + INTAKE_ISOLATE_BUDGET_MS,
             // PROMPT 8K — closed-loop lint for the perfect variant.
             variant: fixtureVariant,
-            onScenario: async (done, total, secs, ok) => {
-              await log(ok ? "info" : "warn", `Scenario ${done}/${total} generated (${secs.toFixed(1)}s)${ok ? "" : " — rejected"}`);
+            onScenario: async (done, total, secs, ok, reason) => {
+              await log(ok ? "info" : "warn", `Scenario ${done}/${total} generated (${secs.toFixed(1)}s)${ok ? "" : ` — rejected: ${reason ?? "unknown"}`}`);
             },
           },
 
@@ -2388,7 +2410,8 @@ async function runBatchInner(runId: string): Promise<void> {
         }
         const failRate = gen.totalAttempted > 0 ? gen.rejected.length / gen.totalAttempted : 0;
         if (failRate > 0.3) {
-          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation; aborting fix-generation.)`;
+          // PROMPT 9C item 4 — the persisted error carries the deficiency list.
+          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation${fixtureVariant === "perfect" ? ", aborted after the first scenario exhausted its repair retry" : ""}; aborting fix-generation.) Deficiencies: ${gen.rejected.slice(0, 3).map((r) => r.reason).join(" | ")}`;
           await log("error", intakeWarning);
           await upd({
             status: "error",
