@@ -507,7 +507,9 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
 
   return buildOperations(intake).map((op) => {
     const benefitSide = op.purpose_text || (matches(combined, BENEFIT_LEXICON) ? combined : "");
-    const impactSide = matches(combined, IMPACT_LEXICON) ? combined : "";
+    // PROMPT 8J item 3 — widened impact evidence (fallback only; the existing
+    // narrative + minimisation reading is byte-preserved where it matches).
+    const impactSide = matches(combined, IMPACT_LEXICON) ? combined : impactEvidence(intake);
     const argued_both_directions = benefitSide.length > 0 && impactSide.length > 0;
 
     let verdict: ProportionalityFinding["verdict"];
