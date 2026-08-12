@@ -1491,7 +1491,7 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
 
 // Screen ONE generated intake: fixture lint (grader-collision screen) applied
 // BEFORE contract validation, each with ONE single-item regeneration.
-async function screenIntake(
+export async function screenIntake(
   tool: string,
   item: any,
   lintFixture: (x: any) => { reason: string; path?: string; deficiencies?: any[] } | null | undefined,
