@@ -1577,7 +1577,11 @@ export async function generateValidatedIntakesChunked(
 ): Promise<{ progress: IntakeGenProgress; status: "complete" | "deadline" }> {
   const now = ctx._now ?? (() => Date.now());
   const genOne = ctx._generate ?? generateIntakes;
-  const { lintFixture } = ctx._screen ? { lintFixture: (() => null) as any } : await import("./_local/quality/fixture-lint.ts");
+  // PROMPT 8H item 1(b) — tool-aware screen (generic collision lint + per-tool
+  // structured-shape enforcement).
+  const { lintFixtureForTool } = ctx._screen
+    ? { lintFixtureForTool: (() => null) as any }
+    : await import("./_local/quality/fixture-lint.ts");
   const progress: IntakeGenProgress = {
     accepted: [...(prior.accepted ?? [])],
     rejected: [...(prior.rejected ?? [])],
