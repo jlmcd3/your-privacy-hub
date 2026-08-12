@@ -13,19 +13,21 @@
 
 import type { LlmFinding } from "./post-filters.ts";
 
-export const SKELETON_CAL_VERSION = "gc-2026-08-12-skeleton-cal-1";
+export const SKELETON_CAL_VERSION = "gc-2026-08-12-skeleton-cal-2";
 
 export type SkeletonCalRuleId =
   | "cal_skeleton_1"
   | "cal_skeleton_2"
   | "cal_skeleton_3"
-  | "cal_skeleton_4";
+  | "cal_skeleton_4"
+  | "cal_skeleton_5";
 
 export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_1",
   "cal_skeleton_2",
   "cal_skeleton_3",
   "cal_skeleton_4",
+  "cal_skeleton_5",
 ];
 
 /**
