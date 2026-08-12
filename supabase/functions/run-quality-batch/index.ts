@@ -2378,8 +2378,8 @@ async function runBatchInner(runId: string): Promise<void> {
             deadlineAt: Date.now() + INTAKE_ISOLATE_BUDGET_MS,
             // PROMPT 8K — closed-loop lint for the perfect variant.
             variant: fixtureVariant,
-            onScenario: async (done, total, secs, ok) => {
-              await log(ok ? "info" : "warn", `Scenario ${done}/${total} generated (${secs.toFixed(1)}s)${ok ? "" : " — rejected"}`);
+            onScenario: async (done, total, secs, ok, reason) => {
+              await log(ok ? "info" : "warn", `Scenario ${done}/${total} generated (${secs.toFixed(1)}s)${ok ? "" : ` — rejected: ${reason ?? "unknown"}`}`);
             },
           },
 
