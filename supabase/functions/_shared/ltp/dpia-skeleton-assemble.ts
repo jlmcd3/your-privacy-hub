@@ -462,22 +462,38 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   // documents generated before the ledger existed.
   const ledger = asArray(report.gap_ledger);
   const gapSource = Array.isArray(report.gap_ledger) ? ledger : asArray(report.information_needed);
-  const openItems = mergeOpenGapItems(
+  const merged = mergeOpenGapItems(
     gapSource.map((e) => ({
       what: noStop(s(e.dimensions) || s(e.field)),
       enables: noStop(s(e.enables)),
     })),
-  ).map(({ what, enables }) =>
+  );
+  // PROMPT 8A item 3 (CEO revision 2026-08-12) — DETERMINISTIC ORDERING RULE
+  // for the open points named in the executive body: decision blockers first
+  // (entries that complete a determination, i.e. carry a non-empty `enables`),
+  // then every remaining entry in gap-ledger order. The sort is stable, so
+  // ordering inside each group is the ledger's own order. The rule is stated
+  // here and asserted by test; it NEVER appears in customer prose.
+  const ordered = merged
+    .map((e, i) => ({ ...e, i }))
+    .sort((a, b) => (a.enables.length > 0 ? 0 : 1) - (b.enables.length > 0 ? 0 : 1) || a.i - b.i);
+  const openItems = ordered.map(({ what, enables }) =>
     enables.length > 0
       ? `${what} — which completes ${enables.map((x) => lowerEnumLabel(x)).join(" and ")}`
       : what
   );
   const open = openItems.length;
-  if (open > 0) {
+  if (open === 1) {
     sentences.push(
-      `${open === 1 ? "One point is" : `${open} points are`} left unanswered by the company's answers, and each is named here and where it bears on the determination rather than assumed: ${openItems
-        .map((t, i) => `(${i + 1}) ${t}`)
-        .join("; ")}.`,
+      `The company's answers leave one point open; it is listed in the gap table and raised again where it bears on a determination. It is: ${openItems[0]}.`,
+    );
+  } else if (open > 1) {
+    const lead =
+      `The company's answers leave ${numberWord(open)} points open; each is listed in the gap table and raised again where it bears on a determination.`;
+    sentences.push(
+      open <= 3
+        ? `${lead} They are: ${openItems.join("; ")}.`
+        : `${lead} The first three are: ${openItems.slice(0, 3).join("; ")}.`,
     );
   }
 
