@@ -61,7 +61,7 @@ Deno.test("spine v4.1 — the superseded v4 hash is retained for the audit trail
 Deno.test("spine v4.1 — the slot inventory is identical to v4", () => {
   const slots = DPIA_SKELETON_SECTIONS
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text))
-    .flatMap((t) => [...t.matchAll(/\{([A-Za-z_]+)/g)].map((m) => m[1]))
+    .flatMap((t) => [...t.matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)/g)].map((m) => m[1]))
     .sort();
   assertEquals(slots, [
     "ART36_SENTENCE",
