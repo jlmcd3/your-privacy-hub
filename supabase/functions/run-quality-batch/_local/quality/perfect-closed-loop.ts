@@ -25,7 +25,7 @@
 // data_categories — the current balancing rule guarantees a gap on that
 // combination and the design question sits with the CEO.
 
-import { buildDpiaDeliverables } from "../../../run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
+import { buildDpiaDeliverables } from "../../../_shared/ltp/dpia-deliverables/build.ts";
 
 export const PERFECT_CLOSED_LOOP_VERSION = "perfect-closed-loop@prompt8k-2026-08-12";
 
