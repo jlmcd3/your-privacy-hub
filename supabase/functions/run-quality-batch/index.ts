@@ -1496,7 +1496,10 @@ export async function screenIntake(
   item: any,
   lintFixture: (x: any) => { reason: string; path?: string; deficiencies?: any[] } | null | undefined,
   extraGuidance?: string,
+  /** Test seam — production leaves this undefined. */
+  _generate?: (tool: string, n: number, extraGuidance?: string) => Promise<any[]>,
 ): Promise<{ ok: true; intake: any } | { ok: false; reason: string }> {
+  const generateIntakes_ = _generate ?? generateIntakes;
   const linted = lintFixture(item);
   let candidate = item;
   if (linted) {
