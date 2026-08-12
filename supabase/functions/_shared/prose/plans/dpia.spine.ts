@@ -1,12 +1,18 @@
-// ITEM SO-5 / PROMPT 8 — SPECIFIED OUTPUT ENCODE: Impact Assessment Builder
-// (DPIA). SPINE v4 — EDPB harmonised DPIA template structure, Sections 0–6.
+// ITEM SO-5 / PROMPT 8B — SPECIFIED OUTPUT ENCODE: Impact Assessment Builder
+// (DPIA). SPINE v4.1 — EDPB harmonised DPIA template structure, Sections 0–6,
+// with the CEO-ratified prose revision of 2026-08-12.
 //
 // RENDER LAW. v3 (the CEO-corrected `Impact_Assessment_Builder_DPIA_Skeleton_
-// v3.docx` of 2026-08-10) is superseded from 2026-08-11 by the v4 text below,
-// ratified by the CEO on that date against the proposal package
-// `docs/reviews/PROMPT8-DPIA-SPINE-V4-RATIFICATION-2026-08-11.md`. Under the
-// CEO directive of 2026-08-11 every sentence — carried or new — was put through
-// a fresh approval pass; the approved bytes are what appears here.
+// v3.docx` of 2026-08-10) was superseded on 2026-08-11 by spine v4; v4's fixed
+// prose is in turn superseded from 2026-08-12 by the v4.1 bytes below, which
+// the CEO reviewed and ratified in full. Structure — sections, block order,
+// block kinds and slot inventory — is UNCHANGED from v4; only fixed-prose
+// wording moved.
+//
+// RATIFICATION PROCESS RULE (standing, CEO, 2026-08-12, all products): the
+// review document put to the CEO for any spine change is generated from the
+// SHIPPED spine bytes, never from a stored .docx.
+
 //
 // Nothing here may be reworded, re-punctuated or "improved" by code, by
 // refinement, or by an agent: fixed prose is a protected leaf (splice-barred)
