@@ -901,7 +901,8 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
         operation_id: op.operation_id,
         purpose,
         article_6_basis: art6.label,
-        justification: [opening, check.finding, BASIS_CLOSER].filter(Boolean).join(" "),
+        justification: [opening, check.finding, BASIS_CLOSER].filter(Boolean).join(" ") +
+          (art9Selected ? ART9_CROSS_REFERENCE : ""),
         verdict: check.met
           ? ("basis_supported_on_the_record" as const)
           : ("undetermined_on_the_record" as const),
