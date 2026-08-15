@@ -3007,6 +3007,17 @@ async function runStitch(dpia_id: string): Promise<void> {
       const { fetchDpiaCorpus, dpiaCorpusProvisionsForExhibit } = await import("./_local/ltp/dpia-corpus.ts"
       );
       const cited = new Set<string>();
+      // PROMPT 9H item 3 (CEO-ruled 2026-08-15) — the table lists the
+      // authorities THIS assessment relies on. Precedent and horizon surfaces
+      // quote other regulators' decisions and candidate provisions in their
+      // own (EU / descriptive) form; harvesting them produced un-prefixed and
+      // orphan entries in UK records. They are not authorities of this record.
+      const NON_AUTHORITY_SURFACES = new Set([
+        "enforcement_precedents",
+        "engagement_map",
+        "horizon_intelligence",
+        "authority_exhibit",
+      ]);
       const walkCites = (v: unknown): void => {
         if (typeof v === "string") {
           for (const m of v.matchAll(/(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+(?:\([a-z0-9]+\))*/gi)) {
@@ -3018,6 +3029,7 @@ async function runStitch(dpia_id: string): Promise<void> {
         if (v && typeof v === "object") {
           for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
             if (k === "_meta" || k === "_staging") continue;
+            if (NON_AUTHORITY_SURFACES.has(k)) continue;
             walkCites(x);
           }
         }
