@@ -36,6 +36,8 @@ import {
   type SlotValues,
 } from "../prose/skeleton-render.ts";
 import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
+// PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
+import { readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
@@ -962,22 +964,29 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     Object.entries(composedRaw).map(([k, v]) => [k, typeof v === "string" ? repairDpiaPlaceholders(v) : v]),
   ) as ComposedBlocks;
 
+  // PROMPT 9H item 3 — the PDF header names the regime the record is under.
+  // Spine constant untouched; the prefix is substituted at render time.
+  const regime = readDpiaRegime(intake);
+  const subtitle = regime === "UK"
+    ? DPIA_SKELETON_SUBTITLE.replace("Article 35 GDPR", "Article 35 UK GDPR")
+    : DPIA_SKELETON_SUBTITLE;
+
   const draft = renderSkeletonDocument({
     sections: DPIA_SKELETON_SECTIONS,
     title: DPIA_SKELETON_TITLE,
-    subtitle: DPIA_SKELETON_SUBTITLE,
+    subtitle,
     spineVersion: DPIA_SKELETON_VERSION,
     values,
     composed,
     tables,
   });
 
-  const toa = dpiaToa(report, skeletonDocumentToText(draft));
+  const toa = dpiaToa(report, skeletonDocumentToText(draft), regime);
 
   const document = renderSkeletonDocument({
     sections: DPIA_SKELETON_SECTIONS,
     title: DPIA_SKELETON_TITLE,
-    subtitle: DPIA_SKELETON_SUBTITLE,
+    subtitle,
     spineVersion: DPIA_SKELETON_VERSION,
     values,
     composed: { ...composed, "table_of_authorities:0": toa },
