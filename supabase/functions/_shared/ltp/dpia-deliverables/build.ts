@@ -875,10 +875,24 @@ const CHAPTER_V_TRA =
   // Anna Whitfield at Pinsent Masons on 2024-11-10 (ref PM/VIG/2024/TRA-01)"
   // (run 187, flow 1 retry)
   /\b(tra|transfer risk assessment|transfer impact assessment|tia)\b/i;
-const CHAPTER_V_TRA_DONE =
-  // "was completed ... (ref PM/VIG/2024/TRA-01)"; "TRA ref PM/VIG/2024/TRA-01
-  // on file." (run 187, flow 1 retry notes)
-  /\b(completed|complete|on file|ref\.?|reference)\b/i;
+// PROMPT 9G (4b) — TRA-EVIDENCE TIGHTENING. Completion is evidenced either by
+// an explicit completion word, or by a reference that actually carries an
+// identifier containing a digit. A bare "ref"/"reference" with no identifier
+// (or a placeholder — see the TBD/TBA/"to follow" blockers above) is NOT
+// completion evidence.
+const CHAPTER_V_TRA_COMPLETE =
+  // "was completed by Anna Whitfield ... on 2024-11-10"; "on file."
+  // (run 187, flow 1 retry)
+  /\b(completed|complete|on file)\b/i;
+const CHAPTER_V_TRA_REF_ID =
+  // "(ref PM/VIG/2024/TRA-01)" (run 187, flow 1 retry) — the identifier must
+  // contain a digit. "TRA ref TBD" (CEO verification probe) does not match.
+  /\bref(?:erence|\.)?\s*[:#]?\s*[A-Za-z0-9][A-Za-z0-9/_.\-]*\d[A-Za-z0-9/_.\-]*/i;
+function chapterVTraEvidenced(sentence: string): boolean {
+  if (!CHAPTER_V_TRA.test(sentence)) return false;
+  return CHAPTER_V_TRA_COMPLETE.test(sentence) || CHAPTER_V_TRA_REF_ID.test(sentence);
+}
+
 
 /** Bounded verbatim: the crediting sentence, capped on a word boundary. */
 const CHAPTER_V_VERBATIM_MAX = 300;
