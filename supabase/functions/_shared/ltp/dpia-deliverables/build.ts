@@ -1451,7 +1451,16 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
 
   return buildOperations(intake).map((op) => {
     const purpose = op.purpose_text;
-    const art6 = readArt6(basisText);
+    // PROMPT 9H item 1 (CEO-ruled 2026-08-15) — PER-OPERATION BASIS READER.
+    // A record may state one basis at record level and a DIFFERENT basis in
+    // the secondary operation's own text ("...on the basis of consent").
+    // The secondary operation resolves its basis from its OWN text first and
+    // falls back to the record-level field only where its text names none.
+    // The primary operation is unchanged: record-level field only.
+    const opBasisText = op.operation_id === "op_secondary" && readArt6(op.purpose_text)
+      ? op.purpose_text
+      : basisText;
+    const art6 = readArt6(opBasisText);
 
     // ── No basis recorded, or no purpose to attach it to ──────────────
     if (!art6) {
