@@ -226,7 +226,7 @@ export const IMPACT_LEXICON: readonly RegExp[] = [
 
   // Run 887a91d2: "approximately 18,000 automated credit decisions per month"
   // — decision volume borne by the data subjects.
-  /\b[\d][\d,.]*\s*(automated\s+)?(decisions?|scores?|assessments?|profiles?)\s+per\s+(day|week|month|quarter|year)\b/i,
+  /\b[\d][\d,.]*\s*(automated\s+)?(\w+[- ])?(decisions?|scores?|assessments?|profiles?)\s+per\s+(day|week|month|quarter|year)\b/i,
 
   // Run 887a91d2: "approximately 340,000 active data subjects, of whom roughly
   // 18,000 receive a new automated decision per month" — affected population.
