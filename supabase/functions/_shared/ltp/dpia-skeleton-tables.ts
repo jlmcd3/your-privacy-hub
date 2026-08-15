@@ -60,6 +60,7 @@ export const DPIA_TABLE_LABELS: Record<string, string> = {
   undetermined_on_the_record: "Undetermined based on the information the company provided",
   no_transfer_on_the_record: "No cross-border transfer is on the record",
   intra_eea_processing: "Processing remains within the EEA",
+  uk_domestic_processing: "Processing remains within the United Kingdom",
   adequacy: "Adequacy decision relied on",
   chapter_v_mechanism_required: "A Chapter V transfer mechanism is required",
   approved: "Approved",

@@ -206,31 +206,46 @@ export const IMPACT_LEXICON: readonly RegExp[] = [
   // review" (doc dfe21899, data_subjects_views).
   /\b(unaware|not (being )?informed|without (their )?knowledge|no (real[- ]time )?notice)\b/i,
 
-  // "without explicit disclosure at the point of data collection" (doc
-  // 1ad3fbb5, data_subjects_views).
-  /\bwithout\b[^.]{0,40}\b(explicit )?(disclosure|transparency|informing|consent|explanation)\b/i,
+  // "Enrichment of application data from external sources proceeds without
+  // explicit disclosure at the point of collection" (doc 1ad3fbb5).
+  // PROMPT 9E item 4 — tightened: the PROCESSING must occur without the
+  // disclosure/consent. A negated safeguard ("No data is shared with third
+  // parties without explicit consent being obtained first") is not impact.
+  /\b(proceeds?|occurs?|runs?|operates?|happens?|takes place|is (carried out|performed|conducted|done)|are (carried out|performed|conducted))\b[^.]{0,40}\bwithout\b[^.]{0,40}\b(explicit |prior |meaningful )?(disclosure|transparency|informing|consent|explanation|notice)\b/i,
 
   // "Participants expressed a preference for a clear opt-out mechanism from
   // automated scoring" / "a clear pathway to challenge it" (docs 1ad3fbb5,
-  // b435d8eb).
-  /\b(opt[- ]out|object(ion)?|challenge|contest|withdraw)\b[^.]{0,60}\b(mechanism|pathway|route|right|option|step)\b/i,
+  // b435d8eb). PROMPT 9E item 4 — tightened to absence/deficiency or demand
+  // form only; an available opt-out described positively is a safeguard.
+  /\b(no|without|absence of|lack(s|ing)? of|not (offered|provided|available)|do(es)? not (offer|provide|have))\b[^.]{0,60}\b(opt[- ]out|objection|challenge|contest|withdrawal)\b/i,
+  /\b(preference for|prefer\w*|request\w*|ask\w*|want\w*|sought|seek\w*|call\w+ for|demand\w*)\b[^.]{0,60}\b(opt[- ]out|object\w*|challenge|contest|withdraw\w*)\b/i,
 
   // "continuous GPS tracking at 10-second granularity is broader than strictly
-  // necessary" (doc dfe21899, necessity_proportionality) and run 887a91d2's
-  // "continuous transactional enrichment running 24/7".
-  /\b(surveillance|continuous (monitoring|tracking|enrichment)|location tracking|gps tracking|behavioural profiling|behavioral profiling|monitoring cadence)\b/i,
+  // necessary" (doc dfe21899) and run 887a91d2's "continuous transactional
+  // enrichment … with continuous monitoring of account behaviour".
+  // PROMPT 9E item 4 — tightened: monitoring counts only where INDIVIDUALS or
+  // their behaviour are monitored, never systems, access logs or infrastructure.
+  /\b(surveillance|location tracking|gps tracking|behavioural profiling|behavioral profiling)\b/i,
+  /\bcontinuous(ly)? (monitor\w*|track\w*|enrich\w*|profil\w*|scor\w*)\b[^.]{0,40}\b(data subjects?|individuals?|customers?|employees?|patients?|applicants?|users?|behaviour\w*|behavior\w*|location|movements?|activity|transactions?)\b/i,
 
   // "collected at 10-second GPS intervals exceeds actuarial necessity" /
   // "broader than strictly necessary" (doc dfe21899).
   /\b(exceeds?|broader than|more than)\b[^.]{0,40}\b(strictly )?(necessary|necessity)\b/i,
 
-  // Run 887a91d2: "approximately 18,000 automated credit decisions per month"
-  // — decision volume borne by the data subjects.
-  /\b[\d][\d,.]*\s*(automated\s+)?(\w+[- ])?(decisions?|scores?|assessments?|profiles?)\s+per\s+(day|week|month|quarter|year)\b/i,
+  // Run 887a91d2: "Approximately 18,000 automated credit decisions per month
+  // are issued against these customers" — decision volume BORNE by the data
+  // subjects. PROMPT 9E item 4 — tightened: throughput alone is not impact;
+  // the count must be of decisions the subjects receive or are subject to.
+  /\b[\d][\d,.]*\s*(automated\s+)?(\w+[- ])?(decisions?|scores?|assessments?|profiles?)\b[^.]{0,80}\b(issued (against|to|on)|received by|receive|borne by|imposed on|made about|applied to|(are|is) subject to|served on|against (these |those |the )?(customers?|applicants?|individuals?|data subjects?|employees?|patients?))\b/i,
 
   // Run 887a91d2: "approximately 340,000 active data subjects, of whom roughly
-  // 18,000 receive a new automated decision per month" — affected population.
-  /\b[\d][\d,.]*\s*(active\s+)?(data subjects?|individuals?|applicants?|employees?|patients?|customers?)\b[^.]{0,80}\b(affected|receive|subject to|monitored|scored|profiled|tracked)\b/i,
+  // 18,000 receive a new automated decision each cycle, are scored" — affected
+  // population. PROMPT 9E item 4 — tightened: a headcount of people who
+  // RECEIVE A BENEFIT is not impact; the population must be monitored, scored,
+  // profiled, tracked, affected, or receiving an automated decision.
+  /\b[\d][\d,.]*\s*(active\s+)?(data subjects?|individuals?|applicants?|employees?|patients?|customers?)\b[^.]{0,90}\b(are |is |been )?(affected|monitored|scored|profiled|tracked|surveilled)\b/i,
+  /\b[\d][\d,.]*\s*(active\s+)?(data subjects?|individuals?|applicants?|employees?|patients?|customers?)\b[^.]{0,90}\b(receives?|(are|is) subject to)\b[^.]{0,40}\b(automated|decisions?|scor\w*|profil\w*|assessments?|monitoring)\b/i,
+
 
   // Run 887a91d2 ask text: "what they lose, what they would not expect, and
   // what they cannot avoid" — records that answer it in those terms.
@@ -730,7 +745,7 @@ export function flowLeavesOriginRegime(
 const DPF_TEXT = /\b(eu[-\s]?u\.?s\.?\s+data\s+privacy\s+framework|data\s+privacy\s+framework|\bdpf\b)\b/i;
 const UK_EXT_TEXT = /\b(uk\s+extension|uk[-\s]?u\.?s\.?\s+data\s+bridge|data\s+bridge)\b/i;
 
-export function readTransferFlowAliases(f: Record<string, unknown>): {
+export function readTransferFlowAliases(f: Record<string, unknown>, recordRegime: DpiaRegime = "EU"): {
   dest: string;
   origin: "EU" | "UK";
   importer: string;
@@ -752,9 +767,18 @@ export function readTransferFlowAliases(f: Record<string, unknown>): {
   const ukExtensionCertified = ukFlag == null
     ? (DPF_TEXT.test(mechanismText) && UK_EXT_TEXT.test(mechanismText)) || UK_EXT_TEXT.test(mechanismText)
     : !!ukFlag;
+  // PROMPT 9E item 2 — RECORD-REGIME ORIGIN FALLBACK. Where the flow carries
+  // no originRegime, the origin is the RECORD's regime — exactly the
+  // flowLeavesOriginRegime (8E) semantics — not a hardcoded "EU".
+  const origin: "EU" | "UK" = originRaw === "UK"
+    ? "UK"
+    : originRaw === "EU"
+    ? "EU"
+    : (recordRegime === "UK" ? "UK" : "EU");
   return {
     dest,
-    origin: originRaw === "UK" ? "UK" : "EU",
+    origin,
+
     importer,
     dpfCertified,
     ukExtensionCertified,
@@ -1026,17 +1050,39 @@ const CONSENT_LEXICON: readonly RegExp[] = [
   /\bpreference cent(re|er)\b/i,
 ];
 
-/** Contracting-party language (6(1)(b)). */
+/**
+ * Contracting-party language (6(1)(b)).
+ *
+ * PROMPT 9E item 3 (CEO-ruled 2026-08-15) — PARTY-RELATIONSHIP WIDENING.
+ * Evidence: run ec65e54d's rejected intake read "Individual consumers
+ * (adults aged 18+) applying for Vanthorpe personal motor or home insurance
+ * products" — plainly the pre-contractual class Art. 6(1)(b) contemplates —
+ * but the lexicon matched noun forms only and missed "applying for". Only
+ * party-RELATIONSHIP language is added; non-party classes (people whose data
+ * is scraped from public sources, tracked website visitors) must still fail.
+ */
 const CONTRACT_PARTY_LEXICON: readonly RegExp[] = [
   /\bcustomers?\b/i,
   /\bclients?\b/i,
   /\bsubscribers?\b/i,
   /\bemployees?\b/i,
   /\bparty\b|\bparties\b/i,
-  /\baccount holders?\b/i,
-  /\bpolicyholders?\b/i,
+  /\baccount ?holders?\b/i,
+  /\bpolicy ?holders?\b/i,
   /\bapplicants?\b/i,
+  // "…applying for Vanthorpe personal motor or home insurance products"
+  // (run ec65e54d intake, data_subjects) — pre-contractual steps at the
+  // data subject's request.
+  /\bapply(ing|ies)? for\b|\bapplied for\b|\bapplications? for\b/i,
+  // "prospective policyholders", "prospective customers" — the same
+  // pre-contractual class named as a noun phrase.
+  /\bprospective (customers?|clients?|policy ?holders?|subscribers?|members?|tenants?)\b/i,
+  // Insurance / lending / tenancy counterparties.
+  /\bthe insured\b|\binsureds?\b/i,
+  /\bborrowers?\b/i,
+  /\bmembers\b/i,
 ];
+
 
 /** A NAMED legal instrument (6(1)(c) and 6(1)(e)). */
 const NAMED_INSTRUMENT_LEXICON: readonly RegExp[] = [
@@ -1976,7 +2022,7 @@ export function buildSection2Coverage(
     });
   } else {
     for (const f of flows as Record<string, unknown>[]) {
-      const r = readTransferFlowAliases(f);
+      const r = readTransferFlowAliases(f, regime);
       const dest = r.dest.toUpperCase();
       const origin: "EU" | "UK" = r.origin === "UK" ? "UK" : "EU";
       const flow: TransferFlow = {
@@ -1989,8 +2035,12 @@ export function buildSection2Coverage(
 
       const mech = transferMechanism(flow);
       const intra = mech.id === "EEA-internal";
+      // PROMPT 9E item 1 — UK-origin, UK-destination is domestic processing.
+      const domesticUk = mech.id === "UK-internal";
       const determination = intra
         ? "intra_eea_processing" as const
+        : domesticUk
+        ? "uk_domestic_processing" as const
         : mech.tiaRequired
         ? "chapter_v_mechanism_required" as const
         : "adequacy" as const;
@@ -1999,9 +2049,13 @@ export function buildSection2Coverage(
       const finding = intra
         // INTRA-EEA PROCESSING RULE, encoded: never "transfer", never a Chapter V ask.
         ? `The flow to ${who} stays within the EEA. This is intra-EEA processing, not a Chapter V transfer, and the Art. 28 processing contract is the instrument that governs it.`
+        : domesticUk
+        // CEO-ratified 9E sentence, mirroring the intra-EEA sentence.
+        ? `The flow to ${who} stays within the United Kingdom. This is domestic processing, not a Chapter V transfer, and the Art. 28 processing contract is the instrument that governs it.`
         : determination === "adequacy"
         ? `The flow to ${who} is covered by ${mech.mechanism}, so the data travels on that basis without a separate Chapter V instrument.`
         : `The flow to ${who} leaves the ${origin === "UK" ? "United Kingdom" : "EEA"} for a destination with no adequacy cover on the record, so ${mech.mechanism} is the mechanism this assessment expects.`;
+
       transfers.push({
         origin_regime: origin,
         destination: dest,

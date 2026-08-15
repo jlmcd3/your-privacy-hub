@@ -221,6 +221,9 @@ const EU_SCCS: TransferMechanism = { id: "EU-SCCs", mechanism: "Article 46 Stand
 const UK_US_BRIDGE: TransferMechanism = { id: "UK-US-Bridge", mechanism: "UK-US Data Bridge (UK Extension to the EU-US DPF)", citation: "UK Extension to the EU-US Data Privacy Framework, in force 12 Oct 2023", tiaRequired: false, notes: "No IDTA required while the US importer's UK Extension certification remains active.", verifyAgainst: "https://www.dataprivacyframework.gov/uk-extension", lastVerified: "2026-06-01" };
 const UK_IDTA: TransferMechanism = { id: "UK-IDTA", mechanism: "UK International Data Transfer Agreement (IDTA) or UK Addendum to EU SCCs + Transfer Risk Assessment (TRA)", citation: "ICO IDTA and Addendum, in force 21 Mar 2022", tiaRequired: true, verifyAgainst: "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/international-transfers/international-data-transfer-agreement-and-guidance/", lastVerified: "2026-06-01" };
 const INTERNAL: TransferMechanism = { id: "EEA-internal", mechanism: "No Chapter V transfer mechanism required (intra-EEA)", citation: "GDPR Art. 28 DPA only", tiaRequired: false, verifyAgainst: "—", lastVerified: "2026-06-01" };
+// PROMPT 9E item 1 (CEO-ruled 2026-08-15) — a UK-origin flow to a UK
+// destination is DOMESTIC processing, not a Chapter V transfer.
+const UK_INTERNAL: TransferMechanism = { id: "UK-internal", mechanism: "No Chapter V transfer mechanism required (UK domestic processing)", citation: "UK GDPR Art. 28 processing contract only", tiaRequired: false, verifyAgainst: "—", lastVerified: "2026-06-01" };
 
 export interface TransferFlow {
   originRegime: "EU" | "UK";
@@ -232,8 +235,21 @@ export interface TransferFlow {
 
 const EEA_CODES = new Set(["DE","IE","FR","ES","NL","IT","SE","DK","BE","AT","FI","LU","GR","PT","NO","PL","CZ","HU","RO","BG","HR","SI","SK","EE","LV","LT","MT","CY","IS","LI"]);
 
+/**
+ * PROMPT 9E item 1 — GB/UK country-code normalization. The perfect-intake
+ * rules mandate ISO destination codes, so records carry "GB"; ADEQUACY_EU
+ * keys the United Kingdom as "UK". Without canonicalisation ADEQUACY_EU["GB"]
+ * missed and an adequacy-covered destination fell through to SCCs + TRA.
+ * One internal key, applied in BOTH origin branches.
+ */
+const UK_CANONICAL = new Set(["GB", "UK", "GBR"]);
+export function canonicalDestinationCode(raw: string): string {
+  const c = String(raw || "").toUpperCase().trim();
+  return UK_CANONICAL.has(c) ? "UK" : c;
+}
+
 export function transferMechanism(flow: TransferFlow): TransferMechanism {
-  const dest = String(flow.destinationCountry || "").toUpperCase();
+  const dest = canonicalDestinationCode(String(flow.destinationCountry || ""));
   if (flow.originRegime === "EU") {
     if (EEA_CODES.has(dest)) return INTERNAL;
     if (dest === "US") return flow.importerDpfCertified ? EU_US_DPF : EU_SCCS;
@@ -242,13 +258,15 @@ export function transferMechanism(flow: TransferFlow): TransferMechanism {
     return EU_SCCS;
   }
   // UK origin
+  if (dest === "UK") return UK_INTERNAL;
   if (dest === "US") return flow.importerUkExtensionCertified ? UK_US_BRIDGE : UK_IDTA;
-  if (EEA_CODES.has(dest) || dest === "UK") {
+  if (EEA_CODES.has(dest)) {
     // UK has adequacy for EEA inbound; UK→EEA: ICO confirms transfers covered by UK adequacy regulations.
     return { id: "UK-EEA-adequacy", mechanism: "UK adequacy regulations (EEA + Gibraltar)", citation: "The Data Protection (Adequacy) (European Union) Regulations 2024", tiaRequired: false, verifyAgainst: "https://ico.org.uk/", lastVerified: "2026-06-01" };
   }
   return UK_IDTA;
 }
+
 
 // ── 1c. Special-category national hooks ──────────────────────────────────────
 export interface SpecialCategoryHook {
