@@ -2185,10 +2185,19 @@ export function buildSection2Coverage(
       const intra = mech.id === "EEA-internal";
       // PROMPT 9E item 1 — UK-origin, UK-destination is domestic processing.
       const domesticUk = mech.id === "UK-internal";
+      // PROMPT 9F item 1 — credit-first Art. 46 instrument recognition. The
+      // flow's OWN mechanism/notes text is the only source; the credit is
+      // available in both regimes and never on an intra-EEA / UK-domestic row.
+      const flowNotesText = [f.notes, f.note].map((x) => str(x)).join(" ").trim();
+      const credit = (intra || domesticUk)
+        ? { credited: false, instrumentLabel: "", verbatim: "" }
+        : readChapterVInstrumentCredit([r.mechanismText, flowNotesText].filter(Boolean).join(" "));
       const determination = intra
         ? "intra_eea_processing" as const
         : domesticUk
         ? "uk_domestic_processing" as const
+        : credit.credited
+        ? "instrument_recorded" as const
         : mech.tiaRequired
         ? "chapter_v_mechanism_required" as const
         : "adequacy" as const;
@@ -2200,9 +2209,13 @@ export function buildSection2Coverage(
         : domesticUk
         // CEO-ratified 9E sentence, mirroring the intra-EEA sentence.
         ? `The flow to ${who} stays within the United Kingdom. This is domestic processing, not a Chapter V transfer, and the Art. 28 processing contract is the instrument that governs it.`
+        : determination === "instrument_recorded"
+        // CEO-ratified 9F sentence, mirroring the Art. 28 credit row.
+        ? chapterVCreditFinding(who, credit.instrumentLabel, credit.verbatim)
         : determination === "adequacy"
         ? `The flow to ${who} is covered by ${mech.mechanism}, so the data travels on that basis without a separate Chapter V instrument.`
         : `The flow to ${who} leaves the ${origin === "UK" ? "United Kingdom" : "EEA"} for a destination with no adequacy cover on the record, so ${mech.mechanism} is the mechanism this assessment expects.`;
+
 
       transfers.push({
         origin_regime: origin,
