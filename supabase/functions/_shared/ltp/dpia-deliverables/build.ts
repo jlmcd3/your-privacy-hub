@@ -168,7 +168,7 @@ const NOT_STATED = "not stated on the record";
  * EVIDENCE widens. Benefit-side prose alone must still fail this test, so no
  * pattern below matches benefit vocabulary.
  */
-const IMPACT_LEXICON: readonly RegExp[] = [
+export const IMPACT_LEXICON: readonly RegExp[] = [
   // — original eight (unchanged) —
   /\bintrusive\b/i,
   /\bimpact(s|ed)? on\b/i,
@@ -262,6 +262,11 @@ const IMPACT_SOURCE_FIELDS: readonly string[] = [
   "potential_harm_detail",
   "risks_to_individuals",
 ];
+
+/** Single-constant predicate: the ONE widened lexicon, no forked copies. */
+export function hasImpactLanguage(text: string): boolean {
+  return matches(String(text ?? ""), IMPACT_LEXICON);
+}
 
 /** The intake segments that actually argue the impact side, joined. */
 function impactEvidence(intake: unknown): string {
