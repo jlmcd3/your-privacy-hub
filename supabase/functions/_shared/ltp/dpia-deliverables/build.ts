@@ -1985,7 +1985,7 @@ export function buildSection2Coverage(
     });
   } else {
     for (const f of flows as Record<string, unknown>[]) {
-      const r = readTransferFlowAliases(f);
+      const r = readTransferFlowAliases(f, regime);
       const dest = r.dest.toUpperCase();
       const origin: "EU" | "UK" = r.origin === "UK" ? "UK" : "EU";
       const flow: TransferFlow = {
@@ -1998,8 +1998,12 @@ export function buildSection2Coverage(
 
       const mech = transferMechanism(flow);
       const intra = mech.id === "EEA-internal";
+      // PROMPT 9E item 1 — UK-origin, UK-destination is domestic processing.
+      const domesticUk = mech.id === "UK-internal";
       const determination = intra
         ? "intra_eea_processing" as const
+        : domesticUk
+        ? "uk_domestic_processing" as const
         : mech.tiaRequired
         ? "chapter_v_mechanism_required" as const
         : "adequacy" as const;
@@ -2008,9 +2012,13 @@ export function buildSection2Coverage(
       const finding = intra
         // INTRA-EEA PROCESSING RULE, encoded: never "transfer", never a Chapter V ask.
         ? `The flow to ${who} stays within the EEA. This is intra-EEA processing, not a Chapter V transfer, and the Art. 28 processing contract is the instrument that governs it.`
+        : domesticUk
+        // CEO-ratified 9E sentence, mirroring the intra-EEA sentence.
+        ? `The flow to ${who} stays within the United Kingdom. This is domestic processing, not a Chapter V transfer, and the Art. 28 processing contract is the instrument that governs it.`
         : determination === "adequacy"
         ? `The flow to ${who} is covered by ${mech.mechanism}, so the data travels on that basis without a separate Chapter V instrument.`
         : `The flow to ${who} leaves the ${origin === "UK" ? "United Kingdom" : "EEA"} for a destination with no adequacy cover on the record, so ${mech.mechanism} is the mechanism this assessment expects.`;
+
       transfers.push({
         origin_regime: origin,
         destination: dest,
