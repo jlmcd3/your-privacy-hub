@@ -1491,6 +1491,8 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
 
 // Screen ONE generated intake: fixture lint (grader-collision screen) applied
 // BEFORE contract validation, each with ONE single-item regeneration.
+export type RejectedAttempt = { attempt: number; reason: string; intake: any };
+
 export async function screenIntake(
   tool: string,
   item: any,
@@ -1498,8 +1500,13 @@ export async function screenIntake(
   extraGuidance?: string,
   /** Test seam — production leaves this undefined. */
   _generate?: (tool: string, n: number, extraGuidance?: string) => Promise<any[]>,
-): Promise<{ ok: true; intake: any } | { ok: false; reason: string }> {
+): Promise<{ ok: true; intake: any } | { ok: false; reason: string; attempts: RejectedAttempt[] }> {
   const generateIntakes_ = _generate ?? generateIntakes;
+  // PROMPT 9D item 3 — the fixture-lint constraint set (blacklist phrases from
+  // the shared module, hedges, leak rules, statute allowlist) is named in BOTH
+  // repair prompts. Never a duplicated list.
+  const { fixtureConstraintGuidance } = await import("./_local/quality/fixture-lint.ts");
+  const constraints = fixtureConstraintGuidance();
   const linted = lintFixture(item);
   let candidate = item;
   if (linted) {
@@ -1517,13 +1524,35 @@ export async function screenIntake(
         const fb = perfectRetryGuidance((linted as any).deficiencies);
         retryGuidance = retryGuidance ? `${retryGuidance}\n\n${fb}` : fb;
       }
-      retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
+      retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
       const retry = await generateIntakes_(tool, 1, retryGuidance);
       const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
-      if (relint) return { ok: false, reason: `lint: ${linted.reason}; retry: ${(relint as any).reason ?? "reject"}` };
+      if (relint) {
+        const r2reason = (relint as any).reason ?? "reject";
+        const where = [(relint as any).path, (relint as any).sample].filter(Boolean).join(" :: ");
+        // PROMPT 9D item 3 — when the repair is rejected for a DIFFERENT reason
+        // than the original, both reasons and the offending passage/path are
+        // named in the persisted error and the progress log.
+        const differs = r2reason !== linted.reason;
+        const reason = differs
+          ? `lint: ${linted.reason}; retry REJECTED FOR A DIFFERENT REASON: ${r2reason}${where ? ` @ ${where}` : ""}`
+          : `lint: ${linted.reason}; retry: ${r2reason}`;
+        return {
+          ok: false,
+          reason,
+          attempts: [
+            { attempt: 1, reason: `lint: ${linted.reason}`, intake: item },
+            { attempt: 2, reason: `retry lint: ${r2reason}${where ? ` @ ${where}` : ""}`, intake: retry[0] ?? null },
+          ],
+        };
+      }
       candidate = retry[0];
     } catch (e) {
-      return { ok: false, reason: `lint regenerate failed — ${(e as Error).message}` };
+      return {
+        ok: false,
+        reason: `lint regenerate failed — ${(e as Error).message}`,
+        attempts: [{ attempt: 1, reason: `lint: ${linted.reason}`, intake: item }],
+      };
     }
   }
 
@@ -1532,23 +1561,44 @@ export async function screenIntake(
   console.warn(`[validateIntake] ${tool}: ${r.reason} — repairing once`);
   try {
     // PROMPT 9C item 3 — repair, not regenerate.
-    const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with the listed facts added; change nothing else. Every field not named above must come back byte-identical.\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
+    const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with the listed facts added; change nothing else. Every field not named above must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
     const retry = await generateIntakes_(tool, 1, repairGuidance);
     const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
     if (r2.ok) return { ok: true, intake: retry[0] };
     console.warn(`intake rejected (${tool}): ${r2.reason}`);
-    return { ok: false, reason: r2.reason ?? "unknown" };
+    const differs = (r2.reason ?? "unknown") !== (r.reason ?? "contract violation");
+    return {
+      ok: false,
+      reason: differs
+        ? `contract: ${r.reason ?? "contract violation"}; retry REJECTED FOR A DIFFERENT REASON: ${r2.reason ?? "unknown"}`
+        : (r2.reason ?? "unknown"),
+      attempts: [
+        { attempt: 1, reason: `contract: ${r.reason ?? "contract violation"}`, intake: candidate },
+        { attempt: 2, reason: `retry contract: ${r2.reason ?? "unknown"}`, intake: retry[0] ?? null },
+      ],
+    };
   } catch (e) {
     console.warn(`intake rejected (${tool}): regenerate failed — ${(e as Error).message}`);
-    return { ok: false, reason: (e as Error).message };
+    return {
+      ok: false,
+      reason: (e as Error).message,
+      attempts: [{ attempt: 1, reason: `contract: ${r.reason ?? "contract violation"}`, intake: candidate }],
+    };
   }
 }
 
 export type IntakeGenProgress = {
   accepted: any[];
-  rejected: { reason: string }[];
+  // PROMPT 9D item 2 — OBSERVABILITY: the FULL rejected intake JSON is carried
+  // with its reason and attempt number (both attempts when a repair retry also
+  // fails, so the two objects can be diffed). This structure is persisted as
+  // part of quality_runs.partial_state (state.intakeGen) — the existing
+  // service-role-only jsonb surface; no new column or table. Fixtures are
+  // synthetic, so no customer data is stored.
+  rejected: { reason: string; attempts?: RejectedAttempt[] }[];
   totalAttempted: number;
 };
+
 
 export function emptyIntakeGenProgress(): IntakeGenProgress {
   return { accepted: [], rejected: [], totalAttempted: 0 };
