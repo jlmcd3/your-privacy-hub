@@ -31,7 +31,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
-import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant } from "../_shared/golden/registry.ts";
+import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant, casesForVariant } from "../_shared/golden/registry.ts";
+// PROMPT 9G item 3 — all-pinned batch mode (deterministic dispatch pre-filter).
+import { planPinnedOnly } from "../_shared/quality/pinned-only.ts";
+
 // ITEM 325 — fixture variant (Perfect / Messy) for /admin/final-test.
 // Additive: a null variant is byte-for-byte the legacy /admin/quality-batch path.
 import {
@@ -591,13 +594,47 @@ async function runUnit(runId: string) {
           normalizeToolVariants((run as any).tool_variants),
           normalizeVariant((run as any).fixture_variant),
         );
+        // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. On the perfect variant with
+        // pinned_only set, nothing is generated: the run is the pinned perfect
+        // fixtures that pass the product's own closed-loop check at dispatch.
+        // Every exclusion is logged WITH its deficiency list, and batch_size is
+        // clamped to the passing count (also logged). Off/absent ⇒ untouched.
+        let sizeForTool = size;
+        let pinsOverrideForTool: unknown[] | undefined = undefined;
+        if ((run as any).pinned_only === true && variantForTool === "perfect") {
+          const plan = planPinnedOnly(tool, casesForVariant(tool, "perfect"), size);
+          for (const line of plan.logLines) {
+            await log(runId, line, { level: "warn", tool });
+          }
+          if (plan.batchSize === 0) {
+            results.push({
+              tool, quality_run_id: null, run_number: null,
+              final_status: "dispatch_failed", score_overall: null,
+              gpt_score_overall: null,
+              error: `pinned_only: no pinned perfect fixture for ${tool} passes the closed-loop check`,
+              batch_size: 0, generation_model: null, ab_pair_id: null,
+            });
+            await log(runId, `Dispatch failed for ${tool}: pinned_only left zero usable fixtures`, { level: "error", tool });
+            nextIdx += 1;
+            await db.from("quality_batch_runs").update({
+              tool_results: results, current_tool_index: nextIdx,
+            }).eq("id", runId);
+            continue;
+          }
+          pinsOverrideForTool = plan.intakes;
+          sizeForTool = plan.batchSize;
+          perToolSizes[tool] = sizeForTool;
+          await log(runId, `pinned_only: ${tool} runs ${sizeForTool} pinned perfect fixture(s); no scenarios generated`, { tool });
+        }
         const abPairId = abModels ? crypto.randomUUID() : null;
         let inv: { ok: true; runId: string; runNumber: number } | { ok: false; err: string } | null = null;
+
         for (let m = 0; m < modelsForWave.length; m++) {
           const genModel = modelsForWave[m];
           if (m > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
-          inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, {
+          inv = await seedAndResume(tool, sizeForTool, (run as any).created_by, campaignIdForBatch, {
             variant: variantForTool,
+            ...(pinsOverrideForTool !== undefined ? { pinsOverride: pinsOverrideForTool } : {}),
             enginePath: (run as any).engine_path ?? null,
             graderMode: (run as any).grader_mode ?? null,
             generationModel: genModel,
@@ -608,10 +645,10 @@ async function runUnit(runId: string) {
             results.push({
               tool, quality_run_id: null, run_number: null,
               final_status: "dispatch_failed", score_overall: null,
-              gpt_score_overall: null, error: inv.err, batch_size: size,
+              gpt_score_overall: null, error: inv.err, batch_size: sizeForTool,
               generation_model: genModel, ab_pair_id: abPairId,
             });
-            await log(runId, `Dispatch failed for ${tool} (batch_size=${size})${modelLabel}: ${inv.err}`, { level: "error", tool });
+            await log(runId, `Dispatch failed for ${tool} (batch_size=${sizeForTool})${modelLabel}: ${inv.err}`, { level: "error", tool });
           } else {
             results.push({
               tool,
@@ -622,11 +659,11 @@ async function runUnit(runId: string) {
               gpt_score_overall: null,
               error: null,
               dispatched_at: new Date().toISOString(),
-              batch_size: size,
+              batch_size: sizeForTool,
               generation_model: genModel,
               ab_pair_id: abPairId,
             } as InFlightEntry & Record<string, unknown>);
-            await log(runId, `Dispatched ${tool} (batch_size=${size})${modelLabel} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
+            await log(runId, `Dispatched ${tool} (batch_size=${sizeForTool})${modelLabel} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
           }
         }
         nextIdx += 1;
@@ -767,7 +804,7 @@ async function finalizeIfDone(runId: string) {
 // stays NULL on the batch row and every child run, which is byte-identical to
 // the pre-SO-FINAL-TEST path used by /admin/quality-batch and
 // /admin/final-test. Only "skeleton" changes anything.
-async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown, graderModeRaw?: unknown)
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown, graderModeRaw?: unknown, pinnedOnlyRaw?: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -830,6 +867,8 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     ...(String(enginePathRaw ?? "") === "ltp" ? { engine_path: "ltp" } : {}),
     // SO-FINAL-TEST — additive grader path selector.
     ...(String(graderModeRaw ?? "") === "skeleton" ? { grader_mode: "skeleton" } : {}),
+    // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. Only true changes anything.
+    ...(pinnedOnlyRaw === true ? { pinned_only: true } : {}),
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
@@ -1257,7 +1296,7 @@ async function handler(req: Request) {
   if (isCron && body?.action === "start") {
     const owner = await resolveAdminOwner();
     if (!owner) return json({ error: "no admin owner available for internal start" }, 500);
-    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode);
+    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     try {
       await admin().from("admin_action_log").insert({
@@ -1302,7 +1341,7 @@ async function handler(req: Request) {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }

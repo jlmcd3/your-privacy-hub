@@ -1,0 +1,1 @@
+ALTER TABLE public.quality_batch_runs ADD COLUMN IF NOT EXISTS pinned_only boolean NOT NULL DEFAULT false;

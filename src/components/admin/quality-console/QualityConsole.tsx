@@ -228,6 +228,10 @@ export function QualityConsole({
   // DEFAULT-PATH LAW: only offered on the variant-aware console, and the
   // `ab_models` field is omitted entirely unless the toggle is on.
   const [abModels, setAbModels] = useState(false);
+  // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. Off by default; the field is
+  // omitted entirely unless the toggle is on, so every existing path is
+  // byte-unchanged.
+  const [pinnedOnly, setPinnedOnly] = useState(false);
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
 
@@ -452,6 +456,7 @@ export function QualityConsole({
             ? { tool_variants: Object.fromEntries(tools.map((t) => [t, variantFor(t)])) }
             : {}),
           ...(showVariants && abModels ? { ab_models: true } : {}),
+          ...(showVariants && pinnedOnly ? { pinned_only: true } : {}),
           // SO-FINAL-TEST: omitted entirely on the legacy consoles.
           ...(isSkeletonMode ? { grader_mode: "skeleton" } : {}),
         },
@@ -952,6 +957,25 @@ export function QualityConsole({
                 <code>{AB_ALT_GENERATION_MODEL}</code> as a linked pair. Both documents are
                 graded normally; grader and rubric models are pinned and never vary.
                 Doubles batch runtime and spend.
+              </p>
+            </div>
+          )}
+
+          {showVariants && (
+            <div className="border rounded p-3 space-y-1">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <Checkbox
+                  checked={pinnedOnly}
+                  disabled={isBatchRunning}
+                  onCheckedChange={(c) => setPinnedOnly(c === true)}
+                />
+                Pinned only — no scenario generation
+              </label>
+              <p className="text-xs text-muted-foreground">
+                On the <strong>perfect</strong> variant, the batch runs the pinned fixtures only.
+                Each one is put through the product's own closed-loop check at dispatch; any
+                fixture that fails is excluded with its full deficiency list in the log, and
+                batch size is clamped to the passing count.
               </p>
             </div>
           )}

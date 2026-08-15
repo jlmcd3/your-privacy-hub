@@ -10,7 +10,7 @@ import { describe, it, expect } from "vitest";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework";
 import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia";
-import { GOLDEN_BY_TOOL, PERFECT_BY_TOOL, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
+import { GOLDEN_BY_TOOL, PERFECT_BY_TOOL, DPIA_PERFECT_SET, casesForVariant } from "../../../supabase/functions/_shared/golden/registry";
 
 const EXEMPT = new Set([
   "source_assessment_id",
@@ -63,8 +63,11 @@ describe("DPIA_PERFECT — truly-complete-record fixtures", () => {
 });
 
 describe("casesForVariant — perfect routing", () => {
-  it("dpia / perfect returns exactly the two new cases in order", () => {
-    expect(casesForVariant("dpia", "perfect")).toEqual(DPIA_PERFECT);
+  // PROMPT 9G leg 1 — the perfect set is now the authored pair FOLLOWED BY the
+  // two CEO-pinned fixtures; the authored pair keeps positions 0..1.
+  it("dpia / perfect returns the authored pair first, then the 9G pinned pair", () => {
+    expect(casesForVariant("dpia", "perfect")).toEqual(DPIA_PERFECT_SET);
+    expect(DPIA_PERFECT_SET.slice(0, DPIA_PERFECT.length)).toEqual(DPIA_PERFECT);
   });
 
   // ITEM 401 leg B — governance now HAS a perfect fixture, so the old
