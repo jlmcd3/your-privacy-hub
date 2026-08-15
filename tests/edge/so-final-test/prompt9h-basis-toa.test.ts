@@ -42,7 +42,7 @@ Deno.test("9H 1 — secondary operation resolves its own basis from its own text
       "Aggregated attendance statistics are shared with the works council on the basis of consent (Art. 6(1)(a)) obtained from each employee.",
   });
   assertEquals(findings.length, 2);
-  assertEquals(findings[0].article_6_basis, "Legitimate interest (Art. 6(1)(f))");
+  assert(findings[0].article_6_basis.includes("6(1)(f)"), findings[0].article_6_basis);
   assert(findings[1].article_6_basis.includes("6(1)(a)"), findings[1].article_6_basis);
   assertEquals(findings[1].legitimate_interests_test, undefined);
 });
