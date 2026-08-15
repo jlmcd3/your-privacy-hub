@@ -31,7 +31,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
-import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant } from "../_shared/golden/registry.ts";
+import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant, casesForVariant } from "../_shared/golden/registry.ts";
+// PROMPT 9G item 3 — all-pinned batch mode (deterministic dispatch pre-filter).
+import { planPinnedOnly } from "../_shared/quality/pinned-only.ts";
+
 // ITEM 325 — fixture variant (Perfect / Messy) for /admin/final-test.
 // Additive: a null variant is byte-for-byte the legacy /admin/quality-batch path.
 import {
