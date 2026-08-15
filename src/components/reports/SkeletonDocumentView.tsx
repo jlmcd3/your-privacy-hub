@@ -3,6 +3,37 @@
 // The edge functions assemble the ratified skeleton into `report_data.
 // skeleton_document`. This component is the in-app renderer for that payload,
 // and is the same content the PDF renders — one document, two surfaces.
+//
+// ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only): the
+// Table of Authorities renders VERTICALLY, one authority per row, single
+// column, through the shared `toaLines` helper.
+
+import { toaLines } from "@/lib/toa-lines";
+
+/** ITEM 4 — FIRST ToA FIX: single-column, one-authority-per-row ToA. */
+function ToaView({ text }: { text: string }) {
+  const lines = toaLines(text);
+  if (!lines.length) return null;
+  return (
+    <ul data-testid="toa-list" className="list-none space-y-1 font-mono text-xs leading-relaxed">
+      {lines.map((l, i) => (
+        <li
+          key={i}
+          data-toa-heading={l.is_heading ? "true" : "false"}
+          className={
+            l.is_heading
+              ? "font-body text-sm font-semibold text-foreground"
+              : "pl-6 text-foreground"
+          }
+        >
+          {l.text}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+
 
 /** PROMPT 8 — a typed surface rendered as a table (spine `table` blocks). */
 export interface SkeletonTable {
