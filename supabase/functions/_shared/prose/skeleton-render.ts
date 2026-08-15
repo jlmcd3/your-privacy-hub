@@ -180,7 +180,7 @@ export function toaLines(text: string): ToaLine[] {
     const one = lines[0];
     const marked = one
       .replace(/\s*(Regulations|Statutes|Guidance and Persuasive Authority(?: \(persuasive\))?)\s+/g, "\n$1\n    ")
-      .replace(/\s+(?=(?:UK )?GDPR Art\.|(?:UK )?GDPR Recital|EDPB |Art\. \d)/g, "\n    ");
+      .replace(/\s+(?=(?:UK )?GDPR Art\.|(?:UK )?GDPR Recital|EDPB |Directive |Regulation \(EU\))/g, "\n    ");
     lines = marked.split("\n").map((l) => l.replace(/\s+$/, "")).filter((l) => l.trim());
   }
   return lines.map((l) => ({ text: l.trim(), is_heading: !/^\s/.test(l) }));
