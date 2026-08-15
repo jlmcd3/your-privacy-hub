@@ -919,31 +919,34 @@ export function readChapterVInstrumentCredit(text: string): ChapterVInstrumentCr
   const sentences = chapterVSentences(text).filter(chapterVClean);
   if (sentences.length === 0) return none;
 
+  // PROMPT 9G (4a) — SAME-SENTENCE RULE. The named instrument and its
+  // execution-verb-plus-date must be read from the SAME clean sentence. This
+  // kills the cross-document false credit ("SCCs govern the transfer to the
+  // importer. The master services agreement was signed on 3 May 2022."), where
+  // the execution evidence belongs to a different document entirely. The TRA
+  // may still be evidenced in a separate clean sentence.
   let instrumentLabel = "";
-  let instrumentSentence = "";
-  let executionSentence = "";
+  let creditSentence = "";
   let traSeen = false;
 
   for (const s of sentences) {
-    if (!instrumentLabel) {
+    if (!creditSentence) {
       const hit = CHAPTER_V_INSTRUMENTS.find((p) => p.re.test(s));
-      if (hit) {
+      if (hit && CHAPTER_V_EXECUTION.test(s) && CHAPTER_V_DATE.test(s)) {
         instrumentLabel = hit.label;
-        instrumentSentence = s;
+        creditSentence = s;
       }
     }
-    if (!executionSentence && CHAPTER_V_EXECUTION.test(s) && CHAPTER_V_DATE.test(s)) {
-      executionSentence = s;
-    }
-    if (!traSeen && CHAPTER_V_TRA.test(s) && CHAPTER_V_TRA_DONE.test(s)) traSeen = true;
+    if (!traSeen && chapterVTraEvidenced(s)) traSeen = true;
   }
 
-  if (!instrumentLabel || !executionSentence || !traSeen) return none;
+  if (!instrumentLabel || !creditSentence || !traSeen) return none;
   return {
     credited: true,
     instrumentLabel,
-    verbatim: boundVerbatim(executionSentence || instrumentSentence),
+    verbatim: boundVerbatim(creditSentence),
   };
+
 }
 
 /** CEO-ratified 9F finding sentence — mirrors the Art. 28 credit row. */
