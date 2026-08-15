@@ -38,6 +38,8 @@ import {
 import { coerceExceptionView } from "../_shared/report-contracts/risk-exceptions.ts";
 import { coerceActivityView } from "../_shared/report-contracts/risk-activities.ts";
 import { renderAuthorityExhibitHtml, AUTHORITY_EXHIBIT_CSS } from "../_shared/report-exhibits/authority-exhibit.ts";
+// ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only).
+import { toaLines } from "../_shared/prose/skeleton-render.ts";
 // ITEM 372 METHOD 2a — the determination leads the DPIA document in print too.
 // ITEM 380 §2 — THE THREE-STATE BANNER. State (i) is byte-identical to the
 // banner this document has always printed; states (ii)/(iii) are reachable
@@ -1235,7 +1237,15 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
       const t = typeof p?.text === "string" ? p.text : "";
       if (!t.trim()) return "";
       if (sec.id === "table_of_authorities") {
-        return `<pre style="font-family:'Courier New',monospace;font-size:10.5px;white-space:pre-wrap;margin:0 0 8px;">${escHtml(t)}</pre>`;
+        // ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only):
+        // one authority per line, single column, ledger order preserved.
+        const rows = toaLines(t).map((l) =>
+          l.is_heading
+            ? `<tr><td style="padding:6px 0 2px;font-family:'Georgia','Times New Roman',serif;font-weight:bold;font-size:11px;color:#0c2a44;">${escHtml(l.text)}</td></tr>`
+            : `<tr><td style="padding:1px 0 1px 18px;font-family:'Courier New',monospace;font-size:10.5px;">${escHtml(l.text)}</td></tr>`
+        ).join("");
+        if (!rows) return "";
+        return `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>`;
       }
       return t.split(/\n{2,}/).map((chunk) =>
         `<p class="body-p" style="white-space:pre-line;">${escHtml(chunk)}</p>`).join("");
