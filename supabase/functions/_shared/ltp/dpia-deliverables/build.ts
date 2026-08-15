@@ -2312,15 +2312,22 @@ export function buildSection2Coverage(
     };
 
   // ── TIER 2a — minimisation & retention, per data item ───────────────
+  // PROMPT 9H item 2 (CEO-ruled 2026-08-15) — RETENTION IS LEDGERED UNDER
+  // STORAGE LIMITATION. The row carried only the data-minimisation pinpoint
+  // (Art. 5(1)(c)), so a stated retention period was never ledgered against
+  // Art. 5(1)(e) and the Table of Authorities could not list it. The row now
+  // cites BOTH principles: minimisation for the "why it is needed" column and
+  // storage limitation for the retention determination.
   const aMin = anchorStrict("minimisation", regime, "Art. 5(1)(c)");
+  const aStore = anchorStrict("storage_limitation", regime, "Art. 5(1)(e)");
   const minJust = str(get(intake, "data_minimisation_justification"));
   const retention = str(get(intake, "retention_period"));
   const data_minimisation_retention: DpiaMinimisationRetentionRow[] = inv.data_items.map((d) => ({
     item: d.item,
     need_justification: minJust,
     retention_period: retention,
-    citation: aMin.citation,
-    authority_verbatim: aMin.verbatim,
+    citation: `${aMin.citation}; ${aStore.citation}`,
+    authority_verbatim: [aMin.verbatim, aStore.verbatim].filter(Boolean).join(" "),
     status: (retention ? "analysed" : "record_insufficient") as "analysed" | "record_insufficient",
     ...(retention
       ? {}
