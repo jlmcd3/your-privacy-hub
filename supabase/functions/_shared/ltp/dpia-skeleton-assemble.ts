@@ -789,7 +789,49 @@ function composeArt36Sentence(report: Bag): string {
 
 // ── Table of Authorities ────────────────────────────────────────────────────
 
-function dpiaToa(report: Bag, body: string): string {
+// ── PROMPT 9H item 3 (CEO-ruled 2026-08-15) — ToA citation hygiene ──────────
+//
+// (a) REGIME PREFIX. Every GDPR entry in a UK record's table reads "UK GDPR";
+//     every entry in an EU record's table reads "GDPR". Long-form emissions
+//     ("Regulation (EU) 2016/679 (General Data Protection Regulation) art. 13")
+//     are folded onto the same house form. Prefix only — pinpoints untouched.
+//
+// (b) CITATION GRAMMAR. A pinpoint whose paragraph number does not exist in
+//     the cited article (the verified "UK GDPR Art. 6(11)" defect) never
+//     reaches the table. Articles absent from the table below are accepted.
+
+/** Paragraph counts of the GDPR articles this product cites. */
+const GDPR_ARTICLE_PARAGRAPHS: Record<string, number> = {
+  "5": 2, "6": 4, "9": 4, "10": 1, "12": 8, "13": 4, "14": 5, "15": 4,
+  "22": 4, "24": 3, "25": 3, "28": 10, "30": 5, "32": 4, "33": 5, "34": 4,
+  "35": 11, "36": 5, "37": 7, "38": 6, "39": 2, "44": 1, "45": 9, "46": 5,
+  "47": 9, "49": 6, "57": 4, "83": 9, "89": 4,
+};
+
+/** True when the citation is a well-formed GDPR pinpoint (or not a GDPR one). */
+export function isWellFormedGdprPinpoint(citation: string): boolean {
+  const c = String(citation || "").replace(/\s+/g, " ").trim();
+  const m = /\bArt(?:icle|\.)?\s*(\d+[a-z]?)\s*\((\d+)\)/i.exec(c);
+  if (!m) return true;
+  const max = GDPR_ARTICLE_PARAGRAPHS[m[1]];
+  if (max === undefined) return true;
+  const para = Number(m[2]);
+  return para >= 1 && para <= max;
+}
+
+/** Fold a GDPR citation onto the record's regime prefix. */
+export function toaRegimeForm(regime: "EU" | "UK", citation: string): string {
+  let c = String(citation || "").replace(/\s+/g, " ").trim();
+  const long = /^Regulation \(EU\) 2016\/679(?: \(General Data Protection Regulation\))?\s*,?\s*art(?:icle|\.)?\s*(.+)$/i
+    .exec(c);
+  if (long) c = `GDPR Art. ${long[1].trim()}`;
+  if (!/GDPR/i.test(c)) return c;
+  return regime === "UK"
+    ? (/\bUK GDPR\b/.test(c) ? c : c.replace(/\bGDPR\b/, "UK GDPR"))
+    : c.replace(/\bUK GDPR\b/, "GDPR");
+}
+
+function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string {
   const exhibit = (report.authority_exhibit ?? {}) as Bag;
   const entries = Array.isArray(exhibit.entries) ? (exhibit.entries as Bag[]) : [];
   const groups: Record<string, string[]> = {
@@ -799,9 +841,12 @@ function dpiaToa(report: Bag, body: string): string {
   };
   const seen = new Set<string>();
   for (const e of entries) {
-    const citation = s(e.citation);
-    if (!citation || seen.has(citation)) continue;
-    if (!body.includes(citation)) continue; // iff-cited
+    const raw = s(e.citation);
+    if (!raw) continue;
+    if (!body.includes(raw)) continue; // iff-cited
+    if (!isWellFormedGdprPinpoint(raw)) continue;
+    const citation = toaRegimeForm(regime, raw);
+    if (seen.has(citation)) continue;
     seen.add(citation);
     const cls = s(e.authority_class);
     const group = cls === "regulation" || /GDPR/i.test(citation)
