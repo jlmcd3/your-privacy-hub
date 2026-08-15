@@ -86,7 +86,7 @@ function transferIntake(evidence: string): Record<string, unknown> {
         destination_country: "US",
         adequacy: "none",
         dpf_certified: false,
-        safeguards: evidence,
+        transfer_mechanism: evidence,
       },
     ],
   };
