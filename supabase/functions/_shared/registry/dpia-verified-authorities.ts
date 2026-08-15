@@ -272,6 +272,31 @@ export const DPIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: GDPR_URL,
   }),
+  // PROMPT 9H item 2 (2026-08-15) — storage limitation, the principle the
+  // retention determination is measured against. Verbatim Art. 5(1)(e); the
+  // UK GDPR text of the same sub-paragraph is word-identical.
+  principle_storage_limitation: R({
+    proposition_key: "principle_storage_limitation",
+    citation: "GDPR Art. 5",
+    subsection: "GDPR Art. 5(1)(e)",
+    verbatim_quote:
+      "kept in a form which permits identification of data subjects for no longer than is necessary for the purposes for which the personal data are processed;",
+    depth_class: "sub_subsection",
+    governing_anchor: GDPR,
+    verified_on: VOD,
+    primary_source_url: GDPR_URL,
+  }),
+  uk_principle_storage_limitation: R({
+    proposition_key: "uk_principle_storage_limitation",
+    citation: "UK GDPR Art. 5",
+    subsection: "UK GDPR Art. 5(1)(e)",
+    verbatim_quote:
+      "kept in a form which permits identification of data subjects for no longer than is necessary for the purposes for which the personal data are processed;",
+    depth_class: "sub_subsection",
+    governing_anchor: UK_GDPR,
+    verified_on: UK_VOD,
+    primary_source_url: UK_GDPR_URL,
+  }),
 
   // ---- Art. 6(1)(f) — Legitimate interests basis (as referenced by DPIA) ----
   lawful_basis_legitimate_interests: R({

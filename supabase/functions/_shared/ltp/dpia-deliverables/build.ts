@@ -1451,7 +1451,16 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
 
   return buildOperations(intake).map((op) => {
     const purpose = op.purpose_text;
-    const art6 = readArt6(basisText);
+    // PROMPT 9H item 1 (CEO-ruled 2026-08-15) — PER-OPERATION BASIS READER.
+    // A record may state one basis at record level and a DIFFERENT basis in
+    // the secondary operation's own text ("...on the basis of consent").
+    // The secondary operation resolves its basis from its OWN text first and
+    // falls back to the record-level field only where its text names none.
+    // The primary operation is unchanged: record-level field only.
+    const opBasisText = op.operation_id === "op_secondary" && readArt6(op.purpose_text)
+      ? op.purpose_text
+      : basisText;
+    const art6 = readArt6(opBasisText);
 
     // ── No basis recorded, or no purpose to attach it to ──────────────
     if (!art6) {
@@ -2303,15 +2312,22 @@ export function buildSection2Coverage(
     };
 
   // ── TIER 2a — minimisation & retention, per data item ───────────────
+  // PROMPT 9H item 2 (CEO-ruled 2026-08-15) — RETENTION IS LEDGERED UNDER
+  // STORAGE LIMITATION. The row carried only the data-minimisation pinpoint
+  // (Art. 5(1)(c)), so a stated retention period was never ledgered against
+  // Art. 5(1)(e) and the Table of Authorities could not list it. The row now
+  // cites BOTH principles: minimisation for the "why it is needed" column and
+  // storage limitation for the retention determination.
   const aMin = anchorStrict("minimisation", regime, "Art. 5(1)(c)");
+  const aStore = anchorStrict("storage_limitation", regime, "Art. 5(1)(e)");
   const minJust = str(get(intake, "data_minimisation_justification"));
   const retention = str(get(intake, "retention_period"));
   const data_minimisation_retention: DpiaMinimisationRetentionRow[] = inv.data_items.map((d) => ({
     item: d.item,
     need_justification: minJust,
     retention_period: retention,
-    citation: aMin.citation,
-    authority_verbatim: aMin.verbatim,
+    citation: `${aMin.citation}; ${aStore.citation}`,
+    authority_verbatim: [aMin.verbatim, aStore.verbatim].filter(Boolean).join(" "),
     status: (retention ? "analysed" : "record_insufficient") as "analysed" | "record_insufficient",
     ...(retention
       ? {}

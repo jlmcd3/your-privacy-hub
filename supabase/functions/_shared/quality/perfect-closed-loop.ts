@@ -66,8 +66,13 @@ function categories(intake: Record<string, unknown>): string[] {
 /** CEO-parked carve-out: 6(1)(f) + special-category data. */
 export function violatesPerfectCarveOut(intake: unknown): boolean {
   const o = (intake ?? {}) as Record<string, unknown>;
+  // PROMPT 9H item 1 (harness) — the secondary operation may state its OWN
+  // Art. 6(1) basis, so the carve-out reads the record-level field AND the
+  // secondary-use text. 6(1)(f) over special-category data is parked in both.
   const basis = s(o["legal_basis_proposed"]).toLowerCase();
-  if (!/legitimate interest/.test(basis)) return false;
+  const secondary = s(o["secondary_uses"]).toLowerCase();
+  const li = /legitimate interest|6\(1\)\(f\)/;
+  if (!li.test(basis) && !li.test(secondary)) return false;
   const cats = categories(o).map((c) => c.toLowerCase());
   return SPECIAL_CATEGORY_CATS.some((sc) => cats.includes(sc.toLowerCase()));
 }

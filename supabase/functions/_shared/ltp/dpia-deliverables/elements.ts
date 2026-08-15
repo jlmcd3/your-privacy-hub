@@ -221,6 +221,8 @@ export const ANCHOR_KEYS = {
   // PROMPT 7 (2026-08-11) — Section-2 coverage anchors.
   special_categories: "special_categories_prohibition",
   minimisation: "principle_data_minimisation",
+  // PROMPT 9H item 2 (2026-08-15) — retention rows cite storage limitation.
+  storage_limitation: "principle_storage_limitation",
   purpose_limitation: "principle_purpose_limitation",
   dpbd: "data_protection_by_design",
   processor_contract: "processor_written_contract",
