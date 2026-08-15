@@ -135,6 +135,59 @@ export function renderFixed(text: string, values: SlotValues): string {
   return out.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
 }
 
+/**
+ * ITEM 4 — FIRST ToA FIX (presentation only). Applies the deterministic
+ * register repair line by line so multi-line composed blocks (the Table of
+ * Authorities above all) keep their vertical layout and leading indent.
+ */
+export function repairLinePreserving(text: string): string {
+  if (!text.includes("\n")) return repairRegister(text);
+  return text
+    .split("\n")
+    .map((line) => {
+      const indent = /^\s*/.exec(line)?.[0] ?? "";
+      const repaired = repairRegister(line);
+      return repaired ? indent + repaired : "";
+    })
+    .join("\n");
+}
+
+/**
+ * ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only).
+ *
+ * The single source of truth for laying a Table of Authorities section out
+ * VERTICALLY: one authority (or group heading) per line, single column, in the
+ * ledger's own order. Shared by every product whose spine carries a
+ * `table_of_authorities` section — cppa-risk, cppa-cyber, cppa-admt,
+ * governance, dpia, lia, ir-playbook, biometric, registration and RoPA.
+ *
+ * Never joins two citations onto one line. Legacy documents whose ToA was
+ * persisted already flattened are re-split on the citation boundary so the
+ * vertical layout holds for them too. Entry bytes, order and count are
+ * unchanged.
+ */
+export interface ToaLine {
+  readonly text: string;
+  readonly is_heading: boolean;
+}
+
+export function toaLines(text: string): ToaLine[] {
+  const raw = String(text ?? "");
+  let lines = raw.split("\n").map((l) => l.replace(/\s+$/, "")).filter((l) => l.trim());
+  if (lines.length === 1) {
+    // Legacy flattened ledger: break before each group heading and each
+    // citation start, without touching the citation text itself.
+    const one = lines[0];
+    const marked = one
+      .replace(/\s*(Regulations|Statutes|Guidance and Persuasive Authority(?: \(persuasive\))?)\s+/g, "\n$1\n    ")
+      .replace(/\s+(?=(?:UK )?GDPR Art\.|(?:UK )?GDPR Recital|EDPB |Art\. \d)/g, "\n    ");
+    lines = marked.split("\n").map((l) => l.replace(/\s+$/, "")).filter((l) => l.trim());
+  }
+  return lines.map((l) => ({ text: l.trim(), is_heading: !/^\s/.test(l) }));
+}
+
+
+
 export interface RenderSkeletonArgs {
   readonly sections: readonly SpineSectionLike[];
   readonly title: string;
