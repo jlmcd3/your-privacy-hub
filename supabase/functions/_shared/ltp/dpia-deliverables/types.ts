@@ -413,7 +413,12 @@ export type DpiaTransferDetermination =
   | "intra_eea_processing"
   | "uk_domestic_processing"
   | "adequacy"
+  // PROMPT 9F item 1 (CEO-ruled 2026-08-15) — credit-first Art. 46 instrument
+  // recognition: the record documents the executed instrument, its date, and a
+  // completed transfer risk assessment.
+  | "instrument_recorded"
   | "chapter_v_mechanism_required";
+
 
 export interface DpiaTransferRow {
   readonly origin_regime: "EU" | "UK";

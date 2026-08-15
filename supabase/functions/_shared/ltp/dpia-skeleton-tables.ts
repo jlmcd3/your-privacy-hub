@@ -62,6 +62,9 @@ export const DPIA_TABLE_LABELS: Record<string, string> = {
   intra_eea_processing: "Processing remains within the EEA",
   uk_domestic_processing: "Processing remains within the United Kingdom",
   adequacy: "Adequacy decision relied on",
+  // PROMPT 9F item 1 (CEO-ruled 2026-08-15).
+  instrument_recorded: "A Chapter V instrument is recorded by the company",
+
   chapter_v_mechanism_required: "A Chapter V transfer mechanism is required",
   approved: "Approved",
   conditionally_approved: "Approved subject to conditions",

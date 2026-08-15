@@ -786,6 +786,154 @@ export function readTransferFlowAliases(f: Record<string, unknown>, recordRegime
   };
 }
 
+// =====================================================================
+// PROMPT 9F item 1 (CEO-ruled 2026-08-15) — CREDIT-FIRST ART. 46
+// INSTRUMENT RECOGNITION.
+//
+// Evidence: batch 87c5b390 (run #187), quality_runs.partial_state
+// .intakeGen.rejected[1] flow 1. The retry documented the executed IDTA, its
+// countersignature date and a completed TRA verbatim, and the reader had no
+// satisfiable path: a non-adequacy third-country flow yielded
+// chapter_v_mechanism_required + the Chapter V ask unconditionally.
+//
+// Two branches ONLY. FULLY DOCUMENTED requires ALL THREE signals, each read
+// in a sentence carrying no negation or future/modality language (the 8J
+// DPO-matcher discipline, sentence-scoped). ANYTHING LESS falls through to the
+// existing chapter_v_mechanism_required + ask, byte-unchanged.
+//
+// Lexicons are narrow and evidence-derived; each pattern carries the passage
+// that evidences it.
+
+/** Sentence splitter: full stops and semicolons both end a scoped clause. */
+function chapterVSentences(text: string): string[] {
+  return String(text ?? "")
+    .split(/(?<=[.;])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// NEGATION / MODALITY GUARD — sentence-scoped. Each form lands from run 187.
+const CHAPTER_V_BLOCKERS: RegExp[] = [
+  // "No transfer mechanism documented. ... no GDPR Art. 46 or UK GDPR
+  // Schedule 21 mechanism identified. This is an open gap." (run 187, flow 2)
+  /\b(no|not|never|without)\b/i,
+  /\bn't\b/i,
+  // "has not been re-papered to reference the 2022 IDTA template — gap noted
+  // by Siobhan Kehoe" (run 187, flow 4 transfer_mechanism)
+  /\bre[-\s]?paper(?:ed|ing)\b/i,
+  /\bgap\b/i,
+  // "Mechanism validity is uncertain pending re-papering." (run 187, flow 4
+  // notes)
+  /\buncertain(?:ty)?\b/i,
+  /\bpending\b/i,
+  // "UK Extension certification status should be re-verified at annual DPA
+  // review." (run 187, flow 1 first attempt notes)
+  /\bshould be\b/i,
+  /\bre[-\s]?verif(?:y|ied|ication)\b/i,
+  // "TRA is planned for next quarter" (CEO-supplied must-NOT-credit fixture);
+  // "scheduled for annual review" (run 187, flow 1 retry — future form)
+  /\b(planned|scheduled|intend(?:s|ed)?|will\b|to be\b|forthcoming|next quarter)\b/i,
+  /\byet\b/i,
+  /\bin progress\b/i,
+  /\bdraft\b/i,
+];
+function chapterVClean(sentence: string): boolean {
+  return !CHAPTER_V_BLOCKERS.some((re) => re.test(sentence));
+}
+
+/** (i) Named Chapter V instrument. Canonical label carried with the pattern. */
+const CHAPTER_V_INSTRUMENTS: ReadonlyArray<{ re: RegExp; label: string }> = [
+  // "UK International Data Transfer Agreement (IDTA) — addendum to the
+  // DataRobot Master Services Agreement countersigned by both parties on
+  // 2024-11-14" (run 187, flow 1 retry)
+  { re: /\b(idta|international data transfer agreement)\b/i, label: "IDTA" },
+  // "UK Addendum" — ICO Addendum to the EU SCCs, named alongside the IDTA in
+  // the registry row UK-IDTA.
+  { re: /\buk addendum\b/i, label: "UK Addendum" },
+  // "no GDPR Art. 46 ... mechanism identified" (run 187, flow 2) names the
+  // SCC family as the expected instrument; the positive form is credited here.
+  { re: /\b(sccs?|standard contractual clauses)\b/i, label: "set of Standard Contractual Clauses" },
+  { re: /\b(bcrs?|binding corporate rules)\b/i, label: "set of binding corporate rules" },
+];
+
+/** (ii) Execution evidence WITH a date. */
+const CHAPTER_V_EXECUTION =
+  // "countersigned by both parties on 2024-11-14" (run 187, flow 1 retry)
+  /\b(executed|signed|countersigned|concluded)\b/i;
+const CHAPTER_V_DATE =
+  // ISO "2024-11-14" (run 187, flow 1 retry) and long/short British forms.
+  /\b(\d{4}-\d{2}-\d{2}|\d{1,2}\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}|(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4})\b/i;
+
+/** (iii) Completed transfer risk assessment. */
+const CHAPTER_V_TRA =
+  // "A Transfer Risk Assessment (TRA) specific to this flow was completed by
+  // Anna Whitfield at Pinsent Masons on 2024-11-10 (ref PM/VIG/2024/TRA-01)"
+  // (run 187, flow 1 retry)
+  /\b(tra|transfer risk assessment|transfer impact assessment|tia)\b/i;
+const CHAPTER_V_TRA_DONE =
+  // "was completed ... (ref PM/VIG/2024/TRA-01)"; "TRA ref PM/VIG/2024/TRA-01
+  // on file." (run 187, flow 1 retry notes)
+  /\b(completed|complete|on file|ref\.?|reference)\b/i;
+
+/** Bounded verbatim: the crediting sentence, capped on a word boundary. */
+const CHAPTER_V_VERBATIM_MAX = 300;
+function boundVerbatim(text: string): string {
+  const t = String(text ?? "").trim();
+  if (t.length <= CHAPTER_V_VERBATIM_MAX) return t;
+  const cut = t.slice(0, CHAPTER_V_VERBATIM_MAX);
+  const sp = cut.lastIndexOf(" ");
+  return `${(sp > 40 ? cut.slice(0, sp) : cut).replace(/[\s.,;:—-]+$/, "")}…`;
+}
+
+export interface ChapterVInstrumentCredit {
+  readonly credited: boolean;
+  readonly instrumentLabel: string;
+  readonly verbatim: string;
+}
+
+/**
+ * Single writer for the fully-documented branch. Reads the flow's own
+ * mechanism/notes text only; no model call, no inference beyond the lexicons.
+ */
+export function readChapterVInstrumentCredit(text: string): ChapterVInstrumentCredit {
+  const none: ChapterVInstrumentCredit = { credited: false, instrumentLabel: "", verbatim: "" };
+  const sentences = chapterVSentences(text).filter(chapterVClean);
+  if (sentences.length === 0) return none;
+
+  let instrumentLabel = "";
+  let instrumentSentence = "";
+  let executionSentence = "";
+  let traSeen = false;
+
+  for (const s of sentences) {
+    if (!instrumentLabel) {
+      const hit = CHAPTER_V_INSTRUMENTS.find((p) => p.re.test(s));
+      if (hit) {
+        instrumentLabel = hit.label;
+        instrumentSentence = s;
+      }
+    }
+    if (!executionSentence && CHAPTER_V_EXECUTION.test(s) && CHAPTER_V_DATE.test(s)) {
+      executionSentence = s;
+    }
+    if (!traSeen && CHAPTER_V_TRA.test(s) && CHAPTER_V_TRA_DONE.test(s)) traSeen = true;
+  }
+
+  if (!instrumentLabel || !executionSentence || !traSeen) return none;
+  return {
+    credited: true,
+    instrumentLabel,
+    verbatim: boundVerbatim(executionSentence || instrumentSentence),
+  };
+}
+
+/** CEO-ratified 9F finding sentence — mirrors the Art. 28 credit row. */
+function chapterVCreditFinding(who: string, instrumentLabel: string, verbatim: string): string {
+  return `For the flow to ${who}, the company records an executed ${instrumentLabel} and a completed transfer risk assessment, in its own words: ${spliceVerbatim(verbatim)}. The flow proceeds on the company's recorded basis; this assessment records the instrument as the company describes it and has not reviewed the instrument itself.`;
+}
+
+
+
 
 
 function facts(intake: unknown): RiskFacts {
@@ -2037,10 +2185,19 @@ export function buildSection2Coverage(
       const intra = mech.id === "EEA-internal";
       // PROMPT 9E item 1 — UK-origin, UK-destination is domestic processing.
       const domesticUk = mech.id === "UK-internal";
+      // PROMPT 9F item 1 — credit-first Art. 46 instrument recognition. The
+      // flow's OWN mechanism/notes text is the only source; the credit is
+      // available in both regimes and never on an intra-EEA / UK-domestic row.
+      const flowNotesText = [f.notes, f.note].map((x) => str(x)).join(" ").trim();
+      const credit = (intra || domesticUk)
+        ? { credited: false, instrumentLabel: "", verbatim: "" }
+        : readChapterVInstrumentCredit([r.mechanismText, flowNotesText].filter(Boolean).join(" "));
       const determination = intra
         ? "intra_eea_processing" as const
         : domesticUk
         ? "uk_domestic_processing" as const
+        : credit.credited
+        ? "instrument_recorded" as const
         : mech.tiaRequired
         ? "chapter_v_mechanism_required" as const
         : "adequacy" as const;
@@ -2052,9 +2209,13 @@ export function buildSection2Coverage(
         : domesticUk
         // CEO-ratified 9E sentence, mirroring the intra-EEA sentence.
         ? `The flow to ${who} stays within the United Kingdom. This is domestic processing, not a Chapter V transfer, and the Art. 28 processing contract is the instrument that governs it.`
+        : determination === "instrument_recorded"
+        // CEO-ratified 9F sentence, mirroring the Art. 28 credit row.
+        ? chapterVCreditFinding(who, credit.instrumentLabel, credit.verbatim)
         : determination === "adequacy"
         ? `The flow to ${who} is covered by ${mech.mechanism}, so the data travels on that basis without a separate Chapter V instrument.`
         : `The flow to ${who} leaves the ${origin === "UK" ? "United Kingdom" : "EEA"} for a destination with no adequacy cover on the record, so ${mech.mechanism} is the mechanism this assessment expects.`;
+
 
       transfers.push({
         origin_regime: origin,
