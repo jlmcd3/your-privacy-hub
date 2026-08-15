@@ -91,6 +91,15 @@ export const DPIA_SKELETON_CONTENT_HASH =
 export const DPIA_SKELETON_TITLE = "DATA PROTECTION IMPACT ASSESSMENT";
 export const DPIA_SKELETON_SUBTITLE = "Prepared under Article 35 GDPR - {name}, for {organizationName}";
 
+/**
+ * PROMPT 9H.1 item 2 (CEO-ratified by inclusion, 2026-08-15) — regime subtitles
+ * as ratified constants. The assembler selects by readDpiaRegime; no ratified
+ * spine constant is rewritten at render time.
+ */
+export const DPIA_SKELETON_SUBTITLE_EU = DPIA_SKELETON_SUBTITLE;
+export const DPIA_SKELETON_SUBTITLE_UK =
+  "Prepared under Article 35 UK GDPR - {name}, for {organizationName}";
+
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const DPIA_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
 
