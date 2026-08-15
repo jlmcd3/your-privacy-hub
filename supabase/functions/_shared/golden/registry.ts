@@ -97,10 +97,17 @@ import { BIOMETRIC_PERFECT } from "./biometric-perfect.ts";
 // dispatchGeneration and the item414 spine product name all agree, so unlike
 // biometric there is no slug/product split on this product.
 import { IR_PERFECT } from "./ir-perfect.ts";
+// PROMPT 9G leg 1 — the two CEO-pinned, verification-proven dpia perfect
+// fixtures. Additive: DPIA_PERFECT (the 8-series authored pair) is untouched
+// and stays first, so existing positions 0..1 are stable.
+import { DPIA_PERFECT_PINNED } from "./dpia-perfect-pinned.ts";
+
+/** The full dpia perfect-variant pinned set: authored pair + 9G pinned pair. */
+export const DPIA_PERFECT_SET: GoldenCase[] = [...DPIA_PERFECT, ...DPIA_PERFECT_PINNED];
 
 /** Truly-complete-record fixtures, per tool. Empty/absent ⇒ legacy fallback. */
 export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
-  "dpia": DPIA_PERFECT,
+  "dpia": DPIA_PERFECT_SET,
   "cppa-risk": CPPA_RISK_PERFECT,
   "lia": LIA_PERFECT,
   "cppa-admt": ADMT_PERFECT,
@@ -109,6 +116,7 @@ export const PERFECT_BY_TOOL: Record<string, GoldenCase[]> = {
   "biometric-checker": BIOMETRIC_PERFECT,
   "ir-playbook": IR_PERFECT,
 };
+
 
 export function casesForVariant(tool: string, variant: FixtureVariant | null): GoldenCase[] {
   if (variant === "messy") return MESSY_BY_TOOL[tool] ?? [];
