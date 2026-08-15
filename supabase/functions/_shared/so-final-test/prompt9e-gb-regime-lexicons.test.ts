@@ -102,13 +102,15 @@ const PARTY_NO = [
 for (const s of PARTY_YES) {
   Deno.test(`9E item 3: party language met — ${s.slice(0, 40)}`, () => {
     const lb = buildLegalBasis(intake({ data_subjects: s }));
-    assertEquals(lb.find((b) => b.basis === "Art. 6(1)(b)")?.met, true, `not met: ${s}`);
+    assertEquals(lb[0].verdict, "basis_supported_on_the_record", `not met: ${s}`);
+    assertEquals(lb[0].status, "analysed");
   });
 }
 for (const s of PARTY_NO) {
   Deno.test(`9E item 3: non-party language NOT met — ${s}`, () => {
     const lb = buildLegalBasis(intake({ data_subjects: s }));
-    assertEquals(lb.find((b) => b.basis === "Art. 6(1)(b)")?.met, false);
+    assertEquals(lb[0].verdict, "undetermined_on_the_record");
+    assertEquals(lb[0].status, "record_insufficient");
   });
 }
 
