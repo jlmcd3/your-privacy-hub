@@ -172,8 +172,14 @@ export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkelet
       // composer. No content means the block is honestly absent.
       const composed = args.composed[key];
       if (composed && composed.trim()) {
-        paragraphs.push({ kind: block.kind, text: repairRegister(composed.trim()) });
+        // ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only).
+        // `repairRegister` collapses runs of whitespace, which flattened the
+        // Table of Authorities' one-authority-per-line layout into a run-on
+        // paragraph. Repair is applied PER LINE, preserving line structure and
+        // the leading indent. Entry bytes, order and count are untouched.
+        paragraphs.push({ kind: block.kind, text: repairLinePreserving(composed.trim()) });
       }
+
     });
     if (paragraphs.length > 0) {
       sections.push({ id: section.id, title: section.title, paragraphs });
