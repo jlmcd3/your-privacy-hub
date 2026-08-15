@@ -27,6 +27,15 @@
  */
 
 import type { DeliverableStatus } from "./types.ts";
+// PROMPT 9H item 3 (2026-08-15) — REGIME-PREFIX CONSISTENCY. The attestation
+// deliverables hardcoded the EU form of the citation, so a UK GDPR record
+// carried "GDPR Art. 35(7)" beside sibling "UK GDPR Art. …" entries and the
+// Table of Authorities listed both forms. The prefix now follows the record's
+// regime; the pinpoint is unchanged.
+import { readDpiaRegime } from "./build.ts";
+
+const art357 = (intake: unknown): string =>
+  `${readDpiaRegime(intake) === "UK" ? "UK GDPR" : "GDPR"} Art. 35(7)`;
 
 export const DPIA_ATTESTATION_VERSION = "dpia-attestation-2026-08-05-upgrade6";
 
@@ -130,7 +139,7 @@ export function buildDpiaAssessmentTeam(intake: unknown): DpiaAssessmentTeam {
         "The team that prepared this assessment is not identified on the present record. An assessment relied on as the controller's accountability record should name the people who conducted it and the role each held.",
       members: [],
       raci_recorded: false,
-      citation: "GDPR Art. 35(7)",
+      citation: art357(intake),
       template_ref: TEMPLATE_REF_TEAM,
       status: "record_insufficient",
       information_needed:
@@ -154,7 +163,7 @@ export function buildDpiaAssessmentTeam(intake: unknown): DpiaAssessmentTeam {
     text,
     members: named,
     raci_recorded,
-    citation: "GDPR Art. 35(7)",
+    citation: art357(intake),
     template_ref: TEMPLATE_REF_TEAM,
     status: rolesKnown.length === named.length ? "analysed" : "record_insufficient",
     ...(rolesKnown.length === named.length ? {} : {
@@ -208,7 +217,7 @@ export function buildDpiaValidationApproval(intake: unknown): DpiaValidationAppr
     approved_by_title: title,
     approval_date: date,
     basis_for_sign_off: basis,
-    citation: "GDPR Art. 35(7)",
+    citation: art357(intake),
     template_ref: TEMPLATE_REF_VALIDATION,
     status: attested && basis ? "analysed" : "record_insufficient",
     ...(attested && basis ? {} : { information_needed: missing.join("; ") + "." }),
