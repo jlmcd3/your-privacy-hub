@@ -594,8 +594,41 @@ async function runUnit(runId: string) {
           normalizeToolVariants((run as any).tool_variants),
           normalizeVariant((run as any).fixture_variant),
         );
+        // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. On the perfect variant with
+        // pinned_only set, nothing is generated: the run is the pinned perfect
+        // fixtures that pass the product's own closed-loop check at dispatch.
+        // Every exclusion is logged WITH its deficiency list, and batch_size is
+        // clamped to the passing count (also logged). Off/absent ⇒ untouched.
+        let sizeForTool = size;
+        let pinsOverrideForTool: unknown[] | undefined = undefined;
+        if ((run as any).pinned_only === true && variantForTool === "perfect") {
+          const plan = planPinnedOnly(tool, casesForVariant(tool, "perfect"), size);
+          for (const line of plan.logLines) {
+            await log(runId, line, { level: "warn", tool });
+          }
+          if (plan.batchSize === 0) {
+            results.push({
+              tool, quality_run_id: null, run_number: null,
+              final_status: "dispatch_failed", score_overall: null,
+              gpt_score_overall: null,
+              error: `pinned_only: no pinned perfect fixture for ${tool} passes the closed-loop check`,
+              batch_size: 0, generation_model: null, ab_pair_id: null,
+            });
+            await log(runId, `Dispatch failed for ${tool}: pinned_only left zero usable fixtures`, { level: "error", tool });
+            nextIdx += 1;
+            await db.from("quality_batch_runs").update({
+              tool_results: results, current_tool_index: nextIdx,
+            }).eq("id", runId);
+            continue;
+          }
+          pinsOverrideForTool = plan.intakes;
+          sizeForTool = plan.batchSize;
+          perToolSizes[tool] = sizeForTool;
+          await log(runId, `pinned_only: ${tool} runs ${sizeForTool} pinned perfect fixture(s); no scenarios generated`, { tool });
+        }
         const abPairId = abModels ? crypto.randomUUID() : null;
         let inv: { ok: true; runId: string; runNumber: number } | { ok: false; err: string } | null = null;
+
         for (let m = 0; m < modelsForWave.length; m++) {
           const genModel = modelsForWave[m];
           if (m > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
