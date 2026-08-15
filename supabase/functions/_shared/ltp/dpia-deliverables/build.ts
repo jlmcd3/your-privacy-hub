@@ -153,8 +153,23 @@ export function dpoRecommendsConsultation(advice: string): boolean {
 
 const NOT_STATED = "not stated on the record";
 
-/** Language that argues the IMPACT side of the balance. */
-const IMPACT_LEXICON: readonly RegExp[] = [
+/**
+ * Language that argues the IMPACT side of the balance.
+ *
+ * PROMPT 9D item 1 (CEO-ruled 2026-08-15) — EVIDENCE WIDENING ONLY. Batch
+ * e5a0deb8 / run 887a91d2 showed records that plainly described the effect of
+ * the processing on data subjects (population, decision volume, monitoring
+ * cadence, what is at stake, what they cannot avoid) being read as silent,
+ * because the original eight regexes demanded narrow phrasings. Every pattern
+ * below is derived from a real rejection or a graded document whose intake
+ * described impact while the document said "the impact … is not described";
+ * the evidencing passage is quoted beside it. Verdict logic, ask text and
+ * every rendered sentence's bytes are unchanged — only WHAT COUNTS AS
+ * EVIDENCE widens. Benefit-side prose alone must still fail this test, so no
+ * pattern below matches benefit vocabulary.
+ */
+export const IMPACT_LEXICON: readonly RegExp[] = [
+  // — original eight (unchanged) —
   /\bintrusive\b/i,
   /\bimpact(s|ed)? on\b/i,
   /\bdetriment\b/i,
@@ -163,7 +178,72 @@ const IMPACT_LEXICON: readonly RegExp[] = [
   /\breasonable expectations?\b/i,
   /\baffects? (the )?(data subjects?|individuals?|employees?|patients?|customers?)\b/i,
   /\bloss of control\b/i,
+
+  // — PROMPT 9D additions, each with its evidencing passage —
+
+  // "Six participants expressed concern about the absence of a default human
+  // review step" (doc b435d8eb, data_subjects_views).
+  /\b(express\w*|rais\w*|voic\w*|indicat\w*)\b[^.]{0,60}\bconcerns?\b/i,
+
+  // "54% were uncomfortable with health data being used in motor pricing"
+  // (doc dfe21899, data_subjects_views).
+  /\b(uncomfortable|discomfort|unease|distress|anxiet\w+)\b/i,
+
+  // "AurelianScore v3.2 may produce systematically less favourable outcomes
+  // for applicants from certain demographic cohorts" (doc b435d8eb,
+  // residual_risks).
+  /\b(less favourable|less favorable|unfavourable|unfavorable|adverse|detrimental|harmful)\b[^.]{0,40}\b(outcome|decision|effect|treatment|impact|consequence)\w*\b/i,
+
+  // "bias — whether the XGBoost model performs equitably across patient
+  // demographics" (doc 472a9ea1, data_subjects_views).
+  /\b(bias(ed|es)?|discriminat\w+|inequitab\w+|disparate impact)\b/i,
+
+  // "Declined applicants do not receive a meaningful human-review pathway in
+  // the adverse-action notice" (doc 56489b7c, residual_risks).
+  /\b(no|without|absence of|lack of|do(es)? not (receive|have|provide))\b[^.]{0,60}\bhuman[- ](review|intervention|oversight)\b/i,
+
+  // "38% were unaware that automated decisions were made without human
+  // review" (doc dfe21899, data_subjects_views).
+  /\b(unaware|not (being )?informed|without (their )?knowledge|no (real[- ]time )?notice)\b/i,
+
+  // "without explicit disclosure at the point of data collection" (doc
+  // 1ad3fbb5, data_subjects_views).
+  /\bwithout\b[^.]{0,40}\b(explicit )?(disclosure|transparency|informing|consent|explanation)\b/i,
+
+  // "Participants expressed a preference for a clear opt-out mechanism from
+  // automated scoring" / "a clear pathway to challenge it" (docs 1ad3fbb5,
+  // b435d8eb).
+  /\b(opt[- ]out|object(ion)?|challenge|contest|withdraw)\b[^.]{0,60}\b(mechanism|pathway|route|right|option|step)\b/i,
+
+  // "continuous GPS tracking at 10-second granularity is broader than strictly
+  // necessary" (doc dfe21899, necessity_proportionality) and run 887a91d2's
+  // "continuous transactional enrichment running 24/7".
+  /\b(surveillance|continuous (monitoring|tracking|enrichment)|location tracking|gps tracking|behavioural profiling|behavioral profiling|monitoring cadence)\b/i,
+
+  // "collected at 10-second GPS intervals exceeds actuarial necessity" /
+  // "broader than strictly necessary" (doc dfe21899).
+  /\b(exceeds?|broader than|more than)\b[^.]{0,40}\b(strictly )?(necessary|necessity)\b/i,
+
+  // Run 887a91d2: "approximately 18,000 automated credit decisions per month"
+  // — decision volume borne by the data subjects.
+  /\b[\d][\d,.]*\s*(automated\s+)?(\w+[- ])?(decisions?|scores?|assessments?|profiles?)\s+per\s+(day|week|month|quarter|year)\b/i,
+
+  // Run 887a91d2: "approximately 340,000 active data subjects, of whom roughly
+  // 18,000 receive a new automated decision per month" — affected population.
+  /\b[\d][\d,.]*\s*(active\s+)?(data subjects?|individuals?|applicants?|employees?|patients?|customers?)\b[^.]{0,80}\b(affected|receive|subject to|monitored|scored|profiled|tracked)\b/i,
+
+  // Run 887a91d2 ask text: "what they lose, what they would not expect, and
+  // what they cannot avoid" — records that answer it in those terms.
+  /\b(cannot|can(no|')t|unable to)\s+(avoid|escape|opt out|prevent|challenge|object)\b/i,
+  /\b(would not|do(es)? not|did not)\s+expect\b/i,
+  /\bat stake\b/i,
+
+  // "automated scores influence care-coordinator outreach prioritisation …
+  // without any human review" (doc b929760c, residual_risks) — Art. 22-class
+  // consequence language.
+  /\b(legal effects?|similarly significant|significantly affect\w*|denied|refused|declined)\b[^.]{0,60}\b(applicants?|individuals?|data subjects?|customers?|patients?|candidates?|access|service|credit|claim)\w*\b/i,
 ];
+
 
 /**
  * PROMPT 8J item 3 (CEO-ruled 2026-08-12) — IMPACT-SIDE READER SCOPE.
@@ -182,6 +262,11 @@ const IMPACT_SOURCE_FIELDS: readonly string[] = [
   "potential_harm_detail",
   "risks_to_individuals",
 ];
+
+/** Single-constant predicate: the ONE widened lexicon, no forked copies. */
+export function hasImpactLanguage(text: string): boolean {
+  return matches(String(text ?? ""), IMPACT_LEXICON);
+}
 
 /** The intake segments that actually argue the impact side, joined. */
 function impactEvidence(intake: unknown): string {

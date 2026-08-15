@@ -11,7 +11,7 @@
 //   5. Instruction-leak phrases — "As an AI", "I cannot", "system prompt".
 //   6. Raw field-id tokens escaping into narrative — "q5b_...", "i2_...".
 
-import { BLACKLIST_RE } from "../../../_shared/blacklist-phrases.ts";
+import { BLACKLIST_PHRASES, BLACKLIST_RE } from "../../../_shared/blacklist-phrases.ts";
 
 // Any statute §-number the graders recognise as legitimate. Anchored
 // against learnings 10-17. Extend as new statutes come into scope.
@@ -189,4 +189,28 @@ export function lintFixtureForVariant(
     reason: `closed-loop perfect: ${lines.slice(0, 4).join(" | ")}${lines.length > 4 ? ` (+${lines.length - 4} more)` : ""}`,
     deficiencies: res.deficiencies,
   };
+}
+
+
+// PROMPT 9D item 3 (2026-08-15) — BLACKLIST-AWARE REPAIR GUIDANCE.
+//
+// Run 887a91d2's repair retry died on "retry: blacklist phrase" — a constraint
+// the repair prompt had never named. Both repair paths (fixture lint and
+// contract validation) now append this constraint set, which is generated FROM
+// the very constants this module screens with (blacklist phrases imported from
+// _shared/blacklist-phrases.ts — never a duplicated list).
+export function fixtureConstraintGuidance(): string {
+  const phrases = BLACKLIST_PHRASES.map((p) => `"${p}"`).join(", ");
+  const hedges = HEDGE_PATTERNS.map((re) => re.source).join(" | ");
+  const allow = STATUTE_ALLOWLIST.map((re) => re.source).join(" | ");
+  return [
+    "THE REPAIRED OBJECT MUST ALSO AVOID (these screens rejected nothing yet but will reject the repair):",
+    `- Blacklist phrases, in any field: ${phrases}.`,
+    `- Hedge patterns: ${hedges}.`,
+    "- Bracketed instruction leaks: [INTERNAL], [TODO], [PLACEHOLDER], [REDACTED].",
+    "- Instruction leaks: \"As an AI\", \"I cannot\", \"system prompt\", \"ignore previous instructions\".",
+    "- Raw field-id tokens in narrative prose (e.g. q5b_share_revenue, i2_retention_period).",
+    `- Section-number citations outside the allowlist; only these statute forms are permitted: ${allow}.`,
+    "State facts plainly and name the owner or date instead of hedging.",
+  ].join("\n");
 }
