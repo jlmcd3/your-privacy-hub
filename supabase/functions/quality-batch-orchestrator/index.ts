@@ -804,7 +804,7 @@ async function finalizeIfDone(runId: string) {
 // stays NULL on the batch row and every child run, which is byte-identical to
 // the pre-SO-FINAL-TEST path used by /admin/quality-batch and
 // /admin/final-test. Only "skeleton" changes anything.
-async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown, graderModeRaw?: unknown)
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown, graderModeRaw?: unknown, pinnedOnlyRaw?: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -867,6 +867,8 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     ...(String(enginePathRaw ?? "") === "ltp" ? { engine_path: "ltp" } : {}),
     // SO-FINAL-TEST — additive grader path selector.
     ...(String(graderModeRaw ?? "") === "skeleton" ? { grader_mode: "skeleton" } : {}),
+    // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. Only true changes anything.
+    ...(pinnedOnlyRaw === true ? { pinned_only: true } : {}),
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
@@ -1294,7 +1296,7 @@ async function handler(req: Request) {
   if (isCron && body?.action === "start") {
     const owner = await resolveAdminOwner();
     if (!owner) return json({ error: "no admin owner available for internal start" }, 500);
-    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode);
+    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     try {
       await admin().from("admin_action_log").insert({
@@ -1339,7 +1341,7 @@ async function handler(req: Request) {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }
