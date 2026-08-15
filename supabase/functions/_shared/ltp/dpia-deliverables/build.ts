@@ -1187,7 +1187,29 @@ const VULNERABLE_SUBJECTS: readonly RegExp[] = [
 
 const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data", "Children's data"];
 
+/**
+ * PROMPT 9H.1 item 1 (CEO-ruled 2026-08-15) — PINPOINT-FIRST RESOLUTION.
+ *
+ * Defect corrected: ART6_SUBSECTIONS is keyword-ordered, so /contract/i tested
+ * before /legitimate interest/i and matched the word "contractual" in the
+ * Harrowgate pinned fixture's secondary text — "…a basis stated separately from
+ * the contractual basis of the primary operation" — resolving the secondary
+ * operation to 6(1)(b) even though that text explicitly names "Article 6(1)(f):".
+ *
+ * Resolution order is now: (1) explicit Art. 6(1) sub-paragraph pinpoint, first
+ * pinpoint wins; (2) only where NO pinpoint exists, the existing keyword list
+ * runs byte-unchanged in its existing order. One implementation, used wherever
+ * a basis is resolved (record-level and per-operation) — no fork.
+ */
+const ART6_PINPOINT_RE = /(?:art(?:icle|\.)?\s*)?6\s*\(\s*1\s*\)\s*\(\s*([a-f])\s*\)/i;
+
 function readArt6(basisText: string): { sub: string; label: string } | null {
+  const pin = ART6_PINPOINT_RE.exec(basisText);
+  if (pin) {
+    const sub = `Art. 6(1)(${pin[1].toLowerCase()})`;
+    const e = ART6_SUBSECTIONS.find((x) => x.sub === sub);
+    if (e) return { sub: e.sub, label: e.label };
+  }
   for (const e of ART6_SUBSECTIONS) if (e.re.test(basisText)) return { sub: e.sub, label: e.label };
   return null;
 }
