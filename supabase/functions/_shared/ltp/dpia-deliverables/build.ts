@@ -813,10 +813,6 @@ function chapterVSentences(text: string): string[] {
 }
 
 // NEGATION / MODALITY GUARD — sentence-scoped. Each form lands from run 187.
-const CHAPTER_V_NEGATION =
-  // "No transfer mechanism documented." / "no GDPR Art. 46 ... mechanism
-  // identified" (run 187 flow 2, both attempts)
-  /\b(no|not|never|without|neither|nor)\b|\bn't\b|/.source;
 const CHAPTER_V_BLOCKERS: RegExp[] = [
   // "No transfer mechanism documented. ... no GDPR Art. 46 or UK GDPR
   // Schedule 21 mechanism identified. This is an open gap." (run 187, flow 2)
@@ -841,8 +837,6 @@ const CHAPTER_V_BLOCKERS: RegExp[] = [
   /\bin progress\b/i,
   /\bdraft\b/i,
 ];
-void CHAPTER_V_NEGATION;
-
 function chapterVClean(sentence: string): boolean {
   return !CHAPTER_V_BLOCKERS.some((re) => re.test(sentence));
 }
