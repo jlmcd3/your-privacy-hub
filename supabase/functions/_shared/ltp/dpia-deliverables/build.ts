@@ -836,7 +836,12 @@ const CHAPTER_V_BLOCKERS: RegExp[] = [
   /\byet\b/i,
   /\bin progress\b/i,
   /\bdraft\b/i,
+  // PROMPT 9G (4b) — placeholder references are not completion evidence.
+  // "IDTA countersigned on 2024-11-14. TRA ref TBD." (CEO verification probe)
+  /\bTB[DA]\b/i,
+  /\bto follow\b/i,
 ];
+
 function chapterVClean(sentence: string): boolean {
   return !CHAPTER_V_BLOCKERS.some((re) => re.test(sentence));
 }
