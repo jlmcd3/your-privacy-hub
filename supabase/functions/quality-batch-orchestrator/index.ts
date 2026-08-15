@@ -632,8 +632,9 @@ async function runUnit(runId: string) {
         for (let m = 0; m < modelsForWave.length; m++) {
           const genModel = modelsForWave[m];
           if (m > 0) await new Promise((r) => setTimeout(r, WAVE_STAGGER_MS));
-          inv = await seedAndResume(tool, size, (run as any).created_by, campaignIdForBatch, {
+          inv = await seedAndResume(tool, sizeForTool, (run as any).created_by, campaignIdForBatch, {
             variant: variantForTool,
+            ...(pinsOverrideForTool !== undefined ? { pinsOverride: pinsOverrideForTool } : {}),
             enginePath: (run as any).engine_path ?? null,
             graderMode: (run as any).grader_mode ?? null,
             generationModel: genModel,
@@ -644,10 +645,10 @@ async function runUnit(runId: string) {
             results.push({
               tool, quality_run_id: null, run_number: null,
               final_status: "dispatch_failed", score_overall: null,
-              gpt_score_overall: null, error: inv.err, batch_size: size,
+              gpt_score_overall: null, error: inv.err, batch_size: sizeForTool,
               generation_model: genModel, ab_pair_id: abPairId,
             });
-            await log(runId, `Dispatch failed for ${tool} (batch_size=${size})${modelLabel}: ${inv.err}`, { level: "error", tool });
+            await log(runId, `Dispatch failed for ${tool} (batch_size=${sizeForTool})${modelLabel}: ${inv.err}`, { level: "error", tool });
           } else {
             results.push({
               tool,
@@ -658,11 +659,11 @@ async function runUnit(runId: string) {
               gpt_score_overall: null,
               error: null,
               dispatched_at: new Date().toISOString(),
-              batch_size: size,
+              batch_size: sizeForTool,
               generation_model: genModel,
               ab_pair_id: abPairId,
             } as InFlightEntry & Record<string, unknown>);
-            await log(runId, `Dispatched ${tool} (batch_size=${size})${modelLabel} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
+            await log(runId, `Dispatched ${tool} (batch_size=${sizeForTool})${modelLabel} → quality_runs=${inv.runId} (run #${inv.runNumber})`, { tool });
           }
         }
         nextIdx += 1;
