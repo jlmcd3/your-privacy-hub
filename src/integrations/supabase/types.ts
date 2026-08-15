@@ -4581,6 +4581,7 @@ export type Database = {
           last_error: string | null
           last_heartbeat_at: string
           phase: string
+          pinned_only: boolean
           started_at: string
           status: string
           tool_results: Json
@@ -4607,6 +4608,7 @@ export type Database = {
           last_error?: string | null
           last_heartbeat_at?: string
           phase?: string
+          pinned_only?: boolean
           started_at?: string
           status?: string
           tool_results?: Json
@@ -4633,6 +4635,7 @@ export type Database = {
           last_error?: string | null
           last_heartbeat_at?: string
           phase?: string
+          pinned_only?: boolean
           started_at?: string
           status?: string
           tool_results?: Json
