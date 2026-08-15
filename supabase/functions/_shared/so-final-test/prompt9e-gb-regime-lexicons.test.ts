@@ -2,6 +2,7 @@
 // party-lexicon widening, and the 9D impact-lexicon tightening.
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  buildLegalBasis,
   buildProcessingInventory,
   buildSection2Coverage,
   hasImpactLanguage,
@@ -100,18 +101,14 @@ const PARTY_NO = [
 
 for (const s of PARTY_YES) {
   Deno.test(`9E item 3: party language met — ${s.slice(0, 40)}`, () => {
-    const r = buildSection2Coverage(intake({ data_subjects: s }), {
-      processing_inventory: buildProcessingInventory(intake({ data_subjects: s })),
-    });
-    assert(r.legal_basis.some((b) => b.basis === "Art. 6(1)(b)" ? b.met : true));
-    assert(r.legal_basis.find((b) => b.basis === "Art. 6(1)(b)")?.met !== false, `not met: ${s}`);
+    const lb = buildLegalBasis(intake({ data_subjects: s }));
+    assertEquals(lb.find((b) => b.basis === "Art. 6(1)(b)")?.met, true, `not met: ${s}`);
   });
 }
 for (const s of PARTY_NO) {
   Deno.test(`9E item 3: non-party language NOT met — ${s}`, () => {
-    const i = intake({ data_subjects: s });
-    const r = buildSection2Coverage(i, { processing_inventory: buildProcessingInventory(i) });
-    assertEquals(r.legal_basis.find((b) => b.basis === "Art. 6(1)(b)")?.met, false);
+    const lb = buildLegalBasis(intake({ data_subjects: s }));
+    assertEquals(lb.find((b) => b.basis === "Art. 6(1)(b)")?.met, false);
   });
 }
 
