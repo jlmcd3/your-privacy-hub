@@ -411,6 +411,7 @@ export interface DpiaSpecialCategoryConditionRow {
 export type DpiaTransferDetermination =
   | "no_transfer_on_the_record"
   | "intra_eea_processing"
+  | "uk_domestic_processing"
   | "adequacy"
   | "chapter_v_mechanism_required";
 
