@@ -57,13 +57,9 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
             p.kind === "table" && p.table ? (
               <SkeletonTableView key={i} table={p.table} />
             ) : section.id === "table_of_authorities" ? (
-              <pre
-                key={i}
-                className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-foreground"
-              >
-                {p.text}
-              </pre>
+              <ToaView key={i} text={p.text} />
             ) : (
+
               p.text.split(/\n{2,}/).map((chunk, j) => (
                 <p key={`${i}-${j}`} className="leading-relaxed text-foreground whitespace-pre-line">
                   {chunk}
