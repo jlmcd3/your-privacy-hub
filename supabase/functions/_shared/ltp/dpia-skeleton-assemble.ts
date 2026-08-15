@@ -19,7 +19,8 @@
 import {
   DPIA_SKELETON_SECTIONS,
   DPIA_SKELETON_TITLE,
-  DPIA_SKELETON_SUBTITLE,
+  DPIA_SKELETON_SUBTITLE_EU,
+  DPIA_SKELETON_SUBTITLE_UK,
   DPIA_SKELETON_VERSION,
   DPIA_V3_BANNED_REGISTER,
 } from "../prose/plans/dpia.spine.ts";
@@ -965,11 +966,10 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   ) as ComposedBlocks;
 
   // PROMPT 9H item 3 — the PDF header names the regime the record is under.
-  // Spine constant untouched; the prefix is substituted at render time.
+  // PROMPT 9H.1 item 2 — selected from two ratified spine constants; the
+  // render-time .replace over a ratified constant is removed.
   const regime = readDpiaRegime(intake);
-  const subtitle = regime === "UK"
-    ? DPIA_SKELETON_SUBTITLE.replace("Article 35 GDPR", "Article 35 UK GDPR")
-    : DPIA_SKELETON_SUBTITLE;
+  const subtitle = regime === "UK" ? DPIA_SKELETON_SUBTITLE_UK : DPIA_SKELETON_SUBTITLE_EU;
 
   const draft = renderSkeletonDocument({
     sections: DPIA_SKELETON_SECTIONS,
