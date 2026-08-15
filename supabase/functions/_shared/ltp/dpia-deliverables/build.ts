@@ -1035,17 +1035,39 @@ const CONSENT_LEXICON: readonly RegExp[] = [
   /\bpreference cent(re|er)\b/i,
 ];
 
-/** Contracting-party language (6(1)(b)). */
+/**
+ * Contracting-party language (6(1)(b)).
+ *
+ * PROMPT 9E item 3 (CEO-ruled 2026-08-15) — PARTY-RELATIONSHIP WIDENING.
+ * Evidence: run ec65e54d's rejected intake read "Individual consumers
+ * (adults aged 18+) applying for Vanthorpe personal motor or home insurance
+ * products" — plainly the pre-contractual class Art. 6(1)(b) contemplates —
+ * but the lexicon matched noun forms only and missed "applying for". Only
+ * party-RELATIONSHIP language is added; non-party classes (people whose data
+ * is scraped from public sources, tracked website visitors) must still fail.
+ */
 const CONTRACT_PARTY_LEXICON: readonly RegExp[] = [
   /\bcustomers?\b/i,
   /\bclients?\b/i,
   /\bsubscribers?\b/i,
   /\bemployees?\b/i,
   /\bparty\b|\bparties\b/i,
-  /\baccount holders?\b/i,
-  /\bpolicyholders?\b/i,
+  /\baccount ?holders?\b/i,
+  /\bpolicy ?holders?\b/i,
   /\bapplicants?\b/i,
+  // "…applying for Vanthorpe personal motor or home insurance products"
+  // (run ec65e54d intake, data_subjects) — pre-contractual steps at the
+  // data subject's request.
+  /\bapply(ing|ies)? for\b|\bapplied for\b|\bapplications? for\b/i,
+  // "prospective policyholders", "prospective customers" — the same
+  // pre-contractual class named as a noun phrase.
+  /\bprospective (customers?|clients?|policy ?holders?|subscribers?|members?|tenants?)\b/i,
+  // Insurance / lending / tenancy counterparties.
+  /\bthe insured\b|\binsureds?\b/i,
+  /\bborrowers?\b/i,
+  /\bmembers\b/i,
 ];
+
 
 /** A NAMED legal instrument (6(1)(c) and 6(1)(e)). */
 const NAMED_INSTRUMENT_LEXICON: readonly RegExp[] = [
