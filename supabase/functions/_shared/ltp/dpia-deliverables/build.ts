@@ -730,7 +730,7 @@ export function flowLeavesOriginRegime(
 const DPF_TEXT = /\b(eu[-\s]?u\.?s\.?\s+data\s+privacy\s+framework|data\s+privacy\s+framework|\bdpf\b)\b/i;
 const UK_EXT_TEXT = /\b(uk\s+extension|uk[-\s]?u\.?s\.?\s+data\s+bridge|data\s+bridge)\b/i;
 
-export function readTransferFlowAliases(f: Record<string, unknown>): {
+export function readTransferFlowAliases(f: Record<string, unknown>, recordRegime: DpiaRegime = "EU"): {
   dest: string;
   origin: "EU" | "UK";
   importer: string;
@@ -752,9 +752,18 @@ export function readTransferFlowAliases(f: Record<string, unknown>): {
   const ukExtensionCertified = ukFlag == null
     ? (DPF_TEXT.test(mechanismText) && UK_EXT_TEXT.test(mechanismText)) || UK_EXT_TEXT.test(mechanismText)
     : !!ukFlag;
+  // PROMPT 9E item 2 — RECORD-REGIME ORIGIN FALLBACK. Where the flow carries
+  // no originRegime, the origin is the RECORD's regime — exactly the
+  // flowLeavesOriginRegime (8E) semantics — not a hardcoded "EU".
+  const origin: "EU" | "UK" = originRaw === "UK"
+    ? "UK"
+    : originRaw === "EU"
+    ? "EU"
+    : (recordRegime === "UK" ? "UK" : "EU");
   return {
     dest,
-    origin: originRaw === "UK" ? "UK" : "EU",
+    origin,
+
     importer,
     dpfCertified,
     ukExtensionCertified,
