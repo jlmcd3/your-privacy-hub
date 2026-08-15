@@ -2452,6 +2452,9 @@ async function runBatchInner(runId: string): Promise<void> {
 
         );
         state.intakeGen = gen;
+        // PROMPT 9D item 2 — persist immediately so the rejected intake JSONs
+        // survive even when the run aborts below (perfect fail-fast).
+        await persistState();
         if (genStatus === "deadline") {
           await persistState();
           await log("info", `Intake generation deadline (isolate ${intakeIsolate}, ${Math.round(INTAKE_ISOLATE_BUDGET_MS / 1000)}s) — persisted ${gen.accepted.length} accepted / ${gen.totalAttempted} attempted and self-reinvoking to CONTINUE at scenario ${gen.totalAttempted + 1}/${needed}`);
