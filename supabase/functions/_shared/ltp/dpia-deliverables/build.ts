@@ -206,31 +206,46 @@ export const IMPACT_LEXICON: readonly RegExp[] = [
   // review" (doc dfe21899, data_subjects_views).
   /\b(unaware|not (being )?informed|without (their )?knowledge|no (real[- ]time )?notice)\b/i,
 
-  // "without explicit disclosure at the point of data collection" (doc
-  // 1ad3fbb5, data_subjects_views).
-  /\bwithout\b[^.]{0,40}\b(explicit )?(disclosure|transparency|informing|consent|explanation)\b/i,
+  // "Enrichment of application data from external sources proceeds without
+  // explicit disclosure at the point of collection" (doc 1ad3fbb5).
+  // PROMPT 9E item 4 — tightened: the PROCESSING must occur without the
+  // disclosure/consent. A negated safeguard ("No data is shared with third
+  // parties without explicit consent being obtained first") is not impact.
+  /\b(proceeds?|occurs?|runs?|operates?|happens?|takes place|is (carried out|performed|conducted|done)|are (carried out|performed|conducted))\b[^.]{0,40}\bwithout\b[^.]{0,40}\b(explicit |prior |meaningful )?(disclosure|transparency|informing|consent|explanation|notice)\b/i,
 
   // "Participants expressed a preference for a clear opt-out mechanism from
   // automated scoring" / "a clear pathway to challenge it" (docs 1ad3fbb5,
-  // b435d8eb).
-  /\b(opt[- ]out|object(ion)?|challenge|contest|withdraw)\b[^.]{0,60}\b(mechanism|pathway|route|right|option|step)\b/i,
+  // b435d8eb). PROMPT 9E item 4 — tightened to absence/deficiency or demand
+  // form only; an available opt-out described positively is a safeguard.
+  /\b(no|without|absence of|lack(s|ing)? of|not (offered|provided|available)|do(es)? not (offer|provide|have))\b[^.]{0,60}\b(opt[- ]out|objection|challenge|contest|withdrawal)\b/i,
+  /\b(preference for|prefer\w*|request\w*|ask\w*|want\w*|sought|seek\w*|call\w+ for|demand\w*)\b[^.]{0,60}\b(opt[- ]out|object\w*|challenge|contest|withdraw\w*)\b/i,
 
   // "continuous GPS tracking at 10-second granularity is broader than strictly
-  // necessary" (doc dfe21899, necessity_proportionality) and run 887a91d2's
-  // "continuous transactional enrichment running 24/7".
-  /\b(surveillance|continuous (monitoring|tracking|enrichment)|location tracking|gps tracking|behavioural profiling|behavioral profiling|monitoring cadence)\b/i,
+  // necessary" (doc dfe21899) and run 887a91d2's "continuous transactional
+  // enrichment … with continuous monitoring of account behaviour".
+  // PROMPT 9E item 4 — tightened: monitoring counts only where INDIVIDUALS or
+  // their behaviour are monitored, never systems, access logs or infrastructure.
+  /\b(surveillance|location tracking|gps tracking|behavioural profiling|behavioral profiling)\b/i,
+  /\bcontinuous(ly)? (monitor\w*|track\w*|enrich\w*|profil\w*|scor\w*)\b[^.]{0,40}\b(data subjects?|individuals?|customers?|employees?|patients?|applicants?|users?|behaviour\w*|behavior\w*|location|movements?|activity|transactions?)\b/i,
 
   // "collected at 10-second GPS intervals exceeds actuarial necessity" /
   // "broader than strictly necessary" (doc dfe21899).
   /\b(exceeds?|broader than|more than)\b[^.]{0,40}\b(strictly )?(necessary|necessity)\b/i,
 
-  // Run 887a91d2: "approximately 18,000 automated credit decisions per month"
-  // — decision volume borne by the data subjects.
-  /\b[\d][\d,.]*\s*(automated\s+)?(\w+[- ])?(decisions?|scores?|assessments?|profiles?)\s+per\s+(day|week|month|quarter|year)\b/i,
+  // Run 887a91d2: "Approximately 18,000 automated credit decisions per month
+  // are issued against these customers" — decision volume BORNE by the data
+  // subjects. PROMPT 9E item 4 — tightened: throughput alone is not impact;
+  // the count must be of decisions the subjects receive or are subject to.
+  /\b[\d][\d,.]*\s*(automated\s+)?(\w+[- ])?(decisions?|scores?|assessments?|profiles?)\b[^.]{0,80}\b(issued (against|to|on)|received by|receive|borne by|imposed on|made about|applied to|(are|is) subject to|served on|against (these |those |the )?(customers?|applicants?|individuals?|data subjects?|employees?|patients?))\b/i,
 
   // Run 887a91d2: "approximately 340,000 active data subjects, of whom roughly
-  // 18,000 receive a new automated decision per month" — affected population.
-  /\b[\d][\d,.]*\s*(active\s+)?(data subjects?|individuals?|applicants?|employees?|patients?|customers?)\b[^.]{0,80}\b(affected|receive|subject to|monitored|scored|profiled|tracked)\b/i,
+  // 18,000 receive a new automated decision each cycle, are scored" — affected
+  // population. PROMPT 9E item 4 — tightened: a headcount of people who
+  // RECEIVE A BENEFIT is not impact; the population must be monitored, scored,
+  // profiled, tracked, affected, or receiving an automated decision.
+  /\b[\d][\d,.]*\s*(active\s+)?(data subjects?|individuals?|applicants?|employees?|patients?|customers?)\b[^.]{0,90}\b(are |is |been )?(affected|monitored|scored|profiled|tracked|surveilled)\b/i,
+  /\b[\d][\d,.]*\s*(active\s+)?(data subjects?|individuals?|applicants?|employees?|patients?|customers?)\b[^.]{0,90}\b(receives?|(are|is) subject to)\b[^.]{0,40}\b(automated|decisions?|scor\w*|profil\w*|assessments?|monitoring)\b/i,
+
 
   // Run 887a91d2 ask text: "what they lose, what they would not expect, and
   // what they cannot avoid" — records that answer it in those terms.
