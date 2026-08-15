@@ -1666,7 +1666,7 @@ export async function generateValidatedIntakesChunked(
       batch = await genOne(tool, 1, extraGuidance);
     } catch (e) {
       progress.totalAttempted += 1;
-      progress.rejected.push({ reason: `generation failed — ${(e as Error).message}` });
+      progress.rejected.push({ reason: `generation failed — ${(e as Error).message}`, attempts: [] });
       await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, false);
       continue;
     }
@@ -1674,7 +1674,7 @@ export async function generateValidatedIntakesChunked(
     const item = batch[0];
     progress.totalAttempted += 1;
     if (!item) {
-      progress.rejected.push({ reason: "generator returned no item" });
+      progress.rejected.push({ reason: "generator returned no item", attempts: [] });
       await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, false);
       continue;
     }
@@ -1683,7 +1683,12 @@ export async function generateValidatedIntakesChunked(
       : await screenIntake(tool, item, ((x: any) => lintFixtureForVariant(tool, ctx.variant ?? null, x)) as any, extraGuidance);
 
     if (screened.ok) progress.accepted.push(screened.intake);
-    else progress.rejected.push({ reason: screened.reason });
+    // PROMPT 9D item 2 — persist the FULL rejected intake JSON(s) with reason
+    // and attempt number; carried into quality_runs.partial_state by the caller.
+    else progress.rejected.push({
+      reason: screened.reason,
+      attempts: (screened as any).attempts ?? [{ attempt: 1, reason: screened.reason, intake: item }],
+    });
     await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok, screened.ok ? undefined : screened.reason);
     // PROMPT 9C item 4 — FAIL FAST on the perfect variant. One scenario that
     // exhausts its single retry is enough evidence; do not spend another two
