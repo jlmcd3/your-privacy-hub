@@ -587,7 +587,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
         verdict = "least_intrusive_means_supported";
         why =
           `The company has recorded ${alternatives.length === 1 ? "one alternative" : `${nWord(alternatives.length)} alternatives`} — ${alternatives.map((x) => x.alternative).join("; ")} — and states ${alternatives.length === 1 ? "why it" : "for each why it"} would not achieve the recorded purpose ("${op.purpose_text}"). ` +
-          `Applying the stated test — ${test.verbatim} — no realistic less intrusive alternative is left standing on this record, and the chosen means is supported as necessary.`;
+          DPIA_NECESSITY_TEST_SENTENCE;
       }
     }
 
@@ -2834,10 +2834,10 @@ export function buildRiskCountNote(
   const note = stated_count < register_count
     ? `The company self-identified ${nWord(stated_count)} of these risks; this assessment surfaces ${
       nWord(register_count - stated_count)
-    } more. The company's own account is recorded in its own words in Section 6 of this assessment.`
+    } more. The company's own account is recorded in its own words in Section 6 below.`
     : `The company self-identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
       nWord(register_count)
-    } after consolidation, and the company's own account is recorded in its own words in Section 6 of this assessment.`;
+    } after consolidation, and the company's own account is recorded in its own words in Section 6 below.`;
   return {
     register_count,
     stated_count,
