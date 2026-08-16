@@ -37,7 +37,10 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l1-v4-5";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l2-v4-5-1";
+
+/** The v4.5 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V45 = "prose-plans-2026-08-16-prompt9l1-v4-5";
 
 /** The v4.3 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V43 = "prose-plans-2026-08-15-prompt9i-v4-3";
@@ -104,14 +107,18 @@ export const DPIA_SKELETON_CONTENT_HASH_V43 =
 export const DPIA_SKELETON_CONTENT_HASH_V44 =
   "ef9a38e435f1c04c2fa3d9a7e6006a509aa9278a48d2f40205c08c420ef57429";
 
+/** The v4.5 fixed prose under basis v1 — retained for the audit trail. */
+export const DPIA_SKELETON_CONTENT_HASH_V45 =
+  "e2752c976328626a4bb34fe35a71c9d36bd7be8e5b408d38cc9c6ce1b4421517";
+
 /**
- * FIXED-PROSE HASH (BASIS v1) at spine v4.5 — the PROMPT 9L.1 redline edited
- * block 7 and relocated the design-risk intro to Section 4 — the PROMPT 9L redline changed
- * fixed prose (blocks 5, 6, 7, 9 and 10), so this value moves with it.
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.5.1 — PROMPT 9L.2 reordered the
+ * Section 4 blocks (statutory frame first, then the design-risk intro and
+ * table). No sentence bytes changed, but the basis-v1 concatenation order did.
  * Retained for the audit trail only; `DPIA_SPINE_HASH` (basis v2) is the pin.
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "e2752c976328626a4bb34fe35a71c9d36bd7be8e5b408d38cc9c6ce1b4421517";
+  "cb168a5e3155c60054d4e301f5bffeb18df01c051d3c717e6f19653a276c9c0a";
 
 
 
@@ -241,14 +248,17 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_4_risk_management",
     title: "Section 4 - Risk Assessment and Management",
     blocks: [
-      // PROMPT 9L.1 item 5 — the design-risk intro and table open Section 4 as
-      // the starting point of the risk assessment (moved from the end of §3).
-      { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below as the starting point of the risk assessment." },
-      { kind: "table", text: "risk_register.design" },
+      // PROMPT 9L.2 item 1 (CEO-ratified 2026-08-16) — pure block reorder: the
+      // statutory-frame block opens Section 4, and the relocated design-risk
+      // intro and table follow IMMEDIATELY AFTER it. Block bytes unchanged.
       // PROMPT 9I item 3 (CEO-ratified 2026-08-15) — the most-significant-risk
       // summary is the section's CLOSING paragraph, so the [DETERMINATION LEAD]
       // block moves last. Block bytes are unchanged.
       { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) requires an assessment of the measures planned to address them. This section identifies potential risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
+      // PROMPT 9L.1 item 5 — the design-risk intro and table are the starting
+      // point of the risk assessment (moved from the end of §3).
+      { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below as the starting point of the risk assessment." },
+      { kind: "table", text: "risk_register.design" },
       { kind: "table", text: "risk_register.incident" },
       { kind: "table", text: "risk_register" },
       { kind: "generated", text: "[GENERATED] From the typed risk register: each risk with its likelihood and severity, the measure that answers it, and the residual position, attributed throughout; the renderer draws the table, and the prose analyses only what bears on the decision. The safeguards the company has recorded: {safeguards - as prose}." },
@@ -341,6 +351,10 @@ export function serializeDpiaSpine(
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
+  "6260f748f34385573e32dc4e5c32d97e1ef52938dad3127ec041573e72541960";
+
+/** The v4.5 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V45 =
   "bcfc3c514767ea0f653af7b89951a76ab7b901ed6dc3517537fc5bf1a88baab6";
 
 /** The v4.4 spine under basis v2 — retained for the audit trail. */
