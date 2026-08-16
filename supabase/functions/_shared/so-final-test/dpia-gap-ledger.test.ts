@@ -199,7 +199,7 @@ Deno.test("reconciliation: note appears when the stated count differs from the r
   // PROMPT 8E item 1 — ratified bytes: number words, no lead-in sentence.
   assertEquals(
     note!.note,
-    "The company self-identified two of these risks; this assessment surfaces one more. The company's own account is recorded in its own words in the sign-off section.",
+    "The company self-identified two of these risks; this assessment surfaces one more. The company's own account is recorded in its own words in Section 6 of this assessment.",
   );
 });
 

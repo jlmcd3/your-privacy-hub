@@ -37,11 +37,14 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-12-prompt8d-v4-2";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-15-prompt9i-v4-3";
+
+/** The superseded v4.2 spine version string, kept for documents already assembled. */
+export const DPIA_SKELETON_VERSION_V42 = "prose-plans-2026-08-12-prompt8d-v4-2";
 export const DPIA_SKELETON_SOURCE_FILE =
-  "DPIA spine v4.2 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4.1 (CEO-ratified 2026-08-12), spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
+  "DPIA spine v4.3 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-15 (PROMPT 9I redline of document 03, batch 3a4f10c4); supersedes DPIA spine v4.2 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4.1 (CEO-ratified 2026-08-12), spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
 export const DPIA_SKELETON_PROVENANCE =
-  "PROMPT 8D spine v4.2 — CEO ratification of 2026-08-12 (plain-language sweep), generated from the shipped v4.1 spine bytes; one structural change, the deletion of the executive-summary [DETERMINATION LEAD] block. Fixed prose unchanged.";
+  "PROMPT 9I spine v4.3 — CEO redline ratification of 2026-08-15, generated from the shipped v4.2 spine bytes: thirteen fixed-prose edits, and two composition moves (Section 3 determination last, Section 4 summary last). Slot inventory unchanged. Prior provenance: PROMPT 8D spine v4.2 — CEO ratification of 2026-08-12 (plain-language sweep), generated from the shipped v4.1 spine bytes; one structural change, the deletion of the executive-summary [DETERMINATION LEAD] block. Fixed prose unchanged.";
 
 /** The superseded v4.1 spine version string, kept for documents already assembled. */
 export const DPIA_SKELETON_VERSION_V41 = "prose-plans-2026-08-12-prompt8b-v4-1";
@@ -83,8 +86,16 @@ export const DPIA_SKELETON_CONTENT_HASH_V4 =
  * unchanged from v4.1 because v4.2 changed no fixed prose, which is exactly
  * why the basis was widened.
  */
-export const DPIA_SKELETON_CONTENT_HASH =
+export const DPIA_SKELETON_CONTENT_HASH_V41 =
   "5e538c3c50a0d8098acdffd9067166d92cb343da7f1b117158df9f7d66a4d7b2";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.3 — the PROMPT 9I redline changed
+ * fixed prose, so this value moves with it. Retained for the audit trail only;
+ * `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
+ */
+export const DPIA_SKELETON_CONTENT_HASH =
+  "615664dc04dd04392f7d158511ccda8a1d7b5fa009bd7ab7e958745ebda1eb72";
 
 
 
@@ -144,7 +155,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     blocks: [
       // PROMPT 8D (v4.2): the [DETERMINATION LEAD] block is DELETED. The
       // decision statement closes the executive body per the canonical model.
-      { kind: "skeleton", text: "Article 35 requires a data protection impact assessment where processing is likely to result in a high risk to the rights and freedoms of natural persons. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
+      { kind: "skeleton", text: "Article 35 requires a data protection impact assessment where processing is likely to result in a high risk to the rights and freedoms of natural persons. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
       { kind: "generated", text: "[GENERATED] The executive body per the canonical model: the risks reviewed and the measures mitigating them; whether any is deemed high; the self-identified/surfaced split; the open points; and the grounded decision statement, which closes the section." },
 
     ],
@@ -153,13 +164,13 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_0_overview",
     title: "Section 0 - Overview of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section identifies the parties to the processing and the terms on which this assessment was carried out. {organizationName} is the controller of the processing being assessed here, and the tables below identify the controller, the processors it has engaged, and the particulars of the engagements. Where the company has not recorded an entry, that absence is noted rather than filled." },
+      { kind: "skeleton", text: "This section identifies the parties to the processing and the terms on which this assessment was conducted. {organizationName} is the controller of the processing being assessed, and the tables below identify the processors it has engaged and the particulars of the engagements. Where the company has not provided information, the absence of that information is noted rather than assumed." },
       { kind: "table", text: "processing_inventory.controllers" },
       { kind: "table", text: "processing_inventory.processors" },
       { kind: "table", text: "processing_inventory.planning" },
-      { kind: "skeleton", text: "The company identifies the following particulars for the assessment itself: the reasons it was undertaken, its scope, the materials relied upon, and the company's intention as to publication." },
+      { kind: "skeleton", text: "Below, the company identifies the reasons the assessment was undertaken, its scope, the materials relied upon, and the company's intention as to publication, if applicable." },
       { kind: "table", text: "assessment_particulars" },
-      { kind: "skeleton", text: "The assessment team and the approval record below are taken from the company's own attestation and are reproduced as identified by the company." },
+      { kind: "skeleton", text: "The assessment team and the approval process are reproduced as identified by the company." },
       { kind: "table", text: "assessment_team" },
       { kind: "table", text: "validation_approval" },
     ],
@@ -168,26 +179,26 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_1_description",
     title: "Section 1 - Systematic Description of the Processing",
     blocks: [
-      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the processing operations and of the purposes pursued. {organizationName} describes below: the categories of data it identifies, the purposes it states, and any further uses it discloses." },
+      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the processing operations and of the purposes pursued. Pursuant to that requirement, the company identifies below: the categories of data it processes, the purposes of the processing, and any further uses of the data being processed." },
       { kind: "table", text: "processing_inventory.data_items" },
       { kind: "table", text: "processing_inventory.purposes" },
       { kind: "table", text: "processing_inventory.secondary_uses" },
-      { kind: "skeleton", text: "On the nature, scope and context of the processing the company has said: {natureScopeContext - attributed verbatim}. It describes the operation functionally as follows: {functionalDescription - attributed verbatim}. The assets supporting the processing as identified by the company are as follows: {supportingAssets - attributed verbatim}." },
+      { kind: "skeleton", text: "On the nature, scope and context of the processing the company has stated the following: {natureScopeContext - attributed verbatim}. The company describes the operation functionally as follows: {functionalDescription - attributed verbatim}. The company identifies the assets supporting the processing as follows: {supportingAssets - attributed verbatim}." },
     ],
   },
   {
     id: "section_2_analysis",
     title: "Section 2 - Analysis of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it. Each table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding against the company." },
+      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it. Each table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding assessed against the company." },
       { kind: "table", text: "legal_basis" },
-      { kind: "skeleton", text: "Where special categories of personal data are processed, Article 9(1) prohibits the processing unless one of the conditions in Article 9(2) applies. The condition the company has selected, and the company's corresponding reasoning, are set out below." },
+      { kind: "skeleton", text: "Where special categories of personal data are processed, Article 9(1) prohibits the processing unless one of the conditions in Article 9(2) applies. The condition under Article 9(2) that the company has selected, and the company's corresponding reasoning, are set forth below." },
       { kind: "table", text: "section2_coverage.special_category_conditions" },
       { kind: "table", text: "section2_coverage.data_minimisation_retention" },
       { kind: "table", text: "section2_coverage.data_quality" },
       { kind: "table", text: "section2_coverage.measures_article5" },
       { kind: "table", text: "section2_coverage.measures_rights" },
-      { kind: "skeleton", text: "A controller may transfer personal data outside the European Economic Area only where Chapter V's conditions for such transfer are satisfied, and may use a processor only under a contract meeting the processing details, security, and other requirements of Article 28(3). The company's position on each is below; where the company identifies no such transfers, the assessment proceeds on the basis that none are made." },
+      { kind: "skeleton", text: "A controller may transfer personal data outside the European Economic Area only where Chapter V's conditions for such transfer are satisfied. The controller may use a processor only under a contract meeting the requirements of Article 28(3), including the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller. The company's position on each is below; where the company identifies no such transfers, the assessment proceeds on the basis that none are made." },
       { kind: "table", text: "section2_coverage.measures_other" },
       { kind: "table", text: "section2_coverage.measures_dpbd" },
       { kind: "table", text: "section2_coverage.measures_security" },
@@ -197,9 +208,13 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_3_necessity_proportionality",
     title: "Section 3 - Considerations on Necessity and Proportionality",
     blocks: [
+      // PROMPT 9I item 4 (CEO-ratified 2026-08-15) — SECTION 3 COMPOSITION
+      // ORDER (S3-R1): statutory frame → necessity per operation →
+      // proportionality per operation → the Section-3 determination LAST. Only
+      // the two composed blocks swap position; no block's bytes move.
       { kind: "skeleton", text: "Article 35(7)(b) requires an assessment of the necessity and proportionality of the processing in relation to its purposes. The question is not whether the processing is useful to {organizationName}, but whether the same purpose could be achieved by means that are less intrusive." },
-      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether necessity and proportionality are made out on the company's answers." },
       { kind: "generated", text: "[GENERATED] The necessity and proportionality analysis: less-intrusive-means discipline applied to the company's answers; record facts only." },
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether necessity and proportionality are made out on the company's answers." },
       { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below." },
       { kind: "table", text: "risk_register.design" },
     ],
@@ -208,18 +223,22 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_4_risk_management",
     title: "Section 4 - Risk Assessment and Management",
     blocks: [
-      { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) the measures envisaged to address them. This section identifies the risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
+      // PROMPT 9I item 3 (CEO-ratified 2026-08-15) — the most-significant-risk
+      // summary is the section's CLOSING paragraph, so the [DETERMINATION LEAD]
+      // block moves last. Block bytes are unchanged.
+      { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) requires an assessment of the measures planned to address them. This section identifies potential risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
       { kind: "table", text: "risk_register.incident" },
-      { kind: "lead", text: "[DETERMINATION LEAD] One sentence identifying the most significant residual risk after measures." },
       { kind: "table", text: "risk_register" },
       { kind: "generated", text: "[GENERATED] From the typed risk register: each risk with its likelihood and severity, the measure that answers it, and the residual position, attributed throughout; the renderer draws the table, and the prose analyses only what bears on the decision. The safeguards the company has recorded: {safeguards - as prose}." },
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence identifying the most significant residual risk after measures." },
     ],
   },
+
   {
     id: "section_5_interested_parties",
     title: "Section 5 - Involvement of Interested Parties",
     blocks: [
-      { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer where one is designated, and Article 35(9) requires the views of data subjects or their representatives to be sought where appropriate. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. On the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
+      { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer, where one is designated, and Article 35(9) requires the views of data subjects or their representatives to be sought where appropriate. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. With respect to the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
     ],
   },
   {
@@ -300,6 +319,10 @@ export function serializeDpiaSpine(
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
+  "a773b8f93a77ee53682206a823b881ed0fef412de1254b2edd1fc2ca2a7942b1";
+
+/** The v4.2 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V42 =
   "fe0ced551e06dddd0444feb7834dd4911b63f83b52198090cd1cd95e86a76190";
 
 /** The v4.1 spine under basis v2 — retained for the audit trail. */

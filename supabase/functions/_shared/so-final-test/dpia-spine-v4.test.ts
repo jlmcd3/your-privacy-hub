@@ -60,7 +60,11 @@ Deno.test("spine v4.1 — the superseded v4 hash is retained for the audit trail
   assert(DPIA_SKELETON_CONTENT_HASH !== DPIA_SKELETON_CONTENT_HASH_V4);
 });
 
-Deno.test("spine v4.1 — the slot inventory is identical to v4", () => {
+// PROMPT 9I (CEO-ratified 2026-08-15) — the redline's replacement text for the
+// Section 1 opener drops its {organizationName} slot ("Pursuant to that
+// requirement, the company identifies below: ..."). That is the ONLY inventory
+// movement in v4.3; every other slot is carried through unchanged.
+Deno.test("spine v4.3 — the slot inventory is v4.1's, less the Section 1 opener's organizationName", () => {
   const slots = DPIA_SKELETON_SECTIONS
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text))
     .flatMap((t) => [...t.matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)/g)].map((m) => m[1]))
@@ -78,7 +82,6 @@ Deno.test("spine v4.1 — the slot inventory is identical to v4", () => {
     "organizationName",
     "organizationName",
     "organizationName",
-    "organizationName",
     "reasonsToConduct",
     "supportingAssets",
   ]);
@@ -89,20 +92,26 @@ Deno.test("spine v4.1 — the ratified wording edits are the shipped bytes", () 
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text));
   assertEquals(fixed.length, 16);
   assertStringIncludes(fixed[0], "{organizationName} believes that this assessment may be required because");
-  assertStringIncludes(fixed[1], "that absence is noted rather than filled.");
+  assertStringIncludes(fixed[1], "the absence of that information is noted rather than assumed.");
   assertStringIncludes(fixed[3], "reproduced as identified by the company.");
-  assertStringIncludes(fixed[4], "{organizationName} describes below:");
-  assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding against the company.");
+  assertStringIncludes(fixed[4], "the company identifies below:");
+  assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding assessed against the company.");
   assertStringIncludes(fixed[8], "Chapter V's conditions for such transfer are satisfied");
   assertStringIncludes(fixed[9], "means that are less intrusive.");
   assertStringIncludes(fixed[10], "The risks inherent in the processing's design \u2014 that is,");
   assertStringIncludes(fixed[11], "in light of the protective or mitigating measures it identifies.");
+  // PROMPT 9I item 1 — the v4.3 ratified edits are the shipped bytes.
+  assertStringIncludes(fixed[8], "the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller");
+  assertStringIncludes(fixed[11], "Article 35(7)(d) requires an assessment of the measures planned to address them");
   assertStringIncludes(fixed[12], "the company states: {dataSubjectsViews");
   assertStringIncludes(fixed[15], "could not determine from the company's answers");
   // The v4 wording must be gone.
   const all = fixed.join("\n");
   assert(!all.includes("has indicated that this assessment is required"));
   assert(!all.includes("the record does not carry the point"));
+  // The v4.2 wording must be gone.
+  assert(!all.includes("not a finding against the company"));
+  assert(!all.includes("that absence is noted rather than filled"));
 });
 
 Deno.test("spine v4.1 — sections follow the EDPB harmonised order", () => {
@@ -228,7 +237,7 @@ Deno.test("assembly — re-homed composers land on their v4.1 blocks and tables 
 
   const byId = (id: string) => document.sections.find((s) => s.id === id)!;
   const s3 = byId("section_3_necessity_proportionality").paragraphs.map((p) => p.text).join(" ");
-  assertStringIncludes(s3, "less intrusive means");
+  assertStringIncludes(s3, "the least intrusive means of achieving the purpose the company has stated");
   const s6 = byId("section_6_conclusion").paragraphs.map((p) => p.text).join(" ");
   assertStringIncludes(s6, "The sign-off determination recorded is");
   assertStringIncludes(s6, "no prior consultation with the supervisory authority");

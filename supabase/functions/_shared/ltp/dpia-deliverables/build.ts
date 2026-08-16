@@ -2834,10 +2834,10 @@ export function buildRiskCountNote(
   const note = stated_count < register_count
     ? `The company self-identified ${nWord(stated_count)} of these risks; this assessment surfaces ${
       nWord(register_count - stated_count)
-    } more. The company's own account is recorded in its own words in the sign-off section.`
+    } more. The company's own account is recorded in its own words in Section 6 of this assessment.`
     : `The company self-identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
       nWord(register_count)
-    } after consolidation, and the company's own account is recorded in its own words in the sign-off section.`;
+    } after consolidation, and the company's own account is recorded in its own words in Section 6 of this assessment.`;
   return {
     register_count,
     stated_count,

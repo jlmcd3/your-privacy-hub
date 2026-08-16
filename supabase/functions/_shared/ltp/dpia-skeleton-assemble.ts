@@ -369,19 +369,19 @@ function composeExecutiveDecisionSentence(report: Bag, total: number): string {
     const authority = /the Commissioner/.test(decisionText(report))
       ? "the Commissioner"
       : "the competent supervisory authority";
-    return `Given the noted risks and the mitigating measures, the processing being assessed may not begin until the company has consulted ${authority} under Article 36(1).`;
+    return `Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may not begin until the company has consulted ${authority} under Article 36(1).`;
   }
   if (art36 === "undetermined_on_the_record") {
-    return "Given the points still open, whether prior consultation is required cannot yet be determined, and the processing being assessed should not begin until it is.";
+    return "Given the points still open, and after the analysis as set forth below, whether prior consultation is required cannot yet be determined, and the processing being assessed should not begin until it is.";
   }
   if (det === "draft_incomplete") {
-    return "Given the points still open, this assessment cannot yet determine whether the processing being assessed may proceed.";
+    return "Given the points still open, and after the analysis as set forth below, this assessment cannot yet determine whether the processing being assessed may proceed.";
   }
   if (det === "conditionally_approved") {
-    return "Given the noted risks and the mitigating measures, the processing being assessed may proceed on the conditions set out below.";
+    return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed on the conditions set out below.";
   }
   if (det === "approved") {
-    return "Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate.";
+    return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate.";
   }
   // Pre-decision documents only: the legacy u5 string is the sole fallback.
   const legacy = decisionText(report);
@@ -456,7 +456,7 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
         : `This assessment reviews ${numberWord(total)} risks and the measures the company has put in place to mitigate them.`,
     );
     const preliminary =
-      `the risk levels in this document are preliminary until ${who} re-scores them against the mitigating measures once they have been deployed`;
+      `the risk levels in this document are preliminary until ${who} re-scores them against the mitigating measures, if and as identified by the company, once they have been deployed`;
     sentences.push(
       high > 0
         ? `${
@@ -565,29 +565,114 @@ function composeNecessityLead(report: Bag): string {
 }
 
 
+// ── PROMPT 9I item 4 (CEO-ratified 2026-08-15) — SECTION 3 RESTRUCTURE ──
+//
+// S3-R1  order: statutory frame (fixed prose) → necessity → proportionality →
+//        determination last (the [DETERMINATION LEAD] block, moved in the spine).
+// S3-R2  each element is its own paragraph; paragraphs are separated by a blank
+//        line and split by the shared renderer.
+// S3-R3  every customer quote in Section 3 is CLAUSE-BOUNDED: a quote carries a
+//        single clause of the company's own words, never a whole free-text field.
+
+/** S3-R3 — the first clause of a customer field, quote-safe and unpadded. */
+export function boundedClause(text: string): string {
+  const t = noStop(String(text ?? "").trim().replace(/\s+/g, " "));
+  if (!t) return "";
+  const one = noStop(firstSentence(t));
+  // Bound further at the first clause boundary (semicolon, or a comma-led
+  // coordinating conjunction). Never mid-word, never mid-quote.
+  const m = one.match(/^(.{20,}?)(?:;|,\s+(?:and|but|or|which|while|so that)\b)/i);
+  const clause = noStop((m ? m[1] : one).trim());
+  return clause;
+}
+
+const quoted = (t: string): string => (t ? `"${t}"` : "");
+
+/** Necessity, one operation: alternatives → rejection reasons → the test. */
+function composeNecessityElement(f: Bag): string[] {
+  const paras: string[] = [];
+  const alts = asArray(f.alternatives_considered)
+    .map((a) => ({ alt: boundedClause(s(a.alternative)), why: boundedClause(s(a.rejection_reason)) }))
+    .filter((a) => a.alt);
+  const purpose = boundedClause(s(f.purpose_text));
+
+  if (alts.length > 0) {
+    const list = alts.length === 1
+      ? `${quoted(alts[0].alt)}`
+      : alts.map((a, i) =>
+        `${i === alts.length - 1 ? "and " : ""}${i + 1}. ${quoted(a.alt)}`
+      ).join("; ");
+    const head = alts.length === 1
+      ? `The company has recorded one possible alternative to the proposed processing: ${list}.`
+      : `The company has recorded ${numberWord(alts.length)} possible alternatives to the proposed processing: ${list}.`;
+    const bridge = purpose
+      ? `The company states${alts.length === 1 ? "" : ", for each,"} why it would not achieve the necessary purpose of the processing, described by the company as ${quoted(purpose)}.`
+      : `The company states${alts.length === 1 ? "" : ", for each,"} why it would not achieve the necessary purpose of the processing.`;
+    const reasons = alts.filter((a) => a.why).map((a, i) =>
+      alts.length === 1 ? quoted(a.why) + "." : `${i + 1}. ${quoted(a.why)}.`
+    );
+    paras.push([head, bridge].join(" "));
+    if (reasons.length) paras.push(reasons.join("\n"));
+  }
+
+  // The necessity test itself — its own paragraph, and the last of the element.
+  const verdict = s(f.verdict);
+  if (verdict === "least_intrusive_means_supported") {
+    paras.push(
+      "On the record as it stands, the processing is the least intrusive means of achieving the purpose the company has stated.",
+    );
+  } else {
+    const why = s(f.why);
+    if (why) paras.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+  }
+  return paras.filter(Boolean);
+}
+
+/** Proportionality, one operation: benefit → impact → conclusion. */
+function composeProportionalityElement(p: Bag): string[] {
+  const paras: string[] = [];
+  const benefit = boundedClause(s(p.benefit_argument));
+  const impact = boundedClause(s(p.impact_argument));
+  if (benefit) {
+    paras.push(
+      `On the benefit of the processing, the company states that ${quoted(benefit)}.`,
+    );
+  }
+  if (impact) {
+    paras.push(
+      `On the impact of the processing on the people whose data is processed, the company states that ${quoted(impact)}.`,
+    );
+  }
+  const why = s(p.why);
+  if (why) paras.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+  return paras.filter(Boolean);
+}
+
 /** PROMPT 5: defect notice replacing the former raw-u3 fallback. */
 export const DPIA_NP_VOID_NOTICE =
   "The necessity and proportionality analysis for this assessment could not be composed from the record's structured surfaces; this document should be regenerated, and this sentence is a defect notice rather than an analysis.";
 
 export function composeNecessityBody(report: Bag): string {
-  const parts: string[] = [];
+  const paras: string[] = [];
   for (const f of asArray(report.necessity_findings).slice(0, 4)) {
-    const why = s(f.why);
-    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+    paras.push(...composeNecessityElement(f));
   }
   for (const p of asArray(report.proportionality).slice(0, 3)) {
-    const why = s(p.why);
-    if (why) parts.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+    paras.push(...composeProportionalityElement(p));
   }
-  if (parts.length === 0) {
+  if (paras.length === 0) {
     // PROMPT 5 (2026-08-11): no AI-text fallback. buildOperations always yields
     // at least one operation, so empty typed arrays mean the ITEM-310 attach
     // failed outright. Emit a defect notice, never unreviewed model prose.
     console.warn(JSON.stringify({ telemetry: "dpia_skeleton_np_void", necessity_findings: 0, proportionality: 0 }));
     return DPIA_NP_VOID_NOTICE;
   }
-  return repairRegister(parts.join(" "));
+  // Repair per LINE: numbered rejection reasons are one line each.
+  return paras
+    .map((para) => para.split("\n").map((line) => repairRegister(line)).join("\n"))
+    .join("\n\n");
 }
+
 
 /** The pipeline's band vocabulary, most serious first. */
 const BAND_ORDER = ["high", "undetermined", "moderate", "low"];
@@ -612,11 +697,14 @@ function composeRiskLead(report: Bag): string {
   if (band === "undetermined") {
     return `After the mitigating measures the company has recorded, the remaining risk level for ${label} is undetermined, and that is the most significant open point in this assessment.`;
   }
+  // PROMPT 9I item 3(b) (CEO-ratified 2026-08-15) — Section 4's CLOSING
+  // summary sentence, byte-fixed.
   return band
-    ? `After the mitigating measures the company has recorded, the most significant remaining risk is ${label}, at a preliminary remaining risk level of ${band}.`
-    : `After the mitigating measures the company has recorded, the most significant remaining risk is ${label}.`;
+    ? `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}, which is assessed herein at a preliminary remaining risk level of ${band}.`
+    : `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}.`;
 
 }
+
 
 
 // PROMPT 8A item 1, as revised by the PROMPT 8D plain-language sweep
