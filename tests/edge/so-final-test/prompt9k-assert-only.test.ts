@@ -17,6 +17,7 @@ import {
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { assembleDpiaSkeletonDocument, boundedClause } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
 import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 import { applyFrameSubstitution } from "../../../supabase/functions/_shared/prose/frame-substitution.ts";
 import { readDetectFindings } from "../../../supabase/functions/_shared/prose/detect-mode.ts";
@@ -30,7 +31,8 @@ import { applyDpiaBoilerplateCap } from "../../../supabase/functions/run-dpia-fr
 type Any = any;
 
 const intakeOf = (f: Any) => f.intake ?? f.intake_data ?? f;
-const FIXTURES = (DPIA_PERFECT_PINNED as Any[]).map(intakeOf);
+// ALL FOUR pins (the 9J.1 set): the two golden perfects + the two CEO pins.
+const FIXTURES = [...(DPIA_PERFECT as Any[]), ...(DPIA_PERFECT_PINNED as Any[])].map(intakeOf);
 
 /** The seven audited police passes, all in detect mode. */
 function runPoliceChain(report: Any, intake: Any) {
