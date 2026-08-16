@@ -101,8 +101,8 @@ Deno.test("9I.1 (v) — Section 4 renders the most-significant-remaining-risk su
 
 Deno.test("9I.1 — pin guard: every pinned perfect fixture still passes the closed-loop check", () => {
   assert(DPIA_PERFECT_PINNED.length >= 2);
-  for (const f of DPIA_PERFECT_PINNED) {
-    const res = checkPerfectDpiaIntake(f as Any);
+  for (const f of DPIA_PERFECT_PINNED as Any[]) {
+    const res = checkPerfectDpiaIntake(f.intake ?? f.intake_data ?? f);
     assert(res.ok, JSON.stringify(res));
   }
 });
