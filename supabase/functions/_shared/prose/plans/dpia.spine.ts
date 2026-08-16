@@ -37,7 +37,10 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-15-prompt9i-v4-3";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l-v4-4";
+
+/** The v4.3 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V43 = "prose-plans-2026-08-15-prompt9i-v4-3";
 
 /** The superseded v4.2 spine version string, kept for documents already assembled. */
 export const DPIA_SKELETON_VERSION_V42 = "prose-plans-2026-08-12-prompt8d-v4-2";
@@ -94,8 +97,16 @@ export const DPIA_SKELETON_CONTENT_HASH_V41 =
  * fixed prose, so this value moves with it. Retained for the audit trail only;
  * `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
  */
-export const DPIA_SKELETON_CONTENT_HASH =
+export const DPIA_SKELETON_CONTENT_HASH_V43 =
   "615664dc04dd04392f7d158511ccda8a1d7b5fa009bd7ab7e958745ebda1eb72";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.4 — the PROMPT 9L redline changed
+ * fixed prose (blocks 5, 6, 7, 9 and 10), so this value moves with it.
+ * Retained for the audit trail only; `DPIA_SPINE_HASH` (basis v2) is the pin.
+ */
+export const DPIA_SKELETON_CONTENT_HASH =
+  "ef9a38e435f1c04c2fa3d9a7e6006a509aa9278a48d2f40205c08c420ef57429";
 
 
 
@@ -179,18 +190,18 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_1_description",
     title: "Section 1 - Systematic Description of the Processing",
     blocks: [
-      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the processing operations and of the purposes pursued. Pursuant to that requirement, the company identifies below: the categories of data it processes, the purposes of the processing, and any further uses of the data being processed." },
+      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the processing operations and of the purposes pursued. Pursuant to that requirement, in the tables below the company identifies: the categories of data it processes, the purposes of the processing, and any further uses of the data being processed." },
       { kind: "table", text: "processing_inventory.data_items" },
       { kind: "table", text: "processing_inventory.purposes" },
       { kind: "table", text: "processing_inventory.secondary_uses" },
-      { kind: "skeleton", text: "On the nature, scope and context of the processing the company has stated the following: {natureScopeContext - attributed verbatim}. The company describes the operation functionally as follows: {functionalDescription - attributed verbatim}. The company identifies the assets supporting the processing as follows: {supportingAssets - attributed verbatim}." },
+      { kind: "skeleton", text: "On the nature, scope and context of the processing, the company has stated the following: {natureScopeContext - attributed verbatim}. The company describes the operation functionally as follows: {functionalDescription - attributed verbatim}. The company identifies the assets supporting the processing as follows: {supportingAssets - attributed verbatim}." },
     ],
   },
   {
     id: "section_2_analysis",
     title: "Section 2 - Analysis of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it. Each table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding assessed against the company." },
+      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it under the {regimeName}. In the first table below, the company asserts the lawful basis of the processing under Article 6(1). Each table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding assessed against the company." },
       { kind: "table", text: "legal_basis" },
       { kind: "skeleton", text: "Where special categories of personal data are processed, Article 9(1) prohibits the processing unless one of the conditions in Article 9(2) applies. The condition under Article 9(2) that the company has selected, and the company's corresponding reasoning, are set forth below." },
       { kind: "table", text: "section2_coverage.special_category_conditions" },
@@ -198,7 +209,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       { kind: "table", text: "section2_coverage.data_quality" },
       { kind: "table", text: "section2_coverage.measures_article5" },
       { kind: "table", text: "section2_coverage.measures_rights" },
-      { kind: "skeleton", text: "A controller may transfer personal data outside the European Economic Area only where Chapter V's conditions for such transfer are satisfied. The controller may use a processor only under a contract meeting the requirements of Article 28(3), including the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller. The company's position on each is below; where the company identifies no such transfers, the assessment proceeds on the basis that none are made." },
+      { kind: "skeleton", text: "A controller may transfer personal data outside the European Economic Area only where {regimeName} Chapter V's conditions for such transfer are satisfied. The controller may use a processor only under a contract meeting the requirements of Article 28(3), including the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller. The company's position on each is below; where the company identifies no such transfers, the assessment proceeds on the basis that none are made." },
       { kind: "table", text: "section2_coverage.measures_other" },
       { kind: "table", text: "section2_coverage.measures_dpbd" },
       { kind: "table", text: "section2_coverage.measures_security" },
@@ -212,7 +223,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       // ORDER (S3-R1): statutory frame → necessity per operation →
       // proportionality per operation → the Section-3 determination LAST. Only
       // the two composed blocks swap position; no block's bytes move.
-      { kind: "skeleton", text: "Article 35(7)(b) requires an assessment of the necessity and proportionality of the processing in relation to its purposes. The question is not whether the processing is useful to {organizationName}, but whether the same purpose could be achieved by means that are less intrusive." },
+      { kind: "skeleton", text: "Article 35(7)(b) requires an assessment of the necessity and proportionality of the processing in relation to its purposes. The following discussion analyzes the necessity and proportionality by identifying the company's specific goals, how the processing helps to reach those goals, whether less intrusive methods exist that could realistically achieve the same purpose, and the impact on individual privacy rights as balanced against the company's interests — all based on the information the company provided." },
       { kind: "generated", text: "[GENERATED] The necessity and proportionality analysis: less-intrusive-means discipline applied to the company's answers; record facts only." },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether necessity and proportionality are made out on the company's answers." },
       { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below." },
@@ -319,6 +330,10 @@ export function serializeDpiaSpine(
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
+  "ca79e31fdec77b47f0da56cdb6655295fdd877460db51f070d39b15237eb1210";
+
+/** The v4.3 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V43 =
   "a773b8f93a77ee53682206a823b881ed0fef412de1254b2edd1fc2ca2a7942b1";
 
 /** The v4.2 spine under basis v2 — retained for the audit trail. */

@@ -96,7 +96,15 @@ Deno.test("9K item 4 — full pipeline over all pinned perfect fixtures: no pass
       }
     }
 
-    // (i) + (iii) stored span == rendered span, and both match the lexicon.
+    // (i) + (iii) PROMPT 9L item 3(iv) — the RENDERED impact span (as it
+    // appears in the assembled Section 3) equals the STORED impact_argument
+    // span. This replaces the retired why-same-span assertion.
+    const s3 = document.sections.find((x: Any) => x.id === "section_3_necessity_proportionality")!;
+    const renderedQuotes = (s3.paragraphs as Any[])
+      .map((p) => String(p.text ?? ""))
+      .filter((t) => t.startsWith("The impact on individual privacy rights is stated by the company separately from the benefit:"))
+      .map((t) => t.match(/"([^"]+)"/)![1]);
+    const storedSpans: string[] = [];
     for (const prop of buildProportionality(intake) as Any[]) {
       const stored = String(prop.impact_argument ?? "");
       if (!stored || stored === "Not stated") continue;
@@ -105,6 +113,12 @@ Deno.test("9K item 4 — full pipeline over all pinned perfect fixtures: no pass
       assert(IMPACT_LEXICON.some((r) => r.test(rendered)), `rendered span off-lexicon: ${rendered}`);
       assert(IMPACT_LEXICON.some((r) => r.test(stored)), `stored span off-lexicon: ${stored}`);
       assertEquals(rendered, boundedClause(rendered), "rendered span is not the same span");
+      storedSpans.push(rendered);
+    }
+    assertEquals(renderedQuotes.length, storedSpans.length, "rendered impact paragraph count");
+    renderedQuotes.forEach((q, i) => assertEquals(q, storedSpans[i], "rendered span != stored span"));
+    for (const q of renderedQuotes) {
+      assert(IMPACT_LEXICON.some((r) => r.test(q)), `rendered quote off-lexicon: ${q}`);
     }
   }
 });

@@ -79,7 +79,7 @@ Deno.test("9J — Harrowgate secondary operation quotes ITS OWN impact statement
 Deno.test("9J — §3 impact paragraphs quote the span, and every §3 quote stays bounded", () => {
   for (const intake of FIXTURES) {
     const paras = s3Paras(intake);
-    const impacts = paras.filter((p) => p.startsWith("On the impact side, stated separately from the benefit, the company states:"));
+    const impacts = paras.filter((p) => p.startsWith("The impact on individual privacy rights is stated by the company separately from the benefit:"));
     for (const p of impacts) {
       const m = p.match(/"([^"]+)"/);
       assert(m, p);

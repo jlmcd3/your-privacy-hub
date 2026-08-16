@@ -1,4 +1,7 @@
 // PROMPT 9I.1 (CEO-ratified 2026-08-16) — RATIFIED-BYTES CONFORMANCE.
+// RE-POINTED BY PROMPT 9L (CEO-ratified 2026-08-16): the must-appear set is
+// now the 9L four-step composition, and every sentence 9L retires moved to the
+// must-NOT-appear set. The assertion count does not decrease.
 //
 // These sentinels test the ASSEMBLED DOCUMENT, not the constants: the 9I
 // constant-level sentinels passed while the document deviated, because the
@@ -9,8 +12,13 @@ import { buildDpiaDeliverables, DPIA_NECESSITY_TEST_SENTENCE } from "../../../su
 import {
   assembleDpiaSkeletonDocument,
   boundedClause,
+  dpiaS3BalanceSentence,
   DPIA_S3_DETERMINATION_ESTABLISHED,
-  DPIA_S3_LEAD,
+  DPIA_S3_LEAD_RETIRED,
+  DPIA_S3_RETIRED_BENEFIT_LEAD,
+  DPIA_S3_RETIRED_IMPACT_LEAD,
+  DPIA_S3_STEP3_CONCLUSION,
+  DPIA_S3_STEP4_IMPACT_LEAD,
 } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
 import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
@@ -38,23 +46,37 @@ function assemble(intake: Any) {
 
 const HARROWGATE = pinned("Quarterly portfolio pricing calibration");
 
-Deno.test("9I.1 (i) — the assembled Harrowgate document carries every ratified sentence verbatim", () => {
+Deno.test("9L (i) — the assembled Harrowgate document carries every ratified sentence verbatim", () => {
   const { paras, text } = assemble(HARROWGATE);
   const s3 = paras("section_3_necessity_proportionality");
-  assertEquals(s3[1], DPIA_S3_LEAD);
-  assert(text.includes(DPIA_NECESSITY_TEST_SENTENCE), "necessity-test sentence missing");
-  assert(text.includes("On the benefit side of the balance, the company states:"), "benefit sentence missing");
   assert(
-    text.includes("On the impact side, stated separately from the benefit, the company states:"),
-    "impact sentence missing",
+    s3[1].startsWith("The primary purpose indicated by the company is the following:"),
+    s3[1].slice(0, 120),
   );
+  assert(text.includes("The company describes how the processing achieves that goal:"), "step 2 sentence missing");
+  assert(text.includes("The company states, for each, why it would not achieve the necessary purpose of the processing, as follows:")
+    || text.includes("The company states why it would not achieve the necessary purpose of the processing, as follows:"),
+    "step 3 bridge missing");
+  assert(text.includes(DPIA_S3_STEP3_CONCLUSION), "step 3 conclusion missing");
+  assert(text.includes(DPIA_S3_STEP4_IMPACT_LEAD), "step 4 impact sentence missing");
+  assert(/Balancing that impact against the goal stated above, and in light of the safeguards the company has recorded \(/.test(text),
+    "step 4 balance sentence missing");
+  assert(text.includes("the impact is answered and the processing is proportionate to the stated goal."),
+    "step 4 balance tail missing");
   assert(text.includes(DPIA_S3_DETERMINATION_ESTABLISHED), "determination sentence missing");
+  assert(dpiaS3BalanceSentence("x").includes("(x)"), "safeguards slot not spliced");
 });
 
-Deno.test("9I.1 (ii) — the retired bytes appear nowhere in the assembled document", () => {
+Deno.test("9L (ii) — the retired bytes appear nowhere in the assembled document", () => {
   const { text, paras } = assemble(HARROWGATE);
   assert(!/On the record as it stands/i.test(text), "retired 'on the record' register survives");
   assert(!text.includes("On the benefit of the processing, the company states that"), "retired benefit sentence survives");
+  assert(!text.includes(DPIA_S3_LEAD_RETIRED), "retired §3 neutral lead survives");
+  assert(!text.includes(DPIA_S3_RETIRED_BENEFIT_LEAD), "retired benefit-side lead survives");
+  assert(!text.includes(DPIA_S3_RETIRED_IMPACT_LEAD), "retired impact-side lead survives");
+  assert(!text.includes(DPIA_NECESSITY_TEST_SENTENCE), "retired 'Applying the stated test' sentence survives");
+  assert(!text.includes("described by the company as"), "retired bridge tail survives");
+  assert(!text.includes("The company has recorded both sides of the balance"), "retired proportionality why survives");
   const lead = paras("section_3_necessity_proportionality")[1];
   assert(
     !lead.includes("Necessity and proportionality are established based on the information the company provided"),
@@ -62,22 +84,26 @@ Deno.test("9I.1 (ii) — the retired bytes appear nowhere in the assembled docum
   );
 });
 
-Deno.test("9I.1 (iii) — Section 3 renders lead → necessity → proportionality → determination last", () => {
+Deno.test("9L (iii) — Section 3 renders goals → how → alternatives → impact → determination last", () => {
   const { paras } = assemble(HARROWGATE);
   const s3 = paras("section_3_necessity_proportionality");
-  const iLead = s3.indexOf(DPIA_S3_LEAD);
-  const iNecessity = s3.findIndex((p) => p === DPIA_NECESSITY_TEST_SENTENCE);
-  const iProp = s3.findIndex((p) => p.startsWith("On the benefit side of the balance"));
+  const iGoal = s3.findIndex((p) => p.startsWith("The primary purpose indicated by the company is the following:"));
+  const iHow = s3.findIndex((p) => p.startsWith("The company describes how the processing achieves that goal:"));
+  const iAlt = s3.findIndex((p) => p.startsWith("The company has recorded"));
+  const iImpact = s3.findIndex((p) => p.startsWith(DPIA_S3_STEP4_IMPACT_LEAD));
+  const iSecondary = s3.findIndex((p) => p.startsWith("For the secondary use, the purpose indicated by the company is the following:"));
   const iDet = s3.findIndex((p) => p === DPIA_S3_DETERMINATION_ESTABLISHED);
-  assert(iLead === 1, `lead position: ${iLead}`);
-  assert(iLead < iNecessity && iNecessity < iProp && iProp < iDet, `${iLead}/${iNecessity}/${iProp}/${iDet}`);
+  assertEquals(iGoal, 1);
+  assert(iGoal < iHow && iHow < iAlt && iAlt < iImpact, `${iGoal}/${iHow}/${iAlt}/${iImpact}`);
+  if (iSecondary >= 0) assert(iImpact < iSecondary, "secondary operation must follow the primary");
+  assert(iDet > iImpact, `determination not last: ${iDet}`);
   // determination is the LAST composed paragraph — only the §3.1 design-risk
   // skeleton block and its table follow it.
   const after = s3.slice(iDet + 1);
-  assert(after.every((p) => !p.startsWith("On the benefit") && p !== DPIA_NECESSITY_TEST_SENTENCE), "analysis after determination");
+  assert(after.every((p) => !p.startsWith(DPIA_S3_STEP4_IMPACT_LEAD)), "analysis after determination");
 });
 
-Deno.test("9I.1 (iv) — every Section 3 customer quote is clause-bounded", () => {
+Deno.test("9L (iv) — every Section 3 customer quote is clause-bounded", () => {
   const { paras } = assemble(HARROWGATE);
   const s3 = paras("section_3_necessity_proportionality").join("\n");
   const long: string[] = [];
@@ -86,6 +112,12 @@ Deno.test("9I.1 (iv) — every Section 3 customer quote is clause-bounded", () =
     else if (boundedClause(m[1]) !== m[1]) long.push(`unbounded: ${m[1].slice(0, 80)}`);
   }
   assertEquals(long, []);
+});
+
+Deno.test("9L (v) — no '(s)' pluralisation reaches Section 3", () => {
+  const { paras } = assemble(HARROWGATE);
+  const s3 = paras("section_3_necessity_proportionality").join("\n");
+  assert(!/\(s\)/.test(s3), "'(s)' pluralisation in Section 3");
 });
 
 Deno.test("9I.1 (v) — Section 4 renders the most-significant-remaining-risk summary as its closing paragraph", () => {
