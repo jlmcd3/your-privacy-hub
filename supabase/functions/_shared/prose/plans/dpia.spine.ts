@@ -37,7 +37,10 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l1-v4-5";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l2-v4-5-1";
+
+/** The v4.5 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V45 = "prose-plans-2026-08-16-prompt9l1-v4-5";
 
 /** The v4.3 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V43 = "prose-plans-2026-08-15-prompt9i-v4-3";
@@ -348,6 +351,10 @@ export function serializeDpiaSpine(
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
+  "6260f748f34385573e32dc4e5c32d97e1ef52938dad3127ec041573e72541960";
+
+/** The v4.5 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V45 =
   "bcfc3c514767ea0f653af7b89951a76ab7b901ed6dc3517537fc5bf1a88baab6";
 
 /** The v4.4 spine under basis v2 — retained for the audit trail. */
