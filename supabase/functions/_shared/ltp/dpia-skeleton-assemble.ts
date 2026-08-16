@@ -91,6 +91,17 @@ function asProse(items: readonly string[]): string {
   return `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }
 
+/**
+ * PROMPT 9L item 1 (JOINER, CEO-ratified 2026-08-16) — the reasons-to-conduct
+ * splice takes the serial comma ("…, and data processed on a large scale").
+ * Scoped to that one slot; every other list keeps `asProse` byte-unchanged.
+ */
+function asProseSerial(items: readonly string[]): string {
+  const xs = items.filter(Boolean);
+  if (xs.length <= 2) return asProse(xs);
+  return `${xs.slice(0, -1).join(", ")}, and ${xs[xs.length - 1]}`;
+}
+
 /** Drop a trailing period: the skeleton's fixed prose supplies its own. */
 const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
 
@@ -188,8 +199,14 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
     name: s(intake.processing_activity_name) || "the processing under assessment",
     organizationName: s(intake.organization_name) || "The company",
 
+    // PROMPT 9L item 1 — the regime-conditional prefix, on the ratified
+    // subtitle pattern: selected by readDpiaRegime, never rewritten at render.
+    regimeName: readDpiaRegime(intake) === "UK" ? "UK GDPR" : "GDPR",
+
     // PROMPT 2A(a) — must read grammatically after "…is required because ".
-    reasonsToConduct: reasons.length ? `the processing involves ${asProse(reasons)}` : null,
+    // PROMPT 9L item 1 (JOINER) — the reasons-to-conduct splice takes the
+    // serial comma.
+    reasonsToConduct: reasons.length ? `the processing involves ${asProseSerial(reasons)}` : null,
     ...descriptionSlots(noStop(s(intake.description)), version, humanizeDateISO(launch)),
 
     purpose: noStop(s(intake.purpose)) || null,
@@ -534,16 +551,11 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
 
 const NECESSITY_UNMET = /undetermined_on_the_record|less_intrusive_alternative_available|disproportionate_on_the_record/;
 
-// PROMPT 9I.1 item 1 (CEO-ratified 2026-08-16) — the Section 3 LEAD position
-// carries ONE neutral sentence for every branch. The established-verdict lead
-// moves OUT of the lead position and becomes the determination-last paragraph
-// (item 2, composeNecessityDetermination).
-export const DPIA_S3_LEAD =
+// PROMPT 9L item 2 (CEO-ratified 2026-08-16) — RETIRED. The §3 neutral lead
+// renders nowhere; the four-step composition opens Section 3 directly. The
+// constant is retained so the retirement sweep can assert its absence.
+export const DPIA_S3_LEAD_RETIRED =
   "Necessity and proportionality are assessed below for the processing described, based on the information the company provided.";
-
-function composeNecessityLead(_report: Bag): string {
-  return DPIA_S3_LEAD;
-}
 
 // PROMPT 9I.1 item 2 — the Section 3 DETERMINATION, rendered LAST (before the
 // §3.1 design-risk block). Ratified bytes; no other branch vocabulary moves.
@@ -587,21 +599,80 @@ export function boundQuotesIn(text: string): string {
 }
 
 /**
- * PROMPT 9I.1 item 3 (CEO-ratified 2026-08-16) — the necessity-test sentence.
- * ONE sentence, ONE writer (this renderer), rendered once per operation on the
- * established branch. The not-established and undetermined branches keep their
- * existing ratified sentences byte-unchanged.
+ * PROMPT 9I.1 item 3 — the necessity-test sentence. PROMPT 9L RETIRED it from
+ * the Section 3 rendering; the surface that carries it (the necessity finding's
+ * `why`) is byte-unchanged, and the export stays for the retirement sweep.
  */
 export { DPIA_NECESSITY_TEST_SENTENCE };
 
-/** Necessity, one operation: alternatives → rejection reasons → the test. */
-function composeNecessityElement(f: Bag): string[] {
+// ── PROMPT 9L item 2 (CEO-ratified 2026-08-16) — the four-step composition ──
+//
+// Per operation, primary then secondary; each step is its own paragraph; the
+// determination is rendered last (its own spine block). Every absent/adverse
+// branch keeps its existing ratified sentence, rendered in its step's position.
+
+/** STEP 3, established branch. */
+export const DPIA_S3_STEP3_CONCLUSION =
+  "On the stated test — whether a realistic, less intrusive method could achieve the same purpose — each alternative the company considered was rejected for the reasons recorded, and the processing is supported as necessary to achieve the stated goal.";
+
+/** STEP 4 openers (the balance sentence carries the recorded safeguards). */
+export const DPIA_S3_STEP4_IMPACT_LEAD =
+  "The impact on individual privacy rights is stated by the company separately from the benefit:";
+
+export function dpiaS3BalanceSentence(safeguards: string): string {
+  return `Balancing that impact against the goal stated above, and in light of the safeguards the company has recorded (${safeguards}), the impact is answered and the processing is proportionate to the stated goal.`;
+}
+
+/** RETIRED §3 bytes, retained so the sweep can assert their absence. */
+export const DPIA_S3_RETIRED_BENEFIT_LEAD = "On the benefit side of the balance, the company states:";
+export const DPIA_S3_RETIRED_IMPACT_LEAD =
+  "On the impact side, stated separately from the benefit, the company states:";
+
+const NOT_STATED_LABEL = "Not stated";
+
+/** The measures list the proportionality `why` reads — same reader, same order. */
+function recordedSafeguards(intake: Bag): string[] {
+  return arr(intake.existing_safeguards).filter((x) => x !== "None");
+}
+
+function branchSentence(why: string): string {
+  return why ? boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))) : "";
+}
+
+/** One operation, four steps. */
+function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: number): string[] {
   const paras: string[] = [];
+  const isSecondary = s(f.operation_id) === "op_secondary" || (!s(f.operation_id) && index > 0);
+
+  // STEP 1 — GOALS.
+  const purposeRaw = s(f.purpose_text);
+  const purpose = purposeRaw && purposeRaw !== NOT_STATED_LABEL ? boundedClause(purposeRaw) : "";
+  let necessityWhyRendered = false;
+  if (purpose) {
+    paras.push(
+      isSecondary
+        ? `For the secondary use, the purpose indicated by the company is the following: ${quoted(purpose)}.`
+        : `The primary purpose indicated by the company is the following: ${quoted(purpose)}.`,
+    );
+  } else {
+    const branch = branchSentence(s(f.why));
+    if (branch) {
+      paras.push(branch);
+      necessityWhyRendered = true;
+    }
+  }
+
+  // STEP 2 — HOW. Quotes the existing necessity narrative through the existing
+  // clause-bounder. No new reader, and omitted when nothing is quotable.
+  const how = boundedClause(s(intake.necessity_proportionality));
+  if (how) {
+    paras.push(`The company describes how the processing achieves that goal: ${quoted(how)}.`);
+  }
+
+  // STEP 3 — LESS INTRUSIVE METHODS.
   const alts = asArray(f.alternatives_considered)
     .map((a) => ({ alt: boundedClause(s(a.alternative)), why: boundedClause(s(a.rejection_reason)) }))
     .filter((a) => a.alt);
-  const purpose = boundedClause(s(f.purpose_text));
-
   if (alts.length > 0) {
     const list = alts.length === 1
       ? `${quoted(alts[0].alt)}`
@@ -611,9 +682,9 @@ function composeNecessityElement(f: Bag): string[] {
     const head = alts.length === 1
       ? `The company has recorded one possible alternative to the proposed processing: ${list}.`
       : `The company has recorded ${numberWord(alts.length)} possible alternatives to the proposed processing: ${list}.`;
-    const bridge = purpose
-      ? `The company states${alts.length === 1 ? "" : ", for each,"} why it would not achieve the necessary purpose of the processing, described by the company as ${quoted(purpose)}.`
-      : `The company states${alts.length === 1 ? "" : ", for each,"} why it would not achieve the necessary purpose of the processing.`;
+    const bridge = alts.length === 1
+      ? "The company states why it would not achieve the necessary purpose of the processing, as follows:"
+      : "The company states, for each, why it would not achieve the necessary purpose of the processing, as follows:";
     const reasons = alts.filter((a) => a.why).map((a, i) =>
       alts.length === 1 ? quoted(a.why) + "." : `${i + 1}. ${quoted(a.why)}.`
     );
@@ -621,50 +692,61 @@ function composeNecessityElement(f: Bag): string[] {
     if (reasons.length) paras.push(reasons.join("\n"));
   }
 
-  // The necessity test itself — its own paragraph, and the last of the element.
-  const verdict = s(f.verdict);
-  if (verdict === "least_intrusive_means_supported") {
-    paras.push(DPIA_NECESSITY_TEST_SENTENCE);
-  } else {
-    const why = s(f.why);
-    if (why) paras.push(boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))));
+  if (s(f.verdict) === "least_intrusive_means_supported") {
+    paras.push(DPIA_S3_STEP3_CONCLUSION);
+  } else if (!necessityWhyRendered) {
+    const branch = branchSentence(s(f.why));
+    if (branch) paras.push(branch);
   }
+
+  // STEP 4 — IMPACT, BALANCED.
+  if (p) {
+    const impactRaw = s(p.impact_argument);
+    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedClause(impactRaw) : "";
+    if (impact) paras.push(`${DPIA_S3_STEP4_IMPACT_LEAD} ${quoted(impact)}.`);
+    if (s(p.verdict) === "proportionate_on_the_record") {
+      paras.push(dpiaS3BalanceSentence(recordedSafeguards(intake).join("; ")));
+    } else {
+      const branch = branchSentence(s(p.why));
+      if (branch) paras.push(branch);
+    }
+  }
+
   return paras.filter(Boolean);
 }
-
-/** Proportionality, one operation: benefit → impact → conclusion. */
-function composeProportionalityElement(p: Bag): string[] {
-  const paras: string[] = [];
-  const benefit = boundedClause(s(p.benefit_argument));
-  const impact = boundedClause(s(p.impact_argument));
-  if (benefit) {
-    // PROMPT 9I.1 item 4 — ratified benefit sentence.
-    paras.push(`On the benefit side of the balance, the company states: ${quoted(benefit)}.`);
-  }
-  if (impact) {
-    // PROMPT 9I.1 item 4 — ratified impact sentence.
-    paras.push(
-      `On the impact side, stated separately from the benefit, the company states: ${quoted(impact)}.`,
-    );
-  }
-  const why = s(p.why);
-  if (why) paras.push(boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))));
-  return paras.filter(Boolean);
-}
-
 
 /** PROMPT 5: defect notice replacing the former raw-u3 fallback. */
 export const DPIA_NP_VOID_NOTICE =
   "The necessity and proportionality analysis for this assessment could not be composed from the record's structured surfaces; this document should be regenerated, and this sentence is a defect notice rather than an analysis.";
 
-export function composeNecessityBody(report: Bag): string {
+export function composeNecessityBody(report: Bag, intakeInput?: Bag): string {
+  const intake = intakeInput ?? {};
   const paras: string[] = [];
-  for (const f of asArray(report.necessity_findings).slice(0, 4)) {
-    paras.push(...composeNecessityElement(f));
-  }
-  for (const p of asArray(report.proportionality).slice(0, 3)) {
-    paras.push(...composeProportionalityElement(p));
-  }
+  const findings = asArray(report.necessity_findings).slice(0, 4);
+  const props = asArray(report.proportionality).slice(0, 3);
+  const used = new Set<number>();
+
+  findings.forEach((f, i) => {
+    let pi = props.findIndex((p, j) => !used.has(j) && s(p.operation_id) === s(f.operation_id));
+    if (pi < 0 && !s(f.operation_id)) pi = props[i] && !used.has(i) ? i : -1;
+    if (pi >= 0) used.add(pi);
+    paras.push(...composeOperationElement(f, pi >= 0 ? props[pi] : null, intake, i));
+  });
+
+  // Any proportionality finding with no necessity counterpart still renders.
+  props.forEach((p, j) => {
+    if (used.has(j)) return;
+    const impactRaw = s(p.impact_argument);
+    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedClause(impactRaw) : "";
+    if (impact) paras.push(`${DPIA_S3_STEP4_IMPACT_LEAD} ${quoted(impact)}.`);
+    if (s(p.verdict) === "proportionate_on_the_record") {
+      paras.push(dpiaS3BalanceSentence(recordedSafeguards(intake).join("; ")));
+    } else {
+      const branch = branchSentence(s(p.why));
+      if (branch) paras.push(branch);
+    }
+  });
+
   if (paras.length === 0) {
     // PROMPT 5 (2026-08-11): no AI-text fallback. buildOperations always yields
     // at least one operation, so empty typed arrays mean the ITEM-310 attach
@@ -1046,14 +1128,12 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     // `risks_and_measures` and `consultation_and_signoff` are retired; the same
     // ratified composers are re-homed onto the EDPB sections.
     // PROMPT 9I.1 item 2 / item 6 — the composed keys are re-pinned to the
-    // spine v4.3 BLOCK INDICES. Section 3: 0 skeleton, 1 generated (lead +
-    // analysis), 2 lead (determination LAST), 3 skeleton, 4 table. Section 4:
-    // 0 skeleton, 1 table, 2 table, 3 generated (per-risk analysis), 4 lead
-    // (the most-significant-remaining-risk summary, closing paragraph).
-    "section_3_necessity_proportionality:1": [
-      composeNecessityLead(report),
-      composeNecessityBody(report),
-    ].filter(Boolean).join("\n\n"),
+    // spine BLOCK INDICES. Section 3: 0 skeleton, 1 generated (the 9L
+    // four-step composition), 2 lead (determination LAST), 3 skeleton, 4 table.
+    // Section 4: 0 skeleton, 1 table, 2 table, 3 generated (per-risk analysis),
+    // 4 lead (the most-significant-remaining-risk summary, closing paragraph).
+    // PROMPT 9L item 2 — the §3 neutral lead is RETIRED and no longer composed.
+    "section_3_necessity_proportionality:1": composeNecessityBody(report, intake),
     "section_3_necessity_proportionality:2": composeNecessityDetermination(report),
 
     "section_4_risk_management:3": composeRiskBody(report, values, intake),

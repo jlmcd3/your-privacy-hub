@@ -64,7 +64,7 @@ Deno.test("spine v4.1 — the superseded v4 hash is retained for the audit trail
 // Section 1 opener drops its {organizationName} slot ("Pursuant to that
 // requirement, the company identifies below: ..."). That is the ONLY inventory
 // movement in v4.3; every other slot is carried through unchanged.
-Deno.test("spine v4.3 — the slot inventory is v4.1's, less the Section 1 opener's organizationName", () => {
+Deno.test("spine v4.4 — the slot inventory drops the Section 3 opener's organizationName and gains regimeName", () => {
   const slots = DPIA_SKELETON_SECTIONS
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text))
     .flatMap((t) => [...t.matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)/g)].map((m) => m[1]))
@@ -81,8 +81,9 @@ Deno.test("spine v4.3 — the slot inventory is v4.1's, less the Section 1 opene
     "organizationName",
     "organizationName",
     "organizationName",
-    "organizationName",
     "reasonsToConduct",
+    "regimeName",
+    "regimeName",
     "supportingAssets",
   ]);
 });
@@ -94,10 +95,13 @@ Deno.test("spine v4.1 — the ratified wording edits are the shipped bytes", () 
   assertStringIncludes(fixed[0], "{organizationName} believes that this assessment may be required because");
   assertStringIncludes(fixed[1], "the absence of that information is noted rather than assumed.");
   assertStringIncludes(fixed[3], "reproduced as identified by the company.");
-  assertStringIncludes(fixed[4], "the company identifies below:");
+  // PROMPT 9L item 1 — blocks 5, 6, 7, 9 and 10 carry the v4.4 ratified bytes.
+  assertStringIncludes(fixed[4], "Pursuant to that requirement, in the tables below the company identifies:");
+  assertStringIncludes(fixed[5], "On the nature, scope and context of the processing, the company has stated the following:");
+  assertStringIncludes(fixed[6], "imposed on it under the {regimeName}. In the first table below, the company asserts the lawful basis of the processing under Article 6(1).");
+  assertStringIncludes(fixed[8], "only where {regimeName} Chapter V's conditions for such transfer are satisfied");
+  assertStringIncludes(fixed[9], "The following discussion analyzes the necessity and proportionality by identifying the company's specific goals, how the processing helps to reach those goals, whether less intrusive methods exist that could realistically achieve the same purpose, and the impact on individual privacy rights as balanced against the company's interests \u2014 all based on the information the company provided.");
   assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding assessed against the company.");
-  assertStringIncludes(fixed[8], "Chapter V's conditions for such transfer are satisfied");
-  assertStringIncludes(fixed[9], "means that are less intrusive.");
   assertStringIncludes(fixed[10], "The risks inherent in the processing's design \u2014 that is,");
   assertStringIncludes(fixed[11], "in light of the protective or mitigating measures it identifies.");
   // PROMPT 9I item 1 — the v4.3 ratified edits are the shipped bytes.
@@ -112,6 +116,9 @@ Deno.test("spine v4.1 — the ratified wording edits are the shipped bytes", () 
   // The v4.2 wording must be gone.
   assert(!all.includes("not a finding against the company"));
   assert(!all.includes("that absence is noted rather than filled"));
+  // The v4.3 wording must be gone.
+  assert(!all.includes("but whether the same purpose could be achieved by means that are less intrusive"));
+  assert(!all.includes("Pursuant to that requirement, the company identifies below:"));
 });
 
 Deno.test("spine v4.1 — sections follow the EDPB harmonised order", () => {
@@ -237,7 +244,7 @@ Deno.test("assembly — re-homed composers land on their v4.1 blocks and tables 
 
   const byId = (id: string) => document.sections.find((s) => s.id === id)!;
   const s3 = byId("section_3_necessity_proportionality").paragraphs.map((p) => p.text).join(" ");
-  assertStringIncludes(s3, "the alternatives the company considered, and the reasons each was rejected, support the necessity of the processing for this operation");
+  assertStringIncludes(s3, "On the stated test \u2014 whether a realistic, less intrusive method could achieve the same purpose \u2014 each alternative the company considered was rejected for the reasons recorded, and the processing is supported as necessary to achieve the stated goal.");
   const s6 = byId("section_6_conclusion").paragraphs.map((p) => p.text).join(" ");
   assertStringIncludes(s6, "The sign-off determination recorded is");
   assertStringIncludes(s6, "no prior consultation with the supervisory authority");

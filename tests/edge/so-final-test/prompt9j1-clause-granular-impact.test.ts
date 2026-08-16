@@ -41,7 +41,7 @@ function impactParas(intake: Any): string[] {
   const sec = document.sections.find((x: Any) => x.id === "section_3_necessity_proportionality")!;
   return (sec.paragraphs as Any[])
     .map((p) => String(p.text ?? ""))
-    .filter((t) => t.startsWith("On the impact side, stated separately from the benefit, the company states:"));
+    .filter((t) => t.startsWith("The impact on individual privacy rights is stated by the company separately from the benefit:"));
 }
 
 Deno.test("9J.1 — splitClauses is the single writer of the bound boundedClause applies", () => {
