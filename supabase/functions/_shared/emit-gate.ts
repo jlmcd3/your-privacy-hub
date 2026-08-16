@@ -585,6 +585,23 @@ export function runEmitGate(
     rd._meta = meta;
   } catch { /* never block emission */ }
 
+  // PROMPT 9K item 2.1 — detect findings land on the shared detect surface so
+  // one sentinel can read every police pass's findings from one place.
+  if (opts.detectOnly) {
+    recordDetectFindings(
+      report as Record<string, unknown>,
+      "emit_gate",
+      gateReport.findings.map((f) => ({
+        pass: "emit_gate",
+        check_id: f.check_id,
+        path: f.path,
+        evidence: f.evidence,
+      })),
+      { writes_suppressed: (gateReport as Record<string, unknown>).writes_suppressed ?? 0, crashed: !!gateReport.crashed },
+    );
+  }
+
+
   if (!gateReport.crashed) {
     console.log(JSON.stringify({
       evt: "emit_gate",
