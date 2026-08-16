@@ -730,6 +730,9 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
     // output is byte-for-byte the 9J.1-intended output — only where the stop
     // lives changes.
     const impactStored = terminateSpan(impactQuote);
+    // The both-sides why sentence strips the stop AT ITS INTERPOLATION SEAM,
+    // so no doubled punctuation ever appears inside the quote marks.
+    const impactSeam = noStop(impactStored);
 
     let verdict: ProportionalityFinding["verdict"];
     let why: string;
@@ -753,11 +756,11 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
       if (measures.length === 0) {
         verdict = "disproportionate_on_the_record";
         why =
-          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactQuote}" — but records no safeguard applied against that impact, so as the record stands the impact on the data subjects is not answered and the processing is not proportionate on these facts.`;
+          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSeam}" — but records no safeguard applied against that impact, so as the record stands the impact on the data subjects is not answered and the processing is not proportionate on these facts.`;
       } else {
         verdict = "proportionate_on_the_record";
         why =
-          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactQuote}" — and records ${measures.length === 1 ? "one safeguard" : `${nWord(measures.length)} safeguards`} (${measures.join("; ")}) applied against that impact. On these facts the impact is answered and the processing is proportionate to the recorded purpose.`;
+          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSeam}" — and records ${measures.length === 1 ? "one safeguard" : `${nWord(measures.length)} safeguards`} (${measures.join("; ")}) applied against that impact. On these facts the impact is answered and the processing is proportionate to the recorded purpose.`;
       }
     }
 
