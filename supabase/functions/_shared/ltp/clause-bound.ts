@@ -52,26 +52,59 @@ export function boundedClause(text: string): string {
  * `boundedClause` is re-expressed as `splitClauses(...)[0]` so the two can
  * never drift.
  */
-const CLAUSE_BOUNDARY = /^(.{20,}?)(?:;|,\s+(?:and|but|or|which|while|so that)\b)/i;
+const CLAUSE_BOUNDARY = /^(.{20,}?)(;|,\s+(?:and|but|or|which|while|so that)\b)/i;
+
+/**
+ * PROMPT 9L.1 item 2 (CEO redline, 2026-08-16) — COLON CLAUSE BOUNDARY FOR
+ * SPAN EXTRACTION. Extraction (the impact span and the Step-2 "how" clause)
+ * must start at the operative content AFTER an in-sentence lead-in, so the
+ * rendered quote never double-frames the template's own lead. The colon is a
+ * boundary for EXTRACTION only; `boundedClause`'s rendering bound is unchanged.
+ */
+const CLAUSE_BOUNDARY_COLON = /^(.{20,}?)(:|;|,\s+(?:and|but|or|which|while|so that)\b)/i;
+
+export interface Clause {
+  text: string;
+  start: number;
+  /** The separator that CLOSED this clause (":", ";", ","), or "" at the end. */
+  sep: string;
+}
 
 /** The clauses of ONE sentence, in order, each with its offset in that sentence. */
-export function splitClauses(sentence: string): { text: string; start: number }[] {
+export function splitClauses(sentence: string, opts?: { colon?: boolean }): Clause[] {
+  const boundary = opts?.colon ? CLAUSE_BOUNDARY_COLON : CLAUSE_BOUNDARY;
   const s = String(sentence ?? "").trim().replace(/\s+/g, " ");
-  const out: { text: string; start: number }[] = [];
+  const out: Clause[] = [];
   let offset = 0;
   let rest = s;
   while (rest) {
-    const m = rest.match(CLAUSE_BOUNDARY);
+    const m = rest.match(boundary);
     if (!m) {
       const text = noStop(rest.trim());
-      if (text) out.push({ text, start: offset + (rest.length - rest.trimStart().length) });
+      if (text) out.push({ text, start: offset + (rest.length - rest.trimStart().length), sep: "" });
       break;
     }
     const head = m[1];
     const text = noStop(head.trim());
-    if (text) out.push({ text, start: offset + (head.length - head.trimStart().length) });
+    const sep = m[2].trim().startsWith(",") ? "," : m[2].trim();
+    if (text) out.push({ text, start: offset + (head.length - head.trimStart().length), sep });
     offset += m[0].length;
     rest = s.slice(offset);
   }
   return out;
 }
+
+/**
+ * PROMPT 9L.1 item 2 — the EXTRACTION-START clause of a customer field: the
+ * first clause of its first sentence, taken after any in-sentence lead-in that
+ * ends in a colon. Same bound, same single writer; only the start moves.
+ */
+export function extractionClause(text: string): string {
+  const t = noStop(String(text ?? "").trim().replace(/\s+/g, " "));
+  if (!t) return "";
+  const clauses = splitClauses(noStop(firstSentence(t)), { colon: true });
+  if (clauses.length === 0) return "";
+  if (clauses[0].sep === ":" && clauses[1]) return clauses[1].text;
+  return clauses[0].text;
+}
+

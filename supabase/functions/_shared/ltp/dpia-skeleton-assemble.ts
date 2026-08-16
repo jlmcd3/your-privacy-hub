@@ -42,7 +42,7 @@ import { DPIA_NECESSITY_TEST_SENTENCE, readDpiaRegime } from "./dpia-deliverable
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 // PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
 // ONE module so dpia-deliverables/build.ts can share them without a cycle.
-import { boundedClause, firstSentence, noStop } from "./clause-bound.ts";
+import { boundedClause, extractionClause, firstSentence, noStop } from "./clause-bound.ts";
 export { boundedClause, firstSentence };
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
@@ -619,9 +619,15 @@ export const DPIA_S3_STEP3_CONCLUSION =
 export const DPIA_S3_STEP4_IMPACT_LEAD =
   "The impact on individual privacy rights is stated by the company separately from the benefit:";
 
+// PROMPT 9L.1 item 3(c) (CEO-ratified 2026-08-16) — one balance template, both
+// operations. "including" is added; "the impact is answered and" is RETIRED.
 export function dpiaS3BalanceSentence(safeguards: string): string {
-  return `Balancing that impact against the goal stated above, and in light of the safeguards the company has recorded (${safeguards}), the impact is answered and the processing is proportionate to the stated goal.`;
+  return `Balancing that impact against the goal stated above, and in light of the safeguards the company has recorded (including ${safeguards}), the processing is proportionate to the stated goal.`;
 }
+
+/** RETIRED 9L balance phrasing, retained so the sweep can assert its absence. */
+export const DPIA_S3_RETIRED_BALANCE_PHRASE = "the impact is answered and";
+
 
 /** RETIRED §3 bytes, retained so the sweep can assert their absence. */
 export const DPIA_S3_RETIRED_BENEFIT_LEAD = "On the benefit side of the balance, the company states:";
@@ -639,7 +645,19 @@ function branchSentence(why: string): string {
   return why ? boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))) : "";
 }
 
+/**
+ * PROMPT 9L.1 item 1 — ONE Step-2 resolution function, no fork. The operation's
+ * own "how" narrative, taken through the shared extraction bound (item 2's
+ * colon-aware start). Empty where the operation has nothing quotable.
+ */
+export function stepTwoClause(intake: Bag, isSecondary: boolean): string {
+  const own = isSecondary ? s(intake.secondary_uses) : s(intake.necessity_proportionality);
+  if (!own || own === NOT_STATED_LABEL || own.trim().toLowerCase() === "none") return "";
+  return extractionClause(own);
+}
+
 /** One operation, four steps. */
+
 function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: number): string[] {
   const paras: string[] = [];
   const isSecondary = s(f.operation_id) === "op_secondary" || (!s(f.operation_id) && index > 0);
@@ -651,7 +669,8 @@ function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: numb
   if (purpose) {
     paras.push(
       isSecondary
-        ? `For the secondary use, the purpose indicated by the company is the following: ${quoted(purpose)}.`
+        // PROMPT 9L.1 item 3(b) — ratified secondary goals sentence.
+        ? `The secondary purpose indicated by the company is the following: ${quoted(purpose)}.`
         : `The primary purpose indicated by the company is the following: ${quoted(purpose)}.`,
     );
   } else {
@@ -662,12 +681,16 @@ function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: numb
     }
   }
 
-  // STEP 2 — HOW. Quotes the existing necessity narrative through the existing
-  // clause-bounder. No new reader, and omitted when nothing is quotable.
-  const how = boundedClause(s(intake.necessity_proportionality));
+  // STEP 2 — HOW. PROMPT 9L.1 item 1 — the quoted clause resolves PER
+  // OPERATION: the secondary operation quotes ITS OWN narrative
+  // (`secondary_uses`), never a reuse of the primary's necessity statement.
+  // Nothing quotable → the step is omitted for that operation. No new reader,
+  // no invented sentence, no new ask.
+  const how = stepTwoClause(intake, isSecondary);
   if (how) {
     paras.push(`The company describes how the processing achieves that goal: ${quoted(how)}.`);
   }
+
 
   // STEP 3 — LESS INTRUSIVE METHODS.
   const alts = asArray(f.alternatives_considered)
@@ -822,33 +845,38 @@ export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {
       continue;
     }
 
+    // PROMPT 9L.1 item 4 (CEO-ratified 2026-08-16) — the uniform per-risk
+    // template. Band words take typographic quotes; the protections clause is
+    // set off with em dashes; "with an aggregate initial risk level" and
+    // "mitigate the risk" render identically on every row.
     const head =
-      `${label} is assessed at ${likelihood} likelihood and ${severity} severity under this assessment's pre-set risk taxonomy, an initial risk level of ${inherent || "undetermined"}.`;
+      `${label} is assessed at \u201C${likelihood}\u201D likelihood and \u201C${severity}\u201D severity under this assessment's pre-set risk taxonomy, with an aggregate initial risk level of ${
+        inherent || "undetermined"
+      }.`;
+    const protections = measures.length
+      ? `The company's recorded protections \u2014 ${asProse(measures)} \u2014 mitigate the risk`
+      : "The company records no measure against it";
 
     // 1.4 — remaining risk level undetermined. The causal clause is carried
     // only by the measures-present branch: in the no-measures branch it would
     // restate its own antecedent (PROMPT 8D meaning flag 4).
     if (!residual || residual.toLowerCase() === "undetermined") {
       blocks.push(
-        `${head} ${
-          measures.length
-            ? `The company's recorded ${asProse(measures)} mitigate it, and the remaining risk level is undetermined, because the company does not record the measures it applies.`
-            : "The company records no measure against it, and the remaining risk level is undetermined."
-        }`,
+        `${head} ${protections}, and the remaining risk level is undetermined${
+          measures.length ? ", because the company does not record the measures it applies" : ""
+        }.`,
       );
       continue;
     }
 
-    // 1.1 (first, carries the caveat) / 1.2 (subsequent) / 1.3 (no measure).
+    // 1.1 (first, carries the re-score clause) / 1.2 (subsequent rows).
     const tail = caveatSpent
       ? `the remaining risk level is ${residual} on the same preliminary basis.`
-      : `the remaining risk level — preliminary until ${who} re-scores it against the mitigating measures once they have been deployed — is ${residual}.`;
+      : `the remaining risk level, which is preliminary until ${who} re-scores it against the mitigating measures once they have been deployed, is ${residual}.`;
     caveatSpent = true;
-    blocks.push(
-      measures.length
-        ? `${head} The company's recorded ${asProse(measures)} mitigate it, and ${tail}`
-        : `${head} The company records no measure against it, and ${tail}`,
-    );
+    blocks.push(`${head} ${protections}, and ${tail}`);
+
+
 
   }
 
@@ -1130,14 +1158,16 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     // PROMPT 9I.1 item 2 / item 6 — the composed keys are re-pinned to the
     // spine BLOCK INDICES. Section 3: 0 skeleton, 1 generated (the 9L
     // four-step composition), 2 lead (determination LAST), 3 skeleton, 4 table.
-    // Section 4: 0 skeleton, 1 table, 2 table, 3 generated (per-risk analysis),
-    // 4 lead (the most-significant-remaining-risk summary, closing paragraph).
+    // PROMPT 9L.1 item 5 — Section 4 gains the relocated design-risks intro and
+    // table at 0-1, so it is: 0 skeleton (design intro), 1 table (design),
+    // 2 skeleton, 3 table, 4 table, 5 generated (per-risk analysis),
+    // 6 lead (the most-significant-remaining-risk summary, closing paragraph).
     // PROMPT 9L item 2 — the §3 neutral lead is RETIRED and no longer composed.
     "section_3_necessity_proportionality:1": composeNecessityBody(report, intake),
     "section_3_necessity_proportionality:2": composeNecessityDetermination(report),
 
-    "section_4_risk_management:3": composeRiskBody(report, values, intake),
-    "section_4_risk_management:4": composeRiskLead(report),
+    "section_4_risk_management:5": composeRiskBody(report, values, intake),
+    "section_4_risk_management:6": composeRiskLead(report),
 
 
     "section_6_conclusion:2": composeSignoffLead(report, intake),

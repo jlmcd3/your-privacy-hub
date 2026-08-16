@@ -25,11 +25,12 @@ Deno.test("prompt8a: per-risk template carries the re-scoring caveat exactly onc
     dpia_approved_by_name: "Dr. Anna Meier",
   });
   assertEquals(body.match(/re-scores it against the mitigating measures once they have been deployed/g)?.length, 1);
-  assertStringIncludes(body, "preliminary until Dr. Anna Meier re-scores it against the mitigating measures once they have been deployed");
+  assertStringIncludes(body, "which is preliminary until Dr. Anna Meier re-scores it against the mitigating measures once they have been deployed");
   assertStringIncludes(body, "the remaining risk level is low on the same preliminary basis");
   assertStringIncludes(
     body,
-    "is assessed at high likelihood and high severity under this assessment's pre-set risk taxonomy, an initial risk level of high",
+    // PROMPT 9L.1 item 4 — re-anchored to the ratified per-risk template.
+    "is assessed at \u201Chigh\u201D likelihood and \u201Chigh\u201D severity under this assessment's pre-set risk taxonomy, with an aggregate initial risk level of high",
   );
   assertStringIncludes(body, "the remaining risk level is undetermined");
   assert(!BANNED.test(body), body);
@@ -37,7 +38,7 @@ Deno.test("prompt8a: per-risk template carries the re-scoring caveat exactly onc
 
 Deno.test("prompt8a: rescorer falls back to 'the company' when no approver is recorded", () => {
   const body = composeRiskBody({ risk_register: register.slice(0, 1) }, { safeguards: "" } as never, {});
-  assertStringIncludes(body, "preliminary until the company re-scores it against the mitigating measures once they have been deployed");
+  assertStringIncludes(body, "which is preliminary until the company re-scores it against the mitigating measures once they have been deployed");
   assertStringIncludes(body, "The company records no safeguards for this processing.");
 });
 
