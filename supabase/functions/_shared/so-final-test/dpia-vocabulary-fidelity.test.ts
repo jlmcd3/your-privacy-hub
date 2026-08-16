@@ -131,7 +131,7 @@ Deno.test("risk_count_note — normal variant carries the ratified bytes", () =>
   const note = buildRiskCountNote({ residual_risks: "We identified two risks." }, REG(4));
   assertEquals(
     note?.note,
-    "The company self-identified two of these risks; this assessment surfaces two more. The company's own account is recorded in its own words in the sign-off section.",
+    "The company self-identified two of these risks; this assessment surfaces two more. The company's own account is recorded in its own words in Section 6 of this assessment.",
   );
 });
 
@@ -139,7 +139,7 @@ Deno.test("risk_count_note — reversed variant carries the ratified bytes", () 
   const note = buildRiskCountNote({ residual_risks: "We identified five risks." }, REG(3));
   assertEquals(
     note?.note,
-    "The company self-identified five risks in its own account; this assessment carries three after consolidation, and the company's own account is recorded in its own words in the sign-off section.",
+    "The company self-identified five risks in its own account; this assessment carries three after consolidation, and the company's own account is recorded in its own words in Section 6 of this assessment.",
   );
 });
 
