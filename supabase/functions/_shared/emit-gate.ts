@@ -543,11 +543,24 @@ export function runEmitGate(
         prose_nodes: leaves.length,
       }));
     }
-    for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
-    gateReport.degraded_count = leavesToDegrade.length;
-    // ITEM 352 — internal gate rows never reach the customer array.
-    gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
-    if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;
+    // PROMPT 9K item 2 — DETECT MODE. The detectors above ran unchanged and
+    // every finding is on `gateReport.findings`; the pen is withheld. Nothing
+    // is degraded, no customer array is rewritten, the builders' output ships
+    // as built.
+    if (opts.detectOnly) {
+      (gateReport as Record<string, unknown>).detect_only = true;
+      (gateReport as Record<string, unknown>).writes_suppressed = leavesToDegrade.length;
+      (gateReport as Record<string, unknown>).would_degrade_paths =
+        leavesToDegrade.map((l) => l.path);
+      gateReport.degraded_count = 0;
+    } else {
+      for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
+      gateReport.degraded_count = leavesToDegrade.length;
+      // ITEM 352 — internal gate rows never reach the customer array.
+      gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
+      if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;
+    }
+
 
   } catch (e) {
     gateReport.crashed = true;
