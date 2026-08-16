@@ -16,7 +16,7 @@ import { transferMechanism, type TransferFlow } from "../../dpia-jurisdiction-re
 import { spliceVerbatim } from "../verbatim-splice.ts";
 // PROMPT 9J — shared segmenter + shared clause bound (single writer for both).
 import { splitSentencesSafe } from "../../prose/segment.ts";
-import { boundedClause } from "../clause-bound.ts";
+import { boundedClause, noStop, splitClauses } from "../clause-bound.ts";
 import { attachMinimalUnitSurfaces } from "./minimal-units.ts";
 // PROMPT 9A — the ratified compact-label registry. Presentation only: the full
 // ask (`information_needed` / `dimensions`) is untouched by anything here.
