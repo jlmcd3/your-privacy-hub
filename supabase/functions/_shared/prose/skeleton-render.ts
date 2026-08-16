@@ -230,8 +230,16 @@ export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkelet
         // Table of Authorities' one-authority-per-line layout into a run-on
         // paragraph. Repair is applied PER LINE, preserving line structure and
         // the leading indent. Entry bytes, order and count are untouched.
-        paragraphs.push({ kind: block.kind, text: repairLinePreserving(composed.trim()) });
+        //
+        // PROMPT 9I (CEO-ratified 2026-08-15; presentation only) — a composed
+        // block separated by BLANK LINES renders as one paragraph per part, so
+        // a composer can paragraph its own analysis. Bytes are untouched.
+        for (const part of composed.trim().split(/\n{2,}/)) {
+          const text = repairLinePreserving(part.trim());
+          if (text) paragraphs.push({ kind: block.kind, text });
+        }
       }
+
 
     });
     if (paragraphs.length > 0) {
