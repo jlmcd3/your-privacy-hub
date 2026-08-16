@@ -197,9 +197,13 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_3_necessity_proportionality",
     title: "Section 3 - Considerations on Necessity and Proportionality",
     blocks: [
+      // PROMPT 9I item 4 (CEO-ratified 2026-08-15) — SECTION 3 COMPOSITION
+      // ORDER (S3-R1): statutory frame → necessity per operation →
+      // proportionality per operation → the Section-3 determination LAST. Only
+      // the two composed blocks swap position; no block's bytes move.
       { kind: "skeleton", text: "Article 35(7)(b) requires an assessment of the necessity and proportionality of the processing in relation to its purposes. The question is not whether the processing is useful to {organizationName}, but whether the same purpose could be achieved by means that are less intrusive." },
-      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether necessity and proportionality are made out on the company's answers." },
       { kind: "generated", text: "[GENERATED] The necessity and proportionality analysis: less-intrusive-means discipline applied to the company's answers; record facts only." },
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether necessity and proportionality are made out on the company's answers." },
       { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below." },
       { kind: "table", text: "risk_register.design" },
     ],
@@ -208,13 +212,17 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_4_risk_management",
     title: "Section 4 - Risk Assessment and Management",
     blocks: [
+      // PROMPT 9I item 3 (CEO-ratified 2026-08-15) — the most-significant-risk
+      // summary is the section's CLOSING paragraph, so the [DETERMINATION LEAD]
+      // block moves last. Block bytes are unchanged.
       { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) requires an assessment of the measures planned to address them. This section identifies potential risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
       { kind: "table", text: "risk_register.incident" },
-      { kind: "lead", text: "[DETERMINATION LEAD] One sentence identifying the most significant residual risk after measures." },
       { kind: "table", text: "risk_register" },
       { kind: "generated", text: "[GENERATED] From the typed risk register: each risk with its likelihood and severity, the measure that answers it, and the residual position, attributed throughout; the renderer draws the table, and the prose analyses only what bears on the decision. The safeguards the company has recorded: {safeguards - as prose}." },
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence identifying the most significant residual risk after measures." },
     ],
   },
+
   {
     id: "section_5_interested_parties",
     title: "Section 5 - Involvement of Interested Parties",
