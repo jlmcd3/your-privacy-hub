@@ -14,6 +14,9 @@
 import { ANCHOR_KEYS, DPIA_RISK_SPECS, DPIA_SAFEGUARD_SPECS, row, type RiskFacts } from "./elements.ts";
 import { transferMechanism, type TransferFlow } from "../../dpia-jurisdiction-registry.ts";
 import { spliceVerbatim } from "../verbatim-splice.ts";
+// PROMPT 9J — shared segmenter + shared clause bound (single writer for both).
+import { splitSentencesSafe } from "../../prose/segment.ts";
+import { boundedClause } from "../clause-bound.ts";
 import { attachMinimalUnitSurfaces } from "./minimal-units.ts";
 // PROMPT 9A — the ratified compact-label registry. Presentation only: the full
 // ask (`information_needed` / `dimensions`) is untouched by anything here.
@@ -285,6 +288,29 @@ const IMPACT_SOURCE_FIELDS: readonly string[] = [
   "potential_harm_detail",
   "risks_to_individuals",
 ];
+
+/**
+ * PROMPT 9J item 1 (CEO-ruled 2026-08-16) — QUOTE THE SPAN THAT MATCHED.
+ *
+ * Evidence: batch 17c8f394 / run 2b21e54a — three documents rendered the
+ * ratified impact sentence followed by NECESSITY prose, because
+ * `impact_argument` carried the whole necessity_proportionality + minimisation
+ * text and the assembler quoted its FIRST clause. `impactSpan` returns the
+ * FIRST sentence that actually matches IMPACT_LEXICON, clause-bounded, using
+ * the shared segmenter — no ad-hoc splitter, no second bound implementation.
+ * Nothing matched → empty string.
+ */
+export function impactSpan(text: string): string {
+  const src = String(text ?? "").trim();
+  if (!src) return "";
+  for (const sentence of splitSentencesSafe(src)) {
+    if (matches(sentence, IMPACT_LEXICON)) {
+      const bounded = boundedClause(sentence);
+      if (bounded) return bounded;
+    }
+  }
+  return "";
+}
 
 /** Single-constant predicate: the ONE widened lexicon, no forked copies. */
 export function hasImpactLanguage(text: string): boolean {
@@ -641,6 +667,16 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
     const impactSide = matches(combined, IMPACT_LEXICON) ? combined : impactEvidence(intake);
     const argued_both_directions = benefitSide.length > 0 && impactSide.length > 0;
 
+    // PROMPT 9J item 1.2 — PER-OPERATION impact QUOTE resolution. The test
+    // logic above (impactSide / argued_both_directions) is byte-unchanged;
+    // this decides only WHICH TEXT IS QUOTED. Secondary operation: its OWN
+    // text first (its impact statement, where present), then the record-level
+    // combined text, then the 8J impact-source fields. Primary operation: the
+    // record-level combined text, then the 8J impact-source fields.
+    const impactQuote = (op.operation_id === "op_secondary"
+      ? impactSpan(op.purpose_text) || impactSpan(combined) || impactSpan(impactEvidence(intake))
+      : impactSpan(combined) || impactSpan(impactEvidence(intake))) || boundedClause(impactSide);
+
     let verdict: ProportionalityFinding["verdict"];
     let why: string;
     let status: ProportionalityFinding["status"] = "analysed";
@@ -663,11 +699,11 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
       if (measures.length === 0) {
         verdict = "disproportionate_on_the_record";
         why =
-          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSide}" — but records no safeguard applied against that impact, so as the record stands the impact on the data subjects is not answered and the processing is not proportionate on these facts.`;
+          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactQuote}" — but records no safeguard applied against that impact, so as the record stands the impact on the data subjects is not answered and the processing is not proportionate on these facts.`;
       } else {
         verdict = "proportionate_on_the_record";
         why =
-          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactSide}" — and records ${measures.length === 1 ? "one safeguard" : `${nWord(measures.length)} safeguards`} (${measures.join("; ")}) applied against that impact. On these facts the impact is answered and the processing is proportionate to the recorded purpose.`;
+          `The company has recorded both sides of the balance — benefit: "${benefitSide}"; impact: "${impactQuote}" — and records ${measures.length === 1 ? "one safeguard" : `${nWord(measures.length)} safeguards`} (${measures.join("; ")}) applied against that impact. On these facts the impact is answered and the processing is proportionate to the recorded purpose.`;
       }
     }
 
@@ -675,7 +711,7 @@ export function buildProportionality(intake: unknown): ProportionalityFinding[] 
       operation_id: op.operation_id,
       operation_label: op.operation_label,
       benefit_argument: benefitSide || NOT_STATED,
-      impact_argument: impactSide || NOT_STATED,
+      impact_argument: impactQuote || impactSide || NOT_STATED,
       argued_both_directions,
       verdict,
       why,
