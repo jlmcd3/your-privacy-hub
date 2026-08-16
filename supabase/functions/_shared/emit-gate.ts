@@ -76,7 +76,15 @@ export interface EmitGateReport {
 export interface EmitGateOptions {
   intakeRoster?: unknown;
   tool?: EmitGateTool;
+  /**
+   * PROMPT 9K item 2 — DETECT MODE. Every check runs exactly as today and
+   * every finding is recorded; NOTHING is degraded. Opt-in per call site
+   * (on for the DPIA new-document path); omitted everywhere else, so every
+   * other product is byte-identical.
+   */
+  detectOnly?: boolean;
 }
+
 
 const SAFETY_VALVE_RATIO = 0.30;
 
