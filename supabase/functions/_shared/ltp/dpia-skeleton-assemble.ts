@@ -369,19 +369,19 @@ function composeExecutiveDecisionSentence(report: Bag, total: number): string {
     const authority = /the Commissioner/.test(decisionText(report))
       ? "the Commissioner"
       : "the competent supervisory authority";
-    return `Given the noted risks and the mitigating measures, the processing being assessed may not begin until the company has consulted ${authority} under Article 36(1).`;
+    return `Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may not begin until the company has consulted ${authority} under Article 36(1).`;
   }
   if (art36 === "undetermined_on_the_record") {
-    return "Given the points still open, whether prior consultation is required cannot yet be determined, and the processing being assessed should not begin until it is.";
+    return "Given the points still open, and after the analysis as set forth below, whether prior consultation is required cannot yet be determined, and the processing being assessed should not begin until it is.";
   }
   if (det === "draft_incomplete") {
-    return "Given the points still open, this assessment cannot yet determine whether the processing being assessed may proceed.";
+    return "Given the points still open, and after the analysis as set forth below, this assessment cannot yet determine whether the processing being assessed may proceed.";
   }
   if (det === "conditionally_approved") {
-    return "Given the noted risks and the mitigating measures, the processing being assessed may proceed on the conditions set out below.";
+    return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed on the conditions set out below.";
   }
   if (det === "approved") {
-    return "Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate.";
+    return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate.";
   }
   // Pre-decision documents only: the legacy u5 string is the sole fallback.
   const legacy = decisionText(report);
@@ -456,7 +456,7 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
         : `This assessment reviews ${numberWord(total)} risks and the measures the company has put in place to mitigate them.`,
     );
     const preliminary =
-      `the risk levels in this document are preliminary until ${who} re-scores them against the mitigating measures once they have been deployed`;
+      `the risk levels in this document are preliminary until ${who} re-scores them against the mitigating measures, if and as identified by the company, once they have been deployed`;
     sentences.push(
       high > 0
         ? `${
