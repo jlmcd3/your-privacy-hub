@@ -13,7 +13,7 @@
 
 import type { LlmFinding } from "./post-filters.ts";
 
-export const SKELETON_CAL_VERSION = "gc-2026-08-12-skeleton-cal-2";
+export const SKELETON_CAL_VERSION = "gc-2026-08-16-skeleton-cal-2-repin";
 
 export type SkeletonCalRuleId =
   | "cal_skeleton_1"
@@ -147,12 +147,54 @@ function askLabelSpans(): Record<string, readonly string[]> {
 
 const norm = (s: string) => String(s ?? "").replace(/\s+/g, " ").trim();
 
+// PROMPT 9J item 2 (CEO-approved 2026-08-16) — cal_skeleton_1 REGISTRY RE-PIN.
+//
+// MATCHER GAP, verified on run 2b21e54a finding 21a328d8: the grader quoted the
+// shipped per-risk scoring head THREE TIMES and ELIDED each one with "..."
+// ("...is assessed at Unlikely likelihood and Significant severity... Loss of
+// control ... is assessed at Unlikely likelihood and Moderate severity..."),
+// so the registry's trailing spans ("severity under this assessment's pre-set
+// risk taxonomy", "an initial risk level of") were never present verbatim and
+// the every-span rule failed. The 9I.1 paragraph split made elided multi-row
+// quotations the normal shape of such a finding.
+//
+// The re-pin keeps the registry bytes and the exact (non-fuzzy) rule, and adds
+// ONE tolerance: an ELIDED quotation of a registered template matches when the
+// evidence carries an ellipsis and quotes an in-order PREFIX RUN of at least
+// two of that template's spans. No new rule, no scope change.
+const ELISION_RE = /(?:\u2026|\.\.\.)/;
+
+function matchesAllSpans(ev: string, spans: readonly string[]): boolean {
+  return spans.every((sp) => ev.includes(norm(sp)));
+}
+
+/** In-order prefix run of registry spans present in an elided quotation. */
+function elidedPrefixRun(ev: string, spans: readonly string[]): number {
+  let from = 0;
+  let matched = 0;
+  for (const sp of spans) {
+    const needle = norm(sp);
+    const at = ev.indexOf(needle, from);
+    if (at < 0) break;
+    from = at + needle.length;
+    matched++;
+  }
+  if (matched === 0) return 0;
+  // The elision must sit at or after the quoted run — an unrelated ellipsis
+  // earlier in the grader's own prose does not license the match.
+  return ELISION_RE.test(ev.slice(from - 1)) ? matched : 0;
+}
+
 /** Returns the registry id of the ratified template the evidence quotes, or null. */
 export function matchRatifiedTemplate(evidence: string): string | null {
   const ev = norm(evidence);
   if (!ev) return null;
   for (const [id, spans] of Object.entries(RATIFIED_TEMPLATE_REGISTRY)) {
-    if (spans.every((sp) => ev.includes(norm(sp)))) return id;
+    if (matchesAllSpans(ev, spans)) return id;
+  }
+  if (!ELISION_RE.test(ev)) return null;
+  for (const [id, spans] of Object.entries(RATIFIED_TEMPLATE_REGISTRY)) {
+    if (spans.length >= 2 && elidedPrefixRun(ev, spans) >= 2) return id;
   }
   return null;
 }
