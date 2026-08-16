@@ -716,6 +716,13 @@ export const BUILD_STAMP = "dpia-pipeline@item-so5-2026-08-10";
 // Permanent pipeline build stamp — bump on every pipeline change. Written into
 // every document at `_meta.internal.dpia_pipeline_stamp` during runStitch.
 export const DPIA_PIPELINE_STAMP = "dpia-pipeline@item399-2026-08-07";
+// PROMPT 9K (CEO-ruled 2026-08-16) — ASSERT-ONLY COMPOSITION PIPELINE.
+// On the DPIA new-document path mutation rights are reserved to the builders
+// and the assembler. Every police pass below runs in DETECT mode: the checks
+// run unchanged and their findings land on `_meta.internal.detect_mode`; not
+// one of them may rewrite reader-facing text.
+export const DPIA_ASSERT_ONLY_STAMP = "dpia-assert-only@9k-2026-08-16";
+export const DPIA_DETECT_ONLY = true;
 console.log(`[run-dpia-framework] boot ${BUILD_STAMP} ${DPIA_PIPELINE_STAMP}`);
 
 // ── ITEM 376 — DPIA REFINEMENT PASS (Method #4) ──────────────────────────────
@@ -2378,6 +2385,7 @@ async function runStitch(dpia_id: string): Promise<void> {
         const RE = /\b(?:Your\s+qualified\s+(?:Data\s+Protection\s+Officer|DPO)|the\s+(?:qualified\s+)?DPO)\s+(?:or\s+legal\s+counsel\s+)?must\s+review,?\s*(?:and\s+)?complete,?\s*(?:and\s+)?(?:own\s+)?(?:and\s+own\s+)?it\.?/gi;
         const PROTECTED_KEYS = new Set(["framework_disclaimer", "preamble", "disclaimer"]);
         let midBodyScrubbed = 0;
+        const midBodyFindings: { pass: string; check_id: string; path: string; evidence: string }[] = [];
         const walk = (node: any, parentKey: string | null) => {
           if (!node) return;
           if (Array.isArray(node)) { for (const v of node) walk(v, parentKey); return; }
@@ -2386,15 +2394,32 @@ async function runStitch(dpia_id: string): Promise<void> {
             const v = (node as any)[k];
             if (PROTECTED_KEYS.has(k)) continue;
             if (typeof v === "string") {
+              RE.lastIndex = 0;
               if (RE.test(v)) {
-                const next = v.replace(RE, "").replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1").trim();
-                (node as any)[k] = next;
+                // PROMPT 9K item 2.5 — SWEEP: POLICE. The scrub rewrites
+                // existing reader-facing text, so on the new-document path it
+                // DETECTS and reports; the builders' bytes ship as built.
                 midBodyScrubbed++;
+                midBodyFindings.push({
+                  pass: "midbody_ownership_disclaimer",
+                  check_id: "would_remove_ownership_sentence",
+                  path: k,
+                  evidence: String(v).slice(0, 200),
+                });
+                if (!DPIA_DETECT_ONLY) {
+                  (node as any)[k] = v.replace(RE, "").replace(/\s{2,}/g, " ").replace(/\s+([.,;:])/g, "$1").trim();
+                }
               }
             } else if (v && typeof v === "object") walk(v, k);
           }
         };
         walk(reportData, null);
+        if (DPIA_DETECT_ONLY && midBodyFindings.length > 0) {
+          const { recordDetectFindings } = await import("../_shared/prose/detect-mode.ts");
+          recordDetectFindings(reportData as any, "midbody_ownership_disclaimer", midBodyFindings, {
+            writes_suppressed: midBodyFindings.length,
+          });
+        }
         if (midBodyScrubbed > 0) {
           console.warn(`[run-dpia-framework] PRODUCT-FIX-4 T3 mid-body ownership-disclaimer scrub: ${midBodyScrubbed} occurrence(s) removed`);
         }
@@ -2710,7 +2735,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // `_meta.internal.dpia_t6fix`. Fail-open.
     try {
       const { applyDpiaT6Fix } = await import("./_dpia_t6_fix.ts");
-      applyDpiaT6Fix(reportData, { intake: dpiaIntake ?? {}, buildStamp: BUILD_STAMP });
+      applyDpiaT6Fix(reportData, { intake: dpiaIntake ?? {}, buildStamp: BUILD_STAMP, detectOnly: DPIA_DETECT_ONLY });
     } catch (e) {
       console.warn("[run-dpia-framework] DPIA-T6-FIX post-pass failed (non-fatal):", (e as Error)?.message);
     }
@@ -2724,6 +2749,7 @@ async function runStitch(dpia_id: string): Promise<void> {
       runEmitGate(reportData as any, {
         tool: "dpia_framework",
         intakeRoster: dpiaIntake ?? {},
+        detectOnly: DPIA_DETECT_ONLY, // 9K item 2 — detect, never degrade
       });
     } catch (e) {
       console.warn("[run-dpia-framework] LEAK-PREV-P1 emit-gate wrapper failed (non-fatal):", (e as Error)?.message);
@@ -2738,7 +2764,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // Fail-open.
     try {
       const { applyBracketTagPass } = await import("./_local/prose/bracket-tags.ts");
-      const bt = applyBracketTagPass(reportData as any);
+      const bt = applyBracketTagPass(reportData as any, { detectOnly: DPIA_DETECT_ONLY });
       console.log(JSON.stringify({ evt: "dpia_bracket_tags", fn: "run-dpia-framework", ...bt }));
     } catch (e) {
       console.warn("[run-dpia-framework] bracket-tag pass failed (non-fatal):", (e as Error)?.message);
@@ -2774,6 +2800,7 @@ async function runStitch(dpia_id: string): Promise<void> {
         // writes into a structured leaf. Omitting these two options leaves the
         // other nine products byte-identical.
         surfaceStatuses: dpiaSurfaceStatuses,
+        detectOnly: DPIA_DETECT_ONLY, // 9K item 2 — detect, never substitute
         structuredLeafKeys: [
           "name", "role", "approved_by_name", "approved_by_title",
           "approval_date", "status", "citation", "template_ref",
@@ -2794,7 +2821,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // `_meta.internal.dpia_boilerplate_cap`. Fail-open.
     try {
       const { applyDpiaBoilerplateCap } = await import("./_dpia_boilerplate_cap.ts");
-      applyDpiaBoilerplateCap(reportData as any);
+      applyDpiaBoilerplateCap(reportData as any, { detectOnly: DPIA_DETECT_ONLY });
     } catch (e) {
       console.warn("[run-dpia-framework] boilerplate cap post-pass failed (non-fatal):", (e as Error)?.message);
     }
@@ -2807,7 +2834,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     try {
       const { applyInferredGeneralisation } = await import("./_local/prose/inferred-generalisation.ts"
       );
-      const ig = applyInferredGeneralisation(reportData as any, dpiaIntake);
+      const ig = applyInferredGeneralisation(reportData as any, dpiaIntake, { detectOnly: DPIA_DETECT_ONLY });
       console.log(JSON.stringify({ evt: "dpia_inferred_generalisation", fn: "run-dpia-framework", ...ig }));
     } catch (e) {
       console.warn("[run-dpia-framework] inferred generalisation failed (non-fatal):", (e as Error)?.message);
@@ -2821,7 +2848,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     try {
       const { applyAdvisoryCloseRepair } = await import("./_local/prose/advisory-close-repair.ts"
       );
-      const ac = applyAdvisoryCloseRepair(reportData as any);
+      const ac = applyAdvisoryCloseRepair(reportData as any, { detectOnly: DPIA_DETECT_ONLY });
       console.log(JSON.stringify({ evt: "dpia_advisory_close_repair", fn: "run-dpia-framework", ...ac }));
     } catch (e) {
       console.warn("[run-dpia-framework] advisory close repair failed (non-fatal):", (e as Error)?.message);
@@ -2834,7 +2861,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     try {
       const { applyEnforcementTagGate } = await import("./_local/prose/enforcement-tag-gate.ts"
       );
-      const et = applyEnforcementTagGate(reportData as any);
+      const et = applyEnforcementTagGate(reportData as any, { detectOnly: DPIA_DETECT_ONLY });
       console.log(JSON.stringify({ evt: "dpia_enforcement_tag_gate", fn: "run-dpia-framework", ...et }));
     } catch (e) {
       console.warn("[run-dpia-framework] enforcement tag gate failed (non-fatal):", (e as Error)?.message);
