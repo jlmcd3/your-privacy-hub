@@ -612,11 +612,14 @@ function composeRiskLead(report: Bag): string {
   if (band === "undetermined") {
     return `After the mitigating measures the company has recorded, the remaining risk level for ${label} is undetermined, and that is the most significant open point in this assessment.`;
   }
+  // PROMPT 9I item 3(b) (CEO-ratified 2026-08-15) — Section 4's CLOSING
+  // summary sentence, byte-fixed.
   return band
-    ? `After the mitigating measures the company has recorded, the most significant remaining risk is ${label}, at a preliminary remaining risk level of ${band}.`
-    : `After the mitigating measures the company has recorded, the most significant remaining risk is ${label}.`;
+    ? `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}, which is assessed herein at a preliminary remaining risk level of ${band}.`
+    : `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}.`;
 
 }
+
 
 
 // PROMPT 8A item 1, as revised by the PROMPT 8D plain-language sweep
