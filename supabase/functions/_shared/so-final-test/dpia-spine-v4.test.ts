@@ -102,11 +102,13 @@ Deno.test("spine v4.1 — the ratified wording edits are the shipped bytes", () 
   assertStringIncludes(fixed[8], "only where {regimeName} Chapter V's conditions for such transfer are satisfied");
   assertStringIncludes(fixed[9], "The following discussion analyzes the necessity and proportionality by identifying the company's specific goals, how the processing helps to reach those goals, whether less intrusive methods exist that could realistically achieve the same purpose, and the impact on individual privacy rights as balanced against the company's interests \u2014 all based on the information the company provided.");
   assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding assessed against the company.");
-  assertStringIncludes(fixed[10], "The risks inherent in the processing's design \u2014 that is,");
-  assertStringIncludes(fixed[11], "in light of the protective or mitigating measures it identifies.");
+  // PROMPT 9L.2 — §4 block order corrected: the statutory frame (fixed[10])
+  // precedes the design-risks intro (fixed[11]). Bytes unchanged.
+  assertStringIncludes(fixed[10], "in light of the protective or mitigating measures it identifies.");
+  assertStringIncludes(fixed[11], "The risks inherent in the processing's design \u2014 that is,");
   // PROMPT 9I item 1 — the v4.3 ratified edits are the shipped bytes.
   assertStringIncludes(fixed[8], "the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller");
-  assertStringIncludes(fixed[11], "Article 35(7)(d) requires an assessment of the measures planned to address them");
+  assertStringIncludes(fixed[10], "Article 35(7)(d) requires an assessment of the measures planned to address them");
   assertStringIncludes(fixed[12], "the company states: {dataSubjectsViews");
   assertStringIncludes(fixed[15], "could not determine from the company's answers");
   // The v4 wording must be gone.
