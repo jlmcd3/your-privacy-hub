@@ -37,11 +37,14 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-12-prompt8d-v4-2";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-15-prompt9i-v4-3";
+
+/** The superseded v4.2 spine version string, kept for documents already assembled. */
+export const DPIA_SKELETON_VERSION_V42 = "prose-plans-2026-08-12-prompt8d-v4-2";
 export const DPIA_SKELETON_SOURCE_FILE =
-  "DPIA spine v4.2 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4.1 (CEO-ratified 2026-08-12), spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
+  "DPIA spine v4.3 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-15 (PROMPT 9I redline of document 03, batch 3a4f10c4); supersedes DPIA spine v4.2 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4.1 (CEO-ratified 2026-08-12), spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
 export const DPIA_SKELETON_PROVENANCE =
-  "PROMPT 8D spine v4.2 — CEO ratification of 2026-08-12 (plain-language sweep), generated from the shipped v4.1 spine bytes; one structural change, the deletion of the executive-summary [DETERMINATION LEAD] block. Fixed prose unchanged.";
+  "PROMPT 9I spine v4.3 — CEO redline ratification of 2026-08-15, generated from the shipped v4.2 spine bytes: thirteen fixed-prose edits, and two composition moves (Section 3 determination last, Section 4 summary last). Slot inventory unchanged. Prior provenance: PROMPT 8D spine v4.2 — CEO ratification of 2026-08-12 (plain-language sweep), generated from the shipped v4.1 spine bytes; one structural change, the deletion of the executive-summary [DETERMINATION LEAD] block. Fixed prose unchanged.";
 
 /** The superseded v4.1 spine version string, kept for documents already assembled. */
 export const DPIA_SKELETON_VERSION_V41 = "prose-plans-2026-08-12-prompt8b-v4-1";
@@ -83,8 +86,16 @@ export const DPIA_SKELETON_CONTENT_HASH_V4 =
  * unchanged from v4.1 because v4.2 changed no fixed prose, which is exactly
  * why the basis was widened.
  */
-export const DPIA_SKELETON_CONTENT_HASH =
+export const DPIA_SKELETON_CONTENT_HASH_V41 =
   "5e538c3c50a0d8098acdffd9067166d92cb343da7f1b117158df9f7d66a4d7b2";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.3 — the PROMPT 9I redline changed
+ * fixed prose, so this value moves with it. Retained for the audit trail only;
+ * `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
+ */
+export const DPIA_SKELETON_CONTENT_HASH =
+  "__V43_FIXED__";
 
 
 
@@ -308,6 +319,10 @@ export function serializeDpiaSpine(
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
+  "__V43_SPINE__";
+
+/** The v4.2 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V42 =
   "fe0ced551e06dddd0444feb7834dd4911b63f83b52198090cd1cd95e86a76190";
 
 /** The v4.1 spine under basis v2 — retained for the audit trail. */
