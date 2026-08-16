@@ -88,7 +88,6 @@ function asProse(items: readonly string[]): string {
 }
 
 /** Drop a trailing period: the skeleton's fixed prose supplies its own. */
-const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
 const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
 
 // SO-3 DEFECT CLASS 1 — proper nouns are never case-folded. `lower()` is used
