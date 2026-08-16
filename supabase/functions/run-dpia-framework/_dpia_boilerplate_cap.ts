@@ -1,3 +1,4 @@
+import { detectOnlyRun } from "../_shared/prose/detect-mode.ts";
 /**
  * DPIA UPGRADE (ITEM 5) — BOILERPLATE SOURCE FIX for run-dpia-framework.
  *
