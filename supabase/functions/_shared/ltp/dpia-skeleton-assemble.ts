@@ -1074,11 +1074,20 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     // PROMPT 8 (spine v4) — the v3 sections `lawfulness`,
     // `risks_and_measures` and `consultation_and_signoff` are retired; the same
     // ratified composers are re-homed onto the EDPB sections.
-    "section_3_necessity_proportionality:1": composeNecessityLead(report),
-    "section_3_necessity_proportionality:2": composeNecessityBody(report),
+    // PROMPT 9I.1 item 2 / item 6 — the composed keys are re-pinned to the
+    // spine v4.3 BLOCK INDICES. Section 3: 0 skeleton, 1 generated (lead +
+    // analysis), 2 lead (determination LAST), 3 skeleton, 4 table. Section 4:
+    // 0 skeleton, 1 table, 2 table, 3 generated (per-risk analysis), 4 lead
+    // (the most-significant-remaining-risk summary, closing paragraph).
+    "section_3_necessity_proportionality:1": [
+      composeNecessityLead(report),
+      composeNecessityBody(report),
+    ].filter(Boolean).join("\n\n"),
+    "section_3_necessity_proportionality:2": composeNecessityDetermination(report),
 
-    "section_4_risk_management:2": composeRiskLead(report),
-    "section_4_risk_management:4": composeRiskBody(report, values, intake),
+    "section_4_risk_management:3": composeRiskBody(report, values, intake),
+    "section_4_risk_management:4": composeRiskLead(report),
+
 
     "section_6_conclusion:2": composeSignoffLead(report, intake),
     "section_6_conclusion:3": composeSignoffBody(report, intake, values),
