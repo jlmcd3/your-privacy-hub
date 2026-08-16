@@ -104,14 +104,18 @@ export const DPIA_SKELETON_CONTENT_HASH_V43 =
 export const DPIA_SKELETON_CONTENT_HASH_V44 =
   "ef9a38e435f1c04c2fa3d9a7e6006a509aa9278a48d2f40205c08c420ef57429";
 
+/** The v4.5 fixed prose under basis v1 — retained for the audit trail. */
+export const DPIA_SKELETON_CONTENT_HASH_V45 =
+  "e2752c976328626a4bb34fe35a71c9d36bd7be8e5b408d38cc9c6ce1b4421517";
+
 /**
- * FIXED-PROSE HASH (BASIS v1) at spine v4.5 — the PROMPT 9L.1 redline edited
- * block 7 and relocated the design-risk intro to Section 4 — the PROMPT 9L redline changed
- * fixed prose (blocks 5, 6, 7, 9 and 10), so this value moves with it.
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.5.1 — PROMPT 9L.2 reordered the
+ * Section 4 blocks (statutory frame first, then the design-risk intro and
+ * table). No sentence bytes changed, but the basis-v1 concatenation order did.
  * Retained for the audit trail only; `DPIA_SPINE_HASH` (basis v2) is the pin.
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "e2752c976328626a4bb34fe35a71c9d36bd7be8e5b408d38cc9c6ce1b4421517";
+  "cb168a5e3155c60054d4e301f5bffeb18df01c051d3c717e6f19653a276c9c0a";
 
 
 
