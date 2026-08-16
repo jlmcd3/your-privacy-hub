@@ -26,6 +26,8 @@
 
 import { INFO_NEEDED_LITERAL } from "../../../_shared/prose/frame-substitution.ts";
 
+import { detectOnlyRun } from "../../../_shared/prose/detect-mode.ts";
+
 export const BRACKET_TAG_VERSION = "bracket-tags-2026-08-04-item372";
 
 /**
@@ -171,8 +173,17 @@ function pushAsk(
 
 export function applyBracketTagPass(
   report: Record<string, unknown> | null | undefined,
-  opts: { absenceLiteral?: string } = {},
+  opts: { absenceLiteral?: string; detectOnly?: boolean } = {},
 ): BracketTagCounters {
+  // PROMPT 9K item 2 — DETECT MODE. Same check logic, no pen: the pass runs
+  // against a clone and every suppressed write is recorded as a finding.
+  if (opts.detectOnly) {
+    return detectOnlyRun(
+      report, "bracket_tags",
+      (clone) => applyBracketTagPass(clone, { ...opts, detectOnly: false }),
+      { version: BRACKET_TAG_VERSION, found: 0, labelled_blanks: 0, lifted_from_prose: 0, asks_added: 0, empty_asks_skipped: 0, interruptions_remaining: 0, crashed: false },
+    );
+  }
   const c: BracketTagCounters = {
     version: BRACKET_TAG_VERSION,
     found: 0,

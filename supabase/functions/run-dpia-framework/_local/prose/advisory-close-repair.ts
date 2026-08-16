@@ -28,6 +28,7 @@
 // `_meta.internal.advisory_close_repair`.
 
 import { categorizeAsk, GENERIC_CATEGORY } from "../../../_shared/prose/ask-categories.ts";
+import { detectOnlyRun } from "../../../_shared/prose/detect-mode.ts";
 
 export const ADVISORY_CLOSE_REPAIR_VERSION = "adv-close-repair-2026-08-05-item372r2";
 
@@ -99,7 +100,16 @@ export function namedCloseForPath(path: string): string | null {
 
 export function applyAdvisoryCloseRepair(
   report: Record<string, unknown> | null | undefined,
+  opts: { detectOnly?: boolean } = {},
 ): AdvisoryCloseCounters {
+  // PROMPT 9K item 2 — DETECT MODE (see _shared/prose/detect-mode.ts).
+  if (opts.detectOnly) {
+    return detectOnlyRun(
+      report, "advisory_close_repair",
+      (clone) => applyAdvisoryCloseRepair(clone, { detectOnly: false }),
+      { version: ADVISORY_CLOSE_REPAIR_VERSION, closes: 0, bare: 0, named: 0, removed: 0, bare_remaining: 0, crashed: false },
+    );
+  }
   const c: AdvisoryCloseCounters = {
     version: ADVISORY_CLOSE_REPAIR_VERSION,
     closes: 0,

@@ -1,3 +1,4 @@
+import { detectOnlyRun } from "./detect-mode.ts";
 // ITEM 369 / WAVE-1 AFTER-BATCH DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED
 // SURFACES.
 //
@@ -191,6 +192,12 @@ export interface FrameSubstitutionOptions {
    * identifiers. Substitution never writes into them. Omitted → default [].
    */
   readonly structuredLeafKeys?: readonly string[];
+  /**
+   * PROMPT 9K item 2 — DETECT MODE, per call site. On for the DPIA
+   * new-document path; omitted everywhere else, so every other caller is
+   * byte-identical.
+   */
+  readonly detectOnly?: boolean;
 }
 
 
@@ -429,6 +436,13 @@ export function applyFrameSubstitution(
   report: Record<string, unknown> | null | undefined,
   opts: FrameSubstitutionOptions,
 ): FrameSubstitutionCounters {
+  if (opts.detectOnly) {
+    return detectOnlyRun(
+      report, "frame_substitution",
+      (clone) => applyFrameSubstitution(clone, { ...opts, detectOnly: false }),
+      emptyCounters(opts.product),
+    );
+  }
   const c = emptyCounters(opts.product);
   try {
     if (!report || typeof report !== "object") return c;

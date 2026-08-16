@@ -27,6 +27,7 @@ import {
 import { checkH2InternalVocab } from "./grader/cppa-hf1-checks.ts";
 import { extractIntakeRoster } from "./grader/intake-roster.ts";
 import { renderMessage } from "./customer-messages.ts";
+import { recordDetectFindings } from "./prose/detect-mode.ts";
 
 export const EMIT_GATE_VERSION = "eg-w2-2026-08-11";
 
@@ -76,7 +77,15 @@ export interface EmitGateReport {
 export interface EmitGateOptions {
   intakeRoster?: unknown;
   tool?: EmitGateTool;
+  /**
+   * PROMPT 9K item 2 — DETECT MODE. Every check runs exactly as today and
+   * every finding is recorded; NOTHING is degraded. Opt-in per call site
+   * (on for the DPIA new-document path); omitted everywhere else, so every
+   * other product is byte-identical.
+   */
+  detectOnly?: boolean;
 }
+
 
 const SAFETY_VALVE_RATIO = 0.30;
 
@@ -132,6 +141,27 @@ export const BYTE_PINNED_LEAF_KEYS: ReadonlySet<string> = new Set([
   "pinned_quote",
   "passage_verbatim",
 ]);
+
+/**
+ * PROMPT 9K item 3 (CEO-ruled 2026-08-16) — EXEMPTION REPAIR.
+ *
+ * `risk_register[].guidance_verbatim` carries REGISTRY BYTES and
+ * `section2_coverage.intake_structure_recommendations[].would_enable`
+ * carries FIXED authored recommendation text. Neither is model prose and
+ * neither is a police target: the gate degraded them wholesale (every DPIA
+ * document since ~2026-08-11 stores scaffolded guidance_verbatim on every
+ * risk row). These keys are fully exempt — no detector runs against them,
+ * in every mode and for every product.
+ */
+export const GATE_EXEMPT_LEAF_KEYS: ReadonlySet<string> = new Set([
+  "guidance_verbatim",
+  "would_enable",
+]);
+
+export function isGateExemptLeaf(path: string): boolean {
+  return GATE_EXEMPT_LEAF_KEYS.has(leafKeyOf(path));
+}
+
 
 /** Last path segment, array indices stripped. */
 function leafKeyOf(path: string): string {
@@ -258,6 +288,10 @@ function detectFindings(
 ): EmitGateFinding[] {
   const s = leaf.value;
   const findings: EmitGateFinding[] = [];
+  // PROMPT 9K item 3 — registry bytes / fixed recommendation text are never
+  // police targets, in any mode, for any product.
+  if (isGateExemptLeaf(leaf.path)) return findings;
+
   const sanctioned = isSanctionedCounselRegister(s);
 
 
@@ -510,11 +544,24 @@ export function runEmitGate(
         prose_nodes: leaves.length,
       }));
     }
-    for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
-    gateReport.degraded_count = leavesToDegrade.length;
-    // ITEM 352 — internal gate rows never reach the customer array.
-    gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
-    if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;
+    // PROMPT 9K item 2 — DETECT MODE. The detectors above ran unchanged and
+    // every finding is on `gateReport.findings`; the pen is withheld. Nothing
+    // is degraded, no customer array is rewritten, the builders' output ships
+    // as built.
+    if (opts.detectOnly) {
+      (gateReport as Record<string, unknown>).detect_only = true;
+      (gateReport as Record<string, unknown>).writes_suppressed = leavesToDegrade.length;
+      (gateReport as Record<string, unknown>).would_degrade_paths =
+        leavesToDegrade.map((l) => l.path);
+      gateReport.degraded_count = 0;
+    } else {
+      for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
+      gateReport.degraded_count = leavesToDegrade.length;
+      // ITEM 352 — internal gate rows never reach the customer array.
+      gateReport.customer_rows_filtered = filterCustomerInformationNeeded(report);
+      if (degradedPaths.length > 0) gateReport.degraded_paths = degradedPaths;
+    }
+
 
   } catch (e) {
     gateReport.crashed = true;
@@ -538,6 +585,23 @@ export function runEmitGate(
     meta.internal = internal;
     rd._meta = meta;
   } catch { /* never block emission */ }
+
+  // PROMPT 9K item 2.1 — detect findings land on the shared detect surface so
+  // one sentinel can read every police pass's findings from one place.
+  if (opts.detectOnly) {
+    recordDetectFindings(
+      report as Record<string, unknown>,
+      "emit_gate",
+      gateReport.findings.map((f) => ({
+        pass: "emit_gate",
+        check_id: f.check_id,
+        path: f.path,
+        evidence: f.evidence,
+      })),
+      { writes_suppressed: (gateReport as Record<string, unknown>).writes_suppressed ?? 0, crashed: !!gateReport.crashed },
+    );
+  }
+
 
   if (!gateReport.crashed) {
     console.log(JSON.stringify({

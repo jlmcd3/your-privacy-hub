@@ -20,6 +20,8 @@
 // Deterministic, in-place, never throws. Telemetry on
 // `_meta.internal.enforcement_tag_gate`.
 
+import { detectOnlyRun } from "../../../_shared/prose/detect-mode.ts";
+
 export const ENFORCEMENT_TAG_GATE_VERSION = "enf-tag-gate-2026-08-05-item372r2";
 
 /** `[E1]`, `[E2, E8]`, `(E3)`, `(E4, E7)` — the shapes the model emits. */
@@ -108,8 +110,16 @@ export function renderedEnforcementIds(
  */
 export function applyEnforcementTagGate(
   report: Record<string, unknown> | null | undefined,
-  opts: { renderedIds?: readonly string[] } = {},
+  opts: { renderedIds?: readonly string[]; detectOnly?: boolean } = {},
 ): EnforcementTagGateCounters {
+  // PROMPT 9K item 2 — DETECT MODE (see _shared/prose/detect-mode.ts).
+  if (opts.detectOnly) {
+    return detectOnlyRun(
+      report, "enforcement_tag_gate",
+      (clone) => applyEnforcementTagGate(clone, { ...opts, detectOnly: false }),
+      { version: ENFORCEMENT_TAG_GATE_VERSION, found: 0, kept: 0, stripped: 0, rendered_ids: [], remaining: 0, crashed: false },
+    );
+  }
   const c: EnforcementTagGateCounters = {
     version: ENFORCEMENT_TAG_GATE_VERSION,
     found: 0,
