@@ -144,7 +144,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     blocks: [
       // PROMPT 8D (v4.2): the [DETERMINATION LEAD] block is DELETED. The
       // decision statement closes the executive body per the canonical model.
-      { kind: "skeleton", text: "Article 35 requires a data protection impact assessment where processing is likely to result in a high risk to the rights and freedoms of natural persons. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
+      { kind: "skeleton", text: "Article 35 requires a data protection impact assessment where processing is likely to result in a high risk to the rights and freedoms of natural persons. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
       { kind: "generated", text: "[GENERATED] The executive body per the canonical model: the risks reviewed and the measures mitigating them; whether any is deemed high; the self-identified/surfaced split; the open points; and the grounded decision statement, which closes the section." },
 
     ],
@@ -153,13 +153,13 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_0_overview",
     title: "Section 0 - Overview of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section identifies the parties to the processing and the terms on which this assessment was carried out. {organizationName} is the controller of the processing being assessed here, and the tables below identify the controller, the processors it has engaged, and the particulars of the engagements. Where the company has not recorded an entry, that absence is noted rather than filled." },
+      { kind: "skeleton", text: "This section identifies the parties to the processing and the terms on which this assessment was conducted. {organizationName} is the controller of the processing being assessed, and the tables below identify the processors it has engaged and the particulars of the engagements. Where the company has not provided information, the absence of that information is noted rather than assumed." },
       { kind: "table", text: "processing_inventory.controllers" },
       { kind: "table", text: "processing_inventory.processors" },
       { kind: "table", text: "processing_inventory.planning" },
-      { kind: "skeleton", text: "The company identifies the following particulars for the assessment itself: the reasons it was undertaken, its scope, the materials relied upon, and the company's intention as to publication." },
+      { kind: "skeleton", text: "Below, the company identifies the reasons the assessment was undertaken, its scope, the materials relied upon, and the company's intention as to publication, if applicable." },
       { kind: "table", text: "assessment_particulars" },
-      { kind: "skeleton", text: "The assessment team and the approval record below are taken from the company's own attestation and are reproduced as identified by the company." },
+      { kind: "skeleton", text: "The assessment team and the approval process are reproduced as identified by the company." },
       { kind: "table", text: "assessment_team" },
       { kind: "table", text: "validation_approval" },
     ],
@@ -168,26 +168,26 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_1_description",
     title: "Section 1 - Systematic Description of the Processing",
     blocks: [
-      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the processing operations and of the purposes pursued. {organizationName} describes below: the categories of data it identifies, the purposes it states, and any further uses it discloses." },
+      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the processing operations and of the purposes pursued. Pursuant to that requirement, the company identifies below: the categories of data it processes, the purposes of the processing, and any further uses of the data being processed." },
       { kind: "table", text: "processing_inventory.data_items" },
       { kind: "table", text: "processing_inventory.purposes" },
       { kind: "table", text: "processing_inventory.secondary_uses" },
-      { kind: "skeleton", text: "On the nature, scope and context of the processing the company has said: {natureScopeContext - attributed verbatim}. It describes the operation functionally as follows: {functionalDescription - attributed verbatim}. The assets supporting the processing as identified by the company are as follows: {supportingAssets - attributed verbatim}." },
+      { kind: "skeleton", text: "On the nature, scope and context of the processing the company has stated the following: {natureScopeContext - attributed verbatim}. The company describes the operation functionally as follows: {functionalDescription - attributed verbatim}. The company identifies the assets supporting the processing as follows: {supportingAssets - attributed verbatim}." },
     ],
   },
   {
     id: "section_2_analysis",
     title: "Section 2 - Analysis of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it. Each table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding against the company." },
+      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it. Each table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding assessed against the company." },
       { kind: "table", text: "legal_basis" },
-      { kind: "skeleton", text: "Where special categories of personal data are processed, Article 9(1) prohibits the processing unless one of the conditions in Article 9(2) applies. The condition the company has selected, and the company's corresponding reasoning, are set out below." },
+      { kind: "skeleton", text: "Where special categories of personal data are processed, Article 9(1) prohibits the processing unless one of the conditions in Article 9(2) applies. The condition under Article 9(2) that the company has selected, and the company's corresponding reasoning, are set forth below." },
       { kind: "table", text: "section2_coverage.special_category_conditions" },
       { kind: "table", text: "section2_coverage.data_minimisation_retention" },
       { kind: "table", text: "section2_coverage.data_quality" },
       { kind: "table", text: "section2_coverage.measures_article5" },
       { kind: "table", text: "section2_coverage.measures_rights" },
-      { kind: "skeleton", text: "A controller may transfer personal data outside the European Economic Area only where Chapter V's conditions for such transfer are satisfied, and may use a processor only under a contract meeting the processing details, security, and other requirements of Article 28(3). The company's position on each is below; where the company identifies no such transfers, the assessment proceeds on the basis that none are made." },
+      { kind: "skeleton", text: "A controller may transfer personal data outside the European Economic Area only where Chapter V's conditions for such transfer are satisfied. The controller may use a processor only under a contract meeting the requirements of Article 28(3), including the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller. The company's position on each is below; where the company identifies no such transfers, the assessment proceeds on the basis that none are made." },
       { kind: "table", text: "section2_coverage.measures_other" },
       { kind: "table", text: "section2_coverage.measures_dpbd" },
       { kind: "table", text: "section2_coverage.measures_security" },
@@ -208,7 +208,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_4_risk_management",
     title: "Section 4 - Risk Assessment and Management",
     blocks: [
-      { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) the measures envisaged to address them. This section identifies the risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
+      { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) requires an assessment of the measures planned to address them. This section identifies potential risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
       { kind: "table", text: "risk_register.incident" },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence identifying the most significant residual risk after measures." },
       { kind: "table", text: "risk_register" },
@@ -219,7 +219,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_5_interested_parties",
     title: "Section 5 - Involvement of Interested Parties",
     blocks: [
-      { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer where one is designated, and Article 35(9) requires the views of data subjects or their representatives to be sought where appropriate. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. On the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
+      { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer, where one is designated, and Article 35(9) requires the views of data subjects or their representatives to be sought where appropriate. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. With respect to the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
     ],
   },
   {
