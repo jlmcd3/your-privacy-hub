@@ -40,6 +40,10 @@ import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
 import { DPIA_NECESSITY_TEST_SENTENCE, readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
+// PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
+// ONE module so dpia-deliverables/build.ts can share them without a cycle.
+import { boundedClause, firstSentence, noStop } from "./clause-bound.ts";
+export { boundedClause, firstSentence };
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
 // PROMPT 8A (CEO-ratified 2026-08-12) — CITATION STYLE RULING for all DPIA
@@ -98,25 +102,6 @@ function lowerEnumLabel(v: string): string {
   // Leave acronyms and any label whose second character is upper-case alone.
   if (/^[A-Z]{2,}/.test(v)) return v;
   return v.charAt(0).toLowerCase() + v.slice(1);
-}
-
-// SO-3 DEFECT CLASS 2 — abbreviation-aware sentence boundaries. Without this
-// guard "GDPR Art. 35(7)" truncates a sentence at "Art.".
-const ABBREV_TAIL =
-  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Recital|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Tex|Bus|Com|Ins|Bus\.\s&\sCom|Inc|Ltd|GmbH|AG|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|Dr|Mr|Mrs|Ms|St|U\.S|U\.K)|\s[A-Z])\.$/;
-
-export function firstSentence(text: string): string {
-  const t = text.trim();
-  const re = /[.!?](?=\s|$)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(t))) {
-    const end = m.index + 1;
-    const head = t.slice(0, end);
-    if (ABBREV_TAIL.test(head)) continue;
-    if (/^\s+[a-z0-9]/.test(t.slice(end))) continue;
-    return head.trim();
-  }
-  return t;
 }
 
 export function firstSentences(text: string, n: number): string {
@@ -589,18 +574,6 @@ function composeNecessityDetermination(report: Bag): string {
 //        line and split by the shared renderer.
 // S3-R3  every customer quote in Section 3 is CLAUSE-BOUNDED: a quote carries a
 //        single clause of the company's own words, never a whole free-text field.
-
-/** S3-R3 — the first clause of a customer field, quote-safe and unpadded. */
-export function boundedClause(text: string): string {
-  const t = noStop(String(text ?? "").trim().replace(/\s+/g, " "));
-  if (!t) return "";
-  const one = noStop(firstSentence(t));
-  // Bound further at the first clause boundary (semicolon, or a comma-led
-  // coordinating conjunction). Never mid-word, never mid-quote.
-  const m = one.match(/^(.{20,}?)(?:;|,\s+(?:and|but|or|which|while|so that)\b)/i);
-  const clause = noStop((m ? m[1] : one).trim());
-  return clause;
-}
 
 const quoted = (t: string): string => (t ? `"${t}"` : "");
 
