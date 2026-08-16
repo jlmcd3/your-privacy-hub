@@ -37,8 +37,41 @@ export function boundedClause(text: string): string {
   if (!t) return "";
   const one = noStop(firstSentence(t));
   // Bound further at the first clause boundary (semicolon, or a comma-led
-  // coordinating conjunction). Never mid-word, never mid-quote.
-  const m = one.match(/^(.{20,}?)(?:;|,\s+(?:and|but|or|which|while|so that)\b)/i);
-  const clause = noStop((m ? m[1] : one).trim());
-  return clause;
+  // coordinating conjunction). Never mid-word, never mid-quote. Single writer:
+  // the boundaries live in splitClauses; the first clause IS this bound.
+  return splitClauses(one)[0]?.text ?? "";
+}
+
+/**
+ * PROMPT 9J.1 (CEO-ruled 2026-08-16) — CLAUSE-GRANULAR SELECTION.
+ *
+ * `boundedClause` bounds a sentence at its FIRST clause boundary. 9J.1 needs
+ * the SAME boundaries enumerated, so selection can be clause-granular instead
+ * of sentence-granular. One implementation: the boundary pattern and the
+ * 20-character minimum below are exactly what `boundedClause` applies, and
+ * `boundedClause` is re-expressed as `splitClauses(...)[0]` so the two can
+ * never drift.
+ */
+const CLAUSE_BOUNDARY = /^(.{20,}?)(?:;|,\s+(?:and|but|or|which|while|so that)\b)/i;
+
+/** The clauses of ONE sentence, in order, each with its offset in that sentence. */
+export function splitClauses(sentence: string): { text: string; start: number }[] {
+  const s = String(sentence ?? "").trim().replace(/\s+/g, " ");
+  const out: { text: string; start: number }[] = [];
+  let offset = 0;
+  let rest = s;
+  while (rest) {
+    const m = rest.match(CLAUSE_BOUNDARY);
+    if (!m) {
+      const text = noStop(rest.trim());
+      if (text) out.push({ text, start: offset + (rest.length - rest.trimStart().length) });
+      break;
+    }
+    const head = m[1];
+    const text = noStop(head.trim());
+    if (text) out.push({ text, start: offset + (head.length - head.trimStart().length) });
+    offset += m[0].length;
+    rest = s.slice(offset);
+  }
+  return out;
 }
