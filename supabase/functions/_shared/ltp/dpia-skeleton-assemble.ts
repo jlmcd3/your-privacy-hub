@@ -667,7 +667,10 @@ export function composeNecessityBody(report: Bag): string {
     console.warn(JSON.stringify({ telemetry: "dpia_skeleton_np_void", necessity_findings: 0, proportionality: 0 }));
     return DPIA_NP_VOID_NOTICE;
   }
-  return paras.map((p) => repairRegister(p)).join("\n\n");
+  // Repair per LINE: numbered rejection reasons are one line each.
+  return paras
+    .map((para) => para.split("\n").map((line) => repairRegister(line)).join("\n"))
+    .join("\n\n");
 }
 
 
