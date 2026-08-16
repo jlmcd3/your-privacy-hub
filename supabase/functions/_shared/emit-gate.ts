@@ -141,6 +141,27 @@ export const BYTE_PINNED_LEAF_KEYS: ReadonlySet<string> = new Set([
   "passage_verbatim",
 ]);
 
+/**
+ * PROMPT 9K item 3 (CEO-ruled 2026-08-16) — EXEMPTION REPAIR.
+ *
+ * `risk_register[].guidance_verbatim` carries REGISTRY BYTES and
+ * `section2_coverage.intake_structure_recommendations[].would_enable`
+ * carries FIXED authored recommendation text. Neither is model prose and
+ * neither is a police target: the gate degraded them wholesale (every DPIA
+ * document since ~2026-08-11 stores scaffolded guidance_verbatim on every
+ * risk row). These keys are fully exempt — no detector runs against them,
+ * in every mode and for every product.
+ */
+export const GATE_EXEMPT_LEAF_KEYS: ReadonlySet<string> = new Set([
+  "guidance_verbatim",
+  "would_enable",
+]);
+
+export function isGateExemptLeaf(path: string): boolean {
+  return GATE_EXEMPT_LEAF_KEYS.has(leafKeyOf(path));
+}
+
+
 /** Last path segment, array indices stripped. */
 function leafKeyOf(path: string): string {
   const noIdx = String(path ?? "").replace(/\[\d+\]$/g, "");
