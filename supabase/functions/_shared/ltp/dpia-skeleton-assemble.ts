@@ -605,6 +605,24 @@ export function boundedClause(text: string): string {
 
 const quoted = (t: string): string => (t ? `"${t}"` : "");
 
+// PROMPT 9I.1 item 7 — EVERY customer quote in Section 3 passes through the
+// clause-bounding rule, including quotes spliced inside a typed `why` field.
+export function boundQuotesIn(text: string): string {
+  return String(text ?? "").replace(/"([^"]{1,})"/g, (_m, inner: string) => {
+    const b = boundedClause(inner);
+    return b ? `"${b}"` : `"${inner}"`;
+  });
+}
+
+/**
+ * PROMPT 9I.1 item 3 (CEO-ratified 2026-08-16) — the necessity-test sentence.
+ * ONE sentence, ONE writer (this renderer), rendered once per operation on the
+ * established branch. The not-established and undetermined branches keep their
+ * existing ratified sentences byte-unchanged.
+ */
+export const DPIA_NECESSITY_TEST_SENTENCE =
+  "Applying the stated test — whether there are realistic, less intrusive alternatives that would achieve the same purpose — the alternatives the company considered, and the reasons each was rejected, support the necessity of the processing for this operation.";
+
 /** Necessity, one operation: alternatives → rejection reasons → the test. */
 function composeNecessityElement(f: Bag): string[] {
   const paras: string[] = [];
@@ -635,12 +653,10 @@ function composeNecessityElement(f: Bag): string[] {
   // The necessity test itself — its own paragraph, and the last of the element.
   const verdict = s(f.verdict);
   if (verdict === "least_intrusive_means_supported") {
-    paras.push(
-      "On the record as it stands, the processing is the least intrusive means of achieving the purpose the company has stated.",
-    );
+    paras.push(DPIA_NECESSITY_TEST_SENTENCE);
   } else {
     const why = s(f.why);
-    if (why) paras.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+    if (why) paras.push(boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))));
   }
   return paras.filter(Boolean);
 }
@@ -651,19 +667,20 @@ function composeProportionalityElement(p: Bag): string[] {
   const benefit = boundedClause(s(p.benefit_argument));
   const impact = boundedClause(s(p.impact_argument));
   if (benefit) {
-    paras.push(
-      `On the benefit of the processing, the company states that ${quoted(benefit)}.`,
-    );
+    // PROMPT 9I.1 item 4 — ratified benefit sentence.
+    paras.push(`On the benefit side of the balance, the company states: ${quoted(benefit)}.`);
   }
   if (impact) {
+    // PROMPT 9I.1 item 4 — ratified impact sentence.
     paras.push(
-      `On the impact of the processing on the people whose data is processed, the company states that ${quoted(impact)}.`,
+      `On the impact side, stated separately from the benefit, the company states: ${quoted(impact)}.`,
     );
   }
   const why = s(p.why);
-  if (why) paras.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+  if (why) paras.push(boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))));
   return paras.filter(Boolean);
 }
+
 
 /** PROMPT 5: defect notice replacing the former raw-u3 fallback. */
 export const DPIA_NP_VOID_NOTICE =
