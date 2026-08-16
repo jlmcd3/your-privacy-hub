@@ -89,20 +89,26 @@ Deno.test("spine v4.1 — the ratified wording edits are the shipped bytes", () 
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text));
   assertEquals(fixed.length, 16);
   assertStringIncludes(fixed[0], "{organizationName} believes that this assessment may be required because");
-  assertStringIncludes(fixed[1], "that absence is noted rather than filled.");
+  assertStringIncludes(fixed[1], "the absence of that information is noted rather than assumed.");
   assertStringIncludes(fixed[3], "reproduced as identified by the company.");
-  assertStringIncludes(fixed[4], "{organizationName} describes below:");
-  assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding against the company.");
+  assertStringIncludes(fixed[4], "the company identifies below:");
+  assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding assessed against the company.");
   assertStringIncludes(fixed[8], "Chapter V's conditions for such transfer are satisfied");
   assertStringIncludes(fixed[9], "means that are less intrusive.");
   assertStringIncludes(fixed[10], "The risks inherent in the processing's design \u2014 that is,");
   assertStringIncludes(fixed[11], "in light of the protective or mitigating measures it identifies.");
+  // PROMPT 9I item 1 — the v4.3 ratified edits are the shipped bytes.
+  assertStringIncludes(fixed[8], "the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller");
+  assertStringIncludes(fixed[11], "Article 35(7)(d) requires an assessment of the measures planned to address them");
   assertStringIncludes(fixed[12], "the company states: {dataSubjectsViews");
   assertStringIncludes(fixed[15], "could not determine from the company's answers");
   // The v4 wording must be gone.
   const all = fixed.join("\n");
   assert(!all.includes("has indicated that this assessment is required"));
   assert(!all.includes("the record does not carry the point"));
+  // The v4.2 wording must be gone.
+  assert(!all.includes("not a finding against the company"));
+  assert(!all.includes("that absence is noted rather than filled"));
 });
 
 Deno.test("spine v4.1 — sections follow the EDPB harmonised order", () => {
