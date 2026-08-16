@@ -304,12 +304,22 @@ export function impactSpan(text: string): string {
   const src = String(text ?? "").trim();
   if (!src) return "";
   for (const sentence of splitSentencesSafe(src)) {
-    const clauses = splitClauses(sentence);
-    // (a) CLAUSE-GRANULAR: the first clause that itself matches. Bounded by
-    // construction — a clause IS the bound boundedClause would apply.
+    // PROMPT 9L.1 item 2 — extraction clause boundaries include the COLON, so
+    // an in-sentence lead-in ("… is stated separately from the benefit:") is a
+    // clause of its own and the operative content after it is selectable.
+    const clauses = splitClauses(sentence, { colon: true });
+    // (a) CLAUSE-GRANULAR: the first clause that itself matches, skipping a
+    // lead-in (a clause closed by a colon) whenever a later clause matches.
+    let leadIn = "";
     for (const c of clauses) {
-      if (c.text && matches(c.text, IMPACT_LEXICON)) return assertImpact(c.text);
+      if (!c.text || !matches(c.text, IMPACT_LEXICON)) continue;
+      if (c.sep === ":") {
+        if (!leadIn) leadIn = c.text;
+        continue;
+      }
+      return assertImpact(c.text);
     }
+    if (leadIn) return assertImpact(leadIn);
     // (b) Only if no single clause matches but the SENTENCE does, the pattern
     // spans a clause boundary: return the sentence FROM the clause containing
     // the match start, so the matched span is never cut away.
@@ -327,6 +337,7 @@ export function impactSpan(text: string): string {
   }
   return "";
 }
+
 
 /**
  * PROMPT 9K item 1 — terminal stop for a stored span. The sentence's own stop

@@ -59,12 +59,13 @@ Deno.test("9L (i) — the assembled Harrowgate document carries every ratified s
     "step 3 bridge missing");
   assert(text.includes(DPIA_S3_STEP3_CONCLUSION), "step 3 conclusion missing");
   assert(text.includes(DPIA_S3_STEP4_IMPACT_LEAD), "step 4 impact sentence missing");
-  assert(/Balancing that impact against the goal stated above, and in light of the safeguards the company has recorded \(/.test(text),
+  assert(/Balancing that impact against the goal stated above, and in light of the safeguards the company has recorded \(including /.test(text),
     "step 4 balance sentence missing");
-  assert(text.includes("the impact is answered and the processing is proportionate to the stated goal."),
-    "step 4 balance tail missing");
+  // PROMPT 9L.1 item 3(c) — re-anchored to the ratified balance tail.
+  assert(text.includes("the processing is proportionate to the stated goal."), "step 4 balance tail missing");
+  assert(!text.includes("the impact is answered and"), "retired 9L balance phrase still present");
   assert(text.includes(DPIA_S3_DETERMINATION_ESTABLISHED), "determination sentence missing");
-  assert(dpiaS3BalanceSentence("x").includes("(x)"), "safeguards slot not spliced");
+  assert(dpiaS3BalanceSentence("x").includes("(including x)"), "safeguards slot not spliced");
 });
 
 Deno.test("9L (ii) — the retired bytes appear nowhere in the assembled document", () => {

@@ -37,7 +37,7 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l-v4-4";
+export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l1-v4-5";
 
 /** The v4.3 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V43 = "prose-plans-2026-08-15-prompt9i-v4-3";
@@ -100,13 +100,18 @@ export const DPIA_SKELETON_CONTENT_HASH_V41 =
 export const DPIA_SKELETON_CONTENT_HASH_V43 =
   "615664dc04dd04392f7d158511ccda8a1d7b5fa009bd7ab7e958745ebda1eb72";
 
+/** The v4.4 fixed prose under basis v1 — retained for the audit trail. */
+export const DPIA_SKELETON_CONTENT_HASH_V44 =
+  "ef9a38e435f1c04c2fa3d9a7e6006a509aa9278a48d2f40205c08c420ef57429";
+
 /**
- * FIXED-PROSE HASH (BASIS v1) at spine v4.4 — the PROMPT 9L redline changed
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.5 — the PROMPT 9L.1 redline edited
+ * block 7 and relocated the design-risk intro to Section 4 — the PROMPT 9L redline changed
  * fixed prose (blocks 5, 6, 7, 9 and 10), so this value moves with it.
  * Retained for the audit trail only; `DPIA_SPINE_HASH` (basis v2) is the pin.
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "ef9a38e435f1c04c2fa3d9a7e6006a509aa9278a48d2f40205c08c420ef57429";
+  "e2752c976328626a4bb34fe35a71c9d36bd7be8e5b408d38cc9c6ce1b4421517";
 
 
 
@@ -201,7 +206,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_2_analysis",
     title: "Section 2 - Analysis of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it under the {regimeName}. In the first table below, the company asserts the lawful basis of the processing under Article 6(1). Each table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding assessed against the company." },
+      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it under the {regimeName}. In the first table below, the company asserts the lawful basis of the processing under Article 6(1). Each subsequent table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding assessed against the company." },
       { kind: "table", text: "legal_basis" },
       { kind: "skeleton", text: "Where special categories of personal data are processed, Article 9(1) prohibits the processing unless one of the conditions in Article 9(2) applies. The condition under Article 9(2) that the company has selected, and the company's corresponding reasoning, are set forth below." },
       { kind: "table", text: "section2_coverage.special_category_conditions" },
@@ -226,14 +231,20 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       { kind: "skeleton", text: "Article 35(7)(b) requires an assessment of the necessity and proportionality of the processing in relation to its purposes. The following discussion analyzes the necessity and proportionality by identifying the company's specific goals, how the processing helps to reach those goals, whether less intrusive methods exist that could realistically achieve the same purpose, and the impact on individual privacy rights as balanced against the company's interests — all based on the information the company provided." },
       { kind: "generated", text: "[GENERATED] The necessity and proportionality analysis: less-intrusive-means discipline applied to the company's answers; record facts only." },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether necessity and proportionality are made out on the company's answers." },
-      { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below." },
-      { kind: "table", text: "risk_register.design" },
+      // PROMPT 9L.1 item 5 (CEO comment 9; EDPB alignment) — the design-risks
+      // intro and its table MOVED to the top of Section 4. Section 3 now ENDS
+      // on the determination sentence.
+
     ],
   },
   {
     id: "section_4_risk_management",
     title: "Section 4 - Risk Assessment and Management",
     blocks: [
+      // PROMPT 9L.1 item 5 — the design-risk intro and table open Section 4 as
+      // the starting point of the risk assessment (moved from the end of §3).
+      { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below as the starting point of the risk assessment." },
+      { kind: "table", text: "risk_register.design" },
       // PROMPT 9I item 3 (CEO-ratified 2026-08-15) — the most-significant-risk
       // summary is the section's CLOSING paragraph, so the [DETERMINATION LEAD]
       // block moves last. Block bytes are unchanged.
@@ -330,6 +341,10 @@ export function serializeDpiaSpine(
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
+  "bcfc3c514767ea0f653af7b89951a76ab7b901ed6dc3517537fc5bf1a88baab6";
+
+/** The v4.4 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V44 =
   "ca79e31fdec77b47f0da56cdb6655295fdd877460db51f070d39b15237eb1210";
 
 /** The v4.3 spine under basis v2 — retained for the audit trail. */

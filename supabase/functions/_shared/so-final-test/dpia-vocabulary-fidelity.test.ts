@@ -35,7 +35,7 @@ const INTAKE = { dpia_approved_by_name: "R. Delacroix" };
 
 Deno.test("the initial/remaining distinction renders distinctly on a row carrying both", () => {
   const body = composeRiskBody(REPORT, {} as never, INTAKE);
-  assert(body.includes("an initial risk level of high"), body);
+  assert(body.includes("with an aggregate initial risk level of high"), body);
   assert(body.includes("the remaining risk level"), body);
   // Both terms present, and neither collapsed to a bare "risk level".
   assertEquals(/(?<!initial |remaining |the )\brisk level of\b/.test(body), false, body);
