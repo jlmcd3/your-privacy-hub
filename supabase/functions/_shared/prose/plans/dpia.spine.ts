@@ -95,7 +95,7 @@ export const DPIA_SKELETON_CONTENT_HASH_V41 =
  * `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "__V43_FIXED__";
+  "615664dc04dd04392f7d158511ccda8a1d7b5fa009bd7ab7e958745ebda1eb72";
 
 
 
@@ -319,7 +319,7 @@ export function serializeDpiaSpine(
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
-  "__V43_SPINE__";
+  "a773b8f93a77ee53682206a823b881ed0fef412de1254b2edd1fc2ca2a7942b1";
 
 /** The v4.2 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V42 =
