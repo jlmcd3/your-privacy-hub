@@ -38,7 +38,7 @@ import {
 } from "../prose/skeleton-render.ts";
 import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
-import { readDpiaRegime } from "./dpia-deliverables/build.ts";
+import { DPIA_NECESSITY_TEST_SENTENCE, readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
@@ -620,8 +620,7 @@ export function boundQuotesIn(text: string): string {
  * established branch. The not-established and undetermined branches keep their
  * existing ratified sentences byte-unchanged.
  */
-export const DPIA_NECESSITY_TEST_SENTENCE =
-  "Applying the stated test — whether there are realistic, less intrusive alternatives that would achieve the same purpose — the alternatives the company considered, and the reasons each was rejected, support the necessity of the processing for this operation.";
+export { DPIA_NECESSITY_TEST_SENTENCE };
 
 /** Necessity, one operation: alternatives → rejection reasons → the test. */
 function composeNecessityElement(f: Bag): string[] {

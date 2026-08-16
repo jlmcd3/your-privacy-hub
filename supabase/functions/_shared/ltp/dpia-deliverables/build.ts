@@ -57,6 +57,14 @@ import type {
   DpiaEnforcementMatchType,
 } from "./types.ts";
 
+// PROMPT 9I.1 item 3 (CEO-ratified 2026-08-16) — the necessity-test sentence.
+// ONE sentence, ONE writer: it is defined here and rendered once per operation
+// by the skeleton assembler on the established branch.
+export const DPIA_NECESSITY_TEST_SENTENCE =
+  "Applying the stated test — whether there are realistic, less intrusive alternatives that would achieve the same purpose — the alternatives the company considered, and the reasons each was rejected, support the necessity of the processing for this operation.";
+
+
+
 export const DPIA_DELIVERABLES_VERSION =
   "dpia-analytic-deliverables-2026-08-01-wp248";
 
