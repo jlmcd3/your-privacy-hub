@@ -287,6 +287,10 @@ function detectFindings(
 ): EmitGateFinding[] {
   const s = leaf.value;
   const findings: EmitGateFinding[] = [];
+  // PROMPT 9K item 3 — registry bytes / fixed recommendation text are never
+  // police targets, in any mode, for any product.
+  if (isGateExemptLeaf(leaf.path)) return findings;
+
   const sanctioned = isSanctionedCounselRegister(s);
 
 
