@@ -57,6 +57,14 @@ import type {
   DpiaEnforcementMatchType,
 } from "./types.ts";
 
+// PROMPT 9I.1 item 3 (CEO-ratified 2026-08-16) — the necessity-test sentence.
+// ONE sentence, ONE writer: it is defined here and rendered once per operation
+// by the skeleton assembler on the established branch.
+export const DPIA_NECESSITY_TEST_SENTENCE =
+  "Applying the stated test — whether there are realistic, less intrusive alternatives that would achieve the same purpose — the alternatives the company considered, and the reasons each was rejected, support the necessity of the processing for this operation.";
+
+
+
 export const DPIA_DELIVERABLES_VERSION =
   "dpia-analytic-deliverables-2026-08-01-wp248";
 
@@ -587,7 +595,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
         verdict = "least_intrusive_means_supported";
         why =
           `The company has recorded ${alternatives.length === 1 ? "one alternative" : `${nWord(alternatives.length)} alternatives`} — ${alternatives.map((x) => x.alternative).join("; ")} — and states ${alternatives.length === 1 ? "why it" : "for each why it"} would not achieve the recorded purpose ("${op.purpose_text}"). ` +
-          `Applying the stated test — ${test.verbatim} — no realistic less intrusive alternative is left standing on this record, and the chosen means is supported as necessary.`;
+          DPIA_NECESSITY_TEST_SENTENCE;
       }
     }
 
@@ -2834,10 +2842,10 @@ export function buildRiskCountNote(
   const note = stated_count < register_count
     ? `The company self-identified ${nWord(stated_count)} of these risks; this assessment surfaces ${
       nWord(register_count - stated_count)
-    } more. The company's own account is recorded in its own words in Section 6 of this assessment.`
+    } more. The company's own account is recorded in its own words in Section 6 below.`
     : `The company self-identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
       nWord(register_count)
-    } after consolidation, and the company's own account is recorded in its own words in Section 6 of this assessment.`;
+    } after consolidation, and the company's own account is recorded in its own words in Section 6 below.`;
   return {
     register_count,
     stated_count,

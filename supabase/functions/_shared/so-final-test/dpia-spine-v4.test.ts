@@ -237,7 +237,7 @@ Deno.test("assembly — re-homed composers land on their v4.1 blocks and tables 
 
   const byId = (id: string) => document.sections.find((s) => s.id === id)!;
   const s3 = byId("section_3_necessity_proportionality").paragraphs.map((p) => p.text).join(" ");
-  assertStringIncludes(s3, "the least intrusive means of achieving the purpose the company has stated");
+  assertStringIncludes(s3, "the alternatives the company considered, and the reasons each was rejected, support the necessity of the processing for this operation");
   const s6 = byId("section_6_conclusion").paragraphs.map((p) => p.text).join(" ");
   assertStringIncludes(s6, "The sign-off determination recorded is");
   assertStringIncludes(s6, "no prior consultation with the supervisory authority");

@@ -38,7 +38,7 @@ import {
 } from "../prose/skeleton-render.ts";
 import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
-import { readDpiaRegime } from "./dpia-deliverables/build.ts";
+import { DPIA_NECESSITY_TEST_SENTENCE, readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 
@@ -550,19 +550,36 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
 
 const NECESSITY_UNMET = /undetermined_on_the_record|less_intrusive_alternative_available|disproportionate_on_the_record/;
 
-function composeNecessityLead(report: Bag): string {
+// PROMPT 9I.1 item 1 (CEO-ratified 2026-08-16) — the Section 3 LEAD position
+// carries ONE neutral sentence for every branch. The established-verdict lead
+// moves OUT of the lead position and becomes the determination-last paragraph
+// (item 2, composeNecessityDetermination).
+export const DPIA_S3_LEAD =
+  "Necessity and proportionality are assessed below for the processing described, based on the information the company provided.";
+
+function composeNecessityLead(_report: Bag): string {
+  return DPIA_S3_LEAD;
+}
+
+// PROMPT 9I.1 item 2 — the Section 3 DETERMINATION, rendered LAST (before the
+// §3.1 design-risk block). Ratified bytes; no other branch vocabulary moves.
+export const DPIA_S3_DETERMINATION_ESTABLISHED =
+  "On this analysis, necessity and proportionality are established for the processing as described.";
+
+function composeNecessityDetermination(report: Bag): string {
   const findings = [...asArray(report.necessity_findings), ...asArray(report.proportionality)];
   const unmet = findings.filter((f) => NECESSITY_UNMET.test(s(f.verdict)));
   if (findings.length === 0) {
-    return "Whether necessity and proportionality are established cannot be determined based on the information the company provided alone; the analysis below sets out what that information does and does not support.";
+    // The existing branch sentence, relocated here and prefixed.
+    return "On this analysis, whether necessity and proportionality are established cannot be determined based on the information the company provided alone; the analysis below sets out what that information does and does not support.";
   }
   return unmet.length === 0
-    ? "Necessity and proportionality are established based on the information the company provided, for the processing as described."
-    : `Necessity and proportionality are established in part based on the information the company provided: ${
-      unmet.length === 1 ? "one element is" : `${numberWord(unmet.length)} elements are`
-    } not yet supported.`;
-
+    ? DPIA_S3_DETERMINATION_ESTABLISHED
+    : `On this analysis, necessity and proportionality are established in part: ${
+      numberWord(unmet.length)
+    } elements are not yet supported, each identified above and listed in the gap table.`;
 }
+
 
 
 // ── PROMPT 9I item 4 (CEO-ratified 2026-08-15) — SECTION 3 RESTRUCTURE ──
@@ -587,6 +604,23 @@ export function boundedClause(text: string): string {
 }
 
 const quoted = (t: string): string => (t ? `"${t}"` : "");
+
+// PROMPT 9I.1 item 7 — EVERY customer quote in Section 3 passes through the
+// clause-bounding rule, including quotes spliced inside a typed `why` field.
+export function boundQuotesIn(text: string): string {
+  return String(text ?? "").replace(/"([^"]{1,})"/g, (_m, inner: string) => {
+    const b = boundedClause(inner);
+    return b ? `"${b}"` : `"${inner}"`;
+  });
+}
+
+/**
+ * PROMPT 9I.1 item 3 (CEO-ratified 2026-08-16) — the necessity-test sentence.
+ * ONE sentence, ONE writer (this renderer), rendered once per operation on the
+ * established branch. The not-established and undetermined branches keep their
+ * existing ratified sentences byte-unchanged.
+ */
+export { DPIA_NECESSITY_TEST_SENTENCE };
 
 /** Necessity, one operation: alternatives → rejection reasons → the test. */
 function composeNecessityElement(f: Bag): string[] {
@@ -618,12 +652,10 @@ function composeNecessityElement(f: Bag): string[] {
   // The necessity test itself — its own paragraph, and the last of the element.
   const verdict = s(f.verdict);
   if (verdict === "least_intrusive_means_supported") {
-    paras.push(
-      "On the record as it stands, the processing is the least intrusive means of achieving the purpose the company has stated.",
-    );
+    paras.push(DPIA_NECESSITY_TEST_SENTENCE);
   } else {
     const why = s(f.why);
-    if (why) paras.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+    if (why) paras.push(boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))));
   }
   return paras.filter(Boolean);
 }
@@ -634,19 +666,20 @@ function composeProportionalityElement(p: Bag): string[] {
   const benefit = boundedClause(s(p.benefit_argument));
   const impact = boundedClause(s(p.impact_argument));
   if (benefit) {
-    paras.push(
-      `On the benefit of the processing, the company states that ${quoted(benefit)}.`,
-    );
+    // PROMPT 9I.1 item 4 — ratified benefit sentence.
+    paras.push(`On the benefit side of the balance, the company states: ${quoted(benefit)}.`);
   }
   if (impact) {
+    // PROMPT 9I.1 item 4 — ratified impact sentence.
     paras.push(
-      `On the impact of the processing on the people whose data is processed, the company states that ${quoted(impact)}.`,
+      `On the impact side, stated separately from the benefit, the company states: ${quoted(impact)}.`,
     );
   }
   const why = s(p.why);
-  if (why) paras.push(stop(noStop(firstSentencesQuoteAware(why, 2))));
+  if (why) paras.push(boundQuotesIn(stop(noStop(firstSentencesQuoteAware(why, 2)))));
   return paras.filter(Boolean);
 }
+
 
 /** PROMPT 5: defect notice replacing the former raw-u3 fallback. */
 export const DPIA_NP_VOID_NOTICE =
@@ -1040,11 +1073,20 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     // PROMPT 8 (spine v4) — the v3 sections `lawfulness`,
     // `risks_and_measures` and `consultation_and_signoff` are retired; the same
     // ratified composers are re-homed onto the EDPB sections.
-    "section_3_necessity_proportionality:1": composeNecessityLead(report),
-    "section_3_necessity_proportionality:2": composeNecessityBody(report),
+    // PROMPT 9I.1 item 2 / item 6 — the composed keys are re-pinned to the
+    // spine v4.3 BLOCK INDICES. Section 3: 0 skeleton, 1 generated (lead +
+    // analysis), 2 lead (determination LAST), 3 skeleton, 4 table. Section 4:
+    // 0 skeleton, 1 table, 2 table, 3 generated (per-risk analysis), 4 lead
+    // (the most-significant-remaining-risk summary, closing paragraph).
+    "section_3_necessity_proportionality:1": [
+      composeNecessityLead(report),
+      composeNecessityBody(report),
+    ].filter(Boolean).join("\n\n"),
+    "section_3_necessity_proportionality:2": composeNecessityDetermination(report),
 
-    "section_4_risk_management:2": composeRiskLead(report),
-    "section_4_risk_management:4": composeRiskBody(report, values, intake),
+    "section_4_risk_management:3": composeRiskBody(report, values, intake),
+    "section_4_risk_management:4": composeRiskLead(report),
+
 
     "section_6_conclusion:2": composeSignoffLead(report, intake),
     "section_6_conclusion:3": composeSignoffBody(report, intake, values),

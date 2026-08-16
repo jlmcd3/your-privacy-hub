@@ -27,9 +27,14 @@ Deno.test("quote-aware: curly quotes behave the same", () => {
   assert(!out.includes("A third sentence"), out);
 });
 
+// PROMPT 9I.1 item 7 (CEO-ratified 2026-08-16) — every Section 3 customer
+// quote is CLAUSE-BOUNDED, so the embedded three-sentence quote is bounded to
+// its first clause. The property these two tests protect — the conclusion
+// after the quote survives truncation — is unchanged and still asserted.
 Deno.test("necessity body keeps the conclusion after a 3-period embedded quote", () => {
   const body = composeNecessityBody({ necessity_findings: [{ why: QUOTED_WHY }] });
-  assert(body.includes("We retain it for 30 days."), body);
+  assert(body.includes('"We collect the badge scan"'), body);
+  assert(!body.includes("We retain it for 30 days."), body);
   assert(
     body.includes("The recorded safeguards therefore answer the necessity question"),
     body,
@@ -38,7 +43,8 @@ Deno.test("necessity body keeps the conclusion after a 3-period embedded quote",
 
 Deno.test("proportionality body keeps the conclusion after a 3-period embedded quote", () => {
   const body = composeNecessityBody({ proportionality: [{ why: QUOTED_WHY }] });
-  assert(body.includes("We retain it for 30 days."), body);
+  assert(body.includes('"We collect the badge scan"'), body);
+  assert(!body.includes("We retain it for 30 days."), body);
   assert(body.includes("necessity question"), body);
 });
 
