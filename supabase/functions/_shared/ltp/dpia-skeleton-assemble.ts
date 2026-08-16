@@ -550,19 +550,36 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
 
 const NECESSITY_UNMET = /undetermined_on_the_record|less_intrusive_alternative_available|disproportionate_on_the_record/;
 
-function composeNecessityLead(report: Bag): string {
+// PROMPT 9I.1 item 1 (CEO-ratified 2026-08-16) — the Section 3 LEAD position
+// carries ONE neutral sentence for every branch. The established-verdict lead
+// moves OUT of the lead position and becomes the determination-last paragraph
+// (item 2, composeNecessityDetermination).
+export const DPIA_S3_LEAD =
+  "Necessity and proportionality are assessed below for the processing described, based on the information the company provided.";
+
+function composeNecessityLead(_report: Bag): string {
+  return DPIA_S3_LEAD;
+}
+
+// PROMPT 9I.1 item 2 — the Section 3 DETERMINATION, rendered LAST (before the
+// §3.1 design-risk block). Ratified bytes; no other branch vocabulary moves.
+export const DPIA_S3_DETERMINATION_ESTABLISHED =
+  "On this analysis, necessity and proportionality are established for the processing as described.";
+
+function composeNecessityDetermination(report: Bag): string {
   const findings = [...asArray(report.necessity_findings), ...asArray(report.proportionality)];
   const unmet = findings.filter((f) => NECESSITY_UNMET.test(s(f.verdict)));
   if (findings.length === 0) {
-    return "Whether necessity and proportionality are established cannot be determined based on the information the company provided alone; the analysis below sets out what that information does and does not support.";
+    // The existing branch sentence, relocated here and prefixed.
+    return "On this analysis, whether necessity and proportionality are established cannot be determined based on the information the company provided alone; the analysis below sets out what that information does and does not support.";
   }
   return unmet.length === 0
-    ? "Necessity and proportionality are established based on the information the company provided, for the processing as described."
-    : `Necessity and proportionality are established in part based on the information the company provided: ${
-      unmet.length === 1 ? "one element is" : `${numberWord(unmet.length)} elements are`
-    } not yet supported.`;
-
+    ? DPIA_S3_DETERMINATION_ESTABLISHED
+    : `On this analysis, necessity and proportionality are established in part: ${
+      numberWord(unmet.length)
+    } elements are not yet supported, each identified above and listed in the gap table.`;
 }
+
 
 
 // ── PROMPT 9I item 4 (CEO-ratified 2026-08-15) — SECTION 3 RESTRUCTURE ──
