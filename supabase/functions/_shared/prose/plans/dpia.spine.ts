@@ -241,14 +241,17 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_4_risk_management",
     title: "Section 4 - Risk Assessment and Management",
     blocks: [
-      // PROMPT 9L.1 item 5 — the design-risk intro and table open Section 4 as
-      // the starting point of the risk assessment (moved from the end of §3).
-      { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below as the starting point of the risk assessment." },
-      { kind: "table", text: "risk_register.design" },
+      // PROMPT 9L.2 item 1 (CEO-ratified 2026-08-16) — pure block reorder: the
+      // statutory-frame block opens Section 4, and the relocated design-risk
+      // intro and table follow IMMEDIATELY AFTER it. Block bytes unchanged.
       // PROMPT 9I item 3 (CEO-ratified 2026-08-15) — the most-significant-risk
       // summary is the section's CLOSING paragraph, so the [DETERMINATION LEAD]
       // block moves last. Block bytes are unchanged.
       { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) requires an assessment of the measures planned to address them. This section identifies potential risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
+      // PROMPT 9L.1 item 5 — the design-risk intro and table are the starting
+      // point of the risk assessment (moved from the end of §3).
+      { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below as the starting point of the risk assessment." },
+      { kind: "table", text: "risk_register.design" },
       { kind: "table", text: "risk_register.incident" },
       { kind: "table", text: "risk_register" },
       { kind: "generated", text: "[GENERATED] From the typed risk register: each risk with its likelihood and severity, the measure that answers it, and the residual position, attributed throughout; the renderer draws the table, and the prose analyses only what bears on the decision. The safeguards the company has recorded: {safeguards - as prose}." },
