@@ -75,11 +75,14 @@ Deno.test("9L.1 item 4 — the §4 per-risk template renders typographic quotes 
   }
 });
 
-Deno.test("9L.1 item 5 — design risks open Section 4, not the end of Section 3", () => {
+// 9L.2 (CEO-ratified 2026-08-16) re-anchors this to the ratified §4 order: the
+// statutory frame opens the section, then the design intro, then its table.
+Deno.test("9L.1 item 5 — design risks follow the §4 statutory frame, not the end of Section 3", () => {
   const s3blocks = DPIA_SKELETON_SECTIONS.find((s) => s.id === "section_3_necessity_proportionality")!.blocks;
   const s4blocks = DPIA_SKELETON_SECTIONS.find((s) => s.id === "section_4_risk_management")!.blocks;
   assert(!s3blocks.some((b) => b.text.includes("risk_register.design")), "design table still in §3");
-  assertEquals(s4blocks[1].text, "risk_register.design");
-  assert(s4blocks[0].text.endsWith("as the starting point of the risk assessment."), s4blocks[0].text);
-  assertEquals(DPIA_SKELETON_VERSION, "prose-plans-2026-08-16-prompt9l1-v4-5");
+  assert(s4blocks[0].text.startsWith("Article 35(7)(c)"), s4blocks[0].text);
+  assert(s4blocks[1].text.endsWith("as the starting point of the risk assessment."), s4blocks[1].text);
+  assertEquals(s4blocks[2].text, "risk_register.design");
+  assertEquals(DPIA_SKELETON_VERSION, "prose-plans-2026-08-16-prompt9l2-v4-5-1");
 });
