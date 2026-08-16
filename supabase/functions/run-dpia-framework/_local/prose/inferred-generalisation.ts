@@ -21,6 +21,8 @@
 // Deterministic, in-place, never throws. Telemetry on
 // `_meta.internal.inferred_generalisation`.
 
+import { detectOnlyRun } from "../../../_shared/prose/detect-mode.ts";
+
 export const INFERRED_GENERALISATION_VERSION = "inferred-general-2026-08-05-item372r2";
 
 /** Rows carrying provenance stamps, per the DPIA W3-T1 contract. */
@@ -100,7 +102,16 @@ export function intakeHaystack(intake: unknown): string {
 export function applyInferredGeneralisation(
   report: Record<string, unknown> | null | undefined,
   intake: unknown,
+  opts: { detectOnly?: boolean } = {},
 ): InferredGeneralisationCounters {
+  // PROMPT 9K item 2 — DETECT MODE (see _shared/prose/detect-mode.ts).
+  if (opts.detectOnly) {
+    return detectOnlyRun(
+      report, "inferred_generalisation",
+      (clone) => applyInferredGeneralisation(clone, intake, { detectOnly: false }),
+      { version: INFERRED_GENERALISATION_VERSION, rows: 0, inferred_rows: 0, enumerations_removed: 0, enumerations_kept: 0, crashed: false },
+    );
+  }
   const c: InferredGeneralisationCounters = {
     version: INFERRED_GENERALISATION_VERSION,
     rows: 0,

@@ -173,7 +173,16 @@ function walk(node: unknown, seen: number[], c: DpiaBoilerplateCounters): unknow
  */
 export function applyDpiaBoilerplateCap(
   report: Record<string, unknown> | null | undefined,
+  opts: { detectOnly?: boolean } = {},
 ): DpiaBoilerplateCounters {
+  // PROMPT 9K item 2 — DETECT MODE (see _shared/prose/detect-mode.ts).
+  if (opts.detectOnly) {
+    return detectOnlyRun(
+      report, "dpia_boilerplate_cap",
+      (clone) => applyDpiaBoilerplateCap(clone, { detectOnly: false }),
+      emptyCounters(),
+    );
+  }
   const c = emptyCounters();
   try {
     if (!report || typeof report !== "object") return c;

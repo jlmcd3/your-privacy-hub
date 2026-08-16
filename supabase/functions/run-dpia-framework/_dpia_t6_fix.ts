@@ -34,6 +34,7 @@
 import { degradeHedgeOnlyValues, appendInformationNeeded } from "../_shared/prose/hedge-degrade.ts";
 
 import { splitSentencesSafe } from "../_shared/prose/segment.ts";
+import { detectOnlyRun } from "../_shared/prose/detect-mode.ts";
 
 import {
   DPIA_VERIFIED_AUTHORITIES,
@@ -285,8 +286,24 @@ function walk(
  */
 export function applyDpiaT6Fix(
   report: unknown,
-  opts?: { intake?: unknown; buildStamp?: string },
+  opts?: { intake?: unknown; buildStamp?: string; detectOnly?: boolean },
 ): DpiaT6FixCounters {
+  // PROMPT 9K item 2.5 — SWEEP CLASSIFICATION: POLICE. Class A scrubs
+  // citation fields the model authored and Class B rewrites assertive
+  // sentences; both rewrite EXISTING reader-facing content, so both convert
+  // to detect on the DPIA new-document path.
+  if (opts?.detectOnly) {
+    return detectOnlyRun(
+      report as Record<string, unknown>, "dpia_t6_fix",
+      (clone) => applyDpiaT6Fix(clone, { ...opts, detectOnly: false }),
+      {
+        version: DPIA_VERIFIED_AUTHORITY_VERSION, stamp: DPIA_T6_FIX_STAMP,
+        build_stamp: opts?.buildStamp, classA_pinpoint_substitutions: 0,
+        classA_pinpoint_omissions: 0, classB_downgrades: 0, classB_preserved: 0,
+        sentences_excised: 0, strings_scanned: 0, errors: 0,
+      },
+    );
+  }
   const c: DpiaT6FixCounters = {
     version: DPIA_VERIFIED_AUTHORITY_VERSION,
     stamp: DPIA_T6_FIX_STAMP,
