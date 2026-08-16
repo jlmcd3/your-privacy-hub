@@ -16,7 +16,7 @@ import { transferMechanism, type TransferFlow } from "../../dpia-jurisdiction-re
 import { spliceVerbatim } from "../verbatim-splice.ts";
 // PROMPT 9J — shared segmenter + shared clause bound (single writer for both).
 import { splitSentencesSafe } from "../../prose/segment.ts";
-import { boundedClause } from "../clause-bound.ts";
+import { boundedClause, noStop, splitClauses } from "../clause-bound.ts";
 import { attachMinimalUnitSurfaces } from "./minimal-units.ts";
 // PROMPT 9A — the ratified compact-label registry. Presentation only: the full
 // ask (`information_needed` / `dimensions`) is untouched by anything here.
@@ -304,13 +304,50 @@ export function impactSpan(text: string): string {
   const src = String(text ?? "").trim();
   if (!src) return "";
   for (const sentence of splitSentencesSafe(src)) {
+    const clauses = splitClauses(sentence);
+    // (a) CLAUSE-GRANULAR: the first clause that itself matches. Bounded by
+    // construction — a clause IS the bound boundedClause would apply.
+    for (const c of clauses) {
+      if (c.text && matches(c.text, IMPACT_LEXICON)) return assertImpact(c.text);
+    }
+    // (b) Only if no single clause matches but the SENTENCE does, the pattern
+    // spans a clause boundary: return the sentence FROM the clause containing
+    // the match start, so the matched span is never cut away.
     if (matches(sentence, IMPACT_LEXICON)) {
-      const bounded = boundedClause(sentence);
-      if (bounded) return bounded;
+      const flat = sentence.trim().replace(/\s+/g, " ");
+      let at = -1;
+      for (const re of IMPACT_LEXICON) {
+        const m = flat.match(new RegExp(re.source, re.flags.replace("g", "")));
+        if (m && typeof m.index === "number" && (at < 0 || m.index < at)) at = m.index;
+      }
+      const startAt = clauses.filter((c) => c.start <= (at < 0 ? 0 : at)).pop()?.start ?? 0;
+      const span = noStop(flat.slice(startAt).trim());
+      if (span && matches(span, IMPACT_LEXICON)) return assertImpact(span);
     }
   }
   return "";
 }
+
+/**
+ * 9J.1 — the returned span must ALWAYS itself match IMPACT_LEXICON. Enforced
+ * loudly under test builds, silently degraded (empty) in production so a
+ * pathological input can never emit a non-impact quote.
+ */
+function assertImpact(span: string): string {
+  if (matches(span, IMPACT_LEXICON)) return span;
+  if (IS_TEST_BUILD) throw new Error(`impactSpan returned a non-impact span: ${span}`);
+  return "";
+}
+
+const IS_TEST_BUILD = (() => {
+  try {
+    // deno-lint-ignore no-explicit-any
+    const env = (globalThis as any).Deno?.env;
+    return Boolean(env?.get?.("DENO_TESTING") ?? env?.get?.("LOVABLE_TEST_BUILD"));
+  } catch {
+    return false;
+  }
+})();
 
 /** Single-constant predicate: the ONE widened lexicon, no forked copies. */
 export function hasImpactLanguage(text: string): boolean {
