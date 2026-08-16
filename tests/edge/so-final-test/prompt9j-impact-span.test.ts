@@ -19,6 +19,9 @@ import { matchRatifiedTemplate } from "../../../supabase/functions/_shared/grade
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
+const seam = (v: unknown) => String(v ?? "").replace(/[.!?]+$/, "");
+
+
 const QUOTE_BOUND = 400;
 const intakeOf = (f: Any) => f.intake ?? f.intake_data ?? f;
 const FIXTURES = (DPIA_PERFECT_PINNED as Any[]).map(intakeOf);
@@ -67,7 +70,8 @@ Deno.test("9J — Harrowgate secondary operation quotes ITS OWN impact statement
   const secondary = props.find((p) => p.operation_id === "op_secondary")!;
   assert(secondary, "secondary operation missing");
   const secondaryText = String(harrowgate.secondary_uses ?? "");
-  assert(secondaryText.includes(String(secondary.impact_argument)), secondary.impact_argument);
+  // 9K item 1 — stored spans are TERMINATED; consumers strip at the quote seam.
+  assert(secondaryText.includes(seam(secondary.impact_argument)), secondary.impact_argument);
   const primary = props.find((p) => p.operation_id === "op_primary")!;
   assert(primary.impact_argument !== secondary.impact_argument, "secondary reuses the primary quote");
 });

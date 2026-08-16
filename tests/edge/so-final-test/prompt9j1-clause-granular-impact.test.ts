@@ -21,6 +21,9 @@ import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/qual
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
+const seam = (v: unknown) => String(v ?? "").replace(/[.!?]+$/, "");
+
+
 const QUOTE_BOUND = 400;
 const intakeOf = (f: Any) => f.intake ?? f.intake_data ?? f;
 const PINS: Any[] = [...(DPIA_PERFECT as Any[]), ...(DPIA_PERFECT_PINNED as Any[])];
@@ -99,7 +102,8 @@ Deno.test("9J.1 — Harrowgate secondary still quotes its own secondary_uses imp
   const props = buildProportionality(harrowgate) as Any[];
   const secondary = props.find((p) => p.operation_id === "op_secondary")!;
   const primary = props.find((p) => p.operation_id === "op_primary")!;
-  assert(String(harrowgate.secondary_uses ?? "").includes(String(secondary.impact_argument)), secondary.impact_argument);
+  // 9K item 1 — stored spans are TERMINATED; consumers strip at the quote seam.
+  assert(String(harrowgate.secondary_uses ?? "").includes(seam(secondary.impact_argument)), secondary.impact_argument);
   assert(primary.impact_argument !== secondary.impact_argument);
 });
 
