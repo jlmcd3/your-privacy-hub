@@ -17,6 +17,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
+// DPIA HARNESS — the DPIA harness persists a skeleton document, which renders
+// through the SAME shipped viewer customers read.
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 
 /**
  * ITEM 274 — page-boundary adapter. Unwraps a `{ report_data: … }` record if
@@ -84,7 +87,29 @@ type Row = {
   unclassified: string[];
   presence_rate: number | null;
   assembled_report: any;
+  /** DPIA HARNESS — which product produced this row ("cppa_risk" | "dpia"). */
+  tool: string;
 };
+
+/** DPIA HARNESS — tool of a result row, read from its per_doc_result. */
+export function resultTool(perDocResult: any): string {
+  return String(perDocResult?.tool ?? "cppa_risk");
+}
+
+/**
+ * DPIA HARNESS — the DPIA replay has no GTM grader; its releasability signal
+ * IS the hard-failure list (empty ⇒ release, otherwise block).
+ */
+export function dpiaVerdict(perDocResult: any): string {
+  const hf = perDocResult?.hard_failures;
+  return Array.isArray(hf) && hf.length > 0 ? "block" : "release";
+}
+
+/** DPIA HARNESS — unwrap the persisted skeleton document, if this row has one. */
+export function toSkeletonDocument(assembledReport: any): any | null {
+  const candidate = assembledReport?.skeleton_document ?? assembledReport;
+  return isSkeletonDocument(candidate) ? candidate : null;
+}
 
 type LegacyDoc = {
   id: string;
