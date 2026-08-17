@@ -103,9 +103,12 @@ export function serializeAskLabels(): string {
   return DPIA_ASK_CLASSES.map((id) => `${id}${DPIA_ASK_LABELS[id]}`).join("\n");
 }
 
-/** SHA-256 over serializeAskLabels(), lower-case hex. PINNED. */
+/** SHA-256 over serializeAskLabels(), lower-case hex. PINNED.
+ *  Re-pinned by PROMPT 9M (ask_lia_special_category + ask_lia_children).
+ *  Audit trail — 9A pin: b1b55a5dc1f1adcfa41497f0376330f59d6ca044e5404bf8dbff8bd10d739fb4 */
 export const DPIA_ASK_LABELS_HASH =
-  "b1b55a5dc1f1adcfa41497f0376330f59d6ca044e5404bf8dbff8bd10d739fb4";
+  "290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd";
+
 
 /** Recompute the hash (async — Web Crypto). Used by the pin test. */
 export async function computeAskLabelsHash(): Promise<string> {
