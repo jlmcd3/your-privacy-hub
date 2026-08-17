@@ -548,4 +548,228 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       { kind: "jurisdiction_resolved", label: "resolves the CPPA jurisdiction" },
     ],
   },
+
+  // ── ITEM 378 / RK0.5 D1 — SECOND PERFECT FIXTURE ───────────────────────────
+  // Trigger profile: (b)(1) sell/share + (b)(2) precise-geolocation sensitive PI.
+  // NO ADMT (q18_admt_use: "No", q18b_admt_training: "No").
+  // Differentiates from risk-perfect-complete (Sierra Outfitters — (b)(3)+(b)(6)
+  // ADMT + SPI) on: sell/share trigger active; no ADMT trigger; no SPI basis
+  // "Necessary for the service" (replaced by "Consent" for location data).
+  // Proved against checkPerfectCppaRiskIntake at RK0.5 D1 (all four gate
+  // conditions: contract complete, coverage clean, CSC clean, missing_data = 0).
+  {
+    id: "risk-perfect-seller-geolocation",
+    tool: "cppa-risk",
+    set: "tuning",
+    intake: {
+      entity_name: "Locus Technologies, Inc.",
+      subject_anchor: "California consumers whose mobile location data is collected and sold",
+      primary_activity_name: "Geobehavioral audience segmentation",
+      primary_activity_purpose:
+        "Collect precise GPS location signals from publisher-app users (with in-app consent) and build geobehavioral audience segments sold to retail, real-estate, and healthcare-marketing advertisers.",
+      has_secondary_uses: "No — this data is used for this activity only",
+      secondary_activities: [],
+
+      q1_revenue: "Over $100M",
+      q2_consumers: "1,000,000 or more",
+      q3_sector: "Media/advertising",
+      q4_pi_categories: [
+        "Device identifiers (IP, cookies, device IDs)",
+        "Precise geolocation (GPS-level / specific address)",
+      ],
+      q5_sell_share: "Both",
+      q5b_profiling_observation: "No",
+      q5c_share_revenue_50pct: "Yes",
+      bought_sold_shared_count: "1,000,000 or more",
+      sensitive_location_basis: "Not applicable — no sensitive-location processing",
+      public_privacy_policy_url: "https://www.locustechnologies.example/privacy",
+
+      q6_right_know:
+        "Online privacy portal with verified-identity access; toll-free number; email request pathway.",
+      q6_right_know_multi: [
+        "Online form with identity verification",
+        "Email or written request process",
+      ],
+      q7_right_delete: "Automated deletion with confirmation",
+      q8_right_correct: "Online self-service",
+      q9_opt_out: "Yes, prominently on homepage",
+      q10_id_verification: "Documented verification process matching CPPA guidance",
+      q11_policy_review: "Within 12 months",
+      q12_notice_at_collection: "Yes, covers all collection points",
+      q13_notice_content: "Yes, all three",
+      q14_employee_notice: "Yes",
+
+      q15_sensitive_pi: "Yes",
+      q15b_under16_knowledge: "No — we do not knowingly process under-16 data",
+      q15c_spi_volume: "50,000 or more",
+      q16_sensitive_limit: "Yes, with a separate \"Limit the Use of My Sensitive PI\" link",
+      q17_sensitive_basis: "Consent",
+
+      q18_admt_use: "No",
+      q18b_admt_training: "No",
+
+      i1_processing_purpose:
+        "Aggregate consented mobile GPS location signals into pseudonymous geobehavioral segments that are licensed to advertisers for programmatic campaign targeting.",
+      i1b_min_pi:
+        "Only the device identifier (IDFA/GAID), GPS coordinate pair, and timestamp are ingested from publisher apps; names, emails, browsing history, and demographic inferences are excluded by SDK design.",
+      i2_retention_period: "13 months",
+      i2_retention_criteria: "Fixed period from collection",
+      i2_retention_detail:
+        "13 months is the minimum period needed to build year-over-year seasonality features; all raw location pings are purged at 13 months via an automated deletion job audited quarterly.",
+      i3_ca_consumer_band: "More than 1,000,000",
+      i4_disclosure_mechanisms: ["Notice at Collection", "Privacy policy"],
+      i4b_sources:
+        "Directly from consumer devices via SDK embedded in partner publisher apps; each publisher app collects in-app consent under its own privacy notice before the SDK fires.",
+      i5_admt_training_source:
+        "Not applicable — Locus does not train or deploy ADMT systems as part of the geobehavioral segmentation activity.",
+      i5_admt_fairness_testing:
+        "Not applicable — no ADMT is used in this activity; the segmentation pipeline applies deterministic place-category rules, not a scored model.",
+      i6_vendors:
+        "AWS (cloud infrastructure, service-provider addendum); Snowflake (data warehouse, service-provider addendum); LiveRamp (segment distribution, service-provider addendum); all three under CCPA service-provider contracts prohibiting secondary use.",
+      i7_internal_contributors:
+        "E. Marín, Chief Privacy Officer; K. Singh, Head of Data Engineering; R. Osei, Senior Legal Counsel; D. Tanaka, Information Security Lead.",
+      i7_external_consultees:
+        "Outside privacy counsel at Hartley & Vance LLP reviewed the assessment approach and the publisher SDK consent architecture.",
+      i8_certifying_exec_name: "E. Marín",
+      i8_certifying_exec_title: "Chief Privacy Officer",
+      i8_contact_phone: "+1 628 555 0195",
+      i8_contact_email: "privacy@locustechnologies.example",
+      i9_has_existing_dpia: "No",
+      material_change_since_prior: "No",
+
+      impact_intake: {
+        likelihood: "Possible",
+        severity: "Moderate",
+        benefitsOutweigh: "Yes",
+        cyberGaps: "No",
+        harmTypes: [
+          "Unauthorised access, destruction, use, modification, or disclosure",
+          "Impairment of consumer control over personal information",
+          "Reputational harm",
+        ],
+      },
+
+      a2_necessity_set: [
+        {
+          element: "Mobile device identifier (IDFA / GAID)",
+          necessity: "Necessary to the stated purpose",
+          justification:
+            "The device identifier is the unit of observation that links location pings into a persistent pseudonymous profile; without it, no durable behavioral segment can be built or licensed.",
+        },
+        {
+          element: "Precise GPS coordinate pair and timestamp",
+          necessity: "Necessary to the stated purpose",
+          justification:
+            "The coordinate pair and timestamp are the raw inputs for place-category attribution; coarser location (ZIP or IP-derived city) cannot support place-level visit counting.",
+        },
+        {
+          element: "Publisher app category",
+          necessity: "Collected but not necessary to the stated purpose",
+          justification:
+            "App-category metadata arrives in the bid-stream as a by-product of the SDK call but is not used in segment construction; it is filtered out at ingestion.",
+        },
+      ],
+
+      a4_benefit_business:
+        "Sells geobehavioral audience segments to over 400 advertiser clients; precise location targeting generates the revenue that sustains the platform and subsidises free publisher apps.",
+      a4_benefit_business_fact:
+        "FY2025: 412 active advertiser clients; median campaign click-through rate 3.1× above contextual-only baseline across 2,800 measured campaigns (internal performance report, Q4 2025).",
+      a4_benefit_consumer:
+        "Consenting consumers receive advertising relevant to their demonstrated location patterns rather than broadly targeted ads; publisher apps they use remain free of charge.",
+      a4_benefit_consumer_fact:
+        "In-app surveys by three publisher partners found that 67% of consenting users rated location-relevant ads as more useful than generic alternatives (sample: 4,200 consenting users, 2025).",
+      a4_benefit_other_stakeholders:
+        "Small and mid-size retailers use geobehavioral segments to compete with larger chains in local advertising without requiring brand-awareness budgets.",
+      a4_benefit_other_stakeholders_fact:
+        "38% of advertiser clients are SMBs; average SMB client reports a 2.4× revenue uplift attributable to location-targeted campaigns versus prior general-display spend (client survey, 2025).",
+      a4_benefit_public:
+        "Revenue from the platform subsidises fourteen free-tier publisher apps used by over 500,000 consumers each; the targeting model reduces the number of irrelevant ad impressions consumers receive.",
+      a4_benefit_public_fact:
+        "Fourteen publisher partners operate free mobile apps with no subscription fee; Locus revenue offsets their hosting and content-delivery costs per partnership agreements on file.",
+
+      a5_harm_pathways: [
+        {
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+          data_involved:
+            "Precise GPS coordinates linked to pseudonymous device identifiers across up to 13 months of location history",
+          actor: "External attacker or malicious insider",
+          source: "Breach of the Snowflake data warehouse holding the raw location log",
+          cause:
+            "Credential compromise or misconfigured warehouse-sharing policy exposes the pseudonymous coordinate history at scale",
+          likelihood: "Unlikely",
+          severity: "Significant",
+        },
+        {
+          harm: "(C) Impairment of consumer control over personal information",
+          data_involved:
+            "Location pings collected from publisher-app sessions where consent notice was inadequate or pre-checked",
+          actor: "Publisher app operators whose SDK consent implementation does not meet the notice standard",
+          source:
+            "Locus relies on publisher consent notices; a publisher that presents a pre-checked or vague consent screen passes non-consensual location data into the Locus pipeline",
+          cause:
+            "Locus's ingestion pipeline cannot distinguish a properly consented ping from a technically compliant but substantively deficient consent at the publisher level",
+          likelihood: "Possible",
+          severity: "Moderate",
+        },
+        {
+          harm: "(G) Reputational harms",
+          data_involved:
+            "Location history that reveals repeated visits to sensitive venues (medical offices, places of worship, legal aid offices)",
+          actor: "Advertiser clients or downstream data recipients",
+          source:
+            "A segment taxonomy that includes place-category labels derived from sensitive-venue visits",
+          cause:
+            "A downstream recipient uses or resells the segment in a context that identifies or exposes a consumer's sensitive location pattern",
+          likelihood: "Unlikely",
+          severity: "Significant",
+        },
+      ],
+
+      a6_safeguards: [
+        {
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+          safeguard:
+            "Snowflake warehouse access governed by row-level security and role-based permissions; credential rotation every 60 days; warehouse-access logs reviewed weekly by the security team; annual third-party penetration test.",
+          safeguard_status: "Implemented and tested",
+          residual:
+            "A short-window credential compromise before rotation could reach the location log for the active credential window.",
+        },
+        {
+          harm: "(C) Impairment of consumer control over personal information",
+          safeguard:
+            "Publisher SDK integration agreement requires CPPA-compliant consent language and opt-out mechanisms; Locus audits a sample of publisher consent implementations annually and terminates non-compliant integrations.",
+          safeguard_status: "Implemented and tested",
+          residual:
+            "Annual spot-checks cannot guarantee real-time compliance across all publisher integrations; a non-compliant consent screen between audit cycles would still reach the pipeline.",
+        },
+        {
+          harm: "(G) Reputational harms",
+          safeguard:
+            "Sensitive-venue place categories (health, religious, legal, financial-distress proxy) are contractually prohibited advertiser use cases in every client MSA; prohibition compliance is audited annually by a third-party data-ethics firm.",
+          safeguard_status: "Implemented and tested",
+          residual:
+            "Contractual prohibition and annual audit reduce but do not eliminate the risk that a client misuses a non-prohibited segment that partially correlates with a sensitive-venue pattern.",
+        },
+      ],
+
+      a8_information_providers:
+        "Location ping data from publisher SDK integrations; publisher consent records from publisher CMP logs; segment-distribution usage logs from LiveRamp; client-campaign-use attestations collected annually.",
+      a9_approver_name: "E. Marín",
+      a9_approver_position: "Chief Privacy Officer",
+      a9_approval_date: "2026-07-15",
+    },
+    assertions: [
+      {
+        kind: "must_include",
+        pattern: "Locus Technologies",
+        label: "names the assessed entity",
+      },
+      {
+        kind: "must_not_include",
+        pattern: "TO BE COMPLETED",
+        label: "no completion placeholders on a complete record",
+      },
+      { kind: "jurisdiction_resolved", label: "resolves the CPPA jurisdiction" },
+    ],
+  },
 ];

@@ -15,7 +15,8 @@ import {
 } from "../../../supabase/functions/_shared/quality/perfect-closed-loop-risk.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
 
-const PERFECT_INTAKE = CPPA_RISK_PERFECT[0].intake as Record<string, unknown>;
+// Reference intake for negative/deficiency tests (always index 0).
+const REFERENCE_INTAKE = CPPA_RISK_PERFECT[0].intake as Record<string, unknown>;
 
 Deno.test("RK0.5 — version stamp is pinned", () => {
   assertEquals(
@@ -24,27 +25,28 @@ Deno.test("RK0.5 — version stamp is pinned", () => {
   );
 });
 
-Deno.test("RK0.5 — risk-perfect-complete passes the closed-loop check", async () => {
-  const res = await checkPerfectCppaRiskIntake(PERFECT_INTAKE);
-  assertEquals(
-    res.ok,
-    true,
-    `risk-perfect-complete deficiencies: ${deficiencyLines(res.deficiencies).join(" | ")}`,
-  );
-});
+// All CPPA_RISK_PERFECT fixtures must pass the closed-loop checker.
+for (const c of CPPA_RISK_PERFECT) {
+  Deno.test(`RK0.5 — ${c.id} passes the closed-loop check`, async () => {
+    const res = await checkPerfectCppaRiskIntake(c.intake);
+    assertEquals(
+      res.ok,
+      true,
+      `${c.id} deficiencies: ${deficiencyLines(res.deficiencies).join(" | ")}`,
+    );
+  });
 
-Deno.test("RK0.5 — reserved § 7152(a)(7) decision does not gate on the perfect fixture", async () => {
-  // The initiation decision is a reserved_decision, not missing_data.
-  // computeRecordComplete must return value:true even though action_item:1.
-  const res = await checkPerfectCppaRiskIntake(PERFECT_INTAKE);
-  assertEquals(res.ok, true);
-  assert(
-    !res.deficiencies.some((d) => d.kind === "risk_record_needs_missing_data"),
-    `Reserved decision should not produce a risk_record_needs_missing_data deficiency. Got: ${
-      deficiencyLines(res.deficiencies).join(" | ")
-    }`,
-  );
-});
+  Deno.test(`RK0.5 — reserved § 7152(a)(7) decision does not gate on ${c.id}`, async () => {
+    const res = await checkPerfectCppaRiskIntake(c.intake);
+    assertEquals(res.ok, true);
+    assert(
+      !res.deficiencies.some((d) => d.kind === "risk_record_needs_missing_data"),
+      `Reserved decision should not produce a risk_record_needs_missing_data deficiency on ${c.id}. Got: ${
+        deficiencyLines(res.deficiencies).join(" | ")
+      }`,
+    );
+  });
+}
 
 Deno.test("RK0.5 — a minimal intake produces contract_incomplete deficiency", async () => {
   const res = await checkPerfectCppaRiskIntake({
@@ -59,7 +61,7 @@ Deno.test("RK0.5 — a minimal intake produces contract_incomplete deficiency", 
 });
 
 Deno.test("RK0.5 — removing an always-required field produces contract_incomplete", async () => {
-  const { q1_revenue: _dropped, ...stripped } = PERFECT_INTAKE;
+  const { q1_revenue: _dropped, ...stripped } = REFERENCE_INTAKE;
   const res = await checkPerfectCppaRiskIntake(stripped);
   assertEquals(res.ok, false);
   const d = res.deficiencies.find((x) => x.kind === "contract_incomplete");
