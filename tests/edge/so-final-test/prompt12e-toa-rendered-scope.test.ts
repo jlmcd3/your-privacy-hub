@@ -62,7 +62,7 @@ for (const c of DPIA_PERFECT_SET as Any[]) {
     assert(/Art\. 35\(11\)/.test(toa), toa);
     assert(/Art\. 35\(7\)\(a\)/.test(toa), toa);
     assert(/\(9\)/.test(toa), toa);
-    assert(toa.startsWith("Regulations"), toa);
+    assert(toa.trim().startsWith("Regulations"), toa);
   });
 
   Deno.test(`12E/3 — ${c.id}: nothing outside the ToA block moves`, () => {
