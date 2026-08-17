@@ -1179,7 +1179,9 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       ...(insufficient
         ? {
           information_needed:
-            `The measures actually applied against "${spec.risk_label}" — the record names none of: ${spec.mitigating_safeguards.join("; ")}. Record the measure, who operates it, and how its effect is evidenced.`,
+            // PROMPT 12B item 2 — the risk label is the assessment's OWN term,
+            // not a record quote: it renders unquoted. Record spans stay quoted.
+            `The measures actually applied against ${spec.risk_label} — the record names none of: ${spec.mitigating_safeguards.join("; ")}. Record the measure, who operates it, and how its effect is evidenced.`,
           ask_class: "ask_risk_measures",
           display_label: resolveAskLabel("ask_risk_measures", { risk: spec.risk_label }),
         }
