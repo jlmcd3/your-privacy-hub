@@ -1747,8 +1747,11 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
     const impactStated = matches(combined, IMPACT_LEXICON) || impactEvidence(intake).length > 0;
     const vulnerable =
       VULNERABLE_SUBJECTS.some((re) => re.test(subjects)) ||
-      categories.includes("Children's data");
-    const special = categories.some((c) => SPECIAL_CATEGORY_CATS.includes(c));
+      categories.includes(CHILDREN_CAT);
+    // PROMPT 9M item 1 — the two triggers, read separately.
+    const art9Cats = categories.filter((c) => ART9_SPECIAL_CATS.includes(c));
+    const art9Special = art9Cats.length > 0;
+    const childrensData = categories.includes(CHILDREN_CAT);
 
     const purpose_test_met = purpose.length > 0;
     const purpose_test_why = purpose_test_met
@@ -1760,14 +1763,52 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       ? `Part two (necessity test): the record identifies ${alternatives.length} alternative means (${alternatives.map((x) => x.alternative).join("; ")}) and states why each would not achieve the stated interest, applying the test the guidance sets: ${necessityTest.verbatim}`
       : `Part two (necessity test): the record does not show that the stated interest cannot reasonably be achieved by a less intrusive means${alternatives.length > 0 ? ", because the alternatives it records carry no rejection reason" : ", because no alternative means are recorded as considered"}. On this record necessity for the purposes of Art. 6(1)(f) is not established.`;
 
-    const balancing_test_met = impactStated && (!vulnerable || safeguards.length > 0) && !special;
-    const balancing_test_why = !impactStated
+    // PROMPT 9M item 2 — the categorical special-category bar is GONE; the
+    // balance is scoped to the non-special-category items and decided on the
+    // prongs alone, subject to the item-4 children's gate.
+    const scopedBalanceMet = impactStated && (!vulnerable || safeguards.length > 0);
+    const childCredit = childrensData
+      ? readChildLiaCredit(intake)
+      : { credited: false, span: "" };
+    const childGateBlocks = childrensData && !childCredit.credited;
+    const balancing_test_met = scopedBalanceMet && !childGateBlocks;
+
+    // Base part-three prong sentence. The MET sentence is scoped where Art. 9
+    // data is in the set (item 3(a)); every other prong sentence is unchanged.
+    const basePartThree = !impactStated
       ? `Part three (balancing test): the record does not describe the impact of the processing on ${subjects || "the data subjects"}, so their interests and fundamental rights cannot be set against the controller's interest.`
-      : special
-      ? `Part three (balancing test): the record describes the impact on ${subjects || "the data subjects"} but the data set includes special-category or children's data (${categories.filter((c) => SPECIAL_CATEGORY_CATS.includes(c)).join("; ")}), which raises the weight on the data subjects' side; the record does not show that the controller's interest survives that weighting.`
       : vulnerable && safeguards.length === 0
       ? `Part three (balancing test): the data subjects described (${subjects}) are in a position of dependency or reduced ability to object, and no safeguards are recorded that would reduce the effect on them, so the balance is not established based on the information the company provided.`
+      : art9Special
+      ? `Part three (balancing test): the record describes the effect on ${subjects || "the data subjects"} and records the measures that reduce it (${safeguards.join("; ") || "the measures stated"}), so for the non-special-category items the controller's interest is not shown to be overridden on this record.`
       : `Part three (balancing test): the record describes the effect on ${subjects || "the data subjects"} and records the measures that reduce it (${safeguards.join("; ") || "the measures stated"}), so the controller's interest is not shown to be overridden on this record.`;
+
+    // PROMPT 9M item 4 — the children's gate, four steps, step 1 always first.
+    const CHILD_STEP_1 =
+      "The data set includes children's data. Processing children's data on legitimate interests requires a separate, dedicated legitimate interests assessment for the children's data stream, applying a strict presumption of vulnerability and mandating robust, age-appropriate safeguards, so that the controller's interests do not override the child's rights and interests.";
+    const CHILD_STEP_4 =
+      "The record does not state that a dedicated legitimate interests assessment appropriate to children's data has been provided, so the balancing assessment cannot proceed for this operation based on the information the company provided.";
+    const childStep3 = childCredit.credited
+      ? `The record states that a dedicated legitimate interests assessment has been conducted for the children's data: "${childCredit.span}". On that basis, the balancing discussion proceeds.`
+      : "";
+
+    const balancing_test_why = !childrensData
+      ? basePartThree
+      : childCredit.credited
+      ? [CHILD_STEP_1, childStep3, basePartThree].join(" ")
+      : [CHILD_STEP_1, CHILD_STEP_4].join(" ");
+
+    // PROMPT 9M item 3 — the ruling on Art. 9 data under 6(1)(f).
+    const ART9_RULING = art9Special
+      ? " Legitimate interests cannot serve as the lawful basis for processing special-category data." +
+        " Consequently, this assessment proceeds solely for the accompanying non-special-category data under Article 6(1)(f);" +
+        ` the processing of the special-category items (${art9Cats.join("; ")}) must be isolated and subjected to a separate assessment` +
+        " once an appropriate Article 9(2) condition (e.g., explicit consent) is established."
+      : "";
+    const ART9_FULL_ASK =
+      `Isolate the special-category items (${art9Cats.join("; ")}) and subject their processing to a separate assessment once an appropriate Article 9(2) condition (e.g., explicit consent) is established; legitimate interests cannot serve as their lawful basis.`;
+    const CHILD_FULL_ASK =
+      "Provide the separate, dedicated legitimate interests assessment conducted for the children's data stream, applying a strict presumption of vulnerability and robust, age-appropriate safeguards.";
 
     const legitimate_interests_test: LegitimateInterestsTest = {
       purpose_test_met,
@@ -1787,25 +1828,21 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       `The company relies on ${art6.label} for the recorded purpose ("${purpose}"). ` +
       `The basis reads: ${li.verbatim} ` +
       "It is established only where all three of its parts hold based on the information the company provided.";
-    const justification = [head, purpose_test_why, necessity_test_why, balancing_test_why].join(" ");
+    const justification = [head, purpose_test_why, necessity_test_why, balancing_test_why].join(" ") +
+      ART9_RULING;
 
-    const information_needed = unmet.length === 0
-      ? undefined
+    const baseInformationNeeded = unmet.length === 0
+      ? ""
       : `For "${op.operation_label}", the record does not support the ${unmet.join(" or the ")}. ` +
         (!purpose_test_met ? "State the interest pursued as an outcome. " : "") +
         (!necessity_test_met ? "Record each less intrusive means considered and the specific reason it would not achieve that interest. " : "") +
-        (!balancing_test_met ? `Describe the effect of the processing on ${subjects || "the data subjects"} — what they lose, what they would not expect, and what they cannot avoid — and the measures that reduce it${special && !art9Selected ? ", and state the Art. 9 condition relied on for the special-category items" : ""}.` : "");
+        (!scopedBalanceMet ? `Describe the effect of the processing on ${subjects || "the data subjects"} — what they lose, what they would not expect, and what they cannot avoid — and the measures that reduce it.` : "");
+    const information_needed = [
+      baseInformationNeeded.trim(),
+      childGateBlocks ? CHILD_FULL_ASK : "",
+      art9Special ? ART9_FULL_ASK : "",
+    ].filter(Boolean).join(" ") || undefined;
 
-    // PROMPT 9A — the 6(1)(f) compound ask decomposes into its ratified parts.
-    // The compound ask itself is UNCHANGED and remains the gap-table text; each
-    // unmet part contributes its own labeled entry on the composed surfaces.
-    const ask_parts: { ask_class: string; display_label: string }[] = [];
-    const addPart = (id: DpiaAskClass) =>
-      ask_parts.push({ ask_class: id, display_label: resolveAskLabel(id, { op: op.operation_label }) });
-    if (!purpose_test_met) addPart("ask_lia_purpose");
-    if (!necessity_test_met) addPart("ask_lia_necessity");
-    if (!balancing_test_met) addPart("ask_lia_balancing");
-    if (special && !art9Selected) addPart("ask_lia_art9");
 
     return {
       operation_id: op.operation_id,
