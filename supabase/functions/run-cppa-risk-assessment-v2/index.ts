@@ -43,12 +43,19 @@ import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, g
 const FN = "run-cppa-risk-assessment-v2";
 const BUILD_STAMP = "ltp-risk-v2-item359-routed@2026-08-02";
 const LTP_MODE = Deno.env.get("LTP_ENFORCE_ENABLED") === "1" ? "enforce" : "shadow";
+// RK1 (conversion spec §3) — Pass-1 mode is FLAG-GATED. The deterministic
+// derivePlan path is coverage-proven over goldens + the full 880-row stored
+// intake sweep (doc 29); the flip to deterministic is the RK1 config action,
+// taken by setting RISK_PASS1_DETERMINISTIC=1 once the api_usage meter is
+// verified recording (spec gate: zero Pass-1 usage must be a PROVEN zero).
+// Default unchanged ("model") until the flag is set.
+const PASS1_MODE = Deno.env.get("RISK_PASS1_DETERMINISTIC") === "1" ? "deterministic" as const : "model" as const;
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} risk_pipeline_stamp=${RISK_PIPELINE_STAMP} ltp_mode=${LTP_MODE} engine_path=ltp routed=true`);
+console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} risk_pipeline_stamp=${RISK_PIPELINE_STAMP} ltp_mode=${LTP_MODE} pass1_mode=${PASS1_MODE} engine_path=ltp routed=true`);
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -71,7 +78,7 @@ async function runPipeline(assessmentId: string): Promise<void> {
     buildStamp: BUILD_STAMP,
     runId: assessmentId,
     mode: "enforce" as const,
-    pass1: "model" as const,
+    pass1: PASS1_MODE,
     callerName: FN,
     // ITEM 378 (CORRECTION) — critic/verifier injected so the refinement pass
     // runs on this (routed) path; CSC + stamp land in finalizeCppaRiskPayload.
@@ -99,7 +106,8 @@ async function runPipeline(assessmentId: string): Promise<void> {
 
   console.log(JSON.stringify({
     evt: "v2_persist_first", fn: FN, build_stamp: BUILD_STAMP,
-    assessment_id: assessmentId, type_j: gen.typeJOrigin, elapsed_ms: Date.now() - t0,
+    assessment_id: assessmentId, type_j: gen.typeJOrigin,
+    pass1_mode: PASS1_MODE, elapsed_ms: Date.now() - t0,
   }));
 
   // ── PASS-2R inside the persisted lifecycle (awaited; UPDATE included).
@@ -133,6 +141,7 @@ Deno.serve(serveWithGenerationModel(async (req) => {
       // `composition_enforce` and aborted with composition_enforce_mismatch
       // (expected "1", actual null) because v2 never reported it.
       composition_enforce: Deno.env.get("LTP_COMPOSITION_ENFORCE") === "1" ? "1" : "0",
+      pass1_mode: PASS1_MODE,
       engine_path: "ltp",
       routed: true,
     });
