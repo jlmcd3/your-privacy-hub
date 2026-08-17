@@ -48,6 +48,8 @@ export const RISK_VERIFIER_SYSTEM_PROMPT = composePrompt(VERIFIER_PROMPT_BASE, R
 export const RISK_PROTECTED_ROOT_KEYS = [
   "framework_disclaimer",
   "guidance_verbatim",
+  // PROMPT 12B item 1 (D6 hygiene) — registry-pinned Art. 35(7)(d) span.
+  "measures_verbatim",
 ];
 
 /** DPIA leaf set + the risk-specific structured leaves (item378 Deliverable 2). */
