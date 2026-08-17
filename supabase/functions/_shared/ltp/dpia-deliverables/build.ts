@@ -2023,12 +2023,36 @@ export function buildDecision(
 
   // (c) High remaining risk without an Art. 36 trigger rides on its measures.
   const high = register.filter((r) => r.residual_band === "high");
+
+  // PROMPT 9M item 5 (CEO-ruled 2026-08-17) — the ART. 9 CARVE. Where a
+  // 6(1)(f) row carries the typed art9_special marker and nothing has resolved
+  // to draft_incomplete or consultation_required, the processing may proceed on
+  // the carve condition for the non-special-category data. Where high remaining
+  // risks ALSO exist, the existing high-risk branch fires and the carve
+  // condition joins its conditions list (that template is byte-unchanged).
+  const art9Carve = deliverables.legal_basis.some((f) => f.art9_special === true);
+  const ART9_CARVE_CONDITION =
+    "isolating the special-category items and subjecting their processing to a separate assessment once an appropriate Article 9(2) condition (e.g., explicit consent) is established";
+  if (art9Carve && high.length === 0) {
+    const conditions = [ART9_CARVE_CONDITION];
+    return {
+      determination: "conditionally_approved",
+      conditions,
+      blockers: [],
+      why:
+        `Given the noted risks and the mitigating measures, the processing being assessed may proceed on conditions for the non-special-category data: ${conditions.join("; and ")}.`,
+      citation: art36Citation,
+      rule_id: "dpia_decision_v1",
+    };
+  }
+
   if (high.length > 0) {
     const conditions: string[] = [];
     for (const r of high) {
       if (r.measures.length > 0) conditions.push(...r.measures);
       else conditions.push(`a recorded measure for ${r.risk_label}`);
     }
+    if (art9Carve) conditions.push(ART9_CARVE_CONDITION);
     const deduped = [...new Set(conditions)];
     return {
       determination: "conditionally_approved",
