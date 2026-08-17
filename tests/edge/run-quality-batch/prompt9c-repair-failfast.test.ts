@@ -53,10 +53,13 @@ Deno.test("9C item 3: a repairable rejection preserves every non-deficient field
   assertEquals(repaired.intake.dpia_prepared_by, "R. Shah");
 });
 
-Deno.test("9C item 4: perfect variant aborts after the first rejected scenario", async () => {
+Deno.test("9C item 4 (RE-POINTED at 12F): perfect variant stops on the kind-aware rate abort", async () => {
+  // 12F item 3 supersedes the single-scenario fail-fast: a lint-class rejection
+  // now earns ONE fresh regeneration, and the batch aborts on a >50% rejection
+  // rate after at least four attempts.
   let generated = 0;
   const reasons: (string | undefined)[] = [];
-  const { progress, status } = await generateValidatedIntakesChunked("dpia", 5, emptyIntakeGenProgress(), {
+  const { progress, status, abort } = await generateValidatedIntakesChunked("dpia", 5, emptyIntakeGenProgress(), {
     deadlineAt: Number.MAX_SAFE_INTEGER,
     variant: "perfect",
     _now: () => 0,
@@ -65,9 +68,10 @@ Deno.test("9C item 4: perfect variant aborts after the first rejected scenario",
     onScenario: async (_d, _t, _s, ok, reason) => { if (!ok) reasons.push(reason); },
   });
   assertEquals(status, "complete");
-  assertEquals(generated, 1);
-  assertEquals(progress.totalAttempted, 1);
-  assertEquals(progress.rejected.length, 1);
+  assertEquals(generated, 4);
+  assertEquals(progress.totalAttempted, 4);
+  assertEquals(progress.rejected.length, 4);
+  assertEquals(abort?.kind, "rate");
   assertStringIncludes(reasons[0] ?? "", "alternatives_considered missing");
 });
 

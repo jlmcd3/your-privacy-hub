@@ -1394,7 +1394,7 @@ function validateIntake(tool: string, intake: any): { ok: boolean; reason?: stri
   return extra ? extra(intake) : { ok: true };
 }
 
-async function generateIntakes(tool: string, count: number, extraGuidance?: string): Promise<any[]> {
+async function generateIntakes(tool: string, count: number, extraGuidance?: string, variant?: FixtureVariant | null): Promise<any[]> {
   // NOTE: toolDescriptions is DEAD for contract-backed tools; put guidance in SCENARIO_GUIDANCE or the intake contract, never here.
   // PROMPT 8H item 1(c) — CONTRACT-BACKED TOOLS ARE NOT LISTED HERE.
   // For any tool in CONTRACT_BY_TOOL the live prompt is
@@ -1416,9 +1416,15 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
   // SCENARIO_GUIDANCE. Tools without a contract keep their pre-P2
   // hand-typed description.
   const contractForTool = CONTRACT_BY_TOOL[tool];
-  const description = contractForTool
+  const baseDescription = contractForTool
     ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
     : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
+  // PROMPT 12F item 2 — CONSTRAINT SALIENCE. On the perfect variant the compact
+  // hard-constraint block leads the prompt, BEFORE the contract render; the full
+  // guidance below is byte-unchanged. Other variants are untouched.
+  const description = variant === "perfect"
+    ? `${(await import("./_local/quality/perfect-closed-loop.ts")).PERFECT_HARD_CONSTRAINTS}\n\n${baseDescription}`
+    : baseDescription;
   // SO-FT INTAKE-STREAM (2026-08-11): the fixed-ceiling approach kept failing —
   // cppa-cyber died at 180s, cppa-risk at 300s ("Signal timed out"), each taking
   // its whole child run with it. Intake generation now STREAMS, so the guard is
@@ -1503,14 +1509,28 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
 // BEFORE contract validation, each with ONE single-item regeneration.
 export type RejectedAttempt = { attempt: number; reason: string; intake: any };
 
+// PROMPT 12F item 3 — KIND-AWARE FAIL POLICY. A rejection carries the class of
+// defect so the caller can decide between repair, fresh regeneration, skip and
+// abort. "carve_out" and "lint" are model-behaviour defects (retryable);
+// "contract" is a spec mismatch (abort); "generation" is transport failure.
+export type RejectionKind = "carve_out" | "lint" | "contract" | "generation";
+
+/** The deficiency-kind → rejection-kind map used by screenIntake. */
+export function rejectionKindForLint(linted: { deficiencies?: any[] } | null | undefined): RejectionKind {
+  const d = Array.isArray(linted?.deficiencies) ? linted!.deficiencies! : [];
+  return d.some((x: any) => x?.kind === "carve_out") ? "carve_out" : "lint";
+}
+
 export async function screenIntake(
   tool: string,
   item: any,
   lintFixture: (x: any) => { reason: string; path?: string; deficiencies?: any[] } | null | undefined,
   extraGuidance?: string,
   /** Test seam — production leaves this undefined. */
-  _generate?: (tool: string, n: number, extraGuidance?: string) => Promise<any[]>,
-): Promise<{ ok: true; intake: any } | { ok: false; reason: string; attempts: RejectedAttempt[] }> {
+  _generate?: (tool: string, n: number, extraGuidance?: string, variant?: FixtureVariant | null) => Promise<any[]>,
+  /** PROMPT 12F item 2 — variant threaded into the generation prompt. */
+  variant?: FixtureVariant | null,
+): Promise<{ ok: true; intake: any } | { ok: false; reason: string; kind: RejectionKind; attempts: RejectedAttempt[] }> {
   const generateIntakes_ = _generate ?? generateIntakes;
   // PROMPT 9D item 3 — the fixture-lint constraint set (blacklist phrases from
   // the shared module, hedges, leak rules, statute allowlist) is named in BOTH
@@ -1535,7 +1555,7 @@ export async function screenIntake(
         retryGuidance = retryGuidance ? `${retryGuidance}\n\n${fb}` : fb;
       }
       retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
-      const retry = await generateIntakes_(tool, 1, retryGuidance);
+      const retry = await generateIntakes_(tool, 1, retryGuidance, variant);
       const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
       if (relint) {
         const r2reason = (relint as any).reason ?? "reject";
@@ -1550,6 +1570,7 @@ export async function screenIntake(
         return {
           ok: false,
           reason,
+          kind: rejectionKindForLint(linted as any),
           attempts: [
             { attempt: 1, reason: `lint: ${linted.reason}`, intake: item },
             { attempt: 2, reason: `retry lint: ${r2reason}${where ? ` @ ${where}` : ""}`, intake: retry[0] ?? null },
@@ -1560,6 +1581,7 @@ export async function screenIntake(
     } catch (e) {
       return {
         ok: false,
+        kind: "generation",
         reason: `lint regenerate failed — ${(e as Error).message}`,
         attempts: [{ attempt: 1, reason: `lint: ${linted.reason}`, intake: item }],
       };
@@ -1572,13 +1594,14 @@ export async function screenIntake(
   try {
     // PROMPT 9C item 3 — repair, not regenerate.
     const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with the listed facts added; change nothing else. Every field not named above must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
-    const retry = await generateIntakes_(tool, 1, repairGuidance);
+    const retry = await generateIntakes_(tool, 1, repairGuidance, variant);
     const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
     if (r2.ok) return { ok: true, intake: retry[0] };
     console.warn(`intake rejected (${tool}): ${r2.reason}`);
     const differs = (r2.reason ?? "unknown") !== (r.reason ?? "contract violation");
     return {
       ok: false,
+      kind: "contract",
       reason: differs
         ? `contract: ${r.reason ?? "contract violation"}; retry REJECTED FOR A DIFFERENT REASON: ${r2.reason ?? "unknown"}`
         : (r2.reason ?? "unknown"),
@@ -1591,6 +1614,7 @@ export async function screenIntake(
     console.warn(`intake rejected (${tool}): regenerate failed — ${(e as Error).message}`);
     return {
       ok: false,
+      kind: "generation",
       reason: (e as Error).message,
       attempts: [{ attempt: 1, reason: `contract: ${r.reason ?? "contract violation"}`, intake: candidate }],
     };
@@ -1639,11 +1663,11 @@ export async function generateValidatedIntakesChunked(
     /** PROMPT 8K — closed-loop lint applies to variant=perfect only. */
     variant?: "perfect" | "messy" | null;
     // Test seams — production leaves these undefined.
-    _generate?: (tool: string, n: number, extraGuidance?: string) => Promise<any[]>;
-    _screen?: (tool: string, item: any) => Promise<{ ok: true; intake: any } | { ok: false; reason: string }>;
+    _generate?: (tool: string, n: number, extraGuidance?: string, variant?: FixtureVariant | null) => Promise<any[]>;
+    _screen?: (tool: string, item: any) => Promise<{ ok: true; intake: any } | { ok: false; reason: string; kind?: RejectionKind }>;
     _now?: () => number;
   },
-): Promise<{ progress: IntakeGenProgress; status: "complete" | "deadline" }> {
+): Promise<{ progress: IntakeGenProgress; status: "complete" | "deadline"; abort?: { kind: RejectionKind | "rate"; reason: string } }> {
   const now = ctx._now ?? (() => Date.now());
   const genOne = ctx._generate ?? generateIntakes;
   // PROMPT 8H item 1(b) — tool-aware screen (generic collision lint + per-tool
@@ -1660,7 +1684,51 @@ export async function generateValidatedIntakesChunked(
     totalAttempted: prior.totalAttempted ?? 0,
   };
 
-  while (progress.totalAttempted < count) {
+  // PROMPT 12F item 3 — KIND-AWARE FAIL POLICY (perfect variant only).
+  //   carve_out / lint  → repair attempt (inside screenIntake), then ONE fresh
+  //                       regeneration (new scenario, not a repair) — max three
+  //                       model calls per slot — then SKIP the slot and attempt
+  //                       a replacement, up to a total budget of 2 × needed.
+  //   contract          → ABORT (the spec doesn't match; retrying cannot help).
+  //   rejection rate >50% after ≥4 attempts → ABORT.
+  // Non-perfect variants keep the pre-12F behaviour byte-for-byte.
+  const perfect = ctx.variant === "perfect";
+  const budget = perfect ? count * 2 : count;
+
+  /** Single-pass screen with NO repair retry — used for the fresh regeneration. */
+  const screenNoRepair = async (
+    item: any,
+  ): Promise<{ ok: true; intake: any } | { ok: false; reason: string; kind: RejectionKind; attempts: RejectedAttempt[] }> => {
+    if (ctx._screen) {
+      const r = await ctx._screen(tool, item);
+      if (r.ok) return r as { ok: true; intake: any };
+      return { ok: false, reason: r.reason, kind: (r as any).kind ?? "lint", attempts: [{ attempt: 1, reason: r.reason, intake: item }] };
+    }
+    const l = lintFixtureForVariant(tool, ctx.variant ?? null, item);
+    if (l) {
+      const reason = `lint: ${l.reason}`;
+      return { ok: false, reason, kind: rejectionKindForLint(l as any), attempts: [{ attempt: 1, reason, intake: item }] };
+    }
+    const v = validateIntake(tool, item);
+    if (!v.ok) {
+      const reason = v.reason ?? "contract violation";
+      return { ok: false, reason, kind: "contract", attempts: [{ attempt: 1, reason, intake: item }] };
+    }
+    return { ok: true, intake: item };
+  };
+
+  const rateAbort = (): { kind: "rate"; reason: string } | undefined => {
+    if (!perfect) return undefined;
+    if (progress.totalAttempted < 4) return undefined;
+    const rate = progress.rejected.length / progress.totalAttempted;
+    if (rate <= 0.5) return undefined;
+    return {
+      kind: "rate",
+      reason: `rejection rate ${progress.rejected.length}/${progress.totalAttempted} exceeds 50% after ${progress.totalAttempted} attempts`,
+    };
+  };
+
+  while (perfect ? (progress.accepted.length < count && progress.totalAttempted < budget) : progress.totalAttempted < count) {
     // Interior deadline checkpoint — BETWEEN calls, never inside one await.
     if (now() >= ctx.deadlineAt) {
       return { progress, status: "deadline" };
@@ -1673,7 +1741,7 @@ export async function generateValidatedIntakesChunked(
 
     let batch: any[];
     try {
-      batch = await genOne(tool, 1, extraGuidance);
+      batch = await genOne(tool, 1, extraGuidance, ctx.variant ?? null);
     } catch (e) {
       progress.totalAttempted += 1;
       progress.rejected.push({ reason: `generation failed — ${(e as Error).message}`, attempts: [] });
@@ -1690,7 +1758,7 @@ export async function generateValidatedIntakesChunked(
     }
     const screened = ctx._screen
       ? await ctx._screen(tool, item)
-      : await screenIntake(tool, item, ((x: any) => lintFixtureForVariant(tool, ctx.variant ?? null, x)) as any, extraGuidance);
+      : await screenIntake(tool, item, ((x: any) => lintFixtureForVariant(tool, ctx.variant ?? null, x)) as any, extraGuidance, undefined, ctx.variant ?? null);
 
     if (screened.ok) progress.accepted.push(screened.intake);
     // PROMPT 9D item 2 — persist the FULL rejected intake JSON(s) with reason
@@ -1700,15 +1768,57 @@ export async function generateValidatedIntakesChunked(
       attempts: (screened as any).attempts ?? [{ attempt: 1, reason: screened.reason, intake: item }],
     });
     await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, screened.ok, screened.ok ? undefined : screened.reason);
-    // PROMPT 9C item 4 — FAIL FAST on the perfect variant. One scenario that
-    // exhausts its single retry is enough evidence; do not spend another two
-    // model calls rediscovering the same deficiency list.
-    if (!screened.ok && ctx.variant === "perfect") {
-      return { progress, status: "complete" };
+    if (screened.ok || !perfect) continue;
+
+    const kind: RejectionKind = (screened as any).kind ?? "lint";
+    // (a) contract/spec-mismatch — abort; retrying cannot fix a spec drift.
+    if (kind === "contract") {
+      return { progress, status: "complete", abort: { kind, reason: screened.reason } };
     }
+    const rated = rateAbort();
+    if (rated) return { progress, status: "complete", abort: rated };
+    if (progress.totalAttempted >= budget) break;
+    if (now() >= ctx.deadlineAt) return { progress, status: "deadline" };
+
+    // ONE fresh regeneration for this slot — a NEW scenario, not a repair.
+    const t1 = now();
+    const freshGuidance = [
+      extraGuidance,
+      `PREVIOUS SCENARIO REJECTED: ${screened.reason}. Generate a COMPLETELY DIFFERENT scenario — do not repair or reuse the rejected one.`,
+      kind === "carve_out" ? (await import("./_local/quality/perfect-closed-loop.ts")).CARVE_OUT_REPAIR_GUIDANCE : undefined,
+    ].filter(Boolean).join("\n\n");
+    let fresh: any;
+    try {
+      fresh = (await genOne(tool, 1, freshGuidance, ctx.variant ?? null))[0];
+    } catch (e) {
+      progress.totalAttempted += 1;
+      progress.rejected.push({ reason: `fresh regeneration failed — ${(e as Error).message}`, attempts: [] });
+      await ctx.onScenario?.(progress.totalAttempted, count, (now() - t1) / 1000, false);
+      const r2 = rateAbort();
+      if (r2) return { progress, status: "complete", abort: r2 };
+      continue;
+    }
+    progress.totalAttempted += 1;
+    const rescreened = fresh
+      ? await screenNoRepair(fresh)
+      : { ok: false as const, reason: "fresh regeneration returned no item", kind: "generation" as RejectionKind, attempts: [] as RejectedAttempt[] };
+    if (rescreened.ok) {
+      progress.accepted.push(rescreened.intake);
+      await ctx.onScenario?.(progress.totalAttempted, count, (now() - t1) / 1000, true);
+      continue;
+    }
+    progress.rejected.push({ reason: `fresh regeneration rejected: ${rescreened.reason}`, attempts: rescreened.attempts });
+    await ctx.onScenario?.(progress.totalAttempted, count, (now() - t1) / 1000, false, `fresh regeneration rejected: ${rescreened.reason}`);
+    if (rescreened.kind === "contract") {
+      return { progress, status: "complete", abort: { kind: "contract", reason: rescreened.reason } };
+    }
+    const r3 = rateAbort();
+    if (r3) return { progress, status: "complete", abort: r3 };
+    // SKIP this slot and attempt a replacement (budget permitting).
   }
 
   return { progress, status: "complete" };
+
 }
 
 
@@ -2447,7 +2557,7 @@ async function runBatchInner(runId: string): Promise<void> {
       }
       let intakeWarning: string | null = null;
       try {
-        const { progress: gen, status: genStatus } = await generateValidatedIntakesChunked(
+        const { progress: gen, status: genStatus, abort: genAbort } = await generateValidatedIntakesChunked(
           tool,
           needed,
           priorGen,
@@ -2476,10 +2586,18 @@ async function runBatchInner(runId: string): Promise<void> {
         if (gen.rejected.length > 0) {
           await log("warn", `Intake validation: ${gen.rejected.length}/${gen.totalAttempted} rejected after retry (${tool}). Reasons: ${gen.rejected.slice(0, 3).map(r => r.reason).join(" | ")}`);
         }
+        // PROMPT 12F item 3 — on the perfect variant the abort decision is made
+        // by the kind-aware fail policy (contract/spec-mismatch kind, or a
+        // >50% rejection rate after ≥4 attempts). Skipped-and-replaced slots
+        // are no longer an abort. Other variants keep the >30% rule verbatim.
         const failRate = gen.totalAttempted > 0 ? gen.rejected.length / gen.totalAttempted : 0;
-        if (failRate > 0.3) {
+        const perfectShort = fixtureVariant === "perfect" && gen.accepted.length < needed;
+        if (fixtureVariant === "perfect" ? (!!genAbort || perfectShort) : failRate > 0.3) {
           // PROMPT 9C item 4 — the persisted error carries the deficiency list.
-          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation${fixtureVariant === "perfect" ? ", aborted after the first scenario exhausted its repair retry" : ""}; aborting fix-generation.) Deficiencies: ${gen.rejected.slice(0, 3).map((r) => r.reason).join(" | ")}`;
+          const abortNote = genAbort
+            ? `, aborted on ${genAbort.kind}: ${genAbort.reason}`
+            : (perfectShort ? `, exhausted the 2× attempt budget with ${gen.accepted.length}/${needed} accepted` : "");
+          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation${abortNote}; aborting fix-generation.) Deficiencies: ${gen.rejected.slice(0, 3).map((r) => r.reason).join(" | ")}`;
           await log("error", intakeWarning);
           await upd({
             status: "error",
