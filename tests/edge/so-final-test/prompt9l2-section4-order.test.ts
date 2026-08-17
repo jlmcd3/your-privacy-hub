@@ -30,10 +30,22 @@ Deno.test("9L.2 — Section 4 renders frame, design intro, design table, in that
       String(ps[0].text).startsWith("Article 35(7)(c) requires an assessment of the risks"),
       String(ps[0].text).slice(0, 120),
     );
-    assert(
-      String(ps[1].text).endsWith("as the starting point of the risk assessment."),
-      String(ps[1].text).slice(0, 160),
-    );
+    // RE-POINTED BY PROMPT 12J (2026-08-17): the design-risks intro renders IF
+    // AND ONLY IF the design-risks table renders (no-padding law). On records
+    // with design risks the assertion is unchanged; on the single-operation
+    // pins the intro is honestly absent and §4 opens frame → deviation table.
+    const hasDesign = ps.some((p) => p.table?.surface === "risk_register.design");
+    if (hasDesign) {
+      assert(
+        String(ps[1].text).endsWith("as the starting point of the risk assessment."),
+        String(ps[1].text).slice(0, 160),
+      );
+    } else {
+      assert(
+        !ps.some((p) => String(p.text ?? "").endsWith("as the starting point of the risk assessment.")),
+        "design intro rendered without its table",
+      );
+    }
     // RE-POINTED BY PROMPT 12I (2026-08-17): the design table renders only when
     // the record carries design risks (the novel single-operation pins carry
     // none). The ORDER assertion is unweakened: the tables that do render must
@@ -43,13 +55,14 @@ Deno.test("9L.2 — Section 4 renders frame, design intro, design table, in that
     assertEquals(surfaces, ratified.filter((s) => surfaces.includes(s)));
     assertEquals(surfaces.at(-1), "risk_register");
     assert(surfaces.includes("risk_register.incident"), "incident table missing");
+    const firstTableIdx = hasDesign ? 2 : 1;
     for (let i = 0; i < surfaces.length; i++) {
-      assertEquals(ps[2 + i].table?.surface, surfaces[i], "tables are not contiguous from index 2");
+      assertEquals(ps[firstTableIdx + i].table?.surface, surfaces[i], "tables are not contiguous");
     }
     // Per-risk paragraphs, then the summary as the closing paragraph. The
     // floor is computed from the record (12I): two leads + the tables that
     // render + one paragraph per risk + the summary.
-    const minParas = 2 + surfaces.length + 1;
+    const minParas = (hasDesign ? 2 : 1) + surfaces.length + 1;
     assert(ps.length > minParas, `section 4 truncated: ${ps.length} paragraphs`);
     assert(!ps.at(-1).table, "summary paragraph is not the last block");
   }
