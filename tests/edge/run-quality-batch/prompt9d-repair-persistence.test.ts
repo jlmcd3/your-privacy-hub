@@ -91,7 +91,7 @@ Deno.test("9D item 2: a rejected scenario persists its JSON in the progress stru
   assertEquals(JSON.parse(JSON.stringify(a))[0].reason, "contract violation");
 });
 
-Deno.test("9D: perfect fail-fast and non-perfect behaviour unchanged", async () => {
+Deno.test("9D (RE-POINTED at 12F): perfect kind-aware stop and non-perfect behaviour unchanged", async () => {
   let generated = 0;
   const perfect = await generateValidatedIntakesChunked("dpia", 5, emptyIntakeGenProgress(), {
     deadlineAt: Number.MAX_SAFE_INTEGER,
@@ -101,7 +101,10 @@ Deno.test("9D: perfect fail-fast and non-perfect behaviour unchanged", async () 
     _screen: async () => ({ ok: false as const, reason: "closed-loop perfect: x" }),
   });
   assertEquals(perfect.status, "complete");
-  assertEquals(generated, 1);
+  // 12F item 3: repair → ONE fresh regeneration per slot, abort on the >50%
+  // rate guard once four attempts have been made.
+  assertEquals(generated, 4);
+  assertEquals(perfect.abort?.kind, "rate");
 
   let gen2 = 0;
   const plain = await generateValidatedIntakesChunked("dpia", 3, emptyIntakeGenProgress(), {
