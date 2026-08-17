@@ -1539,8 +1539,25 @@ export async function screenIntake(
   const constraints = fixtureConstraintGuidance();
   const linted = lintFixture(item);
   let candidate = item;
+  // PROMPT 12G item 0 — CARVE-OUT SKIPS REPAIR. A carve-out rejection can only
+  // be fixed by a REMOVAL, so a repair attempt is definitionally wrong: the
+  // assembled repair prompt would append the unconditional "REPAIR MODE …
+  // byte-identical" frame after the kind-aware guidance and reproduce the
+  // violation (12F verification). The slot is rejected immediately with kind
+  // "carve_out"; the chunked loop's fresh-regeneration path (screenNoRepair)
+  // takes it from there — max TWO model calls per carve_out slot.
+  if (linted && rejectionKindForLint(linted as any) === "carve_out") {
+    console.warn(`[fixture-lint] ${tool}: ${linted.reason} — carve-out, skipping repair (fresh regeneration only)`);
+    return {
+      ok: false,
+      kind: "carve_out",
+      reason: `lint: ${linted.reason}`,
+      attempts: [{ attempt: 1, reason: `lint: ${linted.reason}`, intake: item }],
+    };
+  }
   if (linted) {
     console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${(linted as any).path} — repairing once`);
+
     try {
       // PROMPT 8K — FEEDBACK LOOP: when the closed-loop perfect lint rejects,
       // the SPECIFIC deficiency list is fed to the generator as retry guidance
