@@ -602,14 +602,22 @@ async function runUnit(runId: string) {
           normalizeToolVariants((run as any).tool_variants),
           normalizeVariant((run as any).fixture_variant),
         );
-        // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. On the perfect variant with
-        // pinned_only set, nothing is generated: the run is the pinned perfect
-        // fixtures that pass the product's own closed-loop check at dispatch.
-        // Every exclusion is logged WITH its deficiency list, and batch_size is
-        // clamped to the passing count (also logged). Off/absent ⇒ untouched.
+        // PROMPT 9G item 3 / PROMPT 12G item 2 — PINS MODE.
+        //   "only" (or legacy pinned_only=true) on the perfect variant runs the
+        //     pinned fixtures that pass the product's own closed-loop check at
+        //     dispatch; every exclusion is logged WITH its deficiency list and
+        //     batch_size is clamped to the passing count (also logged).
+        //   "seed" (default) is today's behaviour, byte-unchanged.
+        //   "none" passes pinsOverride=[] so ALL slots generate; the kind-aware
+        //     12F fail policy governs.
         let sizeForTool = size;
         let pinsOverrideForTool: unknown[] | undefined = undefined;
-        if ((run as any).pinned_only === true && variantForTool === "perfect") {
+        const pinsMode: PinsMode = resolvePinsMode(run as any);
+        const pinsDecision = pinsDispatchDecision(pinsMode, variantForTool);
+        if (pinsDecision === "no_pins") {
+          pinsOverrideForTool = [];
+          await log(runId, pinsCompositionLine(pinsMode, tool, 0, sizeForTool), { tool });
+        } else if (pinsDecision === "pinned_only") {
           const plan = planPinnedOnly(tool, casesForVariant(tool, "perfect"), size);
           for (const line of plan.logLines) {
             await log(runId, line, { level: "warn", tool });
@@ -633,7 +641,15 @@ async function runUnit(runId: string) {
           sizeForTool = plan.batchSize;
           perToolSizes[tool] = sizeForTool;
           await log(runId, `pinned_only: ${tool} runs ${sizeForTool} pinned perfect fixture(s); no scenarios generated`, { tool });
+          await log(runId, pinsCompositionLine(pinsMode, tool, sizeForTool, sizeForTool), { tool });
+        } else {
+          const seeded = Math.min(
+            (variantForTool ? intakesForVariant(tool, variantForTool) : goldenIntakes(tool)).length,
+            sizeForTool,
+          );
+          await log(runId, pinsCompositionLine(pinsMode, tool, seeded, sizeForTool), { tool });
         }
+
         const abPairId = abModels ? crypto.randomUUID() : null;
         let inv: { ok: true; runId: string; runNumber: number } | { ok: false; err: string } | null = null;
 
