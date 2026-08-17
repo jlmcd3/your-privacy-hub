@@ -474,11 +474,19 @@ export default function AdminReplayReview() {
             {/* ITEM 274 — adapt at the page boundary only: the viewer contract
                 takes the BARE report body object (never a {report_data:…}
                 wrapper record). Harness rows store the bare assembled_report;
-                archived legacy rows nest it under report_data. */}
-            <CPPARiskReportBody
-              report={toViewerReport(showLegacy ? legacy?.report_data : open.assembled_report)}
-              createdAt={open.created_at}
-            />
+                archived legacy rows nest it under report_data.
+                DPIA HARNESS — DPIA rows persist a skeleton document and render
+                through SkeletonDocumentView, the shipped DPIA viewer. */}
+            {!showLegacy && open.tool === "dpia" && toSkeletonDocument(open.assembled_report) ? (
+              <div data-testid="dpia-skeleton-body">
+                <SkeletonDocumentView doc={toSkeletonDocument(open.assembled_report)} />
+              </div>
+            ) : (
+              <CPPARiskReportBody
+                report={toViewerReport(showLegacy ? legacy?.report_data : open.assembled_report)}
+                createdAt={open.created_at}
+              />
+            )}
 
           </div>
         </div>
