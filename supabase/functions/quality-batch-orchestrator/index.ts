@@ -39,6 +39,7 @@ import { planPinnedOnly } from "../_shared/quality/pinned-only.ts";
 import {
   normalizePinsMode,
   pinsCompositionLine,
+  pinsDispatchDecision,
   resolvePinsMode,
   type PinsMode,
 } from "../_shared/quality/pins-mode.ts";
