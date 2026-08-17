@@ -104,13 +104,34 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value ?? null)) as T;
 }
 
+/**
+ * PROMPT 11.1 item 3 — CANONICAL SERIALIZATION. A stored jsonb round-trip may
+ * reorder object keys, which made an identical table compare as changed. Both
+ * sides are serialized with recursively SORTED keys.
+ */
+export function canonicalJson(value: unknown): string {
+  const norm = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(norm);
+    if (v && typeof v === "object") {
+      const out: Record<string, unknown> = {};
+      for (const k of Object.keys(v as Record<string, unknown>).sort()) {
+        out[k] = norm((v as Record<string, unknown>)[k]);
+      }
+      return out;
+    }
+    return v;
+  };
+  return JSON.stringify(norm(value));
+}
+
 function blockText(p: Bag): string {
   if (p && typeof p === "object" && p.table) {
     // Tables compare on their full serialized shape, not their (empty) text.
-    return JSON.stringify(p.table);
+    return canonicalJson(p.table);
   }
   return String(p?.text ?? "");
 }
+
 
 /** Per-section, per-block comparison of the stored vs replayed skeleton. */
 export function compareSkeletonDocuments(

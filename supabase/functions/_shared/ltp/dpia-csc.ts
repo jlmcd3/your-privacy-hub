@@ -33,6 +33,8 @@ import {
   NEUTRAL_DOWNGRADE_LITERAL,
 } from "../prose/frame-substitution.ts";
 import type { FrameSet } from "../prose/frames.ts";
+import { detectOnlyRun, recordDetectFindings } from "../prose/detect-mode.ts";
+
 import {
   buildDpiaAssessmentTeam,
   buildDpiaValidationApproval,
@@ -59,6 +61,10 @@ export interface DpiaCscTelemetry {
   repairs: number;
   crashed: boolean;
   error?: string;
+  /** PROMPT 11.1 item 2 — DPIA new-document path: checks run, nothing mutates. */
+  detect_only?: boolean;
+  /** Repairs the pass WOULD have made on this path (all suppressed). */
+  repairs_suppressed?: number;
 }
 
 export interface DpiaCscOptions {
@@ -69,7 +75,22 @@ export interface DpiaCscOptions {
    * needles used to recognise a gap-frame sentence that reached a surface.
    */
   readonly frameSet?: FrameSet | null;
+  /**
+   * PROMPT 11.1 item 2 (9K pattern) — ASSERT-ONLY. On the DPIA new-document
+   * path every check runs UNCHANGED against a deep clone; findings are recorded
+   * to `_meta.internal.detect_mode` and the real report is never written to.
+   *
+   * REPAIR INVENTORY (every mutation this module can make):
+   *   1. C1 engagement-map status/rationale rewrite  → detect-only here.
+   *   2. C2 surface rebuild (assessment_team, validation_approval,
+   *      measures_rights, data_subject_views)        → detect-only here.
+   *   3. C3 risk_register row REMOVAL                → detect-only here.
+   *   4. C4 dirty-surface rebuild                    → detect-only here.
+   * Legacy paths and other products keep write mode (option absent/false).
+   */
+  readonly detectOnly?: boolean;
 }
+
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -569,12 +590,48 @@ export function runDpiaCsc(
   return t;
 }
 
-/** Run the pass and attach its telemetry at `_meta.internal.dpia_csc`. */
+/**
+ * Run the pass and attach its telemetry at `_meta.internal.dpia_csc`.
+ *
+ * PROMPT 11.1 item 2 — with `opts.detectOnly`, the checks execute byte for byte
+ * against a deep clone, the real report is never written to, and every
+ * violation is also recorded as a detect finding on
+ * `_meta.internal.detect_mode` (pass id `dpia_csc`).
+ */
 export function attachDpiaCsc(
   report: Record<string, unknown>,
   opts: DpiaCscOptions,
 ): DpiaCscTelemetry {
-  const t = runDpiaCsc(report, opts);
+  let t: DpiaCscTelemetry;
+  if (opts?.detectOnly) {
+    t = detectOnlyRun<DpiaCscTelemetry>(
+      report,
+      "dpia_csc",
+      (clone) => runDpiaCsc(clone, { ...opts, detectOnly: false }),
+      { version: DPIA_CSC_VERSION, violations: [], repairs: 0, crashed: false },
+    );
+    const suppressed = t.repairs;
+    t = {
+      ...t,
+      violations: t.violations.map((v) => ({ ...v, repaired: false })),
+      repairs: 0,
+      detect_only: true,
+      repairs_suppressed: suppressed,
+    };
+    recordDetectFindings(
+      report,
+      "dpia_csc",
+      t.violations.map((v) => ({
+        pass: "dpia_csc",
+        check_id: v.check_id,
+        path: v.path,
+        evidence: clip(v.evidence, 200),
+      })),
+      { detect_only: true, repairs_suppressed: suppressed },
+    );
+  } else {
+    t = runDpiaCsc(report, opts);
+  }
   try {
     const meta = (report._meta ??= {}) as Record<string, unknown>;
     const internal = (meta.internal ??= {}) as Record<string, unknown>;
@@ -582,3 +639,4 @@ export function attachDpiaCsc(
   } catch { /* non-fatal */ }
   return t;
 }
+

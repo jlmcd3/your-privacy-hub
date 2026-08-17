@@ -1081,7 +1081,14 @@ function facts(intake: unknown): RiskFacts {
     transferLeavesRegime: flows.some((f) => flowLeavesOriginRegime(f, readDpiaRegime(intake))),
     retentionStated: str(get(intake, "retention_period")).length > 0,
     reasons: arr(get(intake, "reasons_to_conduct")),
-    secondaryUses: str(get(intake, "secondary_uses")),
+    // PROMPT 11.1 item 1 — R9 TRIGGER NEGATION DISCIPLINE. The r9 trigger and
+    // the operations builder share ONE reader: r9 is eligible if and only if
+    // `op_secondary` exists. A negation-led `secondary_uses` ("None.", "No
+    // secondary uses…", "not used for any purpose beyond…") is a scope
+    // limitation, never a described secondary use.
+    secondaryUses: buildOperations(intake).find((o) => o.operation_id === "op_secondary")
+      ?.purpose_text ?? "",
+
     volume: str(get(intake, "volume_frequency")),
   };
 }
