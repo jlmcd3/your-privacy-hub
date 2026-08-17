@@ -203,13 +203,18 @@ export default function AdminReplayReview() {
       for (const r of (res ?? []) as any[]) {
         if (latest.has(r.doc_id)) continue;
         const gtm = r.per_doc_result?.gtm ?? {};
+        const tool = resultTool(r.per_doc_result);
+        const isDpia = tool === "dpia";
         latest.set(r.doc_id, {
           id: r.id,
           doc_id: r.doc_id,
           created_at: r.created_at,
           job_notes: noteById.get(r.job_id) ?? "",
-          verdict: String(gtm.verdict ?? "unknown"),
-          logged_defects: Array.isArray(gtm.logged_defects) ? gtm.logged_defects : [],
+          tool,
+          verdict: isDpia ? dpiaVerdict(r.per_doc_result) : String(gtm.verdict ?? "unknown"),
+          logged_defects: isDpia
+            ? (Array.isArray(r.per_doc_result?.hard_failures) ? r.per_doc_result.hard_failures : [])
+            : (Array.isArray(gtm.logged_defects) ? gtm.logged_defects : []),
           material_defects: Array.isArray(gtm.material_defects) ? gtm.material_defects : [],
           unclassified: Array.isArray(gtm.unclassified) ? gtm.unclassified : [],
           presence_rate: r.per_doc_result?.substance?.presence_rate ?? null,
