@@ -1509,14 +1509,28 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
 // BEFORE contract validation, each with ONE single-item regeneration.
 export type RejectedAttempt = { attempt: number; reason: string; intake: any };
 
+// PROMPT 12F item 3 — KIND-AWARE FAIL POLICY. A rejection carries the class of
+// defect so the caller can decide between repair, fresh regeneration, skip and
+// abort. "carve_out" and "lint" are model-behaviour defects (retryable);
+// "contract" is a spec mismatch (abort); "generation" is transport failure.
+export type RejectionKind = "carve_out" | "lint" | "contract" | "generation";
+
+/** The deficiency-kind → rejection-kind map used by screenIntake. */
+export function rejectionKindForLint(linted: { deficiencies?: any[] } | null | undefined): RejectionKind {
+  const d = Array.isArray(linted?.deficiencies) ? linted!.deficiencies! : [];
+  return d.some((x: any) => x?.kind === "carve_out") ? "carve_out" : "lint";
+}
+
 export async function screenIntake(
   tool: string,
   item: any,
   lintFixture: (x: any) => { reason: string; path?: string; deficiencies?: any[] } | null | undefined,
   extraGuidance?: string,
   /** Test seam — production leaves this undefined. */
-  _generate?: (tool: string, n: number, extraGuidance?: string) => Promise<any[]>,
-): Promise<{ ok: true; intake: any } | { ok: false; reason: string; attempts: RejectedAttempt[] }> {
+  _generate?: (tool: string, n: number, extraGuidance?: string, variant?: FixtureVariant | null) => Promise<any[]>,
+  /** PROMPT 12F item 2 — variant threaded into the generation prompt. */
+  variant?: FixtureVariant | null,
+): Promise<{ ok: true; intake: any } | { ok: false; reason: string; kind: RejectionKind; attempts: RejectedAttempt[] }> {
   const generateIntakes_ = _generate ?? generateIntakes;
   // PROMPT 9D item 3 — the fixture-lint constraint set (blacklist phrases from
   // the shared module, hedges, leak rules, statute allowlist) is named in BOTH
@@ -1541,7 +1555,7 @@ export async function screenIntake(
         retryGuidance = retryGuidance ? `${retryGuidance}\n\n${fb}` : fb;
       }
       retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
-      const retry = await generateIntakes_(tool, 1, retryGuidance);
+      const retry = await generateIntakes_(tool, 1, retryGuidance, variant);
       const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };
       if (relint) {
         const r2reason = (relint as any).reason ?? "reject";
@@ -1556,6 +1570,7 @@ export async function screenIntake(
         return {
           ok: false,
           reason,
+          kind: rejectionKindForLint(linted as any),
           attempts: [
             { attempt: 1, reason: `lint: ${linted.reason}`, intake: item },
             { attempt: 2, reason: `retry lint: ${r2reason}${where ? ` @ ${where}` : ""}`, intake: retry[0] ?? null },
@@ -1566,6 +1581,7 @@ export async function screenIntake(
     } catch (e) {
       return {
         ok: false,
+        kind: "generation",
         reason: `lint regenerate failed — ${(e as Error).message}`,
         attempts: [{ attempt: 1, reason: `lint: ${linted.reason}`, intake: item }],
       };
@@ -1578,13 +1594,14 @@ export async function screenIntake(
   try {
     // PROMPT 9C item 3 — repair, not regenerate.
     const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with the listed facts added; change nothing else. Every field not named above must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
-    const retry = await generateIntakes_(tool, 1, repairGuidance);
+    const retry = await generateIntakes_(tool, 1, repairGuidance, variant);
     const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
     if (r2.ok) return { ok: true, intake: retry[0] };
     console.warn(`intake rejected (${tool}): ${r2.reason}`);
     const differs = (r2.reason ?? "unknown") !== (r.reason ?? "contract violation");
     return {
       ok: false,
+      kind: "contract",
       reason: differs
         ? `contract: ${r.reason ?? "contract violation"}; retry REJECTED FOR A DIFFERENT REASON: ${r2.reason ?? "unknown"}`
         : (r2.reason ?? "unknown"),
@@ -1597,6 +1614,7 @@ export async function screenIntake(
     console.warn(`intake rejected (${tool}): regenerate failed — ${(e as Error).message}`);
     return {
       ok: false,
+      kind: "generation",
       reason: (e as Error).message,
       attempts: [{ attempt: 1, reason: `contract: ${r.reason ?? "contract violation"}`, intake: candidate }],
     };
