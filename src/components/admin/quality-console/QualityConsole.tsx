@@ -31,6 +31,7 @@ import { CertificationStatusPanel } from "@/components/admin/CertificationStatus
 // supabase/functions/generate-report-pdf/index.ts tableMap (L1853–1868).
 import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_ALT_GENERATION_MODEL } from "@/lib/qualityBatchTools";
 import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
+import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
 // is the (not-yet-authored) realistic-input set. See
@@ -232,6 +233,9 @@ export function QualityConsole({
   // omitted entirely unless the toggle is on, so every existing path is
   // byte-unchanged.
   const [pinnedOnly, setPinnedOnly] = useState(false);
+  // PROMPT 12G items 1-3 — PINS MODE. "seed" is today's behaviour and is sent
+  // on every variant-aware start; the legacy pinned_only boolean is superseded.
+  const [pinsMode, setPinsMode] = useState<PinsMode>("seed");
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
 
@@ -457,6 +461,7 @@ export function QualityConsole({
             : {}),
           ...(showVariants && abModels ? { ab_models: true } : {}),
           ...(showVariants && pinnedOnly ? { pinned_only: true } : {}),
+          ...(showVariants ? { pins_mode: pinsMode } : {}),
           // SO-FINAL-TEST: omitted entirely on the legacy consoles.
           ...(isSkeletonMode ? { grader_mode: "skeleton" } : {}),
         },
@@ -962,21 +967,30 @@ export function QualityConsole({
           )}
 
           {showVariants && (
-            <div className="border rounded p-3 space-y-1">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Checkbox
-                  checked={pinnedOnly}
-                  disabled={isBatchRunning}
-                  onCheckedChange={(c) => setPinnedOnly(c === true)}
-                />
-                Pinned only — no scenario generation
-              </label>
-              <p className="text-xs text-muted-foreground">
-                On the <strong>perfect</strong> variant, the batch runs the pinned fixtures only.
-                Each one is put through the product's own closed-loop check at dispatch; any
-                fixture that fails is excluded with its full deficiency list in the log, and
-                batch size is clamped to the passing count.
-              </p>
+            <div className="border rounded p-3 space-y-2">
+              <Label>Pins mode</Label>
+              <div className="space-y-2">
+                {PINS_MODE_OPTIONS.map((opt) => (
+                  <label key={opt.value} className="flex items-start gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="pins-mode"
+                      className="mt-1"
+                      value={opt.value}
+                      checked={pinsMode === opt.value}
+                      disabled={isBatchRunning}
+                      onChange={() => {
+                        setPinsMode(opt.value);
+                        setPinnedOnly(opt.value === "only");
+                      }}
+                    />
+                    <span>
+                      <span className="font-medium">{opt.label}</span>
+                      <span className="block text-xs text-muted-foreground">{opt.description}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
 
