@@ -1423,7 +1423,7 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
   // hard-constraint block leads the prompt, BEFORE the contract render; the full
   // guidance below is byte-unchanged. Other variants are untouched.
   const description = variant === "perfect"
-    ? `${PERFECT_HARD_CONSTRAINTS}\n\n${baseDescription}`
+    ? `${(await import("./_local/quality/perfect-closed-loop.ts")).PERFECT_HARD_CONSTRAINTS}\n\n${baseDescription}`
     : baseDescription;
   // SO-FT INTAKE-STREAM (2026-08-11): the fixed-ceiling approach kept failing —
   // cppa-cyber died at 180s, cppa-risk at 300s ("Signal timed out"), each taking
