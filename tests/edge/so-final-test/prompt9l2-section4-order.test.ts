@@ -46,8 +46,11 @@ Deno.test("9L.2 — Section 4 renders frame, design intro, design table, in that
     for (let i = 0; i < surfaces.length; i++) {
       assertEquals(ps[2 + i].table?.surface, surfaces[i], "tables are not contiguous from index 2");
     }
-    // Per-risk paragraphs, then the summary as the closing paragraph.
-    assert(ps.length > 6, `section 4 truncated: ${ps.length} paragraphs`);
+    // Per-risk paragraphs, then the summary as the closing paragraph. The
+    // floor is computed from the record (12I): two leads + the tables that
+    // render + one paragraph per risk + the summary.
+    const minParas = 2 + surfaces.length + 1;
+    assert(ps.length > minParas, `section 4 truncated: ${ps.length} paragraphs`);
     assert(!ps.at(-1).table, "summary paragraph is not the last block");
   }
 });
