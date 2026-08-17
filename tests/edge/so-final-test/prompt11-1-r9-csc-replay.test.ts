@@ -97,7 +97,12 @@ const EXPECTED_REGISTER: Record<string, number> = {
   "Britannia HR Ltd": 4,
   "Harrowgate Mutual Insurance Ltd": 5,
   "Clinique Solférino SAS": 3,
+  // PROMPT 12I (2026-08-17) — the two novel pins join the map, counts observed
+  // from their own full-chain output. Existing counts are byte-unchanged.
+  "Nordfracht Logistik GmbH": 2,
+  "Caledonia Home Cover Ltd": 3,
 };
+
 
 Deno.test("11.1 (i) — no pass changes the register length through the full chain", () => {
   for (const intake of FIXTURES) {

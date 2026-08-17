@@ -173,7 +173,7 @@ Deno.test("12F — the four pinned fixtures' full-pipeline output is byte-identi
     attachDpiaDeliverables(report, intake, { unitsMinimal: true });
     return JSON.stringify(assembleDpiaSkeletonDocument(report, intake));
   };
-  assertEquals(DPIA_PERFECT_SET.length, 4);
+  assertEquals(DPIA_PERFECT_SET.length, 6);
   for (const c of DPIA_PERFECT_SET as Any[]) {
     // Generator/dispatch changes cannot reach this path: rendering twice in the
     // same process is byte-stable and no product module was touched at 12F.

@@ -34,14 +34,27 @@ Deno.test("9L.2 — Section 4 renders frame, design intro, design table, in that
       String(ps[1].text).endsWith("as the starting point of the risk assessment."),
       String(ps[1].text).slice(0, 160),
     );
-    assertEquals(ps[2].table?.surface, "risk_register.design");
-    assertEquals(ps[3].table?.surface, "risk_register.incident");
-    assertEquals(ps[4].table?.surface, "risk_register");
-    // Per-risk paragraphs, then the summary as the closing paragraph.
-    assert(ps.length > 6, `section 4 truncated: ${ps.length} paragraphs`);
+    // RE-POINTED BY PROMPT 12I (2026-08-17): the design table renders only when
+    // the record carries design risks (the novel single-operation pins carry
+    // none). The ORDER assertion is unweakened: the tables that do render must
+    // appear contiguously from index 2 in the ratified order.
+    const surfaces = ps.filter((p) => p.table).map((p) => p.table.surface);
+    const ratified = ["risk_register.design", "risk_register.incident", "risk_register"];
+    assertEquals(surfaces, ratified.filter((s) => surfaces.includes(s)));
+    assertEquals(surfaces.at(-1), "risk_register");
+    assert(surfaces.includes("risk_register.incident"), "incident table missing");
+    for (let i = 0; i < surfaces.length; i++) {
+      assertEquals(ps[2 + i].table?.surface, surfaces[i], "tables are not contiguous from index 2");
+    }
+    // Per-risk paragraphs, then the summary as the closing paragraph. The
+    // floor is computed from the record (12I): two leads + the tables that
+    // render + one paragraph per risk + the summary.
+    const minParas = 2 + surfaces.length + 1;
+    assert(ps.length > minParas, `section 4 truncated: ${ps.length} paragraphs`);
     assert(!ps.at(-1).table, "summary paragraph is not the last block");
   }
 });
+
 
 Deno.test("9L.2 — Section 3 is unchanged: ends on the determination, carries no table", () => {
   for (const intake of FIXTURES) {

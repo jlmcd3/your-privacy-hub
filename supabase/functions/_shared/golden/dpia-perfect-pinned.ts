@@ -223,4 +223,194 @@ export const DPIA_PERFECT_PINNED: GoldenCase[] = [
     },
     assertions: [],
   },
+  // PROMPT 12I (2026-08-17) — two NOVEL verification-authored pins, APPENDED
+  // after the existing entries so positions 0..1 stay stable. Byte-exact
+  // transcriptions of the attached intake JSONs; do not reformat or edit.
+  {
+    id: "dpia-perfect-eu-nordfracht-telematics",
+    tool: "dpia",
+    set: "tuning",
+    intake: {
+          "organization_name": "Nordfracht Logistik GmbH",
+          "processing_activity_name": "Fleet telematics route planning",
+          "description": "Route planning for the controller's own delivery fleet from live vehicle positions reported by installed telematics units. All systems are hosted in the controller's Frankfurt data centre; no personal data leaves Germany.",
+          "purpose": "Reduce fleet fuel consumption and missed delivery windows by planning next-day routes from actual vehicle positions and traffic history.",
+          "data_categories": [
+                "Location data",
+                "Employee records",
+                "Contact details"
+          ],
+          "data_subjects": "Employed delivery drivers of the controller who operate telematics-equipped vehicles during working hours.",
+          "volume_frequency": "310 drivers; positions recorded every 90 seconds during shifts only.",
+          "jurisdictions": [
+                "EU (GDPR)"
+          ],
+          "legal_basis_proposed": "Legitimate interest (Art. 6(1)(f))",
+          "article_9_condition": "",
+          "necessity_proportionality": "The interest pursued is stated above as an outcome: fewer missed delivery windows and lower fuel consumption across the fleet. Route planning needs actual vehicle positions because plans built from depot schedules alone do not reflect roadworks, breakdowns or late customer access. The impact of the processing on the data subjects is stated separately from the benefit: drivers cannot avoid position recording while on shift, and some drivers would not expect movement data to be reviewed beyond the day it is collected. That impact is reduced by recording positions only during shifts, by aggregating traces older than seven days into route statistics that carry no driver identifier, and by barring use of the data for performance management under the works agreement.",
+          "data_minimisation_justification": "Only vehicle position, timestamp and vehicle identifier are recorded; no cab audio, no video, and no off-shift recording. Traces older than seven days survive only as aggregated route statistics without a driver identifier.",
+          "retention_period": "Identifiable traces 7 days, then aggregated; aggregates retained 24 months.",
+          "existing_safeguards": [
+                "Encryption at rest",
+                "Encryption in transit",
+                "Access controls",
+                "Data minimisation",
+                "Pseudonymisation",
+                "Staff training",
+                "DPA signed with processor",
+                "Contractual restrictions"
+          ],
+          "third_party_processors": [
+                "Other: Telematics platform operator (RheinTrack Systems GmbH)"
+          ],
+          "reasons_to_conduct": [
+                "Data concerning vulnerable subjects",
+                "Data processed on a large scale"
+          ],
+          "alternatives_considered": [
+                {
+                      "processing_operation": "",
+                      "alternative": "Plan routes from depot departure schedules and postcode-level traffic feeds without vehicle positions",
+                      "rejection_reason": "Schedule-based plans cannot react to roadworks, breakdowns or late customer access on the day, so the stated interest of fewer missed windows and lower fuel use would not be achieved."
+                },
+                {
+                      "processing_operation": "",
+                      "alternative": "Record positions only at delivery stops rather than continuously during the shift",
+                      "rejection_reason": "Stop-only recording cannot support en-route replanning between stops, which is where the fuel and missed-window gains arise, so the purpose would not be achieved with materially less data than the 90-second interval already limited to shift hours."
+                }
+          ],
+          "dpo_advice": "The DPO advised that off-shift recording be technically impossible rather than policy-barred and that the works agreement bar on performance-management use be referenced in the driver notice; both were implemented before this assessment was finalised.",
+          "data_subjects_views_sought": "Yes — views sought",
+          "data_subjects_views": "The works council consulted the driver body in February; the principal concern was use of traces for performance review, which the works agreement bar and the seven-day aggregation address.",
+          "controller_country": "DE",
+          "controller_land": "Hesse",
+          "controller_sector": "private",
+          "central_administration_country": "DE",
+          "eu_decision_establishment_country": "DE",
+          "controller_contact": "Nordfracht Logistik GmbH, Gutleutstraße 82, 60329 Frankfurt am Main, Germany — privacy@nordfracht.example",
+          "dpo_info": "L. Brandt, Data Protection Officer — dpo@nordfracht.example, +49 69 4440 0",
+          "processor_obligations": "Art. 28 data-processing agreement with RheinTrack Systems GmbH: processing on documented instructions only, staff confidentiality undertakings, no sub-processors without prior written approval, processing within Germany only, audit rights, and deletion of all fleet data within 30 days of contract end.",
+          "processing_version": "1.3",
+          "estimated_launch_date": "2026-06-15",
+          "estimated_end_date": "2028-06-15",
+          "dpia_team": "J. Weiss, Privacy Counsel (lead drafter); K. Sørensen, fleet operations manager; T. Adeyemi, telematics platform owner; L. Brandt, Data Protection Officer (advisory).",
+          "reference_materials": "EDPB Guidelines on Data Protection Impact Assessment (WP248 rev.01); DSK guidance on employee location data; works agreement on telematics of 3 February 2026; internal Fleet Data Handling Standard v2.",
+          "dpia_scope_note": "Covers telematics route planning for the controller's own German delivery fleet. The customer-facing parcel-tracking service is out of scope and is assessed in its own DPIA. This assessment is reviewed every 24 months or on material change; the end date above is the scheduled review boundary, not a termination of the processing.",
+          "publication_intent": "Internal document; a summary is available to the works council on request.",
+          "secondary_uses": "None. Position traces are not used for any purpose beyond route planning; fuel-efficiency reporting uses only the aggregated route statistics that carry no driver identifier.",
+          "nature_scope_context": "Nature: automated collection of vehicle positions during shifts, short-term identifiable storage, aggregation, and scheduled deletion. Scope: about 310 drivers, positions at 90-second intervals during shift hours only, aggregated after seven days. Context: processing occurs inside an employment relationship with an acknowledged power imbalance; the works council was consulted and its concern about performance-management use is addressed by the works agreement bar; all systems are hosted in the Frankfurt data centre and no data leaves Germany.",
+          "functional_description": "Telematics units report vehicle position every 90 seconds during shifts; the route-planning module builds next-day plans overnight and proposes en-route replanning during the day; a scheduled job aggregates traces older than seven days into route statistics without driver identifiers.",
+          "supporting_assets": "Fleet telematics module of the LogiSuite platform (on-premises, Frankfurt data centre); encrypted trace store; planning engine of RheinTrack Systems GmbH under the Art. 28 agreement.",
+          "codes_of_conduct": "No approved Art. 40 code of conduct applies. The controller follows the DSK guidance on employee location data, and the processor holds ISO 27001 certification.",
+          "data_quality_measures": "Positions are recorded by the telematics unit itself; unit clock drift is corrected daily against the platform time source; drivers can flag misattributed traces through the depot office, and corrections are applied by the fleet operations manager.",
+          "data_subject_rights_mechanisms": "Access, rectification and erasure requests via privacy@nordfracht.example, answered within one month; objection may be raised directly with the DPO or through the works council; the driver notice accompanies each vehicle assignment.",
+          "dp_by_design_measures": "Recording is technically disabled outside shift hours; identifiable traces are held only in the trace store under named dispatcher accounts; route planning after seven days uses pseudonymised aggregates; an automated job enforces the seven-day aggregation; access logs are reviewed quarterly by the DPO.",
+          "transfer_flows": [],
+          "retention_record_type": "Retention schedule entry FL-04 in the corporate records-retention register.",
+          "residual_risks": "Two moderate risks remain after the measures above. Dispatchers with trace access could view a driver's movements for a purpose outside route planning; it is accepted because access is limited to named dispatcher accounts, the works agreement bars performance-management use, and access logs are reviewed quarterly. A telematics unit fault could keep recording briefly after a shift ends; it is accepted because recording is technically bound to shift status, faults surface in the daily clock-drift reconciliation, and any stray trace falls inside the seven-day aggregation window.",
+          "dpia_prepared_by": "J. Weiss — Privacy Counsel (Responsible); K. Sørensen — Fleet Operations Manager (Consulted); L. Brandt — Data Protection Officer (Accountable)",
+          "dpia_approved_by_name": "R. Steiner",
+          "dpia_approved_by_title": "Chief Operating Officer",
+          "dpia_approval_date": "2026-05-28",
+          "dpia_signoff_basis": "Sections 3 and 4 as reviewed on 26 May 2026, acceptance of two moderate residual risks, and the condition that off-shift recording remains technically disabled and the works agreement bar stays in force."
+    },
+    assertions: [],
+  },
+  {
+    id: "dpia-perfect-uk-caledonia-claims",
+    tool: "dpia",
+    set: "tuning",
+    intake: {
+          "organization_name": "Caledonia Home Cover Ltd",
+          "processing_activity_name": "Home-emergency claims handling",
+          "description": "Handling of home-emergency insurance claims for policyholders: claim intake, engineer dispatch, invoice settlement and complaint follow-up. Core systems are hosted in the controller's Edinburgh data centre; the claims-workflow platform is operated by a certified United States processor.",
+          "purpose": "Assess and settle home-emergency claims and dispatch approved engineers under each policyholder's policy.",
+          "data_categories": [
+                "Customer records",
+                "Contact details",
+                "Financial data"
+          ],
+          "data_subjects": "Policyholders of the controller who notify a home-emergency claim.",
+          "volume_frequency": "88,000 policyholders; roughly 1,900 claims per month.",
+          "jurisdictions": [
+                "United Kingdom (UK GDPR)"
+          ],
+          "legal_basis_proposed": "Contract (Art. 6(1)(b))",
+          "article_9_condition": "",
+          "necessity_proportionality": "The processing rests on the home-emergency policy: each policyholder is a party to that contract, and claim assessment, engineer dispatch and settlement are the performance the contract requires, so the claim details, property address and payment particulars are necessary to perform it. The impact of the processing on the data subjects is stated separately from the benefit: policyholders cannot avoid providing claim and payment details if they wish to be indemnified, and some policyholders would not expect their claim history to be visible to the workflow platform operator. That impact is reduced by limiting the platform record to the claim particulars needed for dispatch and settlement, by the certified-transfer safeguards described in the transfer section, and by excluding claim history from any marketing use.",
+          "data_minimisation_justification": "Only the claim particulars, property address, policy number and settlement details are processed; bank details are held in the payment vault, not the workflow record, and call recordings are retained separately under their own schedule.",
+          "retention_period": "6 years from claim closure, per the limitation period, then deleted.",
+          "existing_safeguards": [
+                "Encryption at rest",
+                "Encryption in transit",
+                "Access controls",
+                "Data minimisation",
+                "Pseudonymisation",
+                "Staff training",
+                "DPA signed with processor",
+                "Contractual restrictions"
+          ],
+          "third_party_processors": [
+                "Other: Claims-workflow platform (Beacon Claims Cloud, Inc.)"
+          ],
+          "reasons_to_conduct": [
+                "Data processed on a large scale",
+                "Risk management / accountability (beneficial)"
+          ],
+          "alternatives_considered": [
+                {
+                      "processing_operation": "",
+                      "alternative": "Handle claims entirely by telephone and post without a shared workflow platform",
+                      "rejection_reason": "Manual handling cannot meet the policy's 24-hour emergency-response commitment at 1,900 claims per month, so the purpose of settling claims and dispatching engineers within the contractual service window would not be achieved."
+                },
+                {
+                      "processing_operation": "",
+                      "alternative": "Give the engineer network direct access to the full policy record instead of a claim extract",
+                      "rejection_reason": "Direct access would not reduce the intrusion, it widens it: engineers would see policy and payment particulars they do not need, so the alternative would not achieve the purpose with less impact on the policyholder."
+                }
+          ],
+          "dpo_advice": "The DPO advised that bank details never enter the workflow platform and that the transfer rest on the processor's certification under the UK Extension with a documented fallback clause; both points were implemented before this assessment was finalised.",
+          "data_subjects_views_sought": "Yes — views sought",
+          "data_subjects_views": "The controller's customer panel of 200 policyholders was surveyed in April; the principal concern was overseas visibility of claim details, which the certified-transfer limits and the claim-extract design address.",
+          "controller_country": "GB",
+          "controller_land": "",
+          "controller_sector": "private",
+          "central_administration_country": "GB",
+          "eu_decision_establishment_country": "",
+          "controller_contact": "Caledonia Home Cover Ltd, 14 Rutland Square, Edinburgh EH1 2AS, United Kingdom — privacy@caledoniacover.example",
+          "dpo_info": "F. MacLeod, Data Protection Officer — dpo@caledoniacover.example, +44 131 5550 0",
+          "processor_obligations": "Art. 28 data-processing agreement with Beacon Claims Cloud, Inc.: processing on documented instructions only, staff confidentiality undertakings, no sub-processors without prior written approval, audit rights, breach notification within 48 hours, and deletion of all claim data within 30 days of contract end.",
+          "processing_version": "3.0",
+          "estimated_launch_date": "2026-07-01",
+          "estimated_end_date": "2028-07-01",
+          "dpia_team": "S. Grant, Privacy Counsel (lead drafter); P. Whitfield, claims operations director; N. Osei, platform owner; F. MacLeod, Data Protection Officer (advisory).",
+          "reference_materials": "ICO DPIA guidance; ICO international-transfers guidance on the UK Extension to the EU-US Data Privacy Framework; internal Claims Data Handling Standard v4; SOC 2 Type II report of Beacon Claims Cloud, Inc. (2026).",
+          "dpia_scope_note": "Covers home-emergency claims handling for all UK policyholders. The underwriting and renewal-pricing activities are out of scope and are assessed in their own DPIAs. This assessment is reviewed every 24 months or on material change; the end date above is the scheduled review boundary, not a termination of the processing.",
+          "publication_intent": "Internal document; a summary is available to policyholders on request.",
+          "secondary_uses": "None. Claim data is not used for any purpose beyond assessment, dispatch, settlement and complaint follow-up; claim history is excluded from marketing selections and from renewal-pricing models, which are assessed separately.",
+          "nature_scope_context": "Nature: structured claim intake, workflow processing, engineer dispatch, settlement and scheduled deletion. Scope: about 1,900 claims per month across 88,000 policyholders; the processed items are claim particulars, property address, policy number and settlement details. Context: policyholders engage the processing at a moment of urgency in their own homes; the customer panel was consulted and its concern about overseas visibility is addressed by the claim-extract design and the certified transfer; core systems are hosted in Edinburgh with the workflow platform operated in the United States under the safeguards recorded in the transfer section.",
+          "functional_description": "A policyholder notifies a claim by phone or portal; the claims handler records the claim particulars in the workflow platform; the platform dispatches an approved engineer and tracks completion; settlement is executed from the Edinburgh payment vault; a scheduled job deletes each claim six years after closure.",
+          "supporting_assets": "Claims-workflow platform of Beacon Claims Cloud, Inc. under the Art. 28 agreement; Edinburgh policy-administration system; payment vault; engineer-network portal.",
+          "codes_of_conduct": "No approved Art. 40 code of conduct applies. The controller follows ICO claims-handling and international-transfers guidance, and the processor holds SOC 2 Type II attestation.",
+          "data_quality_measures": "Claim particulars are read back to the policyholder at intake; property address is verified against the policy record before dispatch; settlement amounts are reconciled weekly between the workflow platform and the payment vault, and corrections are applied by the claims operations team.",
+          "data_subject_rights_mechanisms": "Access, rectification and erasure requests via privacy@caledoniacover.example, answered within one month; objection and complaints may be raised with the DPO or the Financial Ombudsman Service; the claims privacy notice is provided at claim intake.",
+          "dp_by_design_measures": "The workflow platform receives only the claim extract, never the full policy record or bank details; platform access is limited to named claims-handler accounts; engineer dispatch uses job identifiers rather than policy numbers; an automated job enforces the six-year deletion; access logs are reviewed quarterly by the DPO.",
+          "transfer_flows": [
+                {
+                      "destination_country": "US",
+                      "recipient": "Beacon Claims Cloud, Inc. (claims-workflow platform operator)",
+                      "transfer_mechanism": "UK Extension to the EU-US Data Privacy Framework",
+                      "uk_extension_certified": true
+                }
+          ],
+          "retention_record_type": "Retention schedule entry CL-02 in the corporate records-retention register.",
+          "residual_risks": "Two moderate risks remain after the measures above. A claims handler could view a claim outside their allocated queue; it is accepted because access is limited to named accounts, queue allocation is logged, and access logs are reviewed quarterly. The workflow platform operator could suffer an incident affecting claim extracts; it is accepted because the extract excludes bank details, the transfer rests on the operator's certification under the UK Extension with breach notification within 48 hours, and the SOC 2 report is reviewed annually.",
+          "dpia_prepared_by": "S. Grant — Privacy Counsel (Responsible); P. Whitfield — Claims Operations Director (Consulted); F. MacLeod — Data Protection Officer (Accountable)",
+          "dpia_approved_by_name": "E. Drummond",
+          "dpia_approved_by_title": "Chief Executive Officer",
+          "dpia_approval_date": "2026-06-10",
+          "dpia_signoff_basis": "Sections 3 and 4 as reviewed on 8 June 2026, acceptance of two moderate residual risks, and the condition that bank details remain outside the workflow platform and the UK Extension certification is verified at each annual review."
+    },
+    assertions: [],
+  },
 ];
