@@ -81,7 +81,12 @@ async function runDispatchRegion(pinsModeRow: Record<string, unknown>, variant: 
   const endMarker = "\n        const abPairId =";
   const end = src.indexOf(endMarker, start);
   assert(end > start, "dispatch region end marker not found");
-  const region = src.slice(start, end);
+  // Strip the region's TypeScript annotations so it can be executed verbatim
+  // as JavaScript. Only annotations are removed — no statement is altered.
+  const region = src.slice(start, end)
+    .replace(/let pinsOverrideForTool: unknown\[\] \| undefined =/, "let pinsOverrideForTool =")
+    .replace(/const pinsMode: PinsMode =/, "const pinsMode =")
+    .replace(/\(run as any\)/g, "run");
 
   const logs: string[] = [];
   const results: unknown[] = [];
