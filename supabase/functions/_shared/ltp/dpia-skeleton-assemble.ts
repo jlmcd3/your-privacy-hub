@@ -1165,6 +1165,37 @@ export function repairDpiaPlaceholders(text: string): string {
   return out;
 }
 
+/**
+ * PROMPT 12J — the Section 4 design-risks intro is render-conditional on its
+ * table. Returns the spine sections unchanged when the design table renders;
+ * otherwise a shallow copy in which the intro block carries empty text (the
+ * renderer's no-padding rule then drops it). No spine bytes are modified.
+ */
+const DESIGN_TABLE_SURFACE = "risk_register.design";
+
+export function renderSectionsWithConditionalDesignIntro(
+  tables: ReturnType<typeof buildDpiaSkeletonTables>,
+): typeof DPIA_SKELETON_SECTIONS {
+  // deno-lint-ignore no-explicit-any
+  const out = (DPIA_SKELETON_SECTIONS as any[]).map((section) => {
+    // deno-lint-ignore no-explicit-any
+    const blocks = section.blocks as any[];
+    const designIdx = blocks.findIndex(
+      (b) => b.kind === "table" && String(b.text).trim() === DESIGN_TABLE_SURFACE,
+    );
+    if (designIdx < 1) return section;
+    const t = tables[`${section.id}:${designIdx}`];
+    const renders = !!t && Array.isArray(t.rows) && t.rows.length > 0;
+    if (renders) return section;
+    const introIdx = designIdx - 1;
+    if (blocks[introIdx]?.kind !== "skeleton") return section;
+    const next = blocks.slice();
+    next[introIdx] = { ...blocks[introIdx], text: "" };
+    return { ...section, blocks: next };
+  });
+  return out as typeof DPIA_SKELETON_SECTIONS;
+}
+
 export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): DpiaSkeletonResult {
   const intake = intakeInput ?? {};
   const rawValues = buildDpiaSlotValues(intake);
@@ -1178,6 +1209,17 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   // PROMPT 8 — typed surfaces rendered as tables. NO-PADDING LAW: a surface
   // with no rows yields null and the renderer drops the block entirely.
   const tables = buildDpiaSkeletonTables(report, intake);
+
+  // PROMPT 12J (CEO-ruled 2026-08-17) — the Section 4 design-risks INTRO
+  // renders IF AND ONLY IF the design-risks table renders. The conditional
+  // lives HERE, assembler-side: the spine and its serialization/hashes are
+  // untouched, and the ratified sentence bytes are unchanged. When the record
+  // carries no design-class risk row, the intro block's text is blanked for
+  // this render only, and the renderer drops it under the same no-padding law
+  // its table already follows. Block INDICES are preserved, so every composed
+  // key and table key still points at the same block.
+  const sectionsForRender = renderSectionsWithConditionalDesignIntro(tables);
+
 
   const composedRaw: ComposedBlocks = {
     // PROMPT 8D (spine v4.2): the executive lead block is deleted, so the body
@@ -1217,7 +1259,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   const subtitle = regime === "UK" ? DPIA_SKELETON_SUBTITLE_UK : DPIA_SKELETON_SUBTITLE_EU;
 
   const draft = renderSkeletonDocument({
-    sections: DPIA_SKELETON_SECTIONS,
+    sections: sectionsForRender,
     title: DPIA_SKELETON_TITLE,
     subtitle,
     spineVersion: DPIA_SKELETON_VERSION,
@@ -1237,7 +1279,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   const toa = dpiaToa(report, citedBody, regime);
 
   const document = renderSkeletonDocument({
-    sections: DPIA_SKELETON_SECTIONS,
+    sections: sectionsForRender,
     title: DPIA_SKELETON_TITLE,
     subtitle,
     spineVersion: DPIA_SKELETON_VERSION,
@@ -1251,7 +1293,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
 
   return {
     document,
-    conformance: verifySkeletonConformance(document, DPIA_SKELETON_SECTIONS),
+    conformance: verifySkeletonConformance(document, sectionsForRender),
     register_findings,
   };
 }
