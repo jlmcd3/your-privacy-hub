@@ -20,17 +20,21 @@
 // risk_count_note firing (the assessment surfacing more risks than the company
 // self-identified is an analytic result, not a data defect).
 //
-// CARVE-OUT (CEO-parked policy, 2026-08-12): a perfect scenario must NOT
-// combine legal_basis_proposed "Legitimate interests" with special-category
-// data_categories — the current balancing rule guarantees a gap on that
-// combination and the design question sits with the CEO.
+// CARVE-OUT (CEO-RULED 2026-08-17, PROMPT 9M — supersedes the 8K parked note):
+// a perfect scenario must NOT combine legal_basis_proposed "Legitimate
+// interests" with special-category data_categories. This is no longer an open
+// design question: under the 9M ruling such a record is conditionally approved
+// WITH a gap-ledger entry BY DESIGN, because the Art. 9 carve requires a
+// separate Art. 9(2) condition that a 6(1)(f) record does not supply. It can
+// therefore never be closed-loop perfect, and the lint keeps rejecting it.
+// Lint behaviour is unchanged by the ruling — only the rationale is settled.
 
 import { buildDpiaDeliverables } from "../ltp/dpia-deliverables/build.ts";
 
 export const PERFECT_CLOSED_LOOP_VERSION = "perfect-closed-loop@prompt8k-2026-08-12";
 
 export const CARVE_OUT_REASON =
-  "6(1)(f)+special-category excluded from perfect variant pending CEO policy ruling";
+  "6(1)(f)+special-category excluded from perfect variant: conditionally approved with a gap-ledger entry by design (CEO ruling, PROMPT 9M)";
 
 const SPECIAL_CATEGORY_CATS = [
   "Health or medical data",
