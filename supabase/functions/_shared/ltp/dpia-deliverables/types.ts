@@ -123,6 +123,14 @@ export interface RiskRegisterEntry {
   readonly residual_band: RiskBand;
   readonly citation: string;
   readonly authority_verbatim: string;
+  /**
+   * PROMPT 12B item 1 — EXACT PINPOINT–VERBATIM PAIRING. `citation` /
+   * `authority_verbatim` carry the Art. 35(7)(c) RISKS anchor alone; the
+   * Art. 35(7)(d) MEASURES anchor travels as its own pair. Registry-resolved,
+   * never retyped.
+   */
+  readonly measures_citation?: string;
+  readonly measures_verbatim?: string;
   /** WP248 rev.01 severity-appraisal anchor (guidance, not statute). */
   readonly guidance_citation?: string;
   readonly guidance_verbatim?: string;
