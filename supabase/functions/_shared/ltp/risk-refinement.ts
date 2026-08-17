@@ -74,6 +74,15 @@ export const RISK_PROTECTED_LEAF_KEYS = [
   "necessity",
 ];
 
+// RK0 — single-writer typed deliverable surfaces the refinement splicer must
+// never enter, at any depth. D3 (RK0.5) will complete the inventory.
+export const RISK_PROTECTED_PATH_PREFIXES = [
+  "skeleton_document",            // assembled customer document (risk-skeleton-assemble)
+  "authority_exhibit",            // registry-sourced authority exhibit (buildAuthorityExhibit)
+  "risk_assessment_by_activity",  // ITEM 427 LAW 3 single write site (normalizeRiskActivities)
+  "exception_analysis",           // ITEM 426 LAW 3 single write site (normalizeRiskExceptions)
+] as const;
+
 export const RISK_REFINEMENT_CONFIG: RefinementConfig = {
   product: "cppa-risk",
   version: RISK_REFINEMENT_VERSION,
@@ -81,6 +90,7 @@ export const RISK_REFINEMENT_CONFIG: RefinementConfig = {
   verifierSystemPrompt: RISK_VERIFIER_SYSTEM_PROMPT,
   protectedRootKeys: RISK_PROTECTED_ROOT_KEYS,
   protectedLeafKeys: RISK_PROTECTED_LEAF_KEYS,
+  protectedPathPrefixes: RISK_PROTECTED_PATH_PREFIXES,
 };
 
 export function isRiskProtectedPath(path: string): boolean {
