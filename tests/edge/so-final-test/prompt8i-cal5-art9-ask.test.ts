@@ -136,13 +136,17 @@ Deno.test("doc-2 shape: Art. 9 condition recorded → no Art. 9 clause in the as
   assert(f.information_needed!.includes("Describe the effect of the processing on"));
 });
 
-Deno.test("special-category in scope + Art. 9 condition empty → clause present", () => {
+// PROMPT 9M item 3(c) RETIRED the compound-ask Art. 9 clause: special-category
+// data under 6(1)(f) is now answered by the standalone Art. 9 ruling and the
+// ask_lia_special_category ask, never by a clause appended to the balancing ask.
+Deno.test("9M: special-category in scope + Art. 9 condition empty → compound clause retired, standalone ask present", () => {
   const [f] = buildLegalBasis({
     ...LI_BASE,
     data_categories: ["Health or medical data"],
     article_9_condition: "",
   });
-  assert(f.information_needed!.includes(ART9_CLAUSE));
+  assert(!f.information_needed!.includes(ART9_CLAUSE));
+  assert(f.information_needed!.includes("Isolate the special-category items"));
 });
 
 Deno.test("no special-category data → clause absent", () => {
