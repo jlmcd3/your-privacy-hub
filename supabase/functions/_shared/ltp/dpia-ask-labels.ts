@@ -35,6 +35,8 @@ export type DpiaAskClass =
   | "ask_lia_necessity"
   | "ask_lia_balancing"
   | "ask_lia_art9"
+  | "ask_lia_special_category"
+  | "ask_lia_children"
   | "ask_dpo"
   | "ask_processor_contract"
   | "ask_art9_condition"
@@ -70,6 +72,10 @@ export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.fr
   ask_lia_balancing:
     "the effect of the processing on the data subjects, and the measures that reduce it",
   ask_lia_art9: "the Art. 9 condition relied on for the special-category items",
+  ask_lia_special_category:
+    "a separate assessment of the special-category items, once an appropriate Article 9(2) condition (such as explicit consent) is established",
+  ask_lia_children:
+    "a dedicated legitimate interests assessment for the children's data stream, with age-appropriate safeguards",
   ask_dpo: "whether a data protection officer is designated, and their contact details",
   ask_processor_contract: "a written Art. 28 contract with {name}, and the date it was signed",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",

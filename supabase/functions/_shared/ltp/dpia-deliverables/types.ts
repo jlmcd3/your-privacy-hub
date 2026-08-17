@@ -209,6 +209,10 @@ export interface LegalBasisFinding {
   /** VERBATIM registry text — never re-typed, never paraphrased. */
   readonly authority_verbatim: string;
   readonly legitimate_interests_test?: LegitimateInterestsTest;
+  /** PROMPT 9M item 5 — typed internal marker (Art. 9 carve). NOT customer text. */
+  readonly art9_special?: boolean;
+  /** PROMPT 9M item 4 — gap-ledger field override for the children's-LIA ask. */
+  readonly gap_field?: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
   /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.

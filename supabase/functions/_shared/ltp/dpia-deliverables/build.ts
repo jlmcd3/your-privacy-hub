@@ -2116,6 +2116,8 @@ export interface GapLedgerResult {
 }
 
 function legalBasisGapField(f: LegalBasisFinding): string {
+  // PROMPT 9M item 4 — an explicit per-finding override wins (children's-LIA ask).
+  if (f.gap_field) return f.gap_field;
   if (/6\(1\)\(f\)|legitimate interest/i.test(f.article_6_basis)) return GAP_FIELD_NECPROP;
   return GAP_FIELD_BASIS;
 }
