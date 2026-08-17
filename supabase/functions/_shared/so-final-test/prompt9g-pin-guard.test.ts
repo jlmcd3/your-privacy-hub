@@ -17,7 +17,7 @@ import { buildDpiaDeliverables } from "../ltp/dpia-deliverables/build.ts";
 // ── Item 1 — the two attached fixtures are pinned, byte-exact ───────────────
 
 Deno.test("9G/1 — the two attached fixtures are pinned as dpia perfect fixtures", () => {
-  assertEquals(DPIA_PERFECT_PINNED.length, 2);
+  assertEquals(DPIA_PERFECT_PINNED.length, 4);
   assertEquals(DPIA_PERFECT_PINNED.map((c) => c.id), [
     "dpia-perfect-uk-harrowgate-underwriting",
     "dpia-perfect-eu-solferino-occupational-health",
