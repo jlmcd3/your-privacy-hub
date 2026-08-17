@@ -2897,7 +2897,9 @@ async function runStitch(dpia_id: string): Promise<void> {
       const csc = attachDpiaCsc(reportData as Record<string, unknown>, {
         intake: dpiaIntake ?? {},
         frameSet: dpiaFrameSet,
+        detectOnly: DPIA_DETECT_ONLY, // 11.1 item 2 — detect, never mutate
       });
+
       console.log(JSON.stringify({
         evt: "dpia_csc", fn: "run-dpia-framework", build_stamp: BUILD_STAMP,
         version: csc.version, violations: csc.violations.length, repairs: csc.repairs,
