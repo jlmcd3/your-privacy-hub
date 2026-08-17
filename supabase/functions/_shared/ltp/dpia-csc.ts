@@ -588,12 +588,48 @@ export function runDpiaCsc(
   return t;
 }
 
-/** Run the pass and attach its telemetry at `_meta.internal.dpia_csc`. */
+/**
+ * Run the pass and attach its telemetry at `_meta.internal.dpia_csc`.
+ *
+ * PROMPT 11.1 item 2 — with `opts.detectOnly`, the checks execute byte for byte
+ * against a deep clone, the real report is never written to, and every
+ * violation is also recorded as a detect finding on
+ * `_meta.internal.detect_mode` (pass id `dpia_csc`).
+ */
 export function attachDpiaCsc(
   report: Record<string, unknown>,
   opts: DpiaCscOptions,
 ): DpiaCscTelemetry {
-  const t = runDpiaCsc(report, opts);
+  let t: DpiaCscTelemetry;
+  if (opts?.detectOnly) {
+    t = detectOnlyRun<DpiaCscTelemetry>(
+      report,
+      "dpia_csc",
+      (clone) => runDpiaCsc(clone, { ...opts, detectOnly: false }),
+      { version: DPIA_CSC_VERSION, violations: [], repairs: 0, crashed: false },
+    );
+    const suppressed = t.repairs;
+    t = {
+      ...t,
+      violations: t.violations.map((v) => ({ ...v, repaired: false })),
+      repairs: 0,
+      detect_only: true,
+      repairs_suppressed: suppressed,
+    };
+    recordDetectFindings(
+      report,
+      "dpia_csc",
+      t.violations.map((v) => ({
+        pass: "dpia_csc",
+        check_id: v.check_id,
+        path: v.path,
+        evidence: clip(v.evidence, 200),
+      })),
+      { detect_only: true, repairs_suppressed: suppressed },
+    );
+  } else {
+    t = runDpiaCsc(report, opts);
+  }
   try {
     const meta = (report._meta ??= {}) as Record<string, unknown>;
     const internal = (meta.internal ??= {}) as Record<string, unknown>;
@@ -601,3 +637,4 @@ export function attachDpiaCsc(
   } catch { /* non-fatal */ }
   return t;
 }
+
