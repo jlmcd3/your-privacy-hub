@@ -60,11 +60,16 @@ const RATIFIED: Record<string, string> = {
   ask_data_quality: "the measures that keep the data accurate, and how quality is checked",
   ask_art5_table: "the measures supporting each Article 5(1) principle, and whether each is deployed",
   ask_rights_table: "how each data-subject right can be exercised for this processing",
+  // PROMPT 9M — two new ratified classes.
+  ask_lia_special_category:
+    "a separate assessment of the special-category items, once an appropriate Article 9(2) condition (such as explicit consent) is established",
+  ask_lia_children:
+    "a dedicated legitimate interests assessment for the children's data stream, with age-appropriate safeguards",
 };
 
-Deno.test("9A — all 28 registry entries are byte-exact", () => {
-  assertEquals(DPIA_ASK_CLASSES.length, 28);
-  assertEquals(Object.keys(RATIFIED).length, 28);
+Deno.test("9A — all 30 registry entries are byte-exact (9M: +2)", () => {
+  assertEquals(DPIA_ASK_CLASSES.length, 30);
+  assertEquals(Object.keys(RATIFIED).length, 30);
   for (const [id, bytes] of Object.entries(RATIFIED)) {
     assertEquals(DPIA_ASK_LABELS[id as keyof typeof DPIA_ASK_LABELS], bytes, id);
   }

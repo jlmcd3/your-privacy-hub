@@ -62,14 +62,18 @@ Deno.test("6(1)(f): no impact described → balancing part unmet", () => {
   assertEquals(f.status, "record_insufficient");
 });
 
-Deno.test("6(1)(f): special-category data raises the balancing bar", () => {
+// PROMPT 9M items 2+3 SUPERSEDE the categorical bar: the balance is scoped to
+// the non-special-category items and the Art. 9 items are carved out by ruling.
+Deno.test("9M: special-category data is carved out, not a categorical balancing bar", () => {
   const [f] = buildLegalBasis({
     ...BASE,
     data_categories: ["Health or medical data"],
     legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
   });
-  assertEquals(f.legitimate_interests_test?.balancing_test_met, false);
-  assert(f.information_needed!.includes("Art. 9 condition"));
+  assertEquals(f.legitimate_interests_test?.balancing_test_met, true);
+  assertEquals(f.art9_special, true);
+  assert(f.justification.includes("Legitimate interests cannot serve as the lawful basis for processing special-category data."));
+  assert(f.information_needed!.includes("Isolate the special-category items"));
 });
 
 Deno.test("non-6(1)(f) basis is recorded against the purpose, no LI test", () => {
