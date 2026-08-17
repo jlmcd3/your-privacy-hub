@@ -1049,7 +1049,7 @@ function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string 
   for (const e of entries) {
     const raw = s(e.citation);
     if (!raw) continue;
-    if (!body.includes(raw)) continue; // iff-cited
+    if (!bodyCites(body, raw)) continue; // iff-cited
     if (!isWellFormedGdprPinpoint(raw)) continue;
     const citation = toaRegimeForm(regime, raw);
     if (seen.has(citation)) continue;
