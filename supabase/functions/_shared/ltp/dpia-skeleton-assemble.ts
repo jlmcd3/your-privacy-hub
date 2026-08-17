@@ -27,6 +27,7 @@ import {
 import { DPIA_LEGAL_BASIS_PHRASE_MAP } from "../prose/plans/dpia.slotmap.ts";
 // PROMPT 12D — exhibit-side supply of the spine-cited authorities.
 import { DPIA_SPINE_CITED_AUTHORITIES } from "../report-exhibits/dpia-spine-authorities.ts";
+import { dpiaRenderedConclusionText } from "./dpia-rendered-surfaces.ts";
 
 // PROMPT 9A — compact-label presentation (registry + R4 merge). Presentation
 // only: nothing here changes an ask, a template sentence, or the gap table.
@@ -1225,7 +1226,15 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     tables,
   });
 
-  const toa = dpiaToa(report, skeletonDocumentToText(draft), regime);
+  // PROMPT 12E — the iff-cited gate scans what the CUSTOMER SEES: the assembled
+  // skeleton body PLUS the enumerated legacy conclusion surfaces that
+  // generate-report-pdf still renders from the persisted row (see
+  // dpia-rendered-surfaces.ts). The gate and bodyCites are byte-unchanged;
+  // only the text they scan grows.
+  const citedBody = [skeletonDocumentToText(draft), dpiaRenderedConclusionText(report)]
+    .filter((t) => t)
+    .join("\n");
+  const toa = dpiaToa(report, citedBody, regime);
 
   const document = renderSkeletonDocument({
     sections: DPIA_SKELETON_SECTIONS,
