@@ -1416,9 +1416,15 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
   // SCENARIO_GUIDANCE. Tools without a contract keep their pre-P2
   // hand-typed description.
   const contractForTool = CONTRACT_BY_TOOL[tool];
-  const description = contractForTool
+  const baseDescription = contractForTool
     ? `${renderContractPrompt(contractForTool)}\n\nScenario guidance: ${SCENARIO_GUIDANCE[tool] ?? ""}`.trim()
     : (toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`);
+  // PROMPT 12F item 2 — CONSTRAINT SALIENCE. On the perfect variant the compact
+  // hard-constraint block leads the prompt, BEFORE the contract render; the full
+  // guidance below is byte-unchanged. Other variants are untouched.
+  const description = variant === "perfect"
+    ? `${PERFECT_HARD_CONSTRAINTS}\n\n${baseDescription}`
+    : baseDescription;
   // SO-FT INTAKE-STREAM (2026-08-11): the fixed-ceiling approach kept failing —
   // cppa-cyber died at 180s, cppa-risk at 300s ("Signal timed out"), each taking
   // its whole child run with it. Intake generation now STREAMS, so the guard is
