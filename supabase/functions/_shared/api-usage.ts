@@ -47,7 +47,7 @@ export function recordApiUsage(row: ApiUsageRow): void {
   // Fire and forget; never awaited by the caller.
   (async () => {
     try {
-      const client = await getClient();
+      const client = getClient();
       if (!client) return;
       const { error } = await client.from("api_usage").insert(row);
       if (error) {
