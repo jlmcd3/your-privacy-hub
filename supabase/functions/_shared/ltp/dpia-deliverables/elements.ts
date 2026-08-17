@@ -78,11 +78,11 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   {
     risk_id: "r1_unauthorised_access",
     risk_class: "incident",
-    risk_label: "Unauthorised access to, or disclosure of, the personal data held",
+    risk_label: "Unauthorized access to, or disclosure of, the personal data held",
     affected_rights: "Confidentiality of personal data; Art. 5(1)(f) integrity and confidentiality",
     severity: "Significant",
     source_template:
-      "The record describes personal data held in an operational system, which is exposed to unauthorised access or disclosure for as long as it is retained.",
+      "The record describes personal data held in an operational system, which is exposed to unauthorized access or disclosure for as long as it is retained.",
     mitigating_safeguards: [
       "Encryption at rest",
       "Encryption in transit",

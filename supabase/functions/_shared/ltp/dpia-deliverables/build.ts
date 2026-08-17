@@ -657,7 +657,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
         `The test the assessment must run is the one the guidance states: ${test.verbatim} ` +
         "Until the alternatives that were actually weighed are recorded, that comparison cannot be run on this record.";
       information_needed =
-        `For "${op.operation_label}": each less-intrusive alternative that was actually considered (for example a narrower data set, aggregated or pseudonymised data, a shorter retention period, or a manual process), and the specific reason each was rejected.`;
+        `For "${op.operation_label}": each less-intrusive alternative that was actually considered (for example a narrower data set, aggregated or pseudonymized data, a shorter retention period, or a manual process), and the specific reason each was rejected.`;
       ask_class = "ask_necessity_alternatives";
     } else {
       const usefulnessOnly = alternatives.filter((x) => x.rejected_for_usefulness_only);
