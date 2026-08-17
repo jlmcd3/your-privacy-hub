@@ -33,6 +33,8 @@ import {
   NEUTRAL_DOWNGRADE_LITERAL,
 } from "../prose/frame-substitution.ts";
 import type { FrameSet } from "../prose/frames.ts";
+import { detectOnlyRun, recordDetectFindings } from "../prose/detect-mode.ts";
+
 import {
   buildDpiaAssessmentTeam,
   buildDpiaValidationApproval,
