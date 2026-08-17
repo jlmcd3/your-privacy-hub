@@ -86,7 +86,7 @@ async function runDispatchRegion(pinsModeRow: Record<string, unknown>, variant: 
   const region = src.slice(start, end)
     .replace(/let pinsOverrideForTool: unknown\[\] \| undefined =/, "let pinsOverrideForTool =")
     .replace(/const pinsMode: PinsMode =/, "const pinsMode =")
-    .replace(/\(run as any\)/g, "run");
+    .replace(/\(run as any\)/g, "(run)");
 
   const logs: string[] = [];
   const results: unknown[] = [];
