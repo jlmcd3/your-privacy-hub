@@ -2557,7 +2557,7 @@ async function runBatchInner(runId: string): Promise<void> {
       }
       let intakeWarning: string | null = null;
       try {
-        const { progress: gen, status: genStatus } = await generateValidatedIntakesChunked(
+        const { progress: gen, status: genStatus, abort: genAbort } = await generateValidatedIntakesChunked(
           tool,
           needed,
           priorGen,
@@ -2586,10 +2586,18 @@ async function runBatchInner(runId: string): Promise<void> {
         if (gen.rejected.length > 0) {
           await log("warn", `Intake validation: ${gen.rejected.length}/${gen.totalAttempted} rejected after retry (${tool}). Reasons: ${gen.rejected.slice(0, 3).map(r => r.reason).join(" | ")}`);
         }
+        // PROMPT 12F item 3 — on the perfect variant the abort decision is made
+        // by the kind-aware fail policy (contract/spec-mismatch kind, or a
+        // >50% rejection rate after ≥4 attempts). Skipped-and-replaced slots
+        // are no longer an abort. Other variants keep the >30% rule verbatim.
         const failRate = gen.totalAttempted > 0 ? gen.rejected.length / gen.totalAttempted : 0;
-        if (failRate > 0.3) {
+        const perfectShort = fixtureVariant === "perfect" && gen.accepted.length < needed;
+        if (fixtureVariant === "perfect" ? (!!genAbort || perfectShort) : failRate > 0.3) {
           // PROMPT 9C item 4 — the persisted error carries the deficiency list.
-          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation${fixtureVariant === "perfect" ? ", aborted after the first scenario exhausted its repair retry" : ""}; aborting fix-generation.) Deficiencies: ${gen.rejected.slice(0, 3).map((r) => r.reason).join(" | ")}`;
+          const abortNote = genAbort
+            ? `, aborted on ${genAbort.kind}: ${genAbort.reason}`
+            : (perfectShort ? `, exhausted the 2× attempt budget with ${gen.accepted.length}/${needed} accepted` : "");
+          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation${abortNote}; aborting fix-generation.) Deficiencies: ${gen.rejected.slice(0, 3).map((r) => r.reason).join(" | ")}`;
           await log("error", intakeWarning);
           await upd({
             status: "error",
