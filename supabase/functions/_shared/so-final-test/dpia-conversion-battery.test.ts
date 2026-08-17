@@ -20,6 +20,7 @@ import {
   buildOperations,
 } from "../ltp/dpia-deliverables/build.ts";
 import { DPIA_VERIFIED_AUTHORITIES } from "../registry/dpia-verified-authorities.ts";
+import { DPIA_RISK_SPECS } from "../ltp/dpia-deliverables/elements.ts";
 import {
   OWNERSHIP_DISCLAIMER_RE,
   runFormatChecksGeneric,
@@ -358,7 +359,33 @@ const BRITISH_LEXICON: readonly string[] = [
 const RATIFIED_CORPUS = (Object.values(DPIA_VERIFIED_AUTHORITIES) as unknown as Bag[])
   .map((r) => String(r.verbatim_quote ?? "")).join(" ").toLowerCase();
 
-const SANCTIONED_BRITISH = new Set(BRITISH_LEXICON.filter((w) => RATIFIED_CORPUS.includes(w)));
+/** STATUTORY CLASS — sanctioned because the quoted corpus itself carries the term. */
+const SANCTIONED_STATUTORY = new Set(BRITISH_LEXICON.filter((w) => RATIFIED_CORPUS.includes(w)));
+
+/**
+ * PROMPT 12C item 1 (CEO-ruled 2026-08-17) — RECORD VOCABULARY CLASS.
+ *
+ * A second, narrower sanction, distinct from the statutory class above. These
+ * are ENUM VALUES: the customer's own selectable terms. The intake presents
+ * them, the customer picks them, the document echoes them back verbatim, and
+ * the builders match them by STRING EQUALITY. Respelling the echo would break
+ * the match; respelling the enum would invalidate every stored intake. The
+ * spelling therefore belongs to the record, not to the house style, and the
+ * register check does not police it.
+ *
+ * Closed list. A term earns this class only by being an enum value that is
+ * echoed verbatim and matched by equality — never merely by being awkward
+ * to change.
+ */
+const SANCTIONED_RECORD_VOCABULARY: readonly string[] = [
+  // dpia_framework:existing_safeguards — "Anonymisation".
+  "anonymisation",
+];
+
+const SANCTIONED_BRITISH = new Set<string>([
+  ...SANCTIONED_STATUTORY,
+  ...SANCTIONED_RECORD_VOCABULARY,
+]);
 
 function britishHits(built: unknown): string[] {
   const hits: string[] = [];
@@ -380,9 +407,17 @@ Deno.test("case 5a — seeded defect: an unsanctioned British spelling is caught
 
 Deno.test("case 5b — the sanctioned set is pinned to the ratified corpus", () => {
   assertEquals(
-    [...SANCTIONED_BRITISH].sort(),
+    [...SANCTIONED_STATUTORY].sort(),
     ["minimisation", "organisation", "organisational", "pseudonymisation"],
   );
+});
+
+Deno.test("case 5c — the record-vocabulary sanction is a closed enum-backed list", () => {
+  assertEquals([...SANCTIONED_RECORD_VOCABULARY], ["anonymisation"]);
+  // The sanction exists only because the enum value does: it is echoed
+  // verbatim by the builders and matched by string equality.
+  const echoed = DPIA_RISK_SPECS.flatMap((r) => r.mitigating_safeguards as readonly string[]);
+  assert(echoed.includes("Anonymisation"), "enum echo present in the risk specs");
 });
 
 Deno.test("case 5 — no unsanctioned British spellings in customer-facing builder text", () => {
