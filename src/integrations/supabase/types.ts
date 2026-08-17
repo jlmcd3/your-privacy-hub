@@ -6808,6 +6808,7 @@ export type Database = {
           options: Json | null
           started_at: string | null
           status: string
+          tool: string
         }
         Insert: {
           created_at?: string
@@ -6819,6 +6820,7 @@ export type Database = {
           options?: Json | null
           started_at?: string | null
           status?: string
+          tool?: string
         }
         Update: {
           created_at?: string
@@ -6830,6 +6832,7 @@ export type Database = {
           options?: Json | null
           started_at?: string | null
           status?: string
+          tool?: string
         }
         Relationships: []
       }
