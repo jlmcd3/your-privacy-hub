@@ -17,16 +17,19 @@ import { buildDpiaDeliverables } from "../ltp/dpia-deliverables/build.ts";
 // ── Item 1 — the two attached fixtures are pinned, byte-exact ───────────────
 
 Deno.test("9G/1 — the two attached fixtures are pinned as dpia perfect fixtures", () => {
+  // RE-POINTED BY PROMPT 12I (2026-08-17): the pinned list gained two novel
+  // cases APPENDED after the 9G pair; positions 0..1 are byte-unchanged.
   assertEquals(DPIA_PERFECT_PINNED.length, 4);
-  assertEquals(DPIA_PERFECT_PINNED.map((c) => c.id), [
+  assertEquals(DPIA_PERFECT_PINNED.slice(0, 2).map((c) => c.id), [
     "dpia-perfect-uk-harrowgate-underwriting",
     "dpia-perfect-eu-solferino-occupational-health",
   ]);
   // Additive: the 8-series authored pair keeps positions 0..1.
   assertEquals(DPIA_PERFECT_SET.slice(0, DPIA_PERFECT.length), DPIA_PERFECT);
-  assertEquals(DPIA_PERFECT_SET.length, DPIA_PERFECT.length + 2);
+  assertEquals(DPIA_PERFECT_SET.length, DPIA_PERFECT.length + 4);
   assertEquals(casesForVariant("dpia", "perfect"), DPIA_PERFECT_SET);
 });
+
 
 // ── Item 2 — SELF-VERIFYING PIN GUARD ──────────────────────────────────────
 
