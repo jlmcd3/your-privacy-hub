@@ -1539,8 +1539,25 @@ export async function screenIntake(
   const constraints = fixtureConstraintGuidance();
   const linted = lintFixture(item);
   let candidate = item;
+  // PROMPT 12G item 0 — CARVE-OUT SKIPS REPAIR. A carve-out rejection can only
+  // be fixed by a REMOVAL, so a repair attempt is definitionally wrong: the
+  // assembled repair prompt would append the unconditional "REPAIR MODE …
+  // byte-identical" frame after the kind-aware guidance and reproduce the
+  // violation (12F verification). The slot is rejected immediately with kind
+  // "carve_out"; the chunked loop's fresh-regeneration path (screenNoRepair)
+  // takes it from there — max TWO model calls per carve_out slot.
+  if (linted && rejectionKindForLint(linted as any) === "carve_out") {
+    console.warn(`[fixture-lint] ${tool}: ${linted.reason} — carve-out, skipping repair (fresh regeneration only)`);
+    return {
+      ok: false,
+      kind: "carve_out",
+      reason: `lint: ${linted.reason}`,
+      attempts: [{ attempt: 1, reason: `lint: ${linted.reason}`, intake: item }],
+    };
+  }
   if (linted) {
     console.warn(`[fixture-lint] ${tool}: ${linted.reason} @ ${(linted as any).path} — repairing once`);
+
     try {
       // PROMPT 8K — FEEDBACK LOOP: when the closed-loop perfect lint rejects,
       // the SPECIFIC deficiency list is fed to the generator as retry guidance
@@ -1684,14 +1701,18 @@ export async function generateValidatedIntakesChunked(
     totalAttempted: prior.totalAttempted ?? 0,
   };
 
-  // PROMPT 12F item 3 — KIND-AWARE FAIL POLICY (perfect variant only).
-  //   carve_out / lint  → repair attempt (inside screenIntake), then ONE fresh
-  //                       regeneration (new scenario, not a repair) — max three
-  //                       model calls per slot — then SKIP the slot and attempt
-  //                       a replacement, up to a total budget of 2 × needed.
+  // PROMPT 12F item 3 — KIND-AWARE FAIL POLICY (perfect variant only), as
+  // amended by PROMPT 12G item 0.
+  //   carve_out         → NO repair (screenIntake returns immediately), then ONE
+  //                       fresh regeneration — max TWO model calls per slot.
+  //   lint              → repair attempt (inside screenIntake), then ONE fresh
+  //                       regeneration — max three model calls per slot.
+  //   both              → then SKIP the slot and attempt a replacement, up to a
+  //                       total budget of 2 × needed.
   //   contract          → ABORT (the spec doesn't match; retrying cannot help).
   //   rejection rate >50% after ≥4 attempts → ABORT.
   // Non-perfect variants keep the pre-12F behaviour byte-for-byte.
+
   const perfect = ctx.variant === "perfect";
   const budget = perfect ? count * 2 : count;
 

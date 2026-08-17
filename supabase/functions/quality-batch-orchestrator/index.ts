@@ -34,6 +34,14 @@ import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant, casesForVariant } from "../_shared/golden/registry.ts";
 // PROMPT 9G item 3 — all-pinned batch mode (deterministic dispatch pre-filter).
 import { planPinnedOnly } from "../_shared/quality/pinned-only.ts";
+// PROMPT 12G items 1-3 — pins_mode ("only" | "seed" | "none"); pinned_only is
+// superseded but still honoured (true ⇒ "only").
+import {
+  normalizePinsMode,
+  pinsCompositionLine,
+  resolvePinsMode,
+  type PinsMode,
+} from "../_shared/quality/pins-mode.ts";
 
 // ITEM 325 — fixture variant (Perfect / Messy) for /admin/final-test.
 // Additive: a null variant is byte-for-byte the legacy /admin/quality-batch path.
@@ -594,14 +602,22 @@ async function runUnit(runId: string) {
           normalizeToolVariants((run as any).tool_variants),
           normalizeVariant((run as any).fixture_variant),
         );
-        // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. On the perfect variant with
-        // pinned_only set, nothing is generated: the run is the pinned perfect
-        // fixtures that pass the product's own closed-loop check at dispatch.
-        // Every exclusion is logged WITH its deficiency list, and batch_size is
-        // clamped to the passing count (also logged). Off/absent ⇒ untouched.
+        // PROMPT 9G item 3 / PROMPT 12G item 2 — PINS MODE.
+        //   "only" (or legacy pinned_only=true) on the perfect variant runs the
+        //     pinned fixtures that pass the product's own closed-loop check at
+        //     dispatch; every exclusion is logged WITH its deficiency list and
+        //     batch_size is clamped to the passing count (also logged).
+        //   "seed" (default) is today's behaviour, byte-unchanged.
+        //   "none" passes pinsOverride=[] so ALL slots generate; the kind-aware
+        //     12F fail policy governs.
         let sizeForTool = size;
         let pinsOverrideForTool: unknown[] | undefined = undefined;
-        if ((run as any).pinned_only === true && variantForTool === "perfect") {
+        const pinsMode: PinsMode = resolvePinsMode(run as any);
+        const pinsDecision = pinsDispatchDecision(pinsMode, variantForTool);
+        if (pinsDecision === "no_pins") {
+          pinsOverrideForTool = [];
+          await log(runId, pinsCompositionLine(pinsMode, tool, 0, sizeForTool), { tool });
+        } else if (pinsDecision === "pinned_only") {
           const plan = planPinnedOnly(tool, casesForVariant(tool, "perfect"), size);
           for (const line of plan.logLines) {
             await log(runId, line, { level: "warn", tool });
@@ -625,7 +641,15 @@ async function runUnit(runId: string) {
           sizeForTool = plan.batchSize;
           perToolSizes[tool] = sizeForTool;
           await log(runId, `pinned_only: ${tool} runs ${sizeForTool} pinned perfect fixture(s); no scenarios generated`, { tool });
+          await log(runId, pinsCompositionLine(pinsMode, tool, sizeForTool, sizeForTool), { tool });
+        } else {
+          const seeded = Math.min(
+            (variantForTool ? intakesForVariant(tool, variantForTool) : goldenIntakes(tool)).length,
+            sizeForTool,
+          );
+          await log(runId, pinsCompositionLine(pinsMode, tool, seeded, sizeForTool), { tool });
         }
+
         const abPairId = abModels ? crypto.randomUUID() : null;
         let inv: { ok: true; runId: string; runNumber: number } | { ok: false; err: string } | null = null;
 
@@ -804,7 +828,7 @@ async function finalizeIfDone(runId: string) {
 // stays NULL on the batch row and every child run, which is byte-identical to
 // the pre-SO-FINAL-TEST path used by /admin/quality-batch and
 // /admin/final-test. Only "skeleton" changes anything.
-async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown, graderModeRaw?: unknown, pinnedOnlyRaw?: unknown)
+async function startRun(userId: string, tools: string[], batchSizeRaw: number, concurrencyRaw: unknown, variantRaw?: unknown, toolVariantsRaw?: unknown, enginePathRaw?: unknown, abModelsRaw?: unknown, graderModeRaw?: unknown, pinnedOnlyRaw?: unknown, pinsModeRaw?: unknown)
   : Promise<{ ok: true; runId: string } | { ok: false; status: number; err: string }> {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { ok: false, status: 400, err: "tools array required and non-empty" };
@@ -869,6 +893,9 @@ async function startRun(userId: string, tools: string[], batchSizeRaw: number, c
     ...(String(graderModeRaw ?? "") === "skeleton" ? { grader_mode: "skeleton" } : {}),
     // PROMPT 9G item 3 — ALL-PINNED BATCH MODE. Only true changes anything.
     ...(pinnedOnlyRaw === true ? { pinned_only: true } : {}),
+    // PROMPT 12G item 1 — explicit pins mode. Absent ⇒ the legacy boolean
+    // decides ("only" when pinned_only), else the "seed" default.
+    pins_mode: resolvePinsMode({ pins_mode: normalizePinsMode(pinsModeRaw), pinned_only: pinnedOnlyRaw === true }),
   }).select("id").single();
 
   if (error || !row) return { ok: false, status: 500, err: `insert failed: ${error?.message}` };
@@ -1296,7 +1323,7 @@ async function handler(req: Request) {
   if (isCron && body?.action === "start") {
     const owner = await resolveAdminOwner();
     if (!owner) return json({ error: "no admin owner available for internal start" }, 500);
-    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only);
+    const res = await startRun(owner, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only, body?.pins_mode);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     try {
       await admin().from("admin_action_log").insert({
@@ -1341,7 +1368,7 @@ async function handler(req: Request) {
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   if (body?.action === "start") {
-    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only);
+    const res = await startRun(userId, body?.tools, body?.batch_size, body?.concurrency, body?.variant, body?.tool_variants, body?.engine_path, body?.ab_models, body?.grader_mode, body?.pinned_only, body?.pins_mode);
     if (!res.ok) return json({ error: res.err, build_stamp: BUILD_STAMP }, res.status);
     return json({ run_id: res.runId, build_stamp: BUILD_STAMP }, 202);
   }
