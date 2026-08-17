@@ -147,8 +147,10 @@ Deno.test("12F/3 — the total attempt budget is 2 × needed", async () => {
         ? { ok: false as const, reason: "closed-loop perfect: carve-out", kind: "carve_out" as const }
         : { ok: true as const, intake: item },
   });
+  // The loop never spends more than 2 × needed attempts, whichever guard bites
+  // first (here the rate guard, at 3/5 rejected).
   assert(progress.totalAttempted <= 6, `budget exceeded: ${progress.totalAttempted}`);
-  assertEquals(abort, undefined);
+  assertEquals(abort?.kind, "rate");
 });
 
 Deno.test("12F — non-perfect variants keep the pre-12F full-count behaviour", async () => {
