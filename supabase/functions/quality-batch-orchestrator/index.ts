@@ -39,6 +39,7 @@ import { planPinnedOnly } from "../_shared/quality/pinned-only.ts";
 import {
   normalizePinsMode,
   pinsCompositionLine,
+  pinsDispatchDecision,
   resolvePinsMode,
   type PinsMode,
 } from "../_shared/quality/pins-mode.ts";
@@ -1466,10 +1467,15 @@ async function handler(req: Request) {
     // regrade worker (deferred) picks it up. Kept explicit so nothing
     // executes silently against production data before CEO sign-off on
     // the regrader worker itself.
-    await admin().from("quality_batch_log").insert({
-      run_id: null, level: "info",
-      message: `regrade_frozen queued by ${userId} — ${ids.length} document ids: ${ids.slice(0,10).join(",")}${ids.length>10?"…":""}`.slice(0, 500),
-    }).catch(() => {});
+    // PROMPT 12H item 2 — the PostgrestFilterBuilder is a thenable, not a
+    // Promise, so `.catch` does not typecheck. try/catch is behaviourally
+    // identical (swallow any insert failure) and clears the static gate.
+    try {
+      await admin().from("quality_batch_log").insert({
+        run_id: null, level: "info",
+        message: `regrade_frozen queued by ${userId} — ${ids.length} document ids: ${ids.slice(0,10).join(",")}${ids.length>10?"…":""}`.slice(0, 500),
+      });
+    } catch { /* best-effort marker row */ }
     return json({ ok: true, action: "regrade_frozen", queued: ids.length, build_stamp: BUILD_STAMP, note: "queued — worker not yet auto-scheduled" }, 202);
   }
 
