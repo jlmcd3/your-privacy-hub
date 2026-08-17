@@ -1037,6 +1037,23 @@ export function toaRegimeForm(regime: "EU" | "UK", citation: string): string {
     : c.replace(/\bUK GDPR\b/, "GDPR");
 }
 
+/**
+ * PROMPT 12B item 1 — IFF-CITED, IN EITHER FORM THE BODY USES.
+ *
+ * The body cites the regulation both in short pinpoint form ("GDPR Art. 25(1)")
+ * and in the ratified long form the skeleton sentences carry ("Article 35(7)(c)
+ * requires…"). Both are citations of the same authority, so the table lists the
+ * authority either way. Nothing else about the gate moves: an authority the body
+ * never names in any form is still excluded.
+ */
+export function bodyCites(body: string, citation: string): boolean {
+  if (body.includes(citation)) return true;
+  const m = /Art(?:icle|\.)\s*(\d+[a-z]?(?:\(\d+\))?(?:\([a-z0-9]+\))*)\s*$/i.exec(citation.trim());
+  if (!m) return false;
+  const pin = m[1].replace(/\s+/g, "");
+  return body.includes(`Article ${pin}`) || body.includes(`Art. ${pin}`);
+}
+
 function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string {
   const exhibit = (report.authority_exhibit ?? {}) as Bag;
   const entries = Array.isArray(exhibit.entries) ? (exhibit.entries as Bag[]) : [];
@@ -1049,7 +1066,7 @@ function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string 
   for (const e of entries) {
     const raw = s(e.citation);
     if (!raw) continue;
-    if (!body.includes(raw)) continue; // iff-cited
+    if (!bodyCites(body, raw)) continue; // iff-cited
     if (!isWellFormedGdprPinpoint(raw)) continue;
     const citation = toaRegimeForm(regime, raw);
     if (seen.has(citation)) continue;

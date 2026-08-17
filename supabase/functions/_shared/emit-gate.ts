@@ -155,6 +155,9 @@ export const BYTE_PINNED_LEAF_KEYS: ReadonlySet<string> = new Set([
  */
 export const GATE_EXEMPT_LEAF_KEYS: ReadonlySet<string> = new Set([
   "guidance_verbatim",
+  // PROMPT 12B item 1 (D6 hygiene) — `risk_register[].measures_verbatim` is
+  // the Art. 35(7)(d) registry span, pinned bytes exactly like its risks twin.
+  "measures_verbatim",
   "would_enable",
 ]);
 

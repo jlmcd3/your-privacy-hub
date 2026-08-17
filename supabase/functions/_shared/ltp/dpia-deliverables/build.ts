@@ -657,7 +657,7 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
         `The test the assessment must run is the one the guidance states: ${test.verbatim} ` +
         "Until the alternatives that were actually weighed are recorded, that comparison cannot be run on this record.";
       information_needed =
-        `For "${op.operation_label}": each less-intrusive alternative that was actually considered (for example a narrower data set, aggregated or pseudonymised data, a shorter retention period, or a manual process), and the specific reason each was rejected.`;
+        `For "${op.operation_label}": each less-intrusive alternative that was actually considered (for example a narrower data set, aggregated or pseudonymized data, a shorter retention period, or a manual process), and the specific reason each was rejected.`;
       ask_class = "ask_necessity_alternatives";
     } else {
       const usefulnessOnly = alternatives.filter((x) => x.rejected_for_usefulness_only);
@@ -1162,8 +1162,16 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       inherent_band,
       measures,
       residual_band,
+      // PROMPT 12B item 1 — the risks anchor carries the RISKS verbatim alone.
       citation: a.citation || cit(regime, "Art. 35(7)(c)"),
-      authority_verbatim: [a.verbatim, m.verbatim].filter(Boolean).join(" "),
+      authority_verbatim: a.verbatim,
+      // …and the measures anchor travels as its own exactly-paired span.
+      ...(m.verbatim
+        ? {
+          measures_citation: m.citation || cit(regime, "Art. 35(7)(d)"),
+          measures_verbatim: m.verbatim,
+        }
+        : {}),
       ...(g.verbatim
         ? { guidance_citation: g.citation, guidance_verbatim: g.verbatim }
         : {}),
@@ -1171,7 +1179,9 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       ...(insufficient
         ? {
           information_needed:
-            `The measures actually applied against "${spec.risk_label}" — the record names none of: ${spec.mitigating_safeguards.join("; ")}. Record the measure, who operates it, and how its effect is evidenced.`,
+            // PROMPT 12B item 2 — the risk label is the assessment's OWN term,
+            // not a record quote: it renders unquoted. Record spans stay quoted.
+            `The measures actually applied against ${spec.risk_label} — the record names none of: ${spec.mitigating_safeguards.join("; ")}. Record the measure, who operates it, and how its effect is evidenced.`,
           ask_class: "ask_risk_measures",
           display_label: resolveAskLabel("ask_risk_measures", { risk: spec.risk_label }),
         }
