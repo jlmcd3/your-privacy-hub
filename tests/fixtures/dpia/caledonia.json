@@ -1,0 +1,91 @@
+{
+  "organization_name": "Caledonia Home Cover Ltd",
+  "processing_activity_name": "Home-emergency claims handling",
+  "description": "Handling of home-emergency insurance claims for policyholders: claim intake, engineer dispatch, invoice settlement and complaint follow-up. Core systems are hosted in the controller's Edinburgh data centre; the claims-workflow platform is operated by a certified United States processor.",
+  "purpose": "Assess and settle home-emergency claims and dispatch approved engineers under each policyholder's policy.",
+  "data_categories": [
+    "Customer records",
+    "Contact details",
+    "Financial data"
+  ],
+  "data_subjects": "Policyholders of the controller who notify a home-emergency claim.",
+  "volume_frequency": "88,000 policyholders; roughly 1,900 claims per month.",
+  "jurisdictions": [
+    "United Kingdom (UK GDPR)"
+  ],
+  "legal_basis_proposed": "Contract (Art. 6(1)(b))",
+  "article_9_condition": "",
+  "necessity_proportionality": "The processing rests on the home-emergency policy: each policyholder is a party to that contract, and claim assessment, engineer dispatch and settlement are the performance the contract requires, so the claim details, property address and payment particulars are necessary to perform it. The impact of the processing on the data subjects is stated separately from the benefit: policyholders cannot avoid providing claim and payment details if they wish to be indemnified, and some policyholders would not expect their claim history to be visible to the workflow platform operator. That impact is reduced by limiting the platform record to the claim particulars needed for dispatch and settlement, by the certified-transfer safeguards described in the transfer section, and by excluding claim history from any marketing use.",
+  "data_minimisation_justification": "Only the claim particulars, property address, policy number and settlement details are processed; bank details are held in the payment vault, not the workflow record, and call recordings are retained separately under their own schedule.",
+  "retention_period": "6 years from claim closure, per the limitation period, then deleted.",
+  "existing_safeguards": [
+    "Encryption at rest",
+    "Encryption in transit",
+    "Access controls",
+    "Data minimisation",
+    "Pseudonymisation",
+    "Staff training",
+    "DPA signed with processor",
+    "Contractual restrictions"
+  ],
+  "third_party_processors": [
+    "Other: Claims-workflow platform (Beacon Claims Cloud, Inc.)"
+  ],
+  "reasons_to_conduct": [
+    "Data processed on a large scale",
+    "Risk management / accountability (beneficial)"
+  ],
+  "alternatives_considered": [
+    {
+      "processing_operation": "",
+      "alternative": "Handle claims entirely by telephone and post without a shared workflow platform",
+      "rejection_reason": "Manual handling cannot meet the policy's 24-hour emergency-response commitment at 1,900 claims per month, so the purpose of settling claims and dispatching engineers within the contractual service window would not be achieved."
+    },
+    {
+      "processing_operation": "",
+      "alternative": "Give the engineer network direct access to the full policy record instead of a claim extract",
+      "rejection_reason": "Direct access would not reduce the intrusion, it widens it: engineers would see policy and payment particulars they do not need, so the alternative would not achieve the purpose with less impact on the policyholder."
+    }
+  ],
+  "dpo_advice": "The DPO advised that bank details never enter the workflow platform and that the transfer rest on the processor's certification under the UK Extension with a documented fallback clause; both points were implemented before this assessment was finalised.",
+  "data_subjects_views_sought": "Yes — views sought",
+  "data_subjects_views": "The controller's customer panel of 200 policyholders was surveyed in April; the principal concern was overseas visibility of claim details, which the certified-transfer limits and the claim-extract design address.",
+  "controller_country": "GB",
+  "controller_land": "",
+  "controller_sector": "private",
+  "central_administration_country": "GB",
+  "eu_decision_establishment_country": "",
+  "controller_contact": "Caledonia Home Cover Ltd, 14 Rutland Square, Edinburgh EH1 2AS, United Kingdom — privacy@caledoniacover.example",
+  "dpo_info": "F. MacLeod, Data Protection Officer — dpo@caledoniacover.example, +44 131 5550 0",
+  "processor_obligations": "Art. 28 data-processing agreement with Beacon Claims Cloud, Inc.: processing on documented instructions only, staff confidentiality undertakings, no sub-processors without prior written approval, audit rights, breach notification within 48 hours, and deletion of all claim data within 30 days of contract end.",
+  "processing_version": "3.0",
+  "estimated_launch_date": "2026-07-01",
+  "estimated_end_date": "2028-07-01",
+  "dpia_team": "S. Grant, Privacy Counsel (lead drafter); P. Whitfield, claims operations director; N. Osei, platform owner; F. MacLeod, Data Protection Officer (advisory).",
+  "reference_materials": "ICO DPIA guidance; ICO international-transfers guidance on the UK Extension to the EU-US Data Privacy Framework; internal Claims Data Handling Standard v4; SOC 2 Type II report of Beacon Claims Cloud, Inc. (2026).",
+  "dpia_scope_note": "Covers home-emergency claims handling for all UK policyholders. The underwriting and renewal-pricing activities are out of scope and are assessed in their own DPIAs. This assessment is reviewed every 24 months or on material change; the end date above is the scheduled review boundary, not a termination of the processing.",
+  "publication_intent": "Internal document; a summary is available to policyholders on request.",
+  "secondary_uses": "None. Claim data is not used for any purpose beyond assessment, dispatch, settlement and complaint follow-up; claim history is excluded from marketing selections and from renewal-pricing models, which are assessed separately.",
+  "nature_scope_context": "Nature: structured claim intake, workflow processing, engineer dispatch, settlement and scheduled deletion. Scope: about 1,900 claims per month across 88,000 policyholders; the processed items are claim particulars, property address, policy number and settlement details. Context: policyholders engage the processing at a moment of urgency in their own homes; the customer panel was consulted and its concern about overseas visibility is addressed by the claim-extract design and the certified transfer; core systems are hosted in Edinburgh with the workflow platform operated in the United States under the safeguards recorded in the transfer section.",
+  "functional_description": "A policyholder notifies a claim by phone or portal; the claims handler records the claim particulars in the workflow platform; the platform dispatches an approved engineer and tracks completion; settlement is executed from the Edinburgh payment vault; a scheduled job deletes each claim six years after closure.",
+  "supporting_assets": "Claims-workflow platform of Beacon Claims Cloud, Inc. under the Art. 28 agreement; Edinburgh policy-administration system; payment vault; engineer-network portal.",
+  "codes_of_conduct": "No approved Art. 40 code of conduct applies. The controller follows ICO claims-handling and international-transfers guidance, and the processor holds SOC 2 Type II attestation.",
+  "data_quality_measures": "Claim particulars are read back to the policyholder at intake; property address is verified against the policy record before dispatch; settlement amounts are reconciled weekly between the workflow platform and the payment vault, and corrections are applied by the claims operations team.",
+  "data_subject_rights_mechanisms": "Access, rectification and erasure requests via privacy@caledoniacover.example, answered within one month; objection and complaints may be raised with the DPO or the Financial Ombudsman Service; the claims privacy notice is provided at claim intake.",
+  "dp_by_design_measures": "The workflow platform receives only the claim extract, never the full policy record or bank details; platform access is limited to named claims-handler accounts; engineer dispatch uses job identifiers rather than policy numbers; an automated job enforces the six-year deletion; access logs are reviewed quarterly by the DPO.",
+  "transfer_flows": [
+    {
+      "destination_country": "US",
+      "recipient": "Beacon Claims Cloud, Inc. (claims-workflow platform operator)",
+      "transfer_mechanism": "UK Extension to the EU-US Data Privacy Framework",
+      "uk_extension_certified": true
+    }
+  ],
+  "retention_record_type": "Retention schedule entry CL-02 in the corporate records-retention register.",
+  "residual_risks": "Two moderate risks remain after the measures above. A claims handler could view a claim outside their allocated queue; it is accepted because access is limited to named accounts, queue allocation is logged, and access logs are reviewed quarterly. The workflow platform operator could suffer an incident affecting claim extracts; it is accepted because the extract excludes bank details, the transfer rests on the operator's certification under the UK Extension with breach notification within 48 hours, and the SOC 2 report is reviewed annually.",
+  "dpia_prepared_by": "S. Grant — Privacy Counsel (Responsible); P. Whitfield — Claims Operations Director (Consulted); F. MacLeod — Data Protection Officer (Accountable)",
+  "dpia_approved_by_name": "E. Drummond",
+  "dpia_approved_by_title": "Chief Executive Officer",
+  "dpia_approval_date": "2026-06-10",
+  "dpia_signoff_basis": "Sections 3 and 4 as reviewed on 8 June 2026, acceptance of two moderate residual risks, and the condition that bank details remain outside the workflow platform and the UK Extension certification is verified at each annual review."
+}
