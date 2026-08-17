@@ -1297,7 +1297,62 @@ const VULNERABLE_SUBJECTS: readonly RegExp[] = [
   /\bvulnerable\b/i,
 ];
 
-const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data", "Children's data"];
+// PROMPT 9M item 1 (CEO-ruled 2026-08-17) — the conflated trigger is SPLIT.
+// Art. 9 special-category data and children's data are different things and
+// carry different consequences: the former cannot rest on Art. 6(1)(f) at all,
+// the latter can but only on a dedicated children's LIA. "Children's data"
+// REMAINS a vulnerable-subject signal (VULNERABLE_SUBJECTS / the categories
+// check below) and is NOT in the Art. 9 list.
+const ART9_SPECIAL_CATS = ["Health or medical data", "Biometric data"];
+const CHILDREN_CAT = "Children's data";
+
+/**
+ * PROMPT 9M item 4 step 2 — CREDIT-FIRST children's-LIA reader.
+ *
+ * Credit requires ONE sentence carrying all three of: a child reference, a
+ * legitimate-interests-assessment reference, and completion language — with
+ * sentence-scoped negation/modality blockers (the 8J / 9F pattern) defeating
+ * it. The crediting sentence is returned BOUNDED so step 3 quotes the span
+ * that matched and nothing else. One reader, no fork.
+ */
+const CHILD_REF_RE = /\b(child|children|children's|childrens|minors?)\b/i;
+const CHILD_LIA_RE = /\b(legitimate interests? assessment|LIA)\b/i;
+const CHILD_DONE_RE = /\b(conducted|completed|carried out|performed|documented|provided)\b/i;
+const CHILD_BLOCKERS: readonly RegExp[] = [
+  /\bnot\b/i,
+  /\bno\b/i,
+  /\bwithout\b/i,
+  /\bpending\b/i,
+  /\bplanned\b/i,
+  /\bwill be\b/i,
+  /\bto be conducted\b/i,
+  /\bTBD\b/i,
+  /\bTBA\b/i,
+];
+
+/** The intake fields the reader looks at — the impact-evidence set, no new fields. */
+const CHILD_LIA_SOURCE_FIELDS: readonly string[] = [
+  ...IMPACT_SOURCE_FIELDS,
+  "existing_safeguards",
+  "nature_scope_context",
+];
+
+export function readChildLiaCredit(intake: unknown): { credited: boolean; span: string } {
+  for (const f of CHILD_LIA_SOURCE_FIELDS) {
+    const v = get(intake, f);
+    const text = Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean).join(". ") : str(v);
+    if (!text) continue;
+    for (const sentence of splitSentencesSafe(text)) {
+      if (!CHILD_REF_RE.test(sentence)) continue;
+      if (!CHILD_LIA_RE.test(sentence)) continue;
+      if (!CHILD_DONE_RE.test(sentence)) continue;
+      if (CHILD_BLOCKERS.some((re) => re.test(sentence))) continue;
+      return { credited: true, span: boundedClause(sentence) || noStop(sentence.trim()) };
+    }
+  }
+  return { credited: false, span: "" };
+}
+
 
 /**
  * PROMPT 9H.1 item 1 (CEO-ruled 2026-08-15) — PINPOINT-FIRST RESOLUTION.
