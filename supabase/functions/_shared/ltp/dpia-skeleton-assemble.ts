@@ -1057,13 +1057,25 @@ export function bodyCites(body: string, citation: string): boolean {
 function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string {
   const exhibit = (report.authority_exhibit ?? {}) as Bag;
   const entries = Array.isArray(exhibit.entries) ? (exhibit.entries as Bag[]) : [];
+  // PROMPT 12D — the ratified spine openers cite Art. 35(7)(a), Art. 35(9) and
+  // Art. 35(11) in long form, which the exhibit harvest never saw. They are
+  // supplied here as exhibit entries; the iff-cited gate below is unchanged and
+  // still decides whether each one is listed.
+  const candidates: Bag[] = [
+    ...entries,
+    ...DPIA_SPINE_CITED_AUTHORITIES.map((c) => ({
+      citation: c,
+      authority_class: "regulation",
+    } as Bag)),
+  ];
   const groups: Record<string, string[]> = {
     "Regulations": [],
     "Statutes": [],
     "Guidance and Persuasive Authority": [],
   };
   const seen = new Set<string>();
-  for (const e of entries) {
+  for (const e of candidates) {
+
     const raw = s(e.citation);
     if (!raw) continue;
     if (!bodyCites(body, raw)) continue; // iff-cited
