@@ -59,6 +59,10 @@ export interface DpiaCscTelemetry {
   repairs: number;
   crashed: boolean;
   error?: string;
+  /** PROMPT 11.1 item 2 — DPIA new-document path: checks run, nothing mutates. */
+  detect_only?: boolean;
+  /** Repairs the pass WOULD have made on this path (all suppressed). */
+  repairs_suppressed?: number;
 }
 
 export interface DpiaCscOptions {
@@ -69,7 +73,22 @@ export interface DpiaCscOptions {
    * needles used to recognise a gap-frame sentence that reached a surface.
    */
   readonly frameSet?: FrameSet | null;
+  /**
+   * PROMPT 11.1 item 2 (9K pattern) — ASSERT-ONLY. On the DPIA new-document
+   * path every check runs UNCHANGED against a deep clone; findings are recorded
+   * to `_meta.internal.detect_mode` and the real report is never written to.
+   *
+   * REPAIR INVENTORY (every mutation this module can make):
+   *   1. C1 engagement-map status/rationale rewrite  → detect-only here.
+   *   2. C2 surface rebuild (assessment_team, validation_approval,
+   *      measures_rights, data_subject_views)        → detect-only here.
+   *   3. C3 risk_register row REMOVAL                → detect-only here.
+   *   4. C4 dirty-surface rebuild                    → detect-only here.
+   * Legacy paths and other products keep write mode (option absent/false).
+   */
+  readonly detectOnly?: boolean;
 }
+
 
 // ---------------------------------------------------------------------------
 // helpers
