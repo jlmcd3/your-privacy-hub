@@ -4582,6 +4582,7 @@ export type Database = {
           last_heartbeat_at: string
           phase: string
           pinned_only: boolean
+          pins_mode: string
           started_at: string
           status: string
           tool_results: Json
@@ -4609,6 +4610,7 @@ export type Database = {
           last_heartbeat_at?: string
           phase?: string
           pinned_only?: boolean
+          pins_mode?: string
           started_at?: string
           status?: string
           tool_results?: Json
@@ -4636,6 +4638,7 @@ export type Database = {
           last_heartbeat_at?: string
           phase?: string
           pinned_only?: boolean
+          pins_mode?: string
           started_at?: string
           status?: string
           tool_results?: Json
