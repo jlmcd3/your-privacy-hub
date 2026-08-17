@@ -59,9 +59,9 @@ for (const c of DPIA_PERFECT_SET as Any[]) {
   Deno.test(`12E/2 — ${c.id}: ToA lists Art. 35(11) alongside 35(7)(a) and 35(9)`, () => {
     const { text } = assembled(c.intake);
     const toa = text("table_of_authorities");
-    assert(/Art\. 35\(11\)/.test(toa), toa);
-    assert(/Art\. 35\(7\)\(a\)/.test(toa), toa);
-    assert(/\(9\)/.test(toa), toa);
+    // Existing vertical grouped form: pinpoints of Art. 35 consolidate onto one
+    // line, regime-prefixed. 35(11) joins the existing 35(7)(a) / 35(9) group.
+    assert(/Art\. 35\(11\), \(7\)\(a\), \(9\)/.test(toa), toa);
     assert(toa.trim().startsWith("Regulations"), toa);
   });
 
