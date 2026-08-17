@@ -17,6 +17,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
+// DPIA HARNESS — the DPIA harness persists a skeleton document, which renders
+// through the SAME shipped viewer customers read.
+import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 
 /**
  * ITEM 274 — page-boundary adapter. Unwraps a `{ report_data: … }` record if
@@ -37,6 +40,8 @@ export type HarnessJob = {
   status: string | null;
   created_at: string;
   doc_ids: string[] | null;
+  /** DPIA HARNESS — "cppa_risk" (default for pre-existing rows) or "dpia". */
+  tool?: string | null;
 };
 
 /** ITEM 293 — newest-first ordering, applied client-side as a belt-and-braces
@@ -84,7 +89,29 @@ type Row = {
   unclassified: string[];
   presence_rate: number | null;
   assembled_report: any;
+  /** DPIA HARNESS — which product produced this row ("cppa_risk" | "dpia"). */
+  tool: string;
 };
+
+/** DPIA HARNESS — tool of a result row, read from its per_doc_result. */
+export function resultTool(perDocResult: any): string {
+  return String(perDocResult?.tool ?? "cppa_risk");
+}
+
+/**
+ * DPIA HARNESS — the DPIA replay has no GTM grader; its releasability signal
+ * IS the hard-failure list (empty ⇒ release, otherwise block).
+ */
+export function dpiaVerdict(perDocResult: any): string {
+  const hf = perDocResult?.hard_failures;
+  return Array.isArray(hf) && hf.length > 0 ? "block" : "release";
+}
+
+/** DPIA HARNESS — unwrap the persisted skeleton document, if this row has one. */
+export function toSkeletonDocument(assembledReport: any): any | null {
+  const candidate = assembledReport?.skeleton_document ?? assembledReport;
+  return isSkeletonDocument(candidate) ? candidate : null;
+}
 
 type LegacyDoc = {
   id: string;
@@ -130,7 +157,7 @@ export default function AdminReplayReview() {
       setLoading(true);
       const { data, error } = await supabase
         .from("replay_harness_jobs" as any)
-        .select("id, notes, status, created_at, doc_ids")
+        .select("id, notes, status, created_at, doc_ids, tool")
         .order("created_at", { ascending: false });
       if (error) {
         toast.error(`Could not load harness jobs: ${error.message}`);
@@ -178,13 +205,18 @@ export default function AdminReplayReview() {
       for (const r of (res ?? []) as any[]) {
         if (latest.has(r.doc_id)) continue;
         const gtm = r.per_doc_result?.gtm ?? {};
+        const tool = resultTool(r.per_doc_result);
+        const isDpia = tool === "dpia";
         latest.set(r.doc_id, {
           id: r.id,
           doc_id: r.doc_id,
           created_at: r.created_at,
           job_notes: noteById.get(r.job_id) ?? "",
-          verdict: String(gtm.verdict ?? "unknown"),
-          logged_defects: Array.isArray(gtm.logged_defects) ? gtm.logged_defects : [],
+          tool,
+          verdict: isDpia ? dpiaVerdict(r.per_doc_result) : String(gtm.verdict ?? "unknown"),
+          logged_defects: isDpia
+            ? (Array.isArray(r.per_doc_result?.hard_failures) ? r.per_doc_result.hard_failures : [])
+            : (Array.isArray(gtm.logged_defects) ? gtm.logged_defects : []),
           material_defects: Array.isArray(gtm.material_defects) ? gtm.material_defects : [],
           unclassified: Array.isArray(gtm.unclassified) ? gtm.unclassified : [],
           presence_rate: r.per_doc_result?.substance?.presence_rate ?? null,
@@ -390,6 +422,7 @@ export default function AdminReplayReview() {
                   <thead className="bg-muted/50 text-left">
                     <tr>
                       <th className="p-2">Created</th>
+                      <th className="p-2">Tool</th>
                       <th className="p-2">Batch label</th>
                       <th className="p-2">Status</th>
                       <th className="p-2">Docs</th>
@@ -403,6 +436,7 @@ export default function AdminReplayReview() {
                         onClick={() => setLabel(jobLabel(j))}
                       >
                         <td className="p-2 whitespace-nowrap font-mono">{fmt(j.created_at)}</td>
+                        <td className="p-2">{j.tool ?? "cppa_risk"}</td>
                         <td className="p-2">{jobLabel(j)}</td>
                         <td className="p-2">{j.status ?? "—"}</td>
                         <td className="p-2">{j.doc_ids?.length ?? 0}</td>
@@ -444,11 +478,19 @@ export default function AdminReplayReview() {
             {/* ITEM 274 — adapt at the page boundary only: the viewer contract
                 takes the BARE report body object (never a {report_data:…}
                 wrapper record). Harness rows store the bare assembled_report;
-                archived legacy rows nest it under report_data. */}
-            <CPPARiskReportBody
-              report={toViewerReport(showLegacy ? legacy?.report_data : open.assembled_report)}
-              createdAt={open.created_at}
-            />
+                archived legacy rows nest it under report_data.
+                DPIA HARNESS — DPIA rows persist a skeleton document and render
+                through SkeletonDocumentView, the shipped DPIA viewer. */}
+            {!showLegacy && open.tool === "dpia" && toSkeletonDocument(open.assembled_report) ? (
+              <div data-testid="dpia-skeleton-body">
+                <SkeletonDocumentView doc={toSkeletonDocument(open.assembled_report)} />
+              </div>
+            ) : (
+              <CPPARiskReportBody
+                report={toViewerReport(showLegacy ? legacy?.report_data : open.assembled_report)}
+                createdAt={open.created_at}
+              />
+            )}
 
           </div>
         </div>
