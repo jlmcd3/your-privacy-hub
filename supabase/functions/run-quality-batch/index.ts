@@ -1394,7 +1394,7 @@ function validateIntake(tool: string, intake: any): { ok: boolean; reason?: stri
   return extra ? extra(intake) : { ok: true };
 }
 
-async function generateIntakes(tool: string, count: number, extraGuidance?: string): Promise<any[]> {
+async function generateIntakes(tool: string, count: number, extraGuidance?: string, variant?: FixtureVariant | null): Promise<any[]> {
   // NOTE: toolDescriptions is DEAD for contract-backed tools; put guidance in SCENARIO_GUIDANCE or the intake contract, never here.
   // PROMPT 8H item 1(c) — CONTRACT-BACKED TOOLS ARE NOT LISTED HERE.
   // For any tool in CONTRACT_BY_TOOL the live prompt is
