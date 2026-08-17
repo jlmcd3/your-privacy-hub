@@ -183,9 +183,24 @@ export function deficiencyLines(d: readonly PerfectDeficiency[]): string[] {
   return [...new Set(d.map((x) => `${x.kind}: ${x.detail}`))];
 }
 
-/** Retry guidance fed back to the generator (8G per-scenario retry path). */
+/**
+ * Retry guidance fed back to the generator (8G per-scenario retry path).
+ *
+ * PROMPT 12F item 1 — KIND-AWARE. A carve-out rejection can only be fixed by a
+ * REMOVAL (drop the LI basis or drop the special-category/children's
+ * categories), so the fact-additive frame ("same kind of scenario… add facts,
+ * never remove detail") reproduced the violation on every repair retry (batch
+ * 60fd852e). Carve-out rejections therefore get their own frame; every other
+ * deficiency kind keeps the fact-additive text byte-unchanged.
+ */
+export const CARVE_OUT_REPAIR_GUIDANCE =
+  "HARD-CONSTRAINT VIOLATION — the previous scenario combined 'Legitimate interests' with special-category or children's data, which is auto-rejected on the perfect variant. Generate a DIFFERENT scenario: EITHER keep the sector and choose a non-LI basis (Art. 6(1)(b), (c) or (e)) OR keep 'Legitimate interests' and use only non-special, non-children data_categories. Do NOT reuse the previous basis+categories combination.";
+
 export function perfectRetryGuidance(d: readonly PerfectDeficiency[]): string {
   const lines = deficiencyLines(d).slice(0, 12);
+  if (d.some((x) => x.kind === "carve_out")) {
+    return [CARVE_OUT_REPAIR_GUIDANCE, ...lines.map((l) => `- ${l}`)].join("\n");
+  }
   return [
     "CLOSED-LOOP REJECTION — the previous scenario was rejected because the product's own deliverables builder found the record insufficient.",
     "Regenerate the SAME kind of scenario with these specific facts supplied (add facts, never remove detail):",
@@ -193,3 +208,18 @@ export function perfectRetryGuidance(d: readonly PerfectDeficiency[]): string {
     `CARVE-OUT: ${CARVE_OUT_REASON}. Never combine legal_basis_proposed "Legitimate interests" with special-category data_categories.`,
   ].join("\n");
 }
+
+/**
+ * PROMPT 12F item 2 — CONSTRAINT SALIENCE. Compact hard-constraint block placed
+ * at the VERY TOP of the perfect-variant generation prompt, before the contract
+ * render. The full guidance below it is unchanged.
+ */
+export const PERFECT_HARD_CONSTRAINTS = [
+  "HARD CONSTRAINTS — scenarios violating any of these are auto-rejected:",
+  "(1) never legal_basis_proposed 'Legitimate interests' with special-category data_categories;",
+  "(2) never 'Legitimate interests' with 'Children's data';",
+  "(3) secondary_uses follows RULE A or RULE B exactly;",
+  "(4) every transfer flow fully resolved per the 9F forms;",
+  "(5) complete sign-off block.",
+].join("\n");
+
