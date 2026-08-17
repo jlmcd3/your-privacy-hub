@@ -48,3 +48,22 @@ export function pinsCompositionLine(mode: PinsMode, tool: string, pinned: number
   const generated = Math.max(0, batchSize - pinned);
   return `pins_mode=${mode}: ${tool} runs ${pinned} pinned + ${generated} generated`;
 }
+
+/**
+ * Dispatch decision for one tool.
+ *
+ *   "pinned_only" — 9G all-pinned path (closed-loop pre-filter + size clamp).
+ *   "seed"        — today's default: pins first, generator fills the delta.
+ *   "no_pins"     — pinsOverride=[] so every slot generates.
+ *
+ * NOTE the preserved legacy guard: the all-pinned path has only ever applied on
+ * the PERFECT variant, so mode="only" on any other variant seeds as before.
+ */
+export function pinsDispatchDecision(
+  mode: PinsMode,
+  variant: string | null | undefined,
+): "pinned_only" | "seed" | "no_pins" {
+  if (mode === "none") return "no_pins";
+  if (mode === "only" && variant === "perfect") return "pinned_only";
+  return "seed";
+}
