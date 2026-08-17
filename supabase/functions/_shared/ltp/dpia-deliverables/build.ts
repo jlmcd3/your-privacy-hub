@@ -1162,8 +1162,16 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       inherent_band,
       measures,
       residual_band,
+      // PROMPT 12B item 1 — the risks anchor carries the RISKS verbatim alone.
       citation: a.citation || cit(regime, "Art. 35(7)(c)"),
-      authority_verbatim: [a.verbatim, m.verbatim].filter(Boolean).join(" "),
+      authority_verbatim: a.verbatim,
+      // …and the measures anchor travels as its own exactly-paired span.
+      ...(m.verbatim
+        ? {
+          measures_citation: m.citation || cit(regime, "Art. 35(7)(d)"),
+          measures_verbatim: m.verbatim,
+        }
+        : {}),
       ...(g.verbatim
         ? { guidance_citation: g.citation, guidance_verbatim: g.verbatim }
         : {}),
