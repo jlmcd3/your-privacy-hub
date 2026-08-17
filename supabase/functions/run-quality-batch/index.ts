@@ -1701,14 +1701,18 @@ export async function generateValidatedIntakesChunked(
     totalAttempted: prior.totalAttempted ?? 0,
   };
 
-  // PROMPT 12F item 3 — KIND-AWARE FAIL POLICY (perfect variant only).
-  //   carve_out / lint  → repair attempt (inside screenIntake), then ONE fresh
-  //                       regeneration (new scenario, not a repair) — max three
-  //                       model calls per slot — then SKIP the slot and attempt
-  //                       a replacement, up to a total budget of 2 × needed.
+  // PROMPT 12F item 3 — KIND-AWARE FAIL POLICY (perfect variant only), as
+  // amended by PROMPT 12G item 0.
+  //   carve_out         → NO repair (screenIntake returns immediately), then ONE
+  //                       fresh regeneration — max TWO model calls per slot.
+  //   lint              → repair attempt (inside screenIntake), then ONE fresh
+  //                       regeneration — max three model calls per slot.
+  //   both              → then SKIP the slot and attempt a replacement, up to a
+  //                       total budget of 2 × needed.
   //   contract          → ABORT (the spec doesn't match; retrying cannot help).
   //   rejection rate >50% after ≥4 attempts → ABORT.
   // Non-perfect variants keep the pre-12F behaviour byte-for-byte.
+
   const perfect = ctx.variant === "perfect";
   const budget = perfect ? count * 2 : count;
 
