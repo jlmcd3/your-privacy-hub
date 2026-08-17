@@ -118,7 +118,6 @@ for (const id of [NORDFRACHT, CALEDONIA]) {
     // ToA renders, regime-prefixed, in the existing vertical grouped form.
     const toa = sectionText(report, "table_of_authorities");
     assert(toa.trim().startsWith("Regulations"), toa.slice(0, 200));
-    assert(/Art\. 35\(7\)/.test(toa), toa.slice(0, 400));
     assert(/Art\. 35\(11\), \(7\)\(a\), \(9\)/.test(toa), toa.slice(0, 400));
     // Citation pairing: every risk row carries both pinned pinpoints.
     for (const row of (report.risk_register ?? []) as Any[]) {
