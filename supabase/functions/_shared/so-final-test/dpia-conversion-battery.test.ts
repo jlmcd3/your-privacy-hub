@@ -105,7 +105,7 @@ function leaves(node: unknown, path = "", out: Leaf[] = []): Leaf[] {
     return out;
   }
   if (node && typeof node === "object") {
-    for (const [k, v] of Object.entries(node as Bag)) leaves(v, `${path}.${k}`, out);
+    for (const [k, v] of Object.entries(node as unknown as Bag)) leaves(v, `${path}.${k}`, out);
     return out;
   }
   if (typeof node === "string") {
@@ -139,7 +139,7 @@ const normCite = (s: string) =>
 /** citation key (regime-normalised) → every verbatim the registry returns. */
 const REGISTRY_QUOTES: Map<string, string[]> = (() => {
   const m = new Map<string, string[]>();
-  for (const row of Object.values(DPIA_VERIFIED_AUTHORITIES) as Bag[]) {
+  for (const row of Object.values(DPIA_VERIFIED_AUTHORITIES) as unknown as Bag[]) {
     for (const k of [row.citation, row.subsection]) {
       if (typeof k !== "string" || !k) continue;
       const n = normCite(k);
@@ -355,7 +355,7 @@ const BRITISH_LEXICON: readonly string[] = [
 ];
 
 /** Ratified template bytes: the verified-authority corpus this product quotes. */
-const RATIFIED_CORPUS = (Object.values(DPIA_VERIFIED_AUTHORITIES) as Bag[])
+const RATIFIED_CORPUS = (Object.values(DPIA_VERIFIED_AUTHORITIES) as unknown as Bag[])
   .map((r) => String(r.verbatim_quote ?? "")).join(" ").toLowerCase();
 
 const SANCTIONED_BRITISH = new Set(BRITISH_LEXICON.filter((w) => RATIFIED_CORPUS.includes(w)));
@@ -395,14 +395,14 @@ Deno.test("case 5 — no unsanctioned British spellings in customer-facing build
 
 /** Every determination the document turns on. */
 function determinations(built: Bag): string {
-  const arr = (k: string) => (Array.isArray(built[k]) ? built[k] as Bag[] : []);
+  const arr = (k: string) => (Array.isArray(built[k]) ? built[k] as unknown as Bag[] : []);
   return JSON.stringify({
     decision: built.decision,
     legal_basis: arr("legal_basis").map((f) => [f.status, f.verdict]),
     necessity: arr("necessity_findings").map((f) => [f.status, f.verdict]),
     proportionality: arr("proportionality").map((f) => [f.status, f.verdict]),
     risks: arr("risk_register").map((r) => [r.risk_id, r.likelihood, r.severity, r.inherent_band, r.residual_band]),
-    art36: (built.art36_consultation as Bag)?.status,
+    art36: (built.art36_consultation as unknown as Bag)?.status,
   });
 }
 
@@ -431,11 +431,11 @@ Deno.test("case 7 — adding a safeguard never moves a risk_register likelihood 
     ["Audit logging", "Access reviews", "Vendor due diligence", "Data minimisation review"],
   ];
   for (const intake of sweep()) {
-    const base = buildDpiaDeliverables(intake).risk_register as Bag[];
+    const base = buildDpiaDeliverables(intake).risk_register as unknown as Bag[];
     for (const extra of additions) {
       const more = buildDpiaDeliverables(mk({
         existing_safeguards: [...(intake.existing_safeguards as string[] ?? []), ...extra],
-      }, intake)).risk_register as Bag[];
+      }, intake)).risk_register as unknown as Bag[];
       for (const r of base) {
         const m = more.find((x) => x.risk_id === r.risk_id);
         if (!m) continue;
@@ -481,16 +481,16 @@ Deno.test("case 8 — removing an optional intake field never produces a more co
       const redacted = buildDpiaDeliverables(
         mk({ [field]: Array.isArray(intake[field]) ? [] : "" }, intake),
       );
-      (base.legal_basis as Bag[]).forEach((f, i) => {
-        const r = (redacted.legal_basis as Bag[])[i];
+      (base.legal_basis as unknown as Bag[]).forEach((f, i) => {
+        const r = (redacted.legal_basis as unknown as Bag[])[i];
         if (!r) return;
         assert(
           confidence(r) <= confidence(f),
           `legal_basis grew more confident when ${field} was removed: ${f.verdict} → ${r.verdict}`,
         );
       });
-      (base.necessity_findings as Bag[]).forEach((f, i) => {
-        const r = (redacted.necessity_findings as Bag[])[i];
+      (base.necessity_findings as unknown as Bag[]).forEach((f, i) => {
+        const r = (redacted.necessity_findings as unknown as Bag[])[i];
         if (!r) return;
         assert(
           confidence(r) <= confidence(f),
@@ -537,11 +537,11 @@ Deno.test("case 10 — a secondary_uses negation produces no secondary operation
       false,
       `op_secondary referenced downstream: ${text}`,
     );
-    const inventory = (built.processing_inventory as Bag)?.secondary_uses as Bag[] | undefined;
+    const inventory = (built.processing_inventory as unknown as Bag)?.secondary_uses as unknown as Bag[] | undefined;
     for (const row of inventory ?? []) {
       assertEquals(row.negation, true, `secondary use recorded as real from a negation: ${text}`);
     }
-    for (const f of built.legal_basis as Bag[]) {
+    for (const f of built.legal_basis as unknown as Bag[]) {
       assertEquals(
         /secondary\s+(?:use|purpose)/i.test(JSON.stringify(f.justification ?? "")) &&
           !/no\s+secondary|not\s+used/i.test(String(f.justification ?? "")),
