@@ -3065,10 +3065,17 @@ async function runStitch(dpia_id: string): Promise<void> {
       };
       walkCites(reportData);
       const exhibitCorpus = await fetchDpiaCorpus(supabase);
+      // PROMPT 12D — the ratified spine openers cite Art. 35(7)(a), Art. 35(9)
+      // and Art. 35(11) in long form, which the short-form harvest above never
+      // matched. They are authorities of every record and join the exhibit.
+      const { withDpiaSpineAuthorities } = await import(
+        "../_shared/report-exhibits/dpia-spine-authorities.ts"
+      );
       const exhibit = buildAuthorityExhibit(
-        [...cited],
+        withDpiaSpineAuthorities(cited),
         dpiaCorpusProvisionsForExhibit(exhibitCorpus),
       );
+
       (reportData as any).authority_exhibit = exhibit;
       console.log(JSON.stringify({
         evt: "dpia_authority_exhibit_attached", fn: "run-dpia-framework",
