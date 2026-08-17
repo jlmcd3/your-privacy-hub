@@ -422,6 +422,7 @@ export default function AdminReplayReview() {
                   <thead className="bg-muted/50 text-left">
                     <tr>
                       <th className="p-2">Created</th>
+                      <th className="p-2">Tool</th>
                       <th className="p-2">Batch label</th>
                       <th className="p-2">Status</th>
                       <th className="p-2">Docs</th>
@@ -435,6 +436,7 @@ export default function AdminReplayReview() {
                         onClick={() => setLabel(jobLabel(j))}
                       >
                         <td className="p-2 whitespace-nowrap font-mono">{fmt(j.created_at)}</td>
+                        <td className="p-2">{j.tool ?? "cppa_risk"}</td>
                         <td className="p-2">{jobLabel(j)}</td>
                         <td className="p-2">{j.status ?? "—"}</td>
                         <td className="p-2">{j.doc_ids?.length ?? 0}</td>
