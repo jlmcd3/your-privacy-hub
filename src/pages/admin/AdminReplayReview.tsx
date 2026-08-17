@@ -40,6 +40,8 @@ export type HarnessJob = {
   status: string | null;
   created_at: string;
   doc_ids: string[] | null;
+  /** DPIA HARNESS — "cppa_risk" (default for pre-existing rows) or "dpia". */
+  tool?: string | null;
 };
 
 /** ITEM 293 — newest-first ordering, applied client-side as a belt-and-braces
@@ -155,7 +157,7 @@ export default function AdminReplayReview() {
       setLoading(true);
       const { data, error } = await supabase
         .from("replay_harness_jobs" as any)
-        .select("id, notes, status, created_at, doc_ids")
+        .select("id, notes, status, created_at, doc_ids, tool")
         .order("created_at", { ascending: false });
       if (error) {
         toast.error(`Could not load harness jobs: ${error.message}`);
