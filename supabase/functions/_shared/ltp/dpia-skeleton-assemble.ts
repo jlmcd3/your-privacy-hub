@@ -1179,6 +1179,17 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   // with no rows yields null and the renderer drops the block entirely.
   const tables = buildDpiaSkeletonTables(report, intake);
 
+  // PROMPT 12J (CEO-ruled 2026-08-17) — the Section 4 design-risks INTRO
+  // renders IF AND ONLY IF the design-risks table renders. The conditional
+  // lives HERE, assembler-side: the spine and its serialization/hashes are
+  // untouched, and the ratified sentence bytes are unchanged. When the record
+  // carries no design-class risk row, the intro block's text is blanked for
+  // this render only, and the renderer drops it under the same no-padding law
+  // its table already follows. Block INDICES are preserved, so every composed
+  // key and table key still points at the same block.
+  const sectionsForRender = renderSectionsWithConditionalDesignIntro(tables);
+
+
   const composedRaw: ComposedBlocks = {
     // PROMPT 8D (spine v4.2): the executive lead block is deleted, so the body
     // is block index 1 and carries the closing decision sentence itself.
