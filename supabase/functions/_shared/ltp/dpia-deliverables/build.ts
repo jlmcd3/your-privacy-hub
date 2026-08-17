@@ -1843,10 +1843,28 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       art9Special ? ART9_FULL_ASK : "",
     ].filter(Boolean).join(" ") || undefined;
 
+    // PROMPT 9A — the 6(1)(f) compound ask decomposes into its ratified parts.
+    // The compound ask itself is UNCHANGED and remains the gap-table text; each
+    // unmet part contributes its own labeled entry on the composed surfaces.
+    const ask_parts: { ask_class: string; display_label: string }[] = [];
+    const addPart = (id: DpiaAskClass) =>
+      ask_parts.push({ ask_class: id, display_label: resolveAskLabel(id, { op: op.operation_label }) });
+    if (!purpose_test_met) addPart("ask_lia_purpose");
+    if (!necessity_test_met) addPart("ask_lia_necessity");
+    if (!balancing_test_met && !childGateBlocks) addPart("ask_lia_balancing");
+    // PROMPT 9M item 4(d) / 3(d) — the two new ask classes.
+    if (childGateBlocks) addPart("ask_lia_children");
+    if (art9Special) addPart("ask_lia_special_category");
+    if (art9Special && !art9Selected) addPart("ask_lia_art9");
 
     return {
       operation_id: op.operation_id,
       operation_label: op.operation_label,
+      // PROMPT 9M item 5 — typed internal marker; never customer text.
+      ...(art9Special ? { art9_special: true as const } : {}),
+      // PROMPT 9M item 4 — the children's ask is ledgered against the basis field.
+      ...(childGateBlocks ? { gap_field: GAP_FIELD_BASIS } : {}),
+
       ...(ask_parts.length
         ? {
           ask_parts,
