@@ -97,6 +97,30 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       "Restating the processing purpose (“to send birthday coupons”) as the interaction purpose. The regulation asks why the consumer is interacting with the business — their reason, not yours.",
   },
 
+  // RK3-A1 g3 (Intake Contract v2.0 §6) — § 7152(a)(3)(B) per-category
+  // retention. Verbatim from verified registry row ra_content_op_retention.
+  retention_by_category: {
+    fieldLabel: "How long each category of personal information is kept",
+    citation: "11 CCR § 7152(a)(3)(B)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The risk assessment documents, for each category of personal information, how long the business plans to retain it — or, where the period is not known, the criteria used to determine it. A single overall period is a summary; the record is per category.",
+    regulationText:
+      "§ 7152(a)(3)(B) — “How long the business plans to retain each category of personal information, or if unknown, the criteria the business plans to use to determine that retention period.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(A)", label: "Planned processing methods" },
+      { citation: "11 CCR § 7152(a)(2)", label: "Minimum necessary personal information" },
+    ],
+    coachLead:
+      "One row per category you selected earlier. Give the period where you know it; where you genuinely do not, pick the criteria that will set it — the criteria answer is the accurate record, not a placeholder.",
+    coachBody:
+      "Retention stays connected to the purpose that justified the processing. Different categories often carry different periods — transaction records under a statutory retention rule, marketing identifiers until opt-out. A row per category makes that visible instead of averaging it away.",
+    goodAnswer:
+      "Fernbrook Grocers: “Contact identifiers — duration of the loyalty membership, then deleted within 90 days.” “Financial information — 7 years, statutory retention requirement.” Two categories, two different, stated rules.",
+    commonMistake:
+      "Copying one overall period into every row. Where periods genuinely differ by category, a uniform answer misstates the record; where the period is unknown, leaving the row blank instead of stating the criteria loses the answer the regulation asks for.",
+  },
+
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
   // including the Business E example excerpt.
   comparable_set: {

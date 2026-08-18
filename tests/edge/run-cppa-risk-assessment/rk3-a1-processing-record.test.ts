@@ -88,6 +88,35 @@ Deno.test("RK3-A1 g2 — form emits the three keys and stepValid requires them",
   assert(src.includes("Give the approximate number of California consumers"), "stepValid must require the approximate count");
 });
 
+// ── GROUP 3 — § 7152(a)(3)(B) per-category retention record ─────────────────
+
+Deno.test("RK3-A1 g3 — contract carries retention_by_pi_category with the period-or-criteria row rule", () => {
+  const f = field("retention_by_pi_category");
+  assert(f, "retention_by_pi_category missing from cppaRiskContract");
+  assertEquals(f!.required, "optional", "data-layer optional (legacy rows keep validating)");
+  assertEquals(f!.kind, "structured");
+  assert(field("retention_by_pi_category[].pi_category"), "pi_category child missing");
+  assert(field("retention_by_pi_category[].retention_period"), "retention_period child missing");
+  assert(field("retention_by_pi_category[].retention_criteria"), "retention_criteria child missing");
+});
+
+Deno.test("RK3-A1 g3 — form emits the matrix and stepValid enforces period-or-criteria", async () => {
+  const src = await Deno.readTextFile(PAGE_PATH);
+  assert(src.includes("retention_by_pi_category: retentionByPiCategory.filter((r) => r.pi_category)"), "intake memo must emit retention_by_pi_category, dropping category-less rows");
+  assert(src.includes("Add at least one per-category retention row"), "stepValid must require at least one row");
+  assert(src.includes("Every retention row needs a period"), "stepValid must enforce period-or-criteria per row");
+  assert(src.includes("Array.isArray(d.retentionByPiCategory)"), "applyRestore must restore the matrix with shape guards");
+});
+
+Deno.test("RK3-A1 g3 — statute rail carries the § 7152(a)(3)(B) verbatim", async () => {
+  const src = await Deno.readTextFile(RAIL_PATH);
+  assert(src.includes("retention_by_category: {"), "rail must define retention_by_category");
+  assert(
+    src.includes("How long the business plans to retain each category of personal information, or if unknown, the criteria the business plans to use to determine that retention period."),
+    "rail entry must carry the ra_content_op_retention verbatim quote",
+  );
+});
+
 Deno.test("RK3-A1 g2 — statute rail carries the consumer_interaction entry; no unverified (C)/(D) verbatim", async () => {
   const src = await Deno.readTextFile(RAIL_PATH);
   assert(src.includes("consumer_interaction: {"), "rail must define consumer_interaction");

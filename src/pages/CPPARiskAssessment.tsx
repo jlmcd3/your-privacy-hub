@@ -432,6 +432,13 @@ export default function CPPARiskAssessment() {
   const [consumerInteractionMethod, setConsumerInteractionMethod] = useState("");
   const [consumerInteractionPurpose, setConsumerInteractionPurpose] = useState("");
   const [approximateCaConsumers, setApproximateCaConsumers] = useState("");
+  // RK3-A1 g3 — § 7152(a)(3)(B) CANONICAL per-category retention record.
+  // One row per activity-specific PI category: a period, or the criteria
+  // that determine it when the period is unknown. i2_* stays the overall
+  // summary; this matrix is the record the report renders (Spine 4.3 App. A).
+  const [retentionByPiCategory, setRetentionByPiCategory] = useState<{ pi_category: string; retention_period: string; retention_criteria: string }[]>([
+    { pi_category: "", retention_period: "", retention_criteria: "" },
+  ]);
   // ── ITEM 305 — analytic-deliverable intake state ───────────────────
   const [a2NecessitySet, setA2NecessitySet] = useState<{ element: string; necessity: string; justification: string }[]>([
     { element: "", necessity: "", justification: "" },
@@ -693,6 +700,14 @@ export default function CPPARiskAssessment() {
     if (step === 4) {
       if (!i1bMinPi || i1bMinPi.length < 20) return "State the minimum personal information necessary for this purpose.";
       if (!i2RetentionPeriod || !i2RetentionCriteria) return "Give a retention period and the criteria that set it.";
+      // RK3-A1 g3 — § 7152(a)(3)(B): each row needs a category plus a period
+      // or the criteria that determine it (form-required; data-layer optional).
+      {
+        const rows = retentionByPiCategory.filter((r) => r.pi_category || r.retention_period.trim() || r.retention_criteria);
+        if (rows.length === 0) return "Add at least one per-category retention row — the categories this activity processes each need a retention period or the criteria that determine it.";
+        if (rows.some((r) => !r.pi_category)) return "Every retention row needs a personal-information category.";
+        if (rows.some((r) => !r.retention_period.trim() && !r.retention_criteria)) return "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.";
+      }
     }
     if (step === 7) {
       if (!i7InternalContributors) return "List the internal contributor roles — or write \"None\".";
@@ -754,6 +769,9 @@ export default function CPPARiskAssessment() {
     consumer_interaction_method: consumerInteractionMethod,
     consumer_interaction_purpose: consumerInteractionPurpose.trim(),
     approximate_ca_consumers: approximateCaConsumers.trim(),
+    // RK3-A1 g3 — § 7152(a)(3)(B) canonical per-category retention record.
+    // Rows without a category are dropped (the builder degrades honestly).
+    retention_by_pi_category: retentionByPiCategory.filter((r) => r.pi_category),
     // TURN 1b — new intake fields (flow through submission_summary + § 7150(b)(5) resolver).
     public_privacy_policy_url: publicPrivacyPolicyUrl.trim(),
     sensitive_location_basis: sensitiveLocationBasis,
@@ -810,6 +828,7 @@ export default function CPPARiskAssessment() {
     q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
+    retentionByPiCategory,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -833,6 +852,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
+    retentionByPiCategory,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -846,6 +866,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
+    retentionByPiCategory,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -861,6 +882,7 @@ export default function CPPARiskAssessment() {
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
+    retentionByPiCategory: [{ pi_category: "", retention_period: "", retention_criteria: "" }],
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
     secondaryActivities: [] as SecondaryActivity[],
@@ -959,6 +981,15 @@ export default function CPPARiskAssessment() {
     if (typeof d.consumerInteractionMethod === "string") setConsumerInteractionMethod(d.consumerInteractionMethod);
     if (typeof d.consumerInteractionPurpose === "string") setConsumerInteractionPurpose(d.consumerInteractionPurpose);
     if (typeof d.approximateCaConsumers === "string") setApproximateCaConsumers(d.approximateCaConsumers);
+    if (Array.isArray(d.retentionByPiCategory) && d.retentionByPiCategory.length > 0) {
+      setRetentionByPiCategory(
+        d.retentionByPiCategory.map((r: any) => ({
+          pi_category: typeof r?.pi_category === "string" ? r.pi_category : "",
+          retention_period: typeof r?.retention_period === "string" ? r.retention_period : "",
+          retention_criteria: typeof r?.retention_criteria === "string" ? r.retention_criteria : "",
+        })),
+      );
+    }
     if (typeof d.publicPrivacyPolicyUrl === "string") setPublicPrivacyPolicyUrl(d.publicPrivacyPolicyUrl);
     if (typeof d.sensitiveLocationBasis === "string") setSensitiveLocationBasis(d.sensitiveLocationBasis);
     // ITEM 275 — absent keys are legal in pre-Item-275 drafts.
@@ -1777,6 +1808,58 @@ export default function CPPARiskAssessment() {
                   placeholder="Statutory basis, or other criteria"
                 />
                 {renderAssertion("i2_retention_detail")}
+              </div>
+              {/* RK3-A1 g3 — § 7152(a)(3)(B) canonical per-category retention
+                  record. The i2 fields above stay as the overall summary. */}
+              <div data-rail-key="retention_by_category" onFocus={() => focusRail('retention_by_category')}>
+                <Label>For each category of personal information, how long is it kept? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(B))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">One row per category this activity processes. Give the period — or, if the period is not known, the criteria used to determine it.</p>
+                <div className="mt-2 space-y-2">
+                  {retentionByPiCategory.map((row, idx) => (
+                    <div key={idx} className="grid gap-2 xl:grid-cols-[1.2fr_1fr_1fr_auto] items-start">
+                      <select
+                        className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                        value={row.pi_category}
+                        onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, pi_category: e.target.value } : r)))}
+                        onFocus={() => focusRail('retention_by_category')}
+                      >
+                        <option value="">Category…</option>
+                        {(q4.length ? q4 : PI_CATEGORIES).map((c) => <option key={c}>{c}</option>)}
+                      </select>
+                      <input
+                        className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                        value={row.retention_period}
+                        onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, retention_period: e.target.value } : r)))}
+                        onFocus={() => focusRail('retention_by_category')}
+                        placeholder="Period — e.g., 24 months"
+                      />
+                      <select
+                        className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                        value={row.retention_criteria}
+                        onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, retention_criteria: e.target.value } : r)))}
+                        onFocus={() => focusRail('retention_by_category')}
+                      >
+                        <option value="">Criteria (if period unknown)…</option>
+                        {RETENTION_CRITERIA.map((c) => <option key={c}>{c}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setRetentionByPiCategory((prev) => prev.filter((_, i) => i !== idx))}
+                        disabled={retentionByPiCategory.length === 1}
+                        className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-40 h-10"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRetentionByPiCategory((prev) => [...prev, { pi_category: "", retention_period: "", retention_criteria: "" }])}
+                  className="mt-2 text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                >
+                  + Add a category row
+                </button>
               </div>
                 {/* A-2 — minimum-necessary candidate set */}
                 <div data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>

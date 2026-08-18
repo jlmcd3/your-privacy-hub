@@ -471,6 +471,20 @@ export const cppaRiskContract: IntakeContract = {
       options: CONSUMER_INTERACTION_METHOD_OPTS },
     { key: "consumer_interaction_purpose", kind: "narrative", required: "optional" },
     { key: "approximate_ca_consumers", kind: "text", required: "optional" },
+
+    // ── RK3-A1 g3 (Intake Contract v2.0 §6) — § 7152(a)(3)(B) CANONICAL
+    // per-category retention record. One row per activity-specific PI
+    // category: a period, or the criteria that determine it when unknown.
+    // i2_* fields remain the overall summary; this matrix is the record.
+    // Same data-layer-optional / form-required posture as g1/g2. The form
+    // drops rows without a category before emission.
+    { key: "retention_by_pi_category", kind: "structured", required: "optional" },
+    { key: "retention_by_pi_category[].pi_category", kind: "enum", required: "conditional",
+      requiredWhen: "a retention row is present", options: PI_CATEGORIES },
+    { key: "retention_by_pi_category[].retention_period", kind: "text", required: "conditional",
+      requiredWhen: "a retention row is present and retention_criteria is empty" },
+    { key: "retention_by_pi_category[].retention_criteria", kind: "enum", required: "conditional",
+      requiredWhen: "a retention row is present and retention_period is empty", options: RETENTION_CRITERIA },
   ],
 
 };
