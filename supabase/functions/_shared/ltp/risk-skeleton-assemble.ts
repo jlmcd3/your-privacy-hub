@@ -1,29 +1,29 @@
-// ITEM SO-1 WIRE-IN — CPPA RISK: ASSEMBLY THROUGH THE BYTE-PINNED SKELETON.
+// RK3-B — CPPA RISK: ASSEMBLY THROUGH THE SPINE 4.3 SKELETON.
 //
-// SO-1 step 3 (RENDERERS) requires the LIVE document to be assembled through
-// `plans/cppa-risk.spine.ts`, not merely for the spine to exist. This module is
-// that assembly. It is DETERMINISTIC: it invents no prose. Every [GENERATED],
-// [DETERMINATION LEAD] and [CONDITIONAL] block is composed from the typed
-// surfaces items 420–427 already put on the report, and every {slot} is filled
-// from the live intake per `cppa-risk.slotmap.ts`.
+// Supersedes the SO-1 v3 wire-in. This module is DETERMINISTIC: it invents no
+// prose. Every {slot} is filled from the live intake (Intake Contract v2.0
+// keys), every [CONDITIONAL] block is composed from the RISK_FIXED constants
+// the spine exports plus the facts its trigger names, and every {{DERIVED.*}}
+// "rule" block is a mechanical projection of established facts. The
+// {{FACTOR.*}} "generated" blocks are NOT composed here — Phase C wires them
+// through the factor engine (Fable 5 per CEO directive 2026-08-18) — so per
+// the NO-PADDING LAW they are omitted entirely from the Phase B document.
 //
 // The result is written to `report_data.skeleton_document`, and that document
 // is what ships: `generate-report-pdf` renders the customer PDF from it, and
-// `CPPARiskAssessmentResult.tsx` renders the in-app document body from it. The
-// typed card surfaces remain as the structured data the skeleton's sections
-// draw on.
+// `CPPARiskAssessmentResult.tsx` renders the in-app document body from it.
 //
 // ATTRIBUTION RULE: the company's facts are attributed to the company. The v3
-// banned register ("the record shows" family, "on this record") is rewritten
-// deterministically on the way in — the underlying typed surfaces are NOT
-// mutated.
+// banned register is swept from every composed block by the renderer; fixed
+// spine prose is byte-pinned law and is checked, not repaired.
 
 import {
-  SKELETON_SECTIONS,
-  RISK_SKELETON_TITLE,
+  RISK_FIXED,
   RISK_SKELETON_SUBTITLE,
+  RISK_SKELETON_TITLE,
   RISK_SKELETON_VERSION,
   RISK_V3_BANNED_REGISTER,
+  SKELETON_SECTIONS,
 } from "../prose/plans/cppa-risk.spine.ts";
 import {
   renderSkeletonDocument,
@@ -35,13 +35,16 @@ import {
   type SlotValues,
 } from "../prose/skeleton-render.ts";
 
-export const RISK_SKELETON_ASSEMBLER_STAMP = "risk-skeleton-assembler@so1-wire-in-2026-08-10";
+export const RISK_SKELETON_ASSEMBLER_STAMP =
+  "risk-skeleton-assembler@rk3-b-spine-4.3-2026-08-18";
 
 type Bag = Record<string, unknown>;
 
 const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const arr = (v: unknown): string[] =>
   Array.isArray(v) ? v.map((x) => s(x)).filter(Boolean) : s(v) ? [s(v)] : [];
+const rows = (v: unknown): Bag[] =>
+  Array.isArray(v) ? v.filter((x) => x && typeof x === "object") as Bag[] : [];
 
 /** "a, b and c" */
 function asProse(items: readonly string[]): string {
@@ -51,13 +54,21 @@ function asProse(items: readonly string[]): string {
   return `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }
 
-/**
- * Deterministic register repair — attribution voice is law (v3 bans).
- * Canonical implementation now lives in `./register-repair.ts` so the render
- * layer can apply it too; re-exported here so every existing import is stable.
- */
-export { repairRegister } from "./register-repair.ts";
-import { repairRegister } from "./register-repair.ts";
+/** Trimmed, with any trailing full stop removed so skeleton sentences do not double-stop. */
+function clause(v: unknown): string {
+  return s(v).replace(/\.\s*$/, "");
+}
+
+/** Booleans and Yes/No strings to a printable Yes/No; "" when unanswered. */
+function yn(v: unknown): string {
+  if (v === true) return "Yes";
+  if (v === false) return "No";
+  return s(v);
+}
+
+function isYes(v: unknown): boolean {
+  return v === true || /^yes\b/i.test(s(v));
+}
 
 function firstSentence(text: string): string {
   const t = text.trim();
@@ -65,262 +76,622 @@ function firstSentence(text: string): string {
   return (m ? m[0] : t).trim();
 }
 
-function afterFirstSentence(text: string): string {
-  const first = firstSentence(text);
-  return text.trim().slice(first.length).trim();
+/**
+ * Deterministic register repair — attribution voice is law (v3 bans).
+ * Canonical implementation lives in `./register-repair.ts`; re-exported here
+ * so every existing import (the other product assemblers) is stable.
+ */
+export { repairRegister } from "./register-repair.ts";
+
+const SENTINEL = "\u0000";
+
+/**
+ * Fill a RISK_FIXED template's {tokens} and drop any sentence whose token has
+ * no value — the same honest-absence rule the renderer applies to skeleton
+ * slots. Used only for conditional blocks composed from spine constants.
+ */
+function fillDrop(template: string, map: Record<string, string | null>): string {
+  let out = template.replace(/\{([^{}]+)\}/g, (_m, name: string) => {
+    const v = map[name.trim()];
+    return v === null || v === undefined || v === "" ? SENTINEL : v;
+  });
+  if (out.includes(SENTINEL)) {
+    out = out
+      .split(/(?<=\.)\s+/)
+      .filter((x) => !x.includes(SENTINEL))
+      .join(" ");
+    out = out.split(SENTINEL).join("");
+  }
+  return out.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
 }
 
-function isYes(v: unknown): boolean {
-  return /^yes\b/i.test(s(v));
+// ── Canonical California PI / SPI taxonomy (Cal. Civ. Code § 1798.140(v), (ae)) ──
+// Field-map §2b: q4_pi_categories is activity-scoped and maps internally to the
+// canonical statutory taxonomy. Keys byte-match the contract's PI_CATEGORIES.
+
+interface TaxonomyRow {
+  readonly canonical: string;
+  readonly spi: boolean;
+}
+
+const CA_PI_TAXONOMY: Record<string, TaxonomyRow> = {
+  "Contact identifiers (name, email, phone)": {
+    canonical: "Identifiers (name, email address, telephone number)",
+    spi: false,
+  },
+  "Device identifiers (IP, cookies, device IDs)": {
+    canonical: "Unique identifiers (IP address, cookies, device identifiers)",
+    spi: false,
+  },
+  "Internet or network activity": {
+    canonical: "Internet or other electronic network activity information",
+    spi: false,
+  },
+  "Precise geolocation (GPS-level / specific address)": {
+    canonical: "Precise geolocation",
+    spi: true,
+  },
+  "General location (city, region, ZIP, IP-derived)": {
+    canonical: "Geolocation data (non-precise)",
+    spi: false,
+  },
+  "Financial information": {
+    canonical: "Commercial and financial information",
+    spi: false,
+  },
+  "Health or medical information": {
+    canonical: "Health information",
+    spi: true,
+  },
+  "Biometric information": {
+    canonical: "Biometric information",
+    spi: true,
+  },
+  "Genetic data": {
+    canonical: "Genetic data",
+    spi: true,
+  },
+  "Racial or ethnic origin": {
+    canonical: "Racial or ethnic origin",
+    spi: true,
+  },
+  "Religious or philosophical beliefs": {
+    canonical: "Religious or philosophical beliefs",
+    spi: true,
+  },
+  "Union membership": {
+    canonical: "Union membership",
+    spi: true,
+  },
+  "Sexual orientation or gender identity": {
+    canonical: "Sex life or sexual orientation",
+    spi: true,
+  },
+  "Citizenship or immigration status": {
+    canonical: "Citizenship or immigration status",
+    spi: true,
+  },
+  "Employment information": {
+    canonical: "Professional or employment-related information",
+    spi: false,
+  },
+  "Education information": {
+    canonical: "Education information",
+    spi: false,
+  },
+  "Children's data (under 16)": {
+    canonical: "Personal information of consumers under 16",
+    spi: false,
+  },
+  "Other": {
+    canonical: "Other personal information described in the assessment record",
+    spi: false,
+  },
+};
+
+// ── DERIVED builders (field-map §4 — deterministic, no model) ────────────────
+
+/** {{DERIVED.applicable_7150_triggers}} — from the live trigger classification. */
+export function deriveApplicable7150Triggers(report: Bag): string | null {
+  const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
+  const engaged = scope
+    .filter((x) => x.startsWith("Engaged — "))
+    .map((x) => x.replace(/^Engaged — /, "").replace(/:.*$/, "").trim())
+    .filter(Boolean);
+  return engaged.length ? asProse(engaged) : null;
+}
+
+/** {{DERIVED.processing_lifecycle_narrative}} — first-clause operational sequence, the company's own sentences in lifecycle order. */
+export function deriveProcessingLifecycleNarrative(intake: Bag): string | null {
+  const m = (intake.processing_methods ?? {}) as Bag;
+  const stages = [
+    s(intake.processing_entry_point),
+    s(m.collection_method),
+    s(m.use_method),
+    s(m.disclosure_method),
+    s(m.retention_method),
+    s(m.other_processing_method),
+    s(intake.processing_result),
+  ].filter(Boolean).map(firstSentence);
+  return stages.length >= 2 ? stages.join(" ") : null;
+}
+
+/** {{DERIVED.activity_pi_inventory}} — q4 categories mapped to the canonical California taxonomy. */
+export function deriveActivityPiInventory(intake: Bag): string | null {
+  const cats = arr(intake.q4_pi_categories);
+  if (cats.length === 0) return null;
+  return cats
+    .map((c) => {
+      const row = CA_PI_TAXONOMY[c];
+      return row ? `${c} (canonical California category: ${row.canonical})` : c;
+    })
+    .join("; ");
+}
+
+/** {{DERIVED.activity_spi_inventory}} — SPI-mapped q4 categories; [R3] fallback when q15 answers Yes with no mapped category. */
+export function deriveActivitySpiInventory(intake: Bag): string | null {
+  const spi = arr(intake.q4_pi_categories).filter((c) => CA_PI_TAXONOMY[c]?.spi);
+  if (spi.length > 0) return asProse(spi);
+  if (isYes(intake.q15_sensitive_pi)) {
+    return "the sensitive personal information the Company has identified in its submission";
+  }
+  return null;
+}
+
+/** {{DERIVED.initial_assessment_deadline}} — § 7155 timing rules over the status/start facts. */
+export function deriveInitialAssessmentDeadline(intake: Bag): string | null {
+  const status = s(intake.processing_status);
+  if (!status) return null;
+  const start = s(intake.processing_start_date);
+  const planned = s(intake.planned_start_date);
+  if (/^planned/i.test(status)) {
+    return `Initial-assessment deadline: before the processing is initiated${planned ? ` (planned start: ${planned})` : ""}.`;
+  }
+  if (start && start < "2026-01-01") {
+    return "Initial-assessment deadline: December 31, 2027 (transition deadline for covered processing initiated before January 1, 2026 and continuing afterward).";
+  }
+  return `Initial-assessment deadline: before initiation of the processing${start ? ` (processing initiated ${start})` : ""}.`;
+}
+
+/** {{DERIVED.next_review_date}} — assessment date + the three-year review rule. */
+export function deriveNextReviewDate(assessmentDateIso: string): string {
+  const d = new Date(`${assessmentDateIso}T00:00:00Z`);
+  d.setUTCFullYear(d.getUTCFullYear() + 3);
+  return d.toISOString().slice(0, 10);
+}
+
+/** {{DERIVED.assessment_retention_end_date_or_rule}} — § 7155 later-of rule over the status facts. */
+export function deriveAssessmentRetentionEnd(intake: Bag): string | null {
+  const status = s(intake.processing_status);
+  if (!status) return null;
+  if (/^discontinued/i.test(status)) {
+    return "Because the processing is recorded as discontinued, the assessment record must be retained for five years after completion of this assessment, or until the end of the processing if that is later";
+  }
+  return "Because the processing continues on the present record, the retention end date is not yet determinable; the later-of rule above governs";
+}
+
+function methodLines(intake: Bag): string[] {
+  const m = (intake.processing_methods ?? {}) as Bag;
+  const pairs: Array<[string, string]> = [
+    ["Collection", s(m.collection_method)],
+    ["Use", s(m.use_method)],
+    ["Disclosure", s(m.disclosure_method)],
+    ["Retention", s(m.retention_method)],
+    ["Other processing", s(m.other_processing_method)],
+  ];
+  return pairs.filter(([, v]) => v).map(([k, v]) => `Processing method — ${k}: ${v}`);
+}
+
+/** {{DERIVED.processing_and_data_inventory}} — Appendix A projection of the structured v2.0 facts. */
+export function deriveProcessingAndDataInventory(intake: Bag): string | null {
+  const lines: string[] = [];
+  const cats = arr(intake.q4_pi_categories);
+  if (cats.length) lines.push(`Personal-information categories (this activity): ${cats.join("; ")}`);
+  const pi = deriveActivityPiInventory(intake);
+  if (pi) lines.push(`Canonical California mapping: ${pi}`);
+  const spi = deriveActivitySpiInventory(intake);
+  lines.push(`Sensitive personal information: ${spi ?? "none identified in the activity record"}`);
+  if (s(intake.i4b_sources)) lines.push(`Sources: ${s(intake.i4b_sources)}`);
+  if (s(intake.processing_entry_point)) lines.push(`Processing entry point: ${s(intake.processing_entry_point)}`);
+  lines.push(...methodLines(intake));
+  const lifecycle = deriveProcessingLifecycleNarrative(intake);
+  if (lifecycle) lines.push(`Processing lifecycle (operational sequence): ${lifecycle}`);
+  if (s(intake.processing_result)) lines.push(`Processing result: ${s(intake.processing_result)}`);
+  const im = s(intake.consumer_interaction_method);
+  const ip = s(intake.consumer_interaction_purpose);
+  if (im || ip) lines.push(`Consumer interaction: ${[im, ip].filter(Boolean).join(" — ")}`);
+  if (s(intake.approximate_ca_consumers)) {
+    lines.push(`Approximate California consumers: ${s(intake.approximate_ca_consumers)}`);
+  }
+  for (const d of rows(intake.activity_disclosures)) {
+    const bits = [
+      clause(d.disclosure_content),
+      `method: ${clause(d.disclosure_method)}`,
+      s(d.status) ? `status: ${s(d.status)}` : "",
+      s(d.timing_or_location) ? `timing: ${clause(d.timing_or_location)}` : "",
+    ].filter(Boolean);
+    lines.push(`Disclosure — ${bits[0]} (${bits.slice(1).join("; ")})`);
+  }
+  for (const r of rows(intake.recipients)) {
+    lines.push(
+      `Recipient — ${s(r.recipient_name_or_category)} (${s(r.recipient_type)}): ${
+        arr(r.pi_categories_made_available).join(", ")
+      } — ${clause(r.disclosure_purpose)}`,
+    );
+  }
+  for (const r of rows(intake.retention_by_pi_category)) {
+    const rule = s(r.retention_period) || s(r.retention_criteria);
+    if (s(r.pi_category) && rule) lines.push(`Retention — ${s(r.pi_category)}: ${rule}`);
+  }
+  const overall = [s(intake.i2_retention_period), s(intake.i2_retention_criteria)].filter(Boolean);
+  if (overall.length) lines.push(`Overall retention: ${overall.join(" — ")}`);
+  if (s(intake.i2_retention_detail)) lines.push(`Retention detail: ${s(intake.i2_retention_detail)}`);
+  return lines.length ? lines.join("\n") : null;
+}
+
+/** {{DERIVED.submission_support_record_for_this_assessment}} — Appendix E assessment-level contribution. */
+export function deriveSubmissionSupportRecord(
+  intake: Bag,
+  report: Bag,
+  assessmentDateIso: string,
+): string {
+  const lines: string[] = [];
+  if (s(intake.primary_activity_name)) {
+    lines.push(`Processing activity: ${s(intake.primary_activity_name)}`);
+  }
+  const triggers = deriveApplicable7150Triggers(report);
+  lines.push(`Applicable § 7150(b) trigger(s): ${triggers ?? "none engaged on the present record"}`);
+  const cats = arr(intake.q4_pi_categories);
+  if (cats.length) lines.push(`Personal-information categories processed (this activity): ${cats.join("; ")}`);
+  const spi = deriveActivitySpiInventory(intake);
+  lines.push(`Sensitive personal information: ${spi ?? "none identified in the activity record"}`);
+  if (s(intake.approximate_ca_consumers)) {
+    lines.push(`Approximate California consumers affected: ${s(intake.approximate_ca_consumers)}`);
+  }
+  if (s(intake.processing_status)) {
+    const dates = [
+      s(intake.processing_start_date) ? `start ${s(intake.processing_start_date)}` : "",
+      s(intake.planned_start_date) ? `planned start ${s(intake.planned_start_date)}` : "",
+    ].filter(Boolean).join("; ");
+    lines.push(`Processing status: ${s(intake.processing_status)}${dates ? ` (${dates})` : ""}`);
+  }
+  if (s(intake.i8_certifying_exec_name)) {
+    lines.push(
+      `Certifying executive identified: ${s(intake.i8_certifying_exec_name)}${
+        s(intake.i8_certifying_exec_title) ? `, ${s(intake.i8_certifying_exec_title)}` : ""
+      }`,
+    );
+  }
+  lines.push(`Assessment date: ${assessmentDateIso}; skeleton version: ${RISK_SKELETON_VERSION}`);
+  return lines.join("\n");
+}
+
+/** {{DERIVED.business_level_submission_fields_outstanding}} — fixed § 7157 aggregate checklist. [R3] */
+export function deriveBusinessLevelOutstanding(): string {
+  return [
+    "Outstanding business-level § 7157 submission elements (these aggregate across all assessments in the reporting period and cannot be determined from this assessment alone):",
+    "— Number of risk assessments conducted or updated during the reporting period.",
+    "— Aggregate personal-information and sensitive-personal-information categories across all assessed activities.",
+    "— The certifying executive's attestation at the time of submission.",
+    "— Confirmation of the submission point of contact and submission method.",
+  ].join("\n");
+}
+
+/** {{DERIVED.materials_considered_index}} — Appendix F index of the record and the materials it names. */
+export function deriveMaterialsConsideredIndex(intake: Bag): string {
+  const lines: string[] = [
+    "1. The Company’s CPPA risk-assessment intake record (Intake Contract v2.0), including its structured processing, disclosure, recipient, retention, necessity, benefit, harm-pathway and safeguard records.",
+  ];
+  if (s(intake.public_privacy_policy_url)) {
+    lines.push(`${lines.length + 1}. The Company’s public privacy policy: ${s(intake.public_privacy_policy_url)}`);
+  }
+  if (isYes(intake.i9_has_existing_dpia) && s(intake.i9_existing_dpia_summary)) {
+    lines.push(`${lines.length + 1}. The Company’s existing data protection impact assessment, as summarised in the intake record.`);
+  }
+  return lines.join("\n");
+}
+
+/** {{DERIVED.admt_technical_facts}} — Appendix D labelled projection of the Section V facts. */
+export function deriveAdmtTechnicalFacts(intake: Bag): string | null {
+  if (!isYes(intake.q18_admt_use)) return null;
+  const pairs: Array<[string, string]> = [
+    ["System description", s(intake.q19_admt_description)],
+    ["Operational role", s(intake.admt_operational_role)],
+    ["Logic", s(intake.i5_admt_logic)],
+    ["Assumptions and limitations", s(intake.admt_assumptions_limitations)],
+    ["Output", s(intake.admt_output)],
+    ["Use of the output", s(intake.admt_output_use)],
+    ["Consumer effect", s(intake.admt_consumer_effect)],
+    ["Human review", s(intake.i5_admt_human_review)],
+    ["Fairness testing", s(intake.i5_admt_fairness_testing)],
+    ["Training-data source", s(intake.i5_admt_training_source)],
+    ["§ 7153 — made available to another business", yn(intake.admt_made_available_to_other_business)],
+    ["§ 7153 — trained using personal information", yn(intake.admt_provider_trained_using_pi)],
+    ["§ 7153 — recipient uses it for a significant decision", yn(intake.recipient_business_uses_admt_for_significant_decision)],
+  ];
+  const lines = pairs.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`);
+  return lines.length ? lines.join("\n") : null;
 }
 
 // ── Slot values ─────────────────────────────────────────────────────────────
 
-export function buildRiskSlotValues(intake: Bag): SlotValues {
-  const retentionPeriod = s(intake.i2_retention_period);
-  const retentionCriteria = s(intake.i2_retention_criteria);
-  const retentionDetail = s(intake.i2_retention_detail);
-  const external = arr(intake.i7_external_consultees);
-  const providers = s(intake.a8_information_providers);
-  const otherStake = s(intake.a4_benefit_other_stakeholders);
-  const otherStakeFact = s(intake.a4_benefit_other_stakeholders_fact);
-  const pub = s(intake.a4_benefit_public);
-  const pubFact = s(intake.a4_benefit_public_fact);
-  const approver = s(intake.a9_approver_name);
-  const approverPos = s(intake.a9_approver_position);
-  const approvalDate = s(intake.a9_approval_date);
+export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
+  const assessmentDate = new Date().toISOString().slice(0, 10);
 
-  const retentionClause = retentionPeriod
-    ? `it retains the information for ${retentionPeriod}`
-    : retentionCriteria
-    ? `retention is governed by ${retentionCriteria}`
-    : null;
+  const participants = rows(intake.section_7151_operational_participants)
+    .map((p) =>
+      `${s(p.name)}, ${s(p.role)} — ${clause(p.processing_responsibility)} (participation confirmed: ${
+        p.participation_confirmed === true ? "Yes" : yn(p.participation_confirmed) || "No"
+      })`
+    )
+    .join("; ");
+
+  const recipientRows = rows(intake.recipients);
+  const recipientsNames = asProse(recipientRows.map((r) => s(r.recipient_name_or_category)));
+  const recipientsDetail = recipientRows
+    .map((r) =>
+      `${s(r.recipient_name_or_category)} (${s(r.recipient_type)}): ${
+        arr(r.pi_categories_made_available).join(", ")
+      } — ${clause(r.disclosure_purpose)}`
+    )
+    .join("; ");
+
+  const disclosureRows = rows(intake.activity_disclosures)
+    .map((d) => {
+      const tail = [
+        `method: ${clause(d.disclosure_method)}`,
+        s(d.status) ? `status: ${s(d.status)}` : "",
+        s(d.timing_or_location) ? `timing: ${clause(d.timing_or_location)}` : "",
+      ].filter(Boolean).join("; ");
+      return `${clause(d.disclosure_content)} (${tail})`;
+    })
+    .join("; ");
+
+  const retentionByCategory = rows(intake.retention_by_pi_category)
+    .map((r) => {
+      const rule = s(r.retention_period) || s(r.retention_criteria);
+      return s(r.pi_category) && rule ? `${s(r.pi_category)} — ${rule}` : "";
+    })
+    .filter(Boolean)
+    .join("; ");
+
+  const m = (intake.processing_methods ?? {}) as Bag;
+  const methodsText = clause(
+    [
+      s(m.collection_method) ? `Collection: ${s(m.collection_method)}` : "",
+      s(m.use_method) ? `Use: ${s(m.use_method)}` : "",
+      s(m.disclosure_method) ? `Disclosure: ${s(m.disclosure_method)}` : "",
+      s(m.retention_method) ? `Retention: ${s(m.retention_method)}` : "",
+      s(m.other_processing_method) ? `Other processing: ${s(m.other_processing_method)}` : "",
+    ].filter(Boolean).join(" "),
+  );
+
+  const submissionContact = [
+    s(intake.cppa_submission_contact_name),
+    s(intake.cppa_submission_contact_phone),
+    s(intake.cppa_submission_contact_email),
+  ].filter(Boolean).join(" | ");
 
   return {
+    // SYSTEM
     entityName: s(intake.entity_name) || "the company",
+    assessmentDate,
+    versionNumber: RISK_SKELETON_VERSION,
 
-    primaryActivityName: s(intake.primary_activity_name),
-    primaryActivityPurpose: s(intake.primary_activity_purpose),
-    hasSecondaryUses: s(intake.has_secondary_uses),
+    // Executive summary / Section I
+    activityName: clause(intake.primary_activity_name) || null,
+    subjectAnchor: clause(intake.subject_anchor) || null,
+    activityPurpose: clause(intake.primary_activity_purpose) || null,
+    derivedTriggers: deriveApplicable7150Triggers(report),
+    informationProviders: clause(intake.a8_information_providers) || null,
+    internalContributors: clause(intake.i7_internal_contributors) || null,
+    operationalParticipants: participants || null,
 
-    i1bMinPi: s(intake.i1b_min_pi),
-    i4bSources: s(intake.i4b_sources),
-    i4Disclosures: asProse(arr(intake.i4_disclosure_mechanisms)),
-    i3CaConsumerBand: s(intake.i3_ca_consumer_band).toLowerCase(),
-    RETENTION_CLAUSE: retentionClause,
-    RETENTION_DETAIL_SENTENCE: retentionDetail
-      ? `The company has further described its retention practice as follows: ${retentionDetail}`
-      : null,
+    // Section II
+    processingEntryPoint: clause(intake.processing_entry_point) || null,
+    processingMethods: methodsText || null,
+    // {{DERIVED.processing_lifecycle_narrative}} is implemented
+    // (deriveProcessingLifecycleNarrative) and rendered in Appendix A; the
+    // spine's "may be presented" sentence stays honestly absent in the body
+    // so the same facts are not printed twice in II.A.
+    lifecycleNarrative: null,
+    processingResult: clause(intake.processing_result) || null,
+    interactionMethod: s(intake.consumer_interaction_method) || null,
+    interactionPurpose: clause(intake.consumer_interaction_purpose) || null,
+    approxCaConsumers: clause(intake.approximate_ca_consumers) || null,
+    piCategories: asProse(arr(intake.q4_pi_categories)) || null,
+    piInventory: deriveActivityPiInventory(intake),
+    i4bSources: clause(intake.i4b_sources) || null,
+    recipientsNames: recipientsNames || null,
+    recipientsDetail: recipientsDetail || null,
+    retentionPeriod: clause(intake.i2_retention_period) || null,
+    retentionCriteria: clause(intake.i2_retention_criteria) || null,
+    retentionDetail: clause(intake.i2_retention_detail) || null,
+    retentionByCategory: retentionByCategory || null,
 
-    q18: s(intake.q18_admt_use),
-    i5AdmtLogic: s(intake.i5_admt_logic),
-    i5AdmtHumanReview: s(intake.i5_admt_human_review),
-    i5AdmtFairnessTesting: s(intake.i5_admt_fairness_testing),
-    i5AdmtTrainingSource: s(intake.i5_admt_training_source),
+    // Section III
+    minPi: clause(intake.i1b_min_pi) || null,
 
-    a4BenefitBusiness: s(intake.a4_benefit_business),
-    a4BenefitBusinessFact: s(intake.a4_benefit_business_fact) ||
-      "no supporting fact the company has supplied",
-    a4BenefitConsumer: s(intake.a4_benefit_consumer),
-    a4BenefitConsumerFact: s(intake.a4_benefit_consumer_fact) ||
-      "no supporting fact the company has supplied",
-    OTHER_STAKEHOLDER_SENTENCE: otherStake
-      ? `The company has identified the benefit to other stakeholders as ${otherStake}, supported by ${otherStakeFact || "no supporting fact the company has supplied"}`
-      : "The company has not identified a benefit to other stakeholders",
-    PUBLIC_SENTENCE: pub
-      ? `The company has identified the benefit to the public as ${pub}, supported by ${pubFact || "no supporting fact the company has supplied"}`
-      : "The company has not identified a benefit to the public",
+    // Section IV
+    activityDisclosures: disclosureRows || null,
+    privacyPolicyUrl: s(intake.public_privacy_policy_url) || null,
 
-    i7InternalContributors: s(intake.i7_internal_contributors),
-    EXTERNAL_CLAUSE: external.length ? `, together with ${asProse(external)}` : "",
-    PROVIDERS_SENTENCE: providers
-      ? `The company has identified ${providers} as the source of the information relied on`
-      : null,
-    i8ExecName: s(intake.i8_certifying_exec_name),
-    i8ExecTitle: s(intake.i8_certifying_exec_title),
-    APPROVAL_SENTENCE: approver
-      ? `The assessment was approved by ${approver}${approverPos ? `, ${approverPos}` : ""}${approvalDate ? `, on ${approvalDate}` : ""}`
-      : null,
-
-    i9HasDpia: s(intake.i9_has_existing_dpia),
-    i9DpiaSummary: s(intake.i9_existing_dpia_summary),
+    // Section X
+    processingStatus: s(intake.processing_status) || null,
+    processingStartDate: s(intake.processing_start_date) || null,
+    plannedStartDate: s(intake.planned_start_date) || null,
+    materialChange: s(intake.material_change_since_prior) || null,
+    nextReviewDate: deriveNextReviewDate(assessmentDate),
+    retentionEndRule: deriveAssessmentRetentionEnd(intake),
+    certExecName: s(intake.i8_certifying_exec_name) || null,
+    certExecTitle: clause(intake.i8_certifying_exec_title) || null,
+    certContactPhone: s(intake.i8_contact_phone) || null,
+    certContactEmail: s(intake.i8_contact_email) || null,
+    // D6 — organization-level fields; resolve through the bag when the org
+    // profile supplies them, drop honestly otherwise.
+    certifierIsExec: yn(intake.certifier_is_executive_management) || null,
+    certifierResponsible: yn(intake.certifier_directly_responsible_for_ra_compliance) || null,
+    certifierKnowledge: yn(intake.certifier_has_sufficient_knowledge) || null,
+    certifierAuthorized: yn(intake.certifier_authorized_to_submit) || null,
+    submissionContact: submissionContact || null,
   };
 }
 
-// ── Composed blocks (one entry per non-fixed block, keyed sectionId:index) ──
-
-function activityRecord(report: Bag): Bag {
-  const list = report.risk_assessment_by_activity;
-  if (Array.isArray(list) && list.length > 0 && typeof list[0] === "object") return list[0] as Bag;
-  if (list && typeof list === "object") return list as Bag;
-  return {};
-}
-
-function composeExecutive(report: Bag): { lead: string; body: string } {
-  const exec = s(report.executive_summary);
-  if (!exec) return { lead: "", body: "" };
-  return { lead: repairRegister(firstSentence(exec)), body: repairRegister(afterFirstSentence(exec)) };
-}
-
-function composeApplicability(report: Bag): { lead: string; body: string } {
-  const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
-  const engaged = scope.filter((x) => x.startsWith("Engaged —"));
-  const notEngaged = scope.filter((x) => x.startsWith("Not engaged —"));
-  const analysis = scope.filter((x) => !x.startsWith("Engaged —") && !x.startsWith("Not engaged —"));
-
-  const lead = engaged.length
-    ? `On the company's answers, ${engaged.length === 1 ? "one trigger under Section 7150(b) is engaged" : `${engaged.length} triggers under Section 7150(b) are engaged`}: ${asProse(engaged.map((e) => e.replace(/^Engaged — /, "").replace(/:.*$/, "")))}.`
-    : "On the company's answers, no trigger under Section 7150(b) is engaged.";
-
-  const body = [...analysis, ...engaged, ...notEngaged].map(repairRegister).join(" ");
-  return { lead, body };
-}
-
-function composePersonalInformation(intake: Bag): string {
-  const band = s(intake.i3_ca_consumer_band);
-  const cats = s(intake.i1b_min_pi);
-  if (!cats) return "";
-  return repairRegister(
-    `The information at issue is the personal information ${s(intake.entity_name) || "the company"} has identified as necessary to the activity${band ? `, affecting approximately ${band.toLowerCase()} California consumers` : ""}, disclosed to the recipients the company has named.`,
-  );
-}
-
-function composeNecessity(report: Bag, intake: Bag): { lead: string; body: string } {
-  const rs = (report.record_sufficiency ?? {}) as Bag;
-  const complete = rs.complete === true;
-  const lead = complete
-    ? "On the company's answers, the processing is confined to the categories the company has identified as necessary to the purpose it has stated."
-    : "On the company's answers, whether the processing is confined to what the stated purpose requires cannot be determined on the elements the company has left unanswered.";
-
-  const elements = Array.isArray(rs.elements) ? (rs.elements as Bag[]) : [];
-  const unsupported = elements.filter((e) => !/present in the record/i.test(s(e.status)));
-  const purpose = s(intake.primary_activity_purpose);
-  const parts: string[] = [];
-  if (purpose) {
-    parts.push(`The company has articulated the need for the information as ${purpose}, and each category it has identified is considered against that need.`);
-  }
-  if (unsupported.length) {
-    parts.push(
-      `The following elements are not supported on the company's submission and are identified as unsupported rather than assumed: ${asProse(unsupported.map((e) => `${s(e.element)} (${s(e.pinpoint)})`))}.`,
-    );
-  } else if (elements.length) {
-    parts.push("Every element the regulation requires is supported by an answer the company has given; none is assumed.");
-  }
-  return { lead, body: repairRegister(parts.join(" ")) };
-}
-
-function composeImpacts(report: Bag): { lead: string; body: string; admt: string } {
-  const act = activityRecord(report);
-  const effects = Array.isArray(act.adverse_effects) ? (act.adverse_effects as Bag[]) : [];
-  const gaps = s(act.safeguard_gaps);
-  const safeguards = s(act.current_safeguards);
-
-  const rank = (e: Bag) => {
-    const sev = ["Minimal", "Moderate", "Significant", "Severe"].indexOf(s(e.severity));
-    const lik = ["Unlikely", "Possible", "Likely", "Highly likely"].indexOf(s(e.likelihood));
-    return sev * 10 + lik;
-  };
-  const worst = [...effects].sort((a, b) => rank(b) - rank(a))[0];
-  const noGap = /names no safeguard that is planned-only or absent/i.test(gaps);
-
-  const lead = worst
-    ? `The most significant realistic impact the company has identified is ${s(worst.harm_type).toLowerCase()} — ${s(worst.severity).toLowerCase()} in severity and ${s(worst.likelihood).toLowerCase()} in likelihood — and the safeguards the company has recorded ${noGap ? "address it adequately" : "do not yet fully address it"}.`
-    : "The company has identified no negative impact for this activity.";
-
-  const parts: string[] = [];
-  for (const e of effects) {
-    parts.push(
-      `The company has identified ${s(e.harm_type).toLowerCase()} as a potential negative impact, assessed as ${s(e.likelihood).toLowerCase()} in likelihood and ${s(e.severity).toLowerCase()} in severity. ${s(e.description)}`.trim(),
-    );
-  }
-  if (safeguards) parts.push(`Against these impacts the company has recorded the following safeguards: ${safeguards}`);
-  if (gaps) parts.push(gaps);
-
-  const admtLogic = s((report as Bag).admt_note);
-  return { lead, body: repairRegister(parts.join(" ")), admt: admtLogic };
-}
-
-function composeWeighing(report: Bag): { lead: string; body: string; exceptions: string } {
-  const act = activityRecord(report);
-  const conclusion = s(act.benefits_outweigh_risks_conclusion);
-  const rationale = s(act.benefits_outweigh_risks_rationale);
-  const lead = conclusion
-    ? repairRegister(firstSentence(conclusion))
-    : "The weighing that Section 7152(a) and Section 7154(a) require cannot be completed on the elements the company has left unanswered.";
-  const body = repairRegister([rationale, conclusion && afterFirstSentence(conclusion)].filter(Boolean).join(" "));
-
-  const summary = (report.assessment_summary ?? {}) as Bag;
-  const claimed = arr(summary.exceptions_claimed);
-  const status = s(summary.exceptions_status);
-  const exceptions = claimed.length
-    ? `The company has claimed the following exceptions: ${asProse(claimed)}.`
-    : /none/i.test(status)
-    ? "The company has stated that it claims no exception under Section 7152."
-    : "";
-
-  return { lead, body, exceptions };
-}
-
-function composeActions(report: Bag): { lead: string; body: string } {
-  const actions = Array.isArray(report.priority_actions) ? (report.priority_actions as Bag[]) : [];
-  if (actions.length === 0) {
-    return { lead: "The analysis identifies no action outstanding for the company to take.", body: "" };
-  }
-  const lead = `The analysis identifies ${actions.length === 1 ? "one action" : `${actions.length} actions`} for the company to take, ordered below by severity.`;
-  const body = actions
-    .map((a, i) => {
-      // SO-FT2 FIX 7 — every action carries a responsible party. The
-      // § 7152(a)(5) negative-impact-category gap-filling item reached the
-      // rendered document with no `Responsible:` line because its emitter
-      // supplies neither `reserved_to` nor `owner`; the other three action
-      // templates do. Rather than leave one action ownerless, fall back to
-      // the accountable business owner named on the assessment record, which
-      // is the same default the action composer uses for documentation gaps.
-      // The canonical ActionRecord contract resolves responsible party in the
-      // order: reserved_to, then owner_role (action-record.ts:99-101). Match
-      // that order here and keep the legacy `owner` / `owner_role_titles`
-      // fallbacks for emitters that still use them.
-      const responsible = s(a.reserved_to) || s(a.owner_role) || s(a.owner) || s((a as Bag).owner_role_titles)
-        || "the accountable business owner named on the assessment record";
-      const bits = [
-        `${i + 1}. ${repairRegister(s(a.action))}`,
-        s(a.statutory_basis) ? `Citation: ${s(a.statutory_basis)}.` : "",
-        `Responsible: ${responsible}.`,
-        s(a.deadline) ? `Timeframe: ${s(a.deadline)}${s(a.deadline_basis) ? ` (${s(a.deadline_basis)})` : ""}.` : "",
-      ].filter(Boolean);
-      return bits.join(" ");
-    })
-    .join("\n\n");
-
-  return { lead, body };
-}
+// ── Conditional composers (Phase B triggers over established facts) ─────────
 
 function composeSecondaryUses(intake: Bag): string {
   if (!isYes(intake.has_secondary_uses)) return "";
-  const uses = s(intake.secondary_uses_detail) || s(intake.secondary_uses) || s(intake.has_secondary_uses_detail);
+  const uses = rows(intake.secondary_activities)
+    .map((a) => [clause(a.name ?? a.activity_name), clause(a.purpose ?? a.activity_purpose)].filter(Boolean).join(" — "))
+    .filter(Boolean)
+    .join("; ") ||
+    arr(intake.secondary_activities).join("; ") ||
+    clause(intake.secondary_uses_detail);
   if (!uses) return "";
-  return `The company has further indicated that the same information serves additional purposes. ${uses}`;
+  return `${RISK_FIXED.secondary_uses_lead} ${uses}.`;
 }
 
-function composeAdmtConditional(intake: Bag): string {
-  if (!isYes(intake.q18_admt_use)) return "";
-  const bits: string[] = [
-    "Because automated decisionmaking technology participates in these decisions, additional analysis is required.",
-  ];
-  const add = (label: string, v: string, absent: string) =>
-    bits.push(v ? `The company has described ${label} as follows: ${v}` : absent);
-  add("the system's logic", s(intake.i5_admt_logic), "The company has not answered how the system's logic operates; that element is unanswered rather than assumed.");
-  add("the human review applied", s(intake.i5_admt_human_review), "The company has not answered what human review applies; that element is unanswered.");
-  add("its fairness testing", s(intake.i5_admt_fairness_testing), "The company has not answered what fairness testing is performed; that element is unanswered.");
-  add("the provenance of the training data", s(intake.i5_admt_training_source), "The company has not answered where the training data originates; that element is unanswered.");
+function composePriorAssessment(intake: Bag): string {
+  if (!isYes(intake.i9_has_existing_dpia)) return "";
+  const summary = clause(intake.i9_existing_dpia_summary);
+  if (!summary) return "";
+  return `${RISK_FIXED.prior_assessment_lead} ${summary}. ${RISK_FIXED.prior_assessment_note}`;
+}
+
+function composeExternalParticipants(intake: Bag): string {
+  const external = clause(intake.i7_external_consultees) || asProse(arr(intake.i7_external_consultees));
+  if (!external) return "";
+  return `${RISK_FIXED.external_participants_lead} ${external}.`;
+}
+
+function composeSpi(intake: Bag): string {
+  const spi = deriveActivitySpiInventory(intake);
+  if (!spi) return "";
+  return `${RISK_FIXED.spi_lead} ${spi}. ${RISK_FIXED.spi_note}`;
+}
+
+function composeBenefit(
+  identified: unknown,
+  narrative: unknown,
+  fact: unknown,
+): string {
+  if (!(isYes(identified) || (identified === undefined && s(narrative)))) return "";
+  const n = clause(narrative);
+  if (!n) return "";
+  const f = clause(fact);
+  return `${RISK_FIXED.benefit_identifies_lead} ${n}.${
+    f ? ` ${RISK_FIXED.benefit_supporting_lead} ${f}.` : ""
+  }`;
+}
+
+function composeBenefitNone(
+  identified: unknown,
+  narrative: unknown,
+  noneText: string,
+): string {
+  if (isYes(identified) || (identified === undefined && s(narrative))) return "";
+  return noneText;
+}
+
+function composeExecCompanyDecision(intake: Bag): string {
+  const decision = clause(intake.final_processing_decision);
+  if (!decision) return "";
+  const notes = clause(intake.final_processing_decision_notes);
+  return `${RISK_FIXED.exec_company_decision_lead} ${decision}.${notes ? ` ${notes}.` : ""}`;
+}
+
+function composeIxCompanyDecision(intake: Bag): string {
+  const decision = clause(intake.final_processing_decision);
+  if (!decision) return "";
+  const notes = clause(intake.final_processing_decision_notes);
+  return `${fillDrop(RISK_FIXED.ix_company_decision, { decision })}${notes ? ` ${notes}.` : ""}`;
+}
+
+function composeXApproval(intake: Bag): string {
+  const reviewerRows = rows(intake.assessment_reviewers_approvers)
+    .map((r) => [s(r.name), s(r.position), s(r.role)].filter(Boolean).join(", "))
+    .filter(Boolean)
+    .join("; ");
+  // a9 approver fields are the ratified migration source for the finalization
+  // reviewer record (field-map §3).
+  const migrated = s(intake.a9_approver_name)
+    ? `${s(intake.a9_approver_name)}${s(intake.a9_approver_position) ? `, ${s(intake.a9_approver_position)}` : ""} (Approved)`
+    : "";
+  const reviewers = reviewerRows || migrated;
+  const approvalDate = s(intake.a9_approval_date);
+  const authority = yn(intake.approver_authority_confirmed);
+  const basis = clause(intake.approver_authority_basis);
+  if (!reviewers && !approvalDate && !authority) return "";
+
+  const bits: string[] = [RISK_FIXED.x_approval_head];
+  if (reviewers) bits.push(`${RISK_FIXED.x_approval_reviewers} ${reviewers}.`);
+  if (approvalDate) bits.push(`${RISK_FIXED.x_approval_date_label} ${approvalDate}.`);
+  if (authority) bits.push(`${RISK_FIXED.x_approval_authority} ${authority}.`);
+  if (basis) bits.push(`${RISK_FIXED.x_approval_authority_basis} ${basis}.`);
   return bits.join(" ");
 }
 
-function composeDpiaConditional(intake: Bag): string {
-  if (!isYes(intake.i9_has_existing_dpia)) return "";
-  const summary = s(intake.i9_existing_dpia_summary);
-  if (!summary) return "";
-  return `A data protection impact assessment covering this activity has been completed, and the company has provided its summary: ${summary}.`;
+function composeXTiming(intake: Bag): string {
+  const deadline = deriveInitialAssessmentDeadline(intake);
+  if (!deadline) return "";
+  const start = s(intake.processing_start_date);
+  const rule = start && start < "2026-01-01"
+    ? RISK_FIXED.x_timing_pre2026
+    : RISK_FIXED.x_timing_post2026;
+  return `${rule} ${deadline}`;
+}
+
+function composeMaterialChangeDetails(intake: Bag): string {
+  if (!isYes(intake.material_change_since_prior)) return "";
+  const bits: string[] = [];
+  if (s(intake.material_change_date)) {
+    bits.push(`${RISK_FIXED.x_material_change_date_label} ${s(intake.material_change_date)}.`);
+  }
+  if (s(intake.material_change_description)) {
+    bits.push(`${RISK_FIXED.x_material_change_desc_label} ${clause(intake.material_change_description)}.`);
+  }
+  if (s(intake.prior_risk_assessment_date)) {
+    bits.push(`${RISK_FIXED.x_material_change_prior_label} ${s(intake.prior_risk_assessment_date)}.`);
+  }
+  return bits.join(" ");
+}
+
+function composeAdmtBlocks(intake: Bag): Record<string, string> {
+  if (!isYes(intake.q18_admt_use)) return {};
+  const out: Record<string, string> = {
+    "v_admt:0": fillDrop(RISK_FIXED.admt_a, {
+      q19: clause(intake.q19_admt_description) || null,
+      role: clause(intake.admt_operational_role) || null,
+    }),
+    "v_admt:2": fillDrop(RISK_FIXED.admt_b, {
+      logic: clause(intake.i5_admt_logic) || null,
+      assumptions: clause(intake.admt_assumptions_limitations) || null,
+    }),
+    "v_admt:4": fillDrop(RISK_FIXED.admt_c, {
+      output: clause(intake.admt_output) || null,
+      outputUse: clause(intake.admt_output_use) || null,
+      consumerEffect: clause(intake.admt_consumer_effect) || null,
+    }),
+    "v_admt:6": fillDrop(RISK_FIXED.admt_d, {
+      humanReview: clause(intake.i5_admt_human_review) || null,
+    }),
+    "v_admt:8": fillDrop(RISK_FIXED.admt_e, {
+      testing: clause(intake.i5_admt_fairness_testing) || null,
+    }),
+    "v_admt:10": fillDrop(RISK_FIXED.admt_f, {
+      trainingSource: clause(intake.i5_admt_training_source) || null,
+    }),
+    "v_admt:14": RISK_FIXED.admt_appendix_pointer,
+    "appendix_d:0": RISK_FIXED.appendix_d_intro,
+  };
+  if (isYes(intake.admt_made_available_to_other_business)) {
+    out["v_admt:12"] = fillDrop(RISK_FIXED.admt_g, {
+      madeAvailable: yn(intake.admt_made_available_to_other_business) || null,
+      trainedPi: yn(intake.admt_provider_trained_using_pi) || null,
+      recipientSignificant: yn(intake.recipient_business_uses_admt_for_significant_decision) || null,
+    });
+  }
+  return out;
 }
 
 // ── Assembly ────────────────────────────────────────────────────────────────
@@ -332,42 +703,48 @@ export interface RiskSkeletonResult {
 }
 
 export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkeletonResult {
-  const values = buildRiskSlotValues(intake);
+  const values = buildRiskSlotValues(intake, report);
+  const assessmentDate = String(values.assessmentDate);
 
-  const exec = composeExecutive(report);
-  const applicability = composeApplicability(report);
-  const necessity = composeNecessity(report, intake);
-  const impacts = composeImpacts(report);
-  const weighing = composeWeighing(report);
-  const actions = composeActions(report);
-
-  // Keys are `${sectionId}:${blockIndex}` against SKELETON_SECTIONS.
   const composed: ComposedBlocks = {
-    "executive_summary:0": exec.lead,
-    "executive_summary:2": exec.body,
+    // Executive summary
+    "executive_summary:7": composeExecCompanyDecision(intake),
 
-    "activity_under_assessment:1": composeSecondaryUses(intake),
+    // Section I
+    "i_purpose_scope:4": composeSecondaryUses(intake),
+    "i_purpose_scope:8": composePriorAssessment(intake),
+    "i_purpose_scope:11": composeExternalParticipants(intake),
 
-    "applicability:0": applicability.lead,
-    "applicability:2": applicability.body,
+    // Section II
+    "ii_processing_context:5": composeSpi(intake),
 
-    "personal_information:0": composePersonalInformation(intake),
+    // Section V + Appendix D conditionals
+    ...composeAdmtBlocks(intake),
 
-    "necessity_minimisation:0": necessity.lead,
-    "necessity_minimisation:2": necessity.body,
+    // Section VI benefit gates (field-map §2b: never force a benefit)
+    "vi_benefits:2": composeBenefit(intake.benefit_consumer_identified, intake.a4_benefit_consumer, intake.a4_benefit_consumer_fact),
+    "vi_benefits:3": composeBenefitNone(intake.benefit_consumer_identified, intake.a4_benefit_consumer, RISK_FIXED.benefit_none_consumer),
+    "vi_benefits:6": composeBenefit(intake.benefit_business_identified, intake.a4_benefit_business, intake.a4_benefit_business_fact),
+    "vi_benefits:7": composeBenefitNone(intake.benefit_business_identified, intake.a4_benefit_business, RISK_FIXED.benefit_none_business),
+    "vi_benefits:10": composeBenefit(intake.benefit_other_stakeholders_identified, intake.a4_benefit_other_stakeholders, intake.a4_benefit_other_stakeholders_fact),
+    "vi_benefits:11": composeBenefitNone(intake.benefit_other_stakeholders_identified, intake.a4_benefit_other_stakeholders, RISK_FIXED.benefit_none_other),
+    "vi_benefits:14": composeBenefit(intake.benefit_public_identified, intake.a4_benefit_public, intake.a4_benefit_public_fact),
+    "vi_benefits:15": composeBenefitNone(intake.benefit_public_identified, intake.a4_benefit_public, RISK_FIXED.benefit_none_public),
 
-    "impacts_safeguards:0": impacts.lead,
-    "impacts_safeguards:2": impacts.body,
-    "impacts_safeguards:3": composeAdmtConditional(intake),
+    // Section IX
+    "ix_balancing:5": composeIxCompanyDecision(intake),
 
-    "benefits_weighing:0": weighing.lead,
-    "benefits_weighing:2": weighing.body,
-    "benefits_weighing:3": weighing.exceptions,
+    // Section X
+    "x_governance:0": composeXApproval(intake),
+    "x_governance:3": composeXTiming(intake),
+    "x_governance:5": composeMaterialChangeDetails(intake),
 
-    "recommended_actions:0": actions.lead,
-    "recommended_actions:2": actions.body,
-
-    "accountability_certification:1": composeDpiaConditional(intake),
+    // Appendices — {{DERIVED.*}} rule blocks
+    "appendix_a:1": deriveProcessingAndDataInventory(intake),
+    "appendix_d:1": deriveAdmtTechnicalFacts(intake),
+    "appendix_e:1": deriveSubmissionSupportRecord(intake, report, assessmentDate),
+    "appendix_e:2": deriveBusinessLevelOutstanding(),
+    "appendix_f:1": deriveMaterialsConsideredIndex(intake),
   };
 
   // First pass without the Table of Authorities, so the iff-cited test runs
@@ -400,7 +777,9 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
 
   return {
     document,
-    conformance: verifySkeletonConformance(document, SKELETON_SECTIONS),
+    // SO-11 exact exemption: pass the same values the renderer used so
+    // null-dropped sentences are exempted precisely, not heuristically.
+    conformance: verifySkeletonConformance(document, SKELETON_SECTIONS, values),
     register_findings,
   };
 }
