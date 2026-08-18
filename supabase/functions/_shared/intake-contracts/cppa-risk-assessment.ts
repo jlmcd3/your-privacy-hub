@@ -391,10 +391,20 @@ export const cppaRiskContract: IntakeContract = {
       options: NECESSITY_STATUS_OPTS },
     { key: "a2_necessity_set[].justification", kind: "narrative", required: "optional", askEligible: true },
 
-    { key: "a4_benefit_business",           kind: "narrative",  required: "always", askEligible: true },
-    { key: "a4_benefit_consumer",           kind: "narrative",  required: "always", askEligible: true },
-    { key: "a4_benefit_other_stakeholders", kind: "narrative",  required: "always", askEligible: true },
-    { key: "a4_benefit_public",             kind: "narrative",  required: "always", askEligible: true },
+    // RK3-A1 g6 (Intake Contract v2.0 §9) — benefits DEMOTED from always to
+    // conditional-behind-a-gate: the customer is never forced to invent a
+    // benefit. The benefit_*_identified gates below carry the § 7152(a)(4)
+    // "as applicable" answer; "No" is a substantive no-benefit record. Data
+    // layer optional (legacy rows lack the gates); the form requires
+    // narrative + fact when a gate is "Yes" (stepValid step 6).
+    { key: "a4_benefit_business",           kind: "narrative",  required: "optional", askEligible: true },
+    { key: "a4_benefit_consumer",           kind: "narrative",  required: "optional", askEligible: true },
+    { key: "a4_benefit_other_stakeholders", kind: "narrative",  required: "optional", askEligible: true },
+    { key: "a4_benefit_public",             kind: "narrative",  required: "optional", askEligible: true },
+    { key: "benefit_business_identified",           kind: "enum", required: "optional", options: YES_NO_OPTS },
+    { key: "benefit_consumer_identified",           kind: "enum", required: "optional", options: YES_NO_OPTS },
+    { key: "benefit_other_stakeholders_identified", kind: "enum", required: "optional", options: YES_NO_OPTS },
+    { key: "benefit_public_identified",             kind: "enum", required: "optional", options: YES_NO_OPTS },
 
     // UPGRADE-2 (ITEM 4) — § 7152(a)(4) supporting record facts. Optional so
     // legacy rows keep validating; without them the weighing reserves.
@@ -518,6 +528,19 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: "a recipient row is present", options: PI_CATEGORIES },
     { key: "recipients[].disclosure_purpose", kind: "text", required: "conditional",
       requiredWhen: "a recipient row is present" },
+
+    // ── RK3-A1 g6 (Intake Contract v2.0 §6) — § 7151(a) operational-
+    // participation record: employees whose job duties include participating
+    // in the covered processing were included in the assessment process.
+    // INTENTIONALLY distinct from the § 7152(a)(8) information-provider
+    // list (the groups may overlap; they satisfy different requirements).
+    { key: "section_7151_operational_participants", kind: "structured", required: "optional" },
+    { key: "section_7151_operational_participants[].name", kind: "text", required: "conditional",
+      requiredWhen: "a participation row is present" },
+    { key: "section_7151_operational_participants[].role", kind: "text", required: "conditional",
+      requiredWhen: "a participation row is present" },
+    { key: "section_7151_operational_participants[].processing_responsibility", kind: "text", required: "conditional",
+      requiredWhen: "a participation row is present" },
   ],
 
 };

@@ -187,6 +187,53 @@ Deno.test("RK3-A1 g5 — statute rail carries the § 7152(a)(3)(F) verbatim", as
   );
 });
 
+// ── GROUP 6 — § 7152(a)(4) benefit gates + § 7151(a) participation ───────────
+
+Deno.test("RK3-A1 g6 — contract carries the four benefit gates and demotes a4 narratives to gate-driven", () => {
+  for (const cls of ["business", "consumer", "other_stakeholders", "public"]) {
+    const gate = field(`benefit_${cls}_identified`);
+    assert(gate, `benefit_${cls}_identified missing from cppaRiskContract`);
+    assertEquals(gate!.kind, "enum");
+    assertEquals([...(gate!.options ?? [])], ["Yes", "No"]);
+    const narrative = field(`a4_benefit_${cls}`);
+    assert(narrative, `a4_benefit_${cls} missing`);
+    assertEquals(narrative!.required, "optional", `a4_benefit_${cls} must be demoted to optional (gate-driven; never force a benefit)`);
+  }
+});
+
+Deno.test("RK3-A1 g6 — contract carries the § 7151 participation record, distinct from a8", () => {
+  const f = field("section_7151_operational_participants");
+  assert(f, "section_7151_operational_participants missing from cppaRiskContract");
+  assertEquals(f!.required, "optional", "data-layer optional");
+  assertEquals(f!.kind, "structured");
+  assert(field("section_7151_operational_participants[].name"), "name child missing");
+  assert(field("section_7151_operational_participants[].role"), "role child missing");
+  assert(field("section_7151_operational_participants[].processing_responsibility"), "processing_responsibility child missing");
+  // The a8 information-provider field must still exist independently.
+  assert(field("a8_information_providers"), "a8_information_providers must remain a distinct field");
+});
+
+Deno.test("RK3-A1 g6 — form emits gates + participation and stepValid enforces both", async () => {
+  const src = await Deno.readTextFile(PAGE_PATH);
+  assert(src.includes("benefit_business_identified: benefitBusinessIdentified"), "intake memo must emit the business gate");
+  assert(src.includes("benefit_public_identified: benefitPublicIdentified"), "intake memo must emit the public gate");
+  assert(src.includes("section_7151_operational_participants: sectionParticipants.filter((r) => r.name.trim())"), "intake memo must emit the participation record");
+  assert(src.includes('"No" is a complete answer.'), "stepValid must accept No as a complete gate answer");
+  assert(src.includes("Give the fact in the record supporting the"), "stepValid must require the supporting fact on Yes");
+  assert(src.includes("§ 7151 requires their inclusion in the assessment process"), "stepValid must require the participation record");
+  assert(src.includes("Confirm each listed employee's participation"), "stepValid must require per-row confirmation");
+  assert(src.includes("Array.isArray(d.sectionParticipants)"), "applyRestore must restore participation rows with shape guards");
+});
+
+Deno.test("RK3-A1 g6 — statute rail carries the § 7151(a) verbatim", async () => {
+  const src = await Deno.readTextFile(RAIL_PATH);
+  assert(src.includes("section_7151_participation: {"), "rail must define section_7151_participation");
+  assert(
+    src.includes("must be included in the business's risk assessment process for that processing activity."),
+    "rail entry must carry the § 7151(a) verbatim quote",
+  );
+});
+
 Deno.test("RK3-A1 g2 — statute rail carries the consumer_interaction entry; no unverified (C)/(D) verbatim", async () => {
   const src = await Deno.readTextFile(RAIL_PATH);
   assert(src.includes("consumer_interaction: {"), "rail must define consumer_interaction");

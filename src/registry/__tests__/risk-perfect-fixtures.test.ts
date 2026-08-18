@@ -61,8 +61,12 @@ const CASE = CPPA_RISK_PERFECT[0];
 const INTAKE = CASE.intake as Record<string, unknown>;
 
 describe("CPPA_RISK_PERFECT — truly-complete-record fixture", () => {
-  it("contains exactly the authored case", () => {
-    expect(CPPA_RISK_PERFECT.map((c) => c.id)).toEqual(["risk-perfect-complete"]);
+  it("contains exactly the authored cases", () => {
+    // RK0.5 D1 added the second perfect fixture (seller/geolocation profile).
+    expect(CPPA_RISK_PERFECT.map((c) => c.id)).toEqual([
+      "risk-perfect-complete",
+      "risk-perfect-seller-geolocation",
+    ]);
     expect(CASE.tool).toBe("cppa-risk");
   });
 
@@ -117,8 +121,13 @@ describe("CPPA_RISK_PERFECT — truly-complete-record fixture", () => {
       rows.forEach((row, i) => {
         const v = (row as Record<string, unknown>)?.[leaf];
         if (v == null || v === "") return;
-        if (!(f.options as readonly string[]).includes(v as string)) {
-          bad.push(`${arrKey}[${i}].${leaf}: ${String(v)}`);
+        // RK3-A1 g5: multi-enum row children (pi_categories_made_available)
+        // carry arrays — each element must byte-match an option.
+        const values = Array.isArray(v) ? v : [v];
+        for (const one of values) {
+          if (!(f.options as readonly string[]).includes(one as string)) {
+            bad.push(`${arrKey}[${i}].${leaf}: ${String(one)}`);
+          }
         }
       });
     }

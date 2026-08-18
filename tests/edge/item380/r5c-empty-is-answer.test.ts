@@ -11,6 +11,11 @@
 //                                              emptyLabel "No — decisions are made elsewhere"
 //   cppa-risk / exceptions_intake              CPPARiskAssessment.tsx:1655-1710
 //                                              "leave blank if none apply"
+//   cppa-risk / recipients                     CPPARiskAssessment.tsx:1897-1906 (RK3-A1 g5)
+//                                              checkbox "No service provider, contractor,
+//                                              or third party receives or has access to
+//                                              personal information in this activity."
+//                                              emits [] + recipients_none_declared
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
@@ -39,6 +44,7 @@ const AUTHORIZED = [
   "dpia_framework::transfer_flows",
   "dpia_framework::eu_decision_establishment_country",
   "cppa_risk_assessment::exceptions_intake",
+  "cppa_risk_assessment::recipients",
 ].sort();
 
 Deno.test("r5c LINT: emptyIsAnswer appears on exactly the authorized fields fleet-wide", () => {
@@ -93,6 +99,25 @@ Deno.test("r5c: exceptions_intake — answered is NOT counted", () => {
     exceptions_intake: { security_exception: "Fraud detection logs" },
   });
   assert(!empty.includes("exceptions_intake"));
+});
+
+// --- cppa-risk / recipients (RK3-A1 g5) ------------------------------------
+
+Deno.test("r5c: recipients — empty is NOT counted (declared-None emits [])", () => {
+  assert(!emptyAskedKeys(cppaRiskContract, { recipients: [] }).includes("recipients"));
+  assert(!emptyAskedKeys(cppaRiskContract, {}).includes("recipients"));
+});
+
+Deno.test("r5c: recipients — answered is NOT counted", () => {
+  const empty = emptyAskedKeys(cppaRiskContract, {
+    recipients: [{
+      recipient_name_or_category: "AWS",
+      recipient_type: "Service provider",
+      pi_categories_made_available: ["Device identifiers (IP, cookies, device IDs)"],
+      disclosure_purpose: "Cloud hosting",
+    }],
+  });
+  assert(!empty.includes("recipients"));
 });
 
 // --- the flag is narrow ----------------------------------------------------

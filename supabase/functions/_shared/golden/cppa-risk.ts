@@ -533,6 +533,141 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       a9_approver_name: "L. Whitcomb",
       a9_approver_position: "Chief Compliance Officer",
       a9_approval_date: "2026-06-12",
+
+      // ── RK3-A1 Priority-1 fields (Intake Contract v2.0 §§ 1–6, 9) ──────────
+      // Every asked field is answered to the "Perfect Data" standard so the
+      // truly-complete-record invariant (zero contract_incomplete) is maintained
+      // after each A1 group is committed.
+      processing_entry_point:
+        "Financing applications submitted at the point of sale via Sierra Outfitters in-store credit terminals linked to the CoreLedger decision system.",
+      processing_methods: {
+        collection_method:
+          "Applicants submit a paper or digital credit application at the point of sale; identity, income, tenure, and government-ID fields are transmitted to CoreLedger over an encrypted TLS 1.3 connection.",
+        use_method:
+          "The gradient-boosted eligibility model scores the application (0–100) and returns an approve, decline, or analyst-review decision within five minutes; parallel fraud-signal rules route flagged applications for manual verification before any decision is issued.",
+        disclosure_method:
+          "Approved-application data shared with CoreLedger (loan servicing), Experian (bureau reseller under a service-provider addendum), and Sentinel Risk (fraud consortium under a service-provider addendum); adverse-action notices sent directly to applicants as required by ECOA.",
+        retention_method:
+          "Decision records retained for 25 months in CoreLedger's servicing platform; SPI fields (Social Security and government-ID numbers) are tokenised at rest and purged automatically at 25 months via a quarterly-audited deletion job.",
+        other_processing_method:
+          "Annual disparate-impact testing by Fairlend Analytics; adverse-action notice generation; fraud-flag verification by the credit-operations team; opt-out request processing via the Sierra Outfitters privacy portal.",
+      },
+      processing_result:
+        "An approve, decline, or analyst-review decision produced within five minutes; an adverse-action notice where required by ECOA and CCPA; a fraud-consortium report where a fraud flag is confirmed.",
+
+      consumer_interaction_method: "In person",
+      consumer_interaction_purpose:
+        "To allow qualified California consumers to finance large-basket purchases at the point of sale with a near-instant credit decision.",
+      approximate_ca_consumers:
+        "Approximately 18,000 financing applications per year from California consumers at Sierra Outfitters store locations.",
+
+      // pi_category / retention_criteria are contract enums (PI_CATEGORIES /
+      // RETENTION_CRITERIA) — values below byte-match the option lists.
+      retention_by_pi_category: [
+        {
+          pi_category: "Contact identifiers (name, email, phone)",
+          retention_period: "25 months from decision date",
+          retention_criteria: "",
+        },
+        {
+          pi_category: "Financial information",
+          retention_period: "",
+          retention_criteria: "Statutory or regulatory retention requirement",
+        },
+        {
+          pi_category: "Employment information",
+          retention_period: "25 months from decision date",
+          retention_criteria: "",
+        },
+        {
+          pi_category: "Other",
+          retention_period: "25 months from decision date",
+          retention_criteria: "",
+        },
+      ],
+
+      activity_disclosures: [
+        {
+          disclosure_content:
+            "Notice at Collection disclosing the collection of contact, financial, employment, and government-ID information for financing eligibility and fraud-screening purposes.",
+          disclosure_method:
+            "Provided on the paper credit application and on the in-store kiosk screen before application data is submitted.",
+          status: "Made",
+          timing_or_location:
+            "At the point of sale, before application data is submitted.",
+        },
+        {
+          disclosure_content:
+            "Privacy policy covering all personal information collected, used, disclosed, and retained as part of the store-financing activity.",
+          disclosure_method:
+            "Posted at https://www.sierraoutfitters.example/privacy and linked from the credit-application form.",
+          status: "Made",
+          timing_or_location:
+            "Online; physical link printed on adverse-action notices.",
+        },
+      ],
+
+      // § 7152(a)(3)(F) recipient record (A1 g5): one row per service
+      // provider named in i6_vendors; enum values byte-match the contract.
+      recipients: [
+        {
+          recipient_name_or_category: "Experian (credit bureau, reseller agreement)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: [
+            "Contact identifiers (name, email, phone)",
+            "Financial information",
+            "Employment information",
+          ],
+          disclosure_purpose:
+            "Bureau match returning the creditworthiness attributes the eligibility model requires.",
+        },
+        {
+          recipient_name_or_category: "Sentinel Risk LLC (fraud consortium)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: [
+            "Contact identifiers (name, email, phone)",
+            "Other",
+          ],
+          disclosure_purpose:
+            "Identity-fraud signal verification on applications the rules layer flags.",
+        },
+        {
+          recipient_name_or_category: "CoreLedger Inc. (loan-servicing platform)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: [
+            "Contact identifiers (name, email, phone)",
+            "Financial information",
+          ],
+          disclosure_purpose:
+            "Decisioning infrastructure and servicing of approved financing accounts.",
+        },
+      ],
+
+      // Benefit gates (A1 g6): all four classes identified; gate set to "Yes"
+      // because a4_benefit_* narratives and facts are already present above.
+      benefit_business_identified: "Yes",
+      benefit_consumer_identified: "Yes",
+      benefit_other_stakeholders_identified: "Yes",
+      benefit_public_identified: "Yes",
+
+      // § 7151(a) participation record (A1 g6): employees whose functions are
+      // materially involved in the financing-eligibility processing activity.
+      section_7151_operational_participants: [
+        {
+          name: "M. Delgado",
+          role: "VP Consumer Credit",
+          processing_responsibility:
+            "Owns the financing eligibility policy and the model deployment decision; accountable for the credit-operations team that handles analyst reviews and fraud flags.",
+          participation_confirmed: true,
+        },
+        {
+          name: "T. Nguyen",
+          role: "Privacy Counsel",
+          processing_responsibility:
+            "Reviewed the assessment for legal compliance; confirmed the § 7150 trigger analysis and the notice-at-collection content.",
+          participation_confirmed: true,
+        },
+      ],
     },
     assertions: [
       {
@@ -757,6 +892,137 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       a9_approver_name: "E. Marín",
       a9_approver_position: "Chief Privacy Officer",
       a9_approval_date: "2026-07-15",
+
+      // ── RK3-A1 Priority-1 fields (Intake Contract v2.0 §§ 1–6, 9) ──────────
+      processing_entry_point:
+        "GPS location pings transmitted by the Locus SDK embedded in partner publisher mobile apps, after each publisher's in-app consent screen is accepted.",
+      processing_methods: {
+        collection_method:
+          "The Locus SDK collects the device identifier (IDFA/GAID), GPS coordinate pair, and timestamp from consenting publisher-app sessions and transmits them to the Locus ingestion pipeline over TLS.",
+        use_method:
+          "Deterministic place-category rules attribute each coordinate pair to a commercial place category; visit patterns are aggregated per pseudonymous device identifier into geobehavioral audience segments.",
+        disclosure_method:
+          "Finished segments are licensed to advertiser clients and distributed through LiveRamp under a service-provider addendum; raw location pings are never disclosed and sensitive-venue categories are contractually prohibited advertiser use cases.",
+        retention_method:
+          "Raw location pings retained 13 months in the Snowflake warehouse under row-level security, then purged by an automated quarterly-audited deletion job; derived segments carry no raw coordinates.",
+        other_processing_method:
+          "Annual publisher-consent spot audits; opt-out and deletion request processing via the Locus privacy portal; segment-taxonomy review excluding sensitive-venue place categories.",
+      },
+      processing_result:
+        "Pseudonymous geobehavioral audience segments licensed to advertiser clients for programmatic campaign targeting; no raw location data leaves the pipeline.",
+
+      consumer_interaction_method: "No direct interaction (obtained from another source)",
+      consumer_interaction_purpose:
+        "Consumers interact with partner publisher apps, not with Locus directly; the publisher app presents the consent screen under which location data is collected for advertising personalisation.",
+      approximate_ca_consumers:
+        "More than 1,000,000 California consumers' devices contribute consented location signals annually across the fourteen publisher-app integrations.",
+
+      // pi_category / retention_criteria are contract enums (PI_CATEGORIES /
+      // RETENTION_CRITERIA) — values below byte-match the option lists.
+      retention_by_pi_category: [
+        {
+          pi_category: "Precise geolocation (GPS-level / specific address)",
+          retention_period: "13 months from collection",
+          retention_criteria: "",
+        },
+        {
+          pi_category: "Device identifiers (IP, cookies, device IDs)",
+          retention_period: "13 months from collection",
+          retention_criteria: "",
+        },
+        {
+          // Derived geobehavioral segment memberships.
+          pi_category: "Other",
+          retention_period: "",
+          retention_criteria: "Until purpose is fulfilled, then deletion",
+        },
+      ],
+
+      activity_disclosures: [
+        {
+          disclosure_content:
+            "Publisher in-app consent notice describing the collection of precise location data for advertising personalisation, presented before the SDK transmits any ping.",
+          disclosure_method:
+            "In-app consent screen presented by each partner publisher app under the SDK integration agreement's CPPA-compliant consent-language requirement.",
+          status: "Made",
+          timing_or_location: "In the publisher app, before the first location ping is transmitted.",
+        },
+        {
+          disclosure_content:
+            "Locus privacy policy describing the geobehavioral segmentation activity, the categories of location data processed, retention, and consumer rights including opt-out of sale/sharing.",
+          disclosure_method:
+            "Posted at https://www.locustechnologies.example/privacy with a 'Do Not Sell or Share My Personal Information' link.",
+          status: "Made",
+          timing_or_location: "Online, linked from every publisher app's consent screen.",
+        },
+      ],
+
+      // § 7152(a)(3)(F) recipient record (A1 g5): the three service providers
+      // named in i6_vendors plus the advertiser clients — the third-party
+      // segment licensing is the sale/share this record exists to capture.
+      recipients: [
+        {
+          recipient_name_or_category: "AWS (cloud infrastructure)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: [
+            "Device identifiers (IP, cookies, device IDs)",
+            "Precise geolocation (GPS-level / specific address)",
+          ],
+          disclosure_purpose:
+            "Hosts the ingestion pipeline and raw location store under a service-provider addendum.",
+        },
+        {
+          recipient_name_or_category: "Snowflake (data warehouse)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: [
+            "Device identifiers (IP, cookies, device IDs)",
+            "Precise geolocation (GPS-level / specific address)",
+          ],
+          disclosure_purpose:
+            "Warehouses raw location pings for the 13-month feature window under row-level security.",
+        },
+        {
+          recipient_name_or_category: "LiveRamp (segment distribution)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: [
+            "Device identifiers (IP, cookies, device IDs)",
+          ],
+          disclosure_purpose:
+            "Distributes finished audience segments to advertiser platforms under a service-provider addendum.",
+        },
+        {
+          recipient_name_or_category:
+            "Advertiser clients (retail, real-estate, and healthcare-marketing)",
+          recipient_type: "Third party",
+          pi_categories_made_available: [
+            "Device identifiers (IP, cookies, device IDs)",
+          ],
+          disclosure_purpose:
+            "Licensed geobehavioral segments for programmatic campaign targeting — the sale/share captured at q5_sell_share.",
+        },
+      ],
+
+      benefit_business_identified: "Yes",
+      benefit_consumer_identified: "Yes",
+      benefit_other_stakeholders_identified: "Yes",
+      benefit_public_identified: "Yes",
+
+      section_7151_operational_participants: [
+        {
+          name: "K. Singh",
+          role: "Head of Data Engineering",
+          processing_responsibility:
+            "Owns the ingestion pipeline, the place-category attribution rules, and the 13-month purge job; accountable for the warehouse access controls.",
+          participation_confirmed: true,
+        },
+        {
+          name: "E. Marín",
+          role: "Chief Privacy Officer",
+          processing_responsibility:
+            "Owns the publisher-consent audit programme and the segment-taxonomy review excluding sensitive-venue categories; certifies the assessment.",
+          participation_confirmed: true,
+        },
+      ],
     },
     assertions: [
       {

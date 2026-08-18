@@ -455,6 +455,20 @@ export default function CPPARiskAssessment() {
     { recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [], disclosure_purpose: "" },
   ]);
   const [recipientsNoneDeclared, setRecipientsNoneDeclared] = useState(false);
+  // RK3-A1 g6 — § 7152(a)(4) benefit gates: the customer is never forced to
+  // invent a benefit. "No" is a substantive answer ("no distinct benefit
+  // identified" for that class); unanswered stays "" (omission over
+  // invention). "Yes" requires the statement + supporting fact.
+  const [benefitBusinessIdentified, setBenefitBusinessIdentified] = useState("");
+  const [benefitConsumerIdentified, setBenefitConsumerIdentified] = useState("");
+  const [benefitOtherStakeholdersIdentified, setBenefitOtherStakeholdersIdentified] = useState("");
+  const [benefitPublicIdentified, setBenefitPublicIdentified] = useState("");
+  // RK3-A1 g6 — § 7151 operational-participation record: employees whose job
+  // duties include participating in the covered processing were included in
+  // the assessment process. Distinct from the § 7152(a)(8) provider list.
+  const [sectionParticipants, setSectionParticipants] = useState<{ name: string; role: string; processing_responsibility: string; participation_confirmed: boolean }[]>([
+    { name: "", role: "", processing_responsibility: "", participation_confirmed: false },
+  ]);
   // ── ITEM 305 — analytic-deliverable intake state ───────────────────
   const [a2NecessitySet, setA2NecessitySet] = useState<{ element: string; necessity: string; justification: string }[]>([
     { element: "", necessity: "", justification: "" },
@@ -744,8 +758,32 @@ export default function CPPARiskAssessment() {
         if (rows.some((r) => !r.retention_period.trim() && !r.retention_criteria)) return "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.";
       }
     }
+    if (step === 6) {
+      // RK3-A1 g6 — § 7152(a)(4) benefit gates: every class answered; "Yes"
+      // requires the statement and its supporting fact. Never force a benefit.
+      const gates: [string, string, string, string][] = [
+        [benefitBusinessIdentified, a4BenefitBusiness, a4BenefitBusinessFact, "business"],
+        [benefitConsumerIdentified, a4BenefitConsumer, a4BenefitConsumerFact, "consumer"],
+        [benefitOtherStakeholdersIdentified, a4BenefitOtherStakeholders, a4BenefitOtherStakeholdersFact, "other-stakeholder"],
+        [benefitPublicIdentified, a4BenefitPublic, a4BenefitPublicFact, "public"],
+      ];
+      for (const [gate, text, fact, label] of gates) {
+        if (!gate) return `Answer whether a distinct ${label} benefit is identified — "No" is a complete answer.`;
+        if (gate === "Yes" && !text.trim()) return `Describe the ${label} benefit you identified.`;
+        if (gate === "Yes" && !fact.trim()) return `Give the fact in the record supporting the ${label} benefit.`;
+      }
+    }
     if (step === 7) {
       if (!i7InternalContributors) return "List the internal contributor roles — or write \"None\".";
+      // RK3-A1 g6 — § 7151: the participation record needs at least one
+      // complete, confirmed row (form-required; data-layer optional).
+      {
+        const rows = sectionParticipants.filter((r) => r.name.trim() || r.role.trim() || r.processing_responsibility.trim());
+        if (rows.length === 0) return "Record the employees whose job duties include participating in this processing — § 7151 requires their inclusion in the assessment process.";
+        if (rows.some((r) => !r.name.trim() || !r.role.trim())) return "Every participation row needs a name and a role or title.";
+        if (rows.some((r) => !r.processing_responsibility.trim())) return "State each participant's responsibility in the processing.";
+        if (rows.some((r) => !r.participation_confirmed)) return "Confirm each listed employee's participation in the assessment process.";
+      }
       if (!i8ExecName || !i8ExecTitle) return "Give the certifying executive's name and title.";
     }
     return null;
@@ -813,6 +851,13 @@ export default function CPPARiskAssessment() {
     // emits [] (emptyIsAnswer) with the declared flag alongside it.
     recipients: recipientsNoneDeclared ? [] : recipientRows.filter((r) => r.recipient_name_or_category.trim()),
     recipients_none_declared: recipientsNoneDeclared,
+    // RK3-A1 g6 — § 7152(a)(4) benefit gates ("No" = no distinct benefit
+    // identified; "" = unanswered) + § 7151 participation record.
+    benefit_business_identified: benefitBusinessIdentified,
+    benefit_consumer_identified: benefitConsumerIdentified,
+    benefit_other_stakeholders_identified: benefitOtherStakeholdersIdentified,
+    benefit_public_identified: benefitPublicIdentified,
+    section_7151_operational_participants: sectionParticipants.filter((r) => r.name.trim()),
     // TURN 1b — new intake fields (flow through submission_summary + § 7150(b)(5) resolver).
     public_privacy_policy_url: publicPrivacyPolicyUrl.trim(),
     sensitive_location_basis: sensitiveLocationBasis,
@@ -870,6 +915,8 @@ export default function CPPARiskAssessment() {
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
     retentionByPiCategory, activityDisclosures, recipientRows, recipientsNoneDeclared,
+    benefitBusinessIdentified, benefitConsumerIdentified, benefitOtherStakeholdersIdentified, benefitPublicIdentified,
+    sectionParticipants,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -894,6 +941,8 @@ export default function CPPARiskAssessment() {
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
     retentionByPiCategory, activityDisclosures, recipientRows, recipientsNoneDeclared,
+    benefitBusinessIdentified, benefitConsumerIdentified, benefitOtherStakeholdersIdentified, benefitPublicIdentified,
+    sectionParticipants,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -908,6 +957,8 @@ export default function CPPARiskAssessment() {
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
     retentionByPiCategory, activityDisclosures, recipientRows, recipientsNoneDeclared,
+    benefitBusinessIdentified, benefitConsumerIdentified, benefitOtherStakeholdersIdentified, benefitPublicIdentified,
+    sectionParticipants,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -927,6 +978,8 @@ export default function CPPARiskAssessment() {
     activityDisclosures: [{ disclosure_content: "", disclosure_method: "", status: "", timing_or_location: "" }],
     recipientRows: [{ recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [] as string[], disclosure_purpose: "" }],
     recipientsNoneDeclared: false,
+    benefitBusinessIdentified: "", benefitConsumerIdentified: "", benefitOtherStakeholdersIdentified: "", benefitPublicIdentified: "",
+    sectionParticipants: [{ name: "", role: "", processing_responsibility: "", participation_confirmed: false }],
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
     secondaryActivities: [] as SecondaryActivity[],
@@ -1055,6 +1108,20 @@ export default function CPPARiskAssessment() {
       );
     }
     if (typeof d.recipientsNoneDeclared === "boolean") setRecipientsNoneDeclared(d.recipientsNoneDeclared);
+    if (typeof d.benefitBusinessIdentified === "string") setBenefitBusinessIdentified(d.benefitBusinessIdentified);
+    if (typeof d.benefitConsumerIdentified === "string") setBenefitConsumerIdentified(d.benefitConsumerIdentified);
+    if (typeof d.benefitOtherStakeholdersIdentified === "string") setBenefitOtherStakeholdersIdentified(d.benefitOtherStakeholdersIdentified);
+    if (typeof d.benefitPublicIdentified === "string") setBenefitPublicIdentified(d.benefitPublicIdentified);
+    if (Array.isArray(d.sectionParticipants) && d.sectionParticipants.length > 0) {
+      setSectionParticipants(
+        d.sectionParticipants.map((r: any) => ({
+          name: typeof r?.name === "string" ? r.name : "",
+          role: typeof r?.role === "string" ? r.role : "",
+          processing_responsibility: typeof r?.processing_responsibility === "string" ? r.processing_responsibility : "",
+          participation_confirmed: r?.participation_confirmed === true,
+        })),
+      );
+    }
     if (typeof d.publicPrivacyPolicyUrl === "string") setPublicPrivacyPolicyUrl(d.publicPrivacyPolicyUrl);
     if (typeof d.sensitiveLocationBasis === "string") setSensitiveLocationBasis(d.sensitiveLocationBasis);
     // ITEM 275 — absent keys are legal in pre-Item-275 drafts.
@@ -2295,26 +2362,61 @@ export default function CPPARiskAssessment() {
                 <div data-coach-field="a4_benefits">
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Who benefits from this processing, and how — for each group? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(4))</span></Label><StatutePopover term="Benefits by group" summary="Benefits to the business, the consumer, other stakeholders, and the public must be identified as applicable, and not in generic terms such as 'improving our service'." cite="11 CCR § 7152(a)(4)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">Each group gets its own statement and its own supporting fact from the record. A benefit with no supporting fact is carried as unevidenced in the weighing.</p>
+                  {/* RK3-A1 g6 — the gate never forces a benefit: "No" records
+                      "no distinct benefit identified" for the class, and the
+                      statement + fact appear only on "Yes". */}
                   <div className="mt-3 space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-sm">Benefit to the business</Label>
-                      <Textarea rows={2} value={a4BenefitBusiness} onChange={(e) => setA4BenefitBusiness(e.target.value)} placeholder="Specific outcome for the business" />
-                      <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitBusinessFact} onChange={(e) => setA4BenefitBusinessFact(e.target.value)} placeholder="Fact in the record showing it" />
+                      <Label className="text-sm">Is a distinct benefit to the business identified? <Req /></Label>
+                      <Radio name="benefit_business_identified" options={["Yes", "No"]} value={benefitBusinessIdentified} onChange={setBenefitBusinessIdentified} />
+                      {benefitBusinessIdentified === "Yes" && (
+                        <>
+                          <Textarea rows={2} value={a4BenefitBusiness} onChange={(e) => setA4BenefitBusiness(e.target.value)} placeholder="Specific outcome for the business" />
+                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitBusinessFact} onChange={(e) => setA4BenefitBusinessFact(e.target.value)} placeholder="Fact in the record showing it" />
+                        </>
+                      )}
+                      {benefitBusinessIdentified === "No" && (
+                        <p className="text-xs text-muted-foreground">Recorded: no distinct business benefit identified. The weighing gives this class no affirmative weight.</p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm">Benefit to the consumer</Label>
-                      <Textarea rows={2} value={a4BenefitConsumer} onChange={(e) => setA4BenefitConsumer(e.target.value)} placeholder="Specific outcome for the consumer" />
-                      <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitConsumerFact} onChange={(e) => setA4BenefitConsumerFact(e.target.value)} placeholder="Fact in the record showing it" />
+                      <Label className="text-sm">Is a distinct benefit to the consumer identified? <Req /></Label>
+                      <Radio name="benefit_consumer_identified" options={["Yes", "No"]} value={benefitConsumerIdentified} onChange={setBenefitConsumerIdentified} />
+                      {benefitConsumerIdentified === "Yes" && (
+                        <>
+                          <Textarea rows={2} value={a4BenefitConsumer} onChange={(e) => setA4BenefitConsumer(e.target.value)} placeholder="Specific outcome for the consumer" />
+                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitConsumerFact} onChange={(e) => setA4BenefitConsumerFact(e.target.value)} placeholder="Fact in the record showing it" />
+                        </>
+                      )}
+                      {benefitConsumerIdentified === "No" && (
+                        <p className="text-xs text-muted-foreground">Recorded: no distinct consumer benefit identified. The weighing gives this class no affirmative weight.</p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm">Benefit to other stakeholders</Label>
-                      <Textarea rows={2} value={a4BenefitOtherStakeholders} onChange={(e) => setA4BenefitOtherStakeholders(e.target.value)} placeholder="Outcome for other stakeholders" />
-                      <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitOtherStakeholdersFact} onChange={(e) => setA4BenefitOtherStakeholdersFact(e.target.value)} placeholder="Fact in the record showing it" />
+                      <Label className="text-sm">Is a distinct benefit to other stakeholders identified? <Req /></Label>
+                      <Radio name="benefit_other_stakeholders_identified" options={["Yes", "No"]} value={benefitOtherStakeholdersIdentified} onChange={setBenefitOtherStakeholdersIdentified} />
+                      {benefitOtherStakeholdersIdentified === "Yes" && (
+                        <>
+                          <Textarea rows={2} value={a4BenefitOtherStakeholders} onChange={(e) => setA4BenefitOtherStakeholders(e.target.value)} placeholder="Outcome for other stakeholders" />
+                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitOtherStakeholdersFact} onChange={(e) => setA4BenefitOtherStakeholdersFact(e.target.value)} placeholder="Fact in the record showing it" />
+                        </>
+                      )}
+                      {benefitOtherStakeholdersIdentified === "No" && (
+                        <p className="text-xs text-muted-foreground">Recorded: no distinct other-stakeholder benefit identified.</p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm">Benefit to the public</Label>
-                      <Textarea rows={2} value={a4BenefitPublic} onChange={(e) => setA4BenefitPublic(e.target.value)} placeholder="Outcome for the public" />
-                      <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitPublicFact} onChange={(e) => setA4BenefitPublicFact(e.target.value)} placeholder="Fact in the record showing it" />
+                      <Label className="text-sm">Is a distinct benefit to the public identified? <Req /></Label>
+                      <Radio name="benefit_public_identified" options={["Yes", "No"]} value={benefitPublicIdentified} onChange={setBenefitPublicIdentified} />
+                      {benefitPublicIdentified === "Yes" && (
+                        <>
+                          <Textarea rows={2} value={a4BenefitPublic} onChange={(e) => setA4BenefitPublic(e.target.value)} placeholder="Outcome for the public" />
+                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitPublicFact} onChange={(e) => setA4BenefitPublicFact(e.target.value)} placeholder="Fact in the record showing it" />
+                        </>
+                      )}
+                      {benefitPublicIdentified === "No" && (
+                        <p className="text-xs text-muted-foreground">Recorded: no distinct public benefit identified.</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2354,6 +2456,69 @@ export default function CPPARiskAssessment() {
                   placeholder="Internal roles"
                   assertionSlot={renderAssertion("i7_internal_contributors")}
                 /></div>
+                {/* RK3-A1 g6 — § 7151(a) participation record, placed with the
+                    contributor questions it is distinct from. */}
+                <div className="mt-4" data-rail-key="section_7151_participation" onFocus={() => focusRail('section_7151_participation')}>
+                  <Label>Which employees' job duties include participating in this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7151(a))</span></Label>
+                  <p className="text-xs text-muted-foreground mt-1">§ 7151(a) requires these employees to be included in the risk-assessment process. This is a participation record, separate from the § 7152(a)(8) list of who provided information.</p>
+                  <div className="mt-2 space-y-2">
+                    {sectionParticipants.map((row, idx) => (
+                      <div key={idx} className="rounded-lg border border-input p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold text-muted-foreground">Participant #{idx + 1}</p>
+                          <button
+                            type="button"
+                            onClick={() => setSectionParticipants((prev) => prev.filter((_, i) => i !== idx))}
+                            disabled={sectionParticipants.length === 1}
+                            className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-40"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <div className="grid gap-2 xl:grid-cols-2 items-start">
+                          <input
+                            className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                            value={row.name}
+                            onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)))}
+                            onFocus={() => focusRail('section_7151_participation')}
+                            placeholder="Name"
+                          />
+                          <input
+                            className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                            value={row.role}
+                            onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, role: e.target.value } : r)))}
+                            onFocus={() => focusRail('section_7151_participation')}
+                            placeholder="Title or role"
+                          />
+                        </div>
+                        <input
+                          className="h-10 px-3 rounded-md border border-input bg-background w-full"
+                          value={row.processing_responsibility}
+                          onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, processing_responsibility: e.target.value } : r)))}
+                          onFocus={() => focusRail('section_7151_participation')}
+                          placeholder="Responsibility in the processing — e.g., Runs the monthly coupon batch job"
+                        />
+                        <label className="flex items-start gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            className="mt-0.5"
+                            checked={row.participation_confirmed}
+                            onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, participation_confirmed: e.target.checked } : r)))}
+                            onFocus={() => focusRail('section_7151_participation')}
+                          />
+                          <span className="text-xs text-muted-foreground">This employee was included in the risk-assessment process for this activity.</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSectionParticipants((prev) => [...prev, { name: "", role: "", processing_responsibility: "", participation_confirmed: false }])}
+                    className="mt-2 text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                  >
+                    + Add a participant
+                  </button>
+                </div>
                 <div className="mt-2"><AssistedInput
                   value={i7ExternalConsultees}
                   onChange={setI7ExternalConsultees}

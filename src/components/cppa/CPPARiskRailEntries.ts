@@ -169,6 +169,30 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       "Listing vendors without the per-recipient categories and purpose, or defaulting every recipient to “service provider” without checking the contract. The (F) record requires both halves — recipients and purposes — and the type determines whether a disclosure is a sale.",
   },
 
+  // RK3-A1 g6 (Intake Contract v2.0 §6) — § 7151(a) stakeholder
+  // participation. Verbatim from the verified registry (§ 7151(a)/(b) rows).
+  section_7151_participation: {
+    fieldLabel: "Employees whose duties include this processing, included in the assessment",
+    citation: "11 CCR § 7151(a)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Employees whose job duties include participating in the processing under assessment must be included in the business's risk-assessment process for that activity. This record documents who they are, what they do in the processing, and that they participated. It is separate from the list of who provided information for the report.",
+    regulationText:
+      "§ 7151(a) — “A business's employees whose job duties include participating in the processing of personal information that would be subject to a risk assessment must be included in the business's risk assessment process for that processing activity.”\n\n§ 7151(b) — “In conducting the risk assessment, a business may include external parties in the process.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(8)", label: "Individuals who provided information" },
+      { citation: "11 CCR § 7152(a)(9)", label: "Reviewers and approvers" },
+    ],
+    coachLead:
+      "List the people who actually operate this processing — the ones who run the jobs, hold the credentials, configure the system — not the privacy team writing the assessment. State each person's operational responsibility and confirm they took part in the assessment process.",
+    coachBody:
+      "The rule exists because the people who operate a processing activity know facts the assessment needs. Their inclusion is a quality requirement on the process itself. A person can appear both here and in the information-provider list; the two records answer different questions.",
+    goodAnswer:
+      "Fernbrook Grocers: “Dana Okafor — Loyalty operations lead — Runs the monthly coupon batch job and manages the vendor address file — participation confirmed.” Operational duty stated, participation confirmed.",
+    commonMistake:
+      "Listing the assessment's authors instead of the processing's operators, or treating this as a duplicate of the information-provider question. § 7151(a) is about who operates the processing being assessed.",
+  },
+
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
   // including the Business E example excerpt.
   comparable_set: {
