@@ -445,8 +445,9 @@ export const cppaRiskContract: IntakeContract = {
     { key: "a6_safeguards[].residual", kind: "narrative",  required: "conditional",
       requiredWhen: "a safeguard row is present", askEligible: true },
     // RK3-A3 g1 — links each safeguard row to the harm-pathway IDs it addresses.
+    // emptyIsAnswer: an empty set means "no specific pathways linked" (valid answer).
     { key: "a6_safeguards[].risk_pathway_ids", kind: "multi-enum", required: "optional",
-      options: HARM_PATHWAY_OPTS },
+      options: HARM_PATHWAY_OPTS, emptyIsAnswer: true },
 
     // § 7152(a)(9) — review-and-approval record. Distinct from the
     // i8_certifying_exec_* pair (the person who CERTIFIES the submission);
@@ -565,13 +566,16 @@ export const cppaRiskContract: IntakeContract = {
     // material_change_date / material_change_description extend the existing
     // material_change_since_prior flag (ITEM 380 INTAKE-4a) to supply the date
     // and scope of any material change since the prior assessment.
+    // emptyIsAnswer: timing fields are logically conditional on processing_status
+    // and material_change_since_prior; without a trigger the gate cannot skip them,
+    // so empty is the valid state when the controlling question yields N/A.
     { key: "processing_status", kind: "enum", required: "optional",
-      options: PROCESSING_STATUS_OPTS },
-    { key: "processing_start_date", kind: "date", required: "optional" },
-    { key: "planned_start_date", kind: "date", required: "optional" },
-    { key: "prior_risk_assessment_date", kind: "date", required: "optional" },
-    { key: "material_change_date", kind: "date", required: "optional" },
-    { key: "material_change_description", kind: "narrative", required: "optional" },
+      options: PROCESSING_STATUS_OPTS, emptyIsAnswer: true },
+    { key: "processing_start_date", kind: "date", required: "optional", emptyIsAnswer: true },
+    { key: "planned_start_date", kind: "date", required: "optional", emptyIsAnswer: true },
+    { key: "prior_risk_assessment_date", kind: "date", required: "optional", emptyIsAnswer: true },
+    { key: "material_change_date", kind: "date", required: "optional", emptyIsAnswer: true },
+    { key: "material_change_description", kind: "narrative", required: "optional", emptyIsAnswer: true },
 
     // ── RK3-A2 g2 (Intake Contract v2.0 §6, doc 31 §2c) — § 7152(a)(3)(G)
     // ADMT branch extensions. All five fields are conditional on the ADMT
@@ -579,23 +583,25 @@ export const cppaRiskContract: IntakeContract = {
     // layer. They deepen the existing i5 ADMT fields with operational-role,
     // assumption/limitation, output, output-use, and consumer-effect details
     // needed for the Spine 4.3 §II.D ADMT narrative.
-    { key: "admt_operational_role", kind: "narrative", required: "optional" },
-    { key: "admt_assumptions_limitations", kind: "narrative", required: "optional" },
-    { key: "admt_output", kind: "narrative", required: "optional" },
-    { key: "admt_output_use", kind: "narrative", required: "optional" },
-    { key: "admt_consumer_effect", kind: "narrative", required: "optional" },
+    // emptyIsAnswer: empty when ADMT trigger is negative or details not yet collected.
+    { key: "admt_operational_role", kind: "narrative", required: "optional", emptyIsAnswer: true },
+    { key: "admt_assumptions_limitations", kind: "narrative", required: "optional", emptyIsAnswer: true },
+    { key: "admt_output", kind: "narrative", required: "optional", emptyIsAnswer: true },
+    { key: "admt_output_use", kind: "narrative", required: "optional", emptyIsAnswer: true },
+    { key: "admt_consumer_effect", kind: "narrative", required: "optional", emptyIsAnswer: true },
 
     // ── RK3-A2 g3 (Intake Contract v2.0 §6, doc 31 §2c) — § 7153 branch.
     // admt_made_available_to_other_business records whether the business
     // provides its ADMT to another business. The two downstream fields
     // are conditional on that answer being "Yes" and supply the facts
     // needed for the § 7153(a)/(b) risk-assessment trigger analysis.
+    // emptyIsAnswer: empty when ADMT not provided to other businesses (N/A branch).
     { key: "admt_made_available_to_other_business", kind: "enum", required: "optional",
-      options: YES_NO_OPTS },
+      options: YES_NO_OPTS, emptyIsAnswer: true },
     { key: "admt_provider_trained_using_pi", kind: "enum", required: "optional",
-      options: YES_NO_UNKNOWN_OPTS },
+      options: YES_NO_UNKNOWN_OPTS, emptyIsAnswer: true },
     { key: "recipient_business_uses_admt_for_significant_decision", kind: "enum", required: "optional",
-      options: YES_NO_UNKNOWN_OPTS },
+      options: YES_NO_UNKNOWN_OPTS, emptyIsAnswer: true },
 
     // ── RK3-A2 g4 (Intake Contract v2.0 §6, doc 31 §2c) — PN-RK7 SPI
     // employment-exception facts. Conditional on sensitive PI being processed
@@ -603,7 +609,8 @@ export const cppaRiskContract: IntakeContract = {
     // contract"). Captures the facts establishing that the processing is
     // strictly necessary for the employment relationship, required because
     // the former § 1798.145(m) employment exemption expired 2023-01-01.
-    { key: "spi_employment_exception_facts", kind: "narrative", required: "optional" },
+    // emptyIsAnswer: empty when SPI employment exception does not apply.
+    { key: "spi_employment_exception_facts", kind: "narrative", required: "optional", emptyIsAnswer: true },
 
     // ── RK3-A3 g1 (Intake Contract v2.0 §6, doc 31 §2c) — EUP internal QA:
     // per-harm-category review-status tracker. Never printed in the spine.
@@ -611,7 +618,8 @@ export const cppaRiskContract: IntakeContract = {
     // identified (at least one pathway), considered and found none applicable,
     // or not yet assessed. Optional at the data layer; the form can emit a
     // partial set.
-    { key: "harm_category_review_status", kind: "structured", required: "optional" },
+    // emptyIsAnswer: internal EUP QA tool, never submitted; empty means "QA not yet run".
+    { key: "harm_category_review_status", kind: "structured", required: "optional", emptyIsAnswer: true },
     { key: "harm_category_review_status[].harm_category", kind: "enum", required: "conditional",
       requiredWhen: "a review-status row is present", options: HARM_PATHWAY_OPTS },
     { key: "harm_category_review_status[].review_status", kind: "enum", required: "conditional",
