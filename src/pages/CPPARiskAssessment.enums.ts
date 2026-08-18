@@ -129,6 +129,7 @@ export const HARM_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe
 // status. Closed enum; verbatim copy mirrored in cppa-risk-assessment.ts
 // (parity pinned in rk3-a2-timing.test.ts).
 export const PROCESSING_STATUS_OPTS = ["Planned", "Ongoing", "Discontinued"] as const;
+export const HARM_CATEGORY_REVIEW_STATUS_OPTS = ["Identified", "Considered-none", "Not yet assessed"] as const;
 
 // RK3-A1 (Intake Contract v2.0 §6) — § 7152(a)(3)(C) consumer-interaction
 // method. Closed enum; "Other" carries the description in the purpose field.

@@ -110,6 +110,7 @@ export const BENEFICIARY_CLASSES = [
 // src/pages/CPPARiskAssessment.enums.ts (parity pinned in
 // rk3-a2-timing.test.ts).
 export const PROCESSING_STATUS_OPTS = ["Planned", "Ongoing", "Discontinued"] as const;
+export const HARM_CATEGORY_REVIEW_STATUS_OPTS = ["Identified", "Considered-none", "Not yet assessed"] as const;
 
 // RK3-A1 g2 — verbatim copy of CONSUMER_INTERACTION_METHOD_OPTS from
 // src/pages/CPPARiskAssessment.enums.ts (parity pinned in
@@ -443,6 +444,9 @@ export const cppaRiskContract: IntakeContract = {
     // UPGRADE-2 (ITEM 4) — § 7152(a)(6) residual risk after the safeguard.
     { key: "a6_safeguards[].residual", kind: "narrative",  required: "conditional",
       requiredWhen: "a safeguard row is present", askEligible: true },
+    // RK3-A3 g1 — links each safeguard row to the harm-pathway IDs it addresses.
+    { key: "a6_safeguards[].risk_pathway_ids", kind: "multi-enum", required: "optional",
+      options: HARM_PATHWAY_OPTS },
 
     // § 7152(a)(9) — review-and-approval record. Distinct from the
     // i8_certifying_exec_* pair (the person who CERTIFIES the submission);
@@ -594,6 +598,18 @@ export const cppaRiskContract: IntakeContract = {
     // strictly necessary for the employment relationship, required because
     // the former § 1798.145(m) employment exemption expired 2023-01-01.
     { key: "spi_employment_exception_facts", kind: "narrative", required: "optional" },
+
+    // ── RK3-A3 g1 (Intake Contract v2.0 §6, doc 31 §2c) — EUP internal QA:
+    // per-harm-category review-status tracker. Never printed in the spine.
+    // Tracks which of the five HARM_PATHWAY_OPTS categories have been
+    // identified (at least one pathway), considered and found none applicable,
+    // or not yet assessed. Optional at the data layer; the form can emit a
+    // partial set.
+    { key: "harm_category_review_status", kind: "structured", required: "optional" },
+    { key: "harm_category_review_status[].harm_category", kind: "enum", required: "conditional",
+      requiredWhen: "a review-status row is present", options: HARM_PATHWAY_OPTS },
+    { key: "harm_category_review_status[].review_status", kind: "enum", required: "conditional",
+      requiredWhen: "a review-status row is present", options: HARM_CATEGORY_REVIEW_STATUS_OPTS },
   ],
 
 };

@@ -288,6 +288,7 @@ import {
   SAFEGUARD_STATUS_OPTS,
   CONSUMER_INTERACTION_METHOD_OPTS,
   PROCESSING_STATUS_OPTS,
+  HARM_CATEGORY_REVIEW_STATUS_OPTS,
 } from "./CPPARiskAssessment.enums";
 
 // Progressive disclosure for optional clusters. The value line states what the
@@ -509,9 +510,11 @@ export default function CPPARiskAssessment() {
   const [a5HarmPathways, setA5HarmPathways] = useState<{ harm: string; data_involved: string; actor: string; source: string; cause: string; likelihood: string; severity: string }[]>([
     { harm: "", data_involved: "", actor: "", source: "", cause: "", likelihood: "", severity: "" },
   ]);
-  const [a6Safeguards, setA6Safeguards] = useState<{ harm: string; safeguard: string; safeguard_status: string; residual: string }[]>([
-    { harm: "", safeguard: "", safeguard_status: "", residual: "" },
+  const [a6Safeguards, setA6Safeguards] = useState<{ harm: string; safeguard: string; safeguard_status: string; residual: string; risk_pathway_ids: string[] }[]>([
+    { harm: "", safeguard: "", safeguard_status: "", residual: "", risk_pathway_ids: [] },
   ]);
+  // RK3-A3 g1 — harm-category review-status tracker (EUP internal QA, never printed)
+  const [harmCategoryReviewStatus, setHarmCategoryReviewStatus] = useState<Record<string, string>>({});
   const [a9ApproverName, setA9ApproverName] = useState("");
   const [a9ApproverPosition, setA9ApproverPosition] = useState("");
   const [a9ApprovalDate, setA9ApprovalDate] = useState("");
@@ -937,6 +940,9 @@ export default function CPPARiskAssessment() {
     a4_benefit_public_fact: a4BenefitPublicFact.trim(),
     a5_harm_pathways: a5HarmPathways.filter((r) => r.harm),
     a6_safeguards: a6Safeguards.filter((r) => r.harm && (r.safeguard.trim() || r.safeguard_status)),
+    harm_category_review_status: Object.keys(harmCategoryReviewStatus).length
+      ? HARM_PATHWAY_OPTS.map((cat) => ({ harm_category: cat, review_status: harmCategoryReviewStatus[cat] || "" })).filter((r) => r.review_status)
+      : undefined,
     a9_approver_name: a9ApproverName.trim(),
     a9_approver_position: a9ApproverPosition.trim(),
     a9_approval_date: a9ApprovalDate,
@@ -967,7 +973,7 @@ export default function CPPARiskAssessment() {
     spiEmploymentExceptionFacts,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
     a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
-    a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
+    a5HarmPathways, a6Safeguards, harmCategoryReviewStatus, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
     assertions,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
 
@@ -992,7 +998,7 @@ export default function CPPARiskAssessment() {
     sectionParticipants,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
-    exceptionClaims, impactData,
+    exceptionClaims, impactData, harmCategoryReviewStatus,
 
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -1012,7 +1018,7 @@ export default function CPPARiskAssessment() {
     sectionParticipants,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
-    exceptionClaims, impactData,
+    exceptionClaims, impactData, harmCategoryReviewStatus,
 
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -1041,6 +1047,7 @@ export default function CPPARiskAssessment() {
 
     exceptionClaims: {} as Record<string, ExceptionClaim>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
+    harmCategoryReviewStatus: {} as Record<string, string>,
   }), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
   const {
@@ -1210,6 +1217,7 @@ export default function CPPARiskAssessment() {
 
     if (d.exceptionClaims && typeof d.exceptionClaims === "object") setExceptionClaims(d.exceptionClaims);
     if (d.impactData && typeof d.impactData === "object") setImpactData((prev) => ({ ...prev, ...d.impactData }));
+    if (d.harmCategoryReviewStatus && typeof d.harmCategoryReviewStatus === "object") setHarmCategoryReviewStatus(d.harmCategoryReviewStatus as Record<string, string>);
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
@@ -2498,11 +2506,26 @@ export default function CPPARiskAssessment() {
                           {SAFEGUARD_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
                         <Textarea rows={2} value={row.residual} onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, residual: e.target.value } : r))} placeholder="Risk remaining afterwards" />
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Which harm pathways does this safeguard address? (optional)</p>
+                          <div className="flex flex-wrap gap-1">
+                            {HARM_PATHWAY_OPTS.map((opt) => {
+                              const checked = (row.risk_pathway_ids || []).includes(opt);
+                              return (
+                                <button key={opt} type="button"
+                                  className={`text-xs px-2 py-0.5 rounded border transition-colors ${checked ? "bg-primary text-primary-foreground border-primary" : "border-input hover:bg-muted"}`}
+                                  onClick={() => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, risk_pathway_ids: checked ? (r.risk_pathway_ids || []).filter((x) => x !== opt) : [...(r.risk_pathway_ids || []), opt] } : r))}>
+                                  {opt.slice(0, 3)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
                   <div className="mt-2 flex gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => setA6Safeguards((r) => [...r, { harm: "", safeguard: "", safeguard_status: "", residual: "" }])}>Add safeguard</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setA6Safeguards((r) => [...r, { harm: "", safeguard: "", safeguard_status: "", residual: "", risk_pathway_ids: [] }])}>Add safeguard</Button>
                     {a6Safeguards.length > 1 && (
                       <Button type="button" variant="ghost" size="sm" onClick={() => setA6Safeguards((r) => r.slice(0, -1))}>Remove last</Button>
                     )}
@@ -2517,6 +2540,28 @@ export default function CPPARiskAssessment() {
                     <Label>Vulnerable populations affected (if any)</Label>
                     <Textarea className="mt-2" rows={2} value={impactData.vulnerable} onChange={(e) => setImpactData((d) => ({ ...d, vulnerable: e.target.value }))} placeholder="Population, and how affected" />
                   </div>
+              </OptionalCluster>
+              {/* RK3-A3 g1 — harm_category_review_status: internal QA tracker (never printed) */}
+              <OptionalCluster title="Harm-category QA tracker" valueLine="Internal only — tracks which harm categories have been reviewed. Never printed.">
+                <div data-rail-key="harm_review_status" onFocus={() => focusRail('harm_review_status')}>
+                  <p className="text-xs text-muted-foreground mb-2">For each harm category, record whether you identified at least one pathway, considered it and found none applicable, or have not yet assessed it.</p>
+                  <div className="space-y-2">
+                    {HARM_PATHWAY_OPTS.map((cat) => (
+                      <div key={cat} className="flex items-center gap-3">
+                        <span className="text-xs font-mono text-muted-foreground w-6 shrink-0">{cat.slice(0, 3)}</span>
+                        <span className="text-xs text-muted-foreground flex-1 truncate" title={cat}>{cat.slice(4)}</span>
+                        <select
+                          className="h-8 text-xs px-2 rounded-md border border-input bg-background"
+                          value={harmCategoryReviewStatus[cat] || ""}
+                          onChange={(e) => setHarmCategoryReviewStatus((s) => ({ ...s, [cat]: e.target.value }))}
+                        >
+                          <option value="">—</option>
+                          {HARM_CATEGORY_REVIEW_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </OptionalCluster>
             </>
           )}

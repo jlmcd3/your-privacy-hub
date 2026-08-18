@@ -967,5 +967,27 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       "Leaving the start date blank when status is Ongoing. The start date is the anchor for the assessment-window narrative; without it the report cannot close the timeline.",
   },
 
+  // RK3-A3 g1 — harm-category QA tracker (EUP internal, never printed).
+  harm_review_status: {
+    fieldLabel: "Harm-category review status (internal QA)",
+    citation: "11 CCR § 7152(a)(5)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Internal quality tracker. For each of the five HARM_PATHWAY categories (A)–(E), record whether the category was identified (at least one pathway), considered and found not applicable, or not yet assessed. This field is never printed in the report.",
+    regulationText:
+      "11 CCR § 7152(a)(5) — The risk assessment must identify the negative impacts to consumers associated with the processing, including but not limited to: (A) unauthorized access, destruction, use, modification, or disclosure, or loss of availability; (B) physical injury; (C) psychological injury; (D) financial injury; and (E) adverse action taken by a business or government entity.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(6)", label: "Safeguards addressing identified impacts" },
+    ],
+    coachLead:
+      "Use this tracker during the drafting session to confirm every harm category has been considered before closing the assessment.",
+    coachBody:
+      "Mark each category as Identified (you recorded at least one pathway under it), Considered-none (you reviewed it and concluded no applicable pathways exist for this processing), or Not yet assessed. A category left at Not yet assessed signals an open item. This data is internal only and does not appear in the printed report.",
+    goodAnswer:
+      "(A) Identified — unauthorized access pathway recorded. (B) Considered-none — processing is fully digital, no physical-injury pathway. (C) Considered-none. (D) Identified — financial harm from data breach recorded. (E) Considered-none.",
+    commonMistake:
+      "Leaving all categories at Not yet assessed and submitting the assessment. A complete assessment must show that every category was at least considered.",
+  },
+
 };
 
