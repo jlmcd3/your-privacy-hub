@@ -121,6 +121,30 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       "Copying one overall period into every row. Where periods genuinely differ by category, a uniform answer misstates the record; where the period is unknown, leaving the row blank instead of stating the criteria loses the answer the regulation asks for.",
   },
 
+  // RK3-A1 g4 (Intake Contract v2.0 §6) — § 7152(a)(3)(E) activity
+  // disclosures. Verbatim from verified registry row ra_content_op_disclosures.
+  activity_disclosures: {
+    fieldLabel: "What consumers are told about this processing, and how",
+    citation: "11 CCR § 7152(a)(3)(E)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The risk assessment documents the disclosures the business has made or plans to make to the consumer about this processing, and how those disclosures were or will be made. The record needs both halves — the substance and the delivery.",
+    regulationText:
+      "§ 7152(a)(3)(E) — “What disclosures the business has made or plans to make to the consumer about the processing of their personal information and how these disclosures were or will be made”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(C)", label: "Method of interacting with consumers" },
+      { citation: "11 CCR § 7003", label: "Conspicuousness requirements for notices" },
+    ],
+    coachLead:
+      "State what the consumer actually reads or hears — the substance, not the document's name — then how it reaches them, and whether it exists today or is still planned. A planned disclosure is a legitimate answer; label it as planned.",
+    coachBody:
+      "“We have a privacy policy” names a container. The record wants the statement the consumer encounters about this activity, its delivery route, and its status. Disclosures still on the roadmap belong in the record too — marked Planned, so the assessment can treat them as commitments rather than existing facts.",
+    goodAnswer:
+      "Fernbrook Grocers: content — “The loyalty sign-up form states that name, address, and birth month are used to mail a birthday coupon”; method — Notice at Collection; status — Made. A second row records a planned just-in-time notice for the new mobile sign-up, marked Planned.",
+    commonMistake:
+      "Answering with the mechanism list alone (“privacy policy, consent screen”). Without the content half — what the disclosure actually says about this activity — the § 7152(a)(3)(E) record is incomplete.",
+  },
+
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
   // including the Business E example excerpt.
   comparable_set: {

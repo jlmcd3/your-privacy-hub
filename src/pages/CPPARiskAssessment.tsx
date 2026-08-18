@@ -439,6 +439,12 @@ export default function CPPARiskAssessment() {
   const [retentionByPiCategory, setRetentionByPiCategory] = useState<{ pi_category: string; retention_period: string; retention_criteria: string }[]>([
     { pi_category: "", retention_period: "", retention_criteria: "" },
   ]);
+  // RK3-A1 g4 — § 7152(a)(3)(E) CANONICAL activity-disclosure record: what
+  // consumers were or will be told about THIS processing and how. The
+  // i4_disclosure_mechanisms pills stay as the mechanism summary.
+  const [activityDisclosures, setActivityDisclosures] = useState<{ disclosure_content: string; disclosure_method: string; status: string; timing_or_location: string }[]>([
+    { disclosure_content: "", disclosure_method: "", status: "", timing_or_location: "" },
+  ]);
   // ── ITEM 305 — analytic-deliverable intake state ───────────────────
   const [a2NecessitySet, setA2NecessitySet] = useState<{ element: string; necessity: string; justification: string }[]>([
     { element: "", necessity: "", justification: "" },
@@ -696,6 +702,15 @@ export default function CPPARiskAssessment() {
       if (!i6Vendors) return "List the service providers, contractors, or third parties involved — or write \"None\".";
       if (!q11 || !q12 || !q13 || !q14) return "Complete the privacy-notice answers.";
       if (!i4Disclosures.length) return "Select at least one disclosure mechanism, or \"No standalone disclosure\".";
+      // RK3-A1 g4 — § 7152(a)(3)(E): each disclosure row needs content,
+      // method, and Made/Planned status (form-required; data-layer optional).
+      {
+        const rows = activityDisclosures.filter((r) => r.disclosure_content.trim() || r.disclosure_method || r.status);
+        if (rows.length === 0) return "Record at least one disclosure — what consumers are or will be told about this activity and how.";
+        if (rows.some((r) => !r.disclosure_content.trim())) return "Every disclosure row needs the content — what consumers are or will be told.";
+        if (rows.some((r) => !r.disclosure_method)) return "Every disclosure row needs a method — how the disclosure is or will be made.";
+        if (rows.some((r) => !r.status)) return "Mark each disclosure as Made or Planned.";
+      }
     }
     if (step === 4) {
       if (!i1bMinPi || i1bMinPi.length < 20) return "State the minimum personal information necessary for this purpose.";
@@ -772,6 +787,8 @@ export default function CPPARiskAssessment() {
     // RK3-A1 g3 — § 7152(a)(3)(B) canonical per-category retention record.
     // Rows without a category are dropped (the builder degrades honestly).
     retention_by_pi_category: retentionByPiCategory.filter((r) => r.pi_category),
+    // RK3-A1 g4 — § 7152(a)(3)(E) canonical activity-disclosure record.
+    activity_disclosures: activityDisclosures.filter((r) => r.disclosure_content.trim()),
     // TURN 1b — new intake fields (flow through submission_summary + § 7150(b)(5) resolver).
     public_privacy_policy_url: publicPrivacyPolicyUrl.trim(),
     sensitive_location_basis: sensitiveLocationBasis,
@@ -828,7 +845,7 @@ export default function CPPARiskAssessment() {
     q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
-    retentionByPiCategory,
+    retentionByPiCategory, activityDisclosures,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -852,7 +869,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
-    retentionByPiCategory,
+    retentionByPiCategory, activityDisclosures,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -866,7 +883,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
-    retentionByPiCategory,
+    retentionByPiCategory, activityDisclosures,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -883,6 +900,7 @@ export default function CPPARiskAssessment() {
     processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
     retentionByPiCategory: [{ pi_category: "", retention_period: "", retention_criteria: "" }],
+    activityDisclosures: [{ disclosure_content: "", disclosure_method: "", status: "", timing_or_location: "" }],
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
     secondaryActivities: [] as SecondaryActivity[],
@@ -987,6 +1005,16 @@ export default function CPPARiskAssessment() {
           pi_category: typeof r?.pi_category === "string" ? r.pi_category : "",
           retention_period: typeof r?.retention_period === "string" ? r.retention_period : "",
           retention_criteria: typeof r?.retention_criteria === "string" ? r.retention_criteria : "",
+        })),
+      );
+    }
+    if (Array.isArray(d.activityDisclosures) && d.activityDisclosures.length > 0) {
+      setActivityDisclosures(
+        d.activityDisclosures.map((r: any) => ({
+          disclosure_content: typeof r?.disclosure_content === "string" ? r.disclosure_content : "",
+          disclosure_method: typeof r?.disclosure_method === "string" ? r.disclosure_method : "",
+          status: typeof r?.status === "string" ? r.status : "",
+          timing_or_location: typeof r?.timing_or_location === "string" ? r.timing_or_location : "",
         })),
       );
     }
@@ -1766,6 +1794,74 @@ export default function CPPARiskAssessment() {
                 <p className="text-xs text-muted-foreground mt-1">Select every mechanism that applies. The report will map your selections against the conspicuousness requirements of § 7003.</p>
                 <div className="mt-2"><Pills options={DISCLOSURE_MECHANISMS} value={i4Disclosures} onChange={setI4Disclosures} /></div>
                 {renderAssertion("i4_disclosure_mechanisms")}
+              </div>
+              {/* RK3-A1 g4 — § 7152(a)(3)(E) canonical activity-disclosure
+                  record: content + method + Made/Planned per disclosure. The
+                  mechanism pills above stay as the summary. */}
+              <div data-rail-key="activity_disclosures" onFocus={() => focusRail('activity_disclosures')}>
+                <Label>For this activity, what are consumers told — or will they be told — and how? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(E))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">One row per material disclosure: the substance of what is said, how it is or will be delivered, and whether it is already made or still planned.</p>
+                <div className="mt-2 space-y-2">
+                  {activityDisclosures.map((row, idx) => (
+                    <div key={idx} className="rounded-lg border border-input p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-semibold text-muted-foreground">Disclosure #{idx + 1}</p>
+                        <button
+                          type="button"
+                          onClick={() => setActivityDisclosures((prev) => prev.filter((_, i) => i !== idx))}
+                          disabled={activityDisclosures.length === 1}
+                          className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-40"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <textarea
+                        value={row.disclosure_content}
+                        onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_content: e.target.value } : r)))}
+                        onFocus={() => focusRail('activity_disclosures')}
+                        rows={2}
+                        placeholder="What consumers are or will be told — e.g., “The sign-up form states that name, address, and birth month are used to mail a birthday coupon.”"
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background"
+                      />
+                      <div className="grid gap-2 xl:grid-cols-[1.2fr_0.8fr_1fr] items-start">
+                        <select
+                          className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                          value={row.disclosure_method}
+                          onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_method: e.target.value } : r)))}
+                          onFocus={() => focusRail('activity_disclosures')}
+                        >
+                          <option value="">How it is made…</option>
+                          {DISCLOSURE_MECHANISMS.filter((m) => m !== "No standalone disclosure").map((m) => <option key={m}>{m}</option>)}
+                          <option>Other (describe in the content)</option>
+                        </select>
+                        <select
+                          className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                          value={row.status}
+                          onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, status: e.target.value } : r)))}
+                          onFocus={() => focusRail('activity_disclosures')}
+                        >
+                          <option value="">Made or planned…</option>
+                          <option>Made</option>
+                          <option>Planned</option>
+                        </select>
+                        <input
+                          className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                          value={row.timing_or_location}
+                          onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, timing_or_location: e.target.value } : r)))}
+                          onFocus={() => focusRail('activity_disclosures')}
+                          placeholder="Timing / location (optional)"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivityDisclosures((prev) => [...prev, { disclosure_content: "", disclosure_method: "", status: "", timing_or_location: "" }])}
+                  className="mt-2 text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                >
+                  + Add a disclosure
+                </button>
               </div>
             </>
           )}

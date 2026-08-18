@@ -117,6 +117,40 @@ Deno.test("RK3-A1 g3 — statute rail carries the § 7152(a)(3)(B) verbatim", as
   );
 });
 
+// ── GROUP 4 — § 7152(a)(3)(E) activity-disclosure record ─────────────────────
+
+Deno.test("RK3-A1 g4 — contract carries activity_disclosures with content/method/status children", () => {
+  const f = field("activity_disclosures");
+  assert(f, "activity_disclosures missing from cppaRiskContract");
+  assertEquals(f!.required, "optional", "data-layer optional (legacy rows keep validating)");
+  assertEquals(f!.kind, "structured");
+  assert(field("activity_disclosures[].disclosure_content"), "disclosure_content child missing");
+  assert(field("activity_disclosures[].disclosure_method"), "disclosure_method child missing");
+  const status = field("activity_disclosures[].status");
+  assert(status, "status child missing");
+  assertEquals([...(status!.options ?? [])], ["Made", "Planned"]);
+  assert(field("activity_disclosures[].timing_or_location"), "timing_or_location child missing");
+});
+
+Deno.test("RK3-A1 g4 — form emits the record and stepValid enforces content/method/status", async () => {
+  const src = await Deno.readTextFile(PAGE_PATH);
+  assert(src.includes("activity_disclosures: activityDisclosures.filter((r) => r.disclosure_content.trim())"), "intake memo must emit activity_disclosures, dropping content-less rows");
+  assert(src.includes("Record at least one disclosure"), "stepValid must require at least one row");
+  assert(src.includes("Every disclosure row needs the content"), "stepValid must require content");
+  assert(src.includes("Every disclosure row needs a method"), "stepValid must require method");
+  assert(src.includes("Mark each disclosure as Made or Planned."), "stepValid must require status");
+  assert(src.includes("Array.isArray(d.activityDisclosures)"), "applyRestore must restore the record with shape guards");
+});
+
+Deno.test("RK3-A1 g4 — statute rail carries the § 7152(a)(3)(E) verbatim", async () => {
+  const src = await Deno.readTextFile(RAIL_PATH);
+  assert(src.includes("activity_disclosures: {"), "rail must define activity_disclosures");
+  assert(
+    src.includes("What disclosures the business has made or plans to make to the consumer about the processing of their personal information and how these disclosures were or will be made"),
+    "rail entry must carry the ra_content_op_disclosures verbatim quote",
+  );
+});
+
 Deno.test("RK3-A1 g2 — statute rail carries the consumer_interaction entry; no unverified (C)/(D) verbatim", async () => {
   const src = await Deno.readTextFile(RAIL_PATH);
   assert(src.includes("consumer_interaction: {"), "rail must define consumer_interaction");

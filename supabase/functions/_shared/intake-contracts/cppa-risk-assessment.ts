@@ -485,6 +485,21 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: "a retention row is present and retention_criteria is empty" },
     { key: "retention_by_pi_category[].retention_criteria", kind: "enum", required: "conditional",
       requiredWhen: "a retention row is present and retention_period is empty", options: RETENTION_CRITERIA },
+
+    // ── RK3-A1 g4 (Intake Contract v2.0 §6) — § 7152(a)(3)(E) CANONICAL
+    // activity-disclosure record: content + method + Made/Planned status +
+    // optional timing/location per material disclosure.
+    // i4_disclosure_mechanisms stays as the mechanism summary. Same
+    // data-layer-optional / form-required posture; the form drops rows
+    // without content before emission.
+    { key: "activity_disclosures", kind: "structured", required: "optional" },
+    { key: "activity_disclosures[].disclosure_content", kind: "narrative", required: "conditional",
+      requiredWhen: "a disclosure row is present" },
+    { key: "activity_disclosures[].disclosure_method", kind: "text", required: "conditional",
+      requiredWhen: "a disclosure row is present" },
+    { key: "activity_disclosures[].status", kind: "enum", required: "conditional",
+      requiredWhen: "a disclosure row is present", options: ["Made", "Planned"] },
+    { key: "activity_disclosures[].timing_or_location", kind: "text", required: "optional" },
   ],
 
 };
