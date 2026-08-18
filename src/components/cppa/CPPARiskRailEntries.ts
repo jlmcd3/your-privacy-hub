@@ -873,6 +873,29 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     ],
   },
 
+  // RK3-A2 g4 \u2014 PN-RK7 SPI employment-exception facts.
+  spi_employment_exception: {
+    fieldLabel: "Employment-basis justification for sensitive PI processing",
+    citation: "Cal. Civ. Code \u00a7 1798.140(ae); 11 CCR \u00a7 7150(b)(2)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The former \u00a7 1798.145(m) employment exemption expired January 1, 2023. A business that processes sensitive personal information on an employment-contract basis must document the specific facts establishing that the processing is strictly necessary for the employment relationship, not merely useful or convenient.",
+    regulationText:
+      "Cal. Civ. Code \u00a7 1798.145(m) \u2014 (Inoperative as of January 1, 2023.) The exemption for employees, contractors, job applicants, and emergency contacts that existed under the original CCPA was not renewed in the CPRA. Employee-related sensitive PI processing remains subject to the CPPA regulations. Cal. Civ. Code \u00a7 1798.140(ae) defines sensitive personal information.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7150(b)(2)", label: "Sensitive PI as risk-assessment trigger" },
+      { citation: "Cal. Civ. Code \u00a7 1798.140(ae)", label: "Definition of sensitive personal information" },
+    ],
+    coachLead:
+      "State the legal constraint that makes the processing necessary \u2014 not the business convenience. Necessity means the processing cannot be replaced by a less intrusive alternative.",
+    coachBody:
+      "Answer three questions: What specific sensitive PI is processed? Why is it necessary (identify the law, contractual obligation, or safety requirement that cannot be met without it)? What is the least invasive alternative, and why does the alternative fail? An answer that stops at convenience or efficiency does not establish necessity.",
+    goodAnswer:
+      '"Biometric time-and-attendance data (fingerprint scans). Necessary to satisfy Cal. Labor Code \u00a7 226 time-record requirements and prevent shift-overlap payroll errors at scale. Non-biometric alternatives (badge swipe, PIN) are subject to buddy-punching fraud at our facility density; a 2024 pilot showed 12% error rate, resulting in $240K payroll discrepancy." Specific PI, legal anchor, tested alternative.',
+    commonMistake:
+      "Restating that the processing is covered by the employment contract. The contract is the legal basis; this field needs the facts that make the specific processing strictly necessary for that contract.",
+  },
+
   // RK3-A2 g3 \u2014 \u00a7 7153 ADMT-provider risk-assessment trigger.
   admt_section_7153: {
     fieldLabel: "\u00a7 7153 \u2014 ADMT made available to another business",

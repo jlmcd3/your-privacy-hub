@@ -586,6 +586,14 @@ export const cppaRiskContract: IntakeContract = {
       options: YES_NO_UNKNOWN_OPTS },
     { key: "recipient_business_uses_admt_for_significant_decision", kind: "enum", required: "optional",
       options: YES_NO_UNKNOWN_OPTS },
+
+    // ── RK3-A2 g4 (Intake Contract v2.0 §6, doc 31 §2c) — PN-RK7 SPI
+    // employment-exception facts. Conditional on sensitive PI being processed
+    // on an employment-contract basis (q15 === "Yes" && q17 === "Employment
+    // contract"). Captures the facts establishing that the processing is
+    // strictly necessary for the employment relationship, required because
+    // the former § 1798.145(m) employment exemption expired 2023-01-01.
+    { key: "spi_employment_exception_facts", kind: "narrative", required: "optional" },
   ],
 
 };

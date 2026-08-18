@@ -399,6 +399,8 @@ export default function CPPARiskAssessment() {
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [materialChangeSincePrior, setMaterialChangeSincePrior] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
+  // RK3-A2 g4 — PN-RK7 SPI employment-exception facts (conditional on employment basis)
+  const [spiEmploymentExceptionFacts, setSpiEmploymentExceptionFacts] = useState("");
   // RK3-A2 g3 — § 7153 branch (conditional on q18 === "Yes")
   const [admtMadeAvailableToOtherBusiness, setAdmtMadeAvailableToOtherBusiness] = useState("");
   const [admtProviderTrainedUsingPi, setAdmtProviderTrainedUsingPi] = useState("");
@@ -907,6 +909,8 @@ export default function CPPARiskAssessment() {
     prior_risk_assessment_date: priorRiskAssessmentDate || undefined,
     material_change_date: materialChangeDate || undefined,
     material_change_description: materialChangeDescription || undefined,
+    // RK3-A2 g4 — PN-RK7 SPI employment-exception facts; undefined when blank
+    spi_employment_exception_facts: spiEmploymentExceptionFacts || undefined,
     // RK3-A2 g3 — § 7153 branch; undefined when blank
     admt_made_available_to_other_business: admtMadeAvailableToOtherBusiness || undefined,
     admt_provider_trained_using_pi: admtProviderTrainedUsingPi || undefined,
@@ -960,6 +964,7 @@ export default function CPPARiskAssessment() {
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
     admtMadeAvailableToOtherBusiness, admtProviderTrainedUsingPi, recipientBusinessUsesAdmtForSignificantDecision,
+    spiEmploymentExceptionFacts,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
     a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
     a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
@@ -978,6 +983,7 @@ export default function CPPARiskAssessment() {
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
     admtMadeAvailableToOtherBusiness, admtProviderTrainedUsingPi, recipientBusinessUsesAdmtForSignificantDecision,
+    spiEmploymentExceptionFacts,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -997,6 +1003,7 @@ export default function CPPARiskAssessment() {
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
     admtMadeAvailableToOtherBusiness, admtProviderTrainedUsingPi, recipientBusinessUsesAdmtForSignificantDecision,
+    spiEmploymentExceptionFacts,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -1018,6 +1025,7 @@ export default function CPPARiskAssessment() {
     processingStatus: "", processingStartDate: "", plannedStartDate: "", priorRiskAssessmentDate: "", materialChangeDate: "", materialChangeDescription: "",
     admtOperationalRole: "", admtAssumptionsLimitations: "", admtOutput: "", admtOutputUse: "", admtConsumerEffect: "",
     admtMadeAvailableToOtherBusiness: "", admtProviderTrainedUsingPi: "", recipientBusinessUsesAdmtForSignificantDecision: "",
+    spiEmploymentExceptionFacts: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
@@ -1113,6 +1121,7 @@ export default function CPPARiskAssessment() {
     if (typeof d.admtMadeAvailableToOtherBusiness === "string") setAdmtMadeAvailableToOtherBusiness(d.admtMadeAvailableToOtherBusiness);
     if (typeof d.admtProviderTrainedUsingPi === "string") setAdmtProviderTrainedUsingPi(d.admtProviderTrainedUsingPi);
     if (typeof d.recipientBusinessUsesAdmtForSignificantDecision === "string") setRecipientBusinessUsesAdmtForSignificantDecision(d.recipientBusinessUsesAdmtForSignificantDecision);
+    if (typeof d.spiEmploymentExceptionFacts === "string") setSpiEmploymentExceptionFacts(d.spiEmploymentExceptionFacts);
     if (typeof d.entityName === "string") setEntityName(d.entityName);
     if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
@@ -1976,6 +1985,18 @@ export default function CPPARiskAssessment() {
                 </div>
                 <div><Label>Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
+                {/* RK3-A2 g4 — PN-RK7 SPI employment-exception facts.
+                    The former § 1798.145(m) employment exemption expired
+                    2023-01-01; where "Employment contract" is the claimed basis,
+                    the assessment must document the facts establishing strict
+                    necessity for the employment relationship. */}
+                {q17 === "Employment contract" && (
+                  <div data-rail-key="spi_employment_exception" onFocus={() => focusRail('spi_employment_exception')} className="mt-3 pl-4 border-l-4 border-rose-400 py-2 bg-rose-50/40 dark:bg-rose-950/10 rounded-r">
+                    <Label className="text-sm font-semibold">Employment-basis justification (PN-RK7) <span className="text-xs text-muted-foreground">(required for employment basis)</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">The former § 1798.145(m) employment exemption expired January 1, 2023 and is no longer operative. Where an employment contract is the claimed basis, the assessment must state the specific facts showing that the processing of this sensitive PI is strictly necessary for the employment relationship — what the PI is, why it is necessary (not merely useful), and what the alternative would be if the employee or contractor did not consent.</p>
+                    <Textarea className="mt-2" rows={4} value={spiEmploymentExceptionFacts} onChange={(e) => setSpiEmploymentExceptionFacts(e.target.value)} onFocus={() => focusRail('spi_employment_exception')} placeholder="e.g., Biometric time-and-attendance data (fingerprint scans) is necessary to comply with the time-record requirements of the California Labor Code and to prevent buddy-punching fraud. No adequate non-biometric alternative exists at our facility size and shift-pattern complexity. Employees are informed in their offer letter and at onboarding." />
+                  </div>
+                )}
               </>)}
               <div data-rail-key="q15b_under16" onFocus={() => focusRail('q15b_under16')}>
                 <Label>Do you know that you collect personal information from consumers under 16? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label><p className="text-xs text-muted-foreground mt-1">"Actual knowledge" is the legal standard — meaning your business is actually aware, not merely on notice. This includes knowledge gained from age screening, account data, or other direct signals.</p>
