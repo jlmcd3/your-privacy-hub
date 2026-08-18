@@ -117,6 +117,19 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   recipient_business_uses_admt_for_significant_decision: "recipient business significant-decision use",
   // RK3-A2 g4 — SPI employment exception
   spi_employment_exception_facts: "employment-basis SPI justification",
+  // RK3-A3 g1 — Priority 3 intake fields
+  harm_category_review_status: "harm-category review status (internal QA)",
+  "harm_category_review_status[].harm_category": "harm category",
+  "harm_category_review_status[].review_status": "review status",
+  "a6_safeguards[].risk_pathway_ids": "harm pathways addressed by this safeguard",
+  // RK3-A3 g2 — org profile
+  cppa_submission_contact_name: "CPPA submission contact name",
+  cppa_submission_contact_phone: "CPPA submission contact phone",
+  cppa_submission_contact_email: "CPPA submission contact email",
+  certifier_is_executive_management: "certifier is executive management",
+  certifier_directly_responsible_for_ra_compliance: "certifier responsible for risk-assessment compliance",
+  certifier_has_sufficient_knowledge: "certifier has sufficient knowledge",
+  certifier_authorized_to_submit: "certifier authorized to submit",
   exceptions_intake: "regulatory exceptions",
   impact_intake: "impact assessment inputs",
   "impact_intake.likelihood": "likelihood of impact",
