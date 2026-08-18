@@ -158,3 +158,22 @@ export const BENEFICIARY_CLASSES = [
   "other stakeholders",
   "the public",
 ];
+
+// RK3-A3 g3 — finalization stage option sets (doc 31 §3 — NEW-F, § 7152(a)(7)).
+// Parity copies from cppa-risk-assessment-finalization.ts; parity pinned in
+// rk3-a3-finalization.test.ts.
+export const FINAL_PROCESSING_DECISION_PLANNED_OPTS = [
+  "Initiate",
+  "Initiate with conditions",
+  "Do not initiate",
+] as const;
+export const FINAL_PROCESSING_DECISION_ONGOING_OPTS = [
+  "Continue",
+  "Continue with conditions",
+  "Discontinue",
+] as const;
+export const FINAL_PROCESSING_DECISION_OPTS = [
+  ...FINAL_PROCESSING_DECISION_PLANNED_OPTS,
+  ...FINAL_PROCESSING_DECISION_ONGOING_OPTS,
+] as const;
+export const REVIEWER_ROLE_OPTS = ["Reviewed", "Approved", "Both"] as const;

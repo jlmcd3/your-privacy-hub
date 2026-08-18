@@ -88,8 +88,12 @@ export interface IntakeField {
 
 
 export interface IntakeContract {
-  tool_type: string;
+  /** Contract identifier (stable across deploys). Present on all v2.0+ contracts. */
+  id?: string;
+  /** SemVer contract version. Present on all v2.0+ contracts. */
+  version?: string;
+  tool_type?: string;
   /** Persisted table name (report_data table for the tool). */
-  table: string;
+  table?: string;
   fields: IntakeField[];
 }

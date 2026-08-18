@@ -289,6 +289,9 @@ import {
   CONSUMER_INTERACTION_METHOD_OPTS,
   PROCESSING_STATUS_OPTS,
   HARM_CATEGORY_REVIEW_STATUS_OPTS,
+  FINAL_PROCESSING_DECISION_PLANNED_OPTS,
+  FINAL_PROCESSING_DECISION_ONGOING_OPTS,
+  REVIEWER_ROLE_OPTS,
 } from "./CPPARiskAssessment.enums";
 
 // Progressive disclosure for optional clusters. The value line states what the
@@ -515,6 +518,16 @@ export default function CPPARiskAssessment() {
   ]);
   // RK3-A3 g1 — harm-category review-status tracker (EUP internal QA, never printed)
   const [harmCategoryReviewStatus, setHarmCategoryReviewStatus] = useState<Record<string, string>>({});
+  // RK3-A3 g3 — finalization stage state (doc 31 §3 — NEW-F fields)
+  const [finalizationOpen, setFinalizationOpen] = useState(false);
+  const [finalProcessingDecision, setFinalProcessingDecision] = useState("");
+  const [finalProcessingDecisionNotes, setFinalProcessingDecisionNotes] = useState("");
+  const [assessmentReviewersApprovers, setAssessmentReviewersApprovers] = useState<{ name: string; position: string; role: string }[]>([
+    { name: "", position: "", role: "" },
+  ]);
+  const [approverAuthorityConfirmed, setApproverAuthorityConfirmed] = useState("");
+  const [approverAuthorityBasis, setApproverAuthorityBasis] = useState("");
+  const [finalizationFollowUpResolved, setFinalizationFollowUpResolved] = useState("");
   const [a9ApproverName, setA9ApproverName] = useState("");
   const [a9ApproverPosition, setA9ApproverPosition] = useState("");
   const [a9ApprovalDate, setA9ApprovalDate] = useState("");
@@ -999,6 +1012,9 @@ export default function CPPARiskAssessment() {
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData, harmCategoryReviewStatus,
+    finalProcessingDecision, finalProcessingDecisionNotes,
+    assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
+    finalizationFollowUpResolved,
 
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -1019,6 +1035,9 @@ export default function CPPARiskAssessment() {
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData, harmCategoryReviewStatus,
+    finalProcessingDecision, finalProcessingDecisionNotes,
+    assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
+    finalizationFollowUpResolved,
 
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -1048,6 +1067,12 @@ export default function CPPARiskAssessment() {
     exceptionClaims: {} as Record<string, ExceptionClaim>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
     harmCategoryReviewStatus: {} as Record<string, string>,
+    finalProcessingDecision: "",
+    finalProcessingDecisionNotes: "",
+    assessmentReviewersApprovers: [{ name: "", position: "", role: "" }] as { name: string; position: string; role: string }[],
+    approverAuthorityConfirmed: "",
+    approverAuthorityBasis: "",
+    finalizationFollowUpResolved: "",
   }), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
   const {
@@ -1218,6 +1243,12 @@ export default function CPPARiskAssessment() {
     if (d.exceptionClaims && typeof d.exceptionClaims === "object") setExceptionClaims(d.exceptionClaims);
     if (d.impactData && typeof d.impactData === "object") setImpactData((prev) => ({ ...prev, ...d.impactData }));
     if (d.harmCategoryReviewStatus && typeof d.harmCategoryReviewStatus === "object") setHarmCategoryReviewStatus(d.harmCategoryReviewStatus as Record<string, string>);
+    if (typeof d.finalProcessingDecision === "string") setFinalProcessingDecision(d.finalProcessingDecision);
+    if (typeof d.finalProcessingDecisionNotes === "string") setFinalProcessingDecisionNotes(d.finalProcessingDecisionNotes);
+    if (Array.isArray(d.assessmentReviewersApprovers)) setAssessmentReviewersApprovers(d.assessmentReviewersApprovers);
+    if (typeof d.approverAuthorityConfirmed === "string") setApproverAuthorityConfirmed(d.approverAuthorityConfirmed);
+    if (typeof d.approverAuthorityBasis === "string") setApproverAuthorityBasis(d.approverAuthorityBasis);
+    if (typeof d.finalizationFollowUpResolved === "string") setFinalizationFollowUpResolved(d.finalizationFollowUpResolved);
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
@@ -2800,6 +2831,159 @@ export default function CPPARiskAssessment() {
 
 
           {summaryStep && <SummaryTable intake={intake} />}
+
+          {/* RK3-A3 g3 — finalization stage (doc 31 §3 — NEW-F fields, § 7152(a)(7)+(9)) */}
+          {summaryStep && (
+            <div className="mt-4 rounded-lg border border-border" data-rail-key="finalization_stage" onFocus={() => focusRail('finalization_stage')}>
+              <button
+                type="button"
+                className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-muted/40 rounded-lg"
+                onClick={() => setFinalizationOpen((v) => !v)}
+              >
+                <span className="font-semibold text-sm">Finalization stage — record the processing decision and approval</span>
+                <span className="text-xs text-muted-foreground ml-2 shrink-0">{finalizationOpen ? "Hide ▲" : "Show ▼"}</span>
+              </button>
+              {finalizationOpen && (
+                <div className="border-t px-4 py-4 space-y-5">
+                  <p className="text-xs text-muted-foreground">Complete after the risk analysis has been reviewed. These fields satisfy 11 CCR § 7152(a)(7) and (a)(9). Internal only — not submitted until the record is finalized.</p>
+
+                  {/* final_processing_decision */}
+                  <div>
+                    <Label>Final processing decision <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(7))</span></Label>
+                    <select
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={finalProcessingDecision}
+                      onChange={(e) => setFinalProcessingDecision(e.target.value)}
+                    >
+                      <option value="">Select…</option>
+                      {(processingStatus === "Planned"
+                        ? FINAL_PROCESSING_DECISION_PLANNED_OPTS
+                        : FINAL_PROCESSING_DECISION_ONGOING_OPTS
+                      ).map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+
+                  {/* final_processing_decision_notes */}
+                  <div>
+                    <Label>Decision notes <span className="text-xs text-muted-foreground">(optional)</span></Label>
+                    <Textarea
+                      className="mt-2"
+                      rows={2}
+                      value={finalProcessingDecisionNotes}
+                      onChange={(e) => setFinalProcessingDecisionNotes(e.target.value)}
+                      placeholder="Rationale, conditions, or context for the decision"
+                    />
+                  </div>
+
+                  {/* assessment_reviewers_approvers repeater */}
+                  <div>
+                    <Label>Assessment reviewers and approvers <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(9))</span></Label>
+                    <div className="mt-2 space-y-2">
+                      {assessmentReviewersApprovers.map((row, idx) => (
+                        <div key={idx} className="grid gap-2 md:grid-cols-[1fr_1fr_auto_auto] items-center">
+                          <input
+                            className="h-10 px-3 rounded-md border border-input bg-background"
+                            value={row.name}
+                            onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, name: e.target.value } : r))}
+                            placeholder="Name"
+                          />
+                          <input
+                            className="h-10 px-3 rounded-md border border-input bg-background"
+                            value={row.position}
+                            onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, position: e.target.value } : r))}
+                            placeholder="Position / title"
+                          />
+                          <select
+                            className="h-10 px-3 rounded-md border border-input bg-background"
+                            value={row.role}
+                            onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, role: e.target.value } : r))}
+                          >
+                            <option value="">Role…</option>
+                            {REVIEWER_ROLE_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                          {assessmentReviewersApprovers.length > 1 && (
+                            <button
+                              type="button"
+                              className="text-xs text-muted-foreground hover:text-destructive px-2"
+                              onClick={() => setAssessmentReviewersApprovers((prev) => prev.filter((_, i) => i !== idx))}
+                            >Remove</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="mt-2 text-xs text-primary hover:underline"
+                      onClick={() => setAssessmentReviewersApprovers((prev) => [...prev, { name: "", position: "", role: "" }])}
+                    >+ Add reviewer / approver</button>
+                  </div>
+
+                  {/* approver_authority_confirmed */}
+                  <div>
+                    <Label>Does the approver have authority to authorize initiation / continuation of this processing? <Req /></Label>
+                    <select
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={approverAuthorityConfirmed}
+                      onChange={(e) => setApproverAuthorityConfirmed(e.target.value)}
+                    >
+                      <option value="">Select…</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+
+                  {/* approver_authority_basis */}
+                  <div>
+                    <Label>Basis for approver authority <span className="text-xs text-muted-foreground">(optional)</span></Label>
+                    <Textarea
+                      className="mt-2"
+                      rows={2}
+                      value={approverAuthorityBasis}
+                      onChange={(e) => setApproverAuthorityBasis(e.target.value)}
+                      placeholder="e.g., CFO per board resolution, VP Privacy per delegation policy"
+                    />
+                  </div>
+
+                  {/* D10 restaged: a9_approval_date */}
+                  <div>
+                    <Label>Approval date <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(9) — D10 restaged)</span></Label>
+                    <input
+                      type="date"
+                      className="mt-2 h-10 px-3 rounded-md border border-input bg-background"
+                      value={a9ApprovalDate}
+                      onChange={(e) => setA9ApprovalDate(e.target.value)}
+                    />
+                  </div>
+
+                  {/* D10 restaged: a8_information_providers */}
+                  <div>
+                    <Label>Who provided the information in this assessment? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(8) — D10 restaged)</span></Label>
+                    <Textarea
+                      className="mt-2"
+                      rows={2}
+                      value={a8InformationProviders}
+                      onChange={(e) => setA8InformationProviders(e.target.value)}
+                      placeholder="Names and positions — legal counsel excluded per § 7152(a)(8)-(9)"
+                    />
+                  </div>
+
+                  {/* finalization_required_follow_up_resolved */}
+                  <div>
+                    <Label>Have all required follow-up items been resolved or formally deferred? <Req /></Label>
+                    <select
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={finalizationFollowUpResolved}
+                      onChange={(e) => setFinalizationFollowUpResolved(e.target.value)}
+                    >
+                      <option value="">Select…</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {!summaryStep && regulatoryFootprint.length > 0 && (
             <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">

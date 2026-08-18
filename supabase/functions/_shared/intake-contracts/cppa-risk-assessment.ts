@@ -452,12 +452,18 @@ export const cppaRiskContract: IntakeContract = {
     // i8_certifying_exec_* pair (the person who CERTIFIES the submission);
     // (a)(9) is the person who REVIEWED AND APPROVED the assessment and who
     // has authority to participate in the initiation decision.
-    { key: "a9_approver_name",     kind: "text", required: "always" },
-    { key: "a9_approver_position", kind: "text", required: "always" },
+    // D10 RESTAGED: a9_approver_name / _position / a9_approval_date and
+    // a8_information_providers are maintained during assessment intake but
+    // confirmed required at the FINALIZATION gate (cppa-risk-assessment-
+    // finalization.ts). Relaxed to "optional" here so legacy rows keep
+    // validating; the finalization contract re-declares a8 and a9_approval_date
+    // as "always" required at the Final-Approved stage.
+    { key: "a9_approver_name",     kind: "text", required: "optional" },
+    { key: "a9_approver_position", kind: "text", required: "optional" },
     { key: "a9_approval_date",     kind: "date", required: "optional" },
     // UPGRADE-2 (ITEM 4) — § 7152(a)(8) information providers. Legal counsel
     // who provided legal advice is excluded from this record.
-    { key: "a8_information_providers", kind: "narrative", required: "always", askEligible: true },
+    { key: "a8_information_providers", kind: "narrative", required: "optional", askEligible: true },
 
     // ITEM 380 INTAKE-4a — CEO-approved addition. Question lives in the form
     // at src/pages/CPPARiskAssessment.tsx (~L1330, the block adjacent to the
