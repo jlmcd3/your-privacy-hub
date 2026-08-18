@@ -82,7 +82,7 @@ export const NECESSITY_STATUS_OPTS = [
   "Unsure",
 ] as const;
 export const HARM_PATHWAY_OPTS = [
-  "(A) Unauthorized access, destruction, use, modification, or disclosure",
+  "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
   "(B) Unlawful discrimination on protected characteristics",
   "(C) Impairment of consumer control over personal information",
   "(D) Coercion or compulsion, including dark patterns",

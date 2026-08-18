@@ -181,7 +181,7 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
       "The service is not publicly funded and its routing outputs are not published, so no public-facing outcome is recorded.",
     a5_harm_pathways: [
       {
-        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
         data_involved:
           "Questionnaire answers about mental-health symptoms joined to patient names in the triage response store.",
         actor:
@@ -222,7 +222,7 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
     ],
     a6_safeguards: [
       {
-        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
         safeguard:
           "The routing service account is scoped to the routing views only, credentials rotate every 30 days, and every export from the response store is logged and reviewed weekly.",
         residual:
@@ -366,7 +366,7 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
         severity: "Significant",
       },
       {
-        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
         data_involved:
           "Applicant financial figures joined to identity fields and precise geolocation in the feature store.",
         actor:
@@ -397,7 +397,7 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
         safeguard_status: "Implemented and tested",
       },
       {
-        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
         safeguard:
           "The feature store is segmented from the analytics estate, access is granted per-role with 30-day rotation, and exports are logged.",
         residual:
@@ -519,7 +519,7 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
         severity: "Minimal",
       },
       {
-        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
         data_involved:
           "Member identity joined to itemised purchase history and store-visit records in the personalisation store.",
         actor:
@@ -550,7 +550,7 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
         safeguard_status: "Implemented and tested",
       },
       {
-        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+        harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
         safeguard:
           "Reporting reads from an aggregated view with no member identifiers; the member-level store is reachable only by the personalisation service account.",
         residual:

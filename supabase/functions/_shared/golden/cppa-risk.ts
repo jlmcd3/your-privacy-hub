@@ -93,7 +93,7 @@ const base = {
     "The measurement outputs are internal and are not published, so no public-facing outcome is recorded.",
   a5_harm_pathways: [
     {
-      harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+      harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
       data_involved:
         "Account email addresses joined to device cookie identifiers and IP-derived approximate location in the telemetry event store.",
       actor:
@@ -121,7 +121,7 @@ const base = {
   ],
   a6_safeguards: [
     {
-      harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+      harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
       safeguard:
         "The analytics service account is scoped to the measurement views only, credentials rotate every 30 days, and exports are logged and reviewed weekly.",
       safeguard_status: "Implemented and tested",
@@ -461,7 +461,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
 
       a5_harm_pathways: [
         {
-          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
           data_involved: "Sensitive personal information on financing applications",
           actor: "External attacker",
           source: "Breach of the decision system",
@@ -500,7 +500,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
 
       a6_safeguards: [
         {
-          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
           safeguard:
             "Encryption at rest and in transit, MFA on all decision-system accounts, and quarterly access review.",
           safeguard_status: "Implemented and tested",
@@ -689,7 +689,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
 
       a5_harm_pathways: [
         {
-          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
           data_involved:
             "Precise GPS coordinates linked to pseudonymous device identifiers across up to 13 months of location history",
           actor: "External attacker or malicious insider",
@@ -727,7 +727,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
 
       a6_safeguards: [
         {
-          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
           safeguard:
             "Snowflake warehouse access governed by row-level security and role-based permissions; credential rotation every 60 days; warehouse-access logs reviewed weekly by the security team; annual third-party penetration test.",
           safeguard_status: "Implemented and tested",

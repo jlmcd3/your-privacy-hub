@@ -708,7 +708,7 @@ const F_CPPA_RISK_US: SampleFixture = {
             severity: "Moderate",
           },
           {
-            harm: "(A) Unauthorized access, destruction, use, modification, or disclosure",
+            harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
             data_involved:
               "Tracking-account credentials, delivery addresses, and device identifiers held in the warehouse",
             actor: "External attackers running credential-stuffing campaigns",

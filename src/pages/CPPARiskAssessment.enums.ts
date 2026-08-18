@@ -108,8 +108,11 @@ export const NECESSITY_STATUS_OPTS = [
 // "(H)" prefixes are LOAD-BEARING: resolveHarmId() reads the tag rather
 // than guessing the category from the label text. Never reorder, never
 // re-letter, never drop a prefix.
+// PN-RK9 (2026-08-18) — option (A) carries the § 7152(a)(5)(A) loss-of-
+// availability prong, matching the harm catalogue's label. Legacy stored
+// rows with the pre-revision string still resolve via the letter prefix.
 export const HARM_PATHWAY_OPTS = [
-  "(A) Unauthorized access, destruction, use, modification, or disclosure",
+  "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
   "(B) Unlawful discrimination on protected characteristics",
   "(C) Impairment of consumer control over personal information",
   "(D) Coercion or compulsion, including dark patterns",
