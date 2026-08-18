@@ -873,6 +873,31 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     ],
   },
 
+  // RK3-A2 g2 \u2014 \u00a7 7152(a)(3)(G)(i)/(ii) ADMT branch extensions.
+  // These fields deepen the existing i5_admt entry with operational-role,
+  // assumption/limitation, output, output-use, and consumer-effect detail.
+  admt_extensions: {
+    fieldLabel: "Extended ADMT record \u2014 operational role, assumptions, output, and consumer effect",
+    citation: "11 CCR \u00a7 7152(a)(3)(G)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Where the processing involves automated decisionmaking technology, the risk assessment must identify the role ADMT plays in the activity, the assumptions and limitations of the system, what the system outputs, how that output is used, and the effect on consumers. These fields supply that detail alongside the logic summary and human-review record already required by \u00a7 7152(a)(3)(G).",
+    regulationText:
+      "(G) If the business uses automated decisionmaking technology in the processing: (i) A description of the automated decisionmaking technology, including the role it plays in decisions and the assumptions and limitations of the technology; and (ii) A description of what the automated decisionmaking technology outputs, how those outputs are used, and the effect on consumers.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7150(b)(3)", label: "ADMT for significant decisions \u2014 assessment trigger" },
+      { citation: "11 CCR \u00a7 7150(b)(6)", label: "ADMT profiling \u2014 assessment trigger" },
+    ],
+    coachLead:
+      "Separate the five answers: role, assumptions/limitations, output, how the output is used, and consumer effect. Each is a distinct element; merging them hides the one that is missing.",
+    coachBody:
+      "Role: what the ADMT system does in this activity \u2014 not what it was built to do in general. Assumptions/limitations: the constraints the system carries into every decision, including what data it cannot see. Output: the artefact the system produces (a score, tier, label, flag). Use: what happens to that output in the processing pipeline. Consumer effect: the tangible consequence for the consumer \u2014 approval, denial, price change, content restriction.",
+    goodAnswer:
+      '"Role: scores each applicant 0\u2013100. Assumptions: assumes stated income is accurate; not calibrated for seasonal workers. Output: numeric score + risk tier. Use: Green = auto-approve, Amber = route to underwriter, Red = auto-decline. Consumer effect: Red-tier consumers receive an adverse action notice and are denied credit." Five answers, each a separate sentence.',
+    commonMistake:
+      "Describing the ADMT system in marketing terms ('state-of-the-art AI') rather than operational terms. The record needs what the system does to personal information and what the consumer experiences as a result.",
+  },
+
   // RK3-A2 g1 \u2014 \u00a7 RAF 7155 assessment timing and processing status.
   timing_and_status: {
     fieldLabel: "Processing status and assessment timeline",

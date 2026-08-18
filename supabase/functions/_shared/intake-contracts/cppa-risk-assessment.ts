@@ -561,6 +561,18 @@ export const cppaRiskContract: IntakeContract = {
     { key: "prior_risk_assessment_date", kind: "date", required: "optional" },
     { key: "material_change_date", kind: "date", required: "optional" },
     { key: "material_change_description", kind: "narrative", required: "optional" },
+
+    // ── RK3-A2 g2 (Intake Contract v2.0 §6, doc 31 §2c) — § 7152(a)(3)(G)
+    // ADMT branch extensions. All five fields are conditional on the ADMT
+    // trigger (q18 === "Yes" || "In evaluation") and optional at the data
+    // layer. They deepen the existing i5 ADMT fields with operational-role,
+    // assumption/limitation, output, output-use, and consumer-effect details
+    // needed for the Spine 4.3 §II.D ADMT narrative.
+    { key: "admt_operational_role", kind: "narrative", required: "optional" },
+    { key: "admt_assumptions_limitations", kind: "narrative", required: "optional" },
+    { key: "admt_output", kind: "narrative", required: "optional" },
+    { key: "admt_output_use", kind: "narrative", required: "optional" },
+    { key: "admt_consumer_effect", kind: "narrative", required: "optional" },
   ],
 
 };

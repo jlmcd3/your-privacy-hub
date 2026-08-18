@@ -399,6 +399,12 @@ export default function CPPARiskAssessment() {
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [materialChangeSincePrior, setMaterialChangeSincePrior] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
+  // RK3-A2 g2 — § 7152(a)(3)(G) ADMT branch extensions (conditional on admtTriggered)
+  const [admtOperationalRole, setAdmtOperationalRole] = useState("");
+  const [admtAssumptionsLimitations, setAdmtAssumptionsLimitations] = useState("");
+  const [admtOutput, setAdmtOutput] = useState("");
+  const [admtOutputUse, setAdmtOutputUse] = useState("");
+  const [admtConsumerEffect, setAdmtConsumerEffect] = useState("");
   // RK3-A2 g1 — § RAF 7155 processing status + assessment timeline
   const [processingStatus, setProcessingStatus] = useState("");
   const [processingStartDate, setProcessingStartDate] = useState("");
@@ -897,6 +903,12 @@ export default function CPPARiskAssessment() {
     prior_risk_assessment_date: priorRiskAssessmentDate || undefined,
     material_change_date: materialChangeDate || undefined,
     material_change_description: materialChangeDescription || undefined,
+    // RK3-A2 g2 — § 7152(a)(3)(G) ADMT branch extensions; undefined when blank
+    admt_operational_role: admtOperationalRole || undefined,
+    admt_assumptions_limitations: admtAssumptionsLimitations || undefined,
+    admt_output: admtOutput || undefined,
+    admt_output_use: admtOutputUse || undefined,
+    admt_consumer_effect: admtConsumerEffect || undefined,
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
     // ITEM 305 — operands of the five per-activity analytic deliverables.
@@ -938,6 +950,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior, exceptionClaims, impactData,
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
+    admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
     a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
     a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
@@ -954,6 +967,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
+    admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -971,6 +985,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
+    admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -990,6 +1005,7 @@ export default function CPPARiskAssessment() {
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "", materialChangeSincePrior: "",
     processingStatus: "", processingStartDate: "", plannedStartDate: "", priorRiskAssessmentDate: "", materialChangeDate: "", materialChangeDescription: "",
+    admtOperationalRole: "", admtAssumptionsLimitations: "", admtOutput: "", admtOutputUse: "", admtConsumerEffect: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
@@ -1077,6 +1093,11 @@ export default function CPPARiskAssessment() {
     if (typeof d.priorRiskAssessmentDate === "string") setPriorRiskAssessmentDate(d.priorRiskAssessmentDate);
     if (typeof d.materialChangeDate === "string") setMaterialChangeDate(d.materialChangeDate);
     if (typeof d.materialChangeDescription === "string") setMaterialChangeDescription(d.materialChangeDescription);
+    if (typeof d.admtOperationalRole === "string") setAdmtOperationalRole(d.admtOperationalRole);
+    if (typeof d.admtAssumptionsLimitations === "string") setAdmtAssumptionsLimitations(d.admtAssumptionsLimitations);
+    if (typeof d.admtOutput === "string") setAdmtOutput(d.admtOutput);
+    if (typeof d.admtOutputUse === "string") setAdmtOutputUse(d.admtOutputUse);
+    if (typeof d.admtConsumerEffect === "string") setAdmtConsumerEffect(d.admtConsumerEffect);
     if (typeof d.entityName === "string") setEntityName(d.entityName);
     if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
@@ -1826,6 +1847,32 @@ export default function CPPARiskAssessment() {
                     />
                   </div>
                   <FscrCallout citation="11 CCR § 7152(a)(3)(G)" callouts={fscrCallouts} />
+                  {/* RK3-A2 g2 — § 7152(a)(3)(G)(i)/(ii) extended ADMT record.
+                      operational_role, assumptions_limitations, output, output_use,
+                      and consumer_effect deepen the existing i5 ADMT fields. */}
+                  <div className="mt-4 pt-4 border-t border-amber-200 dark:border-amber-900 space-y-3">
+                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Extended ADMT record (§ 7152(a)(3)(G)(i)–(ii))</p>
+                    <div>
+                      <Label className="text-sm">What operational role does this ADMT system play in this processing activity?</Label>
+                      <Textarea className="mt-2" rows={2} value={admtOperationalRole} onChange={(e) => setAdmtOperationalRole(e.target.value)} onFocus={() => focusRail('i5_admt')} placeholder="e.g., Scores each applicant 0–100; scores below 40 trigger an automatic decline before any human reviewer sees the file." />
+                    </div>
+                    <div>
+                      <Label className="text-sm">What are the key assumptions and known limitations of this ADMT system?</Label>
+                      <Textarea className="mt-2" rows={2} value={admtAssumptionsLimitations} onChange={(e) => setAdmtAssumptionsLimitations(e.target.value)} onFocus={() => focusRail('i5_admt')} placeholder="e.g., Assumes applicant-reported income is accurate; does not account for seasonal employment patterns; trained on data from 2018–2022." />
+                    </div>
+                    <div>
+                      <Label className="text-sm">What does this ADMT system output?</Label>
+                      <Textarea className="mt-2" rows={2} value={admtOutput} onChange={(e) => setAdmtOutput(e.target.value)} onFocus={() => focusRail('i5_admt')} placeholder="e.g., A numeric score and a risk tier (Green / Amber / Red)." />
+                    </div>
+                    <div>
+                      <Label className="text-sm">How is the ADMT output used in this activity?</Label>
+                      <Textarea className="mt-2" rows={2} value={admtOutputUse} onChange={(e) => setAdmtOutputUse(e.target.value)} onFocus={() => focusRail('i5_admt')} placeholder="e.g., Green = auto-approve; Amber = route to underwriter; Red = auto-decline." />
+                    </div>
+                    <div>
+                      <Label className="text-sm">What effect does the ADMT output have on consumers?</Label>
+                      <Textarea className="mt-2" rows={2} value={admtConsumerEffect} onChange={(e) => setAdmtConsumerEffect(e.target.value)} onFocus={() => focusRail('i5_admt')} placeholder="e.g., Consumers in the Red tier are denied credit and receive an adverse action notice." />
+                    </div>
+                  </div>
                 </div>
               )}
               <div>
