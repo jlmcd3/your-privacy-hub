@@ -38,7 +38,7 @@ import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 import { Scale, Zap } from 'lucide-react';
@@ -325,6 +325,7 @@ const GovernanceAssessment = () => {
   const touched = useMemo(() => JSON.stringify(intakeForCheckout) !== initialIntakeJson, [intakeForCheckout, initialIntakeJson]);
   const {
     draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "governance",
     clientId: clientId ?? null,
@@ -381,6 +382,7 @@ const GovernanceAssessment = () => {
     if (typeof restoreStage === "number") setStep(restoreStage);
     else if (typeof payload?.step === "number") setStep(payload.step);
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   const summaryStep = step === totalSteps;
 

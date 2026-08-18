@@ -40,7 +40,7 @@ import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 
 // RC-C3.CLOSE-1 / RC-FLIP-2 — MATURITY lives in a standalone enums module so
@@ -202,6 +202,7 @@ export default function CPPACybersecurity() {
   );
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "cppa_cybersecurity",
     clientId: clientId ?? null,
@@ -219,6 +220,7 @@ export default function CPPACybersecurity() {
     if (d.notes && typeof d.notes === "object") setNotes(d.notes);
     if (d.evidence && typeof d.evidence === "object") setEvidence(d.evidence);
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   const notifyUnassessed = () => {
     if (unassessedCount > 0) {

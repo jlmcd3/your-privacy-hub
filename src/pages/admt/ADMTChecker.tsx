@@ -39,7 +39,7 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import ToolCTABlock from "@/components/ToolCTABlock";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
@@ -572,6 +572,7 @@ export default function ADMTChecker() {
   const {
     draftFound, draftUpdatedAt, restoreData, restoreStage,
     saving: draftSaving, lastSavedAt, clearDraft, dismissDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "cppa_admt",
     clientId: clientId ?? null,
@@ -637,6 +638,7 @@ export default function ADMTChecker() {
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   // Auto-restore when arriving via "Continue" from My Reports (?resume=1).
   const [admtSearchParams] = useSearchParams();
