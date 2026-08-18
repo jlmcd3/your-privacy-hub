@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
@@ -147,6 +147,7 @@ export default function IRPlaybook() {
   const draftData = useMemo(() => ({ form }), [form]);
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "ir",
     clientId: clientId ?? null,
@@ -159,6 +160,7 @@ export default function IRPlaybook() {
     if (!d?.form || typeof d.form !== "object") return;
     setForm((prev) => ({ ...prev, ...d.form }));
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   useEffect(() => {
     if (access.isPremium === true) setPhase("form");

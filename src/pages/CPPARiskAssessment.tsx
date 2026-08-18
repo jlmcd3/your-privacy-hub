@@ -44,7 +44,7 @@ import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { consumeRiskPrefill } from "@/lib/riskIntakePrefill";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
@@ -1078,6 +1078,7 @@ export default function CPPARiskAssessment() {
   const {
     draftFound, draftUpdatedAt, restoreData, restoreStage,
     saving: draftSaving, lastSavedAt, clearDraft, dismissDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "cppa_risk",
     clientId: clientId ?? null,
@@ -1252,6 +1253,7 @@ export default function CPPARiskAssessment() {
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   // ITEM 321 (PROMPT C) — arriving from a § 7156(a) follow-up panel
   // (?prefill=1): the recommended secondary activity becomes the PRIMARY

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -93,6 +93,7 @@ export default function DPAGenerator() {
   const draftData = useMemo(() => ({ form, step }), [form, step]);
   const {
     draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "dpa",
     clientId: clientId ?? null,
@@ -107,6 +108,7 @@ export default function DPAGenerator() {
     if (typeof restoreStage === "number") setStep(restoreStage);
     else if (typeof d.step === "number") setStep(d.step);
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   const validateForm = (): string | null => {
     if (!form.entityName.trim()) return "Name your organisation.";

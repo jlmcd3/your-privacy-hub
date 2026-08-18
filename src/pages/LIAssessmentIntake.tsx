@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -241,6 +241,7 @@ const LIAssessmentIntake = () => {
   const touched = useMemo(() => JSON.stringify(draftPayload) !== initialLiaRef, [draftPayload, initialLiaRef]);
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "lia",
     clientId: clientId ?? null,
@@ -300,6 +301,7 @@ const LIAssessmentIntake = () => {
     S(d.approvalDate, setApprovalDate);
     A(d.reviewTriggers, setReviewTriggers);
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
 
   useEffect(() => {

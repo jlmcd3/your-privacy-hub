@@ -2,6 +2,12 @@
 // Persists answer state to public.tool_sessions for the signed-in user,
 // keyed by toolType + clientId (or NULL). Autosave is debounced and silent
 // on failure. Completed drafts are flagged, not deleted (retention policy).
+//
+// Anonymous capture: when nobody is signed in, the same payload is mirrored
+// to localStorage so intake typed before the sign-in gate survives the trip
+// through /login or /signup. On the next render with a user present, the
+// pending local draft is migrated into tool_sessions and auto-restored
+// silently (no Resume banner) via `autoRestoreToken`.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,8 +29,56 @@ interface UseToolDraftReturn {
   restoreStage: number | null;
   saving: boolean;
   lastSavedAt: Date | null;
+  /** Increments when a recovered anonymous draft should be applied silently. */
+  autoRestoreToken: number;
   clearDraft: () => Promise<void>;
   dismissDraft: () => void;
+}
+
+const LOCAL_PREFIX = "eup_tool_draft_v1";
+
+function localKey(toolType: string, clientId: string | null): string {
+  return `${LOCAL_PREFIX}:${toolType}:${clientId ?? "none"}`;
+}
+
+function hasContent(value: unknown): boolean {
+  if (value == null) return false;
+  if (typeof value === "string") return value.trim() !== "";
+  if (typeof value === "number" || typeof value === "boolean") return true;
+  if (Array.isArray(value)) return value.some(hasContent);
+  if (typeof value === "object") return Object.values(value as Record<string, unknown>).some(hasContent);
+  return false;
+}
+
+function readLocalDraft(toolType: string, clientId: string | null):
+  { data: Record<string, unknown>; currentStage: number; updatedAt: string } | null {
+  try {
+    const raw = localStorage.getItem(localKey(toolType, clientId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !parsed.data) return null;
+    return {
+      data: parsed.data as Record<string, unknown>,
+      currentStage: typeof parsed.currentStage === "number" ? parsed.currentStage : 1,
+      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalDraft(toolType: string, clientId: string | null, payload: unknown) {
+  try {
+    localStorage.setItem(localKey(toolType, clientId), JSON.stringify(payload));
+  } catch (e) {
+    console.warn("[useToolDraft] local save failed", e);
+  }
+}
+
+function removeLocalDraft(toolType: string, clientId: string | null) {
+  try {
+    localStorage.removeItem(localKey(toolType, clientId));
+  } catch { /* ignore */ }
 }
 
 export function useToolDraft({
@@ -42,17 +96,65 @@ export function useToolDraft({
   const [restoreStage, setRestoreStage] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [autoRestoreToken, setAutoRestoreToken] = useState(0);
 
   const draftIdRef = useRef<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSerializedRef = useRef<string>("");
 
-  // Initial lookup of existing active draft.
+  // Initial lookup: pending anonymous draft first (migrate + auto-restore),
+  // otherwise the existing server-side draft (Resume banner).
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
+
+    // Anonymous visitor returning to the tool: restore their own local draft.
+    if (!user) {
+      const local = readLocalDraft(toolType, clientId);
+      if (local && hasContent(local.data)) {
+        setRestoreData(local.data);
+        setRestoreStage(local.currentStage);
+        setDraftUpdatedAt(new Date(local.updatedAt));
+        setAutoRestoreToken((t) => t + 1);
+      }
+      return;
+    }
+
     (async () => {
       try {
+        // 1. Migrate a pending anonymous draft into tool_sessions.
+        // The anonymous draft is always keyed with clientId=null.
+        const pending = readLocalDraft(toolType, null);
+        if (pending && hasContent(pending.data)) {
+          const { data: inserted, error: insErr } = await supabase
+            .from("tool_sessions" as any)
+            .insert({
+              user_id: user.id,
+              client_id: clientId,
+              tool_type: toolType,
+              session_data: pending.data as any,
+              current_stage: pending.currentStage,
+              completed: false,
+            })
+            .select("id")
+            .single();
+          removeLocalDraft(toolType, null);
+          if (cancelled) return;
+          if (!insErr) {
+            draftIdRef.current = (inserted as any)?.id ?? null;
+            lastSerializedRef.current = JSON.stringify({
+              data: pending.data,
+              currentStage: pending.currentStage,
+            });
+          }
+          setRestoreData(pending.data);
+          setRestoreStage(pending.currentStage);
+          setDraftUpdatedAt(new Date(pending.updatedAt));
+          setLastSavedAt(new Date());
+          setAutoRestoreToken((t) => t + 1);
+          return; // silent restore — no banner
+        }
+
+        // 2. Existing server draft.
         let q = supabase
           .from("tool_sessions" as any)
           .select("id, session_data, current_stage, updated_at")
@@ -80,8 +182,24 @@ export function useToolDraft({
 
   // Debounced autosave.
   useEffect(() => {
-    if (!enabled || !user) return;
     const serialized = JSON.stringify({ data, currentStage });
+
+    // Anonymous capture — mirror locally so the sign-in gate does not lose input.
+    // Deliberately independent of `enabled`, which callers gate on `!!user`.
+    if (!user) {
+      if (!hasContent(data)) return;
+      if (serialized === lastSerializedRef.current) return;
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        writeLocalDraft(toolType, null, { data, currentStage, updatedAt: new Date().toISOString() });
+        lastSerializedRef.current = serialized;
+      }, 800);
+      return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
+    }
+
+    if (!enabled) return;
     if (serialized === lastSerializedRef.current) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
@@ -123,7 +241,14 @@ export function useToolDraft({
   }, [enabled, user, data, currentStage, toolType, clientId, debounceMs]);
 
   const clearDraft = useCallback(async () => {
-    if (!draftIdRef.current) return;
+    removeLocalDraft(toolType, null);
+    removeLocalDraft(toolType, clientId);
+    if (!draftIdRef.current) {
+      setDraftFound(false);
+      setRestoreData(null);
+      setRestoreStage(null);
+      return;
+    }
     try {
       await supabase
         .from("tool_sessions" as any)
@@ -137,7 +262,7 @@ export function useToolDraft({
       setRestoreData(null);
       setRestoreStage(null);
     }
-  }, []);
+  }, [toolType, clientId]);
 
   const dismissDraft = useCallback(() => {
     setDraftFound(false);
@@ -150,9 +275,26 @@ export function useToolDraft({
     restoreStage,
     saving,
     lastSavedAt,
+    autoRestoreToken,
     clearDraft,
     dismissDraft,
   };
+}
+
+/**
+ * Applies a recovered anonymous draft exactly once per token bump.
+ * Call it in the tool page immediately after `applyRestore` is defined.
+ */
+export function useAutoRestoreDraft(token: number, apply: () => void) {
+  const applyRef = useRef(apply);
+  applyRef.current = apply;
+  const lastRef = useRef(0);
+  useEffect(() => {
+    if (token > 0 && token !== lastRef.current) {
+      lastRef.current = token;
+      applyRef.current();
+    }
+  }, [token]);
 }
 
 export default useToolDraft;

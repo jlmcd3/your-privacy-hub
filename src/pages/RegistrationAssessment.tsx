@@ -26,7 +26,7 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 
 import { DefPopover } from "@/components/DefPopover";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 
 interface IntakeState {
@@ -154,6 +154,7 @@ export default function RegistrationAssessment() {
   const draftData = useMemo(() => ({ intake, step }), [intake, step]);
   const {
     draftFound, draftUpdatedAt, restoreData, restoreStage, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "registration",
     clientId: clientId ?? null,
@@ -168,6 +169,7 @@ export default function RegistrationAssessment() {
     if (typeof restoreStage === "number") setStep(restoreStage);
     else if (typeof d.step === "number") setStep(d.step);
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   function guardAnon(): boolean {
     if (isAnon) {
