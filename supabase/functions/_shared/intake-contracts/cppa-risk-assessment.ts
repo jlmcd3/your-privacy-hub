@@ -180,6 +180,7 @@ const RETENTION_CRITERIA = [
   "Other criteria (described below)",
 ] as const;
 const YES_NO_OPTS = ["Yes", "No"] as const;
+const YES_NO_UNKNOWN_OPTS = ["Yes", "No", "Unknown"] as const;
 // ITEM 275 — verbatim copy of HAS_SECONDARY_USES_OPTS from
 // src/pages/CPPARiskAssessment.tsx (§ 7156(a) comparable-set fork).
 export const HAS_SECONDARY_USES_OPTS = [
@@ -573,6 +574,18 @@ export const cppaRiskContract: IntakeContract = {
     { key: "admt_output", kind: "narrative", required: "optional" },
     { key: "admt_output_use", kind: "narrative", required: "optional" },
     { key: "admt_consumer_effect", kind: "narrative", required: "optional" },
+
+    // ── RK3-A2 g3 (Intake Contract v2.0 §6, doc 31 §2c) — § 7153 branch.
+    // admt_made_available_to_other_business records whether the business
+    // provides its ADMT to another business. The two downstream fields
+    // are conditional on that answer being "Yes" and supply the facts
+    // needed for the § 7153(a)/(b) risk-assessment trigger analysis.
+    { key: "admt_made_available_to_other_business", kind: "enum", required: "optional",
+      options: YES_NO_OPTS },
+    { key: "admt_provider_trained_using_pi", kind: "enum", required: "optional",
+      options: YES_NO_UNKNOWN_OPTS },
+    { key: "recipient_business_uses_admt_for_significant_decision", kind: "enum", required: "optional",
+      options: YES_NO_UNKNOWN_OPTS },
   ],
 
 };

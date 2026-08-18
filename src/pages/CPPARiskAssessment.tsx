@@ -399,6 +399,10 @@ export default function CPPARiskAssessment() {
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [materialChangeSincePrior, setMaterialChangeSincePrior] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
+  // RK3-A2 g3 — § 7153 branch (conditional on q18 === "Yes")
+  const [admtMadeAvailableToOtherBusiness, setAdmtMadeAvailableToOtherBusiness] = useState("");
+  const [admtProviderTrainedUsingPi, setAdmtProviderTrainedUsingPi] = useState("");
+  const [recipientBusinessUsesAdmtForSignificantDecision, setRecipientBusinessUsesAdmtForSignificantDecision] = useState("");
   // RK3-A2 g2 — § 7152(a)(3)(G) ADMT branch extensions (conditional on admtTriggered)
   const [admtOperationalRole, setAdmtOperationalRole] = useState("");
   const [admtAssumptionsLimitations, setAdmtAssumptionsLimitations] = useState("");
@@ -903,6 +907,10 @@ export default function CPPARiskAssessment() {
     prior_risk_assessment_date: priorRiskAssessmentDate || undefined,
     material_change_date: materialChangeDate || undefined,
     material_change_description: materialChangeDescription || undefined,
+    // RK3-A2 g3 — § 7153 branch; undefined when blank
+    admt_made_available_to_other_business: admtMadeAvailableToOtherBusiness || undefined,
+    admt_provider_trained_using_pi: admtProviderTrainedUsingPi || undefined,
+    recipient_business_uses_admt_for_significant_decision: recipientBusinessUsesAdmtForSignificantDecision || undefined,
     // RK3-A2 g2 — § 7152(a)(3)(G) ADMT branch extensions; undefined when blank
     admt_operational_role: admtOperationalRole || undefined,
     admt_assumptions_limitations: admtAssumptionsLimitations || undefined,
@@ -951,6 +959,7 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior, exceptionClaims, impactData,
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
+    admtMadeAvailableToOtherBusiness, admtProviderTrainedUsingPi, recipientBusinessUsesAdmtForSignificantDecision,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
     a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
     a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
@@ -968,6 +977,7 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
+    admtMadeAvailableToOtherBusiness, admtProviderTrainedUsingPi, recipientBusinessUsesAdmtForSignificantDecision,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -986,6 +996,7 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     admtOperationalRole, admtAssumptionsLimitations, admtOutput, admtOutputUse, admtConsumerEffect,
+    admtMadeAvailableToOtherBusiness, admtProviderTrainedUsingPi, recipientBusinessUsesAdmtForSignificantDecision,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -1006,6 +1017,7 @@ export default function CPPARiskAssessment() {
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "", materialChangeSincePrior: "",
     processingStatus: "", processingStartDate: "", plannedStartDate: "", priorRiskAssessmentDate: "", materialChangeDate: "", materialChangeDescription: "",
     admtOperationalRole: "", admtAssumptionsLimitations: "", admtOutput: "", admtOutputUse: "", admtConsumerEffect: "",
+    admtMadeAvailableToOtherBusiness: "", admtProviderTrainedUsingPi: "", recipientBusinessUsesAdmtForSignificantDecision: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
@@ -1098,6 +1110,9 @@ export default function CPPARiskAssessment() {
     if (typeof d.admtOutput === "string") setAdmtOutput(d.admtOutput);
     if (typeof d.admtOutputUse === "string") setAdmtOutputUse(d.admtOutputUse);
     if (typeof d.admtConsumerEffect === "string") setAdmtConsumerEffect(d.admtConsumerEffect);
+    if (typeof d.admtMadeAvailableToOtherBusiness === "string") setAdmtMadeAvailableToOtherBusiness(d.admtMadeAvailableToOtherBusiness);
+    if (typeof d.admtProviderTrainedUsingPi === "string") setAdmtProviderTrainedUsingPi(d.admtProviderTrainedUsingPi);
+    if (typeof d.recipientBusinessUsesAdmtForSignificantDecision === "string") setRecipientBusinessUsesAdmtForSignificantDecision(d.recipientBusinessUsesAdmtForSignificantDecision);
     if (typeof d.entityName === "string") setEntityName(d.entityName);
     if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
@@ -1767,6 +1782,31 @@ export default function CPPARiskAssessment() {
               )}
               {q18 === "Yes" && (
                 <div><Label>Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div>{renderAssertion("q20_admt_opt_out")}</div>
+              )}
+              {/* RK3-A2 g3 — § 7153 branch. Records whether this business makes
+                  its ADMT available to another business, triggering the § 7153
+                  risk-assessment obligation on the receiving side. */}
+              {q18 === "Yes" && (
+                <div data-rail-key="admt_section_7153" onFocus={() => focusRail('admt_section_7153')} className="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50/40 dark:bg-blue-950/10 rounded-r space-y-3">
+                  <Label className="font-semibold">§ 7153 — ADMT made available to another business <span className="text-xs text-muted-foreground">(conditional)</span></Label>
+                  <p className="text-xs text-muted-foreground">§ 7153 requires a risk assessment when a business makes automated decisionmaking technology available to another business that uses it for significant decisions about consumers. Answer these questions if this ADMT is or will be shared with another business.</p>
+                  <div>
+                    <Label className="text-sm">Do you make this ADMT available to another business?</Label>
+                    <div className="mt-2"><Radio name="admt_made_available" options={["Yes", "No"]} value={admtMadeAvailableToOtherBusiness} onChange={setAdmtMadeAvailableToOtherBusiness} /></div>
+                  </div>
+                  {admtMadeAvailableToOtherBusiness === "Yes" && (
+                    <>
+                      <div>
+                        <Label className="text-sm">Was this ADMT trained using personal information provided by the recipient business?</Label>
+                        <div className="mt-2"><Radio name="admt_provider_trained" options={["Yes", "No", "Unknown"]} value={admtProviderTrainedUsingPi} onChange={setAdmtProviderTrainedUsingPi} /></div>
+                      </div>
+                      <div>
+                        <Label className="text-sm">Does the recipient business use this ADMT to make significant decisions about consumers?</Label>
+                        <div className="mt-2"><Radio name="recipient_uses_admt" options={["Yes", "No", "Unknown"]} value={recipientBusinessUsesAdmtForSignificantDecision} onChange={setRecipientBusinessUsesAdmtForSignificantDecision} /></div>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
               <div data-rail-key="q18b_admt_training" onFocus={() => focusRail('q18b_admt_training')}>
                 <Label>Do you use personal information to train ADMT or biometric-recognition technology? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>

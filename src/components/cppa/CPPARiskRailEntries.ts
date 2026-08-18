@@ -873,6 +873,29 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     ],
   },
 
+  // RK3-A2 g3 \u2014 \u00a7 7153 ADMT-provider risk-assessment trigger.
+  admt_section_7153: {
+    fieldLabel: "\u00a7 7153 \u2014 ADMT made available to another business",
+    citation: "11 CCR \u00a7 7153",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "A business that makes automated decisionmaking technology available to another business must conduct a risk assessment when the recipient uses the ADMT to make significant decisions about consumers. These fields record whether this applies and, if so, the training-data and downstream-use facts the assessment must address.",
+    regulationText:
+      "\u00a7 7153(a) \u2014 A business that makes automated decisionmaking technology available to another business must conduct a risk assessment when the recipient uses the ADMT to make significant decisions about consumers. \u00a7 7153(b) \u2014 The assessment must address whether the ADMT was trained using personal information provided by the recipient.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7150(b)(3)", label: "ADMT for significant decisions \u2014 primary trigger" },
+      { citation: "11 CCR \u00a7 7152(a)(3)(G)", label: "ADMT operational record" },
+    ],
+    coachLead:
+      "Answer each question about the actual arrangement with the recipient business, not the intended or hoped-for use.",
+    coachBody:
+      "\"Made available\" includes licensing, API access, and embedding the ADMT in a product the other business uses. If the recipient's use of the ADMT for significant decisions is unknown, record Unknown \u2014 do not record No. \"Significant decision\" carries the \u00a7 7001 definition; when in doubt, record Unknown and flag for legal review.",
+    goodAnswer:
+      '"Yes \u2014 the ADMT scoring engine is licensed to three downstream lenders. Trained using PI from the recipient: No \u2014 the model was built on our own historical data. Recipient uses for significant decisions: Yes \u2014 the lenders use our scores to approve or deny loan applications." Each element stated separately and attributed.',
+    commonMistake:
+      "Recording No for downstream use when the recipient's practices are not actually known. Unknown is the accurate answer when you cannot confirm what the other business does with the output.",
+  },
+
   // RK3-A2 g2 \u2014 \u00a7 7152(a)(3)(G)(i)/(ii) ADMT branch extensions.
   // These fields deepen the existing i5_admt entry with operational-role,
   // assumption/limitation, output, output-use, and consumer-effect detail.
