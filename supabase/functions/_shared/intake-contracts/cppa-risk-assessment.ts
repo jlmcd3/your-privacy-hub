@@ -106,6 +106,19 @@ export const BENEFICIARY_CLASSES = [
   "the public",
 ] as const;
 
+// RK3-A1 g2 — verbatim copy of CONSUMER_INTERACTION_METHOD_OPTS from
+// src/pages/CPPARiskAssessment.enums.ts (parity pinned in
+// rk3-a1-processing-record.test.ts).
+export const CONSUMER_INTERACTION_METHOD_OPTS = [
+  "Website",
+  "Mobile app",
+  "In person",
+  "Telephone",
+  "Email",
+  "No direct interaction (obtained from another source)",
+  "Other",
+] as const;
+
 // Page-inline option lists (see CPPARiskAssessment.tsx line numbers in
 // comments below). These live inline in the JSX (or as page-local const
 // arrays not re-exported from .enums.ts); parity for them is spot-checked
@@ -449,6 +462,15 @@ export const cppaRiskContract: IntakeContract = {
     { key: "processing_methods.retention_method", kind: "text", required: "optional" },
     { key: "processing_methods.other_processing_method", kind: "text", required: "optional" },
     { key: "processing_result", kind: "narrative", required: "optional" },
+
+    // ── RK3-A1 g2 (Intake Contract v2.0 §6) — § 7152(a)(3)(C) interaction
+    // method + purpose, § 7152(a)(3)(D) approximate CA consumers (number or
+    // stated range; i3_ca_consumer_band stays for screening/analytics).
+    // Same data-layer-optional / form-required posture as g1.
+    { key: "consumer_interaction_method", kind: "enum", required: "optional",
+      options: CONSUMER_INTERACTION_METHOD_OPTS },
+    { key: "consumer_interaction_purpose", kind: "narrative", required: "optional" },
+    { key: "approximate_ca_consumers", kind: "text", required: "optional" },
   ],
 
 };

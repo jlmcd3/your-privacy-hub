@@ -286,6 +286,7 @@ import {
   HARM_LIKELIHOOD_OPTS,
   HARM_SEVERITY_OPTS,
   SAFEGUARD_STATUS_OPTS,
+  CONSUMER_INTERACTION_METHOD_OPTS,
 } from "./CPPARiskAssessment.enums";
 
 // Progressive disclosure for optional clusters. The value line states what the
@@ -426,6 +427,11 @@ export default function CPPARiskAssessment() {
   const [processingEntryPoint, setProcessingEntryPoint] = useState("");
   const [processingMethods, setProcessingMethods] = useState<{ collection_method: string; use_method: string; disclosure_method: string; retention_method: string; other_processing_method: string }>({ collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" });
   const [processingResult, setProcessingResult] = useState("");
+  // RK3-A1 g2 — § 7152(a)(3)(C) interaction method + purpose,
+  // § 7152(a)(3)(D) approximate CA consumers (number or stated range).
+  const [consumerInteractionMethod, setConsumerInteractionMethod] = useState("");
+  const [consumerInteractionPurpose, setConsumerInteractionPurpose] = useState("");
+  const [approximateCaConsumers, setApproximateCaConsumers] = useState("");
   // ── ITEM 305 — analytic-deliverable intake state ───────────────────
   const [a2NecessitySet, setA2NecessitySet] = useState<{ element: string; necessity: string; justification: string }[]>([
     { element: "", necessity: "", justification: "" },
@@ -676,6 +682,10 @@ export default function CPPARiskAssessment() {
       if (!q15bUnder16) return "Answer whether you have actual knowledge of processing under-16 consumers' data.";
       if (!i4bSources) return "Identify where this personal information comes from.";
       if (!i3CaConsumerBand) return "Select the approximate California consumer band for this activity.";
+      // RK3-A1 g2 — § 7152(a)(3)(C)/(D) (form-required; data-layer optional).
+      if (!consumerInteractionMethod) return "Select how your business interacts with the consumers this activity affects.";
+      if (!consumerInteractionPurpose.trim()) return "Say why the consumer interacts with your business in this context.";
+      if (!approximateCaConsumers.trim()) return "Give the approximate number of California consumers — a number or a range.";
       if (!i6Vendors) return "List the service providers, contractors, or third parties involved — or write \"None\".";
       if (!q11 || !q12 || !q13 || !q14) return "Complete the privacy-notice answers.";
       if (!i4Disclosures.length) return "Select at least one disclosure mechanism, or \"No standalone disclosure\".";
@@ -740,6 +750,10 @@ export default function CPPARiskAssessment() {
     processing_entry_point: processingEntryPoint.trim(),
     processing_methods: processingMethods,
     processing_result: processingResult.trim(),
+    // RK3-A1 g2 — § 7152(a)(3)(C)/(D) interaction + scale.
+    consumer_interaction_method: consumerInteractionMethod,
+    consumer_interaction_purpose: consumerInteractionPurpose.trim(),
+    approximate_ca_consumers: approximateCaConsumers.trim(),
     // TURN 1b — new intake fields (flow through submission_summary + § 7150(b)(5) resolver).
     public_privacy_policy_url: publicPrivacyPolicyUrl.trim(),
     sensitive_location_basis: sensitiveLocationBasis,
@@ -795,6 +809,7 @@ export default function CPPARiskAssessment() {
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
+    consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -817,6 +832,7 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
+    consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -829,6 +845,7 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
+    consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -843,6 +860,7 @@ export default function CPPARiskAssessment() {
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "", materialChangeSincePrior: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
+    consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
     secondaryActivities: [] as SecondaryActivity[],
@@ -938,6 +956,9 @@ export default function CPPARiskAssessment() {
       });
     }
     if (typeof d.processingResult === "string") setProcessingResult(d.processingResult);
+    if (typeof d.consumerInteractionMethod === "string") setConsumerInteractionMethod(d.consumerInteractionMethod);
+    if (typeof d.consumerInteractionPurpose === "string") setConsumerInteractionPurpose(d.consumerInteractionPurpose);
+    if (typeof d.approximateCaConsumers === "string") setApproximateCaConsumers(d.approximateCaConsumers);
     if (typeof d.publicPrivacyPolicyUrl === "string") setPublicPrivacyPolicyUrl(d.publicPrivacyPolicyUrl);
     if (typeof d.sensitiveLocationBasis === "string") setSensitiveLocationBasis(d.sensitiveLocationBasis);
     // ITEM 275 — absent keys are legal in pre-Item-275 drafts.
@@ -1659,6 +1680,39 @@ export default function CPPARiskAssessment() {
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Approximately how many California consumers does this activity affect? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label><StatutePopover term="California consumer count" summary="State the approximate number of consumers whose personal information the processing affects." cite="11 CCR § 7152(a)(4)(D)" /></div>
                 <div className="mt-2"><Radio name="i3" options={CA_CONSUMER_BAND} value={i3CaConsumerBand} onChange={setI3CaConsumerBand} /></div>
+              </div>
+              {/* RK3-A1 g2 — § 7152(a)(3)(D) activity-specific estimate (the band
+                  above stays for screening/analytics) + § 7152(a)(3)(C)
+                  interaction method and purpose. */}
+              <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
+                <Label htmlFor="approximate_ca_consumers">State that approximate number for the record — a number or a range. <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">The assessment record carries your stated figure, not just the band — e.g., “about 45,000” or “40,000–60,000”.</p>
+                <input
+                  id="approximate_ca_consumers"
+                  type="text"
+                  value={approximateCaConsumers}
+                  onChange={(e) => setApproximateCaConsumers(e.target.value)}
+                  onFocus={() => focusRail('consumer_interaction')}
+                  placeholder="e.g., 40,000–60,000"
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                />
+              </div>
+              <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
+                <Label>How does your business interact with the consumers this activity affects? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(C))</span></Label>
+                <div className="mt-2"><Radio name="consumer_interaction_method" options={[...CONSUMER_INTERACTION_METHOD_OPTS]} value={consumerInteractionMethod} onChange={setConsumerInteractionMethod} /></div>
+              </div>
+              <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
+                <Label htmlFor="consumer_interaction_purpose">Why does the consumer interact with your business in this context? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(C))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">The consumer's side of the transaction — e.g., to buy a product, use a service, apply for a job. Separate from the processing purpose. If there is no direct interaction, say how the information reaches you instead.</p>
+                <textarea
+                  id="consumer_interaction_purpose"
+                  value={consumerInteractionPurpose}
+                  onChange={(e) => setConsumerInteractionPurpose(e.target.value)}
+                  onFocus={() => focusRail('consumer_interaction')}
+                  rows={2}
+                  placeholder="e.g., Members join the loyalty program at the register to collect points on their grocery shopping."
+                  className="mt-2 w-full px-3 py-2 rounded-md border border-input bg-background"
+                />
               </div>
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap" data-rail-key="i6_recipients" onFocus={() => focusRail('i6_recipients')}><Label>Which service providers, contractors, or third parties are involved? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>

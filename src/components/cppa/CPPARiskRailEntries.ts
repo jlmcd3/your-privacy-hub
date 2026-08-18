@@ -71,6 +71,32 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       "Answering every stage with the product name (“the loyalty platform handles it”). The regulation asks for the planned method at each stage — collection, use, disclosure, retention — and a platform name states none of them.",
   },
 
+  // RK3-A1 g2 (Intake Contract v2.0 §6) — § 7152(a)(3)(C) interaction
+  // method/purpose + § 7152(a)(3)(D) approximate consumer count. Only the
+  // § 7152(a)(3) chapeau is quoted verbatim (verified registry row
+  // ra_content_operational); (C)/(D) are summarised, not quoted.
+  consumer_interaction: {
+    fieldLabel: "How the business interacts with these consumers, why, and roughly how many",
+    citation: "11 CCR § 7152(a)(3)(C)–(D)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Among the operational elements, the risk assessment documents the method by which the business interacts with the consumers whose information it processes, why the consumer is interacting with the business, and the approximate number of consumers affected. Scale informs the reach of a risk; it does not by itself determine its seriousness.",
+    regulationText:
+      "§ 7152(a)(3) — “Identify and document in a risk assessment report the following operational elements of the processing:”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(A)", label: "Planned processing methods" },
+      { citation: "11 CCR § 7152(a)(3)(E)", label: "Disclosures to consumers" },
+    ],
+    coachLead:
+      "Pick the channel the consumer actually uses, state the consumer's own reason for the interaction — their side of the transaction, not your processing purpose — and give a number or a range you can support from your records.",
+    coachBody:
+      "The interaction purpose frames consumer expectations later in the assessment: what a person reasonably expects depends on what they came to do. The count is an approximation on the record; a supported range is better than a precise-looking guess.",
+    goodAnswer:
+      "Fernbrook Grocers: method — “In person”; purpose — “Members join the loyalty program at the register to collect points on their grocery shopping”; count — “40,000–60,000, from the loyalty-membership table filtered to California addresses.” The purpose describes what the member came to do, not what the business does with the data.",
+    commonMistake:
+      "Restating the processing purpose (“to send birthday coupons”) as the interaction purpose. The regulation asks why the consumer is interacting with the business — their reason, not yours.",
+  },
+
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
   // including the Business E example excerpt.
   comparable_set: {

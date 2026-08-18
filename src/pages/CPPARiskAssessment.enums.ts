@@ -125,6 +125,18 @@ export const HARM_PATHWAY_OPTS = [
 export const HARM_LIKELIHOOD_OPTS = ["Unlikely", "Possible", "Likely", "Highly likely"];
 export const HARM_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe"];
 
+// RK3-A1 (Intake Contract v2.0 §6) — § 7152(a)(3)(C) consumer-interaction
+// method. Closed enum; "Other" carries the description in the purpose field.
+export const CONSUMER_INTERACTION_METHOD_OPTS = [
+  "Website",
+  "Mobile app",
+  "In person",
+  "Telephone",
+  "Email",
+  "No direct interaction (obtained from another source)",
+  "Other",
+];
+
 // § 7152(a)(6) — implementation status of each safeguard.
 export const SAFEGUARD_STATUS_OPTS = [
   "Implemented and tested",

@@ -60,3 +60,42 @@ Deno.test("RK3-A1 — statute rail carries the § 7152(a)(3)(A) processing-recor
     "rail entry must carry the ra_content_op_method verbatim quote",
   );
 });
+
+// ── GROUP 2 — § 7152(a)(3)(C)/(D) interaction + scale ────────────────────────
+
+Deno.test("RK3-A1 g2 — contract carries interaction method/purpose + approximate count, optional at the data layer", async () => {
+  const { CONSUMER_INTERACTION_METHOD_OPTS: contractOpts } = await import(
+    "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts"
+  );
+  const pageEnums = await import("../../../src/pages/CPPARiskAssessment.enums.ts");
+  for (const key of ["consumer_interaction_method", "consumer_interaction_purpose", "approximate_ca_consumers"]) {
+    const f = field(key);
+    assert(f, `${key} missing from cppaRiskContract`);
+    assertEquals(f!.required, "optional", `${key} must be optional at the data layer`);
+  }
+  assertEquals(field("consumer_interaction_method")!.kind, "enum");
+  // PARITY — contract copy === page enums copy, verbatim.
+  assertEquals([...contractOpts], [...pageEnums.CONSUMER_INTERACTION_METHOD_OPTS]);
+});
+
+Deno.test("RK3-A1 g2 — form emits the three keys and stepValid requires them", async () => {
+  const src = await Deno.readTextFile(PAGE_PATH);
+  assert(src.includes("consumer_interaction_method: consumerInteractionMethod"), "intake memo must emit consumer_interaction_method");
+  assert(src.includes("consumer_interaction_purpose: consumerInteractionPurpose.trim()"), "intake memo must emit consumer_interaction_purpose");
+  assert(src.includes("approximate_ca_consumers: approximateCaConsumers.trim()"), "intake memo must emit approximate_ca_consumers");
+  assert(src.includes("Select how your business interacts with the consumers"), "stepValid must require the interaction method");
+  assert(src.includes("Say why the consumer interacts with your business"), "stepValid must require the interaction purpose");
+  assert(src.includes("Give the approximate number of California consumers"), "stepValid must require the approximate count");
+});
+
+Deno.test("RK3-A1 g2 — statute rail carries the consumer_interaction entry; no unverified (C)/(D) verbatim", async () => {
+  const src = await Deno.readTextFile(RAIL_PATH);
+  assert(src.includes("consumer_interaction: {"), "rail must define consumer_interaction");
+  assert(src.includes('citation: "11 CCR § 7152(a)(3)(C)–(D)"'), "rail entry must cite (C)-(D)");
+  // Corpus law: only the verified § 7152(a)(3) chapeau is quoted; the entry
+  // must not carry a fabricated (C) or (D) quote block.
+  const entry = src.slice(src.indexOf("consumer_interaction: {"), src.indexOf("comparable_set: {"));
+  assert(entry.includes("Identify and document in a risk assessment report"), "chapeau verbatim expected");
+  assert(!entry.includes("§ 7152(a)(3)(C) — “"), "no unverified (C) verbatim quote");
+  assert(!entry.includes("§ 7152(a)(3)(D) — “"), "no unverified (D) verbatim quote");
+});
