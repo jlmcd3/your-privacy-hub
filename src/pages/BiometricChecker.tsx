@@ -2,7 +2,7 @@
 import { PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useEffect, useId, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
@@ -151,6 +151,7 @@ export default function BiometricChecker() {
   const draftData = useMemo(() => ({ form }), [form]);
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "biometric",
     clientId: clientId ?? null,
@@ -162,6 +163,7 @@ export default function BiometricChecker() {
     const d = restoreData as { form?: any } | null;
     if (d?.form && typeof d.form === "object") setForm((prev) => ({ ...prev, ...d.form }));
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   const bioRailEntry: RailEntry | null = bioRailKey ? (BIOMETRIC_RAIL[bioRailKey] ?? null) : null;
   const focusBioRail = (k: string) => setBioRailKey(k);

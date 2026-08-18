@@ -46,7 +46,7 @@ import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
-import { useToolDraft } from "@/hooks/useToolDraft";
+import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 // ITEM 381 — intake completeness coach (Layer 1), per-product flag, default off.
@@ -425,6 +425,7 @@ const DPIAFramework = () => {
   const touched = useMemo(() => JSON.stringify(draftData) !== initialDraftJson, [draftData, initialDraftJson]);
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
+    autoRestoreToken,
   } = useToolDraft({
     toolType: "dpia",
     clientId: clientId ?? null,
@@ -489,6 +490,7 @@ const DPIAFramework = () => {
     A(d.transfer_flows, setTransferFlows);
     S(d.retention_record_type, setRetentionRecordType);
   };
+  useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   const handlePurchase = async () => {
     const err = validate();
