@@ -17,8 +17,8 @@ import {
 } from "../generation-model.ts";
 import type { RefinementDeps } from "./refinement-core.ts";
 
-/** One line disables the whole critic → verifier → splicer pass. */
-export const RISK_REFINEMENT_ENABLED = true;
+/** One line disables the whole critic → verifier → splicer pass. RK2: env-gated, default off. */
+export const RISK_REFINEMENT_ENABLED = Deno.env.get("RISK_REFINEMENT_ENABLED") === "1";
 
 export function makeRiskRefinementDeps(
   sourceRowId: string | null,

@@ -131,6 +131,8 @@ export interface GenerateCppaRiskOptions {
   readonly refinementDeps?: RefinementDeps;
   /** Set false to skip the refinement pass explicitly. */
   readonly refinementEnabled?: boolean;
+  /** RK2 — when true, csc/prose post-passes run detect-only (no document mutations). */
+  readonly postPassDetectOnly?: boolean;
 }
 
 
@@ -148,7 +150,7 @@ export interface GenerateCppaRiskResult {
 }
 
 
-function seal(report: Record<string, unknown>, intakeRoster: unknown): {
+function seal(report: Record<string, unknown>, intakeRoster: unknown, detectOnly?: boolean): {
   report: Record<string, unknown>;
   emit_gate_filtered: number;
 } {
@@ -159,7 +161,7 @@ function seal(report: Record<string, unknown>, intakeRoster: unknown): {
   // re-homed onto the reserved-judgment action rows; the fact strip's prose
   // leaf is removed. The gate then sees what the writers should have written.
   try {
-    const rehome = rehomeReservedReferrals(out);
+    const rehome = rehomeReservedReferrals(out, { detectOnly });
     const meta = (out._meta ??= {}) as Record<string, unknown>;
     const internal = (meta.internal ??= {}) as Record<string, unknown>;
     internal.risk_summary_rehome = rehome;
@@ -266,9 +268,10 @@ export function finalizeCppaRiskPayload(
   ltpMeta: Record<string, unknown>,
   rawIntake: unknown,
   riskCorpus?: RiskCorpus | null,
-  extras?: { refinement?: RefinementTelemetry | null },
+  extras?: { refinement?: RefinementTelemetry | null; postPassDetectOnly?: boolean },
 ): { report: Record<string, unknown>; emit_gate_filtered: number } {
-  const sealed = seal({ ...base }, rawIntake);
+  const postPassDetectOnly = extras?.postPassDetectOnly ?? false;
+  const sealed = seal({ ...base }, rawIntake, postPassDetectOnly);
   // The exhibit is attached BEFORE serialization so the schema allow-list
   // governs it like every other customer surface.
   attachAuthorityExhibit(sealed.report, riskCorpus);
@@ -306,6 +309,7 @@ export function finalizeCppaRiskPayload(
   try {
     attachRiskCsc(report, {
       intake: (rawIntake && typeof rawIntake === "object" ? rawIntake : {}) as Record<string, unknown>,
+      detectOnly: postPassDetectOnly,
     });
   } catch (e) {
     console.warn("[generate-cppa-risk] risk-csc failed (non-fatal):", (e as Error)?.message);
@@ -376,7 +380,7 @@ export function finalizeCppaRiskPayload(
     });
     const classification = classifyPlaceholders(report, rawIntake ?? {}, telemetry.value);
     attachRecordComplete(report, telemetry, classification);
-    applyRiskRecordCompleteFraming(report, telemetry, classification);
+    applyRiskRecordCompleteFraming(report, telemetry, classification, postPassDetectOnly);
     console.log(JSON.stringify({
       evt: "risk_record_complete", fn: "generate-cppa-risk",
       value: telemetry.value, failed_conditions: telemetry.failed_conditions,
@@ -402,7 +406,7 @@ export function finalizeCppaRiskPayload(
   // retired as a top-level surface (demoted to an input the verdict consumes).
   // Runs AFTER the prose-gold pass, which is the last writer of the verdict.
   try {
-    const voice = normalizeRiskSummaryVoice(report, rawIntake);
+    const voice = normalizeRiskSummaryVoice(report, rawIntake, { detectOnly: postPassDetectOnly });
     const meta = (report._meta ??= {}) as Record<string, unknown>;
     const internal = (meta.internal ??= {}) as Record<string, unknown>;
     internal.risk_summary_voice = voice;
@@ -477,6 +481,7 @@ export function applyRiskRecordCompleteFraming(
     counts: { action_item: number; preconditions: number };
     items?: { text: string; klass: string }[];
   },
+  detectOnly?: boolean,
 ): void {
   const text = affirmativeParagraph(
     classification?.counts?.action_item ?? 0,
@@ -493,6 +498,7 @@ export function applyRiskRecordCompleteFraming(
     recordComplete: telemetry?.value === true,
     affirmative: text,
     reservedCount,
+    detectOnly,
   });
   try {
     const meta = (report._meta ??= {}) as Record<string, unknown>;
@@ -715,7 +721,7 @@ export async function generateCppaRiskReport(
   // ships a different surface, that surface is refined and finalized again.
   const refinement = await refineRiskBase(base, rawIntake, options);
 
-  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement });
+  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement, postPassDetectOnly: options.postPassDetectOnly });
   return { report, base, plan, ltpMeta, typeJOrigin, rawIntake, refinement };
 }
 
@@ -786,7 +792,7 @@ export async function runCppaRiskPass2R(
         { ...gen.ltpMeta, shipped_surface: "2R", ...meta },
         gen.rawIntake,
         riskCorpus,
-        { refinement },
+        { refinement, postPassDetectOnly: options.postPassDetectOnly },
       );
       return { report, shipped_surface: "2R", meta };
     }
@@ -796,7 +802,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementDet },
+      { refinement: refinementDet, postPassDetectOnly: options.postPassDetectOnly },
     );
     return { report, shipped_surface: "deterministic", meta };
 
@@ -813,7 +819,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementFallback },
+      { refinement: refinementFallback, postPassDetectOnly: options.postPassDetectOnly },
     );
 
     return { report, shipped_surface: "deterministic", meta };

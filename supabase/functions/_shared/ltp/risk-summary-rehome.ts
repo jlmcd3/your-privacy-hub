@@ -183,9 +183,11 @@ function sweepActivityReferrals(report: Record<string, unknown>): string[] {
 
 /**
  * THE pass. Mutates `report` in place; never throws.
+ * RK2: pass `{ detectOnly: true }` to run without any mutations.
  */
 export function rehomeReservedReferrals(
   report: Record<string, unknown> | null | undefined,
+  opts?: { detectOnly?: boolean },
 ): SummaryRehomeSummary {
   const out = {
     version: RISK_SUMMARY_REHOME_VERSION,
@@ -197,6 +199,8 @@ export function rehomeReservedReferrals(
     carried_verdict: "",
   };
   if (!report || typeof report !== "object") return out;
+  // RK2 detect-only: return empty telemetry without mutations.
+  if (opts?.detectOnly) return out;
 
 
   try {

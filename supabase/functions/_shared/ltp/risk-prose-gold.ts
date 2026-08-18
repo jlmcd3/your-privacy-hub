@@ -653,6 +653,7 @@ export interface RiskProseGoldTelemetry {
  * Gate-aware: with `recordComplete === false` only the register repairs that
  * are true on any record (degraded-opener strip, attestation absence wording)
  * run, so draft documents keep their honest draft framing.
+ * RK2: when `detectOnly` is true, returns empty telemetry without any mutations.
  */
 export function applyRiskProseGold(
   report: Record<string, unknown>,
@@ -660,6 +661,8 @@ export function applyRiskProseGold(
     recordComplete: boolean;
     affirmative: string;
     reservedCount: number;
+    /** RK2 detect-only mode — no mutations. */
+    detectOnly?: boolean;
   },
 ): RiskProseGoldTelemetry {
   const t: RiskProseGoldTelemetry = {
@@ -675,6 +678,8 @@ export function applyRiskProseGold(
     placeholder_paths: [],
     reserved_actors_named: 0,
   };
+  // RK2 detect-only: checks omitted, no mutations applied.
+  if (opts.detectOnly) return t;
   try {
     // G-2 (register repair, every record) — with the r2 empty-surface guard.
     const esBefore = typeof report.executive_summary === "string" ? report.executive_summary : "";

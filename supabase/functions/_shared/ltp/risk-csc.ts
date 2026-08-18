@@ -47,6 +47,8 @@ export interface RiskCscTelemetry {
 export interface RiskCscOptions {
   /** The cppa-risk intake object the report was built from. */
   readonly intake: unknown;
+  /** RK2 — when true, checks run but NO document mutations are applied (detect-only mode). */
+  readonly detectOnly?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -327,19 +329,21 @@ export function runRiskCsc(
           const verdict = assessBenefitClaim(claim, anchor);
           const path = `activity_analytics[${ai}].benefits[${bi}]`;
           if (verdict.pureInvention) {
-            pushInformationNeeded(report, {
-              id: `risk_csc_benefit_${ai}_${bi}`,
-              topic: "benefits_7152_a_4",
-              information_needed: benefitAsk(activityName),
-              source_fields: ["a4_benefits", "i1_purpose"],
-            });
+            if (!opts.detectOnly) {
+              pushInformationNeeded(report, {
+                id: `risk_csc_benefit_${ai}_${bi}`,
+                topic: "benefits_7152_a_4",
+                information_needed: benefitAsk(activityName),
+                source_fields: ["a4_benefits", "i1_purpose"],
+              });
+            }
             log({
               check_id: "r1_benefits_vs_intake",
               path,
               evidence: `benefit claim with no intake anchor, routed to information_needed: ${clip(claim)}`,
-              repaired: true,
+              repaired: !opts.detectOnly,
             });
-            return; // row removed
+            if (!opts.detectOnly) return; // row removed (write mode only)
           }
           if (verdict.unanchored.length > 0) {
             log({
@@ -419,15 +423,17 @@ export function runRiskCsc(
         const proseClaimed = EXCEPTION_CLAIMED_RE.test(prose) &&
           !EXCEPTION_NOT_CLAIMED_RE.test(prose);
         if (!statusClaimed && !proseClaimed) return;
-        row.status = "not_claimed";
-        if (row.claimed === true) row.claimed = false;
+        if (!opts.detectOnly) {
+          row.status = "not_claimed";
+          if (row.claimed === true) row.claimed = false;
+        }
         log({
           check_id: "r2_exception_vs_record",
           path: `exception_analysis[${i}]`,
           evidence: `exception asserted as claimed while the record claims none: ${
             clip(statusClaimed ? str(row.status) + " " + prose : prose)
           }`,
-          repaired: true,
+          repaired: !opts.detectOnly,
         });
       });
     }
@@ -445,13 +451,13 @@ export function runRiskCsc(
               check_id: "r3_secondary_use_predicate",
               path: `risk_register[${i}]`,
               evidence: `row predicated on secondary uses the record denies: ${clip(predicate)}`,
-              repaired: true,
+              repaired: !opts.detectOnly,
             });
-            return; // REMOVED. Remaining ids are NOT renumbered.
+            if (!opts.detectOnly) return; // REMOVED in write mode only.
           }
           kept.push(rawRow);
         });
-        if (kept.length !== register.length) report.risk_register = kept;
+        if (!opts.detectOnly && kept.length !== register.length) report.risk_register = kept;
       }
       for (const key of ["executive_summary", "processing_narrative"]) {
         const prose = str(report[key]);

@@ -89,11 +89,24 @@ function exceptionsClaimed(report: Record<string, unknown>, legacy: unknown): st
 /**
  * THE single write site for the summary-class surfaces. Mutates `report` in
  * place and returns telemetry. Never throws.
+ * RK2: pass `opts.detectOnly = true` to skip all mutations.
  */
 export function normalizeRiskSummaryVoice(
   report: Record<string, unknown>,
   rawIntake?: unknown,
+  opts?: { detectOnly?: boolean },
 ): SummaryVoiceSummary {
+  // RK2 detect-only: return empty telemetry without mutations.
+  if (opts?.detectOnly) {
+    return {
+      version: RISK_SUMMARY_VOICE_VERSION,
+      contract: RISK_FACT_STRIP_CONTRACT_VERSION,
+      verdict_source: "absent",
+      submission_summary_retired: false,
+      fact_strip_leaves: 0,
+      surfaces: [],
+    };
+  }
   const intake = obj(rawIntake);
   const org = obj(obj(intake).org_context);
   const legacy = obj(report.assessment_summary);
