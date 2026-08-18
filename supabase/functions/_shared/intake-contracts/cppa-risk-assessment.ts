@@ -500,6 +500,24 @@ export const cppaRiskContract: IntakeContract = {
     { key: "activity_disclosures[].status", kind: "enum", required: "conditional",
       requiredWhen: "a disclosure row is present", options: ["Made", "Planned"] },
     { key: "activity_disclosures[].timing_or_location", kind: "text", required: "optional" },
+
+    // ── RK3-A1 g5 (Intake Contract v2.0 §6) — § 7152(a)(3)(F) CANONICAL
+    // recipient record. Explicit-None uses the exceptions_intake
+    // emptyIsAnswer pattern: the form's declared toggle emits [] as a
+    // substantive negative answer (recipients_none_declared, emitted
+    // alongside, distinguishes declared-none from legacy-absent; it is a
+    // form-emitted companion, unregistered like `assertions`).
+    // i6_vendors becomes the legacy/summary field.
+    { key: "recipients", kind: "structured", required: "optional", emptyIsAnswer: true },
+    { key: "recipients[].recipient_name_or_category", kind: "text", required: "conditional",
+      requiredWhen: "a recipient row is present" },
+    { key: "recipients[].recipient_type", kind: "enum", required: "conditional",
+      requiredWhen: "a recipient row is present",
+      options: ["Service provider", "Contractor", "Third party"] },
+    { key: "recipients[].pi_categories_made_available", kind: "multi-enum", required: "conditional",
+      requiredWhen: "a recipient row is present", options: PI_CATEGORIES },
+    { key: "recipients[].disclosure_purpose", kind: "text", required: "conditional",
+      requiredWhen: "a recipient row is present" },
   ],
 
 };

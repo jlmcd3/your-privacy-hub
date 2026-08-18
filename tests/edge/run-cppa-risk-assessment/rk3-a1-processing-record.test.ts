@@ -151,6 +151,42 @@ Deno.test("RK3-A1 g4 — statute rail carries the § 7152(a)(3)(E) verbatim", as
   );
 });
 
+// ── GROUP 5 — § 7152(a)(3)(F) recipient record ───────────────────────────────
+
+Deno.test("RK3-A1 g5 — contract carries recipients with emptyIsAnswer and the four children", () => {
+  const f = field("recipients");
+  assert(f, "recipients missing from cppaRiskContract");
+  assertEquals(f!.required, "optional", "data-layer optional");
+  assertEquals(f!.kind, "structured");
+  assertEquals((f as { emptyIsAnswer?: boolean }).emptyIsAnswer, true, "explicit-None must use the emptyIsAnswer pattern");
+  assert(field("recipients[].recipient_name_or_category"), "recipient_name_or_category child missing");
+  const rtype = field("recipients[].recipient_type");
+  assert(rtype, "recipient_type child missing");
+  assertEquals([...(rtype!.options ?? [])], ["Service provider", "Contractor", "Third party"]);
+  assert(field("recipients[].pi_categories_made_available"), "pi_categories_made_available child missing");
+  assert(field("recipients[].disclosure_purpose"), "disclosure_purpose child missing");
+});
+
+Deno.test("RK3-A1 g5 — form emits recipients + declared-None flag; stepValid enforces the row rule", async () => {
+  const src = await Deno.readTextFile(PAGE_PATH);
+  assert(src.includes("recipients: recipientsNoneDeclared ? [] : recipientRows.filter((r) => r.recipient_name_or_category.trim())"), "intake memo must emit recipients with declared-None emitting []");
+  assert(src.includes("recipients_none_declared: recipientsNoneDeclared"), "intake memo must emit the declared flag");
+  assert(src.includes("Add at least one recipient — or check the box"), "stepValid must require rows or the declaration");
+  assert(src.includes("Classify each recipient: service provider, contractor, or third party."), "stepValid must require the type");
+  assert(src.includes("Select the personal-information categories made available"), "stepValid must require per-recipient categories");
+  assert(src.includes("State the purpose of the disclosure"), "stepValid must require the purpose");
+  assert(src.includes("Array.isArray(d.recipientRows)"), "applyRestore must restore recipient rows with shape guards");
+});
+
+Deno.test("RK3-A1 g5 — statute rail carries the § 7152(a)(3)(F) verbatim", async () => {
+  const src = await Deno.readTextFile(RAIL_PATH);
+  assert(src.includes("recipients_record: {"), "rail must define recipients_record");
+  assert(
+    src.includes("The names or categories of the service providers, contractors, or third parties to whom the business discloses or makes available the consumers' personal information for the processing"),
+    "rail entry must carry the ra_content_op_recipients verbatim quote",
+  );
+});
+
 Deno.test("RK3-A1 g2 — statute rail carries the consumer_interaction entry; no unverified (C)/(D) verbatim", async () => {
   const src = await Deno.readTextFile(RAIL_PATH);
   assert(src.includes("consumer_interaction: {"), "rail must define consumer_interaction");

@@ -445,6 +445,16 @@ export default function CPPARiskAssessment() {
   const [activityDisclosures, setActivityDisclosures] = useState<{ disclosure_content: string; disclosure_method: string; status: string; timing_or_location: string }[]>([
     { disclosure_content: "", disclosure_method: "", status: "", timing_or_location: "" },
   ]);
+  // RK3-A1 g5 — § 7152(a)(3)(F) CANONICAL recipient record. One row per
+  // recipient: name-or-category, type (the type matters: disclosure to a
+  // third party for its own use is a sale/share), PI categories made
+  // available, and the purpose of the disclosure. Explicit-None follows the
+  // exceptions_intake emptyIsAnswer pattern: the declared toggle emits []
+  // as a substantive negative answer. i6_vendors stays the legacy summary.
+  const [recipientRows, setRecipientRows] = useState<{ recipient_name_or_category: string; recipient_type: string; pi_categories_made_available: string[]; disclosure_purpose: string }[]>([
+    { recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [], disclosure_purpose: "" },
+  ]);
+  const [recipientsNoneDeclared, setRecipientsNoneDeclared] = useState(false);
   // ── ITEM 305 — analytic-deliverable intake state ───────────────────
   const [a2NecessitySet, setA2NecessitySet] = useState<{ element: string; necessity: string; justification: string }[]>([
     { element: "", necessity: "", justification: "" },
@@ -711,6 +721,16 @@ export default function CPPARiskAssessment() {
         if (rows.some((r) => !r.disclosure_method)) return "Every disclosure row needs a method — how the disclosure is or will be made.";
         if (rows.some((r) => !r.status)) return "Mark each disclosure as Made or Planned.";
       }
+      // RK3-A1 g5 — § 7152(a)(3)(F): recipient rows, or the explicit
+      // no-recipients declaration (form-required; data-layer optional).
+      if (!recipientsNoneDeclared) {
+        const rows = recipientRows.filter((r) => r.recipient_name_or_category.trim() || r.recipient_type || r.pi_categories_made_available.length || r.disclosure_purpose.trim());
+        if (rows.length === 0) return "Add at least one recipient — or check the box declaring that no service provider, contractor, or third party receives this information.";
+        if (rows.some((r) => !r.recipient_name_or_category.trim())) return "Every recipient row needs a name or category.";
+        if (rows.some((r) => !r.recipient_type)) return "Classify each recipient: service provider, contractor, or third party.";
+        if (rows.some((r) => !r.pi_categories_made_available.length)) return "Select the personal-information categories made available to each recipient.";
+        if (rows.some((r) => !r.disclosure_purpose.trim())) return "State the purpose of the disclosure to each recipient.";
+      }
     }
     if (step === 4) {
       if (!i1bMinPi || i1bMinPi.length < 20) return "State the minimum personal information necessary for this purpose.";
@@ -789,6 +809,10 @@ export default function CPPARiskAssessment() {
     retention_by_pi_category: retentionByPiCategory.filter((r) => r.pi_category),
     // RK3-A1 g4 — § 7152(a)(3)(E) canonical activity-disclosure record.
     activity_disclosures: activityDisclosures.filter((r) => r.disclosure_content.trim()),
+    // RK3-A1 g5 — § 7152(a)(3)(F) canonical recipient record. Explicit-None
+    // emits [] (emptyIsAnswer) with the declared flag alongside it.
+    recipients: recipientsNoneDeclared ? [] : recipientRows.filter((r) => r.recipient_name_or_category.trim()),
+    recipients_none_declared: recipientsNoneDeclared,
     // TURN 1b — new intake fields (flow through submission_summary + § 7150(b)(5) resolver).
     public_privacy_policy_url: publicPrivacyPolicyUrl.trim(),
     sensitive_location_basis: sensitiveLocationBasis,
@@ -845,7 +869,7 @@ export default function CPPARiskAssessment() {
     q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
-    retentionByPiCategory, activityDisclosures,
+    retentionByPiCategory, activityDisclosures, recipientRows, recipientsNoneDeclared,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -869,7 +893,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
-    retentionByPiCategory, activityDisclosures,
+    retentionByPiCategory, activityDisclosures, recipientRows, recipientsNoneDeclared,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -883,7 +907,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
-    retentionByPiCategory, activityDisclosures,
+    retentionByPiCategory, activityDisclosures, recipientRows, recipientsNoneDeclared,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -901,6 +925,8 @@ export default function CPPARiskAssessment() {
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
     retentionByPiCategory: [{ pi_category: "", retention_period: "", retention_criteria: "" }],
     activityDisclosures: [{ disclosure_content: "", disclosure_method: "", status: "", timing_or_location: "" }],
+    recipientRows: [{ recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [] as string[], disclosure_purpose: "" }],
+    recipientsNoneDeclared: false,
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
     secondaryActivities: [] as SecondaryActivity[],
@@ -1018,6 +1044,17 @@ export default function CPPARiskAssessment() {
         })),
       );
     }
+    if (Array.isArray(d.recipientRows) && d.recipientRows.length > 0) {
+      setRecipientRows(
+        d.recipientRows.map((r: any) => ({
+          recipient_name_or_category: typeof r?.recipient_name_or_category === "string" ? r.recipient_name_or_category : "",
+          recipient_type: typeof r?.recipient_type === "string" ? r.recipient_type : "",
+          pi_categories_made_available: Array.isArray(r?.pi_categories_made_available) ? r.pi_categories_made_available.filter((c: unknown) => typeof c === "string") : [],
+          disclosure_purpose: typeof r?.disclosure_purpose === "string" ? r.disclosure_purpose : "",
+        })),
+      );
+    }
+    if (typeof d.recipientsNoneDeclared === "boolean") setRecipientsNoneDeclared(d.recipientsNoneDeclared);
     if (typeof d.publicPrivacyPolicyUrl === "string") setPublicPrivacyPolicyUrl(d.publicPrivacyPolicyUrl);
     if (typeof d.sensitiveLocationBasis === "string") setSensitiveLocationBasis(d.sensitiveLocationBasis);
     // ITEM 275 — absent keys are legal in pre-Item-275 drafts.
@@ -1784,6 +1821,81 @@ export default function CPPARiskAssessment() {
                   placeholder='Name — role — data shared'
                 />
                 {renderAssertion("i6_vendors")}
+              </div>
+              {/* RK3-A1 g5 — § 7152(a)(3)(F) canonical recipient record. The
+                  free-text list above stays as the legacy summary. */}
+              <div data-rail-key="recipients_record" onFocus={() => focusRail('recipients_record')}>
+                <Label>For the record: each recipient, its type, the categories it receives, and why. <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(F))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">One row per recipient. The type matters: disclosure to a third party for its own use is a sale or share.</p>
+                <label className="mt-2 flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={recipientsNoneDeclared}
+                    onChange={(e) => setRecipientsNoneDeclared(e.target.checked)}
+                    onFocus={() => focusRail('recipients_record')}
+                  />
+                  <span>No service provider, contractor, or third party receives or has access to personal information in this activity.</span>
+                </label>
+                {!recipientsNoneDeclared && (
+                  <>
+                    <div className="mt-2 space-y-2">
+                      {recipientRows.map((row, idx) => (
+                        <div key={idx} className="rounded-lg border border-input p-3 space-y-2">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-xs font-semibold text-muted-foreground">Recipient #{idx + 1}</p>
+                            <button
+                              type="button"
+                              onClick={() => setRecipientRows((prev) => prev.filter((_, i) => i !== idx))}
+                              disabled={recipientRows.length === 1}
+                              className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-40"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <div className="grid gap-2 xl:grid-cols-[1.2fr_0.9fr] items-start">
+                            <input
+                              className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                              value={row.recipient_name_or_category}
+                              onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, recipient_name_or_category: e.target.value } : r)))}
+                              onFocus={() => focusRail('recipients_record')}
+                              placeholder="Name or category — e.g., Print-and-mail vendor"
+                            />
+                            <select
+                              className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                              value={row.recipient_type}
+                              onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, recipient_type: e.target.value } : r)))}
+                              onFocus={() => focusRail('recipients_record')}
+                            >
+                              <option value="">Type…</option>
+                              <option>Service provider</option>
+                              <option>Contractor</option>
+                              <option>Third party</option>
+                            </select>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Categories made available to this recipient:</p>
+                            <div className="mt-1"><Pills options={q4.length ? q4 : PI_CATEGORIES} value={row.pi_categories_made_available} onChange={(next: string[]) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, pi_categories_made_available: next } : r)))} /></div>
+                          </div>
+                          <input
+                            className="h-10 px-3 rounded-md border border-input bg-background w-full"
+                            value={row.disclosure_purpose}
+                            onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_purpose: e.target.value } : r)))}
+                            onFocus={() => focusRail('recipients_record')}
+                            placeholder="Purpose of the disclosure — e.g., Printing and mailing the monthly coupon batch"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRecipientRows((prev) => [...prev, { recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [], disclosure_purpose: "" }])}
+                      className="mt-2 text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                    >
+                      + Add a recipient
+                    </button>
+                  </>
+                )}
               </div>
               <div><Label>When was your privacy policy last reviewed or updated? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><p className="text-xs text-muted-foreground mt-1">CCPA expects a review at least every 12 months.</p><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div>{renderAssertion("q11_policy_review")}</div>
               <div><Label>Do you show a notice at collection at or before the point you collect PI? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><p className="text-xs text-muted-foreground mt-1">The short notice shown where data is collected — separate from the full policy.</p><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>

@@ -145,6 +145,30 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       "Answering with the mechanism list alone (“privacy policy, consent screen”). Without the content half — what the disclosure actually says about this activity — the § 7152(a)(3)(E) record is incomplete.",
   },
 
+  // RK3-A1 g5 (Intake Contract v2.0 §6) — § 7152(a)(3)(F) recipients.
+  // Verbatim from verified registry row ra_content_op_recipients.
+  recipients_record: {
+    fieldLabel: "Who receives the information, what they receive, and why",
+    citation: "11 CCR § 7152(a)(3)(F)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The risk assessment documents the names or categories of the service providers, contractors, or third parties to whom personal information is disclosed or made available for this processing, and the purpose of each disclosure. Declaring that there are no recipients is itself a substantive answer on the record.",
+    regulationText:
+      "§ 7152(a)(3)(F) — “The names or categories of the service providers, contractors, or third parties to whom the business discloses or makes available the consumers' personal information for the processing; and the purpose for which the business discloses or makes the consumers' personal information available to them.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(E)", label: "Disclosures to consumers" },
+      { citation: "Cal. Civ. Code § 1798.140(ah), (t)", label: "Sale and sharing definitions" },
+    ],
+    coachLead:
+      "One row per recipient: who they are (a name or an honest category), which of the three legal types they are, exactly which categories of information they can see, and the purpose the disclosure serves. If nothing leaves the business in this activity, say so with the declaration — that is an answer, not a skipped question.",
+    coachBody:
+      "The type classification does legal work: a service provider processes on your instructions under contract; a third party receiving data for its own use makes the disclosure a sale or share. Classify from the contract terms and the actual data use, not from what the vendor calls itself.",
+    goodAnswer:
+      "Fernbrook Grocers: “Print-and-mail vendor — Service provider — Contact identifiers — Printing and mailing the monthly coupon batch.” A second row records the beverage distributor as “Third party — Contact identifiers — Marketing list resale,” which the record then treats as a sale.",
+    commonMistake:
+      "Listing vendors without the per-recipient categories and purpose, or defaulting every recipient to “service provider” without checking the contract. The (F) record requires both halves — recipients and purposes — and the type determines whether a disclosure is a sale.",
+  },
+
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
   // including the Business E example excerpt.
   comparable_set: {
