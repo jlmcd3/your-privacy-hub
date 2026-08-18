@@ -115,13 +115,17 @@ const PRESENT_ALWAYS = [
   "ix_balancing",
   "x_governance",
   "appendix_a",
+  // RK3-C: the factor engine now composes the necessity matrix and the risk
+  // register, so both factor appendices render on a perfect fixture.
+  "appendix_b",
+  "appendix_c",
   "appendix_e",
   "appendix_f",
 ];
 
-// Phase B: factor-only appendices are honestly absent until Phase C composes
-// them; Appendix H has no composer.
-const ABSENT_PHASE_B = ["appendix_b", "appendix_c", "appendix_h"];
+// RK3-C: Appendix H (EUP methodology) stays absent — its trigger is the
+// {{SYSTEM.include_methodology_appendix}} flag, which no fixture sets.
+const ABSENT_PHASE_B = ["appendix_h"];
 
 for (const c of CPPA_RISK_PERFECT) {
   Deno.test(`RK3-B — Spine 4.3 rendering — ${c.id}`, async (t) => {
@@ -156,9 +160,9 @@ for (const c of CPPA_RISK_PERFECT) {
       }
     });
 
-    await t.step("factor-only sections are honestly absent in Phase B", () => {
+    await t.step("untriggered sections stay honestly absent", () => {
       for (const id of ABSENT_PHASE_B) {
-        assert(!ids.includes(id), `section ${id} must be absent in Phase B`);
+        assert(!ids.includes(id), `section ${id} must be absent`);
       }
     });
 

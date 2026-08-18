@@ -34,9 +34,16 @@ import {
   type RenderedSkeletonDocument,
   type SlotValues,
 } from "../prose/skeleton-render.ts";
+// RK3-C — the factor engine (Classes A + B; deterministic at runtime, authored
+// on Fable 5 per CEO directive 2026-08-18). Class C ids stay honestly absent
+// until RK3-D.
+import {
+  runRiskFactorEngine,
+  type RiskFactorEngineResult,
+} from "./risk-factor-engine.ts";
 
 export const RISK_SKELETON_ASSEMBLER_STAMP =
-  "risk-skeleton-assembler@rk3-b-spine-4.3-2026-08-18";
+  "risk-skeleton-assembler@rk3-c-factor-engine-2026-08-18";
 
 type Bag = Record<string, unknown>;
 
@@ -700,13 +707,21 @@ export interface RiskSkeletonResult {
   readonly document: RenderedSkeletonDocument;
   readonly conformance: ReturnType<typeof verifySkeletonConformance>;
   readonly register_findings: string[];
+  /** RK3-C — the factor engine's output (provenance persisted for the RK3-D App G feed). */
+  readonly factor_engine: RiskFactorEngineResult;
 }
 
 export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkeletonResult {
   const values = buildRiskSlotValues(intake, report);
   const assessmentDate = String(values.assessmentDate);
 
+  // RK3-C — {{FACTOR.*}} generated blocks (Classes A + B). Keys are disjoint
+  // from the Phase B conditional/rule keys below; Class C ids stay absent.
+  const engine = runRiskFactorEngine(intake, report, assessmentDate);
+
   const composed: ComposedBlocks = {
+    ...engine.blocks,
+
     // Executive summary
     "executive_summary:7": composeExecCompanyDecision(intake),
 
@@ -781,5 +796,6 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     // null-dropped sentences are exempted precisely, not heuristically.
     conformance: verifySkeletonConformance(document, SKELETON_SECTIONS, values),
     register_findings,
+    factor_engine: engine,
   };
 }
