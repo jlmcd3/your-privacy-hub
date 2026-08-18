@@ -98,6 +98,25 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   i9_has_existing_dpia: "existence of a prior DPIA",
   i9_existing_dpia_summary: "summary of prior DPIA",
   material_change_since_prior: "material change since the last assessment",
+  // RK3-A2 g1 — timing & status
+  processing_status: "current processing status",
+  processing_start_date: "processing start date",
+  planned_start_date: "planned processing start date",
+  prior_risk_assessment_date: "date of prior risk assessment",
+  material_change_date: "material change effective date",
+  material_change_description: "description of material change",
+  // RK3-A2 g2 — ADMT extended record
+  admt_operational_role: "operational role of the ADMT system",
+  admt_assumptions_limitations: "ADMT assumptions and limitations",
+  admt_output: "ADMT system output",
+  admt_output_use: "how the ADMT output is used",
+  admt_consumer_effect: "effect of ADMT output on consumers",
+  // RK3-A2 g3 — § 7153 ADMT-provider fields
+  admt_made_available_to_other_business: "ADMT made available to another business",
+  admt_provider_trained_using_pi: "ADMT provider trained using recipient PI",
+  recipient_business_uses_admt_for_significant_decision: "recipient business significant-decision use",
+  // RK3-A2 g4 — SPI employment exception
+  spi_employment_exception_facts: "employment-basis SPI justification",
   exceptions_intake: "regulatory exceptions",
   impact_intake: "impact assessment inputs",
   "impact_intake.likelihood": "likelihood of impact",
