@@ -24,7 +24,11 @@ import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
 import { fetchEuAuthorityCorpus } from "../_shared/ltp/eu-authority/fetch.ts";
 import { MINED_PRESENCE_BAND, defaultSubstanceGateConfig }
   from "./_local/ltp/replay/presence-band.ts";
-import { modelProvider } from "../_shared/ltp/replay/providers.ts";
+import {
+  modelProvider,
+  deterministicProvider,
+  _modelProviderCallCount_get,
+} from "../_shared/ltp/replay/providers.ts";
 import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
 
 import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
@@ -35,7 +39,7 @@ import type { PerDocResult, ReplayDoc, SideBySideRow }
   from "../_shared/ltp/replay/types.ts";
 
 export const HARNESS_BUILD_STAMP =
-  "replay-cppa-risk-harness-2026-07-30-item278-prose-pass";
+  "replay-cppa-risk-harness-2026-08-18-rk-deterministic-pass1";
 
 
 const MAX_DOC_IDS = 50;
@@ -125,7 +129,13 @@ interface DocProcessOutcome {
  */
 async function processDoc(
   doc: ArchivedDoc,
+  pass1Mode: "model" | "deterministic" = "model",
 ): Promise<DocProcessOutcome> {
+  const deterministic = pass1Mode === "deterministic";
+  // RK — model-call sentinel. Snapshot the module-scope counter before the
+  // Pass-1 call so any live model invocation on the deterministic branch is
+  // recorded as a FINDING (model_call_detected) rather than crashing the run.
+  const modelCallsBefore = _modelProviderCallCount_get();
   try {
     // ITEM 269 FIX 1 — ERA NORMALIZER. Pre-realignment (five-stage-shaped)
     // archive rows are normalized to the flat contract keys BEFORE Pass-1
@@ -139,12 +149,15 @@ async function processDoc(
     };
     // ITEM 341 — EU persuasive-authority corpus (read-only; null-safe).
     const euCorpus = await fetchEuAuthorityCorpus(serviceClient());
-    const p1 = await modelProvider({
+    const p1Input = {
       intake: replayDoc.intake_data,
       report_data: {},
       buildStamp: `${HARNESS_BUILD_STAMP}#${doc.id}`,
       eu_authority_corpus: euCorpus,
-    }, { callerName: "replay-cppa-risk-harness" });
+    };
+    const p1 = deterministic
+      ? await deterministicProvider(p1Input)
+      : await modelProvider(p1Input, { callerName: "replay-cppa-risk-harness" });
 
     const assembled = assembleReport(p1.plan, {}, { exitMode: "observe" });
     const substance = evaluateSubstance(
@@ -168,9 +181,13 @@ async function processDoc(
       sectionsOmittedByClass[cls] = (sectionsOmittedByClass[cls] ?? 0) + 1;
     }
 
+    const modelCallsMade = _modelProviderCallCount_get() - modelCallsBefore;
     const perDoc: PerDocResult = {
       doc_id: doc.id,
-      provider_kind: "model",
+      provider_kind: deterministic ? "deterministic" : "model",
+      ...(deterministic
+        ? { model_call_detected: modelCallsMade > 0, model_call_count: modelCallsMade }
+        : {}),
       pass1_telemetry_summary: {
         ok: p1.telemetry.ok,
         attempts: p1.telemetry.attempts,
@@ -228,9 +245,13 @@ async function processDoc(
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    const modelCallsMade = _modelProviderCallCount_get() - modelCallsBefore;
     const perDoc: PerDocResult = {
       doc_id: doc.id,
-      provider_kind: "model",
+      provider_kind: deterministic ? "deterministic" : "model",
+      ...(deterministic
+        ? { model_call_detected: modelCallsMade > 0, model_call_count: modelCallsMade }
+        : {}),
       pass1_telemetry_summary: {
         ok: false,
         attempts: 0,
@@ -334,6 +355,8 @@ Deno.serve(async (req) => {
       pass2r_manifest: PASS2R_MANIFEST,
       env_anthropic_key_present: !!Deno.env.get("ANTHROPIC_API_KEY"),
       env_ltp_enforce_enabled: Deno.env.get("LTP_ENFORCE_ENABLED") === "1",
+      supported_job_options: ["prose_pass", "pass1"],
+      pass1_modes: ["model", "deterministic"],
     });
   }
 
@@ -427,7 +450,14 @@ Deno.serve(async (req) => {
 
   // ITEM 278 — prose-pass flag. Default FALSE; malformed options read false.
   const jobOptions = (job.options ?? {}) as Record<string, unknown>;
-  const prosePass = jobOptions.prose_pass === true;
+  // RK — pass1 mode. Default "model" (unchanged). `{"pass1":"deterministic"}`
+  // selects the derivePlan path; Pass-2R is retired on that branch, so
+  // prose_pass is ignored there.
+  const pass1Mode: "model" | "deterministic" =
+    jobOptions.pass1 === "deterministic" ? "deterministic" : "model";
+  const prosePass = pass1Mode === "deterministic"
+    ? false
+    : jobOptions.prose_pass === true;
 
   const wrapped = (async () => {
     const summary: Record<string, unknown>[] = [];
@@ -459,7 +489,7 @@ Deno.serve(async (req) => {
             plan: null,
           };
         } else {
-          outcome = await processDoc(loaded);
+          outcome = await processDoc(loaded, pass1Mode);
         }
 
         // ITEM 287 FIX 5 — PERSIST-FIRST. The deterministic result row is
