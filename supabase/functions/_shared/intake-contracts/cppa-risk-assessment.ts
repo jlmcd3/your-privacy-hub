@@ -431,6 +431,24 @@ export const cppaRiskContract: IntakeContract = {
     // existing i9_has_existing_dpia question). Optional at the data layer so
     // legacy stored rows (authored before this key existed) keep validating.
     { key: "material_change_since_prior", kind: "enum", required: "optional", options: YES_NO_OPTS },
+
+    // ── RK3-A1 (Intake Contract v2.0 §1, doc 31 §2c) — § 7152(a)(3)(A)
+    // processing record. `processing_methods` is the CANONICAL structured
+    // record of the planned methods for collecting, using, disclosing,
+    // retaining, and otherwise processing PI (child values "N/A" where a
+    // stage does not occur). `processing_entry_point` and
+    // `processing_result` are EUP support facts (Spine 4.3 §II.A).
+    // OPTIONAL AT THE DATA LAYER (ITEM 380 INTAKE-4a pattern): legacy
+    // stored rows keep validating; the FORM requires them for new
+    // submissions via stepValid (step 1).
+    { key: "processing_entry_point", kind: "narrative", required: "optional" },
+    { key: "processing_methods", kind: "structured", required: "optional" },
+    { key: "processing_methods.collection_method", kind: "text", required: "optional" },
+    { key: "processing_methods.use_method", kind: "text", required: "optional" },
+    { key: "processing_methods.disclosure_method", kind: "text", required: "optional" },
+    { key: "processing_methods.retention_method", kind: "text", required: "optional" },
+    { key: "processing_methods.other_processing_method", kind: "text", required: "optional" },
+    { key: "processing_result", kind: "narrative", required: "optional" },
   ],
 
 };

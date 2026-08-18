@@ -46,6 +46,31 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
 
   },
 
+  // RK3-A1 (Intake Contract v2.0 §1) — § 7152(a)(3)(A) processing record.
+  // Verbatim quote from the verified-authorities registry row
+  // ra_content_op_method (risk-verified-authorities.ts).
+  processing_record: {
+    fieldLabel: "Where the information enters, how it is processed, and what the activity produces",
+    citation: "11 CCR § 7152(a)(3)(A)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The risk assessment must identify and document the business's planned method for collecting, using, disclosing, retaining, or otherwise processing personal information. These answers are that operational record: the entry point, one line per processing stage, and the output the activity produces.",
+    regulationText:
+      "§ 7152(a)(3) — “Identify and document in a risk assessment report the following operational elements of the processing:”\n\n§ 7152(a)(3)(A) — “The business’s planned method for collecting, using, disclosing, retaining, or otherwise processing personal information, and the sources of the personal information.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(B)", label: "Retention by category of personal information" },
+      { citation: "11 CCR § 7152(a)(3)(F)", label: "Recipients of the personal information" },
+    ],
+    coachLead:
+      "Describe each stage as an operation on the information: who or what puts it in, what is done with it, where it goes, how long it stays, and anything else done to it. One concrete line per stage; “N/A” is the accurate answer for a stage that does not occur.",
+    coachBody:
+      "The record needs the method, not the system's brand name. “Stored in Postgres” names a technology; “held in the loyalty database while the membership stays active” states a method. The entry point and the output bracket the sequence so the report can present the processing as an operational narrative rather than a product description.",
+    goodAnswer:
+      "Fernbrook Grocers: entry — “Members type their name, mailing address, and birth month into the loyalty sign-up form at the register.” Disclosed — “A monthly address file goes to the print-and-mail vendor.” Output — “A printed coupon mailed in the member's birth month.” Each line is one stage, one operation, no marketing language.",
+    commonMistake:
+      "Answering every stage with the product name (“the loyalty platform handles it”). The regulation asks for the planned method at each stage — collection, use, disclosure, retention — and a platform name states none of them.",
+  },
+
   // ITEM 275 — § 7156(a) comparable-set standard (corpus row cppa-7156),
   // including the Business E example excerpt.
   comparable_set: {

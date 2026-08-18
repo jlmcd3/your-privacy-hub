@@ -417,6 +417,15 @@ export default function CPPARiskAssessment() {
   const [q15cSpiVolume, setQ15cSpiVolume] = useState("");    // R1a: § 7120(b)(2)(B) SPI volume band
   const [q18bTraining, setQ18bTraining] = useState("");      // § 7150(b)(6) training ADMT / facial / emotion / biometric
   const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
+  // ── RK3-A1 (Intake Contract v2.0 §1, doc 31 §2c) — § 7152(a)(3)(A)
+  // processing record. `processing_methods` is the CANONICAL structured
+  // record of the planned methods for collecting, using, disclosing,
+  // retaining, and otherwise processing PI ("N/A" where a stage does not
+  // occur). entry_point and result are EUP support facts that orient the
+  // Spine 4.3 §II.A operational narrative. ───────────────────────────────
+  const [processingEntryPoint, setProcessingEntryPoint] = useState("");
+  const [processingMethods, setProcessingMethods] = useState<{ collection_method: string; use_method: string; disclosure_method: string; retention_method: string; other_processing_method: string }>({ collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" });
+  const [processingResult, setProcessingResult] = useState("");
   // ── ITEM 305 — analytic-deliverable intake state ───────────────────
   const [a2NecessitySet, setA2NecessitySet] = useState<{ element: string; necessity: string; justification: string }[]>([
     { element: "", necessity: "", justification: "" },
@@ -643,6 +652,11 @@ export default function CPPARiskAssessment() {
       if (!i9HasDpia) return "Answer whether an existing data protection impact assessment covers this activity.";
       if (i9HasDpia === "Yes" && !i9DpiaSummary) return "Summarise the existing impact assessment — its title, date, and scope.";
       if (!materialChangeSincePrior) return "Answer whether this activity has changed materially since the last assessment.";
+      // RK3-A1 — § 7152(a)(3)(A) processing record (form-required for new
+      // submissions; optional at the data layer for legacy rows).
+      if (!processingEntryPoint.trim()) return "Say where personal information first enters this activity.";
+      if (Object.values(processingMethods).some((v) => !v.trim())) return "Complete all five processing-method entries — write \"N/A\" for any stage that does not occur.";
+      if (!processingResult.trim()) return "Say what this activity produces or supports — a decision, score, recommendation, service action, or operational outcome.";
     }
     if (step === 2) {
       if (!q1 || !q2) return "Select the revenue band and the California consumer band.";
@@ -722,6 +736,10 @@ export default function CPPARiskAssessment() {
     q18b_admt_training: q18bTraining,
     i1b_min_pi: i1bMinPi,
     i4b_sources: i4bSources,
+    // RK3-A1 — § 7152(a)(3)(A) processing record (Intake Contract v2.0 §1).
+    processing_entry_point: processingEntryPoint.trim(),
+    processing_methods: processingMethods,
+    processing_result: processingResult.trim(),
     // TURN 1b — new intake fields (flow through submission_summary + § 7150(b)(5) resolver).
     public_privacy_policy_url: publicPrivacyPolicyUrl.trim(),
     sensitive_location_basis: sensitiveLocationBasis,
@@ -776,6 +794,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    processingEntryPoint, processingMethods, processingResult,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -797,6 +816,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    processingEntryPoint, processingMethods, processingResult,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -808,6 +828,7 @@ export default function CPPARiskAssessment() {
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    processingEntryPoint, processingMethods, processingResult,
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData,
@@ -821,6 +842,7 @@ export default function CPPARiskAssessment() {
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "", materialChangeSincePrior: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
+    processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
     publicPrivacyPolicyUrl: "", sensitiveLocationBasis: "",
     primaryActivityName: "", primaryActivityPurpose: "", hasSecondaryUses: "",
     secondaryActivities: [] as SecondaryActivity[],
@@ -903,6 +925,19 @@ export default function CPPARiskAssessment() {
     if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
     if (typeof d.i1bMinPi === "string") setI1bMinPi(d.i1bMinPi);
     if (typeof d.i4bSources === "string") setI4bSources(d.i4bSources);
+    // RK3-A1 — absent keys are legal in pre-RK3 drafts.
+    if (typeof d.processingEntryPoint === "string") setProcessingEntryPoint(d.processingEntryPoint);
+    if (d.processingMethods && typeof d.processingMethods === "object") {
+      const m = d.processingMethods as Record<string, unknown>;
+      setProcessingMethods({
+        collection_method: typeof m.collection_method === "string" ? m.collection_method : "",
+        use_method: typeof m.use_method === "string" ? m.use_method : "",
+        disclosure_method: typeof m.disclosure_method === "string" ? m.disclosure_method : "",
+        retention_method: typeof m.retention_method === "string" ? m.retention_method : "",
+        other_processing_method: typeof m.other_processing_method === "string" ? m.other_processing_method : "",
+      });
+    }
+    if (typeof d.processingResult === "string") setProcessingResult(d.processingResult);
     if (typeof d.publicPrivacyPolicyUrl === "string") setPublicPrivacyPolicyUrl(d.publicPrivacyPolicyUrl);
     if (typeof d.sensitiveLocationBasis === "string") setSensitiveLocationBasis(d.sensitiveLocationBasis);
     // ITEM 275 — absent keys are legal in pre-Item-275 drafts.
@@ -1120,6 +1155,63 @@ export default function CPPARiskAssessment() {
                   className="mt-2 w-full px-3 py-2 rounded-md border border-input bg-background"
                 />
               </div>
+              {/* RK3-A1 (Intake Contract v2.0 §1) — § 7152(a)(3)(A) processing
+                  record: where PI enters, the five planned processing methods,
+                  and what the activity produces. Feeds Spine 4.3 §II.A and the
+                  DERIVED lifecycle narrative. */}
+              <div data-rail-key="processing_record" onFocus={() => focusRail('processing_record')}>
+                <Label htmlFor="processing_entry_point">Where does personal information first enter this activity? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(A))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">The first point of collection or receipt — a form, an app screen, a call, a file from another system, a purchase from another business.</p>
+                <textarea
+                  id="processing_entry_point"
+                  value={processingEntryPoint}
+                  onChange={(e) => setProcessingEntryPoint(e.target.value)}
+                  onFocus={() => focusRail('processing_record')}
+                  rows={2}
+                  placeholder="e.g., Members type their name, mailing address, and birth month into the loyalty sign-up form at the register."
+                  className="mt-2 w-full px-3 py-2 rounded-md border border-input bg-background"
+                />
+              </div>
+              <div data-rail-key="processing_record" onFocus={() => focusRail('processing_record')}>
+                <Label>How is the information collected, used, disclosed, retained, and otherwise processed? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(A))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">One line per stage. Write “N/A” for any stage that does not occur in this activity.</p>
+                <div className="mt-2 space-y-3">
+                  {([
+                    ["collection_method", "Collected", "e.g., Typed into the sign-up form by the member at the register."],
+                    ["use_method", "Used", "e.g., Matched against the store calendar to print a birthday coupon batch each month."],
+                    ["disclosure_method", "Disclosed", "e.g., Sent to the print-and-mail vendor as a monthly address file — or N/A."],
+                    ["retention_method", "Retained", "e.g., Held in the loyalty database while the membership stays active."],
+                    ["other_processing_method", "Otherwise processed", "e.g., N/A."],
+                  ] as const).map(([mkey, mlabel, mplaceholder]) => (
+                    <div key={mkey}>
+                      <Label htmlFor={`processing_methods_${mkey}`} className="text-xs">{mlabel}</Label>
+                      <input
+                        id={`processing_methods_${mkey}`}
+                        type="text"
+                        value={processingMethods[mkey]}
+                        onChange={(e) => setProcessingMethods((prev) => ({ ...prev, [mkey]: e.target.value }))}
+                        onFocus={() => focusRail('processing_record')}
+                        placeholder={mplaceholder}
+                        className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div data-rail-key="processing_record" onFocus={() => focusRail('processing_record')}>
+                <Label htmlFor="processing_result">What does this activity produce or support? <Req /></Label>
+                <p className="text-xs text-muted-foreground mt-1">The output — a decision, score, recommendation, service action, or operational outcome. This connects the processing to its benefits and its risk pathways.</p>
+                <textarea
+                  id="processing_result"
+                  value={processingResult}
+                  onChange={(e) => setProcessingResult(e.target.value)}
+                  onFocus={() => focusRail('processing_record')}
+                  rows={2}
+                  placeholder="e.g., A printed birthday coupon mailed to each member during their birth month."
+                  className="mt-2 w-full px-3 py-2 rounded-md border border-input bg-background"
+                />
+              </div>
+
               <div data-rail-key="comparable_set" onFocus={() => focusRail('comparable_set')}>
                 <Label>
                   Beyond {primaryActivityName.trim() || "this activity"}, does your company use this same data for any other distinct purpose, product, or audience? <Req />{" "}
