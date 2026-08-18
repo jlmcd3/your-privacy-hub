@@ -125,6 +125,11 @@ export const HARM_PATHWAY_OPTS = [
 export const HARM_LIKELIHOOD_OPTS = ["Unlikely", "Possible", "Likely", "Highly likely"];
 export const HARM_SEVERITY_OPTS = ["Minimal", "Moderate", "Significant", "Severe"];
 
+// RK3-A2 g1 (Intake Contract v2.0 §6, doc 31 §2c) — § RAF 7155 processing
+// status. Closed enum; verbatim copy mirrored in cppa-risk-assessment.ts
+// (parity pinned in rk3-a2-timing.test.ts).
+export const PROCESSING_STATUS_OPTS = ["Planned", "Ongoing", "Discontinued"] as const;
+
 // RK3-A1 (Intake Contract v2.0 §6) — § 7152(a)(3)(C) consumer-interaction
 // method. Closed enum; "Other" carries the description in the purpose field.
 export const CONSUMER_INTERACTION_METHOD_OPTS = [

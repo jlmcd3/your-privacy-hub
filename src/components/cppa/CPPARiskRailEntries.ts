@@ -873,5 +873,28 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     ],
   },
 
+  // RK3-A2 g1 \u2014 \u00a7 RAF 7155 assessment timing and processing status.
+  timing_and_status: {
+    fieldLabel: "Processing status and assessment timeline",
+    citation: "11 CCR \u00a7 7155",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The regulation requires that a risk assessment be conducted before processing begins (\u00a7 7155(a)(1)) and updated when the processing changes materially (\u00a7 7155(a)(3)). These fields record whether the assessed processing is planned, ongoing, or discontinued; fix the dates that anchor the Spine 4.3 \u00a7I.A timeline; and capture the date and scope of any material change since the prior assessment.",
+    regulationText:
+      "\u00a7 7155(a)(1) \u2014 \u201CA business must conduct and document a risk assessment in accordance with the requirements of this Article before initiating any processing activity identified in section 7150, subsection (b).\u201D\n\n\u00a7 7155(a)(3) \u2014 \u201CA business must update and complete a new risk assessment when there is a material change to the processing activity for which the risk assessment was conducted, as defined in section 7001, subsection (m).\u201D",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7155(a)(3)", label: "Material-change update obligation (45 days)" },
+      { citation: "11 CCR \u00a7 7156(b)", label: "Existing DPIA mapping" },
+    ],
+    coachLead:
+      "State the status the processing actually has on the date you complete this assessment \u2014 not the intended status. A planned activity that is already live should be marked Ongoing.",
+    coachBody:
+      "The start date anchors the assessment window. If the processing began before the CPPA regulations took effect, record the actual start date; the report notes it as pre-regulation in-scope processing. For material changes, record the date the changed version of the processing became operational, not the date you learned about it or the date you started this assessment.",
+    goodAnswer:
+      "\u201COngoing \u2014 started 2024-03-01. Prior assessment: 2024-02-15. Material change: 2025-06-01 \u2014 expanded the recipient list to include a new fulfilment partner, adding a disclosure stage not present in the prior assessment.\u201D Each date is specific and each element is its own sentence.",
+    commonMistake:
+      "Leaving the start date blank when status is Ongoing. The start date is the anchor for the assessment-window narrative; without it the report cannot close the timeline.",
+  },
+
 };
 

@@ -287,6 +287,7 @@ import {
   HARM_SEVERITY_OPTS,
   SAFEGUARD_STATUS_OPTS,
   CONSUMER_INTERACTION_METHOD_OPTS,
+  PROCESSING_STATUS_OPTS,
 } from "./CPPARiskAssessment.enums";
 
 // Progressive disclosure for optional clusters. The value line states what the
@@ -398,6 +399,13 @@ export default function CPPARiskAssessment() {
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [materialChangeSincePrior, setMaterialChangeSincePrior] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
+  // RK3-A2 g1 — § RAF 7155 processing status + assessment timeline
+  const [processingStatus, setProcessingStatus] = useState("");
+  const [processingStartDate, setProcessingStartDate] = useState("");
+  const [plannedStartDate, setPlannedStartDate] = useState("");
+  const [priorRiskAssessmentDate, setPriorRiskAssessmentDate] = useState("");
+  const [materialChangeDate, setMaterialChangeDate] = useState("");
+  const [materialChangeDescription, setMaterialChangeDescription] = useState("");
 
   // § 7152 exceptions + impact (optional). R1a: each claimed exception may carry two additional
   // optional free-text fields — authority_basis and retention_period — so the generator can
@@ -882,6 +890,13 @@ export default function CPPARiskAssessment() {
     i9_has_existing_dpia: i9HasDpia,
     i9_existing_dpia_summary: i9DpiaSummary,
     material_change_since_prior: materialChangeSincePrior,
+    // RK3-A2 g1 — § RAF 7155 timing; undefined when blank so legacy rows stay valid
+    processing_status: processingStatus || undefined,
+    processing_start_date: processingStartDate || undefined,
+    planned_start_date: plannedStartDate || undefined,
+    prior_risk_assessment_date: priorRiskAssessmentDate || undefined,
+    material_change_date: materialChangeDate || undefined,
+    material_change_description: materialChangeDescription || undefined,
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
     // ITEM 305 — operands of the five per-activity analytic deliverables.
@@ -922,6 +937,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior, exceptionClaims, impactData,
+    processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     a2NecessitySet, a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
     a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
     a5HarmPathways, a6Safeguards, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
@@ -937,6 +953,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
+    processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -953,6 +970,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, materialChangeSincePrior,
+    processingStatus, processingStartDate, plannedStartDate, priorRiskAssessmentDate, materialChangeDate, materialChangeDescription,
     entityName, subjectAnchor, q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -971,6 +989,7 @@ export default function CPPARiskAssessment() {
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "", materialChangeSincePrior: "",
+    processingStatus: "", processingStartDate: "", plannedStartDate: "", priorRiskAssessmentDate: "", materialChangeDate: "", materialChangeDescription: "",
     entityName: "", subjectAnchor: "", q5bProfiling: "", q5cShareRev: "", bssCount: "", q15bUnder16: "", q15cSpiVolume: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     processingEntryPoint: "", processingMethods: { collection_method: "", use_method: "", disclosure_method: "", retention_method: "", other_processing_method: "" }, processingResult: "",
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
@@ -1052,6 +1071,12 @@ export default function CPPARiskAssessment() {
     if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
     if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
     if (typeof d.materialChangeSincePrior === "string") setMaterialChangeSincePrior(d.materialChangeSincePrior);
+    if (typeof d.processingStatus === "string") setProcessingStatus(d.processingStatus);
+    if (typeof d.processingStartDate === "string") setProcessingStartDate(d.processingStartDate);
+    if (typeof d.plannedStartDate === "string") setPlannedStartDate(d.plannedStartDate);
+    if (typeof d.priorRiskAssessmentDate === "string") setPriorRiskAssessmentDate(d.priorRiskAssessmentDate);
+    if (typeof d.materialChangeDate === "string") setMaterialChangeDate(d.materialChangeDate);
+    if (typeof d.materialChangeDescription === "string") setMaterialChangeDescription(d.materialChangeDescription);
     if (typeof d.entityName === "string") setEntityName(d.entityName);
     if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
@@ -1590,6 +1615,30 @@ export default function CPPARiskAssessment() {
                 />
                 <p className="text-xs text-muted-foreground mt-1">This is a locator only. The assessment does not treat the linked policy as a source of facts.</p>
               </div>
+              {/* RK3-A2 g1 — § RAF 7155 processing status and assessment timeline.
+                  Conditional date fields branch on the status selection; the
+                  prior-assessment date anchors the Spine 4.3 §I.A timeline. */}
+              <div data-rail-key="timing_and_status" onFocus={() => focusRail('timing_and_status')}>
+                <Label>What is the current status of this processing activity? <span className="text-xs text-muted-foreground font-mono">(§ RAF 7155)</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Planned: not yet operational. Ongoing: currently live. Discontinued: no longer active but within the assessment window.</p>
+                <div className="mt-2"><Radio name="processing_status" options={[...PROCESSING_STATUS_OPTS]} value={processingStatus} onChange={setProcessingStatus} /></div>
+                {(processingStatus === "Ongoing" || processingStatus === "Discontinued") && (
+                  <div className="mt-3">
+                    <Label className="text-sm">When did this processing start? <span className="text-xs text-muted-foreground">(approximate is fine)</span></Label>
+                    <input type="date" className="mt-2 block w-48 h-10 px-3 rounded-md border border-input bg-background" value={processingStartDate} onChange={(e) => setProcessingStartDate(e.target.value)} onFocus={() => focusRail('timing_and_status')} />
+                  </div>
+                )}
+                {processingStatus === "Planned" && (
+                  <div className="mt-3">
+                    <Label className="text-sm">When is this processing expected to begin? <span className="text-xs text-muted-foreground">(approximate is fine)</span></Label>
+                    <input type="date" className="mt-2 block w-48 h-10 px-3 rounded-md border border-input bg-background" value={plannedStartDate} onChange={(e) => setPlannedStartDate(e.target.value)} onFocus={() => focusRail('timing_and_status')} />
+                  </div>
+                )}
+                <div className="mt-3">
+                  <Label className="text-sm">Date of the most recent prior risk assessment for this activity <span className="text-xs text-muted-foreground">(if any — leave blank if this is the first)</span></Label>
+                  <input type="date" className="mt-2 block w-48 h-10 px-3 rounded-md border border-input bg-background" value={priorRiskAssessmentDate} onChange={(e) => setPriorRiskAssessmentDate(e.target.value)} onFocus={() => focusRail('timing_and_status')} />
+                </div>
+              </div>
               <div data-rail-key="i9_dpia" onFocus={() => focusRail('i9_dpia')}>
                 <Label>Is there an existing GDPR DPIA (or other PIA) for this activity? <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">If a GDPR DPIA exists, we'll map what it already covers.</p><div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
@@ -1609,6 +1658,18 @@ export default function CPPARiskAssessment() {
                 <Label>Has this processing activity changed materially since the last assessment?</Label>
                 <p className="text-xs text-muted-foreground mt-1">Cover changes to the data collected, the purpose, the recipients, or the safeguards since you last assessed this activity. If this is the first assessment of this activity, answer "No".</p>
                 <div className="mt-2"><Radio name="material_change_since_prior" options={["Yes", "No"]} value={materialChangeSincePrior} onChange={setMaterialChangeSincePrior} /></div>
+                {materialChangeSincePrior === "Yes" && (
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <Label className="text-sm">When did the material change take effect? <span className="text-xs text-muted-foreground">(approximate is fine)</span></Label>
+                      <input type="date" className="mt-2 block w-48 h-10 px-3 rounded-md border border-input bg-background" value={materialChangeDate} onChange={(e) => setMaterialChangeDate(e.target.value)} onFocus={() => focusRail('material_change_since_prior')} />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Briefly describe what changed <span className="text-xs text-muted-foreground">(§ 7155(a)(3))</span></Label>
+                      <Textarea className="mt-2" rows={2} value={materialChangeDescription} onChange={(e) => setMaterialChangeDescription(e.target.value)} onFocus={() => focusRail('material_change_since_prior')} placeholder="e.g., Added biometric scanning at point of sale; expanded recipient list to include fulfilment partner." />
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}

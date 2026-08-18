@@ -106,6 +106,11 @@ export const BENEFICIARY_CLASSES = [
   "the public",
 ] as const;
 
+// RK3-A2 g1 — verbatim copy of PROCESSING_STATUS_OPTS from
+// src/pages/CPPARiskAssessment.enums.ts (parity pinned in
+// rk3-a2-timing.test.ts).
+export const PROCESSING_STATUS_OPTS = ["Planned", "Ongoing", "Discontinued"] as const;
+
 // RK3-A1 g2 — verbatim copy of CONSUMER_INTERACTION_METHOD_OPTS from
 // src/pages/CPPARiskAssessment.enums.ts (parity pinned in
 // rk3-a1-processing-record.test.ts).
@@ -541,6 +546,21 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: "a participation row is present" },
     { key: "section_7151_operational_participants[].processing_responsibility", kind: "text", required: "conditional",
       requiredWhen: "a participation row is present" },
+
+    // ── RK3-A2 g1 (Intake Contract v2.0 §6, doc 31 §2c) — § RAF 7155 assessment
+    // timing and processing status. processing_status anchors whether the assessed
+    // processing is planned, ongoing, or discontinued; the conditional date fields
+    // fix the assessment window for the Spine 4.3 §I.A timeline.
+    // material_change_date / material_change_description extend the existing
+    // material_change_since_prior flag (ITEM 380 INTAKE-4a) to supply the date
+    // and scope of any material change since the prior assessment.
+    { key: "processing_status", kind: "enum", required: "optional",
+      options: PROCESSING_STATUS_OPTS },
+    { key: "processing_start_date", kind: "date", required: "optional" },
+    { key: "planned_start_date", kind: "date", required: "optional" },
+    { key: "prior_risk_assessment_date", kind: "date", required: "optional" },
+    { key: "material_change_date", kind: "date", required: "optional" },
+    { key: "material_change_description", kind: "narrative", required: "optional" },
   ],
 
 };
