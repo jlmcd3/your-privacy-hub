@@ -4,7 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { PARALLEL_ITEM_VARIETY_RULE } from "../_shared/parallel-item-variety.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
-import { checkIrRequiredFields } from "./_local/ltp/ir-required-fields.ts";
+import { checkIrRequiredFields } from "../_shared/ltp/ir-required-fields.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";

@@ -33,7 +33,7 @@ import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant, casesForVariant } from "../_shared/golden/registry.ts";
 // PROMPT 9G item 3 — all-pinned batch mode (deterministic dispatch pre-filter).
-import { planPinnedOnly } from "./_local/quality/pinned-only.ts";
+import { planPinnedOnly } from "../_shared/quality/pinned-only.ts";
 // PROMPT 12G items 1-3 — pins_mode ("only" | "seed" | "none"); pinned_only is
 // superseded but still honoured (true ⇒ "only").
 import {
@@ -42,7 +42,7 @@ import {
   pinsDispatchDecision,
   resolvePinsMode,
   type PinsMode,
-} from "./_local/quality/pins-mode.ts";
+} from "../_shared/quality/pins-mode.ts";
 
 // ITEM 325 — fixture variant (Perfect / Messy) for /admin/final-test.
 // Additive: a null variant is byte-for-byte the legacy /admin/quality-batch path.
