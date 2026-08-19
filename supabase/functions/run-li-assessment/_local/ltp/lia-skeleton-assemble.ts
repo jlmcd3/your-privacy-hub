@@ -49,7 +49,7 @@ import {
   LIA_HARM_SEVERITY_LABELS,
   LIA_INTEREST_TYPE_LABELS,
   LIA_RELATIONSHIP_LABELS,
-} from "../../../_shared/prose/plans/lia.slotmap.ts";
+} from "../prose/plans/lia.slotmap.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
