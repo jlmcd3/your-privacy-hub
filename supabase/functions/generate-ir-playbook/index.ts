@@ -2080,7 +2080,7 @@ let playbook_text = lint.clean;
         // blank fields stay blank — nothing here pads them. Fail-open.
         try {
           const { assembleIRSkeletonDocument, IR_SKELETON_ASSEMBLER_STAMP } =
-            await import("../_shared/ltp/ir-skeleton-assemble.ts");
+            await import("./_local/ltp/ir-skeleton-assemble.ts");
           const sk = assembleIRSkeletonDocument(
             report_data as unknown as Record<string, unknown>,
             (body ?? {}) as unknown as Record<string, unknown>,

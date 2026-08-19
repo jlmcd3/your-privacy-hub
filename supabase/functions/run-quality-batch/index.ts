@@ -3678,7 +3678,7 @@ async function runBatchInner(runId: string): Promise<void> {
         try {
           const { evaluateGateV2 } = await import("./_local/quality/gate-v2.ts");
           const { shadowScore } = await import("./_local/quality/shadow-score.ts");
-          const { tagIntake } = await import("../_shared/quality/coverage-matrix.ts");
+          const { tagIntake } = await import("./_local/quality/coverage-matrix.ts");
           // Pooled doc count across THIS tool's recent consecutive runs.
           const { data: recent } = await admin.from("quality_runs")
             .select("batch_size,status,started_at").eq("tool", tool)

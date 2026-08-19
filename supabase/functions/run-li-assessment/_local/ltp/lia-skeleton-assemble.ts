@@ -41,7 +41,7 @@ import {
   LIA_SKELETON_TITLE,
   LIA_SKELETON_VERSION,
   LIA_V3_BANNED_REGISTER,
-} from "../prose/plans/lia.spine.ts";
+} from "../../../_shared/prose/plans/lia.spine.ts";
 import {
   LIA_CONDITIONAL_TRIGGERS,
   LIA_DATA_CATEGORY_LABELS,
@@ -58,9 +58,9 @@ import {
   type ConformanceFinding,
   type RenderedSkeletonDocument,
   type SlotValues,
-} from "../prose/skeleton-render.ts";
-import { repairRegister } from "./risk-skeleton-assemble.ts";
-import { firstSentence } from "./dpia-skeleton-assemble.ts";
+} from "../../../_shared/prose/skeleton-render.ts";
+import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { firstSentence } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 export const LIA_SKELETON_ASSEMBLER_STAMP =
   "lia-skeleton-assembler@so11-wire-in-2026-08-10";

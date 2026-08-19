@@ -1,216 +1,184 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// ITEM 409 — BIOMETRIC PROSE SPINE (Leg A).
+// ITEM SO-6 — SPECIFIED OUTPUT ENCODE: Biometric Privacy Checker.
 //
-// This product uses the REFERENCE-PASSAGE IDIOM: verified statutory passages
-// form the document's skeleton and the record's facts are woven in against
-// them. The spine therefore encodes the section arc, the banned register and
-// the reference-render fact-exemption — it does NOT encode section composers,
-// because the walked renders establish that the biometric document is a SINGLE
-// `assessment_text` string carrying ~83% of the document. There is no section
-// to style, no shard, nothing for CSC to repair and nothing for coverage to
-// link to. Leg A is a REGISTER encode over rendered strings.
+// RENDER LAW. The CEO-ratified skeleton — `Biometric_Privacy_Checker_
+// Skeleton_v3.docx` as corrected on 2026-08-10 by the CEO's six paragraph
+// edits (the HARD-STOP resolution: the eight slots with no live source are
+// dropped, `{RETENTION_PHRASE}` is remapped to `{retentionSchedule}`, and
+// `{sector}` is bound to `orgType`) — is this product's render law. Every
+// string below is transcribed BYTE-FOR-BYTE from that file's paragraph text.
+// Nothing here may be reworded, re-punctuated or "improved" by code, by
+// refinement, or by an agent: fixed prose is a protected leaf (splice-barred)
+// and conformance byte-matches the assembled document against it outside the
+// slots.
 //
-// Walked renders (quality_run_documents):
-//   28583f46-a280-4f18-9854-6dba7c2ea1b8  score 92.3  (full-batch, 2026-08-07)
-//   d49d9be8-a503-4711-a60a-d1adb9e83bd1  score 88.4  (2026-08-01)
-//
-// The renders are an ARCHITECTURE AND REGISTER reference only. No fact, name,
-// figure, entity or scenario from them may reach a customer document, and none
-// of them may be seeded into a fixture as record truth.
-// `REFERENCE_RENDER_TOKENS` exists so the battery test can prove that no
-// biometric builder literal carries a token from either render.
-// ─────────────────────────────────────────────────────────────────────────────
+// Block kinds:
+//   "skeleton"    — FIXED PROSE. Byte-pinned; {slots} are the only mutable spans.
+//   "lead"        — [DETERMINATION LEAD]: exactly one generated sentence, bound
+//                   to the typed determination (`consequence_determination`,
+//                   `duty_findings`). A lead may not disagree with it.
+//   "generated"   — [GENERATED]: counsel-voice prose under the ATTRIBUTION RULE.
+//   "conditional" — [CONDITIONAL]: renders only when its trigger fires.
+//   "rule"        — authoring/assembly directive ([BYTE-PINNED] note, Table of
+//                   Authorities). Never printed unless the composer supplies
+//                   deterministic content for it.
 
-export const BIOMETRIC_PLAN_PRODUCT = "biometric";
-
-/** The approved plan row. Pinned; the fidelity test reads the DB-shaped JSON. */
-export const BIOMETRIC_PLAN_ROW_ID = "9c1f7b2e-4d3a-4c58-9b61-2f0a5e7d8134";
-export const BIOMETRIC_PLAN_ROW_VERSION = 2;
-export const BIOMETRIC_PLAN_VERSION_LABEL = "prose-plans-2026-08-08-item409";
+export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-10-item-so6";
+export const BIOMETRIC_SKELETON_SOURCE_FILE =
+  "Biometric_Privacy_Checker_Skeleton_v3.docx (CEO-corrected 2026-08-10: six paragraph edits, eight unsourced slots dropped)";
+export const BIOMETRIC_SKELETON_PROVENANCE =
+  "Biometric_Privacy_Checker_Skeleton_v3.docx, CEO correction of 2026-08-10 — panel-delegated approval per CEO delegation 2026-08-06";
 
 /**
- * The row this plan supersedes. Retained and demoted (approved=false), never
- * orphaned and never silently reused — the item400 governance-stub discipline.
+ * SHA-256 over the CORRECTED skeleton's paragraph text, newline-joined, in
+ * file order, computed DIRECTLY from the docx bytes (all 25 `w:p` paragraphs,
+ * `w:t` runs concatenated, XML entities unescaped, joined with "\n").
+ *
+ * Uncorrected v3 (for the audit trail):
+ *   ae5f9d461f79651d9f0a2bca3cc0d60cd7e7858548c7ee5f6119bbcc9c270fd0
  */
-export const BIOMETRIC_PLAN_SUPERSEDED_ROW_ID = "f1deaa14-e377-4d03-a2af-bd30475b8e42";
+export const BIOMETRIC_SKELETON_CONTENT_HASH =
+  "4109a6f1a562a318a44978025dadb5802534f863680b8c6ecb87eace6449c48f";
 
-/**
- * The finalize-point stamp written into `_meta.internal.biometric_pipeline_stamp`.
- * NEW constant — check-biometric-compliance carried only prompt-block and
- * registry build stamps before item409.
- */
-export const BIOMETRIC_PIPELINE_STAMP = "biometric-pipeline@item-so6-2026-08-10";
+export const BIOMETRIC_SKELETON_TITLE = "BIOMETRIC PRIVACY COMPLIANCE ASSESSMENT";
+export const BIOMETRIC_SKELETON_SUBTITLE =
+  "A multi-state review, prepared for {organizationName} - statute-as-template";
 
-export const BIOMETRIC_REFERENCE_RENDER_IDS: readonly string[] = [
-  "28583f46-a280-4f18-9854-6dba7c2ea1b8",
-  "d49d9be8-a503-4711-a60a-d1adb9e83bd1",
+/** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
+export const BIOMETRIC_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
+
+/** The v3 banned register, lower-cased for the assembled-body check. */
+export const BIOMETRIC_V3_BANNED_REGISTER: readonly string[] = [
+  "the record shows",
+  "on this record",
+  "the record reflects",
+  "the record demonstrates",
+  "as the record makes clear",
 ];
 
-export const BIOMETRIC_THESIS =
-  "Each biometric statute in scope is applied in its own words: the verified passage states the requirement, the practice the record describes is set beside it, and the conclusion is stated first. Where the record is silent, the fact that would settle it is named.";
+export type BiometricSkeletonBlockKind = "skeleton" | "lead" | "generated" | "conditional" | "rule";
 
-export const BIOMETRIC_IDIOM = "reference_passage" as const;
-
-export const BIOMETRIC_IDIOM_NOTE =
-  "This product is STATUTE-AS-TEMPLATE. Verified statutory passages form the document's skeleton and the record's facts are woven in against them. Every passage rendered as template must byte-match the provision_texts row its citation names; the citation names the row the bytes actually came from. A passage and its cited row may never be reconciled by editing either the passage or the corpus row.";
-
-export type BiometricArcStage =
-  | "headline"
-  | "record"
-  | "duty"
-  | "analysis"
-  | "remedy"
-  | "close";
-
-export type BiometricLead = "determination" | "record";
-
-export interface BiometricSectionSpec {
-  readonly id: string;
-  readonly title: string;
-  readonly arc_stage: BiometricArcStage;
-  readonly lead: BiometricLead;
-  readonly source_key: string;
-  readonly themes: readonly string[];
-  readonly required: boolean;
+export interface BiometricSkeletonBlock {
+  readonly kind: BiometricSkeletonBlockKind;
+  readonly text: string;
 }
 
-/**
- * The section arc:
- *   applicability determination
- *   → the processing as the record describes it
- *   → the statutory requirements that attach, each stated from its verified
- *     passage with the record's facts against it
- *   → consent / notice / retention / security analyses
- *   → what remains
- *   → close.
- */
-export const BIOMETRIC_SECTION_SPECS: readonly BiometricSectionSpec[] = [
+export interface BiometricSkeletonSection {
+  readonly id: string;
+  readonly title: string;
+  readonly blocks: readonly BiometricSkeletonBlock[];
+}
+
+export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = [
   {
-    id: "applicability_determination",
-    title: "Whether each statute applies here",
-    arc_stage: "headline",
-    lead: "determination",
-    source_key: "consequence_determination",
-    themes: [
-      "applies",
-      "applies_conditionally",
-      "does_not_apply",
-      "one_verdict_per_statute",
-      "condition_named",
+    id: "executive_summary",
+    title: "Executive Summary",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short." },
+      { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The states whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two." },
+      { kind: "generated", text: "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it." },
     ],
-    required: true,
   },
   {
-    id: "processing_record",
-    title: "The processing as the record describes it",
-    arc_stage: "record",
-    lead: "record",
-    source_key: "processing_record",
-    themes: ["identifiers", "population", "purpose", "vendor_and_storage", "record_quality"],
-    required: true,
-  },
-  {
-    id: "statutory_requirements",
-    title: "The requirements that attach, and the record against each",
-    arc_stage: "duty",
-    lead: "determination",
-    source_key: "duty_findings",
-    themes: [
-      "verified_passage_as_skeleton",
-      "pinpoint_named",
-      "record_fact_against_the_passage",
-      "amendment_dated_and_separated",
-      "exposure_kept_separate",
+    id: "notice_consent",
+    title: "I. Notice, Consent and the Written Policy",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the notice-and-consent posture across the statutes in scope." },
+      { kind: "skeleton", text: "The company has answered the written-notice question {HAS_NOTICE_PHRASE - reader phrase}; and the written-release question {HAS_RELEASE_PHRASE - reader phrase}." },
+      { kind: "rule", text: "[BYTE-PINNED] Each statutory duty in this section is the verified corpus passage, cited to its source row; the company's facts are set beside the passage, never written into it." },
+      { kind: "generated", text: "[GENERATED] Per-duty findings from the typed duty rows, each attributed; destruction obligations are stated on the statutory clock - the period runs from the individual's last interaction, not from collection - and the deterministic trigger repair guards that phrasing." },
     ],
-    required: true,
   },
   {
-    id: "consent_and_notice",
-    title: "Consent and notice",
-    arc_stage: "duty",
-    lead: "determination",
-    source_key: "consent_and_notice",
-    themes: [
-      "written_release",
-      "pre_collection_notice",
-      "employment_condition_limb",
-      "standalone_vs_embedded",
+    id: "state_specific",
+    title: "II. State-Specific Requirements",
+    blocks: [
+      { kind: "conditional", text: "[CONDITIONAL] ILLINOIS - trigger IL in {states}: the BIPA Section 15(a)-(e) duties, each from its verified passage, with the 2024 amendment's damages rule per the pinned rulebook." },
+      { kind: "conditional", text: "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed." },
+      { kind: "conditional", text: "[CONDITIONAL] WASHINGTON - trigger WA: the RCW 19.375 enrolment duties; the My Health My Data Act addressed where the answers indicate health inference." },
+      { kind: "conditional", text: "[CONDITIONAL] OTHER STATES - named statutes only, per the registered-jurisdiction rule; an unresolved state is addressed by naming the statutes the company should evaluate, never by a generic instruction to confirm applicable law." },
     ],
-    required: true,
   },
   {
-    id: "retention_and_destruction",
-    title: "Retention and destruction",
-    arc_stage: "duty",
-    lead: "determination",
-    source_key: "retention_and_destruction",
-    themes: ["public_policy", "destruction_trigger", "outer_limit", "schedule_adherence"],
-    required: true,
-  },
-  {
-    id: "security_and_disclosure",
-    title: "Security, disclosure and profit",
-    arc_stage: "duty",
-    lead: "determination",
-    source_key: "security_and_disclosure",
-    themes: [
-      "reasonable_standard_of_care",
-      "no_profit",
-      "permitted_disclosure_bases",
-      "vendor_flow_down",
+    id: "security_retention",
+    title: "III. Security, Retention and Destruction",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether storage and destruction meet the strictest applicable standard." },
+      { kind: "skeleton", text: "The company has described its security measures as {securityMeasures - reader labels as prose}. Its retention is described as {retentionSchedule - own clause, attributed}, with destruction occurring on {destructionTrigger - rendered on the statutory clock}." },
+      { kind: "generated", text: "[GENERATED] The security and retention findings per statute, attributed." },
     ],
-    required: true,
   },
   {
-    id: "open_elements",
-    title: "What the record does not yet settle",
-    arc_stage: "remedy",
-    lead: "determination",
-    source_key: "information_needed",
-    themes: ["one_ledger", "named_missing_fact", "who_confirms_it", "actions_only"],
-    required: true,
+    id: "review_approval",
+    title: "IV. Review and Approval",
+    blocks: [
+      { kind: "skeleton", text: "{APPROVAL_SENTENCE - from approverName / approverTitle / approvalDate; these approval fields render only when answered}." },
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the operative conclusion and the single next act." },
+    ],
   },
   {
-    id: "close",
-    title: "Scope and reliance",
-    arc_stage: "close",
-    lead: "determination",
-    source_key: "disclaimer",
-    themes: ["not_legal_advice", "counsel_review", "record_bound"],
-    required: true,
+    id: "table_of_authorities",
+    title: "Table of Authorities",
+    blocks: [
+      { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
+    ],
   },
 ];
 
 /**
- * Register that may never reach a reader surface. The first block is machine
- * vocabulary; the second block is the apparatus-first and field-label register
- * the walked renders exhibit (R1/R3).
+ * The corrected docx's 25 paragraphs, verbatim and in file order. This is the
+ * byte-pin of record: `BIOMETRIC_SKELETON_CONTENT_HASH` is SHA-256 over these
+ * strings joined with "\n", and the colocated test asserts both that identity
+ * and that every block above is a substring of one of these paragraphs.
  */
-export const BIOMETRIC_BANNED_REGISTER: readonly string[] = [
-  "record_insufficient",
-  "insufficient_basis",
-  "resolved_met",
-  "resolved_not_met",
-  "INDETERMINATE",
-  "CANDIDATE",
-  "TEST-STATES",
-  "Applies to this organisation:",
-  "Applicability: Conditional",
-  "Status: Conditional",
-  "for the stated purpose:",
-  "cannot be determined",
-  "no basis to assess",
+export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
+  "BIOMETRIC PRIVACY COMPLIANCE ASSESSMENT",
+  "A multi-state review, prepared for {organizationName} - statute-as-template",
+  BIOMETRIC_REGISTER_GUIDE,
+  "Executive Summary",
+  "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short.",
+  "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The states whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two.",
+  "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it.",
+  "I. Notice, Consent and the Written Policy",
+  "[DETERMINATION LEAD] One sentence stating the notice-and-consent posture across the statutes in scope.",
+  "The company has answered the written-notice question {HAS_NOTICE_PHRASE - reader phrase}; and the written-release question {HAS_RELEASE_PHRASE - reader phrase}. [BYTE-PINNED] Each statutory duty in this section is the verified corpus passage, cited to its source row; the company's facts are set beside the passage, never written into it.",
+  "[GENERATED] Per-duty findings from the typed duty rows, each attributed; destruction obligations are stated on the statutory clock - the period runs from the individual's last interaction, not from collection - and the deterministic trigger repair guards that phrasing.",
+  "II. State-Specific Requirements",
+  "[CONDITIONAL] ILLINOIS - trigger IL in {states}: the BIPA Section 15(a)-(e) duties, each from its verified passage, with the 2024 amendment's damages rule per the pinned rulebook.",
+  "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed.",
+  "[CONDITIONAL] WASHINGTON - trigger WA: the RCW 19.375 enrolment duties; the My Health My Data Act addressed where the answers indicate health inference.",
+  "[CONDITIONAL] OTHER STATES - named statutes only, per the registered-jurisdiction rule; an unresolved state is addressed by naming the statutes the company should evaluate, never by a generic instruction to confirm applicable law.",
+  "III. Security, Retention and Destruction",
+  "[DETERMINATION LEAD] One sentence stating whether storage and destruction meet the strictest applicable standard.",
+  "The company has described its security measures as {securityMeasures - reader labels as prose}. Its retention is described as {retentionSchedule - own clause, attributed}, with destruction occurring on {destructionTrigger - rendered on the statutory clock}.",
+  "[GENERATED] The security and retention findings per statute, attributed.",
+  "IV. Review and Approval",
+  "{APPROVAL_SENTENCE - from approverName / approverTitle / approvalDate; these approval fields render only when answered}.",
+  "[DETERMINATION LEAD] One sentence stating the operative conclusion and the single next act.",
+  "Table of Authorities",
+  "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred.",
 ];
 
 /**
- * Entity tokens from the two walked renders. No biometric builder literal and
- * no fixture may carry any of these — the FACT-EXEMPT rule made testable.
+ * STATUTORY PINPOINTS carried by the fixed prose and its per-statute duty
+ * blocks, each verified `approved` in `provision_texts` at encode time
+ * (SO step 1):
+ *   BIPA 740 ILCS 14/15(a)-(e) → `il-bipa-740-14-15-a` … `-15-e`
+ *   BIPA 740 ILCS 14/20(b)-(c) → `il-bipa-740-14-20-b` / `-20-c` (2024 accrual)
+ *   CUBI Tex. Bus. & Com. Code § 503.001 → `tx-cubi-503-001`
+ *   RCW 19.375.020 → `wa-rcw-19-375-020`
+ *   RCW 19.373 (MHMDA) → `wa-rcw-19-373`
  */
-export const REFERENCE_RENDER_TOKENS: readonly string[] = [
-  "Prairie Warehousing Co.",
-  "Prairie Warehousing",
-  "Prairie",
+export const BIOMETRIC_SKELETON_PINPOINTS: readonly { readonly citation: string; readonly corpus_key: string }[] = [
+  { citation: "740 ILCS 14/15(a)", corpus_key: "il-bipa-740-14-15-a" },
+  { citation: "740 ILCS 14/15(b)", corpus_key: "il-bipa-740-14-15-b" },
+  { citation: "740 ILCS 14/15(c)", corpus_key: "il-bipa-740-14-15-c" },
+  { citation: "740 ILCS 14/15(d)", corpus_key: "il-bipa-740-14-15-d" },
+  { citation: "740 ILCS 14/15(e)", corpus_key: "il-bipa-740-14-15-e" },
+  { citation: "740 ILCS 14/20(b)", corpus_key: "il-bipa-740-14-20-b" },
+  { citation: "740 ILCS 14/20(c)", corpus_key: "il-bipa-740-14-20-c" },
+  { citation: "Tex. Bus. & Com. Code § 503.001(a)", corpus_key: "tx-cubi-503-001-a" },
+  { citation: "Tex. Bus. & Com. Code § 503.001(b)", corpus_key: "tx-cubi-503-001-b" },
+  { citation: "Tex. Bus. & Com. Code § 503.001(c)", corpus_key: "tx-cubi-503-001-c" },
+  { citation: "RCW 19.375.020", corpus_key: "wa-rcw-19-375-020" },
+  { citation: "RCW 19.373.030", corpus_key: "wa-rcw-19-373-030" },
 ];
-
-export const BIOMETRIC_FACT_EXEMPT_RULE =
-  "The walked renders are an ARCHITECTURE AND REGISTER reference only. No fact, name, figure, entity or scenario from them may reach a customer document, and none of them may be seeded into a fixture as record truth.";

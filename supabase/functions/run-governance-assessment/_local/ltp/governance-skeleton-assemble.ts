@@ -33,7 +33,7 @@ import {
   type ComposedBlocks,
   type RenderedSkeletonDocument,
   type SlotValues,
-} from "../prose/skeleton-render.ts";
+} from "../../../_shared/prose/skeleton-render.ts";
 
 export const GOVERNANCE_SKELETON_ASSEMBLER_STAMP =
   "governance-skeleton-assembler@so3-wire-in-2026-08-10";

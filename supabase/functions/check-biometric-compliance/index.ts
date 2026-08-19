@@ -39,7 +39,7 @@ import {
   formatDrift,
   toReferencePassages,
 } from "../_shared/prose/biometric-reference-passages.ts";
-import { BIOMETRIC_PIPELINE_STAMP } from "./_local/prose/plans/biometric.spine.ts";
+import { BIOMETRIC_PIPELINE_STAMP } from "../_shared/prose/plans/biometric.spine.ts";
 import { BIOMETRIC_DUTY_ROWS } from "./_local/registry/biometric-verified-authorities.ts";
 
 /**
@@ -1775,7 +1775,7 @@ export async function runBiometricFinalizeBattery(
     // both the live and stress paths carry it. Fail-open.
     try {
       const { assembleBiometricSkeletonDocument, BIOMETRIC_SKELETON_ASSEMBLER_STAMP } =
-        await import("../_shared/ltp/biometric-skeleton-assemble.ts");
+        await import("./_local/ltp/biometric-skeleton-assemble.ts");
       const sk = assembleBiometricSkeletonDocument(
         report_data as Record<string, unknown>,
         (body ?? {}) as unknown as Record<string, unknown>,
