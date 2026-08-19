@@ -32,8 +32,8 @@ import {
   type ComposedBlocks,
   type RenderedSkeletonDocument,
   type SlotValues,
-} from "../prose/skeleton-render.ts";
-import { repairRegister } from "./risk-skeleton-assemble.ts";
+} from "../../../_shared/prose/skeleton-render.ts";
+import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 
 export const CYBER_SKELETON_ASSEMBLER_STAMP = "cyber-skeleton-assembler@so4-wire-in-2026-08-10";
 

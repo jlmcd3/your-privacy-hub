@@ -38,9 +38,9 @@ import {
   type ComposedBlocks,
   type RenderedSkeletonDocument,
   type SlotValues,
-} from "../prose/skeleton-render.ts";
-import { repairRegister } from "./risk-skeleton-assemble.ts";
-import { firstSentence, firstSentences } from "./dpia-skeleton-assemble.ts";
+} from "../../../_shared/prose/skeleton-render.ts";
+import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 export const BIOMETRIC_SKELETON_ASSEMBLER_STAMP = "biometric-skeleton-assembler@so6-wire-in-2026-08-10";
 
