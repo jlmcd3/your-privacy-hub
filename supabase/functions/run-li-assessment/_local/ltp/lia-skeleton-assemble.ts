@@ -41,7 +41,7 @@ import {
   LIA_SKELETON_TITLE,
   LIA_SKELETON_VERSION,
   LIA_V3_BANNED_REGISTER,
-} from "../prose/plans/lia.spine.ts";
+} from "../../../_shared/prose/plans/lia.spine.ts";
 import {
   LIA_CONDITIONAL_TRIGGERS,
   LIA_DATA_CATEGORY_LABELS,
@@ -49,7 +49,7 @@ import {
   LIA_HARM_SEVERITY_LABELS,
   LIA_INTEREST_TYPE_LABELS,
   LIA_RELATIONSHIP_LABELS,
-} from "../prose/plans/lia.slotmap.ts";
+} from "../../../_shared/prose/plans/lia.slotmap.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
