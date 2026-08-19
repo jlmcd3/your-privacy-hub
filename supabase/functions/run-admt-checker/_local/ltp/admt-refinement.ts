@@ -41,6 +41,7 @@ import {
   ADMT_PROTECTED_ROOT_KEYS,
   ADMT_PROTECTED_LEAF_KEYS,
   ADMT_PROTECTED_LEAF_CLASSES,
+  ADMT_PROTECTED_PATH_PREFIXES,
   ADMT_REFINEMENT_CONFIG_VERSION,
 } from "./admt-refinement-config.ts";
 
@@ -51,10 +52,11 @@ export {
   ADMT_PROTECTED_ROOT_KEYS,
   ADMT_PROTECTED_LEAF_KEYS,
   ADMT_PROTECTED_LEAF_CLASSES,
+  ADMT_PROTECTED_PATH_PREFIXES,
   ADMT_REFINEMENT_CONFIG_VERSION,
 };
 
-export const ADMT_REFINEMENT_VERSION = "refine-admt-2026-08-06-item395";
+export const ADMT_REFINEMENT_VERSION = "refine-admt-2026-08-19-a0";
 
 export const ADMT_CRITIC_SYSTEM_PROMPT = composePrompt(CRITIC_PROMPT_BASE, ADMT_CRITIC_WATCHLIST);
 export const ADMT_VERIFIER_SYSTEM_PROMPT = composePrompt(
@@ -69,6 +71,7 @@ export const ADMT_REFINEMENT_CONFIG: RefinementConfig = {
   verifierSystemPrompt: ADMT_VERIFIER_SYSTEM_PROMPT,
   protectedRootKeys: ADMT_PROTECTED_ROOT_KEYS,
   protectedLeafKeys: ADMT_PROTECTED_LEAF_KEYS,
+  protectedPathPrefixes: ADMT_PROTECTED_PATH_PREFIXES,
 };
 
 export function isAdmtProtectedPath(path: string): boolean {

@@ -219,3 +219,27 @@ export const ADMT_PROTECTED_LEAF_KEYS: string[] = Array.from(
   new Set(Object.values(ADMT_PROTECTED_LEAF_CLASSES).flatMap((v) => [...v])),
 );
 
+// A0 — PROTECTION BAR. Top-level output paths whose entire subtrees the
+// refinement splicer must never enter. Mirrors the RISK_PROTECTED_PATH_PREFIXES
+// pattern (PROMPT 5B / refinement-core.ts §149). Named here so the config file
+// is the single source of truth; wired into ADMT_REFINEMENT_CONFIG below.
+//
+// scope_analysis / notice_gaps / opt_out_gaps / access_gaps: will be
+//   deterministic after A1 (scope table + mechanical gap derivation).
+// priority_actions: single-writer typed surface (admt-action-records.ts,
+//   admt-action-citations.ts, admt-action-finding-linkage.ts).
+// sample_language: nested key within gap entries; will be library-composed
+//   after A2 ratification. Protecting it now prevents the splicer from
+//   rewriting CEO-ratified template text once A2 lands.
+// skeleton_document: already deterministic via SO-2 spine assembler.
+// _meta is globally barred by refinement-core.ts §142 — not needed here.
+export const ADMT_PROTECTED_PATH_PREFIXES = [
+  "scope_analysis",
+  "notice_gaps",
+  "opt_out_gaps",
+  "access_gaps",
+  "priority_actions",
+  "sample_language",
+  "skeleton_document",
+] as const;
+
