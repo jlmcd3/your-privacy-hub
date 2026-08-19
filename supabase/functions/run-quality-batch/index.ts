@@ -250,7 +250,7 @@ function weightsFor(tool: string) {
 }
 
 
-type Admin = ReturnType<typeof createClient>;
+type Admin = ReturnType<typeof createClient<any>>;
 
 function json(b: unknown, s = 200) {
   return new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
@@ -1216,7 +1216,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
   return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed, calibration_filtered: calibrationFiltered, calibration_counts: skelCal.counts };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number } }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number }; postFilterSuppressed?: Array<{ rule: string; check_id: string; evidence: string }>; calibrationFiltered?: any[] }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
@@ -1477,7 +1477,7 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
     }
 
 
-    const parsed = tryParse(raw);
+    const parsed = tryParse(raw ?? "");
     if (!Array.isArray(parsed) || parsed.length === 0) {
       const tail = (raw ?? "").slice(-400);
       const head = (raw ?? "").slice(0, 200);
@@ -2693,10 +2693,10 @@ async function runBatchInner(runId: string): Promise<void> {
       const pendingEvalIdx = (state as any).pending_eval_doc_index as number | null | undefined;
       const isResumingEval = !!pendingEvalId && pendingEvalIdx === i;
 
-      let docRowId: string;
+      let docRowId!: string;
       let intake: any;
       let reportData: any;
-      let docLabel: string;
+      let docLabel!: string;
       let evalOnly = false;
       // CV1-R2 T4c — source refs also required in eval-resume for auto-regen.
       let evalSourceTable: string | null = null;
@@ -2847,7 +2847,7 @@ async function runBatchInner(runId: string): Promise<void> {
         const remainingTotal = DOC_TOTAL_TIMEOUT_MS - (Date.now() - genStartedAt);
         const isolateBudget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, remainingTotal));
         const outcome = await pollGenerationRow(admin, sourceTable, sourceRowId, isolateBudget, {
-          tool, log,
+          tool, log: log as (level: string, msg: string) => Promise<void>,
           initialResurrectAttempts: resurrectAttempts,
           onResurrect: (n) => { resurrectAttempts = n; },
         });
@@ -3012,7 +3012,7 @@ async function runBatchInner(runId: string): Promise<void> {
             delete (state as any).pending_regen;
           } else {
             const budget = Math.max(15_000, Math.min(POLL_DEADLINE_MS, DOC_TOTAL_TIMEOUT_MS - elapsed));
-            const outcome2 = await pollGenerationRow(admin, regenTable, regenRowId, budget, { tool, log });
+            const outcome2 = await pollGenerationRow(admin, regenTable, regenRowId, budget, { tool, log: log as (level: string, msg: string) => Promise<void> });
             if (outcome2.status === "complete") {
               reportData2 = outcome2.reportData;
               delete (state as any).pending_regen;
@@ -3120,8 +3120,8 @@ async function runBatchInner(runId: string): Promise<void> {
 
       if (gptEval) {
         await log("success", `${docLabel}: GPT-4o OK (overall ${gptEval.overall_score}/100)`);
-      } else if (gptResult.skipReason) {
-        await log("warn", `${docLabel}: GPT-4o SKIPPED — ${gptResult.skipReason}`);
+      } else if ((gptResult as any).skipReason) {
+        await log("warn", `${docLabel}: GPT-4o SKIPPED — ${(gptResult as any).skipReason}`);
       } else {
         await log("error", `${docLabel}: GPT-4o FAILED — ${gptResult.error ?? "unknown error"}`);
       }
@@ -3700,10 +3700,10 @@ async function runBatchInner(runId: string): Promise<void> {
           // Cumulative coverage upsert.
           for (const cell of coverageTagged) {
             
-            await admin.from("quality_coverage_cells").upsert({
+            await (admin.from("quality_coverage_cells").upsert({
               tool, sector: cell.sector, posture: cell.posture, branch: cell.branch,
               hit_count: 1, last_hit_at: new Date().toISOString(),
-            }, { onConflict: "tool,sector,posture,branch", ignoreDuplicates: false }).catch(() => {});
+            }, { onConflict: "tool,sector,posture,branch", ignoreDuplicates: false }) as unknown as Promise<void>).catch(() => {});
           }
         } catch (e) {
           console.warn("[qbp20] gate/shadow/coverage side-channel failed:", (e as Error).message);
@@ -3734,7 +3734,7 @@ async function runBatchInner(runId: string): Promise<void> {
   } catch (e) {
     console.error("[run-quality-batch] fatal:", e);
     await log("error", `Fatal: ${(e as Error).message}`);
-    await upd({ status: "error", error: (e as Error).message?.slice(0, 300), completed_at: new Date().toISOString() }).catch(() => {});
+    await (upd({ status: "error", error: (e as Error).message?.slice(0, 300), completed_at: new Date().toISOString() }) as unknown as Promise<void>).catch(() => {});
   } finally {
     clearInterval(heartbeat);
   }
