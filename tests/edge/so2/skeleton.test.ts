@@ -23,11 +23,11 @@ import {
   ADMT_SKELETON_PROVENANCE,
   ADMT_INLINE_CONDITIONALS,
   ADMT_TOA_GROUPS,
-} from "../../../supabase/functions/_shared/prose/plans/cppa-admt.spine.ts";
+} from "../../../supabase/functions/run-admt-checker/_local/prose/plans/cppa-admt.spine.ts";
 import {
   ADMT_SLOT_MAP,
   ADMT_TYPED_SURFACES,
-} from "../../../supabase/functions/_shared/prose/plans/cppa-admt.slotmap.ts";
+} from "../../../supabase/functions/_tests/prose/plans/cppa-admt.slotmap.ts";
 import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 
 const SECTION_IDS = [
