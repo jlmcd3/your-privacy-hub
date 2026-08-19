@@ -49,7 +49,7 @@ import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared
 import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTerminal } from "./reliability.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, generationMaxTokens, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS: per-unit spend/latency metering
-import { detectPurposeConflation, conflationRepairInstruction } from "../_shared/dpia-purpose-guard.ts";
+import { detectPurposeConflation, conflationRepairInstruction } from "./_local/dpia-purpose-guard.ts";
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({

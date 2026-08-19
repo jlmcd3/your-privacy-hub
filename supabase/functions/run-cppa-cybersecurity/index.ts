@@ -2285,7 +2285,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // corpus row, all three tiers, with no cohort computed here.
     try {
       const { assembleCyberSkeletonDocument, CYBER_SKELETON_ASSEMBLER_STAMP } =
-        await import("../_shared/ltp/cyber-skeleton-assemble.ts");
+        await import("./_local/ltp/cyber-skeleton-assemble.ts");
       const phaseIn = String(
         (cyberAuthoritySource as any)?.provisions?.["cppa-7121"]?.status === "approved"
           ? (cyberAuthoritySource as any)?.provisions?.["cppa-7121"]?.excerpt ?? ""

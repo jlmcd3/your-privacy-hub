@@ -2184,7 +2184,7 @@ Return JSON:
     // by the SO-11 battery and the pilot, so a failure is never silently shipped.
     try {
       const { assembleLiaSkeletonDocument, LIA_SKELETON_ASSEMBLER_STAMP } =
-        await import("../_shared/ltp/lia-skeleton-assemble.ts");
+        await import("./_local/ltp/lia-skeleton-assemble.ts");
       const assembled = assembleLiaSkeletonDocument(
         reportData as Record<string, unknown>,
         assessment as unknown as Record<string, unknown>,

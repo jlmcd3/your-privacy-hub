@@ -1775,7 +1775,7 @@ export async function runBiometricFinalizeBattery(
     // both the live and stress paths carry it. Fail-open.
     try {
       const { assembleBiometricSkeletonDocument, BIOMETRIC_SKELETON_ASSEMBLER_STAMP } =
-        await import("../_shared/ltp/biometric-skeleton-assemble.ts");
+        await import("./_local/ltp/biometric-skeleton-assemble.ts");
       const sk = assembleBiometricSkeletonDocument(
         report_data as Record<string, unknown>,
         (body ?? {}) as unknown as Record<string, unknown>,

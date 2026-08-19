@@ -783,7 +783,7 @@ Deno.serve(async (req) => {
     // the typed surfaces are never mutated.
     try {
       const { assembleRegistrationSkeletonDocument, REGISTRATION_SKELETON_ASSEMBLER_STAMP } =
-        await import("../_shared/ltp/registration-skeleton-assemble.ts");
+        await import("./_local/ltp/registration-skeleton-assemble.ts");
       const sk = assembleRegistrationSkeletonDocument(
         customer_result_summary as Record<string, unknown>,
         intake as unknown as Record<string, unknown>,

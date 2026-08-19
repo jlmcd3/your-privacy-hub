@@ -1,184 +1,261 @@
-// ITEM 400 — GOVERNANCE GOLD-STANDARD PROSE ENCODE (LEG A).
+// ITEM SO-3 — SPECIFIED OUTPUT ENCODE: Privacy Governance Assessment.
 //
-// SOURCE OF TRUTH: `prose_document_plans` row for product `governance`
-// (approved = true, version 2, provenance recording the walked render and,
-// verbatim, `panel-delegated approval per CEO delegation 2026-08-06`).
-// The row supersedes the unapproved stub 7f168ddb-d419-4f06-8cdc-1cf1fa03be7f
-// (`approved=false`, `prose-plans-2026-08-01-item339`); the stub is retained,
-// not orphaned, and is named in the new row's provenance.
+// RENDER LAW. The CEO-ratified v3 counsel-register skeleton
+// `Governance_Assessment_Skeleton_v3.docx` (current set: the 2026-08-10
+// resupply) is this product's render law. Every string in
+// GOVERNANCE_SKELETON_SECTIONS below is transcribed BYTE-FOR-BYTE from that
+// file. Nothing here may be reworded, re-punctuated or "improved" by code, by
+// refinement, or by an agent: the skeleton's fixed prose is a protected leaf
+// (splice-barred) and the conformance check byte-matches the assembled
+// document against it outside the slots.
 //
-// This module is a FAITHFUL ENCODE of the row: section ids, titles, arc
-// stages, leads, source keys and themes are transcribed verbatim.
-// `tests/edge/item400/plan-fidelity.test.ts` asserts this encode against the
-// row's JSON, so drift in either direction breaks the build.
+// Block kinds:
+//   "skeleton"    — FIXED PROSE. Byte-pinned. Slots inside {braces} are the
+//                   only mutable spans; the rest is law.
+//   "lead"        — [DETERMINATION LEAD]: exactly one generated sentence,
+//                   bound to its typed determination. The executive-summary
+//                   lead binds to `readiness_determination.rating` — the
+//                   403-A one-voice law — and a lead may NOT disagree with the
+//                   determination it leads.
+//   "generated"   — [GENERATED]: counsel-voice prose under the ATTRIBUTION
+//                   RULE; every factual clause names its source.
+//   "rule"        — a deterministic assembly rule, not printed prose.
 //
-// ─────────────────────────────────────────────────────────────────────────────
-// REFERENCE RENDER IS FACT-EXEMPT — HARD RULE.
+// The v3 governance skeleton carries NO standalone [CONDITIONAL] paragraph:
+// every conditional (SPECIAL_CATEGORY_CLAUSE, TRAINING_AI_CLAUSE,
+// OTHER_TOOL_CLAUSE, TRANSFER_MECHANISM_CLAUSE) lives INSIDE fixed prose as a
+// conditional slot with its own fixed first words and its own absent branch —
+// omitted entirely where the trigger fails, never padded, never announced.
 //
-// The walked reference render (quality_run_documents
-// cba3724c-ca12-43de-85e4-dd005e5bcf4e — the "Meridian SaaS Inc." governance
-// report, top-scored 90.95) is an ARCHITECTURE AND REGISTER reference ONLY.
-// No fact, name, figure, entity or scenario from it may ever reach a customer
-// document, and none of it may be seeded into a fixture as record truth.
-// `REFERENCE_RENDER_TOKENS` below exists so the battery test can prove that no
-// governance builder literal carries a token from the reference render.
-// ─────────────────────────────────────────────────────────────────────────────
+// THE 403-A FIXED RULE. The skeleton's second Governance-Infrastructure
+// paragraph ("The analysis that follows assesses the Article 37-39 duties on
+// what the intake asks…") is marked `[FIXED RULE - the 403-A principle]` in
+// the source file. The bracketed marker is authoring notation; the SENTENCE is
+// skeleton law and prints to the customer, which is why it is encoded as its
+// own byte-pinned fixed-prose block.
+//
+// Provenance of the approval act: the `prose_document_plans` row for product
+// `governance` (7f168ddb-d419-4f06-8cdc-1cf1fa03be7f), superseded at SO-3 with
+// "panel-delegated approval per CEO delegation 2026-08-06".
 
-export const GOVERNANCE_PLAN_PRODUCT = "governance";
-/** The single governance plan row (public.prose_document_plans). Re-seeded in
- *  place from library/prose/plans/governance.plan.json — the item339 stub
- *  content is superseded, the row itself retained, never orphaned. */
-export const GOVERNANCE_PLAN_ROW_ID = "7f168ddb-d419-4f06-8cdc-1cf1fa03be7f";
-export const GOVERNANCE_PLAN_ROW_VERSION = 1;
-export const GOVERNANCE_PLAN_VERSION_LABEL = "prose-plans-2026-08-07-item400";
-export const GOVERNANCE_SUPERSEDED_PLAN_VERSION_LABEL = "prose-plans-2026-08-01-item339";
+export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-10-item-so3";
+export const GOVERNANCE_SKELETON_SOURCE_FILE = "Governance_Assessment_Skeleton_v3.docx";
+export const GOVERNANCE_SKELETON_PROVENANCE =
+  "Governance_Assessment_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
+/**
+ * SHA-256 over the skeleton's paragraph text, newline-joined, in file order —
+ * computed DIRECTLY from Governance_Assessment_Skeleton_v3.docx (all 26 `w:p`
+ * paragraphs, `w:t` runs concatenated, joined with "\n"). This is the same
+ * method that produced the cppa-risk and cppa-admt hashes.
+ *
+ * SO-3 r2 CORRECTION: the previous value (91050ecf…) was computed over the
+ * encoded block representation in this file rather than over the docx, so it
+ * carried the encoding's own block boundaries and heading handling. The text
+ * content was and is correct word-for-word; only the hash input was wrong.
+ */
+export const GOVERNANCE_SKELETON_CONTENT_HASH =
+  "e0717aba9ee74a0bef16c22feafd6a5abe39531d59d4db3b5c69fd29b574c92f";
 
-/** The finalize-point stamp written into `_meta.internal.governance_pipeline_stamp`. */
-export const GOVERNANCE_PIPELINE_STAMP = "governance-pipeline@item-so3-2026-08-10";
+export const GOVERNANCE_SKELETON_TITLE = "PRIVACY GOVERNANCE ASSESSMENT";
+export const GOVERNANCE_SKELETON_SUBTITLE =
+  "A programme review under the GDPR and UK GDPR, prepared for {organizationName}";
+/** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
+export const GOVERNANCE_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
 
-/** Transcribed verbatim from the approved plan row. */
-export const GOVERNANCE_THESIS =
-  "This assessment states, once, whether the organisation can demonstrate compliance under Articles 5(2) and 24(1) from the record it supplied, and then shows the record that produced that answer domain by domain. Where a duty is unevidenced the assessment names the duty, says what artifact would evidence it, and never lets a second verdict speak beside the first.";
+export type GovernanceSkeletonBlockKind =
+  | "skeleton"
+  | "lead"
+  | "generated"
+  | "rule";
 
-export type GovernanceArcStage =
-  | "headline"
-  | "record"
-  | "analysis"
-    | "duty"
-  | "remedy"
-  | "close";
+export interface GovernanceSkeletonBlock {
+  readonly kind: GovernanceSkeletonBlockKind;
+  readonly text: string;
+}
 
-export type GovernanceLead = "determination" | "record";
-
-export interface GovernanceSectionSpec {
+export interface GovernanceSkeletonSection {
   readonly id: string;
   readonly title: string;
-  readonly arc_stage: GovernanceArcStage;
-  readonly lead: GovernanceLead;
-  readonly source_key: string;
-  readonly themes: readonly string[];
+  readonly blocks: readonly GovernanceSkeletonBlock[];
 }
 
-/**
- * The plan arc, in order:
- *   readiness determination → the record as the organisation described it →
- *   per-domain analyses in the document's own order → cross-domain findings →
- *   obligations and gaps → what to do next → close.
- *
- * DETERMINATION-LEAD DISCIPLINE: sections with `lead: "determination"` open
- * with the finding; sections with `lead: "record"` open with the record.
- */
-export const GOVERNANCE_SECTION_SPECS: readonly GovernanceSectionSpec[] = [
-  {
-    id: "readiness_determination",
-    title: "Whether the organisation can demonstrate compliance",
-    arc_stage: "headline",
-    lead: "determination",
-    source_key: "accountability_determination",
-    themes: ["art_5_2", "art_24_1", "one_verdict", "unevidenced_duties"],
-  },
+export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] = [
   {
     id: "executive_summary",
-    title: "The assessment in short",
-    arc_stage: "headline",
-    lead: "determination",
-    source_key: "executive_summary",
-    themes: ["verdict_first", "residual_risks", "ownership"],
+    title: "Executive Summary",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence: the typed readiness determination - accountability evidenced, partly evidenced, or not yet determinable on the company's answers - the single verdict every other surface derives from." },
+      { kind: "skeleton", text: "Article 5(2) of the GDPR makes a controller responsible not only for complying with the data protection principles but for being able to demonstrate that compliance. The provisions examined below - Articles 24, 28, 30 and 37 through 39 - supply the machinery of that demonstration. {organizationName} has provided the account of its programme on which this review rests, and each duty is considered against that account in turn." },
+      { kind: "generated", text: "[GENERATED] The posture summary, bound to the typed rating: the rating-derived phrasing rules apply, and no affirmative characterisation may stand beside a non-affirmative rating." },
+    ],
   },
   {
-    id: "organisation_record",
-    title: "The organisation as it described itself",
-    arc_stage: "record",
-    lead: "record",
-    source_key: "organisation_profile",
-    themes: ["sector", "jurisdictions", "tools", "data_categories", "size"],
+    id: "organisation_and_data",
+    title: "I. The Organisation and Its Data",
+    blocks: [
+      { kind: "skeleton", text: "{organizationName} has described itself as operating in {sector - reader label}, at a size of {orgSize - band rendered as prose}, across {jurisdictions - as prose}. {EU_UK_SENTENCE - from euUkData, attributed}. The categories of data the company reports holding are {dataCategories - reader labels}{SPECIAL_CATEGORY_CLAUSE - conditional on specialCategory: \", including the special categories \" + specialCategoriesList + \", which engage Article 9\"; absent => omitted}." },
+    ],
   },
   {
-    id: "domain_findings",
-    title: "The domains, in the order the record addresses them",
-    arc_stage: "analysis",
-    lead: "determination",
-    source_key: "domain_findings",
-    themes: ["regulatory_basis", "control_state", "recommended_action", "severity"],
+    id: "governance_infrastructure",
+    title: "II. Governance Infrastructure",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the accountability structure - designation, notice, records - stands on the company's answers." },
+      { kind: "skeleton", text: "As to the designation of a data protection officer, the company has answered {DPO_PHRASE - reader label from dpoStatus, rendered as prose}. Its privacy notice position is {PRIVACY_POLICY_PHRASE - reader label}, with coverage the company describes as {privacyNoticeCoverage - reader labels as prose}." },
+      // [FIXED RULE - the 403-A principle] — the marker is authoring notation;
+      // the sentence itself is byte-pinned skeleton law and prints.
+      { kind: "skeleton", text: "The analysis that follows assesses the Article 37-39 duties on what the intake asks; operating detail the intake does not collect is recorded as what would strengthen the record, never as a deficiency." },
+      { kind: "generated", text: "[GENERATED] The typed DPO determination rendered in counsel's voice: the designation trigger, position and independence, and task coverage, each attributed to the company's answers." },
+    ],
   },
   {
-    id: "domain_element_findings",
-    title: "The elements each domain has to carry",
-    arc_stage: "analysis",
-    lead: "determination",
-    source_key: "domain_element_findings",
-    themes: ["element_conclusion", "evidence", "ico_audit_framework"],
+    id: "training_tools_controls",
+    title: "III. Training, Tools and Controls",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the operational-control posture." },
+      { kind: "skeleton", text: "The company reports its training position as {TRAINING_PHRASE - reader label}{TRAINING_AI_CLAUSE - \", with coverage of AI tools recorded as \" + trainingAiCoverage; absent => omitted}. The tools it reports in use are {tools - reader labels}{OTHER_TOOL_CLAUSE - Other verbatim; absent => omitted}, and its policy position on their use is {TOOL_INSTRUCTION_PHRASE - reader label}. {TECHNICAL_CONTROLS_SENTENCE - from the technical-controls answers, attributed; absent => the honest sentence naming the absence}." },
+      { kind: "generated", text: "[GENERATED] Per-domain findings from the typed domain records, in the single-writer register; repairs preserve machine-keyed siblings untouched." },
+    ],
   },
   {
-    id: "cross_domain_findings",
-    title: "What the domains say when read together",
-    arc_stage: "analysis",
-    lead: "determination",
-    source_key: "interaction_effects",
-    themes: ["interaction", "transfers", "dpo", "risk_calibration", "review_cycle"],
+    id: "processors_and_transfers",
+    title: "IV. Processors and International Transfers",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the Article 28 and Chapter V posture together." },
+      { kind: "skeleton", text: "As to processor contracts, the company has answered {DPA_STATUS_PHRASE - reader label}; as to verification of the Article 28(3) terms, {DPA_VERIFIED_PHRASE - reader label}. On transfers, the company reports {TRANSFER_PHRASE - reader label}{TRANSFER_MECHANISM_CLAUSE - \", relying on \" + transferMechanism reader label; absent where transfers occur => the honest gap sentence}." },
+      { kind: "generated", text: "[GENERATED] The vendor-terms and transfer analyses from the typed findings, attributed." },
+    ],
   },
   {
-    id: "obligations_and_gaps",
-    title: "The obligations and where the record falls short",
-    arc_stage: "duty",
-    lead: "determination",
-    source_key: "open_items",
-    themes: ["single_ledger", "unevidenced_duty", "what_would_close_it"],
+    id: "the_determination",
+    title: "V. The Determination",
+    blocks: [
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence restating the readiness determination as the operative finding." },
+      { kind: "generated", text: "[GENERATED] Findings and the remediation plan in counsel's voice, each remediation tied to the duty it closes; {additionalContext} incorporated only where substantive." },
+    ],
   },
   {
-    id: "remediation_plan",
-    title: "What to do next",
-    arc_stage: "remedy",
-    lead: "determination",
-    source_key: "remediation_plan",
-    themes: ["act", "owner", "date", "citation"],
+    id: "table_of_authorities",
+    title: "Table of Authorities",
+    blocks: [
+      { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
+    ],
   },
-  {
-    id: "close",
-    title: "Enforcement context and closing position",
-    arc_stage: "close",
-    lead: "determination",
-    source_key: "enforcement_context",
-    themes: ["exposure", "review_trigger", "closing_position"],
-  },
-] as const;
+];
 
-/** Section id → plan title. Renderers must title sections from here. */
-export function governanceSectionTitle(id: string, fallback = ""): string {
-  return GOVERNANCE_SECTION_SPECS.find((s) => s.id === id)?.title ?? fallback;
-}
-
-export function governanceSectionSpec(id: string): GovernanceSectionSpec | undefined {
-  return GOVERNANCE_SECTION_SPECS.find((s) => s.id === id);
-}
-
-/** The document's centre of gravity — every other section ascends to it. */
-export const GOVERNANCE_CENTRE_OF_GRAVITY = "readiness_determination";
+/** Every byte-pinned fixed-prose string, in document order. Splice-barred. */
+export const GOVERNANCE_PROTECTED_FIXED_PROSE: readonly string[] = GOVERNANCE_SKELETON_SECTIONS
+  .flatMap((s) => s.blocks)
+  .filter((b) => b.kind === "skeleton")
+  .map((b) => b.text);
 
 /**
- * Tokens from the fact-exempt reference render. None of these may appear in a
- * builder literal, and none may be seeded into a fixture as record truth.
+ * v3 REGISTER BANS — the attribution voice is law: the company's facts are
+ * attributed to the company, never to "the record".
  */
-export const REFERENCE_RENDER_TOKENS: readonly string[] = [
-  "Meridian SaaS Inc.",
-  "Meridian SaaS",
-  "Meridian",
-  "Microsoft 365 / Copilot",
-  "Copilot",
+export const GOVERNANCE_V3_BANNED_REGISTER: readonly string[] = [
+  "the record shows",
+  "the record reflects",
+  "the record indicates",
+  "the record demonstrates",
+  "the record establishes",
+  "on this record",
+  "as the record makes clear",
 ];
 
 /**
- * Banned register idiom classes for the governance battery test. The plan's
- * register states the same truths plainly: name the duty and say what
- * evidences it.
+ * The conditional slots the v3 governance skeleton carries INSIDE its fixed
+ * prose: each with its trigger (a live contract key), its fixed first words,
+ * and its absent branch.
  */
-export const GOVERNANCE_BANNED_REGISTER: readonly { readonly id: string; readonly re: RegExp }[] = [
-  { id: "on_the_record", re: /\bon the (?:present )?record\b/i },
-  { id: "upon_the_record", re: /\bupon the record\b/i },
-  { id: "please", re: /\bplease\b/i },
-  { id: "courtroom_herein", re: /\bherein\b|\baforementioned\b|\bthe undersigned\b|\bhereby\b/i },
+export interface GovernanceInlineConditional {
+  readonly slot: string;
+  readonly trigger: string;
+  readonly fixed_first_words: string;
+  readonly absent: string;
+}
+
+export const GOVERNANCE_INLINE_CONDITIONALS: readonly GovernanceInlineConditional[] = [
   {
-    id: "internal_vocabulary",
-    re: /\bemit[- ]gate\b|\bdegraded leaf\b|\bboilerplate cap\b|\bintake key\b|\brecord_insufficient\b|\bpartially_satisfied\b|\bnot_satisfied\b|\bnormalized intake\b/i,
+    slot: "SPECIAL_CATEGORY_CLAUSE",
+    trigger: "special_category",
+    fixed_first_words: ", including the special categories ",
+    absent: "omitted",
   },
+  {
+    slot: "TRAINING_AI_CLAUSE",
+    trigger: "training_ai_coverage",
+    fixed_first_words: ", with coverage of AI tools recorded as ",
+    absent: "omitted",
+  },
+  {
+    slot: "OTHER_TOOL_CLAUSE",
+    trigger: "tools",
+    fixed_first_words: ", together with ",
+    absent: "omitted",
+  },
+  {
+    slot: "TRANSFER_MECHANISM_CLAUSE",
+    trigger: "transfer_mechanism",
+    fixed_first_words: ", relying on ",
+    absent: "where transfers occur, the honest gap sentence naming the unrecorded Chapter V mechanism; otherwise omitted",
+  },
+];
+
+/**
+ * The lawyer-flagged verification set: every statutory pinpoint that appears in
+ * the skeleton's FIXED prose (including its conditional slots' fixed words),
+ * with the corpus row that must support it.
+ */
+export interface GovernanceSkeletonPinpoint {
+  readonly pinpoint: string;
+  readonly corpus_key: string;
+  /** A substring that must appear in the corpus row's verbatim excerpt. */
+  readonly supports: string;
+}
+
+export const GOVERNANCE_SKELETON_PINPOINTS: readonly GovernanceSkeletonPinpoint[] = [
+  { pinpoint: "Article 5(2)", corpus_key: "gdpr-art-5-2",
+    supports: "be able to demonstrate compliance" },
+  { pinpoint: "Article 9", corpus_key: "gdpr-art-9",
+    supports: "racial or ethnic origin" },
+  { pinpoint: "Article 24", corpus_key: "gdpr-art-24",
+    supports: "appropriate technical and organisational measures" },
+  { pinpoint: "Article 28", corpus_key: "gdpr-art-28",
+    supports: "processing is to be carried out on behalf of a controller" },
+  { pinpoint: "Article 28(3)", corpus_key: "gdpr-art-28",
+    supports: "processing is to be carried out on behalf of a controller" },
+  { pinpoint: "Article 30", corpus_key: "gdpr-art-30",
+    supports: "record of processing activities" },
+  { pinpoint: "Article 37", corpus_key: "gdpr-art-37",
+    supports: "shall designate a data protection officer" },
+  { pinpoint: "Article 38", corpus_key: "gdpr-art-38",
+    supports: "data protection officer is involved" },
+  { pinpoint: "Article 39", corpus_key: "gdpr-art-39",
+    supports: "shall have at least the following tasks" },
+];
+
+/**
+ * TABLE OF AUTHORITIES — deterministic assembly rule, verbatim from the
+ * skeleton. An authority appears iff it is cited in the assembled document.
+ */
+export const GOVERNANCE_TOA_RULE = "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred.";
+export const GOVERNANCE_TOA_GROUPS: readonly string[] = [
+  "Regulations",
+  "Statutes",
+  "Guidance and Persuasive Authority",
+];
+
+/**
+ * COVERAGE LINKS (SO-3 step 4): the skeleton's section ids are the coverage
+ * anchors for this product; the typed surface each section must account for is
+ * named here so coverage points at the skeleton rather than the legacy plan.
+ */
+export const GOVERNANCE_COVERAGE_LINKS: readonly { section_id: string; surface: string }[] = [
+  { section_id: "executive_summary", surface: "readiness_determination" },
+  { section_id: "organisation_and_data", surface: "organisation_profile" },
+  { section_id: "governance_infrastructure", surface: "dpo_determination" },
+  { section_id: "training_tools_controls", surface: "domain_findings" },
+  { section_id: "processors_and_transfers", surface: "transfer_analysis" },
+  { section_id: "the_determination", surface: "remediation_plan" },
 ];

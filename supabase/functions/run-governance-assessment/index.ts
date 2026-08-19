@@ -1734,7 +1734,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // never mutated.
     try {
       const { assembleGovernanceSkeletonDocument, GOVERNANCE_SKELETON_ASSEMBLER_STAMP } =
-        await import("../_shared/ltp/governance-skeleton-assemble.ts");
+        await import("./_local/ltp/governance-skeleton-assemble.ts");
       const sk = assembleGovernanceSkeletonDocument(
         reportData as unknown as Record<string, unknown>,
         ((assessment as any)?.intake_data as Record<string, unknown>) ?? {},

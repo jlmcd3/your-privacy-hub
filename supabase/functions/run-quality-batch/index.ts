@@ -26,7 +26,7 @@ import {
   hasSkeletonDocument,
   SKELETON_GRADER_BUDGET,
   SKELETON_BLOCK_KIND_ADDENDUM,
-} from "../_shared/grader/skeleton-payload.ts";
+} from "./_local/grader/skeleton-payload.ts";
 // R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
 import { matchFixtureSet } from "../_shared/golden/registry.ts";
 import { CONTRACT_BY_TOOL } from "./_local/intake-contracts/registry.ts";
@@ -39,7 +39,7 @@ import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 // PROMPT 10A — skeleton-mode grader calibration (CEO-approved 2026-08-12).
 // Applied ONLY when graderMode === "skeleton"; freeform grading is untouched.
-import { applySkeletonCalibration, SKELETON_CAL_VERSION } from "../_shared/grader/skeleton-calibration.ts";
+import { applySkeletonCalibration, SKELETON_CAL_VERSION } from "./_local/grader/skeleton-calibration.ts";
 // CV1-R2 T4c — counsel-voice auto-regen trigger predicate.
 import { isCounselVoiceRegenEligible, resolveEvalSourceRef } from "./_local/grader/counsel-voice-regen.ts";
 import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
@@ -3678,7 +3678,7 @@ async function runBatchInner(runId: string): Promise<void> {
         try {
           const { evaluateGateV2 } = await import("./_local/quality/gate-v2.ts");
           const { shadowScore } = await import("./_local/quality/shadow-score.ts");
-          const { tagIntake } = await import("../_shared/quality/coverage-matrix.ts");
+          const { tagIntake } = await import("./_local/quality/coverage-matrix.ts");
           // Pooled doc count across THIS tool's recent consecutive runs.
           const { data: recent } = await admin.from("quality_runs")
             .select("batch_size,status,started_at").eq("tool", tool)
