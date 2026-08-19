@@ -2636,11 +2636,18 @@ export function runRiskFactorEngine(
           ["11 CCR § 7152(a)(9)"],
         );
       } else {
+        const identifiedNames = [
+          ...reviewers.map((r) => s(r.name)).filter(Boolean),
+          ...(!reviewers.length && migrated ? [migrated] : []),
+        ];
+        const followUpText = identifiedNames.length > 0
+          ? `Approval follow-up. ${asProse(identifiedNames)} ${plural(identifiedNames.length, "is", "are")} identified as ${plural(identifiedNames.length, "a reviewer or approver", "reviewers and approvers")}. Confirmation of ${plural(identifiedNames.length, "their", "each person's")} authority over whether the processing proceeds remains outstanding and must be completed at finalization before the approval record is sufficient.`
+          : "Approval follow-up. Confirmation of approver authority, or identification of the reviewers and approvers, remains outstanding and must be completed at finalization before the approval record is sufficient.";
         put(
           "x_governance:1",
           "approval_follow_up",
           "B",
-          "Approval follow-up. Confirmation of approver authority, or identification of the reviewers and approvers, remains outstanding and must be completed at finalization before the approval record is sufficient.",
+          followUpText,
           ["FINAL:approver_authority_confirmed"],
           ["11 CCR § 7152(a)(9)"],
         );

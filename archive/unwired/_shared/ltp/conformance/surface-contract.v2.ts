@@ -97,6 +97,8 @@ export const CPPA_RISK_SURFACE_CONTRACT: readonly SurfaceContractEntry[] = [
   { key: "citation_ledger", kind: "shaped", types: ["array"] },
   { key: "enforcement_context", kind: "prose", types: ["string", "object"] },
   { key: "methodology_note", kind: "prose", types: ["string"] },
+  // RK3-B — Spine 4.3 assembled narrative. Absent from pre-Spine-4.3 persisted payloads.
+  { key: "skeleton_document", kind: "shaped", types: ["object"], optional: true, note: "RenderedSkeletonDocument emitted by assembleRiskSkeletonDocument; absent from pre-RK3-B payloads." },
 ];
 
 export const CPPA_RISK_SURFACE_KEYS: readonly string[] =

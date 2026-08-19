@@ -167,7 +167,41 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   a9_approver_name: "name of the person approving the assessment",
   a9_approver_position: "position of the person approving the assessment",
   a9_approval_date: "date the assessment was approved",
-
+  // RK3-D (doc 33 D-L3) — Class C→B conversion operand labels
+  // Secondary-activity row children
+  "secondary_activities[].relation_to_primary": "relationship of the secondary use to the primary purpose",
+  "secondary_activities[].disclosed_in_notice": "whether the secondary use is disclosed in the notice",
+  // Section I/II operands
+  purpose_specificity_facts: "facts describing the specificity of the processing purpose",
+  out_of_scope_confirmation: "whether the processing stays within the scope of this assessment",
+  out_of_scope_activities: "description of activities not covered by this assessment",
+  comparable_processing_status: "whether the assessment covers a comparable set of activities",
+  comparable_processing_basis: "basis for treating the covered activities as comparable",
+  consumer_relationship_context: "context of the Company's relationship with the affected consumers",
+  source_categories: "categories of sources from which personal information is collected",
+  vendor_dependency: "whether the processing depends on an essential vendor",
+  essential_vendors: "essential vendors the processing depends on",
+  // Section IV operands
+  expectation_check: "contextual-expectation facts for the processing",
+  choice_architecture_check: "choice-architecture facts for the processing",
+  // Section V ADMT operands
+  admt_role_type: "role of the automated decision-making technology in decisions",
+  admt_logic_documented: "whether and how the logic of the automated system is documented",
+  human_review_facts: "facts about human review of automated system output",
+  admt_testing_facts: "facts about testing of the automated system",
+  // Section VII operands
+  risk_interdependency_check: "whether identified risk pathways compound each other",
+  compounding_pathways: "harm pathways identified as compounding each other",
+  // Section VI — benefit-magnitude operands
+  benefit_business_magnitude_basis: "basis for the stated business-benefit magnitude",
+  benefit_consumer_magnitude_basis: "basis for the stated consumer-benefit magnitude",
+  benefit_other_stakeholders_magnitude_basis: "basis for the stated stakeholder-benefit magnitude",
+  benefit_public_magnitude_basis: "basis for the stated public-benefit magnitude",
+  // Safeguard row children
+  "a6_safeguards[].effectiveness_basis": "basis for the safeguard's effectiveness",
+  "a6_safeguards[].planned_timeline": "committed implementation timeline for the planned safeguard",
+  // Recipient row children
+  "recipients[].contractual_protections": "contractual protection in place with the recipient",
 
 
   // ── CPPA ADMT Checker ──
