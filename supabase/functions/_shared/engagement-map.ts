@@ -301,6 +301,11 @@ export function buildDpiaEngagementMap(
   const isEu = jurisdictionsContain(jurisdictions, /EU|European|EEA|GDPR/i);
   const art9 = asStr(intake?.article_9_condition);
   const dataCats = asArr(intake?.data_categories).map((x) => String(x).toLowerCase()).join(" | ");
+  // Mirrors DPIA_SPECIAL_CAT_LABELS in run-dpia-framework/index.ts — the canonical M1 set.
+  // Text-pattern fallbacks (looksHealth, looksBiometric) are kept for description-only signals
+  // but the direct label check is the authoritative gate (catches "Genetic data" which patterns miss).
+  const SPECIAL_CAT_LC = new Set(["health / medical data", "health or medical data", "biometric data", "genetic data"]);
+  const hasSpecialCat = asArr(intake?.data_categories).some((x) => SPECIAL_CAT_LC.has(String(x).toLowerCase()));
   const description = asStr(intake?.description);
   const purpose = asStr(intake?.purpose);
   const volume = asStr(intake?.volume_frequency);
@@ -346,8 +351,8 @@ export function buildDpiaEngagementMap(
   entries.push({
     rule_id: "R_ART_35_3_B_LARGE_SCALE_SPECIAL_CATEGORIES",
     name: "Article 35(3)(b) — large-scale processing of special categories",
-    status: (isLargeScale && (looksHealth || nonEmpty(art9) || looksBiometric)) ? "engaged" : "not_engaged",
-    rationale: (isLargeScale && (looksHealth || nonEmpty(art9) || looksBiometric))
+    status: (isLargeScale && (hasSpecialCat || nonEmpty(art9) || looksHealth || looksBiometric)) ? "engaged" : "not_engaged",
+    rationale: (isLargeScale && (hasSpecialCat || nonEmpty(art9) || looksHealth || looksBiometric))
       ? "The record indicates large-scale processing of special-category data; Art. 35(3)(b) is engaged."
       : "The record does not indicate both large scale and special categories.",
     intake_signals: ["volume_frequency", "data_categories", "article_9_condition"],
