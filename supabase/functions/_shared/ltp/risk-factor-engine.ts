@@ -1,4 +1,4 @@
-// RK3-C — CPPA RISK FACTOR ENGINE (Spine 4.3 Phase C, Classes A + B).
+// RK3-C/RK3-D — CPPA RISK FACTOR ENGINE (Spine 4.3 Phases C + D).
 //
 // AUTHORED ON FABLE 5 (claude-fable-5) PER CEO DIRECTIVE 2026-08-18. This
 // module is DETERMINISTIC AT RUNTIME: it makes zero model calls. Every
@@ -10,32 +10,37 @@
 //             enum-rich operands (the fleet's Governance-conversion pattern).
 //
 // The determination tables and template strings exported below are the
-// RATIFICATION ARTIFACTS: they were authored under the CEO's advance
-// ratification grant of 2026-08-18 and are itemized on the RK3-C ratification
-// ledger (doc 32). Changing any exported table cell or template is a
+// RATIFICATION ARTIFACTS: the RK3-C set was authored under the CEO's advance
+// ratification grant of 2026-08-18 (ledger doc 32); the RK3-D set was decided
+// by the senior-privacy-lawyer panel under the CEO's RK3-D grant of 2026-08-19
+// (ledger doc 33). Changing any exported table cell or template is a
 // ratification event.
 //
-// Class C ids (operands are free-text narratives that must be comprehended)
-// are NOT composed here — per the NO-PADDING LAW they stay honestly absent
-// until RK3-D converts them per PN-RK8. The absent set is exported for
-// telemetry (`RISK_FACTOR_CLASS_C_IDS`).
+// RK3-D (PN-RK8 ruled: convert C→B) — the former Class C set now composes
+// from the doc 33 D-L3 structured intake sub-questions: each judgment is a
+// typed fact the Company attested, and the ratified templates below carry its
+// legal significance. `RISK_FACTOR_CLASS_C_IDS` now holds only ids with no
+// Spine 4.3 placeholder (subsumed by fixed blocks); nothing on it ever
+// composes. A record without the RK3-D operands composes exactly what RK3-C
+// composed (NO-PADDING LAW; honest absence, never a default answer).
 //
 // REGISTER: the v3 banned register applies ("the record shows" family, "on
 // this record", "as the record makes clear"). Company facts are attributed
 // ("the Company describes…", "the Company identifies…"). Factor prose carries
-// NO statutory citations: the printed Table of Authorities continues to render
-// from the report's citation ledger, and factor-authority provenance is
-// persisted as records (`provenance[].authorities`) for the RK3-D App G feed.
+// NO statutory citations: the printed Table of Authorities renders from the
+// report's citation ledger plus the factor-authority provenance records
+// (`provenance[].authorities`) in their own labelled App G group (doc 33 D-L8).
 //
 // FIXED LEADS: the sub-heads, leads, and notes in RISK_FACTOR_FIXED are
 // transcribed from the Spine 4.3 generated-block descriptors (the spine file
 // remains the custody point for skeleton/conditional prose; the factor-block
-// leads are carried by this Phase C composer per the spine's own comments).
+// leads are carried by this composer per the spine's own comments).
 
 import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
+import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
 
 export const RISK_FACTOR_ENGINE_STAMP =
-  "risk-factor-engine@rk3-c-2026-08-18-fable5";
+  "risk-factor-engine@rk3-d-2026-08-19-fable5";
 
 type Bag = Record<string, unknown>;
 
@@ -395,42 +400,25 @@ export function resolveRecommendedOutcome(
   };
 }
 
-// ── Class C ids (honestly absent until RK3-D per PN-RK8) ─────────────────────
+// ── Reserved ids (never composed) ─────────────────────────────────────────────
+//
+// RK3-D (doc 33, PN-RK8 ruled option 1) converted the Class C set to Class B:
+// structured intake sub-questions carry each judgment as typed facts, and the
+// ratified templates below compose the factors. The export keeps its name —
+// tests and telemetry pin that nothing on this list ever composes — but after
+// RK3-D it holds only ids with NO Spine 4.3 placeholder:
+//
+// - prior_assessment_analysis: Spine 4.3 block I.C:8 renders the prior-
+//   assessment facts and ratified note directly (RISK_FIXED.prior_assessment_*
+//   over i9_existing_dpia_summary); the spine reserves no factor slot, so the
+//   id is SUBSUMED by the fixed block rather than composed (doc 33 D-L7).
+//
+// (doc 31's "residual_risk_analysis_narrative" was an alias of the spine's
+// residual_risk_analysis placeholder, which RK3-D composes; the alias was
+// normalized away — doc 33 D-L7.)
 
 export const RISK_FACTOR_CLASS_C_IDS: readonly string[] = [
-  "purpose_specificity_analysis",
-  "secondary_use_analysis",
-  "out_of_scope_processing_description",
-  "comparable_processing_analysis",
   "prior_assessment_analysis",
-  "record_sufficiency_analysis",
-  "processing_coherence_analysis",
-  "consumer_context_analysis",
-  "source_risk_analysis",
-  "recipient_risk_analysis",
-  "material_vendor_dependency",
-  "transparency_analysis",
-  "consumer_expectations_analysis",
-  "unexpected_processing",
-  "consumer_expectations_conclusion",
-  "consumer_control_analysis",
-  "coercion_analysis",
-  "admt_role_analysis",
-  "admt_logic_analysis",
-  "admt_logic_conclusion",
-  "admt_decision_effect_analysis",
-  "human_review_effectiveness_analysis",
-  "admt_testing_analysis",
-  "training_data_analysis",
-  "admt_overall_reasoning",
-  "risk_interdependency_analysis",
-  "safeguard_effectiveness_analysis",
-  "planned_safeguard_analysis",
-  "safeguard_gap_analysis",
-  "residual_risk_analysis_narrative",
-  "pro_processing_analysis",
-  "con_processing_analysis",
-  "admt_technical_analysis",
 ];
 
 // ── Provenance ────────────────────────────────────────────────────────────────
@@ -539,25 +527,48 @@ interface BenefitRecord {
   readonly narrative: string;
   readonly fact: string;
   readonly weight: BenefitWeight;
+  /** RK3-D (doc 32 L3 close-out) — typed magnitude-basis band; refines the
+   * analysis prose, never the balancing tier inputs, in release 1. */
+  readonly basis: string;
 }
 
 function extractBenefits(intake: Bag): BenefitRecord[] {
-  const defs: Array<[string, unknown, unknown, unknown]> = [
-    ["Consumer", intake.benefit_consumer_identified, intake.a4_benefit_consumer, intake.a4_benefit_consumer_fact],
-    ["Business", intake.benefit_business_identified, intake.a4_benefit_business, intake.a4_benefit_business_fact],
+  const defs: Array<[string, unknown, unknown, unknown, unknown]> = [
+    [
+      "Consumer",
+      intake.benefit_consumer_identified,
+      intake.a4_benefit_consumer,
+      intake.a4_benefit_consumer_fact,
+      intake.benefit_consumer_magnitude_basis,
+    ],
+    [
+      "Business",
+      intake.benefit_business_identified,
+      intake.a4_benefit_business,
+      intake.a4_benefit_business_fact,
+      intake.benefit_business_magnitude_basis,
+    ],
     [
       "Other-stakeholder",
       intake.benefit_other_stakeholders_identified,
       intake.a4_benefit_other_stakeholders,
       intake.a4_benefit_other_stakeholders_fact,
+      intake.benefit_other_stakeholders_magnitude_basis,
     ],
-    ["Public", intake.benefit_public_identified, intake.a4_benefit_public, intake.a4_benefit_public_fact],
+    [
+      "Public",
+      intake.benefit_public_identified,
+      intake.a4_benefit_public,
+      intake.a4_benefit_public_fact,
+      intake.benefit_public_magnitude_basis,
+    ],
   ];
-  return defs.map(([label, identified, narrative, fact]) => ({
+  return defs.map(([label, identified, narrative, fact, basis]) => ({
     label,
     narrative: clause(narrative),
     fact: clause(fact),
     weight: resolveBenefitWeight(identified, narrative, fact),
+    basis: s(basis),
   }));
 }
 
@@ -721,6 +732,129 @@ export function runRiskFactorEngine(
       `Strengthen ${asProse(weakControls)} so the related ${
         plural(weakControls.length, "right", "rights")
       } can be exercised in practice`,
+    );
+  }
+
+  // ── RK3-D typed operands (doc 33 D-L3; Class C→B conversion per PN-RK8) ──────
+  // Each operand is a typed fact the Company attested; the legal significance
+  // lives in the ratified templates below, never in the answer itself.
+
+  const specificityAll = arr(intake.purpose_specificity_facts);
+  const specificityFacets = specificityAll.filter((x) => x !== "None of the above");
+  const specificityAnswered = specificityAll.length > 0;
+
+  const outOfScope = s(intake.out_of_scope_confirmation);
+  const comparable = s(intake.comparable_processing_status);
+  const relationshipContext = s(intake.consumer_relationship_context);
+  const sourceCats = arr(intake.source_categories);
+  const vendorDependency = s(intake.vendor_dependency);
+
+  const expectAll = arr(intake.expectation_check);
+  const EXPECTATION_DIVERGENCE: Record<string, string> = {
+    "The processing continues after the interaction ends":
+      "the processing continues after the interaction the consumer participates in has ended",
+    "Information is used for a purpose different from the purpose for which it was collected":
+      "information is used for a purpose different from the purpose for which it was collected",
+    "Information is combined with information from other sources":
+      "information is combined with information from other sources",
+    "Information is disclosed to parties the consumer does not directly interact with":
+      "information is disclosed to parties the consumer does not directly interact with",
+  };
+  const divergenceMarkers = expectAll.filter((x) => EXPECTATION_DIVERGENCE[x]);
+  const noticeFull = s(intake.q12_notice_at_collection) === "Yes, covers all collection points" &&
+    s(intake.q13_notice_content) === "Yes, all three";
+
+  const choiceAll = arr(intake.choice_architecture_check);
+  const CHOICE_CONFIRMATIONS: Record<string, string> = {
+    "Consent or permission requests are presented symmetrically — declining is as easy as accepting":
+      "symmetric presentation of the permission choice",
+    "Declining the processing does not degrade the core service the consumer seeks":
+      "that declining does not degrade the core service",
+    "The Company does not use design elements that steer consumers toward permitting the processing":
+      "the absence of steering design elements",
+  };
+  const choiceConfirmed = choiceAll.filter((x) => CHOICE_CONFIRMATIONS[x]);
+  const choiceMissing = Object.keys(CHOICE_CONFIRMATIONS).filter((x) => !choiceAll.includes(x));
+  const choiceNoneConfirmed = choiceAll.includes("None of the above can be confirmed");
+  const choiceAnswered = choiceAll.length > 0;
+
+  const interdependency = s(intake.risk_interdependency_check);
+  const compounding = arr(intake.compounding_pathways);
+
+  const admtRoleType = s(intake.admt_role_type);
+  const admtLogicDocumented = s(intake.admt_logic_documented);
+  const humanReviewFacts = arr(intake.human_review_facts);
+  const admtTestingFacts = arr(intake.admt_testing_facts);
+  const noHumanReview = humanReviewFacts.includes("There is no human review");
+  const humanReviewConfirmed = humanReviewFacts.filter((x) =>
+    x !== "None of the above can be confirmed" && x !== "There is no human review"
+  );
+
+  const weakRecipients = rows(intake.recipients).filter((r) =>
+    s(r.recipient_name_or_category) &&
+    (s(r.contractual_protections) === "No written contract" || s(r.contractual_protections) === "Unsure")
+  );
+
+  // RK3-D routing into the shared conditions / follow-ups / recommendations
+  // arrays (consumed by Sections III, IX, and the executive summary).
+  if (specificityAnswered && specificityFacets.length === 0) {
+    conditions.push(
+      "Restate the processing purpose so it identifies the product or operation supported, the information involved, the consumers affected, and the intended outcome",
+    );
+  }
+  if (specificityAnswered && specificityFacets.length > 0 && specificityFacets.length <= 2) {
+    followUps.push(
+      "Sharpen the stated processing purpose: the typed record confirms it identifies only " +
+        asProse(specificityFacets.map((x) => x.toLowerCase())),
+    );
+  }
+  if (outOfScope === "Unsure") {
+    followUps.push(
+      "Determine whether the affected information is processed for activities not covered by this assessment",
+    );
+  }
+  if (comparable === "Unsure") {
+    followUps.push(
+      "Determine whether this assessment covers a single activity or a set of similar activities presenting similar risks",
+    );
+  }
+  if (vendorDependency === "Unsure") {
+    followUps.push(
+      "Determine whether any recipient or vendor is essential to the continuation of the processing",
+    );
+  }
+  if (interdependency === "Unsure") {
+    followUps.push(
+      "Determine whether the identified risk pathways could compound each other",
+    );
+  }
+  if (isAdmt && (admtLogicDocumented === "The logic is not fully documented or understood" || admtLogicDocumented === "Unsure")) {
+    conditions.push(
+      "Document the logic of the automated decisionmaking technology, including its assumptions and limitations, so the assessment can evaluate it",
+    );
+  }
+  if (
+    isAdmt && admtTestingFacts.length &&
+    !(admtTestingFacts.includes("Tested for accuracy or validity") &&
+      admtTestingFacts.includes("Tested for discriminatory impact or bias"))
+  ) {
+    recommendations.push(
+      "Test the automated system for accuracy and for discriminatory impact, and record the results in the assessment record",
+    );
+  }
+  if (weakRecipients.length) {
+    recommendations.push(
+      `Put a written contract with the required restrictions in place for ${
+        plural(weakRecipients.length, "the recipient that lacks one", "each recipient that lacks one")
+      }, and record its terms in the assessment record`,
+    );
+  }
+  const plannedNoTimeline = planned.filter((g) => s(g.planned_timeline) === "No committed timeline");
+  if (plannedNoTimeline.length) {
+    conditions.push(
+      `Commit an implementation timeline for the planned ${
+        plural(plannedNoTimeline.length, "safeguard", "safeguards")
+      } recorded without one`,
     );
   }
 
@@ -894,6 +1028,39 @@ export function runRiskFactorEngine(
     );
   }
 
+  // RK3-D — risk_interdependency_analysis (doc 33 D-L5 interdependency table;
+  // the engine owns the VII.D conditional block, opening with the spine's
+  // fixed first words; conservative note only — no tier arithmetic).
+  if (interdependency && pathways.length) {
+    const interactingLead =
+      "D. Interacting Risks. Some risks become more significant in combination. For example, an error may become consequential only when used in a decision; sensitive information may become substantially more harmful when linked to location; or an otherwise correct inference may create greater risk where the consumer cannot understand or challenge it. For this activity:";
+    if (interdependency === "Two or more identified pathways could compound each other") {
+      const named = compounding.filter((c) => pathways.some((p) => p.harm === c));
+      put(
+        "vii_risks:4",
+        "risk_interdependency_analysis",
+        "B",
+        `${interactingLead} the Company records that ${
+          named.length >= 2
+            ? `the following pathways could compound each other: ${asProse(named)}`
+            : "two or more of the identified pathways could compound each other"
+        }. The materiality tiers above are assigned per pathway and are not increased by the interaction; the interaction is instead treated as a consideration against the processing in Section IX, because a compounding pathway can make an adverse outcome more likely or more severe than either pathway alone.`,
+        ["INTAKE:risk_interdependency_check", "INTAKE:compounding_pathways"],
+        [],
+      );
+    } else if (interdependency === "The identified risk pathways operate independently") {
+      put(
+        "vii_risks:4",
+        "risk_interdependency_analysis",
+        "B",
+        `${interactingLead} the Company records that the identified risk pathways operate independently, and no compounding interaction enters the analysis on the typed record.`,
+        ["INTAKE:risk_interdependency_check"],
+        [],
+      );
+    }
+    // "Unsure" composes nothing here; the follow-up in Section IX carries it.
+  }
+
   if (pathways.length) {
     const ranked = rankPathways(pathways);
     const list = ranked
@@ -941,6 +1108,36 @@ export function runRiskFactorEngine(
       ["INTAKE:a6_safeguards", "FACTOR:material_risk_blocks"],
       ["11 CCR § 7152(a)(6)"],
     );
+    // RK3-D — safeguard_effectiveness_analysis (doc 33 D-L5: effectiveness
+    // basis × implementation status, per material safeguard row; joins the
+    // residual rule rather than replacing it).
+    {
+      const typedRows = materialSafeguards.filter((g) => s(g.effectiveness_basis));
+      if (typedRows.length) {
+        const rowsText = typedRows.map((g) => {
+          const basis = s(g.effectiveness_basis);
+          const status = s(g.safeguard_status);
+          const cellText = basis === "Validated by testing against the linked risk"
+            ? status === "Implemented and tested"
+              ? "validated by testing against the risk it addresses; the residual rule credits it at full weight."
+              : "described as validated by testing, but the implementation status recorded above does not yet support that description; the residual rule credits the status, not the description."
+            : basis === "Consistent with an industry standard or framework"
+            ? "consistent with an industry standard or framework; conformance to a standard is credited as evidence of sound design, not as evidence the control operates against this activity’s specific pathways."
+            : basis === "Based on internal design review only"
+            ? "supported by internal design review only; design review establishes intent, and the absence of testing against the linked risk limits the reliance the assessment places on it."
+            : "recorded without effectiveness evidence; the control is credited as existing at the status recorded above, and no effectiveness weight is added.";
+          return `— ${firstSentence(s(g.safeguard)).replace(/\.$/, "")}: on the Company’s typed record, this control is ${cellText}`;
+        });
+        put(
+          "viii_safeguards:1",
+          "safeguard_effectiveness_analysis",
+          "B",
+          `Effectiveness analysis. ${rowsText.join(" ")}`,
+          ["INTAKE:a6_safeguards", "FACTOR:safeguard_effectiveness_table"],
+          ["11 CCR § 7152(a)(6)"],
+        );
+      }
+    }
   }
   if (tested.length) {
     put(
@@ -977,6 +1174,41 @@ export function runRiskFactorEngine(
       ["INTAKE:a6_safeguards"],
       ["11 CCR § 7152(a)(6)"],
     );
+    // RK3-D — planned_safeguard_analysis (doc 33 D-L3: committed-timeline
+    // enum per planned row; no timeline strengthens the condition).
+    {
+      const withTimeline = planned.filter((g) =>
+        s(g.planned_timeline) && s(g.planned_timeline) !== "No committed timeline"
+      );
+      const withoutTimeline = planned.filter((g) => s(g.planned_timeline) === "No committed timeline");
+      if (withTimeline.length || withoutTimeline.length) {
+        const bits: string[] = [];
+        if (withTimeline.length) {
+          bits.push(
+            `${withTimeline.length} planned ${
+              plural(withTimeline.length, "safeguard carries", "safeguards carry")
+            } a committed implementation timeline (${
+              asProse([...new Set(withTimeline.map((g) => s(g.planned_timeline).toLowerCase()))])
+            })`,
+          );
+        }
+        if (withoutTimeline.length) {
+          bits.push(
+            `${withoutTimeline.length} ${
+              plural(withoutTimeline.length, "carries", "carry")
+            } no committed timeline, and committing one appears among the Conditions to Proceed in Section IX`,
+          );
+        }
+        put(
+          "viii_safeguards:4",
+          "planned_safeguard_analysis",
+          "B",
+          `Analysis. On the Company’s typed record, ${bits.join("; ")}. A planned safeguard enters the balance only as a condition, never as present mitigation.`,
+          ["INTAKE:a6_safeguards"],
+          ["11 CCR § 7152(a)(6)"],
+        );
+      }
+    }
   }
   if (gaps.length) {
     put(
@@ -989,6 +1221,20 @@ export function runRiskFactorEngine(
         plural(gaps.length, "this pathway", "these pathways")
       }, the full inherent materiality is carried into the residual-risk conclusion and weighs against the processing in Section IX.`,
       ["FACTOR:material_risk_blocks", "INTAKE:a6_safeguards"],
+      ["11 CCR § 7152(a)(6)"],
+    );
+    // RK3-D — safeguard_gap_analysis (doc 33 D-L4: templated over the same
+    // typed gap rows; composed after the gap list and its consequence).
+    put(
+      "viii_safeguards:5",
+      "safeguard_gap_analysis",
+      "B",
+      `Analysis. A gap is recorded where a material pathway has no safeguard at implemented status. ${
+        gaps.map((p) =>
+          `For ${p.harm}, the pathway’s own record identifies the information involved and the cause, and no implemented control addresses it.`
+        ).join(" ")
+      } The gap determination is mechanical over the Company’s own safeguard record; it does not assert that no control exists, only that none is established in the record at implemented status.`,
+      ["FACTOR:safeguard_gaps", "INTAKE:a6_safeguards"],
       ["11 CCR § 7152(a)(6)"],
     );
   }
@@ -1019,6 +1265,34 @@ export function runRiskFactorEngine(
       ["INTAKE:a5_harm_pathways", "INTAKE:a6_safeguards", "FACTOR:residual_rule"],
       ["11 CCR § 7152(a)(6)"],
     );
+    // RK3-D — residual_risk_analysis (doc 33 D-L4: a per-pathway walk of the
+    // residual matrix, so the reader can trace each tier movement).
+    {
+      const walk = rankPathways(pathways).map((p) => {
+        const moved = p.residual !== p.materiality;
+        return `— ${p.harm}: inherent ${p.materiality}; ${
+          moved
+            ? `reduced one tier to ${p.residual} on the strength of a safeguard supported by testing evidence.`
+            : p.bestStatus === "Implemented, not tested"
+            ? `unchanged at ${p.residual} — the credited safeguard exists but lacks testing evidence, and the residual rule does not move the tier without it.`
+            : p.bestStatus === "Planned, not yet implemented"
+            ? `unchanged at ${p.residual} — the only recorded safeguard is planned, and a planned safeguard is a condition, not present mitigation.`
+            : p.bestStatus
+            ? `unchanged at ${p.residual} on the recorded safeguard status.`
+            : `unchanged at ${p.residual} — no safeguard is established for the pathway.`
+        }`;
+      });
+      put(
+        "viii_safeguards:7",
+        "residual_risk_analysis",
+        "B",
+        `Analysis. Each pathway’s residual tier follows the residual rule applied to the Company’s own safeguard record: ${
+          walk.join(" ")
+        }`,
+        ["INTAKE:a5_harm_pathways", "INTAKE:a6_safeguards", "FACTOR:residual_rule"],
+        ["11 CCR § 7152(a)(6)"],
+      );
+    }
     put(
       "viii_safeguards:7",
       "overall_residual_risk_conclusion",
@@ -1083,9 +1357,19 @@ export function runRiskFactorEngine(
   };
   for (const b of benefits) {
     if (b.weight === "no affirmative weight" || !b.narrative) continue;
-    const analysis = b.weight === "material weight"
+    // RK3-D (doc 32 L3 close-out) — the typed magnitude-basis band refines
+    // the analysis prose; the weight itself is unchanged.
+    const basisSentence = b.basis === "Quantified or measurable basis stated"
+      ? " The stated basis for the benefit’s magnitude is quantified or measurable."
+      : b.basis === "Qualitative basis stated"
+      ? " The stated basis for the benefit’s magnitude is qualitative."
+      : b.basis === "No basis stated"
+      ? " No basis for the benefit’s magnitude is stated, and the claim is read at the floor of its weight band."
+      : "";
+    const analysis = (b.weight === "material weight"
       ? "The Company identifies a concrete outcome and attributes it to this processing, and supporting information is supplied; the claim is considered in the balance at the weight stated below."
-      : "The Company identifies a concrete outcome and attributes it to this processing, but supporting information is not supplied; the absence of support limits the weight the claim can carry.";
+      : "The Company identifies a concrete outcome and attributes it to this processing, but supporting information is not supplied; the absence of support limits the weight the claim can carry.") +
+      basisSentence;
     put(
       benefitKeys[b.label],
       `${benefitFactorIds[b.label]}_analysis`,
@@ -1157,6 +1441,17 @@ export function runRiskFactorEngine(
     if (tested.length) {
       pro.push("— Safeguards supported by testing evidence reduce the principal risk pathways (Section VIII).");
     }
+    // RK3-D — typed expectation and choice-architecture support (doc 33 D-L5).
+    if (expectAll.length && divergenceMarkers.length === 0) {
+      pro.push(
+        "— The processing is consistent with the context of the consumer interaction on the Company’s typed record (Section IV).",
+      );
+    }
+    if (choiceAnswered && choiceMissing.length === 0 && !choiceNoneConfirmed) {
+      pro.push(
+        "— The choice architecture is confirmed symmetric and non-degrading on the Company’s typed record (Section IV).",
+      );
+    }
     if (pro.length) {
       put(
         "ix_balancing:1",
@@ -1164,6 +1459,16 @@ export function runRiskFactorEngine(
         "A",
         `${RISK_FACTOR_FIXED.ix_b_head} ${RISK_FACTOR_FIXED.pro_lead} ${pro.join(" ")}`,
         ["FACTOR:benefit_weight_table", "FACTOR:necessity_conclusion", "FACTOR:tested_safeguards"],
+        ["11 CCR § 7154"],
+      );
+      // RK3-D — pro_processing_analysis (doc 33 D-L4: ratified template over
+      // the same typed factors; no new weight is created here).
+      put(
+        "ix_balancing:1",
+        "pro_processing_analysis",
+        "B",
+        "Analysis. Each factor above restates a conclusion reached earlier in the report on the Company’s own typed record: benefit weights follow the ratified weight table, and the necessity, safeguard, and consumer-context entries carry the Section III, IV, and VIII findings. No consideration is credited in favor of the processing that the record does not establish.",
+        ["FACTOR:pro_processing_factors"],
         ["11 CCR § 7154"],
       );
     }
@@ -1185,6 +1490,23 @@ export function runRiskFactorEngine(
     if (planned.length) {
       con.push("— The safeguard posture depends in part on safeguards that are planned but not yet operational (Section VIII).");
     }
+    // RK3-D — typed expectation, choice-architecture, and interdependency
+    // considerations (doc 33 D-L5 routing).
+    if (divergenceMarkers.length && !noticeFull) {
+      con.push(
+        "— Aspects of the processing fall outside the expectations created by the consumer interaction and are not fully covered by notice (Section IV).",
+      );
+    }
+    if (choiceNoneConfirmed) {
+      con.push(
+        "— None of the choice-architecture facts the assessment checks can be confirmed on the typed record (Section IV).",
+      );
+    }
+    if (interdependency === "Two or more identified pathways could compound each other") {
+      con.push(
+        "— Two or more identified risk pathways could compound each other, which can make an adverse outcome more likely or more severe than either pathway alone (Section VII).",
+      );
+    }
     if (con.length === 0 && pathways.length) {
       con.push("— No residual pathway remains above the low tier; the considerations against the activity are correspondingly limited.");
     }
@@ -1195,6 +1517,15 @@ export function runRiskFactorEngine(
         "A",
         `${RISK_FACTOR_FIXED.ix_c_head} ${RISK_FACTOR_FIXED.con_lead} ${con.join(" ")}`,
         ["FACTOR:residual_rule", "FACTOR:necessity_conclusion", "FACTOR:safeguard_gaps"],
+        ["11 CCR § 7154"],
+      );
+      // RK3-D — con_processing_analysis (doc 33 D-L4).
+      put(
+        "ix_balancing:2",
+        "con_processing_analysis",
+        "B",
+        "Analysis. Each factor above carries a residual tier assigned in Section VIII or a qualification reached in Sections III, IV, or VII on the Company’s own typed record. No adverse consideration is assumed beyond those the record identifies, and none the record identifies is omitted.",
+        ["FACTOR:con_processing_factors"],
         ["11 CCR § 7154"],
       );
     }
@@ -1252,39 +1583,69 @@ export function runRiskFactorEngine(
 
   const purpose = clause(intake.primary_activity_purpose);
   {
-    const parts: string[] = [];
     const multiSentence = purpose && firstSentence(purpose) !== purpose;
+    // RK3-D — purpose_specificity_analysis (doc 33 D-L5 purpose-specificity
+    // table): the facet count over the Company's own typed answer sets the
+    // band; spine order places the analysis before the normalization.
+    if (purpose && specificityAnswered) {
+      const missing = [
+        "The specific product, service, or operation the processing supports",
+        "The categories of personal information involved",
+        "The categories of consumers affected",
+        "The intended outcome or result of the processing",
+      ].filter((x) => !specificityFacets.includes(x));
+      const facetSentence = specificityFacets.length
+        ? `The Company confirms that the stated purpose identifies ${
+          asProse(specificityFacets.map((x) => x.toLowerCase()))
+        }.`
+        : "The Company confirms that the stated purpose identifies none of the facets the assessment checks: the operation supported, the information involved, the consumers affected, or the intended outcome.";
+      const missingSentence = specificityFacets.length && missing.length
+        ? ` It does not confirm that the purpose identifies ${asProse(missing.map((x) => x.toLowerCase()))}.`
+        : "";
+      const band = specificityFacets.length >= 3
+        ? "On that record, the purpose is stated with the specificity the analyses that follow require."
+        : specificityFacets.length >= 1
+        ? "On that record, the purpose is partially specified; the follow-up in Section IX asks the Company to sharpen it."
+        : "On that record, the purpose is not stated with the precision the assessment requires, and restating it appears among the Conditions to Proceed in Section IX.";
+      put(
+        "i_purpose_scope:1",
+        "purpose_specificity_analysis",
+        "B",
+        `${facetSentence}${missingSentence} ${band}`,
+        ["INTAKE:purpose_specificity_facts", "FACTOR:purpose_specificity_table"],
+        ["11 CCR § 7152(a)(1)"],
+      );
+    }
     if (multiSentence) {
-      parts.push(
+      put(
+        "i_purpose_scope:1",
+        "normalized_processing_purpose",
+        "A",
         `${RISK_FACTOR_FIXED.normalized_purpose_lead} ${firstSentence(purpose)} ${RISK_FACTOR_FIXED.purpose_clarify_note}`,
+        ["INTAKE:primary_activity_purpose"],
+        [],
       );
     }
-    if (purpose && necessity.total) {
-      parts.push(
-        "Conclusion. The stated purpose is defined with enough precision to support the necessity, benefit, and balancing analyses that follow, and the assessment proceeds on the Company’s formulation.",
+    if (purpose && (specificityAnswered || necessity.total)) {
+      // The RK3-C proxy (purpose-present + element record) retires whenever
+      // the typed specificity answer exists (doc 32 L13 close-out).
+      const conclusion = specificityAnswered
+        ? (specificityFacets.length >= 3
+          ? "Conclusion. The stated purpose is defined with specificity on the Company’s own typed record, and the assessment proceeds on the Company’s formulation."
+          : specificityFacets.length >= 1
+          ? "Conclusion. The stated purpose is partially specified on the Company’s own typed record. The assessment proceeds on the Company’s formulation, and the qualification is carried into Section IX."
+          : "Conclusion. The stated purpose is not specified with the precision the assessment requires. The necessity, benefit, and balancing analyses that follow are correspondingly qualified, and the consequence appears among the Conditions to Proceed in Section IX.")
+        : "Conclusion. The stated purpose is defined with enough precision to support the necessity, benefit, and balancing analyses that follow, and the assessment proceeds on the Company’s formulation.";
+      put(
+        "i_purpose_scope:1",
+        "purpose_conclusion",
+        "B",
+        conclusion,
+        specificityAnswered
+          ? ["INTAKE:purpose_specificity_facts", "FACTOR:purpose_specificity_analysis"]
+          : ["INTAKE:primary_activity_purpose", "INTAKE:a2_necessity_set"],
+        ["11 CCR § 7152(a)(1)"],
       );
-    }
-    if (parts.length) {
-      if (multiSentence) {
-        put(
-          "i_purpose_scope:1",
-          "normalized_processing_purpose",
-          "A",
-          parts[0],
-          ["INTAKE:primary_activity_purpose"],
-          [],
-        );
-      }
-      if (purpose && necessity.total) {
-        put(
-          "i_purpose_scope:1",
-          "purpose_conclusion",
-          "B",
-          parts[parts.length - 1],
-          ["INTAKE:primary_activity_purpose", "INTAKE:a2_necessity_set"],
-          ["11 CCR § 7152(a)(1)"],
-        );
-      }
     }
   }
   {
@@ -1300,6 +1661,75 @@ export function runRiskFactorEngine(
         [],
       );
     }
+    // RK3-D — out_of_scope_processing_description (doc 33 D-L3/D-L5).
+    if (outOfScope) {
+      const oosActivities = clause(intake.out_of_scope_activities);
+      const text = outOfScope ===
+          "The affected information is processed only for the stated purpose and any listed secondary uses"
+        ? "Out of scope. The Company confirms that the affected information is processed only for the stated purpose and any listed secondary uses; no further processing of the affected categories falls outside this assessment."
+        : outOfScope ===
+            "The affected information is also processed for other activities not covered by this assessment"
+        ? `Out of scope. The Company records that the affected information is also processed for other activities not covered by this assessment${
+          oosActivities ? `, described as: ${oosActivities}` : ""
+        }. Each such activity requires its own analysis where a risk-assessment trigger applies, and no conclusion in this report extends to it.`
+        : "Out of scope. The Company is not yet certain whether the affected information is processed for activities outside this assessment; the question is carried into the Required Assessment Follow-Up in Section IX.";
+      put(
+        "i_purpose_scope:3",
+        "out_of_scope_processing_description",
+        "B",
+        text,
+        ["INTAKE:out_of_scope_confirmation", "INTAKE:out_of_scope_activities"],
+        [],
+      );
+    }
+  }
+  // RK3-D — secondary_use_analysis (doc 33 D-L5 secondary-use table, per row).
+  // The assembler owns the i_purpose_scope:4 conditional (lead + rows) and
+  // appends this analysis to it.
+  {
+    const secondaryRows = rows(intake.secondary_activities);
+    const typed = secondaryRows.filter((r) => s(r.relation_to_primary) || s(r.disclosed_in_notice));
+    if (typed.length) {
+      const lines = typed.map((r) => {
+        const name = s(r.activity) || s(r.name) || s(r.description) || firstSentence(clause(r.purpose)) ||
+          "the recorded secondary use";
+        const relation = s(r.relation_to_primary);
+        const disclosed = s(r.disclosed_in_notice);
+        const cellText = relation === "Compatible — supports or extends the primary purpose"
+          ? (disclosed === "Yes — disclosed at or before collection"
+            ? "compatible with the primary purpose and disclosed at or before collection; it is assessed within this report’s scope."
+            : "compatible with the primary purpose but not confirmed as disclosed at or before collection; completing the disclosure appears among the transparency considerations in Section IV.")
+          : relation === "Distinct — a separate purpose"
+          ? (disclosed === "Yes — disclosed at or before collection"
+            ? "a separate purpose, disclosed at or before collection; a separate purpose can change the necessity analysis and expectations, and the scope note in this section applies."
+            : "a separate purpose that is not confirmed as disclosed; the combination weighs against the processing in Section IX until the disclosure and scope questions are resolved.")
+          : "not yet classified against the primary purpose; the uncertainty is carried into the Required Assessment Follow-Up in Section IX.";
+        return `— ${name}: on the Company’s typed record, this use is ${cellText}`;
+      });
+      put(
+        "i_purpose_scope:4",
+        "secondary_use_analysis",
+        "B",
+        `Analysis. ${lines.join(" ")}`,
+        ["INTAKE:secondary_activities", "FACTOR:secondary_use_table"],
+        [],
+      );
+    }
+  }
+  // RK3-D — comparable_processing_analysis (doc 33 D-L3/D-L5). The engine
+  // owns this conditional block; the spine's fixed first words open it.
+  if (comparable === "This assessment covers a set of similar activities presenting similar risks") {
+    const basis = clause(intake.comparable_processing_basis);
+    put(
+      "i_purpose_scope:7",
+      "comparable_processing_analysis",
+      "B",
+      `The Company has identified related activities that may be sufficiently similar to be assessed together. Related processing may be addressed in one assessment where the activities are similar and present similar privacy risks. The Company records that this assessment covers a set of similar activities presenting similar risks${
+        basis ? `, on the following stated basis: ${basis}` : ", recorded in the intake record without further explanation"
+      }. Conclusion. The assessment proceeds on the comparable-set footing the Company has recorded; if a covered activity diverges in the information involved, the consumers affected, or the risks presented, it requires its own assessment.`,
+      ["INTAKE:comparable_processing_status", "INTAKE:comparable_processing_basis"],
+      ["11 CCR § 7156"],
+    );
   }
   if (engagedLines.length) {
     const analyses = engagedLines.map((l) => l.replace(/^Engaged — /, "Trigger analysis — "));
@@ -1348,6 +1778,20 @@ export function runRiskFactorEngine(
         ["INTAKE:a8_information_providers", "DERIVED:materials_considered_index"],
         ["11 CCR § 7152(a)(8)"],
       );
+      // RK3-D — record_sufficiency_analysis (doc 33 D-L4: templated over the
+      // completion gate; spine order places it before the conclusion).
+      if (rc && (rc.value === true || rc.value === false)) {
+        put(
+          "i_purpose_scope:12",
+          "record_sufficiency_analysis",
+          "B",
+          rc.value === true
+            ? "Assessment. Sufficiency is evaluated against the completion gate over the structured intake record: every asked question is answered, the coverage check links each material fact into the analysis, and no consistency flag remains open."
+            : "Assessment. Sufficiency is evaluated against the completion gate over the structured intake record; the gate reports the unmet conditions identified below, and the assessment treats each as a gap rather than resolving it by assumption.",
+          ["DERIVED:record_complete"],
+          [],
+        );
+      }
       if (parts.length > 1) {
         put(
           "i_purpose_scope:12",
@@ -1370,6 +1814,20 @@ export function runRiskFactorEngine(
     const anyMethod = [m.collection_method, m.use_method, m.disclosure_method, m.retention_method, m.other_processing_method]
       .some((v) => s(v));
     if (entry && result && anyMethod) {
+      // RK3-D — processing_coherence_analysis (doc 33 D-L4: presence-typed
+      // over the three stages of the structured processing record).
+      const methodCount = [m.collection_method, m.use_method, m.disclosure_method, m.retention_method, m.other_processing_method]
+        .filter((v) => s(v) && !/^n\/?a\b/i.test(s(v))).length;
+      put(
+        "ii_processing_context:1",
+        "processing_coherence_analysis",
+        "B",
+        `Analysis. Read as an operational sequence, the Company’s structured record describes one continuous flow: information enters through the stated entry point, ${methodCount} processing ${
+          plural(methodCount, "stage is", "stages are")
+        } described for it, and the stated output follows from those stages. No stage in the description depends on information the record does not identify.`,
+        ["INTAKE:processing_entry_point", "INTAKE:processing_methods", "INTAKE:processing_result"],
+        [],
+      );
       put(
         "ii_processing_context:1",
         "processing_description_conclusion",
@@ -1394,6 +1852,27 @@ export function runRiskFactorEngine(
     }
   }
   if (s(intake.consumer_interaction_method) && s(intake.consumer_interaction_purpose) && s(intake.approximate_ca_consumers)) {
+    // RK3-D — consumer_context_analysis (doc 33 D-L3: the relationship enum
+    // carries the context judgment; scale and interaction facts frame it).
+    if (relationshipContext) {
+      const framing = relationshipContext === "General public — no direct relationship"
+        ? "Because the affected consumers have no direct relationship with the Company, the notice and expectation analyses in Section IV carry correspondingly greater weight: the consumer’s understanding depends entirely on the disclosures made where the information is collected."
+        : relationshipContext === "Employees or job applicants" ||
+            relationshipContext === "Students" ||
+            relationshipContext === "Patients or health-service recipients"
+        ? "Because the relationship involves a dependency the consumer cannot easily exit, the coercion and choice-architecture analysis in Section IV carries correspondingly greater weight."
+        : relationshipContext === "Mixed"
+        ? "Because the affected consumers stand in more than one relationship to the Company, the expectation analysis in Section IV is evaluated against the least-informed position among them."
+        : "The relationship gives the affected consumers a direct channel to the Company, and the rights and controls in Section IV are evaluated in that context.";
+      put(
+        "ii_processing_context:3",
+        "consumer_context_analysis",
+        "B",
+        `Analysis. The Company identifies the affected consumers as: ${relationshipContext.toLowerCase()}. ${framing}`,
+        ["INTAKE:consumer_relationship_context", "INTAKE:consumer_interaction_method"],
+        [],
+      );
+    }
     put(
       "ii_processing_context:3",
       "consumer_context_conclusion",
@@ -1406,22 +1885,9 @@ export function runRiskFactorEngine(
   {
     const cats = arr(intake.q4_pi_categories);
     if (cats.length) {
-      // SPI membership mirrors the assembler's CA_PI_TAXONOMY spi flags
-      // (kept inline to avoid an assembler↔engine import cycle; parity is
-      // pinned by the RK3-C test).
-      const spiCount = cats.filter((c) =>
-        [
-          "Precise geolocation (GPS-level / specific address)",
-          "Health or medical information",
-          "Biometric information",
-          "Genetic data",
-          "Racial or ethnic origin",
-          "Religious or philosophical beliefs",
-          "Union membership",
-          "Sexual orientation or gender identity",
-          "Citizenship or immigration status",
-        ].includes(c)
-      ).length;
+      // RK3-D (doc 33 D-L9): SPI membership reads the single-custody
+      // taxonomy module; the RK3-C inline mirror (ledger L18) is retired.
+      const spiCount = cats.filter((c) => CA_SPI_CATEGORY_KEYS.includes(c)).length;
       const spiSentence = spiCount > 0
         ? `Of those, ${spiCount} ${plural(spiCount, "is", "are")} sensitive personal information, and the sensitivity finding is carried into the necessity, risk, and safeguard analyses.`
         : isYes(intake.q15_sensitive_pi)
@@ -1440,6 +1906,52 @@ export function runRiskFactorEngine(
     }
   }
   if (s(intake.i4b_sources)) {
+    // RK3-D — source_risk_analysis (doc 33 D-L5 source-risk table over the
+    // typed source categories).
+    if (sourceCats.length) {
+      const direct = sourceCats.includes("Directly from the consumer");
+      const automatic = sourceCats.includes("Automatically from consumer devices or interactions");
+      const brokers = sourceCats.includes("From third-party data providers or brokers");
+      const providers = sourceCats.includes("From service providers or contractors");
+      const publicSrc = sourceCats.includes("From public sources");
+      const otherBiz = sourceCats.includes("From another business (merger, partnership, or similar)");
+      const sourceFactors: string[] = [];
+      if (automatic) {
+        sourceFactors.push(
+          "information collected automatically from devices or interactions is gathered without a contemporaneous act by the consumer, which raises the weight of the notice and expectation analyses in Section IV",
+        );
+      }
+      if (brokers) {
+        sourceFactors.push(
+          "information obtained from third-party data providers carries accuracy and consumer-awareness considerations the Company cannot verify at first hand",
+        );
+      }
+      if (providers || otherBiz) {
+        sourceFactors.push(
+          "information received through other organizations depends on the collection practices of those organizations, which the Company relies on rather than controls",
+        );
+      }
+      if (publicSrc) {
+        sourceFactors.push(
+          "information drawn from public sources can be outdated or decontextualized relative to the purpose it is used for",
+        );
+      }
+      const text = sourceFactors.length === 0 && direct
+        ? "Analysis. The Company identifies a single source category: information supplied directly by the consumer. Direct collection ties the information to the interaction the consumer participates in, and no source-based accuracy or awareness consideration is identified on the typed record."
+        : `Analysis. The Company identifies the following source ${
+          plural(sourceCats.length, "category", "categories")
+        }: ${asProse(sourceCats.map((x) => x.toLowerCase()))}. On the typed record, ${asProse(sourceFactors)}.${
+          direct ? " Information supplied directly by the consumer presents no source-based consideration beyond those stated." : ""
+        }`;
+      put(
+        "ii_processing_context:9",
+        "source_risk_analysis",
+        "B",
+        text,
+        ["INTAKE:source_categories", "INTAKE:i4b_sources"],
+        [],
+      );
+    }
     put(
       "ii_processing_context:9",
       "source_conclusion",
@@ -1458,6 +1970,34 @@ export function runRiskFactorEngine(
         typeCounts.set(t, (typeCounts.get(t) ?? 0) + 1);
       }
       const typeSummary = [...typeCounts.entries()].map(([t, n]) => `${n} ${t.toLowerCase()}`).join("; ");
+      // RK3-D — recipient_risk_analysis (doc 33 D-L5 recipient table:
+      // recipient type × contractual protections, per row).
+      const typedRows = recipientRows.filter((r) => s(r.contractual_protections));
+      if (typedRows.length) {
+        const lines = typedRows.map((r) => {
+          const name = s(r.recipient_name_or_category) || "the recorded recipient";
+          const type = s(r.recipient_type) || "unclassified";
+          const contract = s(r.contractual_protections);
+          const cellText = contract === "Written contract with the CCPA-required restrictions in place"
+            ? type === "Third party"
+              ? "a third party under a written contract with the required restrictions; the disclosure is managed on the contractual record, and the sale-or-sharing consequences recorded elsewhere in this report continue to apply."
+              : "under a written contract with the required restrictions; the disclosure is managed on the contractual record."
+            : contract === "Written contract without confirmed CCPA restriction terms"
+            ? "under a written contract whose required restriction terms are not confirmed; the reliance the assessment can place on the contractual control is correspondingly reduced in Section VIII."
+            : contract === "No written contract"
+            ? "without a written contract; the disclosure operates outside a contractual control, the exposure is elevated, and the remediation appears among the recommendations in Section IX."
+            : "with the contractual posture not yet confirmed; the uncertainty is treated conservatively and the confirmation appears among the recommendations in Section IX.";
+          return `— ${name} (${type.toLowerCase()}): ${cellText}`;
+        });
+        put(
+          "ii_processing_context:11",
+          "recipient_risk_analysis",
+          "B",
+          `Analysis. ${lines.join(" ")}`,
+          ["INTAKE:recipients", "FACTOR:recipient_risk_table"],
+          [],
+        );
+      }
       put(
         "ii_processing_context:11",
         "recipient_conclusion",
@@ -1468,6 +2008,30 @@ export function runRiskFactorEngine(
         ["INTAKE:recipients"],
         [],
       );
+      // RK3-D — material_vendor_dependency (doc 33 D-L3; spine fixed lead
+      // and note carried by the composer).
+      if (vendorDependency === "One or more vendors are essential — the processing could not continue without them") {
+        const essential = clause(intake.essential_vendors);
+        put(
+          "ii_processing_context:11",
+          "material_vendor_dependency",
+          "B",
+          `The processing materially depends on: ${
+            essential || "one or more vendors the Company records as essential, recorded in the intake record without further identification"
+          }. The effectiveness of the related contractual, technical, or oversight controls is considered in Section VIII.`,
+          ["INTAKE:vendor_dependency", "INTAKE:essential_vendors"],
+          [],
+        );
+      } else if (vendorDependency === "No single recipient or vendor is essential to the processing") {
+        put(
+          "ii_processing_context:11",
+          "material_vendor_dependency",
+          "B",
+          "The Company records that no single recipient or vendor is essential to the processing; no material vendor dependency enters the analysis.",
+          ["INTAKE:vendor_dependency"],
+          [],
+        );
+      }
     } else if (Array.isArray(intake.recipients)) {
       put(
         "ii_processing_context:11",
@@ -1528,6 +2092,41 @@ export function runRiskFactorEngine(
           "Consequence. Completion of each planned disclosure is treated as part of the transparency record; where the favorable balance depends on it, completion appears among the conditions or recommendations in Section IX.",
         );
       }
+      // RK3-D — transparency_analysis (doc 33 D-L4: templated over the
+      // q11–q14 notice enums and the disclosure record; composed before the
+      // conclusion per the spine's block-4 order).
+      {
+        const noticeGaps: string[] = [];
+        if (s(intake.q12_notice_at_collection) === "Yes, partial coverage") {
+          noticeGaps.push("the notice at collection covers only part of the collection points");
+        }
+        if (isNo(intake.q12_notice_at_collection)) {
+          noticeGaps.push("no notice at collection is in place");
+        }
+        if (s(intake.q13_notice_content) === "Some elements") {
+          noticeGaps.push("the notice content covers only some of the required elements");
+        }
+        if (isNo(intake.q13_notice_content)) noticeGaps.push("the notice content is not in place");
+        if (s(intake.q11_policy_review) === "Over 24 months ago") {
+          noticeGaps.push("the privacy policy was last reviewed more than 24 months ago");
+        }
+        if (s(intake.q11_policy_review) === "No privacy policy") noticeGaps.push("no privacy policy is published");
+        const analysisText = noticeGaps.length === 0
+          ? "Analysis. On the Company’s typed notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements. The disclosure record above is read against that posture."
+          : `Analysis. The Company’s typed notice record shows ${
+            asProse(noticeGaps)
+          }. Each gap reduces what a consumer can learn about the processing before it occurs, and the reduction is carried into the expectation and balancing analyses.`;
+        if (s(intake.q12_notice_at_collection) || s(intake.q13_notice_content)) {
+          put(
+            "iv_consumer_transparency:2",
+            "transparency_analysis",
+            "B",
+            analysisText,
+            ["INTAKE:q11_policy_review", "INTAKE:q12_notice_at_collection", "INTAKE:q13_notice_content", "INTAKE:activity_disclosures"],
+            [],
+          );
+        }
+      }
       put(
         "iv_consumer_transparency:2",
         "transparency_conclusion",
@@ -1537,6 +2136,52 @@ export function runRiskFactorEngine(
         ["11 CCR § 7152(a)(3)(E)"],
       );
     }
+  }
+  // RK3-D — consumer expectations (doc 33 D-L5 expectations table over the
+  // § 7002(b)-factor typed markers; spine block IV.C:4 with its fixed lead
+  // and note for unexpected processing).
+  if (expectAll.length) {
+    const divergencePhrases = divergenceMarkers.map((x) => EXPECTATION_DIVERGENCE[x]);
+    put(
+      "iv_consumer_transparency:4",
+      "consumer_expectations_analysis",
+      "B",
+      divergenceMarkers.length === 0
+        ? "Analysis. On the Company’s typed record, the processing occurs during and as part of the interaction the consumer participates in, and none of the divergence markers the assessment checks — continued processing after the interaction, repurposing, combination with other sources, or disclosure to parties the consumer does not interact with — applies."
+        : `Analysis. On the Company’s typed record, the following expectation ${
+          plural(divergenceMarkers.length, "marker applies", "markers apply")
+        }: ${asProse(divergencePhrases)}. ${
+          noticeFull
+            ? "Each marker is disclosed through the notice posture recorded in this section, which frames what a consumer can reasonably anticipate."
+            : "The notice posture recorded in this section does not fully cover the processing, so the markers are weighed without the mitigation full disclosure would provide."
+        }`,
+      ["INTAKE:expectation_check", "INTAKE:q12_notice_at_collection", "INTAKE:q13_notice_content"],
+      [],
+    );
+    if (divergenceMarkers.length) {
+      put(
+        "iv_consumer_transparency:4",
+        "unexpected_processing",
+        "B",
+        `The following aspect of the processing may fall outside the expectations created by the consumer interaction: ${
+          asProse(divergenceMarkers.map((x) => EXPECTATION_DIVERGENCE[x]))
+        }. Unexpected processing is not automatically prohibited. It can, however, increase the importance of notice, choice, minimization, or another safeguard.`,
+        ["INTAKE:expectation_check"],
+        [],
+      );
+    }
+    put(
+      "iv_consumer_transparency:4",
+      "consumer_expectations_conclusion",
+      "B",
+      divergenceMarkers.length === 0
+        ? "Conclusion. The activity is reasonably consistent with the context in which the information is collected, on the facts the Company has supplied."
+        : noticeFull
+        ? "Conclusion. Aspects of the activity extend beyond the immediate consumer interaction, and each is disclosed. The divergence is weighed in Section IX at reduced force because the disclosure record covers it."
+        : "Conclusion. Aspects of the activity extend beyond the immediate consumer interaction and are not fully covered by the disclosure record. The divergence weighs against the processing in Section IX until the notice posture covers it.",
+      ["FACTOR:consumer_expectations_analysis"],
+      [],
+    );
   }
   {
     const controlLines: string[] = [];
@@ -1568,6 +2213,24 @@ export function runRiskFactorEngine(
         ["INTAKE:q6_right_know", "INTAKE:q7_right_delete", "INTAKE:q8_right_correct", "INTAKE:q9_opt_out", "INTAKE:q10_id_verification"],
         [],
       );
+      // RK3-D — consumer_control_analysis (doc 33 D-L4: templated over the
+      // same typed control enums the weak-marker scan reads).
+      put(
+        "iv_consumer_transparency:6",
+        "consumer_control_analysis",
+        "B",
+        weakControls.length === 0
+          ? `Analysis. Each control above is evaluated on the process the Company describes for it: ${controlLines.length} ${
+            plural(controlLines.length, "control is", "controls are")
+          } recorded, each with a stated mechanism a consumer can invoke, and identity verification is addressed so the mechanisms operate for the person entitled to use them.`
+          : `Analysis. Of the ${controlLines.length} ${
+            plural(controlLines.length, "control", "controls")
+          } recorded, ${asProse(weakControls)} ${
+            plural(weakControls.length, "operates", "operate")
+          } without a formal or completed process on the Company’s typed record. A control is weighed by what a consumer can actually do with it, not by its presence in the record.`,
+        ["FACTOR:relevant_consumer_controls", "INTAKE:q10_id_verification"],
+        [],
+      );
       put(
         "iv_consumer_transparency:6",
         "consumer_control_conclusion",
@@ -1590,18 +2253,47 @@ export function runRiskFactorEngine(
       reasons.push("the sensitive-information limit is not yet in place");
     }
     if (isNo(intake.q9_opt_out)) reasons.push("the opt-out mechanism is not in place");
+    // RK3-D — coercion_analysis (doc 33 D-L5 choice-architecture table over
+    // the typed confirmations; composed before the conclusion).
+    if (choiceAnswered) {
+      const confirmedPhrases = choiceConfirmed.map((x) => CHOICE_CONFIRMATIONS[x]);
+      const missingPhrases = choiceMissing.map((x) => CHOICE_CONFIRMATIONS[x]);
+      const analysisText = choiceNoneConfirmed
+        ? "Analysis. The Company cannot confirm any of the choice-architecture facts the assessment checks: symmetric presentation of the permission choice, that declining does not degrade the core service, or the absence of steering design elements. Each unconfirmed fact is treated as a live interference risk and weighs against the processing in Section IX."
+        : choiceMissing.length === 0
+        ? `Analysis. The Company confirms ${asProse(confirmedPhrases)}. On that typed record, the design of the interaction leaves the consumer’s choice informed and voluntary.`
+        : `Analysis. The Company confirms ${asProse(confirmedPhrases)}, and does not confirm ${
+          asProse(missingPhrases)
+        }. Each unconfirmed fact is treated conservatively: the assessment does not assume the answer most favorable to the processing.`;
+      put(
+        "iv_consumer_transparency:8",
+        "coercion_analysis",
+        "B",
+        analysisText,
+        ["INTAKE:choice_architecture_check", "FACTOR:choice_architecture_table"],
+        [],
+      );
+    }
     if (necessity.total || s(intake.q9_opt_out)) {
-      const text = reasons.length === 0
+      const choiceReasons = choiceAnswered && (choiceNoneConfirmed || choiceMissing.length > 0)
+        ? [
+          choiceNoneConfirmed
+            ? "none of the choice-architecture facts can be confirmed"
+            : `the typed record leaves ${asProse(choiceMissing.map((x) => CHOICE_CONFIRMATIONS[x]))} unconfirmed`,
+        ]
+        : [];
+      const allReasons = [...reasons, ...choiceReasons];
+      const text = allReasons.length === 0
         ? "Conclusion. No coercion or compulsion indicator is established in the typed intake record: the information processed is supported as necessary to the interaction the consumer expects, and the choices described above are available."
         : `Conclusion. The choice architecture around the activity requires attention: ${
-          asProse(reasons)
+          asProse(allReasons)
         }. Consequence. The matter is reflected in the minimization condition, conditions, or recommendations in Sections III and IX.`;
       put(
         "iv_consumer_transparency:8",
         "coercion_conclusion",
         "B",
         text,
-        ["INTAKE:a2_necessity_set", "INTAKE:q9_opt_out", "INTAKE:q16_limit_sensitive"],
+        ["INTAKE:a2_necessity_set", "INTAKE:q9_opt_out", "INTAKE:q16_sensitive_limit", "INTAKE:choice_architecture_check"],
         [],
       );
     }
@@ -1611,6 +2303,25 @@ export function runRiskFactorEngine(
 
   if (isAdmt) {
     if (clause(intake.q19_admt_description) && clause(intake.admt_operational_role)) {
+      // RK3-D — admt_role_analysis (doc 33 D-L3: the substantial-factor axis
+      // typed by the Company's own classification).
+      if (admtRoleType) {
+        const roleText = admtRoleType === "The ADMT makes the decision without human involvement"
+          ? "Analysis. The Company classifies the system as making the decision without human involvement. The classification places the full weight of the decision on the automated component, and the human-review, testing, and training analyses below are evaluated against that weight."
+          : admtRoleType === "The ADMT is a substantial factor in a human decision"
+          ? "Analysis. The Company classifies the system as a substantial factor in a human decision. The human decisionmaker acts on the system’s output, so the reliability of that output and the reviewer’s ability to depart from it are the operative questions in the analyses below."
+          : admtRoleType === "The ADMT supports a human decision without being a substantial factor"
+          ? "Analysis. The Company classifies the system as supporting a human decision without being a substantial factor in it. The classification reduces the decision weight of the automated component; the assessment tests that classification against the output-and-effect record below."
+          : "Analysis. The Company has not yet classified the decision role of the system. The assessment treats the classification conservatively — as if the automated component carries decision weight — until the record resolves it.";
+        put(
+          "v_admt:1",
+          "admt_role_analysis",
+          "B",
+          roleText,
+          ["INTAKE:admt_role_type", "INTAKE:admt_operational_role"],
+          [],
+        );
+      }
       put(
         "v_admt:1",
         "admt_role_conclusion",
@@ -1620,8 +2331,54 @@ export function runRiskFactorEngine(
         [],
       );
     }
+    // RK3-D — admt_logic_analysis + admt_logic_conclusion (doc 33 D-L5 ADMT
+    // logic table over the documentation enum).
+    if (admtLogicDocumented && clause(intake.i5_admt_logic)) {
+      const logicAnalysis = admtLogicDocumented === "The logic is documented and reviewed internally"
+        ? "Analysis. The Company records that the system’s logic is documented and reviewed internally, and its description of that logic appears in this section. Internal documentation and review give the assessment a basis for evaluating the assumptions and limitations the Company identifies."
+        : admtLogicDocumented === "The logic is documented by the provider and the Company relies on that documentation"
+        ? "Analysis. The Company relies on the provider’s documentation of the system’s logic. The reliance is workable for assessment purposes, and it places the Company’s understanding of the system one step from its source; the dependency is noted in the vendor analysis in Section II."
+        : "Analysis. The Company records that the system’s logic is not fully documented or understood, or cannot yet be confirmed. A system whose logic the operator cannot describe cannot be fully evaluated for the risks this report assesses.";
+      const logicConclusion = admtLogicDocumented === "The logic is documented and reviewed internally"
+        ? "Conclusion. The logic record is adequate for assessment purposes on the Company’s typed answer."
+        : admtLogicDocumented === "The logic is documented by the provider and the Company relies on that documentation"
+        ? "Conclusion. The logic record is adequate for assessment purposes, with the provider dependency noted."
+        : "Conclusion. The logic record is not adequate for assessment purposes. Consequence. Documenting the logic appears among the Conditions to Proceed in Section IX.";
+      put(
+        "v_admt:3",
+        "admt_logic_analysis",
+        "B",
+        logicAnalysis,
+        ["INTAKE:admt_logic_documented", "INTAKE:i5_admt_logic"],
+        [],
+      );
+      put(
+        "v_admt:3",
+        "admt_logic_conclusion",
+        "B",
+        logicConclusion,
+        ["FACTOR:admt_logic_analysis"],
+        [],
+      );
+    }
     if (clause(intake.admt_output) && clause(intake.admt_output_use) && clause(intake.admt_consumer_effect)) {
       const b3 = engagedLines.some((l) => l.includes("(b)(3)"));
+      // RK3-D — admt_decision_effect_analysis (doc 33 D-L4: templated over
+      // the output/use/effect narratives and the typed role classification).
+      put(
+        "v_admt:5",
+        "admt_decision_effect_analysis",
+        "B",
+        `Analysis. The Company identifies what the system produces, how the output is used, and the effect on the consumer, and those facts are recorded in this section. ${
+          admtRoleType === "The ADMT makes the decision without human involvement"
+            ? "Read with the Company’s classification that the system decides without human involvement, the consumer effect recorded above follows directly from the automated output."
+            : admtRoleType
+            ? "Read with the Company’s decision-role classification, the consumer effect recorded above operates through the human decision the output feeds."
+            : "The consumer effect recorded above is evaluated on the Company’s description of how the output is used."
+        }`,
+        ["INTAKE:admt_output", "INTAKE:admt_output_use", "INTAKE:admt_consumer_effect", "INTAKE:admt_role_type"],
+        [],
+      );
       put(
         "v_admt:5",
         "admt_decision_role_conclusion",
@@ -1635,34 +2392,133 @@ export function runRiskFactorEngine(
     }
     {
       const review = clause(intake.i5_admt_human_review);
+      // RK3-D — human_review_effectiveness_analysis (doc 33 D-L5: the typed
+      // human-involvement test — interpretation, breadth, authority).
+      if (humanReviewFacts.length) {
+        const HRF_PHRASES: Record<string, string> = {
+          "Reviewers know how to interpret and use the ADMT's output": "reviewers know how to interpret and use the output",
+          "Reviewers consider information beyond the ADMT's output": "reviewers consider information beyond the output",
+          "Reviewers have authority to change or overrule the decision": "reviewers have authority to change or overrule the decision",
+        };
+        const confirmed = humanReviewConfirmed.map((x) => HRF_PHRASES[x]).filter(Boolean);
+        const missing = Object.keys(HRF_PHRASES).filter((x) => !humanReviewFacts.includes(x))
+          .map((x) => HRF_PHRASES[x]);
+        const hrText = noHumanReview
+          ? "Analysis. The Company records that there is no human review of the system’s decisions. The automated component operates without meaningful human involvement, and the risk analysis in Section VII carries the decision weight accordingly."
+          : confirmed.length === 3
+          ? `Analysis. The Company confirms each element of effective human involvement: ${
+            asProse(confirmed)
+          }. On that typed record, the human review is effective — the reviewer is positioned to reach a different result, not merely to restate the automated one.`
+          : confirmed.length > 0
+          ? `Analysis. The Company confirms that ${asProse(confirmed)}, and does not confirm that ${
+            asProse(missing)
+          }. Human review is credited only to the extent confirmed; an unconfirmed element is not assumed.`
+          : "Analysis. None of the elements of effective human involvement can be confirmed on the typed record. The review that exists is not shown to change outcomes, and the automated component is weighed as if it decides.";
+        put(
+          "v_admt:7",
+          "human_review_effectiveness_analysis",
+          "B",
+          hrText,
+          ["INTAKE:human_review_facts", "FACTOR:human_review_table"],
+          [],
+        );
+      }
       put(
         "v_admt:7",
         "human_review_conclusion",
         "B",
-        review
+        humanReviewFacts.length
+          ? (noHumanReview
+            ? "Conclusion. No human review operates for the system on the Company’s typed record. Consequence. The absence increases the weight of the automated component in the risk analysis in Section VII."
+            : humanReviewConfirmed.length === 3
+            ? "Conclusion. The human review is effective on the Company’s typed record, and the safeguard analysis in Section VIII relies on it at full weight."
+            : "Conclusion. The human review is partially established on the Company’s typed record, and the safeguard analysis in Section VIII relies on it only to the extent confirmed.")
+          : review
           ? "Conclusion. Human review is described in the Company’s submission. The assessment credits it to the extent the description supports reviewer understanding, adequate information and time, and authority to reach a different result; that reliance is carried into the safeguard analysis in Section VIII."
           : "Conclusion. No human review is described for the system. Consequence. The absence of described human review increases the weight of the automated component in the risk analysis in Section VII.",
-        ["INTAKE:i5_admt_human_review"],
+        humanReviewFacts.length ? ["INTAKE:human_review_facts"] : ["INTAKE:i5_admt_human_review"],
         [],
       );
     }
     {
       const testing = clause(intake.i5_admt_fairness_testing);
       const none = !testing || /^not applicable/i.test(testing) || /^none\b/i.test(testing);
+      // RK3-D — admt_testing_analysis (doc 33 D-L5 testing table over the
+      // typed testing facts).
+      if (admtTestingFacts.length) {
+        const accuracy = admtTestingFacts.includes("Tested for accuracy or validity");
+        const bias = admtTestingFacts.includes("Tested for discriminatory impact or bias");
+        const recent = admtTestingFacts.includes("Testing performed or reviewed within the last 12 months");
+        const providerOnly = admtTestingFacts.includes("Testing performed by the provider rather than the Company");
+        const noneTyped = admtTestingFacts.includes("No testing has been performed or confirmed");
+        const testGaps: string[] = [];
+        if (!accuracy) testGaps.push("accuracy or validity testing");
+        if (!bias) testGaps.push("discriminatory-impact testing");
+        if (!recent) testGaps.push("testing within the last 12 months");
+        const testingText = noneTyped
+          ? "Analysis. The Company records that no testing has been performed or confirmed for the system. Accuracy and fairness claims accordingly carry no evidentiary support, and the adverse weight is carried into Section VII."
+          : accuracy && bias && recent
+          ? `Analysis. The Company confirms accuracy and discriminatory-impact testing, performed or reviewed within the last 12 months${
+            providerOnly ? ", performed by the provider rather than the Company" : ""
+          }. The testing record supports the reliance the safeguard analysis places on it${
+            providerOnly ? ", with the provider dependency noted" : ""
+          }.`
+          : `Analysis. The Company’s typed testing record does not confirm ${
+            asProse(testGaps)
+          }${providerOnly ? ", and the testing that exists was performed by the provider rather than the Company" : ""}. Each unconfirmed element limits the reliance the assessment can place on the testing record, and completing it appears among the recommendations in Section IX.`;
+        put(
+          "v_admt:9",
+          "admt_testing_analysis",
+          "B",
+          testingText,
+          ["INTAKE:admt_testing_facts", "FACTOR:admt_testing_table"],
+          [],
+        );
+      }
       put(
         "v_admt:9",
         "admt_testing_conclusion",
         "B",
-        none
+        none && !admtTestingFacts.length
           ? "Conclusion. No accuracy, fairness, or bias testing is described for the system. That absence limits the weight the assessment can give to accuracy and fairness claims and is reflected in the risk analysis in Section VII."
           : "Conclusion. Testing is described in the Company’s submission and provides evidence bearing on accuracy, fairness, and bias; the strength of that evidence is weighed in Sections VII and VIII.",
-        ["INTAKE:i5_admt_fairness_testing"],
+        ["INTAKE:i5_admt_fairness_testing", "INTAKE:admt_testing_facts"],
         [],
       );
     }
     {
       const source = clause(intake.i5_admt_training_source);
       const none = !source || /^not applicable/i.test(source);
+      // RK3-D — training_data_analysis (doc 33 D-L4: templated over the
+      // existing typed training operands; no new field required).
+      if (!none || s(intake.q18b_admt_training) || s(intake.admt_provider_trained_using_pi)) {
+        const trainsSignificant = s(intake.q18b_admt_training).startsWith("Yes");
+        const providerTrained = isYes(intake.admt_provider_trained_using_pi);
+        const parts: string[] = [];
+        parts.push(
+          none
+            ? "Analysis. Training-data provenance is not identified in the Company’s submission."
+            : "Analysis. The Company identifies the provenance of the training data, and the identification forms part of the technical record in Appendix D.",
+        );
+        if (trainsSignificant) {
+          parts.push(
+            "The Company additionally records that personal information is used to train the technology, and the training use is assessed as part of this activity’s scope.",
+          );
+        }
+        if (providerTrained) {
+          parts.push(
+            "The provider’s own training on personal information is recorded, and the provided-to-another-business facts later in this section carry the consequence.",
+          );
+        }
+        put(
+          "v_admt:11",
+          "training_data_analysis",
+          "B",
+          parts.join(" "),
+          ["INTAKE:i5_admt_training_source", "INTAKE:q18b_admt_training", "INTAKE:admt_provider_trained_using_pi"],
+          [],
+        );
+      }
       put(
         "v_admt:11",
         "training_data_conclusion",
@@ -1696,6 +2552,70 @@ export function runRiskFactorEngine(
         ["INTAKE:admt_made_available_to_other_business", "INTAKE:admt_provider_trained_using_pi", "INTAKE:recipient_business_uses_admt_for_significant_decision"],
         ["11 CCR § 7153"],
       );
+      // RK3-D — admt_overall_reasoning (doc 33 D-L4: pure projection of the
+      // typed Section V conclusions; spine order places it after the overall
+      // conclusion).
+      {
+        const reasoningBits: string[] = [];
+        if (admtRoleType) reasoningBits.push(`the decision role is classified (${admtRoleType.toLowerCase()})`);
+        if (admtLogicDocumented) {
+          reasoningBits.push(
+            admtLogicDocumented === "The logic is not fully documented or understood" || admtLogicDocumented === "Unsure"
+              ? "the logic record is not yet adequate"
+              : "the logic record is adequate",
+          );
+        }
+        if (humanReviewFacts.length) {
+          reasoningBits.push(
+            noHumanReview
+              ? "no human review operates"
+              : humanReviewConfirmed.length === 3
+              ? "human review is effective"
+              : "human review is partially established",
+          );
+        }
+        if (admtTestingFacts.length) {
+          reasoningBits.push(
+            admtTestingFacts.includes("No testing has been performed or confirmed")
+              ? "the testing record is empty"
+              : "the testing record is evaluated at its confirmed extent",
+          );
+        }
+        if (reasoningBits.length) {
+          put(
+            "v_admt:13",
+            "admt_overall_reasoning",
+            "B",
+            `Reasoning. The conclusion restates the typed findings of this section: ${
+              asProse(reasoningBits)
+            }. No effectiveness judgment beyond those typed findings is made here; the consequences run through Sections VII through IX.`,
+            ["FACTOR:admt_role_analysis", "FACTOR:admt_logic_conclusion", "FACTOR:human_review_effectiveness_analysis", "FACTOR:admt_testing_analysis"],
+            [],
+          );
+        }
+      }
+    }
+    // RK3-D — admt_technical_analysis (Appendix D, doc 33 D-L4: ratified
+    // commentary over the presence and shape of the technical record).
+    {
+      const techPresent = [
+        clause(intake.q19_admt_description),
+        clause(intake.i5_admt_logic),
+        clause(intake.admt_output),
+        clause(intake.i5_admt_human_review),
+        clause(intake.i5_admt_fairness_testing),
+        clause(intake.i5_admt_training_source),
+      ].filter(Boolean).length;
+      if (techPresent > 0) {
+        put(
+          "appendix_d:2",
+          "admt_technical_analysis",
+          "B",
+          `Analytical note. The record above preserves the Company’s own technical description across ${techPresent} of the six record areas the appendix tracks (system description, logic, output and use, human review, testing, and training data). The body of the report evaluates those facts in Section V; this appendix preserves them so a reviewer can trace each Section V conclusion to the record it rests on.`,
+          ["DERIVED:admt_technical_facts"],
+          ["11 CCR § 7152(a)(5)"],
+        );
+      }
     }
   }
 

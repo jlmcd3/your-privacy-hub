@@ -30,15 +30,15 @@ import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-
 // DERIVATION IS FOR DETECTION, NOT FILLING (Item 324 ruling): nothing here
 // generates or defaults a fixture value. Activity-specific data stays
 // authored; a new required-always key must be answered per fixture by a human.
+// NOTE (RK3-A1 g6 / D10 RESTAGED): a4_benefit_* was demoted from "always" to
+// "optional" behind benefit_*_identified gates (customers are never forced to
+// invent a benefit). a9_approver_name / _position were restaged to "optional"
+// (finalization contract re-declares them at the Final-Approved stage). They
+// are removed from this historical pin so the derived-guard test below still
+// asserts ITEM_305_ALWAYS ⊆ alwaysKeys().
 const ITEM_305_ALWAYS = [
   "a2_necessity_set",
-  "a4_benefit_business",
-  "a4_benefit_consumer",
-  "a4_benefit_other_stakeholders",
-  "a4_benefit_public",
   "a5_harm_pathways",
-  "a9_approver_name",
-  "a9_approver_position",
 ] as const;
 
 const MESSY_CPPA_RISK = MESSY_BY_TOOL["cppa-risk"] ?? [];

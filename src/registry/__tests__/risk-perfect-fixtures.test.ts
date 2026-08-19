@@ -24,10 +24,46 @@ const EXEMPT = new Set([
   "exceptions_intake",
   "q5c_share_revenue_50pct",
   "i9_existing_dpia_summary",
+  // RK3-D (doc 33 D-L3) — untriggered conditionals on this record: the
+  // fixture answers "processed only for the stated purpose" and "single
+  // activity", so the dependent narratives are honestly absent.
+  "out_of_scope_activities",
+  "comparable_processing_basis",
+  // RK3-A2 g1 — timing/status fields with emptyIsAnswer. processing_status
+  // is filled ("Ongoing"); the four date/description fields below are N/A on
+  // this record and empty is the honest answer per the contract posture:
+  //   processing_start_date  — no statutory requirement to record the exact
+  //                             start date of an ongoing programme.
+  //   planned_start_date     — N/A: processing is already Ongoing, not Planned.
+  //   prior_risk_assessment_date — no prior formal assessment exists.
+  //   material_change_date / material_change_description — material_change_since_prior
+  //                             is "No", so these sub-fields are absent.
+  "processing_start_date",
+  "planned_start_date",
+  "prior_risk_assessment_date",
+  "material_change_date",
+  "material_change_description",
+  // RK3-A2 g3 — downstream ADMT-provider fields. admt_made_available_to_other_business
+  // is "No" on this record; the two downstream fields are therefore N/A.
+  "admt_provider_trained_using_pi",
+  "recipient_business_uses_admt_for_significant_decision",
+  // RK3-A4 g4 — SPI employment-exception facts. q17_sensitive_basis is
+  // "Necessary for the service" (not "Employment contract"), so this field
+  // is empty by design (emptyIsAnswer) on this record.
+  "spi_employment_exception_facts",
+  // RK3-A3 g2 — internal EUP QA tool. Never printed in the assessment spine;
+  // a complete assessment does not require it to be populated before submission.
+  "harm_category_review_status",
 ]);
 
 /** Untriggered conditionals: MUST be absent (or empty) on this record. */
-const MUST_BE_ABSENT = ["q5c_share_revenue_50pct", "i9_existing_dpia_summary"];
+const MUST_BE_ABSENT = [
+  "q5c_share_revenue_50pct",
+  "i9_existing_dpia_summary",
+  // RK3-D — see EXEMPT note above.
+  "out_of_scope_activities",
+  "comparable_processing_basis",
+];
 
 /** Triggered conditionals on this record: MUST be answered. */
 const MUST_BE_PRESENT = [

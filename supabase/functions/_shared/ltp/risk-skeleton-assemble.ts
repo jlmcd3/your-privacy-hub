@@ -43,7 +43,7 @@ import {
 } from "./risk-factor-engine.ts";
 
 export const RISK_SKELETON_ASSEMBLER_STAMP =
-  "risk-skeleton-assembler@rk3-c-factor-engine-2026-08-18";
+  "risk-skeleton-assembler@rk3-d-class-c-conversion-2026-08-19";
 
 type Bag = Record<string, unknown>;
 
@@ -112,89 +112,11 @@ function fillDrop(template: string, map: Record<string, string | null>): string 
   return out.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
 }
 
-// ── Canonical California PI / SPI taxonomy (Cal. Civ. Code § 1798.140(v), (ae)) ──
-// Field-map §2b: q4_pi_categories is activity-scoped and maps internally to the
-// canonical statutory taxonomy. Keys byte-match the contract's PI_CATEGORIES.
+// ── Canonical California PI / SPI taxonomy ────────────────────────────────────
+// RK3-D (doc 33 D-L9): single custody in ca-pi-taxonomy.ts; the factor engine
+// imports the same module (the RK3-C inline mirror is retired).
 
-interface TaxonomyRow {
-  readonly canonical: string;
-  readonly spi: boolean;
-}
-
-const CA_PI_TAXONOMY: Record<string, TaxonomyRow> = {
-  "Contact identifiers (name, email, phone)": {
-    canonical: "Identifiers (name, email address, telephone number)",
-    spi: false,
-  },
-  "Device identifiers (IP, cookies, device IDs)": {
-    canonical: "Unique identifiers (IP address, cookies, device identifiers)",
-    spi: false,
-  },
-  "Internet or network activity": {
-    canonical: "Internet or other electronic network activity information",
-    spi: false,
-  },
-  "Precise geolocation (GPS-level / specific address)": {
-    canonical: "Precise geolocation",
-    spi: true,
-  },
-  "General location (city, region, ZIP, IP-derived)": {
-    canonical: "Geolocation data (non-precise)",
-    spi: false,
-  },
-  "Financial information": {
-    canonical: "Commercial and financial information",
-    spi: false,
-  },
-  "Health or medical information": {
-    canonical: "Health information",
-    spi: true,
-  },
-  "Biometric information": {
-    canonical: "Biometric information",
-    spi: true,
-  },
-  "Genetic data": {
-    canonical: "Genetic data",
-    spi: true,
-  },
-  "Racial or ethnic origin": {
-    canonical: "Racial or ethnic origin",
-    spi: true,
-  },
-  "Religious or philosophical beliefs": {
-    canonical: "Religious or philosophical beliefs",
-    spi: true,
-  },
-  "Union membership": {
-    canonical: "Union membership",
-    spi: true,
-  },
-  "Sexual orientation or gender identity": {
-    canonical: "Sex life or sexual orientation",
-    spi: true,
-  },
-  "Citizenship or immigration status": {
-    canonical: "Citizenship or immigration status",
-    spi: true,
-  },
-  "Employment information": {
-    canonical: "Professional or employment-related information",
-    spi: false,
-  },
-  "Education information": {
-    canonical: "Education information",
-    spi: false,
-  },
-  "Children's data (under 16)": {
-    canonical: "Personal information of consumers under 16",
-    spi: false,
-  },
-  "Other": {
-    canonical: "Other personal information described in the assessment record",
-    spi: false,
-  },
-};
+import { CA_PI_TAXONOMY } from "./ca-pi-taxonomy.ts";
 
 // ── DERIVED builders (field-map §4 — deterministic, no model) ────────────────
 
@@ -715,9 +637,19 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   const values = buildRiskSlotValues(intake, report);
   const assessmentDate = String(values.assessmentDate);
 
-  // RK3-C — {{FACTOR.*}} generated blocks (Classes A + B). Keys are disjoint
-  // from the Phase B conditional/rule keys below; Class C ids stay absent.
+  // RK3-C/RK3-D — {{FACTOR.*}} generated blocks (Classes A + B; the RK3-D
+  // conversion composed the former Class C set from the doc 33 D-L3 typed
+  // operands). Keys are disjoint from the Phase B conditional/rule keys
+  // below, except i_purpose_scope:4 where the Phase B secondary-uses lead
+  // and the RK3-D per-row analysis share the spine block and are joined.
   const engine = runRiskFactorEngine(intake, report, assessmentDate);
+
+  // RK3-D — join the Phase B conditional content with the engine's factor
+  // analysis for a block the spine defines as carrying both.
+  const joinBlock = (fixed: string | null, factor: string | undefined): string | null => {
+    if (fixed && factor) return `${fixed} ${factor}`;
+    return fixed ?? factor ?? null;
+  };
 
   const composed: ComposedBlocks = {
     ...engine.blocks,
@@ -726,7 +658,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "executive_summary:7": composeExecCompanyDecision(intake),
 
     // Section I
-    "i_purpose_scope:4": composeSecondaryUses(intake),
+    "i_purpose_scope:4": joinBlock(composeSecondaryUses(intake), engine.blocks["i_purpose_scope:4"]),
     "i_purpose_scope:8": composePriorAssessment(intake),
     "i_purpose_scope:11": composeExternalParticipants(intake),
 
@@ -776,7 +708,11 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   const ledger = Array.isArray(report.citation_ledger)
     ? (report.citation_ledger as Bag[]).map((c) => s(c.pinpoint)).filter(Boolean)
     : [];
-  const toa = renderTableOfAuthorities(ledger, skeletonDocumentToText(draft));
+  // RK3-D (doc 33 D-L8) — App G factor-authority feed: the authorities each
+  // composed factor relies on (provenance records) join the ToA in their own
+  // labelled group; the ledger's iff-cited law is unchanged.
+  const factorAuthorities = engine.provenance.flatMap((p) => p.authorities);
+  const toa = renderTableOfAuthorities(ledger, skeletonDocumentToText(draft), factorAuthorities);
 
   const document = renderSkeletonDocument({
     sections: SKELETON_SECTIONS,

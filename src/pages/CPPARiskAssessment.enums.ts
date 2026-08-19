@@ -177,3 +177,126 @@ export const FINAL_PROCESSING_DECISION_OPTS = [
   ...FINAL_PROCESSING_DECISION_ONGOING_OPTS,
 ] as const;
 export const REVIEWER_ROLE_OPTS = ["Reviewed", "Approved", "Both"] as const;
+
+// ── RK3-D (doc 33 D-L3) — Class C→B conversion operands. Each set carries
+// a judgment INTO typed facts (doc 33 D-L2 rule 1: the enum carries the
+// judgment; the ratified table carries the law). Verbatim copies mirrored
+// in cppa-risk-assessment.ts; parity pinned in rk3-d-class-c.test.ts.
+// "Unsure" / "None … can be confirmed" always maps to the conservative
+// table cell (D-L2 rule 3).
+export const PURPOSE_SPECIFICITY_FACTS_OPTS = [
+  "The specific product, service, or operation the processing supports",
+  "The categories of personal information involved",
+  "The categories of consumers affected",
+  "The intended outcome or result of the processing",
+  "None of the above",
+] as const;
+export const OUT_OF_SCOPE_CONFIRMATION_OPTS = [
+  "The affected information is processed only for the stated purpose and any listed secondary uses",
+  "The affected information is also processed for other activities not covered by this assessment",
+  "Unsure",
+] as const;
+export const COMPARABLE_PROCESSING_STATUS_OPTS = [
+  "This assessment covers a single processing activity",
+  "This assessment covers a set of similar activities presenting similar risks",
+  "Unsure",
+] as const;
+export const CONSUMER_RELATIONSHIP_CONTEXT_OPTS = [
+  "Existing customers or account holders",
+  "Prospective customers or site visitors",
+  "Employees or job applicants",
+  "Students",
+  "Patients or health-service recipients",
+  "General public — no direct relationship",
+  "Mixed",
+] as const;
+export const SOURCE_CATEGORY_OPTS = [
+  "Directly from the consumer",
+  "Automatically from consumer devices or interactions",
+  "From service providers or contractors",
+  "From third-party data providers or brokers",
+  "From public sources",
+  "From another business (merger, partnership, or similar)",
+] as const;
+export const VENDOR_DEPENDENCY_OPTS = [
+  "No single recipient or vendor is essential to the processing",
+  "One or more vendors are essential — the processing could not continue without them",
+  "Unsure",
+] as const;
+export const EXPECTATION_CHECK_OPTS = [
+  "The processing occurs during and as part of the consumer's interaction with the Company",
+  "The processing continues after the interaction ends",
+  "Information is used for a purpose different from the purpose for which it was collected",
+  "Information is combined with information from other sources",
+  "Information is disclosed to parties the consumer does not directly interact with",
+  "None of the above apply",
+] as const;
+export const CHOICE_ARCHITECTURE_CHECK_OPTS = [
+  "Consent or permission requests are presented symmetrically — declining is as easy as accepting",
+  "Declining the processing does not degrade the core service the consumer seeks",
+  "The Company does not use design elements that steer consumers toward permitting the processing",
+  "None of the above can be confirmed",
+] as const;
+export const ADMT_ROLE_TYPE_OPTS = [
+  "The ADMT makes the decision without human involvement",
+  "The ADMT is a substantial factor in a human decision",
+  "The ADMT supports a human decision without being a substantial factor",
+  "Unsure",
+] as const;
+export const ADMT_LOGIC_DOCUMENTED_OPTS = [
+  "The logic is documented and reviewed internally",
+  "The logic is documented by the provider and the Company relies on that documentation",
+  "The logic is not fully documented or understood",
+  "Unsure",
+] as const;
+export const HUMAN_REVIEW_FACTS_OPTS = [
+  "Reviewers know how to interpret and use the ADMT's output",
+  "Reviewers consider information beyond the ADMT's output",
+  "Reviewers have authority to change or overrule the decision",
+  "None of the above can be confirmed",
+  "There is no human review",
+] as const;
+export const ADMT_TESTING_FACTS_OPTS = [
+  "Tested for accuracy or validity",
+  "Tested for discriminatory impact or bias",
+  "Testing performed or reviewed within the last 12 months",
+  "Testing performed by the provider rather than the Company",
+  "No testing has been performed or confirmed",
+] as const;
+export const RISK_INTERDEPENDENCY_OPTS = [
+  "The identified risk pathways operate independently",
+  "Two or more identified pathways could compound each other",
+  "Unsure",
+] as const;
+export const BENEFIT_MAGNITUDE_BASIS_OPTS = [
+  "Quantified or measurable basis stated",
+  "Qualitative basis stated",
+  "No basis stated",
+] as const;
+export const SECONDARY_RELATION_OPTS = [
+  "Compatible — supports or extends the primary purpose",
+  "Distinct — a separate purpose",
+  "Not yet determined",
+] as const;
+export const SECONDARY_DISCLOSED_OPTS = [
+  "Yes — disclosed at or before collection",
+  "No",
+  "Unsure",
+] as const;
+export const RECIPIENT_CONTRACT_OPTS = [
+  "Written contract with the CCPA-required restrictions in place",
+  "Written contract without confirmed CCPA restriction terms",
+  "No written contract",
+  "Unsure",
+] as const;
+export const SAFEGUARD_EFFECTIVENESS_BASIS_OPTS = [
+  "Validated by testing against the linked risk",
+  "Consistent with an industry standard or framework",
+  "Based on internal design review only",
+  "No effectiveness evidence",
+] as const;
+export const PLANNED_TIMELINE_OPTS = [
+  "Before processing begins or within 3 months",
+  "Within 12 months",
+  "No committed timeline",
+] as const;

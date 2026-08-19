@@ -166,6 +166,10 @@ export type SecondaryActivity = {
   name: string;
   purpose: string;
   divergence: Record<string, string>;
+  // RK3-D (doc 33 D-L3) — per-row Class C→B operands; optional so old drafts
+  // restore cleanly.
+  relation_to_primary?: string;
+  disclosed_in_notice?: string;
 };
 
 // I-3: California-consumer count band (§ 4D).
@@ -292,6 +296,29 @@ import {
   FINAL_PROCESSING_DECISION_PLANNED_OPTS,
   FINAL_PROCESSING_DECISION_ONGOING_OPTS,
   REVIEWER_ROLE_OPTS,
+} from "./CPPARiskAssessment.enums";
+// RK3-D (doc 33 D-L3) — Class C→B conversion option sets (single source of
+// truth; verbatim copies mirrored in the intake contract, parity pinned).
+import {
+  PURPOSE_SPECIFICITY_FACTS_OPTS,
+  OUT_OF_SCOPE_CONFIRMATION_OPTS,
+  COMPARABLE_PROCESSING_STATUS_OPTS,
+  CONSUMER_RELATIONSHIP_CONTEXT_OPTS,
+  SOURCE_CATEGORY_OPTS,
+  VENDOR_DEPENDENCY_OPTS,
+  EXPECTATION_CHECK_OPTS,
+  CHOICE_ARCHITECTURE_CHECK_OPTS,
+  ADMT_ROLE_TYPE_OPTS,
+  ADMT_LOGIC_DOCUMENTED_OPTS,
+  HUMAN_REVIEW_FACTS_OPTS,
+  ADMT_TESTING_FACTS_OPTS,
+  RISK_INTERDEPENDENCY_OPTS,
+  BENEFIT_MAGNITUDE_BASIS_OPTS,
+  SECONDARY_RELATION_OPTS,
+  SECONDARY_DISCLOSED_OPTS,
+  RECIPIENT_CONTRACT_OPTS,
+  SAFEGUARD_EFFECTIVENESS_BASIS_OPTS,
+  PLANNED_TIMELINE_OPTS,
 } from "./CPPARiskAssessment.enums";
 
 // Progressive disclosure for optional clusters. The value line states what the
@@ -475,8 +502,8 @@ export default function CPPARiskAssessment() {
   // available, and the purpose of the disclosure. Explicit-None follows the
   // exceptions_intake emptyIsAnswer pattern: the declared toggle emits []
   // as a substantive negative answer. i6_vendors stays the legacy summary.
-  const [recipientRows, setRecipientRows] = useState<{ recipient_name_or_category: string; recipient_type: string; pi_categories_made_available: string[]; disclosure_purpose: string }[]>([
-    { recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [], disclosure_purpose: "" },
+  const [recipientRows, setRecipientRows] = useState<{ recipient_name_or_category: string; recipient_type: string; pi_categories_made_available: string[]; disclosure_purpose: string; contractual_protections: string }[]>([
+    { recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [], disclosure_purpose: "", contractual_protections: "" },
   ]);
   const [recipientsNoneDeclared, setRecipientsNoneDeclared] = useState(false);
   // RK3-A1 g6 — § 7152(a)(4) benefit gates: the customer is never forced to
@@ -513,8 +540,8 @@ export default function CPPARiskAssessment() {
   const [a5HarmPathways, setA5HarmPathways] = useState<{ harm: string; data_involved: string; actor: string; source: string; cause: string; likelihood: string; severity: string }[]>([
     { harm: "", data_involved: "", actor: "", source: "", cause: "", likelihood: "", severity: "" },
   ]);
-  const [a6Safeguards, setA6Safeguards] = useState<{ harm: string; safeguard: string; safeguard_status: string; residual: string; risk_pathway_ids: string[] }[]>([
-    { harm: "", safeguard: "", safeguard_status: "", residual: "", risk_pathway_ids: [] },
+  const [a6Safeguards, setA6Safeguards] = useState<{ harm: string; safeguard: string; safeguard_status: string; residual: string; risk_pathway_ids: string[]; effectiveness_basis: string; planned_timeline: string }[]>([
+    { harm: "", safeguard: "", safeguard_status: "", residual: "", risk_pathway_ids: [], effectiveness_basis: "", planned_timeline: "" },
   ]);
   // RK3-A3 g1 — harm-category review-status tracker (EUP internal QA, never printed)
   const [harmCategoryReviewStatus, setHarmCategoryReviewStatus] = useState<Record<string, string>>({});
@@ -552,6 +579,60 @@ export default function CPPARiskAssessment() {
   const [primaryActivityPurpose, setPrimaryActivityPurpose] = useState("");
   const [hasSecondaryUses, setHasSecondaryUses] = useState("");
   const [secondaryActivities, setSecondaryActivities] = useState<SecondaryActivity[]>([]);
+
+  // ── RK3-D (doc 33 D-L3) — Class C→B conversion operands. One grouped state
+  // object (the impactData pattern): each answer is a typed fact the report's
+  // factor engine consumes through a ratified determination table; the enum
+  // carries the judgment, the table carries the law. ────────────────────────
+  type Rk3dOperands = {
+    purpose_specificity_facts: string[];
+    out_of_scope_confirmation: string;
+    out_of_scope_activities: string;
+    comparable_processing_status: string;
+    comparable_processing_basis: string;
+    consumer_relationship_context: string;
+    source_categories: string[];
+    vendor_dependency: string;
+    essential_vendors: string;
+    expectation_check: string[];
+    choice_architecture_check: string[];
+    admt_role_type: string;
+    admt_logic_documented: string;
+    human_review_facts: string[];
+    admt_testing_facts: string[];
+    risk_interdependency_check: string;
+    compounding_pathways: string[];
+    benefit_business_magnitude_basis: string;
+    benefit_consumer_magnitude_basis: string;
+    benefit_other_stakeholders_magnitude_basis: string;
+    benefit_public_magnitude_basis: string;
+  };
+  const RK3D_EMPTY: Rk3dOperands = {
+    purpose_specificity_facts: [],
+    out_of_scope_confirmation: "",
+    out_of_scope_activities: "",
+    comparable_processing_status: "",
+    comparable_processing_basis: "",
+    consumer_relationship_context: "",
+    source_categories: [],
+    vendor_dependency: "",
+    essential_vendors: "",
+    expectation_check: [],
+    choice_architecture_check: [],
+    admt_role_type: "",
+    admt_logic_documented: "",
+    human_review_facts: [],
+    admt_testing_facts: [],
+    risk_interdependency_check: "",
+    compounding_pathways: [],
+    benefit_business_magnitude_basis: "",
+    benefit_consumer_magnitude_basis: "",
+    benefit_other_stakeholders_magnitude_basis: "",
+    benefit_public_magnitude_basis: "",
+  };
+  const [rk3d, setRk3d] = useState<Rk3dOperands>(RK3D_EMPTY);
+  const setRk3dField = <K extends keyof Rk3dOperands>(k: K, v: Rk3dOperands[K]) =>
+    setRk3d((prev) => ({ ...prev, [k]: v }));
 
 
   // Improvement Kit (Doc N R1): parallel assertion map only — never
@@ -736,6 +817,15 @@ export default function CPPARiskAssessment() {
       if (!processingEntryPoint.trim()) return "Say where personal information first enters this activity.";
       if (Object.values(processingMethods).some((v) => !v.trim())) return "Complete all five processing-method entries — write \"N/A\" for any stage that does not occur.";
       if (!processingResult.trim()) return "Say what this activity produces or supports — a decision, score, recommendation, service action, or operational outcome.";
+      // RK3-D (doc 33 D-L3) — form-required for new submissions; data-layer optional.
+      if (!rk3d.purpose_specificity_facts.length) return "Check what the stated purpose itself identifies — \"None of the above\" is a complete answer.";
+      if (!rk3d.out_of_scope_confirmation) return "Answer whether this same information is processed for anything outside the stated purpose — \"Unsure\" is a complete answer.";
+      if (!rk3d.comparable_processing_status) return "Answer whether this assessment covers a single activity or a set of similar activities.";
+      if (hasSecondaryUses === "Yes — there are other uses") {
+        const rows = secondaryActivities;
+        if (rows.some((a) => !a.relation_to_primary)) return "For each other use, say how it relates to the primary purpose.";
+        if (rows.some((a) => !a.disclosed_in_notice)) return "For each other use, say whether it is disclosed at or before collection.";
+      }
     }
     if (step === 2) {
       if (!q1 || !q2) return "Select the revenue band and the California consumer band.";
@@ -746,7 +836,16 @@ export default function CPPARiskAssessment() {
       if (q18 === "Yes" && !q20) return "Answer whether consumers can opt out of the automated decisionmaking.";
       if (!q18bTraining) return "Answer whether personal information is processed to train automated decisionmaking or recognition technology.";
       if (admtTriggered && (!i5AdmtLogic || !i5AdmtHumanReview)) return "Describe the automated decisionmaking logic and the human review process.";
+      // RK3-D (doc 33 D-L3) — typed ADMT operands, required when ADMT applies.
+      if (admtTriggered) {
+        if (!rk3d.admt_role_type) return "Classify the ADMT's role in the decision — \"Unsure\" is a complete answer.";
+        if (!rk3d.admt_logic_documented) return "Say how the ADMT's logic is documented — \"Unsure\" is a complete answer.";
+        if (!rk3d.human_review_facts.length) return "Select what can be confirmed about the human review — \"There is no human review\" is a complete answer.";
+        if (!rk3d.admt_testing_facts.length) return "Select what describes the ADMT's testing record — \"No testing has been performed or confirmed\" is a complete answer.";
+      }
       if (!q6Multi.length || !q7 || !q8 || !q9 || !q10) return "Complete the consumer-rights answers.";
+      // RK3-D (doc 33 D-L3) — choice-architecture confirmations.
+      if (!rk3d.choice_architecture_check.length) return "Select what you can confirm about how consumers are asked to permit the processing — \"None of the above can be confirmed\" is a complete answer.";
     }
     if (step === 3) {
       if (!q4.length) return "Select the categories of personal information this activity processes.";
@@ -780,7 +879,14 @@ export default function CPPARiskAssessment() {
         if (rows.some((r) => !r.recipient_type)) return "Classify each recipient: service provider, contractor, or third party.";
         if (rows.some((r) => !r.pi_categories_made_available.length)) return "Select the personal-information categories made available to each recipient.";
         if (rows.some((r) => !r.disclosure_purpose.trim())) return "State the purpose of the disclosure to each recipient.";
+        // RK3-D (doc 33 D-L3) — per-row contractual protections.
+        if (rows.some((r) => !r.contractual_protections)) return "Select the contractual-protection status for each recipient — \"Unsure\" is a complete answer.";
       }
+      // RK3-D (doc 33 D-L3) — sources, relationship, expectations, vendor dependency.
+      if (!rk3d.source_categories.length) return "Select the source categories this information comes through.";
+      if (!rk3d.consumer_relationship_context) return "Say who the affected consumers are in relation to your business.";
+      if (!rk3d.expectation_check.length) return "Select which processing facts apply — \"None of the above apply\" is a complete answer.";
+      if (!rk3d.vendor_dependency) return "Answer whether any recipient or vendor is essential to the processing — \"Unsure\" is a complete answer.";
     }
     if (step === 4) {
       if (!i1bMinPi || i1bMinPi.length < 20) return "State the minimum personal information necessary for this purpose.";
@@ -794,19 +900,33 @@ export default function CPPARiskAssessment() {
         if (rows.some((r) => !r.retention_period.trim() && !r.retention_criteria)) return "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.";
       }
     }
+    if (step === 5) {
+      // RK3-D (doc 33 D-L3) — pathway interdependency + per-safeguard-row
+      // typed operands (form-required for new submissions; data-layer optional).
+      const a5rows = a5HarmPathways.filter((r) => r.harm);
+      if (a5rows.length && !rk3d.risk_interdependency_check) return "Answer whether the identified impacts operate independently or could compound each other — \"Unsure\" is a complete answer.";
+      if (rk3d.risk_interdependency_check === "Two or more identified pathways could compound each other" && rk3d.compounding_pathways.length < 2) {
+        return "Select at least two pathways that could compound each other.";
+      }
+      const a6rows = a6Safeguards.filter((r) => r.harm && (r.safeguard.trim() || r.safeguard_status));
+      if (a6rows.some((r) => !r.effectiveness_basis)) return "Select the effectiveness evidence for each safeguard — \"No effectiveness evidence\" is a complete answer.";
+      if (a6rows.some((r) => r.safeguard_status === "Planned, not yet implemented" && !r.planned_timeline)) return "Give the committed timeline for each planned safeguard — \"No committed timeline\" is a complete answer.";
+    }
     if (step === 6) {
       // RK3-A1 g6 — § 7152(a)(4) benefit gates: every class answered; "Yes"
       // requires the statement and its supporting fact. Never force a benefit.
-      const gates: [string, string, string, string][] = [
-        [benefitBusinessIdentified, a4BenefitBusiness, a4BenefitBusinessFact, "business"],
-        [benefitConsumerIdentified, a4BenefitConsumer, a4BenefitConsumerFact, "consumer"],
-        [benefitOtherStakeholdersIdentified, a4BenefitOtherStakeholders, a4BenefitOtherStakeholdersFact, "other-stakeholder"],
-        [benefitPublicIdentified, a4BenefitPublic, a4BenefitPublicFact, "public"],
+      const gates: [string, string, string, string, string][] = [
+        [benefitBusinessIdentified, a4BenefitBusiness, a4BenefitBusinessFact, rk3d.benefit_business_magnitude_basis, "business"],
+        [benefitConsumerIdentified, a4BenefitConsumer, a4BenefitConsumerFact, rk3d.benefit_consumer_magnitude_basis, "consumer"],
+        [benefitOtherStakeholdersIdentified, a4BenefitOtherStakeholders, a4BenefitOtherStakeholdersFact, rk3d.benefit_other_stakeholders_magnitude_basis, "other-stakeholder"],
+        [benefitPublicIdentified, a4BenefitPublic, a4BenefitPublicFact, rk3d.benefit_public_magnitude_basis, "public"],
       ];
-      for (const [gate, text, fact, label] of gates) {
+      for (const [gate, text, fact, basis, label] of gates) {
         if (!gate) return `Answer whether a distinct ${label} benefit is identified — "No" is a complete answer.`;
         if (gate === "Yes" && !text.trim()) return `Describe the ${label} benefit you identified.`;
         if (gate === "Yes" && !fact.trim()) return `Give the fact in the record supporting the ${label} benefit.`;
+        // RK3-D (doc 33 D-L3) — magnitude basis; "No basis stated" is a complete answer.
+        if (gate === "Yes" && !basis) return `Say what kind of basis the ${label} benefit statement gives for its size — "No basis stated" is a complete answer.`;
       }
     }
     if (step === 7) {
@@ -851,6 +971,9 @@ export default function CPPARiskAssessment() {
             divergence: Object.fromEntries(
               DIVERGENCE_DIMENSIONS.map((d) => [d.key, a.divergence?.[d.key] || "Not sure"]),
             ),
+            // RK3-D (doc 33 D-L3) — per-row secondary-use operands.
+            relation_to_primary: a.relation_to_primary || undefined,
+            disclosed_in_notice: a.disclosed_in_notice || undefined,
           }))
         : [],
     // legacy keys preserved
@@ -960,6 +1083,30 @@ export default function CPPARiskAssessment() {
     a9_approver_position: a9ApproverPosition.trim(),
     a9_approval_date: a9ApprovalDate,
     a8_information_providers: a8InformationProviders.trim(),
+    // RK3-D (doc 33 D-L3) — Class C→B operands; blank/empty answers emit
+    // undefined so legacy semantics are preserved and the record-complete
+    // gate reads honest absence, never a defaulted answer.
+    purpose_specificity_facts: rk3d.purpose_specificity_facts.length ? rk3d.purpose_specificity_facts : undefined,
+    out_of_scope_confirmation: rk3d.out_of_scope_confirmation || undefined,
+    out_of_scope_activities: rk3d.out_of_scope_activities.trim() || undefined,
+    comparable_processing_status: rk3d.comparable_processing_status || undefined,
+    comparable_processing_basis: rk3d.comparable_processing_basis.trim() || undefined,
+    consumer_relationship_context: rk3d.consumer_relationship_context || undefined,
+    source_categories: rk3d.source_categories.length ? rk3d.source_categories : undefined,
+    vendor_dependency: rk3d.vendor_dependency || undefined,
+    essential_vendors: rk3d.essential_vendors.trim() || undefined,
+    expectation_check: rk3d.expectation_check.length ? rk3d.expectation_check : undefined,
+    choice_architecture_check: rk3d.choice_architecture_check.length ? rk3d.choice_architecture_check : undefined,
+    admt_role_type: rk3d.admt_role_type || undefined,
+    admt_logic_documented: rk3d.admt_logic_documented || undefined,
+    human_review_facts: rk3d.human_review_facts.length ? rk3d.human_review_facts : undefined,
+    admt_testing_facts: rk3d.admt_testing_facts.length ? rk3d.admt_testing_facts : undefined,
+    risk_interdependency_check: rk3d.risk_interdependency_check || undefined,
+    compounding_pathways: rk3d.compounding_pathways.length ? rk3d.compounding_pathways : undefined,
+    benefit_business_magnitude_basis: rk3d.benefit_business_magnitude_basis || undefined,
+    benefit_consumer_magnitude_basis: rk3d.benefit_consumer_magnitude_basis || undefined,
+    benefit_other_stakeholders_magnitude_basis: rk3d.benefit_other_stakeholders_magnitude_basis || undefined,
+    benefit_public_magnitude_basis: rk3d.benefit_public_magnitude_basis || undefined,
     // Improvement Kit (Doc N R1): parallel assertions map, only when
     // the flag is on AND at least one designated field carries an
     // entry. Absent key = legacy semantics.
@@ -989,6 +1136,7 @@ export default function CPPARiskAssessment() {
     a5HarmPathways, a6Safeguards, harmCategoryReviewStatus, a9ApproverName, a9ApproverPosition, a9ApprovalDate, a8InformationProviders,
     assertions,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
+    rk3d,
 
   ]);
 
@@ -1015,6 +1163,7 @@ export default function CPPARiskAssessment() {
     finalProcessingDecision, finalProcessingDecisionNotes,
     assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
     finalizationFollowUpResolved,
+    rk3d,
 
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -1038,6 +1187,7 @@ export default function CPPARiskAssessment() {
     finalProcessingDecision, finalProcessingDecisionNotes,
     assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
     finalizationFollowUpResolved,
+    rk3d,
 
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -1056,7 +1206,7 @@ export default function CPPARiskAssessment() {
     consumerInteractionMethod: "", consumerInteractionPurpose: "", approximateCaConsumers: "",
     retentionByPiCategory: [{ pi_category: "", retention_period: "", retention_criteria: "" }],
     activityDisclosures: [{ disclosure_content: "", disclosure_method: "", status: "", timing_or_location: "" }],
-    recipientRows: [{ recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [] as string[], disclosure_purpose: "" }],
+    recipientRows: [{ recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [] as string[], disclosure_purpose: "", contractual_protections: "" }],
     recipientsNoneDeclared: false,
     benefitBusinessIdentified: "", benefitConsumerIdentified: "", benefitOtherStakeholdersIdentified: "", benefitPublicIdentified: "",
     sectionParticipants: [{ name: "", role: "", processing_responsibility: "", participation_confirmed: false }],
@@ -1073,6 +1223,7 @@ export default function CPPARiskAssessment() {
     approverAuthorityConfirmed: "",
     approverAuthorityBasis: "",
     finalizationFollowUpResolved: "",
+    rk3d: RK3D_EMPTY,
   }), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
   const {
@@ -1250,6 +1401,9 @@ export default function CPPARiskAssessment() {
     if (typeof d.approverAuthorityConfirmed === "string") setApproverAuthorityConfirmed(d.approverAuthorityConfirmed);
     if (typeof d.approverAuthorityBasis === "string") setApproverAuthorityBasis(d.approverAuthorityBasis);
     if (typeof d.finalizationFollowUpResolved === "string") setFinalizationFollowUpResolved(d.finalizationFollowUpResolved);
+    // RK3-D (doc 33 D-L3) — grouped operand object; old drafts without it, or
+    // with a partial shape, merge over the empty defaults.
+    if (d.rk3d && typeof d.rk3d === "object") setRk3d({ ...RK3D_EMPTY, ...d.rk3d });
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
@@ -1507,6 +1661,28 @@ export default function CPPARiskAssessment() {
                 />
               </div>
 
+              {/* RK3-D (doc 33 D-L3) — purpose-specificity facets. The report
+                  bands the purpose on this typed answer; the honest answer is
+                  what the stated purpose itself identifies. */}
+              <div>
+                <Label>Which of the following does your stated purpose itself identify? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(1))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Check only what the purpose statement above actually names — the report evaluates the purpose's precision on this answer. "None of the above" is a complete answer.</p>
+                <div className="mt-2">
+                  <Pills
+                    options={[...PURPOSE_SPECIFICITY_FACTS_OPTS]}
+                    value={rk3d.purpose_specificity_facts}
+                    onChange={(v: string[]) => {
+                      const NONE = "None of the above";
+                      const wasNone = rk3d.purpose_specificity_facts.includes(NONE);
+                      const hasNone = v.includes(NONE);
+                      if (hasNone && !wasNone) setRk3dField("purpose_specificity_facts", [NONE]);
+                      else if (hasNone && v.length > 1) setRk3dField("purpose_specificity_facts", v.filter((x) => x !== NONE));
+                      else setRk3dField("purpose_specificity_facts", v);
+                    }}
+                  />
+                </div>
+              </div>
+
               <div data-rail-key="comparable_set" onFocus={() => focusRail('comparable_set')}>
                 <Label>
                   Beyond {primaryActivityName.trim() || "this activity"}, does your company use this same data for any other distinct purpose, product, or audience? <Req />{" "}
@@ -1594,6 +1770,37 @@ export default function CPPARiskAssessment() {
                           className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                         />
                       </div>
+                      {/* RK3-D (doc 33 D-L3) — per-row secondary-use operands. */}
+                      <div>
+                        <Label>How does this other use relate to the primary purpose? <Req /></Label>
+                        <div className="mt-1.5">
+                          <Radio
+                            name={`secondary_relation_${idx}`}
+                            options={[...SECONDARY_RELATION_OPTS]}
+                            value={act.relation_to_primary ?? ""}
+                            onChange={(v) =>
+                              setSecondaryActivities((prev) =>
+                                prev.map((a, i) => (i === idx ? { ...a, relation_to_primary: v } : a)),
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Is this other use disclosed to consumers at or before collection? <Req /></Label>
+                        <div className="mt-1.5">
+                          <Radio
+                            name={`secondary_disclosed_${idx}`}
+                            options={[...SECONDARY_DISCLOSED_OPTS]}
+                            value={act.disclosed_in_notice ?? ""}
+                            onChange={(v) =>
+                              setSecondaryActivities((prev) =>
+                                prev.map((a, i) => (i === idx ? { ...a, disclosed_in_notice: v } : a)),
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
                       <div className="pt-1">
                         <p className="text-sm font-medium">
                           Compared with {primaryActivityName.trim() || "the activity you are assessing"}, is each of these the same or different?
@@ -1641,6 +1848,30 @@ export default function CPPARiskAssessment() {
                   )}
                 </div>
               )}
+              {/* RK3-D (doc 33 D-L3) — out-of-scope confirmation + comparable-set
+                  status. Both are typed scope facts the report's Section I
+                  factors consume. */}
+              <div>
+                <Label>Outside the stated purpose and any uses listed above, is this same information processed for anything else? <Req /></Label>
+                <p className="text-xs text-muted-foreground mt-1">"Unsure" is a complete answer — the report records it as an open follow-up rather than assuming the favorable answer.</p>
+                <div className="mt-2"><Radio name="out_of_scope_confirmation" options={[...OUT_OF_SCOPE_CONFIRMATION_OPTS]} value={rk3d.out_of_scope_confirmation} onChange={(v) => setRk3dField("out_of_scope_confirmation", v)} /></div>
+                {rk3d.out_of_scope_confirmation === "The affected information is also processed for other activities not covered by this assessment" && (
+                  <div className="mt-2">
+                    <Label className="text-sm">Briefly describe those other activities</Label>
+                    <Textarea className="mt-2" rows={2} value={rk3d.out_of_scope_activities} onChange={(e) => setRk3dField("out_of_scope_activities", e.target.value)} placeholder="e.g., Aggregate analytics for network planning; a separate marketing program" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label>Does this assessment cover a single activity, or a set of similar activities? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7156(a))</span></Label>
+                <div className="mt-2"><Radio name="comparable_processing_status" options={[...COMPARABLE_PROCESSING_STATUS_OPTS]} value={rk3d.comparable_processing_status} onChange={(v) => setRk3dField("comparable_processing_status", v)} /></div>
+                {rk3d.comparable_processing_status === "This assessment covers a set of similar activities presenting similar risks" && (
+                  <div className="mt-2">
+                    <Label className="text-sm">State the basis for treating the activities as a comparable set</Label>
+                    <Textarea className="mt-2" rows={2} value={rk3d.comparable_processing_basis} onChange={(e) => setRk3dField("comparable_processing_basis", e.target.value)} placeholder="e.g., Each activity collects the same information in the same way for the same purpose across our three regional storefronts." />
+                  </div>
+                )}
+              </div>
               <div>
                 <Label htmlFor="entity_name">Entity name <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report and § 7157 worksheet)</span></Label>
                 <input
@@ -1963,6 +2194,54 @@ export default function CPPARiskAssessment() {
                       <Textarea className="mt-2" rows={2} value={admtConsumerEffect} onChange={(e) => setAdmtConsumerEffect(e.target.value)} onFocus={() => focusRail('i5_admt')} placeholder="e.g., Consumers in the Red tier are denied credit and receive an adverse action notice." />
                     </div>
                   </div>
+                  {/* RK3-D (doc 33 D-L3) — typed ADMT operands. Each carries a
+                      judgment into typed facts the report's ratified ADMT
+                      tables consume; "Unsure" / "cannot be confirmed" is a
+                      complete answer and is treated conservatively. */}
+                  <div className="mt-4 pt-4 border-t border-amber-200 dark:border-amber-900 space-y-3">
+                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Typed ADMT determinations (RK3-D)</p>
+                    <div>
+                      <Label className="text-sm">What role does the ADMT play in the decision? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001)</span></Label>
+                      <div className="mt-2"><Radio name="admt_role_type" options={[...ADMT_ROLE_TYPE_OPTS]} value={rk3d.admt_role_type} onChange={(v) => setRk3dField("admt_role_type", v)} /></div>
+                    </div>
+                    <div>
+                      <Label className="text-sm">How is the ADMT's logic documented? <Req /></Label>
+                      <div className="mt-2"><Radio name="admt_logic_documented" options={[...ADMT_LOGIC_DOCUMENTED_OPTS]} value={rk3d.admt_logic_documented} onChange={(v) => setRk3dField("admt_logic_documented", v)} /></div>
+                    </div>
+                    <div>
+                      <Label className="text-sm">Which of the following describe the human review, if any? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(ddd))</span></Label>
+                      <p className="text-xs text-muted-foreground mt-1">Select all that can be confirmed. These three facts are the elements of effective human involvement.</p>
+                      <div className="mt-2">
+                        <Pills
+                          options={[...HUMAN_REVIEW_FACTS_OPTS]}
+                          value={rk3d.human_review_facts}
+                          onChange={(v: string[]) => {
+                            const EXCLUSIVE = ["None of the above can be confirmed", "There is no human review"];
+                            const added = v.find((x) => EXCLUSIVE.includes(x) && !rk3d.human_review_facts.includes(x));
+                            if (added) setRk3dField("human_review_facts", [added]);
+                            else setRk3dField("human_review_facts", v.filter((x) => !EXCLUSIVE.includes(x) || v.length === 1));
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm">Which of the following describe the ADMT's testing record? <Req /></Label>
+                      <div className="mt-2">
+                        <Pills
+                          options={[...ADMT_TESTING_FACTS_OPTS]}
+                          value={rk3d.admt_testing_facts}
+                          onChange={(v: string[]) => {
+                            const NONE = "No testing has been performed or confirmed";
+                            const wasNone = rk3d.admt_testing_facts.includes(NONE);
+                            const hasNone = v.includes(NONE);
+                            if (hasNone && !wasNone) setRk3dField("admt_testing_facts", [NONE]);
+                            else if (hasNone && v.length > 1) setRk3dField("admt_testing_facts", v.filter((x) => x !== NONE));
+                            else setRk3dField("admt_testing_facts", v);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               <div>
@@ -1991,6 +2270,25 @@ export default function CPPARiskAssessment() {
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request correction of inaccurate personal information? <Req /></Label><DefPopover termKey="right_to_correct" /></div><p className="text-xs text-muted-foreground mt-1">How a consumer flags an error and how you correct it.</p><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
               <div data-rail-key="q9_opt_out" onFocus={() => focusRail('q9_opt_out')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /><EnforcementSignalIcon signalKey="opt_out_link" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">A "Do Not Sell or Share" link is required if you sell or share PI.</p><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
               <div data-rail-key="q10_verification" onFocus={() => focusRail('q10_verification')}><Label>How do you verify the identity of consumers who submit rights requests? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7060–7062)</span></Label><p className="text-xs text-muted-foreground mt-1">The process you use to confirm a requester is who they claim to be.</p><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
+              {/* RK3-D (doc 33 D-L3) — choice-architecture confirmations. */}
+              <div>
+                <Label>Which of the following can you confirm about how consumers are asked to permit this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7004)</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Select only what you can confirm. An unconfirmed item is treated conservatively in the report — "None of the above can be confirmed" is a complete answer.</p>
+                <div className="mt-2">
+                  <Pills
+                    options={[...CHOICE_ARCHITECTURE_CHECK_OPTS]}
+                    value={rk3d.choice_architecture_check}
+                    onChange={(v: string[]) => {
+                      const NONE = "None of the above can be confirmed";
+                      const wasNone = rk3d.choice_architecture_check.includes(NONE);
+                      const hasNone = v.includes(NONE);
+                      if (hasNone && !wasNone) setRk3dField("choice_architecture_check", [NONE]);
+                      else if (hasNone && v.length > 1) setRk3dField("choice_architecture_check", v.filter((x) => x !== NONE));
+                      else setRk3dField("choice_architecture_check", v);
+                    }}
+                  />
+                </div>
+              </div>
             </>
           )}
 
@@ -2050,6 +2348,14 @@ export default function CPPARiskAssessment() {
                 <ExhibitTextarea className="mt-2" rows={3} value={i4bSources} onChange={setI4bSources} placeholder='Category — source, one per line' />
                 {renderAssertion("i4b_sources")}
               </div>
+              {/* RK3-D (doc 33 D-L3) — typed source categories; the report's
+                  source-risk table reads these, the free text above stays as
+                  the descriptive record. */}
+              <div>
+                <Label>For the record: which source categories apply? <Req /></Label>
+                <p className="text-xs text-muted-foreground mt-1">Select every category the information actually comes through.</p>
+                <div className="mt-2"><Pills options={[...SOURCE_CATEGORY_OPTS]} value={rk3d.source_categories} onChange={(v: string[]) => setRk3dField("source_categories", v)} /></div>
+              </div>
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Approximately how many California consumers does this activity affect? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label><StatutePopover term="California consumer count" summary="State the approximate number of consumers whose personal information the processing affects." cite="11 CCR § 7152(a)(4)(D)" /></div>
                 <div className="mt-2"><Radio name="i3" options={CA_CONSUMER_BAND} value={i3CaConsumerBand} onChange={setI3CaConsumerBand} /></div>
@@ -2073,6 +2379,31 @@ export default function CPPARiskAssessment() {
               <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
                 <Label>How does your business interact with the consumers this activity affects? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(C))</span></Label>
                 <div className="mt-2"><Radio name="consumer_interaction_method" options={[...CONSUMER_INTERACTION_METHOD_OPTS]} value={consumerInteractionMethod} onChange={setConsumerInteractionMethod} /></div>
+              </div>
+              {/* RK3-D (doc 33 D-L3) — relationship context; frames the
+                  expectation and coercion analyses. */}
+              <div>
+                <Label>Who are the affected consumers, in relation to your business? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7002(b))</span></Label>
+                <div className="mt-2"><Radio name="consumer_relationship_context" options={[...CONSUMER_RELATIONSHIP_CONTEXT_OPTS]} value={rk3d.consumer_relationship_context} onChange={(v) => setRk3dField("consumer_relationship_context", v)} /></div>
+              </div>
+              {/* RK3-D (doc 33 D-L3) — § 7002(b)-factor expectation markers. */}
+              <div>
+                <Label>Which of the following apply to this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7002(b))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">These facts frame what a consumer can reasonably expect. Select all that apply — "None of the above apply" is a complete answer.</p>
+                <div className="mt-2">
+                  <Pills
+                    options={[...EXPECTATION_CHECK_OPTS]}
+                    value={rk3d.expectation_check}
+                    onChange={(v: string[]) => {
+                      const NONE = "None of the above apply";
+                      const wasNone = rk3d.expectation_check.includes(NONE);
+                      const hasNone = v.includes(NONE);
+                      if (hasNone && !wasNone) setRk3dField("expectation_check", [NONE]);
+                      else if (hasNone && v.length > 1) setRk3dField("expectation_check", v.filter((x) => x !== NONE));
+                      else setRk3dField("expectation_check", v);
+                    }}
+                  />
+                </div>
               </div>
               <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
                 <Label htmlFor="consumer_interaction_purpose">Why does the consumer interact with your business in this context? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(C))</span></Label>
@@ -2161,17 +2492,44 @@ export default function CPPARiskAssessment() {
                             onFocus={() => focusRail('recipients_record')}
                             placeholder="Purpose of the disclosure — e.g., Printing and mailing the monthly coupon batch"
                           />
+                          {/* RK3-D (doc 33 D-L3) — contractual-protection status. */}
+                          <select
+                            className="h-10 px-3 rounded-md border border-input bg-background w-full"
+                            value={row.contractual_protections || ""}
+                            onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, contractual_protections: e.target.value } : r)))}
+                            onFocus={() => focusRail('recipients_record')}
+                          >
+                            <option value="">Contractual protections…</option>
+                            {RECIPIENT_CONTRACT_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                          </select>
                         </div>
                       ))}
                     </div>
                     <button
                       type="button"
-                      onClick={() => setRecipientRows((prev) => [...prev, { recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [], disclosure_purpose: "" }])}
+                      onClick={() => setRecipientRows((prev) => [...prev, { recipient_name_or_category: "", recipient_type: "", pi_categories_made_available: [], disclosure_purpose: "", contractual_protections: "" }])}
                       className="mt-2 text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
                     >
                       + Add a recipient
                     </button>
                   </>
+                )}
+              </div>
+              {/* RK3-D (doc 33 D-L3) — vendor dependency. */}
+              <div>
+                <Label>Is any recipient or vendor essential to this processing? <Req /></Label>
+                <p className="text-xs text-muted-foreground mt-1">"Essential" means the processing could not continue without them. "Unsure" is a complete answer.</p>
+                <div className="mt-2"><Radio name="vendor_dependency" options={[...VENDOR_DEPENDENCY_OPTS]} value={rk3d.vendor_dependency} onChange={(v) => setRk3dField("vendor_dependency", v)} /></div>
+                {rk3d.vendor_dependency === "One or more vendors are essential — the processing could not continue without them" && (
+                  <div className="mt-2">
+                    <Label className="text-sm">Name the essential vendors and what each provides</Label>
+                    <input
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={rk3d.essential_vendors}
+                      onChange={(e) => setRk3dField("essential_vendors", e.target.value)}
+                      placeholder="e.g., Acme Cloud (hosting) and DataCo (identity verification)"
+                    />
+                  </div>
                 )}
               </div>
               <div><Label>When was your privacy policy last reviewed or updated? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><p className="text-xs text-muted-foreground mt-1">CCPA expects a review at least every 12 months.</p><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div>{renderAssertion("q11_policy_review")}</div>
@@ -2508,6 +2866,18 @@ export default function CPPARiskAssessment() {
                       <Button type="button" variant="ghost" size="sm" onClick={() => setA5HarmPathways((r) => r.slice(0, -1))}>Remove last</Button>
                     )}
                   </div>
+                  {/* RK3-D (doc 33 D-L3) — pathway interdependency. */}
+                  <div className="mt-4">
+                    <Label>Do the impacts above operate independently, or could any compound each other? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7154)</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">Impacts compound when one occurring makes another more likely or more severe — for example, a breach that also exposes information enabling reputational harm.</p>
+                    <div className="mt-2"><Radio name="risk_interdependency_check" options={[...RISK_INTERDEPENDENCY_OPTS]} value={rk3d.risk_interdependency_check} onChange={(v) => setRk3dField("risk_interdependency_check", v)} /></div>
+                    {rk3d.risk_interdependency_check === "Two or more identified pathways could compound each other" && (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground mb-1">Select the pathways that could compound each other (at least two):</p>
+                        <Pills options={[...HARM_PATHWAY_OPTS]} value={rk3d.compounding_pathways} onChange={(v: string[]) => setRk3dField("compounding_pathways", v)} />
+                      </div>
+                    )}
+                  </div>
                 </div>
                   <div data-rail-key="impact_safeguards" onFocus={() => focusRail('impact_safeguards')}>
                     <Label>Safeguards planned to address these harms <span className="text-xs text-muted-foreground font-mono">(§ 7152(a))</span></Label>
@@ -2539,6 +2909,25 @@ export default function CPPARiskAssessment() {
                           {SAFEGUARD_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
                         <Textarea rows={2} value={row.residual} onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, residual: e.target.value } : r))} placeholder="Risk remaining afterwards" />
+                        {/* RK3-D (doc 33 D-L3) — effectiveness evidence + planned timeline. */}
+                        <select
+                          className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                          value={row.effectiveness_basis || ""}
+                          onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, effectiveness_basis: e.target.value } : r))}
+                        >
+                          <option value="">Effectiveness evidence…</option>
+                          {SAFEGUARD_EFFECTIVENESS_BASIS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        {row.safeguard_status === "Planned, not yet implemented" && (
+                          <select
+                            className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                            value={row.planned_timeline || ""}
+                            onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, planned_timeline: e.target.value } : r))}
+                          >
+                            <option value="">Committed timeline…</option>
+                            {PLANNED_TIMELINE_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        )}
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Which harm pathways does this safeguard address? (optional)</p>
                           <div className="flex flex-wrap gap-1">
@@ -2558,7 +2947,7 @@ export default function CPPARiskAssessment() {
                     ))}
                   </div>
                   <div className="mt-2 flex gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => setA6Safeguards((r) => [...r, { harm: "", safeguard: "", safeguard_status: "", residual: "", risk_pathway_ids: [] }])}>Add safeguard</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setA6Safeguards((r) => [...r, { harm: "", safeguard: "", safeguard_status: "", residual: "", risk_pathway_ids: [], effectiveness_basis: "", planned_timeline: "" }])}>Add safeguard</Button>
                     {a6Safeguards.length > 1 && (
                       <Button type="button" variant="ghost" size="sm" onClick={() => setA6Safeguards((r) => r.slice(0, -1))}>Remove last</Button>
                     )}
@@ -2620,6 +3009,8 @@ export default function CPPARiskAssessment() {
                         <>
                           <Textarea rows={2} value={a4BenefitBusiness} onChange={(e) => setA4BenefitBusiness(e.target.value)} placeholder="Specific outcome for the business" />
                           <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitBusinessFact} onChange={(e) => setA4BenefitBusinessFact(e.target.value)} placeholder="Fact in the record showing it" />
+                          {/* RK3-D (doc 33 D-L3) — magnitude basis. */}
+                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_business_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_business_magnitude_basis} onChange={(v) => setRk3dField("benefit_business_magnitude_basis", v)} /></div>
                         </>
                       )}
                       {benefitBusinessIdentified === "No" && (
@@ -2633,6 +3024,7 @@ export default function CPPARiskAssessment() {
                         <>
                           <Textarea rows={2} value={a4BenefitConsumer} onChange={(e) => setA4BenefitConsumer(e.target.value)} placeholder="Specific outcome for the consumer" />
                           <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitConsumerFact} onChange={(e) => setA4BenefitConsumerFact(e.target.value)} placeholder="Fact in the record showing it" />
+                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_consumer_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_consumer_magnitude_basis} onChange={(v) => setRk3dField("benefit_consumer_magnitude_basis", v)} /></div>
                         </>
                       )}
                       {benefitConsumerIdentified === "No" && (
@@ -2646,6 +3038,7 @@ export default function CPPARiskAssessment() {
                         <>
                           <Textarea rows={2} value={a4BenefitOtherStakeholders} onChange={(e) => setA4BenefitOtherStakeholders(e.target.value)} placeholder="Outcome for other stakeholders" />
                           <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitOtherStakeholdersFact} onChange={(e) => setA4BenefitOtherStakeholdersFact(e.target.value)} placeholder="Fact in the record showing it" />
+                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_other_stakeholders_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_other_stakeholders_magnitude_basis} onChange={(v) => setRk3dField("benefit_other_stakeholders_magnitude_basis", v)} /></div>
                         </>
                       )}
                       {benefitOtherStakeholdersIdentified === "No" && (
@@ -2659,6 +3052,7 @@ export default function CPPARiskAssessment() {
                         <>
                           <Textarea rows={2} value={a4BenefitPublic} onChange={(e) => setA4BenefitPublic(e.target.value)} placeholder="Outcome for the public" />
                           <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitPublicFact} onChange={(e) => setA4BenefitPublicFact(e.target.value)} placeholder="Fact in the record showing it" />
+                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_public_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_public_magnitude_basis} onChange={(v) => setRk3dField("benefit_public_magnitude_basis", v)} /></div>
                         </>
                       )}
                       {benefitPublicIdentified === "No" && (

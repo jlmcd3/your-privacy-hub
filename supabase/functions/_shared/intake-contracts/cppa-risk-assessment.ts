@@ -112,6 +112,128 @@ export const BENEFICIARY_CLASSES = [
 export const PROCESSING_STATUS_OPTS = ["Planned", "Ongoing", "Discontinued"] as const;
 export const HARM_CATEGORY_REVIEW_STATUS_OPTS = ["Identified", "Considered-none", "Not yet assessed"] as const;
 
+// ── RK3-D (doc 33 D-L3) — Class C→B conversion operands. Verbatim copies of
+// src/pages/CPPARiskAssessment.enums.ts; parity pinned in
+// rk3-d-class-c.test.ts. The enum carries the judgment as typed facts; the
+// legal significance of each answer lives in the ratified determination
+// tables in risk-factor-engine.ts (doc 33 D-L5), never in the answer.
+export const PURPOSE_SPECIFICITY_FACTS_OPTS = [
+  "The specific product, service, or operation the processing supports",
+  "The categories of personal information involved",
+  "The categories of consumers affected",
+  "The intended outcome or result of the processing",
+  "None of the above",
+] as const;
+export const OUT_OF_SCOPE_CONFIRMATION_OPTS = [
+  "The affected information is processed only for the stated purpose and any listed secondary uses",
+  "The affected information is also processed for other activities not covered by this assessment",
+  "Unsure",
+] as const;
+export const COMPARABLE_PROCESSING_STATUS_OPTS = [
+  "This assessment covers a single processing activity",
+  "This assessment covers a set of similar activities presenting similar risks",
+  "Unsure",
+] as const;
+export const CONSUMER_RELATIONSHIP_CONTEXT_OPTS = [
+  "Existing customers or account holders",
+  "Prospective customers or site visitors",
+  "Employees or job applicants",
+  "Students",
+  "Patients or health-service recipients",
+  "General public — no direct relationship",
+  "Mixed",
+] as const;
+export const SOURCE_CATEGORY_OPTS = [
+  "Directly from the consumer",
+  "Automatically from consumer devices or interactions",
+  "From service providers or contractors",
+  "From third-party data providers or brokers",
+  "From public sources",
+  "From another business (merger, partnership, or similar)",
+] as const;
+export const VENDOR_DEPENDENCY_OPTS = [
+  "No single recipient or vendor is essential to the processing",
+  "One or more vendors are essential — the processing could not continue without them",
+  "Unsure",
+] as const;
+export const EXPECTATION_CHECK_OPTS = [
+  "The processing occurs during and as part of the consumer's interaction with the Company",
+  "The processing continues after the interaction ends",
+  "Information is used for a purpose different from the purpose for which it was collected",
+  "Information is combined with information from other sources",
+  "Information is disclosed to parties the consumer does not directly interact with",
+  "None of the above apply",
+] as const;
+export const CHOICE_ARCHITECTURE_CHECK_OPTS = [
+  "Consent or permission requests are presented symmetrically — declining is as easy as accepting",
+  "Declining the processing does not degrade the core service the consumer seeks",
+  "The Company does not use design elements that steer consumers toward permitting the processing",
+  "None of the above can be confirmed",
+] as const;
+export const ADMT_ROLE_TYPE_OPTS = [
+  "The ADMT makes the decision without human involvement",
+  "The ADMT is a substantial factor in a human decision",
+  "The ADMT supports a human decision without being a substantial factor",
+  "Unsure",
+] as const;
+export const ADMT_LOGIC_DOCUMENTED_OPTS = [
+  "The logic is documented and reviewed internally",
+  "The logic is documented by the provider and the Company relies on that documentation",
+  "The logic is not fully documented or understood",
+  "Unsure",
+] as const;
+export const HUMAN_REVIEW_FACTS_OPTS = [
+  "Reviewers know how to interpret and use the ADMT's output",
+  "Reviewers consider information beyond the ADMT's output",
+  "Reviewers have authority to change or overrule the decision",
+  "None of the above can be confirmed",
+  "There is no human review",
+] as const;
+export const ADMT_TESTING_FACTS_OPTS = [
+  "Tested for accuracy or validity",
+  "Tested for discriminatory impact or bias",
+  "Testing performed or reviewed within the last 12 months",
+  "Testing performed by the provider rather than the Company",
+  "No testing has been performed or confirmed",
+] as const;
+export const RISK_INTERDEPENDENCY_OPTS = [
+  "The identified risk pathways operate independently",
+  "Two or more identified pathways could compound each other",
+  "Unsure",
+] as const;
+export const BENEFIT_MAGNITUDE_BASIS_OPTS = [
+  "Quantified or measurable basis stated",
+  "Qualitative basis stated",
+  "No basis stated",
+] as const;
+export const SECONDARY_RELATION_OPTS = [
+  "Compatible — supports or extends the primary purpose",
+  "Distinct — a separate purpose",
+  "Not yet determined",
+] as const;
+export const SECONDARY_DISCLOSED_OPTS = [
+  "Yes — disclosed at or before collection",
+  "No",
+  "Unsure",
+] as const;
+export const RECIPIENT_CONTRACT_OPTS = [
+  "Written contract with the CCPA-required restrictions in place",
+  "Written contract without confirmed CCPA restriction terms",
+  "No written contract",
+  "Unsure",
+] as const;
+export const SAFEGUARD_EFFECTIVENESS_BASIS_OPTS = [
+  "Validated by testing against the linked risk",
+  "Consistent with an industry standard or framework",
+  "Based on internal design review only",
+  "No effectiveness evidence",
+] as const;
+export const PLANNED_TIMELINE_OPTS = [
+  "Before processing begins or within 3 months",
+  "Within 12 months",
+  "No committed timeline",
+] as const;
+
 // RK3-A1 g2 — verbatim copy of CONSUMER_INTERACTION_METHOD_OPTS from
 // src/pages/CPPARiskAssessment.enums.ts (parity pinned in
 // rk3-a1-processing-record.test.ts).
@@ -268,6 +390,22 @@ export const cppaRiskContract: IntakeContract = {
     { key: "secondary_activities",     kind: "structured", required: "conditional",
       requiredWhen: "has_secondary_uses === \"Yes — there are other uses\"",
       trigger: { key: "has_secondary_uses", equals: ["Yes — there are other uses"] } },
+    // RK3-D (doc 33 D-L3) — secondary-use row children declared for the first
+    // time (the pre-RK3-D form emitted free rows). relation_to_primary ×
+    // disclosed_in_notice feed the ratified secondary-use table (D-L5).
+    // Optional at the data layer: legacy rows without the sub-enums keep
+    // validating and the per-row analysis stays honestly absent.
+    // Conditional on the same fork as the parent repeater: with no secondary
+    // uses there are no rows and the sub-questions are never asked (the
+    // record-complete gate's skip-logic reads the trigger).
+    { key: "secondary_activities[].relation_to_primary", kind: "enum", required: "conditional",
+      requiredWhen: "a secondary-activity row is present",
+      trigger: { key: "has_secondary_uses", equals: ["Yes — there are other uses"] },
+      options: SECONDARY_RELATION_OPTS },
+    { key: "secondary_activities[].disclosed_in_notice", kind: "enum", required: "conditional",
+      requiredWhen: "a secondary-activity row is present",
+      trigger: { key: "has_secondary_uses", equals: ["Yes — there are other uses"] },
+      options: SECONDARY_DISCLOSED_OPTS },
 
 
     { key: "q1_revenue",     kind: "enum", required: "always", options: REVENUE_OPTS },
@@ -448,6 +586,17 @@ export const cppaRiskContract: IntakeContract = {
     // emptyIsAnswer: an empty set means "no specific pathways linked" (valid answer).
     { key: "a6_safeguards[].risk_pathway_ids", kind: "multi-enum", required: "optional",
       options: HARM_PATHWAY_OPTS, emptyIsAnswer: true },
+    // RK3-D (doc 33 D-L3) — effectiveness evidence basis (joins the RK3-C
+    // residual rule in the ratified safeguard-effectiveness table, D-L5) and
+    // the committed timeline for planned rows (feeds planned_safeguard_analysis;
+    // "No committed timeline" strengthens the Condition to Proceed).
+    { key: "a6_safeguards[].effectiveness_basis", kind: "enum", required: "optional",
+      options: SAFEGUARD_EFFECTIVENESS_BASIS_OPTS },
+    // emptyIsAnswer: a timeline is logically conditional on the row being a
+    // PLANNED safeguard; implemented rows have nothing to answer (RK3-A3
+    // emptyIsAnswer posture for logically-conditional optional fields).
+    { key: "a6_safeguards[].planned_timeline", kind: "enum", required: "optional",
+      options: PLANNED_TIMELINE_OPTS, emptyIsAnswer: true },
 
     // § 7152(a)(9) — review-and-approval record. Distinct from the
     // i8_certifying_exec_* pair (the person who CERTIFIES the submission);
@@ -545,6 +694,10 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: "a recipient row is present", options: PI_CATEGORIES },
     { key: "recipients[].disclosure_purpose", kind: "text", required: "conditional",
       requiredWhen: "a recipient row is present" },
+    // RK3-D (doc 33 D-L3) — recipient contractual-protection status; feeds the
+    // ratified recipient-risk table (D-L5: type × contract → managed/elevated).
+    { key: "recipients[].contractual_protections", kind: "enum", required: "optional",
+      options: RECIPIENT_CONTRACT_OPTS },
 
     // ── RK3-A1 g6 (Intake Contract v2.0 §6) — § 7151(a) operational-
     // participation record: employees whose job duties include participating
@@ -624,6 +777,77 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: "a review-status row is present", options: HARM_PATHWAY_OPTS },
     { key: "harm_category_review_status[].review_status", kind: "enum", required: "conditional",
       requiredWhen: "a review-status row is present", options: HARM_CATEGORY_REVIEW_STATUS_OPTS },
+
+    // ── RK3-D (doc 33 D-L3) — Class C→B conversion operands. ALL optional at
+    // the data layer (D-L2 rule 2): a record without them composes exactly
+    // what RK3-C composed — the corresponding analysis stays honestly absent.
+    // Multi-enums carry an explicit "None …" option as the substantive
+    // negative; an empty array means unanswered, never "none".
+    //
+    // Section I/II operands.
+    { key: "purpose_specificity_facts", kind: "multi-enum", required: "optional",
+      options: PURPOSE_SPECIFICITY_FACTS_OPTS },
+    { key: "out_of_scope_confirmation", kind: "enum", required: "optional",
+      options: OUT_OF_SCOPE_CONFIRMATION_OPTS },
+    { key: "out_of_scope_activities", kind: "narrative", required: "conditional",
+      requiredWhen: "out_of_scope_confirmation names other activities",
+      trigger: { key: "out_of_scope_confirmation",
+        equals: ["The affected information is also processed for other activities not covered by this assessment"] },
+      emptyIsAnswer: true },
+    { key: "comparable_processing_status", kind: "enum", required: "optional",
+      options: COMPARABLE_PROCESSING_STATUS_OPTS },
+    { key: "comparable_processing_basis", kind: "narrative", required: "conditional",
+      requiredWhen: "comparable_processing_status declares a comparable set",
+      trigger: { key: "comparable_processing_status",
+        equals: ["This assessment covers a set of similar activities presenting similar risks"] },
+      emptyIsAnswer: true },
+    { key: "consumer_relationship_context", kind: "enum", required: "optional",
+      options: CONSUMER_RELATIONSHIP_CONTEXT_OPTS },
+    { key: "source_categories", kind: "multi-enum", required: "optional",
+      options: SOURCE_CATEGORY_OPTS },
+    { key: "vendor_dependency", kind: "enum", required: "optional",
+      options: VENDOR_DEPENDENCY_OPTS },
+    { key: "essential_vendors", kind: "text", required: "conditional",
+      requiredWhen: "vendor_dependency declares an essential vendor",
+      trigger: { key: "vendor_dependency",
+        equals: ["One or more vendors are essential — the processing could not continue without them"] },
+      emptyIsAnswer: true },
+
+    // Section IV operands (§ 7002(b)-factor typed; doc 33 D-L3).
+    { key: "expectation_check", kind: "multi-enum", required: "optional",
+      options: EXPECTATION_CHECK_OPTS },
+    { key: "choice_architecture_check", kind: "multi-enum", required: "optional",
+      options: CHOICE_ARCHITECTURE_CHECK_OPTS },
+
+    // Section V ADMT operands — logically conditional on ADMT use, same
+    // emptyIsAnswer posture as the RK3-A2 admt_* block above.
+    { key: "admt_role_type", kind: "enum", required: "optional",
+      options: ADMT_ROLE_TYPE_OPTS, emptyIsAnswer: true },
+    { key: "admt_logic_documented", kind: "enum", required: "optional",
+      options: ADMT_LOGIC_DOCUMENTED_OPTS, emptyIsAnswer: true },
+    { key: "human_review_facts", kind: "multi-enum", required: "optional",
+      options: HUMAN_REVIEW_FACTS_OPTS, emptyIsAnswer: true },
+    { key: "admt_testing_facts", kind: "multi-enum", required: "optional",
+      options: ADMT_TESTING_FACTS_OPTS, emptyIsAnswer: true },
+
+    // Section VII operand.
+    { key: "risk_interdependency_check", kind: "enum", required: "optional",
+      options: RISK_INTERDEPENDENCY_OPTS },
+    { key: "compounding_pathways", kind: "multi-enum", required: "conditional",
+      requiredWhen: "risk_interdependency_check declares compounding pathways",
+      trigger: { key: "risk_interdependency_check",
+        equals: ["Two or more identified pathways could compound each other"] },
+      options: HARM_PATHWAY_OPTS, emptyIsAnswer: true },
+
+    // Section VI operands — the L3 specificity band (doc 32 L3 close-out).
+    { key: "benefit_business_magnitude_basis", kind: "enum", required: "optional",
+      options: BENEFIT_MAGNITUDE_BASIS_OPTS },
+    { key: "benefit_consumer_magnitude_basis", kind: "enum", required: "optional",
+      options: BENEFIT_MAGNITUDE_BASIS_OPTS },
+    { key: "benefit_other_stakeholders_magnitude_basis", kind: "enum", required: "optional",
+      options: BENEFIT_MAGNITUDE_BASIS_OPTS },
+    { key: "benefit_public_magnitude_basis", kind: "enum", required: "optional",
+      options: BENEFIT_MAGNITUDE_BASIS_OPTS },
   ],
 
 };

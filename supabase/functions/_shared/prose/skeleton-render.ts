@@ -399,9 +399,20 @@ export function groupAuthority(pinpoint: string): typeof TOA_GROUPS[number] {
 export function renderTableOfAuthorities(
   ledgerPinpoints: readonly string[],
   assembledBody: string,
+  // RK3-D (risk doc 33 D-L8) — factor-authority provenance records. The risk
+  // spine's App G descriptor sanctions this second source ("Phase C adds
+  // factor-authority provenance records"). These authorities underpin factor
+  // determinations whose prose is deliberately citation-free, so they render
+  // in their own labelled group rather than passing the iff-cited filter;
+  // authorities already cited in the body are not repeated. Callers that pass
+  // two arguments (cyber, ADMT) are byte-unchanged.
+  factorAuthorities: readonly string[] = [],
 ): string {
   const cited = [...new Set(ledgerPinpoints.filter((p) => p && assembledBody.includes(p)))];
-  if (cited.length === 0) return "";
+  const relied = [...new Set(factorAuthorities.filter(Boolean))]
+    .filter((a) => !cited.includes(a))
+    .sort();
+  if (cited.length === 0 && relied.length === 0) return "";
 
   const lines: string[] = [];
   for (const group of TOA_GROUPS) {
@@ -409,6 +420,10 @@ export function renderTableOfAuthorities(
     if (inGroup.length === 0) continue;
     lines.push(group === "Guidance and Persuasive Authority" ? `${group} (persuasive)` : group);
     for (const p of inGroup) lines.push(`    ${p}`);
+  }
+  if (relied.length) {
+    lines.push("Authorities Relied On in the Analysis (factor determinations; not pinpoint-cited in the text)");
+    for (const a of relied) lines.push(`    ${a}`);
   }
   return lines.join("\n");
 }

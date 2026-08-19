@@ -505,6 +505,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
             "Encryption at rest and in transit, MFA on all decision-system accounts, and quarterly access review.",
           safeguard_status: "Implemented and tested",
           residual: "Low — monitored via SOC alerts",
+          effectiveness_basis: "Validated by testing against the linked risk",
         },
         {
           harm: "(B) Unlawful discrimination on protected characteristics",
@@ -512,6 +513,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
             "Annual disparate-impact testing with a 60-day remediation SLA.",
           safeguard_status: "Implemented and tested",
           residual: "Low — last three cycles within band",
+          effectiveness_basis: "Validated by testing against the linked risk",
         },
         {
           harm: "(E) Economic harms",
@@ -519,12 +521,14 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
             "Human-review path on request and mandatory analyst routing for thin-file applications.",
           safeguard_status: "Implemented and tested",
           residual: "Low — overturn rate tracked monthly",
+          effectiveness_basis: "Validated by testing against the linked risk",
         },
         {
           harm: "(G) Reputational harms",
           safeguard: "Tokenised storage of Social Security numbers and a 25-month purge job.",
           safeguard_status: "Implemented and tested",
           residual: "Low — purge job audited quarterly",
+          effectiveness_basis: "Validated by testing against the linked risk",
         },
       ],
 
@@ -620,6 +624,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           ],
           disclosure_purpose:
             "Bureau match returning the creditworthiness attributes the eligibility model requires.",
+          contractual_protections:
+            "Written contract with the CCPA-required restrictions in place",
         },
         {
           recipient_name_or_category: "Sentinel Risk LLC (fraud consortium)",
@@ -630,6 +636,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           ],
           disclosure_purpose:
             "Identity-fraud signal verification on applications the rules layer flags.",
+          contractual_protections:
+            "Written contract with the CCPA-required restrictions in place",
         },
         {
           recipient_name_or_category: "CoreLedger Inc. (loan-servicing platform)",
@@ -640,6 +648,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           ],
           disclosure_purpose:
             "Decisioning infrastructure and servicing of approved financing accounts.",
+          contractual_protections:
+            "Written contract with the CCPA-required restrictions in place",
         },
       ],
 
@@ -668,6 +678,93 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           participation_confirmed: true,
         },
       ],
+
+      // ── RK3-A2 — Assessment timing and ADMT extension fields ──────────────
+      // RK3-A2 g1 timing: processing is ongoing (not planned); no prior formal
+      // risk assessment on record; no material change since the last review.
+      // Fields with emptyIsAnswer that are N/A on this record are documented in
+      // the EXEMPT set in risk-perfect-fixtures.test.ts.
+      processing_status: "Ongoing",
+
+      // RK3-A2 g2 ADMT operational narrative: q18_admt_use is "Yes"; these five
+      // fields deepen the existing i5 block with the operational-role, assumption/
+      // limitation, output, output-use, and consumer-effect details required for
+      // the Spine 4.3 §II.D ADMT narrative.
+      admt_operational_role:
+        "The eligibility model takes the approve or decline or analyst-review decision autonomously for scores above 70 and below 40; scores in the 40–70 band and any fraud-flagged application route to a named credit analyst for a human decision.",
+      admt_assumptions_limitations:
+        "The model assumes that bureau attributes and self-reported income and tenure are accurate; thin-file applicants (fewer than three bureau tradelines) are more likely to receive an analyst-review routing tag rather than an automated decision.",
+      admt_output:
+        "A numerical eligibility score from 0 to 100 and a routing tag: auto-approve (score above 70), auto-decline (below 40), or analyst-review (score in the 40–70 band or a fraud flag).",
+      admt_output_use:
+        "The routing tag determines whether the applicant is immediately approved, declined with a required adverse-action notice, or queued for a credit-analyst decision; the score is not used for any other purpose.",
+      admt_consumer_effect:
+        "A consumer may be approved or declined for store financing on the basis of the automated score without a human decision maker being involved, unless the score falls in the 40–70 band, a fraud flag is raised, or the consumer requests human review.",
+
+      // RK3-A2 g3: Sierra uses CoreLedger's third-party model; Sierra does not
+      // provide its own ADMT to other businesses.
+      admt_made_available_to_other_business: "No",
+
+      // ── RK3-D (doc 33 D-L3) — Class C→B conversion operands, answered to
+      // the Perfect Data standard and honest to this record's own facts.
+      // The stated purpose names the operation, the affected consumers, and
+      // the intended outcome; it does not itself enumerate PI categories
+      // (those live in i1b_min_pi), so that facet is honestly unchecked.
+      purpose_specificity_facts: [
+        "The specific product, service, or operation the processing supports",
+        "The categories of consumers affected",
+        "The intended outcome or result of the processing",
+      ],
+      out_of_scope_confirmation:
+        "The affected information is processed only for the stated purpose and any listed secondary uses",
+      comparable_processing_status: "This assessment covers a single processing activity",
+      consumer_relationship_context: "Existing customers or account holders",
+      source_categories: [
+        "Directly from the consumer",
+        "From service providers or contractors",
+        "From third-party data providers or brokers",
+      ],
+      vendor_dependency:
+        "One or more vendors are essential — the processing could not continue without them",
+      essential_vendors:
+        "Experian (bureau attributes) and CoreLedger Inc. (decisioning and servicing platform).",
+      // Honest divergence markers: retention continues after the point-of-sale
+      // interaction; bureau data is combined; Sentinel is a party the consumer
+      // does not directly interact with. Notice coverage (q12/q13) is full.
+      expectation_check: [
+        "The processing occurs during and as part of the consumer's interaction with the Company",
+        "The processing continues after the interaction ends",
+        "Information is combined with information from other sources",
+        "Information is disclosed to parties the consumer does not directly interact with",
+      ],
+      choice_architecture_check: [
+        "Consent or permission requests are presented symmetrically — declining is as easy as accepting",
+        "Declining the processing does not degrade the core service the consumer seeks",
+        "The Company does not use design elements that steer consumers toward permitting the processing",
+      ],
+      admt_role_type: "The ADMT makes the decision without human involvement",
+      admt_logic_documented: "The logic is documented and reviewed internally",
+      human_review_facts: [
+        "Reviewers know how to interpret and use the ADMT's output",
+        "Reviewers consider information beyond the ADMT's output",
+        "Reviewers have authority to change or overrule the decision",
+      ],
+      admt_testing_facts: [
+        "Tested for accuracy or validity",
+        "Tested for discriminatory impact or bias",
+        "Testing performed or reviewed within the last 12 months",
+      ],
+      // Honest compounding: pathway (G) is misuse of SPI exfiltrated through
+      // pathway (A)'s breach — the record's own causation links them.
+      risk_interdependency_check: "Two or more identified pathways could compound each other",
+      compounding_pathways: [
+        "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
+        "(G) Reputational harms",
+      ],
+      benefit_business_magnitude_basis: "Quantified or measurable basis stated",
+      benefit_consumer_magnitude_basis: "Quantified or measurable basis stated",
+      benefit_other_stakeholders_magnitude_basis: "Quantified or measurable basis stated",
+      benefit_public_magnitude_basis: "Quantified or measurable basis stated",
     },
     assertions: [
       {
@@ -868,6 +965,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           safeguard_status: "Implemented and tested",
           residual:
             "A short-window credential compromise before rotation could reach the location log for the active credential window.",
+          effectiveness_basis: "Validated by testing against the linked risk",
         },
         {
           harm: "(C) Impairment of consumer control over personal information",
@@ -876,6 +974,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           safeguard_status: "Implemented and tested",
           residual:
             "Annual spot-checks cannot guarantee real-time compliance across all publisher integrations; a non-compliant consent screen between audit cycles would still reach the pipeline.",
+          effectiveness_basis: "Validated by testing against the linked risk",
         },
         {
           harm: "(G) Reputational harms",
@@ -884,6 +983,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           safeguard_status: "Implemented and tested",
           residual:
             "Contractual prohibition and annual audit reduce but do not eliminate the risk that a client misuses a non-prohibited segment that partially correlates with a sensitive-venue pattern.",
+          effectiveness_basis: "Validated by testing against the linked risk",
         },
       ],
 
@@ -970,6 +1070,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           ],
           disclosure_purpose:
             "Hosts the ingestion pipeline and raw location store under a service-provider addendum.",
+          contractual_protections:
+            "Written contract with the CCPA-required restrictions in place",
         },
         {
           recipient_name_or_category: "Snowflake (data warehouse)",
@@ -980,6 +1082,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           ],
           disclosure_purpose:
             "Warehouses raw location pings for the 13-month feature window under row-level security.",
+          contractual_protections:
+            "Written contract with the CCPA-required restrictions in place",
         },
         {
           recipient_name_or_category: "LiveRamp (segment distribution)",
@@ -989,6 +1093,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           ],
           disclosure_purpose:
             "Distributes finished audience segments to advertiser platforms under a service-provider addendum.",
+          contractual_protections:
+            "Written contract with the CCPA-required restrictions in place",
         },
         {
           recipient_name_or_category:
@@ -999,6 +1105,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           ],
           disclosure_purpose:
             "Licensed geobehavioral segments for programmatic campaign targeting — the sale/share captured at q5_sell_share.",
+          contractual_protections:
+            "Written contract with the CCPA-required restrictions in place",
         },
       ],
 
@@ -1023,6 +1131,52 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           participation_confirmed: true,
         },
       ],
+
+      // ── RK3-D (doc 33 D-L3) — Class C→B conversion operands, answered to
+      // the Perfect Data standard and honest to this record's own facts.
+      // The stated purpose names the operation, the PI involved (precise GPS
+      // signals), the affected consumers (publisher-app users), and the
+      // outcome (segments sold to advertisers) — all four facets.
+      purpose_specificity_facts: [
+        "The specific product, service, or operation the processing supports",
+        "The categories of personal information involved",
+        "The categories of consumers affected",
+        "The intended outcome or result of the processing",
+      ],
+      out_of_scope_confirmation:
+        "The affected information is processed only for the stated purpose and any listed secondary uses",
+      comparable_processing_status: "This assessment covers a single processing activity",
+      consumer_relationship_context: "General public — no direct relationship",
+      source_categories: [
+        "Automatically from consumer devices or interactions",
+      ],
+      vendor_dependency:
+        "One or more vendors are essential — the processing could not continue without them",
+      essential_vendors:
+        "AWS, Snowflake, and LiveRamp — the ingestion, warehouse, and distribution layers of the pipeline.",
+      // Honest divergence markers: the 13-month history outlives any single
+      // app session; pings from multiple publisher apps are combined into one
+      // pseudonymous profile; segments go to advertisers the consumer never
+      // interacts with. Notice coverage (q12/q13) is full.
+      expectation_check: [
+        "The processing continues after the interaction ends",
+        "Information is combined with information from other sources",
+        "Information is disclosed to parties the consumer does not directly interact with",
+      ],
+      // Honest partial answer: pathway (C) records that publisher consent
+      // screens are outside Locus's direct control, so symmetric presentation
+      // cannot be confirmed across all integrations.
+      choice_architecture_check: [
+        "Declining the processing does not degrade the core service the consumer seeks",
+        "The Company does not use design elements that steer consumers toward permitting the processing",
+      ],
+      // ADMT operands intentionally absent — q18_admt_use is "No" and the
+      // fields are logically conditional on ADMT (emptyIsAnswer posture).
+      risk_interdependency_check: "The identified risk pathways operate independently",
+      benefit_business_magnitude_basis: "Quantified or measurable basis stated",
+      benefit_consumer_magnitude_basis: "Quantified or measurable basis stated",
+      benefit_other_stakeholders_magnitude_basis: "Quantified or measurable basis stated",
+      benefit_public_magnitude_basis: "Quantified or measurable basis stated",
     },
     assertions: [
       {
