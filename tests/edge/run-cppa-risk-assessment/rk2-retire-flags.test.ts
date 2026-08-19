@@ -14,8 +14,8 @@
 // is analogous to the RK1 engine-default pin for pass1.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { generateCppaRiskReport, runCppaRiskPass2R } from "../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
-import { EMPTY_RISK_CORPUS } from "../../../supabase/functions/_shared/ltp/risk-corpus.ts";
+import { generateCppaRiskReport, runCppaRiskPass2R } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
+import { EMPTY_RISK_CORPUS } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-corpus.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
 
 const SHELL_PATH = new URL(
@@ -23,7 +23,7 @@ const SHELL_PATH = new URL(
   import.meta.url,
 );
 const DEPS_PATH = new URL(
-  "../../../supabase/functions/_shared/ltp/risk-refinement-deps.ts",
+  "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-refinement-deps.ts",
   import.meta.url,
 );
 

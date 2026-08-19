@@ -11,9 +11,9 @@ import { assert, assertEquals, assertStringIncludes } from "https://deno.land/st
 import {
   rehomeReservedReferrals,
   RISK_SUMMARY_REHOME_VERSION,
-} from "../../../supabase/functions/_shared/ltp/risk-summary-rehome.ts";
-import { outweighConclusion } from "../../../supabase/functions/_shared/ltp/risk-activity-emit.ts";
-import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-summary-rehome.ts";
+import { outweighConclusion } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-activity-emit.ts";
+import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
 
 const PILOT_REFERRAL =
   "The initiation decision under 11 CCR § 7152(a)(7) and the treatment of the open elements remain reserved to the business and qualified legal counsel.";

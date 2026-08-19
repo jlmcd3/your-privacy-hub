@@ -21,13 +21,13 @@ import {
   IR_SKELETON_SUBTITLE,
   IR_TEMPLATE_FRAMING_NOTE,
   IR_V3_BANNED_REGISTER,
-} from "../../../supabase/functions/_shared/prose/plans/ir-playbook.spine.ts";
+} from "../../../supabase/functions/generate-ir-playbook/_local/prose/plans/ir-playbook.spine.ts";
 import {
   IR_RETIRED_SLOTS,
   IR_SLOT_MAP,
-} from "../../../supabase/functions/_shared/prose/plans/ir-playbook.slotmap.ts";
+} from "../../../supabase/functions/generate-ir-playbook/_local/prose/plans/ir-playbook.slotmap.ts";
 import { skeletonDocumentToText, slotsIn } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
-import { assembleIRSkeletonDocument } from "../../../supabase/functions/_shared/ltp/ir-skeleton-assemble.ts";
+import { assembleIRSkeletonDocument } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-skeleton-assemble.ts";
 import { IR_PLAYBOOK_VERIFIED_AUTHORITIES } from "../../../supabase/functions/generate-ir-playbook/_local/registry/ir-playbook-verified-authorities.ts";
 
 const INTAKE: Record<string, unknown> = {

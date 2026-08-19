@@ -17,7 +17,7 @@
 // carve-out in ltp/record-complete.ts (doc 28 §4), which survives until
 // the finalization stage supplies this field.
 
-import type { IntakeContract } from "./types.ts";
+import type { IntakeContract } from "../../_shared/intake-contracts/types.ts";
 
 const YES_NO_OPTS = ["Yes", "No"] as const;
 

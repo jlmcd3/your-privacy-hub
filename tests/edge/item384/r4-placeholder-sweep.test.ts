@@ -5,7 +5,7 @@ import {
   DEGRADED_OPENER_RES,
   isPurePlaceholder,
   sweepDegradedPlaceholders,
-} from "../../../supabase/functions/_shared/ltp/risk-prose-gold.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-prose-gold.ts";
 
 const PH =
   "We could not verify this item from the information provided; it is listed under information needed.";

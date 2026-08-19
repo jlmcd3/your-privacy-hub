@@ -18,7 +18,7 @@ import {
   DPIA_SAFEGUARD_SPECS,
   row,
 } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/elements.ts";
-import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
+import { dpiaFrameworkContract } from "../../_shared/intake-contracts/dpia-framework.ts";
 
 const CONTRACT_KEYS = new Set(dpiaFrameworkContract.fields.map((f) => f.key));
 

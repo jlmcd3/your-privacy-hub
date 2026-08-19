@@ -6,7 +6,7 @@ import {
   enforcePurposeVerbatim,
   extendSubmissionBasisCrosswalk,
   WAVEB_COMPLETION_STAMP,
-} from "../../../../supabase/functions/_shared/ltp/waveb-completion.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/waveb-completion.ts";
 
 Deno.test("(a)(i) purpose verbatim: rewrites paraphrased purpose to intake i1_processing_purpose", () => {
   const intake = {

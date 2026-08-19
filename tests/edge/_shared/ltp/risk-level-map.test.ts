@@ -20,8 +20,8 @@ import {
   T_CRITICAL_SEVERITY_LITERAL,
   T_CRITICAL_LIKELIHOOD_LITERAL,
   type ActivityRecordSignals,
-} from "../../../../supabase/functions/_shared/ltp/risk-level-map.ts";
-import { selectOpeningTemplateId, type ActivityOutcome } from "../../../../supabase/functions/_shared/ltp/summary-compose.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-level-map.ts";
+import { selectOpeningTemplateId, type ActivityOutcome } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/summary-compose.ts";
 
 const mkOutcome = (
   i: number,

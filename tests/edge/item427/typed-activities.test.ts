@@ -15,8 +15,8 @@ import {
   SECTION_7152_ELEMENT_MAP,
   ACTIVITY_BASIS_KEY,
   resolveRegistryPinpoint,
-} from "../../../supabase/functions/_shared/ltp/risk-activity-emit.ts";
-import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-activity-emit.ts";
+import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
 
 Deno.test("ITEM 427 stamp", () => {
   assertEquals(RISK_PIPELINE_STAMP, "risk-pipeline@item-so1-2026-08-10");
@@ -180,7 +180,7 @@ Deno.test("ITEM 427 anti-padding: empty array with no analytics is OMITTED, not 
 
 Deno.test("ITEM 427 anti-padding: an untriggered scaffold row is not a triggered activity", async () => {
   const { isTriggeredAnalyticsRow } = await import(
-    "../../../supabase/functions/_shared/ltp/risk-activity-emit.ts"
+    "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-activity-emit.ts"
   );
   assertEquals(isTriggeredAnalyticsRow({ activity_name: "" }), false);
   assertEquals(isTriggeredAnalyticsRow({ activity_name: "Credit underwriting" }), false);
@@ -222,7 +222,7 @@ Deno.test("ITEM 427 serializer allow-list keeps every canonical leaf", async () 
     "../../../supabase/functions/_shared/report-serialize.ts"
   );
   const { CPPA_RISK_REPORT_SCHEMA } = await import(
-    "../../../supabase/functions/_shared/report-schemas/cppa-risk.ts"
+    "../../../supabase/functions/run-cppa-risk-assessment/_local/report-schemas/cppa-risk.ts"
   );
   const report = reportWithAnalytics();
   normalizeRiskActivities(report, INTAKE);

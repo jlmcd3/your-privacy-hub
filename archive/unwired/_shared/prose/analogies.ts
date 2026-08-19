@@ -31,7 +31,7 @@ import type {
   EuAuthoritySection,
   EuAuthorityTopic,
   EuTopicId,
-} from "../../../../supabase/functions/_shared/ltp/eu-authority/types.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/types.ts";
 import { rec } from "../../../../supabase/functions/_shared/prose/span-tracking.ts";
 
 export const CORPUS_ANALOGIES_VERSION = "prose-analogies-2026-08-01-item363";

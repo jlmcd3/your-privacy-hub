@@ -8,7 +8,7 @@ import { buildDecision } from "../../run-dpia-framework/_local/ltp/dpia-delivera
 import type {
   Art36Consultation,
   RiskRegisterEntry,
-} from "../ltp/dpia-deliverables/types.ts";
+} from "../../_shared/ltp/dpia-deliverables/types.ts";
 
 const INTAKE = { jurisdictions: ["EU (GDPR)"] };
 
@@ -206,7 +206,7 @@ Deno.test("blockers merge across operations with the R4 scope suffix", () => {
 
 
 Deno.test("legacy report without `decision` still composes via the fallback", async () => {
-  const { assembleDpiaSkeletonDocument } = await import("../ltp/dpia-skeleton-assemble.ts");
+  const { assembleDpiaSkeletonDocument } = await import("../../_shared/ltp/dpia-skeleton-assemble.ts");
   assert(typeof assembleDpiaSkeletonDocument === "function");
   const out = assembleDpiaSkeletonDocument(
     {

@@ -12,18 +12,18 @@
  * FIX 2a — derived-token expansion of the Pass-2R numeric whitelist.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { generateCppaRiskReport } from "../../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
-import { resolveLtpIntake } from "../../../../supabase/functions/_shared/ltp/entry-intake.ts";
+import { generateCppaRiskReport } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import { resolveLtpIntake } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/entry-intake.ts";
 import {
   computeRecordNeeds,
   missingDataNeeds,
-} from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
 import {
   buildPass2rWhitelist,
   derivedNumericTokens,
   validateNumericDateWhitelist,
-} from "../../../../supabase/functions/_shared/ltp/pass2r-validators.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2r-validators.ts";
 import { runConformanceChecks } from "../../fixtures/item354/conformance-checks.ts";
 
 const DIR = new URL("../../fixtures/item350/", import.meta.url);

@@ -20,12 +20,12 @@ import {
   DPIA_SKELETON_TABLE_SURFACES,
   DPIA_SPINE_HASH,
   serializeDpiaSpine,
-} from "../prose/plans/dpia.spine.ts";
+} from "../../_shared/prose/plans/dpia.spine.ts";
 import {
   buildDpiaSkeletonTables,
   buildDpiaTablesBySurface,
-} from "../ltp/dpia-skeleton-tables.ts";
-import { assembleDpiaSkeletonDocument } from "../ltp/dpia-skeleton-assemble.ts";
+} from "../../_shared/ltp/dpia-skeleton-tables.ts";
+import { assembleDpiaSkeletonDocument } from "../../_shared/ltp/dpia-skeleton-assemble.ts";
 import { DPIA_RISK_SPECS } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/elements.ts";
 
 async function sha256(text: string): Promise<string> {

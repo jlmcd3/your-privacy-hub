@@ -15,11 +15,11 @@
  * Fixtures are the two real Item 349 smoke intakes.
  */
 import { assert, assertEquals, assertNotEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import type { FactorTableEntry, RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
-import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
-import { resolveLtpIntake } from "../../../../supabase/functions/_shared/ltp/entry-intake.ts";
-import { normalizeEraIntake } from "../../../../supabase/functions/_shared/ltp/replay/era-normalize.ts";
+import type { FactorTableEntry, RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import { assembleReport } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
+import { resolveLtpIntake } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/entry-intake.ts";
+import { normalizeEraIntake } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/replay/era-normalize.ts";
 
 const DIR = new URL("../../fixtures/item350/", import.meta.url);
 

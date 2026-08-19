@@ -8,7 +8,7 @@ import {
   generateCppaRiskReport,
   runCppaRiskPass2R,
   RISK_PIPELINE_STAMP,
-} from "../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 
 const INTAKE = {
   organization_name: "Sierra Outfitters",

@@ -16,7 +16,7 @@ import {
   emptyRequiredKeys,
   RECORD_COMPLETE_VERSION,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
+import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
 
 // Live telemetry as the degraded demo run actually produced it: clean.
 const CLEAN_COVERAGE = { crashed: false, counts: { orphans: 0 } } as never;

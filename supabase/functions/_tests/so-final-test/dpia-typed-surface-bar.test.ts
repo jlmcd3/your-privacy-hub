@@ -9,7 +9,7 @@ import {
   DPIA_PROTECTED_PATH_PREFIXES,
   applySplices,
 } from "../../run-dpia-framework/_local/ltp/dpia-refinement.ts";
-import { protectedReasonFor } from "../ltp/refinement-core.ts";
+import { protectedReasonFor } from "../../_shared/ltp/refinement-core.ts";
 import {
   buildRiskCountNote,
   reconcileRiskCountNote,

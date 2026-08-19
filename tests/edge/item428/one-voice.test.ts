@@ -15,7 +15,7 @@
 // one-voice rule itself.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { normalizeRiskSummaryVoice } from "../../../supabase/functions/_shared/ltp/risk-summary-voice.ts";
+import { normalizeRiskSummaryVoice } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-summary-voice.ts";
 import {
   buildFactStrip,
   coerceFactStrip,

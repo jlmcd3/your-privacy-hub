@@ -22,8 +22,8 @@
 // Engine is invoked deterministic-Pass-1 / no refinementDeps / EMPTY_RISK_CORPUS:
 // zero model calls, zero DB access, pure function of the intake.
 
-import { generateCppaRiskReport } from "../ltp/generate-cppa-risk.ts";
-import { EMPTY_RISK_CORPUS } from "../ltp/risk-corpus.ts";
+import { generateCppaRiskReport } from "../../run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
+import { EMPTY_RISK_CORPUS } from "../../run-cppa-risk-assessment-v2/_local/ltp/risk-corpus.ts";
 
 export const PERFECT_CPPA_RISK_CLOSED_LOOP_VERSION =
   "perfect-cppa-risk-closed-loop@rk0.5-2026-08-17";

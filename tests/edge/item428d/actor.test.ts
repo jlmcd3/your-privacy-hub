@@ -13,8 +13,8 @@ import {
   applyRiskProseGold,
   nameReservedActor,
   nameReservedActors,
-} from "../../../supabase/functions/_shared/ltp/risk-prose-gold.ts";
-import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-prose-gold.ts";
+import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
 
 const PILOT_ACTION =
   "The determination reserved to Chief Compliance Officer: decision whether to initiate the processing. "

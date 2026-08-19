@@ -13,7 +13,7 @@
 import { CPPA_RISK_FRAMES } from "../../library/prose/load.ts";
 import { buildCppaRiskFrameValues } from "../../archive/unwired/_shared/prose/frames/cppa-risk.values.ts";
 import { renderSectionFromFrames } from "../../supabase/functions/_shared/prose/frame-render.ts";
-import { buildActivityAnalytics } from "../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
+import { buildActivityAnalytics } from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
 import { checkCoverage, collectCoverageAtoms } from "../../archive/unwired/_shared/prose/frame-coverage.ts";
 import { resolveEngineConclusion } from "../../supabase/functions/_shared/prose/engine-conclusions.ts";

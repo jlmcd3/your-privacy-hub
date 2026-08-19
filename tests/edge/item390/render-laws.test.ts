@@ -8,7 +8,7 @@
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { renderSlotValue } from "../../../supabase/functions/_shared/prose/slots.ts";
-import { CPPA_RISK_SECTION_SHARDS } from "../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
+import { CPPA_RISK_SECTION_SHARDS } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-shards/cppa-risk.ts";
 
 const ASSEMBLER = new URL(
   "../../../supabase/functions/_shared/ltp/pass2-assembler.ts",

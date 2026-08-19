@@ -32,14 +32,14 @@ import {
   HARM_IDS,
   isHarmId,
   resolveHarmId,
-} from "../../../supabase/functions/_shared/ltp/analytic-deliverables/harm-catalogue.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/harm-catalogue.ts";
 import {
   buildActivityAnalytics,
-} from "../../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/build.ts";
 import {
   BENEFICIARY_CLASSES,
   HARM_PATHWAY_OPTS,
-} from "../../../supabase/functions/_shared/ltp/analytic-deliverables/enums.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/enums.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
 import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";

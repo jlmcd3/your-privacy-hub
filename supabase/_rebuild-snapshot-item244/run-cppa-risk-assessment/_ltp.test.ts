@@ -1,10 +1,10 @@
 // LTP Phase-2 integration tests (shadow-mode). Deterministic; no network.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../../functions/run-cppa-risk-assessment/_local/ltp/pipeline.ts";
-import { evaluateCppaRiskGates } from "../../functions/_shared/ltp/gate-eval.ts";
-import { derivePlan } from "../../functions/_shared/ltp/derive.ts";
-import { runGuideStage } from "../../functions/_shared/ltp/guide.ts";
-import { chooseVariant, computeCloseness } from "../../functions/_shared/ltp/closeness.ts";
+import { evaluateCppaRiskGates } from "../../functions/run-cppa-risk-assessment/_local/ltp/gate-eval.ts";
+import { derivePlan } from "../../functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import { runGuideStage } from "../../functions/run-cppa-risk-assessment/_local/ltp/guide.ts";
+import { chooseVariant, computeCloseness } from "../../functions/run-cppa-risk-assessment/_local/ltp/closeness.ts";
 
 const BASE_INTAKE = {
   q1_revenue: "Over $100M",

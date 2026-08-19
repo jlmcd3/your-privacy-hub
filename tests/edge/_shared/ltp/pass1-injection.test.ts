@@ -6,15 +6,15 @@
 //            for full-contract ledger coverage; (f) added for grounded-note
 //            mass-replace abort threshold.
 import { assert, assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { applySingleWriterInjection } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
-import { pickLedger, LEDGER_KEYS } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { applySingleWriterInjection } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/pass1-llm.ts";
+import { pickLedger, LEDGER_KEYS } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
 import {
   applyGroundedNoteScreen,
   GroundedNoteMassReplaceAbort,
   GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD,
-} from "../../../../supabase/functions/_shared/ltp/grounded-note.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/grounded-note.ts";
 import { cppaRiskContract } from "../../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 // Populate every contract-real (non-dotted, non-PII-excluded) key so pickLedger
 // yields the full ledger. Values are illustrative — the ledger cares only

@@ -8,7 +8,7 @@
 // organization profile (sourced at the business level, not per assessment).
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { cppaRiskOrgProfileContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment-org-profile.ts";
+import { cppaRiskOrgProfileContract } from "../../../supabase/functions/_tests/intake-contracts/cppa-risk-assessment-org-profile.ts";
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";
 
 const field = (key: string) => cppaRiskOrgProfileContract.fields.find((f) => f.key === key);

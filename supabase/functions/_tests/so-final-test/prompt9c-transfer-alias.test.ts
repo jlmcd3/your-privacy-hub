@@ -10,7 +10,7 @@ import {
   buildProcessingInventory,
   buildSection2Coverage,
   readTransferFlowAliases,
-} from "../ltp/dpia-deliverables/build.ts";
+} from "../../_shared/ltp/dpia-deliverables/build.ts";
 
 function intake(flows: unknown[]): Record<string, unknown> {
   return {

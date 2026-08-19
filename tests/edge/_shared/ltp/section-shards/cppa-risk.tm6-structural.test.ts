@@ -12,13 +12,13 @@ import {
   expectedEmissionForKey,
   schemaTopLevelKeys,
   deriveTopLevelAllowedKeys,
-} from "../../../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
+} from "../../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-shards/cppa-risk.ts";
 import {
   assembleReport,
   buildTypeJWriteAroundBody,
   COMPOSITION_SHAPE_DECLARATION,
-} from "../../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
-import { derivePlan } from "../../../../../supabase/functions/_shared/ltp/derive.ts";
+} from "../../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
 
 function fixturePlan() {
   return derivePlan({

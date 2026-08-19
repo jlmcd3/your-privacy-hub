@@ -7,12 +7,12 @@
 // batch dying at dispatch.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { DPIA_PERFECT_SET, casesForVariant } from "../golden/registry.ts";
-import { DPIA_PERFECT_PINNED } from "../golden/dpia-perfect-pinned.ts";
-import { DPIA_PERFECT } from "../golden/dpia.ts";
-import { checkPerfectDpiaIntake, deficiencyLines } from "../quality/perfect-closed-loop.ts";
-import { planPinnedOnly } from "../quality/pinned-only.ts";
-import { buildDpiaDeliverables } from "../ltp/dpia-deliverables/build.ts";
+import { DPIA_PERFECT_SET, casesForVariant } from "../../_shared/golden/registry.ts";
+import { DPIA_PERFECT_PINNED } from "../../_shared/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT } from "../../_shared/golden/dpia.ts";
+import { checkPerfectDpiaIntake, deficiencyLines } from "../../_shared/quality/perfect-closed-loop.ts";
+import { planPinnedOnly } from "../../_shared/quality/pinned-only.ts";
+import { buildDpiaDeliverables } from "../../_shared/ltp/dpia-deliverables/build.ts";
 
 // ── Item 1 — the two attached fixtures are pinned, byte-exact ───────────────
 

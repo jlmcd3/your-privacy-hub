@@ -19,16 +19,16 @@ import {
   CYBER_SKELETON_SUBTITLE,
   CYBER_INLINE_CONDITIONALS,
   CYBER_PHASE_IN_CORPUS_KEY,
-} from "../../../supabase/functions/_shared/prose/plans/cppa-cyber.spine.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cppa-cyber.spine.ts";
 import {
   CYBER_SLOT_MAP,
   CYBER_TYPED_SURFACES,
-} from "../../../supabase/functions/_shared/prose/plans/cppa-cyber.slotmap.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cppa-cyber.slotmap.ts";
 import {
   assembleCyberSkeletonDocument,
   buildPhaseInBlock,
   CYBER_PHASE_IN_PINNED_SENTENCE,
-} from "../../../supabase/functions/_shared/ltp/cyber-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 const SECTION_IDS = [

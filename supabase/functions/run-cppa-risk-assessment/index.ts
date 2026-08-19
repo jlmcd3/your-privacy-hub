@@ -19,8 +19,8 @@ export const BUILD_STAMP = "ltp-risk-item217-hook-authz-repair-outside-guard@202
 console.log(`[run-cppa-risk-assessment] boot build_stamp=${BUILD_STAMP}`);
 // ITEM 378 — permanent pipeline build stamp. Bump on every pipeline change.
 // Written into every document at `_meta.internal.risk_pipeline_stamp`.
-export { RISK_PIPELINE_STAMP } from "../_shared/ltp/risk-stamp.ts";
-import { RISK_PIPELINE_STAMP } from "../_shared/ltp/risk-stamp.ts";
+export { RISK_PIPELINE_STAMP } from "./_local/ltp/risk-stamp.ts";
+import { RISK_PIPELINE_STAMP } from "./_local/ltp/risk-stamp.ts";
 console.log(`[run-cppa-risk-assessment] boot ${RISK_PIPELINE_STAMP}`);
 
 // ── ITEM 378 — CPPA RISK REFINEMENT PASS (the ratified DPIA template) ───────
@@ -116,7 +116,7 @@ import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION }
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "./_local/ltp/pipeline.ts";
-import { runPass1Llm, PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+import { runPass1Llm, PASS1_MANIFEST } from "./_local/ltp/pass1-llm.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -128,7 +128,7 @@ import {
   evaluateShippedValueScreen,
   SHIPPED_VALUE_SCREEN_VERSION,
   isRetiredSurfacePath,
-} from "../_shared/ltp/composition-finalize.ts";
+} from "./_local/ltp/composition-finalize.ts";
 
 import { computeScenarioSignature } from "./_local/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
@@ -3265,7 +3265,7 @@ async function runPipeline(assessment_id: string) {
     // Config-gated by RISK_REFINEMENT_ENABLED; fail-open in every branch.
     try {
       setRiskRefinementSourceRowId(assessment_id ?? null);
-      const { runRiskRefinement } = await import("../_shared/ltp/risk-refinement.ts");
+      const { runRiskRefinement } = await import("./_local/ltp/risk-refinement.ts");
       const refineTel = await runRiskRefinement(
         report_data as Record<string, unknown>,
         (((row as any).intake_data as Record<string, unknown>) ?? {}),
@@ -3328,7 +3328,7 @@ async function runPipeline(assessment_id: string) {
     // pre serializer) so the schema whitelist emits the deterministic build.
     // Telemetry lands on `_meta.internal.risk_t7_opening`. Fail-visible; never blocks.
     try {
-      const { buildRiskOpening, RISK_OPENING_VERSION } = await import("../_shared/openings/risk-opening.ts");
+      const { buildRiskOpening, RISK_OPENING_VERSION } = await import("./_local/openings/risk-opening.ts");
       const intake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const built = buildRiskOpening(intake as any);
       (report_data as any).opening_summary = built.text;
@@ -3396,7 +3396,7 @@ async function runPipeline(assessment_id: string) {
     // recorded (never blocks — the scrubbers empty the surface first).
     try {
       const { applyWaveBCompletion, assertNoPiiInNarrative, WAVEB_COMPLETION_STAMP, WAVEB_COMPLETION_VERSION } =
-        await import("../_shared/ltp/waveb-completion.ts");
+        await import("./_local/ltp/waveb-completion.ts");
       const _wbIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const _wb = applyWaveBCompletion(report_data as any, _wbIntake as any);
       report_data = _wb.report as any;
@@ -3833,7 +3833,7 @@ async function runPipeline(assessment_id: string) {
     // `_meta.internal.serializer`.
     try {
       const { serializeCustomerReport } = await import("../_shared/report-serialize.ts");
-      const { CPPA_RISK_REPORT_SCHEMA } = await import("../_shared/report-schemas/cppa-risk.ts");
+      const { CPPA_RISK_REPORT_SCHEMA } = await import("./_local/report-schemas/cppa-risk.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, CPPA_RISK_REPORT_SCHEMA);
       if (!telemetry.crashed) report_data = serialized as any;
     } catch (e) {

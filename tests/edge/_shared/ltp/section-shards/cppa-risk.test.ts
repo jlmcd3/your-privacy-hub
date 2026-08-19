@@ -13,8 +13,8 @@ import {
   coverageReport,
   schemaTopLevelKeys,
   shardKeys,
-} from "../../../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
-import { RISK_CUT_RULINGS } from "../../../../../supabase/functions/_shared/ltp/content/risk-surface-map.ts";
+} from "../../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-shards/cppa-risk.ts";
+import { RISK_CUT_RULINGS } from "../../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/content/risk-surface-map.ts";
 
 Deno.test("registry: every schema top-level key has an owner", () => {
   const rep = coverageReport();

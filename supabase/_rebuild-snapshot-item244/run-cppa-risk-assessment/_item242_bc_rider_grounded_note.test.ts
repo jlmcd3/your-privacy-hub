@@ -16,10 +16,10 @@ import {
   buildGroundedSet,
   isGrounded,
   applyGroundedNoteScreen,
-} from "../../functions/_shared/ltp/grounded-note.ts";
-import { PASS1_DERIVE_PROMPT_VERSION, PASS1_DERIVE_SYSTEM } from "../../functions/_shared/ltp/content/pass1-derive-prompt.ts";
-import { PASS1_LLM_STAMP } from "../../functions/_shared/ltp/pass1-llm.ts";
-import type { IntakeLedgerEntry, RenderPlan } from "../../functions/_shared/render-plan/schema.ts";
+} from "../../functions/run-cppa-risk-assessment/_local/ltp/grounded-note.ts";
+import { PASS1_DERIVE_PROMPT_VERSION, PASS1_DERIVE_SYSTEM } from "../../functions/run-cppa-risk-assessment/_local/ltp/content/pass1-derive-prompt.ts";
+import { PASS1_LLM_STAMP } from "../../functions/run-cppa-risk-assessment/_local/ltp/pass1-llm.ts";
+import type { IntakeLedgerEntry, RenderPlan } from "../../functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 const LEDGER: readonly IntakeLedgerEntry[] = [
   { ledger_id: "L.q4_pi_categories", intake_field: "q4_pi_categories", value: "email address, IP address", display: "Categories of personal information processed" },

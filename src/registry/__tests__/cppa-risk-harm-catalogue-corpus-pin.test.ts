@@ -33,7 +33,7 @@ import {
   HARM_CATALOGUE_CORPUS_KEY,
   HARM_CATALOGUE_VERSION,
   HARM_IDS,
-} from "../../../supabase/functions/_shared/ltp/analytic-deliverables/harm-catalogue";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/harm-catalogue";
 
 import { normTypography as norm, normCorpus } from "./helpers/corpus-normalize";
 

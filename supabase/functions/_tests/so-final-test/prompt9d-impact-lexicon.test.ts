@@ -1,7 +1,7 @@
 // PROMPT 9D item 1 — impact-lexicon widening. Per-pattern fixture pairs:
 // impact prose is now recognised; benefit-only prose is still NOT recognised.
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { hasImpactLanguage, IMPACT_LEXICON } from "../ltp/dpia-deliverables/build.ts";
+import { hasImpactLanguage, IMPACT_LEXICON } from "../../_shared/ltp/dpia-deliverables/build.ts";
 
 const PAIRS: Array<{ name: string; impact: string; benefit: string }> = [
   {

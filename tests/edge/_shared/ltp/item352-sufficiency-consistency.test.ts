@@ -26,11 +26,11 @@
 import { assert, assertEquals, assertNotEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { crypto } from "https://deno.land/std@0.208.0/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std@0.208.0/encoding/hex.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
-import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
-import { resolveLtpIntake } from "../../../../supabase/functions/_shared/ltp/entry-intake.ts";
-import { computeRecordNeeds } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import { assembleReport } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
+import { resolveLtpIntake } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/entry-intake.ts";
+import { computeRecordNeeds } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
 import { runEmitGate } from "../../../../supabase/functions/_shared/emit-gate.ts";
 import { coerceSufficiencyView } from "../../../../supabase/functions/_shared/report-contracts/risk-sufficiency.ts";
 

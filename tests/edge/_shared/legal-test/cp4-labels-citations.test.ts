@@ -12,10 +12,10 @@
  *      shapes and passes clean display_label prose.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { CPPA_RISK_CONCLUSIONS } from "../../../../supabase/functions/_shared/legal-test/cppa-risk-conclusions.ts";
-import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
-import { runValueScreen, ValueScreenError } from "../../../../supabase/functions/_shared/ltp/value-screen.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+import { CPPA_RISK_CONCLUSIONS } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/legal-test/cppa-risk-conclusions.ts";
+import { composeSection } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
+import { runValueScreen, ValueScreenError } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/value-screen.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 Deno.test("CP4 (a) — every conclusion has a display_label", () => {
   for (const c of CPPA_RISK_CONCLUSIONS) {

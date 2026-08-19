@@ -15,7 +15,7 @@ import {
   RISK_PROSE_GOLD_VERSION,
   sentenceTerminate,
   stripDegradedOpeners,
-} from "../../../supabase/functions/_shared/ltp/risk-prose-gold.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-prose-gold.ts";
 import {
   duplicateSentences,
   hasBareEnum,
@@ -25,7 +25,7 @@ import {
   proseLeaves,
   rendersWrongField,
 } from "../../../archive/unwired/_shared/prose/risk-seam-lint.ts";
-import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
+import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
 import { isSanctionedCounselRegister } from "../../../supabase/functions/_shared/emit-gate.ts";
 
 const SHIPPED_EXEC =

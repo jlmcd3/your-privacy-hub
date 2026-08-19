@@ -2,8 +2,8 @@
 // Recorded cppa-risk processing_narrative defects used verbatim.
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { renderSlotValue, joinNaturalList, collapseRenderArtifacts, adapterFor } from "../../../../supabase/functions/_shared/prose/slots.ts";
-import { applyMethodologyNote, stripMethodologySentences, METHODOLOGY_NOTE } from "../../../../supabase/functions/_shared/prose/methodology.ts";
-import { lintNarrativeCitations, extractCitations } from "../../../../supabase/functions/_shared/prose/citation-lint.ts";
+import { applyMethodologyNote, stripMethodologySentences, METHODOLOGY_NOTE } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/prose/methodology.ts";
+import { lintNarrativeCitations, extractCitations } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/prose/citation-lint.ts";
 
 const RISK = adapterFor("cppa-risk");
 

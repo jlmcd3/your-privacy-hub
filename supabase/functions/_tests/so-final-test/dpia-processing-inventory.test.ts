@@ -9,8 +9,8 @@ import {
   buildGapLedger,
   buildProcessingInventory,
 } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
-import { dpiaFrameworkContract } from "../intake-contracts/dpia-framework.ts";
-import type { DpiaProcessingInventory } from "../ltp/dpia-deliverables/types.ts";
+import { dpiaFrameworkContract } from "../../_shared/intake-contracts/dpia-framework.ts";
+import type { DpiaProcessingInventory } from "../../_shared/ltp/dpia-deliverables/types.ts";
 
 const CONTRACT_KEYS = new Set(dpiaFrameworkContract.fields.map((f) => f.key));
 

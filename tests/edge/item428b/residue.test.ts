@@ -13,9 +13,9 @@ import {
   rehomeReservedReferrals,
   isReservedReferralSentence,
   RISK_SUMMARY_REHOME_VERSION,
-} from "../../../supabase/functions/_shared/ltp/risk-summary-rehome.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-summary-rehome.ts";
 import { runEmitGate, isBytePinnedLeaf } from "../../../supabase/functions/_shared/emit-gate.ts";
-import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
+import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
 
 const REFERRAL =
   "The determination whether to initiate the processing remains reserved to the Chief Compliance Officer and qualified legal counsel under 11 CCR § 7152(a)(7).";

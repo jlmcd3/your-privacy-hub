@@ -23,7 +23,7 @@ import {
   secondaryFollowUps,
   SECONDARY_ANCHOR_7156A,
   SECONDARY_RECOMMENDATION_DISCLAIMER,
-} from "../../../supabase/functions/_shared/ltp/secondary-recommendation";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/secondary-recommendation";
 import { stashRiskPrefill } from "@/lib/riskIntakePrefill";
 
 interface Props {

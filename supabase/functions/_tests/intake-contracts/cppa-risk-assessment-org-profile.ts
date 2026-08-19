@@ -14,7 +14,7 @@
 // migrating their source to the org profile going forward (assessment reads through).
 // Those keys are NOT duplicated here — migration is a Phase B / reporting concern.
 
-import type { IntakeContract } from "./types.ts";
+import type { IntakeContract } from "../../_shared/intake-contracts/types.ts";
 
 export const YES_NO_OPTS = ["Yes", "No"] as const;
 

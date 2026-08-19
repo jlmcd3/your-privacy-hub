@@ -22,8 +22,8 @@ import {
   runCppaRiskPass2R,
   CPPA_RISK_GENERATOR_STAMP,
   RISK_PIPELINE_STAMP,
-} from "../_shared/ltp/generate-cppa-risk.ts";
-import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "../_shared/ltp/risk-refinement-deps.ts";
+} from "./_local/ltp/generate-cppa-risk.ts";
+import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "./_local/ltp/risk-refinement-deps.ts";
 
 const BUILD_STAMP = "ltp-risk-doc-gen-item357-2026-08-01";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;

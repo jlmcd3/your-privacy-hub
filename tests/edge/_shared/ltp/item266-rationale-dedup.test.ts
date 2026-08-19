@@ -7,11 +7,11 @@
 // (3) The GTM grader classifies section_duplication as logged/non-material
 //     under the DRAFT register.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { composeSection } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+import { composeSection } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
 import { evaluateSectionDuplication } from "../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/substance-gates.ts";
 import { evaluateGtm } from "../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/gtm-grader.ts";
-import type { PerDocResult } from "../../../../supabase/functions/_shared/ltp/replay/types.ts";
-import type { RenderPlan, FactorTableEntry } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+import type { PerDocResult } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/replay/types.ts";
+import type { RenderPlan, FactorTableEntry } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 function factor(
   id: string,

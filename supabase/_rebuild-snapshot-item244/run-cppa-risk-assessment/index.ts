@@ -60,9 +60,9 @@ import { applyRiskCohortDate, RISK_COHORT_DATE_STAMP, RISK_COHORT_DATE_VERSION }
 import { applyRiskIntakeContradiction, RISK_INTAKE_CONTRADICTION_STAMP } from "./_risk_intake_contradiction.ts";
 import { applyRiskCitationDupFix, RISK_CITATION_DUP_FIX_STAMP } from "./_risk_citation_dup_fix.ts";
 import { runLegalTestPipelineShadow, LTP_STAMP } from "../../functions/run-cppa-risk-assessment/_local/ltp/pipeline.ts";
-import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../../functions/_shared/ltp/pass1-llm.ts";
-import { classifyPass1WriteAroundOrigin, type WriteAroundOrigin } from "../../functions/_shared/ltp/composition-hook-audit.ts";
-import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../../functions/_shared/ltp/pass2-assembler.ts";
+import { runPass1Llm, PASS1_MANIFEST, PASS1_MODEL, PASS1_MAX_ATTEMPTS, PASS1_TIMEOUT_ENFORCED, PASS1_ABORT_TIMEOUT_ERROR } from "../../functions/run-cppa-risk-assessment/_local/ltp/pass1-llm.ts";
+import { classifyPass1WriteAroundOrigin, type WriteAroundOrigin } from "../../functions/run-cppa-risk-assessment/_local/ltp/composition-hook-audit.ts";
+import { assembleReport, assembleReportShadow, buildTypeJWriteAroundBody, COMPOSITION_SHAPE_DECLARATION, PASS2_ASSEMBLER_VERSION } from "../../functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
 import {
   finalizeComposition,
   safeFinalizeComposition,
@@ -74,7 +74,7 @@ import {
   evaluateShippedValueScreen,
   SHIPPED_VALUE_SCREEN_VERSION,
   isRetiredSurfacePath,
-} from "../../functions/_shared/ltp/composition-finalize.ts";
+} from "../../functions/run-cppa-risk-assessment/_local/ltp/composition-finalize.ts";
 
 import { computeScenarioSignature } from "../../functions/run-cppa-risk-assessment/_local/future-building/signature.ts";
 // prior_stamps echoed verbatim per deploy-guard doctrine.
@@ -3238,7 +3238,7 @@ async function runPipeline(assessment_id: string) {
     // pre serializer) so the schema whitelist emits the deterministic build.
     // Telemetry lands on `_meta.internal.risk_t7_opening`. Fail-visible; never blocks.
     try {
-      const { buildRiskOpening, RISK_OPENING_VERSION } = await import("../../functions/_shared/openings/risk-opening.ts");
+      const { buildRiskOpening, RISK_OPENING_VERSION } = await import("../../functions/run-cppa-risk-assessment/_local/openings/risk-opening.ts");
       const intake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const built = buildRiskOpening(intake as any);
       (report_data as any).opening_summary = built.text;
@@ -3306,7 +3306,7 @@ async function runPipeline(assessment_id: string) {
     // recorded (never blocks — the scrubbers empty the surface first).
     try {
       const { applyWaveBCompletion, assertNoPiiInNarrative, WAVEB_COMPLETION_STAMP, WAVEB_COMPLETION_VERSION } =
-        await import("../../functions/_shared/ltp/waveb-completion.ts");
+        await import("../../functions/run-cppa-risk-assessment/_local/ltp/waveb-completion.ts");
       const _wbIntake = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const _wb = applyWaveBCompletion(report_data as any, _wbIntake as any);
       report_data = _wb.report as any;
@@ -3911,7 +3911,7 @@ async function runPipeline(assessment_id: string) {
     // `_meta.internal.serializer`.
     try {
       const { serializeCustomerReport } = await import("../../functions/_shared/report-serialize.ts");
-      const { CPPA_RISK_REPORT_SCHEMA } = await import("../../functions/_shared/report-schemas/cppa-risk.ts");
+      const { CPPA_RISK_REPORT_SCHEMA } = await import("../../functions/run-cppa-risk-assessment/_local/report-schemas/cppa-risk.ts");
       const { report: serialized, telemetry } = serializeCustomerReport(report_data as any, CPPA_RISK_REPORT_SCHEMA);
       if (!telemetry.crashed) report_data = serialized as any;
     } catch (e) {

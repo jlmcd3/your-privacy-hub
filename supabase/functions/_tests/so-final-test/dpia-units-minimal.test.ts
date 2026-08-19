@@ -13,9 +13,9 @@ import {
   buildEnforcementAnnotations,
   buildRiskRegister,
 } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
-import { assembleDpiaSkeletonDocument } from "../ltp/dpia-skeleton-assemble.ts";
-import { runDpiaCsc } from "../ltp/dpia-csc.ts";
-import { runEmitGate } from "../emit-gate.ts";
+import { assembleDpiaSkeletonDocument } from "../../_shared/ltp/dpia-skeleton-assemble.ts";
+import { runDpiaCsc } from "../../_shared/ltp/dpia-csc.ts";
+import { runEmitGate } from "../../_shared/emit-gate.ts";
 
 const RETIRED_NOTE =
   "Retired under DPIA_UNITS_MINIMAL: this section is composed from the typed deterministic surfaces (processing_inventory, section2_coverage, necessity_findings, proportionality, risk_register, legal_basis, decision) and the skeleton document, which have no remaining reader for raw unit output.";

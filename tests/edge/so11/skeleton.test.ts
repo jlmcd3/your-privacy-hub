@@ -18,12 +18,12 @@ import {
 import {
   LIA_CONDITIONAL_TRIGGERS,
   LIA_SLOT_MAP,
-} from "../../../supabase/functions/_shared/prose/plans/lia.slotmap.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.slotmap.ts";
 import {
   assembleLiaSkeletonDocument,
   buildLiaSlotValues,
   liaAuthorityGroup,
-} from "../../../supabase/functions/_shared/ltp/lia-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts";
 import {
   skeletonDocumentToText,
   slotsIn,

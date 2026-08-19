@@ -23,7 +23,7 @@ import {
 import {
   buildRecordSufficiency,
   applyRiskProseGold,
-} from "../../../supabase/functions/_shared/ltp/risk-prose-gold.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-prose-gold.ts";
 
 const AFFIRMATIVE =
   "The record before this assessment is complete: every question the intake asks has been answered.";

@@ -24,11 +24,11 @@ import {
   generateCppaRiskReport,
   type GenerateCppaRiskOptions,
   type GenerateCppaRiskResult,
-} from "../../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
-import { resolveLtpIntake } from "../../../../supabase/functions/_shared/ltp/entry-intake.ts";
-import { fetchEuAuthorityCorpus } from "../../../../supabase/functions/_shared/ltp/eu-authority/fetch.ts";
-import { buildEuAuthoritySection } from "../../../../supabase/functions/_shared/ltp/eu-authority/build.ts";
-import { buildActivityAnalytics } from "../../../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
+import { resolveLtpIntake } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/entry-intake.ts";
+import { fetchEuAuthorityCorpus } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/eu-authority/fetch.ts";
+import { buildEuAuthoritySection } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/build.ts";
+import { buildActivityAnalytics } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/build.ts";
 import {
   loadDocumentPlan,
   loadFrameSet,

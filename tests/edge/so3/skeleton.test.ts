@@ -19,15 +19,15 @@ import {
   GOVERNANCE_INLINE_CONDITIONALS,
   GOVERNANCE_TOA_GROUPS,
   GOVERNANCE_COVERAGE_LINKS,
-} from "../../../supabase/functions/_shared/prose/plans/governance.spine.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/prose/plans/governance.spine.ts";
 import {
   GOVERNANCE_SLOT_MAP,
   GOVERNANCE_TYPED_SURFACES,
-} from "../../../supabase/functions/_shared/prose/plans/governance.slotmap.ts";
+} from "../../../supabase/functions/_tests/prose/plans/governance.slotmap.ts";
 import { governanceContract } from "../../../supabase/functions/_shared/intake-contracts/governance-assessment.ts";
 import {
   assembleGovernanceSkeletonDocument,
-} from "../../../supabase/functions/_shared/ltp/governance-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 const SECTION_IDS = [

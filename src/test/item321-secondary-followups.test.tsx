@@ -14,7 +14,7 @@ import { RISK_PREFILL_KEY, consumeRiskPrefill } from "@/lib/riskIntakePrefill";
 import {
   secondaryFollowUps,
   secondaryRecommendationSentence,
-} from "../../supabase/functions/_shared/ltp/secondary-recommendation";
+} from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/secondary-recommendation";
 
 const navigateSpy = vi.fn();
 vi.mock("react-router-dom", async () => {

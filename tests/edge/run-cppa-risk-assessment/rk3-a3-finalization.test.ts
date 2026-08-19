@@ -22,7 +22,7 @@ import {
   FINAL_PROCESSING_DECISION_ONGOING_OPTS,
   FINAL_PROCESSING_DECISION_OPTS,
   REVIEWER_ROLE_OPTS,
-} from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment-finalization.ts";
+} from "../../../supabase/functions/_tests/intake-contracts/cppa-risk-assessment-finalization.ts";
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";
 // Frontend parity copies
 import {

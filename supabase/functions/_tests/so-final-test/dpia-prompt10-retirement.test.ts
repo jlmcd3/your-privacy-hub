@@ -17,7 +17,7 @@ import {
   buildDpiaMetadata,
   buildInterestedParties,
 } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/minimal-units.ts";
-import { assembleDpiaSkeletonDocument } from "../ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 // BYTE LAW — the U5_SKELETON framework_disclaimer string, copied here
 // independently of the constant under test.

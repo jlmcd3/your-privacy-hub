@@ -15,9 +15,9 @@ import {
   GROUNDED_NOTE_MASS_REPLACE_ABORT_THRESHOLD,
   GroundedNoteMassReplaceAbort,
   applyGroundedNoteScreen,
-} from "../../../../supabase/functions/_shared/ltp/grounded-note.ts";
-import { PASS1_LLM_STAMP } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
-import type { IntakeLedgerEntry, RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/grounded-note.ts";
+import { PASS1_LLM_STAMP } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/pass1-llm.ts";
+import type { IntakeLedgerEntry, RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 const LEDGER: readonly IntakeLedgerEntry[] = [
   {

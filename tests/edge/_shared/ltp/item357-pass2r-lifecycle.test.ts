@@ -14,7 +14,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   generateCppaRiskReport,
   runCppaRiskPass2R,
-} from "../../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { runConformanceChecks } from "../../fixtures/item354/conformance-checks.ts";
 
 const raw = JSON.parse(

@@ -16,8 +16,8 @@
  * (qc_r1_4_cohort_determinism).
  */
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { generateCppaRiskReport } from "../../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
-import { ensureTerminalPunctuation } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
+import { generateCppaRiskReport } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
+import { ensureTerminalPunctuation } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/pass2-render.ts";
 import { isSanctionedCounselRegister } from "../../../../supabase/functions/_shared/emit-gate.ts";
 import { renderResolvedCohortSentence } from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
 

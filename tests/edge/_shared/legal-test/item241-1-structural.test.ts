@@ -8,14 +8,14 @@
  *      report; the assembler surfaces the report under exit_checks.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { composeSection, aggregateBalance } from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
-import { assembleReport } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
+import { composeSection, aggregateBalance } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import { assembleReport } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
 import {
   CPPA_RISK_GOLDEN_QUOTAS,
   evaluateGoldenShape,
-} from "../../../../supabase/functions/_shared/ltp/golden-shape-quotas.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/golden-shape-quotas.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 function planWithGateOutcomes(gates: RenderPlan["gate_outcomes"]): RenderPlan {
   return {

@@ -21,8 +21,8 @@ import {
   frameStatuteQuote,
 } from "../../../supabase/functions/run-li-assessment/_local/prose/quote-frame.ts";
 import { classifyBracketToken } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { reservedActionLabel } from "../../../supabase/functions/_shared/ltp/risk-prose-gold.ts";
-import { PASS2_TEMPLATES } from "../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
+import { reservedActionLabel } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-prose-gold.ts";
+import { PASS2_TEMPLATES } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/content/pass2-templates.ts";
 
 const rules = (r: ReturnType<typeof lintAssembledProse>) => r.findings.map((f) => f.rule);
 

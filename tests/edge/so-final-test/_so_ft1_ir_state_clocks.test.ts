@@ -5,7 +5,7 @@ import {
   buildStateNotificationDuties,
   isUsStateJurisdiction,
 } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/us-state-duties.ts";
-import { buildDeadlinesProse } from "../../../supabase/functions/_shared/ltp/ir-skeleton-assemble.ts";
+import { buildDeadlinesProse } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-skeleton-assemble.ts";
 
 Deno.test("state duties: one per recorded state, deduped, GDPR jurisdictions ignored", () => {
   const d = buildStateNotificationDuties(

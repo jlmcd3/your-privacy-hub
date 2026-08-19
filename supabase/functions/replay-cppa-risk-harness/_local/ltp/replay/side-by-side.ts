@@ -6,8 +6,8 @@
  * 38-key schema in some cases — tolerate missing keys by recording
  * "legacy_key_missing:<key>" in missing_legacy_keys, never throw.
  */
-import { evaluateGoldenShape, CPPA_RISK_GOLDEN_QUOTAS } from "../../../../_shared/ltp/golden-shape-quotas.ts";
-import type { PerDocResult, SideBySideRow } from "../../../../_shared/ltp/replay/types.ts";
+import { evaluateGoldenShape, CPPA_RISK_GOLDEN_QUOTAS } from "../golden-shape-quotas.ts";
+import type { PerDocResult, SideBySideRow } from "./types.ts";
 
 export function compareDoc(
   perDoc: PerDocResult,

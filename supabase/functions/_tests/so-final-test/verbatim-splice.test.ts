@@ -1,7 +1,7 @@
 // PROMPT 2A — shared verbatim-splice normalizer + DPIA slot-filler repairs.
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { spliceVerbatim, collapseSeam, humanizeDateISO } from "../ltp/verbatim-splice.ts";
-import { buildDpiaSlotValues, descriptionSlots } from "../ltp/dpia-skeleton-assemble.ts";
+import { spliceVerbatim, collapseSeam, humanizeDateISO } from "../../_shared/ltp/verbatim-splice.ts";
+import { buildDpiaSlotValues, descriptionSlots } from "../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 Deno.test("splice — fragment ending in period before ', supported by'", () => {
   const v = spliceVerbatim("Only the diagnosis category, certified dates and the fact of incapacity are recorded.");

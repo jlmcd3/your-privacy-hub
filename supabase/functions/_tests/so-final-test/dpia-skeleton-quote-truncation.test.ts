@@ -6,7 +6,7 @@ import {
   composeNecessityBody,
   composeRiskBody,
   firstSentencesQuoteAware,
-} from "../ltp/dpia-skeleton-assemble.ts";
+} from "../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 const QUOTED_WHY =
   'The company records the purpose as "We collect the badge scan. We match it to the roster. ' +

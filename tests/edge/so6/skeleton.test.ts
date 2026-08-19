@@ -18,12 +18,12 @@ import {
   BIOMETRIC_SKELETON_SUBTITLE,
   BIOMETRIC_V3_BANNED_REGISTER,
 } from "../../../supabase/functions/_shared/prose/plans/biometric.spine.ts";
-import { BIOMETRIC_SLOT_MAP } from "../../../supabase/functions/_shared/prose/plans/biometric.slotmap.ts";
+import { BIOMETRIC_SLOT_MAP } from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.slotmap.ts";
 import { skeletonDocumentToText, slotsIn } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 import {
   assembleBiometricSkeletonDocument,
   firstSentence,
-} from "../../../supabase/functions/_shared/ltp/biometric-skeleton-assemble.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-skeleton-assemble.ts";
 
 const INTAKE: Record<string, unknown> = {
   orgName: "Northwind Logistics Group",

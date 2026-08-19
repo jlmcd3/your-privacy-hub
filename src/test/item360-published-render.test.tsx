@@ -12,7 +12,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
 import SecondaryActivityFollowUps from "@/components/cppa/SecondaryActivityFollowUps";
-import { secondaryRecommendationSentence } from "../../supabase/functions/_shared/ltp/secondary-recommendation";
+import { secondaryRecommendationSentence } from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/secondary-recommendation";
 import live from "./fixtures/item360-live-secondary.json";
 
 const report = (live as any).report;

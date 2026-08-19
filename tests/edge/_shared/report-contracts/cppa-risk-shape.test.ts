@@ -20,8 +20,8 @@ import {
   assertExecSummaryCoherent,
   CPPA_RISK_SHAPE_VERSION,
 } from "../../../../supabase/functions/_shared/report-contracts/cppa-risk-shape.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
-import { assembleReport, buildTypeJWriteAroundBody } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import { assembleReport, buildTypeJWriteAroundBody } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
 
 Deno.test("CP3 shape: coerceNarrativeScalar collapses array -> string; passes through strings", () => {
   assertEquals(coerceNarrativeScalar(["one paragraph", "two paragraph"]), "one paragraph\n\ntwo paragraph");

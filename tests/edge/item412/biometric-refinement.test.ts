@@ -50,7 +50,7 @@ import {
   type CriticFinding,
 } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
 import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
-import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/_shared/ltp/risk-refinement.ts";
+import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-refinement.ts";
 import { LIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement.ts";
 import { ADMT_REFINEMENT_CONFIG } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-refinement.ts";
 import { GOVERNANCE_REFINEMENT_CONFIG } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-refinement.ts";

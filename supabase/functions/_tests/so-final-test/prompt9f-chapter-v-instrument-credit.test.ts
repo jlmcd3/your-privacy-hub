@@ -6,7 +6,7 @@ import {
   buildProcessingInventory,
   buildSection2Coverage,
   readChapterVInstrumentCredit,
-} from "../ltp/dpia-deliverables/build.ts";
+} from "../../_shared/ltp/dpia-deliverables/build.ts";
 
 // ── run 187 retry, flow 1 transfer_mechanism (VERBATIM) ─────────────────────
 const RUN187_FLOW1_MECHANISM =

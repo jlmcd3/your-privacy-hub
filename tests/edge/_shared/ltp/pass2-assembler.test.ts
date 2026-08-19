@@ -3,14 +3,14 @@
  * SHADOW MODE. Deno test harness.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assembleReportShadow, PASS2_ASSEMBLER_VERSION } from "../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
-import { CPPA_RISK_SECTION_SHARDS } from "../../../../supabase/functions/_shared/ltp/section-shards/cppa-risk.ts";
-import { CPPA_RISK_REPORT_SCHEMA } from "../../../../supabase/functions/_shared/report-schemas/cppa-risk.ts";
+import { assembleReportShadow, PASS2_ASSEMBLER_VERSION } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import { CPPA_RISK_SECTION_SHARDS } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-shards/cppa-risk.ts";
+import { CPPA_RISK_REPORT_SCHEMA } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/report-schemas/cppa-risk.ts";
 // PASS2_FORBIDDEN_TOKENS is a slot-injection guard applied inside
 // renderTemplate; the output assertion here is `render_errors === []`.
 import { renderCyberAuditSchedule, SCHEDULE_MARKER } from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
-import type { OpeningHarvestArtifact } from "../../../../supabase/functions/_shared/ltp/harvest-guard.ts";
+import type { OpeningHarvestArtifact } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/harvest-guard.ts";
 
 const buildStamp = "tm5-assembler@test";
 

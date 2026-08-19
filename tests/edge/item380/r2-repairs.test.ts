@@ -15,7 +15,7 @@ import {
   RECORD_COMPLETE_VERSION,
   VALUE_DEMAND_RE,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { applyRiskRecordCompleteFraming } from "../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
+import { applyRiskRecordCompleteFraming } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";

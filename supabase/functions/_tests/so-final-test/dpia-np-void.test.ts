@@ -3,7 +3,7 @@ import { assert, assertEquals, assertStringIncludes } from "https://deno.land/st
 import {
   composeNecessityBody,
   DPIA_NP_VOID_NOTICE,
-} from "../ltp/dpia-skeleton-assemble.ts";
+} from "../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 Deno.test("empty typed arrays compose the defect notice, never section_3 prose", () => {
   const out = composeNecessityBody({
@@ -35,7 +35,7 @@ Deno.test("typed findings still compose normally", () => {
 
 Deno.test("no section_0..section_5 read remains in the assembler", async () => {
   const src = await Deno.readTextFile(
-    new URL("../ltp/dpia-skeleton-assemble.ts", import.meta.url),
+    new URL("../../_shared/ltp/dpia-skeleton-assemble.ts", import.meta.url),
   );
   for (const n of [0, 1, 2, 3, 4, 5]) {
     assert(

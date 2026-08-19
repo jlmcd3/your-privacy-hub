@@ -12,12 +12,12 @@
  *      unresolved factual documentation gates, and present confirmations.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
 import {
   assessRecordCompleteness,
   composeSection,
-} from "../../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
-import { fillOrOmitWeightNote, WEIGHT_NOTE_MAX_CHARS } from "../../../../supabase/functions/_shared/ltp/pass1-llm.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
+import { fillOrOmitWeightNote, WEIGHT_NOTE_MAX_CHARS } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/pass1-llm.ts";
 
 const INTAKE: Record<string, unknown> = {
   entity_name: "ClearPath Credit Solutions, Inc.",

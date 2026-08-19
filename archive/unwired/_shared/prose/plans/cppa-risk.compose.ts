@@ -13,8 +13,8 @@
 //
 // This file computes NOTHING about the law and NOTHING about the record.
 
-import type { ActivityAnalytics } from "../../../../../supabase/functions/_shared/ltp/analytic-deliverables/types.ts";
-import type { EuAuthoritySection } from "../../../../../supabase/functions/_shared/ltp/eu-authority/types.ts";
+import type { ActivityAnalytics } from "../../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/types.ts";
+import type { EuAuthoritySection } from "../../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/types.ts";
 import type { FrameSet } from "../../../../../supabase/functions/_shared/prose/frames.ts";
 import { renderSectionFromFrames } from "../../../../../supabase/functions/_shared/prose/frame-render.ts";
 import { buildCppaRiskFrameValues } from "../frames/cppa-risk.values.ts";

@@ -3,7 +3,7 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   applyRiskProseGold,
   stripDegradedOpenersGuarded,
-} from "../../../supabase/functions/_shared/ltp/risk-prose-gold.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-prose-gold.ts";
 
 const OPENER =
   "We could not verify this item from the information provided; add the missing information needed.";

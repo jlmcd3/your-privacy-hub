@@ -19,24 +19,24 @@
 import { evaluateGtm } from "./_local/ltp/replay/gtm-grader.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-import { PASS1_MANIFEST } from "../_shared/ltp/pass1-llm.ts";
+import { PASS1_MANIFEST } from "./_local/ltp/pass1-llm.ts";
 // ITEM 341 — EU persuasive-authority corpus (read-only; null-safe).
-import { fetchEuAuthorityCorpus } from "../_shared/ltp/eu-authority/fetch.ts";
+import { fetchEuAuthorityCorpus } from "./_local/ltp/eu-authority/fetch.ts";
 import { MINED_PRESENCE_BAND, defaultSubstanceGateConfig }
   from "./_local/ltp/replay/presence-band.ts";
 import {
   modelProvider,
   deterministicProvider,
   _modelProviderCallCount_get,
-} from "../_shared/ltp/replay/providers.ts";
-import { normalizeEraIntake } from "../_shared/ltp/replay/era-normalize.ts";
+} from "./_local/ltp/replay/providers.ts";
+import { normalizeEraIntake } from "./_local/ltp/replay/era-normalize.ts";
 
-import { assembleReport } from "../_shared/ltp/pass2-assembler.ts";
-import { runProsePassStage, PASS2R_MANIFEST } from "../_shared/ltp/pass2r-llm.ts";
+import { assembleReport } from "./_local/ltp/pass2-assembler.ts";
+import { runProsePassStage, PASS2R_MANIFEST } from "./_local/ltp/pass2r-llm.ts";
 import { evaluateSubstance } from "./_local/ltp/replay/substance-gates.ts";
 import { compareDoc } from "./_local/ltp/replay/side-by-side.ts";
 import type { PerDocResult, ReplayDoc, SideBySideRow }
-  from "../_shared/ltp/replay/types.ts";
+  from "./_local/ltp/replay/types.ts";
 
 export const HARNESS_BUILD_STAMP =
   "replay-cppa-risk-harness-2026-08-18-rk-deterministic-pass1";

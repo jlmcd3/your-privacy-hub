@@ -7,10 +7,10 @@
  * runReplayBatch: aggregates per-gate failure counts + presence-rate
  *   distribution + side-by-side rows.
  */
-import { assembleReport } from "../../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
-import type { AssemblerResult, SectionTelemetry } from "../../../../../supabase/functions/_shared/ltp/pass2-assembler.ts";
-import { runProsePassStage } from "../../../../../supabase/functions/_shared/ltp/pass2r-llm.ts";
-import type { RenderPlan } from "../../../../../supabase/functions/_shared/render-plan/schema.ts";
+import { assembleReport } from "../../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
+import type { AssemblerResult, SectionTelemetry } from "../../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2-assembler.ts";
+import { runProsePassStage } from "../../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2r-llm.ts";
+import type { RenderPlan } from "../../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 import { evaluateSubstance } from "../../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/substance-gates.ts";
 
 import { compareDoc } from "../../../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/side-by-side.ts";
@@ -24,7 +24,7 @@ import {
   type ReplayDoc,
   type ReplayRunConfig,
   type SideBySideRow,
-} from "../../../../../supabase/functions/_shared/ltp/replay/types.ts";
+} from "../../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/replay/types.ts";
 
 export async function runReplayDoc(
   doc: ReplayDoc,

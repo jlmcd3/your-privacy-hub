@@ -9,7 +9,7 @@
  *      suite runs against live-persisted payloads from deployed v2.
  */
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { generateCppaRiskReport } from "../../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
+import { generateCppaRiskReport } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { runConformanceChecks, formatResults } from "../../fixtures/item354/conformance-checks.ts";
 
 const FIXTURES = ["perfect-a073d9c5", "messy-bd458f0d"] as const;

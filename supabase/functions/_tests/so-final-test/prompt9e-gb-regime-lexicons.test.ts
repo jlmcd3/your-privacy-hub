@@ -7,8 +7,8 @@ import {
   buildSection2Coverage,
   hasImpactLanguage,
   readTransferFlowAliases,
-} from "../ltp/dpia-deliverables/build.ts";
-import { canonicalDestinationCode, transferMechanism } from "../dpia-jurisdiction-registry.ts";
+} from "../../_shared/ltp/dpia-deliverables/build.ts";
+import { canonicalDestinationCode, transferMechanism } from "../../_shared/dpia-jurisdiction-registry.ts";
 
 function intake(over: Record<string, unknown> = {}): Record<string, unknown> {
   return {

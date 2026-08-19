@@ -8,7 +8,7 @@
 // composed DPIA prose.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { composeRiskBody, ART36_DPO_DISCLOSURE, assembleDpiaSkeletonDocument } from "../ltp/dpia-skeleton-assemble.ts";
+import { composeRiskBody, ART36_DPO_DISCLOSURE, assembleDpiaSkeletonDocument } from "../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 const REPORT = {
   risk_register: [

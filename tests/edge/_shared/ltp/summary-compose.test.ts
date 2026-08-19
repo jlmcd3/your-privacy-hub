@@ -13,16 +13,16 @@ import {
   PASS2_TEMPLATES,
   PASS2_FORBIDDEN_TOKENS,
   FIRM_VARIANT_CLOSENESS_MAX,
-} from "../../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/content/pass2-templates.ts";
 import {
   composeAssessmentSummary,
   populateTriggeredActivities,
   selectOpeningTemplateId,
   type ActivityOutcome,
-} from "../../../../supabase/functions/_shared/ltp/summary-compose.ts";
-import { assertCalibrationMatch } from "../../../../supabase/functions/_shared/ltp/pass2-render.ts";
-import { derivePlan } from "../../../../supabase/functions/_shared/ltp/derive.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/summary-compose.ts";
+import { assertCalibrationMatch } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/pass2-render.ts";
+import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 const buildStamp = "test-summary-compose";
 const NEW_IDS = [

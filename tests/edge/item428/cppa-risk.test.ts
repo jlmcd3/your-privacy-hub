@@ -5,7 +5,7 @@
 // tests/edge/_shared/ltp/item357-conformance.test.ts uses.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { checkStructureConformance } from "../../../supabase/functions/_shared/prose/structure-conformance.ts";
-import { generateCppaRiskReport } from "../../../supabase/functions/_shared/ltp/generate-cppa-risk.ts";
+import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 
 async function assembled(): Promise<Record<string, unknown>> {
   const raw = JSON.parse(

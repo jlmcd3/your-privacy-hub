@@ -9,7 +9,7 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 import {
   validateAuthorityDomain,
   validateAuthorityWeight,
@@ -18,7 +18,7 @@ import {
   validateRenderPlan,
   validateTypeRPolarity,
   validateTypeWFactorCompleteness,
-} from "../../../../supabase/functions/_shared/render-plan/validators.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/validators.ts";
 import { LIA_WEIGHING_TESTS } from "../../../../archive/unwired/_shared/factors/lia-factors.ts";
 import { LIA_CONCLUSIONS } from "../../../../archive/unwired/_shared/legal-test/lia-conclusions.ts";
 import { LIA_PASSG_INDEX_BY_TEST } from "../../../../archive/unwired/_shared/pass-g/lia-candidate-index.ts";

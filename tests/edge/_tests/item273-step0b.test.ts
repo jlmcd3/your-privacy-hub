@@ -4,7 +4,7 @@ import {
   sanitizeRoleTitleSegments,
   stripParentheticals,
   hasNameBigram,
-} from "../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
 import {
   evaluateOwnerSlotPii,
   evaluateCrossSectionDuplication,
@@ -14,9 +14,9 @@ import {
   renderSubmissionAndRetention,
   CYBER_AUDIT_SEPARATE_LEAD_IN,
   SUBMISSION_RETENTION_MARKER,
-} from "../../../supabase/functions/_shared/ltp/submission-retention.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/submission-retention.ts";
 import { renderCyberAuditSchedule } from "../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
-import { BALANCE_DIRECTION_CLAUSES } from "../../../supabase/functions/_shared/ltp/content/pass2-templates.ts";
+import { BALANCE_DIRECTION_CLAUSES } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/content/pass2-templates.ts";
 import { lookupMateriality, GTM_MATERIALITY_REGISTER_VERSION } from "../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/gtm-materiality-register.ts";
 
 // ── FIX 1 — owner-slot PII hardening (CEO-read fixtures, verbatim) ──
@@ -111,7 +111,7 @@ Deno.test("FIX2: section states § 7157 and § 7155(c) before the § 7121 block"
 // ── FIX 3 — affirmative outweigh clause unreachable ──
 
 Deno.test("FIX3: affirmative outweigh clause is not emitted on a 7-negative/3-benefit record", async () => {
-  const { composeSection } = await import("../../../supabase/functions/_shared/ltp/section-composers/cppa-risk.ts");
+  const { composeSection } = await import("../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts");
   const mk = (id: string, kind: string) => ({
     factor_id: id,
     kind,

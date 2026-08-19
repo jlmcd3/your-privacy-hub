@@ -5,7 +5,7 @@ import {
   isDegradedPlaceholderRow,
   normalizeActivityAnalytics,
   REVIEW_DATE_ACTION_SENTENCE,
-} from "../../../supabase/functions/_shared/ltp/risk-prose-gold.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-prose-gold.ts";
 
 const PLACEHOLDER =
   "We could not verify this item from the information provided; it is listed under information needed.";

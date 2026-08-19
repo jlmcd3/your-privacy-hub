@@ -3,13 +3,13 @@
  * Pure; no I/O. Exercises both keys and every rejection reason.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 import {
   evaluateHarvest,
   evaluateOpeningHarvest,
   evaluateSubmissionHarvest,
   HARVEST_GUARD_VERSION,
-} from "../../../../supabase/functions/_shared/ltp/harvest-guard.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/harvest-guard.ts";
 import {
   renderCyberAuditSchedule,
   SCHEDULE_MARKER,

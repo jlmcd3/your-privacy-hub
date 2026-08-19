@@ -19,8 +19,8 @@ import {
   buildPass2rWhitelist,
   validateEntityWhitelist,
   type Pass2rProseDocument,
-} from "../../../../supabase/functions/_shared/ltp/pass2r-validators.ts";
-import type { RenderPlan } from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/pass2r-validators.ts";
+import type { RenderPlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 /** Minimal locked plan carrying the 278d0608 entity values. */
 const PLAN_278d0608 = {

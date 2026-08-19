@@ -20,13 +20,13 @@ import {
   REGISTRATION_SKELETON_SECTIONS,
   REGISTRATION_SKELETON_SUBTITLE,
   REGISTRATION_V3_BANNED_REGISTER,
-} from "../../../supabase/functions/_shared/prose/plans/registration.spine.ts";
-import { REGISTRATION_SLOT_MAP } from "../../../supabase/functions/_shared/prose/plans/registration.slotmap.ts";
+} from "../../../supabase/functions/run-registration-assessment/_local/prose/plans/registration.spine.ts";
+import { REGISTRATION_SLOT_MAP } from "../../../supabase/functions/run-registration-assessment/_local/prose/plans/registration.slotmap.ts";
 import { skeletonDocumentToText, slotsIn } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 import {
   assembleRegistrationSkeletonDocument,
   buildDataTypesProse,
-} from "../../../supabase/functions/_shared/ltp/registration-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-skeleton-assemble.ts";
 
 const INTAKE: Record<string, unknown> = {
   organization_name: "Halden Data Services, Inc.",

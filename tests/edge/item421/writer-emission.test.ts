@@ -15,12 +15,12 @@ import {
   dedupePinpoint,
   deadlineFields,
   RISK_ACTION_RECORD_WRITER_VERSION,
-} from "../../../supabase/functions/_shared/ltp/risk-action-records.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-action-records.ts";
 import {
   formatActionHeadline,
   isActionRecord,
 } from "../../../supabase/functions/_shared/report-contracts/action-record.ts";
-import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/_shared/ltp/risk-stamp.ts";
+import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
 
 const DEADLINE_ROW = {
   deadline_label: "Ongoing — 2027-12-31 (11 CCR § 7155(b))",

@@ -43,7 +43,7 @@ import type {
   EpistemicType,
   JurisdictionTag,
   StatutoryAnchor,
-} from "../../../../supabase/functions/_shared/render-plan/schema.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/render-plan/schema.ts";
 
 export type { EpistemicType, JurisdictionTag, StatutoryAnchor };
 

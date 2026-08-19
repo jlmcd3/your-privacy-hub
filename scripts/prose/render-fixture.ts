@@ -16,7 +16,7 @@
 
 import { composeCppaRisk } from "../../archive/unwired/_shared/prose/plans/cppa-risk.compose.ts";
 import { renderDocumentFromPlan } from "../../archive/unwired/_shared/prose/plan-render.ts";
-import { buildActivityAnalytics } from "../../supabase/functions/_shared/ltp/analytic-deliverables/build.ts";
+import { buildActivityAnalytics } from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/build.ts";
 import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
 import {
   loadFrameSet,

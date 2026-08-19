@@ -13,9 +13,9 @@ import {
   CCPA_7150_B_5,
   CCPA_7150_B_6,
   CCPA_7150_B_LABELS,
-} from "../../../../supabase/functions/_shared/openings/ccpa-7150-pin.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/openings/ccpa-7150-pin.ts";
 import { applyWaveB2Closure } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/waveb2-closure.ts";
-import { computeProngOutcomes } from "../../../../supabase/functions/_shared/ltp/waveb-completion.ts";
+import { computeProngOutcomes } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/waveb-completion.ts";
 
 Deno.test("§ 7150(b) prong verbatim texts anchor to their glossed labels", () => {
   // b1 — selling/sharing

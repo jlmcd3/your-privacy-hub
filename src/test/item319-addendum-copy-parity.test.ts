@@ -5,7 +5,7 @@ import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
 import {
   secondaryRecommendation,
   secondaryRecommendationSentence,
-} from "../../supabase/functions/_shared/ltp/secondary-recommendation";
+} from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/secondary-recommendation";
 
 /**
  * ITEM 319 ADDENDUM — COPY PARITY PIN.

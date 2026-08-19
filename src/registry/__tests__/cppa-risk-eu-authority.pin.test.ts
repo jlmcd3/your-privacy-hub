@@ -16,13 +16,13 @@ import { describe, it, expect } from "vitest";
 import {
   EU_GUIDANCE_PINS,
   pinsForTopic,
-} from "../../../supabase/functions/_shared/ltp/eu-authority/pinned-guidance.ts";
-import { buildEuAuthoritySection } from "../../../supabase/functions/_shared/ltp/eu-authority/build.ts";
-import { deriveEuTopics } from "../../../supabase/functions/_shared/ltp/eu-authority/topics.ts";
-import { parseProvisions } from "../../../supabase/functions/_shared/ltp/eu-authority/fetch.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/pinned-guidance.ts";
+import { buildEuAuthoritySection } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/build.ts";
+import { deriveEuTopics } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/topics.ts";
+import { parseProvisions } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/eu-authority/fetch.ts";
 import type {
   EuAuthorityCorpus,
-} from "../../../supabase/functions/_shared/ltp/eu-authority/types.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/types.ts";
 
 const HAS_DB = !!process.env.PGHOST && !!process.env.PGDATABASE;
 const d = HAS_DB ? describe : describe.skip;

@@ -11,7 +11,7 @@
 // NO other filter may ride along. Any additional false-positive class gets its
 // own evidenced rule, CEO-approved first.
 
-import type { LlmFinding } from "./post-filters.ts";
+import type { LlmFinding } from "../../../_shared/grader/post-filters.ts";
 
 export const SKELETON_CAL_VERSION = "gc-2026-08-16-skeleton-cal-2-repin";
 
@@ -42,7 +42,7 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
  * template does not match, and boilerplate that is not a registered template
  * passes straight through.
  */
-import { DPIA_ASK_LABELS } from "../ltp/dpia-ask-labels.ts";
+import { DPIA_ASK_LABELS } from "../../../_shared/ltp/dpia-ask-labels.ts";
 
 export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string[]>> =
   Object.freeze({

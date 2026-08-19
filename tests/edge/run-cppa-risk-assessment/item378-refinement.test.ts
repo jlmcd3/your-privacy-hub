@@ -15,7 +15,7 @@ import {
   riskProtectedReason,
   runRiskRefinement,
   type RefinementTelemetry,
-} from "../../../supabase/functions/_shared/ltp/risk-refinement.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-refinement.ts";
 import {
   CRITIC_PROMPT_BASE,
   VERIFIER_PROMPT_BASE,
@@ -171,16 +171,17 @@ Deno.test("item378 — refinement calls are metered (wrapper, never raw fetch)",
   assertStringIncludes(src, "run-cppa-risk-assessment:refine_verifier");
   assertStringIncludes(src, "callAnthropicWithContinuation({");
   assertStringIncludes(src, "recordApiUsage({");
-  // ITEM 378 (CORRECTION) — the stamp is now single-sourced in _shared so the
-  // routed LTP finalize point writes the identical value.
+  // ITEM 378 (CORRECTION) — the stamp is single-sourced so the routed LTP
+  // finalize point writes the identical value. (Deploy-cap relocation moved it
+  // from _shared into the risk functions' _local mirrors.)
   const stampSrc = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/risk-stamp.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts", import.meta.url),
   );
   assertStringIncludes(stampSrc, 'export const RISK_PIPELINE_STAMP = "risk-pipeline@item-so1-2026-08-10";');
-  assertStringIncludes(src, 'from "../_shared/ltp/risk-stamp.ts"');
+  assertStringIncludes(src, 'from "./_local/ltp/risk-stamp.ts"');
   // The refinement module itself never calls a model directly.
   const mod = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/risk-refinement.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-refinement.ts", import.meta.url),
   );
   assert(!mod.includes("fetch("), "risk-refinement.ts must not call fetch directly");
 });

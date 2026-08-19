@@ -18,13 +18,13 @@ import {
   attachDpiaDeliverables,
   buildDpiaDeliverables,
   buildOperations,
-} from "../ltp/dpia-deliverables/build.ts";
-import { DPIA_VERIFIED_AUTHORITIES } from "../registry/dpia-verified-authorities.ts";
-import { DPIA_RISK_SPECS } from "../ltp/dpia-deliverables/elements.ts";
+} from "../../_shared/ltp/dpia-deliverables/build.ts";
+import { DPIA_VERIFIED_AUTHORITIES } from "../../_shared/registry/dpia-verified-authorities.ts";
+import { DPIA_RISK_SPECS } from "../../_shared/ltp/dpia-deliverables/elements.ts";
 import {
   OWNERSHIP_DISCLAIMER_RE,
   runFormatChecksGeneric,
-} from "../grader/format-checks.ts";
+} from "../../_shared/grader/format-checks.ts";
 
 // ─────────────────────────────────────────────────────────── fixtures
 
