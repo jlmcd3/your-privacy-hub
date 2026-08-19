@@ -306,7 +306,7 @@ for (const c of CPPA_RISK_PERFECT) {
 
     await t.step("Section V typed analyses render iff ADMT", () => {
       assertEquals(body.includes("The Company classifies the system as"), isAdmt, "role analysis gating");
-      assertEquals(body.includes("elements of effective human involvement"), isAdmt, "human-review analysis gating");
+      assertEquals(body.includes("element of effective human involvement"), isAdmt, "human-review analysis gating");
     });
 
     await t.step("Section VII interacting-risks block renders from the typed answer", () => {
