@@ -1869,9 +1869,14 @@ async function dispatchGeneration(
 ): Promise<DispatchResult> {
   try {
     if (tool === "cppa-admt") {
-      const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "admt", status: "pending", intake_data: intake }).select("id").single();
+      // CONVERSION SWAP (2026-08-20): cppa-admt purchases now run the v2
+      // deterministic engine (module="admt_v2", run-admt-checker-v2) — see
+      // create-tool-checkout's MODULE_FOR_TOOL comment. Mirrors cppa-risk's
+      // own v2 dispatch below so the harness tests what customers actually
+      // get, not the retired v1 path.
+      const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "admt_v2", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      const invocation = invokeFn("run-admt-checker", { assessment_id: rec.id });
+      const invocation = invokeFn("run-admt-checker-v2", { assessment_id: rec.id });
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id, invocation };
     }
     if (tool === "cppa-risk") {
@@ -1995,7 +2000,7 @@ const RESURRECT_STALE_MS = 180_000;
 // observed quiet phase; dpia keeps 180s.
 const RESURRECT_STALE_MS_BY_TOOL: Record<string, number> = { "cppa-admt": 480_000 };
 export const MAX_RESURRECTIONS = 2;
-const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker" };
+const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker-v2" };
 const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id" };
 
 export function resurrectStaleMs(tool?: string): number {
@@ -2163,9 +2168,10 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
     };
 
     if (tool === "cppa-admt") {
-      const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "admt", status: "pending", intake_data: intake }).select("id").single();
+      // CONVERSION SWAP (2026-08-20) — see the dispatchGeneration branch above.
+      const { data: rec, error } = await admin.from("cppa_assessments").insert({ user_id: userId, module: "admt_v2", status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("run-admt-checker", { assessment_id: rec.id }).catch(() => {});
+      invokeFn("run-admt-checker-v2", { assessment_id: rec.id }).catch(() => {});
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id, reportData: await poll("cppa_assessments", rec.id) };
     }
     if (tool === "cppa-risk") {
