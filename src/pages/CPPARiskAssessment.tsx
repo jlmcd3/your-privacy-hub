@@ -1358,6 +1358,7 @@ export default function CPPARiskAssessment() {
           recipient_type: typeof r?.recipient_type === "string" ? r.recipient_type : "",
           pi_categories_made_available: Array.isArray(r?.pi_categories_made_available) ? r.pi_categories_made_available.filter((c: unknown) => typeof c === "string") : [],
           disclosure_purpose: typeof r?.disclosure_purpose === "string" ? r.disclosure_purpose : "",
+          contractual_protections: typeof r?.contractual_protections === "string" ? r.contractual_protections : "",
         })),
       );
     }
