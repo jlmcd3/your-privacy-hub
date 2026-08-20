@@ -1230,7 +1230,40 @@ function readSkeletonDocument(reportData: any): SkeletonDocLike | null {
  *  - ir-playbook's "incident_worksheet" (Part Two) starts a fresh page.
  *    Product-specific: no other spine has an explicit part structure.
  */
+// ITEM SO-12 — FOOTNOTE MARKER SUBSTITUTION (piloted on cppa-admt-v2 only).
+//
+// `_shared/report-exhibits/footnote-engine.ts` marks a footnote reference by
+// wrapping its number in U+0001 (SOH), a control character `escHtml` leaves
+// untouched. That means the sentinel survives escaping intact and can be
+// found and replaced with real markup AFTER escaping — never before, so a
+// citation string containing a stray "<" or "&" is still escaped correctly.
+// Product-gated and purely additive: no other product's skeleton_document
+// ever carries this sentinel, so this is a no-op everywhere else.
+const FOOTNOTE_MARK = String.fromCharCode(1);
+const FOOTNOTE_MARKER_HTML_RE = new RegExp(`${FOOTNOTE_MARK}(\\d+)${FOOTNOTE_MARK}`, "g");
+function substituteFootnoteMarkers(escapedHtml: string): string {
+  return escapedHtml.replace(
+    FOOTNOTE_MARKER_HTML_RE,
+    (_m, n) => `<sup><a href="#toa-fn-${n}" style="text-decoration:none;color:#0c2a44;">${n}</a></sup>`,
+  );
+}
+
+/**
+ * ITEM SO-12 — a Table of Authorities line the admt-v2 assembler numbered
+ * ("3. 11 CCR § 7220(c)(1) …") gets an anchor id matching the body markers
+ * above target. Only the numbering PREFIX is consumed here; the rest of the
+ * line renders exactly as `toaLines` already produced it for every other
+ * product. Lines with no leading "N. " (every other product; ADMT lines the
+ * assembler chose not to number) pass through unchanged.
+ */
+function toaAnchorId(line: string): { id: string | null; rest: string } {
+  const m = /^(\d+)\.\s+(.*)$/.exec(line);
+  if (!m) return { id: null, rest: line };
+  return { id: `toa-fn-${m[1]}`, rest: `${m[1]}. ${m[2]}` };
+}
+
 function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string }): string {
+  const footnotesOn = opts?.product === "cppa-admt-v2";
   return (doc.sections ?? []).map((sec) => {
     const paras = (sec.paragraphs ?? []).map((p) => {
       if (p?.kind === "table" && p.table) return skeletonTableHtml(p.table);
@@ -1239,16 +1272,25 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
       if (sec.id === "table_of_authorities") {
         // ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only):
         // one authority per line, single column, ledger order preserved.
-        const rows = toaLines(t).map((l) =>
-          l.is_heading
-            ? `<tr><td style="padding:6px 0 2px;font-family:'Georgia','Times New Roman',serif;font-weight:bold;font-size:11px;color:#0c2a44;">${escHtml(l.text)}</td></tr>`
-            : `<tr><td style="padding:1px 0 1px 18px;font-family:'Courier New',monospace;font-size:10.5px;">${escHtml(l.text)}</td></tr>`
-        ).join("");
+        const rows = toaLines(t).map((l) => {
+          if (l.is_heading) {
+            return `<tr><td style="padding:6px 0 2px;font-family:'Georgia','Times New Roman',serif;font-weight:bold;font-size:11px;color:#0c2a44;">${escHtml(l.text)}</td></tr>`;
+          }
+          // ITEM SO-12 — anchor a numbered ADMT-v2 entry so body footnote
+          // markers can jump to it. Every other product's lines have no
+          // leading "N. " and pass through with id=null (no-op).
+          const { id, rest } = footnotesOn ? toaAnchorId(l.text) : { id: null, rest: l.text };
+          const idAttr = id ? ` id="${id}"` : "";
+          return `<tr><td${idAttr} style="padding:1px 0 1px 18px;font-family:'Courier New',monospace;font-size:10.5px;">${escHtml(rest)}</td></tr>`;
+        }).join("");
         if (!rows) return "";
         return `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>`;
       }
-      return t.split(/\n{2,}/).map((chunk) =>
-        `<p class="body-p" style="white-space:pre-line;">${escHtml(chunk)}</p>`).join("");
+      return t.split(/\n{2,}/).map((chunk) => {
+        const escaped = escHtml(chunk);
+        const withMarkers = footnotesOn ? substituteFootnoteMarkers(escaped) : escaped;
+        return `<p class="body-p" style="white-space:pre-line;">${withMarkers}</p>`;
+      }).join("");
     }).join("");
     if (!paras) return "";
     const forceBreak = sec.id === "table_of_authorities"
@@ -2841,6 +2883,11 @@ Deno.serve(async (req) => {
       cppa_cybersecurity: "cppa_assessments",
       cppa_risk: "cppa_assessments",
       cppa_admt: "cppa_assessments",
+      // ITEM SO-12 — CONVERSION build (v1.2 spine, deterministic engine, no
+      // model call). Shares cppa_assessments with v1; distinguished by the
+      // caller's tool_type string and the record's own module="admt_v2",
+      // never by a separate table. See run-admt-checker-v2/index.ts.
+      cppa_admt_v2: "cppa_assessments",
       cppa_scope: "cppa_scope_checks",
       registration_assessment: "registration_assessments",
       registration_document: "registration_documents",
@@ -2951,7 +2998,7 @@ Deno.serve(async (req) => {
       }
       const readsReportData = new Set([
         "li_assessment", "governance_assessment", "dpia_framework",
-        "cppa_risk", "cppa_cybersecurity", "cppa_admt", "biometric_checker",
+        "cppa_risk", "cppa_cybersecurity", "cppa_admt", "cppa_admt_v2", "biometric_checker",
       ]);
       if (readsReportData.has(tool_type)) {
         const rd: any = (record as any).report_data;
@@ -3000,6 +3047,10 @@ Deno.serve(async (req) => {
           case "cppa_admt":
             bodyOk = typeof rd.system_name === "string" && rd.system_name.length > 0;
             missingKey = "system_name";
+            break;
+          case "cppa_admt_v2":
+            bodyOk = isNonEmptyObj(rd.skeleton_document) && isNonEmptyArr(rd.skeleton_document?.sections);
+            missingKey = "skeleton_document";
             break;
           case "biometric_checker": {
             const text = (record as any).analysis_text || rd?.assessment_text || "";
@@ -3322,10 +3373,34 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+      // CONVERSION SWAP (2026-08-20): new "cppa_admt" purchases run the v2
+      // engine and are stamped module="admt_v2" (see create-tool-checkout's
+      // MODULE_FOR_TOOL). PDFDownloadButton still sends tool_type "cppa_admt"
+      // for both — the module discriminates which spine actually produced
+      // the record, and only the v2 shape needs the "cppa-admt-v2" product
+      // string to activate footnote-marker substitution.
+      const isAdmtV2Record = record.module === "admt_v2";
       const skelAdmt = readSkeletonDocument(record.report_data);
       html = skelAdmt
-        ? buildSkeletonReportHTML(skelAdmt, record, "ADMT Compliance Assessment")
+        ? buildSkeletonReportHTML(skelAdmt, record, "ADMT Compliance Assessment", isAdmtV2Record ? "cppa-admt-v2" : undefined)
         : buildADMTReportHTML(record.report_data, record);
+      generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "cppa_admt_v2") {
+      // ITEM SO-12 — CONVERSION build. Always carries skeleton_document (no
+      // legacy narrative path exists for this tool_type — the "cppa_admt_v2"
+      // structural-minimum check above already guarantees it before this
+      // branch is reached). The "cppa-admt-v2" product string activates the
+      // footnote-marker substitution piloted in skeletonSectionsHtml.
+      if (!record.report_data) {
+        return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const skelAdmtV2 = readSkeletonDocument(record.report_data);
+      if (!skelAdmtV2) {
+        return new Response(JSON.stringify({ error: "report_data_invalid", detail: "skeleton_document" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      html = buildSkeletonReportHTML(skelAdmtV2, record, "CPPA ADMT Compliance Audit", "cppa-admt-v2");
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_cybersecurity") {
       const intake = record.intake_data || {};

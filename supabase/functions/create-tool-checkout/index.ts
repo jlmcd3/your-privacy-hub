@@ -213,7 +213,12 @@ const MODULE_FOR_TOOL: Record<string, string> = {
   cppa_risk_assessment: "risk_assessment",
   cppa_cybersecurity: "cybersecurity",
   cppa_suite: "suite",
-  cppa_admt: "admt",
+  // CONVERSION SWAP (2026-08-20): new cppa_admt purchases now run the v2
+  // deterministic engine (run-admt-checker-v2), which filters its own reads
+  // on module = "admt_v2". v1's ~267 existing "admt" rows are untouched and
+  // continue to render exactly as before — this only changes what NEW rows
+  // get stamped with.
+  cppa_admt: "admt_v2",
 };
 
 const SESSION_TABLES = new Set([

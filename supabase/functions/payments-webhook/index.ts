@@ -779,7 +779,11 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv, eventId?: s
         dpa_generator: "generate-dpa",
         ir_playbook: "generate-ir-playbook",
         biometric_checker: "check-biometric-compliance",
-        cppa_admt: "run-admt-checker",
+        // CONVERSION SWAP (2026-08-20): see create-tool-checkout's
+        // MODULE_FOR_TOOL comment — new rows are stamped module="admt_v2",
+        // so they must be dispatched to the v2 function, which filters on
+        // that module. v1's own function/rows are untouched.
+        cppa_admt: "run-admt-checker-v2",
         cppa_risk_assessment: "run-cppa-risk-assessment-v2",
         cppa_cybersecurity: "run-cppa-cybersecurity",
         cppa_suite: "run-cppa-risk-assessment-v2",

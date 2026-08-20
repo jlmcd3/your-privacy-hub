@@ -9,6 +9,7 @@
 // column, through the shared `toaLines` helper.
 
 import { toaLines } from "@/lib/toa-lines";
+import { renderWithFootnotes, toaAnchorId } from "@/lib/footnote-marks";
 
 /** ITEM 4 — FIRST ToA FIX: single-column, one-authority-per-row ToA. */
 function ToaView({ text }: { text: string }) {
@@ -16,19 +17,26 @@ function ToaView({ text }: { text: string }) {
   if (!lines.length) return null;
   return (
     <ul data-testid="toa-list" className="list-none space-y-1 font-mono text-xs leading-relaxed">
-      {lines.map((l, i) => (
-        <li
-          key={i}
-          data-toa-heading={l.is_heading ? "true" : "false"}
-          className={
-            l.is_heading
-              ? "font-body text-sm font-semibold text-foreground"
-              : "pl-6 text-foreground"
-          }
-        >
-          {l.text}
-        </li>
-      ))}
+      {lines.map((l, i) => {
+        // ITEM SO-12 — anchor a numbered ADMT-v2 entry so body footnote
+        // markers can jump to it. Every other product's lines have no
+        // leading "N. " and pass through with id=null (no-op).
+        const { id, rest } = l.is_heading ? { id: null, rest: l.text } : toaAnchorId(l.text);
+        return (
+          <li
+            key={i}
+            id={id ?? undefined}
+            data-toa-heading={l.is_heading ? "true" : "false"}
+            className={
+              l.is_heading
+                ? "font-body text-sm font-semibold text-foreground"
+                : "pl-6 text-foreground"
+            }
+          >
+            {rest}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -93,7 +101,7 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
 
               p.text.split(/\n{2,}/).map((chunk, j) => (
                 <p key={`${i}-${j}`} className="leading-relaxed text-foreground whitespace-pre-line">
-                  {chunk}
+                  {renderWithFootnotes(chunk)}
                 </p>
               ))
             ),
@@ -133,7 +141,7 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
               <tr key={r} className="align-top even:bg-muted/20">
                 {row.map((cell, c) => (
                   <td key={c} className="border-b border-border px-3 py-2 leading-relaxed text-foreground">
-                    {cell}
+                    {renderWithFootnotes(cell)}
                   </td>
                 ))}
               </tr>

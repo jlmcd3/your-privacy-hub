@@ -408,7 +408,366 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       { kind: "must_not_include", pattern: "\"verdict\"\\s*:\\s*\"ready\"", flags: "", label: "no readiness verdict without evidence" },
     ],
   },
+  // ─────────────────────────────────────────────────────────────────────
+  // CONVERSION v1.2 — PATHWAY-COVERAGE FIXTURES (CEO request, 2026-08-20).
+  // The two "perfect" fixtures above both use the qualifying human_review
+  // answer, which the v1.2 spine correctly resolves OUT_OF_SCOPE — leaving
+  // no fixture that exercises Notice/Opt-out/Access end to end on a strong
+  // record. These four fixtures close that gap: one per opt-out pathway,
+  // each fully automated (human_review = "No") so scope resolves IN_SCOPE
+  // cleanly, each answered to a strong-compliance standard so the v2
+  // engine's MEETS_REPORTED path renders in full for demos and regression.
+  // ─────────────────────────────────────────────────────────────────────
+  {
+    id: "admt-full-optout-strong-compliance",
+    tool: "cppa-admt",
+    set: "tuning",
+    intake: {
+      organization_name: "Meridian Consumer Lending, Inc.",
+      system_name: "CreditLine Decision Engine v3",
+      system_type: "Statistical model",
+      system_description:
+        "CreditLine Decision Engine v3 scores personal-loan applications using a logistic regression model trained on 40 underwriting features (income, debt-to-income ratio, repayment history, requested amount and term). The model returns an approve/decline recommendation and a rate tier; no human reviews an individual application before the recommendation is issued to the applicant.",
+      decision_domains: ["Financial or lending services (credit decisions, loans, accounts)"],
+      human_review: "No — fully automated, no human review",
+      training_data_use: "Yes",
+      profiling_use: "Yes",
+      admt_system_count: "1",
+      third_party_admt: "No",
+      ca_consumer_count: "68000",
+      affected_population_band: "10,001 – 100,000",
+      role_roster: ["Executive sponsor", "Privacy officer / DPO", "Product owner", "Data scientist / ML engineer"],
+
+      notice_delivery: ["Separate standalone Pre-use Notice"],
+      notice_has_specific_purpose: "Yes",
+      notice_purpose_text:
+        "We use CreditLine Decision Engine v3 to evaluate your personal-loan application and determine your approval status and interest-rate tier.",
+      notice_has_opt_out_desc: "Yes — with specific opt-out instructions",
+      notice_has_access_desc: "Yes",
+      notice_has_anti_retaliation: "Yes",
+      notice_has_how_it_works: "Yes — included inline in the notice",
+      notice_has_alternative_process: "Yes",
+      notice_element_text: {
+        purpose: "Meridian Consumer Lending uses CreditLine Decision Engine v3 to evaluate your personal-loan application, determining whether to approve the loan and, if approved, which interest-rate tier applies. We use it for no other decision about you.",
+        optout: "You may opt out of automated evaluation of your application. Select \"Request manual underwriting\" on the application page, call 1-800-555-0199, or email loans-optout@meridianlending.example with your application number. We route your application to a human underwriter within 15 business days of the request.",
+        access: "You may ask what CreditLine Decision Engine v3 did with your application at meridianlending.example/privacy/admt-access or by calling 1-800-555-0199 (option 2).",
+        antiretaliation: "Meridian Consumer Lending will not deny your application, offer worse terms, or otherwise treat you less favorably because you opted out of automated evaluation or requested access to its output.",
+        howworks_inputs: "CreditLine Decision Engine v3 reads your stated income, requested loan amount and term, debt-to-income ratio, and repayment history from your credit file. It does not read your name, address, or any free-text statement you provide.",
+        howworks_output: "CreditLine Decision Engine v3 outputs an approve/decline recommendation and, if approved, a rate tier. An underwriting analyst reviews the recommendation before the loan is funded; the model output alone does not fund a loan.",
+        altprocess: "If you opt out, a Meridian underwriter manually reviews your application against the same underwriting criteria within the same processing timeline. Opting out does not remove you from consideration.",
+      },
+      notice_full_text:
+        "Notice of Automated Decisionmaking Technology — Meridian Consumer Lending, Inc. " +
+        "We use CreditLine Decision Engine v3 to evaluate your personal-loan application, determining whether to approve the loan and which interest-rate tier applies. " +
+        "You may opt out of automated evaluation. Select \"Request manual underwriting\" on the application page, call 1-800-555-0199, or email loans-optout@meridianlending.example. " +
+        "You may ask what CreditLine Decision Engine v3 did with your application at meridianlending.example/privacy/admt-access. " +
+        "Meridian Consumer Lending will not retaliate against you for opting out or requesting access. " +
+        "CreditLine Decision Engine v3 reads your income, requested amount and term, debt-to-income ratio, and repayment history, and outputs a recommendation and rate tier; an underwriting analyst reviews it before funding. " +
+        "If you opt out, a Meridian underwriter manually reviews your application by hand.",
+
+      opt_out_exception: "No exception — we provide a full opt-out right",
+      opt_out_methods: [
+        "Interactive online form linked from the Pre-use Notice",
+        "Toll-free phone number",
+        "Designated email address",
+      ],
+      opt_out_link_title: "Request manual underwriting",
+      opt_out_no_cookie_banner: "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
+      opt_out_no_account_required: "Confirmed — no account required",
+      opt_out_confirmation_mechanism:
+        "Emailed confirmation with a ticket number within one business day, and a status check at meridianlending.example/privacy/admt-status.",
+      opt_out_appeal_process: "",
+      opt_out_fairness_doc: "",
+      opt_out_15_day_process:
+        "Opt-out requests are worked from the underwriting-operations queue with a 15-business-day service level; the queue owner (VP, Underwriting Operations) reports breaches weekly to the Privacy Officer.",
+
+      access_submission_methods: "Online request form at meridianlending.example/privacy/admt-access; toll-free 1-800-555-0199 (option 2).",
+      access_verification_process: "Match the application number plus the applicant's email of record, then a one-time code sent to that email.",
+      access_logic_disclosure: "We disclose the four inputs read (income, requested amount and term, debt-to-income ratio, repayment history), the recommendation returned, and the fact that an underwriting analyst reviews the recommendation before funding.",
+      access_outcome_disclosure: "We disclose the recommendation issued, the rate tier assigned (if approved), the funding decision made, and the opt-out and appeal routes.",
+      access_response_timeline: "Within 45 calendar days (standard)",
+      access_trade_secret_policy: "Model coefficients and feature weights are withheld under Civil Code § 3426.1(d); the four input categories, the output, and the review process are disclosed in full.",
+
+      access_readiness: {
+        b1_purpose_ready: "Yes — we can produce this today",
+        b1_purpose_process: "The published purpose paragraph is inserted from the notice register entry CLD-NOTICE-2026-02.",
+        b2_logic_ready: "Yes — we can produce this today",
+        b2_logic_process: "The consumer-request handler runs the CreditLine explanation report, which lists the four inputs and their direction of effect on the recommendation.",
+        b3_output_use_ready: "Yes — we can produce this today",
+        b3_output_use_process: "The application audit trail records the recommendation, the reviewing analyst, and the funding decision.",
+        b3_outcome_ready: "Yes — we can produce this today",
+        b3_outcome_process: "The loan decision, rate tier, and any manual-review referral are read from the application record.",
+        b3_human_role_ready: "Yes — we can produce this today",
+        b3_human_role_process: "The audit trail names the underwriting analyst who reviewed the recommendation and the authority held over the funding decision.",
+      },
+    },
+    assertions: [
+      { kind: "must_include", pattern: "7221", flags: "i", label: "§7221 anchored" },
+      { kind: "must_include", pattern: "financial", flags: "i", label: "financial/lending domain present" },
+    ],
+  },
+  {
+    id: "admt-human-appeal-exception-strong",
+    tool: "cppa-admt",
+    set: "tuning",
+    intake: {
+      organization_name: "Alderwood Housing Partners, LLC",
+      system_name: "TenantFit Screening v2",
+      system_type: "Statistical model",
+      system_description:
+        "TenantFit Screening v2 scores rental applications using a weighted model over credit history, income-to-rent ratio, and rental-payment history, and returns an approve/deny/refer-to-manual-review recommendation. No human reviews the recommendation before it is issued to the leasing agent; a consumer who receives an adverse recommendation may request a human appeal.",
+      decision_domains: ["Housing (rental or purchase eligibility)"],
+      human_review: "No — fully automated, no human review",
+      training_data_use: "Yes",
+      profiling_use: "Yes",
+      admt_system_count: "1",
+      third_party_admt: "No",
+      ca_consumer_count: "22000",
+      affected_population_band: "10,001 – 100,000",
+      role_roster: ["Privacy officer / DPO", "Product owner", "Human reviewer"],
+
+      notice_delivery: ["Separate standalone Pre-use Notice"],
+      notice_has_specific_purpose: "Yes",
+      notice_purpose_text: "We use TenantFit Screening v2 to evaluate your rental application against our leasing criteria.",
+      notice_has_opt_out_desc: "We rely on an exception and describe appeal rights instead",
+      notice_has_access_desc: "Yes",
+      notice_has_anti_retaliation: "Yes",
+      notice_has_how_it_works: "Yes — included inline in the notice",
+      notice_has_alternative_process: "Not applicable — we rely on an opt-out exception",
+      notice_element_text: {
+        purpose: "Alderwood Housing Partners uses TenantFit Screening v2 to evaluate your rental application against our published leasing criteria.",
+        optout: "TenantFit Screening v2 decisions are reviewed on appeal by a human leasing manager who has authority to overturn the recommendation; see the appeal process described below.",
+        access: "You may ask what TenantFit Screening v2 did with your application at alderwoodhousing.example/privacy/admt-access.",
+        antiretaliation: "Alderwood Housing Partners will not deny your application, withdraw an offer, or treat you less favorably because you requested a human appeal or asked for access to the System's output.",
+        howworks_inputs: "TenantFit Screening v2 reads your credit history, income-to-rent ratio, and rental-payment history from your application file.",
+        howworks_output: "TenantFit Screening v2 outputs an approve, deny, or refer-to-manual-review recommendation; a leasing agent reads the recommendation alongside your full application before a decision is issued.",
+        altprocess: "",
+      },
+      notice_full_text:
+        "Notice of Automated Decisionmaking Technology — Alderwood Housing Partners, LLC. " +
+        "We use TenantFit Screening v2 to evaluate your rental application against our published leasing criteria. " +
+        "TenantFit Screening v2 decisions are reviewed on appeal by a human leasing manager with authority to overturn the recommendation. Submit an appeal at alderwoodhousing.example/privacy/admt-appeal or call 1-800-555-0177. " +
+        "You may ask what TenantFit Screening v2 did with your application at alderwoodhousing.example/privacy/admt-access. " +
+        "Alderwood Housing Partners will not retaliate against you for requesting an appeal or access. " +
+        "TenantFit Screening v2 reads your credit history, income-to-rent ratio, and rental-payment history, and outputs a recommendation; a leasing agent reviews it before a decision issues.",
+
+      opt_out_exception: "Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision",
+      opt_out_methods: ["Interactive online form linked from the Pre-use Notice", "Toll-free phone number"],
+      opt_out_link_title: "Request a human appeal",
+      opt_out_no_cookie_banner: "",
+      opt_out_no_account_required: "",
+      opt_out_confirmation_mechanism: "",
+      opt_out_appeal_process:
+        "An applicant who receives an adverse TenantFit recommendation requests appeal from the decision notice (step 1); the request routes to a senior leasing manager who took no part in the original screen (step 2); that manager re-reviews the full application against the leasing criteria and issues a written decision that either affirms or overturns the recommendation (step 3). The three steps complete within 10 business days.",
+      opt_out_fairness_doc: "",
+      opt_out_15_day_process: "",
+
+      access_submission_methods: "Online request form at alderwoodhousing.example/privacy/admt-access; toll-free 1-800-555-0177.",
+      access_verification_process: "Match the application number plus the applicant's email of record, then a one-time code sent to that email.",
+      access_logic_disclosure: "We disclose the three inputs read (credit history, income-to-rent ratio, rental-payment history) and the recommendation returned.",
+      access_outcome_disclosure: "We disclose the recommendation issued, the leasing decision made, and the appeal route.",
+      access_response_timeline: "Within 45 calendar days (standard)",
+      access_trade_secret_policy: "Model weights are withheld under Civil Code § 3426.1(d); the three input categories and the output are disclosed in full.",
+
+      access_readiness: {
+        b1_purpose_ready: "Yes — we can produce this today",
+        b1_purpose_process: "The published purpose paragraph is inserted from the notice register entry TFS-NOTICE-2026-01.",
+        b2_logic_ready: "Yes — we can produce this today",
+        b2_logic_process: "The handler runs the TenantFit explanation report, which lists the three inputs and their direction of effect.",
+        b3_output_use_ready: "Yes — we can produce this today",
+        b3_output_use_process: "The application audit trail records the recommendation, the leasing agent who reviewed it, and the decision issued.",
+        b3_outcome_ready: "Yes — we can produce this today",
+        b3_outcome_process: "The leasing decision and any appeal outcome are read from the application record.",
+        b3_human_role_ready: "Yes — we can produce this today",
+        b3_human_role_process: "The audit trail names the leasing agent and, on appeal, the senior leasing manager, with the authority each held over the decision.",
+      },
+
+      admt_detail: {
+        appeal_reviewer_role: "Senior Leasing Manager",
+        appeal_trained: "Yes",
+        appeal_authority_overturn: "Yes",
+        appeal_step_count: "Three steps: request submission, senior-manager re-review, written decision.",
+      },
+    },
+    assertions: [
+      { kind: "must_include", pattern: "7221\\(b\\)\\(1\\)|human.?appeal", flags: "i", label: "human-appeal exception anchored" },
+      { kind: "must_include", pattern: "housing", flags: "i", label: "housing domain present" },
+    ],
+  },
+  {
+    id: "admt-hiring-admission-exception-strong",
+    tool: "cppa-admt",
+    set: "tuning",
+    intake: {
+      organization_name: "Cascadia Health Systems, Inc.",
+      system_name: "NurseMatch v5",
+      system_type: "ML classifier",
+      system_description:
+        "NurseMatch v5 scores registered-nurse applications against unit-specific competency checklists and returns a rubric band (A–D) plus a rank within the requisition; a recruiter reads the band and rank alongside the full application before advancing or rejecting. No human reviews the System's output before the recruiter sees it.",
+      decision_domains: ["Hiring or admission decisions"],
+      human_review: "No — fully automated, no human review",
+      training_data_use: "Yes",
+      profiling_use: "Yes",
+      admt_system_count: "1",
+      third_party_admt: "No",
+      ca_consumer_count: "41000",
+      affected_population_band: "10,001 – 100,000",
+      role_roster: ["Privacy officer / DPO", "Product owner", "Human reviewer"],
+
+      notice_delivery: ["Separate standalone Pre-use Notice"],
+      notice_has_specific_purpose: "Yes",
+      notice_purpose_text: "We use NurseMatch v5 to rank registered-nurse applicants against the competency rubric for the specific unit requisition.",
+      notice_has_opt_out_desc: "We rely on an exception and describe appeal rights instead",
+      notice_has_access_desc: "Yes",
+      notice_has_anti_retaliation: "Yes",
+      notice_has_how_it_works: "Yes — included inline in the notice",
+      notice_has_alternative_process: "Not applicable — we rely on an opt-out exception",
+      notice_element_text: {
+        purpose: "Cascadia Health Systems uses NurseMatch v5 to rank your registered-nurse application against the competency rubric for the unit you applied to.",
+        optout: "NurseMatch v5 is used solely to assess your ability to perform the role; the Company relies on the hiring/admission exception rather than offering a general opt-out.",
+        access: "You may ask what NurseMatch v5 did with your application at cascadiahealth.example/privacy/admt-access.",
+        antiretaliation: "Cascadia Health Systems will not deny your application or treat you less favorably because you asked for access to NurseMatch v5's output.",
+        howworks_inputs: "NurseMatch v5 reads your licence status, months of acute-care experience, and unit competency checklist scores.",
+        howworks_output: "NurseMatch v5 outputs a rubric band and a rank within the requisition; a recruiter reads the band and rank next to your full application before advancing or rejecting.",
+        altprocess: "",
+      },
+      notice_full_text:
+        "Notice of Automated Decisionmaking Technology — Cascadia Health Systems, Inc. " +
+        "We use NurseMatch v5 to rank your registered-nurse application against the competency rubric for the unit you applied to. " +
+        "NurseMatch v5 is used solely to assess your ability to perform the role; we rely on the hiring/admission exception. " +
+        "You may ask what NurseMatch v5 did with your application at cascadiahealth.example/privacy/admt-access. " +
+        "We will not retaliate against you for asking for access. " +
+        "NurseMatch v5 reads your licence status, acute-care experience, and competency checklist scores, and outputs a band and rank; a recruiter reviews it before a decision issues.",
+
+      opt_out_exception: "Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination",
+      opt_out_methods: [],
+      opt_out_link_title: "",
+      opt_out_no_cookie_banner: "",
+      opt_out_no_account_required: "",
+      opt_out_confirmation_mechanism: "",
+      opt_out_appeal_process: "",
+      opt_out_fairness_doc:
+        "Adverse-impact testing of NurseMatch v5 band assignments was performed on 2026-04-02 by the People Analytics team with outside counsel oversight, covering race, sex, age (40+), and disability status, using the four-fifths selection-rate rule plus a two-proportion z-test at p<0.05 on 14 months of requisition data (9,340 applications). No selection-rate ratio fell below 0.91. The report and underlying tables are retained as CHS-AIA-2026-04.",
+      opt_out_15_day_process: "",
+
+      access_submission_methods: "Online request form at cascadiahealth.example/privacy/admt-access; toll-free 1-800-555-0142.",
+      access_verification_process: "Match the requisition number plus the applicant's email of record, then a one-time code sent to that email.",
+      access_logic_disclosure: "We disclose the three inputs read, the rubric band returned, and the rank within the requisition.",
+      access_outcome_disclosure: "We disclose the band assigned, the rank recorded, and the hiring decision made.",
+      access_response_timeline: "Within 45 calendar days (standard)",
+      access_trade_secret_policy: "Rubric weightings are withheld under Civil Code § 3426.1(d); the input categories and the band/rank output are disclosed in full.",
+
+      access_readiness: {
+        b1_purpose_ready: "Yes — we can produce this today",
+        b1_purpose_process: "The published purpose paragraph is inserted from the notice register entry NM5-NOTICE-2026-03.",
+        b2_logic_ready: "Yes — we can produce this today",
+        b2_logic_process: "The handler runs the NurseMatch explanation report, which lists the three inputs and the rubric rule.",
+        b3_output_use_ready: "Yes — we can produce this today",
+        b3_output_use_process: "The applicant tracking system logs the band and rank shown to the recruiter and the action taken.",
+        b3_outcome_ready: "Yes — we can produce this today",
+        b3_outcome_process: "The requisition decision record returns the final hiring outcome for the applicant.",
+        b3_human_role_ready: "Yes — we can produce this today",
+        b3_human_role_process: "Recruiter review is stamped in the ATS with reviewer identity and the action taken.",
+      },
+
+      admt_detail: {
+        sole_use_attestation: "Yes — solely to assess ability to perform",
+        nondiscrimination_testing: "Yes — documented testing record",
+      },
+    },
+    assertions: [
+      { kind: "must_include", pattern: "7221\\(b\\)\\(2\\)|hiring", flags: "i", label: "hiring/admission exception anchored" },
+      { kind: "must_include", pattern: "hiring", flags: "i", label: "hiring domain present" },
+    ],
+  },
+  {
+    id: "admt-work-allocation-compensation-exception-strong",
+    tool: "cppa-admt",
+    set: "tuning",
+    intake: {
+      organization_name: "Riverbend Logistics Co.",
+      system_name: "RouteAssign v2",
+      system_type: "Rules engine",
+      system_description:
+        "RouteAssign v2 assigns delivery routes and calculates per-route compensation for drivers using a rules engine over route distance, estimated time, and a base per-mile rate; the output is issued directly to the driver app with no human review of individual assignments before dispatch.",
+      decision_domains: ["Work allocation, scheduling, or compensation"],
+      human_review: "No — fully automated, no human review",
+      training_data_use: "No",
+      profiling_use: "No",
+      admt_system_count: "1",
+      third_party_admt: "No",
+      ca_consumer_count: "3400",
+      affected_population_band: "1,000 – 10,000",
+      role_roster: ["Privacy officer / DPO", "Product owner"],
+
+      notice_delivery: ["In-app just-in-time notice before data collection"],
+      notice_has_specific_purpose: "Yes",
+      notice_purpose_text: "We use RouteAssign v2 to assign your delivery routes and calculate your per-route compensation.",
+      notice_has_opt_out_desc: "We rely on an exception and describe appeal rights instead",
+      notice_has_access_desc: "Yes",
+      notice_has_anti_retaliation: "Yes",
+      notice_has_how_it_works: "Yes — via hyperlink or layered notice",
+      notice_has_alternative_process: "Not applicable — we rely on an opt-out exception",
+      notice_element_text: {
+        purpose: "Riverbend Logistics uses RouteAssign v2 to assign your delivery routes and calculate your per-route compensation.",
+        optout: "RouteAssign v2 is used solely to allocate work and calculate compensation; the Company relies on the work-allocation/compensation exception rather than offering a general opt-out.",
+        access: "You may ask what RouteAssign v2 did with your assignment history at riverbendlogistics.example/privacy/admt-access.",
+        antiretaliation: "Riverbend Logistics will not reduce your route assignments or compensation because you asked for access to RouteAssign v2's output.",
+        howworks_inputs: "RouteAssign v2 reads route distance, estimated delivery time, and the current base per-mile rate.",
+        howworks_output: "RouteAssign v2 outputs a route assignment and a calculated compensation amount, issued directly to the driver app.",
+        altprocess: "",
+      },
+      notice_full_text:
+        "Notice of Automated Decisionmaking Technology — Riverbend Logistics Co. " +
+        "We use RouteAssign v2 to assign your delivery routes and calculate your per-route compensation. " +
+        "RouteAssign v2 is used solely to allocate work and calculate compensation; we rely on the work-allocation/compensation exception. " +
+        "You may ask what RouteAssign v2 did with your assignment history at riverbendlogistics.example/privacy/admt-access. " +
+        "We will not reduce your assignments or pay because you requested access. " +
+        "RouteAssign v2 reads route distance, estimated time, and the base per-mile rate, and outputs an assignment and compensation amount.",
+
+      opt_out_exception: "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination",
+      opt_out_methods: [],
+      opt_out_link_title: "",
+      opt_out_no_cookie_banner: "",
+      opt_out_no_account_required: "",
+      opt_out_confirmation_mechanism: "",
+      opt_out_appeal_process: "",
+      opt_out_fairness_doc:
+        "Adverse-impact testing of RouteAssign v2 compensation calculations was performed on 2026-03-15 by the Operations Analytics team, covering race, sex, and age (40+) of the driver workforce, using the four-fifths selection-rate rule on 6 months of assignment data (2,150 assignments). No selection-rate ratio fell below 0.93. The report is retained as RL-AIA-2026-03.",
+      opt_out_15_day_process: "",
+
+      access_submission_methods: "Online request form at riverbendlogistics.example/privacy/admt-access; toll-free 1-800-555-0166.",
+      access_verification_process: "Match the driver ID plus the email of record, then a one-time code sent to that email.",
+      access_logic_disclosure: "We disclose the three inputs read (route distance, estimated time, base per-mile rate) and the assignment and compensation output.",
+      access_outcome_disclosure: "We disclose the route assigned and the compensation calculated for each assignment.",
+      access_response_timeline: "Within 45 calendar days (standard)",
+      access_trade_secret_policy: "The routing algorithm's internal weighting is withheld under Civil Code § 3426.1(d); the three input categories and the assignment/compensation output are disclosed in full.",
+
+      access_readiness: {
+        b1_purpose_ready: "Yes — we can produce this today",
+        b1_purpose_process: "The published purpose paragraph is inserted from the notice register entry RA2-NOTICE-2026-01.",
+        b2_logic_ready: "Yes — we can produce this today",
+        b2_logic_process: "The handler runs the RouteAssign explanation report, which lists the three inputs and the calculation method.",
+        b3_output_use_ready: "Yes — we can produce this today",
+        b3_output_use_process: "The dispatch log records the assignment and compensation issued to the driver app.",
+        b3_outcome_ready: "Yes — we can produce this today",
+        b3_outcome_process: "The assignment and compensation record is read from the dispatch log.",
+        b3_human_role_ready: "Yes — we can produce this today",
+        b3_human_role_process: "The dispatch log confirms no human reviewer role in individual assignments; disputes route to the Operations Manager.",
+      },
+
+      admt_detail: {
+        sole_use_attestation: "Yes — solely to assess ability to perform",
+        nondiscrimination_testing: "Yes — documented testing record",
+      },
+    },
+    assertions: [
+      { kind: "must_include", pattern: "7221\\(b\\)\\(3\\)|work.?allocation|compensation", flags: "i", label: "work-allocation/compensation exception anchored" },
+      { kind: "must_include", pattern: "compensation", flags: "i", label: "compensation domain present" },
+    ],
+  },
 ];
+
 
 // ─────────────────────────────────────────────────────────────────────────
 // ITEM 393 LEG B — ADMT PERFECT FIXTURE (×1).

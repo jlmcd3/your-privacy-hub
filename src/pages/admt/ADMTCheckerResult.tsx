@@ -288,9 +288,14 @@ export default function ADMTCheckerResult() {
       }
 
       // Kick off generation if the row is still pending and we haven't already.
+      // CONVERSION SWAP (2026-08-20): new purchases are stamped
+      // module="admt_v2" and must run the v2 engine, which filters its own
+      // reads on that module — invoking v1's function against a v2 row (or
+      // vice versa) would 404. Legacy "admt" rows keep triggering v1.
       if (data?.status === "pending" && !triggeredRef.current) {
         triggeredRef.current = true;
-        void supabase.functions.invoke("run-admt-checker", {
+        const fn = data?.module === "admt_v2" ? "run-admt-checker-v2" : "run-admt-checker";
+        void supabase.functions.invoke(fn, {
           body: { assessment_id: id },
         });
       }
@@ -388,7 +393,15 @@ export default function ADMTCheckerResult() {
     (assessment?.intake_data as any)?.company_name ||
     (assessment?.intake_data as any)?.org_name ||
     (assessment?.intake_data as any)?.organizationName ||
+    (assessment?.intake_data as any)?.organization_name || // v2 intake contract
     null;
+
+  // v2's report_data has no top-level system_name/compliance_deadline/
+  // overall_status/disclaimer (v1-only fields) — the skeleton_document
+  // carries the same information in its own cover/executive-summary
+  // sections. Fall back to intake_data for the page chrome so the title and
+  // meta line don't render "undefined" for a v2 report.
+  const systemName = report.system_name || (assessment?.intake_data as any)?.system_name || "System";
 
   const totalGaps =
     (report.notice_gaps ?? []).filter((i: any) => i.status !== "compliant").length +
@@ -400,12 +413,12 @@ export default function ADMTCheckerResult() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>ADMT Compliance Assessment — {report.system_name} | End User Privacy</title>
+        <title>ADMT Compliance Assessment — {systemName} | End User Privacy</title>
       </Helmet>
       <main id="main-content" aria-label="ADMT Compliance Assessment">
       <ReportShell
-        title={`ADMT Compliance Assessment — ${report.system_name}`}
-        meta={`Generated ${new Date(assessment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · Compliance deadline: ${report.compliance_deadline}`}
+        title={`ADMT Compliance Assessment — ${systemName}`}
+        meta={`Generated ${new Date(assessment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}${report.compliance_deadline ? ` · Compliance deadline: ${report.compliance_deadline}` : ""}`}
         topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         toolCategory="assessment"
         disclaimerAddition="This gap analysis is an analytical aid, not legal advice. Review with qualified California privacy counsel before relying on it for regulatory compliance decisions."
@@ -443,23 +456,29 @@ export default function ADMTCheckerResult() {
         )}
 
 
-        <div className="font-serif-text rounded-lg border p-5 bg-card">
-          {orgName && (
-            <div className="text-sm text-muted-foreground mb-2">
-              Prepared for: <span className="font-medium text-foreground">{orgName}</span>
-            </div>
-          )}
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-            Overall Status
-          </p>
-          <p className={`text-2xl font-serif ${overallColor}`}>
-            {report.overall_status === "compliant"
-              ? "No gaps identified"
-              : report.overall_status === "gaps_identified"
-              ? "Gaps identified — action required"
-              : "Significant gaps — urgent action required"}
-          </p>
-        </div>
+        {/* v2 reports carry no report.overall_status (a v1-only field) — that
+            determination is already the lead sentence of the skeleton's own
+            Executive Summary below, so this banner only renders when the
+            field is actually present (every existing v1 row has it). */}
+        {report.overall_status && (
+          <div className="font-serif-text rounded-lg border p-5 bg-card">
+            {orgName && (
+              <div className="text-sm text-muted-foreground mb-2">
+                Prepared for: <span className="font-medium text-foreground">{orgName}</span>
+              </div>
+            )}
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              Overall Status
+            </p>
+            <p className={`text-2xl font-serif ${overallColor}`}>
+              {report.overall_status === "compliant"
+                ? "No gaps identified"
+                : report.overall_status === "gaps_identified"
+                ? "Gaps identified — action required"
+                : "Significant gaps — urgent action required"}
+            </p>
+          </div>
+        )}
 
         {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
 
@@ -893,8 +912,13 @@ export default function ADMTCheckerResult() {
         </>)}
 
         {/* UPGRADE-3 ITEM 5 — table of authorities, immediately before the
-            universal report disclaimer rendered by ReportShell. */}
-        <AuthorityExhibit exhibit={report.authority_exhibit} />
+            universal report disclaimer rendered by ReportShell. Skipped when
+            the skeleton already carries its own "table_of_authorities"
+            section (true for every ADMT v2 report, and for some existing v1
+            rows) — otherwise the exhibit renders twice. */}
+        {!skeletonDoc?.sections?.some((s) => s.id === "table_of_authorities") && (
+          <AuthorityExhibit exhibit={report.authority_exhibit} />
+        )}
 
         <p className="text-xs text-muted-foreground italic">
           All citations refer to the California Privacy Protection Agency's final regulations (11 CCR Article 11). Official text:{" "}
