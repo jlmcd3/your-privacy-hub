@@ -1004,6 +1004,20 @@ const RUBRIC_GENERAL: RubricCheck[] = [
     description: "A real cited section is applied to the wrong proposition (right citation, wrong claim)." },
 ];
 
+// CEO RULING 2026-08-21 — a report that correctly concludes ADMT does not
+// apply is a valid, complete outcome, not an incomplete one. Batch
+// 4261dab7 (doc #1) scored a well-founded "not required" determination down
+// under three GENERAL checks (rubric_generic_boilerplate,
+// rubric_actionability, rubric_citation_misapplied) that were never meant to
+// penalize a correct scope-out — the grader had no product-specific
+// instruction telling it that "no ADMT requirements apply" is itself the
+// complete, correct analysis when the § 7001(e)(1) three-prong test is
+// satisfied. rubric_admt_valid_out_of_scope_determination below is the fix:
+// it tells the grader not to deduct for a WELL-FOUNDED "not required"
+// conclusion under those three general checks, while still failing (and
+// flagging) an out-of-scope conclusion the intake facts do not actually
+// support — the CEO's explicit "UNLESS THE 'NOT REQUIRED' ANALYSIS IS WRONG"
+// condition.
 const RUBRIC_ADMT: RubricCheck[] = [
   { id: "rubric_advertising_significant_decision", dimension: "accuracy", severity: "critical",
     description: "Advertising / adtech / audience targeting classified as a \"significant decision\" under CPPA § 7001(ddd). It is not." },
@@ -1011,6 +1025,8 @@ const RUBRIC_ADMT: RubricCheck[] = [
     description: "Gaming or entertainment service eligibility classified as a \"significant decision\". It is not." },
   { id: "rubric_invented_admt_section",            dimension: "citation", severity: "critical",
     description: "ADMT citation outside the real range (real sections: 7001, 7150–7157, 7200–7222)." },
+  { id: "rubric_admt_valid_out_of_scope_determination", dimension: "accuracy", severity: "critical",
+    description: "A report concluding the system is OUT OF SCOPE / ADMT requirements are NOT REQUIRED because of qualifying human involvement is CORRECT and COMPLETE — not incomplete, generic, or a citation misapplication — when the intake establishes ALL THREE prongs of the 11 CCR § 7001(e)(1) human-involvement test: (A) the reviewer knows how to interpret and use the technology's output to make the decision; (B) the reviewer reviews and analyzes that output together with other information relevant to the decision; and (C) the reviewer has authority to make or change the decision based on that analysis. Where all three are established on the intake facts, do NOT fail rubric_generic_boilerplate for restating those three elements as the basis for the conclusion, do NOT fail rubric_actionability for the report terminating after the applicability determination without auditing notice/opt-out/access/appeal mechanics (those obligations never attach where ADMT does not apply, so there is nothing further to audit), and do NOT fail rubric_citation_misapplied for citing § 7001(e)(1) in support of that conclusion. This check FAILS only where the report reaches an OUT OF SCOPE / NOT REQUIRED conclusion but the intake does NOT establish all three prongs on its own facts (e.g., the described reviewer only rubber-stamps the output, lacks the information to meaningfully review it, or lacks authority to change the outcome) — that is a genuine misapplication of § 7001(e)(1), and only that scenario should be flagged here." },
 ];
 
 // QB-P25 B2 — Governance rubric note.
