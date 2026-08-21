@@ -2712,7 +2712,9 @@ async function runBatchInner(runId: string): Promise<void> {
           needed,
           priorGen,
           {
-            deadlineAt: Date.now() + INTAKE_ISOLATE_BUDGET_MS,
+            deadlineAt: Date.now() + intakeIsolateBudgetMs(tool),
+            callReserveMs: intakeCallReserveMs(tool),
+
             // PROMPT 8K — closed-loop lint for the perfect variant.
             variant: fixtureVariant,
             onScenario: async (done, total, secs, ok, reason) => {
