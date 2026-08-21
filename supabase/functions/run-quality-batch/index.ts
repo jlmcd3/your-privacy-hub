@@ -224,6 +224,30 @@ const DOC_TOTAL_TIMEOUT_MS = 20 * 60_000;
 // The isolate hard-kill is ~400s; leave headroom for the in-flight scenario
 // call plus persistence + self-reinvoke. Checked BETWEEN scenario calls.
 const INTAKE_ISOLATE_BUDGET_MS = 200_000;
+// FIX-SO-WD (2026-08-21) — RESERVE-AWARE INTAKE BUDGET.
+// The BETWEEN-calls deadline check is only safe when a call that STARTS just
+// under the deadline can still finish before the ~400s isolate hard-kill.
+// cppa-risk's scenario call measures 230–245s (runs #221/#223/#224), so a call
+// started at t=199s lands at ~t=440s: hard-killed mid-call, nothing persisted,
+// heartbeat dies, and the DB watchdog stamps "Orphaned by runtime shutdown".
+// Fix: never START a scenario call unless the tool's measured worst-case call
+// duration still fits inside the budget. Slow tools therefore do exactly one
+// scenario per isolate, persist, and self-reinvoke.
+const INTAKE_CALL_RESERVE_MS_DEFAULT = 90_000;
+const INTAKE_CALL_RESERVE_MS_BY_TOOL: Record<string, number> = {
+  "cppa-risk": 260_000,
+  "dpia": 200_000,
+  "cppa-admt": 200_000,
+  "governance": 150_000,
+};
+export function intakeCallReserveMs(tool?: string): number {
+  return (tool && INTAKE_CALL_RESERVE_MS_BY_TOOL[tool]) || INTAKE_CALL_RESERVE_MS_DEFAULT;
+}
+export function intakeIsolateBudgetMs(tool?: string): number {
+  // The budget must be at least one full reserve, or no call could ever start.
+  return Math.max(INTAKE_ISOLATE_BUDGET_MS, intakeCallReserveMs(tool) + 20_000);
+}
+
 // Tools whose generators write status='complete' on the source row (poll
 // path). Editorial/transient tools return payloads inline and bypass this.
 const POLL_TOOLS = new Set([
@@ -1756,6 +1780,13 @@ export async function generateValidatedIntakesChunked(
   prior: IntakeGenProgress,
   ctx: {
     deadlineAt: number;
+    /**
+     * FIX-SO-WD (2026-08-21) — worst-case duration of ONE scenario model call
+     * for this tool. A call is only started when `now + reserve <= deadlineAt`,
+     * so a call can never be in flight when the isolate is hard-killed.
+     */
+    callReserveMs?: number;
+
     onScenario?: (done: number, total: number, secs: number, ok: boolean, reason?: string) => Promise<void>;
     /** PROMPT 8K — closed-loop lint applies to variant=perfect only. */
     variant?: "perfect" | "messy" | null;
@@ -1829,11 +1860,17 @@ export async function generateValidatedIntakesChunked(
     };
   };
 
+  // FIX-SO-WD (2026-08-21) — reserve-aware budget gate.
+  const reserveMs = ctx.callReserveMs ?? intakeCallReserveMs(tool);
+  const budgetExhausted = () => now() + reserveMs > ctx.deadlineAt;
+
   while (perfect ? (progress.accepted.length < count && progress.totalAttempted < budget) : progress.totalAttempted < count) {
     // Interior deadline checkpoint — BETWEEN calls, never inside one await.
-    if (now() >= ctx.deadlineAt) {
+    // A call is started only if its worst-case duration still fits the budget.
+    if (budgetExhausted()) {
       return { progress, status: "deadline" };
     }
+
     const t0 = now();
     const avoid = usedNames(progress.accepted);
     const extraGuidance = avoid.length
@@ -1857,9 +1894,15 @@ export async function generateValidatedIntakesChunked(
       await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, false);
       continue;
     }
+    // FIX-SO-WD (2026-08-21): screenIntake can fire a SECOND (repair) model
+    // call. When the remaining budget can no longer cover one call, screen
+    // without repair — the slot is simply retried in the next isolate.
     const screened = ctx._screen
       ? await ctx._screen(tool, item)
-      : await screenIntake(tool, item, ((x: any) => lintFixtureForVariant(tool, ctx.variant ?? null, x)) as any, extraGuidance, undefined, ctx.variant ?? null);
+      : budgetExhausted()
+        ? await screenNoRepair(item)
+        : await screenIntake(tool, item, ((x: any) => lintFixtureForVariant(tool, ctx.variant ?? null, x)) as any, extraGuidance, undefined, ctx.variant ?? null);
+
 
     if (screened.ok) progress.accepted.push(screened.intake);
     // PROMPT 9D item 2 — persist the FULL rejected intake JSON(s) with reason
@@ -1879,7 +1922,7 @@ export async function generateValidatedIntakesChunked(
     const rated = rateAbort();
     if (rated) return { progress, status: "complete", abort: rated };
     if (progress.totalAttempted >= budget) break;
-    if (now() >= ctx.deadlineAt) return { progress, status: "deadline" };
+    if (budgetExhausted()) return { progress, status: "deadline" };
 
     // ONE fresh regeneration for this slot — a NEW scenario, not a repair.
     const t1 = now();
@@ -2070,7 +2113,10 @@ type PollOutcome =
 // is idempotent — sweeper re-entry). Cap at MAX_RESURRECTIONS per doc.
 // W9-ADMT-WIRE (register #14 RESUMABLE admt): cppa-admt added so a stalled
 // heartbeat can no longer strand a wave digest (wave 8 stall cost us the read).
-const RESUMABLE_GENERATORS = new Set(["dpia", "cppa-admt"]);
+// FIX-SO-WD (2026-08-21): cppa-risk joins the resumable set — runs #221/#224
+// both died mid-generation with no resurrection path and lost the whole doc.
+const RESUMABLE_GENERATORS = new Set(["dpia", "cppa-admt", "cppa-risk"]);
+
 const RESURRECT_STALE_MS = 180_000;
 // SO-FT RESURRECT-CALIBRATION (2026-08-11): cppa-admt's normal generation has
 // phases that legitimately run >3 minutes without touching updated_at, so the
@@ -2078,10 +2124,11 @@ const RESURRECT_STALE_MS = 180_000;
 // same doc every ~3 minutes, spawning duplicate generator chains that pushed
 // doc 2 and doc 3 from ~300s to ~900s. Give admt a threshold above its longest
 // observed quiet phase; dpia keeps 180s.
-const RESURRECT_STALE_MS_BY_TOOL: Record<string, number> = { "cppa-admt": 480_000 };
+const RESURRECT_STALE_MS_BY_TOOL: Record<string, number> = { "cppa-admt": 480_000, "cppa-risk": 480_000 };
 export const MAX_RESURRECTIONS = 2;
-const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker-v2" };
-const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id" };
+const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker-v2", "cppa-risk": "run-cppa-risk-assessment" };
+const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id", "cppa-risk": "assessment_id" };
+
 
 export function resurrectStaleMs(tool?: string): number {
   return (tool && RESURRECT_STALE_MS_BY_TOOL[tool]) || RESURRECT_STALE_MS;
@@ -2669,7 +2716,9 @@ async function runBatchInner(runId: string): Promise<void> {
           needed,
           priorGen,
           {
-            deadlineAt: Date.now() + INTAKE_ISOLATE_BUDGET_MS,
+            deadlineAt: Date.now() + intakeIsolateBudgetMs(tool),
+            callReserveMs: intakeCallReserveMs(tool),
+
             // PROMPT 8K — closed-loop lint for the perfect variant.
             variant: fixtureVariant,
             onScenario: async (done, total, secs, ok, reason) => {
@@ -2684,7 +2733,7 @@ async function runBatchInner(runId: string): Promise<void> {
         await persistState();
         if (genStatus === "deadline") {
           await persistState();
-          await log("info", `Intake generation deadline (isolate ${intakeIsolate}, ${Math.round(INTAKE_ISOLATE_BUDGET_MS / 1000)}s) — persisted ${gen.accepted.length} accepted / ${gen.totalAttempted} attempted and self-reinvoking to CONTINUE at scenario ${gen.totalAttempted + 1}/${needed}`);
+          await log("info", `Intake generation deadline (isolate ${intakeIsolate}, ${Math.round(intakeIsolateBudgetMs(tool) / 1000)}s budget / ${Math.round(intakeCallReserveMs(tool) / 1000)}s per-call reserve) — persisted ${gen.accepted.length} accepted / ${gen.totalAttempted} attempted and self-reinvoking to CONTINUE at scenario ${gen.totalAttempted + 1}/${needed}`);
           await selfReinvoke(runId);
           clearInterval(heartbeat);
           return;

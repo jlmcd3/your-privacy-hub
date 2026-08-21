@@ -194,8 +194,14 @@ export const RUN_QUALITY_BATCH_SLUGS = new Set<string>([
 //   L2200  status="error"     — outer catch
 // Nothing else transitions the run into a terminal state.
 export const RUN_QUALITY_BATCH_TERMINAL = new Set<string>([
-  "complete", "error", "cancelled",
+  // FIX-SO-WD (2026-08-21): "failed" was missing. The DB watchdog writes
+  // status='failed' with a real error string, so a watchdog-killed child was
+  // NOT recognised as terminal here and fell through to the heartbeat-stall
+  // branch — producing a second, contradictory verdict ("stalled") over an
+  // already-failed row and losing the actual error. Terminal-first now holds.
+  "complete", "error", "cancelled", "failed",
 ]);
+
 
 // Child-run stall threshold. run-quality-batch heartbeats every ~10s while
 // alive (index.ts L1454), so > 6 minutes with no update means the child is
