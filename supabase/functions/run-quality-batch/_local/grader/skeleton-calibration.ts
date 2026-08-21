@@ -47,11 +47,15 @@ import { DPIA_ASK_LABELS } from "../../../_shared/ltp/dpia-ask-labels.ts";
 export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string[]>> =
   Object.freeze({
     // composeRiskBody — per-risk scoring head (rules 1 and 4). PROMPT 8D bytes.
+    // Re-pinned 2026-08-21: PROMPT 9L.1 item 4 (CEO-ratified 2026-08-16) added
+    // "aggregate" to this span ("with an aggregate initial risk level of") but
+    // the registry span here was never updated to match, so three genuinely
+    // ratified-template quotations escaped cal_skeleton_1 in batch ba742475.
     tmpl_risk_scoring_head: [
       "is assessed at",
       "likelihood and",
       "severity under this assessment's pre-set risk taxonomy",
-      "an initial risk level of",
+      "an aggregate initial risk level of",
     ],
     // composeRiskBody — level not broken down (likelihood/severity not both recorded).
     tmpl_risk_band_not_decomposed: [

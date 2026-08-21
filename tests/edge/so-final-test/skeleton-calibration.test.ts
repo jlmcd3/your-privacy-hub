@@ -11,8 +11,13 @@ import {
 } from "../../../supabase/functions/_shared/grader/skeleton-calibration.ts";
 import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
 
+// Re-pinned 2026-08-21: PROMPT 9L.1 item 4 (CEO-ratified 2026-08-16) added
+// "with an aggregate" to composeRiskBody's per-risk scoring head; this
+// fixture carried the pre-9L.1 wording and silently stopped matching
+// tmpl_risk_scoring_head once the registry span was corrected (batch
+// ba742475 surfaced the registry-side half of this same staleness).
 const RISK_TEMPLATE =
-  "Unauthorised disclosure of health data is assessed at likely likelihood and severe severity under this assessment's pre-set risk taxonomy, an initial risk level of high. The company records no measure against it, and the remaining risk level is high on the same preliminary basis.";
+  "Unauthorised disclosure of health data is assessed at likely likelihood and severe severity under this assessment's pre-set risk taxonomy, with an aggregate initial risk level of high. The company records no measure against it, and the remaining risk level is high on the same preliminary basis.";
 
 Deno.test("rule 1 — ratified template repetition is not boilerplate", () => {
   const { kept, filtered, counts } = applySkeletonCalibration([
@@ -99,9 +104,13 @@ Deno.test("context version records the calibration and its rule ids", () => {
 });
 
 Deno.test("filtered findings are persisted flagged, and freeform is untouched", async () => {
-  const src = await Deno.readTextFile(
+  // Normalized CRLF -> LF: this repo is checked out with Windows line
+  // endings (run-quality-batch/index.ts has CRLF terminators), and the
+  // literal-newline assertion below otherwise silently fails to match on a
+  // Windows checkout even though the source is unchanged. 2026-08-21.
+  const src = (await Deno.readTextFile(
     new URL("../../../supabase/functions/run-quality-batch/index.ts", import.meta.url),
-  );
+  )).replace(/\r\n/g, "\n");
   // calibration only runs on the skeleton payload path
   assertEquals(src.split("applySkeletonCalibration(").length - 1, 2); // claude + gpt call sites
   assert(src.includes("useSkeleton\n    ? applySkeletonCalibration"));
