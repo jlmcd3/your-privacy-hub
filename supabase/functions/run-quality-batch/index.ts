@@ -1922,7 +1922,7 @@ export async function generateValidatedIntakesChunked(
     const rated = rateAbort();
     if (rated) return { progress, status: "complete", abort: rated };
     if (progress.totalAttempted >= budget) break;
-    if (now() >= ctx.deadlineAt) return { progress, status: "deadline" };
+    if (budgetExhausted()) return { progress, status: "deadline" };
 
     // ONE fresh regeneration for this slot — a NEW scenario, not a repair.
     const t1 = now();
