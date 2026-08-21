@@ -2113,7 +2113,10 @@ type PollOutcome =
 // is idempotent — sweeper re-entry). Cap at MAX_RESURRECTIONS per doc.
 // W9-ADMT-WIRE (register #14 RESUMABLE admt): cppa-admt added so a stalled
 // heartbeat can no longer strand a wave digest (wave 8 stall cost us the read).
-const RESUMABLE_GENERATORS = new Set(["dpia", "cppa-admt"]);
+// FIX-SO-WD (2026-08-21): cppa-risk joins the resumable set — runs #221/#224
+// both died mid-generation with no resurrection path and lost the whole doc.
+const RESUMABLE_GENERATORS = new Set(["dpia", "cppa-admt", "cppa-risk"]);
+
 const RESURRECT_STALE_MS = 180_000;
 // SO-FT RESURRECT-CALIBRATION (2026-08-11): cppa-admt's normal generation has
 // phases that legitimately run >3 minutes without touching updated_at, so the
