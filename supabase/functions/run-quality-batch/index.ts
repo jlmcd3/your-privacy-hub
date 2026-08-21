@@ -1894,9 +1894,15 @@ export async function generateValidatedIntakesChunked(
       await ctx.onScenario?.(progress.totalAttempted, count, (now() - t0) / 1000, false);
       continue;
     }
+    // FIX-SO-WD (2026-08-21): screenIntake can fire a SECOND (repair) model
+    // call. When the remaining budget can no longer cover one call, screen
+    // without repair — the slot is simply retried in the next isolate.
     const screened = ctx._screen
       ? await ctx._screen(tool, item)
-      : await screenIntake(tool, item, ((x: any) => lintFixtureForVariant(tool, ctx.variant ?? null, x)) as any, extraGuidance, undefined, ctx.variant ?? null);
+      : budgetExhausted()
+        ? await screenNoRepair(item)
+        : await screenIntake(tool, item, ((x: any) => lintFixtureForVariant(tool, ctx.variant ?? null, x)) as any, extraGuidance, undefined, ctx.variant ?? null);
+
 
     if (screened.ok) progress.accepted.push(screened.intake);
     // PROMPT 9D item 2 — persist the FULL rejected intake JSON(s) with reason
