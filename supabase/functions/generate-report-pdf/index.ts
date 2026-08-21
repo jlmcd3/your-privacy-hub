@@ -1291,13 +1291,30 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         return `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>`;
       }
       return t.split(/\n{2,}/).map((chunk) => {
-        const escaped = escHtml(chunk);
-        const withMarkers = footnotesOn ? substituteFootnoteMarkers(escaped) : escaped;
+        // Part B item 1 (2026-08-21, CEO-confirmed) — bold a paragraph's
+        // lettered lead ("E. Residual Risk.") when one opens the chunk.
+        // Confirmed against every real instance in the fleet (51 in
+        // cppa-risk.spine.ts, 2 in lia.spine.ts): a single capital letter,
+        // a period, a phrase with no embedded period, then a period before
+        // the body continues. Escaped, then marker-substituted, separately
+        // for the lead and the rest so <strong> wraps only the lead.
+        const lead = /^([A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/.exec(chunk);
+        const mark = (html: string) => footnotesOn ? substituteFootnoteMarkers(html) : html;
+        const withMarkers = lead
+          ? `<strong>${mark(escHtml(lead[1]))}</strong>${escHtml(lead[2])}${mark(escHtml(lead[3]))}`
+          : mark(escHtml(chunk));
         return `<p class="body-p" style="white-space:pre-line;">${withMarkers}</p>`;
       }).join("");
     }).join("");
     if (!paras) return "";
+    // Part B item 2 (2026-08-21, CEO-confirmed, PDF-only) — every Appendix
+    // or Exhibit starts on a new page, not just the section that happens to
+    // carry the "table_of_authorities" id. Title-driven so it is id-
+    // agnostic: it covers CPPA Risk's Appendices A–H (only G reused the
+    // table_of_authorities id) and ADMT v2's Appendices A and B
+    // (appendix_a/appendix_b) without a per-product id whitelist.
     const forceBreak = sec.id === "table_of_authorities"
+      || /^(appendix|exhibit)\b/i.test(sec.title ?? "")
       || (sec.id === "incident_worksheet" && opts?.product === "ir-playbook");
     const breakCss = forceBreak ? "break-before:always;page-break-before:always;" : "";
     return `<section class="section" style="${breakCss}margin-bottom:14px;">

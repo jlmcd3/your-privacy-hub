@@ -104,11 +104,26 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
               <ToaView key={i} text={p.text} />
             ) : (
 
-              p.text.split(/\n{2,}/).map((chunk, j) => (
-                <p key={`${i}-${j}`} className="leading-relaxed text-foreground whitespace-pre-line">
-                  {renderWithFootnotes(chunk)}
-                </p>
-              ))
+              p.text.split(/\n{2,}/).map((chunk, j) => {
+                // Part B item 1 (2026-08-21, CEO-confirmed) — bold a
+                // paragraph's lettered lead ("E. Residual Risk.") when one
+                // opens the chunk. Same pattern/regex as the PDF renderer
+                // (generate-report-pdf/index.ts's skeletonSectionsHtml).
+                const lead = /^([A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/.exec(chunk);
+                return (
+                  <p key={`${i}-${j}`} className="leading-relaxed text-foreground whitespace-pre-line">
+                    {lead
+                      ? (
+                        <>
+                          <strong>{renderWithFootnotes(lead[1])}</strong>
+                          {lead[2]}
+                          {renderWithFootnotes(lead[3])}
+                        </>
+                      )
+                      : renderWithFootnotes(chunk)}
+                  </p>
+                );
+              })
             ),
           )}
         </section>
