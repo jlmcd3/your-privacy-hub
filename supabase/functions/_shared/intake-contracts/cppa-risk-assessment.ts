@@ -615,6 +615,22 @@ export const cppaRiskContract: IntakeContract = {
     // who provided legal advice is excluded from this record.
     { key: "a8_information_providers", kind: "narrative", required: "optional", askEligible: true },
 
+    // Finalization-stage § 7152(a)(9) fields (CPPARiskAssessment.tsx
+    // "Finalization stage" panel). Same D10 pattern as a9_approver_* above:
+    // relaxed to "optional" here so validateIntake() recognizes the keys
+    // during ordinary intake, even though the live form marks them required
+    // and the finalization contract (cppa-risk-assessment-finalization.ts,
+    // test-scoped) re-declares them as required at the Final-Approved stage.
+    { key: "assessment_reviewers_approvers", kind: "structured", required: "optional" },
+    { key: "assessment_reviewers_approvers[].name", kind: "text", required: "conditional",
+      requiredWhen: "a reviewer row is present" },
+    { key: "assessment_reviewers_approvers[].position", kind: "text", required: "conditional",
+      requiredWhen: "a reviewer row is present" },
+    { key: "assessment_reviewers_approvers[].role", kind: "enum", required: "conditional",
+      requiredWhen: "a reviewer row is present", options: ["Reviewed", "Approved", "Both"] },
+    { key: "approver_authority_confirmed", kind: "enum", required: "optional", options: YES_NO_OPTS },
+    { key: "approver_authority_basis", kind: "narrative", required: "optional" },
+
     // ITEM 380 INTAKE-4a — CEO-approved addition. Question lives in the form
     // at src/pages/CPPARiskAssessment.tsx (~L1330, the block adjacent to the
     // existing i9_has_existing_dpia question). Optional at the data layer so

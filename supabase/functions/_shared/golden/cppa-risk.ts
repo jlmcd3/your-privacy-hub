@@ -537,6 +537,17 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       a9_approver_name: "L. Whitcomb",
       a9_approver_position: "Chief Compliance Officer",
       a9_approval_date: "2026-06-12",
+      // Finalization-stage fields (§ 7152(a)(9)) — a "perfect" fixture
+      // represents a fully completed customer journey, intake AND
+      // finalization, not just a pre-finalization draft. Added 2026-08-21
+      // after a quality-batch run correctly flagged the approval record as
+      // outstanding on a fixture that never actually finalized it.
+      assessment_reviewers_approvers: [
+        { name: "L. Whitcomb", position: "Chief Compliance Officer", role: "Both" },
+      ],
+      approver_authority_confirmed: "Yes",
+      approver_authority_basis:
+        "Chief Compliance Officer with delegated authority under the Company's privacy governance charter to approve or halt covered processing.",
 
       // ── RK3-A1 Priority-1 fields (Intake Contract v2.0 §§ 1–6, 9) ──────────
       // Every asked field is answered to the "Perfect Data" standard so the
@@ -992,6 +1003,14 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       a9_approver_name: "E. Marín",
       a9_approver_position: "Chief Privacy Officer",
       a9_approval_date: "2026-07-15",
+      // Finalization-stage fields (§ 7152(a)(9)) — see risk-perfect-complete
+      // above for why these were added 2026-08-21.
+      assessment_reviewers_approvers: [
+        { name: "E. Marín", position: "Chief Privacy Officer", role: "Both" },
+      ],
+      approver_authority_confirmed: "Yes",
+      approver_authority_basis:
+        "Chief Privacy Officer with delegated authority under the Company's privacy governance charter to approve or halt covered processing.",
 
       // ── RK3-A1 Priority-1 fields (Intake Contract v2.0 §§ 1–6, 9) ──────────
       processing_entry_point:
