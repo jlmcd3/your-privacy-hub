@@ -2124,10 +2124,11 @@ const RESURRECT_STALE_MS = 180_000;
 // same doc every ~3 minutes, spawning duplicate generator chains that pushed
 // doc 2 and doc 3 from ~300s to ~900s. Give admt a threshold above its longest
 // observed quiet phase; dpia keeps 180s.
-const RESURRECT_STALE_MS_BY_TOOL: Record<string, number> = { "cppa-admt": 480_000 };
+const RESURRECT_STALE_MS_BY_TOOL: Record<string, number> = { "cppa-admt": 480_000, "cppa-risk": 480_000 };
 export const MAX_RESURRECTIONS = 2;
-const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker-v2" };
-const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id" };
+const RESUMABLE_GENERATOR_FN: Record<string, string> = { dpia: "run-dpia-framework", "cppa-admt": "run-admt-checker-v2", "cppa-risk": "run-cppa-risk-assessment" };
+const RESUMABLE_ID_KEY: Record<string, string> = { dpia: "dpia_id", "cppa-admt": "assessment_id", "cppa-risk": "assessment_id" };
+
 
 export function resurrectStaleMs(tool?: string): number {
   return (tool && RESURRECT_STALE_MS_BY_TOOL[tool]) || RESURRECT_STALE_MS;
