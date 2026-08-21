@@ -813,7 +813,14 @@ export const VENDOR_MATERIALITY_MATRIX: Record<
 export function computeVendor(intake: Intake, scopeState: ScopeState, path: PathState): VendorResult {
   const findings: AdmtV2Finding[] = [];
   const thirdParty = str((intake as any)?.third_party_admt);
-  const identified = !!thirdParty && !/^no$/i.test(thirdParty) && !/^none/i.test(thirdParty);
+  // BUG FIX (2026-08-21): this field is free text and commonly carries an
+  // explanation after "No" (e.g. "No -- LoanSight is built and maintained
+  // internally; Experian and CoreLogic supply data inputs but do not
+  // provide an ADMT system."). The prior `/^no$/i` required the ENTIRE
+  // field to be exactly "no", so any explained "No" answer fell through as
+  // identified=true and produced a vendor-dependency section that directly
+  // contradicted the correctly-reproduced intake answer one line above it.
+  const identified = !!thirdParty && !/^no\b/i.test(thirdParty) && !/^none\b/i.test(thirdParty);
 
   const sectionLead = identified
     ? `The Company identifies the third-party ADMT as: ${thirdParty}.`
