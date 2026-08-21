@@ -1018,6 +1018,23 @@ const RUBRIC_GENERAL: RubricCheck[] = [
 // flagging) an out-of-scope conclusion the intake facts do not actually
 // support — the CEO's explicit "UNLESS THE 'NOT REQUIRED' ANALYSIS IS WRONG"
 // condition.
+//
+// STRENGTHENED 2026-08-21 (batch 7634357e, doc #1, admt-ca-tenant-screening-
+// perfect): the original wording wasn't enough. The grader still failed this
+// exact scenario — a "material factor, heavily weighted" output alongside
+// qualifying human review — as a possible citation misapplication, EVEN
+// THOUGH the report's own applicability table already states, verbatim,
+// "Role of ADMT output | Material factor — heavily weighted alongside
+// others | No independent effect on applicability; establishes the factual
+// record for the Notice and Access sections." Verified against the
+// deterministic engine (admt-v2-deterministic.ts computeScope(): the output-
+// role/sole-factor field is explicitly commented "descriptive only — never
+// establishes/defeats scope") and the verified-authorities registry (no
+// citation ties "sole factor," "material factor," or "heavily weighted" to
+// the scope determination at all — sole_factor only feeds the § 7222
+// access-disclosure content). The added sentence below names this pattern
+// directly so the grader stops re-litigating a question the report already
+// answers in its own table.
 const RUBRIC_ADMT: RubricCheck[] = [
   { id: "rubric_advertising_significant_decision", dimension: "accuracy", severity: "critical",
     description: "Advertising / adtech / audience targeting classified as a \"significant decision\" under CPPA § 7001(ddd). It is not." },
@@ -1026,7 +1043,7 @@ const RUBRIC_ADMT: RubricCheck[] = [
   { id: "rubric_invented_admt_section",            dimension: "citation", severity: "critical",
     description: "ADMT citation outside the real range (real sections: 7001, 7150–7157, 7200–7222)." },
   { id: "rubric_admt_valid_out_of_scope_determination", dimension: "accuracy", severity: "critical",
-    description: "A report concluding the system is OUT OF SCOPE / ADMT requirements are NOT REQUIRED because of qualifying human involvement is CORRECT and COMPLETE — not incomplete, generic, or a citation misapplication — when the intake establishes ALL THREE prongs of the 11 CCR § 7001(e)(1) human-involvement test: (A) the reviewer knows how to interpret and use the technology's output to make the decision; (B) the reviewer reviews and analyzes that output together with other information relevant to the decision; and (C) the reviewer has authority to make or change the decision based on that analysis. Where all three are established on the intake facts, do NOT fail rubric_generic_boilerplate for restating those three elements as the basis for the conclusion, do NOT fail rubric_actionability for the report terminating after the applicability determination without auditing notice/opt-out/access/appeal mechanics (those obligations never attach where ADMT does not apply, so there is nothing further to audit), and do NOT fail rubric_citation_misapplied for citing § 7001(e)(1) in support of that conclusion. This check FAILS only where the report reaches an OUT OF SCOPE / NOT REQUIRED conclusion but the intake does NOT establish all three prongs on its own facts (e.g., the described reviewer only rubber-stamps the output, lacks the information to meaningfully review it, or lacks authority to change the outcome) — that is a genuine misapplication of § 7001(e)(1), and only that scenario should be flagged here." },
+    description: "A report concluding the system is OUT OF SCOPE / ADMT requirements are NOT REQUIRED because of qualifying human involvement is CORRECT and COMPLETE — not incomplete, generic, or a citation misapplication — when the intake establishes ALL THREE prongs of the 11 CCR § 7001(e)(1) human-involvement test: (A) the reviewer knows how to interpret and use the technology's output to make the decision; (B) the reviewer reviews and analyzes that output together with other information relevant to the decision; and (C) the reviewer has authority to make or change the decision based on that analysis. WHETHER THE SYSTEM'S OUTPUT IS DESCRIBED AS A \"SOLE FACTOR,\" A \"MATERIAL FACTOR,\" \"HEAVILY WEIGHTED,\" OR ANY SIMILAR WEIGHTING LANGUAGE IS IRRELEVANT TO THIS TEST AND MUST NEVER BE TREATED AS CONTRADICTING A VALID OUT-OF-SCOPE CONCLUSION — the § 7001(e)(1) exemption turns only on whether the three-prong human-involvement test is met, not on how much weight the algorithmic output carries in that human's decision; a report is not wrong, evasive, or under-analyzed for saying so, even when that weighting language appears prominently elsewhere in the same table or section. Where all three prongs are established on the intake facts, do NOT fail rubric_generic_boilerplate for restating those three elements as the basis for the conclusion, do NOT fail rubric_actionability for the report terminating after the applicability determination without auditing notice/opt-out/access/appeal mechanics (those obligations never attach where ADMT does not apply, so there is nothing further to audit), and do NOT fail rubric_citation_misapplied for citing § 7001(e)(1) in support of that conclusion — including when a nearby table row separately and correctly notes that the output's weighting has \"no independent effect on applicability.\" This check FAILS only where the report reaches an OUT OF SCOPE / NOT REQUIRED conclusion but the intake does NOT establish all three prongs on its own facts (e.g., the described reviewer only rubber-stamps the output, lacks the information to meaningfully review it, or lacks authority to change the outcome) — that is a genuine misapplication of § 7001(e)(1), and only that scenario should be flagged here." },
 ];
 
 // QB-P25 B2 — Governance rubric note.
