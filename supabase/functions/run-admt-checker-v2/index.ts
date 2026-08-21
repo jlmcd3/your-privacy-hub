@@ -1,9 +1,12 @@
-// CPPA ADMT Compliance Audit — v2 (CONVERSION BUILD).
+// CPPA ADMT Compliance Audit — v2 (CONVERSION BUILD, presentation layer
+// upgraded to spine v3.2 on 2026-08-21).
 //
-// Implements CPPA_ADMT_Audit_Spine_v1.2_Revised.docx (CEO-authored
-// 2026-08-19/20) in full: Part I customer-facing spine + Part II
-// deterministic-variable specification. NO MODEL CALL — every determination
-// is a pure function of the existing ADMT intake contract (cppa-admt.ts).
+// Implements CPPA_ADMT_Audit_Spine_v3.2.docx (CEO-ratified 2026-08-21):
+// Part I customer-facing spine (legal-requirement blocks, reader-facing
+// effect labels, Appendices A/B replacing the old Table of Authorities) +
+// Part II deterministic-variable specification, carried forward unchanged
+// from v1.2. NO MODEL CALL — every determination is a pure function of the
+// existing ADMT intake contract (cppa-admt.ts).
 // Per the CEO's authority (2026-08-20 build directive), no Fable 5 / factor
 // engine is required for this product: the spine names no {{FACTOR.*}}
 // slots, only closed-form deterministic (D_) and bounded-template generated
@@ -131,7 +134,7 @@ Deno.serve(async (req) => {
         internal: {
           admt_v2_pipeline_stamp: BUILD_STAMP,
           spine_version: ADMT_V2_SPINE_VERSION,
-          spine_source: "CPPA_ADMT_Audit_Spine_v1.2_Revised.docx",
+          spine_source: "CPPA_ADMT_Audit_Spine_v3.2.docx",
           overall_posture_label: computed.overallPostureLabel,
           overall_record_grade: computed.overallRecordGrade,
           scope_state: computed.scope.scopeState,

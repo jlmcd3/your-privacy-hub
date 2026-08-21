@@ -914,9 +914,16 @@ export default function ADMTCheckerResult() {
         {/* UPGRADE-3 ITEM 5 — table of authorities, immediately before the
             universal report disclaimer rendered by ReportShell. Skipped when
             the skeleton already carries its own "table_of_authorities"
-            section (true for every ADMT v2 report, and for some existing v1
-            rows) — otherwise the exhibit renders twice. */}
-        {!skeletonDoc?.sections?.some((s) => s.id === "table_of_authorities") && (
+            section (true for some existing v1 rows) — otherwise the exhibit
+            renders twice. v3.2 (2026-08-21): also skipped for admt-v3.2
+            skeleton documents outright — that spine deliberately has no
+            Table of Authorities at all (citations are inline in each duty
+            section's legal-requirement block; see Appendix B instead), so
+            falling back to the standalone exhibit here would show the
+            on-screen preview a ToA the PDF the customer downloads doesn't
+            have. */}
+        {!skeletonDoc?.sections?.some((s) => s.id === "table_of_authorities") &&
+          skeletonDoc?._typed !== "skeleton-document@admt-v3.2" && (
           <AuthorityExhibit exhibit={report.authority_exhibit} />
         )}
 

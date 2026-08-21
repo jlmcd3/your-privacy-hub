@@ -4,9 +4,6 @@ import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.t
 import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
 import { assembleAdmtV2Document } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-assemble.ts";
-import { buildAuthorityExhibit } from "../../../supabase/functions/_shared/report-exhibits/authority-exhibit.ts";
-import { buildFootnoteIndex, injectFootnoteMarkers, FOOTNOTE_TOKEN_RE } from "../../../supabase/functions/_shared/report-exhibits/footnote-engine.ts";
-import { vaRegistryAsProvisions } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-corpus.ts";
 
 function fixture(id: string) {
   const f = CPPA_ADMT_GOLDEN.find((g) => g.id === id);
@@ -47,83 +44,89 @@ Deno.test("admt-service-eligibility-conservative: fully automated, no domain con
   console.log("conservative posture:", c.overallPostureLabel);
 });
 
-Deno.test("admt-ca-tenant-screening-perfect (ADMT_PERFECT pin): full document assembles, ToA has entries, footnote index resolves", async () => {
+Deno.test("admt-ca-tenant-screening-perfect (ADMT_PERFECT pin): full document assembles with sentence-cited legal blocks, no ToA", async () => {
   const { ADMT_PERFECT } = await import("../../../supabase/functions/_shared/golden/cppa-admt.ts");
   const intake = ADMT_PERFECT[0].intake as Record<string, unknown>;
   const c = computeAdmtV2(intake);
-  const citations = [...new Set(c.allFindings.map((f) => f.authority).filter(Boolean))];
-  const exhibit = buildAuthorityExhibit(citations, vaRegistryAsProvisions());
-  const doc = assembleAdmtV2Document({ intake, computed: c, exhibit, organizationName: String(intake.organization_name ?? ""), systemName: String(intake.system_name ?? "") });
+  const doc = assembleAdmtV2Document({ intake, computed: c, exhibit: null, organizationName: String(intake.organization_name ?? ""), systemName: String(intake.system_name ?? "") });
 
   assert(doc.sections.length > 0, "document must have sections");
   assert(doc.sections.some((s) => s.id === "executive_summary"), "must have an executive summary");
+  assert(!doc.sections.some((s) => s.id === "table_of_authorities"), "v3.2 removes the Table of Authorities appendix — must never render");
   console.log("perfect fixture sections:", doc.sections.map((s) => s.id).join(", "));
   console.log("perfect fixture posture:", c.overallPostureLabel, "grade:", c.overallRecordGrade);
-
-  const fnIndex = buildFootnoteIndex(exhibit);
-  assert(fnIndex.count >= 0);
-  // Footnote marker round-trip: inject then verify the token pattern is findable.
-  const sample = "As required by 11 CCR § 7220(c)(1), the notice must state the specific purpose.";
-  const marked = injectFootnoteMarkers(sample, fnIndex);
-  const hasMarker = FOOTNOTE_TOKEN_RE.test(marked) || marked === sample; // marker only if that citation was indexed
-  assert(hasMarker || true);
 });
 
-// This fixture is OUT_OF_SCOPE, so assembleAdmtV2Document returns before it
-// ever reaches the Appendix C / Table of Authorities branch — the test above
-// never actually exercises full-text-authority rendering, and its own two
-// assertions above are trivially true regardless of behavior. This test uses
-// an IN_SCOPE fixture with real findings/citations, mirrors index.ts's own
-// citation-gathering exactly (the two header citations included), and checks
-// the ACTUAL rendered output: a Table of Authorities section exists, it
-// contains real verbatim corpus text (not just bare citations), and at least
-// one footnote marker survives into a body paragraph with a number that
-// resolves to a real entry in that section.
-Deno.test("end-to-end: IN_SCOPE report with real citations renders full-text authorities and resolvable footnote markers", async () => {
+// v3.2: the old ToA/footnote-marker mechanism is gone (Part I §C — legal
+// citations are now inline parentheticals in the fixed legal-requirement
+// blocks; Appendix C is replaced by Appendix B). This test now checks the
+// ACTUAL v3.2 replacement end-to-end on an IN_SCOPE fixture: every duty
+// section opens with a "legal_requirement" paragraph carrying real 11 CCR
+// pinpoint citations, no raw DECISION_EFFECT/SUPPORTS/etc. token reaches a
+// table cell, and Appendix A/B render with real per-report content (not a
+// static menu of every possible outcome).
+Deno.test("end-to-end: IN_SCOPE report renders sentence-cited legal blocks, reader-facing effect labels, and Appendix A/B", () => {
   const intake = fixture("admt-credit-significant-tuning");
   const c = computeAdmtV2(intake);
-  assert(c.allFindings.some((f) => f.authority), "fixture must produce at least one cited finding to make this test meaningful");
-
-  // Mirror run-admt-checker-v2/index.ts's gatherCitations() exactly: finding
-  // authorities + the two header/statutory-framing citations, deduplicated.
-  const HEADER_CITATIONS = ["11 CCR § 7200", "11 CCR § 7150(b)(3)"];
-  const citations = [...new Set([...c.allFindings.map((f) => f.authority).filter(Boolean), ...HEADER_CITATIONS])];
-  const exhibit = buildAuthorityExhibit(citations, vaRegistryAsProvisions());
-  assert(exhibit.entries.length > 0, "exhibit must have entries for an in-scope, cited report");
-
-  const verbatimEntries = exhibit.entries.filter((e) => e.excerpt && e.pin_verified);
-  assert(verbatimEntries.length > 0, "at least one exhibit entry must carry real corpus verbatim text, not just a bare citation");
 
   const doc = assembleAdmtV2Document({
-    intake, computed: c, exhibit,
+    intake, computed: c, exhibit: null,
     organizationName: String((intake as any).organization_name ?? ""),
     systemName: String((intake as any).system_name ?? ""),
   });
 
-  const toaSection = doc.sections.find((s) => s.id === "table_of_authorities");
-  assert(toaSection, "an in-scope, cited report with a non-empty exhibit must render a Table of Authorities appendix");
-  const toaText = toaSection!.paragraphs.map((p) => p.text).join("\n");
-  const sampleVerbatim = verbatimEntries[0].excerpt!.slice(0, 40);
-  assert(
-    toaText.includes(sampleVerbatim.slice(0, 30)) || toaText.includes(verbatimEntries[0].excerpt!.slice(0, 200)),
-    `Table of Authorities text must contain the real verbatim excerpt, not just the citation. Excerpt sample: "${sampleVerbatim}"\nToA text: ${toaText.slice(0, 500)}`,
-  );
+  assert(!doc.sections.some((s) => s.id === "table_of_authorities"), "v3.2 must never render a Table of Authorities appendix");
 
-  // Most cite() call sites land inside table cells (cover table, applicability
-  // factors table), not plain paragraph text — scan both, matching what a
-  // customer actually sees, not just the paragraph.text shape.
-  const bodyText = doc.sections
-    .filter((s) => s.id !== "table_of_authorities")
-    .flatMap((s) => s.paragraphs.map((p) => p.kind === "table" && p.table ? p.table.rows.flat().join("\n") : p.text))
-    .join("\n");
-  const markerMatches = [...bodyText.matchAll(FOOTNOTE_TOKEN_RE)];
-  assert(markerMatches.length > 0, `expected at least one footnote marker embedded in body text (paragraphs or table cells); body text sample: ${bodyText.slice(0, 800)}`);
+  const applicability = doc.sections.find((s) => s.id === "applicability");
+  assert(applicability, "applicability section must render");
+  const legalPara = applicability!.paragraphs.find((p) => p.kind === "legal_requirement");
+  assert(legalPara, "applicability section must open with a legal_requirement paragraph");
+  assert(/11 CCR § 7200\(a\)/.test(legalPara!.text), "legal block must carry a real pinpoint citation, sentence-level not paragraph-level");
+  assert(/11 CCR § 7001\(ddd\)\(6\)/.test(legalPara!.text), "legal block must carry the advertising-exclusion pinpoint");
 
-  const fnIndex = buildFootnoteIndex(exhibit);
-  const markerNumbers = new Set(markerMatches.map((m) => Number(m[1])));
-  for (const n of markerNumbers) {
-    assert(fnIndex.anchorFor(n) !== null, `body footnote marker {${n}} must resolve to a real ToA anchor`);
-    assert(toaText.includes(`${n}. `), `ToA text must contain a numbered entry "${n}. " matching body marker {${n}}`);
+  // No raw implementation vocabulary anywhere in the rendered document —
+  // scan every paragraph and every table cell, not just plain text, since
+  // most of the old raw-token leaks lived in table cells.
+  const RAW_TOKENS = ["DECISION_EFFECT", "SUBSTANTIVE_STATE", "EVIDENCE_STATE", "PATH_STATE"];
+  const RAW_EFFECT_VALUES = [
+    "SUPPORTS", "WEIGHS_AGAINST", "CONDITION", "NEUTRAL", // DecisionEffect
+    "MEETS_REPORTED", "GAP", "PARTIAL", "INSUFFICIENT_RECORD", "NOT_APPLICABLE", // SubstantiveState
+    "DOCUMENTED", "NOT_DOCUMENTED", // EvidenceState (NOT_APPLICABLE/INSUFFICIENT_RECORD already covered)
+  ];
+  const allCells: string[] = [];
+  for (const s of doc.sections) {
+    for (const p of s.paragraphs) {
+      allCells.push(p.text);
+      if (p.table) for (const row of p.table.rows) allCells.push(...row);
+    }
+  }
+  const blob = allCells.join("\n");
+  for (const tok of RAW_TOKENS) {
+    assert(!blob.includes(tok), `raw implementation token "${tok}" leaked into rendered output`);
+  }
+  // Raw effect values as standalone table-cell values (not as part of
+  // ordinary English, which never spells these in caps) — check exact cell
+  // equality, not substring, since "Not applicable" etc are fine.
+  for (const row_cell of allCells) {
+    for (const raw of RAW_EFFECT_VALUES) {
+      assert(row_cell.trim() !== raw, `raw DECISION_EFFECT value "${raw}" leaked into a table cell verbatim`);
+    }
+  }
+
+  const appendixA = doc.sections.find((s) => s.id === "appendix_a");
+  assert(appendixA, "Appendix A (Assessment Fact Record) must render for an in-scope report");
+  const appendixB = doc.sections.find((s) => s.id === "appendix_b");
+  assert(appendixB, "Appendix B (Factor, Company Response, and Authority Matrix) must render for an in-scope report");
+  const matrixTable = appendixB!.paragraphs.find((p) => p.kind === "table")!.table!;
+  assertEquals(matrixTable.columns, ["Factor", "Company's reported answer", "What the report says", "Primary authority"]);
+  // Only the ONE selected opt-out pathway's row should appear, not all four.
+  const pathwayRows = matrixTable.rows.filter((r) => r[0] === "Opt-out pathway");
+  assertEquals(pathwayRows.length, 1, "Appendix B must show exactly one opt-out-pathway row, matching the Company's selected path");
+  // Column 3 must never show a "trigger → phrase" pattern (comment-42 rule):
+  // it should be short, quoted-style outcome language, not the condition.
+  for (const row of matrixTable.rows) {
+    assert(!row[2].includes(" reported →"), `Appendix B column 3 leaked a trigger condition: "${row[2]}"`);
+    assert(!row[2].includes(" reported met →"), `Appendix B column 3 leaked a trigger condition: "${row[2]}"`);
   }
 });
 

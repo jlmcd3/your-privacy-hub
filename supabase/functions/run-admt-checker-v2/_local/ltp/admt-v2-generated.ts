@@ -1,4 +1,5 @@
-// CPPA ADMT v1.2 — GENERATED-ANALYSIS COMPOSER (Part II §K).
+// CPPA ADMT v3.2 — GENERATED-ANALYSIS COMPOSER (Part II §L/§M of
+// CPPA_ADMT_Audit_Spine_v3.2.docx, CEO-ratified 2026-08-21).
 //
 // NO MODEL CALL. Every G_ variable is composed by selecting among a small,
 // bounded set of template sentences keyed to the already-computed
@@ -6,7 +7,7 @@
 // layer didn't already establish.
 //
 // INVARIANTS (CEO ruling, 2026-08-20 — stricter than the original §K read,
-// supersedes it where the two differ):
+// carried forward unchanged into v3.2):
 //   1. May explain a D_* result — restate what it is and why it followed
 //      from the Company's answer. May NOT change, soften, or contradict it.
 //   2. May quote or summarize SUPPLIED narrative verbatim. May NOT infer
@@ -14,30 +15,26 @@
 //      supplied narrative is adequate, sufficient, specific enough,
 //      properly tailored, genuine, usable, or compliant — those are
 //      judgment calls for the Company or its counsel, and this layer does
-//      not perform them, even as a hedge. The correct move when a
-//      judgment question exists is to name that a question exists and say
-//      it is outside this layer's scope — NEVER to name what the standard
-//      is or gesture at how the supplied text measures against it.
+//      not perform them, even as a hedge.
 //   3. Missing narrative is ALWAYS an evidence limitation ("the Company has
 //      not supplied…"), never silently treated as satisfied and never
 //      described as a defect either — absence is neutral, not a finding.
-//   4. Voice: "The Company has identified that… so the important question
-//      is…"; "That answer matters because…"; "Based on what the Company
-//      supplied…"; "The Company has not provided enough information here
-//      to determine…". Never "the record establishes" / "proves" /
-//      "requires".
+//   4. v3.2 voice rule (Part II §L, new): never print raw implementation
+//      vocabulary (DECISION_EFFECT, SUBSTANTIVE_STATE, etc.) and never use
+//      the banned canned phrases in VOICE_BANNED_PATTERNS below — "the
+//      important question is," "that answer matters because," "none show
+//      a gap," "the audit can only evaluate," "the duty is discharged,"
+//      "the record establishes," "no remediation item was generated." Use
+//      natural, varied verbs instead of repeating one canned transition
+//      across every section.
 //
 // ADEQUACY-LANGUAGE DISCIPLINE: no template below uses any word or phrase
 // in ADEQUACY_LANGUAGE_BANNED_PATTERNS. That list is exported and is the
 // SAME list the guard test (admt-v2-generated-invariants.test.ts) scans
 // every template's output against — one source of truth, not a style
-// convention that could drift from what's actually enforced.
-//
-// CEO RATIFICATION NOTE: this is the one file in the v2 build that is, in
-// substance, new customer-facing prose (bounded and template-driven, but
-// still authored wording) rather than a pass-through of the CEO's own spine
-// text. Per standing operating rule 5 it should be read and ratified before
-// this product ships to customers.
+// convention that could drift from what's actually enforced. v3.2 adds
+// VOICE_BANNED_PATTERNS, scanned the same way, for the new canned-phrase
+// and raw-vocabulary rules.
 
 import type {
   AccessResult,
@@ -74,6 +71,27 @@ export const ADEQUACY_LANGUAGE_BANNED_PATTERNS: readonly string[] = [
   "is valid", "is invalid",
   "is acceptable", "unacceptable",
   "is appropriate", "inappropriate",
+];
+
+/**
+ * v3.2 Part II §L voice-discipline patterns: canned transitions the old
+ * (v1.2) catalog leaned on, now retired fleet-wide for this product, plus
+ * the raw implementation vocabulary that must never reach a customer.
+ * Scanned the same way as ADEQUACY_LANGUAGE_BANNED_PATTERNS — see the
+ * "guard: no G_* composer emits v3.2-banned voice patterns" test.
+ */
+export const VOICE_BANNED_PATTERNS: readonly string[] = [
+  "the important question is",
+  "that answer matters because",
+  "none show a gap",
+  "the audit can only evaluate",
+  "the duty is discharged",
+  "the record establishes",
+  "no remediation item was generated",
+  "DECISION_EFFECT",
+  "SUBSTANTIVE_STATE",
+  "EVIDENCE_STATE",
+  "PATH_STATE",
 ];
 
 // ---------------------------------------------------------------------------
@@ -115,13 +133,13 @@ export function composeNoticeAnalysis(notice: NoticeResult): string {
     parts.push(`The Company has not supplied notice text stating the specific decision the System informs, so the lack of this element is factored into the audit as a non-response.`);
   }
   if (notice.optoutDesc.status === "PARTIAL") {
-    parts.push(`That answer matters because the Company reports the notice mentions opt-out without describing specific instructions.`);
+    parts.push(`The Company's own answer shows the notice mentions opt-out without describing specific instructions.`);
   }
   if (notice.howWorks.status === "PARTIAL") {
-    parts.push(`The Company reports that the how-it-works element is only partially covered; the important question is which specific element — inputs, output, or the role of human review — is missing.`);
+    parts.push(`The Company reports that the how-it-works element is only partially covered, without specifying which of inputs, output, or the role of human review is missing.`);
   }
   if (parts.length === 0) {
-    parts.push(`Where notice text is not supplied, the lack of information is factored into the audit as a non-response. Any review of notice elements will need to be reviewed by the Company or its counsel.`);
+    parts.push(`Where notice text is not supplied, the lack of information is factored into the audit as a non-response. The Company or its counsel should review the notice elements directly.`);
   }
   return j(...parts);
 }
@@ -136,16 +154,16 @@ export function composeFullOptOutAnalysis(o: OptOutResult): string {
     parts.push(`The Company reports that a cookie banner is its only opt-out method, and the regulations call for an ADMT-specific route in addition to a cookie banner.`);
   }
   if (o.account.status === "GAP") {
-    parts.push(`That answer matters because the regulations do not permit requiring an account to opt out.`);
+    parts.push(`The regulations do not permit requiring an account to opt out, and the Company reports that an account is currently required.`);
   }
   if (o.methods.status === "GAP") {
     parts.push(`The Company reports fewer than two designated opt-out methods. The regulations require at least two.`);
   }
   if (o.fifteenDay.status === "INSUFFICIENT_RECORD" || o.confirmation.status === "INSUFFICIENT_RECORD") {
-    parts.push(`The Company did not supply enough information to describe the cessation or confirmation process. Accordingly, this audit cannot evaluate a process it has not been given.`);
+    parts.push(`The Company did not supply enough information to describe the cessation or confirmation process.`);
   }
   if (parts.length === 0) {
-    parts.push(`On the Company's answers, the operational factors above are all reported. None show a gap.`);
+    parts.push(`On the Company's answers, every operational factor above is reported and supports the opt-out pathway.`);
   }
   return j(...parts);
 }
@@ -153,7 +171,7 @@ export function composeFullOptOutAnalysis(o: OptOutResult): string {
 export function composeHumanAppealAnalysis(o: OptOutResult): string {
   const parts: string[] = [];
   if (o.appealTraining.status === "GAP" || o.appealAuthority.status === "GAP") {
-    parts.push(`The Company's answers do not show the reviewer meeting all three elements of qualifying human involvement. The important question is whether the human-appeal exception is available at all.`);
+    parts.push(`The Company's answers do not show the reviewer meeting all three elements of qualifying human involvement, which puts whether the human-appeal exception is available at all in question.`);
   }
   if (o.appealProcess.status === "INSUFFICIENT_RECORD") {
     parts.push(`The Company did not supply enough information to describe the appeal process.`);
@@ -165,15 +183,15 @@ export function composeHumanAppealAnalysis(o: OptOutResult): string {
 export function composeEmploymentEducationExceptionAnalysis(o: OptOutResult): string {
   const parts: string[] = [];
   if (o.exceptionSoleUse.status === "GAP") {
-    parts.push(`The Company reports that the System is not used solely for the qualifying purpose, so the important question is whether the exception is available at all for this decision.`);
+    parts.push(`The Company reports that the System is not used solely for the qualifying purpose, which puts whether the exception is available at all for this decision in question.`);
   }
   if (o.exceptionTesting.status === "GAP") {
-    parts.push(`That answer matters because the exception depends on documented testing, and the Company reports none has been performed.`);
+    parts.push(`The exception depends on documented testing, and the Company reports none has been performed.`);
   } else if (o.exceptionTesting.status === "PARTIAL") {
     parts.push(`The Company reports that testing was performed but not documented. This report states that fact and does not otherwise evaluate the testing.`);
   }
   if (parts.length === 0) {
-    parts.push(`On the Company's answers, the factors above are all reported and none show a gap. This audit can only evaluate the underlying testing based on what the Company reports.`);
+    parts.push(`On the Company's answers, every factor above is reported and supports the exception. This audit evaluates the underlying testing only on what the Company reports.`);
   }
   return j(...parts);
 }
@@ -192,7 +210,7 @@ export function composeAccessWithholdingAnalysis(a: AccessResult): string {
 // ---------------------------------------------------------------------------
 // G_VENDOR_DEPENDENCY_ANALYSIS
 //
-// GOVERNING PRINCIPLE (CEO ruling, 2026-08-20): ADMT v2 is an assessment,
+// GOVERNING PRINCIPLE (CEO ruling, 2026-08-20): ADMT v2/v3 is an assessment,
 // not a vendor audit. This composer identifies dependencies and explains
 // why they matter; it never characterizes a vendor's performance and never
 // implies a vendor control's absence is itself a finding about the

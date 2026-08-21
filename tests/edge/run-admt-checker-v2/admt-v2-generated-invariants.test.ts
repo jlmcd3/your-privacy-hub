@@ -11,6 +11,7 @@ import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cpp
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
 import {
   ADEQUACY_LANGUAGE_BANNED_PATTERNS,
+  VOICE_BANNED_PATTERNS,
   composeAccessWithholdingAnalysis,
   composeApplicabilityAnalysis,
   composeEmploymentEducationExceptionAnalysis,
@@ -20,13 +21,19 @@ import {
   composeVendorDependencyAnalysis,
 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-generated.ts";
 
-function scanForBannedPhrases(text: string, source: string, hits: string[]) {
+function scanForPhrases(text: string, source: string, hits: string[], patterns: readonly string[]) {
   const lower = text.toLowerCase();
-  for (const phrase of ADEQUACY_LANGUAGE_BANNED_PATTERNS) {
+  for (const phrase of patterns) {
     if (lower.includes(phrase.toLowerCase())) {
       hits.push(`[${source}] contains banned phrase "${phrase}": …${text.slice(Math.max(0, lower.indexOf(phrase.toLowerCase()) - 40), lower.indexOf(phrase.toLowerCase()) + 60)}…`);
     }
   }
+}
+function scanForBannedPhrases(text: string, source: string, hits: string[]) {
+  scanForPhrases(text, source, hits, ADEQUACY_LANGUAGE_BANNED_PATTERNS);
+}
+function scanForVoiceBannedPhrases(text: string, source: string, hits: string[]) {
+  scanForPhrases(text, source, hits, VOICE_BANNED_PATTERNS);
 }
 
 Deno.test("guard: no G_* composer mutates the computed D_* state it was handed", () => {
@@ -62,6 +69,22 @@ Deno.test("guard: no G_* composer emits adequacy language, across every fixture"
     scanForBannedPhrases(composeVendorDependencyAnalysis(c.vendor), `${g.id}/vendor`, hits);
   }
   assertEquals(hits, [], `banned adequacy-language phrases found:\n${hits.join("\n")}`);
+});
+
+Deno.test("guard (v3.2): no G_* composer emits a Part II §L voice-banned phrase or raw implementation token, across every fixture", () => {
+  const hits: string[] = [];
+  for (const g of CPPA_ADMT_GOLDEN) {
+    const c = computeAdmtV2(g.intake as Record<string, unknown>);
+    const systemName = String((g.intake as any).system_name ?? "");
+    scanForVoiceBannedPhrases(composeApplicabilityAnalysis(c.scope, systemName), `${g.id}/applicability`, hits);
+    scanForVoiceBannedPhrases(composeNoticeAnalysis(c.notice), `${g.id}/notice`, hits);
+    scanForVoiceBannedPhrases(composeFullOptOutAnalysis(c.optOut), `${g.id}/full-optout`, hits);
+    scanForVoiceBannedPhrases(composeHumanAppealAnalysis(c.optOut), `${g.id}/human-appeal`, hits);
+    scanForVoiceBannedPhrases(composeEmploymentEducationExceptionAnalysis(c.optOut), `${g.id}/employment-exception`, hits);
+    scanForVoiceBannedPhrases(composeAccessWithholdingAnalysis(c.access), `${g.id}/access-withholding`, hits);
+    scanForVoiceBannedPhrases(composeVendorDependencyAnalysis(c.vendor), `${g.id}/vendor`, hits);
+  }
+  assertEquals(hits, [], `v3.2 voice-banned phrases found:\n${hits.join("\n")}`);
 });
 
 // ---------------------------------------------------------------------------
@@ -113,9 +136,8 @@ function withDetail(overrides: Record<string, unknown>, detailOverrides: Record<
   return { ...BASE_INTAKE, ...overrides, admt_detail: { ...BASE_INTAKE.admt_detail, ...detailOverrides } };
 }
 
-Deno.test("guard: adequacy-language scan across hand-built branch-coverage variants", () => {
-  const hits: string[] = [];
-  const variants: Record<string, unknown>[] = [
+function branchCoverageVariants(): Record<string, unknown>[] {
+  return [
     withDetail({}), // GAP-heavy full-opt-out, PARTIAL notice branches
     withDetail({ opt_out_confirmation_mechanism: "", opt_out_15_day_process: "" }), // INSUFFICIENT_RECORD branches
     withDetail({ notice_has_specific_purpose: "No — uses generic language", notice_purpose_text: "" }), // notice GAP, no text
@@ -137,7 +159,11 @@ Deno.test("guard: adequacy-language scan across hand-built branch-coverage varia
     { ...withDetail({}), third_party_admt: "Acme ADMT Platform", admt_detail: { ...BASE_INTAKE.admt_detail, hosting: "Hosted by the vendor", v_optout: "No", v_assist: "No" } }, // vendor capability gap
     { ...withDetail({}), third_party_admt: "Acme ADMT Platform", admt_detail: { ...BASE_INTAKE.admt_detail, hosting: "Hosted internally", v_optout: "No", v_assist: "No" } }, // vendor relevant-but-not-capability-gap
   ];
-  for (const [i, intake] of variants.entries()) {
+}
+
+Deno.test("guard: adequacy-language scan across hand-built branch-coverage variants", () => {
+  const hits: string[] = [];
+  for (const [i, intake] of branchCoverageVariants().entries()) {
     const c = computeAdmtV2(intake);
     const systemName = String((intake as any).system_name ?? "");
     scanForBannedPhrases(composeApplicabilityAnalysis(c.scope, systemName), `variant${i}/applicability`, hits);
@@ -149,6 +175,22 @@ Deno.test("guard: adequacy-language scan across hand-built branch-coverage varia
     scanForBannedPhrases(composeVendorDependencyAnalysis(c.vendor), `variant${i}/vendor`, hits);
   }
   assertEquals(hits, [], `banned adequacy-language phrases found:\n${hits.join("\n")}`);
+});
+
+Deno.test("guard (v3.2): voice-banned phrase scan across the same hand-built branch-coverage variants", () => {
+  const hits: string[] = [];
+  for (const [i, intake] of branchCoverageVariants().entries()) {
+    const c = computeAdmtV2(intake);
+    const systemName = String((intake as any).system_name ?? "");
+    scanForVoiceBannedPhrases(composeApplicabilityAnalysis(c.scope, systemName), `variant${i}/applicability`, hits);
+    scanForVoiceBannedPhrases(composeNoticeAnalysis(c.notice), `variant${i}/notice`, hits);
+    scanForVoiceBannedPhrases(composeFullOptOutAnalysis(c.optOut), `variant${i}/full-optout`, hits);
+    scanForVoiceBannedPhrases(composeHumanAppealAnalysis(c.optOut), `variant${i}/human-appeal`, hits);
+    scanForVoiceBannedPhrases(composeEmploymentEducationExceptionAnalysis(c.optOut), `variant${i}/employment-exception`, hits);
+    scanForVoiceBannedPhrases(composeAccessWithholdingAnalysis(c.access), `variant${i}/access-withholding`, hits);
+    scanForVoiceBannedPhrases(composeVendorDependencyAnalysis(c.vendor), `variant${i}/vendor`, hits);
+  }
+  assertEquals(hits, [], `v3.2 voice-banned phrases found:\n${hits.join("\n")}`);
 });
 
 Deno.test("guard: vendor capability-gap variant actually reaches the CONDITION branch (proves the scan above is meaningful, not vacuous)", () => {
