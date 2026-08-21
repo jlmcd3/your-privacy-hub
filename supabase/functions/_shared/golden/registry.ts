@@ -80,7 +80,8 @@ import { DPIA_PERFECT } from "./dpia.ts";
 import { CPPA_RISK_PERFECT } from "./cppa-risk.ts";
 // ITEM 383 leg 1 — LIA perfect fixture (×1).
 import { LIA_PERFECT } from "./lia-perfect.ts";
-// ITEM 393 leg B — ADMT perfect fixture (×1).
+// ITEM 393 leg B — ADMT perfect fixture (×1), plus 4 pathway-coverage
+// additions (2026-08-21, CEO-requested) spliced in from CPPA_ADMT_GOLDEN.
 import { ADMT_PERFECT } from "./cppa-admt.ts";
 // ITEM 401 leg B — governance perfect fixture (×1).
 import { GOVERNANCE_PERFECT } from "./governance-perfect.ts";

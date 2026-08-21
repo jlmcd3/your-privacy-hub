@@ -49,11 +49,17 @@ const BODY_FIELDS: Record<GraderReportFamily, string[]> = {
     "executive_summary", "overall_status", "scope_analysis",
     "controls", "gaps", "priority_actions", "cybersecurity_audit",
   ],
-  // run-admt-checker
+  // run-admt-checker (v1) — v2 (run-admt-checker-v2) shares this same
+  // "cppa-admt" grader family and adds skeleton_document/authority_exhibit
+  // (2026-08-21). Both lists coexist here: hasOwnProperty gating below
+  // means only the fields a given record actually has get pulled, so a
+  // v1-shaped record still leads with its own fields and a v2-shaped
+  // record correctly leads with skeleton_document instead.
   "cppa-admt": [
     "executive_summary", "overall_status", "scope_analysis",
     "notice_gaps", "opt_out_gaps", "access_gaps",
     "priority_actions", "admt_analysis",
+    "skeleton_document", "authority_exhibit",
   ],
   // run-dpia-framework — seven-section framework
   "dpia": [

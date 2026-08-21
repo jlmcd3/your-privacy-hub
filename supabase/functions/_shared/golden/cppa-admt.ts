@@ -798,7 +798,34 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
 // admt-hr-perfect-record). Those remain the degraded/pilot sources and are
 // untouched by this leg; nothing degraded is authored here.
 //
+// CONVERSION v1.2 PATHWAY-COVERAGE ADDITIONS (2026-08-21, CEO-requested):
+// four more entries below the original, spliced in BY REFERENCE from
+// CPPA_ADMT_GOLDEN (not duplicated) — one per opt-out/exception pathway
+// (full opt-out, human-appeal, hiring/admission, work-allocation/
+// compensation), each IN_SCOPE and MEETS_REPORTED so pinned-only quality
+// batches exercise full, realistic v2 reports (notice/opt-out/access/
+// vendor sections all populated), not just the one OUT_OF_SCOPE fixture
+// below, which by design terminates after two sections.
+//
+// These four are REALISTIC, not EXHAUSTIVE: every field the deterministic
+// engine reads for their selected pathway is answered (verified — each
+// produces posture=MEETS_REPORTED, see tests/edge/run-admt-checker-v2/
+// admt-v2-engine.test.ts), but contract fields belonging to OTHER,
+// unselected pathways (e.g. appeal-reviewer detail on a full-opt-out
+// fixture) are correctly left blank rather than answered for a pathway the
+// fixture doesn't use. That is a narrower, different completeness bar than
+// this file's original "truly-complete, zero-empty-asked-key" fixture
+// below — tests/edge/item393 checks each bar against the fixture it
+// actually applies to, not all five uniformly.
+//
 // Jurisdiction anchor: United States / California (11 CCR §§ 7200–7222).
+const ADMT_PATHWAY_COVERAGE_IDS = [
+  "admt-full-optout-strong-compliance",
+  "admt-human-appeal-exception-strong",
+  "admt-hiring-admission-exception-strong",
+  "admt-work-allocation-compensation-exception-strong",
+] as const;
+
 export const ADMT_PERFECT: GoldenCase[] = [
   {
     id: "admt-ca-tenant-screening-perfect",
@@ -1023,4 +1050,5 @@ export const ADMT_PERFECT: GoldenCase[] = [
       { kind: "must_include", pattern: "significant decision", flags: "i", label: "significant-decision analysis present" },
     ],
   },
+  ...CPPA_ADMT_GOLDEN.filter((g) => (ADMT_PATHWAY_COVERAGE_IDS as readonly string[]).includes(g.id)),
 ];

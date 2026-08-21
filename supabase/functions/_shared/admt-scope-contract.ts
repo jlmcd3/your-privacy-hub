@@ -94,10 +94,22 @@ export function readAdmtScope(
     return n !== null ? n : t;
   };
 
+  // ADMT V2 FALLBACK (2026-08-21): v2's report carries no scope_analysis
+  // and no top-level scope fields at all (see run-admt-checker-v2's report
+  // schema — only skeleton_document/authority_exhibit/_meta ship) — its
+  // scope determination lives only at `_meta.internal.scope_state`, a
+  // typed enum (IN_SCOPE/OUT_OF_SCOPE/UNABLE_TO_ASSESS/INCONSISTENT_RECORD).
+  // Used ONLY when both the nested and top-level v1 reads come back null,
+  // so this never overrides a real v1 value and is a no-op for every v1
+  // report (which never sets _meta.internal.scope_state).
+  const v2ScopeState = (r._meta as { internal?: { scope_state?: unknown } } | undefined)?.internal?.scope_state;
+  const v2Triggers: boolean | null =
+    v2ScopeState === "IN_SCOPE" ? true : v2ScopeState === "OUT_OF_SCOPE" ? false : null;
+
   const out: AdmtScopeAnalysis = {
-    is_admt: pick("is_admt", asBool) as boolean | null,
+    is_admt: (pick("is_admt", asBool) as boolean | null) ?? v2Triggers,
     is_admt_reasoning: asString(nested.is_admt_reasoning) ?? asString(r.is_admt_reasoning),
-    triggers_significant_decision: pick("triggers_significant_decision", asBool) as boolean | null,
+    triggers_significant_decision: (pick("triggers_significant_decision", asBool) as boolean | null) ?? v2Triggers,
     determination_basis: (nested.determination_basis === "conservative_assumption"
       ? "conservative_assumption"
       : nested.determination_basis === "established" ? "established" : undefined),

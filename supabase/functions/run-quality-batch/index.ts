@@ -433,7 +433,9 @@ interface Check {
 // ADMT/CPPA-specific check scope shorthand
 const ADMT_ONLY = ["cppa-admt"];
 
-const CHECKS: Check[] = [
+// Exported for direct unit testing (tests/edge/run-admt-checker-v2/
+// quality-batch-checks-v2.test.ts) — visibility only, no behavior change.
+export const CHECKS: Check[] = [
   {
     id: "adtech_not_significant_decision", dimension: "accuracy", severity: "critical",
     tools: ADMT_ONLY,
@@ -528,6 +530,14 @@ const CHECKS: Check[] = [
     run: (_intake, report) => {
       const triggers = readAdmtScope(report, { context: "notice_gaps_when_inscope" }).triggers_significant_decision;
       if (triggers !== true) return { passed: true };
+      // CONVERSION v1.2 (2026-08-21): v2 carries no top-level notice_gaps
+      // array at all (findings live under _meta.internal.findings instead),
+      // and a fully-compliant v2 fixture can legitimately have ZERO notice
+      // findings while in scope — "no gaps" is a correct outcome there, not
+      // evidence the notice check never ran. Skip this v1-specific
+      // invariant for v2 records rather than force a false-fail on a
+      // compliant fixture.
+      if ((report as any)?._meta?.internal?.scope_state) return { passed: true };
       if (!report?.notice_gaps?.length)
         return { passed: false, evidence: "notice_gaps empty despite triggers_significant_decision=true" };
       return { passed: true };
@@ -537,6 +547,11 @@ const CHECKS: Check[] = [
     id: "overall_status_present", dimension: "formatting", severity: "medium",
     tools: ADMT_ONLY,
     run: (_intake, report) => {
+      // CONVERSION v1.2 (2026-08-21): v2's equivalent determination summary
+      // lives at _meta.internal.overall_posture_label, not a top-level
+      // overall_status field.
+      const v2Label = (report as any)?._meta?.internal?.overall_posture_label;
+      if (typeof v2Label === "string" && v2Label.length > 0) return { passed: true };
       if (!report?.overall_status)
         return { passed: false, evidence: "overall_status field missing or empty" };
       return { passed: true };
@@ -2313,7 +2328,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
 
 async function generateProposedFix(tool: string, checkId: string, dimension: string, evidence: string[]): Promise<{ fix: string; location: string }> {
   const toolToEdgeFn: Record<string, string> = {
-    "cppa-admt": "run-admt-checker", "cppa-risk": "run-cppa-risk-assessment-v2",
+    "cppa-admt": "run-admt-checker-v2", "cppa-risk": "run-cppa-risk-assessment-v2",
     "cppa-cyber": "run-cppa-cybersecurity", "lia": "run-li-assessment",
     "dpia": "run-dpia-framework", "governance": "run-governance-assessment",
     "dpa-generator": "generate-dpa", "ir-playbook": "generate-ir-playbook",

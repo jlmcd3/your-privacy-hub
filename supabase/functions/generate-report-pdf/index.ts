@@ -3044,10 +3044,21 @@ Deno.serve(async (req) => {
               missingKey = "controls";
             }
             break;
-          case "cppa_admt":
-            bodyOk = typeof rd.system_name === "string" && rd.system_name.length > 0;
-            missingKey = "system_name";
+          case "cppa_admt": {
+            // CONVERSION SWAP (2026-08-20): a "cppa_admt" row may now be
+            // either v1 shape (top-level system_name) or v2 shape
+            // (skeleton_document only) — same distinction the render
+            // dispatch below already makes off record.module.
+            const isAdmtV2Record = (record as any).module === "admt_v2";
+            if (isAdmtV2Record) {
+              bodyOk = isNonEmptyObj(rd.skeleton_document) && isNonEmptyArr(rd.skeleton_document?.sections);
+              missingKey = "skeleton_document";
+            } else {
+              bodyOk = typeof rd.system_name === "string" && rd.system_name.length > 0;
+              missingKey = "system_name";
+            }
             break;
+          }
           case "cppa_admt_v2":
             bodyOk = isNonEmptyObj(rd.skeleton_document) && isNonEmptyArr(rd.skeleton_document?.sections);
             missingKey = "skeleton_document";

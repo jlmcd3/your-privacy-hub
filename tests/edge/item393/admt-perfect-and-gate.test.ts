@@ -33,10 +33,24 @@ import { ADMT_REPORT_SCHEMA } from "../../../supabase/functions/run-admt-checker
 
 const INTAKE = ADMT_PERFECT[0].intake as Record<string, unknown>;
 
-Deno.test("fixture: exactly one perfect ADMT case, California housing anchor", () => {
-  assertEquals(ADMT_PERFECT.length, 1);
+// CONVERSION v1.2 (2026-08-21) — the 4 pathway-coverage additions spliced
+// into ADMT_PERFECT from CPPA_ADMT_GOLDEN. Named explicitly, not just
+// counted, so a silent reorder/drop is caught by id, not just by length.
+const PATHWAY_COVERAGE_IDS = [
+  "admt-full-optout-strong-compliance",
+  "admt-human-appeal-exception-strong",
+  "admt-hiring-admission-exception-strong",
+  "admt-work-allocation-compensation-exception-strong",
+] as const;
+
+Deno.test("fixture: position 0 is still the original truly-complete perfect ADMT case, California housing anchor", () => {
   assertEquals(ADMT_PERFECT[0].id, "admt-ca-tenant-screening-perfect");
   assertEquals(INTAKE.decision_domains, ["Housing (rental or purchase eligibility)"]);
+});
+
+Deno.test("fixture: the 4 pathway-coverage additions are present, in order, after position 0", () => {
+  assertEquals(ADMT_PERFECT.length, 1 + PATHWAY_COVERAGE_IDS.length);
+  assertEquals(ADMT_PERFECT.slice(1).map((g) => g.id), [...PATHWAY_COVERAGE_IDS]);
 });
 
 Deno.test("fixture: zero empty ASKED keys under live item380r5 semantics", () => {
@@ -94,7 +108,7 @@ Deno.test("fixture: carries no reference-render token (item392 fact-exempt rule)
 Deno.test("registry: PERFECT_BY_TOOL + casesForVariant wiring for cppa-admt", () => {
   assertEquals(PERFECT_BY_TOOL["cppa-admt"], ADMT_PERFECT);
   assertEquals(casesForVariant("cppa-admt", "perfect"), ADMT_PERFECT);
-  assertEquals(intakesForVariant("cppa-admt", "perfect"), [INTAKE]);
+  assertEquals(intakesForVariant("cppa-admt", "perfect"), ADMT_PERFECT.map((g) => g.intake));
   // Legacy (degraded pilot) sets untouched.
   assertEquals(casesForVariant("cppa-admt", null), GOLDEN_BY_TOOL["cppa-admt"]);
   assertEquals(casesForVariant("cppa-admt", "messy"), MESSY_BY_TOOL["cppa-admt"]);
@@ -106,14 +120,31 @@ Deno.test("harness: cppa-admt perfect batch is admissible end-to-end", () => {
   assertEquals(tv, { "cppa-admt": "perfect" });
   assertEquals(resolveToolVariant("cppa-admt", tv, null), "perfect");
   const pins = intakesForVariant("cppa-admt", "perfect");
-  assertEquals(pins.length, 1);
-  const seed = buildSeedRow("cppa-admt", 1, 1, "00000000-0000-0000-0000-000000000000", "2026-08-06T00:00:00Z", {
+  assertEquals(pins.length, ADMT_PERFECT.length);
+  const seed = buildSeedRow("cppa-admt", pins.length, pins.length, "00000000-0000-0000-0000-000000000000", "2026-08-06T00:00:00Z", {
     pins,
   }) as Record<string, unknown>;
   assertEquals(seed.tool, "cppa-admt");
   assertEquals(seed.status, "pending");
-  assertEquals(seed.batch_size, 1);
-  assertEquals((seed.intakes as unknown[]).length, 1);
+  assertEquals(seed.batch_size, pins.length);
+  assertEquals((seed.intakes as unknown[]).length, pins.length);
+});
+
+Deno.test("fixture: the 4 pathway-coverage additions validate against the live contract and carry no placeholders", () => {
+  for (const id of PATHWAY_COVERAGE_IDS) {
+    const fx = ADMT_PERFECT.find((g) => g.id === id);
+    assert(fx, `${id} missing from ADMT_PERFECT`);
+    const intake = fx!.intake as Record<string, unknown>;
+    const res = validateIntake(cppaAdmtContract, intake);
+    assert(res.ok, `${id} fails contract validation: ${JSON.stringify(res.violations ?? [])}`);
+    const blob = JSON.stringify(intake).toUpperCase();
+    for (const tok of ["TBD", "TODO", "[TO COMPLETE", "[TO BE", "PLACEHOLDER", "LOREM IPSUM", "XXX"]) {
+      assert(!blob.includes(tok), `${id} carries placeholder token: ${tok}`);
+    }
+    for (const tok of REFERENCE_RENDER_TOKENS) {
+      assert(!blob.includes(String(tok).toUpperCase()), `${id} leaked a reference-render token: ${tok}`);
+    }
+  }
 });
 
 Deno.test("harness: the admt source row carries the intake wholesale (no column whitelist)", () => {
