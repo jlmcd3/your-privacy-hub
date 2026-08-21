@@ -992,8 +992,21 @@ export const CHECKS: Check[] = [
 type RubricCheck = { id: string; dimension: string; severity: string; description: string };
 
 const RUBRIC_GENERAL: RubricCheck[] = [
+  // 2026-08-21 (quality-batch 2fc40a52, following 4261dab7/6495d207) — the
+  // ADMT-specific rubric_admt_valid_out_of_scope_determination /
+  // rubric_admt_out_of_scope_termination_is_complete overrides were confirmed
+  // DEPLOYED and confirmed PASSING on the exact documents where
+  // rubric_generic_boilerplate still failed on the same sentence (Lovable
+  // traced both check ids as evaluated-and-passed in the same graded run).
+  // The checks are independently scored, so an ADMT-specific override telling
+  // the grader not to fail THIS check doesn't reliably stop the grader from
+  // separately scoring rubric_generic_boilerplate on its own terms. Fixing it
+  // at the source instead: the base description below now states the
+  // distinction directly, which is a real, product-agnostic principle (every
+  // product that states a legal conclusion using the test's own standard
+  // vocabulary is exposed to the same false-positive), not an ADMT carve-out.
   { id: "rubric_generic_boilerplate",       dimension: "analysis",      severity: "medium",
-    description: "Reasoning is generic boilerplate that could apply to any company; not tailored to THIS intake's facts." },
+    description: "Reasoning is generic boilerplate that could apply to any company; not tailored to THIS intake's facts. A sentence that correctly names the SPECIFIC facts the intake supplied and states which legal test those facts satisfy (e.g., naming the actual elements of a multi-part test the record establishes) is NOT boilerplate merely because it uses the test's own standard vocabulary to do so — genericness means the reasoning ignores or could ignore this intake's specific facts, not that the sentence's phrasing is reusable across records that happen to satisfy the same test the same way. Fail this check only when the sentence would read identically regardless of what the company actually reported." },
   { id: "rubric_unsupported_business_claim", dimension: "hallucination", severity: "high",
     description: "Document asserts facts about the business that are not in the intake (invented users, revenue, jurisdictions, etc.)." },
   { id: "rubric_actionability",             dimension: "intelligence",  severity: "medium",
