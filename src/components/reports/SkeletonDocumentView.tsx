@@ -95,7 +95,12 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
           {section.paragraphs.map((p, i) =>
             p.kind === "table" && p.table ? (
               <SkeletonTableView key={i} table={p.table} />
-            ) : section.id === "table_of_authorities" ? (
+            ) : section.id === "table_of_authorities" && p.kind !== "skeleton" ? (
+              // Every product's ToA content composes as a "rule" block. CPPA
+              // Risk v4.5 repurposes this section id for Appendix G and adds
+              // a "skeleton" intro paragraph ahead of its table — that intro
+              // is ordinary prose, not ToA citation lines, so it must not
+              // route through ToaView's citation-line parser.
               <ToaView key={i} text={p.text} />
             ) : (
 

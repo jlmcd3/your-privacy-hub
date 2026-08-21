@@ -1269,9 +1269,13 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
       if (p?.kind === "table" && p.table) return skeletonTableHtml(p.table);
       const t = typeof p?.text === "string" ? p.text : "";
       if (!t.trim()) return "";
-      if (sec.id === "table_of_authorities") {
+      if (sec.id === "table_of_authorities" && p?.kind !== "skeleton") {
         // ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only):
         // one authority per line, single column, ledger order preserved.
+        // CPPA Risk v4.5 repurposes this section id for Appendix G and adds a
+        // "skeleton" intro paragraph ahead of its table; that intro is
+        // ordinary prose, not ToA citation lines, so it falls through to the
+        // plain paragraph branch below instead of the citation-line parser.
         const rows = toaLines(t).map((l) => {
           if (l.is_heading) {
             return `<tr><td style="padding:6px 0 2px;font-family:'Georgia','Times New Roman',serif;font-weight:bold;font-size:11px;color:#0c2a44;">${escHtml(l.text)}</td></tr>`;

@@ -1,49 +1,53 @@
-// RK3-B — SPINE 4.3 ENCODE: CPPA Risk Assessment.
+// SPINE v4.5 ENCODE: CPPA Risk Assessment.
 //
-// RENDER LAW. The CEO-authored Spine 4.3 design draft
-// `CPPA_Risk_Assessment_Spine_4.3.docx` (Intake Contract v2.0 aligned) is this
-// product's render law, superseding the v3 skeleton encoded at ITEM SO-1.
-// Every fixed-prose string in SKELETON_SECTIONS below is transcribed from that
-// file. Nothing here may be reworded, re-punctuated or "improved" by code, by
-// refinement, or by an agent: the skeleton's fixed prose is a protected leaf
-// (splice-barred) and the conformance check byte-matches the assembled
-// document against it outside the slots.
+// RENDER LAW. The CEO-ratified Spine v4.5 redline
+// `CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx`
+// (Intake Contract v2.0 aligned; unchanged) is this product's render law,
+// superseding Spine 4.3/4.4. v4.5 keeps the architecture, intake contract,
+// factor logic, conditional triggers, and Appendices A–F/H; it rewrites the
+// fixed prose in a citation-forward legal-narrative voice, and it replaces
+// the Table of Authorities with Appendix G — a customer-readable factor /
+// intake / determination / authority matrix, the same pattern used for the
+// CPPA ADMT v3.2 spine. Every fixed-prose string in SKELETON_SECTIONS below is
+// transcribed from that file. Nothing here may be reworded, re-punctuated or
+// "improved" by code, by refinement, or by an agent: the skeleton's fixed
+// prose is a protected leaf (splice-barred) and the conformance check
+// byte-matches the assembled document against it outside the slots.
 //
 // Block kinds:
 //   "skeleton"    — FIXED PROSE. Byte-pinned. Slots inside {braces} are the
 //                   only mutable spans; the rest is law.
 //   "lead"        — [DETERMINATION LEAD]: exactly one generated sentence,
 //                   bound to its typed determination.
-//   "generated"   — [GENERATED]: a {{FACTOR.*}} reasoning output. NOT composed
-//                   in Phase B — per the NO-PADDING LAW an uncomposed block is
-//                   omitted entirely, never padded, never announced. Phase C/D
-//                   wire these through the factor engine (Fable 5 per CEO
-//                   directive 2026-08-18).
+//   "generated"   — [GENERATED]: a {{FACTOR.*}} reasoning output, composed by
+//                   the factor engine (risk-factor-engine.ts — deterministic
+//                   at runtime; v4.5 does not change factor inputs, logic,
+//                   weighting, or action assembly). Per the NO-PADDING LAW an
+//                   uncomposed block is omitted entirely, never padded.
 //   "conditional" — [CONDITIONAL]: renders only when its trigger holds; the
 //                   assembler composes it from the RISK_FIXED constants below
 //                   plus intake facts. Otherwise omitted entirely.
 //   "rule"        — a deterministic assembly rule ({{DERIVED.*}} report-view
 //                   outputs), composed mechanically from established facts.
+//   "table"       — a rendered table supplied by the assembler, keyed
+//                   `${sectionId}:${i}` exactly like a composed block. Used
+//                   for Appendix G (the v4.5 factor/intake/determination/
+//                   authority matrix).
 //
-// PLACEHOLDER PROVENANCE (Spine 4.3 field-status legend):
+// PLACEHOLDER PROVENANCE (v4.5 field-status legend, unchanged from 4.3):
 //   {{INTAKE.*}} / {{FINAL.*}} — Intake Contract v2.0 factual fields → {slots}.
-//   {{DERIVED.*}} — mechanical report-view outputs → "rule" blocks or slots.
-//   {{FACTOR.*}}  — assumed future factor outputs → "generated" blocks.
+//   {{DERIVED.*}} — mechanical report-view outputs → "rule"/"table" blocks or slots.
+//   {{FACTOR.*}}  — factor-engine outputs → "generated" blocks.
 //   {{SYSTEM.*}}  — run metadata → {assessmentDate} / {versionNumber} slots.
 //
-// SPINE NOTE 4 (docx internal notes): section inclusion is driven by legal
-// applicability and established facts, not by factor availability. In Phase B
-// the factor engine does not exist, so applicable sections render their fixed
-// prose and factual record; a missing factor output surfaces at the completion
-// gate in Phase C, never as silent narrowing of the fixed prose.
+// SPINE NOTE: section inclusion is driven by legal applicability and
+// established facts, not by whether a factor happened to produce prose.
 
-export const RISK_SKELETON_VERSION = "prose-plans-2026-08-18-spine-4.3-rk3-b";
-export const RISK_SKELETON_SOURCE_FILE = "CPPA_Risk_Assessment_Spine_4.3.docx";
+export const RISK_SKELETON_VERSION = "cppa-risk-v4.5-2026-08-21";
+export const RISK_SKELETON_SOURCE_FILE =
+  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx";
 export const RISK_SKELETON_PROVENANCE =
-  "CPPA_Risk_Assessment_Spine_4.3.docx — CEO-authored intake-aligned design draft; RK3-B encode 2026-08-18";
-/** SHA-256 over the spine docx's paragraph text, newline-joined, in file order. */
-export const RISK_SKELETON_CONTENT_HASH =
-  "d3c398b98d701b8542e522eda5e5834ad8475a980442c51c3be9ceb3d02aac4f";
+  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx — CEO redline round, ratified 2026-08-21; supersedes Spine 4.3/4.4. Legal-narrative and citation-forward voice rewrite; Table of Authorities replaced by Appendix G.";
 
 export const RISK_SKELETON_TITLE = "CPPA PRIVACY RISK ASSESSMENT";
 export const RISK_SKELETON_SUBTITLE =
@@ -57,7 +61,8 @@ export type SkeletonBlockKind =
   | "lead"
   | "generated"
   | "conditional"
-  | "rule";
+  | "rule"
+  | "table";
 
 export interface SkeletonBlock {
   readonly kind: SkeletonBlockKind;
@@ -78,23 +83,21 @@ export interface SkeletonSection {
  * constants plus the intake facts its trigger names; conditional text is swept
  * through the register repair by the renderer like any composed block.
  *
- * RATIFICATION FLAGS (for CEO review at the RK3-B push):
- *   [R1] Spine VI.E fixed prose reads "unless the record shows a meaningful
- *        connection"; "the record shows" is in the v3 banned register, which
- *        the harness pins at zero findings. Encoded as "the record identifies"
- *        pending CEO ruling.
- *   [R2] Spine VI.B supplies a no-benefit-established sentence only for the
- *        consumer category. The business / other-stakeholder / public
- *        analogues below follow its pattern and need ratification.
+ * RATIFICATION FLAGS:
+ *   [R1] RESOLVED by Spine v4.5: the VI.E fixed prose now attributes to "the
+ *        Company", not "the record" — no v3 banned-register concern remains.
+ *   [R2] RESOLVED by Spine v4.5: the business / other-stakeholder / public
+ *        no-benefit-established sentences are now spelled out verbatim in the
+ *        v4.5 source (Part 1, § VI.C/D/E), not left as an analogical pattern.
  *   [R3] The SPI fallback (q15 sensitive-PI = Yes with no SPI-mapped q4
- *        category) and the mechanical DERIVED formats need ratification.
+ *        category) and the mechanical DERIVED formats remain open; v4.5 does
+ *        not separately re-ratify them.
  */
 export const RISK_FIXED = {
   confidential:
     "CONFIDENTIAL. This assessment contains information concerning the Company’s processing activities, systems, safeguards, and internal decision-making. Distribution should be limited to persons with an appropriate business or legal need to review it.",
 
-  exec_company_decision_lead:
-    "Company Decision. After reviewing the assessment, the Company records the following business decision:",
+  exec_company_decision_lead: "Company Decision.",
   exec_company_decision_note:
     "The Company decision is a finalization fact supplied by the business; it is not generated by the factor engine.",
 
@@ -115,35 +118,34 @@ export const RISK_FIXED = {
     "Sensitive information is not treated as inherently improper to process. Its presence does, however, make the purpose, necessity, access, disclosure, retention, and potential consequences of misuse more important to the assessment.",
 
   admt_a:
-    "A. Role of the Technology. The Company describes the relevant automated system as: {q19}. The system participates in the processing as follows: {role}. The assessment focuses on what the technology actually does rather than the label applied to it. A tool that organizes information for a human decisionmaker presents different considerations from one whose output determines or materially shapes an outcome affecting the consumer.",
+    "A. Role of the Technology. Section 7152(a)(3)(G) requires the report to describe the technology's role in the processing. The Company describes the relevant automated system as: {q19}. The system participates in the processing as follows: {role}. The assessment focuses on what the technology actually does rather than the label applied to it. A tool that organizes information for a human decisionmaker presents different considerations from one whose output determines or materially shapes an outcome affecting the consumer.",
   admt_b:
-    "B. Logic, Assumptions, and Limitations. The Company describes the logic of the system as: {logic}. The factual record should also identify material assumptions or limitations of that logic: {assumptions}. An automated system can operate as designed and still produce an inappropriate result where its inputs, assumptions, or learned relationships are poorly suited to the decision being made. Understanding those limitations is therefore part of understanding the risk.",
+    "B. Logic, Assumptions, and Limitations. Section 7152(a)(3)(G)(i) requires the report to describe the logic used in the technology, including material assumptions and limitations. The Company describes the logic of the system as: {logic}. The factual record also identifies material assumptions or limitations of that logic: {assumptions}. An automated system can operate as designed and still produce an inappropriate result where its inputs, assumptions, or learned relationships are poorly suited to the decision being made.",
   admt_c:
-    "C. Output and Decision Effect. The system produces: {output}. The Company uses that output as follows in the relevant decision: {outputUse}. The resulting effect on the consumer is: {consumerEffect}.",
+    "C. Output and Decision Effect. Section 7152(a)(3)(G)(ii) requires the report to describe the output of the technology and how the business uses that output. The system produces: {output}. The Company uses that output as follows in the relevant decision: {outputUse}. The resulting effect on the consumer is: {consumerEffect}.",
   admt_d:
-    "D. Human Review. The Company describes human review or appeal as follows: {humanReview}. Human involvement meaningfully reduces risk only where the reviewer can understand the relevant issue, has enough information and time to evaluate it, and has authority to reach a different result.",
+    "D. Human Review. Sections 7001(e) and 7150(b)(3) treat meaningful human involvement as a relevant qualification to significant-decision ADMT. The Company describes human review or appeal as follows: {humanReview}. Human involvement meaningfully reduces risk only where the reviewer can understand the relevant issue, has enough information and time to evaluate it, and has authority to reach a different result.",
   admt_e:
-    "E. Accuracy, Fairness, and Bias. The Company reports the following testing: {testing}. Testing does not guarantee that an automated system will never produce an inappropriate outcome. It does provide evidence about whether relevant classes of error, bias, or disparate impact are being identified and addressed.",
+    "E. Accuracy, Fairness, and Bias. Sections 7152(a)(5)(B) and 7152(a)(6)(A)(iv) treat testing for accuracy, fairness, and bias as relevant to both the risk analysis and the safeguards the Company has implemented. The Company reports the following testing: {testing}. Testing does not guarantee that an automated system will never produce an inappropriate outcome; it provides evidence about whether relevant classes of error, bias, or disparate impact are being identified and addressed.",
   admt_f:
-    "F. Training Data. The Company identifies the source of relevant training data as: {trainingSource}.",
+    "F. Training Data. Sections 7150(b)(6) and 7153 require the report to identify the source of training data used for the ADMT. The Company identifies the source of relevant training data as: {trainingSource}.",
   admt_g:
-    "G. ADMT Provided to Another Business. Where the Company makes ADMT trained using personal information available to another business to make a significant decision, the assessment also considers whether the recipient business has access to the facts necessary to conduct its own risk assessment. The factual predicate for this branch is recorded as follows: ADMT made available to another business: {madeAvailable}. ADMT trained using personal information: {trainedPi}. Recipient business uses the ADMT for a significant decision: {recipientSignificant}.",
+    "G. ADMT Provided to Another Business. Section 7153(a)–(b) requires the assessment to consider whether a recipient business has access to the facts necessary to conduct its own risk assessment where the Company makes ADMT trained using personal information available to that business to make a significant decision. The factual predicate for this branch is recorded as follows: ADMT made available to another business: {madeAvailable}. ADMT trained using personal information: {trainedPi}. Recipient business uses the ADMT for a significant decision: {recipientSignificant}.",
   admt_appendix_pointer:
     "The supporting technical record appears in Appendix D — ADMT Technical and Decision Record.",
   appendix_d_intro:
-    "This appendix preserves the factual and analytical record necessary to understand the automated component of the processing. It should include, as applicable, the role of the technology, logic, assumptions and limitations, output, use of the output, human review, testing, training-data provenance, and facts relevant to § 7153.",
+    "This appendix preserves the technical and analytical detail supporting Section V, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153.",
 
   benefit_identifies_lead: "The Company identifies:",
   benefit_supporting_lead: "Supporting information is:",
   benefit_none_consumer:
-    "No distinct consumer benefit has been established on the present record. The assessment therefore gives this category no affirmative weight rather than creating a benefit that the record does not support.",
-  // [R2] analogues of the VI.B consumer sentence, pending ratification.
+    "The Company has not identified a distinct consumer benefit for this activity, so this category receives no affirmative weight.",
   benefit_none_business:
-    "No distinct business benefit has been established on the present record. The assessment therefore gives this category no affirmative weight rather than creating a benefit that the record does not support.",
+    "The Company has not identified a distinct business benefit for this activity, so this category receives no affirmative weight.",
   benefit_none_other:
-    "No distinct benefit to other stakeholders has been established on the present record. The assessment therefore gives this category no affirmative weight rather than creating a benefit that the record does not support.",
+    "The Company has not identified a distinct benefit to other stakeholders for this activity, so this category receives no affirmative weight.",
   benefit_none_public:
-    "No distinct public benefit has been established on the present record. The assessment therefore gives this category no affirmative weight rather than creating a benefit that the record does not support.",
+    "The Company has not identified a distinct public benefit for this activity, so this category receives no affirmative weight.",
 
   ix_company_decision:
     "Company Decision. After reviewing the assessment findings and consequences, the Company records its business decision as: {decision}. This decision is supplied by the Company during finalization and should not be inferred from the assessment recommendation.",
@@ -182,11 +184,11 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "EXECUTIVE SUMMARY",
     blocks: [
       // 0
-      { kind: "skeleton", text: "Activity Assessed. This Risk Assessment evaluates the following processing activity undertaken by the Company: {activityName}. The Company describes the activity as: {subjectAnchor}. The Company states that the purpose of the processing is: {activityPurpose}. This assessment is specific to that activity, purpose, and the facts described in the assessment record. It is not a general evaluation of the Company’s privacy program or overall CCPA compliance." },
+      { kind: "skeleton", text: "Activity Assessed. The Company identifies {activityName} as the activity under review. It describes the activity as {subjectAnchor} and states the purpose as {activityPurpose}. This assessment is limited to that activity and purpose; it does not evaluate the Company’s privacy program or CCPA compliance generally." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.normalized_processing_purpose}}] Fixed first words \"For purposes of the analysis, that purpose is understood as:\" — clarifies, never rewrites, the Company’s stated purpose. Phase C. Absent => omitted." },
       // 2
-      { kind: "skeleton", text: "Why the Assessment Is Required. California requires a risk assessment for specified processing that presents significant risk to consumers’ privacy. Based on the facts established for this activity, the following trigger or triggers apply: {derivedTriggers}. The purpose of the assessment is practical: to determine whether the privacy risks created by this processing outweigh the benefits of the same processing after relevant safeguards are considered." },
+      { kind: "skeleton", text: "Why a Risk Assessment Is Required. California requires a risk assessment before a business begins processing that falls within one of the significant-risk categories in 11 CCR § 7150(b), including selling or sharing personal information, processing sensitive personal information, using automated decisionmaking technology (“ADMT”) for a significant decision, specified profiling, and specified training of ADMT or identity-related technologies. The activity triggers the requirement under {derivedTriggers}. The assessment then asks the questions required by §§ 7152 and 7154: whether the benefits of this processing justify the privacy risks after relevant safeguards are considered." },
       // 3
       { kind: "generated", text: "[GENERATED {{FACTOR.executive_trigger_summary}}] Concise explanation of why the listed trigger(s) apply and any material qualification. Phase C. Absent => omitted." },
       // 4
@@ -208,17 +210,17 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "I. PURPOSE, SCOPE, AND ASSESSMENT RECORD",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. Processing Purpose. A useful risk assessment begins by defining precisely what the Company is doing and why. Without a sufficiently specific purpose, it is difficult to determine what information is actually needed, what benefits should be credited to the processing, or whether the resulting privacy risk is justified. The activity under review is: {activityName}. The Company states that the processing is intended to: {activityPurpose}." },
+      { kind: "skeleton", text: "A. Processing Purpose. Section 7152(a)(1) requires the risk assessment to identify the business’s purpose with enough specificity to evaluate the processing; generic purposes such as “improve our services” or “security purposes” are not enough. The Company identifies {activityName} and states the purpose as {activityPurpose}. That purpose sets the baseline for the necessity, benefit, risk, and balancing analyses that follow." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.purpose_specificity_analysis + normalized_processing_purpose + purpose_conclusion}}] Assessment and conclusion of purpose specificity; where the purpose is narrowed or clarified, fixed note \"The formulation above clarifies the purpose for assessment purposes. It does not replace the factual description supplied by the Company; it identifies the purpose with enough precision to evaluate the information, benefits, and risks associated with the activity.\" Phase C. Absent => omitted." },
       // 2
-      { kind: "skeleton", text: "B. Scope and Boundaries. The assessment covers processing undertaken for the purpose stated above. The distinction matters because a new purpose can change the necessity analysis, consumer expectations, relevant risks, and resulting balance even where the same information or technology is used." },
+      { kind: "skeleton", text: "B. Scope and Boundaries. The assessment should correspond to the processing activity and purpose actually being evaluated. Section 7156 permits one assessment to cover a comparable set of processing activities only when the activities are similar and present similar privacy risks. This assessment covers processing undertaken for the stated purpose; a materially different purpose may require a different assessment because it can change necessity, expectations, risks, safeguards, and the overall balance." },
       // 3
       { kind: "generated", text: "[GENERATED {{FACTOR.in_scope_processing_description + out_of_scope_processing_description}}] In-scope / out-of-scope characterisation built from established processing facts. Phase C. Absent => omitted." },
       // 4
       { kind: "conditional", text: "[CONDITIONAL] SECONDARY USES - trigger {has_secondary_uses}=Yes. RISK_FIXED.secondary_uses_lead + {{INTAKE.secondary_activities}}. Factor analysis/conclusion/consequence follow in Phase C. Absent => omitted." },
       // 5
-      { kind: "skeleton", text: "C. Regulatory Applicability. The CPPA regulations identify categories of processing that are treated as presenting significant risk to consumers’ privacy. The inquiry is directed to this processing activity rather than to the Company’s overall privacy posture. The following risk-assessment trigger or triggers apply on the present record: {derivedTriggers}." },
+      { kind: "skeleton", text: "C. Regulatory Applicability. Section 7150(b) defines the processing activities that present significant risk to consumers’ privacy and therefore require a risk assessment. The Company’s description implicates the following trigger or triggers: {derivedTriggers}. Each confirmed trigger appears once with its section citation and a plain-English factual basis." },
       // 6
       { kind: "generated", text: "[GENERATED {{FACTOR.full_trigger_analysis + uncertain_trigger + regulatory_applicability_conclusion}}] Per-trigger analysis; unresolved triggers get fixed lead \"The applicability of the following potential trigger cannot be resolved from the current record:\". Phase C. Absent => omitted." },
       // 7
@@ -226,9 +228,9 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 8
       { kind: "conditional", text: "[CONDITIONAL] PRIOR DPIA / PIA / OTHER ASSESSMENT - trigger {i9_has_existing_dpia}=Yes. RISK_FIXED.prior_assessment_lead + {{INTAKE.i9_existing_dpia_summary}} + RISK_FIXED.prior_assessment_note. Absent => omitted." },
       // 9
-      { kind: "skeleton", text: "D. Evidentiary Basis. This assessment is based on information supplied by or on behalf of the Company, materials identified in Appendix F — Materials Considered, and the legal and regulatory authorities identified in Appendix G — Table of Authorities. The report distinguishes among facts supplied by the Company, facts mechanically derived from those supplied facts, analytical conclusions reached by applying the relevant legal and regulatory factors, and unresolved information that could affect the analysis. The assessment does not resolve a material factual gap by assuming the answer most favorable to the processing. Where a fact needed for the assessment is not established in the current intake or supporting record, it should be collected as a factual input rather than inferred by the factor engine." },
+      { kind: "skeleton", text: "D. Basis for the Assessment. Sections 7151 and 7152 require the assessment to be grounded in the people and facts relevant to the processing, including employees whose job duties involve the covered processing. This assessment relies on information supplied by the Company and the materials listed in Appendix F. If information needed for a material conclusion is missing or inconsistent, the report identifies the limitation rather than assuming a favorable answer. Appendix G ties each material factor to the customer intake data used, the actual report language produced, and the primary authority." },
       // 10
-      { kind: "skeleton", text: "E. Record Sufficiency. Every conclusion that follows depends on the quality of the factual record. A gap is important not because every unanswered question is legally significant, but because missing information can change the assessment of necessity, risk, safeguards, or the ultimate balance. The following individuals provided information for this assessment: {informationProviders}. The Company also identifies the following internal personnel who participated in or were consulted regarding the activity: {internalContributors}. For purposes of the assessment process, the Company has confirmed that the employees whose job duties include participation in the covered processing were included as follows: {operationalParticipants}." },
+      { kind: "skeleton", text: "E. Record Sufficiency. Section 7152(a)(8) requires the report to identify the individuals who provided information for the assessment, except legal counsel who provided legal advice, and § 7151 requires employees who participate in the covered processing as part of their jobs to be included in the assessment process. Information providers: {informationProviders}. Internal participants: {internalContributors}. Operational participants: {operationalParticipants}." },
       // 11
       { kind: "conditional", text: "[CONDITIONAL] EXTERNAL PARTICIPANTS - trigger {i7_external_consultees} present. RISK_FIXED.external_participants_lead + list. Absent => omitted." },
       // 12
@@ -240,31 +242,31 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "II. THE PROCESSING IN CONTEXT",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. How the Processing Works. Privacy risk is easier to evaluate when the processing is described as an operational sequence rather than as a product or system name. For this activity, personal information enters the process through: {processingEntryPoint}. The planned methods for collecting, using, disclosing, retaining, and otherwise processing personal information are: {processingMethods}. For readability, those structured facts may be presented in the report as the following operational sequence: {lifecycleNarrative}. The processing produces or supports: {processingResult}." },
+      { kind: "skeleton", text: "A. How the Processing Works. Section 7152(a)(3)(A) requires the report to identify how the Company plans to collect, use, disclose, retain, or otherwise process the information, together with its sources. Entry point: {processingEntryPoint}. Processing stages: {processingMethods}. Result: {processingResult}." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.processing_coherence_analysis + processing_description_conclusion + processing_clarification_required}}] Phase C. Absent => omitted." },
       // 2
-      { kind: "skeleton", text: "B. Consumers and the Interaction. The assessment considers both how the Company interacts with the consumer and why that interaction occurs. Those facts provide important context for expectations, transparency, and the practical significance of the processing. Method of interaction: {interactionMethod}. Purpose of the interaction: {interactionPurpose}. The approximate number of California consumers affected is: {approxCaConsumers}. The number of affected consumers informs the potential reach of a risk, but it does not determine its seriousness. A risk affecting relatively few consumers can still be significant where the information or consequence is sensitive, while processing at substantial scale may present a more limited individual impact where the information and use are appropriately constrained." },
+      { kind: "skeleton", text: "B. Consumers and the Interaction. Sections 7152(a)(3)(C)–(D) require the assessment to identify how the business interacts with the consumers whose information is processed, the purpose of that interaction, and the approximate number of consumers affected. The Company reports that consumers interact with the activity through {interactionMethod}. The interaction serves {interactionPurpose}, and the Company estimates {approxCaConsumers} California consumers are affected. These facts help explain both consumer expectations and the potential reach of a risk." },
       // 3
       { kind: "generated", text: "[GENERATED {{FACTOR.consumer_context_analysis + consumer_context_conclusion}}] Phase C. Absent => omitted." },
       // 4
-      { kind: "skeleton", text: "C. Personal Information. The activity processes the following categories of personal information: {piCategories}. The detailed information used in the activity is described in the processing record as: {piInventory}." },
+      { kind: "skeleton", text: "C. Personal Information. Section 7152(a)(2) requires the report to identify the categories of personal information and sensitive personal information involved and the minimum information necessary to achieve the purpose. The activity processes {piCategories}." },
       // 5
       { kind: "conditional", text: "[CONDITIONAL] SENSITIVE PERSONAL INFORMATION - trigger: SPI in the activity. RISK_FIXED.spi_lead + {{DERIVED.activity_spi_inventory}} + RISK_FIXED.spi_note. Absent => omitted." },
       // 6
       { kind: "generated", text: "[GENERATED {{FACTOR.pi_profile_conclusion}}] Phase C. Absent => omitted." },
       // 7
-      { kind: "skeleton", text: "The detailed processing and data inventory, including category-level retention, appears in Appendix A — Processing and Data Inventory." },
+      { kind: "skeleton", text: "Detailed data-category and category-level retention information appears in Appendix A — Processing and Data Inventory." },
       // 8
-      { kind: "skeleton", text: "D. Sources of Information. The Company identifies the following sources: {i4bSources}. The source of information can affect both accuracy and consumer expectations. Information given directly by a consumer for a particular transaction may present different considerations from information inferred by the Company, obtained from another business, purchased from a third party, or produced by an automated system." },
+      { kind: "skeleton", text: "D. Sources of Information. Section 7152(a)(3)(A) requires the Company to identify the sources of the personal information used in the processing. The Company identifies the following source or sources: {i4bSources}. Source matters because it can affect accuracy, consumer expectations, and the importance of notice or choice." },
       // 9
       { kind: "generated", text: "[GENERATED {{FACTOR.source_risk_analysis + source_conclusion + source_consequence}}] Phase C. Absent => omitted." },
       // 10
-      { kind: "skeleton", text: "E. Recipients and Disclosures. The following service providers, contractors, or third parties receive or have access to personal information in connection with the activity: {recipientsNames}. For each material recipient, the structured record identifies the recipient name or category, recipient type, personal-information categories made available, and purpose of the disclosure: {recipientsDetail}. A disclosure can change the risk profile because another organization may possess, use, secure, retain, or further disclose information outside the Company’s immediate operational environment." },
+      { kind: "skeleton", text: "E. Recipients and Disclosures. Section 7152(a)(3)(F) requires the report to identify the service providers, contractors, or third parties that receive or can access the information for the processing, together with the purpose of the disclosure. The following service providers, contractors, or third parties receive or have access to personal information in connection with the activity: {recipientsNames}. For each material recipient, the record identifies the recipient name or category, recipient type, personal-information categories made available, and purpose of the disclosure: {recipientsDetail}. A disclosure can change the risk profile because another organization may use, secure, retain, or further disclose the information." },
       // 11
       { kind: "generated", text: "[GENERATED {{FACTOR.recipient_risk_analysis + recipient_conclusion + material_vendor_dependency}}] Material vendor dependency gets fixed lead \"The processing materially depends on:\" and the note \"The effectiveness of the related contractual, technical, or oversight controls is considered in Section VIII.\" Phase C. Absent => omitted." },
       // 12
-      { kind: "skeleton", text: "F. Retention. The Company reports the following overall retention period or practice: {retentionPeriod}. The period is determined using: {retentionCriteria}. {retentionDetail}. Where retention differs by category of personal information, the assessment record should identify the period for each category or, if the period is not known, the criteria used to determine it. Category-level retention appears in Appendix A. {retentionByCategory}. Retention should remain connected to the purpose that justified processing the information. Once the information no longer serves that purpose or another independently justified obligation, continued retention can increase exposure without increasing the corresponding benefit." },
+      { kind: "skeleton", text: "F. Retention. Section 7152(a)(3)(B) requires the report to identify how long each category of personal information will be retained or, if the period is not known, the criteria used to determine it. The Company reports {retentionPeriod}, determined using {retentionCriteria}. {retentionDetail}. Category-level retention detail appears in Appendix A." },
       // 13
       { kind: "generated", text: "[GENERATED {{FACTOR.retention_analysis + retention_conclusion + retention_consequence}}] Phase C. Absent => omitted." },
     ],
@@ -274,7 +276,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "III. NECESSITY AND DATA MINIMIZATION",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. The Necessity Question. The fact that information is useful does not necessarily mean that it is necessary. The assessment therefore asks whether the stated purpose could reasonably be achieved without each material element of personal information—or by using information that is less precise, less sensitive, or less extensive. The Company identifies the minimum information necessary for the activity as: {minPi}. The detailed element-by-element record appears in Appendix B — Necessity and Minimization Matrix." },
+      { kind: "skeleton", text: "A. The Necessity Question. Section 7152(a)(2) requires the report to identify the minimum personal information necessary to achieve the stated purpose. The Company identifies the minimum information needed as {minPi}. The analysis therefore asks whether each material element genuinely contributes to that purpose or whether the Company can achieve the same result with less precise, less sensitive, or less extensive information. Detailed element-level analysis appears in Appendix B." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.necessary_elements + necessary_elements_reasoning}}] Fixed sub-head \"B. Analysis. Information Supported as Necessary\". Phase C. Absent => omitted." },
       // 2
@@ -296,21 +298,21 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "IV. CONSUMER CONTEXT, TRANSPARENCY, AND CONTROL",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. Consumer Perspective. Privacy risk depends in part on the circumstances in which processing occurs. A consumer who knowingly provides information for an expected purpose is in a different position from a consumer whose information is obtained elsewhere, repurposed unexpectedly, used to draw new conclusions, or processed in a way the consumer cannot reasonably understand or influence. This section therefore considers how the activity appears from the consumer’s side of the transaction." },
+      { kind: "skeleton", text: "A. Consumer Perspective. Section 7152(a)(5) requires the assessment to identify negative privacy impacts and their sources and causes. The regulation specifically calls out impaired consumer control and coercion as examples of privacy harms. The same processing can therefore carry different risk depending on what consumers are told, what they reasonably expect, and what practical control they can exercise." },
       // 1 — D7: the disclosures paragraph appears twice in the docx; rendered once here.
-      { kind: "skeleton", text: "B. Transparency. The Company identifies the following disclosures made or planned for this activity: {activityDisclosures}. The structured disclosure record identifies both what consumers are or will be told and how the disclosure is or will be made. Relevant public-facing materials include: {privacyPolicyUrl}. A disclosure is meaningful to this assessment to the extent it helps consumers understand the features of the processing that matter to their privacy. The existence of a privacy policy or notice is relevant, but the analysis does not end with whether a disclosure technically exists." },
+      { kind: "skeleton", text: "B. Transparency. Section 7152(a)(3)(E) requires the report to identify the disclosures the Company has made or plans to make about the processing and how those disclosures are or will be delivered. Section 7152(a)(5)(C) also treats insufficient information that prevents an informed choice as a potential privacy harm. The Company identifies the following disclosures: {activityDisclosures}. Relevant public-facing materials include {privacyPolicyUrl}." },
       // 2
       { kind: "generated", text: "[GENERATED {{FACTOR.transparency_analysis + transparency_conclusion + transparency_consequence}}] Phase C. Absent => omitted." },
       // 3
-      { kind: "skeleton", text: "C. Consumer Expectations. The assessment considers whether the activity is reasonably consistent with the context in which information is collected or otherwise obtained." },
+      { kind: "skeleton", text: "C. Consumer Expectations. Section 7152(a)(5)(C) identifies interference with consumers’ ability to make choices consistent with their reasonable expectations as a potential negative impact. The activity is therefore evaluated against the context in which the information is obtained and the expectations created by the consumer interaction and the Company’s disclosures." },
       // 4
       { kind: "generated", text: "[GENERATED {{FACTOR.consumer_expectations_analysis + unexpected_processing + consumer_expectations_conclusion}}] Unexpected processing gets fixed lead \"The following aspect of the processing may fall outside the expectations created by the consumer interaction:\" and note \"Unexpected processing is not automatically prohibited. It can, however, increase the importance of notice, choice, minimization, or another safeguard.\" Phase C. Absent => omitted." },
       // 5
-      { kind: "skeleton", text: "D. Practical Consumer Control. A right reduces privacy risk only to the extent it is usable in practice. The assessment therefore considers whether consumers can reasonably understand and exercise the available control and whether doing so materially changes the processing." },
+      { kind: "skeleton", text: "D. Practical Consumer Control. Section 7152(a)(5)(C) treats impaired consumer control as a potential privacy harm, including where consumers lack enough information to make an informed decision or cannot make choices consistent with reasonable expectations. Consumer rights reduce risk only when consumers can use them in practice and exercising the right meaningfully changes the processing." },
       // 6
       { kind: "generated", text: "[GENERATED {{FACTOR.relevant_consumer_controls + consumer_control_analysis + consumer_control_conclusion + consumer_control_consequence}}] Controls list gets fixed lead \"Relevant consumer rights and controls include:\" — projection of the established consumer-rights facts (q6–q10); the factor engine may not invent rights or controls. Phase C. Absent => omitted." },
       // 7
-      { kind: "skeleton", text: "E. Coercion, Compulsion, and Choice Architecture. The assessment separately considers whether consumers are effectively required to permit processing that is unnecessary to the service or opportunity they reasonably expect, or whether the design of the interaction materially interferes with an informed and voluntary choice." },
+      { kind: "skeleton", text: "E. Coercion, Compulsion, and Choice Architecture. Section 7152(a)(5)(D) identifies coercing or compelling consumers into unnecessary processing — including through conditioning a service on unnecessary disclosure or using dark patterns — as a potential negative impact. The Company’s design should therefore avoid forcing or steering consumers into processing that is unnecessary to the service or opportunity they reasonably expect." },
       // 8
       { kind: "generated", text: "[GENERATED {{FACTOR.coercion_analysis + coercion_conclusion + coercion_consequence}}] Phase C. Absent => omitted." },
     ],
@@ -360,7 +362,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "VI. BENEFITS OF THE PROCESSING",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. How Benefits Are Considered. The assessment considers benefits produced by the processing itself—not every advantage associated with the Company’s product, service, or business. A benefit receives greater weight where the record identifies a concrete outcome, explains how this processing contributes to that outcome, and provides support for the claim. Benefits to the business, consumers, other stakeholders, and the public are considered where they are applicable. The assessment does not create a benefit for a stakeholder category where the facts do not support one." },
+      { kind: "skeleton", text: "A. How Benefits Are Considered. Section 7152(a)(4) requires the assessment to identify benefits to the consumer, the business, other stakeholders, and the public from the same processing, and it rejects generic benefit descriptions. The assessment therefore gives weight only to benefits produced by this processing and supported by the Company’s information." },
       // 1
       { kind: "skeleton", text: "B. Benefits to Consumers." },
       // 2
@@ -370,7 +372,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 4
       { kind: "generated", text: "[GENERATED {{FACTOR.consumer_benefit_analysis + consumer_benefit_weight}}] Weight lead \"Weight in the balancing analysis:\". Phase C. Absent => omitted." },
       // 5
-      { kind: "skeleton", text: "C. Benefits to the Business. Commercial benefit is not discounted merely because it accrues to the Company. The relevant question is whether the benefit is concrete, attributable to this processing, and sufficiently supported to be included in the balance." },
+      { kind: "skeleton", text: "C. Benefits to the Business." },
       // 6
       { kind: "conditional", text: "[CONDITIONAL] BUSINESS BENEFIT IDENTIFIED - trigger {benefit_business_identified}=Yes. RISK_FIXED leads + {{INTAKE.a4_benefit_business, a4_benefit_business_fact}}. Absent => the no-benefit block below." },
       // 7
@@ -385,8 +387,10 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "conditional", text: "[CONDITIONAL] NO OTHER-STAKEHOLDER BENEFIT ESTABLISHED - RISK_FIXED.benefit_none_other [R2]. Absent => omitted." },
       // 12
       { kind: "generated", text: "[GENERATED {{FACTOR.other_stakeholder_benefit_analysis + other_stakeholder_benefit_weight}}] Phase C. Absent => omitted." },
-      // 13 — [R1] register-safe encode of the VI.E fixed prose.
-      { kind: "skeleton", text: "E. Benefits to the Public. A generalized claim that processing promotes innovation, efficiency, security, or another public interest receives limited weight unless the record identifies a meaningful connection between this processing and the claimed outcome." },
+      // 13 — v4.5 wording resolves the prior [R1] flag: attribution runs to the
+      // Company, not "the record", so the v3 banned-register concern no longer
+      // arises here.
+      { kind: "skeleton", text: "E. Benefits to the Public. A claimed public benefit receives weight only where the Company identifies a concrete connection between this processing and the public outcome." },
       // 14
       { kind: "conditional", text: "[CONDITIONAL] PUBLIC BENEFIT IDENTIFIED - trigger {benefit_public_identified}=Yes. RISK_FIXED leads + {{INTAKE.a4_benefit_public, a4_benefit_public_fact}}. Absent => the no-benefit block below." },
       // 15
@@ -400,7 +404,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "VII. PRIVACY RISKS",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. How Risk Is Evaluated. The assessment looks for credible pathways from the processing to a negative effect on a consumer. A broad label such as “security risk,” “bias,” or “loss of control” is not enough by itself to make a useful decision. The analysis considers what information is involved, how the problem could arise, what would happen to the consumer, how likely that outcome is, and how serious it would be. The detailed pathway analysis appears in Appendix C — Privacy Risk Register and Safeguard Mapping. The body of the report focuses on the risks that materially affect the processing decision." },
+      { kind: "skeleton", text: "A. How Risk Is Evaluated. Section 7152(a)(5) requires the assessment to identify negative impacts to consumers’ privacy and the sources and causes of those impacts. The regulation gives examples that include unauthorized access or loss of availability, unlawful discrimination, impaired consumer control, coercion, economic harm, physical harm, reputational harm, and psychological harm. Appendix C preserves the full pathway detail; the body focuses on risks that materially affect the processing decision." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.material_risk_blocks}}] B. Material Risk Pathways — ranked repeatable blocks (title; pathway narrative; likelihood; severity; materiality; decision effect before safeguards), projected from the granular risk factors. Phase C. Absent => omitted." },
       // 2
@@ -418,7 +422,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "VIII. SAFEGUARDS AND RESIDUAL RISK",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. Role of Safeguards. A privacy risk does not determine the outcome of the assessment by itself. The relevant question is what the Company has done—or will do—to prevent the risk, reduce its likelihood, limit its consequences, improve consumer control, detect problems, or correct inappropriate outcomes. Safeguards may be technical, organizational, contractual, procedural, or structural. The assessment gives greater weight to a safeguard where the record supports that it is implemented and effective in the environment being assessed. The detailed safeguard record appears in Appendix C together with the risk pathways it is relevant to. The risk-to-safeguard mapping is an EUP analytical method used to make the reasoning transparent; it is not presented as a regulator-prescribed report format." },
+      { kind: "skeleton", text: "A. Role of Safeguards. Section 7152(a)(6) requires the report to identify safeguards the Company plans to implement for the processing, including safeguards directed at the negative impacts identified in the assessment. The regulation gives examples ranging from security controls and privacy-enhancing technologies to external consultation and ADMT governance. The assessment gives greater credit where a safeguard is implemented and supported by evidence that it operates in practice." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.material_existing_safeguards + safeguard_effectiveness_analysis}}] Fixed sub-head \"B. Material Existing Safeguards\"; lead \"The safeguards most important to the analysis are:\". Phase C. Absent => omitted." },
       // 2
@@ -430,7 +434,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 5
       { kind: "conditional", text: "[CONDITIONAL] SAFEGUARD GAPS - trigger {{FACTOR.safeguard_gaps}} present. Fixed lead \"D. Safeguard Gaps. The following material risk is not sufficiently addressed by safeguards established on the current record:\". Phase C. Absent => omitted." },
       // 6
-      { kind: "skeleton", text: "E. Residual Risk. Residual risk is what remains after the safeguards that can reasonably be credited are taken into account." },
+      { kind: "skeleton", text: "E. Residual Risk. Sections 7152(a)(5)–(6) require the assessment to consider the identified negative impacts together with the safeguards used to address them. Residual risk is the practical risk that remains after safeguards that can reasonably be credited are taken into account; that remaining risk is what enters the final balancing analysis under § 7154." },
       // 7
       { kind: "generated", text: "[GENERATED {{FACTOR.material_residual_risks + residual_risk_analysis + overall_residual_risk_conclusion + residual_risk_reasoning}}] Lead \"The principal residual risks are:\". Phase C. Absent => omitted." },
     ],
@@ -440,7 +444,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "IX. BENEFITS–RISKS BALANCING AND PROCESSING DECISION",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. The Decision. The preceding sections consider the processing from different directions. This section brings those findings together. The question is not whether the processing is useful, whether it creates some privacy risk, or whether every possible risk has been eliminated. The question is whether the privacy risks that remain after appropriate safeguards are considered are justified by the benefits of this same processing activity. The determination is a reasoned judgment based on the record. Internal ratings may help organize the analysis, but no numerical score substitutes for understanding the strength of the benefits, the seriousness and likelihood of the risks, and the practical effect of safeguards." },
+      { kind: "skeleton", text: "A. The Decision. Section 7152 requires the Company to determine whether the privacy risks from the processing outweigh the benefits to consumers, the business, other stakeholders, and the public. Section 7154 states the goal directly: processing should be restricted or prohibited when privacy risks outweigh those benefits. This section brings the analysis together in ordinary language rather than as a numerical score." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.pro_processing_factors + pro_processing_analysis}}] Fixed sub-head \"B. Factors Supporting the Processing\"; lead \"The considerations carrying the greatest weight in favor of the activity are:\". Phase C. Absent => omitted." },
       // 2
@@ -468,21 +472,21 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.approver_authority_analysis + approval_sufficiency_conclusion + approval_follow_up}}] Phase C. Absent => omitted." },
       // 2
-      { kind: "skeleton", text: "B. Assessment Timing. The timing of the assessment depends on when the covered processing began or will begin. The Company identifies the status and relevant timing of the processing as follows: Status: {processingStatus}. Actual start date (if applicable): {processingStartDate}. Planned start date (if applicable): {plannedStartDate}." },
+      { kind: "skeleton", text: "B. Assessment Timing. Section 7155(a)(1) requires a risk assessment before the Company initiates processing that falls within § 7150(b). Section 7155(b) gives businesses until December 31, 2027 to complete assessments for covered processing begun before the regulations’ effective date and continuing afterward. Processing status: {processingStatus}. Actual start date: {processingStartDate}. Planned start date: {plannedStartDate}." },
       // 3
       { kind: "conditional", text: "[CONDITIONAL] TIMING RULE AND DEADLINE - trigger: processing status/start date established. RISK_FIXED.x_timing_post2026 or RISK_FIXED.x_timing_pre2026 + {{DERIVED.initial_assessment_deadline}}. Absent => omitted." },
       // 4
-      { kind: "skeleton", text: "C. Review and Material Changes. The Company should review the assessment at least every three years and update it as necessary. If a material change creates a new negative impact, increases the magnitude or likelihood of an existing negative impact, or diminishes a safeguard, the assessment should be updated as soon as feasibly possible and no later than 45 calendar days after the material change. Material change since prior assessment: {materialChange}. Next scheduled review: {nextReviewDate}." },
+      { kind: "skeleton", text: "C. Review and Material Changes. Section 7155(a)(2) requires review at least once every three years. Section 7155(a)(3) requires an earlier update whenever a material change creates new negative impacts, increases the magnitude or likelihood of existing impacts, or diminishes safeguard effectiveness; that update is due as soon as feasible and no later than 45 calendar days after the material change. Material change since prior assessment: {materialChange}. Next scheduled review: {nextReviewDate}." },
       // 5
       { kind: "conditional", text: "[CONDITIONAL] MATERIAL CHANGE DETAILS - trigger {material_change_since_prior}=Yes. RISK_FIXED.x_material_change_* labels over {{INTAKE.material_change_date, material_change_description, prior_risk_assessment_date}}. Absent => omitted." },
       // 6
       { kind: "generated", text: "[GENERATED {{FACTOR.governance_review_analysis + governance_review_conclusion + governance_review_consequence}}] Phase C. Absent => omitted." },
       // 7
-      { kind: "skeleton", text: "D. Retention of the Assessment Record. The Company should retain the original and any updated risk assessments for as long as the processing continues or for five years after completion of the assessment, whichever is later. {retentionEndRule}. Supporting materials should be retained in a manner that allows the Company to understand the record on which material findings and decisions were based, particularly where the determination depends on testing, vendor information, technical documentation, or implementation of a particular safeguard." },
+      { kind: "skeleton", text: "D. Retention of the Assessment Record. Section 7155(c) requires the Company to retain original and updated risk assessments for as long as the processing continues or for five years after completion of the assessment, whichever is later. {retentionEndRule}. Supporting materials should be retained with the assessment where they are material to a finding, safeguard, or decision." },
       // 8 — D6: certifier_* and cppa_submission_contact_* are organization-level
       // fields; the slots resolve through the org profile when present on the
       // bag and drop honestly otherwise.
-      { kind: "skeleton", text: "E. CPPA Submission Support Record (§ 7157). This assessment contributes information to the Company’s business-level CPPA risk-assessment submission record. It does not, standing alone, necessarily contain all information required for the Company’s annual submission. The Company’s annual submission must aggregate information across all assessments conducted or updated during the reporting period, including business-level counts and other information that cannot necessarily be determined from this individual assessment. The executive identified for the applicable submission process is: {certExecName}, {certExecTitle}. Contact telephone: {certContactPhone}. Contact email: {certContactEmail}. Executive-management status: {certifierIsExec}. Direct responsibility for risk-assessment compliance: {certifierResponsible}. Sufficient knowledge: {certifierKnowledge}. Authorized to submit: {certifierAuthorized}. Business point of contact: {submissionContact}. Appendix E — CPPA Submission Support Record preserves this assessment’s contribution to the later business-level submission. It is an EUP support record, not a CPPA-prescribed form." },
+      { kind: "skeleton", text: "E. CPPA Submission Support Record (§ 7157). Section 7157 requires businesses to submit specified risk-assessment information to the Agency on the regulatory schedule rather than routinely submitting each full assessment. For assessments conducted in 2026 and 2027, the first submission is due April 1, 2028; later submissions are due by April 1 following a year in which assessments were conducted. The submission includes business/contact information, the reporting period, counts and categories of assessments, PI/SPI categories, an attestation, and the submitting executive’s name, title, and certification date. The submitting individual must be an executive-management member who is directly responsible for risk-assessment compliance, sufficiently knowledgeable, and authorized to submit. The Agency or Attorney General may separately require the Company to submit its full risk-assessment reports, which must be provided within 30 calendar days of the request. Certifying executive: {certExecName}, {certExecTitle}. Phone: {certContactPhone}. Email: {certContactEmail}. Executive-management status: {certifierIsExec}. Direct responsibility: {certifierResponsible}. Sufficient knowledge: {certifierKnowledge}. Authorized to submit: {certifierAuthorized}. Business point of contact: {submissionContact}." },
       // 9
       { kind: "generated", text: "[GENERATED {{FACTOR.certifying_executive_eligibility_analysis}}] Phase C. Absent => omitted." },
     ],
@@ -492,7 +496,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Appendix A — Processing and Data Inventory",
     blocks: [
       // 0
-      { kind: "skeleton", text: "This appendix preserves the detailed factual record underlying Section II. It should identify, as applicable, the personal-information and sensitive-personal-information categories involved in this activity, sources, processing methods, consumer interaction method and purpose, approximate scale, disclosures and their method, recipients and purposes of disclosure, and retention by personal-information category." },
+      { kind: "skeleton", text: "This appendix contains the detailed factual inventory supporting Section II, including personal-information and sensitive-personal-information categories, sources, processing methods, consumer interaction, scale, disclosures, recipients, and category-level retention." },
       // 1
       { kind: "rule", text: "{{DERIVED.processing_and_data_inventory}} — assembled deterministically from the Intake Contract v2.0 structured facts (q4_pi_categories × SPI map, i4b_sources, processing_entry_point/methods/result, consumer interaction, approximate_ca_consumers, activity_disclosures, recipients, retention_by_pi_category, i2 retention record). Adds no operational fact not established in the record." },
     ],
@@ -544,7 +548,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Appendix E — CPPA Submission Support Record (§ 7157)",
     blocks: [
       // 0
-      { kind: "skeleton", text: "This appendix is an EUP submission-support record. It preserves the information contributed by this assessment to the Company’s later business-level submission and identifies items that require aggregation across multiple assessments. It is not represented as a CPPA-prescribed form." },
+      { kind: "skeleton", text: "This appendix preserves the assessment-level information contributed to the Company’s later business-level CPPA submission and identifies items that must be aggregated across assessments. It is an EUP support record, not a CPPA-prescribed form." },
       // 1
       { kind: "rule", text: "{{DERIVED.submission_support_record_for_this_assessment}} — assessment-level contribution mapped from the trigger classification, activity PI/SPI categories, scale, status and certifying-executive record." },
       // 2
@@ -556,19 +560,28 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Appendix F — Materials Considered",
     blocks: [
       // 0
-      { kind: "skeleton", text: "The following documents, technical materials, policies, contracts, assessments, or other factual materials were supplied, identified, reviewed, or relied upon in connection with this assessment. Inclusion means the material formed part of the assessment record; it does not necessarily mean that every statement in the material was independently verified or accepted without qualification." },
+      { kind: "skeleton", text: "This appendix lists the documents, technical materials, policies, contracts, assessments, and other factual materials identified or relied on for this assessment. Inclusion means the material formed part of the assessment record; it does not mean every statement was independently verified." },
       // 1
       { kind: "rule", text: "{{DERIVED.materials_considered_index}} — index of the intake record and the materials it names (public privacy policy, existing DPIA/PIA summary where provided)." },
     ],
   },
   {
     // Section id kept as "table_of_authorities": generate-report-pdf forces a
-    // fresh page on this id across every SO spine.
+    // fresh page on this id across every SO spine. Spine v4.5 repurposes the
+    // section itself — the Table of Authorities is gone; this is now
+    // Appendix G, the factor/intake/determination/authority matrix (the same
+    // pattern used for the CPPA ADMT v3.2 spine's Appendix B).
     id: "table_of_authorities",
-    title: "Appendix G — Table of Authorities",
+    title: "Appendix G — Factor, Intake, Determination, and Authority Matrix",
     blocks: [
       // 0
-      { kind: "rule", text: "{{DERIVED.table_of_authorities}} — assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Phase C adds factor-authority provenance records; until then the ledger is the source." },
+      { kind: "skeleton", text: "This appendix provides a customer-readable audit trail for the material factors used in the assessment. For each factor that contributes to the report, it shows the customer’s intake data relevant to that factor, the exact deterministic or bounded report language produced from the factor, and the primary authority governing the factor. It does not show internal field names, variable names, typed enums, or hidden reasoning." },
+      // 1 — {{DERIVED.factor_input_determination_authority_matrix}}, assembled
+      // in risk-skeleton-assemble.ts from the v4.5 Verified Factor-to-Authority
+      // Registry (Part 3.G) over the factor engine's own provenance/output —
+      // the same values already printed in the body. No new legal content: a
+      // suppressed row means the underlying factor did not compose.
+      { kind: "table", text: "factor_authority_matrix" },
     ],
   },
   {
@@ -619,13 +632,11 @@ export interface SkeletonPinpoint {
 export const RISK_SKELETON_PINPOINTS: readonly SkeletonPinpoint[] = [];
 
 /**
- * TABLE OF AUTHORITIES — deterministic assembly rule. An authority appears iff
- * it is cited in the assembled document.
+ * APPENDIX G — the v4.5 factor/intake/determination/authority matrix.
+ * Assembled deterministically in risk-skeleton-assemble.ts from the factor
+ * engine's own provenance/output over the v4.5 Verified Factor-to-Authority
+ * Registry (Part 3.G of the spine docx). A separate Table of Authorities no
+ * longer prints (v4.5 Part 1, Voice/Presentation Rules).
  */
-export const RISK_TOA_RULE =
-  "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred.";
-export const RISK_TOA_GROUPS: readonly string[] = [
-  "Regulations",
-  "Statutes",
-  "Guidance and Persuasive Authority",
-];
+export const RISK_APPENDIX_G_RULE =
+  "Each row is assembled from the same factor object that produced the body language: Factor (human-readable name, no field key) | Customer Intake Data (the Company's actual supplied values, ordinary language) | Deterministic Report Language (the exact final customer-facing sentence(s) printed for that factor) | Primary Authority (the verified registry citation). A factor that is not applicable or does not contribute to a printed determination, finding, condition, follow-up item, recommendation, or material balancing determination is suppressed rather than printed as N/A.";
