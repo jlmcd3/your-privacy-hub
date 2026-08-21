@@ -190,7 +190,8 @@ function art36Paragraphs(det: string, dpo: boolean): string {
 
 Deno.test("8F — disclosure renders beside a non-consultation determination", () => {
   const out = art36Paragraphs("consultation_not_required", true);
-  assert(out.includes("no prior consultation with the supervisory authority under Article 36(1) is required"), out);
+  // v4.6 (2026-08-21) — composeArt36Sentence's "not required" branch wording.
+  assert(out.includes("prior consultation with the supervisory authority under Article 36(1) is not required"), out);
   assert(out.includes("has advised that the supervisory authority be consulted on this processing"), out);
 });
 

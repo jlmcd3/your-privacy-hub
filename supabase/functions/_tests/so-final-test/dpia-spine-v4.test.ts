@@ -1,17 +1,18 @@
-// PROMPT 8B (CEO-ratified 2026-08-12) — DPIA SPINE v4.1 conformance battery.
-// v4.1 is a fixed-prose revision only: the byte-pin moves, the structure and the
-// slot inventory do not.
+// PROMPT 8B (CEO-ratified 2026-08-12) — DPIA SPINE conformance battery.
+// Updated for v4.6 (CEO-ratified 2026-08-21): the citation-review pass over
+// v4.5.1's fixed prose plus Appendix A (factor/intake/determination/authority
+// matrix), replacing the Table of Authorities.
 //
 // Covers: the byte-pin over the ratified fixed prose, the section order against
 // the EDPB harmonised template, every table surface having a builder, the
-// no-padding law, the design/incident risk split, and the re-homed composed
-// blocks landing on the right section indices.
+// no-padding law (including Appendix A row suppression), the design/incident
+// risk split, and the re-homed composed blocks landing on the right section
+// indices.
 import {
   assert,
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import {
   DPIA_SKELETON_CONTENT_HASH,
   DPIA_SKELETON_CONTENT_HASH_V4,
@@ -45,7 +46,7 @@ const EDPB_ORDER = [
   "table_of_authorities",
 ];
 
-Deno.test("spine v4.1 — fixed prose is byte-pinned to the ratified hash", async () => {
+Deno.test("spine v4.6 — fixed prose is byte-pinned to the ratified hash", async () => {
   const text = DPIA_SKELETON_SECTIONS
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text))
     .join("\n");
@@ -57,14 +58,19 @@ Deno.test("spine v4.1 — the superseded v4 hash is retained for the audit trail
     DPIA_SKELETON_CONTENT_HASH_V4,
     "011f9f425d4cc275bdf023a97be89cafa46d9b561d0c5ca24e7957426d411cae",
   );
-  assert(DPIA_SKELETON_CONTENT_HASH !== DPIA_SKELETON_CONTENT_HASH_V4);
+  assert((DPIA_SKELETON_CONTENT_HASH as string) !== DPIA_SKELETON_CONTENT_HASH_V4);
 });
 
 // PROMPT 9I (CEO-ratified 2026-08-15) — the redline's replacement text for the
 // Section 1 opener drops its {organizationName} slot ("Pursuant to that
 // requirement, the company identifies below: ..."). That is the ONLY inventory
 // movement in v4.3; every other slot is carried through unchanged.
-Deno.test("spine v4.4 — the slot inventory drops the Section 3 opener's organizationName and gains regimeName", () => {
+//
+// v4.6 (CEO-ratified 2026-08-21) — the citation-review pass rewrote the
+// lawful-basis opener (Section 2) and the transfers closer (now "Operational
+// Compliance.") without a {regimeName} slot; both of its two occurrences are
+// gone. No other slot inventory changed.
+Deno.test("spine v4.6 — the slot inventory drops regimeName entirely", () => {
   const slots = DPIA_SKELETON_SECTIONS
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text))
     .flatMap((t) => [...t.matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)/g)].map((m) => m[1]))
@@ -82,37 +88,53 @@ Deno.test("spine v4.4 — the slot inventory drops the Section 3 opener's organi
     "organizationName",
     "organizationName",
     "reasonsToConduct",
-    "regimeName",
-    "regimeName",
     "supportingAssets",
   ]);
 });
 
-Deno.test("spine v4.1 — the ratified wording edits are the shipped bytes", () => {
+Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () => {
   const fixed = DPIA_SKELETON_SECTIONS
     .flatMap((s) => s.blocks.filter((b) => b.kind === "skeleton").map((b) => b.text));
-  assertEquals(fixed.length, 16);
-  assertStringIncludes(fixed[0], "{organizationName} believes that this assessment may be required because");
-  assertStringIncludes(fixed[1], "the absence of that information is noted rather than assumed.");
-  assertStringIncludes(fixed[3], "reproduced as identified by the company.");
-  // PROMPT 9L item 1 — blocks 5, 6, 7, 9 and 10 carry the v4.4 ratified bytes.
-  assertStringIncludes(fixed[4], "Pursuant to that requirement, in the tables below the company identifies:");
+  // v4.6 adds one new skeleton block in Section 2 and one new skeleton block
+  // as the Appendix A intro (replacing what was a "rule"-kind ToA block, which
+  // never counted toward this "skeleton" filter) -- 16 -> 18.
+  assertEquals(fixed.length, 18);
+  assertStringIncludes(fixed[0], "Article 35(3) identifies three cases in which a DPIA is required in particular");
+  assertStringIncludes(fixed[1], "Articles 24 and 28 require the controller to remain accountable for the processing");
+  assertStringIncludes(fixed[2], "Below, the company identifies the reasons the assessment was undertaken");
+  assertStringIncludes(fixed[3], "The assessment team and the approval process are reproduced as identified by the company.");
+  assertStringIncludes(fixed[4], "including the legitimate interest pursued by the controller where applicable");
   assertStringIncludes(fixed[5], "On the nature, scope and context of the processing, the company has stated the following:");
-  assertStringIncludes(fixed[6], "imposed on it under the {regimeName}. In the first table below, the company asserts the lawful basis of the processing under Article 6(1).");
-  assertStringIncludes(fixed[8], "only where {regimeName} Chapter V's conditions for such transfer are satisfied");
-  assertStringIncludes(fixed[9], "The following discussion analyzes the necessity and proportionality by identifying the company's specific goals, how the processing helps to reach those goals, whether less intrusive methods exist that could realistically achieve the same purpose, and the impact on individual privacy rights as balanced against the company's interests \u2014 all based on the information the company provided.");
-  assertStringIncludes(fixed[6], "the sufficiency of the record itself, not a finding assessed against the company.");
-  // PROMPT 9L.2 — §4 block order corrected: the statutory frame (fixed[10])
-  // precedes the design-risks intro (fixed[11]). Bytes unchanged.
-  assertStringIncludes(fixed[10], "in light of the protective or mitigating measures it identifies.");
-  assertStringIncludes(fixed[11], "The risks inherent in the processing's design \u2014 that is,");
-  // PROMPT 9I item 1 — the v4.3 ratified edits are the shipped bytes.
-  assertStringIncludes(fixed[8], "the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller");
-  assertStringIncludes(fixed[10], "Article 35(7)(d) requires an assessment of the measures planned to address them");
-  assertStringIncludes(fixed[12], "the company states: {dataSubjectsViews");
-  assertStringIncludes(fixed[15], "could not determine from the company's answers");
-  // The v4 wording must be gone.
+  // CEO item 1 (2026-08-21) -- the doubled "and" is gone: "...and, where
+  // information is lacking, what remains..." not "...and, where information
+  // is lacking, and what remains...".
+  assertStringIncludes(
+    fixed[6],
+    "Each subsequent table states what {organizationName} has recorded, what that supports, and, where information is lacking, what remains to be established.",
+  );
+  assertStringIncludes(fixed[7], "in addition to an Article 6 lawful basis");
+  // v4.6's new Section 2 block -- did not exist before this pass.
+  assertStringIncludes(fixed[8], "requires purpose limitation, data minimisation, accuracy, and storage limitation.");
+  assertStringIncludes(fixed[9], "Operational Compliance. The GDPR also requires the controller to address several operational compliance measures");
+  assertStringIncludes(fixed[10], "That analysis is informed by the Article 5 principles");
+  assertStringIncludes(fixed[11], "Article 35(7)(d) then requires the DPIA to identify the measures envisaged to address those risks");
+  assertStringIncludes(fixed[12], "Risk Assessments. The first register captures design risk");
+  assertStringIncludes(fixed[13], "Article 35(9) requires the controller, where appropriate, to seek the views of data subjects");
+  assertStringIncludes(fixed[14], "Article 35(11) also requires the controller to review the DPIA where necessary");
+  assertStringIncludes(fixed[15], "the negative branch states that prior consultation is not required on this assessment's determination");
+  assertStringIncludes(fixed[16], "could not determine from the company's answers");
+  // Appendix A intro (replaces the Table of Authorities) -- CEO item 3b: the
+  // header row must not say "Deterministic Report Language", and internal
+  // machinery must not print.
+  assertStringIncludes(fixed[17], "Internal field keys, variable names, hidden enums, and reasoning traces do not print in the customer report.");
+
   const all = fixed.join("\n");
+  // regimeName is gone entirely (CEO item 3a/3b context -- the citation-review
+  // pass rewrote both blocks that carried it without the slot).
+  assert(!all.includes("{regimeName}"));
+  // The pre-fix doubled "and" must not reappear.
+  assert(!all.includes("where information is lacking, and what remains"));
+  // The v4 wording must be gone.
   assert(!all.includes("has indicated that this assessment is required"));
   assert(!all.includes("the record does not carry the point"));
   // The v4.2 wording must be gone.
@@ -136,7 +158,13 @@ Deno.test("spine v4.1 — the retired v3 sections are gone", () => {
 
 Deno.test("spine v4.1 — every table surface has a builder", () => {
   const built = buildDpiaTablesBySurface({}, {});
+  // v4.6 — Appendix A's "factor_authority_matrix" surface is populated by its
+  // own dedicated composer in dpia-skeleton-assemble.ts (buildDpiaFactor
+  // AuthorityMatrixTable, positionally keyed as "table_of_authorities:1"),
+  // not by the generic by-surface builder — same pattern as CPPA Risk's
+  // Appendix G and CPPA ADMT's Appendix B matrices.
   for (const surface of DPIA_SKELETON_TABLE_SURFACES) {
+    if (surface === "factor_authority_matrix") continue;
     assert(surface in built, `no builder for table surface ${surface}`);
   }
 });
@@ -249,7 +277,8 @@ Deno.test("assembly — re-homed composers land on their v4.1 blocks and tables 
   assertStringIncludes(s3, "On the stated test \u2014 whether a realistic, less intrusive method could achieve the same purpose \u2014 each alternative the company considered was rejected for the reasons recorded, and the processing is supported as necessary to achieve the stated goal.");
   const s6 = byId("section_6_conclusion").paragraphs.map((p) => p.text).join(" ");
   assertStringIncludes(s6, "The sign-off determination recorded is");
-  assertStringIncludes(s6, "no prior consultation with the supervisory authority");
+  // v4.6 (2026-08-21) — composeArt36Sentence's "not required" branch wording.
+  assertStringIncludes(s6, "prior consultation with the supervisory authority under Article 36(1) is not required");
 
   const s1 = byId("section_1_description").paragraphs.map((p) => p.text).join(" ");
   assertStringIncludes(s1, "three urgent-care sites");
@@ -263,6 +292,48 @@ Deno.test("assembly — re-homed composers land on their v4.1 blocks and tables 
   // No slot may leak into the customer document.
   const whole = document.sections.flatMap((s) => s.paragraphs.map((p) => p.text)).join("\n");
   assert(!/\{[A-Za-z_]/.test(whole), "an unfilled slot reached the document");
+});
+
+// v4.6 (CEO-ratified 2026-08-21) — Appendix A replaces the Table of
+// Authorities. CEO item 3b: the header row must read "Report Language", not
+// "Deterministic Report Language". CEO item 3a: rows for factors that did not
+// compose (no-padding law) must not print.
+Deno.test("Appendix A — title, column headers, and row suppression match the CEO's ratification", () => {
+  const report = {
+    decision: { determination: "approved", conditions: [], blockers: [], why: "Nothing is left open.", citation: "GDPR Art. 35" },
+    art36_consultation: { determination: "consultation_not_required", why: "" },
+    necessity_findings: [{ operation_id: "o1", why: "The purpose could not be met by less intrusive means.", verdict: "least_intrusive_means_supported" }],
+    proportionality: [],
+    risk_register: [
+      { risk_id: "r3_children", risk_label: "Children", risk_class: "design", severity: "Severe", source: "x", affected_rights: "y", residual_band: "moderate", measures: ["Age gating"] },
+    ],
+    gap_ledger: [{ field: "retention_period", dimensions: "the retention period for the triage scores", provision: "GDPR Art. 5(1)(e)", enables: "the retention determination" }],
+    // Deliberately no report.legal_basis — "Lawful basis" must be suppressed.
+  };
+  const intake = {
+    organization_name: "Northwind Clinics Ltd",
+    processing_activity_name: "Patient triage scoring",
+    description: "A scoring model applied at intake.",
+    nature_scope_context: "The processing runs across three urgent-care sites.",
+    functional_description: "Scores are computed at check-in.",
+    supporting_assets: "A hosted scoring service and the patient record system.",
+    data_subjects_views: "A patient panel was consulted in June.",
+  };
+
+  const { document } = assembleDpiaSkeletonDocument(report, intake);
+  const appendix = document.sections.find((s) => s.id === "table_of_authorities")!;
+  assertEquals(appendix.title, "Appendix A — Factor, Intake, Determination, and Authority Matrix");
+
+  const matrix = appendix.paragraphs.find((p) => p.kind === "table")!.table!;
+  assertEquals(matrix.columns, ["Factor", "Customer Intake Data", "Report Language", "Primary Authority"]);
+  assert(!matrix.columns.some((c) => c.includes("Deterministic")), "column header must not say Deterministic");
+
+  const labels = matrix.rows.map((r) => r[0]);
+  // Present: description/purpose composed from the supplied nature/scope text.
+  assert(labels.includes("Systematic description and purposes"), "a composed factor was wrongly suppressed");
+  // Suppressed: no report.legal_basis was supplied, so the table never built.
+  assert(!labels.includes("Lawful basis"), "an uncomposed factor printed a row (no-padding law violated)");
+  assert(matrix.rows.length > 0 && matrix.rows.length < 22, "expected partial suppression, not all-or-nothing");
 });
 
 Deno.test("assembly — no table block renders an empty grid", () => {

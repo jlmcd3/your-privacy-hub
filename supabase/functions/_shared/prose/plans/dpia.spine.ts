@@ -1,13 +1,25 @@
 // ITEM SO-5 / PROMPT 8D — SPECIFIED OUTPUT ENCODE: Impact Assessment Builder
-// (DPIA). SPINE v4.2 — EDPB harmonised DPIA template structure, Sections 0–6,
-// with the CEO-ratified plain-language sweep of 2026-08-12.
+// (DPIA). SPINE v4.6 — citation-review pass over v4.5.1's fixed prose plus a
+// factor/intake/determination/authority Appendix A replacing the Table of
+// Authorities, CEO-ratified 2026-08-21
+// (`DPIA_Framework_Spine_v4.6_Citation_Review_and_Factor_Appendix_CORRECTED.docx`).
+// v4.6 keeps the architecture, the Intake Contract, every table surface, and
+// every generated/determination-lead output unchanged; it (a) tightens
+// statutory grounding in roughly a dozen skeleton blocks (added subsections,
+// statutory provisos, and one new skeleton block in Section 2 that did not
+// exist before), and (b) replaces the Table of Authorities with Appendix A,
+// the same pattern used for CPPA ADMT's Appendix B and CPPA Risk's Appendix
+// G. Scoped and verified in doc 42 (`42-DPIA-SPINE-4.6-SCOPE.md`) before
+// implementation.
 //
 // RENDER LAW. v3 (the CEO-corrected `Impact_Assessment_Builder_DPIA_Skeleton_
 // v3.docx` of 2026-08-10) was superseded on 2026-08-11 by spine v4; v4 by the
-// v4.1 prose ratification of 2026-08-12; and v4.1 by v4.2 (PROMPT 8D, CEO-
+// v4.1 prose ratification of 2026-08-12; v4.1 by v4.2 (PROMPT 8D, CEO-
 // ratified 2026-08-12), which DELETES the executive-summary [DETERMINATION
-// LEAD] block. The decision statement now closes the executive body per the
-// CEO's canonical model. No `skeleton` block's bytes changed at v4.2.
+// LEAD] block; v4.2 by v4.3 (PROMPT 9I) and v4.5.1 (PROMPT 9L.2) via targeted
+// fixed-prose and composition-order edits; and v4.5.1 by v4.6 above. The
+// decision statement continues to close the executive body per the v4.2
+// canonical model.
 //
 // HASH BASIS v2 (CEO-approved 2026-08-12): the pin is taken over the FULL
 // spine serialization — section id, title, order, and each block's kind and
@@ -37,7 +49,10 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "prose-plans-2026-08-16-prompt9l2-v4-5-1";
+export const DPIA_SKELETON_VERSION = "dpia-v4.6-2026-08-21";
+
+/** The v4.5.1 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V451 = "prose-plans-2026-08-16-prompt9l2-v4-5-1";
 
 /** The v4.5 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V45 = "prose-plans-2026-08-16-prompt9l1-v4-5";
@@ -117,8 +132,18 @@ export const DPIA_SKELETON_CONTENT_HASH_V45 =
  * table). No sentence bytes changed, but the basis-v1 concatenation order did.
  * Retained for the audit trail only; `DPIA_SPINE_HASH` (basis v2) is the pin.
  */
-export const DPIA_SKELETON_CONTENT_HASH =
+export const DPIA_SKELETON_CONTENT_HASH_V451 =
   "cb168a5e3155c60054d4e301f5bffeb18df01c051d3c717e6f19653a276c9c0a";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.6 — the citation-review pass
+ * reworded roughly a dozen skeleton blocks, added one new skeleton block in
+ * Section 2, and added the Appendix A intro skeleton block (18 skeleton
+ * blocks total, up from 16). Retained for the audit trail only;
+ * `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
+ */
+export const DPIA_SKELETON_CONTENT_HASH =
+  "da472b222b97e8eaacdf9c59d5abcb63d3699e82af4fa267e5b5c4ed4695234e";
 
 
 
@@ -178,7 +203,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     blocks: [
       // PROMPT 8D (v4.2): the [DETERMINATION LEAD] block is DELETED. The
       // decision statement closes the executive body per the canonical model.
-      { kind: "skeleton", text: "Article 35 requires a data protection impact assessment where processing is likely to result in a high risk to the rights and freedoms of natural persons. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
+      { kind: "skeleton", text: "Article 35(1) of the General Data Protection Regulation for the EU and UK (“GDPR”) requires a data protection impact assessment before processing that, taking into account its nature, scope, context and purposes, is likely to result in a high risk to the rights and freedoms of natural persons. Article 35(3) identifies three cases in which a DPIA is required in particular: systematic and extensive automated evaluation producing legal or similarly significant effects; large-scale processing of special-category data or criminal-offence data; and large-scale systematic monitoring of publicly accessible areas. The EDPB-endorsed WP248 rev.01 criteria and applicable supervisory-authority lists may identify additional processing likely to present high risk. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
       { kind: "generated", text: "[GENERATED] The executive body per the canonical model: the risks reviewed and the measures mitigating them; whether any is deemed high; the self-identified/surfaced split; the open points; and the grounded decision statement, which closes the section." },
 
     ],
@@ -187,7 +212,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_0_overview",
     title: "Section 0 - Overview of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section identifies the parties to the processing and the terms on which this assessment was conducted. {organizationName} is the controller of the processing being assessed, and the tables below identify the processors it has engaged and the particulars of the engagements. Where the company has not provided information, the absence of that information is noted rather than assumed." },
+      { kind: "skeleton", text: "This section identifies the controller, processors, planning information, assessment scope, materials, assessment team, and approval record. Article 35 places responsibility for the DPIA on the controller, while Articles 24 and 28 require the controller to remain accountable for the processing and to use processors that provide sufficient guarantees. {organizationName} is the controller of the processing being assessed, and the tables below identify the processors it has engaged and the particulars of the engagements. Where the company has not provided information, the absence of that information is noted rather than assumed." },
       { kind: "table", text: "processing_inventory.controllers" },
       { kind: "table", text: "processing_inventory.processors" },
       { kind: "table", text: "processing_inventory.planning" },
@@ -202,7 +227,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_1_description",
     title: "Section 1 - Systematic Description of the Processing",
     blocks: [
-      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the processing operations and of the purposes pursued. Pursuant to that requirement, in the tables below the company identifies: the categories of data it processes, the purposes of the processing, and any further uses of the data being processed." },
+      { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the envisaged processing operations and their purposes, including the legitimate interest pursued by the controller where applicable. Pursuant to that requirement, the tables below identify the categories of data, purposes of the processing, and any further uses of the data. The additional narrative describes the nature, scope, context, functional operation, and supporting assets so that the later necessity and risk analysis is tied to the processing actually proposed." },
       { kind: "table", text: "processing_inventory.data_items" },
       { kind: "table", text: "processing_inventory.purposes" },
       { kind: "table", text: "processing_inventory.secondary_uses" },
@@ -213,15 +238,23 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_2_analysis",
     title: "Section 2 - Analysis of the Processing",
     blocks: [
-      { kind: "skeleton", text: "This section tests the processing against the obligations imposed on it under the {regimeName}. In the first table below, the company asserts the lawful basis of the processing under Article 6(1). Each subsequent table states what {organizationName} has recorded, what that establishes, and, where the record is lacking, what is still needed. An entry marked as insufficient is a statement about the sufficiency of the record itself, not a finding assessed against the company." },
+      { kind: "skeleton", text: "A DPIA is not limited to identifying risks; it must also assess necessity and proportionality and identify measures that demonstrate compliance and protect data subjects. This section therefore reviews the legal bases under Article 6(1): consent, contract necessity, legal obligation, vital interests, public task, or legitimate interests, and any applicable Article 9 conditions for special-category data as described below, the Article 5 principles also as described below, data-subject rights, international transfers, processor governance, data protection by design and by default, and security. In the first table below, the company asserts the lawful basis of the processing under Article 6(1). Each subsequent table states what {organizationName} has recorded, what that supports, and, where information is lacking, what remains to be established. An entry marked as insufficient describes the sufficiency of the assessment record and is not, by itself, a finding of GDPR non-compliance." },
       { kind: "table", text: "legal_basis" },
-      { kind: "skeleton", text: "Where special categories of personal data are processed, Article 9(1) prohibits the processing unless one of the conditions in Article 9(2) applies. The condition under Article 9(2) that the company has selected, and the company's corresponding reasoning, are set forth below." },
+      { kind: "skeleton", text: "Article 9. Where special categories of personal data are processed, Article 9(1) generally prohibits the processing unless an Article 9(2) condition applies in addition to an Article 6 lawful basis. The condition under Article 9(2) that the company has selected, and the company's corresponding reasoning, are set forth below." },
       { kind: "table", text: "section2_coverage.special_category_conditions" },
+      // v4.6 — new skeleton block: this framing paragraph did not exist in
+      // v4.5.1, which went straight from the special-category table to
+      // data_minimisation_retention with no intervening prose. Safe to
+      // insert: section_2_analysis carries no generated/lead composed
+      // content anywhere, and every table block resolves by surface name
+      // (block.text), not by its array position, so the later table blocks'
+      // shifted indices are recomputed correctly at render time.
+      { kind: "skeleton", text: "Article 5; Articles 12-22. Article 5 outlines the core principles of lawfulness, fairness and transparency; purpose limitation; data minimisation; accuracy; storage limitation; integrity/confidentiality; and accountability with respect the processing of personal data. Specifically, Article 5(1)(b)–(e) requires purpose limitation, data minimisation, accuracy, and storage limitation. The following tables test whether the company has limited the data and retention period to what is necessary, maintains appropriate data quality, and has identified measures supporting the Article 5 principles and the exercise of data-subjects’ rights to their personal data and control over it under Articles 12–22." },
       { kind: "table", text: "section2_coverage.data_minimisation_retention" },
       { kind: "table", text: "section2_coverage.data_quality" },
       { kind: "table", text: "section2_coverage.measures_article5" },
       { kind: "table", text: "section2_coverage.measures_rights" },
-      { kind: "skeleton", text: "A controller may transfer personal data outside the European Economic Area only where {regimeName} Chapter V's conditions for such transfer are satisfied. The controller may use a processor only under a contract meeting the requirements of Article 28(3), including the subject-matter and duration of the processing, the nature and purpose of the processing, the type of personal data and categories of data subjects and the obligations and rights of the controller. The company's position on each is below; where the company identifies no such transfers, the assessment proceeds on the basis that none are made." },
+      { kind: "skeleton", text: "Operational Compliance. The GDPR also requires the controller to address several operational compliance measures relevant to proportionality and risk. Articles 12–22 govern the principal data-subject rights. Article 25 requires data protection by design and by default, and Article 32 requires security appropriate to risk. For international transfers, Article 44 and the remainder of Chapter V require a valid transfer framework for transfers to third countries or international organisations. Under Article 28(1), a controller may use only processors providing sufficient guarantees, and Article 28(3) requires the controller-processor relationship to be governed by a binding contract or other legal act containing the specified terms. The company's position on each is set out below; where no international transfer is identified, the assessment does not assume one." },
       { kind: "table", text: "section2_coverage.measures_other" },
       { kind: "table", text: "section2_coverage.measures_dpbd" },
       { kind: "table", text: "section2_coverage.measures_security" },
@@ -235,7 +268,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       // ORDER (S3-R1): statutory frame → necessity per operation →
       // proportionality per operation → the Section-3 determination LAST. Only
       // the two composed blocks swap position; no block's bytes move.
-      { kind: "skeleton", text: "Article 35(7)(b) requires an assessment of the necessity and proportionality of the processing in relation to its purposes. The following discussion analyzes the necessity and proportionality by identifying the company's specific goals, how the processing helps to reach those goals, whether less intrusive methods exist that could realistically achieve the same purpose, and the impact on individual privacy rights as balanced against the company's interests — all based on the information the company provided." },
+      { kind: "skeleton", text: "Article 35(7)(b) requires an assessment of whether the processing is necessary and proportionate to its stated purposes. That analysis is informed by the Article 5 principles—particularly purpose limitation and data minimisation—and by whether a realistic, less intrusive means could achieve the same purpose with materially lower impact on individuals. The following discussion applies that discipline to the company's stated goals, alternatives, data use, and impact on data-subject rights, based only on the information the company provided." },
       { kind: "generated", text: "[GENERATED] The necessity and proportionality analysis: less-intrusive-means discipline applied to the company's answers; record facts only." },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether necessity and proportionality are made out on the company's answers." },
       // PROMPT 9L.1 item 5 (CEO comment 9; EDPB alignment) — the design-risks
@@ -254,10 +287,10 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       // PROMPT 9I item 3 (CEO-ratified 2026-08-15) — the most-significant-risk
       // summary is the section's CLOSING paragraph, so the [DETERMINATION LEAD]
       // block moves last. Block bytes are unchanged.
-      { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects, and Article 35(7)(d) requires an assessment of the measures planned to address them. This section identifies potential risks that arise where the processing does not operate as intended, and then states the company's position on each risk in light of the protective or mitigating measures it identifies." },
+      { kind: "skeleton", text: "Article 35(7)(c) requires an assessment of the risks to the rights and freedoms of data subjects. Article 35(7)(d) then requires the DPIA to identify the measures envisaged to address those risks, including safeguards, security measures, and mechanisms to ensure the protection of personal data and demonstrate compliance, taking into account the rights and legitimate interests of data subjects and other persons concerned. This section therefore considers both risks inherent in the processing design and risks arising from failure, misuse, deviation, or attack, and then evaluates the company's identified measures and the residual position." },
       // PROMPT 9L.1 item 5 — the design-risk intro and table are the starting
       // point of the risk assessment (moved from the end of §3).
-      { kind: "skeleton", text: "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below as the starting point of the risk assessment." },
+      { kind: "skeleton", text: "Risk Assessments. The first register captures design risk: harm that may arise from the processing even when the system operates as intended. The incident register separately captures risks arising from error, misuse, unauthorised access, technical failure, or other adverse events. The combined register then supports the residual-risk determination after the company's measures are considered." },
       { kind: "table", text: "risk_register.design" },
       { kind: "table", text: "risk_register.incident" },
       { kind: "table", text: "risk_register" },
@@ -270,27 +303,41 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_5_interested_parties",
     title: "Section 5 - Involvement of Interested Parties",
     blocks: [
-      { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer, where one is designated, and Article 35(9) requires the views of data subjects or their representatives to be sought where appropriate. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. With respect to the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
+      { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer, where one is designated, when carrying out the DPIA. Article 35(9) requires the controller, where appropriate, to seek the views of data subjects or their representatives on the intended processing, subject to protection of commercial or public interests and the security of processing operations. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. With respect to the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
     ],
   },
   {
     id: "section_6_conclusion",
     title: "Section 6 - Conclusion and Decision",
     blocks: [
-      { kind: "skeleton", text: "This section states the determination this assessment reaches, the conditions on which it rests, and the point at which it must be revisited." },
+      { kind: "skeleton", text: "This section states the DPIA determination, any conditions or unresolved points, the approval basis, and whether prior consultation is required. Article 35(11) also requires the controller to review the DPIA where necessary, at least when a change in the risk represented by the processing occurs." },
       { kind: "table", text: "decision" },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the sign-off determination with any condition attached." },
       { kind: "generated", text: "[GENERATED] The approval basis in counsel's voice: which residual risks were accepted and by whom ({dpiaApprovedByName}), with any condition; the scope note {dpiaScopeNote} and review window {endDate} where the company has recorded them." },
-      { kind: "skeleton", text: "{ART36_SENTENCE - from art36_consultation: where the residual risk remains high notwithstanding the measures, Article 36(1) requires the controller to consult the supervisory authority before the processing begins; the negative branch states that no prior consultation is required on this assessment's determination}." },
+      { kind: "skeleton", text: "{ART36_SENTENCE - from art36_consultation: where the DPIA concludes that the intended processing would still result in a high risk because the controller cannot sufficiently mitigate it through available measures, Article 36(1) requires prior consultation with the supervisory authority before processing begins; the negative branch states that prior consultation is not required on this assessment's determination}." },
       { kind: "skeleton", text: "Matters still outstanding are listed below. Each is a point this assessment could not determine from the company's answers, and each names what would resolve it." },
       { kind: "table", text: "gap_ledger" },
     ],
   },
   {
+    // Section id kept as "table_of_authorities": generate-report-pdf forces a
+    // fresh page on this id across every SO spine, and the same id also
+    // routes past SkeletonDocumentView.tsx's ToA-vs-plain-prose switch
+    // (guarded there by block kind, not by section id alone, since the CPPA
+    // Risk Appendix G build). v4.6 repurposes the section itself — the Table
+    // of Authorities is gone; this is now Appendix A, the factor/intake/
+    // determination/authority matrix (the same pattern used for CPPA ADMT's
+    // Appendix B and CPPA Risk's Appendix G).
     id: "table_of_authorities",
-    title: "Table of Authorities",
+    title: "Appendix A — Factor, Intake, Determination, and Authority Matrix",
     blocks: [
-      { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
+      { kind: "skeleton", text: "This appendix provides a customer-readable audit trail for the material factors used in the DPIA. Each row shows the factor being assessed, the customer intake data that supplied the relevant facts, the exact report language produced from the existing output block, and the primary legal or authoritative source governing that factor. Internal field keys, variable names, hidden enums, and reasoning traces do not print in the customer report." },
+      // {{DERIVED.factor_input_determination_authority_matrix}}, assembled in
+      // dpia-skeleton-assemble.ts from the same composed values/tables that
+      // already render in the body -- no new legal content, no new intake or
+      // output variable. A row suppressed here means the underlying factor
+      // did not compose for this document (no-padding law).
+      { kind: "table", text: "factor_authority_matrix" },
     ],
   },
 ];
@@ -346,11 +393,15 @@ export function serializeDpiaSpine(
 }
 
 /**
- * v4.2 SPINE HASH — SHA-256 over `serializeDpiaSpine()`. This is the shipped
+ * v4.6 SPINE HASH — SHA-256 over `serializeDpiaSpine()`. This is the shipped
  * byte-pin. Recomputed and re-ratified on every ratified spine change; a drift
  * is a HARD STOP, not a fix-up.
  */
 export const DPIA_SPINE_HASH =
+  "2c8c607725ca0094f22a3ec1ed8930deff4875313bb40d84f425b384c56204bf";
+
+/** The v4.5.1 spine under basis v2 — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V451 =
   "6260f748f34385573e32dc4e5c32d97e1ef52938dad3127ec041573e72541960";
 
 /** The v4.5 spine under basis v2 — retained for the audit trail. */

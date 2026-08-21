@@ -27,7 +27,6 @@ import {
 import { DPIA_LEGAL_BASIS_PHRASE_MAP } from "../prose/plans/dpia.slotmap.ts";
 // PROMPT 12D — exhibit-side supply of the spine-cited authorities.
 import { DPIA_SPINE_CITED_AUTHORITIES } from "../report-exhibits/dpia-spine-authorities.ts";
-import { dpiaRenderedConclusionText } from "./dpia-rendered-surfaces.ts";
 
 // PROMPT 9A — compact-label presentation (registry + R4 merge). Presentation
 // only: nothing here changes an ask, a template sentence, or the gap table.
@@ -35,12 +34,14 @@ import { mergeLabeledAsks, renderMergedLabel } from "./dpia-ask-labels.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
+  skeletonTableToText,
   verifySkeletonConformance,
   type ComposedBlocks,
   type RenderedSkeletonDocument,
+  type RenderedTable,
   type SlotValues,
 } from "../prose/skeleton-render.ts";
-import { buildDpiaSkeletonTables } from "./dpia-skeleton-tables.ts";
+import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skeleton-tables.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
 import { DPIA_NECESSITY_TEST_SENTENCE, readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
@@ -984,11 +985,15 @@ function composeArt36Sentence(report: Bag): string {
   const det = art36Determination(report);
   let base: string;
   if (det === "consultation_required") {
-    base = "Because the remaining risk level is high despite the mitigating measures the company has recorded, Article 36(1) requires the controller to consult the supervisory authority before the processing begins";
+    // v4.6 (2026-08-21) — ties the sentence to Article 36(1)'s actual
+    // trigger: the DPIA concluding the processing would STILL result in a
+    // high risk because it cannot be sufficiently mitigated, not merely that
+    // a risk level is numerically "high."
+    base = "Because this DPIA concludes that the intended processing would still result in a high risk that the company cannot sufficiently mitigate through the measures it has recorded, Article 36(1) requires prior consultation with the supervisory authority before processing begins";
   } else if (det === "undetermined_on_the_record") {
     base = "Whether Article 36(1) requires prior consultation cannot be settled based on the information the company provided, because the remaining risk levels on which that duty turns are open on the points named above";
   } else {
-    base = "On this assessment's determination, no prior consultation with the supervisory authority under Article 36(1) is required";
+    base = "On this assessment's determination, prior consultation with the supervisory authority under Article 36(1) is not required";
   }
   if (a36.dpo_recommends_consultation === true && det !== "consultation_required") {
     return `${base}. ${noStop(ART36_DPO_DISCLOSURE)}`;
@@ -1128,6 +1133,273 @@ function consolidatePinpoints(citations: string[]): string[] {
   });
 }
 
+// ── Appendix A — factor / intake / determination / authority matrix ─────────
+//
+// Spine v4.6 replaces the Table of Authorities with a customer-readable audit
+// trail (docx blocks 121-147): for each material factor, the row shows the
+// customer's own intake data, the exact report language already printed for
+// that factor, and the primary authority. No new legal content is produced
+// here -- "Report Language" is read straight from the same composed blocks,
+// slot values, and rendered tables that already appear in the body, so there
+// is no way for an Appendix A row to say something the report itself doesn't.
+// A row is suppressed (never printed as N/A) when the underlying factor did
+// not compose/render for this document, matching the no-padding law.
+
+/** Joins one or more already-composed values (composed[key] or values[key]), skipping blanks; null if none present. */
+function joinComposed(parts: readonly (string | null | undefined)[]): string | null {
+  const nonEmpty = parts.filter((p): p is string => typeof p === "string" && p.trim().length > 0);
+  return nonEmpty.length ? nonEmpty.join(" ") : null;
+}
+
+/** A short textual render of one or more table surfaces, honest-absent if none rendered. */
+function tableSummary(
+  tables: ReturnType<typeof buildDpiaTablesBySurface>,
+  keys: readonly string[],
+): string | null {
+  const parts = keys
+    .map((k) => tables[k])
+    .filter((t): t is NonNullable<typeof t> => !!t && Array.isArray(t.rows) && t.rows.length > 0)
+    .map((t) => skeletonTableToText(t));
+  return parts.length ? parts.join("\n\n") : null;
+}
+
+interface DpiaMatrixRowSpec {
+  readonly label: string;
+  readonly authority: string;
+  /** Returns the exact report language already produced for this factor, or null if it did not compose. */
+  readonly reportLanguage: (
+    ctx: {
+      readonly report: Bag;
+      readonly intake: Bag;
+      readonly values: SlotValues;
+      readonly composed: ComposedBlocks;
+      readonly tables: ReturnType<typeof buildDpiaTablesBySurface>;
+    },
+  ) => string | null;
+  readonly intakeData: (intake: Bag) => string | null;
+}
+
+const SEE_ABOVE = (where: string) => `See ${where} above for the underlying customer-supplied facts.`;
+
+const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
+  {
+    label: "DPIA requirement / high-risk trigger",
+    authority: "GDPR Art. 35(1), (3)–(5); EDPB-endorsed WP248 rev.01; applicable supervisory-authority Art. 35(4) list",
+    reportLanguage: ({ values }) =>
+      values.reasonsToConduct
+        ? `${s(values.organizationName)} believes this assessment may be required because ${s(values.reasonsToConduct)}.`
+        : null,
+    intakeData: (intake) => {
+      const reasons = arr(intake.reasons_to_conduct);
+      return reasons.length ? `Reasons to conduct: ${reasons.join("; ")}.` : null;
+    },
+  },
+  {
+    label: "Controller, processors, and accountability",
+    authority: "GDPR Arts. 24, 28; Art. 35(2), (7), (11) as applicable",
+    reportLanguage: ({ tables }) =>
+      tableSummary(tables, [
+        "processing_inventory.controllers",
+        "processing_inventory.processors",
+        "processing_inventory.planning",
+        "assessment_team",
+        "validation_approval",
+      ]),
+    intakeData: (intake) => {
+      const bits = [
+        s(intake.organization_name) ? `Controller: ${s(intake.organization_name)}.` : "",
+        arr(intake.third_party_processors).length ? `Processors: ${arr(intake.third_party_processors).join("; ")}.` : "",
+        s(intake.controller_contact) ? `Controller contact: ${s(intake.controller_contact)}.` : "",
+        s(intake.dpo_info) ? `DPO: ${s(intake.dpo_info)}.` : "",
+      ].filter(Boolean);
+      return bits.length ? bits.join(" ") : null;
+    },
+  },
+  {
+    label: "Systematic description and purposes",
+    authority: "GDPR Art. 35(7)(a); Art. 5(1)(b)",
+    reportLanguage: ({ tables, values }) =>
+      joinComposed([
+        tableSummary(tables, ["processing_inventory.data_items", "processing_inventory.purposes", "processing_inventory.secondary_uses"]),
+        typeof values.natureScopeContext === "string" ? `On nature, scope and context: ${values.natureScopeContext}` : null,
+      ]),
+    intakeData: (intake) =>
+      s(intake.description)
+        ? `Description: ${boundedClause(s(intake.description))}. Purpose: ${boundedClause(s(intake.purpose)) || "not separately stated"}.`
+        : null,
+  },
+  {
+    label: "Lawful basis",
+    authority: "GDPR Art. 6(1); where legitimate interests are relied on, Art. 6(1)(f) and Art. 35(7)(a)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["legal_basis"]),
+    intakeData: (intake) => (s(intake.legal_basis_proposed) ? `Legal basis proposed: ${s(intake.legal_basis_proposed)}.` : null),
+  },
+  {
+    label: "Special-category condition",
+    authority: "GDPR Art. 9(1)–(2); Art. 35(7)(b)–(d)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.special_category_conditions"]),
+    intakeData: (intake) =>
+      s(intake.article_9_condition) ? `Article 9(2) condition relied on: ${s(intake.article_9_condition)}.` : null,
+  },
+  {
+    label: "Data minimisation and retention",
+    authority: "GDPR Art. 5(1)(b), (c), (e); Art. 35(7)(b)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.data_minimisation_retention"]),
+    intakeData: (intake) =>
+      s(intake.data_minimisation_justification) || s(intake.retention_period)
+        ? `Minimisation justification: ${boundedClause(s(intake.data_minimisation_justification)) || "not separately stated"}. Retention: ${
+          boundedClause(s(intake.retention_period)) || "not separately stated"
+        }.`
+        : null,
+  },
+  {
+    label: "Data quality / accuracy",
+    authority: "GDPR Art. 5(1)(d); Art. 35(7)(b), (d)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.data_quality"]),
+    intakeData: (intake) => (s(intake.data_quality_measures) ? `Data quality measures: ${boundedClause(s(intake.data_quality_measures))}.` : null),
+  },
+  {
+    label: "Article 5 principles / accountability measures",
+    authority: "GDPR Art. 5(1)–(2); Arts. 24, 35(7)(d)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_article5"]),
+    intakeData: () => SEE_ABOVE("the Article 5 measures table"),
+  },
+  {
+    label: "Data-subject rights",
+    authority: "GDPR Arts. 12–22; Art. 35(7)(b), (d)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_rights"]),
+    intakeData: (intake) =>
+      s(intake.data_subject_rights_mechanisms) ? `Data-subject-rights mechanisms: ${boundedClause(s(intake.data_subject_rights_mechanisms))}.` : null,
+  },
+  {
+    label: "International transfers",
+    authority: "GDPR Art. 44 and Chapter V",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_other"]),
+    intakeData: (intake) => {
+      const flows = asArray(intake.transfer_flows);
+      return flows.length
+        ? `Transfer flows: ${
+          flows.map((f) => `${s(f.recipient) || "recipient"} — ${s(f.destination_country) || "destination not stated"} (${s(f.transfer_mechanism) || "mechanism not stated"})`).join("; ")
+        }.`
+        : null;
+    },
+  },
+  {
+    label: "Processor governance",
+    authority: "GDPR Art. 28(1), (3)–(4)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_other"]),
+    intakeData: (intake) =>
+      s(intake.processor_obligations) ? `Processor obligations recorded: ${boundedClause(s(intake.processor_obligations))}.` : null,
+  },
+  {
+    label: "Data protection by design and by default",
+    authority: "GDPR Art. 25; Art. 35(7)(d)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_dpbd"]),
+    intakeData: (intake) => (s(intake.dp_by_design_measures) ? `DPbD measures: ${boundedClause(s(intake.dp_by_design_measures))}.` : null),
+  },
+  {
+    label: "Security of processing",
+    authority: "GDPR Art. 32; Art. 35(7)(d)",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_security"]),
+    intakeData: (intake) => {
+      const safeguards = arr(intake.existing_safeguards).filter((x) => !/^none$/i.test(x));
+      return safeguards.length ? `Existing safeguards: ${safeguards.join("; ")}.` : null;
+    },
+  },
+  {
+    label: "Necessity and proportionality",
+    authority: "GDPR Art. 35(7)(b); Art. 5(1)(b)–(c)",
+    reportLanguage: ({ composed }) =>
+      joinComposed([composed["section_3_necessity_proportionality:1"], composed["section_3_necessity_proportionality:2"]]),
+    intakeData: (intake) =>
+      s(intake.necessity_proportionality) ? `Necessity/proportionality basis: ${boundedClause(s(intake.necessity_proportionality))}.` : null,
+  },
+  {
+    label: "Design risk",
+    authority: "GDPR Art. 35(7)(c)–(d); Recitals 75–76",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["risk_register.design"]),
+    intakeData: () => SEE_ABOVE("the design risk register"),
+  },
+  {
+    label: "Incident / misuse risk",
+    authority: "GDPR Art. 35(7)(c)–(d); Art. 32; Recitals 75–76",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["risk_register.incident"]),
+    intakeData: () => SEE_ABOVE("the incident risk register"),
+  },
+  {
+    label: "Overall risk, safeguards, and residual position",
+    authority: "GDPR Art. 35(7)(c)–(d); Recitals 75–76",
+    reportLanguage: ({ composed }) => joinComposed([composed["section_4_risk_management:5"], composed["section_4_risk_management:6"]]),
+    intakeData: () => SEE_ABOVE("the risk register and safeguards"),
+  },
+  {
+    label: "DPO advice",
+    authority: "GDPR Art. 35(2); Art. 39(1)(c)",
+    reportLanguage: ({ values }) => (typeof values.DPO_ADVICE_SENTENCE === "string" ? values.DPO_ADVICE_SENTENCE : null),
+    intakeData: (intake) => (s(intake.dpo_advice) || s(intake.dpo_info) ? `DPO: ${boundedClause(s(intake.dpo_info)) || "recorded"}. Advice: ${boundedClause(s(intake.dpo_advice)) || "not separately stated"}.` : null),
+  },
+  {
+    label: "Views of data subjects / representatives",
+    authority: "GDPR Art. 35(9)",
+    reportLanguage: ({ values }) => (typeof values.dataSubjectsViews === "string" ? values.dataSubjectsViews : null),
+    intakeData: (intake) =>
+      s(intake.data_subjects_views_sought) || s(intake.data_subjects_views)
+        ? `Views sought: ${s(intake.data_subjects_views_sought) || "not separately stated"}. Views recorded: ${boundedClause(s(intake.data_subjects_views)) || "not separately stated"}.`
+        : null,
+  },
+  {
+    label: "Approval / decision",
+    authority: "GDPR Arts. 5(2), 24, 35(1), 35(11); EDPB DPIA Template v1.0 as structural guidance",
+    reportLanguage: ({ tables, composed }) =>
+      joinComposed([tableSummary(tables, ["decision"]), composed["section_6_conclusion:2"], composed["section_6_conclusion:3"]]),
+    intakeData: (intake) =>
+      s(intake.dpia_approved_by_name)
+        ? `Approved by: ${s(intake.dpia_approved_by_name)}${boundedClause(s(intake.dpia_approved_by_title)) ? `, ${boundedClause(s(intake.dpia_approved_by_title))}` : ""}${
+          s(intake.dpia_approval_date) ? ` on ${s(intake.dpia_approval_date)}` : ""
+        }.`
+        : null,
+  },
+  {
+    label: "Prior consultation",
+    authority: "GDPR Art. 36(1)–(3)",
+    reportLanguage: ({ values }) => (typeof values.ART36_SENTENCE === "string" ? values.ART36_SENTENCE : null),
+    intakeData: () => SEE_ABOVE("the risk register the prior-consultation determination is based on"),
+  },
+  {
+    label: "Outstanding matters / record gaps",
+    authority: "Primary authority for the affected factor; GDPR Art. 5(2) and Art. 24 for accountability context",
+    reportLanguage: ({ tables }) => tableSummary(tables, ["gap_ledger"]),
+    intakeData: () => SEE_ABOVE("the gap table"),
+  },
+];
+
+/** Appendix A — {{DERIVED.factor_input_determination_authority_matrix}}. Suppresses uncomposed factors (no-padding law); never prints N/A. */
+function buildDpiaFactorAuthorityMatrixTable(
+  report: Bag,
+  intake: Bag,
+  values: SlotValues,
+  composed: ComposedBlocks,
+  tables: ReturnType<typeof buildDpiaTablesBySurface>,
+): RenderedTable | null {
+  const rowsOut: string[][] = [];
+  for (const spec of DPIA_MATRIX_ROWS) {
+    const language = spec.reportLanguage({ report, intake, values, composed, tables });
+    if (!language) continue;
+    const data = spec.intakeData(intake) ?? "Not separately recorded in the intake.";
+    rowsOut.push([spec.label, data, language, spec.authority]);
+  }
+  if (rowsOut.length === 0) return null;
+  return {
+    key: "",
+    surface: "factor_authority_matrix",
+    // Left empty: the section heading already prints the full Appendix A
+    // title, so a second title line on the table itself would repeat it.
+    title: "",
+    columns: ["Factor", "Customer Intake Data", "Report Language", "Primary Authority"],
+    rows: rowsOut,
+  };
+}
+
 // ── Assembly ────────────────────────────────────────────────────────────────
 
 export interface DpiaSkeletonResult {
@@ -1258,25 +1530,16 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   const regime = readDpiaRegime(intake);
   const subtitle = regime === "UK" ? DPIA_SKELETON_SUBTITLE_UK : DPIA_SKELETON_SUBTITLE_EU;
 
-  const draft = renderSkeletonDocument({
-    sections: sectionsForRender,
-    title: DPIA_SKELETON_TITLE,
-    subtitle,
-    spineVersion: DPIA_SKELETON_VERSION,
-    values,
-    composed,
-    tables,
-  });
-
-  // PROMPT 12E — the iff-cited gate scans what the CUSTOMER SEES: the assembled
-  // skeleton body PLUS the enumerated legacy conclusion surfaces that
-  // generate-report-pdf still renders from the persisted row (see
-  // dpia-rendered-surfaces.ts). The gate and bodyCites are byte-unchanged;
-  // only the text they scan grows.
-  const citedBody = [skeletonDocumentToText(draft), dpiaRenderedConclusionText(report)]
-    .filter((t) => t)
-    .join("\n");
-  const toa = dpiaToa(report, citedBody, regime);
+  // v4.6 — Appendix A replaces the Table of Authorities. It is assembled
+  // directly from the same composed blocks, slot values, and rendered
+  // tables that already produce the body, so (unlike the ToA) it needs no
+  // draft/iff-cited two-pass render. The matrix rows key by SURFACE NAME
+  // ("legal_basis", "risk_register.design", ...), not by the positional
+  // "section:index" keys `tables` above carries for the renderer, so it is
+  // built from a separately surface-keyed bag.
+  const tablesBySurface = buildDpiaTablesBySurface(report, intake);
+  const matrixTable = buildDpiaFactorAuthorityMatrixTable(report, intake, values, composed, tablesBySurface);
+  const tablesWithMatrix = { ...tables, "table_of_authorities:1": matrixTable };
 
   const document = renderSkeletonDocument({
     sections: sectionsForRender,
@@ -1284,8 +1547,8 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     subtitle,
     spineVersion: DPIA_SKELETON_VERSION,
     values,
-    composed: { ...composed, "table_of_authorities:0": toa },
-    tables,
+    composed,
+    tables: tablesWithMatrix,
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();

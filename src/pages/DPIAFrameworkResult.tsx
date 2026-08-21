@@ -285,7 +285,12 @@ const DPIAFrameworkResult = () => {
                 precedents={report?.enforcement_precedents}
                 context="Recent regulator decisions on similar processing activities — review these alongside the risks and measures above."
               />
-              <AuthorityExhibit exhibit={report?.authority_exhibit} />
+              {/* v4.6: skipped when the skeleton already carries its own "table_of_authorities"
+                  section (now Appendix A) — otherwise the exhibit renders twice. See the
+                  analogous ADMT guard in ADMTCheckerResult.tsx. */}
+              {!skeletonDoc?.sections?.some((s: any) => s.id === "table_of_authorities") && (
+                <AuthorityExhibit exhibit={report?.authority_exhibit} />
+              )}
             </div>
           )}
 
