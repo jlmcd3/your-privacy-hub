@@ -1860,11 +1860,17 @@ export async function generateValidatedIntakesChunked(
     };
   };
 
+  // FIX-SO-WD (2026-08-21) — reserve-aware budget gate.
+  const reserveMs = ctx.callReserveMs ?? intakeCallReserveMs(tool);
+  const budgetExhausted = () => now() + reserveMs > ctx.deadlineAt;
+
   while (perfect ? (progress.accepted.length < count && progress.totalAttempted < budget) : progress.totalAttempted < count) {
     // Interior deadline checkpoint — BETWEEN calls, never inside one await.
-    if (now() >= ctx.deadlineAt) {
+    // A call is started only if its worst-case duration still fits the budget.
+    if (budgetExhausted()) {
       return { progress, status: "deadline" };
     }
+
     const t0 = now();
     const avoid = usedNames(progress.accepted);
     const extraGuidance = avoid.length
