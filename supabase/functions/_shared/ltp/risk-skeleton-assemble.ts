@@ -200,7 +200,7 @@ export function deriveAssessmentRetentionEnd(intake: Bag): string | null {
   return "Because the processing continues on the present record, the retention end date is not yet determinable; the later-of rule above governs";
 }
 
-function methodLines(intake: Bag): string[] {
+function methodLines(intake: Bag): Array<[string, string]> {
   const m = (intake.processing_methods ?? {}) as Bag;
   const pairs: Array<[string, string]> = [
     ["Collection", s(m.collection_method)],
@@ -209,120 +209,155 @@ function methodLines(intake: Bag): string[] {
     ["Retention", s(m.retention_method)],
     ["Other processing", s(m.other_processing_method)],
   ];
-  return pairs.filter(([, v]) => v).map(([k, v]) => `Processing method — ${k}: ${v}`);
+  return pairs.filter(([, v]) => v).map(([k, v]) => [`Processing method — ${k}`, v]);
 }
 
-/** {{DERIVED.processing_and_data_inventory}} — Appendix A projection of the structured v2.0 facts. */
-export function deriveProcessingAndDataInventory(intake: Bag): string | null {
-  const lines: string[] = [];
+/**
+ * {{DERIVED.processing_and_data_inventory}} — Appendix A projection of the
+ * structured v2.0 facts.
+ *
+ * Presentation-only fix (2026-08-21, Part B item 3, CEO-confirmed): this was
+ * a joined string ("rule" block), so the renderer fell through to the plain-
+ * paragraph branch and the inventory printed as a run-on block of text
+ * instead of a table. Now returns a RenderedTable directly — same facts,
+ * same computation, no operational fact added or removed.
+ */
+export function deriveProcessingAndDataInventory(intake: Bag): RenderedTable | null {
+  const rowsOut: string[][] = [];
+  const push = (item: string, detail: string) => { if (detail) rowsOut.push([item, detail]); };
+
   const cats = arr(intake.q4_pi_categories);
-  if (cats.length) lines.push(`Personal-information categories (this activity): ${cats.join("; ")}`);
+  if (cats.length) push("Personal-information categories (this activity)", cats.join("; "));
   const pi = deriveActivityPiInventory(intake);
-  if (pi) lines.push(`Canonical California mapping: ${pi}`);
+  if (pi) push("Canonical California mapping", pi);
   const spi = deriveActivitySpiInventory(intake);
-  lines.push(`Sensitive personal information: ${spi ?? "none identified in the activity record"}`);
-  if (s(intake.i4b_sources)) lines.push(`Sources: ${s(intake.i4b_sources)}`);
-  if (s(intake.processing_entry_point)) lines.push(`Processing entry point: ${s(intake.processing_entry_point)}`);
-  lines.push(...methodLines(intake));
+  push("Sensitive personal information", spi ?? "none identified in the activity record");
+  push("Sources", s(intake.i4b_sources));
+  push("Processing entry point", s(intake.processing_entry_point));
+  for (const [label, v] of methodLines(intake)) push(label, v);
   const lifecycle = deriveProcessingLifecycleNarrative(intake);
-  if (lifecycle) lines.push(`Processing lifecycle (operational sequence): ${lifecycle}`);
-  if (s(intake.processing_result)) lines.push(`Processing result: ${s(intake.processing_result)}`);
+  if (lifecycle) push("Processing lifecycle (operational sequence)", lifecycle);
+  push("Processing result", s(intake.processing_result));
   const im = s(intake.consumer_interaction_method);
   const ip = s(intake.consumer_interaction_purpose);
-  if (im || ip) lines.push(`Consumer interaction: ${[im, ip].filter(Boolean).join(" — ")}`);
-  if (s(intake.approximate_ca_consumers)) {
-    lines.push(`Approximate California consumers: ${s(intake.approximate_ca_consumers)}`);
-  }
+  if (im || ip) push("Consumer interaction", [im, ip].filter(Boolean).join(" — "));
+  push("Approximate California consumers", s(intake.approximate_ca_consumers));
   for (const d of rows(intake.activity_disclosures)) {
     const bits = [
-      clause(d.disclosure_content),
       `method: ${clause(d.disclosure_method)}`,
       s(d.status) ? `status: ${s(d.status)}` : "",
       s(d.timing_or_location) ? `timing: ${clause(d.timing_or_location)}` : "",
     ].filter(Boolean);
-    lines.push(`Disclosure — ${bits[0]} (${bits.slice(1).join("; ")})`);
+    push("Disclosure", `${clause(d.disclosure_content)} (${bits.join("; ")})`);
   }
   for (const r of rows(intake.recipients)) {
-    lines.push(
-      `Recipient — ${s(r.recipient_name_or_category)} (${s(r.recipient_type)}): ${
+    push(
+      "Recipient",
+      `${s(r.recipient_name_or_category)} (${s(r.recipient_type)}): ${
         arr(r.pi_categories_made_available).join(", ")
       } — ${clause(r.disclosure_purpose)}`,
     );
   }
   for (const r of rows(intake.retention_by_pi_category)) {
     const rule = s(r.retention_period) || s(r.retention_criteria);
-    if (s(r.pi_category) && rule) lines.push(`Retention — ${s(r.pi_category)}: ${rule}`);
+    if (s(r.pi_category) && rule) push("Retention", `${s(r.pi_category)}: ${rule}`);
   }
   const overall = [s(intake.i2_retention_period), s(intake.i2_retention_criteria)].filter(Boolean);
-  if (overall.length) lines.push(`Overall retention: ${overall.join(" — ")}`);
-  if (s(intake.i2_retention_detail)) lines.push(`Retention detail: ${s(intake.i2_retention_detail)}`);
-  return lines.length ? lines.join("\n") : null;
+  if (overall.length) push("Overall retention", overall.join(" — "));
+  push("Retention detail", s(intake.i2_retention_detail));
+
+  if (rowsOut.length === 0) return null;
+  return { key: "", surface: "processing_and_data_inventory", title: "", columns: ["Item", "Detail"], rows: rowsOut };
 }
 
-/** {{DERIVED.submission_support_record_for_this_assessment}} — Appendix E assessment-level contribution. */
+/**
+ * {{DERIVED.submission_support_record_for_this_assessment}} — Appendix E
+ * assessment-level contribution. Presentation-only fix (2026-08-21, Part B
+ * item 3): now returns a RenderedTable instead of a joined string; facts
+ * unchanged.
+ */
 export function deriveSubmissionSupportRecord(
   intake: Bag,
   report: Bag,
   assessmentDateIso: string,
-): string {
-  const lines: string[] = [];
-  if (s(intake.primary_activity_name)) {
-    lines.push(`Processing activity: ${s(intake.primary_activity_name)}`);
-  }
+): RenderedTable {
+  const rowsOut: string[][] = [];
+  const push = (item: string, detail: string) => { if (detail) rowsOut.push([item, detail]); };
+
+  push("Processing activity", s(intake.primary_activity_name));
   const triggers = deriveApplicable7150Triggers(report);
-  lines.push(`Applicable § 7150(b) trigger(s): ${triggers ?? "none engaged on the present record"}`);
+  push("Applicable § 7150(b) trigger(s)", triggers ?? "none engaged on the present record");
   const cats = arr(intake.q4_pi_categories);
-  if (cats.length) lines.push(`Personal-information categories processed (this activity): ${cats.join("; ")}`);
+  if (cats.length) push("Personal-information categories processed (this activity)", cats.join("; "));
   const spi = deriveActivitySpiInventory(intake);
-  lines.push(`Sensitive personal information: ${spi ?? "none identified in the activity record"}`);
-  if (s(intake.approximate_ca_consumers)) {
-    lines.push(`Approximate California consumers affected: ${s(intake.approximate_ca_consumers)}`);
-  }
+  push("Sensitive personal information", spi ?? "none identified in the activity record");
+  push("Approximate California consumers affected", s(intake.approximate_ca_consumers));
   if (s(intake.processing_status)) {
     const dates = [
       s(intake.processing_start_date) ? `start ${s(intake.processing_start_date)}` : "",
       s(intake.planned_start_date) ? `planned start ${s(intake.planned_start_date)}` : "",
     ].filter(Boolean).join("; ");
-    lines.push(`Processing status: ${s(intake.processing_status)}${dates ? ` (${dates})` : ""}`);
+    push("Processing status", `${s(intake.processing_status)}${dates ? ` (${dates})` : ""}`);
   }
   if (s(intake.i8_certifying_exec_name)) {
-    lines.push(
-      `Certifying executive identified: ${s(intake.i8_certifying_exec_name)}${
+    push(
+      "Certifying executive identified",
+      `${s(intake.i8_certifying_exec_name)}${
         s(intake.i8_certifying_exec_title) ? `, ${s(intake.i8_certifying_exec_title)}` : ""
       }`,
     );
   }
-  lines.push(`Assessment date: ${assessmentDateIso}; skeleton version: ${RISK_SKELETON_VERSION}`);
-  return lines.join("\n");
+  push("Assessment date", `${assessmentDateIso}; skeleton version: ${RISK_SKELETON_VERSION}`);
+
+  return { key: "", surface: "submission_support_record", title: "", columns: ["Item", "Detail"], rows: rowsOut };
 }
 
-/** {{DERIVED.business_level_submission_fields_outstanding}} — fixed § 7157 aggregate checklist. [R3] */
-export function deriveBusinessLevelOutstanding(): string {
-  return [
-    "Outstanding business-level § 7157 submission elements (these aggregate across all assessments in the reporting period and cannot be determined from this assessment alone):",
-    "— Number of risk assessments conducted or updated during the reporting period.",
-    "— Aggregate personal-information and sensitive-personal-information categories across all assessed activities.",
-    "— The certifying executive's attestation at the time of submission.",
-    "— Confirmation of the submission point of contact and submission method.",
-  ].join("\n");
+/**
+ * {{DERIVED.business_level_submission_fields_outstanding}} — fixed § 7157
+ * aggregate checklist. [R3] Presentation-only fix (2026-08-21, Part B item
+ * 3): a static checklist, so it now returns a single-column RenderedTable
+ * with the framing sentence as the table's own title; wording unchanged.
+ */
+export function deriveBusinessLevelOutstanding(): RenderedTable {
+  return {
+    key: "",
+    surface: "business_level_submission_outstanding",
+    title: "Outstanding business-level § 7157 submission elements (these aggregate across all assessments in the reporting period and cannot be determined from this assessment alone)",
+    columns: ["Outstanding element"],
+    rows: [
+      ["Number of risk assessments conducted or updated during the reporting period."],
+      ["Aggregate personal-information and sensitive-personal-information categories across all assessed activities."],
+      ["The certifying executive's attestation at the time of submission."],
+      ["Confirmation of the submission point of contact and submission method."],
+    ],
+  };
 }
 
-/** {{DERIVED.materials_considered_index}} — Appendix F index of the record and the materials it names. */
-export function deriveMaterialsConsideredIndex(intake: Bag): string {
-  const lines: string[] = [
-    "1. The Company’s CPPA risk-assessment intake record (Intake Contract v2.0), including its structured processing, disclosure, recipient, retention, necessity, benefit, harm-pathway and safeguard records.",
+/**
+ * {{DERIVED.materials_considered_index}} — Appendix F index of the record
+ * and the materials it names. Presentation-only fix (2026-08-21, Part B
+ * item 3): now returns a single-column RenderedTable instead of a numbered
+ * joined string (row order supplies the numbering); materials unchanged.
+ */
+export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
+  const rowsOut: string[][] = [
+    ["The Company’s CPPA risk-assessment intake record (Intake Contract v2.0), including its structured processing, disclosure, recipient, retention, necessity, benefit, harm-pathway and safeguard records."],
   ];
   if (s(intake.public_privacy_policy_url)) {
-    lines.push(`${lines.length + 1}. The Company’s public privacy policy: ${s(intake.public_privacy_policy_url)}`);
+    rowsOut.push([`The Company’s public privacy policy: ${s(intake.public_privacy_policy_url)}`]);
   }
   if (isYes(intake.i9_has_existing_dpia) && s(intake.i9_existing_dpia_summary)) {
-    lines.push(`${lines.length + 1}. The Company’s existing data protection impact assessment, as summarised in the intake record.`);
+    rowsOut.push(["The Company’s existing data protection impact assessment, as summarised in the intake record."]);
   }
-  return lines.join("\n");
+  return { key: "", surface: "materials_considered_index", title: "", columns: ["Material considered"], rows: rowsOut };
 }
 
-/** {{DERIVED.admt_technical_facts}} — Appendix D labelled projection of the Section V facts. */
-export function deriveAdmtTechnicalFacts(intake: Bag): string | null {
+/**
+ * {{DERIVED.admt_technical_facts}} — Appendix D labelled projection of the
+ * Section V facts. Presentation-only fix (2026-08-21, Part B item 3): now
+ * returns a RenderedTable instead of a joined string; facts unchanged.
+ */
+export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
   if (!isYes(intake.q18_admt_use)) return null;
   const pairs: Array<[string, string]> = [
     ["System description", s(intake.q19_admt_description)],
@@ -339,8 +374,9 @@ export function deriveAdmtTechnicalFacts(intake: Bag): string | null {
     ["§ 7153 — trained using personal information", yn(intake.admt_provider_trained_using_pi)],
     ["§ 7153 — recipient uses it for a significant decision", yn(intake.recipient_business_uses_admt_for_significant_decision)],
   ];
-  const lines = pairs.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`);
-  return lines.length ? lines.join("\n") : null;
+  const rowsOut = pairs.filter(([, v]) => v).map(([k, v]) => [k, v]);
+  if (rowsOut.length === 0) return null;
+  return { key: "", surface: "admt_technical_facts", title: "", columns: ["Field", "Detail"], rows: rowsOut };
 }
 
 // ── Slot values ─────────────────────────────────────────────────────────────
@@ -1090,20 +1126,24 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "x_governance:0": composeXApproval(intake),
     "x_governance:3": composeXTiming(intake),
     "x_governance:5": composeMaterialChangeDetails(intake),
-
-    // Appendices — {{DERIVED.*}} rule blocks
-    "appendix_a:1": deriveProcessingAndDataInventory(intake),
-    "appendix_d:1": deriveAdmtTechnicalFacts(intake),
-    "appendix_e:1": deriveSubmissionSupportRecord(intake, report, assessmentDate),
-    "appendix_e:2": deriveBusinessLevelOutstanding(),
-    "appendix_f:1": deriveMaterialsConsideredIndex(intake),
   };
 
   // v4.5 — Appendix G replaces the Table of Authorities. It is assembled
   // directly from the factor engine's own composed blocks and provenance, so
   // (unlike the ToA) it needs no draft/iff-cited two-pass render.
   const matrixTable = buildFactorAuthorityMatrixTable(report, intake, engine);
-  const tables: SkeletonTables = { "table_of_authorities:1": matrixTable };
+  // Part B item 3 (2026-08-21, CEO-confirmed) — Appendices A, D, E and F's
+  // {{DERIVED.*}} projections are structured facts, not narrative, so they
+  // now render as tables like Appendix G does, instead of a joined "rule"
+  // string that fell through to the plain-paragraph branch.
+  const tables: SkeletonTables = {
+    "table_of_authorities:1": matrixTable,
+    "appendix_a:1": deriveProcessingAndDataInventory(intake),
+    "appendix_d:1": deriveAdmtTechnicalFacts(intake),
+    "appendix_e:1": deriveSubmissionSupportRecord(intake, report, assessmentDate),
+    "appendix_e:2": deriveBusinessLevelOutstanding(),
+    "appendix_f:1": deriveMaterialsConsideredIndex(intake),
+  };
 
   const document = renderSkeletonDocument({
     sections: SKELETON_SECTIONS,

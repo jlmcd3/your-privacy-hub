@@ -245,13 +245,17 @@ for (const c of CPPA_RISK_PERFECT) {
       );
     });
 
-    await t.step("appendix rule blocks compose", () => {
-      assert(body.includes("Personal-information categories (this activity):"), "Appendix A inventory absent");
-      assert(body.includes("Applicable § 7150(b) trigger(s):"), "Appendix E submission record absent");
+    await t.step("appendix table blocks compose", () => {
+      // Part B item 3 (2026-08-21, CEO-confirmed, presentation only):
+      // Appendices A, D, E and F now render as tables (skeletonTableToText
+      // joins each row's cells with " | ", not a trailing colon on the
+      // label) instead of a joined "rule" string. Facts unchanged.
+      assert(body.includes("Personal-information categories (this activity)"), "Appendix A inventory absent");
+      assert(body.includes("Applicable § 7150(b) trigger(s)"), "Appendix E submission record absent");
       assert(body.includes("Outstanding business-level § 7157 submission elements"), "Appendix E outstanding checklist absent");
       assert(body.includes("CPPA risk-assessment intake record"), "Appendix F materials index absent");
       if (isAdmt) {
-        assert(body.includes("System description:"), "Appendix D ADMT facts absent on ADMT fixture");
+        assert(body.includes("System description"), "Appendix D ADMT facts absent on ADMT fixture");
       }
     });
   });
@@ -328,24 +332,45 @@ Deno.test("RK3-B — lifecycle narrative sequences the company's own first sente
   assertEquals(deriveProcessingLifecycleNarrative({}), null);
 });
 
+// Part B item 3 (2026-08-21, CEO-confirmed, presentation only): these five
+// builders now return a RenderedTable (columns + rows) instead of a joined
+// string, so the renderer gives them real <table> treatment instead of
+// falling through to the plain-paragraph branch. Facts and computation are
+// unchanged — only the shape of the return value is.
 Deno.test("RK3-B — Appendix A / E / F builders compose from established facts only", () => {
   const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
   const invA = deriveProcessingAndDataInventory(sierra);
   assertExists(invA);
-  assert(invA.includes("Recipient — Experian"), invA);
-  assert(invA.includes("Retention — Financial information: Statutory or regulatory retention requirement"), invA);
+  assertEquals(invA.columns, ["Item", "Detail"]);
+  assert(
+    invA.rows.some((r) => r[0] === "Recipient" && r[1].includes("Experian")),
+    JSON.stringify(invA.rows),
+  );
+  assert(
+    invA.rows.some((r) => r[0] === "Retention" && r[1].includes("Financial information: Statutory or regulatory retention requirement")),
+    JSON.stringify(invA.rows),
+  );
 
   const subE = deriveSubmissionSupportRecord(sierra, {
     scope_and_triggers: { narrative: ["Engaged — Section 7150(b)(3): significant-decision ADMT."] },
   }, "2026-08-18");
-  assert(subE.includes("Applicable § 7150(b) trigger(s): Section 7150(b)(3)"), subE);
-  assert(subE.includes("Certifying executive identified: L. Whitcomb, Chief Compliance Officer"), subE);
+  assertEquals(subE.columns, ["Item", "Detail"]);
+  assert(
+    subE.rows.some((r) => r[0] === "Applicable § 7150(b) trigger(s)" && r[1].includes("Section 7150(b)(3)")),
+    JSON.stringify(subE.rows),
+  );
+  assert(
+    subE.rows.some((r) => r[0] === "Certifying executive identified" && r[1].includes("L. Whitcomb, Chief Compliance Officer")),
+    JSON.stringify(subE.rows),
+  );
 
-  assert(deriveBusinessLevelOutstanding().includes("§ 7157"));
+  const outstanding = deriveBusinessLevelOutstanding();
+  assert(outstanding.title.includes("§ 7157"), outstanding.title);
+  assertEquals(outstanding.rows.length, 4);
 
   const idx = deriveMaterialsConsideredIndex(sierra);
-  assert(idx.includes("intake record"), idx);
-  assert(idx.includes("https://www.sierraoutfitters.example/privacy"), idx);
+  assert(idx.rows.some((r) => r[0].includes("intake record")), JSON.stringify(idx.rows));
+  assert(idx.rows.some((r) => r[0].includes("https://www.sierraoutfitters.example/privacy")), JSON.stringify(idx.rows));
 });
 
 Deno.test("RK3-B — Appendix D ADMT facts compose iff ADMT", () => {
@@ -353,7 +378,8 @@ Deno.test("RK3-B — Appendix D ADMT facts compose iff ADMT", () => {
   const locus = CPPA_RISK_PERFECT[1].intake as Bag;
   const facts = deriveAdmtTechnicalFacts(sierra);
   assertExists(facts);
-  assert(facts.includes("System description:"), facts);
-  assert(facts.includes("Human review:"), facts);
+  assertEquals(facts.columns, ["Field", "Detail"]);
+  assert(facts.rows.some((r) => r[0] === "System description"), JSON.stringify(facts.rows));
+  assert(facts.rows.some((r) => r[0] === "Human review"), JSON.stringify(facts.rows));
   assertEquals(deriveAdmtTechnicalFacts(locus), null);
 });

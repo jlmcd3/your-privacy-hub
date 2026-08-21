@@ -497,8 +497,15 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     blocks: [
       // 0
       { kind: "skeleton", text: "This appendix contains the detailed factual inventory supporting Section II, including personal-information and sensitive-personal-information categories, sources, processing methods, consumer interaction, scale, disclosures, recipients, and category-level retention." },
-      // 1
-      { kind: "rule", text: "{{DERIVED.processing_and_data_inventory}} — assembled deterministically from the Intake Contract v2.0 structured facts (q4_pi_categories × SPI map, i4b_sources, processing_entry_point/methods/result, consumer interaction, approximate_ca_consumers, activity_disclosures, recipients, retention_by_pi_category, i2 retention record). Adds no operational fact not established in the record." },
+      // 1 — Part B item 3 (2026-08-21, CEO-confirmed, presentation only):
+      // was "rule" (a joined string that fell through to the plain-
+      // paragraph branch); now "table", assembled deterministically from
+      // the Intake Contract v2.0 structured facts (q4_pi_categories × SPI
+      // map, i4b_sources, processing_entry_point/methods/result, consumer
+      // interaction, approximate_ca_consumers, activity_disclosures,
+      // recipients, retention_by_pi_category, i2 retention record). Adds
+      // no operational fact not established in the record.
+      { kind: "table", text: "processing_and_data_inventory" },
     ],
   },
   {
@@ -537,8 +544,14 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     blocks: [
       // 0
       { kind: "conditional", text: "[CONDITIONAL] ADMT APPENDIX INTRO - trigger: ADMT applicable. RISK_FIXED.appendix_d_intro. Absent => omitted." },
-      // 1
-      { kind: "rule", text: "{{DERIVED.admt_technical_facts}} — labelled projection of the Section V intake facts (q19_admt_description, admt_operational_role, i5_admt_logic, admt_assumptions_limitations, admt_output, admt_output_use, admt_consumer_effect, i5_admt_human_review, i5_admt_fairness_testing, i5_admt_training_source, § 7153 facts). Composed only when ADMT applies." },
+      // 1 — Part B item 3 (2026-08-21, CEO-confirmed, presentation only):
+      // was "rule"; now "table" — labelled projection of the Section V
+      // intake facts (q19_admt_description, admt_operational_role,
+      // i5_admt_logic, admt_assumptions_limitations, admt_output,
+      // admt_output_use, admt_consumer_effect, i5_admt_human_review,
+      // i5_admt_fairness_testing, i5_admt_training_source, § 7153 facts).
+      // Composed only when ADMT applies.
+      { kind: "table", text: "admt_technical_facts" },
       // 2
       { kind: "generated", text: "[GENERATED {{FACTOR.admt_technical_analysis}}] Phase C. Absent => omitted." },
     ],
@@ -549,10 +562,14 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     blocks: [
       // 0
       { kind: "skeleton", text: "This appendix preserves the assessment-level information contributed to the Company’s later business-level CPPA submission and identifies items that must be aggregated across assessments. It is an EUP support record, not a CPPA-prescribed form." },
-      // 1
-      { kind: "rule", text: "{{DERIVED.submission_support_record_for_this_assessment}} — assessment-level contribution mapped from the trigger classification, activity PI/SPI categories, scale, status and certifying-executive record." },
-      // 2
-      { kind: "rule", text: "{{DERIVED.business_level_submission_fields_outstanding}} — fixed checklist of the § 7157 business-level aggregates this individual assessment cannot determine. [R3]" },
+      // 1 — Part B item 3 (2026-08-21, CEO-confirmed, presentation only):
+      // was "rule"; now "table" — assessment-level contribution mapped
+      // from the trigger classification, activity PI/SPI categories,
+      // scale, status and certifying-executive record.
+      { kind: "table", text: "submission_support_record" },
+      // 2 — same fix; a fixed checklist of the § 7157 business-level
+      // aggregates this individual assessment cannot determine. [R3]
+      { kind: "table", text: "business_level_submission_outstanding" },
     ],
   },
   {
@@ -561,8 +578,11 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     blocks: [
       // 0
       { kind: "skeleton", text: "This appendix lists the documents, technical materials, policies, contracts, assessments, and other factual materials identified or relied on for this assessment. Inclusion means the material formed part of the assessment record; it does not mean every statement was independently verified." },
-      // 1
-      { kind: "rule", text: "{{DERIVED.materials_considered_index}} — index of the intake record and the materials it names (public privacy policy, existing DPIA/PIA summary where provided)." },
+      // 1 — Part B item 3 (2026-08-21, CEO-confirmed, presentation only):
+      // was "rule"; now "table" — index of the intake record and the
+      // materials it names (public privacy policy, existing DPIA/PIA
+      // summary where provided).
+      { kind: "table", text: "materials_considered_index" },
     ],
   },
   {
