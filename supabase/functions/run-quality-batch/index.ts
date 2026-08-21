@@ -2729,7 +2729,7 @@ async function runBatchInner(runId: string): Promise<void> {
         await persistState();
         if (genStatus === "deadline") {
           await persistState();
-          await log("info", `Intake generation deadline (isolate ${intakeIsolate}, ${Math.round(INTAKE_ISOLATE_BUDGET_MS / 1000)}s) — persisted ${gen.accepted.length} accepted / ${gen.totalAttempted} attempted and self-reinvoking to CONTINUE at scenario ${gen.totalAttempted + 1}/${needed}`);
+          await log("info", `Intake generation deadline (isolate ${intakeIsolate}, ${Math.round(intakeIsolateBudgetMs(tool) / 1000)}s budget / ${Math.round(intakeCallReserveMs(tool) / 1000)}s per-call reserve) — persisted ${gen.accepted.length} accepted / ${gen.totalAttempted} attempted and self-reinvoking to CONTINUE at scenario ${gen.totalAttempted + 1}/${needed}`);
           await selfReinvoke(runId);
           clearInterval(heartbeat);
           return;
