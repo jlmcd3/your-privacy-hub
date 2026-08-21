@@ -1780,6 +1780,13 @@ export async function generateValidatedIntakesChunked(
   prior: IntakeGenProgress,
   ctx: {
     deadlineAt: number;
+    /**
+     * FIX-SO-WD (2026-08-21) — worst-case duration of ONE scenario model call
+     * for this tool. A call is only started when `now + reserve <= deadlineAt`,
+     * so a call can never be in flight when the isolate is hard-killed.
+     */
+    callReserveMs?: number;
+
     onScenario?: (done: number, total: number, secs: number, ok: boolean, reason?: string) => Promise<void>;
     /** PROMPT 8K — closed-loop lint applies to variant=perfect only. */
     variant?: "perfect" | "messy" | null;
