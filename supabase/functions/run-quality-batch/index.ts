@@ -224,6 +224,30 @@ const DOC_TOTAL_TIMEOUT_MS = 20 * 60_000;
 // The isolate hard-kill is ~400s; leave headroom for the in-flight scenario
 // call plus persistence + self-reinvoke. Checked BETWEEN scenario calls.
 const INTAKE_ISOLATE_BUDGET_MS = 200_000;
+// FIX-SO-WD (2026-08-21) — RESERVE-AWARE INTAKE BUDGET.
+// The BETWEEN-calls deadline check is only safe when a call that STARTS just
+// under the deadline can still finish before the ~400s isolate hard-kill.
+// cppa-risk's scenario call measures 230–245s (runs #221/#223/#224), so a call
+// started at t=199s lands at ~t=440s: hard-killed mid-call, nothing persisted,
+// heartbeat dies, and the DB watchdog stamps "Orphaned by runtime shutdown".
+// Fix: never START a scenario call unless the tool's measured worst-case call
+// duration still fits inside the budget. Slow tools therefore do exactly one
+// scenario per isolate, persist, and self-reinvoke.
+const INTAKE_CALL_RESERVE_MS_DEFAULT = 90_000;
+const INTAKE_CALL_RESERVE_MS_BY_TOOL: Record<string, number> = {
+  "cppa-risk": 260_000,
+  "dpia": 200_000,
+  "cppa-admt": 200_000,
+  "governance": 150_000,
+};
+export function intakeCallReserveMs(tool?: string): number {
+  return (tool && INTAKE_CALL_RESERVE_MS_BY_TOOL[tool]) || INTAKE_CALL_RESERVE_MS_DEFAULT;
+}
+export function intakeIsolateBudgetMs(tool?: string): number {
+  // The budget must be at least one full reserve, or no call could ever start.
+  return Math.max(INTAKE_ISOLATE_BUDGET_MS, intakeCallReserveMs(tool) + 20_000);
+}
+
 // Tools whose generators write status='complete' on the source row (poll
 // path). Editorial/transient tools return payloads inline and bypass this.
 const POLL_TOOLS = new Set([
