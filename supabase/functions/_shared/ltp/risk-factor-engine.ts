@@ -38,6 +38,17 @@
 
 import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
 import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
+// SO-3 DEFECT CLASS 2 fix (2026-08-21, quality-batch 2fc40a52) — the shared,
+// abbreviation-aware sentence bound. This module's own copy of firstSentence()
+// used a naive regex that treated "Corp.", "Inc.", etc. as sentence endings,
+// truncating any customer text that opens with (or contains) a company-name
+// abbreviation before the sentence actually ends -- e.g. "Thornfield Analytics
+// Corp. ingests applicant-supplied financial data..." rendered as just
+// "Thornfield Analytics Corp." in the purpose-clarification sentence, and a
+// planned-safeguard description cut off entirely at "...Nexogen Financial AI
+// Inc." mid-clause. clause-bound.ts already solved this for DPIA; reusing it
+// here instead of maintaining a second, buggier copy.
+import { firstSentence } from "./clause-bound.ts";
 
 export const RISK_FACTOR_ENGINE_STAMP =
   "risk-factor-engine@rk3-d-2026-08-19-fable5";
@@ -61,11 +72,6 @@ function clause(v: unknown): string {
   return s(v).replace(/\.\s*$/, "");
 }
 
-function firstSentence(text: string): string {
-  const t = text.trim();
-  const m = t.match(/^[\s\S]*?[.!?](?=\s|$)/);
-  return (m ? m[0] : t).trim();
-}
 
 /** "a, b and c" */
 function asProse(items: readonly string[]): string {
@@ -280,7 +286,7 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
         "The processing may proceed, subject to any conditions identified below and to the review cadence in Section X.",
       kind: "proceed",
       explanation:
-        "The benefit record carries the moderate residual profile; the conditions, recommendations, and review cadence preserve the margin the determination rests on.",
+        "This is a favorable determination, but a close one: the benefit record is material, while the residual risk remains at the moderate tier rather than low. It depends on the credited safeguards continuing to operate as described, on any conditions or recommendations identified below being carried out, and on the review required in Section X taking place on schedule.",
     },
     High: {
       conclusion:
@@ -321,7 +327,7 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
         "The processing may proceed, subject to any conditions identified below; the review cadence in Section X takes on added importance.",
       kind: "proceed",
       explanation:
-        "The narrow margin rests on the credited safeguards; the conditions and recommendations preserve it.",
+        "This is a favorable determination, but a close one: the benefit record carries only limited weight, and the residual risk remains at the moderate tier. It depends on the credited safeguards continuing to operate as described and on any conditions or recommendations identified below being carried out.",
     },
     High: {
       conclusion:
@@ -999,31 +1005,35 @@ export function runRiskFactorEngine(
   if (pathways.length) {
     const addressed = [...new Set(pathways.map((p) => p.harm))];
     const remaining = HARM_PATHWAY_OPTS.filter((o) => !addressed.includes(o));
-    const reviewRows = rows(intake.harm_category_review_status);
-    let text: string;
-    if (reviewRows.length) {
-      text = `The Company’s category-review record addresses each harm category as follows: ${
-        reviewRows.map((r) => `${s(r.category) || s(r.harm)} — ${s(r.status)}`).join("; ")
-      }.`;
-    } else {
-      text = `The Company’s pathway record addresses the following ${
-        plural(addressed.length, "category", "categories")
-      }: ${addressed.join("; ")}.${
-        remaining.length
-          ? ` For the remaining ${
-            plural(remaining.length, "category", "categories")
-          } — ${remaining.join("; ")} — no credible pathway is identified in the assessment record, and ${
-            plural(remaining.length, "it is", "they are")
-          } not treated as material ${plural(remaining.length, "risk", "risks")}.`
-          : ""
-      }`;
-    }
+    // 2026-08-21 fix (quality-batch 2fc40a52) — this block used to branch on
+    // intake.harm_category_review_status ("reviewRows") and, when present,
+    // print a sentence built from it. That field is the RK3-A3 g1 internal QA
+    // tracker (CPPARiskAssessment.tsx: "Internal only -- tracks which harm
+    // categories have been reviewed. Never printed.") and its rows are shaped
+    // {harm_category, review_status}, not the {category|harm, status} this
+    // code read -- so the branch always rendered an empty enumeration
+    // ("-- ; -- ; ...") whenever a customer happened to populate it, on top of
+    // leaking an internal-only field into the customer-facing report at all.
+    // The fix is to stop reading that field here entirely, not to correct the
+    // key names: this sentence must always compose from the customer-facing
+    // harm-pathway record, which is what the retained branch already does.
+    const text = `The Company’s pathway record addresses the following ${
+      plural(addressed.length, "category", "categories")
+    }: ${addressed.join("; ")}.${
+      remaining.length
+        ? ` For the remaining ${
+          plural(remaining.length, "category", "categories")
+        } — ${remaining.join("; ")} — no credible pathway is identified in the assessment record, and ${
+          plural(remaining.length, "it is", "they are")
+        } not treated as material ${plural(remaining.length, "risk", "risks")}.`
+        : ""
+    }`;
     put(
       "vii_risks:3",
       "other_risk_categories_summary",
       "B",
       text,
-      reviewRows.length ? ["INTAKE:harm_category_review_status"] : ["INTAKE:a5_harm_pathways"],
+      ["INTAKE:a5_harm_pathways"],
       ["11 CCR § 7152(a)(5)"],
     );
   }

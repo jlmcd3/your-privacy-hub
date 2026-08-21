@@ -42,6 +42,11 @@ import {
   runRiskFactorEngine,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
+// SO-3 DEFECT CLASS 2 fix (2026-08-21, quality-batch 2fc40a52) — see the
+// identical note in risk-factor-engine.ts. This module carried the same
+// naive, non-abbreviation-aware copy of firstSentence(); replaced with the
+// shared implementation already proven out for DPIA.
+import { firstSentence } from "./clause-bound.ts";
 
 export const RISK_SKELETON_ASSEMBLER_STAMP =
   "risk-skeleton-assembler@rk3-d-class-c-conversion-2026-08-19";
@@ -78,11 +83,6 @@ function isYes(v: unknown): boolean {
   return v === true || /^yes\b/i.test(s(v));
 }
 
-function firstSentence(text: string): string {
-  const t = text.trim();
-  const m = t.match(/^[\s\S]*?[.!?](?=\s|$)/);
-  return (m ? m[0] : t).trim();
-}
 
 /**
  * Deterministic register repair — attribution voice is law (v3 bans).
