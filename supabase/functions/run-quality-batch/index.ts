@@ -1102,6 +1102,34 @@ const RUBRIC_ADMT: RubricCheck[] = [
     description: "When opt_out_exception does not match one of the four defined pathways (full opt-out, human-appeal, hiring/admission, work-allocation/compensation), the audit correctly reports the pathway as unresolved and recommends only that the Company confirm which pathway or § 7221(b) exception it relies on. It does NOT speculate that a narrative detail elsewhere in the intake (e.g., a described escalation or override process) supports a specific exception, even where that detail sounds similar to one — the Company must affirmatively select the pathway, and inferring one from unrelated narrative text would violate the tool's no-inference design. Do NOT fail rubric_actionability for the recommendation not naming a specific candidate exception in this situation; asking the Company to confirm the pathway is the complete, correct, and only safe recommendation on an unresolved record." },
 ];
 
+// Batch 3aa848eb (2026-08-22) — doc #2 (Nordfracht, approver R. Steiner) and
+// doc #5 (a pilot-scoped intake, approver S. Cartwright) both drew
+// rubric_actionability on the executive-summary sentence "the risk levels
+// in this document are preliminary until <name> re-scores them ... once
+// they have been deployed." The existing rubric_actionability exception
+// already covers "don't invent a re-scoring deadline the intake never
+// supplied" — but BOTH documents actually verified as already carrying a
+// concrete, scheduled re-assessment trigger elsewhere in the SAME report
+// (the Art. 35(11) periodic-review sentence: "reviewed every 24 months...
+// the review window runs to <date>", or the pilot-scope sentence "the pilot
+// ends on the end date above, when this assessment is re-run"). The grader
+// was scoring the risk-preliminary sentence in isolation without checking
+// whether the document's OWN periodic-review language elsewhere already
+// supplies the specificity it was faulting the sentence for lacking — same
+// shape as rubric_admt_check_full_document_before_missing_finding above.
+// Separately verified doc #2's approval-predates-launch timing is not
+// actually inconsistent with "preliminary until deployed" (DPIAs are
+// approved to proceed BEFORE launch by design; Art. 35(1)), so that half of
+// the finding is also covered here rather than left to recur. Split into
+// its own dedicated check per the same lesson as the ADMT overrides above:
+// a clause embedded in rubric_actionability's own paragraph already named
+// this exact scenario ("...e.g., 'preliminary until R. Steiner re-scores
+// it'...") and still didn't stop the check from re-firing on it.
+const RUBRIC_DPIA: RubricCheck[] = [
+  { id: "rubric_dpia_preliminary_risk_has_review_cycle", dimension: "intelligence", severity: "low",
+    description: "The risk-lead sentence naming who re-scores risk levels \"once [the mitigating measures] have been deployed\" states an OPERATIONAL trigger (real-world deployment data), distinct from the document's own Art. 35(11) STATUTORY periodic-review cycle stated elsewhere (e.g., \"this assessment is reviewed every 24 months or on material change; the review window runs to <date>\", or a pilot's stated end date at which the assessment is re-run). These are two legitimate, complementary re-verification mechanisms, not one mechanism the report failed to make specific — before flagging the risk-preliminary sentence as vague or under-actionable for not naming a re-scoring date or procedure, check the rest of the document for a stated review-cycle/end-date first. Also: an approval or sign-off date that PRECEDES the processing's launch date does not make \"preliminary until deployed and re-scored\" inconsistent with an already-approved determination — DPIAs are, by design, approved to proceed before the processing launches (GDPR Art. 35(1)); committing to re-verify risk levels once the system is actually live is itself correct, complete methodology, not an open gap. Do NOT fail rubric_actionability for either pattern." },
+];
+
 // QB-P25 B2 — Governance rubric note.
 // When the generator emits recommended_action_v2 or regulatory_basis_v2, those
 // objects are DESIGNED, structured output; never grade their JSON shape or
@@ -1137,6 +1165,7 @@ const RUBRIC_CHECKS: Record<string, RubricCheck[]> = {
   "cppa-admt": [...RUBRIC_GENERAL, ...RUBRIC_ADMT],
   "governance": [...RUBRIC_GENERAL, ...RUBRIC_GOVERNANCE],
   "cppa-risk": [...RUBRIC_GENERAL, ...RUBRIC_RISK],
+  "dpia": [...RUBRIC_GENERAL, ...RUBRIC_DPIA],
   // All other tools use the general list. Add tool-specific entries here as they're identified.
 };
 
