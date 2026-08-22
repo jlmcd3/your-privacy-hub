@@ -1148,6 +1148,28 @@ export function runRiskFactorEngine(
         );
       }
     }
+  } else if (materialHarms.size > 0) {
+    // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22): when a
+    // material risk exists, the safeguard factor applies, and having nothing
+    // implemented against it is the determined outcome most worth stating —
+    // previously the worse the safeguard posture, the quieter this section.
+    // Gated on materialHarms so a record with no material pathway (nothing
+    // for a safeguard to be material TO) keeps suppressing as genuine N/A.
+    // The residual claim is mechanically true: the residual rule credits
+    // only implemented safeguards, so with none credited the material risks
+    // carry through unmitigated.
+    put(
+      "viii_safeguards:1",
+      "material_existing_safeguards",
+      "A",
+      `${RISK_FACTOR_FIXED.viii_b_head} ${
+        safeguardRows.length
+          ? "The Company has recorded safeguards for this processing, but none of them is both implemented and directed at a risk this assessment identifies as material."
+          : "The Company has not identified any safeguards for this processing."
+      } Conclusion. The material risks identified in Section VII currently stand without an implemented safeguard, and the residual analysis in this section proceeds on that basis.`,
+      ["INTAKE:a6_safeguards", "FACTOR:material_risk_blocks"],
+      ["11 CCR § 7152(a)(6)"],
+    );
   }
   if (tested.length) {
     put(
@@ -1740,6 +1762,21 @@ export function runRiskFactorEngine(
       ["INTAKE:comparable_processing_status", "INTAKE:comparable_processing_basis"],
       ["11 CCR § 7156"],
     );
+  } else if (comparable === "Unsure") {
+    // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22): "Unsure"
+    // is an unresolved answer to a question that applies, not a non-answer.
+    // (A "single activity" answer stays suppressed — that is the genuine
+    // nothing-to-say case.) The Section IX carriage claim is mechanically
+    // true: the comparable === "Unsure" branch above already pushes the
+    // matching follow-up item.
+    put(
+      "i_purpose_scope:7",
+      "comparable_processing_analysis",
+      "B",
+      "The Company has not yet determined whether this assessment covers a single activity or a set of similar activities presenting similar risks. Conclusion. The assessment proceeds as an assessment of the single activity described until the Company resolves that question; the open point appears in the Required Assessment Follow-Up in Section IX.",
+      ["INTAKE:comparable_processing_status"],
+      ["11 CCR § 7156"],
+    );
   }
   if (engagedLines.length) {
     const analyses = engagedLines.map((l) => l.replace(/^Engaged — /, "Trigger analysis — "));
@@ -1754,6 +1791,34 @@ export function runRiskFactorEngine(
       "full_trigger_analysis",
       "B",
       text,
+      ["DERIVED:applicable_7150_triggers"],
+      ["11 CCR § 7150(b)"],
+    );
+  } else if (uncertainLines.length) {
+    // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22): a factor
+    // that applies but is unresolved states that outcome instead of
+    // disappearing. No trigger is engaged, but at least one cannot be
+    // resolved from the Company's answers — the requirement question is
+    // genuinely open, and this block says so.
+    put(
+      "i_purpose_scope:6",
+      "full_trigger_analysis",
+      "B",
+      `${RISK_FACTOR_FIXED.uncertain_trigger_lead} ${uncertainLines.join(" ")} Conclusion. Whether this activity is subject to the risk-assessment requirement is not yet settled on the Company’s answers; the determination remains open until the questions above are resolved.`,
+      ["DERIVED:applicable_7150_triggers"],
+      ["11 CCR § 7150(b)"],
+    );
+  } else if (scopeLines.some((x) => x.startsWith("Not engaged"))) {
+    // Same rule, determined-negative branch: the classifier ran and found no
+    // engaged trigger. That is a determination worth stating (and helpful to
+    // the reader — the assessment is voluntary), not an absence to suppress.
+    // Gated on the classifier's own "Not engaged" lines so a legacy record
+    // with no trigger narrative at all still composes nothing.
+    put(
+      "i_purpose_scope:6",
+      "full_trigger_analysis",
+      "B",
+      "Conclusion. The Company’s answers do not engage any of the risk-assessment triggers in 11 CCR § 7150(b); a risk assessment is not required for the activity as described, and this assessment records that determination.",
       ["DERIVED:applicable_7150_triggers"],
       ["11 CCR § 7150(b)"],
     );
@@ -2077,6 +2142,24 @@ export function runRiskFactorEngine(
         ["INTAKE:retention_by_pi_category", "INTAKE:i2_retention_period"],
         [],
       );
+    } else {
+      // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22):
+      // retention applies to every assessed activity, so an empty
+      // category-level record states its outcome instead of vanishing. Two
+      // distinct outcomes: the Company answered only the legacy
+      // activity-level field (real data the old gate silently ignored), or
+      // it recorded nothing at all.
+      const legacyPeriod = clause(intake.i2_retention_period);
+      put(
+        "ii_processing_context:13",
+        "retention_conclusion",
+        "B",
+        legacyPeriod
+          ? `The Company describes retention for the activity as ${legacyPeriod}, but has not recorded a retention period or determining criteria for each category of personal information involved. Conclusion. Retention is stated for the activity as a whole and remains to be established category by category.`
+          : "The Company has not identified how long the personal information involved in this activity is retained. Conclusion. Retention is not established on the answers provided.",
+        ["INTAKE:retention_by_pi_category", "INTAKE:i2_retention_period"],
+        [],
+      );
     }
   }
 
@@ -2084,6 +2167,48 @@ export function runRiskFactorEngine(
 
   {
     const dRows = rows(intake.activity_disclosures).filter((d) => s(d.disclosure_content));
+    // RK3-D — transparency_analysis (doc 33 D-L4: templated over the
+    // q11–q14 notice enums and the disclosure record; composed before the
+    // conclusion per the spine's block-4 order).
+    // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22): this
+    // block was previously nested under dRows.length, so the notice-gap
+    // analysis was unreachable exactly when disclosures were zero — the
+    // worst posture produced the least text. It now composes whenever the
+    // notice questions were answered, disclosures or not.
+    {
+      const noticeGaps: string[] = [];
+      if (s(intake.q12_notice_at_collection) === "Yes, partial coverage") {
+        noticeGaps.push("the notice at collection covers only part of the collection points");
+      }
+      if (isNo(intake.q12_notice_at_collection)) {
+        noticeGaps.push("no notice at collection is in place");
+      }
+      if (s(intake.q13_notice_content) === "Some elements") {
+        noticeGaps.push("the notice content covers only some of the required elements");
+      }
+      if (isNo(intake.q13_notice_content)) noticeGaps.push("the notice content is not in place");
+      if (s(intake.q11_policy_review) === "Over 24 months ago") {
+        noticeGaps.push("the privacy policy was last reviewed more than 24 months ago");
+      }
+      if (s(intake.q11_policy_review) === "No privacy policy") noticeGaps.push("no privacy policy is published");
+      const analysisText = noticeGaps.length === 0
+        ? (dRows.length
+          ? "Analysis. On the Company’s typed notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements. The disclosure record above is read against that posture."
+          : "Analysis. On the Company’s typed notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements.")
+        : `Analysis. The Company’s typed notice record shows ${
+          asProse(noticeGaps)
+        }. Each gap reduces what a consumer can learn about the processing before it occurs, and the reduction is carried into the expectation and balancing analyses.`;
+      if (s(intake.q12_notice_at_collection) || s(intake.q13_notice_content)) {
+        put(
+          "iv_consumer_transparency:2",
+          "transparency_analysis",
+          "B",
+          analysisText,
+          ["INTAKE:q11_policy_review", "INTAKE:q12_notice_at_collection", "INTAKE:q13_notice_content", "INTAKE:activity_disclosures"],
+          [],
+        );
+      }
+    }
     if (dRows.length) {
       const made = dRows.filter((d) => /^made/i.test(s(d.status))).length;
       const plannedD = dRows.filter((d) => /^planned/i.test(s(d.status))).length;
@@ -2102,46 +2227,24 @@ export function runRiskFactorEngine(
           "Consequence. Completion of each planned disclosure is treated as part of the transparency record; where the favorable balance depends on it, completion appears among the conditions or recommendations in Section IX.",
         );
       }
-      // RK3-D — transparency_analysis (doc 33 D-L4: templated over the
-      // q11–q14 notice enums and the disclosure record; composed before the
-      // conclusion per the spine's block-4 order).
-      {
-        const noticeGaps: string[] = [];
-        if (s(intake.q12_notice_at_collection) === "Yes, partial coverage") {
-          noticeGaps.push("the notice at collection covers only part of the collection points");
-        }
-        if (isNo(intake.q12_notice_at_collection)) {
-          noticeGaps.push("no notice at collection is in place");
-        }
-        if (s(intake.q13_notice_content) === "Some elements") {
-          noticeGaps.push("the notice content covers only some of the required elements");
-        }
-        if (isNo(intake.q13_notice_content)) noticeGaps.push("the notice content is not in place");
-        if (s(intake.q11_policy_review) === "Over 24 months ago") {
-          noticeGaps.push("the privacy policy was last reviewed more than 24 months ago");
-        }
-        if (s(intake.q11_policy_review) === "No privacy policy") noticeGaps.push("no privacy policy is published");
-        const analysisText = noticeGaps.length === 0
-          ? "Analysis. On the Company’s typed notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements. The disclosure record above is read against that posture."
-          : `Analysis. The Company’s typed notice record shows ${
-            asProse(noticeGaps)
-          }. Each gap reduces what a consumer can learn about the processing before it occurs, and the reduction is carried into the expectation and balancing analyses.`;
-        if (s(intake.q12_notice_at_collection) || s(intake.q13_notice_content)) {
-          put(
-            "iv_consumer_transparency:2",
-            "transparency_analysis",
-            "B",
-            analysisText,
-            ["INTAKE:q11_policy_review", "INTAKE:q12_notice_at_collection", "INTAKE:q13_notice_content", "INTAKE:activity_disclosures"],
-            [],
-          );
-        }
-      }
       put(
         "iv_consumer_transparency:2",
         "transparency_conclusion",
         "B",
         parts.join(" "),
+        ["INTAKE:activity_disclosures", "INTAKE:public_privacy_policy_url"],
+        ["11 CCR § 7152(a)(3)(E)"],
+      );
+    } else if (s(intake.q11_policy_review) || s(intake.q12_notice_at_collection) || s(intake.q13_notice_content)) {
+      // Zero disclosures on a record whose notice questions were answered is
+      // the determined-adverse outcome, not a non-answer — the gate on the
+      // notice enums keeps legacy records (which never carried the
+      // disclosure model at all) suppressed as before.
+      put(
+        "iv_consumer_transparency:2",
+        "transparency_conclusion",
+        "B",
+        "The Company has not identified any disclosures describing this processing to consumers. Conclusion. The transparency posture of the activity is not established on the answers provided.",
         ["INTAKE:activity_disclosures", "INTAKE:public_privacy_policy_url"],
         ["11 CCR § 7152(a)(3)(E)"],
       );
@@ -2397,6 +2500,24 @@ export function runRiskFactorEngine(
           ? "Conclusion. The system’s output is used in a decision with the consumer effect the Company describes, and the significant-decision trigger is engaged; Section V accordingly treats the system as decisionmaking technology rather than an organizing tool."
           : "Conclusion. The system’s output participates in the processing as the Company describes; the decision effect recorded above frames the risk analysis in Section VII.",
         ["INTAKE:admt_output", "INTAKE:admt_output_use", "INTAKE:admt_consumer_effect", "DERIVED:applicable_7150_triggers"],
+        [],
+      );
+    } else {
+      // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22): inside
+      // the isAdmt gate this factor always applies, so a partial answer names
+      // what is missing instead of the block vanishing. No conclusion
+      // composes in this branch — there is no decision-effect determination
+      // to state until the description is complete.
+      const missing: string[] = [];
+      if (!clause(intake.admt_output)) missing.push("what the system produces");
+      if (!clause(intake.admt_output_use)) missing.push("how the system’s output is used");
+      if (!clause(intake.admt_consumer_effect)) missing.push("the effect of the decision on the consumer");
+      put(
+        "v_admt:5",
+        "admt_decision_effect_analysis",
+        "B",
+        `Analysis. The Company has not yet described ${asProse(missing)} for this system, and the decision-effect analysis cannot be completed until it does.`,
+        ["INTAKE:admt_output", "INTAKE:admt_output_use", "INTAKE:admt_consumer_effect"],
         [],
       );
     }
@@ -2697,7 +2818,14 @@ export function runRiskFactorEngine(
       ["authority to submit", intake.certifier_authorized_to_submit],
     ] as const;
     const answered = four.filter(([, v]) => v === true || v === false || s(v) !== "");
-    if (answered.length === 4) {
+    // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22): the
+    // adverse sentence below already existed but was unreachable unless all
+    // four eligibility questions were answered — one blank answer suppressed
+    // the whole block, indistinguishable from the factor not applying. Any
+    // answered question means the certifier record was started, so the
+    // factor applies; an unanswered criterion is correctly reported by the
+    // existing sentence as "not confirmed". Zero answers still suppresses.
+    if (answered.length > 0) {
       const failing = four.filter(([, v]) => !isYes(v)).map(([label]) => label);
       put(
         "x_governance:9",

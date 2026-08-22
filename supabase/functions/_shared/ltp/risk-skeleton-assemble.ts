@@ -520,7 +520,14 @@ function composeSecondaryUses(intake: Bag): string {
 function composePriorAssessment(intake: Bag): string {
   if (!isYes(intake.i9_has_existing_dpia)) return "";
   const summary = clause(intake.i9_existing_dpia_summary);
-  if (!summary) return "";
+  // APPENDIX-G DETERMINED-OUTCOME RULE (CEO-ratified 2026-08-22): "yes, a
+  // prior assessment exists" with no summary used to suppress — reading
+  // identically to "no". The Company asserted the assessment exists, so the
+  // factor applies and the missing summary is the outcome to state. A "No"
+  // or unanswered i9 flag still suppresses as genuine N/A.
+  if (!summary) {
+    return "The Company indicates that a prior assessment of this processing was conducted but has not provided a summary of it.";
+  }
   return `${RISK_FIXED.prior_assessment_lead} ${summary}. ${RISK_FIXED.prior_assessment_note}`;
 }
 
