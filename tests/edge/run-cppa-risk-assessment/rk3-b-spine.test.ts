@@ -75,7 +75,7 @@ Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
 
 Deno.test("RK3-B — Appendix G keeps the id the PDF renderer page-breaks on", () => {
   const appG = SKELETON_SECTIONS.find((s) =>
-    s.title === "Appendix G — Factor, Intake, Determination, and Authority Matrix"
+    s.title === "Appendix G — Factor, Determination, and Authority Matrix"
   );
   assertExists(appG);
   assertEquals(appG.id, "table_of_authorities");

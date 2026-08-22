@@ -328,9 +328,9 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("No adverse consideration is assumed"), "con analysis absent");
     });
 
-    await t.step("Appendix G carries the factor/intake/determination/authority matrix", () => {
+    await t.step("Appendix G carries the factor/determination/authority matrix", () => {
       assert(
-        body.includes("Appendix G — Factor, Intake, Determination, and Authority Matrix"),
+        body.includes("Appendix G — Factor, Determination, and Authority Matrix"),
         "Appendix G title absent",
       );
       assert(body.includes("Necessity and minimization"), "Appendix G necessity row absent");

@@ -7,8 +7,10 @@
 // factor logic, conditional triggers, and Appendices A–F/H; it rewrites the
 // fixed prose in a citation-forward legal-narrative voice, and it replaces
 // the Table of Authorities with Appendix G — a customer-readable factor /
-// intake / determination / authority matrix, the same pattern used for the
-// CPPA ADMT v3.2 spine. Every fixed-prose string in SKELETON_SECTIONS below is
+// determination / authority matrix (v4.5.1, CEO-ratified 2026-08-22, merged
+// the former separate intake-data column into the determination sentence),
+// the same pattern used for the CPPA ADMT v3.2 spine and DPIA's Appendix A.
+// Every fixed-prose string in SKELETON_SECTIONS below is
 // transcribed from that file. Nothing here may be reworded, re-punctuated or
 // "improved" by code, by refinement, or by an agent: the skeleton's fixed
 // prose is a protected leaf (splice-barred) and the conformance check
@@ -31,7 +33,7 @@
 //                   outputs), composed mechanically from established facts.
 //   "table"       — a rendered table supplied by the assembler, keyed
 //                   `${sectionId}:${i}` exactly like a composed block. Used
-//                   for Appendix G (the v4.5 factor/intake/determination/
+//                   for Appendix G (the v4.5.1 factor/determination/
 //                   authority matrix).
 //
 // PLACEHOLDER PROVENANCE (v4.5 field-status legend, unchanged from 4.3):
@@ -587,15 +589,19 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     // Section id kept as "table_of_authorities": generate-report-pdf forces a
-    // fresh page on this id across every SO spine. Spine v4.5 repurposes the
-    // section itself — the Table of Authorities is gone; this is now
-    // Appendix G, the factor/intake/determination/authority matrix (the same
-    // pattern used for the CPPA ADMT v3.2 spine's Appendix B).
+    // fresh page on this id across every SO spine. Spine v4.5 repurposed the
+    // section itself — the Table of Authorities is gone; this is Appendix G,
+    // the factor/determination/authority matrix (the same pattern used for
+    // the CPPA ADMT v3.2 spine's Appendix B). v4.5.1 (CEO-ratified
+    // 2026-08-22) drops the separate intake-data column: intake facts and
+    // report language merge into one Report Determination sentence per
+    // factor, matching the fleet-wide convention (see the identical change
+    // to DPIA's Appendix A).
     id: "table_of_authorities",
-    title: "Appendix G — Factor, Intake, Determination, and Authority Matrix",
+    title: "Appendix G — Factor, Determination, and Authority Matrix",
     blocks: [
       // 0
-      { kind: "skeleton", text: "This appendix provides a customer-readable audit trail for the material factors used in the assessment. For each factor that contributes to the report, it shows the customer’s intake data relevant to that factor, the exact deterministic or bounded report language produced from the factor, and the primary authority governing the factor. It does not show internal field names, variable names, typed enums, or hidden reasoning." },
+      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this assessment. Each row states the factor assessed, the report's determination on that factor, and the primary authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion. Internal field keys, variable names, and reasoning traces are never printed in the customer report." },
       // 1 — {{DERIVED.factor_input_determination_authority_matrix}}, assembled
       // in risk-skeleton-assemble.ts from the v4.5 Verified Factor-to-Authority
       // Registry (Part 3.G) over the factor engine's own provenance/output —
@@ -652,11 +658,12 @@ export interface SkeletonPinpoint {
 export const RISK_SKELETON_PINPOINTS: readonly SkeletonPinpoint[] = [];
 
 /**
- * APPENDIX G — the v4.5 factor/intake/determination/authority matrix.
+ * APPENDIX G — the v4.5.1 factor/determination/authority matrix (CEO-ratified
+ * 2026-08-22: 3 columns, intake data merged into the determination sentence).
  * Assembled deterministically in risk-skeleton-assemble.ts from the factor
  * engine's own provenance/output over the v4.5 Verified Factor-to-Authority
  * Registry (Part 3.G of the spine docx). A separate Table of Authorities no
  * longer prints (v4.5 Part 1, Voice/Presentation Rules).
  */
 export const RISK_APPENDIX_G_RULE =
-  "Each row is assembled from the same factor object that produced the body language: Factor (human-readable name, no field key) | Customer Intake Data (the Company's actual supplied values, ordinary language) | Deterministic Report Language (the exact final customer-facing sentence(s) printed for that factor) | Primary Authority (the verified registry citation). A factor that is not applicable or does not contribute to a printed determination, finding, condition, follow-up item, recommendation, or material balancing determination is suppressed rather than printed as N/A.";
+  "Each row is assembled from the same factor object that produced the body language: Factor (human-readable name, no field key) | Report Determination (the exact final customer-facing sentence(s) printed for that factor, already covering what the Company supplied and what the report concluded from it) | Primary Authority (the verified registry citation). A factor that is not applicable or does not contribute to a printed determination, finding, condition, follow-up item, recommendation, or material balancing determination is suppressed rather than printed as N/A.";

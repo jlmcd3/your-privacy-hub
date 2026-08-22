@@ -673,12 +673,17 @@ function composeAdmtBlocks(intake: Bag): Record<string, string> {
 // trail (Part 3.F–G of the spine docx): for each material factor, the row
 // shows the customer's own intake data, the exact deterministic sentence(s)
 // printed for that factor in the report body, and the verified primary
-// authority. No new legal content is produced here — "Deterministic Report
-// Language" is read straight from the factor engine's own composed blocks
+// authority. No new legal content is produced here — the Report Determination
+// is read straight from the factor engine's own composed blocks
 // (`engine.blocks`), the same values already printed in the body, so there is
 // no way for an Appendix G row to say something the report itself does not.
 // A row is suppressed (never printed as N/A) when the underlying factor did
-// not compose for this fixture, matching the NO-PADDING LAW.
+// not compose for this fixture, matching the NO-PADDING LAW. v4.5.1
+// (CEO-ratified 2026-08-22): the intake-data column is dropped — the factor
+// engine's own composed text already IS the determination, so restating the
+// raw intake facts beside it would be exactly the redundant-detail problem
+// the redesign fixed for DPIA. The column names below simply track the
+// fleet-wide "Report Determination" convention.
 
 /** Joins the composed text for one or more factor-engine block keys, in order; null if none composed. */
 function blockText(engine: RiskFactorEngineResult, keys: readonly string[]): string | null {
@@ -691,11 +696,10 @@ function blockText(engine: RiskFactorEngineResult, keys: readonly string[]): str
 interface FactorMatrixRowSpec {
   readonly label: string;
   readonly authority: string;
-  /** engine.blocks keys whose composed text is joined for "Deterministic Report Language". */
+  /** engine.blocks keys whose composed text is joined for the Report Determination. */
   readonly blockKeys?: readonly string[];
-  /** Overrides blockKeys for factors not sourced from the factor engine. */
-  readonly reportLanguage?: (report: Bag, intake: Bag, engine: RiskFactorEngineResult) => string | null;
-  readonly intakeData: (intake: Bag, report: Bag) => string | null;
+  /** Overrides blockKeys for factors not sourced directly from the factor engine's block bag. */
+  readonly reportDetermination?: (report: Bag, intake: Bag, engine: RiskFactorEngineResult) => string | null;
 }
 
 const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
@@ -703,169 +707,91 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
     label: "Regulatory trigger and applicability",
     authority: "11 CCR § 7150(a)–(b)",
     blockKeys: ["i_purpose_scope:6"],
-    intakeData: (intake) => {
-      const bits = [
-        s(intake.q5_sell_share) ? `Sell/share: ${s(intake.q5_sell_share)}` : "",
-        s(intake.q15_sensitive_pi) ? `Sensitive PI: ${s(intake.q15_sensitive_pi)}` : "",
-        s(intake.q18_admt_use) ? `ADMT for a significant decision: ${s(intake.q18_admt_use)}` : "",
-        s(intake.q5b_profiling_observation) ? `Profiling: ${s(intake.q5b_profiling_observation)}` : "",
-      ].filter(Boolean);
-      return bits.length ? bits.join("; ") : null;
-    },
   },
   {
     label: "Stakeholder involvement and information providers",
     authority: "11 CCR § 7151; § 7152(a)(8)",
     blockKeys: ["i_purpose_scope:12"],
-    intakeData: (intake) => {
-      const bits = [
-        s(intake.a8_information_providers) ? `Information providers: ${clause(intake.a8_information_providers)}` : "",
-        s(intake.i7_internal_contributors) ? `Internal contributors: ${clause(intake.i7_internal_contributors)}` : "",
-        s(intake.i7_external_consultees) ? `External consultees: ${clause(intake.i7_external_consultees)}` : "",
-      ].filter(Boolean);
-      return bits.length ? bits.join(". ") : null;
-    },
   },
   {
     label: "Processing purpose specificity",
     authority: "11 CCR § 7152(a)(1)",
     blockKeys: ["i_purpose_scope:1"],
-    intakeData: (intake) =>
-      s(intake.primary_activity_name)
-        ? `Activity: ${clause(intake.primary_activity_name)}. Stated purpose: ${clause(intake.primary_activity_purpose)}.`
-        : null,
   },
   {
     label: "Scope and comparable processing",
     authority: "11 CCR § 7156(a)",
     blockKeys: ["i_purpose_scope:3", "i_purpose_scope:7"],
-    intakeData: (intake) => {
-      if (!isYes(intake.has_secondary_uses)) return "Secondary uses: No.";
-      const uses = rows(intake.secondary_activities)
-        .map((a) => clause(a.name ?? a.activity_name))
-        .filter(Boolean)
-        .join("; ");
-      return `Secondary uses: Yes${uses ? ` (${uses})` : ""}.`;
-    },
   },
   {
     label: "Prior DPIA or other assessment",
     authority: "11 CCR § 7156(b)",
-    reportLanguage: (_report, intake) => composePriorAssessment(intake) || null,
-    intakeData: (intake) =>
-      isYes(intake.i9_has_existing_dpia)
-        ? `Existing assessment identified: Yes. Summary: ${clause(intake.i9_existing_dpia_summary)}.`
-        : null,
+    reportDetermination: (_report, intake) => composePriorAssessment(intake) || null,
   },
   {
     label: "Personal-information profile",
     authority: "11 CCR § 7152(a)(2)",
     blockKeys: ["ii_processing_context:6"],
-    intakeData: (intake) => {
-      const cats = arr(intake.q4_pi_categories);
-      if (!cats.length) return null;
-      return `Categories: ${cats.join("; ")}. Sensitive PI: ${s(intake.q15_sensitive_pi) || "not indicated"}.`;
-    },
   },
   {
     label: "Necessity and minimization",
     authority: "11 CCR § 7152(a)(2)",
     blockKeys: ["iii_necessity:1", "iii_necessity:4"],
-    intakeData: (intake) => {
-      const n = rows(intake.a2_necessity_set).length;
-      return s(intake.i1b_min_pi) || n
-        ? `Minimum information identified: ${clause(intake.i1b_min_pi) || "not separately stated"}. Necessity record: ${n} element(s) assessed.`
-        : null;
-    },
   },
   {
     label: "Processing methods and coherence",
     authority: "11 CCR § 7152(a)(3)(A)",
     blockKeys: ["ii_processing_context:1"],
-    intakeData: (intake) =>
-      s(intake.processing_entry_point)
-        ? `Entry point: ${clause(intake.processing_entry_point)}. Result: ${clause(intake.processing_result)}.`
-        : null,
   },
   {
     label: "Sources of information",
     authority: "11 CCR § 7152(a)(3)(A)",
     blockKeys: ["ii_processing_context:9"],
-    intakeData: (intake) => (s(intake.i4b_sources) ? `Sources: ${clause(intake.i4b_sources)}.` : null),
   },
   {
     label: "Retention",
     authority: "11 CCR § 7152(a)(3)(B)",
     blockKeys: ["ii_processing_context:13"],
-    intakeData: (intake) =>
-      s(intake.i2_retention_period)
-        ? `Retention period: ${clause(intake.i2_retention_period)}. Criteria: ${clause(intake.i2_retention_criteria) || "not separately stated"}.`
-        : null,
   },
   {
     label: "Consumer interaction and scale",
     authority: "11 CCR § 7152(a)(3)(C)–(D)",
     blockKeys: ["ii_processing_context:3"],
-    intakeData: (intake) =>
-      s(intake.consumer_interaction_method)
-        ? `Interaction: ${clause(intake.consumer_interaction_method)}. Purpose: ${clause(intake.consumer_interaction_purpose)}. Approximate California consumers: ${clause(intake.approximate_ca_consumers) || "not stated"}.`
-        : null,
   },
   {
     label: "Transparency and disclosures",
     authority: "11 CCR § 7152(a)(3)(E); § 7152(a)(5)(C)",
     blockKeys: ["iv_consumer_transparency:2"],
-    intakeData: (intake) => {
-      const n = rows(intake.activity_disclosures).length;
-      const url = s(intake.public_privacy_policy_url);
-      if (!n && !url) return null;
-      return `Disclosures recorded: ${n}.${url ? ` Public privacy policy: ${url}.` : ""}`;
-    },
   },
   {
     label: "Recipients and disclosures",
     authority: "11 CCR § 7152(a)(3)(F)",
     blockKeys: ["ii_processing_context:11"],
-    intakeData: (intake) => {
-      const names = rows(intake.recipients).map((r) => s(r.recipient_name_or_category)).filter(Boolean);
-      return names.length ? `Recipients: ${asProse(names)}.` : null;
-    },
   },
   {
     label: "ADMT logic and limitations",
     authority: "11 CCR § 7152(a)(3)(G)(i)",
     blockKeys: ["v_admt:3"],
-    intakeData: (intake) =>
-      s(intake.i5_admt_logic)
-        ? `Logic: ${clause(intake.i5_admt_logic)}. Assumptions/limitations: ${clause(intake.admt_assumptions_limitations) || "none identified"}.`
-        : null,
   },
   {
     label: "ADMT output and decision effect",
     authority: "11 CCR § 7152(a)(3)(G)(ii)",
     blockKeys: ["v_admt:5"],
-    intakeData: (intake) =>
-      s(intake.admt_output)
-        ? `Output: ${clause(intake.admt_output)}. Use: ${clause(intake.admt_output_use)}. Consumer effect: ${clause(intake.admt_consumer_effect)}.`
-        : null,
   },
   {
     label: "Human review of ADMT",
     authority: "11 CCR § 7001(e); § 7150(b)(3)",
     blockKeys: ["v_admt:7"],
-    intakeData: (intake) => (s(intake.i5_admt_human_review) ? `Human review: ${clause(intake.i5_admt_human_review)}.` : null),
   },
   {
     label: "ADMT fairness and bias testing",
     authority: "11 CCR § 7152(a)(5)(B); § 7152(a)(6)(A)(iv)",
     blockKeys: ["v_admt:9"],
-    intakeData: (intake) => (s(intake.i5_admt_fairness_testing) ? `Testing reported: ${clause(intake.i5_admt_fairness_testing)}.` : null),
   },
   {
     label: "ADMT training data",
     authority: "11 CCR § 7150(b)(6); § 7153",
     blockKeys: ["v_admt:11"],
-    intakeData: (intake) => (s(intake.i5_admt_training_source) ? `Training-data source: ${clause(intake.i5_admt_training_source)}.` : null),
   },
   {
     label: "ADMT made available to another business",
@@ -875,47 +801,23 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
     // gate on the actual § 7153 trigger, not just block presence, or this row
     // would print the overall conclusion for every ADMT fixture regardless of
     // whether the recipient-business branch ever fired.
-    reportLanguage: (_report, intake, engine) =>
+    reportDetermination: (_report, intake, engine) =>
       isYes(intake.admt_made_available_to_other_business) ? blockText(engine, ["v_admt:13"]) : null,
-    intakeData: (intake) =>
-      isYes(intake.admt_made_available_to_other_business)
-        ? `Made available to another business: Yes. Trained using personal information: ${yn(intake.admt_provider_trained_using_pi)}. Recipient uses it for a significant decision: ${yn(intake.recipient_business_uses_admt_for_significant_decision)}.`
-        : null,
   },
   {
     label: "Consumer benefit",
     authority: "11 CCR § 7152(a)(4)",
     blockKeys: ["vi_benefits:4"],
-    // Mirrors composeBenefit's own gate (isYes(identified) || (identified
-    // undefined && narrative present)) — checking only the flag missed
-    // fixtures that never set benefit_consumer_identified but do carry a
-    // real benefit narrative, wrongly printing "not separately recorded"
-    // next to report language that plainly discusses the benefit.
-    intakeData: (intake) =>
-      isYes(intake.benefit_consumer_identified) ||
-        (intake.benefit_consumer_identified === undefined && s(intake.a4_benefit_consumer))
-        ? `Benefit: ${clause(intake.a4_benefit_consumer)}. Support: ${clause(intake.a4_benefit_consumer_fact) || "not separately stated"}.`
-        : null,
   },
   {
     label: "Business benefit",
     authority: "11 CCR § 7152(a)(4)",
     blockKeys: ["vi_benefits:8"],
-    intakeData: (intake) =>
-      isYes(intake.benefit_business_identified) ||
-        (intake.benefit_business_identified === undefined && s(intake.a4_benefit_business))
-        ? `Benefit: ${clause(intake.a4_benefit_business)}. Support: ${clause(intake.a4_benefit_business_fact) || "not separately stated"}.`
-        : null,
   },
   {
     label: "Other-stakeholder benefit",
     authority: "11 CCR § 7152(a)(4)",
     blockKeys: ["vi_benefits:12"],
-    intakeData: (intake) =>
-      isYes(intake.benefit_other_stakeholders_identified) ||
-        (intake.benefit_other_stakeholders_identified === undefined && s(intake.a4_benefit_other_stakeholders))
-        ? `Benefit: ${clause(intake.a4_benefit_other_stakeholders)}. Support: ${clause(intake.a4_benefit_other_stakeholders_fact) || "not separately stated"}.`
-        : null,
   },
   {
     label: "Public benefit",
@@ -932,130 +834,70 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
     // engine.factors["public_benefit_analysis"] is the same text WITHOUT the
     // collision — put() also stores each analysis under its own factorId in
     // a separate, non-concatenated bag.
-    reportLanguage: (_report, _intake, engine) => {
+    reportDetermination: (_report, _intake, engine) => {
       const t = engine.factors["public_benefit_analysis"];
       return typeof t === "string" && t.trim().length > 0 ? t : null;
     },
-    intakeData: (intake) =>
-      isYes(intake.benefit_public_identified) ||
-        (intake.benefit_public_identified === undefined && s(intake.a4_benefit_public))
-        ? `Benefit: ${clause(intake.a4_benefit_public)}. Support: ${clause(intake.a4_benefit_public_fact) || "not separately stated"}.`
-        : null,
   },
   {
     label: "Material privacy-risk pathways",
     authority: "11 CCR § 7152(a)(5)(A)–(H)",
     blockKeys: ["vii_risks:1"],
-    intakeData: (intake) => {
-      const harms = rows(intake.a5_harm_pathways).map((p) => s(p.harm)).filter(Boolean);
-      return harms.length ? `${harms.length} pathway(s) recorded: ${asProse(harms)}.` : null;
-    },
   },
   {
     label: "Consumer expectations",
     authority: "11 CCR § 7152(a)(5)(C)",
     blockKeys: ["iv_consumer_transparency:4"],
-    intakeData: (intake) => {
-      const n = rows(intake.activity_disclosures).length;
-      return s(intake.consumer_interaction_method)
-        ? `Interaction: ${clause(intake.consumer_interaction_method)}. Disclosures recorded: ${n}.`
-        : null;
-    },
   },
   {
     label: "Practical consumer control",
     authority: "11 CCR § 7152(a)(5)(C)",
     blockKeys: ["iv_consumer_transparency:6"],
-    intakeData: (intake) => {
-      const bits = [
-        s(intake.q6_right_know) ? `Right to know: ${s(intake.q6_right_know)}` : "",
-        s(intake.q7_right_delete) ? `Right to delete: ${s(intake.q7_right_delete)}` : "",
-        s(intake.q8_right_correct) ? `Right to correct: ${s(intake.q8_right_correct)}` : "",
-        s(intake.q9_opt_out) ? `Opt-out: ${s(intake.q9_opt_out)}` : "",
-      ].filter(Boolean);
-      return bits.length ? bits.join("; ") + "." : null;
-    },
   },
   {
     label: "Coercion and choice architecture",
     authority: "11 CCR § 7152(a)(5)(D)",
     blockKeys: ["iv_consumer_transparency:8"],
-    intakeData: (intake) => (s(intake.q9_opt_out) ? `Opt-out mechanism: ${s(intake.q9_opt_out)}.` : null),
   },
   {
     label: "Safeguards",
     authority: "11 CCR § 7152(a)(6)",
     blockKeys: ["viii_safeguards:1"],
-    intakeData: (intake) => {
-      const g = rows(intake.a6_safeguards);
-      if (!g.length) return null;
-      const byStatus = new Map<string, number>();
-      for (const row of g) {
-        const st = s(row.safeguard_status) || "Not specified";
-        byStatus.set(st, (byStatus.get(st) ?? 0) + 1);
-      }
-      const parts = Array.from(byStatus.entries()).map(([st, n]) => `${st}: ${n}`);
-      return `${g.length} safeguard(s) recorded, by status — ${parts.join("; ")}.`;
-    },
   },
   {
     label: "Residual risk",
     authority: "11 CCR § 7152(a)(5)–(6); § 7154",
     blockKeys: ["viii_safeguards:7"],
-    intakeData: () => "Derived from the risk-pathway and safeguard facts recorded above (see Material privacy-risk pathways; Safeguards).",
   },
   {
     label: "Benefits-risks balancing",
     authority: "11 CCR § 7152(a); § 7154",
     blockKeys: ["ix_balancing:3"],
-    intakeData: () => "Synthesizes the benefit, risk, safeguard, and residual-risk facts recorded above.",
   },
   {
     label: "Recommended processing outcome",
     authority: "11 CCR § 7152(a)(7); § 7154",
     blockKeys: ["ix_balancing:4"],
-    intakeData: () => "Follows from the benefits–risks balancing result recorded above.",
   },
   {
     label: "Approval and authority",
     authority: "11 CCR § 7152(a)(9)",
     blockKeys: ["x_governance:1"],
-    intakeData: (intake) => {
-      const reviewerRows = rows(intake.assessment_reviewers_approvers)
-        .map((r) => [s(r.name), s(r.position)].filter(Boolean).join(", "))
-        .filter(Boolean)
-        .join("; ");
-      const migrated = s(intake.a9_approver_name)
-        ? `${s(intake.a9_approver_name)}${s(intake.a9_approver_position) ? `, ${s(intake.a9_approver_position)}` : ""}`
-        : "";
-      const reviewers = reviewerRows || migrated;
-      if (!reviewers && !s(intake.a9_approval_date)) return null;
-      return `Reviewer(s)/approver(s): ${reviewers || "not stated"}. Approval date: ${s(intake.a9_approval_date) || "not stated"}. Authority confirmed: ${yn(intake.approver_authority_confirmed) || "not stated"}.`;
-    },
   },
   {
     label: "Assessment timing and material changes",
     authority: "11 CCR § 7155(a)–(b)",
     blockKeys: ["x_governance:6"],
-    intakeData: (intake) =>
-      s(intake.processing_status)
-        ? `Processing status: ${s(intake.processing_status)}. Material change since prior assessment: ${s(intake.material_change_since_prior) || "No"}.`
-        : null,
   },
   {
     label: "Assessment retention",
     authority: "11 CCR § 7155(c)",
-    reportLanguage: (_report, intake) => deriveAssessmentRetentionEnd(intake),
-    intakeData: (intake) => (s(intake.processing_status) ? `Processing status: ${s(intake.processing_status)} (governs the later-of retention rule).` : null),
+    reportDetermination: (_report, intake) => deriveAssessmentRetentionEnd(intake),
   },
   {
     label: "CPPA submission and certifying executive",
     authority: "11 CCR § 7157(a)–(e)",
     blockKeys: ["x_governance:9"],
-    intakeData: (intake) =>
-      s(intake.i8_certifying_exec_name)
-        ? `Certifying executive: ${s(intake.i8_certifying_exec_name)}${clause(intake.i8_certifying_exec_title) ? `, ${clause(intake.i8_certifying_exec_title)}` : ""}.`
-        : null,
   },
 ];
 
@@ -1067,12 +909,11 @@ export function buildFactorAuthorityMatrixTable(
 ): RenderedTable | null {
   const rowsOut: string[][] = [];
   for (const spec of FACTOR_MATRIX_ROWS) {
-    const language = spec.reportLanguage
-      ? spec.reportLanguage(report, intake, engine)
+    const determination = spec.reportDetermination
+      ? spec.reportDetermination(report, intake, engine)
       : blockText(engine, spec.blockKeys ?? []);
-    if (!language) continue;
-    const data = spec.intakeData(intake, report) ?? "Not separately recorded in the intake.";
-    rowsOut.push([spec.label, data, language, spec.authority]);
+    if (!determination) continue;
+    rowsOut.push([spec.label, determination, spec.authority]);
   }
   if (rowsOut.length === 0) return null;
   return {
@@ -1081,7 +922,7 @@ export function buildFactorAuthorityMatrixTable(
     // Left empty: the section heading already prints the full Appendix G
     // title, so a second title line on the table itself would repeat it.
     title: "",
-    columns: ["Factor", "Customer Intake Data", "Deterministic Report Language", "Primary Authority"],
+    columns: ["Factor", "Report Determination", "Primary Authority"],
     rows: rowsOut,
   };
 }

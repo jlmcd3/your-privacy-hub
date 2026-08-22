@@ -123,10 +123,10 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   assertStringIncludes(fixed[14], "Article 35(11) also requires the controller to review the DPIA where necessary");
   assertStringIncludes(fixed[15], "the negative branch states that prior consultation is not required on this assessment's determination");
   assertStringIncludes(fixed[16], "could not determine from the company's answers");
-  // Appendix A intro (replaces the Table of Authorities) -- CEO item 3b: the
-  // header row must not say "Deterministic Report Language", and internal
-  // machinery must not print.
-  assertStringIncludes(fixed[17], "Internal field keys, variable names, hidden enums, and reasoning traces do not print in the customer report.");
+  // Appendix A intro (replaces the Table of Authorities). v4.6.1 (CEO-ratified
+  // 2026-08-22): 3 columns, not 4 -- intake data and report language merge
+  // into one Report Determination sentence per factor.
+  assertStringIncludes(fixed[17], "Internal field keys, variable names, and reasoning traces are never printed in the customer report.");
 
   const all = fixed.join("\n");
   // regimeName is gone entirely (CEO item 3a/3b context -- the citation-review
@@ -295,9 +295,9 @@ Deno.test("assembly — re-homed composers land on their v4.1 blocks and tables 
 });
 
 // v4.6 (CEO-ratified 2026-08-21) — Appendix A replaces the Table of
-// Authorities. CEO item 3b: the header row must read "Report Language", not
-// "Deterministic Report Language". CEO item 3a: rows for factors that did not
-// compose (no-padding law) must not print.
+// Authorities; v4.6.1 (CEO-ratified 2026-08-22) merges intake data and report
+// language into one Report Determination column. Rows for factors that did
+// not compose (no-padding law) must not print.
 Deno.test("Appendix A — title, column headers, and row suppression match the CEO's ratification", () => {
   const report = {
     decision: { determination: "approved", conditions: [], blockers: [], why: "Nothing is left open.", citation: "GDPR Art. 35" },
@@ -322,11 +322,12 @@ Deno.test("Appendix A — title, column headers, and row suppression match the C
 
   const { document } = assembleDpiaSkeletonDocument(report, intake);
   const appendix = document.sections.find((s) => s.id === "table_of_authorities")!;
-  assertEquals(appendix.title, "Appendix A — Factor, Intake, Determination, and Authority Matrix");
+  assertEquals(appendix.title, "Appendix A — Factor, Determination, and Authority Matrix");
 
   const matrix = appendix.paragraphs.find((p) => p.kind === "table")!.table!;
-  assertEquals(matrix.columns, ["Factor", "Customer Intake Data", "Report Language", "Primary Authority"]);
+  assertEquals(matrix.columns, ["Factor", "Report Determination", "Primary Authority"]);
   assert(!matrix.columns.some((c) => c.includes("Deterministic")), "column header must not say Deterministic");
+  assert(!matrix.columns.includes("Customer Intake Data"), "intake-data column must be merged away, not present");
 
   const labels = matrix.rows.map((r) => r[0]);
   // Present: description/purpose composed from the supplied nature/scope text.

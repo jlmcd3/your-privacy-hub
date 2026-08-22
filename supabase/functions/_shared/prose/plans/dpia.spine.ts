@@ -49,7 +49,10 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "dpia-v4.6-2026-08-21";
+export const DPIA_SKELETON_VERSION = "dpia-v4.6.1-2026-08-22";
+
+/** The v4.6 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V46 = "dpia-v4.6-2026-08-21";
 
 /** The v4.5.1 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V451 = "prose-plans-2026-08-16-prompt9l2-v4-5-1";
@@ -142,8 +145,17 @@ export const DPIA_SKELETON_CONTENT_HASH_V451 =
  * blocks total, up from 16). Retained for the audit trail only;
  * `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
  */
-export const DPIA_SKELETON_CONTENT_HASH =
+export const DPIA_SKELETON_CONTENT_HASH_V46 =
   "da472b222b97e8eaacdf9c59d5abcb63d3699e82af4fa267e5b5c4ed4695234e";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.6.1 — the Appendix A intro skeleton
+ * block was reworded (3-column matrix, no intake-data column) and the
+ * section title changed; no other skeleton block moved. Retained for the
+ * audit trail only; `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
+ */
+export const DPIA_SKELETON_CONTENT_HASH =
+  "dea0ea23c3562a686c52e1c69fb532625eb474c19995a834ee82cf600f8c567b";
 
 
 
@@ -324,14 +336,17 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     // fresh page on this id across every SO spine, and the same id also
     // routes past SkeletonDocumentView.tsx's ToA-vs-plain-prose switch
     // (guarded there by block kind, not by section id alone, since the CPPA
-    // Risk Appendix G build). v4.6 repurposes the section itself — the Table
-    // of Authorities is gone; this is now Appendix A, the factor/intake/
-    // determination/authority matrix (the same pattern used for CPPA ADMT's
-    // Appendix B and CPPA Risk's Appendix G).
+    // Risk Appendix G build). v4.6 repurposed the section itself — the Table
+    // of Authorities is gone; this is Appendix A, the factor/determination/
+    // authority matrix (the same pattern used for CPPA ADMT's Appendix B and
+    // CPPA Risk's Appendix G). v4.6.1 (CEO-ratified 2026-08-22) drops the
+    // separate intake-data column: intake facts and report language merge
+    // into one Report Determination sentence per factor, so the opener below
+    // describes three columns, not four.
     id: "table_of_authorities",
-    title: "Appendix A — Factor, Intake, Determination, and Authority Matrix",
+    title: "Appendix A — Factor, Determination, and Authority Matrix",
     blocks: [
-      { kind: "skeleton", text: "This appendix provides a customer-readable audit trail for the material factors used in the DPIA. Each row shows the factor being assessed, the customer intake data that supplied the relevant facts, the exact report language produced from the existing output block, and the primary legal or authoritative source governing that factor. Internal field keys, variable names, hidden enums, and reasoning traces do not print in the customer report." },
+      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this DPIA. Each row states the factor assessed, the report's determination on that factor, and the primary legal authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion. Internal field keys, variable names, and reasoning traces are never printed in the customer report." },
       // {{DERIVED.factor_input_determination_authority_matrix}}, assembled in
       // dpia-skeleton-assemble.ts from the same composed values/tables that
       // already render in the body -- no new legal content, no new intake or
@@ -397,8 +412,12 @@ export function serializeDpiaSpine(
  * byte-pin. Recomputed and re-ratified on every ratified spine change; a drift
  * is a HARD STOP, not a fix-up.
  */
-export const DPIA_SPINE_HASH =
+export const DPIA_SPINE_HASH_V46 =
   "2c8c607725ca0094f22a3ec1ed8930deff4875313bb40d84f425b384c56204bf";
+
+/** v4.6.1 spine hash — recomputed below after the Appendix A rewording. */
+export const DPIA_SPINE_HASH =
+  "759ed3f3555d9039961c3de736bdc0469c4fc5e5da32a1805a9b8fde0faa4075";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

@@ -1133,17 +1133,22 @@ function consolidatePinpoints(citations: string[]): string[] {
   });
 }
 
-// ── Appendix A — factor / intake / determination / authority matrix ─────────
+// ── Appendix A — factor / determination / authority matrix ──────────────────
 //
-// Spine v4.6 replaces the Table of Authorities with a customer-readable audit
-// trail (docx blocks 121-147): for each material factor, the row shows the
-// customer's own intake data, the exact report language already printed for
-// that factor, and the primary authority. No new legal content is produced
-// here -- "Report Language" is read straight from the same composed blocks,
-// slot values, and rendered tables that already appear in the body, so there
-// is no way for an Appendix A row to say something the report itself doesn't.
-// A row is suppressed (never printed as N/A) when the underlying factor did
-// not compose/render for this document, matching the no-padding law.
+// Spine v4.6.1 (CEO-ratified 2026-08-22) replaces the 4-column factor/intake/
+// language/authority matrix with 3 columns: for each material factor, the row
+// states the FACTOR, a single "Report Determination" sentence, and the
+// primary authority. No new legal content is produced here — every
+// determination is read from the same typed surfaces, composed blocks, and
+// rendered tables that already appear in the body, so there is no way for a
+// row to say something the report itself doesn't establish. Two sentence
+// patterns (CEO-ratified): a DESCRIPTIVE factor (did the Company supply the
+// inventory this factor covers) states "The Company has provided the
+// necessary information for X"; a DETERMINATION factor (a legal conclusion
+// is the point of the factor) states the conclusion directly. A row is
+// suppressed (never printed as N/A) only when the factor genuinely does not
+// apply to this record — matching the no-padding law and the determined-
+// outcome rule already applied to the CPPA Risk engine.
 
 /** Joins one or more already-composed values (composed[key] or values[key]), skipping blanks; null if none present. */
 function joinComposed(parts: readonly (string | null | undefined)[]): string | null {
@@ -1151,23 +1156,25 @@ function joinComposed(parts: readonly (string | null | undefined)[]): string | n
   return nonEmpty.length ? nonEmpty.join(" ") : null;
 }
 
-/** A short textual render of one or more table surfaces, honest-absent if none rendered. */
-function tableSummary(
-  tables: ReturnType<typeof buildDpiaTablesBySurface>,
-  keys: readonly string[],
-): string | null {
-  const parts = keys
-    .map((k) => tables[k])
-    .filter((t): t is NonNullable<typeof t> => !!t && Array.isArray(t.rows) && t.rows.length > 0)
-    .map((t) => skeletonTableToText(t));
-  return parts.length ? parts.join("\n\n") : null;
+/** Total row count across one or more rendered table surfaces; 0 if none rendered. */
+function tableRowCount(tables: ReturnType<typeof buildDpiaTablesBySurface>, keys: readonly string[]): number {
+  return keys.reduce((n, k) => n + (tables[k]?.rows?.length ?? 0), 0);
+}
+
+/** DESCRIPTIVE-pattern sentence: states that the inventory a factor covers was supplied, by count where the underlying table is a genuine per-item list. `nounPlural` overrides the default regular "+s" plural for irregular nouns (e.g. "category" -> "categories"). */
+function providedFor(topic: string, count?: number, noun?: string, nounPlural?: string): string {
+  const plural = nounPlural ?? (noun ? `${noun}s` : "");
+  const detail = typeof count === "number" && noun
+    ? `, covering ${count === 1 ? `the 1 ${noun} recorded` : `all ${count} ${plural} recorded`}`
+    : "";
+  return `The Company has provided the necessary information for ${topic}${detail}.`;
 }
 
 interface DpiaMatrixRowSpec {
   readonly label: string;
   readonly authority: string;
-  /** Returns the exact report language already produced for this factor, or null if it did not compose. */
-  readonly reportLanguage: (
+  /** Returns the Report Determination sentence for this factor, or null if the factor does not apply to this record. */
+  readonly reportDetermination: (
     ctx: {
       readonly report: Bag;
       readonly intake: Bag;
@@ -1176,200 +1183,228 @@ interface DpiaMatrixRowSpec {
       readonly tables: ReturnType<typeof buildDpiaTablesBySurface>;
     },
   ) => string | null;
-  readonly intakeData: (intake: Bag) => string | null;
 }
-
-const SEE_ABOVE = (where: string) => `See ${where} above for the underlying customer-supplied facts.`;
 
 const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
   {
+    // DETERMINATION — the trigger conclusion itself is the point of this factor.
     label: "DPIA requirement / high-risk trigger",
     authority: "GDPR Art. 35(1), (3)–(5); EDPB-endorsed WP248 rev.01; applicable supervisory-authority Art. 35(4) list",
-    reportLanguage: ({ values }) =>
+    reportDetermination: ({ values }) =>
       values.reasonsToConduct
-        ? `${s(values.organizationName)} believes this assessment may be required because ${s(values.reasonsToConduct)}.`
+        ? `${s(values.organizationName)}’s processing triggers this assessment because ${s(values.reasonsToConduct)}.`
         : null,
-    intakeData: (intake) => {
-      const reasons = arr(intake.reasons_to_conduct);
-      return reasons.length ? `Reasons to conduct: ${reasons.join("; ")}.` : null;
-    },
   },
   {
+    // DESCRIPTIVE — a heterogeneous inventory (controller, processors, planning, team, approval); named by category, not by count, since the five underlying tables carry different kinds of rows.
     label: "Controller, processors, and accountability",
     authority: "GDPR Arts. 24, 28; Art. 35(2), (7), (11) as applicable",
-    reportLanguage: ({ tables }) =>
-      tableSummary(tables, [
+    reportDetermination: ({ tables }) =>
+      tableRowCount(tables, [
         "processing_inventory.controllers",
         "processing_inventory.processors",
         "processing_inventory.planning",
         "assessment_team",
         "validation_approval",
-      ]),
-    intakeData: (intake) => {
-      const bits = [
-        s(intake.organization_name) ? `Controller: ${s(intake.organization_name)}.` : "",
-        arr(intake.third_party_processors).length ? `Processors: ${arr(intake.third_party_processors).join("; ")}.` : "",
-        s(intake.controller_contact) ? `Controller contact: ${s(intake.controller_contact)}.` : "",
-        s(intake.dpo_info) ? `DPO: ${s(intake.dpo_info)}.` : "",
-      ].filter(Boolean);
-      return bits.length ? bits.join(" ") : null;
-    },
+      ]) > 0
+        ? providedFor(
+          "its controller and processor record, including its data protection officer, its processor engagements, and this assessment’s own review and approval history",
+        )
+        : null,
   },
   {
+    // DESCRIPTIVE (+ genuine prose tail kept verbatim, not a table dump).
     label: "Systematic description and purposes",
     authority: "GDPR Art. 35(7)(a); Art. 5(1)(b)",
-    reportLanguage: ({ tables, values }) =>
+    reportDetermination: ({ tables, values }) =>
       joinComposed([
-        tableSummary(tables, ["processing_inventory.data_items", "processing_inventory.purposes", "processing_inventory.secondary_uses"]),
+        tableRowCount(tables, ["processing_inventory.data_items", "processing_inventory.purposes", "processing_inventory.secondary_uses"]) > 0
+          ? providedFor("describing the processing and its purposes")
+          : null,
         typeof values.natureScopeContext === "string" ? `On nature, scope and context: ${values.natureScopeContext}` : null,
       ]),
-    intakeData: (intake) =>
-      s(intake.description)
-        ? `Description: ${boundedClause(s(intake.description))}. Purpose: ${boundedClause(s(intake.purpose)) || "not separately stated"}.`
-        : null,
   },
   {
+    // DETERMINATION — whether the stated basis is supported is the finding, not merely that a basis was named.
     label: "Lawful basis",
     authority: "GDPR Art. 6(1); where legitimate interests are relied on, Art. 6(1)(f) and Art. 35(7)(a)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["legal_basis"]),
-    intakeData: (intake) => (s(intake.legal_basis_proposed) ? `Legal basis proposed: ${s(intake.legal_basis_proposed)}.` : null),
+    reportDetermination: ({ report }) => {
+      const findings = asArray((report as Bag).legal_basis);
+      if (!findings.length) return null;
+      const bases = Array.from(new Set(findings.map((f) => s(f.article_6_basis)).filter(Boolean)));
+      const basisLabel = bases.length ? asProse(bases) : "a lawful basis";
+      const supported = findings.every((f) => s(f.verdict) === "basis_supported_on_the_record");
+      return supported
+        ? `The Company has identified ${basisLabel} for this processing, and the information provided supports that basis.`
+        : `The Company has identified ${basisLabel} for this processing; the information provided does not yet establish that basis.`;
+    },
   },
   {
+    // DETERMINATION — same shape as Lawful Basis, scoped to the Art. 9(2) condition.
     label: "Special-category condition",
     authority: "GDPR Art. 9(1)–(2); Art. 35(7)(b)–(d)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.special_category_conditions"]),
-    intakeData: (intake) =>
-      s(intake.article_9_condition) ? `Article 9(2) condition relied on: ${s(intake.article_9_condition)}.` : null,
+    reportDetermination: ({ report }) => {
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      const rows = asArray(cov?.special_category_conditions);
+      if (!rows.length) return null;
+      const conditions = Array.from(new Set(rows.map((r) => s(r.condition_label)).filter(Boolean)));
+      const conditionLabel = conditions.length ? asProse(conditions) : "a special-category condition";
+      const supported = rows.every((r) => s(r.status) === "analysed");
+      return supported
+        ? `The Company has identified ${conditionLabel} for the special-category data involved, and the information provided supports that condition.`
+        : `The Company has identified ${conditionLabel} for the special-category data involved; the information provided does not yet establish that condition.`;
+    },
   },
   {
+    // DESCRIPTIVE — one row per data category; count is genuine and informative.
     label: "Data minimisation and retention",
     authority: "GDPR Art. 5(1)(b), (c), (e); Art. 35(7)(b)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.data_minimisation_retention"]),
-    intakeData: (intake) =>
-      s(intake.data_minimisation_justification) || s(intake.retention_period)
-        ? `Minimisation justification: ${boundedClause(s(intake.data_minimisation_justification)) || "not separately stated"}. Retention: ${
-          boundedClause(s(intake.retention_period)) || "not separately stated"
-        }.`
-        : null,
+    reportDetermination: ({ tables }) => {
+      const n = tableRowCount(tables, ["section2_coverage.data_minimisation_retention"]);
+      return n > 0 ? providedFor("data minimisation and retention", n, "data category", "data categories") : null;
+    },
   },
   {
+    // DESCRIPTIVE — single-matter summary table; a count adds nothing here.
     label: "Data quality / accuracy",
     authority: "GDPR Art. 5(1)(d); Art. 35(7)(b), (d)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.data_quality"]),
-    intakeData: (intake) => (s(intake.data_quality_measures) ? `Data quality measures: ${boundedClause(s(intake.data_quality_measures))}.` : null),
+    reportDetermination: ({ tables }) => (tableRowCount(tables, ["section2_coverage.data_quality"]) > 0 ? providedFor("how it keeps this data accurate") : null),
   },
   {
+    // DESCRIPTIVE — single-matter summary table.
     label: "Article 5 principles / accountability measures",
     authority: "GDPR Art. 5(1)–(2); Arts. 24, 35(7)(d)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_article5"]),
-    intakeData: () => SEE_ABOVE("the Article 5 measures table"),
+    reportDetermination: ({ tables }) =>
+      tableRowCount(tables, ["section2_coverage.measures_article5"]) > 0 ? providedFor("the measures carrying the Article 5 principles") : null,
   },
   {
+    // DESCRIPTIVE — single-matter summary table.
     label: "Data-subject rights",
     authority: "GDPR Arts. 12–22; Art. 35(7)(b), (d)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_rights"]),
-    intakeData: (intake) =>
-      s(intake.data_subject_rights_mechanisms) ? `Data-subject-rights mechanisms: ${boundedClause(s(intake.data_subject_rights_mechanisms))}.` : null,
+    reportDetermination: ({ tables }) =>
+      tableRowCount(tables, ["section2_coverage.measures_rights"]) > 0 ? providedFor("how data subjects exercise their rights") : null,
   },
   {
+    // DETERMINATION — a distinct factor from Processor Governance (Chapter V vs Art. 28) even though both currently read from the same underlying table; see risk-skeleton-assemble.ts's analogous note for the fleet-wide pattern.
     label: "International transfers",
     authority: "GDPR Art. 44 and Chapter V",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_other"]),
-    intakeData: (intake) => {
-      const flows = asArray(intake.transfer_flows);
-      return flows.length
-        ? `Transfer flows: ${
-          flows.map((f) => `${s(f.recipient) || "recipient"} — ${s(f.destination_country) || "destination not stated"} (${s(f.transfer_mechanism) || "mechanism not stated"})`).join("; ")
-        }.`
-        : null;
+    reportDetermination: ({ report }) => {
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      if (!cov) return null;
+      const transfers = asArray(cov.transfers);
+      if (!transfers.length) {
+        return "The Company’s information establishes that no cross-border transfer occurs in this processing.";
+      }
+      const INSTRUMENTED = new Set(["intra_eea_processing", "uk_domestic_processing", "adequacy", "instrument_recorded"]);
+      const allInstrumented = transfers.every((t) => INSTRUMENTED.has(s(t.determination)));
+      return allInstrumented
+        ? "The Company has identified its cross-border transfers, and a transfer mechanism is recorded for each."
+        : "The Company has identified a cross-border transfer for which a Chapter V transfer mechanism has not yet been recorded.";
     },
   },
   {
+    // DETERMINATION — companion factor to International Transfers under Art. 28.
     label: "Processor governance",
     authority: "GDPR Art. 28(1), (3)–(4)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_other"]),
-    intakeData: (intake) =>
-      s(intake.processor_obligations) ? `Processor obligations recorded: ${boundedClause(s(intake.processor_obligations))}.` : null,
-  },
-  {
-    label: "Data protection by design and by default",
-    authority: "GDPR Art. 25; Art. 35(7)(d)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_dpbd"]),
-    intakeData: (intake) => (s(intake.dp_by_design_measures) ? `DPbD measures: ${boundedClause(s(intake.dp_by_design_measures))}.` : null),
-  },
-  {
-    label: "Security of processing",
-    authority: "GDPR Art. 32; Art. 35(7)(d)",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["section2_coverage.measures_security"]),
-    intakeData: (intake) => {
-      const safeguards = arr(intake.existing_safeguards).filter((x) => !/^none$/i.test(x));
-      return safeguards.length ? `Existing safeguards: ${safeguards.join("; ")}.` : null;
+    reportDetermination: ({ report }) => {
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      const pc = cov?.processor_contract as Bag | undefined;
+      if (!pc || Object.keys(pc).length === 0) return null;
+      const processors = arr(pc.processors);
+      if (!processors.length) {
+        return "The Company has not recorded a third-party processor for this processing, so no Art. 28 processing agreement is engaged.";
+      }
+      return pc.dpa_recorded === true
+        ? "The Company’s information establishes that a signed Art. 28 processing agreement is in place for its processor engagements."
+        : "The Company has named third-party processors for this processing but has not recorded a signed Art. 28 processing agreement.";
     },
   },
   {
-    label: "Necessity and proportionality",
-    authority: "GDPR Art. 35(7)(b); Art. 5(1)(b)–(c)",
-    reportLanguage: ({ composed }) =>
-      joinComposed([composed["section_3_necessity_proportionality:1"], composed["section_3_necessity_proportionality:2"]]),
-    intakeData: (intake) =>
-      s(intake.necessity_proportionality) ? `Necessity/proportionality basis: ${boundedClause(s(intake.necessity_proportionality))}.` : null,
+    // DESCRIPTIVE — one row per measure; count is genuine.
+    label: "Data protection by design and by default",
+    authority: "GDPR Art. 25; Art. 35(7)(d)",
+    reportDetermination: ({ tables }) => {
+      const n = tableRowCount(tables, ["section2_coverage.measures_dpbd"]);
+      return n > 0 ? providedFor("its data-protection-by-design measures", n, "measure") : null;
+    },
   },
   {
+    // DESCRIPTIVE — one row per safeguard; count is genuine (the row that used to dump all 8 safeguards verbatim).
+    label: "Security of processing",
+    authority: "GDPR Art. 32; Art. 35(7)(d)",
+    reportDetermination: ({ tables }) => {
+      const n = tableRowCount(tables, ["section2_coverage.measures_security"]);
+      return n > 0 ? providedFor("its security measures", n, "measure") : null;
+    },
+  },
+  {
+    // DETERMINATION — reuse the existing [DETERMINATION LEAD] sentence (composeNecessityDetermination) rather than the full multi-paragraph body analysis; already exactly the condensed verdict this column needs.
+    label: "Necessity and proportionality",
+    authority: "GDPR Art. 35(7)(b); Art. 5(1)(b)–(c)",
+    reportDetermination: ({ composed }) =>
+      typeof composed["section_3_necessity_proportionality:2"] === "string" ? composed["section_3_necessity_proportionality:2"] : null,
+  },
+  {
+    // DETERMINATION — count-based; the register itself is the detail, this states what exists.
     label: "Design risk",
     authority: "GDPR Art. 35(7)(c)–(d); Recitals 75–76",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["risk_register.design"]),
-    intakeData: () => SEE_ABOVE("the design risk register"),
+    reportDetermination: ({ tables }) => {
+      const n = tableRowCount(tables, ["risk_register.design"]);
+      if (!n) return null;
+      return `The Company’s ${n === 1 ? "1 design-stage risk is" : `${n} design-stage risks are`} recorded and assessed for likelihood and severity.`;
+    },
   },
   {
     label: "Incident / misuse risk",
     authority: "GDPR Art. 35(7)(c)–(d); Art. 32; Recitals 75–76",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["risk_register.incident"]),
-    intakeData: () => SEE_ABOVE("the incident risk register"),
+    reportDetermination: ({ tables }) => {
+      const n = tableRowCount(tables, ["risk_register.incident"]);
+      if (!n) return null;
+      return `The Company’s ${n === 1 ? "1 identified risk is" : `${n} identified risks are`} assessed for likelihood, severity, and the rights affected.`;
+    },
   },
   {
+    // DETERMINATION — reuse composeRiskLead's existing condensed sentence.
     label: "Overall risk, safeguards, and residual position",
     authority: "GDPR Art. 35(7)(c)–(d); Recitals 75–76",
-    reportLanguage: ({ composed }) => joinComposed([composed["section_4_risk_management:5"], composed["section_4_risk_management:6"]]),
-    intakeData: () => SEE_ABOVE("the risk register and safeguards"),
+    reportDetermination: ({ composed }) =>
+      typeof composed["section_4_risk_management:6"] === "string" ? composed["section_4_risk_management:6"] : null,
   },
   {
+    // DESCRIPTIVE — quoting the DPO's own recorded advice, not a legal determination this tool reaches itself.
     label: "DPO advice",
     authority: "GDPR Art. 35(2); Art. 39(1)(c)",
-    reportLanguage: ({ values }) => (typeof values.DPO_ADVICE_SENTENCE === "string" ? values.DPO_ADVICE_SENTENCE : null),
-    intakeData: (intake) => (s(intake.dpo_advice) || s(intake.dpo_info) ? `DPO: ${boundedClause(s(intake.dpo_info)) || "recorded"}. Advice: ${boundedClause(s(intake.dpo_advice)) || "not separately stated"}.` : null),
+    reportDetermination: ({ values }) => (typeof values.DPO_ADVICE_SENTENCE === "string" ? values.DPO_ADVICE_SENTENCE : null),
   },
   {
     label: "Views of data subjects / representatives",
     authority: "GDPR Art. 35(9)",
-    reportLanguage: ({ values }) => (typeof values.dataSubjectsViews === "string" ? values.dataSubjectsViews : null),
-    intakeData: (intake) =>
-      s(intake.data_subjects_views_sought) || s(intake.data_subjects_views)
-        ? `Views sought: ${s(intake.data_subjects_views_sought) || "not separately stated"}. Views recorded: ${boundedClause(s(intake.data_subjects_views)) || "not separately stated"}.`
-        : null,
+    reportDetermination: ({ values }) => (typeof values.dataSubjectsViews === "string" ? values.dataSubjectsViews : null),
   },
   {
+    // DETERMINATION — reuse composeSignoffLead's existing condensed sentence rather than the full sign-off body (basis, scope note, review window).
     label: "Approval / decision",
     authority: "GDPR Arts. 5(2), 24, 35(1), 35(11); EDPB DPIA Template v1.0 as structural guidance",
-    reportLanguage: ({ tables, composed }) =>
-      joinComposed([tableSummary(tables, ["decision"]), composed["section_6_conclusion:2"], composed["section_6_conclusion:3"]]),
-    intakeData: (intake) =>
-      s(intake.dpia_approved_by_name)
-        ? `Approved by: ${s(intake.dpia_approved_by_name)}${boundedClause(s(intake.dpia_approved_by_title)) ? `, ${boundedClause(s(intake.dpia_approved_by_title))}` : ""}${
-          s(intake.dpia_approval_date) ? ` on ${s(intake.dpia_approval_date)}` : ""
-        }.`
-        : null,
+    reportDetermination: ({ composed }) =>
+      typeof composed["section_6_conclusion:2"] === "string" ? composed["section_6_conclusion:2"] : null,
   },
   {
+    // DETERMINATION — already a single well-formed sentence (composeArt36Sentence).
     label: "Prior consultation",
     authority: "GDPR Art. 36(1)–(3)",
-    reportLanguage: ({ values }) => (typeof values.ART36_SENTENCE === "string" ? values.ART36_SENTENCE : null),
-    intakeData: () => SEE_ABOVE("the risk register the prior-consultation determination is based on"),
+    reportDetermination: ({ values }) => (typeof values.ART36_SENTENCE === "string" ? values.ART36_SENTENCE : null),
   },
   {
+    // INVERSE pattern — this factor exists specifically to name what is missing; count-based, drawn from the same gap ledger the body renders.
     label: "Outstanding matters / record gaps",
     authority: "Primary authority for the affected factor; GDPR Art. 5(2) and Art. 24 for accountability context",
-    reportLanguage: ({ tables }) => tableSummary(tables, ["gap_ledger"]),
-    intakeData: () => SEE_ABOVE("the gap table"),
+    reportDetermination: ({ tables }) => {
+      const n = tableRowCount(tables, ["gap_ledger"]);
+      if (!n) return null;
+      return n === 1
+        ? "The Company has not yet supplied the information needed to resolve 1 open point in this assessment, recorded above."
+        : `The Company has not yet supplied the information needed to resolve ${n} open points in this assessment, recorded above.`;
+    },
   },
 ];
 
@@ -1383,10 +1418,9 @@ function buildDpiaFactorAuthorityMatrixTable(
 ): RenderedTable | null {
   const rowsOut: string[][] = [];
   for (const spec of DPIA_MATRIX_ROWS) {
-    const language = spec.reportLanguage({ report, intake, values, composed, tables });
-    if (!language) continue;
-    const data = spec.intakeData(intake) ?? "Not separately recorded in the intake.";
-    rowsOut.push([spec.label, data, language, spec.authority]);
+    const determination = spec.reportDetermination({ report, intake, values, composed, tables });
+    if (!determination) continue;
+    rowsOut.push([spec.label, determination, spec.authority]);
   }
   if (rowsOut.length === 0) return null;
   return {
@@ -1395,7 +1429,7 @@ function buildDpiaFactorAuthorityMatrixTable(
     // Left empty: the section heading already prints the full Appendix A
     // title, so a second title line on the table itself would repeat it.
     title: "",
-    columns: ["Factor", "Customer Intake Data", "Report Language", "Primary Authority"],
+    columns: ["Factor", "Report Determination", "Primary Authority"],
     rows: rowsOut,
   };
 }
