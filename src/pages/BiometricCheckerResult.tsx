@@ -175,7 +175,14 @@ export default function BiometricCheckerResult() {
               </div>
             )}
             <AttestationBlock attestation={(report as any)?.biometric_deliverables?.attestation} />
-            <AuthorityExhibit exhibit={(report as any)?.authority_exhibit} />
+            {/* Biometric's skeleton spine has its own table_of_authorities
+                section (now Appendix A) built from this same authority_exhibit
+                data — skip the legacy exhibit block when that appendix already
+                rendered, otherwise the citations print twice. See the
+                analogous ADMT/DPIA guards. */}
+            {!skeletonDoc?.sections?.some((s: any) => s.id === "table_of_authorities") && (
+              <AuthorityExhibit exhibit={(report as any)?.authority_exhibit} />
+            )}
             </div>
           </ReportShell>
         )}

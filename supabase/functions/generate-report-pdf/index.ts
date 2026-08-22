@@ -3262,6 +3262,11 @@ Deno.serve(async (req) => {
       // document when the pipeline assembled one; the legacy narrative path
       // survives only for reports generated before the wire-in.
       const skelBio = readSkeletonDocument(record.report_data);
+      // Biometric's skeleton spine has its own table_of_authorities section
+      // (now Appendix A) built from this same authority_exhibit data — skip
+      // the legacy exhibit block when that appendix already rendered,
+      // otherwise the citations print twice. Same bug class as ADMT/DPIA.
+      const bioHasToaAppendix = skelBio?.sections?.some((s: any) => s.id === "table_of_authorities");
       html = skelBio
         ? buildTextReportHTML({
             title: skelBio.title || "Biometric Compliance Assessment",
@@ -3271,7 +3276,7 @@ Deno.serve(async (req) => {
             htmlPrefix: skeletonSectionsHtml(skelBio),
             appendixHtml:
               renderAttestationHtml((record.report_data as any)?.biometric_deliverables?.attestation) +
-              renderAuthorityExhibitHtml((record.report_data as any)?.authority_exhibit),
+              (bioHasToaAppendix ? "" : renderAuthorityExhibitHtml((record.report_data as any)?.authority_exhibit)),
           })
         : buildTextReportHTML({
             title: "Biometric Compliance Assessment",
