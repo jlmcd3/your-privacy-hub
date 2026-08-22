@@ -568,17 +568,43 @@ const Updates = () => {
                     </div>
                 </div>
 
-                {hasJurisdictionOrTopic && (
-                    <div className="mb-3 flex items-center gap-2 text-xs">
-                        <span className="text-muted-foreground">{filtered.length} updates</span>
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">
+                        {hasJurisdictionOrTopic ? "Showing" : "Showing the full feed —"}
+                    </span>
+                    {selectedRegions.map((key) => (
+                        <button
+                            key={`r-${key}`}
+                            onClick={() => toggleRegion(key)}
+                            className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--cobalt))]/10 text-[hsl(var(--cobalt))] px-2.5 py-1 font-medium hover:bg-[hsl(var(--cobalt))]/20 transition-colors"
+                        >
+                            {LOCATION_FILTERS.find(f => f.key === key)?.label ?? formatFilterLabel(key)}
+                            <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                    ))}
+                    {selectedRegions.length > 0 && selectedTopics.length > 0 && (
+                        <span className="text-muted-foreground">×</span>
+                    )}
+                    {selectedTopics.map((key) => (
+                        <button
+                            key={`t-${key}`}
+                            onClick={() => toggleTopic(key)}
+                            className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--cobalt))]/10 text-[hsl(var(--cobalt))] px-2.5 py-1 font-medium hover:bg-[hsl(var(--cobalt))]/20 transition-colors"
+                        >
+                            {TOPIC_FILTERS.find(t => t.key === key)?.label ?? formatFilterLabel(key)}
+                            <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                    ))}
+                    <span className="text-muted-foreground">{filtered.length} updates</span>
+                    {hasJurisdictionOrTopic && (
                         <button
                             onClick={clearAllFilters}
                             className="text-[hsl(var(--cobalt))] hover:underline font-medium"
                         >
                             Clear filters
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {isPremium ? (
                   <Link
