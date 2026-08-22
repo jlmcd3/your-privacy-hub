@@ -7,9 +7,10 @@ import { mapInvariants } from "../../../supabase/functions/_shared/corpus/cam-ve
 import type { CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/admt-corpus-map.ts";
+import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
 
-// All phase-1 maps landed so far (grows as landings 2-3 add DPIA).
-const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP];
+// All phase-1 maps landed so far.
+const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP];
 
 Deno.test("mapInvariants: empty map is trivially valid", () => {
   const empty: CorpusMap = {
@@ -58,6 +59,20 @@ Deno.test("ADMT_CORPUS_MAP: every factor_id matches a real Appendix B factor lab
     assert(
       knownLabels.has(row.factor_id),
       `${row.id}: factor_id "${row.factor_id}" is not an Appendix B factor label`,
+    );
+  }
+});
+
+Deno.test("DPIA_CORPUS_MAP: every factor_id matches a real DPIA_MATRIX_ROWS label", async () => {
+  const src = await Deno.readTextFile(
+    "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts",
+  );
+  const knownLabels = new Set<string>();
+  for (const m of src.matchAll(/label:\s*"([^"]+)"/g)) knownLabels.add(m[1]);
+  for (const row of DPIA_CORPUS_MAP.rows) {
+    assert(
+      knownLabels.has(row.factor_id),
+      `${row.id}: factor_id "${row.factor_id}" is not a DPIA_MATRIX_ROWS label`,
     );
   }
 });

@@ -9,9 +9,10 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/admt-corpus-map.ts";
+import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
 import type { CamRow, CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
 
-const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP];
+const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP];
 
 async function assertImplementedBranchExists(row: CamRow): Promise<void> {
   if (!row.logic_disposition || row.logic_disposition.kind !== "implemented") return;
@@ -80,4 +81,13 @@ Deno.test("ADMT_CORPUS_MAP: disposition mix matches this session's finding (5 im
     if (kind) counts[kind]++;
   }
   assertEquals(counts, { implemented: 5, extension_filed: 0, declined: 0 });
+});
+
+Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (4 implemented, 1 filed, 1 declined)", () => {
+  const counts = { implemented: 0, extension_filed: 0, declined: 0 };
+  for (const row of DPIA_CORPUS_MAP.rows) {
+    const kind = row.logic_disposition?.kind;
+    if (kind) counts[kind]++;
+  }
+  assertEquals(counts, { implemented: 4, extension_filed: 1, declined: 1 });
 });
