@@ -71,6 +71,7 @@ import UpdateDetail from "./pages/UpdateDetail.tsx";
 const FAQ = lazy(() => import("./pages/FAQ.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const LogoPreview = lazy(() => import("./pages/LogoPreview.tsx"));
+const FallbackImagePreview = lazy(() => import("./pages/FallbackImagePreview.tsx"));
 import DevOnly from "./components/DevOnly.tsx";
 import AdminOnly from "./components/AdminOnly.tsx";
 const About = lazy(() => import("./pages/About.tsx"));
@@ -225,6 +226,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/__dev/u32-harness" element={<DocU32Harness />} />
             <Route path="/logo-preview" element={<LogoPreview />} />
+            <Route path="/fallback-preview" element={<FallbackImagePreview />} />
             <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
             <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
             <Route path="/enforcement" element={<Enforcement />} />
