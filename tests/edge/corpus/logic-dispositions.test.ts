@@ -65,13 +65,16 @@ for (const map of MAPS) {
   });
 }
 
-Deno.test("RISK_CORPUS_MAP: disposition mix matches this session's finding (1 filed, 10 implemented)", () => {
+Deno.test("RISK_CORPUS_MAP: disposition mix matches this session's finding (11 implemented, 0 filed)", () => {
   const counts = { implemented: 0, extension_filed: 0, declined: 0 };
   for (const row of RISK_CORPUS_MAP.rows) {
     const kind = row.logic_disposition?.kind;
     if (kind) counts[kind]++;
   }
-  assertEquals(counts, { implemented: 10, extension_filed: 1, declined: 0 });
+  // PN-CORPUS-L-RISK-1 resolved 2026-08-22 (phase-2 redline): the
+  // § 7150(b)(2)(A) carve-out gate branch landed, moving the
+  // accommodations row from extension_filed to implemented.
+  assertEquals(counts, { implemented: 11, extension_filed: 0, declined: 0 });
 });
 
 Deno.test("ADMT_CORPUS_MAP: disposition mix matches this session's finding (5 implemented, 0 filed)", () => {

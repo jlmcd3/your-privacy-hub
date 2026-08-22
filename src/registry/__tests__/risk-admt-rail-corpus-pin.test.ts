@@ -99,6 +99,9 @@ const SAMPLE_ENTRIES: readonly SampleEntry[] = [
   { rail: CPPA_RISK_RAIL, key: "processing_record", provisions: ["cppa-7152"], expect: "pins" },
   { rail: CPPA_RISK_RAIL, key: "comparable_set", provisions: ["cppa-7156"], expect: "pins" },
   { rail: CPPA_RISK_RAIL, key: "sensitive_location_basis", provisions: ["cppa-7150"], expect: "pins" },
+  // PN-CORPUS-L-RISK-1 (2026-08-22) — the § 7150(b)(2)(A) carve-out entry
+  // added with the carve-out build; verbatim from the same cppa-7150 excerpt.
+  { rail: CPPA_RISK_RAIL, key: "q15d_hr_carveout", provisions: ["cppa-7150"], expect: "pins" },
   // RESOLVED 2026-08-22 (phase-2 redline): i9_dpia's regulationText was a
   // PARAPHRASE ("cross-referencing", "identifies the portions ... of this
   // Article") that did not appear in § 7156(b)'s actual text. Rewritten to

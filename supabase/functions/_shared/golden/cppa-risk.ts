@@ -178,6 +178,8 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
       q15c_spi_volume: "50,000 or more",
       q16_sensitive_limit: "Yes, with a separate \"Limit the Use of My Sensitive PI\" link",
       q17_sensitive_basis: "Consent",
+      // PN-CORPUS-L-RISK-1 — consumer adtech SPI is not personnel data.
+      q15d_hr_carveout: "No — processed for other purposes as well",
     },
     assertions: [
       { kind: "must_include", pattern: "sensitive", flags: "i", label: "SPI addressed" },
@@ -354,6 +356,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       q15c_spi_volume: "50,000 or more",
       q16_sensitive_limit: "Yes, with a separate \"Limit the Use of My Sensitive PI\" link",
       q17_sensitive_basis: "Necessary for the service",
+      // PN-CORPUS-L-RISK-1 — consumer-facing SPI, not solely-personnel.
+      q15d_hr_carveout: "No — processed for other purposes as well",
 
       q18_admt_use: "Yes",
       q19_admt_description:
@@ -847,6 +851,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       q15c_spi_volume: "50,000 or more",
       q16_sensitive_limit: "Yes, with a separate \"Limit the Use of My Sensitive PI\" link",
       q17_sensitive_basis: "Consent",
+      // PN-CORPUS-L-RISK-1 — consumer-facing SPI, not solely-personnel.
+      q15d_hr_carveout: "No — processed for other purposes as well",
 
       q18_admt_use: "No",
       q18b_admt_training: "No",

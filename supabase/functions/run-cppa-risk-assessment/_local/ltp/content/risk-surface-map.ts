@@ -14,6 +14,8 @@ export const RISK_SURFACE_MAP_VERSION = "risk-surface-map-2026-07-26";
 export type TemplateId =
   | "T.risk.applicability.engaged"
   | "T.risk.applicability.not_engaged"
+  // PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out posture.
+  | "T.risk.applicability.exempt_b2a"
   | "T.risk.cohort"
   | "T.risk.documentation.present"
   | "T.risk.documentation.gap"
@@ -40,7 +42,7 @@ export const RISK_SURFACE_BINDINGS: readonly SurfaceBinding[] = [
   // Applicability (Type R) — one template per § 7150(b) prong.
   {
     path: "scope_and_triggers.triggered_activities_detail",
-    templates: ["T.risk.applicability.engaged", "T.risk.applicability.not_engaged"],
+    templates: ["T.risk.applicability.engaged", "T.risk.applicability.not_engaged", "T.risk.applicability.exempt_b2a"],
     note: "One rendering per § 7150(b) prong from Type R propositions.",
   },
 

@@ -751,6 +751,31 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   // FSOR commentary consulted: cppa_fsor_commentary row
   // id 30d841cf-02af-4aca-aae3-51a08aab7820 (agency response on § 7150(b)(5)
   // sensitive-location scope).
+  // PN-CORPUS-L-RISK-1 (2026-08-22) — § 7150(b)(2)(A) personnel carve-out.
+  // Verbatim from the approved provision_texts cppa-7150 excerpt; pinned by
+  // src/registry/__tests__/risk-admt-rail-corpus-pin.test.ts.
+  q15d_hr_carveout: {
+    fieldLabel: "Personnel carve-out for sensitive PI",
+    citation: "11 CCR § 7150(b)(2)(A)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Sensitive PI of employees or independent contractors processed solely and specifically for routine personnel administration — compensation, employment authorization, benefits, legally required reasonable accommodation, or legally required wage reporting — is exempt from the § 7150(b)(2) risk-assessment trigger. Any other sensitive-PI processing remains subject to it.",
+    regulationText:
+      "“A business that processes the sensitive personal information of its employees or independent contractors solely and specifically for purposes of administering compensation payments, determining and storing employment authorization, administering employment benefits, providing reasonable accommodation as required by law, or wage reporting as required by law, is not required to conduct a risk assessment for the processing of sensitive personal information for these purposes. Any other processing of consumers’ sensitive personal information is subject to the risk-assessment requirements set forth in this Article.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(2)", label: "Sensitive-PI risk-assessment trigger" },
+      { citation: "Cal. Civ. Code § 1798.140(ae)", label: "Sensitive personal information definition" },
+    ],
+    coachLead:
+      "\"Solely and specifically\" is the whole test — every use of the sensitive PI must fall inside the five listed personnel purposes.",
+    coachBody:
+      "Check two things: whose sensitive PI this activity touches (only employees/contractors, or also consumers?), and every purpose it serves. One purpose outside the five listed — analytics, monitoring, profiling, anything customer-facing — and the carve-out does not apply.",
+    goodAnswer:
+      "A payroll activity processing only employee bank details and SSNs to run compensation and wage reporting selects \"Yes — solely\". The same data also feeding a workforce-analytics dashboard selects \"No\" — the analytics use is outside the five purposes.",
+    commonMistake:
+      "Claiming the carve-out because the data belongs to employees. Ownership isn't the test; the exclusive, listed personnel purpose is.",
+  },
+
   sensitive_location_basis: {
     fieldLabel: "Sensitive-location processing basis",
     citation: "11 CCR § 7150(b)(5)",

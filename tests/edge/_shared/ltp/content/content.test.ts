@@ -37,6 +37,8 @@ Deno.test("content: pass2 templates present with expected ids", () => {
   const expected = [
     "T.risk.admt.consequence_suppressed",
     "T.risk.applicability.engaged",
+    // PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out posture.
+    "T.risk.applicability.exempt_b2a",
     "T.risk.applicability.not_engaged",
     "T.risk.balance.factor_line",
     "T.risk.balance.firm",

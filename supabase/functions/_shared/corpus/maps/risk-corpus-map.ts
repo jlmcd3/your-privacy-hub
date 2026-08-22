@@ -19,10 +19,11 @@
 // location profiling at (b)(4)-(5); training-technology profiling at
 // (b)(6)). This row is filed IMPLEMENTED, not extension_filed.
 //
-// The § 7150(b)(2)(A) reasonable-accommodations exemption remains the
-// one genuine gap in this set (pre-verified doc 52-authoring-session and
-// re-verified this session: no "accommodat" branch in risk-factor-engine.ts
-// or CPPARiskAssessment.tsx).
+// The § 7150(b)(2)(A) personnel carve-out was the one genuine gap in this
+// set at phase 1 (filed as PN-CORPUS-L-RISK-1); it was RESOLVED in the
+// phase-2 redline (2026-08-22) with a dedicated gate-eval.ts branch, the
+// q15d_hr_carveout intake field, and the exempt_b2a determined-outcome
+// sentence — see row 01's curation_note.
 
 import type { CorpusMap } from "../cam-types.ts";
 
@@ -44,12 +45,12 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       direction: "limits",
       logic_bearing: true,
       logic_disposition: {
-        kind: "extension_filed",
-        queue_ref: "PN-CORPUS-L-RISK-1",
+        kind: "implemented",
+        branch_ref: "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/gate-eval.ts:hrCarveoutApplies",
       },
       provenance: { verified_on: "2026-08-22" },
       curation_note:
-        "The Agency added a reasonable-accommodations carve-out at § 7150(b)(2)(A) for sensitive-PI processing done for legally-required personnel accommodations. Neither risk-factor-engine.ts nor the CPPARiskAssessment.tsx intake has an accommodations branch (grepped this session: zero matches for /accommodat/i in both files) — the (b)(2) sensitive-PI trigger fires unconditionally whenever sensitive PI is processed, with no carve-out for accommodation-driven processing. This is a genuine tree gap, not a citation gap.",
+        "The Agency added the § 7150(b)(2)(A) carve-out for sensitive-PI processing done solely for routine personnel purposes (compensation, employment authorization, benefits, legally required reasonable accommodation, wage reporting). Originally filed extension_filed (PN-CORPUS-L-RISK-1): no branch existed, and the gate registry's q_sensitive_pi_carveout field resolved to the WRONG question (q17's generic legal basis) with inverted polarity under the generic evaluator. RESOLVED 2026-08-22 (phase-2 redline): gate-eval.ts special-cases G.applicability.sensitive_pi against the new dedicated q15d_hr_carveout intake field (exact-literal match via hrCarveoutApplies), with the determined-outcome exempt sentence T.risk.applicability.exempt_b2a and the intake question at CPPARiskAssessment.tsx.",
     },
     {
       id: "cppa-risk/regulatory-trigger-and-applicability/02",

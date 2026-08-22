@@ -1624,11 +1624,18 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     const engagedFromGate = gate?.outcome === "pass";
     const engagedFromProp = (prop as { polarity?: string } | undefined)?.polarity === "positive";
     const engaged = engagedFromGate || engagedFromProp;
+    // PN-CORPUS-L-RISK-1 — the § 7150(b)(2)(A) personnel carve-out is a
+    // DISTINCT not-engaged posture (the record supports the conduct; the
+    // subsection removes it from the trigger), keyed off the gate's own
+    // block reason so composer and evaluator can never disagree.
+    const exemptB2A = !engaged &&
+      gate?.outcome === "block" &&
+      ((gate as { reason?: string }).reason ?? "").includes("7150(b)(2)(A)");
     // Item 244 Correction 4: prong index from the pinpoint substring
     // "7150(b)(N)"; used to look up the verbatim § 7150(b) label.
     const m = /7150\(b\)\((\d+)\)/.exec(c.anchor.pinpoint);
     const prongIdx = m ? Number(m[1]) as 1|2|3|4|5|6 : null;
-    return { c, engaged, prongIdx };
+    return { c, engaged, exemptB2A, prongIdx };
   });
   const engaged = enriched.filter((e) => e.engaged);
   const notEngaged = enriched.filter((e) => !e.engaged);
@@ -1665,7 +1672,11 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     // non-contiguous ((b)(3) + (b)(4)), so order explicitly rather than
     // relying on registry order.
     const items = [...engaged, ...notEngaged].map<TemplateInstance>((e) => ({
-      template_id: e.engaged ? "T.risk.applicability.engaged" : "T.risk.applicability.not_engaged",
+      template_id: e.engaged
+        ? "T.risk.applicability.engaged"
+        : e.exemptB2A
+        ? "T.risk.applicability.exempt_b2a"
+        : "T.risk.applicability.not_engaged",
       ctx: {
         prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
         __cite: { PINPOINT: e.c.anchor.pinpoint },
@@ -1688,7 +1699,7 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     },
   };
   const items = enriched.map<TemplateInstance>((e) => ({
-    template_id: "T.risk.applicability.not_engaged",
+    template_id: e.exemptB2A ? "T.risk.applicability.exempt_b2a" : "T.risk.applicability.not_engaged",
     ctx: {
       prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
       __cite: { PINPOINT: e.c.anchor.pinpoint },

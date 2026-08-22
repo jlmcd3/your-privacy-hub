@@ -69,6 +69,20 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 320,
   },
+  // PN-CORPUS-L-RISK-1 (2026-08-22) — the § 7150(b)(2)(A) personnel
+  // carve-out is a DISTINCT not-engaged posture: the record supports the
+  // conduct, but the subsection removes it from the trigger. The generic
+  // not_engaged sentence ("the record does not support this trigger")
+  // would misstate that, so the carve-out gets its own determined-outcome
+  // sentence.
+  "T.risk.applicability.exempt_b2a": {
+    id: "T.risk.applicability.exempt_b2a",
+    text: "Not engaged — {{cite:PINPOINT}} ({{plan:prong_subject}}): the Company records that the sensitive personal information processed in this activity is that of its employees or independent contractors, processed solely and specifically for the personnel-administration purposes listed in 11 CCR § 7150(b)(2)(A); under that subsection, this processing is not subject to the risk-assessment requirement.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["prong_subject"],
+    intake_slots: [],
+    max_chars: 520,
+  },
   "T.risk.cohort": {
     id: "T.risk.cohort",
     text: "Based on the revenue information provided, the Company's applicable compliance timeline is {{plan:cohort_date}} under {{cite:PINPOINT}}.",

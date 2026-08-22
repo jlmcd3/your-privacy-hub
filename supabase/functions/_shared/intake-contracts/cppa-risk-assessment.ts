@@ -273,6 +273,13 @@ const Q16_OPTS = [
   "Not yet implemented",
 ] as const;
 const Q17_OPTS = ["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"] as const;
+// PN-CORPUS-L-RISK-1 (2026-08-22) — § 7150(b)(2)(A) personnel carve-out.
+// The gate evaluator matches the "Yes — solely…" literal exactly.
+const Q15D_HR_CARVEOUT_OPTS = [
+  "Yes — solely for those personnel purposes",
+  "No — processed for other purposes as well",
+  "Not applicable — no employee or contractor sensitive PI",
+] as const;
 const Q18_OPTS = ["Yes", "No", "In evaluation"] as const;
 const Q15B_UNDER16_OPTS = [
   "Yes — we knowingly process under-16 data",
@@ -465,6 +472,15 @@ export const cppaRiskContract: IntakeContract = {
     { key: "q17_sensitive_basis",   kind: "enum", required: "conditional",
       requiredWhen: 'q15_sensitive_pi === "Yes"', hiddenValue: "",
       options: Q17_OPTS },
+    // PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out. Conditional
+    // with a MACHINE trigger (the r5b VALUE-EQUALS shape) mirroring the
+    // form's own skip logic: asked exactly when q15 === "Yes", so the
+    // record-complete gate treats it as an asked question only then, and
+    // records with no sensitive PI never carry it as an unanswered ask.
+    { key: "q15d_hr_carveout",      kind: "enum", required: "conditional",
+      requiredWhen: 'q15_sensitive_pi === "Yes"', hiddenValue: "",
+      trigger: { key: "q15_sensitive_pi", equals: ["Yes"] },
+      options: Q15D_HR_CARVEOUT_OPTS },
 
     // ADMT (Step 5)
     { key: "q18_admt_use",       kind: "enum",      required: "always", options: Q18_OPTS },

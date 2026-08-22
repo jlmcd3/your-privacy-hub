@@ -87,6 +87,14 @@ const q5bSaysSensitiveLocation = (v: unknown): boolean =>
 const sensitiveLocationBasisEngaged = (v: unknown): boolean =>
   typeof v === "string" && v.trim() !== "" && !/^not applicable/i.test(v.trim());
 
+/**
+ * PN-CORPUS-L-RISK-1 (2026-08-22) — § 7150(b)(2)(A) personnel carve-out.
+ * Exact enum match against the q15d_hr_carveout option (a legal
+ * determination gates on the ratified literal, never a fuzzy match).
+ */
+const hrCarveoutApplies = (v: unknown): boolean =>
+  typeof v === "string" && v.trim() === "Yes — solely for those personnel purposes";
+
 export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
   const outcomes: GateRuleOutcome[] = [];
   for (const gate of CPPA_RISK_GATES) {
@@ -110,6 +118,34 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
           outcomes.push({ gate_id: gate.id, outcome: "pass" });
         } else {
           outcomes.push({ gate_id: gate.id, outcome: "block", reason: "q5b option does not select systematic observation" });
+        }
+        continue;
+      }
+      if (gate.id === "G.applicability.sensitive_pi") {
+        // PN-CORPUS-L-RISK-1 (2026-08-22) — § 7150(b)(2)(A). The generic
+        // any-positive-passes rule gave the carve-out field the WRONG
+        // polarity (an answered carve-out made the trigger MORE likely to
+        // pass). (b)(2) needs its own branch: engaged iff sensitive PI is
+        // processed AND the record does not affirm the solely-for-exempt-
+        // personnel-purposes carve-out. FSOR provenance: the Agency added
+        // (b)(2)(A) to limit the risk-assessment burden for routine
+        // personnel processing (cppa_fsor_commentary a2ce1f02-…; CAM row
+        // cppa-risk/regulatory-trigger-and-applicability/01).
+        const spi = readField(intake, "q_processes_sensitive_pi");
+        const carve = readField(intake, "q15d_hr_carveout");
+        if (spi === undefined) {
+          outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q15_sensitive_pi absent" });
+        } else if (isNegative(spi)) {
+          outcomes.push({ gate_id: gate.id, outcome: "block", reason: "no sensitive-PI processing on the record" });
+        } else if (hrCarveoutApplies(carve)) {
+          outcomes.push({
+            gate_id: gate.id,
+            outcome: "block",
+            reason:
+              "§ 7150(b)(2)(A) personnel carve-out — sensitive PI of employees/contractors processed solely for exempt personnel-administration purposes",
+          });
+        } else {
+          outcomes.push({ gate_id: gate.id, outcome: "pass" });
         }
         continue;
       }

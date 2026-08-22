@@ -401,6 +401,8 @@ export default function CPPARiskAssessment() {
   const [q13, setQ13] = useState(""); const [q14, setQ14] = useState("");
   // Step 4 — Sensitive PI
   const [q15, setQ15] = useState(""); const [q16, setQ16] = useState(""); const [q17, setQ17] = useState("");
+  // PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out.
+  const [q15dHrCarveout, setQ15dHrCarveout] = useState("");
   // Step 5 — ADMT
   const [q18, setQ18] = useState(""); const [q19, setQ19] = useState(""); const [q20, setQ20] = useState("");
 
@@ -721,7 +723,11 @@ export default function CPPARiskAssessment() {
       {
         citation: "11 CCR § 7150(b)(2)",
         label: "Risk assessment required — sensitive PI processing",
-        triggered: q15 === "Yes" || q4.some((c) => SENSITIVE_PI_CATEGORIES.has(c)),
+        // PN-CORPUS-L-RISK-1 — the § 7150(b)(2)(A) personnel carve-out
+        // removes solely-personnel-purposes SPI processing from this
+        // trigger; mirrors the deterministic gate in gate-eval.ts.
+        triggered: (q15 === "Yes" || q4.some((c) => SENSITIVE_PI_CATEGORIES.has(c))) &&
+          q15dHrCarveout !== "Yes — solely for those personnel purposes",
       },
       // ITEM 275 BUILD 3 — six-prong realignment. (b)(3) and (b)(6) are
       // separate prongs with separate triggers; (b)(4) and (b)(5) were absent.
@@ -796,7 +802,7 @@ export default function CPPARiskAssessment() {
     ];
     return items.filter((i) => i.triggered);
   }, [
-    q1, q4, q5, q15, q18, q5bProfiling, q18bTraining, sensitiveLocationBasis,
+    q1, q4, q5, q15, q15dHrCarveout, q18, q5bProfiling, q18bTraining, sensitiveLocationBasis,
     hasSecondaryUses, secondaryActivities,
   ]);
 
@@ -850,7 +856,7 @@ export default function CPPARiskAssessment() {
     if (step === 3) {
       if (!q4.length) return "Select the categories of personal information this activity processes.";
       if (!q15) return "Answer whether sensitive personal information is processed.";
-      if (q15 === "Yes" && (!q16 || !q17)) return "Complete the sensitive personal information follow-ups.";
+      if (q15 === "Yes" && (!q16 || !q17 || !q15dHrCarveout)) return "Complete the sensitive personal information follow-ups.";
       if (!q15bUnder16) return "Answer whether you have actual knowledge of processing under-16 consumers' data.";
       if (!i4bSources) return "Identify where this personal information comes from.";
       if (!i3CaConsumerBand) return "Select the approximate California consumer band for this activity.";
@@ -982,6 +988,7 @@ export default function CPPARiskAssessment() {
     q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
     q11_policy_review: q11, q12_notice_at_collection: q12, q13_notice_content: q13, q14_employee_notice: q14,
     q15_sensitive_pi: q15, q16_sensitive_limit: q16, q17_sensitive_basis: q17,
+    q15d_hr_carveout: q15dHrCarveout,
     q18_admt_use: q18, q19_admt_description: q19, q20_admt_opt_out: q20,
     // new § 7152 elements
     q5b_profiling_observation: q5bProfiling,
@@ -1115,7 +1122,7 @@ export default function CPPARiskAssessment() {
       : {}),
   }), [
     entityName, subjectAnchor,
-    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q15dHrCarveout, q18, q19, q20,
     q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
@@ -1142,7 +1149,7 @@ export default function CPPARiskAssessment() {
 
   // ---- Draft autosave ------------------------------------------------------
   const draftData = useMemo(() => ({
-    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q15dHrCarveout, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
@@ -1166,7 +1173,7 @@ export default function CPPARiskAssessment() {
     rk3d,
 
   }), [
-    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q15dHrCarveout, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
@@ -1268,6 +1275,7 @@ export default function CPPARiskAssessment() {
     if (typeof d.q15 === "string") setQ15(d.q15);
     if (typeof d.q16 === "string") setQ16(d.q16);
     if (typeof d.q17 === "string") setQ17(d.q17);
+    if (typeof d.q15dHrCarveout === "string") setQ15dHrCarveout(d.q15dHrCarveout);
     if (typeof d.q18 === "string") setQ18(d.q18);
     if (typeof d.q19 === "string") setQ19(d.q19);
     if (typeof d.q20 === "string") setQ20(d.q20);
@@ -2325,6 +2333,12 @@ export default function CPPARiskAssessment() {
                 </div>
                 <div><Label>Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
+                {/* PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out. */}
+                <div data-rail-key="q15d_hr_carveout" onFocus={() => focusRail('q15d_hr_carveout')}>
+                  <Label>Is the sensitive PI in this activity solely that of your employees or independent contractors, used solely and specifically for administering compensation, employment authorization, employment benefits, legally required reasonable accommodation, or legally required wage reporting? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(2)(A))</span></Label>
+                  <p className="text-xs text-muted-foreground mt-1">Section 7150(b)(2)(A) exempts sensitive-PI processing done solely and specifically for these routine personnel purposes from the § 7150(b)(2) risk-assessment trigger. Any other processing of consumers' sensitive PI remains subject to the requirement — if this activity also processes consumer sensitive PI, or uses the personnel data for anything beyond these purposes, answer "No".</p>
+                  <div className="mt-2"><Radio name="q15d" options={["Yes — solely for those personnel purposes", "No — processed for other purposes as well", "Not applicable — no employee or contractor sensitive PI"]} value={q15dHrCarveout} onChange={setQ15dHrCarveout} /></div>
+                </div>
                 {/* RK3-A2 g4 — PN-RK7 SPI employment-exception facts.
                     The former § 1798.145(m) employment exemption expired
                     2023-01-01; where "Employment contract" is the claimed basis,

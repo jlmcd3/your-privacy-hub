@@ -365,6 +365,8 @@ export const CPPA_RISK_SECTION_SHARDS: readonly SectionShard[] = [
       template_ids: [
         "T.risk.applicability.engaged",
         "T.risk.applicability.not_engaged",
+        // PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out posture.
+        "T.risk.applicability.exempt_b2a",
         // ITEM 276 — § 7156(a) comparable-set segmentation item.
         "T.risk.scope.secondary_segmentation",
       ],

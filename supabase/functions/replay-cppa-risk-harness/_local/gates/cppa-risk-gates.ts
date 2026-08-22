@@ -76,8 +76,10 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
   {
     id: "G.applicability.sensitive_pi",
     jurisdiction_tag: CPPA,
-    description: "Applicability gate — § 7150(b)(2) sensitive PI (with § 7027 employment-benefits carve-out).",
-    intake_fields: ["q_processes_sensitive_pi", "q_sensitive_pi_carveout"],
+    // PN-CORPUS-L-RISK-1 (2026-08-22): special-cased in gate-eval.ts; the
+    // carve-out reads the dedicated q15d_hr_carveout field.
+    description: "Applicability gate — § 7150(b)(2) sensitive PI (with the § 7150(b)(2)(A) personnel carve-out).",
+    intake_fields: ["q_processes_sensitive_pi", "q15d_hr_carveout"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(2)",
   },
