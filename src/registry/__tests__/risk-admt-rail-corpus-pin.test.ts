@@ -99,16 +99,14 @@ const SAMPLE_ENTRIES: readonly SampleEntry[] = [
   { rail: CPPA_RISK_RAIL, key: "processing_record", provisions: ["cppa-7152"], expect: "pins" },
   { rail: CPPA_RISK_RAIL, key: "comparable_set", provisions: ["cppa-7156"], expect: "pins" },
   { rail: CPPA_RISK_RAIL, key: "sensitive_location_basis", provisions: ["cppa-7150"], expect: "pins" },
-  // KNOWN GAP (real finding, not a test bug): i9_dpia's regulationText is
-  // a PARAPHRASE ("cross-referencing", "identifies the portions ... of
-  // this Article") — none of that wording is in § 7156(b)'s actual text
-  // ("utilize a risk assessment ... prepared for another purpose ...
-  // paired with the outstanding information necessary for, compliance
-  // with section 7152"). The file's own header claims "verbatim from 11
-  // CCR §§ 7150-7157" fleet-wide; this entry does not meet that claim.
-  // Reported here, NOT silently rewritten (rail text is customer bytes,
-  // rule 3) — a redline candidate for the CEO round.
-  { rail: CPPA_RISK_RAIL, key: "i9_dpia", provisions: ["cppa-7156"], expect: "known_gap" },
+  // RESOLVED 2026-08-22 (phase-2 redline): i9_dpia's regulationText was a
+  // PARAPHRASE ("cross-referencing", "identifies the portions ... of this
+  // Article") that did not appear in § 7156(b)'s actual text. Rewritten to
+  // the genuine verbatim quote ("utilize a risk assessment ... prepared
+  // for another purpose ... paired with the outstanding information
+  // necessary for, compliance with section 7152"); plainSummary/
+  // fscrContext updated to match without changing the substantive guidance.
+  { rail: CPPA_RISK_RAIL, key: "i9_dpia", provisions: ["cppa-7156"], expect: "pins" },
   // KNOWN GAP (real finding): the cppa-7001 provision_texts excerpt is
   // explicitly scoped "[PARTIAL EXCERPT — subdivisions (bbb) and (ddd)
   // only]" — it does NOT include subdivision (e), the ADMT definition
@@ -168,6 +166,6 @@ describe("Risk + ADMT intake rail — corpus pin (phase-1 sample)", () => {
   }
 
   it("RAIL_KNOWN_GAPS entries are exactly the ones marked known_gap above", () => {
-    expect([...RAIL_KNOWN_GAPS]).toEqual(["i9_dpia", "scope_does_business_use_admt"]);
+    expect([...RAIL_KNOWN_GAPS]).toEqual(["scope_does_business_use_admt"]);
   });
 });
