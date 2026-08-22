@@ -516,7 +516,7 @@ const Updates = () => {
                 {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto -mt-4">
                     <div className="bg-card rounded-lg p-3">
-                        <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 text-center">Topics</h3>
+                        <span className="block text-[10px] uppercase tracking-wide text-muted-foreground mb-2 px-3">Topic</span>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
                                 const isActive = t.key === "all"
@@ -529,7 +529,7 @@ const Updates = () => {
                                         aria-pressed={isActive}
                                         className={`text-left text-sm px-3 py-2 transition-colors border-l-2 ${
                                             isActive
-                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
+                                                ? `border-[hsl(var(--cobalt))] text-foreground bg-muted/40 ${t.key === "all" ? "font-bold" : "font-medium"}`
                                                 : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
                                         }`}
                                     >
