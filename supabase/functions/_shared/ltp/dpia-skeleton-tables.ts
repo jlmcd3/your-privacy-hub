@@ -56,7 +56,6 @@ export const DPIA_TABLE_LABELS: Record<string, string> = {
   analysed: "Analysed on the record",
   record_insufficient: "The record does not carry the point",
   basis_supported_on_the_record: "Basis supported based on the information the company provided",
-  basis_not_supported_on_the_record: "Basis not supported based on the information the company provided",
   undetermined_on_the_record: "Undetermined based on the information the company provided",
   no_transfer_on_the_record: "No cross-border transfer is on the record",
   intra_eea_processing: "Processing remains within the EEA",

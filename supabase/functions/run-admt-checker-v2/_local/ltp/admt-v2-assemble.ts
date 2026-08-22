@@ -158,7 +158,9 @@ function outputRolePhrase(): string {
   return "No independent effect on applicability; establishes the factual record for the Notice and Access sections.";
 }
 function noticeDeliveryPhrase(status: SubstantiveState): string {
-  return status === "GAP" ? "Condition — a Pre-use Notice has not yet been put in place." : "Supports the notice-delivery element.";
+  if (status === "GAP") return "Condition — a Pre-use Notice has not yet been put in place.";
+  if (status === "PARTIAL" || status === "INSUFFICIENT_RECORD") return "Recommendation — confirm how the Pre-use Notice is delivered.";
+  return "Supports the notice-delivery element.";
 }
 function noticeContentPhrase(posture: SubstantiveState): string {
   if (posture === "GAP") return "Condition — the Pre-use Notice omits a required element.";
@@ -171,21 +173,34 @@ const OPTOUT_PATH_LABEL: Record<string, string> = {
   HIRING_ADMISSION_EXCEPTION: "hiring/admission exception",
   WORK_ALLOCATION_COMP_EXCEPTION: "work-allocation/compensation exception",
 };
-function optOutOperationsPhrase(posture: SubstantiveState, path: PathState): string {
-  const label = OPTOUT_PATH_LABEL[path] ?? "selected pathway";
-  if (path === "FULL_OPT_OUT") {
-    return posture === "MEETS_REPORTED" ? `Supports the ${label}.` : "Condition — the opt-out process does not yet meet a required element.";
-  }
-  return posture === "MEETS_REPORTED" ? `Supports the ${label}.` : "Condition — the appeal exception is not currently supported.";
-}
-function employmentExceptionPhrase(o: OptOutResult, path: PathState): string {
-  const label = OPTOUT_PATH_LABEL[path] ?? "exception";
-  if (o.exceptionSoleUse.status === "GAP") return "Condition — the exception is not available on these facts.";
-  if (o.exceptionTesting.status === "PARTIAL") return "Recommendation — document the non-discrimination testing.";
-  return `Supports the ${label}.`;
+/**
+ * Opt-out pathway determination for Appendix B. Reads the SAME composite
+ * `posture` computeOptOut() already derives from every path-relevant factor
+ * (including, for the employment exceptions, exceptionSoleUse/exceptionTesting/
+ * exceptionFairnessDoc) and the SAME severity mapping postureEffectPhrase
+ * uses for this factor in the Executive Summary — so the two surfaces can
+ * never disagree about the same posture (the design intent stated in the
+ * file-header comment above).
+ *
+ * Previously this was two separate, narrower functions
+ * (optOutOperationsPhrase for full-opt-out/human-appeal,
+ * employmentExceptionPhrase for the employment exceptions) that each
+ * re-derived their own partial two-branch logic instead of reading
+ * `posture`. employmentExceptionPhrase in particular never checked
+ * exceptionTesting's GAP state, so "No testing has been performed" — a
+ * priority-1 Condition finding per computeOptOut — printed as "Supports the
+ * exception." here, contradicting the report's own Section 4 and Priority
+ * Matters. Neither function had a branch for OTHER_UNRESOLVED, so that
+ * state produced no Appendix B row at all despite a priority-1 finding.
+ */
+function optOutPathwayPhrase(o: OptOutResult): string {
+  const label = OPTOUT_PATH_LABEL[o.path] ?? "selected pathway";
+  return postureEffectPhrase(o.posture, `the ${label}`);
 }
 function accessProcessPhrase(timelineStatus: SubstantiveState): string {
-  return timelineStatus === "GAP" ? "Condition — the Company has not defined a response timeline." : "Supports the access-process requirements.";
+  if (timelineStatus === "GAP") return "Condition — the Company has not defined a response timeline.";
+  if (timelineStatus === "PARTIAL" || timelineStatus === "INSUFFICIENT_RECORD") return "Recommendation — confirm the Company's access-response timeline.";
+  return "Supports the access-process requirements.";
 }
 function accessReadinessPhrase(composite: SubstantiveState): string {
   if (composite === "GAP") return "Condition — the Company cannot yet produce a required explanation element.";
@@ -810,13 +825,21 @@ function buildFactorMatrixTable(
   ];
 
   if (path === "FULL_OPT_OUT") {
-    rows.push(["Opt-out pathway", "Full opt-out (§4.1 table)", optOutOperationsPhrase(optOut.posture, path), "11 CCR § 7221(c)–(h), (n)"]);
+    rows.push(["Opt-out pathway", "Full opt-out (§4.1 table)", optOutPathwayPhrase(optOut), "11 CCR § 7221(c)–(h), (n)"]);
   } else if (path === "HUMAN_APPEAL_EXCEPTION") {
-    rows.push(["Opt-out pathway", "Human-appeal exception (§4.2 table)", optOutOperationsPhrase(optOut.posture, path), "11 CCR § 7221(b)(1)"]);
+    rows.push(["Opt-out pathway", "Human-appeal exception (§4.2 table)", optOutPathwayPhrase(optOut), "11 CCR § 7221(b)(1)"]);
   } else if (path === "HIRING_ADMISSION_EXCEPTION") {
-    rows.push(["Opt-out pathway", "Hiring/admission exception (§4.3 table)", employmentExceptionPhrase(optOut, path), "11 CCR § 7221(b)(2)(A)–(B)"]);
+    // Both employment exceptions render under the SAME §4.3 section
+    // (admt-v2-assemble.ts:423) — there is no separate §4.4.
+    rows.push(["Opt-out pathway", "Hiring/admission exception (§4.3 table)", optOutPathwayPhrase(optOut), "11 CCR § 7221(b)(2)(A)–(B)"]);
   } else if (path === "WORK_ALLOCATION_COMP_EXCEPTION") {
-    rows.push(["Opt-out pathway", "Work-allocation/compensation exception (§4.4 table)", employmentExceptionPhrase(optOut, path), "11 CCR § 7221(b)(3)(A)–(B)"]);
+    rows.push(["Opt-out pathway", "Work-allocation/compensation exception (§4.3 table)", optOutPathwayPhrase(optOut), "11 CCR § 7221(b)(3)(A)–(B)"]);
+  } else {
+    // OTHER_UNRESOLVED — no §4.x sub-section renders (there is no resolved
+    // pathway to show a table for), but the row must still appear:
+    // computeOptOut emits a priority-1 finding and posture INSUFFICIENT_RECORD
+    // for this state, so silently omitting it understated an open finding.
+    rows.push(["Opt-out pathway", "Selection does not match a recognized pathway", optOutPathwayPhrase(optOut), "11 CCR § 7221(a)–(b)"]);
   }
 
   rows.push(

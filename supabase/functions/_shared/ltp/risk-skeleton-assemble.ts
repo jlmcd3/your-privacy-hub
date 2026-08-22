@@ -913,7 +913,22 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
   {
     label: "Public benefit",
     authority: "11 CCR § 7152(a)(4)",
-    blockKeys: ["vi_benefits:16"],
+    // Appendix-A audit (2026-08-22): "vi_benefits:16" is NOT safe to read via
+    // blockKeys here — the engine's overall_benefits_conclusion (the
+    // cross-stakeholder Section IX rollup) is put() at this SAME key
+    // unconditionally (risk-factor-engine.ts ~1421), and put() APPENDS onto
+    // an existing block rather than replacing it. So blockText() either
+    // concatenated the Public-benefit analysis with the unrelated overall
+    // conclusion, or — when no Public benefit was claimed at all — printed
+    // ONLY the overall conclusion (e.g. "No benefit is established for any
+    // stakeholder category...") mislabeled as this factor's own finding.
+    // engine.factors["public_benefit_analysis"] is the same text WITHOUT the
+    // collision — put() also stores each analysis under its own factorId in
+    // a separate, non-concatenated bag.
+    reportLanguage: (_report, _intake, engine) => {
+      const t = engine.factors["public_benefit_analysis"];
+      return typeof t === "string" && t.trim().length > 0 ? t : null;
+    },
     intakeData: (intake) =>
       isYes(intake.benefit_public_identified) ||
         (intake.benefit_public_identified === undefined && s(intake.a4_benefit_public))

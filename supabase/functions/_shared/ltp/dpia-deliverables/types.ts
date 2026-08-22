@@ -186,9 +186,19 @@ export interface Art36Consultation {
 // three-part test (purpose / necessity / balancing) is run as a decision
 // tree over the record; a part the record does not support is reported as
 // unmet with a specific `information_needed` string and NEVER invented.
+//
+// Appendix-A audit (2026-08-22, CEO-ruled): only two verdicts are ever
+// reachable — buildLegalBasis() never affirmatively concludes a basis
+// FAILS, only that it is supported or that the record is insufficient to
+// say. That is the correct, complete tree for this factor, not a gap: an
+// affirmative "this basis does not hold" would be the tool inventing a
+// legal conclusion the record alone cannot establish, which the
+// three-part-test comment above already forbids ("NEVER invented"). A
+// third "basis_not_supported_on_the_record" member previously sat in this
+// union with no composer ever assigning it — removed as dead/misleading
+// rather than left implying a state the decision tree does not produce.
 export type LegalBasisVerdict =
   | "basis_supported_on_the_record"
-  | "basis_not_supported_on_the_record"
   | "undetermined_on_the_record";
 
 export interface LegitimateInterestsTest {
