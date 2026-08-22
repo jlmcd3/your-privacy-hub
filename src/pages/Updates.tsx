@@ -465,9 +465,30 @@ const Updates = () => {
             {/* Jurisdiction subnav (pill style) — sticky under navbar */}
             <div className="border-b border-border bg-card sticky top-14 md:top-16 z-30">
                 <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3 md:grid md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] md:gap-6 md:items-center">
-                    <span className="hidden md:block text-eyebrow font-bold text-foreground underline underline-offset-4 text-center">Jurisdiction</span>
+                    <button
+                        onClick={clearAllFilters}
+                        aria-pressed={!hasJurisdictionOrTopic}
+                        title="Show every topic in every jurisdiction"
+                        className={`hidden md:block w-full rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+                            hasJurisdictionOrTopic
+                                ? "bg-muted text-foreground hover:bg-muted/70"
+                                : "bg-[hsl(var(--cobalt))] text-white"
+                        }`}
+                    >
+                        Full Feed
+                    </button>
                     <div className="flex items-center gap-3 overflow-x-auto">
-                        <span className="md:hidden text-eyebrow font-bold text-foreground underline underline-offset-4 whitespace-nowrap">Jurisdiction</span>
+                        <button
+                            onClick={clearAllFilters}
+                            aria-pressed={!hasJurisdictionOrTopic}
+                            className={`md:hidden whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                hasJurisdictionOrTopic
+                                    ? "bg-muted text-foreground hover:bg-muted/70"
+                                    : "bg-[hsl(var(--cobalt))] text-white"
+                            }`}
+                        >
+                            Full Feed
+                        </button>
                         {LOCATION_FILTERS.map((f) => {
                             const isActive = f.key === "all"
                                 ? selectedRegions.length === 0
@@ -495,7 +516,7 @@ const Updates = () => {
                 {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto -mt-4">
                     <div className="bg-card rounded-lg p-3">
-                        <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 text-center">Topics</h3>
+                        <span className="block text-[10px] uppercase tracking-wide text-muted-foreground mb-2 px-3">Topic</span>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
                                 const isActive = t.key === "all"
@@ -508,7 +529,7 @@ const Updates = () => {
                                         aria-pressed={isActive}
                                         className={`text-left text-sm px-3 py-2 transition-colors border-l-2 ${
                                             isActive
-                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
+                                                ? `border-[hsl(var(--cobalt))] text-foreground bg-muted/40 ${t.key === "all" ? "font-bold" : "font-medium"}`
                                                 : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
                                         }`}
                                     >
@@ -547,17 +568,43 @@ const Updates = () => {
                     </div>
                 </div>
 
-                {hasJurisdictionOrTopic && (
-                    <div className="mb-3 flex items-center gap-2 text-xs">
-                        <span className="text-muted-foreground">{filtered.length} updates</span>
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">
+                        {hasJurisdictionOrTopic ? "Showing" : "Showing the full feed —"}
+                    </span>
+                    {selectedRegions.map((key) => (
+                        <button
+                            key={`r-${key}`}
+                            onClick={() => toggleRegion(key)}
+                            className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--cobalt))]/10 text-[hsl(var(--cobalt))] px-2.5 py-1 font-medium hover:bg-[hsl(var(--cobalt))]/20 transition-colors"
+                        >
+                            {LOCATION_FILTERS.find(f => f.key === key)?.label ?? formatFilterLabel(key)}
+                            <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                    ))}
+                    {selectedRegions.length > 0 && selectedTopics.length > 0 && (
+                        <span className="text-muted-foreground">×</span>
+                    )}
+                    {selectedTopics.map((key) => (
+                        <button
+                            key={`t-${key}`}
+                            onClick={() => toggleTopic(key)}
+                            className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--cobalt))]/10 text-[hsl(var(--cobalt))] px-2.5 py-1 font-medium hover:bg-[hsl(var(--cobalt))]/20 transition-colors"
+                        >
+                            {TOPIC_FILTERS.find(t => t.key === key)?.label ?? formatFilterLabel(key)}
+                            <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                    ))}
+                    <span className="text-muted-foreground">{filtered.length} updates</span>
+                    {hasJurisdictionOrTopic && (
                         <button
                             onClick={clearAllFilters}
                             className="text-[hsl(var(--cobalt))] hover:underline font-medium"
                         >
                             Clear filters
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {isPremium ? (
                   <Link
