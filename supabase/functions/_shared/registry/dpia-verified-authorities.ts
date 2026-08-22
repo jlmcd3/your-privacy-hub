@@ -649,6 +649,48 @@ export const DPIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: UK_VOD,
     primary_source_url: UK_GDPR_URL,
   }),
+
+  // ---- Added 2026-08-22, phase-1 corpus program S3 sweep (doc 52 landing 4
+  // found no registry row resolving Art. 24/39/44 despite 5 DPIA_MATRIX_ROWS
+  // factors citing them). Sourced from provision_texts gdpr-art-24/39/44
+  // (all status='approved', confirmed live 2026-08-22 — Art. 39 was listed
+  // unanchored in a prior authoring turn's write-around notes below, but a
+  // "dpo_designation_art_37_39" gap is about the Art. 37 DESIGNATION duty,
+  // a different proposition from Art. 39(1)(c)'s DPIA-advice task added
+  // here, so that entry is left as-is rather than removed).
+  accountability_measures_art24: R({
+    proposition_key: "accountability_measures_art24",
+    citation: "GDPR Art. 24",
+    subsection: "GDPR Art. 24(1)",
+    verbatim_quote:
+      "Taking into account the nature, scope, context and purposes of processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons, the controller shall implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation.",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: "2026-08-22",
+    primary_source_url: GDPR_URL,
+  }),
+  dpo_dpia_advice_art39: R({
+    proposition_key: "dpo_dpia_advice_art39",
+    citation: "GDPR Art. 39",
+    subsection: "GDPR Art. 39(1)(c)",
+    verbatim_quote:
+      "to provide advice where requested as regards the data protection impact assessment and monitor its performance pursuant to Article 35",
+    depth_class: "sub_subsection",
+    governing_anchor: GDPR,
+    verified_on: "2026-08-22",
+    primary_source_url: GDPR_URL,
+  }),
+  transfers_general_principle_art44: R({
+    proposition_key: "transfers_general_principle_art44",
+    citation: "GDPR Art. 44",
+    subsection: "GDPR Art. 44",
+    verbatim_quote:
+      "Any transfer of personal data which are undergoing processing or are intended for processing after transfer to a third country or to an international organisation shall take place only if, subject to the other provisions of this Regulation, the conditions laid down in this Chapter are complied with by the controller and processor",
+    depth_class: "subsection",
+    governing_anchor: GDPR,
+    verified_on: "2026-08-22",
+    primary_source_url: GDPR_URL,
+  }),
 };
 
 /**

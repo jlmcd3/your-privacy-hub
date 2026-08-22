@@ -77,7 +77,10 @@ const CHECKS: readonly ProductCheck[] = [
     // to risk-verified-authorities.ts, or accept the cross-reference and
     // widen this guard to check risk citations against (risk ∪ admt)
     // registries — a design choice for the CEO redline, not phase 1.
-    knownGaps: ["7001"],
+    // RESOLVED 2026-08-22 (phase-2 redline): ra_admt_def/ra_human_involvement
+    // rows added to risk-verified-authorities.ts, ported from the ADMT
+    // registry's own § 7001(e) rows.
+    knownGaps: [],
   },
   {
     product: "cppa-admt",
@@ -93,7 +96,10 @@ const CHECKS: readonly ProductCheck[] = [
     // but the ADMT registry has no 7050/7051 rows. Proposal: add them, or
     // (matching the § 7001 case above) accept the cross-reference against
     // the Risk registry, which likely already carries this cluster.
-    knownGaps: ["7050", "7051"],
+    // RESOLVED 2026-08-22 (phase-2 redline): vendor_sp_cooperation
+    // (§7050(h)), vendor_contract_duties/vendor_audit_rights
+    // (§7051(a)(6)/(7)) rows added to admt-verified-authorities.ts.
+    knownGaps: [],
   },
   {
     product: "dpia",
@@ -110,12 +116,12 @@ const CHECKS: readonly ProductCheck[] = [
     // or is missing the range entirely. Logged as a methodology gap, not
     // a confirmed missing-registry-row claim — a proper fix expands the
     // range at extraction time, deferred as out of phase-1 scope.
-    // "24", "39", "44" are genuine gaps: Art. 24 (controller
-    // responsibility, cited by 3 factors), Art. 39 (DPO tasks, "DPO
-    // advice" factor), and Art. 44 (transfers general principle,
-    // "International transfers" factor) have no dpia-verified-authorities
-    // row today. Proposals for the CEO redline round.
-    knownGaps: ["12", "22", "24", "39", "44"],
+    // RESOLVED 2026-08-22 (phase-2 redline): "24"/"39"/"44" — Art. 24
+    // (controller responsibility), Art. 39(1)(c) (DPO's DPIA-advice task),
+    // and Art. 44 (transfers general principle) rows added to
+    // dpia-verified-authorities.ts (accountability_measures_art24,
+    // dpo_dpia_advice_art39, transfers_general_principle_art44).
+    knownGaps: ["12", "22"],
   },
 ];
 

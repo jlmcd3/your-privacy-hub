@@ -566,7 +566,47 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     primary_source_url: CCR_URL,
   }),
 
-
+  // ---- Vendor/service-provider cooperation (§§ 7050, 7051) -------------------
+  // Added 2026-08-22, phase-1 corpus program S3 sweep (doc 52 landing 4 found
+  // no §§ 7050/7051 row despite the "Vendor dependency" Appendix B factor
+  // citing "§§ 7221(n)(2), 7222(i), 7050(h), 7051(a)(6)–(7)"). The cppa_
+  // authorities § 7051 source text carries redline-style dual numbering
+  // ("(5) (6)", "(6) (7)") — the OLD paragraph number struck through the NEW
+  // one; the verbatim_quote below matches the NEW numbering the Appendix B
+  // citation uses.
+  vendor_sp_cooperation: R({
+    proposition_key: "vendor_sp_cooperation",
+    citation: "11 CCR § 7050",
+    subsection: "11 CCR § 7050(h)",
+    verbatim_quote:
+      "A service provider or contractor shall, with respect to personal information that they collected pursuant to their written contract with the business, cooperate with the business",
+    depth_class: "subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-22",
+    primary_source_url: CCR_URL,
+  }),
+  vendor_contract_duties: R({
+    proposition_key: "vendor_contract_duties",
+    citation: "11 CCR § 7051",
+    subsection: "11 CCR § 7051(a)(6)",
+    verbatim_quote:
+      "Require the service provider or contractor to comply with all applicable sections of the CCPA and these regulations, including—with respect to the personal information that it collected pursuant to the written contract with the business—providing the same level of privacy protection as required of businesses by the CCPA and these regulations.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-22",
+    primary_source_url: CCR_URL,
+  }),
+  vendor_audit_rights: R({
+    proposition_key: "vendor_audit_rights",
+    citation: "11 CCR § 7051",
+    subsection: "11 CCR § 7051(a)(7)",
+    verbatim_quote:
+      "Grant the business the right to take reasonable and appropriate steps to ensure that the service provider or contractor uses the personal information that it collected pursuant to the written contract with the business in a manner consistent with the business’s obligations under the CCPA and these regulations.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-08-22",
+    primary_source_url: CCR_URL,
+  }),
 
   // ---- Consumer-request response timeline (§ 7021) --------------------------
   // W9-DEADLINE-REGISTRY-ACCESS-TIMELINE (2026-07-26): section-level pinpoint

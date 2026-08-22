@@ -92,8 +92,32 @@ describe("cppa-risk verified-authority registry — row-shape contract", () => {
     expect(tp.verbatim_quote).toMatch(/"Third party"/);
   });
 
-  it("all rows share a single verified_on stamp (hand-verification pass)", () => {
+  // 2026-08-22 — the former assertion ("all rows share a single verified_on
+  // stamp") was a TEST-DESIGN defect, not a data defect, mirroring the fix
+  // already applied to admt-verified-authorities.test.ts: the registry
+  // grows by hand-verification passes (most rows carry the original
+  // 2026-07-24 authoring-pass stamp; ra_admt_def/ra_human_involvement carry
+  // their own, later, genuine verification date, 2026-08-22, pinned
+  // separately by the phase-1 corpus program's S3 guard). Forcing
+  // uniformity would mean falsifying a verification date.
+  it("every row carries a valid, non-empty ISO verification date", () => {
+    for (const r of RISK_VERIFIED_AUTHORITY_ROWS) {
+      expect(r.verified_on, `${r.proposition_key} verified_on empty`).toBeTruthy();
+      expect(r.verified_on, `${r.proposition_key} verified_on not ISO`).toMatch(
+        /^\d{4}-\d{2}-\d{2}$/,
+      );
+      expect(Number.isNaN(Date.parse(r.verified_on))).toBe(false);
+    }
+  });
+
+  it("verification dates are per-row facts, not a registry-wide invariant", () => {
     const stamps = new Set(RISK_VERIFIED_AUTHORITY_ROWS.map((r) => r.verified_on));
-    expect(stamps.size).toBe(1);
+    // Multiple stamps are LEGITIMATE (later hand-verification passes).
+    expect(stamps.size).toBeGreaterThanOrEqual(1);
+    // The later § 7001 additions must not be back-dated.
+    for (const key of ["ra_admt_def", "ra_human_involvement"]) {
+      const row = RISK_VERIFIED_AUTHORITY_ROWS.find((r) => r.proposition_key === key);
+      if (row) expect(row.verified_on).toBe("2026-08-22");
+    }
   });
 });

@@ -530,6 +530,35 @@ export const RISK_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     primary_source_url: CCR_URL,
   }),
 
+  // ---- Definitions (§ 7001) — added 2026-08-22, phase-1 corpus program S3
+  // sweep (doc 52 landing 4 found no § 7001 row in this registry despite 3
+  // Appendix G factors citing it, e.g. "Human review of ADMT" — "11 CCR
+  // § 7001(e); § 7150(b)(3)"). Ported verbatim from the ADMT registry's
+  // admt_def/human_involvement rows (admt-verified-authorities.ts) — the
+  // same § 7001(e) definitional cluster the two products already share.
+  ra_admt_def: R({
+    proposition_key: "ra_admt_def",
+    citation: "11 CCR § 7001",
+    subsection: "11 CCR § 7001(e)",
+    verbatim_quote:
+      "\"Automated decisionmaking technology\" or \"ADMT\" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.",
+    depth_class: "subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-08-22",
+    primary_source_url: CCR_URL,
+  }),
+  ra_human_involvement: R({
+    proposition_key: "ra_human_involvement",
+    citation: "11 CCR § 7001",
+    subsection: "11 CCR § 7001(e)(1)",
+    verbatim_quote:
+      "For purposes of this definition, to \"substantially replace human decisionmaking\" means a business uses the technology's output to make a decision without human involvement.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-08-22",
+    primary_source_url: CCR_URL,
+  }),
+
   // ---- Statutory anchors ----------------------------------------------------
   // Post-CPRA lettering: "Third party" is § 1798.140(ai), NOT (ad) which is
   // "Sell". The subsection label reflects the (ai) anchor even though the
