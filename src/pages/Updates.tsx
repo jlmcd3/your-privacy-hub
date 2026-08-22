@@ -465,9 +465,30 @@ const Updates = () => {
             {/* Jurisdiction subnav (pill style) — sticky under navbar */}
             <div className="border-b border-border bg-card sticky top-14 md:top-16 z-30">
                 <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3 md:grid md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] md:gap-6 md:items-center">
-                    <span className="hidden md:block text-eyebrow font-bold text-foreground underline underline-offset-4 text-center">Jurisdiction</span>
+                    <button
+                        onClick={clearAllFilters}
+                        aria-pressed={!hasJurisdictionOrTopic}
+                        title="Show every topic in every jurisdiction"
+                        className={`hidden md:block w-full rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+                            hasJurisdictionOrTopic
+                                ? "bg-muted text-foreground hover:bg-muted/70"
+                                : "bg-[hsl(var(--cobalt))] text-white"
+                        }`}
+                    >
+                        Full Feed
+                    </button>
                     <div className="flex items-center gap-3 overflow-x-auto">
-                        <span className="md:hidden text-eyebrow font-bold text-foreground underline underline-offset-4 whitespace-nowrap">Jurisdiction</span>
+                        <button
+                            onClick={clearAllFilters}
+                            aria-pressed={!hasJurisdictionOrTopic}
+                            className={`md:hidden whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                hasJurisdictionOrTopic
+                                    ? "bg-muted text-foreground hover:bg-muted/70"
+                                    : "bg-[hsl(var(--cobalt))] text-white"
+                            }`}
+                        >
+                            Full Feed
+                        </button>
                         {LOCATION_FILTERS.map((f) => {
                             const isActive = f.key === "all"
                                 ? selectedRegions.length === 0
