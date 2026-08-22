@@ -1,0 +1,71 @@
+{
+  "captured_at": "2026-08-22",
+  "rows": {
+    "a2ce1f02-665d-4c53-90f6-36e0ecd2dbba": {
+      "regulation_citation": "11 CCR § 7150",
+      "page_ref": null,
+      "comment_summary": "Agency addresses restructuring of risk assessment triggers: adding reasonable accommodation language, removing 'extensive profiling' thresholds, relocating 'significant decision' definition, and adding new subsection for automated processing via systematic observation.",
+      "agency_position_summary": "The issue is when businesses must conduct privacy risk assessments under the California Consumer Privacy Act. The Agency modified section 7150 to add reasonable accommodation language for personnel activities, removed the \"extensive profiling\" threshold to reduce compliance burden, relocated the \"significant decision\" definition to the regulatory definitions section for clarity, and created a new subsection (b)(4) requiring risk assessments specifically for automated processing involving systematic observation of job applicants, students, employees, or educational program applicants."
+    },
+    "3c5f1bae-a026-4728-b317-0db615e356c2": {
+      "regulation_citation": "11 CCR § 7150(b)",
+      "page_ref": "Appendix, p. 120",
+      "comment_summary": "Commenter argues de minimis data sharing should not require risk assessments, objects to behavioral advertising threshold, and warns the balancing test",
+      "agency_position_summary": "The issue is whether de minimis data sharing should be exempt from risk assessment requirements and whether behavioral advertising thresholds should apply to personal information sharing rules. The Agency rejected the de minimis exemption because businesses would lack clear guidance on what qualifies as minimal sharing, and it rejected the behavioral advertising threshold as unnecessary, instead removing it to simplify compliance under 11 CCR § 7150(b). The Agency retained the risk assessment requirement for all personal information sharing, finding that such disclosures present significant privacy risks and that the regulation's guidance provides clear, adaptable standards that do not produce inconsistent compliance outcomes."
+    },
+    "5806637b-4208-4ff2-996f-2696814842db": {
+      "regulation_citation": "11 CCR § 7150(b)(2)",
+      "page_ref": "Appendix, p. 122",
+      "comment_summary": "Commenter proposed revising the risk assessment applicability threshold to cover processing of sensitive personal information of 1 million or more consumers or households in the preceding calendar year.",
+      "agency_position_summary": "The regulatory issue concerns whether risk assessments should apply only when a business processes sensitive personal information of one million or more consumers or households in a calendar year. The California Privacy Protection Agency rejected this volume-based threshold, retaining the broader applicability standard in 11 CCR § 7150(b)(2) because a one-million-consumer floor would exclude processing activities that pose significant privacy risks to consumers and deviates from approaches taken by other jurisdictions."
+    },
+    "0c0b95a6-d013-4aad-b90b-4c11e0190b80": {
+      "regulation_citation": "11 CCR § 7001(e)",
+      "page_ref": "Appendix, p. 10",
+      "comment_summary": "Commenter argues ADMT definition is overbroad, conflicts with statute, should be limited to solely automated decisions with no human involvement.",
+      "agency_position_summary": "The issue is whether the definition of Automated Decision-Making Technology (ADMT) in section 7001(e) is overbroad and should be limited to solely automated decisions with no human involvement. The Agency rejected the commenter's argument that the definition conflicts with the CCPA statute, but modified the ADMT definition to focus on higher-risk uses without human involvement and revised section 7200 to apply ADMT requirements only to significant decisions, thereby narrowing the scope while still providing clarity on what technologies and decisions are subject to regulation."
+    },
+    "27aacf0b-e79e-45f6-9509-39b2e778db0d": {
+      "regulation_citation": "11 CCR § 7150(b)",
+      "page_ref": "Appendix, p. 57",
+      "comment_summary": "Commenter requests that the Agency specify the list of 'sensitive locations' in § 7150 is exhaustive, following the addition of profiling risk-assessment triggers.",
+      "agency_position_summary": "The issue is whether the list of sensitive locations in 11 CCR § 7150(b) should be explicitly designated as exhaustive or non-exhaustive. The Agency rejected the request to clarify that the list is non-exhaustive, finding that the regulation is already sufficiently clear by defining sensitive locations as \"any of the places listed in the definition,\" which the Agency interpreted as establishing a closed list of specific physical places."
+    },
+    "cc52909f-d9f0-478b-a9c7-44e9a64f5fc0": {
+      "regulation_citation": "11 CCR § 7001(ee)",
+      "page_ref": "Appendix, p. 33",
+      "comment_summary": "Commenter proposed removing 'or profiling' from the section and deleting the sentence regarding vocal intonation, facial expression, and gesture used to identify or infer emotion.",
+      "agency_position_summary": "The issue is whether to remove \"profiling\" language and references to vocal intonation, facial expression, and gesture analysis from the definition of biometric information in 11 CCR § 7001(ee). The Agency retained these terms because removing them would weaken consumer privacy protections and the retention is necessary to clarify what qualifies as physical or biological identification or profiling under the risk-assessment thresholds in §§ 7150(b)(4) and (6). The Agency also revised § 7001(ee) to clarify that the definition covers only automated measurements or analysis and excludes processing of physical or biological characteristics that do not identify or reasonably link to a particular consumer."
+    },
+    "36ccaa19-6dc0-4970-966c-317e463ee7e2": {
+      "regulation_citation": "11 CCR § 7152(a)(5)(I)",
+      "page_ref": "p. 36",
+      "comment_summary": "Agency addresses modifications to subsection (a)(5)(I): changing 'would' to 'could', deleting alcohol advertising example, and adding 'disclosure' to the pregnancy/emergency-contraception example.",
+      "agency_position_summary": "Section 7152(a)(5)(I) addresses how businesses must evaluate possible negative impacts to consumers from targeting or profiling practices. The CPPA modified this provision by changing \"would\" to \"could\" to clarify that the rule covers possible rather than certain harms, deleted an alcohol advertising example as unnecessary, and added the word \"disclosure\" to the pregnancy test and emergency contraception example to clarify that emotional distress can result specifically when such purchases are disclosed to non-medical parties."
+    },
+    "89c6105e-f589-4a94-bbdc-fd84149a2d6d": {
+      "regulation_citation": "11 CCR § 7152(a)(5)",
+      "page_ref": "p. 35",
+      "comment_summary": "Issue addressed: whether the criteria for determining negative privacy impacts in risk assessments should be required disclosures, and whether the list of negative impacts is exhaustive.",
+      "agency_position_summary": "The issue is whether risk assessments must disclose the specific criteria businesses use to determine negative privacy impacts, and whether the list of negative impacts is exhaustive. Under 11 CCR § 7152(a)(5), the Agency removed the requirement to disclose the criteria for making these determinations and added \"For example\" to clarify that the list of negative privacy impacts is non-exhaustive, allowing businesses flexibility in what impacts they consider without requiring detailed disclosure of their assessment methodology."
+    },
+    "41408f4d-6355-499e-8c66-33022becb826": {
+      "regulation_citation": "11 CCR § 7152(a)(1)",
+      "page_ref": "p. 34",
+      "comment_summary": "Issue addressed: how to identify a processing purpose in non-generic, sufficiently specific terms when conducting a risk assessment under 11 CCR § 7152(a)(1).",
+      "agency_position_summary": "The issue is how to identify processing purposes in specific, non-generic terms when conducting risk assessments under 11 CCR § 7152(a)(1). The CPPA added an example to subsection (a)(1) to clarify the necessary level of specificity required when identifying a purpose for risk assessment purposes."
+    },
+    "673baaee-9e97-4c26-91ee-a78d5cc32bae": {
+      "regulation_citation": "11 CCR § 7152(a)(6)(A)",
+      "page_ref": "p. 37",
+      "comment_summary": "Agency addressed the need to clarify that the list of safeguards in subsection (a)(6)(A) is non-exhaustive by adding 'For example' to the prefatory sentence.",
+      "agency_position_summary": "The issue concerns whether the list of safeguards in section 7152(a)(6)(A) is exhaustive or merely illustrative. The California Privacy Protection Agency modified the regulation by adding \"For example\" to the prefatory sentence before the safeguards list to clarify that businesses may implement these safeguards and others beyond those specifically enumerated."
+    },
+    "78a3d47c-aceb-453c-9b44-9b7a1c320f70": {
+      "regulation_citation": "11 CCR § 7152(a)(9)",
+      "page_ref": "Appendix, p. 144",
+      "comment_summary": "Commenter argues § 7152(a)(9) is infeasible for large organizations with collaborative, cross-functional decision-making and recommends removing the reference to a single individual.",
+      "agency_position_summary": "The issue was whether section 7152(a)(9) should be modified to accommodate large organizations with distributed decision-making authority rather than requiring a single individual to review and approve privacy impact assessments. The Agency rejected the request to remove the single individual requirement, finding the requirement feasible, but revised section 7152(a)(9) to clarify that an individual with authority to participate in deciding whether to initiate processing—rather than necessarily a sole decision-maker—may review and approve the assessment."
+    }
+  }
+}
