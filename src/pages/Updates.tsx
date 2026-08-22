@@ -477,11 +477,11 @@ const Updates = () => {
                     >
                         Full Feed
                     </button>
-                    <div className="flex items-center gap-3 overflow-x-auto">
+                    <div className="flex items-end overflow-x-auto">
                         <button
                             onClick={clearAllFilters}
                             aria-pressed={!hasJurisdictionOrTopic}
-                            className={`md:hidden whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            className={`md:hidden whitespace-nowrap rounded-full px-3 py-1.5 mr-3 text-xs font-semibold transition-colors ${
                                 hasJurisdictionOrTopic
                                     ? "bg-muted text-foreground hover:bg-muted/70"
                                     : "bg-[hsl(var(--cobalt))] text-white"
@@ -498,10 +498,10 @@ const Updates = () => {
                                     key={f.key}
                                     onClick={() => toggleRegion(f.key)}
                                     aria-pressed={isActive}
-                                    className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
+                                    className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap px-3 py-1.5 border-b-2 ${
                                         isActive
-                                            ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
-                                            : "text-slate hover:text-foreground"
+                                            ? "border-[hsl(var(--cobalt))] text-foreground bg-muted/40"
+                                            : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
                                     }`}
                                 >
                                     {f.label}
@@ -516,7 +516,6 @@ const Updates = () => {
                 {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto -mt-4">
                     <div className="bg-card rounded-lg p-3">
-                        <span className="block text-[10px] uppercase tracking-wide text-muted-foreground mb-2 px-3">Topic</span>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
                                 const isActive = t.key === "all"
