@@ -1,9 +1,18 @@
 // The Curated Attachment Map (CAM) — the single primitive through which
 // corpus content is allowed to enter a product's document (doc 48 §II.2).
-// PHASE 1 (doc 52): every row's render_eligible is the literal `false` —
-// a type-level ratchet. Phase 2 must consciously widen this type to admit
-// customer-visible rows; that widening is CEO-redline work, not a phase-1
-// change.
+//
+// PHASE 2 (2026-08-22, CEO-directed): the phase-1 type-level ratchet
+// (`render_eligible: false` literal) is consciously widened to `boolean`.
+// The widening is scoped by mapInvariants (cam-verify.ts), not left open:
+//   - FC rows may render ONLY on surface S0 (intake callouts). Report-side
+//     FC rendering (S4 commentary / FC citation trails) stays dark pending
+//     the PN-CORPUS-1 fleet posture ruling.
+//   - AP rows render only on S5 with a full `display` block and a
+//     `render_when` typed-state predicate (verified-only law applies at
+//     curation: source rows must be verification_status='verified').
+//   - AOW rows render only with `warning_text` + `render_when`.
+// Roles SB/AQ remain schema-present but unproven in any map (SB deferred
+// per doc 51 §1 note: "SB candidate once S5 ships").
 
 export type CamRole = "AQ" | "FC" | "AP" | "SB" | "AOW";
 export type CamSurface = "S0" | "S1" | "S2" | "S3" | "S4" | "S5";
@@ -13,10 +22,25 @@ export type LogicDisposition =
   | { kind: "extension_filed"; queue_ref: string } // decision-queue entry id
   | { kind: "declined"; reason: string }; // legal reasoning, 1-3 sentences
 
+/** AP-row render fields — every string is CEO-ratifiable customer prose
+ * (the ratified annotation layer, doc 48 §II.3), never raw corpus text. */
+export interface CamApDisplay {
+  /** e.g. "AEPD (Spain) — AENA, S.M.E., S.A. (2025)" */
+  readonly matter: string;
+  /** What the regulator found and imposed. */
+  readonly what_happened: string;
+  /** Why it bears on this product's factor — carries the GDPR≠CPPA frame. */
+  readonly bearing: string;
+  /** Full citation cell, always ending in the persuasive-only label. */
+  readonly authority_label: string;
+  /** Compact cite for the S3 interpretive trail (Factor-Bearing Law II.2a). */
+  readonly trail_cite: string;
+}
+
 export interface CamRow {
   readonly id: string; // "<product>/<factor_id>/<nn>"
   readonly factor_id: string; // EXACT Determination-appendix label
-  readonly role: CamRole; // phase 1: "FC" only (see below)
+  readonly role: CamRole;
   readonly source_table:
     | "cppa_fsor_commentary"
     | "cppa_authorities"
@@ -27,8 +51,27 @@ export interface CamRow {
     | "enforcement_actions";
   readonly source_row_id: string;
   readonly excerpt_field: string; // e.g. "agency_position_summary"
-  readonly pinned_excerpt: string; // exact substring of that field; ≤300 chars
-  readonly render_eligible: false; // PHASE-1 TYPE-LEVEL LOCK (literal false)
+  /** Exact substring of the source field. ≤300 chars for build-time-only
+   * rows; render-eligible S0 rows may carry the full rendered summary
+   * (the intake shows the whole position — a truncated pin would leave
+   * the rendered bytes unpinned). May be "" ONLY for AP/AOW rows, which
+   * render from the ratified annotation fields, not from corpus text
+   * (doc 48 §II.2 schema note). */
+  readonly pinned_excerpt: string;
+  readonly render_eligible: boolean;
+  /** Required iff render_eligible. */
+  readonly render_surface?: CamSurface;
+  /** Typed-state tokens; the row renders iff EVERY token is present in the
+   * report's fired-state set (pure set inclusion — the determinism law's
+   * generation-plane mechanism). Required for render-eligible AP/AOW rows.
+   * Risk tokens: "trigger_engaged", "7150(b)(N)", "record_incomplete". */
+  readonly render_when?: readonly string[];
+  /** Required iff role === "AP" and render_eligible. */
+  readonly display?: CamApDisplay;
+  /** Required iff role === "AOW" and render_eligible. Ratified wording. */
+  readonly warning_text?: string;
+  /** For S0 rows: the intake field/rail key the callout attaches to. */
+  readonly s0_field?: string;
   readonly direction: "supports" | "limits" | "neutral";
   readonly logic_bearing: boolean;
   readonly logic_disposition?: LogicDisposition; // required iff logic_bearing
@@ -38,7 +81,7 @@ export interface CamRow {
 
 export interface CorpusMap {
   readonly product: "cppa-risk" | "cppa-admt" | "dpia";
-  readonly map_version: string; // "<product>-cam-v1-2026-08-XX"
+  readonly map_version: string; // "<product>-cam-vN-YYYY-MM-DD"
   readonly snapshot_file: string; // the fixture this map pins against
   readonly rows: readonly CamRow[];
 }

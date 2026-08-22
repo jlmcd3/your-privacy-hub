@@ -73,7 +73,7 @@ const CPPA_RISK_STEP_TITLES: Record<number, string> = {
 };
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
-import { useFscrCallouts } from "@/hooks/useFscrCallouts";
+import { CPPA_RISK_FSOR_CALLOUTS } from "@/components/cppa/CPPARiskFsorCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
@@ -703,13 +703,12 @@ export default function CPPARiskAssessment() {
 
   const enforcementSignals = useEnforcementSignals(["sell_share", "opt_out_link", "sensitive_pi"]);
 
-  const fscrCallouts = useFscrCallouts([
-    "11 CCR § 7152(a)(1)",
-    "11 CCR § 7152(a)(3)(G)",
-    "11 CCR § 7156(a)",
-    "11 CCR § 7156(b)",
-
-  ]);
+  // PHASE 2 corpus program (2026-08-22, doc 49 A.2.3(b)) — the FSOR
+  // callouts are PINNED constants now (CPPARiskFsorCallouts.ts, parity-
+  // tested against the Risk CAM), not a live unpinned fetch. Same three
+  // callouts render as before; "11 CCR § 7156(a)" never had a view row
+  // and never rendered, so nothing is lost by dropping the request.
+  const fscrCallouts = CPPA_RISK_FSOR_CALLOUTS;
 
   // Regulatory footprint — derived deterministically from current answers.
   // Updates in real time as the user fills in the form.

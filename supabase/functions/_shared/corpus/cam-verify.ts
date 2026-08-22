@@ -1,6 +1,12 @@
 // Pure verification helpers over a CorpusMap. No I/O, no DB access — pin
 // checks run against a committed SNAPSHOT fixture (doc 52 §1: local tests
 // cannot reach Supabase; live re-verification is a T2 review concern).
+//
+// PHASE 2 (2026-08-22): invariants updated for the conscious widening of
+// render_eligible (see cam-types.ts header). The rules below ARE the
+// current render law — a map that violates them fails CI, so the posture
+// ("report-side FC stays dark pending PN-CORPUS-1") is machine-enforced,
+// not a comment.
 
 import type { CamRow, CorpusMap } from "./cam-types.ts";
 
@@ -10,8 +16,11 @@ export interface CorpusSnapshot {
 }
 
 /** True iff row.pinned_excerpt is an exact contiguous substring of the
- * snapshot's text for row.source_row_id / row.excerpt_field. */
+ * snapshot's text for row.source_row_id / row.excerpt_field. Rows with an
+ * empty pinned_excerpt (AP/AOW — render from ratified annotations, not
+ * corpus text) are vacuously pinned. */
 export function excerptPinned(row: CamRow, snapshot: CorpusSnapshot): boolean {
+  if (row.pinned_excerpt === "") return true;
   const fields = snapshot.rows[row.source_row_id];
   if (!fields) return false;
   const text = fields[row.excerpt_field];
@@ -20,10 +29,7 @@ export function excerptPinned(row: CamRow, snapshot: CorpusSnapshot): boolean {
 }
 
 /** Schema invariants over a whole map. Returns a list of violation
- * messages; empty means the map is valid. Phase-1 locks enforced here
- * (role === "FC" only; render_eligible === false on every row) because
- * the CamRow TS type alone can't express the phase-1-only role
- * restriction. */
+ * messages; empty means the map is valid. */
 export function mapInvariants(map: CorpusMap): string[] {
   const problems: string[] = [];
   const seenIds = new Set<string>();
@@ -34,24 +40,68 @@ export function mapInvariants(map: CorpusMap): string[] {
     }
     seenIds.add(row.id);
 
-    if (row.role !== "FC") {
-      problems.push(`${row.id}: role must be "FC" in phase 1 (found "${row.role}")`);
-    }
-    if (row.render_eligible !== false) {
-      problems.push(`${row.id}: render_eligible must be false in phase 1`);
-    }
     if (row.logic_bearing && !row.logic_disposition) {
       problems.push(`${row.id}: logic_bearing rows require logic_disposition`);
     }
     if (!row.logic_bearing && row.logic_disposition) {
       problems.push(`${row.id}: logic_disposition set on a non-logic_bearing row`);
     }
-    if (row.pinned_excerpt.length > 300) {
-      problems.push(`${row.id}: pinned_excerpt exceeds 300 chars (${row.pinned_excerpt.length})`);
-    }
-    if (row.pinned_excerpt.length === 0) {
+
+    // Pin discipline. AP/AOW rows render from ratified annotations and may
+    // carry an empty pin; every other role must pin real corpus text.
+    if (row.role === "AP" || row.role === "AOW") {
+      // empty allowed; a non-empty pin is also fine (extra evidence).
+    } else if (row.pinned_excerpt.length === 0) {
       problems.push(`${row.id}: pinned_excerpt is empty`);
     }
+    // Size law: build-time-only rows stay compact (doc 34 §2 bundling);
+    // render-eligible rows carry the full rendered text so the customer
+    // bytes are what the pin verifies.
+    const cap = row.render_eligible ? 2000 : 300;
+    if (row.pinned_excerpt.length > cap) {
+      problems.push(`${row.id}: pinned_excerpt exceeds ${cap} chars (${row.pinned_excerpt.length})`);
+    }
+
+    // Render-surface law (the phase-2 posture, machine-enforced).
+    if (row.render_eligible) {
+      if (!row.render_surface) {
+        problems.push(`${row.id}: render_eligible without render_surface`);
+      }
+      if (row.role === "FC" && row.render_surface !== "S0") {
+        problems.push(
+          `${row.id}: FC rows may render only on S0 (report-side FC rendering is gated on PN-CORPUS-1)`,
+        );
+      }
+      if (row.role === "FC" && !row.s0_field) {
+        problems.push(`${row.id}: render-eligible S0 FC rows must name their s0_field`);
+      }
+      if (row.role === "AP") {
+        if (row.render_surface !== "S5") problems.push(`${row.id}: AP rows render only on S5`);
+        if (!row.display) problems.push(`${row.id}: render-eligible AP rows require display`);
+        if (!row.render_when || row.render_when.length === 0) {
+          problems.push(`${row.id}: render-eligible AP rows require render_when`);
+        }
+      }
+      if (row.role === "AOW") {
+        if (row.render_surface !== "S5") {
+          problems.push(`${row.id}: AOW rows render only on S5 (placement: inside the persuasive-authority appendix)`);
+        }
+        if (!row.warning_text || !row.warning_text.trim()) {
+          problems.push(`${row.id}: render-eligible AOW rows require warning_text`);
+        }
+        if (!row.render_when || row.render_when.length === 0) {
+          problems.push(`${row.id}: render-eligible AOW rows require render_when`);
+        }
+      }
+      if (row.role === "SB" || row.role === "AQ") {
+        problems.push(`${row.id}: role ${row.role} has no proven render mechanism yet (SB deferred until after S5 ships)`);
+      }
+    } else {
+      if (row.render_surface || row.display || row.warning_text || row.render_when) {
+        problems.push(`${row.id}: render-only fields set on a render_eligible:false row`);
+      }
+    }
+
     if (!row.curation_note.trim()) {
       problems.push(`${row.id}: curation_note is empty`);
     }

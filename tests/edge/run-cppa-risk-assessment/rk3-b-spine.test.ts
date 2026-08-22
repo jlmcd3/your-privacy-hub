@@ -44,8 +44,8 @@ const BUILD_STAMP = "rk3-b-spine-pins";
 
 // ── Spine structure pins ──────────────────────────────────────────────────────
 
-Deno.test("RK3-B — spine version is the v4.5 encode", () => {
-  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.5-2026-08-21");
+Deno.test("RK3-B — spine version is the v4.6 encode (corpus phase 2 adds Appendix I)", () => {
+  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.6-2026-08-22");
 });
 
 Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
@@ -70,6 +70,9 @@ Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
     "appendix_f",
     "table_of_authorities",
     "appendix_h",
+    // v4.6 — corpus phase 2 (doc 49 A.2.4): the S5 persuasive-authority
+    // surface; fully conditional, drops when no precedent row attaches.
+    "appendix_i",
   ]);
 });
 

@@ -47,9 +47,13 @@ import {
 // naive, non-abbreviation-aware copy of firstSentence(); replaced with the
 // shared implementation already proven out for DPIA.
 import { firstSentence } from "./clause-bound.ts";
+// v4.6 — corpus program phase 2: Appendix I renders by pure attachment
+// over the Risk CAM (the determinism law's generation-plane mechanism).
+import { attachCorpusRows } from "../corpus/cam-attach.ts";
+import { RISK_CORPUS_MAP } from "../corpus/maps/risk-corpus-map.ts";
 
 export const RISK_SKELETON_ASSEMBLER_STAMP =
-  "risk-skeleton-assembler@rk3-d-class-c-conversion-2026-08-19";
+  "risk-skeleton-assembler@corpus-phase2-appendix-i-2026-08-22";
 
 type Bag = Record<string, unknown>;
 
@@ -901,11 +905,19 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
   },
 ];
 
-/** Appendix G — {{DERIVED.factor_input_determination_authority_matrix}}. Suppresses uncomposed factors (NO-PADDING LAW); never prints N/A. */
+/** Appendix G — {{DERIVED.factor_input_determination_authority_matrix}}. Suppresses uncomposed factors (NO-PADDING LAW); never prints N/A.
+ *
+ * v4.6 — `persuasiveTrail` (optional): the Factor-Bearing Law's S3 anchor
+ * (doc 48 §II.2a). When Appendix I renders, the trigger factor's authority
+ * cell carries the compact interpretive citation trail for the attached
+ * precedent rows, appended AT ASSEMBLY so the pointer can never dangle on
+ * a report whose Appendix I is suppressed. Citations only — content stays
+ * in Appendix I. */
 export function buildFactorAuthorityMatrixTable(
   report: Bag,
   intake: Bag,
   engine: RiskFactorEngineResult,
+  persuasiveTrail?: string | null,
 ): RenderedTable | null {
   const rowsOut: string[][] = [];
   for (const spec of FACTOR_MATRIX_ROWS) {
@@ -913,7 +925,11 @@ export function buildFactorAuthorityMatrixTable(
       ? spec.reportDetermination(report, intake, engine)
       : blockText(engine, spec.blockKeys ?? []);
     if (!determination) continue;
-    rowsOut.push([spec.label, determination, spec.authority]);
+    const authority =
+      persuasiveTrail && spec.label === "Regulatory trigger and applicability"
+        ? `${spec.authority}; persuasive (Appendix I): ${persuasiveTrail}`
+        : spec.authority;
+    rowsOut.push([spec.label, determination, authority]);
   }
   if (rowsOut.length === 0) return null;
   return {
@@ -925,6 +941,66 @@ export function buildFactorAuthorityMatrixTable(
     columns: ["Factor", "Report Determination", "Primary Authority"],
     rows: rowsOut,
   };
+}
+
+// ── Appendix I — Persuasive Authority (the S5 surface; v4.6) ────────────────
+
+/** Appendix I lead — ratified fixed prose (advance-ratification ledger,
+ * 2026-08-22 build). Composed iff ≥1 precedent row attaches. */
+export const RISK_APPENDIX_I_LEAD =
+  "This appendix collects enforcement decisions issued under analogous data-protection law that bear on factors assessed in this report. These decisions were issued under the EU General Data Protection Regulation, not the CCPA or its regulations; they are persuasive context only, are not binding on the California Privacy Protection Agency or on any court applying California law, and are cited because the processing or the failure they address is analogous to a factor this assessment addresses. Each entry names the factor it bears on. The operative determination for every factor remains the analysis in the body of this report.";
+
+/** The report's fired-state tokens for CAM attachment (pure derivation
+ * from surfaces the pipeline has already persisted — the determinism
+ * law's typed-state input). Exported for tests. */
+export function deriveRiskFiredStates(report: Bag): Set<string> {
+  const states = new Set<string>();
+  const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
+  for (const line of scope) {
+    const m = /^Engaged — .*?7150\(b\)\((\d)\)/.exec(line);
+    if (m) {
+      states.add(`7150(b)(${m[1]})`);
+      states.add("trigger_engaged");
+    }
+  }
+  const rc = report.record_complete as { value?: unknown } | null | undefined;
+  if (rc?.value !== true) states.add("record_incomplete");
+  return states;
+}
+
+export interface RiskPersuasiveAuthority {
+  readonly table: RenderedTable | null;
+  /** Compact S3 citation trail (Factor-Bearing Law), null when no row attached. */
+  readonly trail: string | null;
+  /** AOW ratified wording, null unless its bound adverse state fired AND the appendix renders. */
+  readonly warning: string | null;
+}
+
+/** {{DERIVED.persuasive_authority_matrix}} — pure attachment over the Risk
+ * CAM. NO-PADDING LAW: no attached row → null table → Appendix I drops. */
+export function buildPersuasiveAuthority(report: Bag): RiskPersuasiveAuthority {
+  const fired = deriveRiskFiredStates(report);
+  const ap = attachCorpusRows(RISK_CORPUS_MAP, "S5", fired).filter((r) => r.role === "AP");
+  if (ap.length === 0) return { table: null, trail: null, warning: null };
+
+  const rows = ap.map((r) => [
+    r.display!.matter,
+    r.display!.what_happened,
+    r.display!.bearing,
+    r.display!.authority_label,
+  ]);
+  const table: RenderedTable = {
+    key: "",
+    surface: "persuasive_authority_matrix",
+    // Empty for the same reason as Appendix G: the section heading
+    // carries the full title.
+    title: "",
+    columns: ["Matter", "What happened", "Bearing on this assessment", "Authority"],
+    rows,
+  };
+  const trail = ap.map((r) => r.display!.trail_cite).join("; ");
+  const aow = attachCorpusRows(RISK_CORPUS_MAP, "S5", fired).find((r) => r.role === "AOW");
+  return { table, trail, warning: aow?.warning_text ?? null };
 }
 
 // ── Assembly ────────────────────────────────────────────────────────────────
@@ -991,10 +1067,18 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "x_governance:5": composeMaterialChangeDetails(intake),
   };
 
+  // v4.6 — Appendix I (Persuasive Authority): pure CAM attachment over the
+  // report's fired trigger states. Computed BEFORE Appendix G so the
+  // trigger row's authority cell can carry the S3 citation trail exactly
+  // when the appendix renders (Factor-Bearing Law; no dangling pointer).
+  const persuasive = buildPersuasiveAuthority(report);
+  composed["appendix_i:0"] = persuasive.table ? RISK_APPENDIX_I_LEAD : null;
+  composed["appendix_i:2"] = persuasive.table ? persuasive.warning : null;
+
   // v4.5 — Appendix G replaces the Table of Authorities. It is assembled
   // directly from the factor engine's own composed blocks and provenance, so
   // (unlike the ToA) it needs no draft/iff-cited two-pass render.
-  const matrixTable = buildFactorAuthorityMatrixTable(report, intake, engine);
+  const matrixTable = buildFactorAuthorityMatrixTable(report, intake, engine, persuasive.trail);
   // Part B item 3 (2026-08-21, CEO-confirmed) — Appendices A, D, E and F's
   // {{DERIVED.*}} projections are structured facts, not narrative, so they
   // now render as tables like Appendix G does, instead of a joined "rule"
@@ -1006,6 +1090,8 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "appendix_e:1": deriveSubmissionSupportRecord(intake, report, assessmentDate),
     "appendix_e:2": deriveBusinessLevelOutstanding(),
     "appendix_f:1": deriveMaterialsConsideredIndex(intake),
+    // v4.6 — Appendix I (null when no precedent attaches; section drops).
+    "appendix_i:1": persuasive.table,
   };
 
   const document = renderSkeletonDocument({

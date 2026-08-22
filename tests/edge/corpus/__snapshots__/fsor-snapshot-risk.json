@@ -61,6 +61,18 @@
       "comment_summary": "Agency addressed the need to clarify that the list of safeguards in subsection (a)(6)(A) is non-exhaustive by adding 'For example' to the prefatory sentence.",
       "agency_position_summary": "The issue concerns whether the list of safeguards in section 7152(a)(6)(A) is exhaustive or merely illustrative. The California Privacy Protection Agency modified the regulation by adding \"For example\" to the prefatory sentence before the safeguards list to clarify that businesses may implement these safeguards and others beyond those specifically enumerated."
     },
+    "5768684d-a418-46e9-bd3b-0f359e014c07": {
+      "regulation_citation": "11 CCR § 7152(a)(3)(G)",
+      "page_ref": "p. 35",
+      "comment_summary": "Issue: whether the ADMT risk-assessment requirement should specify the particular technology used and clarify how ADMT output relates to significant consumer decisions.",
+      "agency_position_summary": "The issue was whether the automated decision-making technology (ADMT) risk assessment requirement in 11 CCR § 7152(a)(3)(G) should specify the particular technology used and clarify how ADMT output relates to significant consumer decisions. The Agency removed the requirement to identify the specific technology to simplify compliance, but added language requiring businesses to explain how they will use ADMT output \"to make a significant decision\" about consumers, thereby focusing the assessment on the material decision-making impact rather than technical specifications."
+    },
+    "061ef698-84e8-46a5-84e6-0202afe8b286": {
+      "regulation_citation": "11 CCR § 7156(b)",
+      "page_ref": "p. 40",
+      "comment_summary": "Issue: whether businesses can reuse a risk assessment prepared for compliance with other laws to satisfy the CPRA's risk assessment requirements.",
+      "agency_position_summary": "The issue is whether businesses can reuse a risk assessment prepared for compliance with other laws to satisfy the CPRA's risk assessment requirements under section 7152. The Agency modified section 7156(b) to permit businesses to use risk assessments prepared for other purposes, provided that the assessment contains all the information required by section 7152 or is paired with additional information to fill any gaps. This approach allows businesses to leverage existing compliance work while ensuring the final assessment meets CPRA standards and maintains adequate privacy protections."
+    },
     "78a3d47c-aceb-453c-9b44-9b7a1c320f70": {
       "regulation_citation": "11 CCR § 7152(a)(9)",
       "page_ref": "Appendix, p. 144",

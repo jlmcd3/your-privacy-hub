@@ -45,11 +45,19 @@
 // SPINE NOTE: section inclusion is driven by legal applicability and
 // established facts, not by whether a factor happened to produce prose.
 
-export const RISK_SKELETON_VERSION = "cppa-risk-v4.5-2026-08-21";
+// v4.6 (2026-08-22) — corpus program phase 2: adds Appendix I (Persuasive
+// Authority, the S5 surface) as a fully conditional section fed from the
+// Risk CAM. No prior section's bytes changed. Risk carries no byte-pin
+// (doc 44 §D5 verified), so no hash recompute — the version string is the
+// only stamp. Shipped under the CEO's 2026-08-22 continue-all-spec-builds
+// direction; the new fixed prose is on the advance-ratification ledger.
+export const RISK_SKELETON_VERSION = "cppa-risk-v4.6-2026-08-22";
+/** The prior encode's stamp, retained for provenance. */
+export const RISK_SKELETON_VERSION_V45 = "cppa-risk-v4.5-2026-08-21";
 export const RISK_SKELETON_SOURCE_FILE =
   "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx";
 export const RISK_SKELETON_PROVENANCE =
-  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx — CEO redline round, ratified 2026-08-21; supersedes Spine 4.3/4.4. Legal-narrative and citation-forward voice rewrite; Table of Authorities replaced by Appendix G.";
+  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx — CEO redline round, ratified 2026-08-21; supersedes Spine 4.3/4.4. Legal-narrative and citation-forward voice rewrite; Table of Authorities replaced by Appendix G. v4.6 (2026-08-22) adds Appendix I — Persuasive Authority (corpus program phase 2, doc 49 A.2.4).";
 
 export const RISK_SKELETON_TITLE = "CPPA PRIVACY RISK ASSESSMENT";
 export const RISK_SKELETON_SUBTITLE =
@@ -616,6 +624,33 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     blocks: [
       // 0
       { kind: "conditional", text: "[CONDITIONAL] EUP METHODOLOGY - trigger {{SYSTEM.include_methodology_appendix}}=true. Concise description of EUP’s analytical methodology, clearly identified as EUP’s framework and not a CPPA-prescribed format. Not composed in Phase B. Absent => omitted." },
+    ],
+  },
+  {
+    // v4.6 (2026-08-22) — PHASE 2 of the corpus program (doc 49 A.2.4):
+    // the S5 Persuasive Authority surface, fed from the Risk CAM
+    // (risk-corpus-map.ts) by pure attachment over the report's own typed
+    // trigger states. Resolves PN-CORPUS-2 (the fetched-but-homeless
+    // eu_authority_corpus payload now has its spine home; the CAM, not
+    // the fetch, supplies generation). Every block is conditional/table:
+    // when no precedent row attaches (e.g., no trigger engaged), the
+    // section drops entirely under the no-padding law. The lead and
+    // warning wording live in risk-skeleton-assemble.ts as ratified
+    // constants (advance-ratification ledger, 2026-08-22 build).
+    id: "appendix_i",
+    title: "Appendix I — Persuasive Authority (Analogous Enforcement)",
+    blocks: [
+      // 0 — lead: the standing disclaimer (analogous, not binding;
+      // GDPR ≠ CCPA). Composed iff ≥1 precedent row attaches.
+      { kind: "conditional", text: "[CONDITIONAL] PERSUASIVE AUTHORITY LEAD - composed by the assembler iff at least one CAM precedent row attaches for this report's fired trigger states. Absent => the whole appendix is omitted." },
+      // 1 — {{DERIVED.persuasive_authority_matrix}} — doc 46 3-column
+      // shape extended with a "What happened" column; one row per
+      // attached AP entry, factor-keyed both ways (Factor-Bearing Law).
+      { kind: "table", text: "persuasive_authority_matrix" },
+      // 2 — adverse-outcome warning (AOW): composed iff the CAM's bound
+      // adverse state fired (trigger engaged + assessment record
+      // incomplete). Ratified wording from the CAM row; absent => omitted.
+      { kind: "conditional", text: "[CONDITIONAL] ADVERSE-OUTCOME WARNING - composed by the assembler iff the AOW row's bound adverse state fired. Absent => omitted." },
     ],
   },
 ];

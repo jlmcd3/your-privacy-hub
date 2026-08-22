@@ -27,9 +27,23 @@
 
 import type { CorpusMap } from "../cam-types.ts";
 
+// PHASE 2 (v2, 2026-08-22, CEO-directed "complete Phase 2"): adds the
+// render-eligible planes —
+//   * 3 S0 rows: the risk intake's live unpinned FSOR callouts
+//     (useFscrCallouts) become pinned rows; the frontend renders the
+//     pinned literal (CPPARiskFsorCallouts.ts) with a parity test. The
+//     4th live citation ("11 CCR § 7156(a)") was queried and has NO row
+//     in cppa_fsor_callouts — that callout renders nothing today, so
+//     nothing is pinned for it (honest absence, not an oversight).
+//   * 3 AP rows + 1 AOW row: the S5 Persuasive Authority appendix
+//     (Appendix I), doc 49 A.2.4. Verified-only law applied: Foodinho
+//     (doc 27 §4's candidate) is verification_status='failed' on both
+//     its rows and is EXCLUDED; Deliveroo Italy is the verified
+//     representative of the same algorithmic-management class.
+//     Provenance reference: enforcement-snapshot-risk.json.
 export const RISK_CORPUS_MAP: CorpusMap = {
   product: "cppa-risk",
-  map_version: "cppa-risk-cam-v1-2026-08-22",
+  map_version: "cppa-risk-cam-v2-2026-08-22",
   snapshot_file: "tests/edge/corpus/__snapshots__/fsor-snapshot-risk.json",
   rows: [
     {
@@ -251,6 +265,179 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       provenance: { page_ref: "Appendix, p. 144", verified_on: "2026-08-22" },
       curation_note:
         "The Agency rejected removing the single-reviewer requirement but clarified that any individual with authority to decide whether processing proceeds — not necessarily a sole decision-maker — satisfies it. The engine's approval_sufficiency_conclusion (line 2756) checks reviewers.length and approver_authority_confirmed, crediting authority-to-decide rather than a named sole approver.",
+    },
+
+    // ── PHASE 2 — S0 intake callouts (pinned; doc 49 A.2.3(b)) ──────────
+    {
+      id: "cppa-risk/processing-purpose-specificity/s0-01",
+      factor_id: "Processing purpose specificity",
+      role: "FC",
+      source_table: "cppa_fsor_commentary",
+      source_row_id: "41408f4d-6355-499e-8c66-33022becb826",
+      excerpt_field: "agency_position_summary",
+      pinned_excerpt:
+        "The issue is how to identify processing purposes in specific, non-generic terms when conducting risk assessments under 11 CCR § 7152(a)(1). The CPPA added an example to subsection (a)(1) to clarify the necessary level of specificity required when identifying a purpose for risk assessment purposes.",
+      render_eligible: true,
+      render_surface: "S0",
+      s0_field: "11 CCR § 7152(a)(1)",
+      direction: "supports",
+      logic_bearing: false,
+      provenance: { page_ref: "p. 34", verified_on: "2026-08-22" },
+      curation_note:
+        "The risk intake's 'Why does the Agency require this?' callout for the purpose field. Previously fetched live and unpinned from the cppa_fsor_callouts view at page load; this row pins the exact summary the intake shows, closing the silent-drift exposure (doc 48 §II.4a finding 2).",
+    },
+    {
+      id: "cppa-risk/admt-logic-and-limitations/s0-01",
+      factor_id: "ADMT logic and limitations",
+      role: "FC",
+      source_table: "cppa_fsor_commentary",
+      source_row_id: "5768684d-a418-46e9-bd3b-0f359e014c07",
+      excerpt_field: "agency_position_summary",
+      pinned_excerpt:
+        "The issue was whether the automated decision-making technology (ADMT) risk assessment requirement in 11 CCR § 7152(a)(3)(G) should specify the particular technology used and clarify how ADMT output relates to significant consumer decisions. The Agency removed the requirement to identify the specific technology to simplify compliance, but added language requiring businesses to explain how they will use ADMT output \"to make a significant decision\" about consumers, thereby focusing the assessment on the material decision-making impact rather than technical specifications.",
+      render_eligible: true,
+      render_surface: "S0",
+      s0_field: "11 CCR § 7152(a)(3)(G)",
+      direction: "supports",
+      logic_bearing: false,
+      provenance: { page_ref: "p. 35", verified_on: "2026-08-22" },
+      curation_note:
+        "The intake callout for the ADMT logic/output fields — the Agency's own explanation of why § 7152(a)(3)(G) asks for output-use rather than technology identification. Pinned from the live view's projection source (cppa_fsor_commentary).",
+    },
+    {
+      id: "cppa-risk/prior-dpia-or-other-assessment/s0-01",
+      factor_id: "Prior DPIA or other assessment",
+      role: "FC",
+      source_table: "cppa_fsor_commentary",
+      source_row_id: "061ef698-84e8-46a5-84e6-0202afe8b286",
+      excerpt_field: "agency_position_summary",
+      pinned_excerpt:
+        "The issue is whether businesses can reuse a risk assessment prepared for compliance with other laws to satisfy the CPRA's risk assessment requirements under section 7152. The Agency modified section 7156(b) to permit businesses to use risk assessments prepared for other purposes, provided that the assessment contains all the information required by section 7152 or is paired with additional information to fill any gaps. This approach allows businesses to leverage existing compliance work while ensuring the final assessment meets CPRA standards and maintains adequate privacy protections.",
+      render_eligible: true,
+      render_surface: "S0",
+      s0_field: "11 CCR § 7156(b)",
+      direction: "supports",
+      logic_bearing: false,
+      provenance: { page_ref: "p. 40", verified_on: "2026-08-22" },
+      curation_note:
+        "The intake callout for the existing-DPIA field — the Agency's position on reusing assessments prepared for other laws. Pinned from the live view's projection source. NOTE: the intake also requests a callout for '11 CCR § 7156(a)', but the cppa_fsor_callouts view carries NO row for that citation (verified live 2026-08-22) — that callout renders nothing today, so no row is pinned for it.",
+    },
+
+    // ── PHASE 2 — S5 Persuasive Authority appendix (doc 49 A.2.4) ───────
+    // Verified-only law: every source row below is verification_status=
+    // 'verified' (re-checked live 2026-08-22; see enforcement-snapshot-
+    // risk.json for the provenance capture). Display strings are the
+    // CEO-ratifiable annotation layer — shipped under the 2026-08-22
+    // continue-all-spec-builds direction and flagged for the
+    // advance-ratification ledger.
+    {
+      id: "cppa-risk/regulatory-trigger-and-applicability/ap-01",
+      factor_id: "Regulatory trigger and applicability",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "8113274e-135a-4a83-a874-23f2c8ca10cd",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt: "",
+      render_eligible: true,
+      render_surface: "S5",
+      render_when: ["trigger_engaged"],
+      display: {
+        matter: "AEPD (Spain) — AENA, S.M.E., S.A. (2025)",
+        what_happened:
+          "A fine of EUR 10,043,002 under GDPR Art. 35: the airport operator's data protection impact assessment for biometric passenger processing omitted the required analysis of the suitability, necessity, and proportionality of the processing (Art. 35(7)).",
+        bearing:
+          "Analogous to the risk-assessment obligation this report addresses: where an assessment trigger is engaged, the assessment must actually analyze necessity, proportionality, and safeguards. A document that omits those elements did not satisfy the analogous EU duty.",
+        authority_label: "AEPD, EXP202304532 / PS-00431-2024 (6 Nov. 2025), GDPR Art. 35 — persuasive only; decided under the GDPR, not the CCPA",
+        trail_cite: "AEPD, AENA (2025)",
+      },
+      direction: "supports",
+      logic_bearing: false,
+      provenance: {
+        source_url: "https://www.aepd.es/documento/ps-00431-2024.pdf",
+        verified_on: "2026-08-22",
+      },
+      curation_note:
+        "The pure failure-to-assess precedent (doc 27 §4 / doc 49 A.2.4 release-1 list). Renders whenever any § 7150(b) trigger is engaged — the class of decision most directly analogous to the duty this product documents.",
+    },
+    {
+      id: "cppa-risk/regulatory-trigger-and-applicability/ap-02",
+      factor_id: "Regulatory trigger and applicability",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "b3a1a34f-9138-4f93-bcea-9286f9534fe9",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt: "",
+      render_eligible: true,
+      render_surface: "S5",
+      render_when: ["7150(b)(3)"],
+      display: {
+        matter: "Garante (Italy) — Deliveroo Italy s.r.l. (2021)",
+        what_happened:
+          "A fine of EUR 2,500,000: rider-management algorithms operated without adequate transparency about the automated decision-making, with excessive location data, inadequate retention and security measures, and without the required impact assessment (GDPR Arts. 5, 13, 22(3), 25, 32, 35).",
+        bearing:
+          "Analogous to the § 7150(b)(3) ADMT trigger engaged in this assessment: using automated decisionmaking for significant decisions about individuals carried an assessment duty under the analogous EU rule, and operating the system without that assessment was penalized.",
+        authority_label: "Garante, doc. web 9685994 (22 July 2021) — persuasive only; decided under the GDPR, not the CCPA",
+        trail_cite: "Garante, Deliveroo (2021)",
+      },
+      direction: "supports",
+      logic_bearing: false,
+      provenance: {
+        source_url: "https://www.gpdp.it/web/guest/home/docweb/-/docweb-display/docweb/9685994",
+        verified_on: "2026-08-22",
+      },
+      curation_note:
+        "The algorithmic-management precedent class (doc 27 §4 named Foodinho; both Foodinho rows are verification_status='failed', so the verified-only law substitutes Deliveroo — same regulator, same class, Art. 35 among the violations). Keyed to the (b)(3) prong.",
+    },
+    {
+      id: "cppa-risk/regulatory-trigger-and-applicability/ap-03",
+      factor_id: "Regulatory trigger and applicability",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "e7ad2d7a-bce7-493d-8cd9-b8966fb9114d",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt: "",
+      render_eligible: true,
+      render_surface: "S5",
+      render_when: ["7150(b)(4)"],
+      display: {
+        matter: "CNIL (France) — Amazon France Logistique (2023)",
+        what_happened:
+          "A fine of EUR 32,000,000: warehouse employees' activity and performance were monitored through scanner and video data at a granularity the regulator found excessive, violating data minimization, the legitimate-interest basis, and transparency duties (GDPR Arts. 5(1)(c), 6(1)(f), 12, 13, 32).",
+        bearing:
+          "Analogous to the § 7150(b)(4) systematic-observation trigger engaged in this assessment: continuous monitoring of workers is the processing pattern the analogous EU decision penalized, and the elements it faulted — minimization, lawful basis, transparency — are factors this report assesses.",
+        authority_label: "CNIL, SAN-2023-021 (7 Dec. 2023) — persuasive only; decided under the GDPR, not the CCPA",
+        trail_cite: "CNIL, Amazon France Logistique (2023)",
+      },
+      direction: "supports",
+      logic_bearing: false,
+      provenance: {
+        source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2023-021",
+        verified_on: "2026-08-22",
+      },
+      curation_note:
+        "The worker-surveillance cluster's verified representative (doc 27 §4 / doc 49 A.2.4). Keyed to the (b)(4) systematic-observation prong.",
+    },
+    {
+      id: "cppa-risk/regulatory-trigger-and-applicability/aow-01",
+      factor_id: "Regulatory trigger and applicability",
+      role: "AOW",
+      source_table: "enforcement_actions",
+      source_row_id: "8113274e-135a-4a83-a874-23f2c8ca10cd",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt: "",
+      render_eligible: true,
+      render_surface: "S5",
+      render_when: ["trigger_engaged", "record_incomplete"],
+      warning_text:
+        "Caution. Regulators applying analogous data-protection law have penalized businesses that carried out processing requiring an assessment without a complete assessment record: in AENA (AEPD, Spain, 2025) a EUR 10,043,002 fine issued where the impact assessment omitted the required necessity and proportionality analysis, and in Deliveroo (Garante, Italy, 2021) the required assessment was absent altogether. This assessment's record is not yet complete; completing the open items identified in this report before initiating or continuing the processing reduces the exposure this class of decisions illustrates. These decisions were issued under the GDPR, not the CCPA, and are persuasive context only.",
+      direction: "limits",
+      logic_bearing: false,
+      provenance: {
+        source_url: "https://www.aepd.es/documento/ps-00431-2024.pdf",
+        verified_on: "2026-08-22",
+      },
+      curation_note:
+        "The one release-1 adverse-outcome warning (doc 49 A.2.4): bound to the 'trigger engaged + assessment record incomplete' adverse state, citing the failure-to-assess class. Placement: inside Appendix I, after the precedent table — keeping all persuasive content on one surface rather than splicing a warning into the determination sections.",
     },
   ],
 };

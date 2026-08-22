@@ -1,0 +1,45 @@
+{
+  "captured_at": "2026-08-22",
+  "note": "Provenance reference for the Risk CAM's AP/AOW rows (verified enforcement_actions rows, captured live via Lovable MCP). AP rows render from CEO-ratified annotation fields, not from this text, so the pin test does not run against it; it exists so T2 reviews can re-check that each source row still exists, is still verified, and that the ratified annotations still describe it accurately. Foodinho (doc 27 §4's named candidate) was EXCLUDED at curation: both its rows are verification_status='failed', and the verified-only render law (doc 50 §3.1) bars them; Deliveroo Italy is the verified representative of the same algorithmic-management class.",
+  "rows": {
+    "8113274e-135a-4a83-a874-23f2c8ca10cd": {
+      "etid": "cms:ETid-2962",
+      "subject": "AENA, S.M.E., S.A.",
+      "regulator": "AEPD",
+      "jurisdiction": "Spain",
+      "decision_date": "2025-11-06",
+      "fine_eur": "10043002",
+      "violation": "Art. 35 GDPR",
+      "case_reference": "EXP202304532",
+      "verification_status": "verified",
+      "key_compliance_failure": "Incumplimiento de las obligaciones contenidas en el art. 35.7 del RGPD, en particular la falta de inclusión en la Evaluación de Impacto relativa a la Protección de Datos (EIPD) de un análisis de idoneidad, necesidad y proporcionalidad del tratamiento de datos biométricos de los pasajeros.",
+      "source_url": "https://www.aepd.es/documento/ps-00431-2024.pdf"
+    },
+    "b3a1a34f-9138-4f93-bcea-9286f9534fe9": {
+      "etid": "cms:ETid-790",
+      "subject": "Deliveroo Italy s.r.l.",
+      "regulator": "Garante",
+      "jurisdiction": "Italy",
+      "decision_date": "2021-07-22",
+      "fine_eur": "2500000",
+      "violation": "Art. 5 (1) a), c), e) GDPR, Art. 13 GDPR, Art. 22 (3) GDPR, Art. 25 GDPR, Art. 30 (1) c), f), g) GDPR, Art. 32 GDPR, Art. 35 GDPR, Art. 37 (7) GDPR",
+      "case_reference": "",
+      "verification_status": "verified",
+      "key_compliance_failure": "Deliveroo failed to adequately inform drivers about algorithmic decision-making, processed excessive location data, had inappropriate data retention policies, and lacked adequate security measures and a required DPIA.",
+      "source_url": "https://www.gpdp.it/web/guest/home/docweb/-/docweb-display/docweb/9685994"
+    },
+    "e7ad2d7a-bce7-493d-8cd9-b8966fb9114d": {
+      "etid": "gdprhub:7556",
+      "subject": "Amazon France Logistique",
+      "regulator": "CNIL",
+      "jurisdiction": "France",
+      "decision_date": "2023-12-07",
+      "fine_eur": "32000000",
+      "violation": "Article 5(1)(c) GDPR, Article 6(1)(f) GDPR, Article 12 GDPR, Article 13 GDPR, Article 32 GDPR",
+      "case_reference": "SAN-2023-021",
+      "verification_status": "verified",
+      "key_compliance_failure": "Amazon France Logistique extensively monitored employee activity and performance using scanners and video surveillance, leading to violations of data minimization, lawful processing (legitimate interest), and transparency principles.",
+      "source_url": "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2023-021"
+    }
+  }
+}
