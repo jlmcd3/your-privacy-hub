@@ -226,6 +226,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/__dev/u32-harness" element={<DocU32Harness />} />
             <Route path="/logo-preview" element={<LogoPreview />} />
+            <Route path="/fallback-preview" element={<FallbackImagePreview />} />
             <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
             <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
             <Route path="/enforcement" element={<Enforcement />} />
