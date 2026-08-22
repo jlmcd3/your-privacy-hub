@@ -4,9 +4,12 @@
 // PHASE 2 (2026-08-22, CEO-directed): the phase-1 type-level ratchet
 // (`render_eligible: false` literal) is consciously widened to `boolean`.
 // The widening is scoped by mapInvariants (cam-verify.ts), not left open:
-//   - FC rows may render ONLY on surface S0 (intake callouts). Report-side
-//     FC rendering (S4 commentary / FC citation trails) stays dark pending
-//     the PN-CORPUS-1 fleet posture ruling.
+//   - FC rows may render on surface S0 (intake callouts) freely, OR on S4
+//     (report-side regulator-commentary) ONLY where the map carries a
+//     `s4_ratification` stamp — the PN-CORPUS-1 fleet law (ratified
+//     2026-08-22, doc 53 Phase A): default-dark, with CEO-curated
+//     deterministic carve-outs. No stamp, no S4 FC — machine-enforced, as
+//     the S0 rule already was pre-ratification.
 //   - AP rows render only on S5 with a full `display` block and a
 //     `render_when` typed-state predicate (verified-only law applies at
 //     curation: source rows must be verification_status='verified').
@@ -84,4 +87,14 @@ export interface CorpusMap {
   readonly map_version: string; // "<product>-cam-vN-YYYY-MM-DD"
   readonly snapshot_file: string; // the fixture this map pins against
   readonly rows: readonly CamRow[];
+  /** The PN-CORPUS-1 lawful carve-out (doc 53 Phase A): present ONLY when
+   * the CEO has ratified THIS map's S4 FC rows by name. A map-level fact,
+   * not per-row — "a CEO-ratified map for that product exists" is what the
+   * fleet law tests. Absent means the default-dark posture still governs
+   * every FC row in this map, however many there are. */
+  readonly s4_ratification?: {
+    readonly ratified_by: string;
+    readonly ratified_on: string; // ISO date
+    readonly ledger_ref: string; // decision-queue or ratification-ledger entry id
+  };
 }

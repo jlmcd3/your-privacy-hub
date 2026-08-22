@@ -7,7 +7,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { mapInvariants } from "../../../supabase/functions/_shared/corpus/cam-verify.ts";
-import type { CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
+import type { CamRow, CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/admt-corpus-map.ts";
 import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
@@ -67,6 +67,75 @@ Deno.test("cppa-risk: phase-2 posture — 11 dark FC, 3 S0 callouts, 3 AP, 1 AOW
     assert(row, `${r.id}: source row missing from enforcement snapshot`);
     assertEquals(row.verification_status, "verified", `${r.id}: source row not verified`);
   }
+});
+
+// ── Phase A (doc 53): the PN-CORPUS-1 lawful S4 carve-out ────────────────
+// FC may render on S4 ONLY inside a map carrying `s4_ratification`. No
+// existing map uses S4 today (confirmed above: Risk's only open FC plane
+// is S0), so this is exercised on synthetic fixtures.
+
+function fcRow(overrides: Partial<CamRow>): CamRow {
+  return {
+    id: "test/factor/s4-01",
+    factor_id: "Test factor",
+    role: "FC",
+    source_table: "cppa_authorities",
+    source_row_id: "row-1",
+    excerpt_field: "text",
+    pinned_excerpt: "exact pinned text",
+    render_eligible: true,
+    render_surface: "S4",
+    direction: "supports",
+    logic_bearing: false,
+    provenance: { verified_on: "2026-08-22" },
+    curation_note: "test fixture",
+    ...overrides,
+  };
+}
+
+Deno.test("PN-CORPUS-1 carve-out: FC on S4 without s4_ratification fails", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-s4-unratified",
+    snapshot_file: "n/a",
+    rows: [fcRow({})],
+  };
+  const problems = mapInvariants(map);
+  assert(
+    problems.some((p) => p.includes("s4_ratification")),
+    JSON.stringify(problems),
+  );
+});
+
+Deno.test("PN-CORPUS-1 carve-out: FC on S4 with s4_ratification passes", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-s4-ratified",
+    snapshot_file: "n/a",
+    rows: [fcRow({})],
+    s4_ratification: {
+      ratified_by: "CEO",
+      ratified_on: "2026-08-22",
+      ledger_ref: "PN-CORPUS-1",
+    },
+  };
+  assertEquals(mapInvariants(map), []);
+});
+
+Deno.test("PN-CORPUS-1 carve-out: s4_ratification on the map does not excuse an S0 FC row from naming s0_field", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-s4-ratified-s0-row",
+    snapshot_file: "n/a",
+    rows: [fcRow({ id: "test/factor/s0-01", render_surface: "S0" })],
+    s4_ratification: {
+      ratified_by: "CEO",
+      ratified_on: "2026-08-22",
+      ledger_ref: "PN-CORPUS-1",
+    },
+  };
+  const problems = mapInvariants(map);
+  assert(problems.some((p) => p.includes("s0_field")), JSON.stringify(problems));
 });
 
 Deno.test("RISK_CORPUS_MAP: every factor_id matches a real FACTOR_MATRIX_ROWS label", async () => {

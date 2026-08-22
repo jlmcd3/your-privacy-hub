@@ -4,9 +4,13 @@
 //
 // PHASE 2 (2026-08-22): invariants updated for the conscious widening of
 // render_eligible (see cam-types.ts header). The rules below ARE the
-// current render law — a map that violates them fails CI, so the posture
-// ("report-side FC stays dark pending PN-CORPUS-1") is machine-enforced,
-// not a comment.
+// current render law — a map that violates them fails CI.
+//
+// PHASE A (2026-08-22, doc 53): PN-CORPUS-1 ratified (default-dark, CEO-
+// curated carve-outs). The FC-on-S4 carve-out below is the machine-enforced
+// form of that ruling — S4 FC rows are lawful ONLY inside a map carrying
+// `s4_ratification`; every map without that stamp stays S0-only for FC,
+// exactly as before ratification.
 
 import type { CamRow, CorpusMap } from "./cam-types.ts";
 
@@ -68,11 +72,14 @@ export function mapInvariants(map: CorpusMap): string[] {
         problems.push(`${row.id}: render_eligible without render_surface`);
       }
       if (row.role === "FC" && row.render_surface !== "S0") {
-        problems.push(
-          `${row.id}: FC rows may render only on S0 (report-side FC rendering is gated on PN-CORPUS-1)`,
-        );
+        const s4Ratified = row.render_surface === "S4" && !!map.s4_ratification;
+        if (!s4Ratified) {
+          problems.push(
+            `${row.id}: FC rows may render only on S0, or on S4 inside a map carrying s4_ratification (PN-CORPUS-1 carve-out) — this map has neither`,
+          );
+        }
       }
-      if (row.role === "FC" && !row.s0_field) {
+      if (row.role === "FC" && row.render_surface === "S0" && !row.s0_field) {
         problems.push(`${row.id}: render-eligible S0 FC rows must name their s0_field`);
       }
       if (row.role === "AP") {
