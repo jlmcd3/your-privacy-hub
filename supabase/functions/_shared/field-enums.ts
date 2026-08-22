@@ -80,6 +80,7 @@ const DPIA_REASONS_TO_CONDUCT = [
   "Large-scale systematic monitoring of a public area (Art. 35(3)(c))",
   "Evaluation or scoring (incl. profiling / prediction)",
   "Automated decision-making with legal or significant effect",
+  "Systematic monitoring (of employees, a defined population, or a non-public space)",
   "Sensitive or highly personal data",
   "Data processed on a large scale",
   "Matching or combining datasets",

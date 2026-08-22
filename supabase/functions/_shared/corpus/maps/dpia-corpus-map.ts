@@ -58,12 +58,12 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
       direction: "limits",
       logic_bearing: true,
       logic_disposition: {
-        kind: "extension_filed",
-        queue_ref: "PN-CORPUS-L-DPIA-1",
+        kind: "implemented",
+        branch_ref: "src/pages/DPIAFramework.enums.ts:Systematic monitoring (of employees, a defined population, or a non-public space)",
       },
       provenance: { verified_on: "2026-08-22" },
       curation_note:
-        "WP248 applies the general 'Systematic monitoring' criterion to employee/workplace monitoring — neither large-scale nor a public area. REASONS_TO_CONDUCT has no such general option; its only systematic-monitoring item is scoped to 'Large-scale systematic monitoring of a public area (Art. 35(3)(c))', which does not cover this WP248 example. A company recording only workplace monitoring has no REASONS_TO_CONDUCT option that captures the WP248 basis for it.",
+        "WP248 applies the general 'Systematic monitoring' criterion to employee/workplace monitoring — neither large-scale nor a public area. REASONS_TO_CONDUCT previously had no such general option (only 'Large-scale systematic monitoring of a public area (Art. 35(3)(c))', which does not cover this WP248 example). RESOLVED 2026-08-22 (phase-2 redline, PN-CORPUS-L-DPIA-1): a general 'Systematic monitoring (of employees, a defined population, or a non-public space)' option was added to REASONS_TO_CONDUCT (and its two mirror copies, DPIA_REASONS in the intake contract and DPIA_REASONS_TO_CONDUCT in field-enums.ts).",
     },
     {
       id: "dpia/dpia-requirement-high-risk-trigger/03",

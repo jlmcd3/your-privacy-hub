@@ -83,11 +83,14 @@ Deno.test("ADMT_CORPUS_MAP: disposition mix matches this session's finding (5 im
   assertEquals(counts, { implemented: 5, extension_filed: 0, declined: 0 });
 });
 
-Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (4 implemented, 1 filed, 1 declined)", () => {
+Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (5 implemented, 0 filed, 1 declined)", () => {
   const counts = { implemented: 0, extension_filed: 0, declined: 0 };
   for (const row of DPIA_CORPUS_MAP.rows) {
     const kind = row.logic_disposition?.kind;
     if (kind) counts[kind]++;
   }
-  assertEquals(counts, { implemented: 4, extension_filed: 1, declined: 1 });
+  // PN-CORPUS-L-DPIA-1 resolved 2026-08-22 (phase-2 redline): the general
+  // "systematic monitoring" REASONS_TO_CONDUCT option was added, moving
+  // this row from extension_filed to implemented.
+  assertEquals(counts, { implemented: 5, extension_filed: 0, declined: 1 });
 });
