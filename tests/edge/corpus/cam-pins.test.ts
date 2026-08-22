@@ -6,21 +6,27 @@
 
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { excerptPinned, type CorpusSnapshot } from "../../../supabase/functions/_shared/corpus/cam-verify.ts";
+import type { CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
+import { ADMT_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/admt-corpus-map.ts";
 
-Deno.test("RISK_CORPUS_MAP: every pinned_excerpt is a substring of its snapshot row", async () => {
-  const raw = await Deno.readTextFile(RISK_CORPUS_MAP.snapshot_file);
-  const snapshot: CorpusSnapshot = JSON.parse(raw);
-  for (const row of RISK_CORPUS_MAP.rows) {
-    assert(
-      excerptPinned(row, snapshot),
-      `${row.id}: pinned_excerpt not found in snapshot row ${row.source_row_id}.${row.excerpt_field}`,
-    );
-  }
-});
+const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP];
 
-Deno.test("RISK_CORPUS_MAP: snapshot has a captured_at stamp", async () => {
-  const raw = await Deno.readTextFile(RISK_CORPUS_MAP.snapshot_file);
-  const snapshot: CorpusSnapshot = JSON.parse(raw);
-  assert(typeof snapshot.captured_at === "string" && snapshot.captured_at.length > 0);
-});
+for (const map of MAPS) {
+  Deno.test(`${map.product}: every pinned_excerpt is a substring of its snapshot row`, async () => {
+    const raw = await Deno.readTextFile(map.snapshot_file);
+    const snapshot: CorpusSnapshot = JSON.parse(raw);
+    for (const row of map.rows) {
+      assert(
+        excerptPinned(row, snapshot),
+        `${row.id}: pinned_excerpt not found in snapshot row ${row.source_row_id}.${row.excerpt_field}`,
+      );
+    }
+  });
+
+  Deno.test(`${map.product}: snapshot has a captured_at stamp`, async () => {
+    const raw = await Deno.readTextFile(map.snapshot_file);
+    const snapshot: CorpusSnapshot = JSON.parse(raw);
+    assert(typeof snapshot.captured_at === "string" && snapshot.captured_at.length > 0);
+  });
+}

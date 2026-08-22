@@ -1,0 +1,35 @@
+{
+  "captured_at": "2026-08-22",
+  "rows": {
+    "2ca61bd1-bb8a-4715-9e54-e20c4a266b4e": {
+      "regulation_citation": "11 CCR § 7001(e)(1)",
+      "page_ref": "p. 11",
+      "comment_summary": "Issue addressed: whether 'substantially facilitate' or 'substantially replace' human decisionmaking is the appropriate threshold for ADMT scope, and how true human involvement should be defined.",
+      "agency_position_summary": "The Agency considered whether the threshold for automated decision-making technology (ADMT) scope should be \"substantially facilitate\" or \"substantially replace\" human decisionmaking in 11 CCR § 7001(e)(1). The Agency adopted \"substantially replace human decisionmaking\" as the appropriate threshold and defined it to mean a business using the technology's output to make a decision without human involvement. The Agency clarified that true human involvement requires the reviewer to understand and interpret the technology's output, review it alongside other relevant information, and possess actual authority to make or change the decision."
+    },
+    "30f8c40b-1d60-4623-829a-06f68c77ca2f": {
+      "regulation_citation": "11 CCR § 7001(ddd)(6)",
+      "page_ref": "p. 14",
+      "comment_summary": "Issue addressed: whether advertising to a consumer should be included in the definition of 'significant decision' under 11 CCR § 7001(ddd)(6).",
+      "agency_position_summary": "The issue is whether advertising directed to a consumer constitutes a \"significant decision\" under 11 CCR § 7001(ddd)(6). The Agency modified the definition of \"significant decision\" to explicitly exclude advertising to a consumer, streamlining compliance obligations for businesses while aligning with privacy frameworks used in other jurisdictions like the GDPR and Colorado Privacy Act."
+    },
+    "3b49cfa7-04ac-411d-b1c4-4ed38ad82f57": {
+      "regulation_citation": "11 CCR § 7221(b)",
+      "page_ref": "p. 48",
+      "comment_summary": "Issue addressed: clarifying that businesses using ADMT to make significant decisions are not required to provide consumers opt-out ability, subject to the three exceptions.",
+      "agency_position_summary": "The issue is whether businesses using automated decision-making technology (ADMT) to make significant decisions must provide consumers with an opt-out right. The California Privacy Protection Agency clarified in 11 CCR § 7221(b) that businesses are not required to provide opt-out ability for such use, except under the three exceptions specified in subsections (b)(1) through (b)(3), aligning this rule with parallel modifications to § 7200(a) and § 7221(a) to ensure consistent guidance on when opt-out rights apply to ADMT decisions."
+    },
+    "f229e04d-57ae-4e9b-b799-34dea8eb9966": {
+      "regulation_citation": "11 CCR § 7221(b)(2)",
+      "page_ref": "p. 49",
+      "comment_summary": "Agency clarifies 11 CCR § 7221(b)(2) by removing 'qualified' and restructuring human appeal exception requirements, moving reviewer qualifications to subsection (b)(1)(A).",
+      "agency_position_summary": "The issue is what qualifications and procedures businesses must follow to provide human appeal rights for decisions made by automated decision-making technology. The Agency modified section 7221(b)(2) to clarify the human appeal exception requirements by removing the word \"qualified\" and consolidating reviewer qualifications into subsection (b)(1)(A), making the rule easier to read while providing businesses flexibility in how they implement human review processes for significant decisions."
+    },
+    "00d4c654-afee-4ded-91ef-48c26e3b6c12": {
+      "regulation_citation": "11 CCR § 7221(n)(2)",
+      "page_ref": "p. 51",
+      "comment_summary": "Agency addressing the need to clarify which specific ADMT a consumer opted out of and the corresponding obligations for businesses to notify third parties.",
+      "agency_position_summary": "The regulatory issue addresses which specific automated decision-making technology (ADMT) a consumer has opted out of and what notifications a business must send to third parties regarding that opt-out. Under 11 CCR § 7221(n)(2), the Agency clarified that when a consumer opts out of a specific ADMT, the business must notify all third parties who received information through that particular ADMT and instruct them to comply with the consumer's opt-out request within the same timeframe. This modification recognizes that consumers may opt out of only certain uses of ADMT, and the business's notification obligations extend only to the specific ADMT the consumer targeted."
+    }
+  }
+}
