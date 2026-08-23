@@ -11,9 +11,13 @@ import type { CamRow, CorpusMap } from "../../../supabase/functions/_shared/corp
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/admt-corpus-map.ts";
 import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
+import {
+  CYBER_CORPUS_MAP,
+  CYBER_PROCEDURAL_FACTORS,
+} from "../../../supabase/functions/_shared/corpus/maps/cyber-corpus-map.ts";
 
-// All phase-1 maps landed so far.
-const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP];
+// All maps landed so far.
+const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP, CYBER_CORPUS_MAP];
 
 Deno.test("mapInvariants: empty map is trivially valid", () => {
   const empty: CorpusMap = {
@@ -102,6 +106,46 @@ Deno.test("cppa-risk: wave C1 posture — 41 dark FC (11 phase-1/2 + 30 FC-J bul
     const row = snap.rows[r.source_row_id];
     assert(row, `${r.id}: source row missing from enforcement snapshot`);
     assertEquals(row.verification_status, "verified", `${r.id}: source row not verified`);
+  }
+});
+
+Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 3 dark AQ, S5 dark", () => {
+  const darkFc = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
+  const s0 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S0");
+  const s4 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S4");
+  const aq = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "AQ");
+  const ap = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "AP");
+  const aow = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
+  assertEquals(darkFc.length, 72);
+  assertEquals(s0.length, 1);
+  // The doc 62 §9 Tier-1 recut: EXACTLY 20 S4 rows (33 as filed → 20 as
+  // ratified); a 21st S4 row is an unratified customer surface.
+  assertEquals(s4.length, 20);
+  assertEquals(new Set(s4.map((r) => r.factor_id)).size, 15);
+  // S2 rows are banked dark until the conversion's C1 landing builds the
+  // table renderer and proves in the AQ render mechanism (doc 48 §II.6).
+  assertEquals(aq.length, 3);
+  for (const r of aq) assertEquals(r.render_eligible, false, r.id);
+  // S5-dark posture (doc 54 §3): no CPPA-native enforcement; GDPR analogies
+  // fail jurisdiction-fit for a CCPA audit-readiness document.
+  assertEquals(ap.length, 0);
+  assertEquals(aow.length, 0);
+  assert(CYBER_CORPUS_MAP.s4_ratification, "CYBER_CORPUS_MAP must carry its s4_ratification stamp (PN-CMP-B1)");
+  assertEquals(CYBER_CORPUS_MAP.rows.length, 96);
+});
+
+Deno.test("CYBER_CORPUS_MAP: every factor_id is a canonical component name or a procedural factor", async () => {
+  const src = await Deno.readTextFile("supabase/functions/run-cppa-cybersecurity/index.ts");
+  const procedural = new Set<string>(CYBER_PROCEDURAL_FACTORS);
+  for (const row of CYBER_CORPUS_MAP.rows) {
+    if (procedural.has(row.factor_id)) continue;
+    // Component factors must match ALL_COMPONENTS literals in index.ts —
+    // the same canonical names the conversion's Determination appendix
+    // adopts (doc 54 §0).
+    assert(
+      src.includes(`"${row.factor_id}"`),
+      `${row.id}: factor_id "${row.factor_id}" is neither a procedural factor nor an ALL_COMPONENTS literal`,
+    );
   }
 });
 

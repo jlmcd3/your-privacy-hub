@@ -1,0 +1,450 @@
+{
+  "captured_at": "2026-08-23",
+  "note": "Wave C3 snapshot for the Cyber CAM (doc 54 as amended by doc 62 §9; bytes doc 63 §5; tables doc 64). 86 cppa_fsor_commentary rows + 2 provision_texts rows (keyed by their 'key'), all pulled live 2026-08-23 via Lovable MCP. Supersedes fsor-snapshot-cyber-interim.json for the c1 S0 row (the interim file and its pin test remain until the implementation session retires them). Data-quality: ae0c29c3 and 60369cb9 summaries are TRUNCATED MID-WORD in the live DB (new findings this session, same class as 5096c9a2) — first sentences intact, pinned accordingly.",
+  "rows": {
+    "3bb6fc9f-3e48-404b-99d4-a5d4eaa52561": {
+      "regulation_citation": "11 CCR § 7123(c)",
+      "page_ref": "Appendix, p. 81",
+      "agency_position_summary": "The issue is whether cybersecurity audits under section 7123(c) should specify clearer trigger points for multi-factor authentication requirements and mandate phishing-resistant authentication regardless of the number of factors used. The Agency rejected the commenter's request for additional specificity, finding the regulation reasonably clear as written, but revised section 7123(c) to clarify that auditors must assess cybersecurity program components applicable to the business's information systems. The Agency confirmed that section 7123(c)(1)(A) already permits auditors to assess phishing-resistant authentication broadly beyond the listed multi-factor authentication requirement, maintaining flexibility while ensuring audit thoroughness consistent with CCPA standards."
+    },
+    "dd6adf32-a670-4849-974e-60170a3f493c": {
+      "regulation_citation": "11 CCR § 7123(b)(2)(A)(ii)",
+      "page_ref": "p. 24",
+      "agency_position_summary": "The issue concerns the scope of requirements under 11 CCR § 7123(b)(2)(A)(ii) regarding authentication methods for businesses. The Agency modified the regulation to clarify that this subsection applies only when a business actually uses passwords or passphrases, thereby limiting the requirement's applicability to businesses that employ this specific authentication method. This modification was made to provide clear guidance to businesses and their auditors about when this subsection's requirements take effect."
+    },
+    "ded1d6bf-0922-4bfc-ae36-d722186271da": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "Appendix, p. 82",
+      "agency_position_summary": "The California Attorney General declined to specify particular encryption standards for information at rest and in transit under 11 CCR § 7123(b)(2). The Agency retained the existing regulatory language without referencing external standards like NIST, determining that prescriptive standards would be inappropriate given the need for the regulations to apply flexibly across diverse industries and information systems."
+    },
+    "d384dc3a-d42c-4360-9549-2f7d7a36feb7": {
+      "regulation_citation": "11 CCR § 7123(c)(2)",
+      "page_ref": "Appendix, p. 84",
+      "agency_position_summary": "Regulation 11 CCR § 7123(c)(2) requires encryption of personal information maintained by businesses. The Agency rejected the commenter's recommendation to expand the encryption requirement to explicitly cover sensitive information, determining that the existing requirement to encrypt \"personal information\" under § 7123(c)(2) already encompasses the protections sought."
+    },
+    "b32b8b4e-09e4-4ce8-b441-64351e94e29c": {
+      "regulation_citation": "11 CCR § 7123(b)(2)(D)(i)",
+      "page_ref": "p. 25",
+      "agency_position_summary": "California's CPPA clarified that access control and privilege requirements under 11 CCR § 7123(b)(2)(D)(i) apply not only to individual employees but also to system accounts, service accounts, and applications. The Agency added the terms \"account\" and \"application\" to the regulation to ensure businesses and auditors understand that access controls must extend to all entities that can be granted system privileges, not just people."
+    },
+    "b968b04c-d807-486a-8fde-66412041fa4e": {
+      "regulation_citation": "11 CCR § 7123(c)(4)",
+      "page_ref": "Appendix, p. 84",
+      "agency_position_summary": "The regulatory issue is whether allowlisting requirements under Section 7123(c)(4) are overly burdensome or inapplicable to typical businesses outside high-security environments. The Agency retained the allowlisting requirement, clarifying that the cybersecurity regulations do not mandate specific protection methods but rather require businesses to conduct thorough assessments of how to meet the regulatory standards, meaning allowlisting is one potential approach among others that organizations may use to satisfy their obligations. Businesses must evaluate their specific circumstances to determine appropriate cybersecurity measures rather than viewing the regulation as prescribing a single mandatory technique."
+    },
+    "3227cc9f-55a3-4eb3-a643-b2883e0d3552": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "Appendix, p. 86",
+      "agency_position_summary": "The issue is whether vulnerability disclosure and reporting requirements should be limited to patched and exploitable vulnerabilities, and whether examples of bug bounty and ethical hacking programs should be included in the regulation. The Agency rejected the commenter's proposal and retained the examples of bug bounty and ethical hacking programs in 11 CCR § 7123(b)(2), finding that these examples provide necessary clarity and guidance for businesses and auditors while maintaining consistency with established cybersecurity frameworks. The Agency also declined to limit the scope to only patched and exploited vulnerabilities, instead maintaining broader coverage that aligns with the CCPA's requirement for thorough audits with flexibility for businesses."
+    },
+    "20877da0-4193-415e-8178-e2ed22c18c25": {
+      "regulation_citation": "11 CCR § 7123(c)(7)",
+      "page_ref": "Appendix, p. 86",
+      "agency_position_summary": "The issue is whether the audit-log management provision in section 7123(b)(2)(H) should be simplified by shortening its title or description. The Agency rejected this recommendation and retained the phrase \"including the centralized storage, retention, and monitoring of logs\" in the final regulation to maintain clear and specific requirements for how businesses must manage audit logs under the California Privacy Protection Act."
+    },
+    "e1d61e16-b5cc-4077-aa76-9df58b060129": {
+      "regulation_citation": "11 CCR § 7123(c)(8)",
+      "page_ref": "Appendix, p. 86",
+      "agency_position_summary": "The issue concerns whether bot-detection requirements in the regulations are sufficiently specific and appropriately tailored to their purpose. The Agency agreed in part with the comment and revised section 7123(c)(8)(A) to clarify that businesses may use technologies such as bot-detection and intrusion-detection as security measures, providing greater specificity than the prior language."
+    },
+    "a55c8fd4-fe71-42a3-955f-a78df09819f6": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "Appendix, p. 87",
+      "agency_position_summary": "The issue is whether endpoint detection and response mechanisms should be specifically mandated as part of cybersecurity audit requirements under California's CPRA audit rules. The California Privacy Protection Agency confirmed that the audit components listed in section 7123(c) already address endpoint protection and response mechanisms and are consistent with established cybersecurity frameworks, allowing the Agency to maintain flexibility for businesses while meeting the CPPA's requirement for thorough audits."
+    },
+    "a99195b0-d929-4bb4-892a-2f19cada832c": {
+      "regulation_citation": "11 CCR § 7123(b)(2)(J)",
+      "page_ref": "Appendix, p. 87",
+      "agency_position_summary": "The regulation addresses what cybersecurity audits must evaluate regarding antivirus and anti-malware protections. The CPRA rejected the commenter's recommendation to modify section 7123(b)(2)(J), maintaining that audits need not focus specifically on antivirus and anti-malware protections as distinct requirements."
+    },
+    "2bdc1b14-07da-47b1-9191-b5ef092c5806": {
+      "regulation_citation": "11 CCR § 7123",
+      "page_ref": "p. 25",
+      "agency_position_summary": "The issue is whether cybersecurity assessment standards should include explicit \"zero trust architecture\" requirements under section 7123(b)(2)(C). The Agency deleted the zero trust architecture provision from the final regulation to reduce implementation complexity by narrowing the specific cybersecurity components that businesses must evaluate when assessing their data security practices."
+    },
+    "d29e0f00-fe27-4059-b8ca-b005acc3cc16": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "Appendix, p. 87",
+      "agency_position_summary": "Section 7123(b)(2) addresses how businesses must implement reasonable security practices to protect personal information, including network protections. The Agency retained specific provisions on network segmentation as a distinct safeguard rather than consolidating it under general network monitoring, finding that explicit segmentation examples provide necessary clarity and guidance for businesses and auditors implementing cybersecurity practices consistent with established frameworks and CCPA audit requirements."
+    },
+    "e43c94ee-5b62-42dd-98e6-102825fa3dea": {
+      "regulation_citation": "11 CCR § 7123(b)(2)(M)",
+      "page_ref": "p. 25",
+      "agency_position_summary": "The issue is whether maintaining current knowledge of changing cybersecurity threats and countermeasures constitutes part of cybersecurity awareness or cybersecurity education and training requirements. The Agency clarified that this obligation pertains to cybersecurity awareness and moved the requirement to subsection (c)(12) to separate it from the cybersecurity education and training provisions in subsection (b)(2)(M), thereby providing clearer regulatory guidance to businesses and auditors on these distinct obligations."
+    },
+    "4dcde1e3-0746-4684-8aeb-d3191558acda": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "Appendix, p. 87",
+      "agency_position_summary": "The issue is whether requirements for maintaining knowledge of evolving cybersecurity threats belong in the cybersecurity training subsection of section 7123(b)(2). The Agency rejected the commenter's request to delete these provisions, retaining subsections (i) and (ii) and the word \"including\" in the regulation because these descriptions provide necessary clarity to businesses and auditors about how organizations should maintain awareness of changing threats and implement corresponding education and training programs."
+    },
+    "928d1260-ae7a-428f-bf75-877cc18c7d59": {
+      "regulation_citation": "11 CCR § 7123(c)",
+      "page_ref": "Appendix, p. 88",
+      "agency_position_summary": "The issue is whether cybersecurity audit requirements under the California Privacy Protection Agency's regulations specify how businesses should address secure development and coding practices, particularly for AI system developers. In response, the Agency modified § 7123(c) to clarify that cybersecurity audits must assess the listed components of a cybersecurity program \"that the auditor deems applicable to the business's information system,\" with secure development and coding explicitly included among those components. The Agency determined that no additional clarification beyond this modification was necessary at this time."
+    },
+    "aaeefa5a-bd9c-402a-8e32-72352ba40aab": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "Appendix, p. 88",
+      "agency_position_summary": "The issue was whether oversight of service providers, contractors, and third parties should be included as part of cybersecurity requirements under California's privacy law. The California Privacy Protection Agency agreed with commenters and retained language in 11 CCR § 7123(b)(2) requiring businesses to implement oversight of service providers, contractors, and third parties as an essential component of their cybersecurity program, consistent with established cybersecurity frameworks. This requirement ensures that a business's security obligations extend beyond its own operations to include management and monitoring of external parties that access or handle consumer data."
+    },
+    "f578fa27-4fca-4a18-b4dc-46d6df8cd473": {
+      "regulation_citation": "11 CCR § 7123",
+      "page_ref": "Appendix, p. 76",
+      "agency_position_summary": "The issue is whether § 7123 cybersecurity audits should explicitly require assessment of data minimization practices and retention schedules. The Agency agreed that data minimization is important but found that § 7123(c)(16) already requires audits to assess the business's retention schedules and proper disposal practices, and § 7123(d) permits auditors to evaluate additional cybersecurity program components beyond those listed, so no new explicit requirement was needed."
+    },
+    "d29ba188-cd66-4ab2-a500-f03e7b2f911e": {
+      "regulation_citation": "11 CCR § 7123(b)(2)(Q)(i)",
+      "page_ref": "p. 25",
+      "agency_position_summary": "The Agency addressed the definition of \"security incident\" in California's consumer privacy regulations by modifying the definition to replace \"potentially\" with \"imminently\" and adding \"personal\" to clarify the regulation focuses on personal information. This modification to 11 CCR § 7123(b)(2)(Q)(i) aligns the state's definition with National Institute of Standards and Technology standards and provides clearer guidance for businesses and their auditors to implement the requirement consistently."
+    },
+    "d8118706-1705-47cd-a8de-1b1a2c4e7f5a": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "Appendix, p. 89",
+      "agency_position_summary": "The regulatory issue is whether cybersecurity audits under 11 CCR § 7123(b)(2) should be limited to reviewing a business's documented incident response procedures. The Agency rejected this limitation and clarified that cybersecurity audits must assess not only the business's documentation of incident response management but also include testing and evaluation of how the business actually implements and executes its incident-response capabilities in practice."
+    },
+    "51dad925-25a3-4e66-8da7-6cbec11d609d": {
+      "regulation_citation": "11 CCR § 7123(c)",
+      "page_ref": "Appendix, p. 34",
+      "agency_position_summary": "Section 7123(c) requires businesses to conduct thorough and independent cybersecurity audits but does not mandate implementation of specific security protections like multi-factor authentication or email security controls. The Agency rejected the commenter's request to add explicit triggers for MFA and email security details to the regulation, finding that existing provisions in §7123(c)(8) and (c)(13) already address network monitoring, defenses, and cybersecurity training broadly enough, and that §7123(d) permits audits to assess additional cybersecurity program components beyond those explicitly listed."
+    },
+    "98d7499c-bc86-4a13-9696-15723aeacb7d": {
+      "regulation_citation": "11 CCR § 7123(c)",
+      "page_ref": "Appendix, p. 83",
+      "agency_position_summary": "The issue is whether California's cybersecurity program requirements should mirror the federal GLBA Safeguards Rule and whether encryption requirements should explicitly cover external networks. The Agency rejected alignment with GLBA's framework, confirming that § 7123(c)'s components are consistent with other cybersecurity frameworks and appropriately flexible for California businesses, while also rejecting the \"over external networks\" language addition as unnecessary since the revised definition of \"information system\" in § 7123(b)(2) already encompasses external networks used for processing personal information."
+    },
+    "be80ca90-bfd7-4487-a73e-b7fa1ec6ae82": {
+      "regulation_citation": "11 CCR § 7123(c)(3)",
+      "page_ref": "Appendix, p. 84",
+      "agency_position_summary": "The issue concerned whether access control requirements should clarify the scope of employee access privileges or restrictions in data security practices. The Agency agreed in part with the comment and modified § 7123(c)(3)(A) to add language specifying \"account's, or application's\" to clarify when privileges or access is not granted."
+    },
+    "acd8c477-db4d-4b38-93b3-d2afda50dba2": {
+      "regulation_citation": "11 CCR § 7123(c)(3)",
+      "page_ref": "Appendix, p. 84",
+      "agency_position_summary": "The regulatory issue concerns whether access control requirements in section 7123(c)(3) should specify dynamic adjustment mechanisms and clarify terminology for non-human accounts. The Agency retained the existing broad language addressing \"account management and access controls\" in section 7123(c)(3), finding it already permits audits to assess continuous assessment and adjustment of access, consistent with other cybersecurity frameworks and the CCPA's flexibility requirement for businesses."
+    },
+    "a4b358e0-72ac-452a-b262-8735074bca41": {
+      "regulation_citation": "11 CCR § 7123(c)(6)",
+      "page_ref": "Appendix, p. 86",
+      "agency_position_summary": "The issue concerns the vulnerability scanning requirements for internal and external security assessments. The Agency disagreed with the commenter's recommended modifications and retained the disclosure and reporting language in § 7123(c)(6) as written, maintaining the original vulnerability scan provisions without the requested changes."
+    },
+    "512dbc4f-80d0-4fde-8f73-cd9301391c8f": {
+      "regulation_citation": "11 CCR § 7123(c)(7)",
+      "page_ref": "Appendix, p. 86",
+      "agency_position_summary": "The regulatory issue concerns how businesses must implement audit-log management practices under the CPRA. The Agency retained the language in Section 7123(c)(7) (previously Section 7123(b)(2)(H)) to provide clarity for both businesses and auditors regarding common audit-log management implementation approaches."
+    },
+    "5268669c-726c-46f0-9f75-0b003e14a7d5": {
+      "regulation_citation": "11 CCR § 7123(b)(2)(I)(i)",
+      "page_ref": "p. 25",
+      "agency_position_summary": "The issue is whether certain cybersecurity technologies qualify as examples of methods for detecting and preventing unauthorized access to personal information under the security requirements of 11 CCR § 7123(b)(2)(I)(i). The Agency modified the regulation to explicitly list bot-detection, intrusion-detection, and intrusion-prevention as examples of technologies that businesses may deploy to detect and prevent unsuccessful login attempts, monitor authorized user activity, and detect and prevent unauthorized access, destruction, use, modification, or disclosure of personal information or unauthorized activity resulting in loss of availability of personal information."
+    },
+    "7bde9a4e-c648-4a64-b680-7da10f15a295": {
+      "regulation_citation": "11 CCR § 7123(c)(10)",
+      "page_ref": "Appendix, p. 87",
+      "agency_position_summary": "The issue concerns whether segmentation of information should be retained as a component of reasonable security under the CPRA security requirements. The California Privacy Protection Agency rejected the commenter's recommendation to remove segmentation from § 7123(b)(2)(K), confirming that segmentation remains a required component of reasonable security practices under § 7123(c)."
+    },
+    "45026762-15a1-4f66-9175-3cd1906360e9": {
+      "regulation_citation": "11 CCR § 7123(c)(11)",
+      "page_ref": "Appendix, p. 87",
+      "agency_position_summary": "The California Privacy Protection Agency considered whether to remove language requiring businesses to limit and control ports, services, and protocols as part of their cybersecurity obligations under 11 CCR § 7123(c)(11). The Agency rejected this request and retained the port, service, and protocol limitation requirement in the final regulation, determining that this specific security measure should remain a mandatory component of reasonable security practices."
+    },
+    "03e13782-ead3-4641-a871-398634ae2312": {
+      "regulation_citation": "11 CCR § 7123(c)(12)",
+      "page_ref": "Appendix, p. 87",
+      "agency_position_summary": "The California Privacy Protection Agency addressed concerns that the cybersecurity threat monitoring requirement in section 7123(c)(12) was unclear and difficult to follow. The Agency agreed with this feedback and revised sections 7123(c)(12) and (13) to improve readability and better address cybersecurity awareness obligations for businesses."
+    },
+    "702ef0bb-1926-4395-bb4d-29f3cede667f": {
+      "regulation_citation": "11 CCR § 7123(c)(15)",
+      "page_ref": "Appendix, p. 88",
+      "agency_position_summary": "Regulation 11 CCR § 7123(c)(15) addresses oversight requirements for service providers handling consumer personal information. The California Privacy Protection Agency retained this provision in its final rule, rejecting the commenter's recommendation to delete it. The Agency determined that the oversight requirements in § 7123(c)(15) are necessary to ensure service provider compliance with applicable privacy obligations."
+    },
+    "3771a7b4-6b7c-470e-8c42-383d44ec2208": {
+      "regulation_citation": "11 CCR § 7123(c)(16)",
+      "page_ref": "Appendix, p. 88",
+      "agency_position_summary": "The issue is whether the CPPA should eliminate regulatory requirements describing how businesses must properly dispose of personal information. The Agency retained Section 7123(c)(16) without deletion, maintaining the requirement that businesses follow specified procedures for proper personal information disposal."
+    },
+    "06ee81d5-937e-428c-8688-da2f42fa7589": {
+      "regulation_citation": "11 CCR § 7123(c)(17)",
+      "page_ref": "Appendix, p. 89",
+      "agency_position_summary": "The issue concerns whether cybersecurity audit provisions should use \"i.e.\" (that is) or \"e.g.\" (for example) to define scope. The Agency retained the use of \"i.e.\" in section 7123(c)(17) to maintain a clarifying, exhaustive definition of how businesses must manage cybersecurity audits, rejecting the commenter's request to broaden the language to \"e.g.\""
+    },
+    "69e2d23c-d383-456f-8e30-f2a308c8db04": {
+      "regulation_citation": "11 CCR § 7123(b)(2)",
+      "page_ref": "p. 24",
+      "agency_position_summary": "The issue is whether cybersecurity audits under 11 CCR § 7123(b)(2) must assess every listed cybersecurity program component or only those applicable to a business's information system. The Agency modified the regulation to clarify that auditors need only assess components deemed applicable to the business's specific information system, and eliminated the requirement to document and explain why non-applicable components are unnecessary, thereby reducing documentation burdens while maintaining the flexibility for businesses to determine which components are relevant to their circumstances."
+    },
+    "d06ffc1e-7d07-4579-b6e2-38870ef0caf0": {
+      "regulation_citation": "11 CCR § 7123",
+      "page_ref": null,
+      "agency_position_summary": "The regulation addresses how businesses must document cybersecurity awareness, security incident definitions, and audit report requirements under 11 CCR § 7123. The Agency separated cybersecurity awareness from education/training requirements in subsections (c)(12) and (c)(13), placing language about maintaining current knowledge of changing threats under the awareness provision for clarity. The Agency also revised the definition of \"security incident\" in subsection (c)(17)(A) to use \"imminently\" rather than \"potentially\" and added \"personal\" to focus on personal information, while consolidating all cybersecurity audit report requirements into subsection (e) and clarifying the term \"cybersecurity audit report\" to help businesses and auditors understand what must be included."
+    },
+    "830b0beb-defe-4aac-aa77-6d55ed949e62": {
+      "regulation_citation": "11 CCR § 7123(c)(1)",
+      "page_ref": "p. 26",
+      "agency_position_summary": "Section 7123(c)(1) requires cybersecurity audit reports to identify and describe gaps or weaknesses in a business's cybersecurity program. The Agency narrowed this requirement to address only those gaps and weaknesses that the auditor deemed to increase the risk of unauthorized access, destruction, use, modification, or disclosure of consumers' personal information, or unauthorized activity resulting in loss of availability of personal information, rather than requiring identification of every gap or weakness. The Agency also clarified that audit reports must assess any additional components the business or auditor decided to include in the audit."
+    },
+    "382351ca-637b-4b1f-b443-7add911c3638": {
+      "regulation_citation": "11 CCR § 7122(g)",
+      "page_ref": "Appendix, p. 74",
+      "agency_position_summary": "The issue is whether businesses must retain cybersecurity audit documents for five years and what security protections apply to auditors handling this data. Under § 7122(g), the Agency retained the five-year retention requirement for both businesses and auditors, determined that existing CPPA security obligations (Civil Code §§ 1798.100(d)(2) and (e)) adequately protect auditor-held data, and clarified that the requirement applies to both parties without adopting alternative shorter retention periods. The five-year period aligns with the Agency's administrative enforcement deadline and enables successive auditors to access prior audit information for identifying necessary corrections."
+    },
+    "8fe08152-6abc-4dc9-aa85-335a2d271fe3": {
+      "regulation_citation": "11 CCR § 7123",
+      "page_ref": "Appendix, p. 75",
+      "agency_position_summary": "California Privacy Protection Agency Regulatory Position on Cybersecurity Audit Frequency\n\nThe issue is whether businesses can conduct cybersecurity audits on a three-year cycle with annual risk-based assessments instead of annual audits. The Agency rejected this proposal and retained the requirement for annual cybersecurity audits under 11 CCR § 7123, determining that the CCPA statutory mandate for annual audits of significant risk processing activities cannot be satisfied through alternative audit frequencies or risk-based assessment approaches."
+    },
+    "171c1746-7b0c-42f5-a29b-3bd0a3633dce": {
+      "regulation_citation": "11 CCR § 7121(a)",
+      "page_ref": "p. 19",
+      "agency_position_summary": "Section 7121(a) establishes phased compliance deadlines for cybersecurity audit requirements based on a business's annual gross revenue. Businesses with over $100 million in annual gross revenue must complete their first cybersecurity audit by April 1, 2028; businesses with $50-100 million have until April 1, 2029; and businesses with less than $50 million have until April 1, 2030, with all subsequent audits due by April 1 following each 12-month audit period ending January 1. The Agency adopted this tiered timeline to reduce compliance costs for smaller businesses, provide clarity on deadlines, and allow adequate time for audit completion while maintaining consistency with other regulatory submission deadlines."
+    },
+    "c5c140af-9d1c-49e0-b2e2-bdcdd4436b2f": {
+      "regulation_citation": "11 CCR § 7124(c)",
+      "page_ref": "Appendix, p. 96",
+      "agency_position_summary": "Section 7124(c) requires businesses to submit only a certification of completion to the California Privacy Protection Agency, not the full cybersecurity audit report itself. The Agency modified § 7124(c) to specify that the certification must be signed by a member of the business's executive management team who is directly responsible for cybersecurity-audit compliance, has sufficient knowledge of the audit, and has authority to submit the certification, with the signature and date requirements now detailed in § 7124(d)."
+    },
+    "8537edab-a403-41af-a8e2-36bc79c16848": {
+      "regulation_citation": "11 CCR § 7120",
+      "page_ref": "Appendix, p. 64",
+      "agency_position_summary": "The issue is whether the cybersecurity audit thresholds in section 7120(b) are appropriately calibrated to identify businesses presenting significant risk to consumer security. The Agency rejected the request to raise processing thresholds or narrow applicability, retaining the standards of 250,000 or more consumers' personal information or 50,000 or more consumers' sensitive personal information as appropriate proxies for business size, complexity, and processing scope under CCPA requirements, and determined that no further clarification regarding insurance company applicability is necessary."
+    },
+    "67ddb51a-aac6-417d-8265-4e184a9de832": {
+      "regulation_citation": "11 CCR § 7120(b)",
+      "page_ref": "Appendix, p. 66",
+      "agency_position_summary": "The issue is whether the cybersecurity audit triggers in § 7120(b) are authorized by the CCPA and appropriately tailored to business size and risk. The Agency retained the audit triggers based on revenue thresholds and personal information processing volumes in § 7120(b), finding these criteria lawfully reflect a business's size, complexity, and processing scope under the CCPA's statutory directive, and rejected the commenter's alternative proposal for sensitive personal information thresholds as less clear and insufficiently protective of consumer security."
+    },
+    "cc96acc3-ef06-46df-a881-9c9973280c51": {
+      "regulation_citation": "11 CCR § 7120",
+      "page_ref": "Appendix, p. 66",
+      "agency_position_summary": "Section 7120 establishes the gross revenue threshold to determine which businesses must conduct cybersecurity audits under the California Privacy Protection Agency's regulations. The Agency agreed with and retained the use of the gross revenue threshold from the statute, finding that applying this existing metric reduces compliance complexity for businesses already familiar with it from other regulatory requirements. This approach maintains consistency with the statutory framework while providing clear guidance on audit obligations."
+    },
+    "8109b58a-d385-4a85-93af-02fe6692ef04": {
+      "regulation_citation": "11 CCR § 7120",
+      "page_ref": "Appendix, p. 65",
+      "agency_position_summary": "The CPPA was asked whether cybersecurity audit obligations under section 7120 should be limited to only those significant-risk activities defined in section 7150. The Agency rejected this argument and retained the audit requirements in section 7120(b), determining that businesses meeting either threshold in that section—based on the volume and sensitivity of personal information processed—present significant risk to consumers' security and must comply with the audit standards outlined in section 7123(c), which align with established cybersecurity frameworks while allowing flexibility based on business size and complexity."
+    },
+    "ebd4ab30-ebdf-40c0-8aed-8a89b3303a3e": {
+      "regulation_citation": "11 CCR § 7123(c)(14)",
+      "page_ref": "Appendix, p. 88",
+      "agency_position_summary": "The regulatory issue is which entities bear responsibility for identifying and documenting their obligations under California privacy law.\n\nThe Agency rejected the request for clarification and maintained that under 11 CCR § 7123(c)(14), any \"business\" that meets either threshold set forth in § 7120(b) is responsible for identifying and documenting its own obligations, without further specification of responsibility allocation among different entity types."
+    },
+    "e810dd63-d8e4-4639-bb77-171f52f86a75": {
+      "regulation_citation": "11 CCR § 7121",
+      "page_ref": null,
+      "agency_position_summary": "The Agency addressed the timing and deadlines for completing mandatory cybersecurity audits under 11 CCR § 7121. The Agency clarified that cybersecurity audits cover a 12-month period ending January 1, and businesses must complete their audit reports by April 1, providing sufficient time for thorough audits and aligning with other regulatory deadlines for certifications and risk assessments under §§ 7124(b) and 7157(a). The Agency also modified subsection (b) to address the post-April 1, 2030 implementation timeline and added an illustrative example to help businesses understand their audit period and completion deadline."
+    },
+    "59ddcdd2-2cf3-4065-a39d-3ac27150cc56": {
+      "regulation_citation": "11 CCR § 7121(b)",
+      "page_ref": "p. 20",
+      "agency_position_summary": "California's privacy regulator clarified the timing requirements for cybersecurity audit periods and report completion deadlines that take effect after April 1, 2030, under 11 CCR § 7121(b). The Agency modified this subsection to specify exactly when businesses must complete their cybersecurity audit reports following April 1, 2030, and added an illustrative example to help businesses understand their audit period and compliance deadlines. This modification provides necessary clarity on annual cybersecurity audit obligations and ensures businesses have sufficient time to complete their reports after each audit period ends."
+    },
+    "56d825a9-36fc-4212-a60c-1dc03d62d08a": {
+      "regulation_citation": "11 CCR § 7121",
+      "page_ref": "Appendix, p. 68",
+      "agency_position_summary": "The issue is whether cybersecurity audit requirements should be limited to activities occurring only within 24 months after the regulations take effect. The Agency rejected this limitation and instead adopted a phased implementation approach in Section 7121 based on annual gross revenue over a three-year period, while clarifying the audit coverage period and extending the timeline for businesses to complete their cybersecurity audit reports after the audit period ends."
+    },
+    "30096b68-b8f7-4e04-8a3d-9fc49d329d08": {
+      "regulation_citation": "11 CCR § 7121",
+      "page_ref": null,
+      "agency_position_summary": "Section 7121 establishes timing requirements for when businesses must complete annual cybersecurity audits and their corresponding audit reports. The Agency modified this section to phase in compliance requirements over three years based on annual gross revenue, clarified the specific audit periods and report completion deadlines, and provided businesses with additional time after each audit period to complete their cybersecurity audit reports in order to reduce compliance costs and simplify implementation."
+    },
+    "0aa22547-8272-4eaf-b59e-85bc37959004": {
+      "regulation_citation": "11 CCR § 7121",
+      "page_ref": null,
+      "agency_position_summary": "The regulatory issue is whether cybersecurity audit requirements under section 7121 should include a phased implementation timeline and separate requirements for post-implementation periods. The Agency modified section 7121 by updating its title to include \"and Audit Reports,\" establishing a phased-in implementation schedule for cybersecurity audits running from January 1, 2027 through April 1, 2030, and revising subsection (b) to specify distinct timing and compliance obligations for businesses after April 1, 2030."
+    },
+    "8bf9c38c-e2d3-477e-8c3b-754e774d02bf": {
+      "regulation_citation": "11 CCR § 7121(a)",
+      "page_ref": "Appendix, p. 68",
+      "agency_position_summary": "The issue is whether businesses need adequate time to establish cybersecurity audit processes and whether the regulation should specify when the first audit must be conducted. The CPPA agreed with the commenter's position and retained the regulatory language in 11 CCR § 7121(a) that provides businesses sufficient time to implement audit procedures and clearly specifies the timing for the first required audit."
+    },
+    "eb1af5f9-ffb3-4ecb-8f82-d180a0afbb1f": {
+      "regulation_citation": "11 CCR § 7121",
+      "page_ref": "Appendix, p. 68",
+      "agency_position_summary": "The issue is whether California should allow incident-based cybersecurity audits instead of requiring annual audits to align with other states' approaches. The Agency rejected this proposal and retained the annual audit requirement in Section 7121 because the California Consumer Privacy Act explicitly mandates annual audits for businesses whose data processing presents significant risk to consumers, which the Agency cannot change through regulation. The Agency did, however, modify the regulation to phase in the annual audit requirement over three years based on gross revenue, extend the deadline for completing audit reports, and clarify the audit coverage period and completion dates."
+    },
+    "6d771bcf-436b-4a30-96b1-7a4336d7341a": {
+      "regulation_citation": "11 CCR § 7123(f)",
+      "page_ref": "p. 27",
+      "agency_position_summary": "The issue is whether businesses can satisfy CPRA audit requirements by using existing cybersecurity frameworks and assessments. Under 11 CCR § 7123(f), the Agency allows businesses to utilize cybersecurity assessment work they have already completed, but only if that work meets all of Article 9's audit requirements for thoroughness and independence—either on its own or with supplementation—and the Agency removed the requirement that businesses specifically explain how their existing work satisfies those regulatory requirements."
+    },
+    "a218d4dd-c55c-4336-8182-47044609980c": {
+      "regulation_citation": "11 CCR § 7123",
+      "page_ref": null,
+      "agency_position_summary": "The issue is whether businesses can automatically satisfy Article 9 audit requirements by using established cybersecurity frameworks like NIST CSF. The Agency rejected automatic compliance based on framework use alone, but modified section 7123(f) to allow businesses to leverage existing cybersecurity assessment work if it meets all of Article 9's thoroughness and independence requirements, either on its own or through supplementation, and the Agency removed the requirement that businesses explain in detail how their work satisfies the regulatory requirements."
+    },
+    "6647ac8e-6f01-4d3a-8f3e-1d6ee2265ad8": {
+      "regulation_citation": "11 CCR § 7123(f)",
+      "page_ref": "Appendix, p. 35",
+      "agency_position_summary": "The issue is whether businesses may satisfy the cybersecurity audit requirements in Article 9 of California Consumer Privacy Act (CCPA) regulations by relying on established security frameworks like NIST CSF, ISO 27001, or SOC 2. Under 11 CCR § 7123(f), the Agency rejected accepting these frameworks as substitutes for the required cybersecurity audit, holding that businesses must conduct a thorough and independent audit specifically focused on securing consumers' personal information, though they may supplement existing security assessment work if it meets all CCPA regulatory requirements."
+    },
+    "053d2425-78e6-4e8f-b6ef-b511ec820495": {
+      "regulation_citation": "11 CCR § 7123(f)",
+      "page_ref": "Appendix, p. 93",
+      "agency_position_summary": "Section 7123(f) addresses whether businesses can satisfy cybersecurity audit requirements using existing federal or globally recognized frameworks instead of conducting independent audits. The CPPA rejected allowing substitute frameworks in lieu of the Article 9 audit requirements, reasoning that external frameworks do not ensure thorough, independent audits focused specifically on securing consumer personal information. However, the Agency modified § 7123(f) to allow businesses to leverage cybersecurity assessment work already completed, provided that work independently meets all Article 9 requirements either as-is or with supplementation, and removed the requirement to explain how existing work satisfies those requirements."
+    },
+    "ece8235b-fa4a-4e8a-b96c-5e53808ddb89": {
+      "regulation_citation": "11 CCR § 7123(f)",
+      "page_ref": "Appendix, p. 36",
+      "agency_position_summary": "Regulation 11 CCR § 7123(f) addresses the cybersecurity standards that businesses must follow to maintain reasonable security of personal information. The California Privacy Protection Agency retained the reference to the National Institute of Standards and Technology Cybersecurity Framework as an acceptable standard for compliance with the regulation's security requirements."
+    },
+    "6dd7166f-e763-4b69-93eb-78123dddcc55": {
+      "regulation_citation": "11 CCR § 7123(g)",
+      "page_ref": "p. 27",
+      "agency_position_summary": "The issue is whether all auditors or only the highest-ranking auditor must sign the independence certification statement for cybersecurity audits. Under 11 CCR § 7123(g), the Agency requires only the highest-ranking auditor to sign and date the independence certification statement. The Agency made this modification to provide flexibility for businesses with multiple auditor teams and to reduce documentation burden during implementation."
+    },
+    "891ed495-a5be-41ef-b9b3-9e11b1a0efcc": {
+      "regulation_citation": "11 CCR § 7122(a)(1)",
+      "page_ref": "p. 21",
+      "agency_position_summary": "The California Privacy Protection Agency clarified the qualifications required for auditors conducting independent cybersecurity audits under CPRA requirements. Under 11 CCR § 7122(a)(1), the Agency requires qualified auditors to possess knowledge of cybersecurity and expertise in how to audit a business's cybersecurity program. This requirement establishes a flexible performance standard that gives businesses clarity on selecting appropriate auditors while ensuring audits are conducted by professionals with relevant cybersecurity expertise."
+    },
+    "50dbb1dc-8039-400e-ba0f-c0a327c25717": {
+      "regulation_citation": "11 CCR § 7122(a)(1)",
+      "page_ref": "p. 21",
+      "agency_position_summary": "The California Privacy Protection Agency clarified whether auditors can make recommendations to businesses without compromising their independence under 11 CCR § 7122(a)(1). The Agency deleted the phrase \"or appear to compromise\" from the independence standard and added clarifying language confirming that auditors may make recommendations alongside audit findings—these recommendations are separate from the audit findings themselves and do not compromise auditor independence. This modification was intended to reduce implementation burden on businesses while ensuring auditors can provide actionable guidance to improve cybersecurity."
+    },
+    "9865ab0b-1d10-4f31-b322-841b1c906ceb": {
+      "regulation_citation": "11 CCR § 7122(a)",
+      "page_ref": "Appendix, p. 71",
+      "agency_position_summary": "Section 7122(a) addresses independence requirements for auditors conducting California privacy audits. The CPPA rejected concerns about forcing external auditors and instead clarified that businesses may use internal auditors, revised the rules to allow executive management without direct cybersecurity responsibility to oversee audit requirements, and confirmed that auditors may provide cybersecurity recommendations as part of their findings. The Agency also made performance evaluations of auditors optional by adding \"if any\" to the regulatory text."
+    },
+    "d495f427-889e-47a4-ba09-1c5e518ef720": {
+      "regulation_citation": "11 CCR § 7122(a)(2)",
+      "page_ref": "p. 21",
+      "agency_position_summary": "Section 7122(a)(2) addresses the reporting structure and oversight of internal auditors to ensure their independence from the cybersecurity program. The Agency narrowed the requirement to apply only to the highest-ranking internal auditor and replaced the mandatory board oversight model with a requirement that an executive management team member without direct cybersecurity responsibility handle the auditor's performance evaluation and compensation, while clarifying that businesses are not required to conduct performance evaluations if they choose not to."
+    },
+    "21954be0-8086-4226-bbf4-2b62e091c527": {
+      "regulation_citation": "11 CCR § 7122(a)(3)",
+      "page_ref": null,
+      "agency_position_summary": "The regulatory issue is how to structure internal auditor independence and reporting requirements for California businesses' cybersecurity programs. Under 11 CCR § 7122(a)(3), the Agency narrowed the reporting requirement to apply only to the highest-ranking internal auditor and replaced the mandatory board oversight model with a requirement that the auditor report to a member of executive management who has no direct responsibility for the cybersecurity program, while also making performance evaluations discretionary (\"if any\"). This approach balances auditor independence with reduced compliance burden for businesses rather than requiring direct board reporting and evaluation."
+    },
+    "3f719302-3318-4ef8-834e-fc8d53ffae1e": {
+      "regulation_citation": "11 CCR § 7122(a)(2)",
+      "page_ref": "Appendix, p. 72",
+      "agency_position_summary": "The regulatory issue is whether auditors should be required to make decisions about the audit scope and conduct independent of business influence. The Agency rejected the commenter's recommendation to delete the \"decisions and\" language from 11 CCR § 7122(a)(2), determining that auditor decision-making authority without business interference is essential to maintaining auditor independence under the regulation."
+    },
+    "125b0777-ebcd-4cff-86cd-28d6c36a4378": {
+      "regulation_citation": "11 CCR § 7122(d)",
+      "page_ref": "Appendix, p. 72",
+      "agency_position_summary": "The issue is whether cybersecurity audit findings should be based on specific evidence rather than business management attestations. The Agency agreed with this position and finalized § 7122(d) to require that cybersecurity audit findings rely primarily on specific evidence the auditor deems appropriate, rather than on attestations by the business's management. The Agency also restructured § 7122 to streamline readability by removing detailed audit report content requirements from § 7122(d) and relocating those provisions elsewhere, with a cross-reference provided in the regulation."
+    },
+    "e4c29259-99aa-44b1-9997-c52bf5a42f7e": {
+      "regulation_citation": "11 CCR § 7122(b)",
+      "page_ref": "Appendix, p. 72",
+      "agency_position_summary": "The issue is whether auditors conducting CPRA compliance audits must receive disclosure of attorney-client privileged or other legally protected information. The Agency rejected the request for explicit regulatory language protecting privileged information, concluding that such protection is unnecessary because section 7122(b) does not affirmatively require businesses to disclose privileged materials to auditors in the first place."
+    },
+    "9153e06c-c5df-4aeb-b67b-a6bb58dfab40": {
+      "regulation_citation": "11 CCR § 7122(f)",
+      "page_ref": "Appendix, p. 32",
+      "agency_position_summary": "The issue is whether cybersecurity audit reporting requirements should mandate board or governing body involvement to preserve auditor independence. The Agency removed the requirement that cybersecurity audits be reported to the board and instead allows reporting to an executive management team member without direct responsibility for the cybersecurity program, as specified in § 7122(f), while maintaining that businesses may voluntarily involve their board and that § 7122 provides sufficient auditor independence protections consistent with current marketplace practices."
+    },
+    "e6a7272c-3cd2-4bfe-ad64-c6e3dff69251": {
+      "regulation_citation": "11 CCR § 7122(h)",
+      "page_ref": "p. 22",
+      "agency_position_summary": "The regulatory issue is whether cybersecurity audit reports must be reported to a business's board of directors or governing body, or alternatively to senior management responsible for cybersecurity. Under 11 CCR § 7122(h), the Agency removed the board reporting requirement and instead requires the cybersecurity audit report to be provided to a member of the business's executive management team with direct responsibility for the business's cybersecurity program. The Agency determined that this modification lessens compliance burdens on businesses while still ensuring senior decisionmakers responsible for cybersecurity are informed about the business's cybersecurity posture and audit quality."
+    },
+    "0655df15-77bd-46dd-aef1-65fa4a6dc857": {
+      "regulation_citation": "11 CCR § 7123(c)(4)",
+      "page_ref": "p. 27",
+      "agency_position_summary": "The issue was whether businesses must list all individuals responsible for their cybersecurity audit program or whether some flexibility could be provided when multiple employees share these responsibilities. Under 11 CCR § 7123(c)(4), the Agency modified the requirement to limit documentation to no more than three titles of qualified individuals responsible for the cybersecurity audit program, reducing the burden on businesses with distributed cybersecurity responsibilities. This modification provides flexibility while maintaining accountability for the cybersecurity audit program oversight."
+    },
+    "d053c7ba-73d8-463c-9966-b3a218e81ffe": {
+      "regulation_citation": "11 CCR § 7123(e)(6)",
+      "page_ref": "Appendix, p. 91",
+      "agency_position_summary": "The issue is whether businesses must disclose the names of senior cybersecurity personnel responsible for their audit programs, or whether titles alone would suffice. The Agency partially agreed with the commenter and modified section 7123(e)(6) to require only up to three titles (not names) of qualified individuals responsible for the cybersecurity audit program, providing flexibility for businesses with multiple personnel in these roles. The Agency retained this requirement as necessary for accountability and to support future audits or investigations, concluding that titles alone do not constitute extraneous personal information collection."
+    },
+    "4ec4ae25-9ddf-482d-8f2c-be8633db2575": {
+      "regulation_citation": "11 CCR § 7123(e)(8)",
+      "page_ref": "Appendix, p. 91",
+      "agency_position_summary": "The issue is whether auditor certification of independence and auditor identification information should be mandatory or optional requirements. The Agency rejected making these requirements optional, determining that auditor independence certification and identifying information (name, affiliation, and qualifications) are necessary to ensure thorough and independent audits under Civil Code § 1798.185(a)(14)(A), but modified the rule to require the certification only from the highest-ranking auditor to reduce implementation burden and accommodate different business models, as set forth in 11 CCR § 7123(e)(8)."
+    },
+    "60369cb9-d54d-42d5-8b57-ebd5e673089a": {
+      "regulation_citation": "11 CCR § 7123(e)(9)",
+      "page_ref": "Appendix, p. 91",
+      "agency_position_summary": "The issue is whether cybersecurity audit requirements under section 7123(e)(9) improperly duplicate existing breach notification laws, violate federal banking authority, or create security risks. The Agency retained the requirement that businesses report prior breach notifications to consumers as part of the cybersecurity audit scope, finding such breaches are relevant to assessing cybersecurity posture under CCPA's mandate, and clarified that CCPA obligations do not restrict compliance with federal law or apply if preempted by it. The Agency modified section 7123(e)(10) to remove references to notifications to agencies outside California to reduce implementation burden, while maintaining that only a certification of audit completion—not the full audit report—must be submitted to the Agenc"
+    },
+    "ae0c29c3-47b9-410c-9523-f19aef3c835c": {
+      "regulation_citation": "11 CCR § 7123(e)(10)",
+      "page_ref": "Appendix, p. 92",
+      "agency_position_summary": "The issue is whether cybersecurity audit requirements under § 7123(e)(10) should be limited to breaches affecting California consumers and whether detailed disclosures could expose corporate vulnerabilities. The Agency rejected the scope limitation, determining that significant unauthorized access incidents warrant inclusion in cybersecurity audits to properly assess a business's security posture under CCPA's grant of regulatory authority, but revised § 7123(e)(10) to remove specific references to notifications to agencies or data processing authorities outside California to simplify implementation. The Agency also clarified that businesses submit only a certification of audit completion to the Agency under § 7124, not the full audit report itself, which protects against the claimed vulner"
+    },
+    "ee3244a1-6d2a-4282-98cc-78a302208cfc": {
+      "regulation_citation": "11 CCR § 7123(e)(4)",
+      "page_ref": "Appendix, p. 90",
+      "agency_position_summary": "The issue is whether audit management action plans must describe the resources allocated to resolve identified deficiencies. The California Privacy Protection Agency disagreed with the commenter's position that resource allocation descriptions are non-standard audit practice, but nonetheless revised § 7123(e)(4) to remove the phrase \"resources it has allocated to resolve them\" to simplify implementation requirements at this time."
+    },
+    "8a7b44b1-998a-4a29-8368-ad5a7ab6e831": {
+      "regulation_citation": "11 CCR § 7123(e)(4)",
+      "page_ref": "p. 26",
+      "agency_position_summary": "The regulatory issue concerns what cybersecurity audit documentation businesses must prepare regarding resource allocation for addressing identified security gaps and weaknesses. Under the final regulation at 11 CCR § 7123(e)(4), the California Privacy Protection Agency removed the requirement that cybersecurity audit documents include details about resources allocated to address identified gaps and weaknesses in the business's cybersecurity program. The Agency made this modification to reduce documentation burden on businesses and simplify implementation requirements at this time."
+    },
+    "e51012d6-4bb6-4540-915e-4962ccb51b6a": {
+      "regulation_citation": "11 CCR § 7123(d)",
+      "page_ref": "Appendix, p. 90",
+      "agency_position_summary": "Section 7123(d) requires cybersecurity audits to include identification of gaps and weaknesses in a business's security program, which the Agency determined is necessary to fulfill the CCPA's mandate for thorough audits. The Agency rejected the commenter's request to remove security-gap documentation requirements but did modify § 7123(c) to delete the requirement that businesses document and explain equivalent security when a component is deemed not applicable, thereby simplifying compliance without sacrificing audit thoroughness."
+    },
+    "c4623e97-a988-4e63-877b-a418978386e8": {
+      "regulation_citation": "11 CCR § 7124(c)",
+      "page_ref": "Appendix, p. 96",
+      "agency_position_summary": "The Agency addressed who must certify a business's compliance with cybersecurity audit requirements under section 7124(c). Rather than requiring a board member to sign the certification, the Agency revised the regulation to allow certification by a member of the business's executive management team who is directly responsible for cybersecurity-audit compliance, has sufficient knowledge of the audit, and has authority to submit the certification to the Agency."
+    },
+    "71774ef5-aaae-4080-9608-32ae14cfbef9": {
+      "regulation_citation": "11 CCR § 7124(c)",
+      "page_ref": "p. 28",
+      "agency_position_summary": "The issue was who must sign and submit a cybersecurity audit certification on behalf of a business. The Agency modified 11 CCR § 7124(c) to require certification by an executive management team member directly responsible for cybersecurity audit compliance, rather than mandating a board member, while retaining the requirement that the certifier have sufficient knowledge to provide accurate information and the authority to submit the certification to the Agency. This approach gives businesses flexibility in selecting the appropriate executive to submit the certification while maintaining accountability for audit thoroughness and independence."
+    },
+    "4518ac21-d985-44f1-801e-1321430a164f": {
+      "regulation_citation": "11 CCR § 7124",
+      "page_ref": null,
+      "agency_position_summary": "The issue is who must sign and submit a cybersecurity audit certification to the California Privacy Protection Agency. Under 11 CCR § 7124(c), the Agency requires certification to be completed by a member of the business's executive management team who is directly responsible for cybersecurity-audit compliance, has sufficient knowledge of the audit findings, and has authority to submit the certification. This approach retains accountability requirements while giving businesses flexibility to designate the appropriate executive rather than mandating a board member signature."
+    },
+    "2931daf7-bd52-46ee-8031-6e83248eaf09": {
+      "regulation_citation": "11 CCR § 7124(a)",
+      "page_ref": "p. 28",
+      "agency_position_summary": "The issue addressed whether businesses must submit separate cybersecurity audit certifications for each calendar year they are subject to audit requirements. The California Privacy Protection Agency modified section 11 CCR § 7124(a) to clarify that a business must submit a certification for each calendar year in which it is required to complete a cybersecurity audit, and restructured the provision to improve clarity and ease of compliance for businesses and their auditors."
+    },
+    "78630695-0dc4-4a55-8868-c431e59b970f": {
+      "regulation_citation": "11 CCR § 7124(b)",
+      "page_ref": "p. 28",
+      "agency_position_summary": "The issue is when businesses must submit their cybersecurity audit completion certification to the Agency. The Agency established in section 7124(b) that businesses must submit this certification no later than April 1 following any year they are required to complete a cybersecurity audit, aligning this deadline with the April 1 deadline for completing the audit report itself under section 7121. This unified deadline provides clarity to businesses and consistency across related regulatory submission requirements."
+    },
+    "50649925-18ea-423a-b149-3b1555eb6530": {
+      "regulation_citation": "11 CCR § 7124",
+      "page_ref": null,
+      "agency_position_summary": "The regulatory issue concerns whether business submissions to the Agency must include certification under penalty of perjury and what identifying information must accompany such certification. Under section 7124(d)(5), the Agency requires businesses to certify their submissions under penalty of perjury and include the name, business title, and date of the person making the certification, determining this requirement ensures truthful and accurate information, deters false statements, and creates accountability by linking certifications to specific individuals."
+    },
+    "d073ab32-302d-41f4-8a62-f89d2aa7725e": {
+      "regulation_citation": "11 CCR § 7124",
+      "page_ref": null,
+      "agency_position_summary": "The issue is whether businesses must obtain board-level signed certification of cybersecurity audit independence. The Agency modified section 7124(d)(4) to require the person completing the business's certification of completion to certify that the business made no attempt to influence the auditor's decisions, rather than requiring a separate board member signature, thereby protecting audit independence while reducing compliance burden on businesses."
+    },
+    "545698d4-8573-439f-8067-dc9b78c7d262": {
+      "regulation_citation": "11 CCR § 7124",
+      "page_ref": null,
+      "agency_position_summary": "The regulatory issue is whether cybersecurity audit certifications should require the auditor to attest to their independence and confirm the business did not attempt to influence the audit. The California Privacy Protection Agency adopted subsection (d)(4) of 11 CCR § 7124 to require the person completing the certification to attest that they meet the independence requirements in subsection (c), certify under penalty of perjury that submitted information is true and correct, and certify that the business made no attempt to influence the auditor's decisions or assessments. The Agency concluded these attestation and certification requirements are necessary to ensure audit thoroughness and independence and to address the risk that businesses will seek to influence auditor assessments."
+    },
+    "feb77e05-0c2e-4f82-9f8d-516e5cae3423": {
+      "regulation_citation": "11 CCR § 7124",
+      "page_ref": "Appendix, p. 95",
+      "agency_position_summary": "The issue is whether businesses may submit alternate cybersecurity audit documentation instead of annual certificates of completion under California's privacy law requirements. The Agency rejected allowing substitute documentation and retained the certification of completion requirement in 11 CCR § 7124, finding it necessary for ensuring audit thoroughness and independence, though it clarified what information the certification must contain. The Agency did modify 11 CCR § 7123(f) to permit businesses to leverage previously completed cybersecurity assessment work that meets all Article 9 requirements, either standalone or supplemented with additional work."
+    },
+    "40ae8c3b-6656-495a-b171-5fec59f1d1fe": {
+      "regulation_citation": "11 CCR § 7124",
+      "page_ref": "Appendix, p. 36 (cont.)",
+      "agency_position_summary": "The issue is whether Section 7124 should include substitute documentation provisions, an affirmative defense for good-faith compliance, alignment with industry frameworks, and whether the audit thresholds and annual cadence are appropriate. The Agency rejected these requests, finding that substitute documentation would not certify completion of required audits, that it lacks statutory authority to create affirmative defenses under the CCPA, and that the thresholds in Section 7120(b) appropriately implement the statute's requirement to consider business size, complexity, and processing scope. The Agency retained the annual audit requirement and rejected suggestions to modify it, as the CCPA explicitly mandates annual audits, though it acknowledged that businesses may use prior cybersecurity"
+    },
+    "cppa-7120": {
+      "citation": "11 CCR § 7120 (OAL-approved text, eff. 2026-01-01)",
+      "jurisdiction": "US-CA",
+      "status": "approved",
+      "last_verified_at": "2026-07-25 10:32:12.110024+00",
+      "verbatim_excerpt": "§ 7120. Requirement to Complete a Cybersecurity Audit.\n\n(a)   Every business whose processing of consumers' personal information presents\n      significant risk to consumers' security as set forth in subsection (b) must\n      complete a cybersecurity audit.\n\n(b)   A business's processing of consumers' personal information presents\n      significant risk to consumers' security if any of the following is true:\n\n      (1)   The business meets the threshold set forth in Civil Code section 1798.140,\n            subdivision (d)(1)(C), in the preceding calendar year; or\n\n      (2)   The business meets the threshold set forth in Civil Code section 1798.140,\n            subdivision (d)(1)(A); and\n\n            (A) Processed the personal information of 250,000 or more consumers\n                or households in the preceding calendar year; or\n\n            (B) Processed the sensitive personal information of 50,000 or more\n                consumers in the preceding calendar year.\n\nNote: Authority cited: Section 1798.185, Civil Code. Reference: Section 1798.185, Civil\nCode."
+    },
+    "cppa-7121": {
+      "citation": "11 CCR § 7121 (OAL-approved text, eff. 2026-01-01)",
+      "jurisdiction": "US-CA",
+      "status": "approved",
+      "last_verified_at": "2026-07-25 10:32:12.110024+00",
+      "verbatim_excerpt": "§ 7121. Timing Requirements for Cybersecurity Audits and Audit Reports.\n\n(a)   A business must complete its first cybersecurity audit report no later than:\n\n      (1)   April 1, 2028, if the business's annual gross revenue for 2026 was more\n            than one hundred million dollars ($100,000,000) as of January 1, 2027. The\n            business's audit would cover the period from January 1, 2027, through\n            January 1, 2028.\n\n      (2)   April 1, 2029, if the business's annual gross revenue for 2027 was\n            between fifty million dollars ($50,000,000) and one hundred million\n            dollars ($100,000,000) as of January 1, 2028. The business's audit would\n            cover the period from January 1, 2028, through January 1, 2029.\n      (3)   April 1, 2030, if the business's annual gross revenue for 2028 was less\n            than fifty million dollars ($50,000,000). The business's audit would cover\n            the period from January 1, 2029, through January 1, 2030.\n\n(b)   After April 1, 2030, if on January 1 of one year, a business meets the criteria of\n      section 7120 for the preceding year, the business must complete a\n      cybersecurity audit that covers the next 12 months, and the business must\n      complete its cybersecurity audit report for that period by April 1 of the\n      following year. For example, if Business A meets the criteria in section 7120 as\n      of January 1, 2035, Business A's audit would cover the period from January 1,\n      2035, through January 1, 2036, and Business A would have to complete its\n      cybersecurity audit report by April 1, 2036.\n\nNote: Authority cited: Section 1798.185, Civil Code. Reference: Section 1798.185, Civil\nCode."
+    }
+  }
+}

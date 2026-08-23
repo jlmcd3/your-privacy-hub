@@ -126,7 +126,7 @@ export interface CamRow {
 }
 
 export interface CorpusMap {
-  readonly product: "cppa-risk" | "cppa-admt" | "dpia";
+  readonly product: "cppa-risk" | "cppa-admt" | "dpia" | "cppa-cyber";
   readonly map_version: string; // "<product>-cam-vN-YYYY-MM-DD"
   readonly snapshot_file: string; // the fixture this map pins against
   readonly rows: readonly CamRow[];
