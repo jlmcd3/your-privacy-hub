@@ -30,6 +30,161 @@
       "page_ref": "p. 51",
       "comment_summary": "Agency addressing the need to clarify which specific ADMT a consumer opted out of and the corresponding obligations for businesses to notify third parties.",
       "agency_position_summary": "The regulatory issue addresses which specific automated decision-making technology (ADMT) a consumer has opted out of and what notifications a business must send to third parties regarding that opt-out. Under 11 CCR § 7221(n)(2), the Agency clarified that when a consumer opts out of a specific ADMT, the business must notify all third parties who received information through that particular ADMT and instruct them to comply with the consumer's opt-out request within the same timeframe. This modification recognizes that consumers may opt out of only certain uses of ADMT, and the business's notification obligations extend only to the specific ADMT the consumer targeted."
+    },
+    "d544f101-4a87-41fd-ae4c-2399c5f6cc8a": {
+      "regulation_citation": "11 CCR § 7001(e)",
+      "page_ref": "Appendix, p. 14",
+      "agency_position_summary": "The issue is whether the definition of Automated Decision-Making Technology (ADMT) is overly broad and whether human override capability should exclude a system from being classified as automated. The Agency retained its position that ADMT regulations fall within its statutory authority under the CCPA and that human capability to override an automated decision does not make the decision non-automated, but modified the definition under 11 CCR § 7001(e) to focus on higher-risk uses—specifically ADMT that replaces or substantially replaces human decision-making without human involvement—to balance consumer privacy protections with implementation feasibility for businesses."
+    },
+    "663f411b-5e6d-48de-a960-2b11e189bae6": {
+      "regulation_citation": "11 CCR § 7220(a)",
+      "page_ref": "p. 44",
+      "agency_position_summary": "The issue is whether businesses must provide a Pre-use Notice and a Notice at Collection as separate documents or may consolidate them into one. Under 11 CCR § 7220(a), the Agency permits businesses to combine these notices into a single document, provided that the consolidated Notice at Collection includes all information required by subsections (b) and (c). This flexible approach gives businesses discretion in how they deliver the required disclosures while ensuring consumers receive meaningful information about the business's use of automated decision technology when exercising their CCPA rights."
+    },
+    "74fbdfc0-d129-4f39-9fd3-ff4e34dde46c": {
+      "regulation_citation": "11 CCR § 7220(b)(2)",
+      "page_ref": "p. 45",
+      "agency_position_summary": "The issue is when a business must provide consumers with a Pre-use Notice before processing personal information through automated decision-making technology (ADMT). Under 11 CCR § 7220(b)(2), a business must provide the Pre-use Notice at or before the point it collects personal information that it plans to process using ADMT, consistent with Notice at Collection requirements. Additionally, when a business has already collected personal information for a different purpose and subsequently wants to process it using ADMT, the business must provide a Pre-use Notice to the consumer before processing their information for that new purpose."
+    },
+    "7f616c44-b6f9-43b0-9891-1fdbd501bffc": {
+      "regulation_citation": "11 CCR § 7220(c)(1)",
+      "page_ref": "p. 45",
+      "agency_position_summary": "The issue is whether businesses can use generic terms in Pre-use Notices or must explain the specific purpose for their planned use of automated decision-making technology (ADMT). Under 11 CCR § 7220(c)(1), the Agency requires businesses to provide specific explanations of how they plan to use ADMT rather than relying on vague or generic language, and modified the regulation to replace \"proposes\" with \"plans\" to clarify when such explanations must be given. This requirement ensures consumers receive clear information needed to exercise their rights to opt out of or access information about ADMT use."
+    },
+    "89656f98-6426-4f87-a64a-3014d177fb6a": {
+      "regulation_citation": "11 CCR § 7220(c)(5)",
+      "page_ref": "p. 45",
+      "agency_position_summary": "The issue is what information businesses must disclose to consumers about how they use automated decision-making technology (ADMT) to make significant decisions. Under 11 CCR § 7220(c)(5), the Agency requires businesses to include in their Pre-use Notice a clear explanation of how the ADMT works to make significant decisions about consumers and what process consumers can expect if they opt out of ADMT use. This requirement aims to give consumers concise, understandable disclosures about how businesses plan to use ADMT while reducing the implementation burden on businesses."
+    },
+    "9d6af2e0-10b3-40f5-b280-0bc2cc188328": {
+      "regulation_citation": "11 CCR § 7220(d)",
+      "page_ref": "p. 47",
+      "agency_position_summary": "California's CPRA Pre-use Notice requirements allow businesses to withhold certain sensitive information from consumer disclosures. Under 11 CCR § 7220(d), businesses are not required to include trade secrets or information related to security, fraud prevention, or safety when fulfilling the Pre-use Notice requirements in subsection (c)(5). This exemption provides businesses compliance flexibility while protecting legitimately sensitive competitive and security information from public disclosure."
+    },
+    "90a48324-9277-4db8-9f74-d8d555f882f0": {
+      "regulation_citation": "11 CCR § 7220(d)(2)",
+      "page_ref": "p. 47",
+      "agency_position_summary": "Section 7220(d)(2) addresses when a business uses multiple automated decision-making tools to reach a single significant decision about a job applicant. The Agency clarified this subsection to specify that multiple ADMTs can be used for one significant decision-making purpose, such as hiring decisions, which allows businesses to provide a single pre-use notice rather than separate notices for each tool."
+    },
+    "f660aa63-f605-4b00-93d6-6f9b31108677": {
+      "regulation_citation": "11 CCR § 7221(b)(4)",
+      "page_ref": "Appendix, p. 101",
+      "agency_position_summary": "The issue is whether the \"solely for\" limitation in the ADMT work allocation exception should be removed and whether businesses can rely on developer assessments rather than ensuring compliance themselves. The Agency retained the \"solely for\" requirement in the final regulation (11 CCR § 7221(b)(3)) to keep exceptions to opt-out rights appropriately narrow, and added a performance-based standard requiring that the ADMT actually work for the business's stated purpose without unlawfully discriminating on protected characteristics. The Agency did not adopt the commenter's request to weaken these standards or shift compliance responsibility to developers."
+    },
+    "7006e7ca-592f-437d-b177-08e1be0010f0": {
+      "regulation_citation": "11 CCR § 7221(b)(6)",
+      "page_ref": "Appendix, p. 212",
+      "agency_position_summary": "Section 7221(b)(6) addresses the threshold for when businesses must implement safeguards related to behavioral advertising. The Agency decided to simplify implementation requirements for businesses by maintaining a behavioral advertising threshold rather than imposing more stringent requirements at this time."
+    },
+    "f01296a0-92d6-447a-8dfa-4789e3b4a5dc": {
+      "regulation_citation": "11 CCR § 7221(c)(1)",
+      "page_ref": "p. 50",
+      "agency_position_summary": "The regulatory issue is what title or language must appear on an opt-out link for automated decisionmaking technology under 11 CCR § 7221(c)(1). The Agency removed the requirement for a fixed title \"Opt-out of Automated Decisionmaking Technology\" and instead requires that the link state what the consumer is opting out of, with that specific title now serving only as a permissible example rather than a mandatory requirement. This change provides businesses with flexibility in how they label the opt-out link while still ensuring consumers understand what they are opting out of."
+    },
+    "4b2d39e1-4cd0-4579-9c0f-35f06e476120": {
+      "regulation_citation": "11 CCR § 7221(c)(4)",
+      "page_ref": "Appendix, p. 212",
+      "agency_position_summary": "The issue is whether cookie notifications or cookie consent tools can be used as the method for consumers to submit opt-out requests for automated decision-making technology (ADMT). The Agency retained the prohibition on using cookies or cookie banners for ADMT opt-out requests, as required by 11 CCR § 7221(c)(4), because the Agency observed that businesses were inappropriately using cookie banners for these requests and the regulation ensures consumers can easily exercise their rights through clear, non-obscure methods consistent with other CCPA opt-out procedures."
+    },
+    "f0113d25-882a-4d55-8a54-e8627d243fe6": {
+      "regulation_citation": "11 CCR § 7221(n)(1)",
+      "page_ref": "p. 50",
+      "agency_position_summary": "The issue was whether to retain a requirement prohibiting businesses from using or retaining personal information after ceasing automated decision-making technology (ADMT) processing. The California Privacy Protection Agency deleted this requirement from 11 CCR § 7221(n)(1) as unnecessary, concluding that a business unable to process consumer information using ADMT is already prohibited from using or retaining that information."
+    },
+    "2951b3e7-c3f6-4ab8-a9fa-e8f2e207ab56": {
+      "regulation_citation": "11 CCR § 7221(b)(2)(A)",
+      "page_ref": "p. 49",
+      "agency_position_summary": "The issue is what qualifications, responsibilities, and authority human reviewers must have when businesses use automated decision-making technology (ADMT) appeals processes for significant decisions. The California Privacy Protection Agency modified section 11 CCR § 7221(b)(2)(A) to require that businesses designate a human reviewer who must understand how to interpret the ADMT's output, have the authority to change the significant decision based on their analysis, and consider consumer-provided information supporting the appeal. This modification ensures that high-risk ADMT uses receive meaningful human oversight and provides businesses with clear standards for implementing compliant appeals processes."
+    },
+    "a50f2dd6-2dff-4edf-84c3-2959bdee12ea": {
+      "regulation_citation": "11 CCR § 7222(a)",
+      "page_ref": "p. 51",
+      "agency_position_summary": "The issue is what types of automated decision-making technology (ADMT) uses trigger a business's obligation to provide consumers access to information about that ADMT. The Agency modified Section 7222(a) to align with the revised definition in Section 7200(a), which now limits ADMT obligations to situations where the technology is used to make a \"significant decision\" about consumers. This modification reduces the overall number of ADMT uses for which businesses must grant consumer access rights and improves regulatory consistency and implementation clarity."
+    },
+    "7adc97a2-bc8b-4a82-abea-e4c3d7db6fb3": {
+      "regulation_citation": "11 CCR § 7222(b)",
+      "page_ref": "p. 51",
+      "agency_position_summary": "Section 7222(b) addresses what businesses must disclose when consumers request access to automated decision-making technology (ADMT). The Agency modified this subsection to require businesses to provide consumers with meaningful information about the logic involved in ADMT's decisionmaking process and a description of the likely outcome the process will produce for that individual consumer. These disclosures are necessary to implement the CCPA's requirement for meaningful information and to ensure consumers have sufficient information to exercise their CCPA rights, including correction requests."
+    },
+    "3e9d4a74-0820-451d-b4d9-f0ab5cc0b2b9": {
+      "regulation_citation": "11 CCR § 7222(b)(2)",
+      "page_ref": "p. 51",
+      "agency_position_summary": "The regulatory issue concerns what information businesses must disclose to consumers about how automated decision-making technology (ADMT) processed their personal information. Under 11 CCR § 7222(b)(2), the Agency adopted a flexible, performance-based standard requiring businesses to provide information about the ADMT's logic that enables consumers to understand how the technology processed their data to generate an output about them, which may include the parameters that generated the output and the specific output itself. This approach gives businesses flexibility in how they explain their ADMT decisions while ensuring consumers receive meaningful information about the decision-making process."
+    },
+    "f4b221e6-62f9-4e52-bdd3-0b5805c57e94": {
+      "regulation_citation": "11 CCR § 7222(b)(3)(A)",
+      "page_ref": "p. 52",
+      "agency_position_summary": "The issue is what information businesses must disclose when responding to consumer access requests about automated decision-making technology (ADMT). Under 11 CCR § 7222(b)(3)(A), the Agency required businesses to include the outcome of their decisionmaking process and explain how they used ADMT output to make significant decisions about consumers, with guidance that explanations may address whether ADMT output was the sole factor, what other factors influenced the decision, and any human role in the process. The Agency adopted this modification to ensure consumers receive meaningful information necessary to understand how businesses applied ADMT to decisions affecting them."
+    },
+    "84d00bed-b711-4b62-be13-b1a739d7b97b": {
+      "regulation_citation": "11 CCR § 7222(b)(1)",
+      "page_ref": "Appendix, p. 67",
+      "agency_position_summary": "The issue is whether businesses can use generic phrases like \"to improve our services\" when describing purposes for processing consumer data in communications and risk assessments under § 7222(b)(1). The Agency rejected the request for flexibility and retained the requirement that businesses identify processing purposes in non-generic, specific terms, because this specificity is necessary both to comply with existing requirements under § 7011(e) and to enable meaningful risk assessments and consumer understanding of how automated decision-making technology was actually used."
+    },
+    "88f44d5e-fbaa-450f-a51e-3855240579fb": {
+      "regulation_citation": "11 CCR § 7222(i)",
+      "page_ref": "p. 53",
+      "agency_position_summary": "The Agency addressed technical revisions to the Automated Decision Technology (ADMT) access request rule to improve clarity and internal consistency. The Agency removed the words \"key\" and \"generally\" from the regulatory example and deleted a reference to former subsection (b)(4) because that provision was deleted elsewhere in the regulations. The Agency also clarified in subsection (i) that businesses may provide additional information beyond what the regulation requires when responding to a consumer's access request for ADMT."
+    },
+    "6d9eb976-fb44-4c37-a13a-8fccd450d2b2": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 109",
+      "agency_position_summary": "Section 7222(k) addresses notice requirements when businesses make adverse significant decisions affecting consumers. The Agency removed the duplicative notice requirement for adverse significant decisions from the final regulation to reduce implementation complexity and burden on businesses."
+    },
+    "dbb6ac8d-646a-4d6c-b728-361030924eb9": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 109",
+      "agency_position_summary": "The issue is whether specific notice requirements should be removed from the ADMT adverse decision provisions to reduce business compliance burdens. The Agency modified its regulations to simplify implementation for businesses while maintaining privacy protections for consumers, and disagreed with the commenter's request to eliminate the notice requirements entirely. The Agency retained notice requirements in section 7222(k) as part of its balanced approach to consumer rights and business flexibility."
+    },
+    "8f868baa-9995-4601-b670-d4428deaeb66": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 109 (cont.)",
+      "agency_position_summary": "The issue is whether the ADMT regulations should include specific carve-outs or modifications for independent contractor work allocation, adverse decision notices, vehicle-based AI, and differentiated compliance burdens based on business size and AI ecosystem roles. The Agency removed § 7222(k) and modified the regulations to limit work allocation/assignment decisions to employees only (simplifying implementation), deleted the adverse decision notice requirement in favor of pre-use notices and access rights that serve similar transparency functions, rejected a motor vehicle exception because ADMT requirements apply only to significant decisions regardless of context, and declined to create size-based or role-based exemptions, concluding that the balanced requirements provide privacy protections without undue burden."
+    },
+    "9aa619fd-5e11-4256-abba-a013557ba659": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 109 (cont.)",
+      "agency_position_summary": "The regulatory issue is whether the CPRA regulations help businesses manage security and privacy risks while building consumer trust. The Agency retained provisions in 11 CCR § 7222(k) that support this goal, determining that the regulations reduce security and privacy risks for businesses and promote consumer trust through their requirements."
+    },
+    "ae4961a5-8538-4ae1-b457-dc5b08954777": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 224",
+      "agency_position_summary": "Section 7222(k) requires businesses to notify consumers when taking adverse actions in response to consumer requests under the California Consumer Privacy Act. The California Privacy Protection Agency retained this notification requirement, rejecting the commenter's argument for deletion, because it provides necessary clarity and consolidates access and anti-retaliation requirements in one regulatory section to facilitate compliance with the CCPA's prohibition against retaliation."
+    },
+    "ad2bb6f5-6228-484a-9085-81cd44bf71ad": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 224",
+      "agency_position_summary": "The issue was whether businesses need 15-day notice and 45-day explanation timelines when making adverse significant decisions using automated decision-making technology. The California Privacy Protection Agency removed the notice requirements for \"adverse significant decisions\" from 11 CCR § 7222(k) to simplify compliance burden while still requiring businesses to balance operational feasibility with consumer transparency about automated decision-making use."
+    },
+    "5162c100-dfeb-477c-a3ed-b902357ba8a6": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 225",
+      "agency_position_summary": "The regulatory issue is whether businesses must provide notice to consumers when making adverse significant decisions, such as denying credit or financial services.\n\nThe Agency removed the notice requirements for adverse significant decisions from the final regulation to simplify implementation for businesses, despite acknowledging the commenter's support for such protections."
+    },
+    "f7ae500a-94ec-4c35-b7c3-060ef3d48a78": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 225",
+      "agency_position_summary": "The issue is whether the CPPA has authority to require businesses to provide notices about adverse significant decisions without a consumer request. The Agency determined it has this authority under the CPRA to regulate access rights to automated decision-making technology and to issue notices ensuring consumers can exercise those rights, but removed the adverse significant decision notice requirements from the final regulation to simplify implementation for businesses."
+    },
+    "affc9b4c-6bb9-4233-b163-58a257d8ec3d": {
+      "regulation_citation": "11 CCR § 7222(k)",
+      "page_ref": "Appendix, p. 225",
+      "agency_position_summary": "Section 7222(k) addresses notice requirements for adverse significant decisions. The Agency removed the notice requirements for \"adverse significant decisions\" to simplify implementation for businesses, rejecting the commenter's objection that such notices were burdensome or unnecessary. The Agency determined that streamlining these notice obligations was appropriate at this time."
+    },
+    "0695c66f-6865-47e4-872a-3d96b990131d": {
+      "regulation_citation": "11 CCR § 7222(k)(1)",
+      "page_ref": "Appendix, p. 226 (cont.)",
+      "agency_position_summary": "The Agency addressed competing requests to expand, narrow, or eliminate automated decision-making technology (ADMT) disclosure and consent requirements under the CCPA. The Agency removed adverse significant decision notice requirements to simplify implementation for businesses while retaining Pre-use Notice requirements under § 7222(b) so consumers receive necessary information to exercise their access and opt-out rights, and modified the ADMT definition to focus on higher-risk uses without human involvement rather than broader regulatory scope. The Agency disagreed with recommendations to withdraw the ADMT rules entirely, finding they are integral privacy protections under the CCPA, and rejected calls for expanded disclosure requirements, determining that the revised regulations provide sufficient consumer protection."
+    },
+    "5b588992-503f-493d-92b2-5e2579a3ee9c": {
+      "regulation_citation": "11 CCR § 7222(k)(1)",
+      "page_ref": "Appendix, p. 226 (cont.)",
+      "agency_position_summary": "The issue is whether the California Privacy Protection Agency has legal authority to adopt the regulations under section 7222(k)(1). The Agency determined that it possesses the necessary authority to adopt these regulations and that they further the intent and purpose of the underlying privacy law. The Agency retained the regulation as proposed."
+    },
+    "83bcecda-c1fd-4daf-b80f-63d8218a42a1": {
+      "regulation_citation": "11 CCR § 7001(ddd)(6)",
+      "page_ref": "Appendix, p. 24",
+      "agency_position_summary": "The issue is whether cybersecurity threat-combating technologies should be excluded from the definition of \"significant decision\" under automated decision-making rules. The Agency rejected this proposed exemption, requiring businesses to comply with notice, opt-out, and risk assessment requirements in Articles 10 and 11 when using automated decision-making tools to make significant decisions, even for security purposes, because existing separate exemptions in §§ 7220(d)(2) and 7222(c)(2) already address security and fraud prevention contexts. The Agency determined that a broader exemption would weaken consumer privacy protections by reducing the scope of decisions requiring risk assessments, pre-use notices, and consumer opt-out rights."
     }
   }
 }

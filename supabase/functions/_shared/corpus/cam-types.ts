@@ -16,9 +16,41 @@
 //   - AOW rows render only with `warning_text` + `render_when`.
 // Roles SB/AQ remain schema-present but unproven in any map (SB deferred
 // per doc 51 §1 note: "SB candidate once S5 ships").
+//
+// WAVE C1 (2026-08-23, doc 62 §11 — the READER-VALUE LAW, CEO-ratified):
+// two fields land with this wave's schema deltas.
+//   - `purpose_class` — required on every render_eligible row (mapInvariants
+//     enforces). Closed enum; a row that cannot name its class does not
+//     render (doc 62 §11.2).
+//   - `citation_source` — optional structured facts behind a rendered
+//     enforcement/authority citation, checked against the free-text display
+//     by the display-consistency invariant (doc 62 §11.5) so a typo in
+//     ratified prose can never misname a case.
+//   - `trail_impact` — optional ratified micro-tag (2-6 words) for the S3
+//     ToA trail (doc 62 §11's R1 amendment). Per the R2 admission rule,
+//     only logic-bearing rows and render-surface pointers may carry one;
+//     plain support/provenance (FC-J) rows never do, and never print to
+//     the trail. Where several logic-bearing rows on one factor would
+//     otherwise each print a citation, ONE representative row carries the
+//     aggregate tag (curation-time choice, keeps the ToA cell to ≤2 tags —
+//     doc 62 §11.4's aggregate budget).
 
 export type CamRole = "AQ" | "FC" | "AP" | "SB" | "AOW";
 export type CamSurface = "S0" | "S1" | "S2" | "S3" | "S4" | "S5";
+export type CamPurposeClass = "action" | "misreading" | "consequence" | "authority";
+
+/** Structured facts behind a rendered citation (doc 62 §11.5's
+ * citation-form law). Every field is copied from a live-verified source
+ * row at curation, never composed at generation. `case_reference` is
+ * omitted (not invented, not paraphrased) unless the source's reference is
+ * docket-shaped — see `isDocketShaped` in citation-forms.ts. */
+export interface CamCitationSource {
+  readonly regulator: string;
+  readonly subject: string;
+  readonly jurisdiction: string;
+  readonly decision_date: string; // ISO YYYY-MM-DD
+  readonly case_reference?: string;
+}
 
 export type LogicDisposition =
   | { kind: "implemented"; branch_ref: string } // "file.ts:symbolOrConstant"
@@ -64,6 +96,17 @@ export interface CamRow {
   readonly render_eligible: boolean;
   /** Required iff render_eligible. */
   readonly render_surface?: CamSurface;
+  /** Required iff render_eligible (doc 62 §11.2, wave C1). Never present on
+   * a dark row — purpose_class is a claim about what the READER gets, and a
+   * row that never renders makes no such claim. */
+  readonly purpose_class?: CamPurposeClass;
+  /** Present only on rows whose display cites a specific enforcement
+   * decision or dated authority; feeds the display-consistency invariant. */
+  readonly citation_source?: CamCitationSource;
+  /** Optional ratified ToA trail tag (doc 62 §11's R1 amendment; see the
+   * file-header note on the R2 admission rule and the one-row-per-factor
+   * aggregation convention). */
+  readonly trail_impact?: string;
   /** Typed-state tokens; the row renders iff EVERY token is present in the
    * report's fired-state set (pure set inclusion — the determinism law's
    * generation-plane mechanism). Required for render-eligible AP/AOW rows.

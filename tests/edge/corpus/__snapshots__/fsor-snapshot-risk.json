@@ -78,6 +78,156 @@
       "page_ref": "Appendix, p. 144",
       "comment_summary": "Commenter argues § 7152(a)(9) is infeasible for large organizations with collaborative, cross-functional decision-making and recommends removing the reference to a single individual.",
       "agency_position_summary": "The issue was whether section 7152(a)(9) should be modified to accommodate large organizations with distributed decision-making authority rather than requiring a single individual to review and approve privacy impact assessments. The Agency rejected the request to remove the single individual requirement, finding the requirement feasible, but revised section 7152(a)(9) to clarify that an individual with authority to participate in deciding whether to initiate processing—rather than necessarily a sole decision-maker—may review and approve the assessment."
+    },
+    "7f8d543b-12eb-4b58-8fe7-c032671de4ab": {
+      "regulation_citation": "11 CCR § 7151(a)",
+      "page_ref": "p. 33",
+      "agency_position_summary": "The California Privacy Protection Agency clarified which employees must participate in risk assessments conducted under the CPRA. Under 11 CCR § 7151(a), the Agency modified the regulation to require that employees whose job duties include participating in the relevant processing activity being assessed must be included in the risk assessment process, and to provide examples of such employees. This modification ensures that risk assessments are thorough and comprehensive by requiring employees with relevant information to provide that information to the individuals conducting the assessment."
+    },
+    "f45fcfbe-ca32-4985-b05f-406175211202": {
+      "regulation_citation": "11 CCR § 7151(b)",
+      "page_ref": "p. 33",
+      "agency_position_summary": "Subsection (b) of section 7151 addresses how businesses may engage external parties when conducting risk assessments under the CPRA. The Agency modified this subsection to clarify that businesses may utilize or gather information from external parties, replacing \"seeks\" with \"plans\" and \"involve\" with \"include\" to better describe when and how external parties participate in risk assessments, and removed restrictive language about identifying, assessing, and mitigating risks to allow businesses to engage external parties for other purposes such as obtaining relevant facts."
+    },
+    "b38f88d6-7305-42af-84f6-aed3f536f027": {
+      "regulation_citation": "11 CCR § 7151(b)",
+      "page_ref": "Appendix, p. 130",
+      "agency_position_summary": "Section 7151(b) addresses whether businesses must use mandatory independent evaluations by external experts when assessing risks in automated decision-making technology systems. The Agency rejected the requirement for mandatory independent evaluations, instead maintaining the regulation's flexible approach that allows businesses to consult with external parties during risk assessments while retaining discretion to determine which stakeholders are appropriate to include."
+    },
+    "c77a7555-d797-4edb-89e2-9bc7a606d32f": {
+      "regulation_citation": "11 CCR § 7152(a)(3)",
+      "page_ref": "Appendix, p. 137",
+      "agency_position_summary": "Section 7152(a)(3) required businesses to identify all technology used in processing personal information. The Agency rejected the commenter's argument that this requirement was overly broad, but nevertheless removed the technology identification requirement from the final regulation to simplify implementation for businesses."
+    },
+    "61609bb4-42bb-4226-b682-0c245471d265": {
+      "regulation_citation": "11 CCR § 7152(a)(3)",
+      "page_ref": "Appendix, p. 137",
+      "agency_position_summary": "The issue is whether businesses must identify all operational elements of a processing activity in risk assessments or only those deemed \"relevant.\" The Agency rejected the suggestion to add \"relevant\" as a limiting modifier, determining under 11 CCR § 7152(a)(3) that all identified operational elements are necessary for conducting a compliant risk assessment and must be specifically identified and documented in the risk assessment report."
+    },
+    "057cbf2b-baa4-452c-98f8-03d139936457": {
+      "regulation_citation": "11 CCR § 7152(a)(3)(B)",
+      "page_ref": "p. 34",
+      "agency_position_summary": "The issue is whether businesses need flexibility when disclosing personal information retention periods they have not yet determined. Under 11 CCR § 7152(a)(3)(B), the Agency modified the requirement to allow businesses to identify either their planned retention period or the planned criteria they will use to determine that retention period, with an explicit option to disclose only the retention criteria if the actual retention period is still unknown. This modification provides the flexibility commenters requested while still requiring businesses to clearly communicate their retention practices."
+    },
+    "f265229b-d7fa-47bb-8853-b487196b21fb": {
+      "regulation_citation": "11 CCR § 7152(a)(3)(B)",
+      "page_ref": "Appendix, p. 137",
+      "agency_position_summary": "The issue is whether businesses must estimate retention periods and criteria for personal information under the operational elements disclosure requirement. The Agency rejected this recommendation and retained the existing language in 11 CCR § 7152(a)(3)(B), finding that the current regulation provides sufficient clarity and that requiring a single retention estimate would be inappropriate since businesses may apply different retention periods to different categories of personal information within the same processing activity."
+    },
+    "215b00bf-25c0-4dac-a8e7-29eb0a9cb27e": {
+      "regulation_citation": "11 CCR § 7152(a)(3)(C)",
+      "page_ref": "p. 34",
+      "agency_position_summary": "Under section 11 CCR § 7152(a)(3)(C), businesses conducting risk assessments must identify information about how they interact with consumers and why. The Agency modified this requirement to narrow its scope to only the method and purpose of interaction, rather than requiring identification of broader categories of consumer interaction data, in order to simplify implementation while still capturing factors that affect consumer control and expectations."
+    },
+    "b9442df5-d1fa-4107-be05-6ea9bdac7a5c": {
+      "regulation_citation": "11 CCR § 7152(a)(3)(D)",
+      "page_ref": "Appendix, p. 138",
+      "agency_position_summary": "The issue is whether businesses need to identify the approximate number of consumers whose personal information will be processed in their risk assessments, and whether this requirement is unclear or overly burdensome, particularly for new market entries. The Agency rejected the commenter's request for additional guidance or flexibility, determining that 11 CCR § 7152(a)(3)(D) is clear in its requirements and not difficult to comply with because businesses can update their risk assessments as they obtain new information over time."
+    },
+    "78fbfd67-a5be-458d-a725-378172b4744c": {
+      "regulation_citation": "11 CCR § 7152(a)(3)(E)",
+      "page_ref": "p. 34",
+      "agency_position_summary": "The Agency clarified what disclosures businesses must consider when assessing risks under 11 CCR § 7152(a)(3)(E). The Agency modified the regulation to add \"of their personal information\" to clarify that required disclosures concern personal information processing, added \"will be\" to accommodate future disclosures that a business has not yet made to consumers, and deleted a clause regarding actions the business has taken or plans to take to reduce documentation burden on businesses conducting risk assessments."
+    },
+    "1d8d25c9-adc6-4a67-9781-d13e84bf3feb": {
+      "regulation_citation": "11 CCR § 7152(a)(3)(F)",
+      "page_ref": "p. 35",
+      "agency_position_summary": "California privacy regulators decided whether businesses must document the specific actions they have taken or plan to take to address identified risks in their privacy impact assessments. The Agency removed this documentation requirement from section 7152(a)(3)(F) to simplify compliance and reduce the administrative burden on businesses conducting risk assessments."
+    },
+    "4d69100d-f4e0-4d80-ad61-82d2245f9607": {
+      "regulation_citation": "11 CCR § 7152(a)(4)",
+      "page_ref": "Appendix, p. 139",
+      "agency_position_summary": "The issue is whether businesses can use generic terms when describing the data processing benefits they provide to consumers under CCPA disclosure requirements. The Agency rejected the argument that non-generic benefit descriptions are too restrictive, clarifying in the final regulation that businesses must identify benefits in specific, non-generic terms while remaining protected by the trade secret exemption in the CCPA itself, which permits withholding of proprietary business details."
+    },
+    "9c6cb558-c1a3-4292-ba8d-2a7f796cf37b": {
+      "regulation_citation": "11 CCR § 7152(a)(4)",
+      "page_ref": "Appendix, p. 139",
+      "agency_position_summary": "Section 7152(a)(4) addresses whether data processing benefits must apply uniformly to all stakeholders. The California Privacy Protection Agency agreed that the regulation should clarify this point and revised § 7152(a)(4) to specify that benefits from data processing may apply to different categories of stakeholders rather than requiring benefits to accrue universally."
+    },
+    "ac2d3934-57a5-4317-95d2-0571d70bb0f1": {
+      "regulation_citation": "11 CCR § 7152(a)(4)",
+      "page_ref": "p. 35",
+      "agency_position_summary": "The California Privacy Protection Agency clarified how businesses must identify and describe benefits in risk assessments under 11 CCR § 7152(a)(4). The Agency modified the regulation to add \"as applicable\" to allow flexibility when benefits apply only to certain stakeholders rather than all, and added clarifying language requiring businesses to identify benefits in specific, non-generic terms rather than vague generalizations. The Agency removed redundant language about monetary benefits because it duplicated the subsection's opening requirement that all benefits, including monetary ones the business receives, must be identified specifically."
+    },
+    "4ad14141-eac7-4e40-8600-021a367a87b3": {
+      "regulation_citation": "11 CCR § 7153(a)",
+      "page_ref": "p. 38",
+      "agency_position_summary": "The regulation addresses what information businesses must disclose about their use of automated decision-making technology to make significant decisions. Under the final version of 11 CCR § 7153(a), businesses must disclose only the facts about their ADMT use that are actually available to the business, and the disclosure requirement applies only when ADMT is used to make significant decisions—a narrowed scope the Agency adopted to simplify implementation and reduce compliance burden. The Agency removed the term \"artificial intelligence\" and replaced the broader \"for any processing activity\" language to clarify that disclosure obligations are limited in both scope and content."
+    },
+    "eff51e0b-9351-42db-bec6-96d113a92e00": {
+      "regulation_citation": "11 CCR § 7153",
+      "page_ref": "p. 38",
+      "agency_position_summary": "The issue is whether to retain subsection (b) under 11 CCR § 7153, which imposed disclosure obligations on businesses. The California Privacy Protection Agency deleted subsection (b) to reduce the burden of compliance and simplify implementation for businesses during this regulatory phase."
+    },
+    "df19b3fb-20ee-43fa-a63d-e2de2879a53f": {
+      "regulation_citation": "11 CCR § 7153(a)",
+      "page_ref": "Appendix, p. 60",
+      "agency_position_summary": "Section 7153(a) requires businesses to conduct risk assessments when training AI and decision-making technology with consumer personal information. The CPPA rejected the commenter's arguments that this requirement exceeds agency authority, is overly burdensome, or requires trade secret disclosure—finding instead that the regulation falls squarely within the CPPA's mandate to address significant privacy risks from training uses, provides a clear intent-based standard for applicability, and does not compel trade secret disclosure because existing CCPA exemptions already protect such information."
+    },
+    "b46b8cdc-0344-4e5a-891e-a01fc102ea6d": {
+      "regulation_citation": "11 CCR § 7154",
+      "page_ref": "Appendix, p. 146",
+      "agency_position_summary": "Regulation 11 CCR § 7154 requires businesses to prohibit processing when privacy risks outweigh benefits, and the CCPA requires this explicit standard. The CPPA retained this language as written because it is a direct statutory requirement from the California Civil Code and falls within the Agency's delegated authority, and the regulation provides a clear and flexible standard applicable across industries with supporting guidance in § 7152 to help businesses conduct risk assessments."
+    },
+    "3c5ad118-8ce3-4171-bda8-fdcbb65068ab": {
+      "regulation_citation": "11 CCR § 7154(a)",
+      "page_ref": "p. 39",
+      "agency_position_summary": "The issue was whether the regulations should explicitly include the statutory goal of a risk assessment for clarity. The Agency modified Section 7154(a) to state the goal of a risk assessment as written in the California Consumer Privacy Act, incorporating the statutory language from Civil Code Section 1798.185(a)(14)(B) directly into the regulation to improve clarity and readability by consolidating the requirements and goal in one place."
+    },
+    "780f1d8c-627a-420d-ae52-c2f58600db0b": {
+      "regulation_citation": "11 CCR § 7155(a)(2)",
+      "page_ref": "Appendix, p. 148",
+      "agency_position_summary": "The issue is whether companies must conduct privacy risk assessments on a recurring three-year cycle or whether this requirement should be deleted. The California Privacy Protection Agency rejected the commenter's proposal and retained the three-year recurring assessment requirement in 11 CCR § 7155(a)(2), finding it necessary to ensure risk assessments remain current throughout a processing activity's lifecycle and reflect up-to-date information consistent with privacy practices in other jurisdictions like the EU and Colorado."
+    },
+    "f16f279f-224f-4995-964f-e419bfbe8110": {
+      "regulation_citation": "11 CCR § 7155(a)(3)",
+      "page_ref": "p. 39",
+      "agency_position_summary": "When businesses must update their risk assessments following a material change to their data processing activities, the CPPA requires updates to be completed as soon as feasibly possible, but no later than 45 calendar days from the date of the material change, under 11 CCR § 7155(a)(3). The Agency selected the 45-day outer bound to allow businesses time to consult with relevant employees about how the material change affects privacy impacts and safeguards, while maintaining consistency with other CCPA timelines. The Agency removed language regarding diminishing benefits from the update trigger requirements to simplify implementation."
+    },
+    "59546c1c-ccf7-46ca-a9c5-de75af9fe39d": {
+      "regulation_citation": "11 CCR § 7155(c)",
+      "page_ref": "Appendix, p. 150",
+      "agency_position_summary": "The issue is whether businesses must retain their risk assessments for a specified minimum period. The California Privacy Protection Agency rejected the proposal to delete the five-year retention requirement and retained the mandatory retention period in section 7155(c), finding the requirement necessary to ensure businesses maintain adequate documentation of their privacy risk assessments."
+    },
+    "509dd4cf-d16e-4873-907f-a95ea1187163": {
+      "regulation_citation": "11 CCR § 7156",
+      "page_ref": "p. 40",
+      "agency_position_summary": "The California Privacy Protection Agency amended Section 7156 to clarify how businesses may conduct risk assessments using comparable sets of processing activities or in compliance with other applicable laws and regulations. The Agency retained the flexibility for companies to conduct streamlined or consolidated risk assessments when processing activities present similar risks or when other regulatory frameworks already require equivalent privacy and security evaluations, thereby reducing duplicative compliance burdens while maintaining consumer protection standards."
+    },
+    "2233c908-c366-4033-a18a-81f16fe62e87": {
+      "regulation_citation": "11 CCR § 7156(a)(1)",
+      "page_ref": "p. 40",
+      "agency_position_summary": "The issue is whether conducting a risk assessment requires documenting information in a risk assessment report. The California Privacy Protection Agency modified 11 CCR § 7156(a)(1) to clarify that conducting a risk assessment includes documenting required information in the risk assessment report, aligning this requirement with the revised standards in section 7152."
+    },
+    "de045b84-dca4-44ef-a36a-63aa7e188aad": {
+      "regulation_citation": "11 CCR § 7156(b)",
+      "page_ref": "Appendix, p. 151",
+      "agency_position_summary": "The issue is whether businesses can use existing risk assessments conducted under GDPR or other state laws to satisfy California's DPIA requirements under section 7152. The Agency adopted a modified approach allowing businesses to reuse existing assessments if they contain all information required by section 7152, either as-is or with supplementation, rather than adopting a general reasonableness standard for cross-jurisdictional assessments. The Agency clarified in the regulation that if an existing assessment lacks required components, the business must explain what additional steps it took to meet California's specific requirements."
+    },
+    "8e2bc0ab-308f-47a0-a1f0-59f31bbe42ae": {
+      "regulation_citation": "11 CCR § 7157",
+      "page_ref": null,
+      "agency_position_summary": "The regulatory issue is when and how businesses must submit risk assessment information to the California Privacy Protection Agency. Under amended § 7157(a)(1) and (a)(2), businesses must submit risk assessments by April 1, 2028 for assessments conducted in 2026–2027, and annually by April 1 thereafter for subsequent years, with the April 1 deadline chosen to align with cybersecurity audit deadlines and allow adequate preparation time. Additionally, § 7157(b)(1) requires that submissions include the business's name, point of contact information (name, phone number, email address), and other specified risk assessment details to enable Agency identification and communication with the submitting business."
+    },
+    "6e206530-900f-473b-9ae1-7531d69a3de9": {
+      "regulation_citation": "11 CCR § 7157(b)(5)",
+      "page_ref": "Appendix, p. 77",
+      "agency_position_summary": "The issue is whether executives should be required to sign risk assessment attestations under penalty of perjury or use a softer \"best of knowledge\" standard. The California Privacy Protection Agency rejected the commenter's proposal to remove or weaken the attestation requirement, retaining the penalty of perjury language in section 7157(b)(5) to maintain executive accountability and ensure businesses submit truthful and accurate information to the Agency."
+    },
+    "18a32edb-09af-4c57-933a-dadd7457ec3c": {
+      "regulation_citation": "11 CCR § 7157",
+      "page_ref": null,
+      "agency_position_summary": "The regulatory issue is whether a designated executive must certify review and approval of all of a business's risk assessments. Under 11 CCR § 7157(b)(6), businesses are no longer required to have an executive certify review of all risk assessments, but must instead submit an attestation with higher-level information that achieves accountability while simplifying compliance. The attestation must be certified under penalty of perjury and include the submitter's name, business title, and certification date, but no longer requires a signature."
+    },
+    "25640cac-9e1f-4f99-99b0-79e9fd047f9d": {
+      "regulation_citation": "11 CCR § 7157(b)",
+      "page_ref": "Appendix, p. 155",
+      "agency_position_summary": "The issue was whether existing automated decision-making technology (ADMT) users would be forced to make false attestations under the attestation requirements in section 7157(b). The Agency agreed with the concern and modified the attestation requirement in section 7157(b)(5) to clarify that the attestation applies only to relevant ADMT processing conducted during the time period of the submission, which eliminates the requirement for pre-effective-date users to attest about processing they performed before the regulation became effective."
+    },
+    "06533762-060a-458b-bf18-4735b4ee704e": {
+      "regulation_citation": "11 CCR § 7157",
+      "page_ref": "p. 42",
+      "agency_position_summary": "The regulatory issue is whether businesses should be required to submit detailed annual risk assessment information to the California Privacy Protection Agency. The Agency simplified the annual risk assessment submission requirements under 11 CCR § 7157 by deleting previous subsections that required extensive additional information, thereby reducing the time and resources businesses must expend to prepare their submissions while still providing the Agency with sufficient information to assess compliance and issue public reports."
     }
   }
 }

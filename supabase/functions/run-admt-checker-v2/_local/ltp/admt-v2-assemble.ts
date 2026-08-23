@@ -51,6 +51,8 @@ import {
   composeVendorDependencyAnalysis,
 } from "./admt-v2-generated.ts";
 import type { AuthorityExhibit } from "../../../_shared/report-exhibits/authority-exhibit.ts";
+import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
+import { ADMT_CORPUS_MAP } from "../../../_shared/corpus/maps/admt-corpus-map.ts";
 
 export const ADMT_V2_SPINE_VERSION = "cppa-admt-v3.2-2026-08-21";
 export const ADMT_V2_SPINE_SOURCE = "CPPA_ADMT_Audit_Spine_v3.2.docx — CEO-ratified 2026-08-21";
@@ -274,6 +276,107 @@ const ADMT_V3_FIXED = {
     "Article 11 of the California Code of Regulations governing ADMT audits requires a business to determine whether it uses ADMT for a significant decision and, if so, to give consumers the required Pre-use Notice, provide an effective opt-out or support the exception it relies on, and be able to explain a consumer-specific decision on request.",
 };
 
+// ---------------------------------------------------------------------------
+// WAVE C1 (2026-08-23, doc 56 / doc 62 §9 amendment / doc 63 §3) — S4
+// (per-factor regulator commentary) and S5 (Persuasive Authority appendix),
+// gated on the map's s4_ratification stamp exactly as Risk's Appendix I is
+// gated. Mirrors risk-skeleton-assemble.ts's buildPersuasiveAuthority
+// pattern: pure CAM attachment over the report's own typed states, no
+// runtime corpus query (the determinism law).
+// ---------------------------------------------------------------------------
+
+/** The ADMT report's fired-state tokens for CAM attachment. */
+export function deriveAdmtFiredStates(computed: AdmtV2Computed): Set<string> {
+  const states = new Set<string>();
+  if (computed.scope.scopeState === "IN_SCOPE") states.add("admt_in_scope");
+  if (computed.scope.humanInvolvementEffect !== "NEUTRAL") states.add("human_involvement_addressed");
+  if (computed.scope.advertisingEffect === "WEIGHS_AGAINST") states.add("advertising_exclusion_addressed");
+  return states;
+}
+
+/** F-ADMT-HI / F-ADMT-AD — the two ratified S4 frame sentences (doc 63
+ * §3.1), byte-stable across every report that composes them. */
+const ADMT_S4_FRAMES: Record<string, string> = {
+  "Human involvement":
+    "What the regulator said about the human-involvement standard — interpretive context from the Agency's Final Statement of Reasons, persuasive only, never operative. The operative test is stated in this factor's determination above.",
+  "Advertising exclusion":
+    "What the regulator said about the advertising exclusion — interpretive context from the Agency's Final Statement of Reasons, persuasive only, never operative. The exclusion's scope is set by the operative definition cited above.",
+};
+
+export interface AdmtS4Attachment {
+  readonly factor_id: string;
+  readonly frame: string;
+  readonly excerpts: readonly string[];
+}
+
+/** S4 attachment — pure function over the CAM + fired states. Returns one
+ * entry per factor that has both a ratified frame AND at least one
+ * attached row; NO-PADDING LAW: a factor with no attached row emits
+ * nothing, never an empty frame. */
+export function buildAdmtS4Attachments(computed: AdmtV2Computed): readonly AdmtS4Attachment[] {
+  const fired = deriveAdmtFiredStates(computed);
+  const byFactor = new Map<string, string[]>();
+  for (const row of attachCorpusRows(ADMT_CORPUS_MAP, "S4", fired)) {
+    if (row.role !== "FC") continue;
+    const list = byFactor.get(row.factor_id) ?? [];
+    list.push(row.pinned_excerpt);
+    byFactor.set(row.factor_id, list);
+  }
+  const out: AdmtS4Attachment[] = [];
+  for (const [factor_id, excerpts] of byFactor) {
+    const frame = ADMT_S4_FRAMES[factor_id];
+    if (!frame || excerpts.length === 0) continue;
+    out.push({ factor_id, frame, excerpts });
+  }
+  return out;
+}
+
+export interface AdmtPersuasiveAuthority {
+  readonly table: RenderedTable | null;
+  readonly trail: string | null;
+}
+
+/** S5 — the Persuasive Authority appendix. Reuses the Risk Appendix-I
+ * 4-column display shape verbatim (doc 63 §3.3). Release-1: Deliveroo
+ * alone (Friuli deferred at the doc 62 gate review). */
+export function buildAdmtPersuasiveAuthority(computed: AdmtV2Computed): AdmtPersuasiveAuthority {
+  const fired = deriveAdmtFiredStates(computed);
+  const ap = attachCorpusRows(ADMT_CORPUS_MAP, "S5", fired).filter((r) => r.role === "AP");
+  if (ap.length === 0) return { table: null, trail: null };
+  const rows = ap.map((r) => [
+    r.display!.matter,
+    r.display!.what_happened,
+    r.display!.bearing,
+    r.display!.authority_label,
+  ]);
+  const table: RenderedTable = {
+    key: "",
+    surface: "persuasive_authority_matrix",
+    title: "",
+    columns: ["Matter", "What happened", "Bearing on this assessment", "Authority"],
+    rows,
+  };
+  const trail = ap.map((r) => r.display!.trail_cite).join("; ");
+  return { table, trail };
+}
+
+/** Ratified fixed lead for the Persuasive Authority appendix — the ADMT
+ * twin of RISK_APPENDIX_I_LEAD (risk-skeleton-assemble.ts), reworded for
+ * the ADMT reader. Composed iff ≥1 precedent row attaches. */
+export const ADMT_APPENDIX_C_LEAD =
+  "This appendix collects enforcement decisions issued under analogous data-protection law that bear on factors assessed in this report. These decisions were issued under the EU General Data Protection Regulation, not the CCPA or its Article 10/11 regulations; they are persuasive context only, are not binding on the California Privacy Protection Agency or on any court applying California law, and are cited because the processing or the failure they address is analogous to a factor this assessment addresses. Each entry names the factor it bears on. The operative determination for every factor remains the analysis in the body of this report.";
+
+/** Appendix B's Primary-authority column, extended (doc 62 §11's R1
+ * amendment): a factor with a ratified `trail_impact` tag carries it in
+ * the cell; the Significant-decision factor additionally carries the S5
+ * pointer when Appendix C renders — mirroring Risk's Appendix G/I
+ * mechanism exactly, so the pointer can never dangle when Appendix C is
+ * suppressed. */
+function admtTrailImpactFor(factorId: string): string | null {
+  const tagged = ADMT_CORPUS_MAP.rows.find((r) => r.factor_id === factorId && r.trail_impact);
+  return tagged?.trail_impact ?? null;
+}
+
 export interface AssembleArgs {
   intake: Record<string, unknown>;
   computed: AdmtV2Computed;
@@ -348,6 +451,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   ]);
 
   // ── 2. Applicability ────────────────────────────────────────────────────
+  // Wave C1 (doc 62 §9 amendment / doc 63 §3.1-3.2): S4 attachments render
+  // as a "What the regulator said" subsection, factor by factor, gated on
+  // the CAM's s4_ratification stamp + the factor's own fired state
+  // (NO-PADDING LAW: no attachment, no subsection — never an empty frame).
+  const admtS4 = buildAdmtS4Attachments(computed);
   push("applicability", "2. Applicability of the ADMT Requirements", [
     legal(ADMT_V3_FIXED.applicability_requirement),
     { kind: "lead", text: applicabilityDeterminationSentence(scope) },
@@ -362,6 +470,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       ],
     }},
     { kind: "generated", text: composeApplicabilityAnalysis(scope, systemName || "the System") },
+    ...admtS4.flatMap((att): RenderedParagraph[] => [
+      { kind: "skeleton", text: `What the Regulator Said — ${att.factor_id}` },
+      { kind: "skeleton", text: att.frame },
+      ...att.excerpts.map((text): RenderedParagraph => ({ kind: "quoted_authority", text })),
+    ]),
   ]);
 
   if (scope.scopeState === "OUT_OF_SCOPE") {
@@ -540,10 +653,24 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   ]);
 
   // ── Appendix B — Factor, Company Response, and Authority Matrix ────────
+  // Wave C1: computed BEFORE the table build so the Significant-decision
+  // row's authority cell can carry the S5 pointer exactly when Appendix C
+  // renders (Factor-Bearing Law; no dangling pointer on suppression).
+  const persuasive = buildAdmtPersuasiveAuthority(computed);
   push("appendix_b", "Appendix B — Factor, Company Response, and Authority Matrix", [
     { kind: "skeleton", text: "This matrix restates each material factor behind the assessment in one place: what the Company reported, what that reporting means in the report's own words, and the specific regulatory provision that governs it. It exists so the assessment can be reviewed and updated by the Company or its legal counsel as necessary." },
-    { kind: "table", text: "", table: { key: "appendix_b:0", surface: "factor_matrix", ...buildFactorMatrixTable(intake, computed, optOut.path) } },
+    { kind: "table", text: "", table: { key: "appendix_b:0", surface: "factor_matrix", ...buildFactorMatrixTable(intake, computed, optOut.path, admtS4, persuasive.trail) } },
   ]);
+
+  // ── Appendix C — Persuasive Authority (Analogous Enforcement) ──────────
+  // Wave C1 (doc 62 §9 amendment / doc 63 §3.3). NO-PADDING LAW: no
+  // attached precedent, no appendix.
+  if (persuasive.table) {
+    push("appendix_c", "Appendix C — Persuasive Authority (Analogous Enforcement)", [
+      { kind: "skeleton", text: ADMT_APPENDIX_C_LEAD },
+      { kind: "table", text: "", table: { ...persuasive.table, key: "appendix_c:1" } },
+    ]);
+  }
 
   return {
     _typed: "skeleton-document@admt-v3.2",
@@ -810,6 +937,8 @@ function buildFactorMatrixTable(
   intake: Record<string, unknown>,
   computed: AdmtV2Computed,
   path: PathState,
+  admtS4?: readonly AdmtS4Attachment[],
+  persuasiveTrail?: string | null,
 ): { title: string; columns: string[]; rows: string[][] } {
   const { scope, notice, optOut, access, vendor } = computed;
   const withholdingText = str((intake as any)?.access_trade_secret_policy);
@@ -853,6 +982,26 @@ function buildFactorMatrixTable(
   }
 
   rows.push(["Record quality", `Overall: ${gradeLabel(computed.overallRecordGrade)}`, gradeLabel(computed.overallRecordGrade), "Audit methodology — no specific ADMT provision"]);
+
+  // Wave C1 (doc 62 §11's R1 amendment): extend the Primary-authority
+  // column. A factor with S4 attachments gets a pointer to §2.1 (content
+  // renders there, not repeated here — avoids the aggregate-budget clutter
+  // R2 exists to prevent); a factor with a ratified dark trail_impact tag
+  // gets that tag; Significant decision additionally gets the S5 pointer
+  // when Appendix C renders. At most one of these per row, by construction.
+  const s4Factors = new Set((admtS4 ?? []).map((a) => a.factor_id));
+  for (const row of rows) {
+    const factorId = row[0];
+    if (s4Factors.has(factorId)) {
+      row[3] = `${row[3]}; see §2.1 What the Regulator Said, above — interpretive`;
+      continue;
+    }
+    const tag = admtTrailImpactFor(factorId);
+    if (tag) row[3] = `${row[3]}; ${tag}`;
+    if (factorId === "Significant decision" && persuasiveTrail) {
+      row[3] = `${row[3]}; persuasive (Appendix C): analogous enforcement — ${persuasiveTrail}`;
+    }
+  }
 
   return { title: "", columns: ["Factor", "Company's reported answer", "What the report says", "Primary authority"], rows };
 }

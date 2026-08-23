@@ -11,6 +11,14 @@
 // form of that ruling — S4 FC rows are lawful ONLY inside a map carrying
 // `s4_ratification`; every map without that stamp stays S0-only for FC,
 // exactly as before ratification.
+//
+// WAVE C1 (2026-08-23, doc 62 §11 — the READER-VALUE LAW): two more
+// invariants machine-enforce the ratified test. purpose_class-presence
+// enforces §11.2 (a row that cannot name its purpose does not render).
+// The display-consistency invariant enforces §11.5's citation-form law: a
+// row that names a citation_source must actually name that source, by
+// substring, in whatever free text renders it — a typo in ratified prose
+// can never misname a case.
 
 import type { CamRow, CorpusMap } from "./cam-types.ts";
 
@@ -103,9 +111,32 @@ export function mapInvariants(map: CorpusMap): string[] {
       if (row.role === "SB" || row.role === "AQ") {
         problems.push(`${row.id}: role ${row.role} has no proven render mechanism yet (SB deferred until after S5 ships)`);
       }
+      // Reader-Value Law (doc 62 §11.2): every render_eligible row must
+      // name a purpose class — a row that cannot is not fit to render.
+      if (!row.purpose_class) {
+        problems.push(`${row.id}: render_eligible rows require purpose_class (doc 62 §11.2)`);
+      }
     } else {
-      if (row.render_surface || row.display || row.warning_text || row.render_when) {
+      if (row.render_surface || row.display || row.warning_text || row.render_when || row.purpose_class) {
         problems.push(`${row.id}: render-only fields set on a render_eligible:false row`);
+      }
+    }
+
+    // Display-consistency invariant (doc 62 §11.5): a row naming a
+    // citation_source must actually name that source, by substring, in
+    // whatever free text carries the citation to the reader.
+    if (row.citation_source) {
+      const cs = row.citation_source;
+      const yearMatch = /^(\d{4})-\d{2}-\d{2}$/.exec(cs.decision_date);
+      const year = yearMatch ? yearMatch[1] : null;
+      const displayText = row.display?.authority_label ?? row.warning_text ?? row.curation_note ?? "";
+      if (!displayText.includes(cs.regulator)) {
+        problems.push(`${row.id}: citation_source.regulator "${cs.regulator}" not found in the rendered display text (display-consistency invariant)`);
+      }
+      if (!year) {
+        problems.push(`${row.id}: citation_source.decision_date is not a valid ISO date ("${cs.decision_date}")`);
+      } else if (!displayText.includes(year)) {
+        problems.push(`${row.id}: citation_source decision year "${year}" not found in the rendered display text (display-consistency invariant)`);
       }
     }
 

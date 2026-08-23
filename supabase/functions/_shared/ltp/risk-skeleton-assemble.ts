@@ -912,7 +912,16 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
  * cell carries the compact interpretive citation trail for the attached
  * precedent rows, appended AT ASSEMBLY so the pointer can never dangle on
  * a report whose Appendix I is suppressed. Citations only — content stays
- * in Appendix I. */
+ * in Appendix I.
+ *
+ * WAVE C1 (doc 62 §11's R1 amendment): every factor row also picks up any
+ * `trail_impact` tag(s) the CAM carries for its factor_id — the "how" a
+ * logic-bearing corpus row shaped this factor, stated in the cell itself
+ * rather than left as a bare citation. R2's admission rule means at most
+ * one CAM row per factor carries a tag (the curation-time aggregate
+ * convention documented in risk-corpus-map.ts), so this never floods the
+ * cell; the aggregate budget (doc 62 §11.4, ≤2 tags/row) is respected by
+ * construction. */
 export function buildFactorAuthorityMatrixTable(
   report: Bag,
   intake: Bag,
@@ -925,10 +934,12 @@ export function buildFactorAuthorityMatrixTable(
       ? spec.reportDetermination(report, intake, engine)
       : blockText(engine, spec.blockKeys ?? []);
     if (!determination) continue;
-    const authority =
-      persuasiveTrail && spec.label === "Regulatory trigger and applicability"
-        ? `${spec.authority}; persuasive (Appendix I): ${persuasiveTrail}`
-        : spec.authority;
+    let authority = spec.authority;
+    const tagged = RISK_CORPUS_MAP.rows.find((r) => r.factor_id === spec.label && r.trail_impact);
+    if (tagged?.trail_impact) authority = `${authority}; ${tagged.trail_impact}`;
+    if (persuasiveTrail && spec.label === "Regulatory trigger and applicability") {
+      authority = `${authority}; persuasive (Appendix I): analogous enforcement — ${persuasiveTrail}`;
+    }
     rowsOut.push([spec.label, determination, authority]);
   }
   if (rowsOut.length === 0) return null;

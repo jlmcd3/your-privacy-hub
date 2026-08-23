@@ -33,23 +33,41 @@ for (const map of MAPS) {
 
 // ── Per-product render postures (which planes each product has opened) ──
 
-Deno.test("cppa-admt and dpia: still fully render-dark (FC only) — phase 2 opened no plane for them", () => {
-  for (const map of [ADMT_CORPUS_MAP, DPIA_CORPUS_MAP]) {
-    for (const row of map.rows) {
-      assertEquals(row.role, "FC", `${row.id}: unexpected role`);
-      assertEquals(row.render_eligible, false, `${row.id}: unexpectedly render-eligible`);
-    }
+Deno.test("dpia: still fully render-dark (FC only) — no wave has opened a plane for it yet", () => {
+  for (const row of DPIA_CORPUS_MAP.rows) {
+    assertEquals(row.role, "FC", `${row.id}: unexpected role`);
+    assertEquals(row.render_eligible, false, `${row.id}: unexpectedly render-eligible`);
   }
 });
 
-Deno.test("cppa-risk: phase-2 posture — 11 dark FC, 3 S0 callouts, 3 AP, 1 AOW", () => {
+Deno.test("cppa-admt: wave C1 posture — 35 dark FC (5 phase-1 + 30 bulk), 3 S4 rows across 2 factors, 1 AP", () => {
+  const darkFc = ADMT_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
+  const s4 = ADMT_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S4");
+  const ap = ADMT_CORPUS_MAP.rows.filter((r) => r.role === "AP");
+  assertEquals(darkFc.length, 35);
+  assertEquals(s4.length, 3);
+  assertEquals(new Set(s4.map((r) => r.factor_id)).size, 2);
+  assertEquals(ap.length, 1);
+  assert(ADMT_CORPUS_MAP.s4_ratification, "ADMT_CORPUS_MAP must carry its s4_ratification stamp");
+  // Verified-only law: the AP row's source is in the enforcement snapshot and marked verified.
+  const snap = JSON.parse(
+    Deno.readTextFileSync("tests/edge/corpus/__snapshots__/enforcement-snapshot-risk.json"),
+  ) as { rows: Record<string, { verification_status?: string }> };
+  for (const r of ap) {
+    const row = snap.rows[r.source_row_id];
+    assert(row, `${r.id}: source row missing from enforcement snapshot`);
+    assertEquals(row.verification_status, "verified", `${r.id}: source row not verified`);
+  }
+});
+
+Deno.test("cppa-risk: wave C1 posture — 41 dark FC (11 phase-1/2 + 30 FC-J bulk), 3 S0 callouts, 3 AP, 1 AOW", () => {
   const darkFc = RISK_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
   const s0 = RISK_CORPUS_MAP.rows.filter(
     (r) => r.role === "FC" && r.render_eligible && r.render_surface === "S0",
   );
   const ap = RISK_CORPUS_MAP.rows.filter((r) => r.role === "AP");
   const aow = RISK_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
-  assertEquals(darkFc.length, 11);
+  assertEquals(darkFc.length, 41);
   assertEquals(s0.length, 3);
   assertEquals(ap.length, 3);
   assertEquals(aow.length, 1);
@@ -85,6 +103,7 @@ function fcRow(overrides: Partial<CamRow>): CamRow {
     pinned_excerpt: "exact pinned text",
     render_eligible: true,
     render_surface: "S4",
+    purpose_class: "misreading",
     direction: "supports",
     logic_bearing: false,
     provenance: { verified_on: "2026-08-22" },
@@ -136,6 +155,133 @@ Deno.test("PN-CORPUS-1 carve-out: s4_ratification on the map does not excuse an 
   };
   const problems = mapInvariants(map);
   assert(problems.some((p) => p.includes("s0_field")), JSON.stringify(problems));
+});
+
+// ── Wave C1 (doc 62 §11): the Reader-Value Law's two new invariants ──────
+
+Deno.test("Reader-Value Law: a render_eligible row without purpose_class fails", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-purpose-class-missing",
+    snapshot_file: "n/a",
+    rows: [fcRow({ render_surface: "S0", s0_field: "test_field", purpose_class: undefined })],
+  };
+  const problems = mapInvariants(map);
+  assert(problems.some((p) => p.includes("purpose_class")), JSON.stringify(problems));
+});
+
+Deno.test("Reader-Value Law: purpose_class set on a dark (render_eligible:false) row fails", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-purpose-class-on-dark",
+    snapshot_file: "n/a",
+    rows: [
+      fcRow({
+        render_eligible: false,
+        render_surface: undefined,
+        purpose_class: "action",
+      }),
+    ],
+  };
+  const problems = mapInvariants(map);
+  assert(problems.some((p) => p.includes("render-only fields")), JSON.stringify(problems));
+});
+
+Deno.test("Reader-Value Law: a render_eligible row WITH purpose_class and no citation_source passes", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-purpose-class-ok",
+    snapshot_file: "n/a",
+    rows: [fcRow({ render_surface: "S0", s0_field: "test_field" })],
+  };
+  assertEquals(mapInvariants(map), []);
+});
+
+function apRow(overrides: Partial<CamRow>): CamRow {
+  return {
+    id: "test/factor/ap-01",
+    factor_id: "Test factor",
+    role: "AP",
+    source_table: "enforcement_actions",
+    source_row_id: "row-1",
+    excerpt_field: "key_compliance_failure",
+    pinned_excerpt: "",
+    render_eligible: true,
+    render_surface: "S5",
+    purpose_class: "authority",
+    render_when: ["test_state"],
+    display: {
+      matter: "Regulator (Country) — Subject (2025)",
+      what_happened: "test",
+      bearing: "test",
+      authority_label: "Regulator (Country), Subject, decision of 1 January 2025 — persuasive authority",
+      trail_cite: "Regulator, Subject (2025)",
+    },
+    direction: "supports",
+    logic_bearing: false,
+    provenance: { verified_on: "2026-08-22" },
+    curation_note: "test fixture",
+    ...overrides,
+  };
+}
+
+Deno.test("Display-consistency invariant: citation_source matching the display text passes", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-display-consistency-ok",
+    snapshot_file: "n/a",
+    rows: [
+      apRow({
+        citation_source: {
+          regulator: "Regulator (Country)",
+          subject: "Subject",
+          jurisdiction: "Country",
+          decision_date: "2025-01-01",
+        },
+      }),
+    ],
+  };
+  assertEquals(mapInvariants(map), []);
+});
+
+Deno.test("Display-consistency invariant: a regulator missing from the display text fails", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-display-consistency-bad-regulator",
+    snapshot_file: "n/a",
+    rows: [
+      apRow({
+        citation_source: {
+          regulator: "A Completely Different Regulator",
+          subject: "Subject",
+          jurisdiction: "Country",
+          decision_date: "2025-01-01",
+        },
+      }),
+    ],
+  };
+  const problems = mapInvariants(map);
+  assert(problems.some((p) => p.includes("regulator") && p.includes("display-consistency")), JSON.stringify(problems));
+});
+
+Deno.test("Display-consistency invariant: a decision year missing from the display text fails", () => {
+  const map: CorpusMap = {
+    product: "cppa-risk",
+    map_version: "test-display-consistency-bad-year",
+    snapshot_file: "n/a",
+    rows: [
+      apRow({
+        citation_source: {
+          regulator: "Regulator (Country)",
+          subject: "Subject",
+          jurisdiction: "Country",
+          decision_date: "2019-01-01",
+        },
+      }),
+    ],
+  };
+  const problems = mapInvariants(map);
+  assert(problems.some((p) => p.includes("decision year") && p.includes("display-consistency")), JSON.stringify(problems));
 });
 
 Deno.test("RISK_CORPUS_MAP: every factor_id matches a real FACTOR_MATRIX_ROWS label", async () => {
