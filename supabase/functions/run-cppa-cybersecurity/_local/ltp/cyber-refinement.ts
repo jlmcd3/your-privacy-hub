@@ -230,10 +230,27 @@ export const CYBER_PROTECTED_LEAF_CLASSES = {
  * PROTECTED ROOTS — a proposal may not enter these subtrees at all, at any
  * depth. The determination records, the typed tally, the byte-pinned schedule,
  * the authority surfaces and the disclaimers.
+ *
+ * C0 (2026-08-23, doc 24a §7.1's protection-bar landing, ahead of the
+ * conversion's C1 determinism rewrite): added the three ITEM 315 typed
+ * deliverable surfaces this list was missing (`component_coverage`,
+ * `evidence_sufficiency`, `program_obligation_findings`,
+ * `mean_score_readability_aid` — `readiness_determination` and
+ * `independence_determination` were already here) and `skeleton_document`
+ * (assembled after refinement runs today, so never reachable in practice —
+ * protected now so the ordering can change during the conversion without
+ * silently losing this guarantee). `fact_ledger` is NOT added here: it is
+ * not currently persisted onto the report at all (see doc 24a's D3 finding —
+ * the `_meta.internal.fact_ledger` comment at index.ts is stale), so there
+ * is nothing yet to protect; add it here when C1 wires real persistence.
  */
 export const CYBER_PROTECTED_ROOTS: string[] = [
   "readiness_determination",
   "independence_determination",
+  "component_coverage",
+  "evidence_sufficiency",
+  "program_obligation_findings",
+  "mean_score_readability_aid",
   "cyber_readiness_line",
   "control_status_counts",
   "audit_schedule",
@@ -243,6 +260,7 @@ export const CYBER_PROTECTED_ROOTS: string[] = [
   "disclaimer",
   "framework_disclaimer",
   "schema_version",
+  "skeleton_document",
 ];
 
 export const CYBER_PROTECTED_LEAF_KEYS: string[] = Array.from(
