@@ -37,7 +37,7 @@ import { CPPA_CYBER_RAIL } from "@/components/cppa/CPPACyberRailEntries";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
-import { useFscrCallouts } from "@/hooks/useFscrCallouts";
+import { CPPA_CYBER_FSOR_CALLOUTS } from "@/components/cppa/CPPACyberFsorCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
@@ -159,10 +159,10 @@ export default function CPPACybersecurity() {
 
   const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
 
-  const cyberFscrCallouts = useFscrCallouts([
-    "11 CCR § 7123(c)(1)",
-    "11 CCR § 7123",
-  ]);
+  // Phase C interim fix (doc 63 §5.1): pinned static callouts replace the
+  // live fetch — the old "(c)(1)" key rendered mis-attributed old-numbering
+  // report-content commentary on the Authentication field.
+  const cyberFscrCallouts = CPPA_CYBER_FSOR_CALLOUTS;
 
   // RC-P7: control maturity is no longer required at submit. Blank controls flow to the
   // backend's insufficient-information path (M4–M21 → indeterminate; synthesiseCyberAsksFromControls
@@ -502,7 +502,7 @@ export default function CPPACybersecurity() {
 
               {c.key === "c1_auth" && (
                 <FscrCallout
-                  citation="11 CCR § 7123(c)(1)"
+                  citation="11 CCR § 7123(c)"
                   callouts={cyberFscrCallouts}
                 />
               )}

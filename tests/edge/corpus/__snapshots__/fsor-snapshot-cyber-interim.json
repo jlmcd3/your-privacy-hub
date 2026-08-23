@@ -1,0 +1,11 @@
+{
+  "captured_at": "2026-08-23",
+  "note": "Interim snapshot for the cyber intake's pinned S0 callout (doc 63 §5.1). One row; superseded by the full Cyber CAM snapshot at wave C3.",
+  "rows": {
+    "3bb6fc9f-3e48-404b-99d4-a5d4eaa52561": {
+      "regulation_citation": "11 CCR § 7123(c)",
+      "page_ref": "Appendix, p. 81",
+      "agency_position_summary": "The issue is whether cybersecurity audits under section 7123(c) should specify clearer trigger points for multi-factor authentication requirements and mandate phishing-resistant authentication regardless of the number of factors used. The Agency rejected the commenter's request for additional specificity, finding the regulation reasonably clear as written, but revised section 7123(c) to clarify that auditors must assess cybersecurity program components applicable to the business's information systems. The Agency confirmed that section 7123(c)(1)(A) already permits auditors to assess phishing-resistant authentication broadly beyond the listed multi-factor authentication requirement, maintaining flexibility while ensuring audit thoroughness consistent with CCPA standards."
+    }
+  }
+}
