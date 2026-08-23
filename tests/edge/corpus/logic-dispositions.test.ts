@@ -86,7 +86,7 @@ Deno.test("ADMT_CORPUS_MAP: disposition mix matches this session's finding (5 im
   assertEquals(counts, { implemented: 5, extension_filed: 0, declined: 0 });
 });
 
-Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (5 implemented, 0 filed, 1 declined)", () => {
+Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (7 implemented, 0 filed, 1 declined)", () => {
   const counts = { implemented: 0, extension_filed: 0, declined: 0 };
   for (const row of DPIA_CORPUS_MAP.rows) {
     const kind = row.logic_disposition?.kind;
@@ -94,6 +94,8 @@ Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (5 im
   }
   // PN-CORPUS-L-DPIA-1 resolved 2026-08-22 (phase-2 redline): the general
   // "systematic monitoring" REASONS_TO_CONDUCT option was added, moving
-  // this row from extension_filed to implemented.
-  assertEquals(counts, { implemented: 5, extension_filed: 0, declined: 1 });
+  // this row from extension_filed to implemented. Wave C2 (doc 57 §2b)
+  // adds 2 more FC-L rows, both implemented (views-of-subjects,
+  // not-required-with-reasons).
+  assertEquals(counts, { implemented: 7, extension_filed: 0, declined: 1 });
 });

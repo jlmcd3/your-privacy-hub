@@ -50,6 +50,7 @@ import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTe
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, generationMaxTokens, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS: per-unit spend/latency metering
 import { detectPurposeConflation, conflationRepairInstruction } from "../_shared/dpia-purpose-guard.ts";
+import { DPIA_ENFORCEMENT_PRECEDENTS_PINNED, type DpiaPinnedPrecedent } from "../_shared/corpus/dpia-enforcement-precedents-pinned.ts"; // WAVE C2 (doc 57 §1) determinism fix
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
@@ -1149,44 +1150,38 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
   const hasUK = effectiveJurisdictions.some((j: string) => /united kingdom|\buk\b|\bgb\b|uk gdpr|england|wales|scotland/i.test(String(j)));
   const gdprJurisdiction: "eu" | "uk" = hasEU ? "eu" : (hasUK ? "uk" : "eu");
 
-  // Enforcement + GDPR context (parallel).
-  let enforcementPrecedents: any[] = [];
-  let enforcementMeta: any = { attempted: false };
+  // WAVE C2 (2026-08-23, doc 57 §1) — THE DETERMINISM FIX, both limbs.
+  //
+  // Limb 1 (enforcement): previously `get-enforcement-context` ran a
+  // relevance-ranked semantic RPC at GENERATION TIME to pick up to 5
+  // candidates — which cases a customer saw depended on a runtime
+  // similarity search, the two-plane law's canonical violation (doc 48
+  // §II.1). Replaced with the pinned, CEO-ratified release-1 list of 6
+  // verified rows (doc 63 §4.1) — a build-time curation decision, applied
+  // identically to every report, zero model/network calls.
+  const enforcementPrecedents: DpiaPinnedPrecedent[] = [...DPIA_ENFORCEMENT_PRECEDENTS_PINNED];
+  const enforcementMeta: any = {
+    attempted: true,
+    total_matched: DPIA_ENFORCEMENT_PRECEDENTS_PINNED.length,
+    query_descriptor: undefined,
+  };
+
+  // Limb 2 (guideline): getGdprContext's deterministic article/recital/
+  // guideline-article lookup is unaffected and stays exactly as before;
+  // only `semanticQuery` (which triggered a NON-deterministic semantic
+  // EDPB-guideline fallback search) is dropped. See gdpr-context.ts:144 —
+  // that branch fires only `if (opts.semanticQuery && apiKey)`, so
+  // omitting the field is a pure subtraction: it can only remove
+  // semantically-matched content, never change the deterministic output.
   let gdprBlock = "";
   let gdprMeta: any = { attempted: false };
   try {
-    const corpusRegime: "gdpr" | "uk_gdpr" = gdprJurisdiction === "uk" ? "uk_gdpr" : "gdpr";
-    const [ecRes, gdprRes] = await Promise.all([
-      supabase.functions.invoke("get-enforcement-context", {
-        body: {
-          tool: "DPIA",
-          regime: corpusRegime,
-          data_categories: intake.data_categories || [],
-          jurisdictions: intake.jurisdictions || [],
-          sector: intake.sector || undefined,
-          articles: ["gdpr:35", "gdpr:36"],
-          limit: 5,
-        },
-      }),
-      getGdprContext(supabase, {
-        articles: ["9", "13", "14", "35", "36"],
-        jurisdiction: gdprJurisdiction,
-        recitals: [75, 84, 90],
-        guidelineArticles: ["35"],
-        semanticQuery: processingDesc,
-      }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; }),
-    ]);
-    const ctxData = (ecRes as any)?.data;
-    enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
-    const descParts: string[] = [];
-    if (intake.sector) descParts.push(`${intake.sector} sector`);
-    const jList = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : (intake.jurisdictions ? [String(intake.jurisdictions)] : []);
-    if (jList.length) descParts.push(`processing in ${jList.join(", ")}`);
-    enforcementMeta = {
-      attempted: true,
-      total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
-      query_descriptor: descParts.join(" — ") || undefined,
-    };
+    const gdprRes = await getGdprContext(supabase, {
+      articles: ["9", "13", "14", "35", "36"],
+      jurisdiction: gdprJurisdiction,
+      recitals: [75, 84, 90],
+      guidelineArticles: ["35"],
+    }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; });
     gdprBlock = (gdprRes as any)?.block || "";
     gdprMeta = (gdprRes as any)?.meta || { attempted: false };
   } catch (e) {

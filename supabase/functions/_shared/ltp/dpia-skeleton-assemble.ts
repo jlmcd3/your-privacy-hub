@@ -50,6 +50,8 @@ import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { boundedClause, extractionClause, firstSentence, noStop } from "./clause-bound.ts";
 export { boundedClause, firstSentence };
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
+import { attachCorpusRows } from "../corpus/cam-attach.ts";
+import { DPIA_CORPUS_MAP } from "../corpus/maps/dpia-corpus-map.ts";
 
 // PROMPT 8A (CEO-ratified 2026-08-12) — CITATION STYLE RULING for all DPIA
 // composed prose: running prose spells "Article 35(1)"; parenthetical citations
@@ -319,7 +321,7 @@ export function dpoSentence(intake: Bag): string {
 
 // ── Composed blocks ─────────────────────────────────────────────────────────
 
-function art36Determination(report: Bag): string {
+export function art36Determination(report: Bag): string {
   return s(((report.art36_consultation ?? {}) as Bag).determination).toLowerCase();
 }
 
@@ -980,6 +982,22 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
 export const ART36_DPO_DISCLOSURE =
   "The company's data protection officer has advised that the supervisory authority be consulted on this processing; that advice is recorded here alongside this assessment's own determination on Article 36(1), which is stated above and is unchanged by it.";
 
+// WAVE C2 (2026-08-23, doc 57 §2a / doc 63 §4.2) — the release-1 AOW,
+// bound to the SAME typed consultation_required state Article 36(1)'s own
+// sentence reads. Pure CAM attachment (attachCorpusRows over a one-token
+// fired-state set); NO-PADDING LAW: the state must fire for the warning to
+// attach, so a suppressed Art. 36 sentence can never carry an orphaned
+// warning. Placement: adjacent to the adverse determination itself (the
+// same "one-warning-adjacent-to-the-adverse-determination" pattern as
+// Risk's AOW), not a separate appendix.
+export function dpiaConsultationWarning(det: string): string | null {
+  if (det !== "consultation_required") return null;
+  const aow = attachCorpusRows(DPIA_CORPUS_MAP, "S5", new Set(["consultation_required"])).find(
+    (r) => r.role === "AOW",
+  );
+  return aow?.warning_text ?? null;
+}
+
 function composeArt36Sentence(report: Bag): string {
   const a36 = (report.art36_consultation ?? {}) as Bag;
   const det = art36Determination(report);
@@ -998,6 +1016,8 @@ function composeArt36Sentence(report: Bag): string {
   if (a36.dpo_recommends_consultation === true && det !== "consultation_required") {
     return `${base}. ${noStop(ART36_DPO_DISCLOSURE)}`;
   }
+  const warning = dpiaConsultationWarning(det);
+  if (warning) return `${base}. ${warning}`;
   return base;
 }
 
@@ -1408,7 +1428,12 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
   },
 ];
 
-/** Appendix A — {{DERIVED.factor_input_determination_authority_matrix}}. Suppresses uncomposed factors (no-padding law); never prints N/A. */
+/** Appendix A — {{DERIVED.factor_input_determination_authority_matrix}}. Suppresses uncomposed factors (no-padding law); never prints N/A.
+ *
+ * WAVE C2 (doc 62 §11's R1 amendment, doc 57 §3 S3 sweep): a factor with a
+ * ratified `trail_impact` tag on the DPIA CAM carries it in the authority
+ * cell (one representative row per factor, per the R2 admission rule —
+ * mirrors risk-skeleton-assemble.ts's buildFactorAuthorityMatrixTable). */
 function buildDpiaFactorAuthorityMatrixTable(
   report: Bag,
   intake: Bag,
@@ -1420,7 +1445,9 @@ function buildDpiaFactorAuthorityMatrixTable(
   for (const spec of DPIA_MATRIX_ROWS) {
     const determination = spec.reportDetermination({ report, intake, values, composed, tables });
     if (!determination) continue;
-    rowsOut.push([spec.label, determination, spec.authority]);
+    const tagged = DPIA_CORPUS_MAP.rows.find((r) => r.factor_id === spec.label && r.trail_impact);
+    const authority = tagged?.trail_impact ? `${spec.authority}; ${tagged.trail_impact}` : spec.authority;
+    rowsOut.push([spec.label, determination, authority]);
   }
   if (rowsOut.length === 0) return null;
   return {

@@ -40,6 +40,58 @@
       "verification_status": "verified",
       "key_compliance_failure": "Amazon France Logistique extensively monitored employee activity and performance using scanners and video surveillance, leading to violations of data minimization, lawful processing (legitimate interest), and transparency principles.",
       "source_url": "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2023-021"
+    },
+    "dc095815-d03d-4bb2-b3be-2711e7f7d459": {
+      "etid": "cms:ETid-2183",
+      "subject": "International Card Services B.V.",
+      "regulator": "AP",
+      "jurisdiction": "Netherlands",
+      "decision_date": "2024-01-15",
+      "fine_eur": "150000",
+      "violation": "Art. 35 GDPR",
+      "case_reference": null,
+      "verification_status": "verified",
+      "key_compliance_failure": "The organization failed to conduct a Data Protection Impact Assessment (DPIA) before implementing a new digital identification process that involved sensitive personal data.",
+      "source_url": "https://autoriteitpersoonsgegevens.nl/actueel/boete-voor-creditcardbedrijf-ics-na-ontbrekende-risicoanalyse"
+    },
+    "a3cf40b0-3625-4e78-bbe9-63624f17ceb0": {
+      "etid": "cms:ETid-3178",
+      "subject": "Poste Italiane S.p.a.",
+      "regulator": "Garante",
+      "jurisdiction": "Italy",
+      "decision_date": "2026-04-17",
+      "fine_eur": "6624000",
+      "violation": "Art. 5 GDPR, Art. 6 GDPR, Art. 13 GDPR, Art. 25 GDPR, Art. 28 GDPR, Art. 32 GDPR, Art. 35 GDPR",
+      "case_reference": null,
+      "verification_status": "verified",
+      "key_compliance_failure": "Poste Italiane processed customer data excessively through a fraud prevention tool without a sufficient legal basis, proper transparency, or adequate data protection measures.",
+      "source_url": "https://www.gpdp.it/web/guest/home/docweb/-/docweb-display/docweb/10241537"
+    },
+    "e58dfa97-b038-4ffa-9ca4-2b9aba436bbb": {
+      "etid": "cms:ETid-2510",
+      "subject": "CARTONAJES BAÑERES, S.A.",
+      "regulator": "AEPD",
+      "jurisdiction": "Spain",
+      "decision_date": "2024-01-05",
+      "fine_eur": "220000",
+      "violation": "Art. 15 GDPR, Art. 35 GDPR",
+      "case_reference": "EXP202212247",
+      "verification_status": "verified",
+      "key_compliance_failure": "realiza una fotografía de la cara de los empleados desde un dispositivo situado en la entrada, empleando datos biométricos para fichar sin obtener consentimiento informado, y no atendió a la solicitud de acceso a datos personales formulada en fecha 29/08/2022.",
+      "source_url": "https://www.aepd.es/documento/ps-00361-2023.pdf"
+    },
+    "dbfca969-3139-43d1-8a5b-7fff179f8db6": {
+      "etid": "cms:ETid-747",
+      "subject": "Comune di Bolzano",
+      "regulator": "Garante",
+      "jurisdiction": "Italy",
+      "decision_date": "2021-05-13",
+      "fine_eur": "84000",
+      "violation": "Art. 5 (1) a), c) GDPR, Art. 6 GDPR, Art. 9 GDPR, Art. 13 GDPR, Art. 35 GDPR",
+      "case_reference": null,
+      "verification_status": "verified",
+      "key_compliance_failure": "The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency.",
+      "source_url": "https://www.garanteprivacy.it/home/docweb/-/docweb-display/docweb/9669974"
     }
   }
 }

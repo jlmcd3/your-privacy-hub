@@ -33,10 +33,28 @@ for (const map of MAPS) {
 
 // ── Per-product render postures (which planes each product has opened) ──
 
-Deno.test("dpia: still fully render-dark (FC only) — no wave has opened a plane for it yet", () => {
-  for (const row of DPIA_CORPUS_MAP.rows) {
-    assertEquals(row.role, "FC", `${row.id}: unexpected role`);
-    assertEquals(row.render_eligible, false, `${row.id}: unexpectedly render-eligible`);
+Deno.test("dpia: wave C2 posture — 18 dark FC (6 phase-1 + 12 bulk), 2 S0 folds, 6 AP, 1 AOW", () => {
+  const darkFc = DPIA_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
+  const s0 = DPIA_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S0");
+  const ap = DPIA_CORPUS_MAP.rows.filter((r) => r.role === "AP");
+  const aow = DPIA_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
+  assertEquals(darkFc.length, 18);
+  assertEquals(s0.length, 2);
+  assertEquals(ap.length, 6);
+  assertEquals(aow.length, 1);
+  // S4 stays fully dark for DPIA this wave (no s4_ratification stamp).
+  assertEquals(DPIA_CORPUS_MAP.s4_ratification, undefined);
+  for (const r of DPIA_CORPUS_MAP.rows) {
+    if (r.role === "FC" && r.render_eligible) assertEquals(r.render_surface, "S0", r.id);
+  }
+  // Verified-only law: every AP/AOW source row is in the enforcement snapshot and marked verified.
+  const snap = JSON.parse(
+    Deno.readTextFileSync("tests/edge/corpus/__snapshots__/enforcement-snapshot-risk.json"),
+  ) as { rows: Record<string, { verification_status?: string }> };
+  for (const r of [...ap, ...aow]) {
+    const row = snap.rows[r.source_row_id];
+    assert(row, `${r.id}: source row missing from enforcement snapshot`);
+    assertEquals(row.verification_status, "verified", `${r.id}: source row not verified`);
   }
 });
 

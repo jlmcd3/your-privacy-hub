@@ -132,16 +132,12 @@ const EnforcementPrecedents = ({
                 <Link to={`/enforcement/${p.id}`} className="text-blue-700 hover:underline">
                   View analysis
                 </Link>
-                {p.source_url && (
-                  <a
-                    href={p.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:underline"
-                  >
-                    Original source ↗
-                  </a>
-                )}
+                {/* No external source_url link (doc 62 §11.5, the no-URL
+                    ruling, CEO-ratified 2026-08-23): URLs are the one
+                    perishable element of a citation and a dead link in a
+                    delivered document is unfixable. The internal
+                    /enforcement/{id} route above is this fleet's stable
+                    locator. */}
               </div>
             </li>
           ))}
