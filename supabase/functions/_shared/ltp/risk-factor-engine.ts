@@ -38,6 +38,7 @@
 
 import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
 import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
+import type { RenderedTable } from "../prose/skeleton-render.ts";
 // SO-3 DEFECT CLASS 2 fix (2026-08-21, quality-batch 2fc40a52) — the shared,
 // abbreviation-aware sentence bound. This module's own copy of firstSentence()
 // used a naive regex that treated "Corp.", "Inc.", etc. as sentence endings,
@@ -169,12 +170,12 @@ export const RISK_FACTOR_FIXED = {
   vendor_dependency_lead: "The processing materially depends on:",
   vendor_dependency_note:
     "The effectiveness of the related contractual, technical, or oversight controls is considered in Section VIII.",
-
-  appendix_b_intro:
-    "This appendix provides the element-level analysis underlying Section III. For each material personal-information element, it records the function of the information, whether it is necessary to achieve the stated purpose, the basis for that conclusion, and any identified limitation or change.",
-  appendix_c_intro:
-    "This appendix provides the detailed analytical record underlying Sections VII and VIII. For each identified risk pathway, the register records the negative impact, personal information involved, relevant actor or event, source and cause, likelihood, severity, materiality, relevant safeguards, safeguard status, residual risk, and effect on the processing decision. The mapping of risks to safeguards is an EUP analytical method designed to make the reasoning transparent and reviewable. It is not presented as a regulator-prescribed report format.",
 } as const;
+// appendix_b_intro / appendix_c_intro retired 2026-08-23/24: Appendix B/C
+// are now real tables (buildNecessityMatrixTable /
+// buildRiskAndSafeguardRegisterTable, below) with their intro sentences
+// moved verbatim into cppa-risk.spine.ts as literal skeleton blocks,
+// matching how Appendix A/D/E/F's intros already work.
 
 // ── Ratified determination tables ─────────────────────────────────────────────
 
@@ -601,6 +602,77 @@ function extractNecessity(intake: Bag): NecessityBuckets {
   };
 }
 
+// ── CEO report review 2026-08-23/24 — Appendix B/C as real tables ───────────
+// Both appendices were "rule"-kind joined strings that fell through to the
+// plain-paragraph renderer instead of a bordered, columned table (doc 43
+// item 3 deliberately excluded them at the time because Risk still called
+// a model; the underlying operands were already exactly this structured —
+// see extractNecessity/extractPathways above — they were only ever FORMATTED
+// as prose). Now that Risk is fully deterministic, converting the format is
+// a pure presentation change: the same facts, same wording per cell, no new
+// legal content. Called from risk-skeleton-assemble.ts's `tables` bag.
+
+/** Appendix B — the element-level necessity matrix, one row per recorded
+ * intake element. Same facts and wording the former `appendix_b:0` "rule"
+ * string composed (immediately below, kept for reference/removal), now
+ * shaped as table rows instead of joined lines. */
+export function buildNecessityMatrixTable(intake: Bag): RenderedTable {
+  const rowsData = rows(intake.a2_necessity_set).filter((r) => s(r.element));
+  return {
+    key: "",
+    surface: "necessity_matrix",
+    title: "",
+    columns: ["Element", "Necessity Determination", "Basis"],
+    rows: rowsData.map((r) => [
+      s(r.element),
+      s(r.necessity),
+      clause(r.justification) || "Recorded in the intake record without further explanation.",
+    ]),
+  };
+}
+
+/** Appendix C — the risk pathway × safeguard register, ranked by
+ * materiality (highest first), mirroring the ordering the prior "rule"
+ * string used via rankPathways(). */
+export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
+  const pathways = rankPathways(extractPathways(intake));
+  return {
+    key: "",
+    surface: "risk_and_safeguard_register",
+    title: "",
+    columns: [
+      "Risk Pathway",
+      "Information, Actor, Source, and Cause",
+      "Likelihood, Severity, and Materiality (Before Safeguards)",
+      "Safeguards",
+      "Residual Tier",
+      "Effect on the Processing Decision",
+    ],
+    rows: pathways.map((p) => {
+      const safeguardCells = p.safeguards.length
+        ? p.safeguards.map((g) =>
+          `${firstSentence(s(g.safeguard))} [${s(g.safeguard_status)}]${
+            s(g.residual) ? ` — Company residual description: ${clause(g.residual)}` : ""
+          }`
+        ).join(" | ")
+        : "None established.";
+      const effect = MATERIALITY_RANK[p.residual] >= 2
+        ? "Weighs substantially against the processing in Section IX."
+        : MATERIALITY_RANK[p.residual] === 1
+        ? "Material to the Section IX balance."
+        : "Does not by itself move the Section IX balance.";
+      return [
+        p.harm,
+        `Information: ${p.data}. Actor or event: ${p.actor}. Source: ${p.source}. Cause: ${p.cause}.`,
+        `Likelihood: ${p.likelihood}. Severity: ${p.severity}. Materiality: ${p.materiality}.`,
+        safeguardCells,
+        p.residual,
+        effect,
+      ];
+    }),
+  };
+}
+
 // ── The engine ────────────────────────────────────────────────────────────────
 
 export function runRiskFactorEngine(
@@ -956,28 +1028,17 @@ export function runRiskFactorEngine(
       "iii_necessity:7",
       "minimization_recommendation",
       "B",
-      `${RISK_FACTOR_FIXED.minimization_recommendation_lead} Review the element-level record in Appendix B on the Section X cadence, and remove or justify any element whose necessity remains unestablished.`,
+      `${RISK_FACTOR_FIXED.minimization_recommendation_lead} Review the element-level record in Appendix D on the Section X cadence, and remove or justify any element whose necessity remains unestablished.`,
       ["FACTOR:necessity_conclusion"],
       ["11 CCR § 7152(a)(2)"],
     );
   }
 
-  // Appendix B — necessity matrix.
-  if (necessity.total) {
-    const matrix = rows(intake.a2_necessity_set).filter((r) => s(r.element)).map((r) =>
-      `Element — ${s(r.element)}. Necessity determination: ${s(r.necessity)}. Basis: ${
-        clause(r.justification) || "recorded in the intake record without further explanation"
-      }.`
-    );
-    put(
-      "appendix_b:0",
-      "necessity_matrix",
-      "A",
-      `${RISK_FACTOR_FIXED.appendix_b_intro}\n${matrix.join("\n")}`,
-      ["INTAKE:a2_necessity_set"],
-      ["11 CCR § 7152(a)(2)"],
-    );
-  }
+  // Appendix B — necessity matrix. CEO review 2026-08-23/24: Appendix B is
+  // now a real table (buildNecessityMatrixTable, above), wired through the
+  // `tables` bag in risk-skeleton-assemble.ts instead of a `put()`-composed
+  // "rule" string — the spine block flipped from "generated" to "table",
+  // so this put() call is dead (never read by the renderer) and removed.
 
   // ── Section VII — risks ──────────────────────────────────────────────────────
 
@@ -1329,49 +1390,17 @@ export function runRiskFactorEngine(
       "viii_safeguards:7",
       "overall_residual_risk_conclusion",
       "B",
-      `${conclusionText} Reasoning. Safeguard credit follows the assessment’s residual rule: a safeguard reduces a pathway’s materiality by one tier only where implementation and testing evidence supports it; implemented-but-untested and planned safeguards are recorded but do not change the tier. The Company’s own residual descriptions are preserved in Appendix C.`,
+      `${conclusionText} Reasoning. Safeguard credit follows the assessment’s residual rule: a safeguard reduces a pathway’s materiality by one tier only where implementation and testing evidence supports it; implemented-but-untested and planned safeguards are recorded but do not change the tier. The Company’s own residual descriptions are preserved in Appendix E.`,
       ["FACTOR:material_residual_risks"],
       ["11 CCR § 7152(a)(6)"],
     );
   }
 
-  // Appendix C — risk register.
-  if (pathways.length) {
-    const register = rankPathways(pathways).map((p) => {
-      const safeguardCells = p.safeguards.length
-        ? p.safeguards.map((g) =>
-          `${firstSentence(s(g.safeguard))} [status: ${s(g.safeguard_status)}]${
-            s(g.residual) ? ` [Company residual description: ${clause(g.residual)}]` : ""
-          }`
-        ).join(" | ")
-        : "none established";
-      return [
-        `Pathway — ${p.harm}.`,
-        `Information involved: ${p.data}.`,
-        `Actor or event: ${p.actor}.`,
-        `Source: ${p.source}.`,
-        `Cause: ${p.cause}.`,
-        `Likelihood: ${p.likelihood}. Severity: ${p.severity}. Materiality before safeguards: ${p.materiality}.`,
-        `Safeguards: ${safeguardCells}.`,
-        `Residual tier after credited safeguards: ${p.residual}.`,
-        `Effect on the processing decision: ${
-          MATERIALITY_RANK[p.residual] >= 2
-            ? "weighs substantially against the processing in Section IX."
-            : MATERIALITY_RANK[p.residual] === 1
-            ? "material to the Section IX balance."
-            : "does not by itself move the Section IX balance."
-        }`,
-      ].join(" ");
-    });
-    put(
-      "appendix_c:0",
-      "risk_and_safeguard_register",
-      "B",
-      `${RISK_FACTOR_FIXED.appendix_c_intro}\n${register.join("\n")}`,
-      ["INTAKE:a5_harm_pathways", "INTAKE:a6_safeguards", "FACTOR:materiality_matrix", "FACTOR:residual_rule"],
-      ["11 CCR § 7152(a)(5)", "11 CCR § 7152(a)(6)"],
-    );
-  }
+  // Appendix C — risk register. CEO review 2026-08-23/24: Appendix C is
+  // now a real table (buildRiskAndSafeguardRegisterTable, above), wired
+  // through the `tables` bag in risk-skeleton-assemble.ts instead of a
+  // `put()`-composed "rule" string — the spine block flipped from
+  // "generated" to "table", so this put() call is dead and removed.
 
   // ── Section VI — benefits ────────────────────────────────────────────────────
 
@@ -1828,7 +1857,7 @@ export function runRiskFactorEngine(
     const parts: string[] = [];
     if (providers) {
       parts.push(
-        `Record Considered. The assessment record consists of the intake record and the materials indexed in Appendix F — Materials Considered. Information was provided by: ${providers}.`,
+        `Record Considered. The assessment record consists of the intake record and the materials indexed in Appendix H — Materials Considered. Information was provided by: ${providers}.`,
       );
     }
     if (rc && rc.value === true) {
@@ -2629,7 +2658,7 @@ export function runRiskFactorEngine(
         parts.push(
           none
             ? "Analysis. Training-data provenance is not identified in the Company’s submission."
-            : "Analysis. The Company identifies the provenance of the training data, and the identification forms part of the technical record in Appendix D.",
+            : "Analysis. The Company identifies the provenance of the training data, and the identification forms part of the technical record in Appendix F.",
         );
         if (trainsSignificant) {
           parts.push(
@@ -2656,7 +2685,7 @@ export function runRiskFactorEngine(
         "B",
         none
           ? "Conclusion. Training-data provenance is not identified for the system; the gap is carried into the assessment follow-up where material."
-          : "Conclusion. The provenance of the training data is identified in the Company’s submission and forms part of the technical record in Appendix D.",
+          : "Conclusion. The provenance of the training data is identified in the Company’s submission and forms part of the technical record in Appendix F.",
         ["INTAKE:i5_admt_training_source"],
         [],
       );

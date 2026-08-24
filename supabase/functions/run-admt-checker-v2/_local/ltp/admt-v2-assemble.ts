@@ -26,6 +26,21 @@
 //     round: a customer-facing table must not let a reader reverse-
 //     engineer the deterministic logic).
 //
+// CEO REPORT REVIEW 2026-08-23/24 — three fixes to the appendix set:
+//   - The "ID" (finding_id) column on the three Section 8 action tables is
+//     dropped — an internal sequence counter, not a customer-facing value.
+//   - Appendix A's "Source field(s)" column is dropped — it printed raw
+//     intake schema paths (e.g. "admt_detail.hosting") to the customer.
+//   - The appendix set is renumbered and Appendix B's 4th-column merge
+//     lands (fleet-wide 3-column "Report Determination" convention, doc 46
+//     / commit a062af92e, extended here from DPIA+Risk to ADMT): what was
+//     Appendix A (fact record) is now Appendix C; what was Appendix B
+//     (factor matrix, now 3 columns) is now Appendix A; what was Appendix C
+//     (persuasive authority) is now Appendix B. Determination leads,
+//     precedent second, the record appendix last — highest end-user value
+//     first, matching the same reordering principle applied to CPPA Risk's
+//     appendix G/I/[A-family] the same session. No appendix content lost.
+//
 // FIDELITY NOTE: fixed prose below is transcribed from
 // CPPA_ADMT_Audit_Spine_v3.2.docx (itself the CEO's v3.0 draft plus two
 // rounds of CEO redlines/comments, fully ratified). This module still does
@@ -363,15 +378,15 @@ export function buildAdmtPersuasiveAuthority(computed: AdmtV2Computed): AdmtPers
 /** Ratified fixed lead for the Persuasive Authority appendix — the ADMT
  * twin of RISK_APPENDIX_I_LEAD (risk-skeleton-assemble.ts), reworded for
  * the ADMT reader. Composed iff ≥1 precedent row attaches. */
-export const ADMT_APPENDIX_C_LEAD =
+export const ADMT_APPENDIX_B_LEAD =
   "This appendix collects enforcement decisions issued under analogous data-protection law that bear on factors assessed in this report. These decisions were issued under the EU General Data Protection Regulation, not the CCPA or its Article 10/11 regulations; they are persuasive context only, are not binding on the California Privacy Protection Agency or on any court applying California law, and are cited because the processing or the failure they address is analogous to a factor this assessment addresses. Each entry names the factor it bears on. The operative determination for every factor remains the analysis in the body of this report.";
 
-/** Appendix B's Primary-authority column, extended (doc 62 §11's R1
- * amendment): a factor with a ratified `trail_impact` tag carries it in
- * the cell; the Significant-decision factor additionally carries the S5
- * pointer when Appendix C renders — mirroring Risk's Appendix G/I
- * mechanism exactly, so the pointer can never dangle when Appendix C is
- * suppressed. */
+/** Appendix A's (formerly "B") Primary-authority column, extended (doc 62
+ * §11's R1 amendment): a factor with a ratified `trail_impact` tag carries
+ * it in the cell; the Significant-decision factor additionally carries the
+ * S5 pointer when Appendix B (formerly "C") renders — mirroring Risk's
+ * Appendix G/I mechanism exactly, so the pointer can never dangle when
+ * Appendix B is suppressed. */
 function admtTrailImpactFor(factorId: string): string | null {
   const tagged = ADMT_CORPUS_MAP.rows.find((r) => r.factor_id === factorId && r.trail_impact);
   return tagged?.trail_impact ?? null;
@@ -646,31 +661,38 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     { kind: "skeleton", text: "The easiest way to keep this report useful is to update the relevant answers when the System or compliance process changes and rerun the assessment. That shows which conclusions changed and why without rebuilding the analysis from the beginning." },
   ]);
 
-  // ── Appendix A — Assessment Fact Record ─────────────────────────────────
-  push("appendix_a", "Appendix A — Assessment Fact Record", [
-    { kind: "skeleton", text: "This appendix captures the material facts the Company supplied and that the audit used. It supports later review and updating; it does not independently verify the Company's responses. The following table records the material facts the Company supplied for each topic:" },
-    { kind: "table", text: "", table: { key: "appendix_a:0", surface: "fact_record", ...buildFactRecordTable(intake, computed, organizationName, systemName, systemType, domains) } },
-  ]);
+  // CEO review 2026-08-23/24 (same fleet-wide reordering principle applied
+  // to CPPA Risk: lead with the determination matrix, then precedent, then
+  // the record appendix — highest end-user value first). Former
+  // Appendix A (fact record), B (factor matrix), C (persuasive authority)
+  // are renumbered A=factor matrix, B=persuasive authority, C=fact record.
+  // No content lost; only order and labels change.
 
-  // ── Appendix B — Factor, Company Response, and Authority Matrix ────────
+  // ── Appendix A — Factor, Determination, and Authority Matrix ───────────
   // Wave C1: computed BEFORE the table build so the Significant-decision
-  // row's authority cell can carry the S5 pointer exactly when Appendix C
+  // row's authority cell can carry the S5 pointer exactly when Appendix B
   // renders (Factor-Bearing Law; no dangling pointer on suppression).
   const persuasive = buildAdmtPersuasiveAuthority(computed);
-  push("appendix_b", "Appendix B — Factor, Company Response, and Authority Matrix", [
-    { kind: "skeleton", text: "This matrix restates each material factor behind the assessment in one place: what the Company reported, what that reporting means in the report's own words, and the specific regulatory provision that governs it. It exists so the assessment can be reviewed and updated by the Company or its legal counsel as necessary." },
-    { kind: "table", text: "", table: { key: "appendix_b:0", surface: "factor_matrix", ...buildFactorMatrixTable(intake, computed, optOut.path, admtS4, persuasive.trail) } },
+  push("appendix_a", "Appendix A — Factor, Determination, and Authority Matrix", [
+    { kind: "skeleton", text: "This matrix restates each material factor behind the assessment in one place: the report's determination on that factor, in the report's own words, and the specific regulatory provision that governs it. It exists so the assessment can be reviewed and updated by the Company or its legal counsel as necessary." },
+    { kind: "table", text: "", table: { key: "appendix_a:0", surface: "factor_matrix", ...buildFactorMatrixTable(intake, computed, optOut.path, admtS4, persuasive.trail) } },
   ]);
 
-  // ── Appendix C — Persuasive Authority (Analogous Enforcement) ──────────
+  // ── Appendix B — Persuasive Authority (Analogous Enforcement) ──────────
   // Wave C1 (doc 62 §9 amendment / doc 63 §3.3). NO-PADDING LAW: no
   // attached precedent, no appendix.
   if (persuasive.table) {
-    push("appendix_c", "Appendix C — Persuasive Authority (Analogous Enforcement)", [
-      { kind: "skeleton", text: ADMT_APPENDIX_C_LEAD },
-      { kind: "table", text: "", table: { ...persuasive.table, key: "appendix_c:1" } },
+    push("appendix_b", "Appendix B — Persuasive Authority (Analogous Enforcement)", [
+      { kind: "skeleton", text: ADMT_APPENDIX_B_LEAD },
+      { kind: "table", text: "", table: { ...persuasive.table, key: "appendix_b:1" } },
     ]);
   }
+
+  // ── Appendix C — Assessment Fact Record ─────────────────────────────────
+  push("appendix_c", "Appendix C — Assessment Fact Record", [
+    { kind: "skeleton", text: "This appendix captures the material facts the Company supplied and that the audit used. It supports later review and updating; it does not independently verify the Company's responses. The following table records the material facts the Company supplied for each topic:" },
+    { kind: "table", text: "", table: { key: "appendix_c:0", surface: "fact_record", ...buildFactRecordTable(intake, computed, organizationName, systemName, systemType, domains) } },
+  ]);
 
   return {
     _typed: "skeleton-document@admt-v3.2",
@@ -821,13 +843,20 @@ function buildActionParagraphs(c: AdmtV2Computed): RenderedParagraph[] {
     { kind: "skeleton", text: "The items below separate changes needed before the assessment can support the Company's selected compliance approach from factual follow-up and non-blocking improvements. The following tables list any conditions, follow-up items, and recommendations generated from the Company's responses:" },
   ];
 
+  // CEO review 2026-08-23/24: "ID" (finding_id, an internal sequence
+  // counter from mkFinding()/nextFindingId() in admt-v2-deterministic.ts)
+  // is not a customer-facing variable and confused the reader as the first
+  // column of these three tables. Dropped; Area/Condition/etc. already
+  // uniquely identify each row for the reader, and finding_id was never
+  // referenced from any other surface (checked — it exists only to key
+  // these three arrays internally).
   if (conditions.length > 0) {
     paras.push(
       { kind: "skeleton", text: "8.1 Conditions to Proceed" },
       { kind: "table", text: "", table: {
         key: "actions:8.1", surface: "conditions", title: "",
-        columns: ["ID", "Area", "Condition", "Why it matters", "Closure condition"],
-        rows: conditions.map((f) => [f.finding_id, f.area, f.action_text, f.factual_basis, f.closure_condition]),
+        columns: ["Area", "Condition", "Why it matters", "Closure condition"],
+        rows: conditions.map((f) => [f.area, f.action_text, f.factual_basis, f.closure_condition]),
       }},
     );
   }
@@ -837,8 +866,8 @@ function buildActionParagraphs(c: AdmtV2Computed): RenderedParagraph[] {
       { kind: "skeleton", text: "8.2 Required Assessment Follow-Up" },
       { kind: "table", text: "", table: {
         key: "actions:8.2", surface: "followups", title: "",
-        columns: ["ID", "Area", "Missing or unresolved item", "Why it matters", "What resolves it"],
-        rows: followups.map((f) => [f.finding_id, f.area, f.action_text, f.factual_basis, f.closure_condition]),
+        columns: ["Area", "Missing or unresolved item", "Why it matters", "What resolves it"],
+        rows: followups.map((f) => [f.area, f.action_text, f.factual_basis, f.closure_condition]),
       }},
     );
   }
@@ -848,8 +877,8 @@ function buildActionParagraphs(c: AdmtV2Computed): RenderedParagraph[] {
       { kind: "skeleton", text: "8.3 Recommendations" },
       { kind: "table", text: "", table: {
         key: "actions:8.3", surface: "recommendations", title: "",
-        columns: ["ID", "Area", "Recommendation", "Reason"],
-        rows: recommendations.map((f) => [f.finding_id, f.area, f.action_text, f.factual_basis]),
+        columns: ["Area", "Recommendation", "Reason"],
+        rows: recommendations.map((f) => [f.area, f.action_text, f.factual_basis]),
       }},
     );
   }
@@ -896,38 +925,46 @@ function buildFactRecordTable(
   const noticeDelivery = arrJoin((intake as any)?.notice_delivery);
   const thirdParty = str((intake as any)?.third_party_admt);
 
+  // CEO review 2026-08-23/24: "Source field(s)" printed the raw intake
+  // schema paths (e.g. "admt_detail.hosting; admt_detail.model_types") to
+  // the customer — an internal variable name, not information the reader
+  // can use. Dropped; the Topic column already names the subject in plain
+  // English and the Recorded value column carries the actual fact.
   const rows: string[][] = [
-    ["Organization and system", "organization_name; system_name; system_type; system_description",
+    ["Organization and system",
       factOr(`${organizationName || "(not reported)"} — ${systemName || "(not reported)"}${systemType ? `, ${systemType}` : ""}.`)],
-    ["Hosting / model type", "admt_detail.hosting; admt_detail.model_types",
+    ["Hosting / model type",
       factOr([hosting, modelTypes ? `Model type(s): ${modelTypes}.` : ""].filter(Boolean).join(" "))],
-    ["Decision domains", "decision_domains", factOr(reader(domains))],
-    ["Decision role", "decision_effects; decision_cadence; sole_factor; feeds_future_decisions",
+    ["Decision domains", factOr(reader(domains))],
+    ["Decision role",
       factOr([decisionEffects && `Effects: ${decisionEffects}.`, decisionCadence && `Cadence: ${decisionCadence}.`, soleFactor && `Role of output: ${soleFactor}.`, feedsFuture && `Feeds future decisions: ${feedsFuture}.`].filter(Boolean).join(" "))],
-    ["Human review", "human_review", factOr(str((intake as any)?.human_review))],
-    ["Training / profiling", "training_data_use; profiling_use",
+    ["Human review", factOr(str((intake as any)?.human_review))],
+    ["Training / profiling",
       factOr([training && `Training data use: ${training}.`, profiling && `Profiling use: ${profiling}.`].filter(Boolean).join(" "))],
-    ["Scale", "ca_consumer_count; affected_population_band; admt_system_count",
+    ["Scale",
       factOr([consumerCount && `CA consumers: ${consumerCount}.`, popBand && `Population band: ${popBand}.`, systemCount && `ADMT system count: ${systemCount}.`].filter(Boolean).join(" "))],
-    ["Internal roles", "role_roster", factOr(roleRoster)],
-    ["Notice", "notice_delivery and notice_* fields",
+    ["Internal roles", factOr(roleRoster)],
+    ["Notice",
       factOr([noticeDelivery && `Delivery: ${noticeDelivery}.`, `Record quality: ${gradeLabel(computed.notice.recordGrade)}`].filter(Boolean).join(" "))],
-    ["Opt-out / exception", "opt_out_* and path-specific admt_detail fields",
+    ["Opt-out / exception",
       factOr(`Pathway: ${OPTOUT_PATH_LABEL[computed.optOutPath] ?? "unresolved"}. Record quality: ${gradeLabel(computed.optOut.recordGrade)}`)],
-    ["Access", "access_* and access_readiness.*",
+    ["Access",
       factOr(`Record quality: ${gradeLabel(computed.access.recordGrade)}`)],
-    ["Vendor / system detail", "third_party_admt and applicable admt_detail.*",
+    ["Vendor / system detail",
       factOr(thirdParty ? `Third-party ADMT: ${thirdParty}. Record quality: ${gradeLabel(computed.vendor.recordGrade)}` : "No third-party ADMT identified.")],
   ];
 
-  return { title: "", columns: ["Topic", "Source field(s)", "Recorded value"], rows };
+  return { title: "", columns: ["Topic", "Recorded value"], rows };
 }
 
 // ---------------------------------------------------------------------------
-// Appendix B — Factor, Company Response, and Authority Matrix. Column 3
-// (report language) is selected for THIS report's actual computed result —
-// never a static menu of every possible outcome — and never shows the
-// triggering condition, per the CEO's 2026-08-21 redline-round ruling.
+// Appendix A (formerly "B") — Factor, Determination, and Authority Matrix.
+// The determination column (report language) is selected for THIS report's
+// actual computed result — never a static menu of every possible outcome —
+// and never shows the triggering condition, per the CEO's 2026-08-21
+// redline-round ruling. 2026-08-23/24: merged with the former "Company's
+// reported answer" column into one Report Determination cell, matching the
+// fleet-wide 3-column convention (doc 46).
 // Only the ONE opt-out pathway row matching the Company's selected path
 // renders, matching the conditional-printing rule Part I already follows
 // for the body sections themselves.
@@ -988,7 +1025,7 @@ function buildFactorMatrixTable(
   // renders there, not repeated here — avoids the aggregate-budget clutter
   // R2 exists to prevent); a factor with a ratified dark trail_impact tag
   // gets that tag; Significant decision additionally gets the S5 pointer
-  // when Appendix C renders. At most one of these per row, by construction.
+  // when Appendix B renders. At most one of these per row, by construction.
   const s4Factors = new Set((admtS4 ?? []).map((a) => a.factor_id));
   for (const row of rows) {
     const factorId = row[0];
@@ -999,9 +1036,18 @@ function buildFactorMatrixTable(
     const tag = admtTrailImpactFor(factorId);
     if (tag) row[3] = `${row[3]}; ${tag}`;
     if (factorId === "Significant decision" && persuasiveTrail) {
-      row[3] = `${row[3]}; persuasive (Appendix C): analogous enforcement — ${persuasiveTrail}`;
+      row[3] = `${row[3]}; persuasive (Appendix B): analogous enforcement — ${persuasiveTrail}`;
     }
   }
 
-  return { title: "", columns: ["Factor", "Company's reported answer", "What the report says", "Primary authority"], rows };
+  // CEO review 2026-08-23/24, fleet-wide convention (doc 46; landed for
+  // DPIA + CPPA Risk in commit a062af92e, never carried to ADMT until now):
+  // "Company's reported answer" and "What the report says" merge into one
+  // Report Determination cell — the report's own determination language
+  // already reflects the company's answer, so a separate raw-answer column
+  // is the same redundant-detail problem the fleet-wide redesign fixed
+  // elsewhere. Three columns, matching every other product's appendix.
+  const merged = rows.map((r) => [r[0], `${r[1]} — ${r[2]}`, r[3]]);
+
+  return { title: "", columns: ["Factor", "Report Determination", "Primary Authority"], rows: merged };
 }

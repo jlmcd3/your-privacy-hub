@@ -187,10 +187,9 @@ for (const c of CPPA_RISK_PERFECT) {
       assertEquals(sk.register_findings.length, 0, JSON.stringify(sk.register_findings));
     });
 
-    await t.step("factor appendices render; methodology appendix stays absent", () => {
-      assert(ids.includes("appendix_b"), "Appendix B (necessity matrix) absent");
-      assert(ids.includes("appendix_c"), "Appendix C (risk register) absent");
-      assert(!ids.includes("appendix_h"), "Appendix H must stay absent");
+    await t.step("factor appendices render (the EUP-methodology appendix is retired, not merely absent — see cppa-risk.spine.ts's v4.7 note)", () => {
+      assert(ids.includes("appendix_b"), "the necessity matrix appendix (id appendix_b, printed as Appendix D) is absent");
+      assert(ids.includes("appendix_c"), "the risk register appendix (id appendix_c, printed as Appendix E) is absent");
     });
 
     await t.step("necessity conversion renders end-to-end", () => {

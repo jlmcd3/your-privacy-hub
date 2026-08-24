@@ -1,9 +1,15 @@
-// PHASE 2 corpus program (2026-08-22) — Appendix I (Persuasive Authority),
-// the S5 surface (doc 49 A.2.4). Covers: pure attachment over fired
-// trigger states, the no-padding suppression, the AOW's adverse-state
-// binding, the S3 citation trail on the Appendix G trigger row (Factor-
-// Bearing Law — and its no-dangling-pointer property), and the standing
-// GDPR≠CPPA disclaimer.
+// PHASE 2 corpus program (2026-08-22) — Persuasive Authority (id
+// "appendix_i"), the S5 surface (doc 49 A.2.4). Covers: pure attachment
+// over fired trigger states, the no-padding suppression, the AOW's
+// adverse-state binding, the S3 citation trail on the factor/determination
+// matrix's trigger row (Factor-Bearing Law — and its no-dangling-pointer
+// property), and the standing GDPR≠CPPA disclaimer.
+//
+// CEO report review 2026-08-23/24: the appendix set was reordered and
+// relettered — the id "appendix_i" now renders as "Appendix B" (formerly
+// "I"); the factor/determination matrix (id "table_of_authorities") now
+// renders as "Appendix A" (formerly "G"). Section ids are UNCHANGED; only
+// the printed titles moved. See cppa-risk.spine.ts's v4.7 note.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
@@ -103,22 +109,22 @@ for (const c of CPPA_RISK_PERFECT) {
     const fired = deriveRiskFiredStates(report);
     const shouldRender = fired.has("trigger_engaged");
 
-    await t.step("Appendix I renders iff a trigger is engaged", () => {
+    await t.step("Appendix B (formerly \"I\") renders iff a trigger is engaged", () => {
       assertEquals(ids.includes("appendix_i"), shouldRender, `appendix_i presence on ${c.id}`);
     });
 
     if (shouldRender) {
       await t.step("the disclaimer, the anchor precedent, and the persuasive-only label print", () => {
-        assert(body.includes("Appendix I — Persuasive Authority (Analogous Enforcement)"));
+        assert(body.includes("Appendix B — Persuasive Authority (Analogous Enforcement)"));
         assert(body.includes("persuasive context only, are not binding"));
         assert(body.includes("AENA"));
         assert(body.includes("persuasive only; decided under the GDPR, not the CCPA"));
       });
 
-      await t.step("Appendix G's trigger row carries the S3 citation trail", () => {
+      await t.step("Appendix A's (formerly \"G\") trigger row carries the S3 citation trail", () => {
         assert(
-          body.includes("persuasive (Appendix I): "),
-          "trigger-row authority cell must cite into Appendix I when it renders",
+          body.includes("persuasive (Appendix B): "),
+          "trigger-row authority cell must cite into Appendix B when it renders",
         );
       });
 
@@ -127,8 +133,8 @@ for (const c of CPPA_RISK_PERFECT) {
         assertEquals(body.includes("Caution. Regulators applying analogous"), rc?.value !== true);
       });
     } else {
-      await t.step("no dangling pointer when Appendix I is suppressed", () => {
-        assert(!body.includes("Appendix I"), "suppressed appendix must leave no reference behind");
+      await t.step("no dangling pointer when Appendix B is suppressed", () => {
+        assert(!body.includes("Appendix B — Persuasive Authority"), "suppressed appendix must leave no reference behind");
       });
     }
 

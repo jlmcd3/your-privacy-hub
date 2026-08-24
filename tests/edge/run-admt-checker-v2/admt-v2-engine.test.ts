@@ -113,20 +113,28 @@ Deno.test("end-to-end: IN_SCOPE report renders sentence-cited legal blocks, read
     }
   }
 
+  // CEO review 2026-08-23/24 reorder: appendix_a is now the Factor,
+  // Determination, and Authority Matrix (formerly appendix_b); appendix_c
+  // is now the Assessment Fact Record (formerly appendix_a). No content
+  // lost — see admt-v2-assemble.ts's reorder comment.
   const appendixA = doc.sections.find((s) => s.id === "appendix_a");
-  assert(appendixA, "Appendix A (Assessment Fact Record) must render for an in-scope report");
-  const appendixB = doc.sections.find((s) => s.id === "appendix_b");
-  assert(appendixB, "Appendix B (Factor, Company Response, and Authority Matrix) must render for an in-scope report");
-  const matrixTable = appendixB!.paragraphs.find((p) => p.kind === "table")!.table!;
-  assertEquals(matrixTable.columns, ["Factor", "Company's reported answer", "What the report says", "Primary authority"]);
+  assert(appendixA, "Appendix A (Factor, Determination, and Authority Matrix) must render for an in-scope report");
+  const appendixC = doc.sections.find((s) => s.id === "appendix_c");
+  assert(appendixC, "Appendix C (Assessment Fact Record) must render for an in-scope report");
+  const matrixTable = appendixA!.paragraphs.find((p) => p.kind === "table")!.table!;
+  // Fleet-wide 3-column convention (doc 46; a062af92e for DPIA/Risk, now
+  // ADMT too): "Company's reported answer" and "What the report says" merge
+  // into one Report Determination cell.
+  assertEquals(matrixTable.columns, ["Factor", "Report Determination", "Primary Authority"]);
   // Only the ONE selected opt-out pathway's row should appear, not all four.
   const pathwayRows = matrixTable.rows.filter((r) => r[0] === "Opt-out pathway");
-  assertEquals(pathwayRows.length, 1, "Appendix B must show exactly one opt-out-pathway row, matching the Company's selected path");
-  // Column 3 must never show a "trigger → phrase" pattern (comment-42 rule):
-  // it should be short, quoted-style outcome language, not the condition.
+  assertEquals(pathwayRows.length, 1, "Appendix A must show exactly one opt-out-pathway row, matching the Company's selected path");
+  // The merged determination cell (column 2, formerly column 3's content)
+  // must never show a "trigger → phrase" pattern (comment-42 rule): it
+  // should be short, quoted-style outcome language, not the condition.
   for (const row of matrixTable.rows) {
-    assert(!row[2].includes(" reported →"), `Appendix B column 3 leaked a trigger condition: "${row[2]}"`);
-    assert(!row[2].includes(" reported met →"), `Appendix B column 3 leaked a trigger condition: "${row[2]}"`);
+    assert(!row[1].includes(" reported →"), `Appendix A determination cell leaked a trigger condition: "${row[1]}"`);
+    assert(!row[1].includes(" reported met →"), `Appendix A determination cell leaked a trigger condition: "${row[1]}"`);
   }
 });
 

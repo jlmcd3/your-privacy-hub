@@ -60,15 +60,18 @@ Deno.test("wave C1 — human-involvement S4 + the S5 Deliveroo appendix both ren
 
   const { body, sectionIds } = renderText(intake);
   assert(body.includes("What the Regulator Said — Human involvement"));
-  assert(sectionIds.includes("appendix_c"), "Appendix C (Persuasive Authority) must render when admt_in_scope fires");
+  // CEO review 2026-08-23/24 reorder: Persuasive Authority is now
+  // Appendix B (formerly C); the factor matrix is now Appendix A
+  // (formerly B) — see admt-v2-assemble.ts's reorder comment.
+  assert(sectionIds.includes("appendix_b"), "Appendix B (Persuasive Authority) must render when admt_in_scope fires");
   assert(body.includes("Garante"));
   assert(body.includes("Deliveroo Italy s.r.l."));
   assert(body.includes("decision of 22 July 2021"));
   assert(body.includes("persuasive only; decided under the GDPR, not the CCPA"));
 
-  // Appendix B's Significant-decision row must carry the S5 pointer.
-  const appendixB = body;
-  assert(appendixB.includes("persuasive (Appendix C): analogous enforcement"));
+  // Appendix A's Significant-decision row must carry the S5 pointer.
+  const appendixA = body;
+  assert(appendixA.includes("persuasive (Appendix B): analogous enforcement"));
   // Human involvement's row must carry the "see §2.1" pointer, not a
   // redundant restated tag (avoids the aggregate-budget clutter R2 exists
   // to prevent).
@@ -102,7 +105,10 @@ Deno.test("wave C1 — no S4/S5 content on a report where neither factor was add
   };
   const { body } = renderText(intake);
   assert(!body.includes("What the Regulator Said"), "no-padding law: nothing fired, nothing renders");
-  assert(!body.includes("Appendix C"));
+  // Persuasive Authority is now Appendix B (formerly C) — see the reorder
+  // comment in admt-v2-assemble.ts. Appendix A (factor matrix) and
+  // Appendix C (fact record) always render, so only B is checked here.
+  assert(!body.includes("Appendix B"));
 });
 
 Deno.test("wave C1 — none of the 35 dark FC-J bulk rows leak into any rendered document (R2 admission rule)", () => {

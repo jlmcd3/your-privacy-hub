@@ -1298,7 +1298,16 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // a period, a phrase with no embedded period, then a period before
         // the body continues. Escaped, then marker-substituted, separately
         // for the lead and the rest so <strong> wraps only the lead.
-        const lead = /^([A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/.exec(chunk);
+        //
+        // CEO report review 2026-08-23/24 — the same rule extended to the
+        // named, unlettered CPPA Risk Executive Summary phrase-leads
+        // ("Activity Assessed.", "Why a Risk Assessment Is Required.",
+        // "Key Findings.", "Overall Determination.", "Conditions to
+        // Proceed.", "Assessment Follow-Up Required." — verified against
+        // risk-factor-engine.ts's RISK_FACTOR_FIXED constants). Tried
+        // first (exact match), falling back to the lettered pattern.
+        const lead = /^(Activity Assessed\.|Why a Risk Assessment Is Required\.|Key Findings\.|Overall Determination\.|Conditions to Proceed\.|Assessment Follow-Up Required\.|[A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/
+          .exec(chunk);
         const mark = (html: string) => footnotesOn ? substituteFootnoteMarkers(html) : html;
         const withMarkers = lead
           ? `<strong>${mark(escHtml(lead[1]))}</strong>${escHtml(lead[2])}${mark(escHtml(lead[3]))}`

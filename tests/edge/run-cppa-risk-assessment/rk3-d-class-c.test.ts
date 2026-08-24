@@ -328,13 +328,13 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("No adverse consideration is assumed"), "con analysis absent");
     });
 
-    await t.step("Appendix G carries the factor/determination/authority matrix", () => {
+    await t.step("Appendix A (formerly \"G\") carries the factor/determination/authority matrix", () => {
       assert(
-        body.includes("Appendix G — Factor, Determination, and Authority Matrix"),
-        "Appendix G title absent",
+        body.includes("Appendix A — Factor, Determination, and Authority Matrix"),
+        "Appendix A title absent",
       );
-      assert(body.includes("Necessity and minimization"), "Appendix G necessity row absent");
-      assert(body.includes("11 CCR § 7152(a)(2)"), "Appendix G authority citation absent");
+      assert(body.includes("Necessity and minimization"), "Appendix A necessity row absent");
+      assert(body.includes("11 CCR § 7152(a)(2)"), "Appendix A authority citation absent");
     });
 
     await t.step("banned register and markers stay clean over the new text", () => {

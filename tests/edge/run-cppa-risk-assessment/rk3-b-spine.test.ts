@@ -44,11 +44,15 @@ const BUILD_STAMP = "rk3-b-spine-pins";
 
 // ── Spine structure pins ──────────────────────────────────────────────────────
 
-Deno.test("RK3-B — spine version is the v4.6 encode (corpus phase 2 adds Appendix I)", () => {
-  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.6-2026-08-22");
+Deno.test("RK3-B — spine version is the v4.7 encode (CEO report review: cover table, real Appendix B/C tables, appendix reorder)", () => {
+  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.7-2026-08-24");
 });
 
 Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
+  // CEO report review 2026-08-23/24: table_of_authorities (Appendix A,
+  // formerly "G") and appendix_i (Appendix B, formerly "I") now lead the
+  // appendix set; appendix_a-f follow, reletterd C-H. appendix_h (EUP
+  // Methodology, never triggered) is retired — no longer a valid id.
   assertEquals(SKELETON_SECTIONS.map((s) => s.id), [
     "cover",
     "executive_summary",
@@ -62,26 +66,25 @@ Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
     "viii_safeguards",
     "ix_balancing",
     "x_governance",
+    "table_of_authorities",
+    // v4.6 — corpus phase 2 (doc 49 A.2.4): the S5 persuasive-authority
+    // surface; fully conditional, drops when no precedent row attaches.
+    "appendix_i",
     "appendix_a",
     "appendix_b",
     "appendix_c",
     "appendix_d",
     "appendix_e",
     "appendix_f",
-    "table_of_authorities",
-    "appendix_h",
-    // v4.6 — corpus phase 2 (doc 49 A.2.4): the S5 persuasive-authority
-    // surface; fully conditional, drops when no precedent row attaches.
-    "appendix_i",
   ]);
 });
 
-Deno.test("RK3-B — Appendix G keeps the id the PDF renderer page-breaks on", () => {
-  const appG = SKELETON_SECTIONS.find((s) =>
-    s.title === "Appendix G — Factor, Determination, and Authority Matrix"
+Deno.test("RK3-B — Appendix A (formerly \"G\") keeps the id the PDF renderer page-breaks on", () => {
+  const appA = SKELETON_SECTIONS.find((s) =>
+    s.title === "Appendix A — Factor, Determination, and Authority Matrix"
   );
-  assertExists(appG);
-  assertEquals(appG.id, "table_of_authorities");
+  assertExists(appA);
+  assertEquals(appA.id, "table_of_authorities");
 });
 
 Deno.test("RK3-B — the v3 banned register never appears in fixed prose", () => {
@@ -128,9 +131,12 @@ const PRESENT_ALWAYS = [
   "appendix_f",
 ];
 
-// RK3-C: Appendix H (EUP methodology) stays absent — its trigger is the
-// {{SYSTEM.include_methodology_appendix}} flag, which no fixture sets.
-const ABSENT_PHASE_B = ["appendix_h"];
+// CEO report review 2026-08-23/24: the EUP-methodology appendix (formerly
+// id "appendix_h") is RETIRED from the spine entirely — it never composed
+// (its trigger, {{SYSTEM.include_methodology_appendix}}, no fixture ever
+// set) and "appendix_h" is no longer even a section this array can
+// produce, so there is nothing left to assert absent here.
+const ABSENT_PHASE_B: string[] = [];
 
 for (const c of CPPA_RISK_PERFECT) {
   Deno.test(`RK3-B — Spine 4.3 rendering — ${c.id}`, async (t) => {
@@ -181,8 +187,8 @@ for (const c of CPPA_RISK_PERFECT) {
       }
     });
 
-    await t.step("Appendix G renders", () => {
-      assert(ids.includes("table_of_authorities"), "Appendix G section absent");
+    await t.step("Appendix A (formerly \"G\") renders", () => {
+      assert(ids.includes("table_of_authorities"), "Appendix A (factor/determination matrix) section absent");
     });
 
     await t.step("no placeholder or sentinel leakage", () => {

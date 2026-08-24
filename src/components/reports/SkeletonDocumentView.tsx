@@ -109,7 +109,12 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 // paragraph's lettered lead ("E. Residual Risk.") when one
                 // opens the chunk. Same pattern/regex as the PDF renderer
                 // (generate-report-pdf/index.ts's skeletonSectionsHtml).
-                const lead = /^([A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/.exec(chunk);
+                //
+                // CEO report review 2026-08-23/24 — extended to the named,
+                // unlettered CPPA Risk Executive Summary phrase-leads. Same
+                // list as the PDF renderer; see its comment for provenance.
+                const lead = /^(Activity Assessed\.|Why a Risk Assessment Is Required\.|Key Findings\.|Overall Determination\.|Conditions to Proceed\.|Assessment Follow-Up Required\.|[A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/
+                  .exec(chunk);
                 return (
                   <p key={`${i}-${j}`} className="leading-relaxed text-foreground whitespace-pre-line">
                     {lead

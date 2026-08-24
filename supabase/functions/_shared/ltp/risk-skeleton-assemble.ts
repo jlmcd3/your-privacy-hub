@@ -40,6 +40,8 @@ import {
 // until RK3-D.
 import {
   runRiskFactorEngine,
+  buildNecessityMatrixTable,
+  buildRiskAndSafeguardRegisterTable,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 // SO-3 DEFECT CLASS 2 fix (2026-08-21, quality-batch 2fc40a52) — see the
@@ -202,6 +204,32 @@ export function deriveAssessmentRetentionEnd(intake: Bag): string | null {
     return "Because the processing is recorded as discontinued, the assessment record must be retained for five years after completion of this assessment, or until the end of the processing if that is later";
   }
   return "Because the processing continues on the present record, the retention end date is not yet determinable; the later-of rule above governs";
+}
+
+/**
+ * {{DERIVED.cover_summary}} — CEO report review 2026-08-23/24: the cover
+ * block flips from one prose sentence ("Prepared for: X. Processing
+ * Activity: Y. …") to a label/value table. Same four facts the sentence
+ * stated (entity, activity, date, version); no new fact, table
+ * presentation only.
+ */
+export function deriveCoverTable(values: SlotValues): RenderedTable {
+  const v = (k: string): string => {
+    const val = values[k];
+    return typeof val === "string" && val.trim() ? val : "Not reported.";
+  };
+  return {
+    key: "",
+    surface: "cover_summary",
+    title: "",
+    columns: ["Field", "Value"],
+    rows: [
+      ["Prepared for", v("entityName")],
+      ["Processing activity", v("activityName")],
+      ["Assessment date", v("assessmentDate")],
+      ["Assessment version", v("versionNumber")],
+    ],
+  };
 }
 
 function methodLines(intake: Bag): Array<[string, string]> {
@@ -671,7 +699,7 @@ function composeAdmtBlocks(intake: Bag): Record<string, string> {
   return out;
 }
 
-// ── Appendix G — factor / intake / determination / authority matrix ─────────
+// ── Appendix A (formerly "G") — factor / determination / authority matrix ──
 //
 // Spine v4.5 replaces the Table of Authorities with a customer-readable audit
 // trail (Part 3.F–G of the spine docx): for each material factor, the row
@@ -740,7 +768,12 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
   {
     label: "Necessity and minimization",
     authority: "11 CCR § 7152(a)(2)",
-    blockKeys: ["iii_necessity:1", "iii_necessity:4"],
+    // CEO report review 2026-08-23/24 — was ["iii_necessity:1",
+    // "iii_necessity:4"], joining the whole "B. Analysis" paragraph with
+    // the "C. Conclusion" paragraph (the row-length complaint). Re-pointed
+    // to the conclusion block alone; the analysis stays in the body, where
+    // it belongs.
+    blockKeys: ["iii_necessity:4"],
   },
   {
     label: "Processing methods and coherence",
@@ -905,7 +938,7 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
   },
 ];
 
-/** Appendix G — {{DERIVED.factor_input_determination_authority_matrix}}. Suppresses uncomposed factors (NO-PADDING LAW); never prints N/A.
+/** Appendix A (formerly "G") — {{DERIVED.factor_input_determination_authority_matrix}}. Suppresses uncomposed factors (NO-PADDING LAW); never prints N/A.
  *
  * v4.6 — `persuasiveTrail` (optional): the Factor-Bearing Law's S3 anchor
  * (doc 48 §II.2a). When Appendix I renders, the trigger factor's authority
@@ -938,9 +971,14 @@ export function buildFactorAuthorityMatrixTable(
     const tagged = RISK_CORPUS_MAP.rows.find((r) => r.factor_id === spec.label && r.trail_impact);
     if (tagged?.trail_impact) authority = `${authority}; ${tagged.trail_impact}`;
     if (persuasiveTrail && spec.label === "Regulatory trigger and applicability") {
-      authority = `${authority}; persuasive (Appendix I): analogous enforcement — ${persuasiveTrail}`;
+      authority = `${authority}; persuasive (Appendix B): analogous enforcement — ${persuasiveTrail}`;
     }
-    rowsOut.push([spec.label, determination, authority]);
+    // CEO report review 2026-08-23/24: the Report Determination cell is
+    // the ONE determination sentence for the factor, not the full body
+    // analysis — firstSentence() bounds every row to its lead sentence
+    // (the fleet's own convention for a compact cell; see clause-bound.ts).
+    // The full reasoning stays in the body section this row cites.
+    rowsOut.push([spec.label, firstSentence(determination), authority]);
   }
   if (rowsOut.length === 0) return null;
   return {
@@ -954,7 +992,7 @@ export function buildFactorAuthorityMatrixTable(
   };
 }
 
-// ── Appendix I — Persuasive Authority (the S5 surface; v4.6) ────────────────
+// ── Appendix B (formerly "I") — Persuasive Authority (the S5 surface) ──────
 
 /** Appendix I lead — ratified fixed prose (advance-ratification ledger,
  * 2026-08-22 build). Composed iff ≥1 precedent row attaches. */
@@ -1078,30 +1116,38 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "x_governance:5": composeMaterialChangeDetails(intake),
   };
 
-  // v4.6 — Appendix I (Persuasive Authority): pure CAM attachment over the
-  // report's fired trigger states. Computed BEFORE Appendix G so the
-  // trigger row's authority cell can carry the S3 citation trail exactly
-  // when the appendix renders (Factor-Bearing Law; no dangling pointer).
+  // v4.6 — Appendix B (formerly "I", Persuasive Authority): pure CAM
+  // attachment over the report's fired trigger states. Computed BEFORE
+  // Appendix A (formerly "G") so the trigger row's authority cell can
+  // carry the S3 citation trail exactly when the appendix renders
+  // (Factor-Bearing Law; no dangling pointer).
   const persuasive = buildPersuasiveAuthority(report);
   composed["appendix_i:0"] = persuasive.table ? RISK_APPENDIX_I_LEAD : null;
   composed["appendix_i:2"] = persuasive.table ? persuasive.warning : null;
 
-  // v4.5 — Appendix G replaces the Table of Authorities. It is assembled
-  // directly from the factor engine's own composed blocks and provenance, so
-  // (unlike the ToA) it needs no draft/iff-cited two-pass render.
+  // v4.5 — Appendix A (formerly "G") replaces the Table of Authorities. It
+  // is assembled directly from the factor engine's own composed blocks and
+  // provenance, so (unlike the ToA) it needs no draft/iff-cited two-pass
+  // render.
   const matrixTable = buildFactorAuthorityMatrixTable(report, intake, engine, persuasive.trail);
-  // Part B item 3 (2026-08-21, CEO-confirmed) — Appendices A, D, E and F's
+  // Part B item 3 (2026-08-21, CEO-confirmed) — Appendices C, F, G and H's
   // {{DERIVED.*}} projections are structured facts, not narrative, so they
-  // now render as tables like Appendix G does, instead of a joined "rule"
-  // string that fell through to the plain-paragraph branch.
+  // render as tables like Appendix A does, instead of a joined "rule"
+  // string that fell through to the plain-paragraph branch. v4.7
+  // (2026-08-23/24): the cover block and Appendices D/E (formerly "B"/"C")
+  // join them — see deriveCoverTable / buildNecessityMatrixTable /
+  // buildRiskAndSafeguardRegisterTable.
   const tables: SkeletonTables = {
+    "cover:0": deriveCoverTable(values),
     "table_of_authorities:1": matrixTable,
     "appendix_a:1": deriveProcessingAndDataInventory(intake),
+    "appendix_b:1": buildNecessityMatrixTable(intake),
+    "appendix_c:1": buildRiskAndSafeguardRegisterTable(intake),
     "appendix_d:1": deriveAdmtTechnicalFacts(intake),
     "appendix_e:1": deriveSubmissionSupportRecord(intake, report, assessmentDate),
     "appendix_e:2": deriveBusinessLevelOutstanding(),
     "appendix_f:1": deriveMaterialsConsideredIndex(intake),
-    // v4.6 — Appendix I (null when no precedent attaches; section drops).
+    // v4.6 — Appendix B (null when no precedent attaches; section drops).
     "appendix_i:1": persuasive.table,
   };
 

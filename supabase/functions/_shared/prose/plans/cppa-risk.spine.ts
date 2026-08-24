@@ -4,12 +4,14 @@
 // `CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx`
 // (Intake Contract v2.0 aligned; unchanged) is this product's render law,
 // superseding Spine 4.3/4.4. v4.5 keeps the architecture, intake contract,
-// factor logic, conditional triggers, and Appendices A–F/H; it rewrites the
-// fixed prose in a citation-forward legal-narrative voice, and it replaces
-// the Table of Authorities with Appendix G — a customer-readable factor /
-// determination / authority matrix (v4.5.1, CEO-ratified 2026-08-22, merged
-// the former separate intake-data column into the determination sentence),
-// the same pattern used for the CPPA ADMT v3.2 spine and DPIA's Appendix A.
+// factor logic, and conditional triggers; it rewrites the fixed prose in a
+// citation-forward legal-narrative voice, and it replaces the Table of
+// Authorities with a customer-readable factor / determination / authority
+// matrix appendix (v4.5.1, CEO-ratified 2026-08-22, merged the former
+// separate intake-data column into the determination sentence — the same
+// pattern used for the CPPA ADMT v3.2 spine and DPIA's Appendix A). v4.7
+// (2026-08-23/24) moved that matrix to lead the appendix set as Appendix A
+// — see the v4.7 note below for the full reorder.
 // Every fixed-prose string in SKELETON_SECTIONS below is
 // transcribed from that file. Nothing here may be reworded, re-punctuated or
 // "improved" by code, by refinement, or by an agent: the skeleton's fixed
@@ -33,8 +35,9 @@
 //                   outputs), composed mechanically from established facts.
 //   "table"       — a rendered table supplied by the assembler, keyed
 //                   `${sectionId}:${i}` exactly like a composed block. Used
-//                   for Appendix G (the v4.5.1 factor/determination/
-//                   authority matrix).
+//                   for the cover summary and every lettered appendix
+//                   (Appendix A, the factor/determination/authority
+//                   matrix, among them — see the v4.7 note below).
 //
 // PLACEHOLDER PROVENANCE (v4.5 field-status legend, unchanged from 4.3):
 //   {{INTAKE.*}} / {{FINAL.*}} — Intake Contract v2.0 factual fields → {slots}.
@@ -51,13 +54,27 @@
 // (doc 44 §D5 verified), so no hash recompute — the version string is the
 // only stamp. Shipped under the CEO's 2026-08-22 continue-all-spec-builds
 // direction; the new fixed prose is on the advance-ratification ledger.
-export const RISK_SKELETON_VERSION = "cppa-risk-v4.6-2026-08-22";
+//
+// v4.7 (2026-08-23/24) — CEO REPORT REVIEW: (1) the cover block flips from
+// one prose sentence to a label/value table; (2) Appendix B (Necessity
+// Matrix) and Appendix C (Risk/Safeguard Register) flip from a joined-
+// string "generated" block (which fell through to plain-paragraph
+// rendering, never an actual matrix) to real tables; (3) full appendix
+// reorder and reletter — the former Appendix G (factor/determination
+// matrix) leads as Appendix A, former Appendix I (persuasive authority) is
+// B, and the former A–F record/analytical appendices follow as C–H in
+// their prior relative order; former Appendix H (EUP Methodology, never
+// triggered) is retired. No factor logic, intake contract, or determination
+// changed — presentation and ordering only. Every "Appendix X" cross-
+// reference inside fixed body prose was updated to match (grep-verified,
+// see the 2026-08-24 session record).
+export const RISK_SKELETON_VERSION = "cppa-risk-v4.7-2026-08-24";
 /** The prior encode's stamp, retained for provenance. */
 export const RISK_SKELETON_VERSION_V45 = "cppa-risk-v4.5-2026-08-21";
 export const RISK_SKELETON_SOURCE_FILE =
   "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx";
 export const RISK_SKELETON_PROVENANCE =
-  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx — CEO redline round, ratified 2026-08-21; supersedes Spine 4.3/4.4. Legal-narrative and citation-forward voice rewrite; Table of Authorities replaced by Appendix G. v4.6 (2026-08-22) adds Appendix I — Persuasive Authority (corpus program phase 2, doc 49 A.2.4).";
+  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx — CEO redline round, ratified 2026-08-21; supersedes Spine 4.3/4.4. Legal-narrative and citation-forward voice rewrite; Table of Authorities replaced by a factor/determination/authority matrix appendix. v4.6 (2026-08-22) adds a Persuasive Authority appendix (corpus program phase 2, doc 49 A.2.4). v4.7 (2026-08-23/24, CEO report review) reorders/reletters the appendix set (determination matrix first, persuasive authority second) and converts the cover block and two more appendices to real tables.";
 
 export const RISK_SKELETON_TITLE = "CPPA PRIVACY RISK ASSESSMENT";
 export const RISK_SKELETON_SUBTITLE =
@@ -142,7 +159,7 @@ export const RISK_FIXED = {
   admt_g:
     "G. ADMT Provided to Another Business. Section 7153(a)–(b) requires the assessment to consider whether a recipient business has access to the facts necessary to conduct its own risk assessment where the Company makes ADMT trained using personal information available to that business to make a significant decision. The factual predicate for this branch is recorded as follows: ADMT made available to another business: {madeAvailable}. ADMT trained using personal information: {trainedPi}. Recipient business uses the ADMT for a significant decision: {recipientSignificant}.",
   admt_appendix_pointer:
-    "The supporting technical record appears in Appendix D — ADMT Technical and Decision Record.",
+    "The supporting technical record appears in Appendix F — ADMT Technical and Decision Record.",
   appendix_d_intro:
     "This appendix preserves the technical and analytical detail supporting Section V, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153.",
 
@@ -183,8 +200,11 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     id: "cover",
     title: "CPPA PRIVACY RISK ASSESSMENT",
     blocks: [
-      // 0
-      { kind: "skeleton", text: "Prepared for: {entityName}. Processing Activity: {activityName}. Assessment Date: {assessmentDate}. Assessment Version: {versionNumber}." },
+      // 0 — CEO report review 2026-08-23/24: was one prose sentence
+      // ("Prepared for: X. Processing Activity: Y. …"); now a label/value
+      // table (deriveCoverTable in risk-skeleton-assemble.ts), same four
+      // facts, same values, table presentation.
+      { kind: "table", text: "cover_summary" },
       // 1 — [CONDITIONAL: confidentiality designation] — RISK_FIXED.confidential; no intake trigger exists yet, so not composed in Phase B.
       { kind: "conditional", text: "[CONDITIONAL] CONFIDENTIALITY DESIGNATION - fixed text RISK_FIXED.confidential; trigger: confidentiality designation on the engagement. Absent => omitted." },
     ],
@@ -238,7 +258,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 8
       { kind: "conditional", text: "[CONDITIONAL] PRIOR DPIA / PIA / OTHER ASSESSMENT - trigger {i9_has_existing_dpia}=Yes. RISK_FIXED.prior_assessment_lead + {{INTAKE.i9_existing_dpia_summary}} + RISK_FIXED.prior_assessment_note. Absent => omitted." },
       // 9
-      { kind: "skeleton", text: "D. Basis for the Assessment. Sections 7151 and 7152 require the assessment to be grounded in the people and facts relevant to the processing, including employees whose job duties involve the covered processing. This assessment relies on information supplied by the Company and the materials listed in Appendix F. If information needed for a material conclusion is missing or inconsistent, the report identifies the limitation rather than assuming a favorable answer. Appendix G ties each material factor to the customer intake data used, the actual report language produced, and the primary authority." },
+      { kind: "skeleton", text: "D. Basis for the Assessment. Sections 7151 and 7152 require the assessment to be grounded in the people and facts relevant to the processing, including employees whose job duties involve the covered processing. This assessment relies on information supplied by the Company and the materials listed in Appendix H. If information needed for a material conclusion is missing or inconsistent, the report identifies the limitation rather than assuming a favorable answer. Appendix A ties each material factor to the report's determination and the primary authority." },
       // 10
       { kind: "skeleton", text: "E. Record Sufficiency. Section 7152(a)(8) requires the report to identify the individuals who provided information for the assessment, except legal counsel who provided legal advice, and § 7151 requires employees who participate in the covered processing as part of their jobs to be included in the assessment process. Information providers: {informationProviders}. Internal participants: {internalContributors}. Operational participants: {operationalParticipants}." },
       // 11
@@ -266,7 +286,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 6
       { kind: "generated", text: "[GENERATED {{FACTOR.pi_profile_conclusion}}] Phase C. Absent => omitted." },
       // 7
-      { kind: "skeleton", text: "Detailed data-category and category-level retention information appears in Appendix A — Processing and Data Inventory." },
+      { kind: "skeleton", text: "Detailed data-category and category-level retention information appears in Appendix C — Processing and Data Inventory." },
       // 8
       { kind: "skeleton", text: "D. Sources of Information. Section 7152(a)(3)(A) requires the Company to identify the sources of the personal information used in the processing. The Company identifies the following source or sources: {i4bSources}. Source matters because it can affect accuracy, consumer expectations, and the importance of notice or choice." },
       // 9
@@ -276,7 +296,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 11
       { kind: "generated", text: "[GENERATED {{FACTOR.recipient_risk_analysis + recipient_conclusion + material_vendor_dependency}}] Material vendor dependency gets fixed lead \"The processing materially depends on:\" and the note \"The effectiveness of the related contractual, technical, or oversight controls is considered in Section VIII.\" Phase C. Absent => omitted." },
       // 12
-      { kind: "skeleton", text: "F. Retention. Section 7152(a)(3)(B) requires the report to identify how long each category of personal information will be retained or, if the period is not known, the criteria used to determine it. The Company reports {retentionPeriod}, determined using {retentionCriteria}. {retentionDetail}. Category-level retention detail appears in Appendix A." },
+      { kind: "skeleton", text: "F. Retention. Section 7152(a)(3)(B) requires the report to identify how long each category of personal information will be retained or, if the period is not known, the criteria used to determine it. The Company reports {retentionPeriod}, determined using {retentionCriteria}. {retentionDetail}. Category-level retention detail appears in Appendix C." },
       // 13
       { kind: "generated", text: "[GENERATED {{FACTOR.retention_analysis + retention_conclusion + retention_consequence}}] Phase C. Absent => omitted." },
     ],
@@ -286,7 +306,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "III. NECESSITY AND DATA MINIMIZATION",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. The Necessity Question. Section 7152(a)(2) requires the report to identify the minimum personal information necessary to achieve the stated purpose. The Company identifies the minimum information needed as {minPi}. The analysis therefore asks whether each material element genuinely contributes to that purpose or whether the Company can achieve the same result with less precise, less sensitive, or less extensive information. Detailed element-level analysis appears in Appendix B." },
+      { kind: "skeleton", text: "A. The Necessity Question. Section 7152(a)(2) requires the report to identify the minimum personal information necessary to achieve the stated purpose. The Company identifies the minimum information needed as {minPi}. The analysis therefore asks whether each material element genuinely contributes to that purpose or whether the Company can achieve the same result with less precise, less sensitive, or less extensive information. Detailed element-level analysis appears in Appendix D." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.necessary_elements + necessary_elements_reasoning}}] Fixed sub-head \"B. Analysis. Information Supported as Necessary\". Phase C. Absent => omitted." },
       // 2
@@ -414,7 +434,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "VII. PRIVACY RISKS",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. How Risk Is Evaluated. Section 7152(a)(5) requires the assessment to identify negative impacts to consumers’ privacy and the sources and causes of those impacts. The regulation gives examples that include unauthorized access or loss of availability, unlawful discrimination, impaired consumer control, coercion, economic harm, physical harm, reputational harm, and psychological harm. Appendix C preserves the full pathway detail; the body focuses on risks that materially affect the processing decision." },
+      { kind: "skeleton", text: "A. How Risk Is Evaluated. Section 7152(a)(5) requires the assessment to identify negative impacts to consumers’ privacy and the sources and causes of those impacts. The regulation gives examples that include unauthorized access or loss of availability, unlawful discrimination, impaired consumer control, coercion, economic harm, physical harm, reputational harm, and psychological harm. Appendix E preserves the full pathway detail; the body focuses on risks that materially affect the processing decision." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.material_risk_blocks}}] B. Material Risk Pathways — ranked repeatable blocks (title; pathway narrative; likelihood; severity; materiality; decision effect before safeguards), projected from the granular risk factors. Phase C. Absent => omitted." },
       // 2
@@ -502,8 +522,66 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     ],
   },
   {
+    // CEO REPORT REVIEW 2026-08-23/24 — APPENDIX REORDER. Section id kept
+    // as "table_of_authorities": generate-report-pdf forces a fresh page on
+    // this id across every SO spine. This section was Appendix G; it now
+    // leads the appendix set as Appendix A — the determination matrix is
+    // the appendix with the most end-user value (the CEO's own framing),
+    // so it comes first, followed by persuasive authority (formerly I, now
+    // B), then the four analytical-detail appendices in their prior
+    // relative order (formerly A/B/C/D, now C/D/E/F), then the two record-
+    // keeping appendices (formerly E/F, now G/H). Former Appendix H (EUP
+    // Methodology) is RETIRED below — it has no intake trigger and has
+    // never once rendered; dropping it is zero customer-visible change.
+    // No appendix content lost; only order and letters change. v4.5.1
+    // (CEO-ratified 2026-08-22) drops the separate intake-data column:
+    // intake facts and report language merge into one Report Determination
+    // sentence per factor, matching the fleet-wide convention (see the
+    // identical change to DPIA's Appendix A).
+    id: "table_of_authorities",
+    title: "Appendix A — Factor, Determination, and Authority Matrix",
+    blocks: [
+      // 0
+      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this assessment. Each row states the factor assessed, the report's determination on that factor, and the primary authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion. Internal field keys, variable names, and reasoning traces are never printed in the customer report." },
+      // 1 — {{DERIVED.factor_input_determination_authority_matrix}}, assembled
+      // in risk-skeleton-assemble.ts from the v4.5 Verified Factor-to-Authority
+      // Registry (Part 3.G) over the factor engine's own provenance/output —
+      // the same values already printed in the body. No new legal content: a
+      // suppressed row means the underlying factor did not compose.
+      { kind: "table", text: "factor_authority_matrix" },
+    ],
+  },
+  {
+    // v4.6 (2026-08-22) — PHASE 2 of the corpus program (doc 49 A.2.4):
+    // the S5 Persuasive Authority surface, fed from the Risk CAM
+    // (risk-corpus-map.ts) by pure attachment over the report's own typed
+    // trigger states. Resolves PN-CORPUS-2 (the fetched-but-homeless
+    // eu_authority_corpus payload now has its spine home; the CAM, not
+    // the fetch, supplies generation). Every block is conditional/table:
+    // when no precedent row attaches (e.g., no trigger engaged), the
+    // section drops entirely under the no-padding law. The lead and
+    // warning wording live in risk-skeleton-assemble.ts as ratified
+    // constants (advance-ratification ledger, 2026-08-22 build). Was
+    // Appendix I; now B (2026-08-23/24 reorder, see above).
+    id: "appendix_i",
+    title: "Appendix B — Persuasive Authority (Analogous Enforcement)",
+    blocks: [
+      // 0 — lead: the standing disclaimer (analogous, not binding;
+      // GDPR ≠ CCPA). Composed iff ≥1 precedent row attaches.
+      { kind: "conditional", text: "[CONDITIONAL] PERSUASIVE AUTHORITY LEAD - composed by the assembler iff at least one CAM precedent row attaches for this report's fired trigger states. Absent => the whole appendix is omitted." },
+      // 1 — {{DERIVED.persuasive_authority_matrix}} — doc 46 3-column
+      // shape extended with a "What happened" column; one row per
+      // attached AP entry, factor-keyed both ways (Factor-Bearing Law).
+      { kind: "table", text: "persuasive_authority_matrix" },
+      // 2 — adverse-outcome warning (AOW): composed iff the CAM's bound
+      // adverse state fired (trigger engaged + assessment record
+      // incomplete). Ratified wording from the CAM row; absent => omitted.
+      { kind: "conditional", text: "[CONDITIONAL] ADVERSE-OUTCOME WARNING - composed by the assembler iff the AOW row's bound adverse state fired. Absent => omitted." },
+    ],
+  },
+  {
     id: "appendix_a",
-    title: "Appendix A — Processing and Data Inventory",
+    title: "Appendix C — Processing and Data Inventory",
     blocks: [
       // 0
       { kind: "skeleton", text: "This appendix contains the detailed factual inventory supporting Section II, including personal-information and sensitive-personal-information categories, sources, processing methods, consumer interaction, scale, disclosures, recipients, and category-level retention." },
@@ -520,37 +598,38 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "appendix_b",
-    title: "Appendix B — Necessity and Minimization Matrix",
+    title: "Appendix D — Necessity and Minimization Matrix",
     blocks: [
-      // 0 — intro fixed words carried by the Phase C composer: "This appendix
-      // provides the element-level analysis underlying Section III. For each
-      // material personal-information element, it records the function of the
-      // information, whether it is necessary to achieve the stated purpose,
-      // the basis for that conclusion, and any identified limitation or
-      // change."
-      { kind: "generated", text: "[GENERATED {{FACTOR.necessity_matrix}}] Element-level analysis underlying Section III. Phase C. Absent => the appendix is omitted." },
+      // 0 — CEO report review 2026-08-23/24: was a single "generated" block
+      // whose composer joined per-element lines into one string (fell
+      // through to the plain-paragraph renderer, so it never actually
+      // rendered as a matrix). Now a skeleton intro + a real table
+      // (buildNecessityMatrixTable in risk-factor-engine.ts), matching the
+      // Appendix C/F/G/H pattern. Same underlying facts, same wording.
+      { kind: "skeleton", text: "This appendix provides the element-level analysis underlying Section III. For each material personal-information element, it records the function of the information, whether it is necessary to achieve the stated purpose, the basis for that conclusion, and any identified limitation or change." },
+      // 1
+      { kind: "table", text: "necessity_matrix" },
     ],
   },
   {
     id: "appendix_c",
-    title: "Appendix C — Privacy Risk Register and Safeguard Mapping",
+    title: "Appendix E — Privacy Risk Register and Safeguard Mapping",
     blocks: [
-      // 0 — intro fixed words carried by the Phase C composer: "This appendix
-      // provides the detailed analytical record underlying Sections VII and
-      // VIII. For each identified risk pathway, the register records the
-      // negative impact, personal information involved, relevant actor or
-      // event, source and cause, likelihood, severity, materiality, relevant
-      // safeguards, safeguard status, residual risk, and effect on the
-      // processing decision. The mapping of risks to safeguards is an EUP
-      // analytical method designed to make the reasoning transparent and
-      // reviewable. It is not presented as a regulator-prescribed report
-      // format."
-      { kind: "generated", text: "[GENERATED {{FACTOR.risk_and_safeguard_register}}] Detailed pathway × safeguard register underlying Sections VII–VIII. Phase C. Absent => the appendix is omitted." },
+      // 0 — CEO report review 2026-08-23/24: was a single "generated" block
+      // whose composer joined per-pathway lines into one string (fell
+      // through to the plain-paragraph renderer, so it never actually
+      // rendered as a register). Now a skeleton intro + a real table
+      // (buildRiskAndSafeguardRegisterTable in risk-factor-engine.ts),
+      // matching the Appendix C/F/G/H pattern. Same underlying facts, same
+      // wording.
+      { kind: "skeleton", text: "This appendix provides the detailed analytical record underlying Sections VII and VIII. For each identified risk pathway, the register records the negative impact, personal information involved, relevant actor or event, source and cause, likelihood, severity, materiality, relevant safeguards, safeguard status, residual risk, and effect on the processing decision. The mapping of risks to safeguards is an EUP analytical method designed to make the reasoning transparent and reviewable. It is not presented as a regulator-prescribed report format." },
+      // 1
+      { kind: "table", text: "risk_and_safeguard_register" },
     ],
   },
   {
     id: "appendix_d",
-    title: "Appendix D — ADMT Technical and Decision Record",
+    title: "Appendix F — ADMT Technical and Decision Record",
     blocks: [
       // 0
       { kind: "conditional", text: "[CONDITIONAL] ADMT APPENDIX INTRO - trigger: ADMT applicable. RISK_FIXED.appendix_d_intro. Absent => omitted." },
@@ -568,7 +647,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "appendix_e",
-    title: "Appendix E — CPPA Submission Support Record (§ 7157)",
+    title: "Appendix G — CPPA Submission Support Record (§ 7157)",
     blocks: [
       // 0
       { kind: "skeleton", text: "This appendix preserves the assessment-level information contributed to the Company’s later business-level CPPA submission and identifies items that must be aggregated across assessments. It is an EUP support record, not a CPPA-prescribed form." },
@@ -584,7 +663,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "appendix_f",
-    title: "Appendix F — Materials Considered",
+    title: "Appendix H — Materials Considered",
     blocks: [
       // 0
       { kind: "skeleton", text: "This appendix lists the documents, technical materials, policies, contracts, assessments, and other factual materials identified or relied on for this assessment. Inclusion means the material formed part of the assessment record; it does not mean every statement was independently verified." },
@@ -595,64 +674,11 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "table", text: "materials_considered_index" },
     ],
   },
-  {
-    // Section id kept as "table_of_authorities": generate-report-pdf forces a
-    // fresh page on this id across every SO spine. Spine v4.5 repurposed the
-    // section itself — the Table of Authorities is gone; this is Appendix G,
-    // the factor/determination/authority matrix (the same pattern used for
-    // the CPPA ADMT v3.2 spine's Appendix B). v4.5.1 (CEO-ratified
-    // 2026-08-22) drops the separate intake-data column: intake facts and
-    // report language merge into one Report Determination sentence per
-    // factor, matching the fleet-wide convention (see the identical change
-    // to DPIA's Appendix A).
-    id: "table_of_authorities",
-    title: "Appendix G — Factor, Determination, and Authority Matrix",
-    blocks: [
-      // 0
-      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this assessment. Each row states the factor assessed, the report's determination on that factor, and the primary authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion. Internal field keys, variable names, and reasoning traces are never printed in the customer report." },
-      // 1 — {{DERIVED.factor_input_determination_authority_matrix}}, assembled
-      // in risk-skeleton-assemble.ts from the v4.5 Verified Factor-to-Authority
-      // Registry (Part 3.G) over the factor engine's own provenance/output —
-      // the same values already printed in the body. No new legal content: a
-      // suppressed row means the underlying factor did not compose.
-      { kind: "table", text: "factor_authority_matrix" },
-    ],
-  },
-  {
-    id: "appendix_h",
-    title: "Appendix H — EUP Methodology (Optional)",
-    blocks: [
-      // 0
-      { kind: "conditional", text: "[CONDITIONAL] EUP METHODOLOGY - trigger {{SYSTEM.include_methodology_appendix}}=true. Concise description of EUP’s analytical methodology, clearly identified as EUP’s framework and not a CPPA-prescribed format. Not composed in Phase B. Absent => omitted." },
-    ],
-  },
-  {
-    // v4.6 (2026-08-22) — PHASE 2 of the corpus program (doc 49 A.2.4):
-    // the S5 Persuasive Authority surface, fed from the Risk CAM
-    // (risk-corpus-map.ts) by pure attachment over the report's own typed
-    // trigger states. Resolves PN-CORPUS-2 (the fetched-but-homeless
-    // eu_authority_corpus payload now has its spine home; the CAM, not
-    // the fetch, supplies generation). Every block is conditional/table:
-    // when no precedent row attaches (e.g., no trigger engaged), the
-    // section drops entirely under the no-padding law. The lead and
-    // warning wording live in risk-skeleton-assemble.ts as ratified
-    // constants (advance-ratification ledger, 2026-08-22 build).
-    id: "appendix_i",
-    title: "Appendix I — Persuasive Authority (Analogous Enforcement)",
-    blocks: [
-      // 0 — lead: the standing disclaimer (analogous, not binding;
-      // GDPR ≠ CCPA). Composed iff ≥1 precedent row attaches.
-      { kind: "conditional", text: "[CONDITIONAL] PERSUASIVE AUTHORITY LEAD - composed by the assembler iff at least one CAM precedent row attaches for this report's fired trigger states. Absent => the whole appendix is omitted." },
-      // 1 — {{DERIVED.persuasive_authority_matrix}} — doc 46 3-column
-      // shape extended with a "What happened" column; one row per
-      // attached AP entry, factor-keyed both ways (Factor-Bearing Law).
-      { kind: "table", text: "persuasive_authority_matrix" },
-      // 2 — adverse-outcome warning (AOW): composed iff the CAM's bound
-      // adverse state fired (trigger engaged + assessment record
-      // incomplete). Ratified wording from the CAM row; absent => omitted.
-      { kind: "conditional", text: "[CONDITIONAL] ADVERSE-OUTCOME WARNING - composed by the assembler iff the AOW row's bound adverse state fired. Absent => omitted." },
-    ],
-  },
+  // Former Appendix H (EUP Methodology, id "appendix_h") RETIRED
+  // 2026-08-23/24: it has no intake trigger ({{SYSTEM.include_methodology_
+  // appendix}} is never set) and has never once composed in any fixture or
+  // production render. Dropped from the spine entirely — zero customer-
+  // visible change, one fewer appendix to read past.
 ];
 
 /** Every byte-pinned fixed-prose string, in document order. Splice-barred. */
