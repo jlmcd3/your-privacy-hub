@@ -169,6 +169,29 @@ export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string
     tmpl_coverage_residual_note_rights_v462: [
       "no additional right-by-right breakdown is necessary to the determinations reached in this DPIA",
     ],
+    // ── 2026-08-25 (batch be0f9e02) — DPIA Section 3's ratified template
+    // sentences (dpia-skeleton-assemble.ts: the step leads, the step-3
+    // conclusion, and the 9L.1 balance template). A finding that quotes
+    // these frames is quoting ratified bytes; the SUBSTANCE inside the
+    // quotes was separately fixed this same day (boundedPassage replaced
+    // the clause bound, so fragments no longer render).
+    tmpl_s3_step2_lead: [
+      "The company describes how the processing achieves that goal",
+    ],
+    tmpl_s3_alternatives_lead: [
+      "possible alternative", "to the proposed processing",
+    ],
+    tmpl_s3_step3_conclusion: [
+      "whether a realistic, less intrusive method could achieve the same purpose",
+      "each alternative the company considered was rejected for the reasons recorded",
+    ],
+    tmpl_s3_impact_lead: [
+      "The impact on individual privacy rights is stated by the company separately from the benefit",
+    ],
+    tmpl_s3_balance: [
+      "Balancing that impact against the goal stated above",
+      "the processing is proportionate to the stated goal",
+    ],
     // PROMPT 9A — one entry per ratified compact ask label (`tmpl_ask_label_<id>`),
     // derived from the pinned registry so the calibrated spans can never drift
     // from the label bytes. Slots are cut out; the fixed prose around them is

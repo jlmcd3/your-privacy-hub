@@ -1137,6 +1137,11 @@ const RUBRIC_DPIA: RubricCheck[] = [
   // controller's asserted lawful basis is the tool's design, not a defect.
   { id: "rubric_dpia_lawful_basis_is_recorded_not_adjudicated", dimension: "citation", severity: "low",
     description: "The lawful-basis table records the CONTROLLER'S asserted Article 6(1) basis together with the statutory source the controller names (e.g. Art. 6(1)(c) with a named national provision such as s. 2(1) HSWA 1974 / reg. 3 MHSWR 1999), and the report's finding is expressly limited to whether the basis is 'supported based on the information the company provided.' Whether the named obligation mandates the SPECIFIC processing with sufficient precision is a legal determination reserved to the controller and its counsel — this assessment records the assertion and its source; it does not adjudicate sufficiency, and the Section 2 preamble says so. Do NOT fail rubric_citation_misapplied for the report reproducing the controller's asserted basis without independently testing whether the cited obligation mandates the specific processing. DO still fail it where the report itself misstates what a cited provision says, or attaches a citation to a proposition the provision does not support." },
+  // 2026-08-25 (batch be0f9e02, dpia actionability finding): the executive
+  // summary is deliberately the ratified canonical model, not a remediation
+  // plan.
+  { id: "rubric_dpia_exec_summary_is_canonical", dimension: "intelligence", severity: "low",
+    description: "The DPIA executive summary follows the ratified canonical model: risk counts, the highest residual band, and a pointer to Section 4's risk record. Company-specific remediation targets and deadlines (e.g. a dated portal rollout, works-council consultation dates) render where the record carries them — the risk register's measures, the DPO-advice block in Section 5, and Section 6's approval basis — not in the executive summary. Before failing rubric_actionability against the executive summary for not enumerating remediation targets or deadlines, check Sections 4–6 for them; fail only if the intake-supplied remediation detail renders NOWHERE in the document." },
 ];
 
 // QB-P25 B2 — Governance rubric note.

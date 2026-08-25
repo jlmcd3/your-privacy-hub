@@ -389,8 +389,15 @@ export const BARE_ROLE_CELL_EXEMPT_RE =
 export const PIPE_ROSTER_EXEMPT_RE =
   /(?:^|\n)[^|\n]{0,80}\|[^|\n]{0,80}\|[^|\n]{0,120}\b(?:legal\s+counsel|privacy\s+counsel|qualified\s+counsel|privacy\s+officer|data\s+protection\s+officer|dpo|ciso|general\s+counsel)\b[^|\n]{0,120}(?:\|[^|\n]{0,120})*/i;
 // Directive verbs — these override any exempt hit and force the finding.
+// 2026-08-25 (batch be0f9e02 round) — added the ACTIVE modal form aimed
+// directly at a counsel token ("… (Legal Counsel) should review …",
+// "counsel must verify …"): the roster exemption's shape also matches a
+// sentence that OPENS with a named counsel, so the directive override must
+// recognize this form. The counsel token must immediately precede the
+// modal (an optional ")" between), so "…Legal Counsel and the CTO, must
+// update…" — counsel as mere collaborator — stays unaffected.
 const DIRECTIVE_VERB_RE =
-  /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with)\b/i;
+  /\b(?:consult|review(?:ed)?\s+(?:with|by)|seek\s+advice\s+from|confirm\s+with|discuss\s+with|obtain\s+advice\s+from|before\s+relying|should\s+be\s+reviewed\s+by|before\s+filing.{0,40}consult|before\s+publishing.{0,40}with|counsel\s*\)?\s*(?:should|must|shall|needs?\s+to)\s+(?:review|verify|confirm|assess|approve|advise|adapt|vet|sign)\b)/i;
 
 // GRADER-CAL-4 — advice-delegation forms that override owner-directive exemption.
 // A sentence that assigns the DECISION or REVIEW to counsel is still a referral
@@ -429,6 +436,46 @@ const OWNER_DIRECTIVE_RE =
 //   "The Privacy Officer currently serves as the incident escalation point."
 const DESCRIPTIVE_STATUS_RE =
   /\b(?:has\s+flagged|had\s+flagged|was\s+appointed|were\s+appointed|currently\s+serves?|carries?\s+(?:privacy|compliance)\s+responsibilit|carrying\s+(?:privacy|compliance)\s+responsibilit|previously\s+held|historically\s+served|has\s+been\s+designated|was\s+designated)\b/i;
+
+// 2026-08-25 (batch be0f9e02) — passive shapes the exemption stack missed,
+// all intake-record echoes rather than model-authored referrals. Verified
+// against the batch's own rendered sentences (risk doc 8d21344e §7152(a)(8)
+// block and external-participants roster; dpia doc f03f24f4 rights-routes
+// paragraph):
+//
+// (a) NAMED-APPOSITIVE, role-first — a counsel token immediately followed
+//     by a capitalized person or firm name identifies WHO holds the role
+//     ("Outside counsel Hollingsworth & Crane LLP (privacy practice,
+//     partner Evan Hollingsworth) reviewed the Plaid DPA in July 2023").
+//     Role tokens are matched case-tolerantly; the NAME must be
+//     capitalized, so "outside counsel should review" can never match.
+const COUNSEL_NAMED_APPOSITIVE_RE =
+  /\b(?:[Ll]egal|[Qq]ualified|[Oo]utside|[Ee]xternal|[Pp]rivacy)\s+[Cc]ounsel,?\s+(?:\(|["“])?[A-Z][A-Za-z.'’&\-]+/;
+// (b) NAMED-APPOSITIVE, name-first — a capitalized person name followed by
+//     a parenthesized counsel role: "…is handled by Claudia Baum (Legal
+//     Counsel) with escalation to Dr. Schreiber (DPO)", "Adaeze Okoro
+//     (Privacy Counsel) provided the …review memo".
+const NAME_PAREN_COUNSEL_RE =
+  /\b[A-Z][A-Za-z.'’\-]+(?:\s+[A-Z][A-Za-z.'’\-]+){0,3}\s*\(\s*(?:(?:Senior|Deputy|Chief|Acting|Outside|External)\s+)?(?:Legal|Privacy|Qualified|General)\s+Counsel\b[^)]{0,60}\)/;
+// (c) STATUTE-ECHO / DESCRIPTIVE RELATIVE — "…except legal counsel who
+//     provided legal advice" (a near-verbatim §7152(a)(8) echo) and kin:
+//     a counsel token whose only role in the sentence is the subject of a
+//     past-tense descriptive relative clause.
+const COUNSEL_DESCRIPTIVE_REL_RE =
+  /\bcounsel\s+who\s+(?:provided|prepared|drafted|advised|reviewed|certified|delivered)\b/i;
+// (d) CUSTODIAL — the counsel/officer token appears as the CUSTODIAN of a
+//     record ("the DPA register is maintained by legal counsel", "audit
+//     trail held under privacy officer control", "exception log kept by
+//     qualified counsel"). Custody of a record is descriptive status.
+const CUSTODIAL_ROLE_RE =
+  /\b(?:owned|maintained|managed|held|tracked|kept|retained|administered|stored)\s+(?:by|in|under|with)\b[^.\n]{0,80}\b(?:legal|privacy|qualified)\s+(?:counsel|officer)\b/i;
+// Modal guard for the four exemptions above: a sentence that DIRECTS the
+// named counsel ("Claudia Baum (Legal Counsel) should review …") is a
+// referral even though it also names the role holder. Fail-closed: any
+// modal in the sentence blocks these exemptions (the earlier
+// OWNER_DIRECTIVE path already handles internal-role modal directives).
+const COUNSEL_MODAL_RE =
+  /\b(?:should|must|shall|needs?\s+to|is\s+required\s+to|will\s+need\s+to|ought\s+to)\b/i;
 
 
 // GRADER-CAL-3 Task 2 — sanctioned ownership-disclaimer zone.
@@ -568,6 +615,22 @@ function checkE6(
       if (
         DESCRIPTIVE_STATUS_RE.test(s) &&
         !OWNER_DIRECTIVE_RE.test(s) &&
+        !DIRECTIVE_VERB_RE.test(s) &&
+        !ADVICE_DELEGATION_RE.test(s) &&
+        !READER_DIRECTED_RE.test(s)
+      ) {
+        continue;
+      }
+      // 2026-08-25 (batch be0f9e02) — named-appositive / statute-echo /
+      // custodial-role exemptions. Identifying WHO holds the counsel role,
+      // echoing the statute's own counsel exception, or naming the role as
+      // a record's custodian is intake-record content; any directive,
+      // advice-delegation, or reader-directed construction in the same
+      // sentence still forces the finding.
+      if (
+        (COUNSEL_NAMED_APPOSITIVE_RE.test(s) || NAME_PAREN_COUNSEL_RE.test(s) ||
+          COUNSEL_DESCRIPTIVE_REL_RE.test(s) || CUSTODIAL_ROLE_RE.test(s)) &&
+        !COUNSEL_MODAL_RE.test(s) &&
         !DIRECTIVE_VERB_RE.test(s) &&
         !ADVICE_DELEGATION_RE.test(s) &&
         !READER_DIRECTED_RE.test(s)

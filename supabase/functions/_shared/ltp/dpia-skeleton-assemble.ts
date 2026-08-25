@@ -47,8 +47,8 @@ import { DPIA_NECESSITY_TEST_SENTENCE, readDpiaRegime } from "./dpia-deliverable
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 // PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
 // ONE module so dpia-deliverables/build.ts can share them without a cycle.
-import { boundedClause, extractionClause, firstSentence, noStop } from "./clause-bound.ts";
-export { boundedClause, firstSentence };
+import { boundedClause, boundedPassage, firstSentence, noStop } from "./clause-bound.ts";
+export { boundedClause, boundedPassage, firstSentence };
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
 import { attachCorpusRows } from "../corpus/cam-attach.ts";
 import { DPIA_CORPUS_MAP } from "../corpus/maps/dpia-corpus-map.ts";
@@ -671,7 +671,14 @@ function branchSentence(why: string): string {
 export function stepTwoClause(intake: Bag, isSecondary: boolean): string {
   const own = isSecondary ? s(intake.secondary_uses) : s(intake.necessity_proportionality);
   if (!own || own === NOT_STATED_LABEL || own.trim().toLowerCase() === "none") return "";
-  return extractionClause(own);
+  // 2026-08-25 (batch be0f9e02, CEO-ordered fragment fix) — SUPERSEDES the
+  // 9L.1 item-2 colon-skip extraction here: on rich intakes whose field
+  // opens "…documented per data item: <list>", skipping past the colon
+  // rendered the bare list as the whole quote ("sickness-absence
+  // frequency/duration, GP-referral diagnosis codes …") — a fragment the
+  // grader read as boilerplate. The quote is now whole sentences,
+  // abbreviation- and parenthesis-aware, bounded at the passage cap.
+  return boundedPassage(own);
 }
 
 /** One operation, four steps. */
@@ -711,8 +718,13 @@ function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: numb
 
 
   // STEP 3 — LESS INTRUSIVE METHODS.
+  // 2026-08-25 (batch be0f9e02) — boundedClause's single-clause bound cut
+  // rejection reasons to their opening fragment ("Model validation
+  // conducted by Prof", "A manual-only review was piloted …" minus its
+  // evidence). Whole-sentence passages now; the 300-char alt-label cap
+  // keeps the enumeration line compact.
   const alts = asArray(f.alternatives_considered)
-    .map((a) => ({ alt: boundedClause(s(a.alternative)), why: boundedClause(s(a.rejection_reason)) }))
+    .map((a) => ({ alt: boundedPassage(s(a.alternative), 300), why: boundedPassage(s(a.rejection_reason)) }))
     .filter((a) => a.alt);
   if (alts.length > 0) {
     const list = alts.length === 1
@@ -743,7 +755,9 @@ function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: numb
   // STEP 4 — IMPACT, BALANCED.
   if (p) {
     const impactRaw = s(p.impact_argument);
-    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedClause(impactRaw) : "";
+    // 2026-08-25 (batch be0f9e02) — whole-sentence passage; the clause
+    // bound rendered mid-parenthetical fragments on rich impact fields.
+    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedPassage(impactRaw) : "";
     if (impact) paras.push(`${DPIA_S3_STEP4_IMPACT_LEAD} ${quoted(impact)}.`);
     if (s(p.verdict) === "proportionate_on_the_record") {
       paras.push(dpiaS3BalanceSentence(recordedSafeguards(intake).join("; ")));
@@ -778,7 +792,9 @@ export function composeNecessityBody(report: Bag, intakeInput?: Bag): string {
   props.forEach((p, j) => {
     if (used.has(j)) return;
     const impactRaw = s(p.impact_argument);
-    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedClause(impactRaw) : "";
+    // 2026-08-25 (batch be0f9e02) — whole-sentence passage; the clause
+    // bound rendered mid-parenthetical fragments on rich impact fields.
+    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedPassage(impactRaw) : "";
     if (impact) paras.push(`${DPIA_S3_STEP4_IMPACT_LEAD} ${quoted(impact)}.`);
     if (s(p.verdict) === "proportionate_on_the_record") {
       paras.push(dpiaS3BalanceSentence(recordedSafeguards(intake).join("; ")));

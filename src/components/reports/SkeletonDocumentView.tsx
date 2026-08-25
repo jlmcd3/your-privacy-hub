@@ -75,6 +75,49 @@ function sentenceSpans(text: string): SentenceSpan[] {
   }
   return out;
 }
+// 2026-08-25 batch be0f9e02 — LEAD-PHRASE STYLING, the web twin of
+// generate-report-pdf/index.ts's styleLeadPhrases (doc 66 Rule 2, extended).
+// One regex: lettered leads ("E. Residual Risk."), the named exec
+// phrase-leads, and run-in analytic labels ("Analysis.", "Conclusion.", …)
+// at chunk start, after a sentence end, or after a newline. Closed
+// whitelist; keep the two files' label lists and boundaries in sync.
+const LEAD_LABELS = [
+  "Activity Assessed\\.", "Why a Risk Assessment Is Required\\.", "Key Findings\\.",
+  "Overall Determination\\.", "Conditions to Proceed\\.", "Condition to Proceed\\.",
+  "Assessment Follow-Up Required\\.", "Analysis\\.", "Conclusion\\.", "Reasoning\\.",
+  "Consequence\\.", "Recommendation\\.", "Recommendations\\.", "Required Follow-Up\\.",
+  "Record Considered\\.", "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
+  "Risk Assessments\\.", "Outstanding Matters\\.", "Review and Maintenance\\.",
+  "Priority Matters:", "Scope of Assessment:", "Withholding and Security:",
+];
+const LEAD_PHRASE_RE = new RegExp(
+  `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|${LEAD_LABELS.join("|")})(?=\\s|$)`,
+  "g",
+);
+/** Chunk text → React nodes with every lead phrase bold+underlined and the
+ * remaining text routed through renderBodyText (appendix-ref underlining). */
+function renderLeadStyledText(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  LEAD_PHRASE_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = LEAD_PHRASE_RE.exec(text)) !== null) {
+    const pre = m[1];
+    const label = m[2];
+    const labelStart = m.index + pre.length;
+    if (labelStart > last) {
+      nodes.push(<span key={`t${key++}`}>{renderBodyText(text.slice(last, labelStart))}</span>);
+    }
+    nodes.push(<strong key={`l${key++}`} className="underline">{label}</strong>);
+    last = labelStart + label.length;
+  }
+  if (last < text.length) {
+    nodes.push(<span key={`t${key++}`}>{renderBodyText(text.slice(last))}</span>);
+  }
+  return nodes.length ? nodes : [<span key="t0">{renderBodyText(text)}</span>];
+}
+
 interface TextSegment {
   kind: "list" | "para";
   parts: string[];
@@ -222,8 +265,13 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 // CEO report review 2026-08-24 — a chunk containing a
                 // "— item" list run (see segmentDashText) renders those
                 // runs as real bullet lists and everything else as
-                // ordinary paragraphs, ahead of the lettered-lead check
-                // below. Same convention as the PDF renderer.
+                // ordinary paragraphs. Same convention as the PDF renderer.
+                // 2026-08-25 batch be0f9e02 — lead styling now runs through
+                // renderLeadStyledText (see its definition) on every plain
+                // paragraph run in BOTH branches, matching the PDF renderer:
+                // list-carrying chunks no longer lose their lettered lead,
+                // and run-in analytic labels ("Analysis.", "Conclusion.", …)
+                // are styled mid-paragraph too.
                 const segments = segmentDashText(chunk);
                 if (segments) {
                   return (
@@ -237,39 +285,19 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                           </ul>
                         ) : (
                           <p key={k} className="leading-relaxed text-foreground whitespace-pre-line">
-                            {renderBodyText(seg.parts.join(" "))}
+                            {renderLeadStyledText(seg.parts.join(" "))}
                           </p>
                         )
                       )}
                     </div>
                   );
                 }
-                // Part B item 1 (2026-08-21, CEO-confirmed) — bold a
-                // paragraph's lettered lead ("E. Residual Risk.") when one
-                // opens the chunk. Same pattern/regex as the PDF renderer
-                // (generate-report-pdf/index.ts's skeletonSectionsHtml).
-                //
-                // CEO report review 2026-08-23/24 — extended to the named,
-                // unlettered CPPA Risk Executive Summary phrase-leads. Same
-                // list as the PDF renderer; see its comment for provenance.
-                const lead = /^(Activity Assessed\.|Why a Risk Assessment Is Required\.|Key Findings\.|Overall Determination\.|Conditions to Proceed\.|Assessment Follow-Up Required\.|[A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/
-                  .exec(chunk);
                 return (
                   <p
                     key={`${i}-${j}`}
                     className={`leading-relaxed text-foreground whitespace-pre-line${calloutClass ? ` ${calloutClass}` : ""}`}
                   >
-                    {lead
-                      ? (
-                        <>
-                          {/* CEO report review 2026-08-24 — bold alone
-                              doesn't read as distinct enough; underlined too. */}
-                          <strong className="underline">{renderBodyText(lead[1])}</strong>
-                          {lead[2]}
-                          {renderBodyText(lead[3])}
-                        </>
-                      )
-                      : renderBodyText(chunk)}
+                    {renderLeadStyledText(chunk)}
                   </p>
                 );
               })

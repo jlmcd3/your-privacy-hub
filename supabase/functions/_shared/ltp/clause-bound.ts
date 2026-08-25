@@ -24,8 +24,26 @@ export const noStop = (t: string): string => String(t ?? "").replace(/\s*\.\s*$/
 // Appendix A's Report Determination cells (firstSubstantiveSentence()).
 // The negative lookbehind excludes exactly that case; every other
 // single-letter abbreviation this branch was protecting is unaffected.
+// 2026-08-25 (batch be0f9e02, dpia fragment findings): "Prof" and "est"
+// joined the list — a live intake carried "Model validation conducted by
+// Prof. Dr. …", and firstSentence() cut the quote to "…conducted by Prof".
 export const ABBREV_TAIL =
-  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Recital|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Tex|Bus|Com|Ins|Bus\.\s&\sCom|Inc|Ltd|GmbH|AG|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|Dr|Mr|Mrs|Ms|St|U\.S|U\.K)|(?<!Appendix|Exhibit)\s[A-Z])\.$/;
+  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Recital|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Tex|Bus|Com|Ins|Bus\.\s&\sCom|Inc|Ltd|GmbH|AG|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|est|Prof|Dr|Mr|Mrs|Ms|St|U\.S|U\.K)|(?<!Appendix|Exhibit)\s[A-Z])\.$/;
+
+/** 2026-08-25 (batch be0f9e02) — true iff every "(" in `s` is closed. A
+ * sentence or clause boundary inside an unclosed parenthetical is never a
+ * real boundary; splitting there produced mid-parenthetical fragments in
+ * rendered customer quotes ("…lifestyle survey responses) as
+ * insufficiently predictive…"). */
+function parenBalanced(s: string): boolean {
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === "(") depth++;
+    else if (ch === ")" && depth > 0) depth--;
+  }
+  return depth === 0;
+}
 
 export function firstSentence(text: string): string {
   const t = String(text ?? "").trim();
@@ -35,10 +53,39 @@ export function firstSentence(text: string): string {
     const end = m.index + 1;
     const head = t.slice(0, end);
     if (ABBREV_TAIL.test(head)) continue;
+    // 2026-08-25 — a period inside an unclosed parenthetical is not a
+    // sentence end (batch be0f9e02 fragment class).
+    if (!parenBalanced(head)) continue;
     if (/^\s+[a-z0-9]/.test(t.slice(end))) continue;
     return head.trim();
   }
   return t;
+}
+
+/**
+ * 2026-08-25 (batch be0f9e02, dpia fragment findings) — SENTENCE-BOUNDED
+ * PASSAGE. Whole abbreviation-aware sentences accumulated up to `maxChars`,
+ * never cutting mid-sentence, mid-parenthetical, or mid-clause; always at
+ * least the first sentence, however long. Built for the customer-quote
+ * call sites (DPIA §3's "how", alternative-rejection reasons, and impact
+ * statements) where `boundedClause`'s single-clause bound discarded the
+ * substance of rich intake fields — the grader read the remnants as
+ * boilerplate fragments.
+ */
+export function boundedPassage(text: string, maxChars = 520): string {
+  let t = String(text ?? "").trim().replace(/\s+/g, " ");
+  if (!t) return "";
+  const parts: string[] = [];
+  let used = 0;
+  for (let guard = 0; guard < 12 && t; guard++) {
+    const s1 = firstSentence(t);
+    if (!s1) break;
+    if (parts.length > 0 && used + 1 + s1.length > maxChars) break;
+    parts.push(s1);
+    used += (parts.length > 1 ? 1 : 0) + s1.length;
+    t = t.startsWith(s1) ? t.slice(s1.length).trim() : "";
+  }
+  return noStop(parts.join(" "));
 }
 
 // CEO report review 2026-08-24 — several composers (the risk factor engine
@@ -137,26 +184,39 @@ export interface Clause {
   sep: string;
 }
 
-/** The clauses of ONE sentence, in order, each with its offset in that sentence. */
+/** The clauses of ONE sentence, in order, each with its offset in that sentence.
+ *
+ * 2026-08-25 (batch be0f9e02) — PAREN-AWARE: a boundary whose head carries
+ * an unclosed "(" is skipped (the separator is absorbed into the clause),
+ * so clause-granular selection can never start or end a customer quote
+ * mid-parenthetical. Same boundaries, same 20-char minimum, same seps. */
 export function splitClauses(sentence: string, opts?: { colon?: boolean }): Clause[] {
   const boundary = opts?.colon ? CLAUSE_BOUNDARY_COLON : CLAUSE_BOUNDARY;
   const s = String(sentence ?? "").trim().replace(/\s+/g, " ");
   const out: Clause[] = [];
   let offset = 0;
   let rest = s;
+  let searchFrom = 0; // within `rest`: skip past paren-unbalanced boundaries
   while (rest) {
-    const m = rest.match(boundary);
+    const tail = rest.slice(searchFrom);
+    const m = tail.match(boundary);
     if (!m) {
       const text = noStop(rest.trim());
       if (text) out.push({ text, start: offset + (rest.length - rest.trimStart().length), sep: "" });
       break;
     }
-    const head = m[1];
+    const head = rest.slice(0, searchFrom + m[1].length);
+    if (!parenBalanced(head)) {
+      // Boundary sits inside a parenthetical — absorb it and keep looking.
+      searchFrom = searchFrom + m[1].length + m[2].length;
+      continue;
+    }
     const text = noStop(head.trim());
     const sep = m[2].trim().startsWith(",") ? "," : m[2].trim();
     if (text) out.push({ text, start: offset + (head.length - head.trimStart().length), sep });
-    offset += m[0].length;
+    offset += head.length + m[2].length;
     rest = s.slice(offset);
+    searchFrom = 0;
   }
   return out;
 }

@@ -11,7 +11,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { buildDpiaDeliverables, DPIA_NECESSITY_TEST_SENTENCE } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import {
   assembleDpiaSkeletonDocument,
-  boundedClause,
+  boundedPassage,
   dpiaS3BalanceSentence,
   DPIA_S3_DETERMINATION_ESTABLISHED,
   DPIA_S3_LEAD_RETIRED,
@@ -23,8 +23,19 @@ import {
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
 import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
 
-/** The clause bound every Section 3 customer quote must respect. */
-const S3_QUOTE_BOUND = 400;
+/** The passage bound every Section 3 customer quote must respect.
+ *
+ * DELIBERATE RE-PIN 2026-08-25 (batch be0f9e02, CEO-ordered fragment fix):
+ * Section 3 customer quotes moved from `boundedClause` (single clause,
+ * ≤400 chars) to `boundedPassage` (whole abbreviation- and paren-aware
+ * sentences accumulated to a 520-char budget, always ≥1 sentence) —
+ * the single-clause bound was discarding the substance of rich intake
+ * fields and the remnants graded as boilerplate fragments. The invariant
+ * is now IDEMPOTENCE: a rendered quote re-bounded by `boundedPassage`
+ * must be unchanged (it is already whole sentences within budget). A
+ * quote may exceed 520 only when its own FIRST sentence does (the
+ * ≥1-sentence guarantee), which the assertion below permits. */
+const S3_QUOTE_BOUND = 520;
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -104,13 +115,18 @@ Deno.test("9L (iii) — Section 3 renders goals → how → alternatives → imp
   assert(after.every((p) => !p.startsWith(DPIA_S3_STEP4_IMPACT_LEAD)), "analysis after determination");
 });
 
-Deno.test("9L (iv) — every Section 3 customer quote is clause-bounded", () => {
+Deno.test("9L (iv) — every Section 3 customer quote is passage-bounded", () => {
   const { paras } = assemble(HARROWGATE);
   const s3 = paras("section_3_necessity_proportionality").join("\n");
   const long: string[] = [];
   for (const m of s3.matchAll(/"([^"]+)"/g)) {
-    if (m[1].length > S3_QUOTE_BOUND) long.push(`${m[1].length}: ${m[1].slice(0, 80)}`);
-    else if (boundedClause(m[1]) !== m[1]) long.push(`unbounded: ${m[1].slice(0, 80)}`);
+    // Idempotence: the rendered quote IS a bounded passage already.
+    if (boundedPassage(m[1]) !== m[1]) long.push(`unbounded: ${m[1].slice(0, 80)}`);
+    // Budget: over-length only via the ≥1-sentence guarantee (a single
+    // first sentence longer than the budget).
+    else if (m[1].length > S3_QUOTE_BOUND && boundedPassage(m[1], 1) !== m[1]) {
+      long.push(`${m[1].length}: ${m[1].slice(0, 80)}`);
+    }
   }
   assertEquals(long, []);
 });

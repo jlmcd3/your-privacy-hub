@@ -1163,12 +1163,11 @@ ${AUTHORITY_EXHIBIT_CSS}
   .condition-callout { border:1.5px solid #b9822d; background:#fdf6e7;
     border-radius:5px; padding:9px 13px; margin:0 0 10px; }
   .condition-callout p.body-p:last-child { margin-bottom:0; }
-  /* 2026-08-25 polish round — progressive enhancement: a section whose
-     table carries 5+ columns (the Risk Register class) asks for a landscape
-     page via CSS named pages. Engines that honor CSS page names rotate that
-     section; engines that don't simply keep portrait. */
-  @page wide-landscape { size: 11in 8.5in; margin: 16mm 14mm 18mm; }
-  section.wide-landscape { page: wide-landscape; }
+  /* 2026-08-25 batch be0f9e02 — the wide-landscape named page was removed:
+     PDFShift/Chromium honored the page SIZE but kept a single content
+     layout width, clipping text on the rotated pages, and the 5-column
+     heuristic flipped most of the DPIA plus the Risk signature page. See
+     skeletonSectionsHtml's note and doc 66 Rule 10. */
 </style></head>
 <body><div class="shell">
   <header class="header">
@@ -1428,6 +1427,46 @@ const SIGNATURE_PAGE_IDS = new Set([
   "signature",
 ]);
 
+// ─────────────────────────────────────────────────────────────────────────
+// LEAD-PHRASE STYLING (doc 66 Rule 2, extended 2026-08-25 batch be0f9e02).
+//
+// One regex, applied to the ESCAPED text of every plain paragraph run:
+//  - lettered leads ("E. Residual Risk.") — at chunk start, after a
+//    sentence end, or after a newline (Rule 5's "\n"-joined blocks put
+//    leads like "F. Overall Benefits Conclusion." mid-chunk);
+//  - the named phrase-leads (exec-summary heads, verified against
+//    RISK_FACTOR_FIXED) — same boundaries;
+//  - run-in analytic labels ("Analysis.", "Conclusion.", "Reasoning.",
+//    "Consequence.", …) which the engines emit MID-paragraph as
+//    sentence-opening labels. Closed whitelist — never a heuristic — so a
+//    sentence that happens to start with a capitalized word is never
+//    styled by accident.
+//
+// The lettered alternation is bounded ([^.\n]{0,80} and a required capital
+// after the letter) so a mid-sentence "… v. Smith." can never be mistaken
+// for a lead. Keep the web twin (SkeletonDocumentView.tsx) in sync.
+// ─────────────────────────────────────────────────────────────────────────
+const LEAD_LABELS = [
+  "Activity Assessed\\.", "Why a Risk Assessment Is Required\\.", "Key Findings\\.",
+  "Overall Determination\\.", "Conditions to Proceed\\.", "Condition to Proceed\\.",
+  "Assessment Follow-Up Required\\.", "Analysis\\.", "Conclusion\\.", "Reasoning\\.",
+  "Consequence\\.", "Recommendation\\.", "Recommendations\\.", "Required Follow-Up\\.",
+  "Record Considered\\.", "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
+  "Risk Assessments\\.", "Outstanding Matters\\.", "Review and Maintenance\\.",
+  "Priority Matters:", "Scope of Assessment:", "Withholding and Security:",
+];
+const LEAD_PHRASE_RE = new RegExp(
+  `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|${LEAD_LABELS.join("|")})(?=\\s|$)`,
+  "g",
+);
+function styleLeadPhrases(escapedText: string): string {
+  return escapedText.replace(
+    LEAD_PHRASE_RE,
+    (_m, pre: string, label: string) =>
+      `${pre}<strong style="text-decoration:underline;">${label}</strong>`,
+  );
+}
+
 function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string }): string {
   const footnotesOn = opts?.product === "cppa-admt-v2";
   return (doc.sections ?? []).map((sec) => {
@@ -1468,11 +1507,26 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
           conditionCallout && html
             ? `<div class="condition-callout" style="border:1.5px solid #b9822d;background:#fdf6e7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`
             : html;
+        // CEO report review 2026-08-24 — bold alone doesn't read as
+        // distinct enough; the lead carries an underline too.
+        const mark = (html: string) => {
+          const underlined = underlineAppendixRefs(html);
+          return footnotesOn ? substituteFootnoteMarkers(underlined) : underlined;
+        };
+        // 2026-08-25 batch be0f9e02 fix — lead styling is applied by
+        // styleLeadPhrases (see its definition) on the ESCAPED text of every
+        // plain-paragraph run, in BOTH branches below. This closes the two
+        // gaps the CEO's review found: (a) a chunk containing a "— item"
+        // list run used to route around the lead styling entirely, so
+        // lettered leads like "E. Inherent Risk Conclusion." on list-carrying
+        // chunks rendered plain; (b) run-in analytic labels ("Analysis.",
+        // "Conclusion.", "Reasoning.", …) mid-paragraph were never styled at
+        // all — only chunk-opening leads were.
+        const paragraphHtml = (text: string): string =>
+          `<p class="body-p" style="white-space:pre-line;">${mark(styleLeadPhrases(escHtml(text)))}</p>`;
         // CEO report review 2026-08-24 — a chunk containing a "— item"
         // list run (see segmentDashText) renders those runs as real
-        // bullet lists and everything else as ordinary paragraphs, ahead
-        // of the lettered-lead check below, so a dash-list lead like
-        // "Analysis." is never mistaken for one.
+        // bullet lists and everything else as ordinary paragraphs.
         const segments = segmentDashText(chunk);
         if (segments) {
           return wrapChunk(segments.map((seg) => {
@@ -1480,36 +1534,10 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
               const itemsHtml = seg.parts.map((item) => `<li>${underlineAppendixRefs(escHtml(item))}</li>`).join("");
               return `<ul class="body-list" style="margin:0 0 8px;padding-left:20px;">${itemsHtml}</ul>`;
             }
-            return `<p class="body-p" style="white-space:pre-line;">${underlineAppendixRefs(escHtml(seg.parts.join(" ")))}</p>`;
+            return paragraphHtml(seg.parts.join(" "));
           }).join(""));
         }
-        // Part B item 1 (2026-08-21, CEO-confirmed) — bold a paragraph's
-        // lettered lead ("E. Residual Risk.") when one opens the chunk.
-        // Confirmed against every real instance in the fleet (51 in
-        // cppa-risk.spine.ts, 2 in lia.spine.ts): a single capital letter,
-        // a period, a phrase with no embedded period, then a period before
-        // the body continues. Escaped, then marker-substituted, separately
-        // for the lead and the rest so <strong> wraps only the lead.
-        //
-        // CEO report review 2026-08-23/24 — the same rule extended to the
-        // named, unlettered CPPA Risk Executive Summary phrase-leads
-        // ("Activity Assessed.", "Why a Risk Assessment Is Required.",
-        // "Key Findings.", "Overall Determination.", "Conditions to
-        // Proceed.", "Assessment Follow-Up Required." — verified against
-        // risk-factor-engine.ts's RISK_FACTOR_FIXED constants). Tried
-        // first (exact match), falling back to the lettered pattern.
-        const lead = /^(Activity Assessed\.|Why a Risk Assessment Is Required\.|Key Findings\.|Overall Determination\.|Conditions to Proceed\.|Assessment Follow-Up Required\.|[A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/
-          .exec(chunk);
-        // CEO report review 2026-08-24 — bold alone doesn't read as
-        // distinct enough; the lead now carries an underline too.
-        const mark = (html: string) => {
-          const underlined = underlineAppendixRefs(html);
-          return footnotesOn ? substituteFootnoteMarkers(underlined) : underlined;
-        };
-        const withMarkers = lead
-          ? `<strong style="text-decoration:underline;">${mark(escHtml(lead[1]))}</strong>${escHtml(lead[2])}${mark(escHtml(lead[3]))}`
-          : mark(escHtml(chunk));
-        return wrapChunk(`<p class="body-p" style="white-space:pre-line;">${withMarkers}</p>`);
+        return wrapChunk(paragraphHtml(chunk));
       }).join("");
     }).join("");
     if (!paras) return "";
@@ -1529,14 +1557,17 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
       || (sec.id === "incident_worksheet" && opts?.product === "ir-playbook")
       || SIGNATURE_PAGE_IDS.has(sec.id ?? "");
     const breakCss = forceBreak ? "break-before:always;page-break-before:always;" : "";
-    // 2026-08-25 polish round — a section carrying a 5+-column table (the
-    // Risk Register class) asks for a landscape page via the CSS named page
-    // defined in buildTextReportHTML. Progressive enhancement: engines that
-    // don't honor CSS page names keep portrait.
-    const wideTable = (sec.paragraphs ?? []).some((p) =>
-      p?.kind === "table" && (p.table?.columns?.length ?? 0) >= 5
-    );
-    return `<section class="section${wideTable ? " wide-landscape" : ""}" style="${breakCss}margin-bottom:14px;">
+    // 2026-08-25 batch be0f9e02 — the "wide-landscape" named-page treatment
+    // is REMOVED (was: any section with a 5+-column table asked for a
+    // landscape page). Verified against real PDFShift output: (a) the
+    // heuristic over-fired badly — DPIA's EDPB tables routinely carry 5–7
+    // columns, flipping 11 of 17 pages, and Risk's 5-column SIGNATURE table
+    // flipped the Review-and-Approval page; (b) worse, Chromium lays the
+    // document out at a single content width, so mixed-orientation named
+    // pages CLIPPED text at the right edge rather than reflowing. Negative
+    // result recorded in doc 66 Rule 10 — do not reintroduce without a
+    // dedicated render test against the live PDF service.
+    return `<section class="section" style="${breakCss}margin-bottom:14px;">
       <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;break-after:avoid;page-break-after:avoid;">${escHtml(sec.title ?? "")}</h2>
       ${paras}
     </section>`;
