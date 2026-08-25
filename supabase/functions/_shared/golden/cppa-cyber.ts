@@ -166,7 +166,9 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "tuning",
     intake: {
-      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"], ...APPLICABILITY_YES },
+      // c1_auth notes: FIDO2 for engineering, Duo PUSH (password + push) for
+      // staff -> passwords are in use.
+      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"], ...APPLICABILITY_YES, password_auth_used: "Yes" },
       controls: build(meridian, "Implemented across organization"),
     },
     assertions: [
@@ -179,7 +181,8 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "tuning",
     intake: {
-      profile: { entity_name: "Helios Fintech", industry: "Financial services", incidents_12mo: "None", framework: "ISO 27001", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["ISO 27001"], ...APPLICABILITY_YES },
+      // c1_auth notes: explicitly "passwordless via WebAuthn" -> no.
+      profile: { entity_name: "Helios Fintech", industry: "Financial services", incidents_12mo: "None", framework: "ISO 27001", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["ISO 27001"], ...APPLICABILITY_YES, password_auth_used: "No" },
       controls: build(helios, "Implemented with continuous monitoring"),
     },
     assertions: [
@@ -192,7 +195,8 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "adversarial",
     intake: {
-      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"], ...APPLICABILITY_NO },
+      // c1_auth notes: "MFA via Okta" doesn't rule out a password factor.
+      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"], ...APPLICABILITY_NO, password_auth_used: "Yes" },
       controls: build({
         c1_auth: { notes: "MFA via Okta. Encryption: AES-256 at rest with KMS-managed keys; TLS 1.3 in transit." },
         c2_encryption: { notes: "See auth notes." },
@@ -226,6 +230,9 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
         remediation_owner: "Director of Information Security, reporting to the CFO.",
         // C1.2 addition.
         ...APPLICABILITY_YES,
+        // FC-L4 addition. c1_auth notes: "password authentication disabled
+        // at the directory" -> no.
+        password_auth_used: "No",
       },
       controls: build(northwind, "Implemented with continuous monitoring"),
     },
@@ -549,6 +556,9 @@ export const CYBER_PERFECT: GoldenCase[] = [
           "Priya Raghavan, Vice President of Security Engineering, accountable to the Audit Committee for closing every finding on the tracked remediation plan.",
         // C1.2 addition.
         ...APPLICABILITY_YES,
+        // FC-L4 addition. c1_auth notes (CONTROL_ROWS below): "no password
+        // fallback since 2026-01" -> no.
+        password_auth_used: "No",
       },
       controls: CONTROL_ROWS.map((c) => ({
         key: c.key,

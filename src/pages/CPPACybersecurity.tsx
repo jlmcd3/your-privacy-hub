@@ -51,6 +51,7 @@ import {
   MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT,
   CYBER_REVENUE_OPTS, CYBER_CONSUMER_OPTS, CYBER_SELL_SHARE_OPTS,
   CYBER_SHARE_REVENUE_50PCT_OPTS, CYBER_SENSITIVE_PI_OPTS, CYBER_SPI_VOLUME_OPTS,
+  CYBER_PASSWORD_AUTH_OPTIONS,
 } from "./CPPACybersecurity.enums";
 
 // INTAKE-4b — `notesHint` / `evidenceHint` carry the per-component plain-language
@@ -120,6 +121,9 @@ export default function CPPACybersecurity() {
     // information" cell instead.
     q1_revenue: "", q2_consumers: "", q5_sell_share: "",
     q5c_share_revenue_50pct: "", q15_sensitive_pi: "", q15c_spi_volume: "",
+    // FC-L4 (2026-08-25, CEO-ordered) — optional; see the intake-contract
+    // header comment.
+    password_auth_used: "",
   });
   // INTAKE-4b — prefill-confirm for profile.in_scope_frameworks. The earlier
   // "primary security framework in use" answer supplies the same fact for the
@@ -462,6 +466,18 @@ export default function CPPACybersecurity() {
               </select>
             </div>
           )}
+          {/* FC-L4 (2026-08-25, CEO-ordered) — the § 7123(b)(2)(A)(ii)
+              password/passphrase requirement is conditional on the business
+              actually using passwords/passphrases; this predicate lets the
+              deterministic path apply that condition instead of inferring
+              it from free-text notes. */}
+          <div data-rail-key="password_auth_used" onFocus={() => focusRail('password_auth_used')}>
+            <Label htmlFor="cyber_password_auth_used">Does your authentication method include passwords or passphrases? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+            <select id="cyber_password_auth_used" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.password_auth_used} onChange={(e) => setProfile({ ...profile, password_auth_used: e.target.value })}>
+              <option value="">Select…</option>
+              {CYBER_PASSWORD_AUTH_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
           <div data-rail-key="in_scope_frameworks" onFocus={() => focusRail('in_scope_frameworks')}>
             <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
             {inScopePrefilled && !inScopeTouched ? (

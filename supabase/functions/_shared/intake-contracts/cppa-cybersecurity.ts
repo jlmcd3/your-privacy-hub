@@ -7,7 +7,8 @@
 //                auditor_engagement_status, prior_audit_scope,
 //                remediation_owner,
 //                q1_revenue, q2_consumers, q5_sell_share,
-//                q5c_share_revenue_50pct, q15_sensitive_pi, q15c_spi_volume },
+//                q5c_share_revenue_50pct, q15_sensitive_pi, q15c_spi_volume,
+//                password_auth_used },
 //     controls: [ { key, label, maturity, notes, evidence } × 18 ]
 //   }
 //
@@ -42,6 +43,26 @@
 // computed" as the ITEM-204 design law for that specific surface —
 // computing a tier there would contradict shipped, ratified prose and
 // needs its own CEO ruling, not a Sonnet engineering call.
+// CEO RULING (2026-08-25): ITEM-204 stands as-is. The § 7121(a)/(b)
+// deadline-tier/cadence table is NOT to be built; the surface keeps
+// stating the law neutrally, never computing a customer's cohort. This
+// is now a SETTLED decision, not an open question awaiting a ruling —
+// do not revisit without an explicit new CEO instruction.
+//
+// FC-L4 (2026-08-25, CEO-ordered) — `profile.password_auth_used`. The
+// CAM row `cppa-cyber/c1/fcl-L4` pins an FSOR clarification that
+// password/passphrase-specific requirements under § 7123(b)(2)(A)(ii)
+// apply ONLY where the business actually uses passwords/passphrases as
+// part of its authentication method — a conditional rule the
+// deterministic path cannot apply without a yes/no predicate (the model
+// path today infers it by reading `controls[].notes` free text, which
+// the deterministic path must not do — see this repo's standing
+// no-inference discipline). Simplest possible field: one Yes/No enum,
+// optional (matching every other non-core-five field in this contract).
+// Adding the field does NOT flip FC-L4's own `logic_disposition` to
+// `implemented` — no composer consumes it yet; that disposition still
+// names the CODE that would apply the rule, not just the field's
+// existence. See the CAM row's own updated curation_note.
 //
 // IMPORT-VS-LITERAL DECISION: Supabase edge-function bundling only ships
 // files under supabase/functions/, so this contract cannot import from
@@ -167,6 +188,10 @@ export const CYBER_APPLICABILITY_SHARE_REVENUE_50PCT_OPTIONS = ["Yes", "No", "Un
 export const CYBER_APPLICABILITY_SENSITIVE_PI_OPTIONS = ["Yes", "No", "Unsure"] as const;
 export const CYBER_APPLICABILITY_SPI_VOLUME_OPTIONS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
 
+// FC-L4 — LITERAL COPY of src/pages/CPPACybersecurity.enums.ts
+// CYBER_PASSWORD_AUTH_OPTIONS.
+export const CYBER_PASSWORD_AUTH_OPTIONS = ["Yes", "No"] as const;
+
 
 
 export const cppaCybersecurityContract: IntakeContract = {
@@ -235,6 +260,10 @@ export const cppaCybersecurityContract: IntakeContract = {
       requiredWhen: 'q15_sensitive_pi === "Yes"', hiddenValue: "",
       trigger: { key: "profile.q15_sensitive_pi", equals: ["Yes"] },
       options: CYBER_APPLICABILITY_SPI_VOLUME_OPTIONS },
+    // FC-L4 — does the business use passwords/passphrases as part of its
+    // authentication method at all? See the header comment.
+    { key: "profile.password_auth_used", kind: "enum", required: "optional",
+      options: CYBER_PASSWORD_AUTH_OPTIONS, askEligible: true },
     // controls[]
     { key: "controls[].key",     kind: "enum",      required: "always",
       options: CYBER_CONTROL_SLUGS },

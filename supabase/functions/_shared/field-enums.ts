@@ -121,6 +121,8 @@ const CYBER_MATURITY_OPTS = [
   "Implemented across organization",
   "Implemented with continuous monitoring",
 ];
+// FC-L4 (2026-08-25) — mirror of CYBER_PASSWORD_AUTH_OPTIONS.
+const CYBER_PASSWORD_AUTH_OPTS = ["Yes", "No"];
 
 // enum_ref → options. Keys mirror the client REGISTRY keyPaths in
 // src/components/refine/fieldEnums.ts; the enum_ref emitted on frozen
@@ -191,6 +193,7 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "cppa_cybersecurity:q5c_share_revenue_50pct": SHARE_REVENUE_50PCT_OPTS,
   "cppa_cybersecurity:q15_sensitive_pi": Q15_SENSITIVE_PI_OPTS,
   "cppa_cybersecurity:q15c_spi_volume": SPI_VOLUME_OPTS,
+  "cppa_cybersecurity:password_auth_used": CYBER_PASSWORD_AUTH_OPTS,
 };
 
 export function resolveEnumRef(enumRef: string | null | undefined): readonly string[] | null {

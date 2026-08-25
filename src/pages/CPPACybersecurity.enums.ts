@@ -69,3 +69,9 @@ export const CYBER_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for ad
 export const CYBER_SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"] as const;
 export const CYBER_SENSITIVE_PI_OPTS = ["Yes", "No", "Unsure"] as const;
 export const CYBER_SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
+
+// FC-L4 (2026-08-25, CEO-ordered) — does the business use passwords or
+// passphrases as part of its authentication method at all? The
+// § 7123(b)(2)(A)(ii) password/passphrase requirement is conditional on
+// this; see the intake-contract's header comment for the full rationale.
+export const CYBER_PASSWORD_AUTH_OPTIONS = ["Yes", "No"] as const;

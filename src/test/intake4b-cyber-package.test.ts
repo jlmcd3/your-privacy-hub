@@ -44,14 +44,15 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
     expect(added?.required).toBe("optional");
   });
 
-  // DELIBERATE RE-PIN (2026-08-25, Conversion C1.2): this test's title and
-  // exact field list predate the § 7120(a)-(b) applicability predicate
-  // fields (q1_revenue/q2_consumers/q5_sell_share/q5c_share_revenue_50pct/
-  // q15_sensitive_pi/q15c_spi_volume) — see the intake contract's own
-  // header comment for the full rationale. Re-pinned to the current field
-  // list rather than widened to "contains at least"; a future INTAKE-4b-
-  // style addition should touch this list deliberately, same discipline.
-  it("the full field list is the INTAKE-4b set plus C1.2's six applicability fields", () => {
+  // DELIBERATE RE-PIN (2026-08-25, Conversion C1.2 + FC-L4): this test's
+  // title and exact field list predate the § 7120(a)-(b) applicability
+  // predicate fields (q1_revenue/q2_consumers/q5_sell_share/
+  // q5c_share_revenue_50pct/q15_sensitive_pi/q15c_spi_volume) and FC-L4's
+  // password_auth_used — see the intake contract's own header comment for
+  // the full rationale on each. Re-pinned to the current field list rather
+  // than widened to "contains at least"; a future addition should touch
+  // this list deliberately, same discipline.
+  it("the full field list is the INTAKE-4b set plus C1.2's six applicability fields plus FC-L4's password predicate", () => {
     const keys = cppaCybersecurityContract.fields.map((f) => f.key);
     expect(keys).toEqual([
       "profile.entity_name",
@@ -70,6 +71,7 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
       "profile.q5c_share_revenue_50pct",
       "profile.q15_sensitive_pi",
       "profile.q15c_spi_volume",
+      "profile.password_auth_used",
       "controls[].key",
       "controls[].label",
       "controls[].maturity",

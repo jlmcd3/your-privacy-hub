@@ -721,11 +721,11 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       logic_disposition: {
         kind: "extension_filed",
         queue_ref:
-          "Cyber conversion C0.5 D2 predicate enumeration (doc 24 §3; doc 54 §1 L4 — the 15-field intake has no password-use predicate; derive it from the control entries or add a field)",
+          "Cyber conversion C1 authentication-finding composer (doc 24 §3; doc 54 §1 L4 — the predicate field now exists (profile.password_auth_used, CEO-ordered 2026-08-25) but no composer reads it yet; this disposition names the code that would APPLY the rule, not the field's existence)",
       },
       provenance: { page_ref: "p. 24", verified_on: "2026-08-23" },
       curation_note:
-        "L4: password/passphrase requirements apply ONLY where the business uses them. The model path absorbs this today; the deterministic table cannot without a predicate — a C0.5 work item, NOT a live defect (doc 54 §1). Same source as c1/s4-02 (render half). Siblings: cef94309, 58dddd9f.",
+        "L4: password/passphrase requirements apply ONLY where the business uses them. The model path absorbs this today by reading controls[].notes free text; the deterministic path must not infer it the same way (no-inference discipline), so a dedicated predicate field was added instead (profile.password_auth_used — the simplest possible shape: one Yes/No enum, optional, CEO-ordered 2026-08-25). Field exists; the c1_auth finding/remediation composer that would actually CONDITION on it is not yet built — that composer is the remaining C1 work item, not the field. Same source as c1/s4-02 (render half). Siblings: cef94309, 58dddd9f.",
     },
     {
       id: "cppa-cyber/c17/fcl-L5",
