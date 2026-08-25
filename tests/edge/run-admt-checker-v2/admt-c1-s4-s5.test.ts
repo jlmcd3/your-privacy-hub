@@ -14,7 +14,7 @@ import {
   assembleAdmtV2Document,
   deriveAdmtFiredStates,
 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-assemble.ts";
-import { ADMT_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/admt-corpus-map.ts";
+import { ADMT_CORPUS_MAP } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
 
 function fixture(id: string) {
   const f = CPPA_ADMT_GOLDEN.find((g) => g.id === id);
@@ -75,7 +75,8 @@ Deno.test("wave C1 — human-involvement S4 + the S5 Deliveroo appendix both ren
   // Human involvement's row must carry the "see §2.1" pointer, not a
   // redundant restated tag (avoids the aggregate-budget clutter R2 exists
   // to prevent).
-  assert(body.includes("see §2.1 What the Regulator Said, above"));
+  // v3.2.2 — the body has no numbered §2.1; the pointer names the callout.
+  assert(body.includes('see the "What the Regulator Said" discussion in Section 2, above'));
 });
 
 Deno.test("wave C1 — advertising-exclusion S4 content renders independent of admt_in_scope", () => {
