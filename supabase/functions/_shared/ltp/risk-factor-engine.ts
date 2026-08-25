@@ -471,6 +471,18 @@ export interface RiskFactorEngineResult {
   readonly provenance: readonly FactorProvenance[];
   readonly composed_factor_ids: readonly string[];
   readonly absent_class_c_ids: readonly string[];
+  /**
+   * v4.7.2 — typed operands for the cover status panel. A PROJECTION of
+   * determinations already made above (trigger engagement, the materiality
+   * tiers, the balancing outcome) — never a new determination.
+   */
+  readonly exec_panel: {
+    readonly assessment_required: boolean;
+    readonly inherent: RiskMateriality | null;
+    readonly residual: RiskMateriality | null;
+    /** The processing-consequence type, e.g. "proceed with conditions". */
+    readonly disposition: string;
+  };
 }
 
 // ── Typed operand extraction ─────────────────────────────────────────────────
@@ -713,11 +725,15 @@ export function runRiskFactorEngine(
     sources: string[],
     authorities: string[] = [],
   ): string => {
+    // v4.7.2 — a leading "\n" asks for a line break before this factor when
+    // it shares a spine block with earlier content (the renderer preserves
+    // single newlines per doc 66 Rule 5). Captured before the trim eats it.
+    const breakBefore = text.startsWith("\n");
     const t = text.replace(/\s{2,}/g, " ").trim();
     if (!t) return "";
     factors[factorId] = t;
     provenance.push({ factor_id: factorId, factor_class: cls, sources, authorities });
-    blocks[key] = blocks[key] ? `${blocks[key]} ${t}` : t;
+    blocks[key] = blocks[key] ? `${blocks[key]}${breakBefore ? "\n" : " "}${t}` : t;
     return t;
   };
 
@@ -903,7 +919,7 @@ export function runRiskFactorEngine(
   }
   if (specificityAnswered && specificityFacets.length > 0 && specificityFacets.length <= 2) {
     followUps.push(
-      "Sharpen the stated processing purpose: the typed record confirms it identifies only " +
+      "Sharpen the stated processing purpose: the structured record confirms it identifies only " +
         asProse(specificityFacets.map((x) => x.toLowerCase())),
     );
   }
@@ -1148,7 +1164,7 @@ export function runRiskFactorEngine(
         "vii_risks:4",
         "risk_interdependency_analysis",
         "B",
-        `${interactingLead} the Company records that the identified risk pathways operate independently, and no compounding interaction enters the analysis on the typed record.`,
+        `${interactingLead} the Company records that the identified risk pathways operate independently, and no compounding interaction enters the analysis on the structured record.`,
         ["INTAKE:risk_interdependency_check"],
         [],
       );
@@ -1218,14 +1234,14 @@ export function runRiskFactorEngine(
           const status = s(g.safeguard_status);
           const cellText = basis === "Validated by testing against the linked risk"
             ? status === "Implemented and tested"
-              ? "validated by testing against the risk it addresses; the residual rule credits it at full weight."
-              : "described as validated by testing, but the implementation status recorded above does not yet support that description; the residual rule credits the status, not the description."
+              ? "validated by testing against the risk it addresses and is credited at full weight in the residual-risk analysis."
+              : "described as validated by testing, but the implementation status recorded above does not yet support that description; the credited weight follows the recorded status, not the description."
             : basis === "Consistent with an industry standard or framework"
             ? "consistent with an industry standard or framework; conformance to a standard is credited as evidence of sound design, not as evidence the control operates against this activity’s specific pathways."
             : basis === "Based on internal design review only"
             ? "supported by internal design review only; design review establishes intent, and the absence of testing against the linked risk limits the reliance the assessment places on it."
             : "recorded without effectiveness evidence; the control is credited as existing at the status recorded above, and no effectiveness weight is added.";
-          return `— ${firstSentence(s(g.safeguard)).replace(/\.$/, "")}: on the Company’s typed record, this control is ${cellText}`;
+          return `— ${firstSentence(s(g.safeguard)).replace(/\.$/, "")}: on the Company’s structured record, this control is ${cellText}`;
         });
         put(
           "viii_safeguards:1",
@@ -1324,7 +1340,7 @@ export function runRiskFactorEngine(
           "viii_safeguards:4",
           "planned_safeguard_analysis",
           "B",
-          `Analysis. On the Company’s typed record, ${bits.join("; ")}. A planned safeguard enters the balance only as a condition, never as present mitigation.`,
+          `Analysis. On the Company’s structured record, ${bits.join("; ")}. A planned safeguard enters the balance only as a condition, never as present mitigation.`,
           ["INTAKE:a6_safeguards"],
           ["11 CCR § 7152(a)(6)"],
         );
@@ -1395,7 +1411,7 @@ export function runRiskFactorEngine(
           moved
             ? `reduced one tier to ${p.residual} on the strength of a safeguard supported by testing evidence.`
             : p.bestStatus === "Implemented, not tested"
-            ? `unchanged at ${p.residual} — the credited safeguard exists but lacks testing evidence, and the residual rule does not move the tier without it.`
+            ? `unchanged at ${p.residual} — the credited safeguard exists but lacks testing evidence, and the tier does not move without that evidence.`
             : p.bestStatus === "Planned, not yet implemented"
             ? `unchanged at ${p.residual} — the only recorded safeguard is planned, and a planned safeguard is a condition, not present mitigation.`
             : p.bestStatus
@@ -1407,7 +1423,7 @@ export function runRiskFactorEngine(
         "viii_safeguards:7",
         "residual_risk_analysis",
         "B",
-        `Analysis. Each pathway’s residual tier follows the residual rule applied to the Company’s own safeguard record: ${
+        `Analysis. Each pathway’s residual tier follows from the Company’s own safeguard record: ${
           walk.join(" ")
         }`,
         ["INTAKE:a5_harm_pathways", "INTAKE:a6_safeguards", "FACTOR:residual_rule"],
@@ -1418,7 +1434,7 @@ export function runRiskFactorEngine(
       "viii_safeguards:7",
       "overall_residual_risk_conclusion",
       "B",
-      `${conclusionText} Reasoning. Safeguard credit follows the assessment’s residual rule: a safeguard reduces a pathway’s materiality by one tier only where implementation and testing evidence supports it; implemented-but-untested and planned safeguards are recorded but do not change the tier. The Company’s own residual descriptions are preserved in Appendix E.`,
+      `${conclusionText} Reasoning. A safeguard reduces a pathway’s materiality by one tier only where implementation and testing evidence supports it; implemented-but-untested and planned safeguards are recorded but do not change the tier. The Company’s own residual descriptions are preserved in Appendix E.`,
       ["FACTOR:material_residual_risks"],
       ["11 CCR § 7152(a)(6)"],
     );
@@ -1501,7 +1517,10 @@ export function runRiskFactorEngine(
       "vi_benefits:16",
       "overall_benefits_conclusion",
       "B",
-      parts.join(" "),
+      // v4.7.2 — leading "\n": this factor shares spine block vi:16 with the
+      // public-benefit analysis, and without a break the "F." sub-head ran
+      // into the preceding paragraph (CEO output review, 2026-08-25).
+      `\n${parts.join(" ")}`,
       ["FACTOR:benefit_weight_table", "INTAKE:a4_benefit_consumer", "INTAKE:a4_benefit_business"],
       ["11 CCR § 7152(a)(4)"],
     );
@@ -1510,6 +1529,17 @@ export function runRiskFactorEngine(
   // ── Section IX — balancing ───────────────────────────────────────────────────
 
   const cell = RISK_BALANCING_TABLE[benefitTier][maxResidual];
+  // v4.7.2 (2026-08-25 polish round) — the material×Low cell's ratified
+  // explanation asserts "a necessity analysis that supports the information
+  // processed"; when Section III's necessity analysis is QUALIFIED that
+  // assertion contradicts the record (found in CEO output review). The cell
+  // itself stays ratified for the clean case; the qualified case swaps in a
+  // formulation that carries the Section III condition instead.
+  const necessityQualified = necessity.unnecessary.length > 0 || necessity.unsure.length > 0;
+  const cellExplanation =
+    necessityQualified && cell.explanation.includes("a necessity analysis that supports the information processed")
+      ? "Material benefits and a low residual-risk profile support the favorable disposition; the necessity issue identified in Section III remains a condition to proceeding."
+      : cell.explanation;
   const hasConditions = conditions.length > 0;
   const { outcome, consequence } = resolveRecommendedOutcome(
     cell.kind,
@@ -1533,12 +1563,12 @@ export function runRiskFactorEngine(
     // RK3-D — typed expectation and choice-architecture support (doc 33 D-L5).
     if (expectAll.length && divergenceMarkers.length === 0) {
       pro.push(
-        "— The processing is consistent with the context of the consumer interaction on the Company’s typed record (Section IV).",
+        "— The processing is consistent with the context of the consumer interaction on the Company’s structured record (Section IV).",
       );
     }
     if (choiceAnswered && choiceMissing.length === 0 && !choiceNoneConfirmed) {
       pro.push(
-        "— The choice architecture is confirmed symmetric and non-degrading on the Company’s typed record (Section IV).",
+        "— The choice architecture is confirmed symmetric and non-degrading on the Company’s structured record (Section IV).",
       );
     }
     if (pro.length) {
@@ -1556,7 +1586,7 @@ export function runRiskFactorEngine(
         "ix_balancing:1",
         "pro_processing_analysis",
         "B",
-        "Analysis. Each factor above restates a conclusion reached earlier in the report on the Company’s own typed record: benefit weights follow the ratified weight table, and the necessity, safeguard, and consumer-context entries carry the Section III, IV, and VIII findings. No consideration is credited in favor of the processing that the record does not establish.",
+        "Analysis. Each factor above restates a conclusion reached earlier in the report on the Company’s own structured record: benefit weights follow the ratified weight table, and the necessity, safeguard, and consumer-context entries carry the Section III, IV, and VIII findings. No consideration is credited in favor of the processing that the record does not establish.",
         ["FACTOR:pro_processing_factors"],
         ["11 CCR § 7154"],
       );
@@ -1588,7 +1618,7 @@ export function runRiskFactorEngine(
     }
     if (choiceNoneConfirmed) {
       con.push(
-        "— None of the choice-architecture facts the assessment checks can be confirmed on the typed record (Section IV).",
+        "— None of the choice-architecture facts the assessment checks can be confirmed on the structured record (Section IV).",
       );
     }
     if (interdependency === "Two or more identified pathways could compound each other") {
@@ -1613,7 +1643,7 @@ export function runRiskFactorEngine(
         "ix_balancing:2",
         "con_processing_analysis",
         "B",
-        "Analysis. Each factor above carries a residual tier assigned in Section VIII or a qualification reached in Sections III, IV, or VII on the Company’s own typed record. No adverse consideration is assumed beyond those the record identifies, and none the record identifies is omitted.",
+        "Analysis. Each factor above carries a residual tier assigned in Section VIII or a qualification reached in Sections III, IV, or VII on the Company’s own structured record. No adverse consideration is assumed beyond those the record identifies, and none the record identifies is omitted.",
         ["FACTOR:con_processing_factors"],
         ["11 CCR § 7154"],
       );
@@ -1624,7 +1654,7 @@ export function runRiskFactorEngine(
       "ix_balancing:3",
       "balancing_conclusion",
       "B",
-      `${RISK_FACTOR_FIXED.ix_d_head} ${RISK_FACTOR_FIXED.balancing_lead} ${cell.conclusion} ${RISK_FACTOR_FIXED.materiality_lead} ${cell.materiality} ${RISK_FACTOR_FIXED.decision_effect_lead} ${cell.effect} Reasoning. ${cell.explanation}`,
+      `${RISK_FACTOR_FIXED.ix_d_head} ${RISK_FACTOR_FIXED.balancing_lead} ${cell.conclusion} ${RISK_FACTOR_FIXED.materiality_lead} ${cell.materiality} ${RISK_FACTOR_FIXED.decision_effect_lead} ${cell.effect} Reasoning. ${cellExplanation}`,
       ["FACTOR:overall_benefits_conclusion", "FACTOR:overall_residual_risk_conclusion", "FACTOR:balancing_table"],
       ["11 CCR § 7154"],
     );
@@ -1720,9 +1750,9 @@ export function runRiskFactorEngine(
       // the typed specificity answer exists (doc 32 L13 close-out).
       const conclusion = specificityAnswered
         ? (specificityFacets.length >= 3
-          ? "Conclusion. The stated purpose is defined with specificity on the Company’s own typed record, and the assessment proceeds on the Company’s formulation."
+          ? "Conclusion. The stated purpose is defined with specificity on the Company’s own structured record, and the assessment proceeds on the Company’s formulation."
           : specificityFacets.length >= 1
-          ? "Conclusion. The stated purpose is partially specified on the Company’s own typed record. The assessment proceeds on the Company’s formulation, and the qualification is carried into Section IX."
+          ? "Conclusion. The stated purpose is partially specified on the Company’s own structured record. The assessment proceeds on the Company’s formulation, and the qualification is carried into Section IX."
           : "Conclusion. The stated purpose is not specified with the precision the assessment requires. The necessity, benefit, and balancing analyses that follow are correspondingly qualified, and the consequence appears among the Conditions to Proceed in Section IX.")
         : "Conclusion. The stated purpose is defined with enough precision to support the necessity, benefit, and balancing analyses that follow, and the assessment proceeds on the Company’s formulation.";
       put(
@@ -1793,7 +1823,7 @@ export function runRiskFactorEngine(
             ? "a separate purpose, disclosed at or before collection; a separate purpose can change the necessity analysis and expectations, and the scope note in this section applies."
             : "a separate purpose that is not confirmed as disclosed; the combination weighs against the processing in Section IX until the disclosure and scope questions are resolved.")
           : "not yet classified against the primary purpose; the uncertainty is carried into the Required Assessment Follow-Up in Section IX.";
-        return `— ${name}: on the Company’s typed record, this use is ${cellText}`;
+        return `— ${name}: on the Company’s structured record, this use is ${cellText}`;
       });
       put(
         "i_purpose_scope:4",
@@ -2072,10 +2102,10 @@ export function runRiskFactorEngine(
         );
       }
       const text = sourceFactors.length === 0 && direct
-        ? "Analysis. The Company identifies a single source category: information supplied directly by the consumer. Direct collection ties the information to the interaction the consumer participates in, and no source-based accuracy or awareness consideration is identified on the typed record."
+        ? "Analysis. The Company identifies a single source category: information supplied directly by the consumer. Direct collection ties the information to the interaction the consumer participates in, and no source-based accuracy or awareness consideration is identified on the structured record."
         : `Analysis. The Company identifies the following source ${
           plural(sourceCats.length, "category", "categories")
-        }: ${asProse(sourceCats.map((x) => x.toLowerCase()))}. On the typed record, ${asProse(sourceFactors)}.${
+        }: ${asProse(sourceCats.map((x) => x.toLowerCase()))}. On the structured record, ${asProse(sourceFactors)}.${
           direct ? " Information supplied directly by the consumer presents no source-based consideration beyond those stated." : ""
         }`;
       put(
@@ -2253,9 +2283,9 @@ export function runRiskFactorEngine(
       if (s(intake.q11_policy_review) === "No privacy policy") noticeGaps.push("no privacy policy is published");
       const analysisText = noticeGaps.length === 0
         ? (dRows.length
-          ? "Analysis. On the Company’s typed notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements. The disclosure record above is read against that posture."
-          : "Analysis. On the Company’s typed notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements.")
-        : `Analysis. The Company’s typed notice record shows ${
+          ? "Analysis. On the Company’s structured notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements. The disclosure record above is read against that posture."
+          : "Analysis. On the Company’s structured notice record, the privacy policy is current, the notice at collection covers the collection points, and the notice content covers the required elements.")
+        : `Analysis. The Company’s structured notice record shows ${
           asProse(noticeGaps)
         }. Each gap reduces what a consumer can learn about the processing before it occurs, and the reduction is carried into the expectation and balancing analyses.`;
       if (s(intake.q12_notice_at_collection) || s(intake.q13_notice_content)) {
@@ -2272,11 +2302,20 @@ export function runRiskFactorEngine(
     if (dRows.length) {
       const made = dRows.filter((d) => /^made/i.test(s(d.status))).length;
       const plannedD = dRows.filter((d) => /^planned/i.test(s(d.status))).length;
-      const parts = [
-        `The disclosure record identifies ${dRows.length} ${
+      // v4.7.2 — natural-language counts (CEO output review: "2 disclosures,
+      // of which 2 are made and 0 are planned" read as machine output).
+      const countSentence = plannedD === 0 && made === dRows.length
+        ? (dRows.length === 1
+          ? "The disclosure record identifies one disclosure, which is made."
+          : `The disclosure record identifies ${dRows.length} disclosures, each of which is made.`)
+        : made === 0 && plannedD === dRows.length
+        ? (dRows.length === 1
+          ? "The disclosure record identifies one disclosure, which is planned but not yet made."
+          : `The disclosure record identifies ${dRows.length} disclosures, each of which is planned but not yet made.`)
+        : `The disclosure record identifies ${dRows.length} ${
           plural(dRows.length, "disclosure", "disclosures")
-        }, of which ${made} ${plural(made, "is", "are")} made and ${plannedD} ${plural(plannedD, "is", "are")} planned.`,
-      ];
+        }: ${made} ${plural(made, "is", "are")} made and ${plannedD} ${plural(plannedD, "is", "are")} planned.`;
+      const parts = [countSentence];
       if (plannedD === 0) {
         parts.push(
           "Conclusion. The transparency posture of the activity is established: the disclosures describe the processing to consumers, and the public-facing materials identified above are in place.",
@@ -2320,8 +2359,8 @@ export function runRiskFactorEngine(
       "consumer_expectations_analysis",
       "B",
       divergenceMarkers.length === 0
-        ? "Analysis. On the Company’s typed record, the processing occurs during and as part of the interaction the consumer participates in, and none of the divergence markers the assessment checks — continued processing after the interaction, repurposing, combination with other sources, or disclosure to parties the consumer does not interact with — applies."
-        : `Analysis. On the Company’s typed record, the following expectation ${
+        ? "Analysis. On the Company’s structured record, the processing occurs during and as part of the interaction the consumer participates in, and none of the divergence markers the assessment checks — continued processing after the interaction, repurposing, combination with other sources, or disclosure to parties the consumer does not interact with — applies."
+        : `Analysis. On the Company’s structured record, the following expectation ${
           plural(divergenceMarkers.length, "marker applies", "markers apply")
         }: ${asProse(divergencePhrases)}. ${
           noticeFull
@@ -2400,7 +2439,7 @@ export function runRiskFactorEngine(
             plural(controlLines.length, "control", "controls")
           } recorded, ${asProse(weakControls)} ${
             plural(weakControls.length, "operates", "operate")
-          } without a formal or completed process on the Company’s typed record. A control is weighed by what a consumer can actually do with it, not by its presence in the record.`,
+          } without a formal or completed process on the Company’s structured record. A control is weighed by what a consumer can actually do with it, not by its presence in the record.`,
         ["FACTOR:relevant_consumer_controls", "INTAKE:q10_id_verification"],
         [],
       );
@@ -2434,7 +2473,7 @@ export function runRiskFactorEngine(
       const analysisText = choiceNoneConfirmed
         ? "Analysis. The Company cannot confirm any of the choice-architecture facts the assessment checks: symmetric presentation of the permission choice, that declining does not degrade the core service, or the absence of steering design elements. Each unconfirmed fact is treated as a live interference risk and weighs against the processing in Section IX."
         : choiceMissing.length === 0
-        ? `Analysis. The Company confirms ${asProse(confirmedPhrases)}. On that typed record, the design of the interaction leaves the consumer’s choice informed and voluntary.`
+        ? `Analysis. The Company confirms ${asProse(confirmedPhrases)}. On that structured record, the design of the interaction leaves the consumer’s choice informed and voluntary.`
         : `Analysis. The Company confirms ${asProse(confirmedPhrases)}, and does not confirm ${
           asProse(missingPhrases)
         }. Each unconfirmed fact is treated conservatively: the assessment does not assume the answer most favorable to the processing.`;
@@ -2452,7 +2491,7 @@ export function runRiskFactorEngine(
         ? [
           choiceNoneConfirmed
             ? "none of the choice-architecture facts can be confirmed"
-            : `the typed record leaves ${asProse(choiceMissing.map((x) => CHOICE_CONFIRMATIONS[x]))} unconfirmed`,
+            : `the structured record leaves ${asProse(choiceMissing.map((x) => CHOICE_CONFIRMATIONS[x]))} unconfirmed`,
         ]
         : [];
       const allReasons = [...reasons, ...choiceReasons];
@@ -2599,12 +2638,12 @@ export function runRiskFactorEngine(
           : confirmed.length === 3
           ? `Analysis. The Company confirms each element of effective human involvement: ${
             asProse(confirmed)
-          }. On that typed record, the human review is effective — the reviewer is positioned to reach a different result, not merely to restate the automated one.`
+          }. On that structured record, the human review is effective — the reviewer is positioned to reach a different result, not merely to restate the automated one.`
           : confirmed.length > 0
           ? `Analysis. The Company confirms that ${asProse(confirmed)}, and does not confirm that ${
             asProse(missing)
           }. Human review is credited only to the extent confirmed; an unconfirmed element is not assumed.`
-          : "Analysis. None of the elements of effective human involvement can be confirmed on the typed record. The review that exists is not shown to change outcomes, and the automated component is weighed as if it decides.";
+          : "Analysis. None of the elements of effective human involvement can be confirmed on the structured record. The review that exists is not shown to change outcomes, and the automated component is weighed as if it decides.";
         put(
           "v_admt:7",
           "human_review_effectiveness_analysis",
@@ -2620,10 +2659,10 @@ export function runRiskFactorEngine(
         "B",
         humanReviewFacts.length
           ? (noHumanReview
-            ? "Conclusion. No human review operates for the system on the Company’s typed record. Consequence. The absence increases the weight of the automated component in the risk analysis in Section VII."
+            ? "Conclusion. No human review operates for the system on the Company’s structured record. Consequence. The absence increases the weight of the automated component in the risk analysis in Section VII."
             : humanReviewConfirmed.length === 3
-            ? "Conclusion. The human review is effective on the Company’s typed record, and the safeguard analysis in Section VIII relies on it at full weight."
-            : "Conclusion. The human review is partially established on the Company’s typed record, and the safeguard analysis in Section VIII relies on it only to the extent confirmed.")
+            ? "Conclusion. The human review is effective on the Company’s structured record, and the safeguard analysis in Section VIII relies on it at full weight."
+            : "Conclusion. The human review is partially established on the Company’s structured record, and the safeguard analysis in Section VIII relies on it only to the extent confirmed.")
           : review
           ? "Conclusion. Human review is described in the Company’s submission. The assessment credits it to the extent the description supports reviewer understanding, adequate information and time, and authority to reach a different result; that reliance is carried into the safeguard analysis in Section VIII."
           : "Conclusion. No human review is described for the system. Consequence. The absence of described human review increases the weight of the automated component in the risk analysis in Section VII.",
@@ -2905,14 +2944,32 @@ export function runRiskFactorEngine(
   // ── Executive summary projections (composed last, from body factors) ────────
 
   if (engagedLines.length) {
+    // v4.7.2 — when several triggers share an identical basis clause, state
+    // the basis once for all of them instead of repeating the full sentence
+    // per trigger (CEO output review: the repetition read as template
+    // output, not analysis). Distinct bases keep the per-trigger form.
+    const engaged = engagedLines.map((l) => {
+      const stripped = l.replace(/^Engaged — /, "");
+      const idx = stripped.indexOf(":");
+      return idx >= 0
+        ? { cite: stripped.slice(0, idx).trim(), basis: stripped.slice(idx + 1).trim() }
+        : { cite: stripped.trim(), basis: "" };
+    });
+    const allSameBasis = engaged.length > 1 && engaged.every((e) => e.basis === engaged[0].basis);
+    const triggerText = allSameBasis
+      ? `${asProse(engaged.map((e) => e.cite))} each apply on the facts the Company has supplied: ${
+        engaged[0].basis
+          .replace(/\bthis trigger\b/g, "these triggers")
+          .replace(/\bthis activity falls\b/g, "the activity falls")
+      }`
+      : engaged
+        .map((e) => `${e.cite} applies on the facts the Company has supplied: ${e.basis}`)
+        .join(" ");
     put(
       "executive_summary:3",
       "executive_trigger_summary",
       "A",
-      engagedLines
-        .map((l) => l.replace(/^Engaged — /, ""))
-        .map((l) => `${l.replace(/:\s*/, " applies on the facts the Company has supplied: ")}`)
-        .join(" "),
+      triggerText,
       ["DERIVED:applicable_7150_triggers"],
       ["11 CCR § 7150(b)"],
     );
@@ -2976,7 +3033,7 @@ export function runRiskFactorEngine(
       "executive_summary:5",
       "executive_balancing_conclusion",
       "B",
-      `${RISK_FACTOR_FIXED.exec_determination_head} ${cell.conclusion} ${cell.explanation}`,
+      `${RISK_FACTOR_FIXED.exec_determination_head} ${cell.conclusion} ${cellExplanation}`,
       ["FACTOR:balancing_conclusion"],
       ["11 CCR § 7154"],
     );
@@ -3017,5 +3074,11 @@ export function runRiskFactorEngine(
     provenance,
     composed_factor_ids: Object.keys(factors),
     absent_class_c_ids: RISK_FACTOR_CLASS_C_IDS,
+    exec_panel: {
+      assessment_required: engagedLines.length > 0,
+      inherent: pathways.length ? maxInherent : null,
+      residual: pathways.length ? maxResidual : null,
+      disposition: consequence,
+    },
   };
 }

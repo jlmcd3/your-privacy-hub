@@ -75,7 +75,21 @@
 // blank-signature/blank-portal-field pages the customer signs and, for the
 // checklist, uses to complete the § 7157(d) online submission themselves.
 // No appendix letter changes (neither new section is titled "Appendix ...").
-export const RISK_SKELETON_VERSION = "cppa-risk-v4.7.1-2026-08-24";
+// v4.7.2 (2026-08-25) — CEO-ordered report-polish round (ChatGPT output
+// review, dispositions recorded in the session of 2026-08-25):
+//   (1) Cover section retitled "Assessment Profile" — the banner already
+//       carries the report title; repeating it read as a defect.
+//   (2) II.B rewritten from a spliced sentence to labeled record lines —
+//       the old template garbled when intake values were full clauses
+//       ("...through No direct interaction (obtained from another
+//       source)"). Slot names unchanged.
+//   (3) Conditional sections/subsections that previously vanished now
+//       leave a one-line "not applicable" record (Section V, VIII.C,
+//       VIII.D, Appendix F) so the fixed numbering never shows an
+//       unexplained gap. Fixed numbering itself is unchanged.
+//   (4) Cover gains an executive status panel (table block, appended —
+//       no index shifts).
+export const RISK_SKELETON_VERSION = "cppa-risk-v4.7.2-2026-08-25";
 /** The prior encode's stamp, retained for provenance. */
 export const RISK_SKELETON_VERSION_V45 = "cppa-risk-v4.5-2026-08-21";
 export const RISK_SKELETON_SOURCE_FILE =
@@ -205,7 +219,8 @@ export const RISK_FIXED = {
 export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   {
     id: "cover",
-    title: "CPPA PRIVACY RISK ASSESSMENT",
+    // v4.7.2 — was the report title verbatim; the banner already carries it.
+    title: "Assessment Profile",
     blocks: [
       // 0 — CEO report review 2026-08-23/24: was one prose sentence
       // ("Prepared for: X. Processing Activity: Y. …"); now a label/value
@@ -214,6 +229,12 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "table", text: "cover_summary" },
       // 1 — [CONDITIONAL: confidentiality designation] — RISK_FIXED.confidential; no intake trigger exists yet, so not composed in Phase B.
       { kind: "conditional", text: "[CONDITIONAL] CONFIDENTIALITY DESIGNATION - fixed text RISK_FIXED.confidential; trigger: confidentiality designation on the engagement. Absent => omitted." },
+      // 2 — v4.7.2 executive status panel: the four headline determinations
+      // (assessment required / inherent risk / residual risk / disposition)
+      // as a label/value table so the outcome is visible before the prose.
+      // Derived in risk-skeleton-assemble.ts from the factor engine's own
+      // typed operands — never a new determination, only a projection.
+      { kind: "table", text: "exec_status_panel" },
     ],
   },
   {
@@ -283,7 +304,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.processing_coherence_analysis + processing_description_conclusion + processing_clarification_required}}] Phase C. Absent => omitted." },
       // 2
-      { kind: "skeleton", text: "B. Consumers and the Interaction. Sections 7152(a)(3)(C)–(D) require the assessment to identify how the business interacts with the consumers whose information is processed, the purpose of that interaction, and the approximate number of consumers affected. The Company reports that consumers interact with the activity through {interactionMethod}. The interaction serves {interactionPurpose}, and the Company estimates {approxCaConsumers} California consumers are affected. These facts help explain both consumer expectations and the potential reach of a risk." },
+      { kind: "skeleton", text: "B. Consumers and the Interaction. Sections 7152(a)(3)(C)–(D) require the assessment to identify how the business interacts with the consumers whose information is processed, the purpose of that interaction, and the approximate number of consumers affected. The Company reports the following. Method of interaction: {interactionMethod}. Purpose of the interaction: {interactionPurpose}. Approximate California consumers affected: {approxCaConsumers}. These facts help explain both consumer expectations and the potential reach of a risk." },
       // 3
       { kind: "generated", text: "[GENERATED {{FACTOR.consumer_context_analysis + consumer_context_conclusion}}] Phase C. Absent => omitted." },
       // 4
@@ -360,10 +381,12 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     blocks: [
       // Inclusion driven by facts/legal applicability (relevant ADMT trigger or
       // processing fact), not by factor availability — spine note 4. Every
-      // block is trigger-gated so the section is honestly absent end-to-end
-      // for non-ADMT activities.
+      // block is trigger-gated. v4.7.2: for non-ADMT activities the section
+      // no longer vanishes — block 0 carries the one-line not-applicable
+      // record instead (composeAdmtBlocks), so the fixed section numbering
+      // never shows an unexplained IV→VI gap.
       // 0
-      { kind: "conditional", text: "[CONDITIONAL] ADMT A — ROLE - trigger: ADMT in the activity. RISK_FIXED.admt_a over {{INTAKE.q19_admt_description, admt_operational_role}}. Absent => omitted." },
+      { kind: "conditional", text: "[CONDITIONAL] ADMT A — ROLE - trigger: ADMT in the activity. RISK_FIXED.admt_a over {{INTAKE.q19_admt_description, admt_operational_role}}. Absent => the v4.7.2 not-applicable line (this activity does not involve ADMT)." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.admt_role_analysis + admt_role_conclusion}}] Phase C. Absent => omitted." },
       // 2
@@ -467,9 +490,9 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 3
       { kind: "conditional", text: "[CONDITIONAL] UNTESTED SAFEGUARDS - trigger {{FACTOR.untested_safeguards}} present. Fixed lead \"The following controls are implemented but are not supported by sufficient testing or other evidence of effectiveness:\" + note \"They are credited as existing safeguards, but the absence of supporting evidence reduces the degree to which the assessment can rely on them.\" Phase C. Absent => omitted." },
       // 4
-      { kind: "conditional", text: "[CONDITIONAL] PLANNED SAFEGUARDS - trigger {{FACTOR.planned_safeguards}} present. Fixed lead \"C. Planned Safeguards. The Company plans to implement:\" + note \"A planned safeguard does not eliminate present risk. Where the favorable determination depends materially on a safeguard that is not yet operational, implementation is treated as a Condition to Proceed rather than as an existing mitigation.\" Phase C. Absent => omitted." },
+      { kind: "conditional", text: "[CONDITIONAL] PLANNED SAFEGUARDS - trigger {{FACTOR.planned_safeguards}} present. Fixed lead \"C. Planned Safeguards. The Company plans to implement:\" + note \"A planned safeguard does not eliminate present risk. Where the favorable determination depends materially on a safeguard that is not yet operational, implementation is treated as a Condition to Proceed rather than as an existing mitigation.\" Phase C. Absent => the v4.7.2 not-applicable line (no planned safeguards recorded), so the A-B-E lettering never shows an unexplained gap." },
       // 5
-      { kind: "conditional", text: "[CONDITIONAL] SAFEGUARD GAPS - trigger {{FACTOR.safeguard_gaps}} present. Fixed lead \"D. Safeguard Gaps. The following material risk is not sufficiently addressed by safeguards established on the current record:\". Phase C. Absent => omitted." },
+      { kind: "conditional", text: "[CONDITIONAL] SAFEGUARD GAPS - trigger {{FACTOR.safeguard_gaps}} present. Fixed lead \"D. Safeguard Gaps. The following material risk is not sufficiently addressed by safeguards established on the current record:\". Phase C. Absent => the v4.7.2 none-identified line." },
       // 6
       { kind: "skeleton", text: "E. Residual Risk. Sections 7152(a)(5)–(6) require the assessment to consider the identified negative impacts together with the safeguards used to address them. Residual risk is the practical risk that remains after safeguards that can reasonably be credited are taken into account; that remaining risk is what enters the final balancing analysis under § 7154." },
       // 7
@@ -671,7 +694,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Appendix F — ADMT Technical and Decision Record",
     blocks: [
       // 0
-      { kind: "conditional", text: "[CONDITIONAL] ADMT APPENDIX INTRO - trigger: ADMT applicable. RISK_FIXED.appendix_d_intro. Absent => omitted." },
+      { kind: "conditional", text: "[CONDITIONAL] ADMT APPENDIX INTRO - trigger: ADMT applicable. RISK_FIXED.appendix_d_intro. Absent => the v4.7.2 not-applicable line, so the fixed appendix lettering (E then G) never shows an unexplained gap." },
       // 1 — Part B item 3 (2026-08-21, CEO-confirmed, presentation only):
       // was "rule"; now "table" — labelled projection of the Section V
       // intake facts (q19_admt_description, admt_operational_role,

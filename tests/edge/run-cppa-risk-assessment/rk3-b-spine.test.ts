@@ -44,8 +44,8 @@ const BUILD_STAMP = "rk3-b-spine-pins";
 
 // ── Spine structure pins ──────────────────────────────────────────────────────
 
-Deno.test("RK3-B — spine version is the v4.7.1 encode (CEO report review: signature pages)", () => {
-  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.7.1-2026-08-24");
+Deno.test("RK3-B — spine version is the v4.7.2 encode (2026-08-25 polish round)", () => {
+  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.7.2-2026-08-25");
 });
 
 Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
@@ -185,13 +185,17 @@ for (const c of CPPA_RISK_PERFECT) {
       }
     });
 
-    await t.step("ADMT gate — Section V and Appendix D render iff ADMT", () => {
-      assertEquals(ids.includes("v_admt"), isAdmt, `v_admt presence on ${c.id}`);
-      assertEquals(ids.includes("appendix_d"), isAdmt, `appendix_d presence on ${c.id}`);
+    await t.step("ADMT gate — Section V and Appendix D carry full content iff ADMT, a not-applicable line otherwise", () => {
+      // v4.7.2 (2026-08-25 polish round) — the section and appendix no
+      // longer vanish for non-ADMT activities; they carry a one-line
+      // not-applicable record so the fixed numbering shows no gap. Full
+      // ADMT content still renders iff ADMT.
+      assert(ids.includes("v_admt"), `v_admt section absent on ${c.id}`);
+      assert(ids.includes("appendix_d"), `appendix_d section absent on ${c.id}`);
       if (!isAdmt) {
-        assert(!body.includes("AUTOMATED DECISIONMAKING TECHNOLOGY"), "non-ADMT body leaks the Section V title");
+        assert(body.includes("does not identify automated decisionmaking technology"), "non-ADMT Section V placeholder absent");
+        assert(body.includes("no ADMT technical and decision record is required"), "non-ADMT Appendix F placeholder absent");
         assert(!body.includes("The Company describes the relevant automated system as"), "non-ADMT body leaks ADMT prose");
-        assert(!body.includes("ADMT Technical and Decision Record"), "non-ADMT body leaks Appendix D");
       }
     });
 
@@ -269,7 +273,8 @@ for (const c of CPPA_RISK_PERFECT) {
       // label) instead of a joined "rule" string. Facts unchanged.
       assert(body.includes("Personal-information categories (this activity)"), "Appendix A inventory absent");
       assert(body.includes("Applicable § 7150(b) trigger(s)"), "Appendix E submission record absent");
-      assert(body.includes("Outstanding business-level § 7157 submission elements"), "Appendix E outstanding checklist absent");
+      // v4.7.2 — retitled; "Outstanding" read as the assessment being unfinished.
+      assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "Appendix E outstanding checklist absent");
       assert(body.includes("CPPA risk-assessment intake record"), "Appendix F materials index absent");
       if (isAdmt) {
         assert(body.includes("System description"), "Appendix D ADMT facts absent on ADMT fixture");

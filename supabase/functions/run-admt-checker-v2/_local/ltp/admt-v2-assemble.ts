@@ -75,7 +75,19 @@ import { ADMT_CORPUS_MAP } from "../corpus/maps/admt-corpus-map.ts";
 // attestation) lead sentence. No CPPA regulation defines a filed "ADMT
 // Assessment" document, so nothing is certified — this only records that
 // the report was reviewed. No factor logic or intake contract changed.
-export const ADMT_V2_SPINE_VERSION = "cppa-admt-v3.2.1-2026-08-24";
+// v3.2.2 (2026-08-25, CEO-ordered polish round; dispositions in the session
+// record) — finality/register pass, no factor logic or intake change:
+// cover section retitled "Assessment Profile" (banner already carries the
+// report title); the cover's Important Note reframed as a Scope of
+// Assessment (drops "to create the formal audit document"); "was
+// generated" → "were identified"; conversational Section 9 close replaced
+// with a Review and Maintenance paragraph; review section retitled
+// "Review and Approval"; conditional Section 6 and the unselected 4.x
+// pathway now leave one-line not-applicable records instead of unexplained
+// numbering gaps; exec summary explains a Qualified record grade;
+// "Meets reported facts" → "Meets on reported facts" for consistency with
+// the overall posture label.
+export const ADMT_V2_SPINE_VERSION = "cppa-admt-v3.2.2-2026-08-25";
 export const ADMT_V2_SPINE_SOURCE = "CPPA_ADMT_Audit_Spine_v3.2.docx — CEO-ratified 2026-08-21";
 
 export interface RenderedTable {
@@ -129,7 +141,8 @@ function gradeCell(g: RecordGrade): string {
  * — exactly the raw-vocabulary leak v3.2 exists to close. */
 const STATE_READER_LABEL: Record<string, string> = {
   IN_SCOPE: "In scope", OUT_OF_SCOPE: "Out of scope", UNABLE_TO_ASSESS: "Unable to assess", INCONSISTENT_RECORD: "Record conflict",
-  MEETS_REPORTED: "Meets reported facts", GAP: "Gap identified", PARTIAL: "Partially met", INSUFFICIENT_RECORD: "Not enough information", NOT_APPLICABLE: "Not applicable",
+  // v3.2.2 — "Meets on reported facts", matching the overall posture label.
+  MEETS_REPORTED: "Meets on reported facts", GAP: "Gap identified", PARTIAL: "Partially met", INSUFFICIENT_RECORD: "Not enough information", NOT_APPLICABLE: "Not applicable",
 };
 function stateCell(raw: string): string {
   return STATE_READER_LABEL[raw] ?? raw;
@@ -245,7 +258,9 @@ function vendorDependencyPhrase(v: VendorResult): string {
 }
 function scopeAreaPhrase(scope: ScopeResult): string {
   if (scope.scopeState === "OUT_OF_SCOPE") return "Supports the out-of-scope determination.";
-  if (scope.scopeState === "IN_SCOPE") return "Condition — ADMT duties apply to this decision.";
+  // v3.2.2 — this cell states a determination, not a condition; the old
+  // "Condition —" prefix mislabeled it.
+  if (scope.scopeState === "IN_SCOPE") return "ADMT duties apply to this decision.";
   return "No effect; scope is not yet resolved.";
 }
 function postureEffectPhrase(posture: SubstantiveState, context: string): string {
@@ -427,7 +442,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   const legal = (text: string): RenderedParagraph => ({ kind: "legal_requirement", text });
 
   // ── Cover / header table ────────────────────────────────────────────────
-  push("cover", "CPPA ADMT Compliance Audit Assessment", [
+  // v3.2.2 — was "CPPA ADMT Compliance Audit Assessment"; the banner
+  // already carries the report title, so the repeat read as a defect.
+  push("cover", "Assessment Profile", [
     { kind: "table", text: "", table: {
       // CEO report review 2026-08-24 — the header row adds nothing the
       // row's own first cell ("Organization", "System reviewed", ...)
@@ -437,11 +454,15 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         ["Organization", organizationName || "(not provided)"],
         ["System reviewed", systemName || "(not provided)"],
         ["Overall assessment", computed.overallPostureLabel],
-        ["Record sufficiency", computed.overallRecordGrade.replace(/_/g, " ").toLowerCase()],
+        // v3.2.2 — sentence case ("Qualified"), matching gradeCell().
+        ["Record sufficiency", gradeCell(computed.overallRecordGrade)],
         ["Regulatory framework", "11 CCR §§ 7001(e), 7001(ddd), 7200, 7220–7222; vendor-cooperation provisions in §§ 7050–7051; related risk-assessment provisions in §§ 7150(b)(3) and 7155"],
       ],
     }},
-    { kind: "skeleton", text: "Important Note About This Assessment: This report compares the Company's responses with the CCPA regulations governing automated decisionmaking technology (“ADMT”) used for significant decisions. It explains the principal legal requirements, identifies where the Company's reported practices support those requirements, and calls out missing or inconsistent information. It is an automated compliance assessment, not legal advice, a legal opinion, an assurance engagement, or a certification of compliance. The Company or its counsel should confirm material facts and any Company-supplied notice, policy, testing, or process language to create the formal audit document." },
+    // v3.2.2 — reframed from "Important Note" to a Scope of Assessment: the
+    // old close ("… to create the formal audit document") told the reader
+    // the deliverable was a precursor. Same scope limits, final register.
+    { kind: "skeleton", text: "Scope of Assessment: This report evaluates the Company's reported practices against the CCPA regulations governing automated decisionmaking technology (“ADMT”) used for significant decisions. It explains the principal legal requirements, identifies where the Company's reported practices support those requirements, and calls out missing or inconsistent information. The conclusions are based on the information and materials supplied by the Company. This report is an automated compliance assessment and does not constitute legal advice, a legal opinion, an assurance engagement, or a certification of compliance. The Company remains responsible for the accuracy and completeness of the assessment record." },
   ]);
 
   // ── Executive Summary ───────────────────────────────────────────────────
@@ -464,14 +485,30 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         ...(vendor.identified ? [["Vendor dependency", stateCell(vendor.posture), gradeCell(vendor.recordGrade), vendorDependencyPhrase(vendor)]] : []),
       ],
     }},
+    // v3.2.2 — an overall "Meets" next to a bare "Qualified" grade left the
+    // qualification unexplained (CEO output review); say why, and where the
+    // specifics live.
+    ...(computed.overallRecordGrade !== "COMPLETE"
+      ? [{
+        kind: "skeleton",
+        text: computed.overallRecordGrade === "QUALIFIED"
+          ? "Record sufficiency is graded Qualified because one or more supporting fields were not provided. The record-quality table in the Governance section identifies the affected areas, and the Assessment Fact Record appendix identifies the specific fields."
+          : "Record sufficiency is graded Materially incomplete because material supporting information was not provided. The record-quality table in the Governance section identifies the affected areas, and the Assessment Fact Record appendix identifies the specific fields.",
+      } as RenderedParagraph]
+      : []),
     ...priorityMattersParagraphs(computed),
   ]);
 
   // ── 1. System and Decision Profile ──────────────────────────────────────
   const systemType = str((intake as any)?.system_type);
-  const sysTypePhrase = systemType ? `, described by the Company as ${systemType}` : "";
+  const sysTypePhrase = systemType ? `, described by the Company as a ${systemType.toLowerCase()}` : "";
+  // v3.2.2 — the old single spliced sentence garbled when the description
+  // value was itself multi-sentence prose; split into attributed sentences
+  // and normalize the description's terminal period. Attribution retained.
+  const sysDesc = (str((intake as any)?.system_description) || "(not provided)").trim();
+  const sysDescSentence = /[.!?]$/.test(sysDesc) ? sysDesc : `${sysDesc}.`;
   push("system_profile", "1. System and Decision Profile", [
-    { kind: "skeleton", text: `The Company identifies the System as ${systemName || "(not provided)"}${sysTypePhrase} and describes it as follows: ${str((intake as any)?.system_description) || "(not provided)"} The System is used in ${reader(domains)}.` },
+    { kind: "skeleton", text: `The Company identifies the System as ${systemName || "(not provided)"}${sysTypePhrase}. The Company describes the System as follows: ${sysDescSentence} The System is used in ${reader(domains)}.` },
     { kind: "skeleton", text: `The Company describes human review as: ${str((intake as any)?.human_review) || "(not answered)"}. ADMT status turns on whether the System replaces or substantially replaces human judgment.` },
     { kind: "skeleton", text: vendorLead(intake, vendor) },
   ]);
@@ -552,9 +589,14 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         ],
       }},
       { kind: "generated", text: composeFullOptOutAnalysis(optOut) },
+      // v3.2.2 — the fixed 4.x numbering stays; the unselected pathways
+      // state themselves instead of leaving an unexplained numbering gap.
+      { kind: "skeleton", text: "4.2–4.3 Exception Pathways. Not applicable: the Company offers the ADMT opt-out and does not rely on a § 7221(b) exception." },
     );
   } else if (optOut.path === "HUMAN_APPEAL_EXCEPTION") {
     optOutParas.push(
+      // v3.2.2 — see the 4.x numbering note above.
+      { kind: "skeleton", text: "4.1 Full Opt-Out Pathway. Not applicable: the Company relies on the human-appeal exception under § 7221(b)(1) rather than offering the ADMT opt-out." },
       { kind: "skeleton", text: "4.2 Human-Appeal Exception" },
       legal(ADMT_V3_FIXED.human_appeal_requirement),
       { kind: "skeleton", text: "The following table shows the Company's answers on each factor this exception depends on:" },
@@ -569,11 +611,14 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         ],
       }},
       { kind: "generated", text: composeHumanAppealAnalysis(optOut) },
+      { kind: "skeleton", text: "4.3 Employment and Education Exceptions. Not applicable: the Company does not rely on the hiring/admission or work-allocation exception." },
     );
   } else if (optOut.path === "HIRING_ADMISSION_EXCEPTION" || optOut.path === "WORK_ALLOCATION_COMP_EXCEPTION") {
     const isHiring = optOut.path === "HIRING_ADMISSION_EXCEPTION";
     const heading = isHiring ? "Hiring / admission exception" : "Work-allocation / compensation exception";
     optOutParas.push(
+      // v3.2.2 — see the 4.x numbering note above.
+      { kind: "skeleton", text: `4.1–4.2 Opt-Out Pathway and Human-Appeal Exception. Not applicable: the Company relies on the ${heading.toLowerCase()} rather than offering the ADMT opt-out or the human-appeal exception.` },
       { kind: "skeleton", text: `4.3 ${heading}` },
       legal(isHiring ? ADMT_V3_FIXED.hiring_admission_requirement : ADMT_V3_FIXED.work_allocation_requirement),
       { kind: "skeleton", text: `${isHiring ? ADMT_V3_FIXED.hiring_admission_note : ADMT_V3_FIXED.work_allocation_note} The following table shows the Company's answers on each factor this exception depends on:` },
@@ -643,6 +688,12 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       }},
       { kind: "generated", text: composeVendorDependencyAnalysis(vendor) },
     ]);
+  } else {
+    // v3.2.2 — the fixed section numbering stays; a report with no vendor
+    // dependency states that instead of jumping 5 → 7 unexplained.
+    push("vendor", "6. Third-Party and Vendor Dependency", [
+      { kind: "skeleton", text: "Not applicable. The Company did not identify a third-party ADMT vendor for the assessed System, so no vendor-dependency analysis is required. The section number is retained so the report's fixed structure reads consistently across assessments." },
+    ]);
   }
 
   // ── 7. Governance, Record Sufficiency, and Related Risk-Assessment ─────
@@ -669,16 +720,19 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // ── 9. Conclusion ────────────────────────────────────────────────────────
   push("conclusion", "9. Conclusion", [
     { kind: "lead", text: overallConclusionSentence(computed) },
-    { kind: "skeleton", text: "The easiest way to keep this report useful is to update the relevant answers when the System or compliance process changes and rerun the assessment. That shows which conclusions changed and why without rebuilding the analysis from the beginning." },
+    // v3.2.2 — the conversational "easiest way to keep this report useful"
+    // close read as product copy, not counsel's report language.
+    { kind: "skeleton", text: "Review and Maintenance. Update and reissue this assessment when material changes occur to the System, its decision use, the Pre-use Notice, the opt-out or appeal process, the access process, or other facts material to the conclusions stated in this report." },
   ]);
 
-  // ── Review of This Assessment ────────────────────────────────────────────
+  // ── Review and Approval ─────────────────────────────────────────────────
   // CEO report review 2026-08-24. Deliberately NOT an attestation or
   // certification: no CPPA regulation defines a filed "ADMT Assessment"
   // document, so there is nothing for this signature to certify against
   // (see the discussion this section closes out). It only records that the
   // report was reviewed. Name/Title/Signature/Date are never pre-filled.
-  push("review_of_assessment", "Review of This Assessment", [
+  // v3.2.2 — retitled "Review and Approval" (matches CPPA Risk's section).
+  push("review_of_assessment", "Review and Approval", [
     { kind: "skeleton", text: "The foregoing report describes the pre-use notice, opt-out mechanisms, and consumer access response processes implemented as of the date of this assessment." },
     { kind: "table", text: "", table: {
       key: "review_of_assessment:1", surface: "admt_review_signature", title: "",
@@ -705,7 +759,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // renders (Factor-Bearing Law; no dangling pointer on suppression).
   const persuasive = buildAdmtPersuasiveAuthority(computed);
   push("appendix_a", "Appendix A — Factor, Determination, and Authority Matrix", [
-    { kind: "skeleton", text: "This matrix restates each material factor behind the assessment in one place: the report's determination on that factor, in the report's own words, and the specific regulatory provision that governs it. It exists so the assessment can be reviewed and updated by the Company or its legal counsel as necessary." },
+    // v3.2.2 — "It exists so the assessment can be reviewed and updated"
+    // framed the deliverable as a working draft; state what the matrix IS.
+    { kind: "skeleton", text: "This matrix restates each material factor behind the assessment in one place: the report's determination on that factor, in the report's own words, and the specific regulatory provision that governs it. It provides a consolidated record of the material determinations and authorities supporting this assessment." },
     { kind: "table", text: "", table: { key: "appendix_a:0", surface: "factor_matrix", ...buildFactorMatrixTable(intake, computed, optOut.path, admtS4, persuasive.trail) } },
   ]);
 
@@ -850,7 +906,9 @@ function overallConclusionSentence(c: AdmtV2Computed): string {
 function priorityMattersParagraphs(c: AdmtV2Computed): RenderedParagraph[] {
   const top = [...c.allFindings].filter((f) => f.priority === 1).slice(0, 3);
   if (top.length === 0) {
-    return [{ kind: "skeleton", text: "Priority Matters: no condition to proceed or required assessment follow-up was generated from the Company's current responses." }];
+    // v3.2.2 — "was generated" exposed the machinery; findings are
+    // "identified", not "generated".
+    return [{ kind: "skeleton", text: "Priority Matters: no conditions to proceed or required follow-up items were identified from the Company's current responses." }];
   }
   return [
     { kind: "skeleton", text: "Priority Matters" },
@@ -867,7 +925,8 @@ function buildActionParagraphs(c: AdmtV2Computed): RenderedParagraph[] {
   // An all-empty Section 8 prints one plain-English sentence and nothing
   // else — no internal DECISION_EFFECT token, no three-empty-headings.
   if (conditions.length === 0 && followups.length === 0 && recommendations.length === 0) {
-    return [{ kind: "skeleton", text: "No condition to proceed, required assessment follow-up, or recommendation was generated from the Company's current responses." }];
+    // v3.2.2 — same "identified, not generated" fix as Priority Matters.
+    return [{ kind: "skeleton", text: "No conditions to proceed, required follow-up items, or additional recommendations were identified from the Company's current responses." }];
   }
 
   const paras: RenderedParagraph[] = [
@@ -1061,7 +1120,9 @@ function buildFactorMatrixTable(
   for (const row of rows) {
     const factorId = row[0];
     if (s4Factors.has(factorId)) {
-      row[3] = `${row[3]}; see §2.1 What the Regulator Said, above — interpretive`;
+      // v3.2.2 — the body has no numbered "§2.1"; point at the callout by
+      // name and section instead of a number that doesn't exist.
+      row[3] = `${row[3]}; see the "What the Regulator Said" discussion in Section 2, above — interpretive`;
       continue;
     }
     const tag = admtTrailImpactFor(factorId);

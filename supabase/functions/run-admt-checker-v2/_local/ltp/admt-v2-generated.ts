@@ -128,7 +128,11 @@ export function composeApplicabilityAnalysis(scope: ScopeResult, systemName: str
 export function composeNoticeAnalysis(notice: NoticeResult): string {
   const parts: string[] = [];
   if (notice.purpose.evidence === "DOCUMENTED") {
-    parts.push(`The Company supplied notice text addressing the specific-purpose element. The Company or its counsel should confirm whether the text supports the requirement; this report does not evaluate the wording.`);
+    // v3.2.2 (CEO-ordered polish, 2026-08-25): the old "should confirm
+    // whether the text supports the requirement" register told the reader
+    // the report was unfinished — inconsistent with the element's own
+    // "Meets" result. Same scope limitation, stated as a scope statement.
+    parts.push(`The Company supplied notice text addressing the specific-purpose element, and the assessment records that element as satisfied on the Company's supplied response. Legal sufficiency of the precise notice wording is outside the scope of this assessment.`);
   } else if (notice.purpose.status === "GAP") {
     parts.push(`The Company has not supplied notice text stating the specific decision the System informs, so the lack of this element is factored into the audit as a non-response.`);
   }
@@ -176,7 +180,9 @@ export function composeHumanAppealAnalysis(o: OptOutResult): string {
   if (o.appealProcess.status === "INSUFFICIENT_RECORD") {
     parts.push(`The Company did not supply enough information to describe the appeal process.`);
   }
-  parts.push(`The number of steps a consumer must take to reach a reviewer are as described by the Company and are not otherwise evaluated.`);
+  // v3.2.2 — same fact ("we rely on the Company's description"), stated as
+  // reliance rather than as an unfinished evaluation.
+  parts.push(`The assessment relies on the Company's documented description of the appeal pathway in evaluating the minimal-steps requirement.`);
   return j(...parts);
 }
 
@@ -202,7 +208,9 @@ export function composeEmploymentEducationExceptionAnalysis(o: OptOutResult): st
 
 export function composeAccessWithholdingAnalysis(a: AccessResult): string {
   if (a.withholdingEvidence === "DOCUMENTED") {
-    return `The Company supplied a policy addressing trade-secret or security-based withholding in ADMT access responses. That is useful evidence of a defined approach, but whether the policy's scope is limited to what the carve-out permits should be confirmed by the Company or its counsel.`;
+    // v3.2.2 — the "should be confirmed by the Company or its counsel"
+    // register undercut finality; the credit is stated with its limit.
+    return `The Company supplied a policy addressing trade-secret or security-based withholding in ADMT access responses. The supplied policy establishes a defined withholding approach; this assessment credits that approach only to the extent withholding is limited to information permitted to be withheld under 11 CCR § 7222(c).`;
   }
   return `The Company has not provided enough information here to describe its withholding practice. That is a record limitation, not a finding about how requests are handled.`;
 }

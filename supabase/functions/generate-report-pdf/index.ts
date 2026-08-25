@@ -108,6 +108,21 @@ function sanitizeNarrative(s: string): string {
 // Environment variable to add to Supabase secrets: PDF_SERVICE_API_KEY
 // Example services: PDFShift (api.pdfshift.io), Browserless, DocRaptor.
 // ─────────────────────────────────────────────────────────────────────────
+/**
+ * 2026-08-25 polish round — the PDF footer's left cell used to print the raw
+ * attachment filename ("EndUserPrivacy-CPPA-Risk-Assessment-2026-08-25"),
+ * which emphasized system generation. Derive a readable product line from it;
+ * the filename itself is unchanged.
+ */
+function footerTitleFromAttachment(attachmentName: string): string {
+  const base = attachmentName
+    .replace(/\.pdf$/i, "")
+    .replace(/^EndUserPrivacy-/, "")
+    .replace(/-\d{4}-\d{2}-\d{2}$/, "")
+    .replace(/-/g, " ");
+  return `End User Privacy · ${base}`;
+}
+
 async function generatePDF(
   html: string,
   title: string
@@ -358,7 +373,7 @@ ${AUTHORITY_EXHIBIT_CSS}
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+  <p class="eyebrow">Customized Compliance Assessment</p>
   <h1>Legitimate Interest Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -483,7 +498,7 @@ ${AUTHORITY_EXHIBIT_CSS}
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+  <p class="eyebrow">Customized Compliance Assessment</p>
   <h1>GDPR Governance Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -716,7 +731,7 @@ ${DETERMINATION_CSS}
 <div class="shell">
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-  <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+  <p class="eyebrow">Customized Compliance Assessment</p>
   <h1>Impact Assessment Builder</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
 </header>
@@ -1136,11 +1151,29 @@ ${AUTHORITY_EXHIBIT_CSS}
   table.md-table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:12px 0; }
   table.md-table th, table.md-table td { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
   table.md-table th { background:var(--silver); font-weight:600; color:var(--navy); }
+  /* 2026-08-25 polish round — a table that continues onto the next page
+     repeats its header row there (table-header-group is the paged-media
+     mechanism); rows never split mid-row. */
+  thead { display:table-header-group; }
+  tr { page-break-inside:avoid; }
+  /* 2026-08-25 polish round — Conditions to Proceed render inside a bordered
+     amber callout so the condition can't be missed against a favorable
+     disposition. Applied by skeletonSectionsHtml when a chunk opens with a
+     Condition(s)-to-Proceed lead. */
+  .condition-callout { border:1.5px solid #b9822d; background:#fdf6e7;
+    border-radius:5px; padding:9px 13px; margin:0 0 10px; }
+  .condition-callout p.body-p:last-child { margin-bottom:0; }
+  /* 2026-08-25 polish round — progressive enhancement: a section whose
+     table carries 5+ columns (the Risk Register class) asks for a landscape
+     page via CSS named pages. Engines that honor CSS page names rotate that
+     section; engines that don't simply keep portrait. */
+  @page wide-landscape { size: 11in 8.5in; margin: 16mm 14mm 18mm; }
+  section.wide-landscape { page: wide-landscape; }
 </style></head>
 <body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+    <p class="eyebrow">Customized Compliance Assessment</p>
     <h1>${escHtml(opts.title)}</h1>
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
@@ -1424,6 +1457,17 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         return `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>`;
       }
       return t.split(/\n{2,}/).map((chunk) => {
+        // 2026-08-25 polish round — a chunk whose lead is a Condition(s)-to-
+        // Proceed (bare, or right after a lettered lead like "D. Consequence.")
+        // wraps in the amber .condition-callout so the condition is visually
+        // impossible to miss. Detected on the raw chunk, ahead of both render
+        // branches below, so list-shaped condition chunks get the box too.
+        const conditionCallout =
+          /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
+        const wrapChunk = (html: string): string =>
+          conditionCallout && html
+            ? `<div class="condition-callout" style="border:1.5px solid #b9822d;background:#fdf6e7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`
+            : html;
         // CEO report review 2026-08-24 — a chunk containing a "— item"
         // list run (see segmentDashText) renders those runs as real
         // bullet lists and everything else as ordinary paragraphs, ahead
@@ -1431,13 +1475,13 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // "Analysis." is never mistaken for one.
         const segments = segmentDashText(chunk);
         if (segments) {
-          return segments.map((seg) => {
+          return wrapChunk(segments.map((seg) => {
             if (seg.kind === "list" && seg.parts.length >= 2) {
               const itemsHtml = seg.parts.map((item) => `<li>${underlineAppendixRefs(escHtml(item))}</li>`).join("");
               return `<ul class="body-list" style="margin:0 0 8px;padding-left:20px;">${itemsHtml}</ul>`;
             }
             return `<p class="body-p" style="white-space:pre-line;">${underlineAppendixRefs(escHtml(seg.parts.join(" ")))}</p>`;
-          }).join("");
+          }).join(""));
         }
         // Part B item 1 (2026-08-21, CEO-confirmed) — bold a paragraph's
         // lettered lead ("E. Residual Risk.") when one opens the chunk.
@@ -1465,7 +1509,7 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         const withMarkers = lead
           ? `<strong style="text-decoration:underline;">${mark(escHtml(lead[1]))}</strong>${escHtml(lead[2])}${mark(escHtml(lead[3]))}`
           : mark(escHtml(chunk));
-        return `<p class="body-p" style="white-space:pre-line;">${withMarkers}</p>`;
+        return wrapChunk(`<p class="body-p" style="white-space:pre-line;">${withMarkers}</p>`);
       }).join("");
     }).join("");
     if (!paras) return "";
@@ -1485,7 +1529,14 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
       || (sec.id === "incident_worksheet" && opts?.product === "ir-playbook")
       || SIGNATURE_PAGE_IDS.has(sec.id ?? "");
     const breakCss = forceBreak ? "break-before:always;page-break-before:always;" : "";
-    return `<section class="section" style="${breakCss}margin-bottom:14px;">
+    // 2026-08-25 polish round — a section carrying a 5+-column table (the
+    // Risk Register class) asks for a landscape page via the CSS named page
+    // defined in buildTextReportHTML. Progressive enhancement: engines that
+    // don't honor CSS page names keep portrait.
+    const wideTable = (sec.paragraphs ?? []).some((p) =>
+      p?.kind === "table" && (p.table?.columns?.length ?? 0) >= 5
+    );
+    return `<section class="section${wideTable ? " wide-landscape" : ""}" style="${breakCss}margin-bottom:14px;">
       <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;break-after:avoid;page-break-after:avoid;">${escHtml(sec.title ?? "")}</h2>
       ${paras}
     </section>`;
@@ -1629,7 +1680,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+    <p class="eyebrow">Customized Compliance Assessment</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
@@ -1928,7 +1979,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+    <p class="eyebrow">Customized Compliance Assessment</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record?.created_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
   </header>
@@ -2032,7 +2083,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customized Analysis</p>
+    <p class="eyebrow">Customized Compliance Assessment</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record?.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
     <div class="summary-bar">
@@ -2900,7 +2951,7 @@ function buildRegistrationReportHTML(record: any): string {
 <body>
 <div class="eup-bar">
   <img src="${LOGO_URL}" alt="End User Privacy" style="height:22px;width:auto;display:block;" />
-  <span>Compliance Tool · Customized Analysis</span>
+  <span>Customized Compliance Assessment</span>
 </div>
 <h1>Registration Assessment</h1>
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
@@ -3037,7 +3088,7 @@ Deno.serve(async (req) => {
         intake_data: {},
       });
       const replayName = makeAttachmentName("cppa_risk", rrow.created_at || new Date().toISOString());
-      const replayBytes = await generatePDF(replayHtml, replayName.replace(".pdf", ""));
+      const replayBytes = await generatePDF(replayHtml, footerTitleFromAttachment(replayName));
       let replayUrl: string | null = null;
       if (replayBytes) {
         const p = `reports/replay_harness_results/${rrow.id}/${replayName}`;
@@ -3688,7 +3739,7 @@ Deno.serve(async (req) => {
 
     html = applyUniversalDisclaimerHtml(html);
 
-    const pdfBytes = await generatePDF(html, attachmentName.replace(".pdf", ""));
+    const pdfBytes = await generatePDF(html, footerTitleFromAttachment(attachmentName));
 
     let pdfUrl: string | null = null;
     if (pdfBytes) {

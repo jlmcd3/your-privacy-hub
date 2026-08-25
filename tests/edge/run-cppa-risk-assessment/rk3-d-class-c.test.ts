@@ -294,12 +294,13 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("Read as an operational sequence"), "coherence analysis absent");
       assert(body.includes("The Company identifies the affected consumers as:"), "context analysis absent");
       assert(body.includes("source ") && body.includes("Analysis."), "source analysis absent");
-      assert(body.includes("on the Company’s typed record, this control is") || body.includes("under a written contract"), "recipient risk analysis absent");
+      assert(body.includes("on the Company’s structured record, this control is") || body.includes("under a written contract"), "recipient risk analysis absent");
       assert(body.includes("The processing materially depends on:"), "vendor dependency absent");
     });
 
     await t.step("Section IV analyses render", () => {
-      assert(body.includes("typed notice record"), "transparency analysis absent");
+      // v4.7.2 — "typed record" was internal vocabulary in customer prose.
+      assert(body.includes("structured notice record"), "transparency analysis absent");
       assert(body.includes("expectation"), "expectations analysis absent");
       assert(body.includes("The Company confirms") && body.includes("declining"), "choice-architecture analysis absent");
     });
@@ -320,7 +321,7 @@ for (const c of CPPA_RISK_PERFECT) {
 
     await t.step("Section VIII effectiveness and residual walk render", () => {
       assert(body.includes("Effectiveness analysis."), "effectiveness analysis absent");
-      assert(body.includes("residual tier follows the residual rule"), "residual walk absent");
+      assert(body.includes("residual tier follows from the Company’s own safeguard record"), "residual walk absent");
     });
 
     await t.step("Section IX analyses render", () => {

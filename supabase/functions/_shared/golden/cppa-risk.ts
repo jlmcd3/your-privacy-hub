@@ -1128,8 +1128,11 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
           pi_categories_made_available: [
             "Device identifiers (IP, cookies, device IDs)",
           ],
+          // v4.7.2 fixture-text fix (CEO output review 2026-08-25): the old
+          // wording named the internal intake field id, which rendered
+          // verbatim in customer output. Same fact, no internal slug.
           disclosure_purpose:
-            "Licensed geobehavioral segments for programmatic campaign targeting — the sale/share captured at q5_sell_share.",
+            "Licensed geobehavioral segments for programmatic campaign targeting — this disclosure constitutes the sale or sharing identified in the applicability analysis.",
           contractual_protections:
             "Written contract with the CCPA-required restrictions in place",
         },

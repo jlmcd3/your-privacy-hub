@@ -237,6 +237,37 @@ export function deriveCoverTable(values: SlotValues): RenderedTable {
 }
 
 /**
+ * v4.7.2 — the cover's executive status panel (spine block cover:2). A
+ * PROJECTION of the factor engine's own typed determinations (trigger
+ * engagement, the two materiality tiers, the balancing consequence) —
+ * never a new determination. CEO output review 2026-08-25: the headline
+ * outcome should be visible before the prose.
+ */
+export function deriveExecStatusPanel(
+  panel: RiskFactorEngineResult["exec_panel"],
+): RenderedTable | null {
+  if (!panel.assessment_required && !panel.inherent && !panel.residual) return null;
+  const tier = (t: string | null): string => t ?? "Not assessed — no risk pathways recorded.";
+  const disposition = panel.disposition
+    .split(" ")
+    .map((w) => (w === "with" || w === "not" ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(" ");
+  return {
+    key: "",
+    surface: "exec_status_panel",
+    title: "",
+    columns: ["Determination", "Result"],
+    hideHeader: true,
+    rows: [
+      ["Assessment required", panel.assessment_required ? "Yes" : "No"],
+      ["Inherent privacy risk", tier(panel.inherent)],
+      ["Residual privacy risk", tier(panel.residual)],
+      ["Disposition", disposition],
+    ],
+  };
+}
+
+/**
  * {{DERIVED.review_approval_signatures}} — CEO report review 2026-08-24: a
  * blank-signature-line table for the § 7152(a)(9) reviewers/approvers
  * already named in Section I.E. Name/Title are drawn from the record when
@@ -420,7 +451,9 @@ export function deriveSubmissionSupportRecord(
       }`,
     );
   }
-  push("Assessment date", `${assessmentDateIso}; skeleton version: ${RISK_SKELETON_VERSION}`);
+  // v4.7.2 — "skeleton version" was a development artifact in customer
+  // output (CEO output review); the stamp itself is unchanged.
+  push("Assessment date", `${assessmentDateIso}; assessment version: ${RISK_SKELETON_VERSION}`);
 
   return { key: "", surface: "submission_support_record", title: "", columns: ["Item", "Detail"], rows: rowsOut };
 }
@@ -435,8 +468,10 @@ export function deriveBusinessLevelOutstanding(): RenderedTable {
   return {
     key: "",
     surface: "business_level_submission_outstanding",
-    title: "Outstanding business-level § 7157 submission elements (these aggregate across all assessments in the reporting period and cannot be determined from this assessment alone)",
-    columns: ["Outstanding element"],
+    // v4.7.2 — "Outstanding" read as this assessment being unfinished (CEO
+    // output review); these items are inherently reporting-period work.
+    title: "Business-level § 7157 submission items requiring reporting-period aggregation (these aggregate across all assessments in the reporting period and cannot be determined from this assessment alone)",
+    columns: ["Reporting-period item"],
     rows: [
       ["Number of risk assessments conducted or updated during the reporting period."],
       ["Aggregate personal-information and sensitive-personal-information categories across all assessed activities."],
@@ -693,7 +728,7 @@ function composeIxCompanyDecision(intake: Bag): string {
   return `${fillDrop(RISK_FIXED.ix_company_decision, { decision })}${notes ? ` ${notes}.` : ""}`;
 }
 
-function composeXApproval(intake: Bag): string {
+function composeXApproval(intake: Bag, assessmentDateIso?: string): string {
   const reviewerRows = rows(intake.assessment_reviewers_approvers)
     .map((r) => [s(r.name), s(r.position), s(r.role)].filter(Boolean).join(", "))
     .filter(Boolean)
@@ -711,7 +746,20 @@ function composeXApproval(intake: Bag): string {
 
   const bits: string[] = [RISK_FIXED.x_approval_head];
   if (reviewers) bits.push(`${RISK_FIXED.x_approval_reviewers} ${reviewers}.`);
-  if (approvalDate) bits.push(`${RISK_FIXED.x_approval_date_label} ${approvalDate}.`);
+  if (approvalDate) {
+    bits.push(`${RISK_FIXED.x_approval_date_label} ${approvalDate}.`);
+    // v4.7.2 (CEO output review) — an approval date earlier than the
+    // report's own date read as a credibility defect when left bare. The
+    // date is the Company's intake fact; where it precedes the report date,
+    // say why that can be so instead of leaving the anomaly unexplained.
+    const apv = /^\d{4}-\d{2}-\d{2}/.exec(approvalDate)?.[0];
+    const asm = assessmentDateIso ? /^\d{4}-\d{2}-\d{2}/.exec(assessmentDateIso)?.[0] : undefined;
+    if (apv && asm && apv < asm) {
+      bits.push(
+        "The approval date precedes this report's date because it records the Company's internal review of the assessment record, which occurred before this report was generated.",
+      );
+    }
+  }
   if (authority) bits.push(`${RISK_FIXED.x_approval_authority} ${authority}.`);
   if (basis) bits.push(`${RISK_FIXED.x_approval_authority_basis} ${basis}.`);
   return bits.join(" ");
@@ -743,7 +791,18 @@ function composeMaterialChangeDetails(intake: Bag): string {
 }
 
 function composeAdmtBlocks(intake: Bag): Record<string, string> {
-  if (!isYes(intake.q18_admt_use)) return {};
+  // v4.7.2 (CEO output review) — a non-ADMT activity used to drop Section V
+  // and Appendix F entirely, leaving unexplained IV→VI and E→G numbering
+  // gaps that read as an unfinished report. The fixed numbering stays; the
+  // section and appendix now carry a one-line not-applicable record instead.
+  if (!isYes(intake.q18_admt_use)) {
+    return {
+      "v_admt:0":
+        "Not applicable. The Company's structured record does not identify automated decisionmaking technology in this activity, so the ADMT analyses this section would carry are not required for this assessment. The section number is retained so the report's fixed structure reads consistently across assessments.",
+      "appendix_d:0":
+        "Not applicable. The activity does not involve automated decisionmaking technology, so no ADMT technical and decision record is required. The appendix letter is retained so the report's fixed structure reads consistently across assessments.",
+    };
+  }
   const out: Record<string, string> = {
     "v_admt:0": fillDrop(RISK_FIXED.admt_a, {
       q19: clause(intake.q19_admt_description) || null,
@@ -1198,10 +1257,21 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "ix_balancing:5": composeIxCompanyDecision(intake),
 
     // Section X
-    "x_governance:0": composeXApproval(intake),
+    "x_governance:0": composeXApproval(intake, assessmentDate),
     "x_governance:3": composeXTiming(intake),
     "x_governance:5": composeMaterialChangeDetails(intake),
   };
+
+  // v4.7.2 (CEO output review) — Section VIII's fixed subsection lettering
+  // (A, B, C, D, E) used to show an unexplained A-B-E gap when no planned
+  // safeguards or gaps existed. The lettering stays fixed; the absent case
+  // now states itself. Both fallbacks are mechanically true when their
+  // engine block is absent: no planned rows composed ⇒ none recorded; no
+  // gap rows composed ⇒ no material pathway lacks an implemented safeguard.
+  composed["viii_safeguards:4"] ??=
+    "C. Planned Safeguards. None recorded: the Company identifies no planned safeguards for this activity, and the analysis rests on the implemented safeguards above.";
+  composed["viii_safeguards:5"] ??=
+    "D. Safeguard Gaps. None identified: on the current record, no material risk pathway lacks a safeguard at implemented status.";
 
   // v4.6 — Appendix B (formerly "I", Persuasive Authority): pure CAM
   // attachment over the report's fired trigger states. Computed BEFORE
@@ -1226,6 +1296,8 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   // buildRiskAndSafeguardRegisterTable.
   const tables: SkeletonTables = {
     "cover:0": deriveCoverTable(values),
+    // v4.7.2 — executive status panel (spine block cover:2).
+    "cover:2": deriveExecStatusPanel(engine.exec_panel),
     // CEO report review 2026-08-24 — signature pages, ahead of Appendix A.
     "review_and_approval:1": deriveReviewApprovalTable(intake),
     "agency_submission_checklist:1": deriveAgencySubmissionChecklistTable(intake, values),

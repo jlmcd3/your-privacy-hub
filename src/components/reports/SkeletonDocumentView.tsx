@@ -209,6 +209,16 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
             ) : (
 
               p.text.split(/\n{2,}/).map((chunk, j) => {
+                // 2026-08-25 polish round — mirror of the PDF renderer's
+                // .condition-callout: a Condition(s)-to-Proceed chunk wraps
+                // in a bordered amber box so it can't be missed against a
+                // favorable disposition. Keep the detection regex in sync
+                // with generate-report-pdf/index.ts.
+                const conditionCallout =
+                  /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
+                const calloutClass = conditionCallout
+                  ? "rounded-md border-[1.5px] border-amber-600/70 bg-amber-50 px-3 py-2 dark:bg-amber-950/30"
+                  : "";
                 // CEO report review 2026-08-24 — a chunk containing a
                 // "— item" list run (see segmentDashText) renders those
                 // runs as real bullet lists and everything else as
@@ -217,7 +227,7 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 const segments = segmentDashText(chunk);
                 if (segments) {
                   return (
-                    <div key={`${i}-${j}`}>
+                    <div key={`${i}-${j}`} className={calloutClass || undefined}>
                       {segments.map((seg, k) =>
                         seg.kind === "list" && seg.parts.length >= 2 ? (
                           <ul key={k} className="list-disc space-y-1 pl-5 leading-relaxed text-foreground">
@@ -245,7 +255,10 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 const lead = /^(Activity Assessed\.|Why a Risk Assessment Is Required\.|Key Findings\.|Overall Determination\.|Conditions to Proceed\.|Assessment Follow-Up Required\.|[A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/
                   .exec(chunk);
                 return (
-                  <p key={`${i}-${j}`} className="leading-relaxed text-foreground whitespace-pre-line">
+                  <p
+                    key={`${i}-${j}`}
+                    className={`leading-relaxed text-foreground whitespace-pre-line${calloutClass ? ` ${calloutClass}` : ""}`}
+                  >
                     {lead
                       ? (
                         <>

@@ -970,8 +970,17 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       render_surface: "S5",
       purpose_class: "consequence",
       render_when: ["trigger_engaged", "record_incomplete"],
+      // v4.7.2 warning-text revision (2026-08-25, CEO-ordered polish round):
+      // (1) the old text named Deliveroo, which is a (b)(3)-keyed row that
+      // does not render for non-ADMT activities — the caution referenced a
+      // decision the reader's own Appendix B table did not contain; it now
+      // names only AENA, the row this warning is bound to. (2) "This
+      // assessment's record is not yet complete" undercut the report's
+      // finality — a final report can carry Conditions to Proceed and open
+      // record items without being unfinished; the reframe says exactly
+      // that. Trigger state (trigger_engaged + record_incomplete) unchanged.
       warning_text:
-        "Caution. Regulators applying analogous data-protection law have penalized businesses that carried out processing requiring an assessment without a complete assessment record: in AENA (AEPD, Spain, 2025) a EUR 10,043,002 fine issued where the impact assessment omitted the required necessity and proportionality analysis, and in Deliveroo (Garante, Italy, 2021) the required assessment was absent altogether. This assessment's record is not yet complete; completing the open items identified in this report before initiating or continuing the processing reduces the exposure this class of decisions illustrates. These decisions were issued under the GDPR, not the CCPA, and are persuasive context only.",
+        "Caution. Regulators applying analogous data-protection law have penalized businesses that carried out processing requiring an assessment without a complete assessment record: in AENA (AEPD, Spain, 2025) a EUR 10,043,002 fine issued where the impact assessment omitted the required necessity and proportionality analysis. This assessment identifies Conditions to Proceed or open record items; satisfying them before initiating or continuing the processing reduces the exposure this class of decisions illustrates. The decision was issued under the GDPR, not the CCPA, and is persuasive context only.",
       direction: "limits",
       logic_bearing: false,
       provenance: {
