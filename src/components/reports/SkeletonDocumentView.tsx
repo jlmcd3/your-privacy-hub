@@ -318,16 +318,21 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
           {table.title}
         </figcaption>
       )}
-      <div className="overflow-x-auto rounded-md border border-border">
-        <table className="w-full border-collapse text-xs">
+      {/* doc 72 (Fleet Report Design System, 2026-08-25) — horizontal-rules-
+          only table anatomy, matching generate-report-pdf's skeletonTableHtml
+          byte-for-byte in intent: no vertical rules, no header fill, no
+          zebra striping. The table itself carries the heavy open/close
+          rule; the header its own rule; body rows a light separator. */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border-y-2 border-foreground text-xs">
           {!table.hideHeader && (
             <thead>
-              <tr className="bg-muted/60">
+              <tr>
                 {table.columns.map((c, i) => (
                   <th
                     key={i}
                     scope="col"
-                    className="border-b border-border px-3 py-2 text-left font-body font-semibold text-foreground"
+                    className="border-b-2 border-foreground/70 px-3 py-2 text-left font-sans text-[11px] font-bold uppercase tracking-wide text-foreground"
                   >
                     {c}
                   </th>
@@ -337,7 +342,7 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
           )}
           <tbody>
             {table.rows.map((row, r) => (
-              <tr key={r} className="align-top even:bg-muted/20">
+              <tr key={r} className="align-top">
                 {row.map((cell, c) => (
                   <td key={c} className="border-b border-border px-3 py-2 leading-relaxed text-foreground">
                     {renderWithFootnotes(cell)}

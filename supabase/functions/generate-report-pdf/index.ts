@@ -1221,17 +1221,28 @@ interface SkeletonTableLike {
  * padded. A table with no rows never reaches here (no-padding law), but the
  * guard is kept so a malformed payload prints nothing rather than an empty grid.
  */
+// doc 72 (Fleet Report Design System, 2026-08-25) — horizontal-rules-only
+// table anatomy, applied here ONCE for every skeleton table in every
+// product (cover panels, appendix matrices, the future risk ledger — this
+// is the single fleet-wide table renderer). No vertical rules, no header
+// fill, no zebra striping — the single biggest "generated PDF" tell. The
+// table itself carries the heavy open/close rule; the header row a medium
+// rule; body rows a light separator. border-collapse absorbs the
+// coincident rule at the table's own top/bottom edge, so the last row
+// needs no special-casing. Header text sets Arial — doc 72's "apparatus"
+// voice (caps, tracked, sans) — the only place this renderer uses a
+// second face; body cells stay Georgia (the base stylesheet's default).
 function skeletonTableHtml(t: SkeletonTableLike): string {
   const cols = Array.isArray(t.columns) ? t.columns : [];
   const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
   if (rows.length === 0 || cols.length === 0) return "";
   const head = cols
-    .map((c) => `<th style="border:0.5pt solid #b9c6d2;background:#eef3f7;padding:4px 6px;text-align:left;font-weight:bold;">${escHtml(c)}</th>`)
+    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;padding:5pt 8pt 4pt 0;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#1a1a1a;">${escHtml(c)}</th>`)
     .join("");
   const body = rows
     .map((r) =>
       `<tr>${cols
-        .map((_c, i) => `<td style="border:0.5pt solid #b9c6d2;padding:4px 6px;vertical-align:top;">${escHtml(String(r[i] ?? ""))}</td>`)
+        .map((_c, i) => `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:9.5pt;">${escHtml(String(r[i] ?? ""))}</td>`)
         .join("")}</tr>`
     )
     .join("");
@@ -1240,7 +1251,7 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
   const headHtml = t.hideHeader ? "" : `<thead><tr>${head}</tr></thead>`;
   return `<div style="margin:0 0 10px;">
     ${t.title ? `<div style="font-weight:bold;font-size:10.5px;margin:0 0 4px;break-after:avoid;page-break-after:avoid;">${escHtml(t.title)}</div>` : ""}
-    <table style="width:100%;border-collapse:collapse;font-size:9.5px;line-height:1.35;">
+    <table style="width:100%;border-collapse:collapse;border-top:1.25pt solid #000;border-bottom:1.25pt solid #000;font-size:9.5px;line-height:1.35;">
       ${headHtml}
       <tbody>${body}</tbody>
     </table>
