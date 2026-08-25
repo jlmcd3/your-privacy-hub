@@ -1297,17 +1297,29 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       .select("id, citation, version, authority_type, authority_weight, effective_date, official_url, title, status")
       .in("citation", CYBER_CITATIONS)
       .eq("status", "current");
-    const { data: fsorRows } = await supabase
-      .from("cppa_fsor_commentary")
-      .select("id, regulation_citation, page_ref, fsor_package, comment_summary, agency_response, agency_position_summary, source_url")
-      .in("regulation_citation", CYBER_CITATIONS);
-
-    // Per-control "What the agency said" attachment.
+    // C1.3 (doc 67 §0/§2) — the direct cppa_fsor_commentary query, the
+    // semantic RPC below, and their per-control merge are the "two-plane
+    // law" violation: corpus content computed at REQUEST TIME instead of
+    // curated ahead of time via the CAM. Under the flag, attachCyberCorpus
+    // (called further below, alongside ITEM 315) is the sole FSOR-adjacent
+    // content source; fsorRows/fsorByCitation stay empty so
+    // fsor_section_commentary and the per-control loop (already a no-op
+    // under the flag — report.controls is empty per C1.1a) both degrade
+    // harmlessly, and obligation_snapshot's fsor/fsor_count fields read 0.
+    let fsorRows: any[] | null = null;
     const fsorByCitation = new Map<string, any[]>();
-    for (const row of fsorRows ?? []) {
-      const key = row.regulation_citation;
-      if (!fsorByCitation.has(key)) fsorByCitation.set(key, []);
-      fsorByCitation.get(key)!.push(row);
+    if (!CYBER_DETERMINISTIC_ENABLED) {
+      const { data } = await supabase
+        .from("cppa_fsor_commentary")
+        .select("id, regulation_citation, page_ref, fsor_package, comment_summary, agency_response, agency_position_summary, source_url")
+        .in("regulation_citation", CYBER_CITATIONS);
+      fsorRows = data;
+      // Per-control "What the agency said" attachment.
+      for (const row of fsorRows ?? []) {
+        const key = row.regulation_citation;
+        if (!fsorByCitation.has(key)) fsorByCitation.set(key, []);
+        fsorByCitation.get(key)!.push(row);
+      }
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -1791,6 +1803,30 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       (report as any)._item315_cyber_deliverables = item315;
     } catch (dErr) {
       console.error("[ITEM315-CYBER-DELIVERABLES] non-fatal:", String(dErr));
+    }
+
+    // C1.3 (doc 67 §2) — corpus wiring: attachCyberCorpus is the pure
+    // replacement for the runtime FSOR query/RPC/merge retired above. One
+    // S4 commentary entry per of the 18 § 7123(c) components (all 18
+    // always render — doc 67's render_when note, no narrower gate to
+    // mis-gate on). Stored under _meta.internal (survives the LEAK-PREV-P2
+    // serializer, which reduces _meta to { internal } rather than
+    // stripping it) — not yet a customer-facing surface; C1.4's
+    // per-component composer is what will read this. Fail-open.
+    if (CYBER_DETERMINISTIC_ENABLED) {
+      try {
+        const { attachCyberCorpus } = await import("./_local/ltp/cyber-corpus-attach.ts");
+        const s4 = attachCyberCorpus();
+        const _c = ((report as any)._meta ??= {});
+        (_c.internal ??= {}).cyber_corpus_s4 = s4;
+        console.log(JSON.stringify({
+          evt: "cyber_corpus_s4_attached", fn: "run-cppa-cybersecurity",
+          build_stamp: BUILD_STAMP, components: s4.length,
+          with_commentary: s4.filter((e) => e.commentary[0] !== "General § 7123 agency response; no subsection-specific interpretive commentary was identified in the FSOR corpus for this component.").length,
+        }));
+      } catch (cErr) {
+        console.error("[C1.3-CYBER-CORPUS-S4] non-fatal:", String(cErr));
+      }
     }
 
 
