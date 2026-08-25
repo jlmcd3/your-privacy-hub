@@ -1831,6 +1831,42 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
     }
 
+    // C1.4 (doc 67 §2.1) — the recommendation-library SHAPE: gap-class x
+    // variant keying, deterministic priority/rank, and a capped
+    // next-steps digest, layered on top of Op. A/B's already-attached
+    // component_coverage/evidence_sufficiency plus C1.3's staged S4
+    // corpus commentary (closing the loop that landing's own comment
+    // left open). PN-C3 GATE: every string this produces is DRAFT, NOT
+    // YET RATIFIED — stored under _meta.internal (same C1.3 staging
+    // pattern, survives the LEAK-PREV-P2 serializer), never spliced into
+    // the skeleton document or any customer-facing render path. Fail-open.
+    if (CYBER_DETERMINISTIC_ENABLED) {
+      try {
+        const { buildCyberComponentRecommendations, buildCyberNextSteps } =
+          await import("./_local/ltp/cppa-cyber-deliverables/cyber-recommendations.ts");
+        const coverage = Array.isArray((report as any).component_coverage)
+          ? (report as any).component_coverage : [];
+        const evidence = Array.isArray((report as any).evidence_sufficiency)
+          ? (report as any).evidence_sufficiency : [];
+        const corpusS4 = Array.isArray((report as any)?._meta?.internal?.cyber_corpus_s4)
+          ? (report as any)._meta.internal.cyber_corpus_s4 : [];
+        const remediationOwner = String(
+          ((row as any)?.intake_data as any)?.profile?.remediation_owner ?? "",
+        );
+        const recommendations = buildCyberComponentRecommendations(coverage, evidence, corpusS4);
+        const nextSteps = buildCyberNextSteps(recommendations, remediationOwner);
+        const _c = ((report as any)._meta ??= {});
+        (_c.internal ??= {}).cyber_recommendations = { recommendations, next_steps: nextSteps };
+        console.log(JSON.stringify({
+          evt: "cyber_recommendations_attached", fn: "run-cppa-cybersecurity",
+          build_stamp: BUILD_STAMP, gap_count: recommendations.length,
+          next_steps_count: nextSteps.length,
+        }));
+      } catch (rErr) {
+        console.error("[C1.4-CYBER-RECOMMENDATIONS] non-fatal:", String(rErr));
+      }
+    }
+
 
     // WAVE12-FIX TURN E — defensive crosswalk sanitizer. Runs LAST among
     // scrubs so it sees the final assembled prose (post-W6, post-W9, post-W10).
