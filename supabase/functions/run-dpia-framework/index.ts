@@ -49,8 +49,8 @@ import { callAnthropicWithContinuation, AnthropicTimeoutError } from "../_shared
 import { withUpstreamRetry as dpiaWithRetry, ensureTerminalFnRun as dpiaEnsureTerminal } from "./reliability.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, generationMaxTokens, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS: per-unit spend/latency metering
-import { detectPurposeConflation, conflationRepairInstruction } from "../_shared/dpia-purpose-guard.ts";
-import { DPIA_ENFORCEMENT_PRECEDENTS_PINNED, type DpiaPinnedPrecedent } from "../_shared/corpus/dpia-enforcement-precedents-pinned.ts"; // WAVE C2 (doc 57 §1) determinism fix
+import { detectPurposeConflation, conflationRepairInstruction } from "./_local/dpia-purpose-guard.ts";
+import { DPIA_ENFORCEMENT_PRECEDENTS_PINNED, type DpiaPinnedPrecedent } from "./_local/corpus/dpia-enforcement-precedents-pinned.ts"; // WAVE C2 (doc 57 §1) determinism fix
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
@@ -3089,7 +3089,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // Fail-open.
     try {
       const { buildDeterminationBlock } = await import(
-        "../_shared/report-exhibits/determination.ts"
+        "../generate-report-pdf/_local/report-exhibits/determination.ts"
       );
       const determination = buildDeterminationBlock({
         report: reportData,

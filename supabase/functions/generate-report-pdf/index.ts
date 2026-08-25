@@ -66,7 +66,7 @@ function renderRecordCompleteBanner(report: any): string {
   }
 }
 
-import { renderDeterminationHtml, DETERMINATION_CSS } from "../_shared/report-exhibits/determination.ts";
+import { renderDeterminationHtml, DETERMINATION_CSS } from "./_local/report-exhibits/determination.ts";
 import { buildCPPARiskProse9HTML } from "./prose9-html.ts";
 // ITEM 369-IR LEG 1 — two-file IR delivery (standing playbook + worksheet).
 import { buildIRStandingPlaybookHTML, buildIRWorksheetHTML } from "./ir-artifacts-html.ts";

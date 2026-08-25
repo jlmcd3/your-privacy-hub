@@ -20,7 +20,7 @@
 // ground a row honestly ("the complete details ... are not provided in
 // the excerpt supplied") and was dropped rather than forced.
 
-import type { CorpusMap } from "../cam-types.ts";
+import type { CorpusMap } from "../../../../_shared/corpus/cam-types.ts";
 
 // WAVE C1 (2026-08-23, doc 56 / doc 62 §9's amendment / doc 63 §3 — CEO-
 // ratified via the Fable block's advance acceptance): the map's second

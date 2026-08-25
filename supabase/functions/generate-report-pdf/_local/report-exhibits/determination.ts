@@ -18,8 +18,8 @@ import {
   rollUpAskCategories,
   categorizeAsk,
   GENERIC_CATEGORY,
-} from "../prose/ask-categories.ts";
-import { affirmativeParagraph } from "../ltp/record-complete.ts";
+} from "../../../_shared/prose/ask-categories.ts";
+import { affirmativeParagraph } from "../../../_shared/ltp/record-complete.ts";
 
 export const DETERMINATION_VERSION = "det-w2-2026-08-05-item380";
 

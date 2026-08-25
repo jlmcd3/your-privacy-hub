@@ -12,12 +12,12 @@
  * (run-dpia-framework: attachDpiaDeliverables → attachDpiaAttestation →
  * assembleDpiaSkeletonDocument).
  */
-import { attachDpiaDeliverables } from "../dpia-deliverables/build.ts";
-import { attachDpiaAttestation } from "../dpia-deliverables/attestation.ts";
+import { attachDpiaDeliverables } from "../../../../_shared/ltp/dpia-deliverables/build.ts";
+import { attachDpiaAttestation } from "../../../../_shared/ltp/dpia-deliverables/attestation.ts";
 import {
   assembleDpiaSkeletonDocument,
   DPIA_SKELETON_ASSEMBLER_STAMP,
-} from "../dpia-skeleton-assemble.ts";
+} from "../../../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 export const DPIA_REPLAY_STAMP = "dpia-replay@so-harness-2026-08-17";
 

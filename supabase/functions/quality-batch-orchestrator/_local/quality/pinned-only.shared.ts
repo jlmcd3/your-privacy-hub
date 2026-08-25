@@ -11,8 +11,8 @@
 // The generator is untouched: it remains the messy-variant path, and every
 // non-pinned_only dispatch is byte-unchanged.
 
-import type { GoldenCase } from "../golden/types.ts";
-import { checkPerfectDpiaIntake, deficiencyLines } from "./perfect-closed-loop.ts";
+import type { GoldenCase } from "../../../_shared/golden/types.ts";
+import { checkPerfectDpiaIntake, deficiencyLines } from "../../../_shared/quality/perfect-closed-loop.ts";
 
 /** Tools whose perfect fixtures have a product-defined closed-loop check. */
 const CLOSED_LOOP_TOOLS: Record<string, (intake: unknown) => { ok: boolean; deficiencies: readonly { kind: string; detail: string }[] }> = {
