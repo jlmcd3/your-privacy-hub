@@ -653,7 +653,24 @@ export function buildReadinessDetermination(
     ? `On this record the business is ready for a § 7124 certified cybersecurity audit subject to ${partial} named remediation item${partial === 1 ? "" : "s"}; no component is unimplemented and no § 7122 condition is unmet.`
     : conclusion === "not_ready"
     ? `On this record the business is not ready for a § 7124 certified cybersecurity audit: ${blocking.length} § 7123(c) component${blocking.length === 1 ? "" : "s"} would be reported as not implemented or unevidenced${independenceBlocks ? ", and the § 7122 independence conditions are not met" : ""}.`
-    : `On this record no readiness conclusion can be reached: ${unassessable.length} § 7123(c) component${unassessable.length === 1 ? "" : "s"} ${unassessable.length === 1 ? "is" : "are"} not assessable on the information supplied${independenceUnknown ? ", and the auditor engagement is not described" : ""}.`;
+    : (() => {
+        // 2026-08-25 — REAL BUG FOUND while investigating C1.1b (prose-gold's
+        // CY-5 dangling-clause sub-pass was silently masking it downstream):
+        // "record_insufficient" is reached via EITHER unassessable.length > 0
+        // OR independenceUnknown alone (line ~645). The prior template always
+        // stated "${unassessable.length} components... not assessable", which
+        // rendered the nonsensical "0 § 7123(c) components are not
+        // assessable..." whenever independenceUnknown was the SOLE trigger
+        // (every component assessable, but the auditor engagement status was
+        // never described). Fixed by stating each applicable clause only when
+        // it applies; byte-identical to the prior wording when BOTH apply.
+        const bits: string[] = [];
+        if (unassessable.length > 0) {
+          bits.push(`${unassessable.length} § 7123(c) component${unassessable.length === 1 ? "" : "s"} ${unassessable.length === 1 ? "is" : "are"} not assessable on the information supplied`);
+        }
+        if (independenceUnknown) bits.push("the auditor engagement is not described");
+        return `On this record no readiness conclusion can be reached: ${bits.join(", and ")}.`;
+      })();
 
   const reasoning = conclusion === "ready"
     ? `Every enumerated component in § 7123(c) is recorded as implemented, and for each the record identifies at ` +
@@ -668,9 +685,23 @@ export function buildReadinessDetermination(
       `The blocking components are: ${blocking.map((b) => b.label).join("; ")}.` +
       `${independenceBlocks ? ` Separately, ${independence.summary}` : ""}` +
       `${enforcementBlocks ? ` § 7123(b)(3) enforcement of the program is also unmet on this record.` : ""}`
-    : `A readiness conclusion requires a position on every enumerated component. The following are not assessable ` +
-      `on this record: ${unassessable.map((u) => u.label).join("; ")}. Supplying that information — not a change of ` +
-      `posture — is what allows the conclusion to be reached.`;
+    : (() => {
+        // Same fix as the headline above, same root cause: never emit "The
+        // following are not assessable on this record: ." with nothing
+        // after the colon when unassessable is empty and independenceUnknown
+        // is the sole trigger.
+        const bits: string[] = [
+          "A readiness conclusion requires a position on every enumerated component and on the § 7122 auditor engagement.",
+        ];
+        if (unassessable.length > 0) {
+          bits.push(`The following are not assessable on this record: ${unassessable.map((u) => u.label).join("; ")}.`);
+        }
+        if (independenceUnknown) {
+          bits.push("The auditor engagement is not described, so no § 7122 independence conclusion can be reached either.");
+        }
+        bits.push("Supplying that information — not a change of posture — is what allows the conclusion to be reached.");
+        return bits.join(" ");
+      })();
 
   return {
     conclusion,

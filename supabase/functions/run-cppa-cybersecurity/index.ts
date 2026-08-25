@@ -2056,6 +2056,21 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // text, and BEFORE the terminal metadata write. Fail-open; telemetry
     // sequestered under _meta.internal.cyber_boiler (never a customer-
     // surface underscore-prefixed key).
+    //
+    // C1.1b (doc 67 §2.1, 2026-08-25) — GATED, not deleted. Doc 24 §2 item 3
+    // frames the disposition for W-passes/csc/prose-gold as "flip
+    // detect-only", not the outright quarantine reserved for refinement —
+    // and this pass's defect class (an LLM non-deterministically repeating
+    // the same generic remediation sentence across unrelated controls) is
+    // structurally unreachable once report.controls is never populated at
+    // all (C1.1a retires both model call sites under the flag), so this is
+    // a genuine no-op there — confirmed empirically (git-stash A/B against
+    // every golden fixture: report byte-identical with/without this call
+    // once the flag is on). It still runs at FULL STRENGTH under the flag
+    // off, protecting the still-live model path exactly as before; full
+    // deletion is deferred to C2's actual flag-flip, when the flag-off path
+    // itself is removed and there is no longer anything for it to protect.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const boiler = applyCyberBoilerplateGuard(report as any);
       console.log(JSON.stringify({
@@ -2156,6 +2171,26 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // the reader will actually receive. Fail-open; the pipeline stamp lands
     // on `_meta.internal.cyber_pipeline_stamp`, which the LEAK-PREV-P2
     // serializer preserves (it reduces `_meta` to `{ internal }`).
+    //
+    // C1.1b (doc 67 §2.1, 2026-08-25) — GATED under the flag, same rationale
+    // and same empirical verification as the W17 gate above: CY-2/CY-3/CY-4
+    // (arithmetic spliced into prose, garbled comparative-citation grammar)
+    // are specific to the model composing a sentence around a computed
+    // number or a templated proper noun — structurally impossible once no
+    // generative step ever does that (every number/label the deterministic
+    // path emits lives in a typed field, never composed into free text).
+    // CY-1/CY-5/CY-6/CY-7 are generic hygiene (verdict-voice opener, hollow-
+    // leaf omission, enum-token leakage, legacy-shape migration) this
+    // landing's own tests exercise instead of a standing runtime pass. NOTE:
+    // gating this call is also what CLOSES the readiness_determination
+    // reasoning/headline bug this investigation surfaced and fixed at the
+    // SOURCE (cppa-cyber-deliverables/build.ts) — CY-5 was silently
+    // deleting a dangling "The following are not assessable on this
+    // record: ." fragment every time independenceUnknown was the sole
+    // trigger for record_insufficient; masking it here would have hidden a
+    // real defect instead of fixing it. Full deletion deferred to C2, same
+    // as W17.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const gold = applyCyberProseGold(report as any);
       const gmeta: any = (report as any)._meta ?? ((report as any)._meta = {});
@@ -2243,6 +2278,21 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // gold → CSC → coverage → record-complete gate → emit gate → serializer.
     // Both receive the FULL PERSISTED RECORD (`row.intake_data`), never a
     // trimmed projection (the item385-r2 lesson).
+    //
+    // C1.1b (doc 67 §2.1, 2026-08-25) — GATED under the flag: cy1/cy2's
+    // false-absence-vs-record class is structurally unreachable for any
+    // surface built by directly interpolating the same record row the
+    // check would read against (true of component_coverage[] already; true
+    // of C1.4's ComponentRecommendation[] by the same construction — it
+    // never asserts what the record does or doesn't state, it only selects
+    // a template keyed off Op. A/B's own already-computed verdicts).
+    // cy3/cy4 (authority-field/structured-leaf hygiene) are the same
+    // generic-bug class as prose-gold's remaining sub-passes — a test-
+    // coverage question, not a runtime need. Confirmed empirically: zero
+    // violations/repairs against every golden fixture once the model
+    // stages are retired under the flag. Full deletion deferred to C2,
+    // same as W17/prose-gold above.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const { attachCyberCsc } = await import("./_local/ltp/cyber-csc.ts");
       const csc = attachCyberCsc(report as Record<string, unknown>, {
