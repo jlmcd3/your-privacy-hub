@@ -14,7 +14,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
-import { DPIA_ENFORCEMENT_PRECEDENTS_PINNED } from "../../../supabase/functions/_shared/corpus/dpia-enforcement-precedents-pinned.ts";
+import { DPIA_ENFORCEMENT_PRECEDENTS_PINNED } from "../../../supabase/functions/run-dpia-framework/_local/corpus/dpia-enforcement-precedents-pinned.ts";
 import {
   art36Determination,
   dpiaConsultationWarning,

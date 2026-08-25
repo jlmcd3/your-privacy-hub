@@ -20,25 +20,29 @@ const register = [
   { risk_label: "Unlogged export", likelihood: "low", severity: "high", inherent_band: "medium", residual_band: "", measures: [] },
 ];
 
-Deno.test("prompt8a: per-risk template carries the re-scoring caveat exactly once", () => {
+// v4.6.2 (2026-08-25 polish round) — the "preliminary until re-scored"
+// caveat and its {rescorer} name were retired: residual ratings are final
+// as of the assessment date (Art. 35(11) handles change). The two caveat
+// tests below now pin the new per-risk closer.
+Deno.test("prompt8a: per-risk template closes each row on the recorded-measures basis", () => {
   const body = composeRiskBody({ risk_register: register }, { safeguards: "encryption at rest" } as never, {
     dpia_approved_by_name: "Dr. Anna Meier",
   });
-  assertEquals(body.match(/re-scores it against the mitigating measures once they have been deployed/g)?.length, 1);
-  assertStringIncludes(body, "which is preliminary until Dr. Anna Meier re-scores it against the mitigating measures once they have been deployed");
-  assertStringIncludes(body, "the remaining risk level is low on the same preliminary basis");
+  assert(!/preliminary|re-scores/.test(body), body);
+  assertStringIncludes(body, "the remaining risk level is low after those measures are taken into account");
   assertStringIncludes(
     body,
-    // PROMPT 9L.1 item 4 — re-anchored to the ratified per-risk template.
-    "is assessed at \u201Chigh\u201D likelihood and \u201Chigh\u201D severity under this assessment's pre-set risk taxonomy, with an aggregate initial risk level of high",
+    // PROMPT 9L.1 item 4 — re-anchored to the ratified per-risk template
+    // (v4.6.2 vocabulary: "the assessment's defined risk matrix").
+    "is assessed at \u201Chigh\u201D likelihood and \u201Chigh\u201D severity under the assessment's defined risk matrix, with an aggregate initial risk level of high",
   );
   assertStringIncludes(body, "the remaining risk level is undetermined");
   assert(!BANNED.test(body), body);
 });
 
-Deno.test("prompt8a: rescorer falls back to 'the company' when no approver is recorded", () => {
+Deno.test("prompt8a: no-approver record composes without any re-scoring reference (rescorer retired)", () => {
   const body = composeRiskBody({ risk_register: register.slice(0, 1) }, { safeguards: "" } as never, {});
-  assertStringIncludes(body, "which is preliminary until the company re-scores it against the mitigating measures once they have been deployed");
+  assert(!/preliminary|re-scores/.test(body), body);
   assertStringIncludes(body, "The company records no safeguards for this processing.");
 });
 

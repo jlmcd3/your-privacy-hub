@@ -5,7 +5,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   detectPurposeConflation,
   conflationRepairInstruction,
-} from "../../../supabase/functions/_shared/dpia-purpose-guard.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/dpia-purpose-guard.ts";
 
 const PURPOSE =
   "To schedule occupational-health return-to-work reviews and adjust duties for employees returning from long-term sick leave.";

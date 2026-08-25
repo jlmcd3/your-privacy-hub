@@ -18,7 +18,7 @@ import { attachDpiaCsc } from "../../../supabase/functions/_shared/ltp/dpia-csc.
 import { readDetectFindings } from "../../../supabase/functions/_shared/prose/detect-mode.ts";
 import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
 import { checkPerfectDpiaIntake, deficiencyLines } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
-import { planPinnedOnly } from "../../../supabase/functions/_shared/quality/pinned-only.ts";
+import { planPinnedOnly } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pinned-only.shared.ts";
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
 import { DPIA_PERFECT_SET, casesForVariant } from "../../../supabase/functions/_shared/golden/registry.ts";
 
@@ -115,10 +115,15 @@ for (const id of [NORDFRACHT, CALEDONIA]) {
     // Detect-mode findings are RECORDED, never mutated into the report.
     const findings = readDetectFindings(report);
     assert(Array.isArray(findings), "detect findings must be readable from _meta");
-    // ToA renders, regime-prefixed, in the existing vertical grouped form.
+    // Re-pinned 2026-08-25: the id "table_of_authorities" has rendered
+    // Appendix A (factor/determination/authority matrix) since v4.6; the
+    // Art. 35(11) authority rides the Approval row's table cell.
     const toa = sectionText(report, "table_of_authorities");
-    assert(toa.trim().startsWith("Regulations"), toa.slice(0, 200));
-    assert(/Art\. 35\(11\), \(7\)\(a\), \(9\)/.test(toa), toa.slice(0, 400));
+    assert(toa.trim().startsWith("This appendix is a factor-by-factor audit trail"), toa.slice(0, 200));
+    const toaCells = (((report.skeleton_document.sections as Any[])
+      .find((s) => s.id === "table_of_authorities")?.paragraphs ?? []) as Any[])
+      .flatMap((p: Any) => p.table ? ((p.table.rows ?? []) as Any[]).flat() : []);
+    assert(toaCells.some((cell: Any) => /35\(11\)/.test(String(cell))), JSON.stringify(toaCells).slice(0, 300));
     // Citation pairing: every risk row carries both pinned pinpoints.
     for (const row of (report.risk_register ?? []) as Any[]) {
       if (row.citation || row.measures_citation) {

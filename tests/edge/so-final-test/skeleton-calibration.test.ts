@@ -8,7 +8,7 @@ import {
   matchRatifiedTemplate,
   SKELETON_CAL_RULE_IDS,
   SKELETON_CAL_VERSION,
-} from "../../../supabase/functions/_shared/grader/skeleton-calibration.ts";
+} from "../../../supabase/functions/run-quality-batch/_local/grader/skeleton-calibration.shared.ts";
 import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
 
 // Re-pinned 2026-08-21: PROMPT 9L.1 item 4 (CEO-ratified 2026-08-16) added

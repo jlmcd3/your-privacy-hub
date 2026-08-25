@@ -20,7 +20,7 @@ import { attachDpiaAttestation } from "../../../supabase/functions/_shared/ltp/d
 import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
 import { attachDpiaCsc } from "../../../supabase/functions/_shared/ltp/dpia-csc.ts";
 import { readDetectFindings } from "../../../supabase/functions/_shared/prose/detect-mode.ts";
-import { replayDpiaDoc } from "../../../supabase/functions/_shared/ltp/replay/dpia-replay.ts";
+import { replayDpiaDoc } from "../../../supabase/functions/replay-dpia-harness/_local/ltp/replay/dpia-replay.ts";
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
 import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
 

@@ -6,7 +6,7 @@ import {
   verifyLiaIntakeEvidence,
   verifyGovernanceBasisPointers,
 } from "../../../supabase/functions/_shared/ltp/fact-pointers.ts";
-import { checkIrRequiredFields } from "../../../supabase/functions/_shared/ltp/ir-required-fields.ts";
+import { checkIrRequiredFields } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-required-fields.ts";
 
 const intake = {
   organization_name: "Northwind Retail",

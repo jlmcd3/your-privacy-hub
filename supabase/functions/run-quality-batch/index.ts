@@ -1126,8 +1126,17 @@ const RUBRIC_ADMT: RubricCheck[] = [
 // this exact scenario ("...e.g., 'preliminary until R. Steiner re-scores
 // it'...") and still didn't stop the check from re-firing on it.
 const RUBRIC_DPIA: RubricCheck[] = [
+  // 2026-08-25 (spine v4.6.2): the product retired every "preliminary until
+  // re-scored" formulation -- residual ratings are now stated as final as of
+  // the assessment date, with change handled by the Art. 35(11) review
+  // stated in Section 6. The check's guidance is updated accordingly; the
+  // approval-before-launch half of the old guidance still applies.
   { id: "rubric_dpia_preliminary_risk_has_review_cycle", dimension: "intelligence", severity: "low",
-    description: "The risk-lead sentence naming who re-scores risk levels \"once [the mitigating measures] have been deployed\" states an OPERATIONAL trigger (real-world deployment data), distinct from the document's own Art. 35(11) STATUTORY periodic-review cycle stated elsewhere (e.g., \"this assessment is reviewed every 24 months or on material change; the review window runs to <date>\", or a pilot's stated end date at which the assessment is re-run). These are two legitimate, complementary re-verification mechanisms, not one mechanism the report failed to make specific — before flagging the risk-preliminary sentence as vague or under-actionable for not naming a re-scoring date or procedure, check the rest of the document for a stated review-cycle/end-date first. Also: an approval or sign-off date that PRECEDES the processing's launch date does not make \"preliminary until deployed and re-scored\" inconsistent with an already-approved determination — DPIAs are, by design, approved to proceed before the processing launches (GDPR Art. 35(1)); committing to re-verify risk levels once the system is actually live is itself correct, complete methodology, not an open gap. Do NOT fail rubric_actionability for either pattern." },
+    description: "The DPIA states residual-risk ratings as reflecting the mitigating measures recorded in the assessment record, with later change handled by Article 35(11) review (stated in Section 6). Do NOT flag the risk narrative as vague or under-actionable for not naming a re-scoring date, owner, or procedure — Art. 35(11) change-triggered review IS the correct, complete re-verification mechanism for a signed-off DPIA. Also: an approval or sign-off date that PRECEDES the processing's launch date (or the report's own generation date) does not make an approved determination inconsistent — DPIAs are, by design, approved to proceed before the processing launches (GDPR Art. 35(1)), and a report may be rendered from an assessment record approved earlier; the report itself now notes this where the dates differ. Do NOT fail rubric_actionability for either pattern." },
+  // 2026-08-25 (batch 6207ee82, dpia citation finding): recording the
+  // controller's asserted lawful basis is the tool's design, not a defect.
+  { id: "rubric_dpia_lawful_basis_is_recorded_not_adjudicated", dimension: "citation", severity: "low",
+    description: "The lawful-basis table records the CONTROLLER'S asserted Article 6(1) basis together with the statutory source the controller names (e.g. Art. 6(1)(c) with a named national provision such as s. 2(1) HSWA 1974 / reg. 3 MHSWR 1999), and the report's finding is expressly limited to whether the basis is 'supported based on the information the company provided.' Whether the named obligation mandates the SPECIFIC processing with sufficient precision is a legal determination reserved to the controller and its counsel — this assessment records the assertion and its source; it does not adjudicate sufficiency, and the Section 2 preamble says so. Do NOT fail rubric_citation_misapplied for the report reproducing the controller's asserted basis without independently testing whether the cited obligation mandates the specific processing. DO still fail it where the report itself misstates what a cited provision says, or attaches a citation to a proposition the provision does not support." },
 ];
 
 // QB-P25 B2 — Governance rubric note.
@@ -1161,11 +1170,24 @@ const RUBRIC_RISK: RubricCheck[] = [
     description: "strengthen_item_ids pointers (exception_analysis / record_sufficiency) are DESIGNED structured output (QB-P25 B3); never grade as content duplication or metadata leak. Score substance in the pointed-to strengthen_items entry ONCE." },
 ];
 
+// 2026-08-25 (batch 6207ee82, cppa-cyber boilerplate finding) — CYBER
+// rubric note. The per-component comparative-orientation frame ("For
+// comparative context, the HIPAA Security Rule addresses [X] under 45 CFR
+// Part 164; the operative requirement here is 11 CCR § 7123(c)(N)") is the
+// RATIFIED framing the spine mandates: comparative-framework references are
+// orientation only, and the operative requirement is always the cited CCPA
+// regulation, stated per component in a deliberately uniform frame.
+const RUBRIC_CYBER: RubricCheck[] = [
+  { id: "rubric_cyber_comparative_frame_is_ratified", dimension: "analysis", severity: "low",
+    description: "The recurring per-component comparative-context frame (comparative framework named for orientation; 'the operative requirement here is 11 CCR § 7123(c)(N)' closing the sentence) is DESIGNED, ratified framing — the spine requires comparative-framework references to remain orientation-only with the operative CCPA citation restated per component. Do NOT score the frame's recurrence across components as generic boilerplate when the bracketed content (framework provision, component, subsection) varies by component. DO still fail rubric_generic_boilerplate where the SUBSTANTIVE finding or remediation text itself repeats across components without component-specific content." },
+];
+
 const RUBRIC_CHECKS: Record<string, RubricCheck[]> = {
   "cppa-admt": [...RUBRIC_GENERAL, ...RUBRIC_ADMT],
   "governance": [...RUBRIC_GENERAL, ...RUBRIC_GOVERNANCE],
   "cppa-risk": [...RUBRIC_GENERAL, ...RUBRIC_RISK],
   "dpia": [...RUBRIC_GENERAL, ...RUBRIC_DPIA],
+  "cppa-cyber": [...RUBRIC_GENERAL, ...RUBRIC_CYBER],
   // All other tools use the general list. Add tool-specific entries here as they're identified.
 };
 

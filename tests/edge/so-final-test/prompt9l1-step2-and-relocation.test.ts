@@ -82,7 +82,8 @@ Deno.test("9L.1 item 5 — design risks follow the §4 statutory frame, not the 
   const s4blocks = DPIA_SKELETON_SECTIONS.find((s) => s.id === "section_4_risk_management")!.blocks;
   assert(!s3blocks.some((b) => b.text.includes("risk_register.design")), "design table still in §3");
   assert(s4blocks[0].text.startsWith("Article 35(7)(c)"), s4blocks[0].text);
-  assert(s4blocks[1].text.endsWith("as the starting point of the risk assessment."), s4blocks[1].text);
+  // Re-pinned 2026-08-25: block 1 is the combined "Risk Assessments." intro.
+  assert(s4blocks[1].text.endsWith("after the company's measures are considered."), s4blocks[1].text);
   assertEquals(s4blocks[2].text, "risk_register.design");
-  assertEquals(DPIA_SKELETON_VERSION, "prose-plans-2026-08-16-prompt9l2-v4-5-1");
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.6.2-2026-08-25");
 });

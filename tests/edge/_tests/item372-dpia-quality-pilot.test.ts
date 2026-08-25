@@ -24,7 +24,7 @@ import {
   buildDeterminationBlock,
   DETERMINATION_HEADING,
   renderDeterminationHtml,
-} from "../../../supabase/functions/_shared/report-exhibits/determination.ts";
+} from "../../../supabase/functions/generate-report-pdf/_local/report-exhibits/determination.ts";
 import {
   buildAuthorityExhibit,
   CITATION_ONLY_PREAMBLE,

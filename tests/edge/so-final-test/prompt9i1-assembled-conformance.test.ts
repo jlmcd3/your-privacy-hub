@@ -129,7 +129,9 @@ Deno.test("9I.1 (v) — Section 4 renders the most-significant-remaining-risk su
     last.startsWith("After the mitigating measures the company has identified, the most significant remaining risk is:"),
     last.slice(0, 160),
   );
-  assert(/preliminary remaining risk level of /.test(last), last.slice(0, 160));
+  // v4.6.2 — the closer states the residual level as final ("assessed at
+  // a residual risk level of …"); "preliminary" is retired.
+  assert(/assessed at a residual risk level of /.test(last), last.slice(0, 160));
 });
 
 Deno.test("9I.1 — pin guard: every pinned perfect fixture still passes the closed-loop check", () => {

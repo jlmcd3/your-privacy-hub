@@ -56,13 +56,19 @@ Deno.test("12E/1 — the enumerated surface list is closed and matches the PDF r
 });
 
 for (const c of DPIA_PERFECT_SET as Any[]) {
-  Deno.test(`12E/2 — ${c.id}: ToA lists Art. 35(11) alongside 35(7)(a) and 35(9)`, () => {
-    const { text } = assembled(c.intake);
+  Deno.test(`12E/2 — ${c.id}: Appendix A carries Art. 35(11) with the approval factor`, () => {
+    // Re-pinned 2026-08-25: the id "table_of_authorities" has rendered
+    // Appendix A (the factor/determination/authority matrix) since v4.6;
+    // the old grouped-ToA line this test pinned no longer exists. The
+    // Art. 35(11) authority now rides the Approval / decision row.
+    const { sec, text } = assembled(c.intake);
     const toa = text("table_of_authorities");
-    // Existing vertical grouped form: pinpoints of Art. 35 consolidate onto one
-    // line, regime-prefixed. 35(11) joins the existing 35(7)(a) / 35(9) group.
-    assert(/Art\. 35\(11\), \(7\)\(a\), \(9\)/.test(toa), toa);
-    assert(toa.trim().startsWith("Regulations"), toa);
+    assert(toa.trim().startsWith("This appendix is a factor-by-factor audit trail"), toa.slice(0, 200));
+    // The authority lives in the matrix TABLE cells (Approval row),
+    // which paragraph-text helpers never see.
+    const cells = ((sec("table_of_authorities")?.paragraphs ?? []) as Any[])
+      .flatMap((p: Any) => p.table ? ((p.table.rows ?? []) as Any[]).flat() : []);
+    assert(cells.some((cell: Any) => /35\(11\)/.test(String(cell))), JSON.stringify(cells).slice(0, 300));
   });
 
   Deno.test(`12E/3 — ${c.id}: nothing outside the ToA block moves`, () => {

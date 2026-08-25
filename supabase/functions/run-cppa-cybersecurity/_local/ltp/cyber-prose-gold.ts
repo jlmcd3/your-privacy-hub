@@ -251,6 +251,32 @@ export function repairComparativeCitation(text: string): CitationRepairResult {
     () => { repaired++; return "corresponding to "; },
   );
 
+  // QL3-FIX (2026-08-25, batch 6207ee82 citation findings):
+  // (a) The prompt-law contradiction in index.ts (now fixed at source)
+  //     produced "as required under 11 CCR § 7123(e); retain for a minimum
+  //     of five years per 11 CCR § 7122(g)" on business-side remediation —
+  //     § 7123(e) is the AUDITOR's report-content provision, never the
+  //     business's documentation anchor. Collapse to the § 7122(g) clause.
+  out = out.replace(
+    /,?\s*as required under 11 CCR § 7123\(e\);\s*retain for a minimum of five years per 11 CCR § 7122\(g\)/g,
+    () => { repaired++; return ", retained for a minimum of five years per 11 CCR § 7122(g)"; },
+  );
+  // (b) The comparative-context frame opener mis-spliced onto remediation
+  //     directives ("For comparative context, retain and make audit-ready
+  //     …") — the clause that follows is an action, not comparative
+  //     orientation; strip the frame.
+  out = out.replace(
+    /\bFor comparative context,\s+(?=retain and make audit-ready\b)/g,
+    () => { repaired++; return ""; },
+  );
+  // (c) "Article 9 requirements" under § 7123(f) is correct in-context
+  //     (Article 9 of the CCPA regulations) but ambiguous on the page (CCPA
+  //     statute? GDPR Art. 9?). State which Article 9.
+  out = out.replace(
+    /\bArticle 9 requirements\b(?! of the CCPA)/g,
+    () => { repaired++; return "requirements of Article 9 of the CCPA regulations (11 CCR §§ 7120–7124)"; },
+  );
+
   out = out.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
   return { out, repaired };
 }

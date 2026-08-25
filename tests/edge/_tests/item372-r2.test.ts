@@ -29,7 +29,7 @@ import {
   isBareAdvisoryClose,
 } from "../../../supabase/functions/run-dpia-framework/_local/prose/advisory-close-repair.ts";
 import { applyInferredGeneralisation } from "../../../supabase/functions/run-dpia-framework/_local/prose/inferred-generalisation.ts";
-import { buildDeterminationBlock } from "../../../supabase/functions/_shared/report-exhibits/determination.ts";
+import { buildDeterminationBlock } from "../../../supabase/functions/generate-report-pdf/_local/report-exhibits/determination.ts";
 import { hasPlaceholderToken, rollUpAskCategories } from "../../../supabase/functions/_shared/prose/ask-categories.ts";
 import { GENERIC_ABSENCE } from "../../../supabase/functions/_shared/prose/frame-substitution.ts";
 import { lintScaffoldPool, MIN_SCAFFOLD_POOL_SIZE } from "../../../archive/unwired/_shared/prose/register-lint.ts";

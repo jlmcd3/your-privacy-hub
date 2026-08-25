@@ -2998,7 +2998,9 @@ ${renderAuthorityExhibitHtml(summary?.authority_exhibit)}
 const TOOL_LABELS: Record<string, string> = {
   li_assessment: "LI-Assessment",
   governance_assessment: "Governance-Assessment",
-  dpia_framework: "Impact-Assessment-Builder",
+  // 2026-08-25 polish round — "Impact-Assessment-Builder" was internal
+  // product language; the label drives both the filename and the footer.
+  dpia_framework: "Data-Protection-Impact-Assessment",
   biometric_checker: "Biometric-Compliance",
   ir_playbook: "Breach-Response-Playbook",
   dpa_generator: "Custom-DPA",

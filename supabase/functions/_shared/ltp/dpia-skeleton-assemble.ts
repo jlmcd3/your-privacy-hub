@@ -65,10 +65,9 @@ export function numberWord(n: number): string {
   return n >= 0 && n <= 9 ? NUMBER_WORDS[n] : String(n);
 }
 
-/** PROMPT 8A `{rescorer}`: the recorded approver, else "the company". */
-function rescorer(intake: Bag): string {
-  return s(intake?.dpia_approved_by_name) || "the company";
-}
+// PROMPT 8A's `{rescorer}` helper was retired in v4.6.2: the
+// "preliminary until {name} re-scores…" formulations it fed were removed
+// (CEO-ordered polish round, 2026-08-25).
 
 type Bag = Record<string, unknown>;
 
@@ -389,7 +388,9 @@ function composeExecutiveDecisionSentence(report: Bag, total: number): string {
     return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed on the conditions set out below.";
   }
   if (det === "approved") {
-    return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate.";
+    // v4.6.2 — "every risk … is deemed low or moderate" → precise band
+    // statement (CEO-ordered polish round).
+    return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed as described: all identified residual risks are rated Low or Moderate.";
   }
   // Pre-decision documents only: the legacy u5 string is the sole fallback.
   const legacy = decisionText(report);
@@ -449,7 +450,6 @@ export function mergeOpenGapItems(
 }
 
 function composeExecutiveBody(report: Bag, intake: Bag): string {
-  const who = rescorer(intake);
   const bands = residualCounts(report);
   const total = Object.values(bands).reduce((a, b) => a + b, 0);
   const high = bands["high"] ?? 0;
@@ -457,22 +457,33 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   const sentences: string[] = [];
 
   // PROMPT 8D (CEO-ratified 2026-08-12) — the CANONICAL MODEL.
+  // v4.6.2 (CEO-ordered polish round, 2026-08-25) — the "preliminary until
+  // {name} re-scores them … once they have been deployed" clause said the
+  // DPIA was unfinished while Section 6 said Approved; a final DPIA's risk
+  // determination is final as of the assessment date, with later change
+  // handled by Art. 35(11) review (stated in Section 6), not by completing
+  // an unfinished document. Supersedes the 2026-08-22 keep-the-sentence
+  // ruling per tonight's CEO-ordered implementation.
   if (total > 0) {
     sentences.push(
       total === 1
         ? "This assessment reviews one risk and the measures the company has put in place to mitigate it."
         : `This assessment reviews ${numberWord(total)} risks and the measures the company has put in place to mitigate them.`,
     );
-    const preliminary =
-      `the risk levels in this document are preliminary until ${who} re-scores them against the mitigating measures, if and as identified by the company, once they have been deployed`;
+    const highestNamed = high > 0 ? "" : (bands["moderate"] ?? 0) > 0 ? "Moderate" : (bands["low"] ?? 0) > 0 ? "Low" : "";
     sentences.push(
       high > 0
         ? `${
           high === 1
-            ? "One of these risks is deemed a high risk"
-            : `${numberWord(high)} of these risks are deemed high risks`
-        } based on the information the company provided, and ${preliminary}.`
-        : `None is deemed a high risk based on the information the company provided, and ${preliminary}.`,
+            ? "One of these risks is rated High"
+            : `${numberWord(high)} of these risks are rated High`
+        } after the recorded mitigating measures are taken into account, based on the information the company provided.`
+        : highestNamed
+        ? `Following application of the recorded mitigating measures, no residual risk is rated High based on the information the company provided; the highest residual risk identified in this assessment is ${highestNamed}.`
+        : "Following application of the recorded mitigating measures, no residual risk is rated High based on the information the company provided.",
+    );
+    sentences.push(
+      "The residual-risk ratings stated in this assessment reflect the mitigating measures recorded in the assessment record; the review obligations that apply if the processing or the measures change are stated in Section 6.",
     );
     if (openBand > 0) {
       sentences.push(
@@ -817,7 +828,7 @@ function composeRiskLead(report: Bag): string {
   // PROMPT 9I item 3(b) (CEO-ratified 2026-08-15) — Section 4's CLOSING
   // summary sentence, byte-fixed.
   return band
-    ? `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}, which is assessed herein at a preliminary remaining risk level of ${band}.`
+    ? `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}, assessed at a residual risk level of ${band}.`
     : `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}.`;
 
 }
@@ -830,11 +841,9 @@ function composeRiskLead(report: Bag): string {
 // level; every later risk closes "on the same preliminary basis". The
 // initial/remaining distinction is vocabulary law: a row carrying both renders
 // both, and neither is ever collapsed to a bare "risk level".
-export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {}): string {
+export function composeRiskBody(report: Bag, values: SlotValues, _intake: Bag = {}): string {
   const rows = asArray(report.risk_register);
-  const who = rescorer(intake);
   const blocks: string[] = [];
-  let caveatSpent = false;
   for (const r of rows) {
     const label = noStop(s(r.risk_label));
     if (!label) continue;
@@ -847,7 +856,7 @@ export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {
     // 1.5 — likelihood or severity absent: the level is not broken down.
     if (!(likelihood && severity)) {
       blocks.push(
-        `${label} carries an initial risk level of ${inherent || "undetermined"} under this assessment's pre-set risk taxonomy; likelihood and severity are not both recorded, so that level is not broken down here.`,
+        `${label} carries an initial risk level of ${inherent || "undetermined"} under the assessment's defined risk matrix; likelihood and severity are not both recorded, so that level is not broken down here.`,
       );
       continue;
     }
@@ -857,7 +866,7 @@ export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {
     // set off with em dashes; "with an aggregate initial risk level" and
     // "mitigate the risk" render identically on every row.
     const head =
-      `${label} is assessed at \u201C${likelihood}\u201D likelihood and \u201C${severity}\u201D severity under this assessment's pre-set risk taxonomy, with an aggregate initial risk level of ${
+      `${label} is assessed at \u201C${likelihood}\u201D likelihood and \u201C${severity}\u201D severity under the assessment's defined risk matrix, with an aggregate initial risk level of ${
         inherent || "undetermined"
       }.`;
     const protections = measures.length
@@ -876,12 +885,13 @@ export function composeRiskBody(report: Bag, values: SlotValues, intake: Bag = {
       continue;
     }
 
-    // 1.1 (first, carries the re-score clause) / 1.2 (subsequent rows).
-    const tail = caveatSpent
-      ? `the remaining risk level is ${residual} on the same preliminary basis.`
-      : `the remaining risk level, which is preliminary until ${who} re-scores it against the mitigating measures once they have been deployed, is ${residual}.`;
-    caveatSpent = true;
-    blocks.push(`${head} ${protections}, and ${tail}`);
+    // v4.6.2 (CEO-ordered polish round, 2026-08-25) — the per-row
+    // "preliminary until {name} re-scores it … once they have been
+    // deployed" tail is retired: residual ratings are final as of the
+    // assessment date, and later change is Art. 35(11) review (Section 6),
+    // not completion of an unfinished DPIA. Supersedes the 2026-08-22
+    // keep-the-sentence ruling per tonight's CEO-ordered implementation.
+    blocks.push(`${head} ${protections}, and the remaining risk level is ${residual} after those measures are taken into account.`);
 
 
 
@@ -1311,9 +1321,17 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
     reportDetermination: ({ report }) => {
       const cov = (report as Bag).section2_coverage as Bag | undefined;
       if (!cov) return null;
-      const transfers = asArray(cov.transfers);
+      // v4.6.2 FIX (CEO output review, 2026-08-25): the deliverables builder
+      // emits a SENTINEL row (determination "no_transfer_on_the_record",
+      // emptyIsAnswer) when the intake declares zero flows. This row treated
+      // that sentinel as an uninstrumented TRANSFER, so Appendix A claimed
+      // "the Company has identified a cross-border transfer" while Section 2
+      // correctly said none exists — a direct internal contradiction in the
+      // rendered report (batch doc 04-b672471b).
+      const transfers = asArray(cov.transfers)
+        .filter((t) => s(t.determination) !== "no_transfer_on_the_record");
       if (!transfers.length) {
-        return "The Company’s information establishes that no cross-border transfer occurs in this processing.";
+        return "No cross-border transfer is identified in the assessment record; accordingly, no Chapter V transfer mechanism is engaged for the processing as assessed.";
       }
       const INSTRUMENTED = new Set(["intra_eea_processing", "uk_domestic_processing", "adequacy", "instrument_recorded"]);
       const allInstrumented = transfers.every((t) => INSTRUMENTED.has(s(t.determination)));
@@ -1538,6 +1556,18 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   
   // Bound to the typed surface, so it is composed from the report, not the intake.
   (values as Bag).ART36_SENTENCE = repairDpiaPlaceholders(composeArt36Sentence(report));
+
+  // v4.6.2 — {OUTSTANDING_MATTERS}: the Section 6 lead announces the gap
+  // ledger only when the ledger actually carries entries; an empty ledger
+  // states "None identified" instead of promising a list that never appears
+  // (CEO output review, 2026-08-25).
+  // Condition mirrors gapLedgerTable's own row filter exactly, so the lead
+  // and the rendered table can never disagree.
+  const outstandingRows = asArray(report.gap_ledger)
+    .filter((g) => s(g.dimensions) && s(g.field)).length;
+  (values as Bag).OUTSTANDING_MATTERS = outstandingRows > 0
+    ? "Matters still outstanding are listed below. Each is a point this assessment could not determine from the company's answers, and each names what would resolve it."
+    : "Outstanding Matters. None identified.";
 
   // PROMPT 8 — typed surfaces rendered as tables. NO-PADDING LAW: a surface
   // with no rows yields null and the renderer drops the block entirely.

@@ -19,7 +19,7 @@ import {
   RECORD_COMPLETE_VERSION,
   renderBannerHtml,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { buildDeterminationBlock } from "../../../supabase/functions/_shared/report-exhibits/determination.ts";
+import { buildDeterminationBlock } from "../../../supabase/functions/generate-report-pdf/_local/report-exhibits/determination.ts";
 
 const CLEAN_COVERAGE = { crashed: false, counts: { orphans: 0 } } as never;
 const CLEAN_CSC = { crashed: false, violations: [] as unknown[] } as never;

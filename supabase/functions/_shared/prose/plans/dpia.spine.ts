@@ -49,7 +49,21 @@
 //                 with no rows is omitted entirely (no-padding law).
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const DPIA_SKELETON_VERSION = "dpia-v4.6.1-2026-08-22";
+// v4.6.2 (2026-08-25, CEO-ordered polish round — ChatGPT DPIA output
+// review; EDPB Section 0–6 STRUCTURE explicitly unchanged per CEO ruling):
+//   (1) Section 6's "Matters still outstanding are listed below" fixed
+//       sentence printed even when the gap ledger was empty — the clearest
+//       template tell in the report. Converted to the
+//       {OUTSTANDING_MATTERS} slot: listing lead when entries exist,
+//       "Outstanding Matters. None identified." otherwise.
+//   (2) Appendix A's intro dropped its final sentence ("Internal field
+//       keys, variable names, and reasoning traces are never printed in
+//       the customer report") — internal product documentation, not
+//       customer prose.
+export const DPIA_SKELETON_VERSION = "dpia-v4.6.2-2026-08-25";
+
+/** The v4.6.1 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V461 = "dpia-v4.6.1-2026-08-22";
 
 /** The v4.6 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V46 = "dpia-v4.6-2026-08-21";
@@ -149,13 +163,21 @@ export const DPIA_SKELETON_CONTENT_HASH_V46 =
   "da472b222b97e8eaacdf9c59d5abcb63d3699e82af4fa267e5b5c4ed4695234e";
 
 /**
- * FIXED-PROSE HASH (BASIS v1) at spine v4.6.1 — the Appendix A intro skeleton
- * block was reworded (3-column matrix, no intake-data column) and the
- * section title changed; no other skeleton block moved. Retained for the
- * audit trail only; `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.6.1 — retained for the audit
+ * trail only; `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
+ */
+export const DPIA_SKELETON_CONTENT_HASH_V461 =
+  "dea0ea23c3562a686c52e1c69fb532625eb474c19995a834ee82cf600f8c567b";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.6.2 — the Appendix A intro lost
+ * its internal-documentation final sentence and Section 6's outstanding
+ * lead became the {OUTSTANDING_MATTERS} slot. Recomputed with the same
+ * method as every prior encode (skeleton-block text, newline-joined, in
+ * document order; verified by reproducing the v4.6.1 value first).
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "dea0ea23c3562a686c52e1c69fb532625eb474c19995a834ee82cf600f8c567b";
+  "a37b95f8ad6f493a89a1882899f63a42cb437dbaca4dd7d62915ae8d29805026";
 
 
 
@@ -327,7 +349,9 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the sign-off determination with any condition attached." },
       { kind: "generated", text: "[GENERATED] The approval basis in counsel's voice: which residual risks were accepted and by whom ({dpiaApprovedByName}), with any condition; the scope note {dpiaScopeNote} and review window {endDate} where the company has recorded them." },
       { kind: "skeleton", text: "{ART36_SENTENCE - from art36_consultation: where the DPIA concludes that the intended processing would still result in a high risk because the controller cannot sufficiently mitigate it through available measures, Article 36(1) requires prior consultation with the supervisory authority before processing begins; the negative branch states that prior consultation is not required on this assessment's determination}." },
-      { kind: "skeleton", text: "Matters still outstanding are listed below. Each is a point this assessment could not determine from the company's answers, and each names what would resolve it." },
+      // v4.6.2 — was an unconditional fixed sentence; with an empty gap
+      // ledger it announced a list that never appeared. Now a slot.
+      { kind: "skeleton", text: "{OUTSTANDING_MATTERS - conditional: when the gap ledger carries entries, the listing lead (\"Matters still outstanding are listed below. Each is a point this assessment could not determine from the company's answers, and each names what would resolve it.\"); absent => \"Outstanding Matters. None identified.\"}" },
       { kind: "table", text: "gap_ledger" },
     ],
   },
@@ -346,7 +370,10 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "table_of_authorities",
     title: "Appendix A — Factor, Determination, and Authority Matrix",
     blocks: [
-      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this DPIA. Each row states the factor assessed, the report's determination on that factor, and the primary legal authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion. Internal field keys, variable names, and reasoning traces are never printed in the customer report." },
+      // v4.6.2 — the final sentence ("Internal field keys, variable names,
+      // and reasoning traces are never printed…") was internal product
+      // documentation, not customer prose; dropped.
+      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this DPIA. Each row states the factor assessed, the report's determination on that factor, and the primary legal authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion." },
       // {{DERIVED.factor_input_determination_authority_matrix}}, assembled in
       // dpia-skeleton-assemble.ts from the same composed values/tables that
       // already render in the body -- no new legal content, no new intake or
@@ -415,9 +442,15 @@ export function serializeDpiaSpine(
 export const DPIA_SPINE_HASH_V46 =
   "2c8c607725ca0094f22a3ec1ed8930deff4875313bb40d84f425b384c56204bf";
 
-/** v4.6.1 spine hash — recomputed below after the Appendix A rewording. */
-export const DPIA_SPINE_HASH =
+/** v4.6.1 spine hash — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V461 =
   "759ed3f3555d9039961c3de736bdc0469c4fc5e5da32a1805a9b8fde0faa4075";
+
+/** v4.6.2 spine hash — recomputed after the Section 6 outstanding-matters
+ * slot conversion and the Appendix A intro trim (method verified by
+ * reproducing the v4.6.1 value first). */
+export const DPIA_SPINE_HASH =
+  "2a384cc03a59c3aaa2df66dd34885b1da4450ac2e555175228027f4049d76132";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

@@ -37,12 +37,12 @@ Deno.test("9L.2 — Section 4 renders frame, design intro, design table, in that
     const hasDesign = ps.some((p) => p.table?.surface === "risk_register.design");
     if (hasDesign) {
       assert(
-        String(ps[1].text).endsWith("as the starting point of the risk assessment."),
+        String(ps[1].text).endsWith("after the company's measures are considered."),
         String(ps[1].text).slice(0, 160),
       );
     } else {
       assert(
-        !ps.some((p) => String(p.text ?? "").endsWith("as the starting point of the risk assessment.")),
+        !ps.some((p) => String(p.text ?? "").endsWith("after the company's measures are considered.")),
         "design intro rendered without its table",
       );
     }
@@ -77,6 +77,6 @@ Deno.test("9L.2 — Section 3 is unchanged: ends on the determination, carries n
   }
 });
 
-Deno.test("9L.2 — version string re-pins to v4.5.1", () => {
-  assertEquals(DPIA_SKELETON_VERSION, "prose-plans-2026-08-16-prompt9l2-v4-5-1");
+Deno.test("9L.2 — version string re-pins to the current encode", () => {
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.6.2-2026-08-25");
 });

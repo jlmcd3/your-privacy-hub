@@ -245,7 +245,10 @@ Deno.test("item406 the false-absence gate id is wired", () => {
 });
 
 Deno.test("item406 the pipeline stamp is the item406 value", () => {
-  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item407b-2026-08-08");
+  // Re-pinned 2026-08-25: the stamp moved to item-so4 when the SO-4 skeleton
+  // shipped (2026-08-10); this pin was stale since then (pre-existing failure
+  // documented in the C0/C1.1a baselines).
+  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item-so4-2026-08-10");
   const report: Record<string, unknown> = {};
   const t = attachCyberCsc(report, { intake: PERFECT });
   assertEquals(t.version, CYBER_CSC_VERSION);

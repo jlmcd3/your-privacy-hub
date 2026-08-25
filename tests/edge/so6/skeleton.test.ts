@@ -17,7 +17,7 @@ import {
   BIOMETRIC_SKELETON_SECTIONS,
   BIOMETRIC_SKELETON_SUBTITLE,
   BIOMETRIC_V3_BANNED_REGISTER,
-} from "../../../supabase/functions/_shared/prose/plans/biometric.spine.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
 import { BIOMETRIC_SLOT_MAP } from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.slotmap.ts";
 import { skeletonDocumentToText, slotsIn } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 import {

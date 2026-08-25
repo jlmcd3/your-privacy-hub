@@ -388,6 +388,9 @@ Deno.test("item404 · the stamp and version constants are the item404 values", (
   // ITEM 406 leg C bumps the PIPELINE stamp; the prose-gold module version is
   // unchanged because item406 alters no prose-gold behaviour (it only exports
   // the absence-label phrasing class the CSC detector is built from).
-  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item407b-2026-08-08");
+  // Re-pinned 2026-08-25: the stamp moved to item-so4 when the SO-4 skeleton
+  // shipped (2026-08-10); this pin was stale since then (pre-existing failure
+  // documented in the C0/C1.1a baselines).
+  assertEquals(CYBER_PIPELINE_STAMP, "cyber-pipeline@item-so4-2026-08-10");
   assertEquals(CYBER_PROSE_GOLD_VERSION, "cyber-prose-gold-2026-08-07-item404");
 });

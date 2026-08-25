@@ -10,7 +10,7 @@ import {
   hasSkeletonDocument,
   SKELETON_GRADER_BUDGET,
   SKELETON_BLOCK_KIND_ADDENDUM,
-} from "../../../supabase/functions/_shared/grader/skeleton-payload.ts";
+} from "../../../supabase/functions/run-quality-batch/_local/grader/skeleton-payload.ts";
 import {
   buildGraderPayload,
   GRADER_PAYLOAD_BUDGET,

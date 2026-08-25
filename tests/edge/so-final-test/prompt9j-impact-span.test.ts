@@ -14,7 +14,7 @@ import {
 import { assembleDpiaSkeletonDocument, boundedClause } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
 import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
-import { matchRatifiedTemplate } from "../../../supabase/functions/_shared/grader/skeleton-calibration.ts";
+import { matchRatifiedTemplate } from "../../../supabase/functions/run-quality-batch/_local/grader/skeleton-calibration.shared.ts";
 
 // deno-lint-ignore no-explicit-any
 type Any = any;

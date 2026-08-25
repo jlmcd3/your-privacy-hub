@@ -1255,7 +1255,7 @@ export function buildArt36Consultation(
   } else {
     determination = "consultation_not_required";
     rawWhy =
-      `${a.verbatim} Based on the information the company provided, every identified risk is deemed low or moderate after the mitigating measures the company has recorded, so the Art. 36(1) condition is not met and prior consultation is not triggered by this assessment. This determination is bound to the measures as recorded; if a measure is not operated as stated, the determination must be re-run.`;
+      `${a.verbatim} Based on the information the company provided, every identified residual risk is rated Low or Moderate after the mitigating measures the company has recorded, so the Art. 36(1) condition is not met and prior consultation is not triggered by this assessment. This determination remains applicable while the measures remain materially consistent with the assessment record; a material change requires review in accordance with Article 35(11).`;
 
   }
 
@@ -2103,7 +2103,9 @@ export function buildDecision(
     conditions: [],
     blockers: [],
     why:
-      `Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: every risk identified by the company and otherwise identified in this assessment is deemed low or moderate, and no determination this assessment makes is left open. This determination is bound to those measures as recorded; if a measure is not operated as stated, the assessment must be re-run.`,
+      // v4.6.2 — precise band statement; later change is Art. 35(11) review,
+      // not a re-run of an unfinished assessment.
+      `Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: following application of the recorded mitigating measures, all identified residual risks are rated Low or Moderate, and no determination this assessment makes is left open. This determination remains applicable while the processing and the mitigating measures remain materially consistent with the assessment record; a material change requires review in accordance with Article 35(11).`,
     citation: art36Citation,
     rule_id: "dpia_decision_v1",
   };
@@ -2381,9 +2383,11 @@ const ASK_RIGHTS_TABLE =
 // supplied but unstructured: no determination turns on the breakdown, so it is
 // a record-completeness residual, never a gap-ledger entry.
 const RESIDUAL_ART5_TABLE =
-  "The company's account above covers this ground; a per-principle breakdown would complete the table but no determination in this assessment turns on it.";
+  // v4.6.2 (CEO-ordered polish round) — "would complete the table" said the
+// DPIA was unfinished; the same limitation stated as a finished finding.
+  "The recorded measures address the relevant Article 5 principles at the level of the processing activity; no additional principle-by-principle breakdown is necessary to the determinations reached in this DPIA.";
 const RESIDUAL_RIGHTS_TABLE =
-  "The company's account above covers this ground; a per-right breakdown would complete the table but no determination in this assessment turns on it.";
+  "The recorded rights-request process addresses the applicable data-subject rights through a common request, verification, and response procedure; no additional right-by-right breakdown is necessary to the determinations reached in this DPIA.";
 
 /**
  * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's
@@ -3096,13 +3100,19 @@ export function buildRiskCountNote(
   // PROMPT 8E item 1 — CEO-ratified 8D bytes. No lead-in sentence: the
   // canonical executive sentence already states the count and this note renders
   // immediately after it. Flag 3 variant carries the reversed case.
+  // v4.6.2 (CEO-ordered polish round) — plainer counts, and the cross-
+  // reference corrected: the identified risks and their factual record are
+  // set out in Section 4 (the old text said "Section 6 below", where no
+  // such account renders — verified against rendered batch output).
   const note = stated_count < register_count
-    ? `The company self-identified ${nWord(stated_count)} of these risks; this assessment surfaces ${
+    ? `The risk register contains ${nWord(register_count)} identified risks: ${
+      nWord(stated_count)
+    } identified by the company and ${
       nWord(register_count - stated_count)
-    } more. The company's own account is recorded in its own words in Section 6 below.`
-    : `The company self-identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
+    } identified through this assessment. The identified risks and the supporting factual record are set out in Section 4.`
+    : `The company identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
       nWord(register_count)
-    } after consolidation, and the company's own account is recorded in its own words in Section 6 below.`;
+    } after consolidation. The identified risks and the supporting factual record are set out in Section 4.`;
   return {
     register_count,
     stated_count,

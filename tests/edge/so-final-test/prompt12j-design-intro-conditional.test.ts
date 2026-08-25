@@ -10,8 +10,11 @@ import { DPIA_PERFECT_SET } from "../../../supabase/functions/_shared/golden/reg
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
+// Re-pinned 2026-08-25 to the CURRENT ratified section-4 intro (the
+// combined two-register "Risk Assessments." block); the old design-only
+// sentence this file pinned left the spine before v4.6.
 const INTRO =
-  "The risks inherent in the processing's design — that is, before any failure, deviation or attack is assumed — are set out below as the starting point of the risk assessment.";
+  "Risk Assessments. The first register captures design risk: harm that may arise from the processing even when the system operates as intended. The incident register separately captures risks arising from error, misuse, unauthorised access, technical failure, or other adverse events. The combined register then supports the residual-risk determination after the company's measures are considered.";
 
 const intakeOf = (c: Any) => c.intake ?? c.intake_data ?? c;
 

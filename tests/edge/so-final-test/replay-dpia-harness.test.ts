@@ -13,7 +13,7 @@ import {
   replayDpiaDoc,
   compareSkeletonDocuments,
   REQUIRED_DPIA_SURFACES,
-} from "../../../supabase/functions/_shared/ltp/replay/dpia-replay.ts";
+} from "../../../supabase/functions/replay-dpia-harness/_local/ltp/replay/dpia-replay.ts";
 import { attachDpiaDeliverables } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { attachDpiaAttestation } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/attestation.ts";
 import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";

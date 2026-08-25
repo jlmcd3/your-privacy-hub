@@ -17,7 +17,7 @@ import {
   pinsDispatchDecision,
   PINS_MODE_DESCRIPTIONS,
   resolvePinsMode,
-} from "../../../supabase/functions/_shared/quality/pins-mode.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pins-mode.ts";
 import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
 import {
   attachDpiaDeliverables,

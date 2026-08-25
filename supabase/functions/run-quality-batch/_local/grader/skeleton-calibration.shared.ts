@@ -125,6 +125,50 @@ export const RATIFIED_TEMPLATE_REGISTRY: Readonly<Record<string, readonly string
     tmpl_ask_label_scope_many: [
       "operations named in this assessment",
     ],
+    // ── v4.6.2 (2026-08-25) — the DPIA polish round reworded the risk and
+    // executive surfaces (preliminary-until-re-scored retired; "pre-set risk
+    // taxonomy" → "the assessment's defined risk matrix"; risk-count note
+    // recast with a Section 4 cross-reference; Article 5 / rights notes
+    // restated as finished findings). The OLD entries above are retained so
+    // findings quoting documents generated before the change still match;
+    // the entries below pin the new composer bytes.
+    tmpl_risk_scoring_head_v462: [
+      "is assessed at",
+      "likelihood and",
+      "severity under the assessment's defined risk matrix",
+      "an aggregate initial risk level of",
+    ],
+    tmpl_risk_band_not_decomposed_v462: [
+      "carries an initial risk level of",
+      "under the assessment's defined risk matrix",
+      "likelihood and severity are not both recorded, so that level is not broken down here",
+    ],
+    tmpl_risk_residual_after_measures_v462: [
+      "the remaining risk level is",
+      "after those measures are taken into account",
+    ],
+    tmpl_executive_no_high_v462: [
+      "Following application of the recorded mitigating measures",
+      "no residual risk is rated High",
+    ],
+    tmpl_executive_ratings_reflect_v462: [
+      "The residual-risk ratings stated in this assessment reflect the mitigating measures recorded in the assessment record",
+    ],
+    tmpl_risk_count_note_v462: [
+      "The risk register contains",
+      "identified through this assessment",
+      "set out in Section 4",
+    ],
+    tmpl_risk_count_note_reversed_v462: [
+      "risks in its own account",
+      "after consolidation",
+    ],
+    tmpl_coverage_residual_note_principles_v462: [
+      "no additional principle-by-principle breakdown is necessary to the determinations reached in this DPIA",
+    ],
+    tmpl_coverage_residual_note_rights_v462: [
+      "no additional right-by-right breakdown is necessary to the determinations reached in this DPIA",
+    ],
     // PROMPT 9A — one entry per ratified compact ask label (`tmpl_ask_label_<id>`),
     // derived from the pinned registry so the calibrated spans can never drift
     // from the label bytes. Slots are cut out; the fixed prose around them is
@@ -249,6 +293,9 @@ const R3_PROVENANCE_RE =
 const R5_EXEC_SENTENCE_RES: readonly RegExp[] = [
   /None is deemed a high risk based on the information the company provided/i,
   /\bof these risks (?:is deemed a high risk|are deemed high risks)\b/i,
+  // v4.6.2 wording — same REMAINING-level semantics, new bytes.
+  /Following application of the recorded mitigating measures, no residual risk is rated High/i,
+  /\bof these risks (?:is|are) rated High after the recorded mitigating measures\b/i,
 ];
 const R5_CONTRADICTION_RE =
   /\b(contradict\w*|inconsisten\w*|conflict\w*|at odds with|is not consistent with)\b/i;

@@ -7,7 +7,7 @@ import {
   applySkeletonCalibration,
   SKELETON_CAL_RULE_IDS,
   SKELETON_CAL_VERSION,
-} from "../../../supabase/functions/_shared/grader/skeleton-calibration.ts";
+} from "../../../supabase/functions/run-quality-batch/_local/grader/skeleton-calibration.shared.ts";
 import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
 import { buildLegalBasis } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
 

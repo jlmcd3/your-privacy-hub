@@ -92,6 +92,32 @@ function table(
   return { key: "", surface, title, columns, rows, ...(note ? { note } : {}) };
 }
 
+/** v4.6.2 — a "What is still needed" column full of dashes read as an
+ * unfinished form (CEO output review); an answered column states the
+ * determined outcome instead. */
+function needed(v: unknown): string {
+  return s(v) || "None identified";
+}
+
+/** v4.6.2 — reader name for a 2-letter main-establishment country code; the
+ * raw intake code ("FR") read as unprocessed data. Codes outside the map
+ * pass through unchanged. */
+const COUNTRY_NAMES: Record<string, string> = {
+  AT: "Austria", BE: "Belgium", BG: "Bulgaria", HR: "Croatia", CY: "Cyprus",
+  CZ: "Czechia", DK: "Denmark", EE: "Estonia", FI: "Finland", FR: "France",
+  DE: "Germany", GR: "Greece", EL: "Greece", HU: "Hungary", IE: "Ireland",
+  IT: "Italy", LV: "Latvia", LT: "Lithuania", LU: "Luxembourg", MT: "Malta",
+  NL: "Netherlands", PL: "Poland", PT: "Portugal", RO: "Romania",
+  SK: "Slovakia", SI: "Slovenia", ES: "Spain", SE: "Sweden",
+  GB: "United Kingdom", UK: "United Kingdom", US: "United States",
+  CH: "Switzerland", NO: "Norway", IS: "Iceland", LI: "Liechtenstein",
+};
+function establishmentCell(v: unknown): string {
+  const t = s(v);
+  if (/^[A-Za-z]{2}$/.test(t)) return COUNTRY_NAMES[t.toUpperCase()] ?? t;
+  return t || DASH;
+}
+
 /** Two-column particulars table; absent particulars are dropped, not blanked. */
 function particulars(
   surface: string,
@@ -108,10 +134,10 @@ function controllersTable(inv: Bag): RenderedTable | null {
   const rows = asArray(inv.controllers).map((c) => [
     cell(c.name),
     cell(c.responsible_unit),
-    cell(c.main_establishment_or_representative),
+    establishmentCell(c.main_establishment_or_representative),
     cell(c.dpo),
     label(c.status),
-    cell(c.information_needed),
+    needed(c.information_needed),
   ]);
   return table("processing_inventory.controllers", "Controller", [
     "Controller",
@@ -128,12 +154,12 @@ function processorsTable(inv: Bag): RenderedTable | null {
     cell(p.name),
     cell(p.obligations_and_tasks),
     label(p.status),
-    cell(p.information_needed),
+    needed(p.information_needed),
   ]);
   // ABSENCE IS A DETERMINATION: the company recorded no processor, and that is
   // an answer rather than a blank.
   if (rows.length === 0) {
-    rows.push(["No processor is recorded for this processing.", DASH, label("analysed"), DASH]);
+    rows.push(["No processor is recorded for this processing.", DASH, label("analysed"), "None identified"]);
   }
   return table("processing_inventory.processors", "Processors", [
     "Processor",
@@ -171,17 +197,33 @@ function assessmentTeamTable(report: Bag): RenderedTable | null {
     if (!text) return null;
     return table("assessment_team", "Assessment team", ["Assessment team, as recorded"], [[text]]);
   }
+  // v4.6.2 — when the intake supplies only free text (every "member" has no
+  // role), a Name/Role grid with a dash column read as an unfinished form;
+  // render the record in the single-column form instead.
+  if (members.every((m) => !s(m.role))) {
+    return table("assessment_team", "Assessment team", ["Assessment team, as recorded"], members.map((m) => [cell(m.name)]));
+  }
   return table("assessment_team", "Assessment team", ["Name", "Role"], rows);
 }
 
 function validationApprovalTable(report: Bag): RenderedTable | null {
   const v = asBag(asBag(report.section_6_conclusion).validation_approval);
   if (Object.keys(v).length === 0) return null;
+  // v4.6.2 (CEO output review) — an approval date earlier than the report's
+  // own generation date read as a credibility defect when left bare. The
+  // date is the company's intake fact; where it precedes the render date,
+  // say why that can be so. (Assembly time IS generation time.)
+  const approvalIso = /^\d{4}-\d{2}-\d{2}/.exec(s(v.approval_date))?.[0];
+  const renderIso = new Date().toISOString().slice(0, 10);
+  const dateNote = approvalIso && approvalIso < renderIso
+    ? "The approval date records the company's approval of the assessment record; this report was rendered from that record on the generation date shown on the cover."
+    : "";
   return particulars("validation_approval", "Validation and approval", [
     ["Attested", v.attested === true ? "Yes" : "Not attested on the record"],
     ["Approved by", s(v.approved_by_name)],
     ["Title", s(v.approved_by_title)],
     ["Date of approval", s(v.approval_date)],
+    ["Note", dateNote],
     ["Basis for sign-off", s(v.basis_for_sign_off)],
     ["What is still needed", s(v.information_needed)],
   ]);
@@ -195,7 +237,7 @@ function dataItemsTable(inv: Bag): RenderedTable | null {
     d.special_category === true ? "Special category" : "Not a special category",
     cell(d.art9_condition_label),
     label(d.status),
-    cell(d.information_needed),
+    needed(d.information_needed),
   ]);
   return table("processing_inventory.data_items", "Categories of personal data", [
     "Data item",
@@ -206,8 +248,18 @@ function dataItemsTable(inv: Bag): RenderedTable | null {
   ], rows);
 }
 
+/** v4.6.2 — reader label for an operation id; the internal key (op_primary/
+ * op_secondary) rendered verbatim in customer output (CEO output review,
+ * the DPIA's q5_sell_share equivalent). */
+function operationReaderLabel(id: unknown): string {
+  const v = s(id);
+  if (v === "op_primary") return "Primary purpose";
+  if (v === "op_secondary") return "Secondary use";
+  return v ? v.replace(/^op_/, "").replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()) : DASH;
+}
+
 function purposesTable(inv: Bag): RenderedTable | null {
-  const rows = asArray(inv.purposes).map((p) => [cell(p.purpose_text), cell(p.operation_id)]);
+  const rows = asArray(inv.purposes).map((p) => [cell(p.purpose_text), operationReaderLabel(p.operation_id)]);
   return table("processing_inventory.purposes", "Purposes of the processing", [
     "Purpose, as the company states it",
     "Operation",
@@ -237,7 +289,7 @@ function legalBasisTable(report: Bag): RenderedTable | null {
     cell(b.article_6_basis),
     label(b.verdict),
     cell(b.citation),
-    cell(b.information_needed),
+    needed(b.information_needed),
   ]);
   return table("legal_basis", "Lawful basis under Article 6(1)", [
     "Purpose",
@@ -257,7 +309,7 @@ function specialCategoryTable(cov: Bag): RenderedTable | null {
     // anchor, so the iff-cited ToA rule can see it in the body.
     cell([r.citation, r.condition_citation].filter(Boolean).join("; ")),
     label(r.status),
-    cell(r.information_needed),
+    needed(r.information_needed),
   ]);
   return table("section2_coverage.special_category_conditions", "Article 9(2) conditions", [
     "Data item",
@@ -276,7 +328,7 @@ function minimisationRetentionTable(cov: Bag): RenderedTable | null {
     cell(r.retention_period),
     cell(r.citation),
     label(r.status),
-    cell(r.information_needed),
+    needed(r.information_needed),
   ]);
   return table("section2_coverage.data_minimisation_retention", "Data minimisation and retention", [
     "Data item",
@@ -297,7 +349,7 @@ function coverageTable(surface: string, title: string, rowsIn: Bag[]): RenderedT
     cell([r.finding, r.residual_note].filter(Boolean).join(" ")),
     cell(r.citation),
     label(r.status),
-    cell(r.information_needed),
+    needed(r.information_needed),
   ]);
   return table(surface, title, [
     "Matter",
@@ -315,7 +367,7 @@ function measuresTable(surface: string, title: string, rowsIn: Bag[]): RenderedT
     cell(r.description),
     cell(r.citation),
     label(r.status),
-    cell(r.information_needed),
+    needed(r.information_needed),
   ]);
   return table(surface, title, [
     "Measure",
@@ -335,13 +387,18 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
   const rows: string[][] = [];
   for (const t of asArray(cov.transfers)) {
     rows.push([
-      `Transfer from ${cell(t.origin_regime)} to ${cell(t.destination)}${s(t.importer) ? ` (${s(t.importer)})` : ""}`,
+      // v4.6.2 — the no-transfer SENTINEL row has no destination; "Transfer
+      // from EU to —" read as an unfinished form. Label the matter for what
+      // it determines instead.
+      s(t.determination) === "no_transfer_on_the_record"
+        ? "Cross-border transfers"
+        : `Transfer from ${cell(t.origin_regime)} to ${cell(t.destination)}${s(t.importer) ? ` (${s(t.importer)})` : ""}`,
       label(t.determination),
       cell(t.mechanism_label),
       cell(t.finding),
       cell(t.mechanism_citation) !== DASH ? cell(t.mechanism_citation) : cell(t.citation),
       label(t.status),
-      cell(t.information_needed),
+      needed(t.information_needed),
     ]);
   }
   if (rows.length === 0) {
@@ -353,7 +410,7 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
       "The company has declared no transfer of the data outside the origin regime, so Chapter V is not engaged based on the information the company provided.",
       DASH,
       label("analysed"),
-      DASH,
+      "None identified",
     ]);
   }
   const pc = asBag(cov.processor_contract);
@@ -367,7 +424,7 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
       cell(pc.finding),
       cell(pc.citation),
       label(pc.status),
-      cell(pc.information_needed),
+      needed(pc.information_needed),
     ]);
   }
   return table("section2_coverage.measures_other", "Transfers and processor arrangements", [
@@ -405,7 +462,7 @@ function riskExposureTable(
   ]);
   return table(surface, title, [
     "Risk",
-    "What raises it, from the company's input",
+    "What raises it, on the assessment record",
     "Rights affected",
     "Severity",
   ], rows);
@@ -427,7 +484,11 @@ function riskRegisterTable(rowsIn: Bag[]): RenderedTable | null {
     "Initial risk level",
     "Measures the company has recorded",
     "Remaining risk level",
-  ], rows, "Remaining risk levels are preliminary until the company re-scores them against the mitigating measures once they have been deployed.");
+  ], rows,
+    // v4.6.2 (CEO-ordered polish round) — the "preliminary until re-scored"
+    // footnote said the DPIA was unfinished; ratings are final as of the
+    // assessment date, with change handled by Art. 35(11) review.
+    "Remaining risk levels reflect the mitigating measures recorded in the assessment record.");
 }
 
 // ── Section 6 — conclusion ──────────────────────────────────────────────────

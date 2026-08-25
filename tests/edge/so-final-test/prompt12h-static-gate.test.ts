@@ -12,8 +12,8 @@ import {
   pinsCompositionLine,
   pinsDispatchDecision,
   resolvePinsMode,
-} from "../../../supabase/functions/_shared/quality/pins-mode.ts";
-import { planPinnedOnly } from "../../../supabase/functions/_shared/quality/pinned-only.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pins-mode.ts";
+import { planPinnedOnly } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pinned-only.shared.ts";
 import { casesForVariant, goldenIntakes, intakesForVariant } from "../../../supabase/functions/_shared/golden/registry.ts";
 
 const HERE = dirname(fromFileUrl(import.meta.url));
@@ -56,8 +56,8 @@ Deno.test("12H/2 — deno check is clean on every gated edge-function entrypoint
 
 Deno.test("12H/1 — every pins-mode symbol the orchestrator references is imported", async () => {
   const src = await Deno.readTextFile(ORCH);
-  const block = src.match(/import\s*\{([^}]*)\}\s*from\s*"\.\.\/_shared\/quality\/pins-mode\.ts"/);
-  assert(block, "orchestrator must import from _shared/quality/pins-mode.ts");
+  const block = src.match(/import\s*\{([^}]*)\}\s*from\s*"\.\/_local\/quality\/pins-mode\.ts"/);
+  assert(block, "orchestrator must import from ./_local/quality/pins-mode.ts");
   const imported = new Set(
     block![1].split(",").map((s) => s.replace(/\btype\b/, "").trim()).filter(Boolean),
   );
