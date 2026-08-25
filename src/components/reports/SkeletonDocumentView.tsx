@@ -109,7 +109,13 @@ function renderLeadStyledText(text: string): React.ReactNode[] {
     if (labelStart > last) {
       nodes.push(<span key={`t${key++}`}>{renderBodyText(text.slice(last, labelStart))}</span>);
     }
-    nodes.push(<strong key={`l${key++}`} className="underline">{label}</strong>);
+    // doc 72 §4 — dropped, thin underline (clears descenders), matching
+    // generate-report-pdf's styleLeadPhrases treatment.
+    nodes.push(
+      <strong key={`l${key++}`} className="underline underline-offset-[2.5px] decoration-[0.5px]">
+        {label}
+      </strong>,
+    );
     last = labelStart + label.length;
   }
   if (last < text.length) {

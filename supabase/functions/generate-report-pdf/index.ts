@@ -1473,8 +1473,11 @@ const LEAD_PHRASE_RE = new RegExp(
 function styleLeadPhrases(escapedText: string): string {
   return escapedText.replace(
     LEAD_PHRASE_RE,
+    // doc 72 §4 — a dropped, thin underline (offset from the baseline so it
+    // clears descenders) reads as engraved emphasis rather than a stray
+    // hyperlink; the default browser underline strikes descenders.
     (_m, pre: string, label: string) =>
-      `${pre}<strong style="text-decoration:underline;">${label}</strong>`,
+      `${pre}<strong style="text-decoration:underline;text-underline-offset:2.5px;text-decoration-thickness:0.5pt;">${label}</strong>`,
   );
 }
 
