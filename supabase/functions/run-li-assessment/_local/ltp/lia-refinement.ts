@@ -36,24 +36,33 @@ import {
 } from "../../../_shared/ltp/refinement-core.ts";
 import {
   LIA_CRITIC_WATCHLIST,
+  LIA_CRITIC_CONTAINMENT,
   LIA_VERIFIER_EXEMPLARS,
   LIA_PROTECTED_ROOT_KEYS,
   LIA_PROTECTED_LEAF_KEYS,
+  LIA_PROTECTED_PATH_PREFIXES,
   LIA_REFINEMENT_CONFIG_VERSION,
 } from "./lia-refinement-config.ts";
 
 export type { RefinementDeps, RefinementTelemetry, CriticFinding, SpliceResult };
 export {
   LIA_CRITIC_WATCHLIST,
+  LIA_CRITIC_CONTAINMENT,
   LIA_VERIFIER_EXEMPLARS,
   LIA_PROTECTED_ROOT_KEYS,
   LIA_PROTECTED_LEAF_KEYS,
+  LIA_PROTECTED_PATH_PREFIXES,
   LIA_REFINEMENT_CONFIG_VERSION,
 };
 
-export const LIA_REFINEMENT_VERSION = "refine-lia-2026-08-06-item386";
+// L0 (doc 10 §3, 2026-08-25) — version bump for the path-prefix bar; see
+// lia-refinement-config.ts's header comment for the verified gap this closes.
+export const LIA_REFINEMENT_VERSION = "refine-lia-2026-08-25-item-l0";
 
-export const LIA_CRITIC_SYSTEM_PROMPT = composePrompt(CRITIC_PROMPT_BASE, LIA_CRITIC_WATCHLIST);
+export const LIA_CRITIC_SYSTEM_PROMPT = composePrompt(
+  composePrompt(CRITIC_PROMPT_BASE, LIA_CRITIC_WATCHLIST),
+  LIA_CRITIC_CONTAINMENT,
+);
 export const LIA_VERIFIER_SYSTEM_PROMPT = composePrompt(VERIFIER_PROMPT_BASE, LIA_VERIFIER_EXEMPLARS);
 
 export const LIA_REFINEMENT_CONFIG: RefinementConfig = {
@@ -63,6 +72,7 @@ export const LIA_REFINEMENT_CONFIG: RefinementConfig = {
   verifierSystemPrompt: LIA_VERIFIER_SYSTEM_PROMPT,
   protectedRootKeys: LIA_PROTECTED_ROOT_KEYS,
   protectedLeafKeys: LIA_PROTECTED_LEAF_KEYS,
+  protectedPathPrefixes: LIA_PROTECTED_PATH_PREFIXES,
 };
 
 export function isLiaProtectedPath(path: string): boolean {

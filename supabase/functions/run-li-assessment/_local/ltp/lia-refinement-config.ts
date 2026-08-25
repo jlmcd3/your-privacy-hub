@@ -43,7 +43,24 @@
 //   * British spelling in a US-facing render: recognise, organisation,
 //     behaviour, personalise, analyse (W6).
 
-export const LIA_REFINEMENT_CONFIG_VERSION = "lia-refine-config-2026-08-06-item385";
+// L0 (doc 10 §3, 2026-08-25) — URGENT PROTECTION BAR. Verified live against
+// lia-deliverables/build.ts: the ITEM-311 single writer produces FIVE typed
+// roots today (reasonable_expectations, child_factor,
+// public_authority_exclusion, lia_determination, automated_decision_analysis
+// — the fifth is forward-added since the builder's own header comment, which
+// only names the first four), and until this landing none of them carried
+// the PATH-PREFIX bar DPIA/cppa-risk/Cyber already have. The pre-existing
+// LIA_PROTECTED_DETERMINATION_KEYS leaf class named "lia_determination" and
+// "public_authority_exclusion", but leaf-key matching only inspects a path's
+// LAST segment — it blocks a proposal replacing the whole node
+// ($.lia_determination) but NOT a nested rewrite inside it
+// ($.lia_determination.mitigations[0].description), which is exactly the
+// surgical edit shape a critic pass proposes. reasonable_expectations,
+// child_factor and automated_decision_analysis had no protection at all, at
+// any depth. skeleton_document is listed forward-proof (not yet built at
+// refinement time in this pipeline's current call order, same as DPIA's own
+// forward-proof entries) in case that ordering ever changes.
+export const LIA_REFINEMENT_CONFIG_VERSION = "lia-refine-config-2026-08-25-item-l0";
 
 /** The mined defect classes, with their archive counts. */
 export interface LiaWatchClass {
@@ -132,6 +149,13 @@ xp-lia-2 — HONEST DEGRADATION IN THE ASK SECTIONS. Where the record is genuine
 
 Also protected: the standing disclaimer; quoted statutory and EDPB text; the plan's 14 section titles and their order; drafting-voice references to "the record"; the enum-label map in prose/plans/lia.spine.ts.`;
 
+// L0 (doc 10 §3) — CONTAINMENT REMIT, the same PROMPT 5B pattern DPIA carries.
+// Advisory only: the splicer's path-prefix bar below is the actual control.
+// This block exists so the critic stops spending tokens on proposals that
+// will be refused in code.
+export const LIA_CRITIC_CONTAINMENT =
+  `OUT OF SCOPE — TYPED SURFACES (do not propose findings on these; they are deterministic single-writer surfaces built from the record, and any proposal naming them, at any depth, is refused before it is read): reasonable_expectations, child_factor, public_authority_exclusion, lia_determination, automated_decision_analysis, skeleton_document. Confine every finding to the narrative sections — including the still-model-authored three_part_test, interest_legitimacy, relationship_with_individual, potential_harms and opt_out_feasibility, which remain fully revisable.`;
+
 /** Surfaces refinement may never touch (leg-3 consumption). */
 export const LIA_PROTECTED_ROOT_KEYS = [
   "disclaimer",
@@ -141,6 +165,23 @@ export const LIA_PROTECTED_ROOT_KEYS = [
   "enforcement_precedents",
   "build_stamp",
   "prompt_version",
+];
+
+// L0 (doc 10 §3) — PATH-PREFIX BAR. Every root below is a SINGLE-WRITER
+// deterministic surface (ITEM 311) or its downstream assembly
+// (skeleton_document). The splicer may not write anywhere inside them, at
+// any depth and regardless of leaf key; rejections are counted in
+// telemetry.protected_rejected as `typed_surface:<root>`. Deliberately
+// EXCLUDES three_part_test, interest_legitimacy, relationship_with_individual,
+// potential_harms and opt_out_feasibility — LIA's three live model call
+// sites (doc 10 §0) — refining THOSE is the whole point of this pass.
+export const LIA_PROTECTED_PATH_PREFIXES = [
+  "reasonable_expectations",
+  "child_factor",
+  "public_authority_exclusion",
+  "lia_determination",
+  "automated_decision_analysis",
+  "skeleton_document",
 ];
 
 // ── ITEM 386 LEG 3 — PROTECTED LEAF CLASSES ─────────────────────────────────

@@ -18,6 +18,7 @@ import {
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement.ts";
 import {
   LIA_PROTECTED_LEAF_CLASSES,
+  LIA_PROTECTED_PATH_PREFIXES,
   LIA_PROTECTED_SECTION_IDS,
   LIA_WATCH_CLASSES,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-refinement-config.ts";
@@ -65,7 +66,70 @@ Deno.test("ITEM 386 — the LIA config does not disturb the DPIA or risk configs
 
 Deno.test("ITEM 386 — the protected section-id class is the item382 spine, exactly", () => {
   assertEquals([...LIA_PROTECTED_SECTION_IDS], LIA_SECTION_SPECS.map((s) => s.id));
-  assertEquals(LIA_PIPELINE_STAMP, "lia-pipeline@item399-2026-08-07");
+  // Stale pin, unrelated to L0: the live stamp moved to SO-11 (2026-08-10)
+  // sometime after this test was last touched; re-pinned to match
+  // lia.spine.ts's current value, verified live 2026-08-25.
+  assertEquals(LIA_PIPELINE_STAMP, "lia-pipeline@item-so11-2026-08-10");
+});
+
+// ── L0 (doc 10 §3, 2026-08-25) — URGENT PROTECTION BAR ──────────────────────
+// Verified live against lia-deliverables/build.ts before this landing: the
+// ITEM-311 single writer produces FIVE typed roots (the fifth,
+// automated_decision_analysis, is forward-added since the builder's own
+// header comment names only four), and none of them carried a path-prefix
+// bar — only two (lia_determination, public_authority_exclusion) had ANY
+// protection, and that protection was leaf-key-only (blocks the whole-node
+// replacement, not a nested rewrite inside it). This section proves the gap
+// is closed for all five, at any depth, while the three still-model-authored
+// surfaces (three_part_test, interest_legitimacy, etc.) stay revisable.
+
+Deno.test("ITEM 386 L0 — the critic containment block names every typed surface", () => {
+  for (const root of LIA_PROTECTED_PATH_PREFIXES) {
+    assert(LIA_CRITIC_SYSTEM_PROMPT.includes(root), `containment block missing ${root}`);
+  }
+});
+
+Deno.test("ITEM 386 L0 — every ITEM-311 typed root, and skeleton_document, are barred at ANY depth", () => {
+  for (const root of LIA_PROTECTED_PATH_PREFIXES) {
+    const wholeNode = `$.${root}`;
+    assert(isLiaProtectedPath(wholeNode), `${root} whole-node must be protected`);
+    assertEquals(liaProtectedReason(wholeNode), `typed_surface:${root}`);
+
+    // The regression this landing fixes: a NESTED path inside the typed
+    // surface — the shape a critic proposal actually takes — must ALSO be
+    // refused. Leaf-key-only protection (the pre-L0 state for
+    // lia_determination/public_authority_exclusion) would have missed this.
+    const nested = `$.${root}.some_field[0].reasoning`;
+    assert(isLiaProtectedPath(nested), `${root} nested path must be protected`);
+    assertEquals(liaProtectedReason(nested), `typed_surface:${root}`);
+
+    const report: Record<string, unknown> = { [root]: { some_field: [{ reasoning: "ORIGINAL" }] } };
+    const res = applyLiaSplices(report, [finding(nested, "ORIGINAL", "REWRITTEN")]);
+    assertEquals(res.spliced, 0, `${root} nested splice must be refused`);
+    assertEquals(res.protected_rejected.length, 1);
+    assertEquals(
+      ((report[root] as Record<string, unknown>).some_field as unknown[])[0],
+      { reasoning: "ORIGINAL" },
+    );
+  }
+});
+
+Deno.test("ITEM 386 L0 — the three live model call sites stay fully revisable, unaffected by the new bar", () => {
+  for (
+    const modelSurface of [
+      "three_part_test",
+      "interest_legitimacy",
+      "relationship_with_individual",
+      "potential_harms",
+      "opt_out_feasibility",
+    ]
+  ) {
+    const path = `$.${modelSurface}.application`;
+    assert(!isLiaProtectedPath(path), `${modelSurface} must remain revisable`);
+    const report: Record<string, unknown> = { [modelSurface]: { application: "ORIGINAL prose" } };
+    const res = applyLiaSplices(report, [finding(path, "ORIGINAL prose", "Revised prose")]);
+    assertEquals(res.spliced, 1, `${modelSurface} splice should succeed`);
+  }
 });
 
 // ── 2. Splicer refusal, per protected class ──────────────────────────────────
@@ -75,7 +139,16 @@ Deno.test("ITEM 386 — the splicer refuses every enumerated protected leaf clas
     for (const key of keys) {
       const path = `$.probe.${key}`;
       assert(isLiaProtectedPath(path), `${cls}/${key} must be protected`);
-      assertEquals(liaProtectedReason(path), key, `${cls}/${key} reason`);
+      // L0 (2026-08-25): lia_determination and public_authority_exclusion are
+      // now ALSO typed-surface path prefixes, which protectedReasonFor checks
+      // before leaf keys — so their reason is the stricter `typed_surface:`
+      // tag now, same as item377's own risk_register precedent (this file's
+      // sibling DPIA test asserts the identical shape). Every other leaf class
+      // is untouched by L0 and keeps its bare-key reason.
+      const expectedReason = (LIA_PROTECTED_PATH_PREFIXES as readonly string[]).includes(key)
+        ? `typed_surface:${key}`
+        : key;
+      assertEquals(liaProtectedReason(path), expectedReason, `${cls}/${key} reason`);
       const report: Record<string, unknown> = { probe: { [key]: "ORIGINAL VALUE" } };
       const res = applyLiaSplices(report, [finding(path, "ORIGINAL", "REWRITTEN")]);
       assertEquals(res.spliced, 0, `${cls}/${key} spliced`);
