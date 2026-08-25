@@ -318,3 +318,113 @@ export const CYBER_7122_CONDITIONS: readonly CyberIndependenceCondition[] = [
 
 /** § 7124 — certification of completion, cited by the readiness determination. */
 export const CYBER_7124_CITATION = "11 CCR § 7124";
+
+/**
+ * FC-L11 (2026-08-25) — § 7124 certification-of-completion requirements,
+ * one row per requirement (same granularity convention as
+ * CYBER_7122_CONDITIONS). `verbatim` text: CEO-supplied in-session,
+ * cross-verified against the § 7124(b) sentence already pinned in
+ * `cppa-cyber-corpus-pin.test.ts` (exact match) — see the provenance note
+ * on `CYBER_CORPUS_SNAPSHOT["cppa-7124"]`
+ * (src/registry/__tests__/__fixtures__/cyber-corpus-snapshot.ts).
+ */
+export interface CyberCertificationRequirement {
+  key: string;
+  label: string;
+  citation: string;
+  verbatim: string;
+}
+
+export const CYBER_7124_REQUIREMENTS: readonly CyberCertificationRequirement[] = [
+  {
+    key: "annual_certification_obligation",
+    label: "Annual certification obligation",
+    citation: "11 CCR § 7124(a)",
+    verbatim:
+      "Each calendar year that a business is required to complete a cybersecurity audit pursuant to this Article, it must submit to the Agency a written certification that the business completed the cybersecurity audit as required by this Article.",
+  },
+  {
+    key: "certification_deadline",
+    label: "April 1 certification deadline",
+    citation: "11 CCR § 7124(b)",
+    verbatim:
+      "The business must submit the certification no later than April 1 following any year that the business is required to complete a cybersecurity audit.",
+  },
+  {
+    // 2026-08-25 — the chapeau and (1)-(3) are separate paragraphs in the
+    // source (blank-line-delimited), so they are pinned as SEPARATE rows
+    // rather than manually stitched into one string — a first attempt at
+    // one combined quote failed the corpus-substring pin (caught before
+    // landing; see the probe in this commit's own history).
+    key: "signer_qualifications_chapeau",
+    label: "Who may complete the certification (chapeau)",
+    citation: "11 CCR § 7124(c)",
+    verbatim: "The written certification must be completed by a member of the business’s executive management team who:",
+  },
+  {
+    key: "signer_directly_responsible",
+    label: "Signer is directly responsible for cybersecurity-audit compliance",
+    citation: "11 CCR § 7124(c)(1)",
+    verbatim: "Is directly responsible for the business’s cybersecurity-audit compliance;",
+  },
+  {
+    key: "signer_sufficient_knowledge",
+    label: "Signer has sufficient knowledge to provide accurate information",
+    citation: "11 CCR § 7124(c)(2)",
+    verbatim: "Has sufficient knowledge of the business’s cybersecurity audit to provide accurate information; and",
+  },
+  {
+    key: "signer_authority_to_submit",
+    label: "Signer has authority to submit the certification",
+    citation: "11 CCR § 7124(c)(3)",
+    verbatim: "Has the authority to submit the business’s certification to the Agency.",
+  },
+  {
+    key: "certification_content_chapeau",
+    label: "Required certification content (chapeau)",
+    citation: "11 CCR § 7124(d)",
+    verbatim: "The certification must include:",
+  },
+  {
+    key: "certification_business_contact",
+    label: "Business name and point of contact",
+    citation: "11 CCR § 7124(d)(1)",
+    verbatim:
+      "The business’s name and point of contact for the business, including the contact’s name, phone number, and email address.",
+  },
+  {
+    key: "certification_completion_statement",
+    label: "Statement that the audit was completed",
+    citation: "11 CCR § 7124(d)(2)",
+    verbatim: "A statement that the business has completed the cybersecurity audit.",
+  },
+  {
+    key: "certification_audit_period",
+    label: "Time period the audit covered",
+    citation: "11 CCR § 7124(d)(3)",
+    verbatim: "The time period covered by the cybersecurity audit, by month and year.",
+  },
+  {
+    key: "certification_attestation_chapeau",
+    label: "Attestation requirement (chapeau; the statement itself is CYBER_7124_ATTESTATION_STATEMENT)",
+    citation: "11 CCR § 7124(d)(4)",
+    verbatim: "An electronically signed attestation to the following statement:",
+  },
+  {
+    key: "certification_signer_identity",
+    label: "Signer's name, title, and date",
+    citation: "11 CCR § 7124(d)(5)",
+    verbatim:
+      "The name and business title of the person submitting the certification, and the date of the certification.",
+  },
+] as const;
+
+/**
+ * The § 7124(d)(4) electronically-signed attestation statement — quoted in
+ * full, standalone. This is not a requirement TO describe; it is literal
+ * text the signer attests to, so it is never summarized, split, or folded
+ * into CYBER_7124_REQUIREMENTS's per-requirement rows.
+ */
+export const CYBER_7124_ATTESTATION_CITATION = "11 CCR § 7124(d)(4)";
+export const CYBER_7124_ATTESTATION_STATEMENT =
+  "I attest that I meet the requirements of California Code of Regulations, Title 11, section 7124, subsection (c), to submit this certification. Under penalty of perjury under the laws of the state of California, I hereby declare that the information contained within and submitted with this certification is true and correct and that the business has not made any attempt to influence the auditor’s decisions or assessments regarding the cybersecurity audit.";

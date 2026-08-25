@@ -109,7 +109,7 @@ Deno.test("cppa-risk: wave C1 posture — 41 dark FC (11 phase-1/2 + 30 FC-J bul
   }
 });
 
-Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 1 live + 2 dark AQ, S5 dark", () => {
+Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 1 live + 3 dark AQ, S5 dark", () => {
   const darkFc = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
   const s0 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S0");
   const s4 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S4");
@@ -128,12 +128,17 @@ Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows 
   // AQ rows (P2) stay dark: their surface's shipped, CEO-ratified fixed
   // prose states "no cohort computed" (ITEM-204) and computing one would
   // contradict already-ratified bytes — see their curation_notes.
-  assertEquals(aq.length, 3);
+  // FC-L11 (2026-08-25): a 4th AQ row (cppa-cyber/P6/s2-01, § 7124
+  // certification-of-completion) added — text is CEO-supplied and
+  // pin-verified, the composer is BUILT (cyber-submission-attestation.ts),
+  // but it stays dark pending a CEO decision on skeleton placement (a new
+  // section, not a single-block insertion like C1.2's).
+  assertEquals(aq.length, 4);
   const liveAq = aq.filter((r) => r.render_eligible);
   const darkAq = aq.filter((r) => !r.render_eligible);
   assertEquals(liveAq.length, 1);
   assertEquals(liveAq[0]?.id, "cppa-cyber/P1/s2-01");
-  assertEquals(darkAq.length, 2);
+  assertEquals(darkAq.length, 3);
   for (const r of darkAq) assertEquals(r.render_eligible, false, r.id);
   // S5-dark posture (doc 54 §3): no CPPA-native enforcement; GDPR analogies
   // fail jurisdiction-fit for a CCPA audit-readiness document.
@@ -141,7 +146,7 @@ Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows 
   assertEquals(aow.length, 0);
   assert(CYBER_CORPUS_MAP.s4_ratification, "CYBER_CORPUS_MAP must carry its s4_ratification stamp (PN-CMP-B1)");
   assert(CYBER_CORPUS_MAP.s2_ratification, "CYBER_CORPUS_MAP must carry its s2_ratification stamp (doc-64-PN-C1)");
-  assertEquals(CYBER_CORPUS_MAP.rows.length, 96);
+  assertEquals(CYBER_CORPUS_MAP.rows.length, 97);
 });
 
 Deno.test("CYBER_CORPUS_MAP: every factor_id is a canonical component name or a procedural factor", async () => {

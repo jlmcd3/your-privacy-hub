@@ -636,6 +636,29 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       curation_note:
         "The doc 64 §3 steady-state cadence (§ 7121(b), with the provision's own 2035/2036 worked example). STAYS DARK with s2-01 at the C1.2 landing (2026-08-25) for the same ITEM-204 reason recorded on that row.",
     },
+    // FC-L11 (2026-08-25) — the § 7124 certification-of-completion AQ pin.
+    // DARK, not because the text is unavailable (it is now fully local and
+    // pin-verified — see fcl-L11's corrected curation_note above) but
+    // because the composer that would render it (cyber-submission-
+    // attestation.ts) is not yet spliced into the skeleton document,
+    // pending a CEO placement decision (a new skeleton SECTION, unlike
+    // C1.2's single-block insertion into an existing one).
+    {
+      id: "cppa-cyber/P6/s2-01",
+      factor_id: "Submission and attestation",
+      role: "AQ",
+      source_table: "provision_texts",
+      source_row_id: "cppa-7124",
+      excerpt_field: "verbatim_excerpt",
+      pinned_excerpt:
+        "The business must submit the certification no later than April 1 following any year that the business is required to complete a cybersecurity audit.",
+      render_eligible: false,
+      direction: "supports",
+      logic_bearing: false,
+      provenance: { verified_on: "2026-08-25" },
+      curation_note:
+        "The § 7124 certification-of-completion fixed-fact block (annual obligation, April 1 deadline, executive-signer qualifications, required certification content, and the § 7124(d)(4) attestation statement quoted in full) — see CYBER_7124_REQUIREMENTS/CYBER_7124_ATTESTATION_STATEMENT (cppa-cyber-deliverables/components.ts) and buildCyberSubmissionAttestationBlock() (cyber-submission-attestation.ts). Text CEO-supplied in-session 2026-08-25, cross-verified as an exact byte match against the pre-existing approved § 7124(b) pin in cppa-cyber-corpus-pin.test.ts, itself sourced from the OAL-approved PDF per docs/courier/ITEM298-CYBER-INGEST-2026-07-31.md (SHA-256 7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650, CEO-approved 2026-07-31). Flips to S2 once the CEO confirms skeleton placement and the block is spliced.",
+    },
 
     // ── The FC-L register (doc 54 §1, L1–L12) — dark, logic-bearing; one
     // row per register item pinned to its PRIMARY evidence row, siblings
@@ -874,11 +897,11 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       logic_disposition: {
         kind: "extension_filed",
         queue_ref:
-          "Cyber conversion C1 submission-block landing (doc 24 §3; doc 54 §1 L11 — certification-only, executive-management signer, April 1, per-required-year, penalty of perjury, no-influence attestation, no substitute documentation; each sentence cites its row)",
+          "Cyber conversion skeleton-placement decision (2026-08-25) — the composer is BUILT (cyber-submission-attestation.ts, buildCyberSubmissionAttestationBlock(), pin-verified against CYBER_7124_REQUIREMENTS/CYBER_7124_ATTESTATION_STATEMENT in components.ts) and CEO-supplied verbatim § 7124 text is loaded (CYBER_CORPUS_SNAPSHOT['cppa-7124'], cross-verified against the pre-existing approved § 7124(b) pin). What remains is a governance step, not an engineering one: this is a NEW skeleton SECTION (no prior 'Submission and attestation' section exists in cppa-cyber.spine.ts), which per that file's own structural-change discipline needs a placement decision before splicing — flagged to the CEO, not yet spliced.",
       },
       provenance: { page_ref: "Appendix, p. 96", verified_on: "2026-08-23" },
       curation_note:
-        "L11: the submission-summary section's entire fact set — certification only (never the report), executive signer (not board), April 1, per-required-year, perjury, no-influence, no substitutes. Becomes C1 fixed-block facts. Carries P6's aggregate impact tag. Siblings: c4623e97, 71774ef5, 4518ac21, 2931daf7, 78630695, 50649925, d073ab32, 545698d4, feb77e05, 40ae8c3b (this map's P6 FC rows).",
+        "L11: the submission-summary section's entire fact set — certification only (never the report), executive signer (not board), April 1, per-required-year, perjury, no-influence, no substitutes. FULL VERBATIM § 7124 TEXT NOW LOCAL (2026-08-25, CEO-supplied in-session; see the AQ row cppa-cyber/P6/s2-01 below and CYBER_7124_REQUIREMENTS in components.ts) — corrects this row's OWN earlier premise (and my own earlier same-day assessment) that the text was unavailable; it was already ingested and CEO-approved 2026-07-31 per docs/courier/ITEM298-CYBER-INGEST-2026-07-31.md, this map simply hadn't been updated to reflect it. Carries P6's aggregate impact tag. Siblings: c4623e97, 71774ef5, 4518ac21, 2931daf7, 78630695, 50649925, d073ab32, 545698d4, feb77e05, 40ae8c3b (this map's P6 FC rows).",
     },
     {
       id: "cppa-cyber/P1/fcl-L12",

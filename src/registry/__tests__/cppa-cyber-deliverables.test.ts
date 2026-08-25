@@ -17,6 +17,8 @@ import { CYBER_CORPUS_SNAPSHOT } from "./__fixtures__/cyber-corpus-snapshot";
 import {
   CYBER_7122_CONDITIONS,
   CYBER_7123_COMPONENTS,
+  CYBER_7124_ATTESTATION_STATEMENT,
+  CYBER_7124_REQUIREMENTS,
   CYBER_PROGRAM_OBLIGATIONS,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/components";
 import {
@@ -64,6 +66,14 @@ describe("ITEM 315 — corpus pins", () => {
     for (const c of CYBER_7122_CONDITIONS) {
       expect(CORPUS, c.key).toContain(c.verbatim);
     }
+  });
+
+  it("FC-L11: every § 7124 requirement verbatim is an exact corpus substring", () => {
+    expect(CYBER_CORPUS_SNAPSHOT["cppa-7124"].length).toBe(1877);
+    for (const r of CYBER_7124_REQUIREMENTS) {
+      expect(CORPUS, r.key).toContain(r.verbatim);
+    }
+    expect(CORPUS, "attestation_statement").toContain(CYBER_7124_ATTESTATION_STATEMENT);
   });
 
   it("every emitted `standard` on the perfect record traces to the corpus", () => {
