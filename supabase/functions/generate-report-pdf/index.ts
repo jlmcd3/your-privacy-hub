@@ -4,6 +4,7 @@
 export const BUILD_STAMP = "generate-report-pdf-item271-replay-review@2026-07-30T06:30:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
 import { readinessLineForRender } from "../_shared/ltp/governance-readiness.ts";
+import { firstSentence as boundFirstSentence } from "../_shared/ltp/clause-bound.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { applyUniversalDisclaimerHtml } from "../_shared/report-disclaimer.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -1079,7 +1080,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     --teal:#2d9b90; --teal-soft:#e5f4f2; --warn:#1a4a6e; --warn-soft:#eef4f7; --accent:#2d9b90;
   }
   * { box-sizing: border-box; }
-  body { font-family:'Times New Roman', Times, serif; color:var(--navy-ink);
+  body { font-family:'Georgia','Times New Roman',serif; color:var(--navy-ink);
     background:var(--paper); font-size:11pt; line-height:1.5; margin:0;
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
@@ -1120,6 +1121,8 @@ ${AUTHORITY_EXHIBIT_CSS}
   .subhead .rule { margin-top:4px; height:2px; width:36px; background:var(--steel); border-radius:2px; }
   .subhead .sub-trailing { margin-top:6px; }
   p.body-p, .sub-trailing, .li-body { font-size:12px; line-height:1.6; color:var(--navy-ink); margin:0 0 8px; }
+  ul.body-list { font-size:12px; line-height:1.6; color:var(--navy-ink); margin:0 0 8px; }
+  ul.body-list li { margin-bottom:4px; }
   ol.num-list, ul.dot-list { list-style:none; padding:0; margin:8px 0 4px; }
   ol.num-list li, ul.dot-list li { display:flex; gap:10px; align-items:flex-start;
     margin-bottom:7px; page-break-inside:avoid; }
@@ -1177,6 +1180,8 @@ interface SkeletonTableLike {
   columns?: string[];
   rows?: string[][];
   note?: string;
+  /** CEO report review 2026-08-24 — see RenderedTable.hideHeader. */
+  hideHeader?: boolean;
 }
 
 /**
@@ -1198,10 +1203,13 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
         .join("")}</tr>`
     )
     .join("");
+  // CEO report review 2026-08-24 — a label/value table's header row states
+  // nothing the row's own first cell doesn't already say; omit it entirely.
+  const headHtml = t.hideHeader ? "" : `<thead><tr>${head}</tr></thead>`;
   return `<div style="margin:0 0 10px;">
     ${t.title ? `<div style="font-weight:bold;font-size:10.5px;margin:0 0 4px;break-after:avoid;page-break-after:avoid;">${escHtml(t.title)}</div>` : ""}
     <table style="width:100%;border-collapse:collapse;font-size:9.5px;line-height:1.35;">
-      <thead><tr>${head}</tr></thead>
+      ${headHtml}
       <tbody>${body}</tbody>
     </table>
     ${t.note ? `<div style="font-size:9px;color:#4a5b6a;margin:3px 0 0;">${escHtml(t.note)}</div>` : ""}
@@ -1248,6 +1256,120 @@ function substituteFootnoteMarkers(escapedHtml: string): string {
   );
 }
 
+// CEO report review 2026-08-24 — underline every inline cross-reference to
+// an appendix ("Appendix H", "Appendix H — Materials Considered") so a
+// reader can spot the citation at a glance. Matches "Appendix" + one
+// capital letter, optionally followed by " — Title" up to the next
+// clause boundary. Applied to already-escaped text (safe: none of the
+// matched characters need escaping), same as the footnote-marker pass.
+const APPENDIX_REF_RE = /Appendix [A-Z](?:\s*[—–-]\s*[A-Z][^.;]*)?/g;
+function underlineAppendixRefs(escapedHtml: string): string {
+  return escapedHtml.replace(APPENDIX_REF_RE, (m) => `<u>${m}</u>`);
+}
+
+// CEO report review 2026-08-24 — several composers already mark a list
+// item as its own SENTENCE beginning with "— " (e.g. "Analysis. —
+// Experian (...): under a written contract... — Sentinel Risk LLC
+// (...): ..."). This walks the chunk sentence by sentence (reusing
+// clause-bound.ts's abbreviation-aware boundary so "GDPR Art." etc. never
+// mis-splits) and groups consecutive "— "-led sentences into list runs
+// and everything else into paragraph runs, in original order — so a
+// trailing "Conclusion. ..." sentence after the items renders as its own
+// paragraph instead of being swallowed into the last bullet, and two
+// separate lists in one block (a real shape in Section VIII's residual
+// analysis) each render as their own <ul> rather than merging into one.
+// A run with only one "— " item is folded back into plain prose (the
+// marker stripped) — a single bullet isn't worth a list. Ordinary
+// mid-sentence em-dash usage ("Appendix C — Processing and Data
+// Inventory") never opens a sentence with "—", so it is never mistaken
+// for a list item.
+interface TextSegment {
+  readonly kind: "list" | "para";
+  readonly parts: readonly string[];
+}
+interface SentenceSpan {
+  readonly text: string;
+  readonly start: number;
+  readonly end: number;
+}
+/**
+ * Sentence boundaries with their offsets in the ORIGINAL string. Offsets
+ * (not just the trimmed sentence text) matter here: item 5's fix
+ * deliberately joins pathway/safeguard items with a bare "\n" so each
+ * starts its own line, and a plain-prose run spanning that "\n" must keep
+ * it — re-joining trimmed sentences with a fixed " " would flatten it
+ * back into a run-on line, undoing that fix.
+ *
+ * A lead ending ":" immediately before a "— " item ("...testing: —
+ * Encryption...") is ALSO a boundary here, distinct from
+ * `firstSentence()`'s own [.!?]-only rule: several composers (tested/
+ * untested/planned safeguards) end their lead with a colon, not a
+ * period, so without this the lead and its first item would glue into
+ * one sentence that doesn't itself start with "—" and the whole run
+ * would be missed as a list.
+ */
+function sentenceSpans(text: string): SentenceSpan[] {
+  const out: SentenceSpan[] = [];
+  let cursor = 0;
+  let rest = text;
+  for (;;) {
+    const leadingWs = /^\s*/.exec(rest)![0];
+    cursor += leadingWs.length;
+    rest = rest.slice(leadingWs.length);
+    if (!rest) break;
+    const one = boundFirstSentence(rest);
+    let len = one ? one.length : rest.length;
+    const colonBoundary = /:\s+—\s/.exec(rest);
+    if (colonBoundary && colonBoundary.index + 1 < len) len = colonBoundary.index + 1;
+    out.push({ text: rest.slice(0, len).trim(), start: cursor, end: cursor + len });
+    cursor += len;
+    rest = rest.slice(len);
+    if (!one) break;
+  }
+  return out;
+}
+function segmentDashText(text: string): TextSegment[] | null {
+  const sentences = sentenceSpans(text);
+  const segments: TextSegment[] = [];
+  let hasRealList = false;
+  let runStart = 0;
+  let runKind: "list" | "para" | null = null;
+  const flush = (endIdx: number) => {
+    if (runKind === null || endIdx <= runStart) return;
+    if (runKind === "list") {
+      // A "(addresses: ...)." sentence is a parenthetical continuation of
+      // the item just before it (several composers emit "— {item}." then
+      // a SEPARATE "(addresses: ...)." sentence for the same bullet,
+      // since firstSentence() treats the item's own trailing "." as a
+      // real sentence end) — merge it into the previous item's text
+      // rather than letting it become a stray non-list entry.
+      const items: string[] = [];
+      for (const s of sentences.slice(runStart, endIdx)) {
+        if (/^\(/.test(s.text) && items.length > 0) items[items.length - 1] += ` ${s.text}`;
+        else items.push(s.text.replace(/^—\s*/, "").trim());
+      }
+      segments.push({ kind: "list", parts: items });
+      if (items.length >= 2) hasRealList = true;
+    } else {
+      // Preserve the ORIGINAL substring (including any "\n") rather than
+      // rejoining trimmed sentences with a fixed separator.
+      segments.push({ kind: "para", parts: [text.slice(sentences[runStart].start, sentences[endIdx - 1].end).trim()] });
+    }
+  };
+  sentences.forEach((sentence, i) => {
+    // A parenthetical-continuation sentence inherits the run it continues
+    // (list stays list) rather than defaulting to "para" and splitting
+    // the run — see the merge note in flush() above.
+    const kind: "list" | "para" = /^—\s/.test(sentence.text)
+      ? "list"
+      : (/^\(/.test(sentence.text) && runKind) ? runKind : "para";
+    if (runKind !== null && kind !== runKind) { flush(i); runStart = i; }
+    runKind = kind;
+  });
+  flush(sentences.length);
+  return hasRealList ? segments : null;
+}
+
 /**
  * ITEM SO-12 — a Table of Authorities line the admt-v2 assembler numbered
  * ("3. 11 CCR § 7220(c)(1) …") gets an anchor id matching the body markers
@@ -1261,6 +1383,17 @@ function toaAnchorId(line: string): { id: string | null; rest: string } {
   if (!m) return { id: null, rest: line };
   return { id: `toa-fn-${m[1]}`, rest: `${m[1]}. ${m[2]}` };
 }
+
+// CEO report review 2026-08-24 — the blank/near-blank signature pages added
+// to CPPA Risk, ADMT, and Cyber. Listed by id (not title-pattern, since none
+// of these are titled "Appendix ..." — see the forceBreak note below) so the
+// page-break and "is a fillable page, not narrative" treatment is centralized.
+const SIGNATURE_PAGE_IDS = new Set([
+  "review_and_approval",
+  "agency_submission_checklist",
+  "review_of_assessment",
+  "signature",
+]);
 
 function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string }): string {
   const footnotesOn = opts?.product === "cppa-admt-v2";
@@ -1291,6 +1424,21 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         return `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>`;
       }
       return t.split(/\n{2,}/).map((chunk) => {
+        // CEO report review 2026-08-24 — a chunk containing a "— item"
+        // list run (see segmentDashText) renders those runs as real
+        // bullet lists and everything else as ordinary paragraphs, ahead
+        // of the lettered-lead check below, so a dash-list lead like
+        // "Analysis." is never mistaken for one.
+        const segments = segmentDashText(chunk);
+        if (segments) {
+          return segments.map((seg) => {
+            if (seg.kind === "list" && seg.parts.length >= 2) {
+              const itemsHtml = seg.parts.map((item) => `<li>${underlineAppendixRefs(escHtml(item))}</li>`).join("");
+              return `<ul class="body-list" style="margin:0 0 8px;padding-left:20px;">${itemsHtml}</ul>`;
+            }
+            return `<p class="body-p" style="white-space:pre-line;">${underlineAppendixRefs(escHtml(seg.parts.join(" ")))}</p>`;
+          }).join("");
+        }
         // Part B item 1 (2026-08-21, CEO-confirmed) — bold a paragraph's
         // lettered lead ("E. Residual Risk.") when one opens the chunk.
         // Confirmed against every real instance in the fleet (51 in
@@ -1308,9 +1456,14 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // first (exact match), falling back to the lettered pattern.
         const lead = /^(Activity Assessed\.|Why a Risk Assessment Is Required\.|Key Findings\.|Overall Determination\.|Conditions to Proceed\.|Assessment Follow-Up Required\.|[A-Z]\.\s+[^.]+\.)(\s+)([\s\S]*)$/
           .exec(chunk);
-        const mark = (html: string) => footnotesOn ? substituteFootnoteMarkers(html) : html;
+        // CEO report review 2026-08-24 — bold alone doesn't read as
+        // distinct enough; the lead now carries an underline too.
+        const mark = (html: string) => {
+          const underlined = underlineAppendixRefs(html);
+          return footnotesOn ? substituteFootnoteMarkers(underlined) : underlined;
+        };
         const withMarkers = lead
-          ? `<strong>${mark(escHtml(lead[1]))}</strong>${escHtml(lead[2])}${mark(escHtml(lead[3]))}`
+          ? `<strong style="text-decoration:underline;">${mark(escHtml(lead[1]))}</strong>${escHtml(lead[2])}${mark(escHtml(lead[3]))}`
           : mark(escHtml(chunk));
         return `<p class="body-p" style="white-space:pre-line;">${withMarkers}</p>`;
       }).join("");
@@ -1322,9 +1475,15 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
     // agnostic: it covers CPPA Risk's Appendices A–H (only G reused the
     // table_of_authorities id) and ADMT v2's Appendices A and B
     // (appendix_a/appendix_b) without a per-product id whitelist.
+    //
+    // CEO report review 2026-08-24 — the same treatment for the new
+    // signature pages (printable/removable, so each starts its own page):
+    // "review_and_approval"/"agency_submission_checklist" (CPPA Risk),
+    // "review_of_assessment" (CPPA ADMT), "signature" (CPPA Cyber).
     const forceBreak = sec.id === "table_of_authorities"
       || /^(appendix|exhibit)\b/i.test(sec.title ?? "")
-      || (sec.id === "incident_worksheet" && opts?.product === "ir-playbook");
+      || (sec.id === "incident_worksheet" && opts?.product === "ir-playbook")
+      || SIGNATURE_PAGE_IDS.has(sec.id ?? "");
     const breakCss = forceBreak ? "break-before:always;page-break-before:always;" : "";
     return `<section class="section" style="${breakCss}margin-bottom:14px;">
       <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;break-after:avoid;page-break-after:avoid;">${escHtml(sec.title ?? "")}</h2>
@@ -1439,7 +1598,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
-  body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
   .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
@@ -1743,7 +1902,7 @@ function buildCPPARiskLtpHTML(report: any, record: any): string {
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#fff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; }
   * { box-sizing:border-box; }
-  body { font-family:'Times New Roman',Times,serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.55; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.55; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
   .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
@@ -1846,7 +2005,7 @@ function buildCPPARiskV4HTML(report: any, record: any): string {
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#fff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --orange:#1a4a6e; --orange-soft:#eef4f7; --red:#0d2a45; --red-soft:#e8eff2; }
   * { box-sizing:border-box; }
-  body { font-family:'Times New Roman',Times,serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
   .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
@@ -2086,7 +2245,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
-  body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
   .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
@@ -2327,7 +2486,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
-  body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
   .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
@@ -2539,7 +2698,7 @@ function buildADMTReportHTML(report: any, record: any): string {
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
-  body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
   .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }

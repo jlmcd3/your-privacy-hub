@@ -31,6 +31,8 @@ import {
   verifySkeletonConformance,
   type ComposedBlocks,
   type RenderedSkeletonDocument,
+  type RenderedTable,
+  type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
@@ -295,6 +297,30 @@ function composeConclusion(report: Bag, intake: Bag): string {
   return repairRegister(sentences.join(" "));
 }
 
+/**
+ * CEO report review 2026-08-24 — the Signature section's blank table. NOT
+ * pre-filled from intake, by explicit instruction: unlike CPPA Risk's
+ * review/approval table, this signer is not identified anywhere in the
+ * cyber intake contract, and the whole point of this page is that it is
+ * left blank for a human to complete by hand.
+ */
+function deriveCyberSignatureTable(): RenderedTable {
+  const BLANK = "________________________________";
+  return {
+    key: "",
+    surface: "cyber_signature",
+    title: "",
+    columns: ["Field", "Value"],
+    hideHeader: true,
+    rows: [
+      ["Name", BLANK],
+      ["Title", BLANK],
+      ["Signature", BLANK],
+      ["Date", BLANK],
+    ],
+  };
+}
+
 // ── Assembly ────────────────────────────────────────────────────────────────
 
 export interface CyberSkeletonResult {
@@ -328,6 +354,13 @@ export function assembleCyberSkeletonDocument(
     "conclusion:1": composeConclusion(report, intake),
   };
 
+  // CEO report review 2026-08-24 — the Signature section's table. First use
+  // of the `tables:` bag in this assembler (Risk/DPIA precedent); every
+  // other block in this spine composes through `composed` instead.
+  const tables: SkeletonTables = {
+    "signature:1": deriveCyberSignatureTable(),
+  };
+
   const draft = renderSkeletonDocument({
     sections: CYBER_SKELETON_SECTIONS,
     title: CYBER_SKELETON_TITLE,
@@ -335,6 +368,7 @@ export function assembleCyberSkeletonDocument(
     spineVersion: CYBER_SKELETON_VERSION,
     values,
     composed: composedBase,
+    tables,
   });
 
   const exhibit = (report.authority_exhibit ?? {}) as Bag;
@@ -350,6 +384,7 @@ export function assembleCyberSkeletonDocument(
     spineVersion: CYBER_SKELETON_VERSION,
     values,
     composed: { ...composedBase, "table_of_authorities:0": toa },
+    tables,
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();

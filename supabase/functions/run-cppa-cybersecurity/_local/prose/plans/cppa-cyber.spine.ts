@@ -21,7 +21,12 @@
 //                 cohort computed — the customer, with counsel, picks the tier.
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
-export const CYBER_SKELETON_VERSION = "prose-plans-2026-08-10-item-so4";
+// v3.1 (2026-08-24, CEO report review) — adds the "Signature" section
+// between Section IV (Conclusion) and the Table of Authorities: a
+// not-pre-filled Name/Title/Signature/Date table with a scoping statement
+// before it and a clarifying disclaimer after it. No component finding,
+// determination, or intake contract changed.
+export const CYBER_SKELETON_VERSION = "prose-plans-2026-08-24-item-so4-v3.1";
 export const CYBER_SKELETON_SOURCE_FILE = "CPPA_Cybersecurity_Audit_Skeleton_v3.docx";
 export const CYBER_SKELETON_PROVENANCE =
   "CPPA_Cybersecurity_Audit_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
@@ -40,7 +45,7 @@ export const CYBER_SKELETON_SUBTITLE = "Prepared under 11 CCR Sections 7120-7124
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const CYBER_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
 
-export type CyberSkeletonBlockKind = "skeleton" | "lead" | "generated" | "corpus" | "rule";
+export type CyberSkeletonBlockKind = "skeleton" | "lead" | "generated" | "corpus" | "rule" | "table";
 
 export interface CyberSkeletonBlock {
   readonly kind: CyberSkeletonBlockKind;
@@ -94,6 +99,24 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the audit-readiness conclusion with any condition attached." },
       { kind: "generated", text: "[GENERATED] Counsel's closing analysis, ending on the single next act." },
+    ],
+  },
+  // CEO report review 2026-08-24 — a blank, NOT pre-filled signature page,
+  // positioned before the Table of Authorities. Deliberately does not use
+  // "certification" or "attestation": neither the § 7123(e)(8) auditor
+  // statement nor the § 7124 executive certification can be produced by a
+  // self-reported readiness tool (see the discussion this section closes
+  // out — § 7122(d) requires findings to rest primarily on evidence an
+  // auditor reviewed, not on the company's own assertions). This
+  // signature acknowledges the information above; it is not that
+  // certification.
+  {
+    id: "signature",
+    title: "Signature",
+    blocks: [
+      { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit as required pursuant to 11 CCR §§ 7120-7124." },
+      { kind: "table", text: "" },
+      { kind: "skeleton", text: "This signature acknowledges the information above, and is not the certification described in 11 CCR § 7124." },
     ],
   },
   {

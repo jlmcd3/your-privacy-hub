@@ -9,7 +9,109 @@
 // column, through the shared `toaLines` helper.
 
 import { toaLines } from "@/lib/toa-lines";
-import { renderWithFootnotes, toaAnchorId } from "@/lib/footnote-marks";
+import { renderBodyText, renderWithFootnotes, toaAnchorId } from "@/lib/footnote-marks";
+
+// CEO report review 2026-08-24 — web twin of generate-report-pdf/index.ts's
+// segmentDashText (which see for the full rationale: groups consecutive
+// "— "-led sentences into list runs and everything else into paragraph
+// runs, sentence-by-sentence, abbreviation-aware). `abbrevFirstSentence`
+// mirrors clause-bound.ts's `firstSentence`/`ABBREV_TAIL` — no shared web
+// import exists for that Deno-side module, so it's duplicated here byte-
+// for-byte in intent (not text, since this is presentation-layer parsing,
+// not byte-pinned content).
+// CEO report review 2026-08-25 — negative lookbehind excludes "Appendix
+// F."/"Exhibit F." from the generic single-letter fallback; see the
+// clause-bound.ts twin for the full rationale.
+const ABBREV_TAIL =
+  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Recital|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Tex|Bus|Com|Ins|Bus\.\s&\sCom|Inc|Ltd|GmbH|AG|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|Dr|Mr|Mrs|Ms|St|U\.S|U\.K)|(?<!Appendix|Exhibit)\s[A-Z])\.$/;
+function abbrevFirstSentence(text: string): string {
+  const t = text.trim();
+  const re = /[.!?](?=\s|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t))) {
+    const end = m.index + 1;
+    const head = t.slice(0, end);
+    if (ABBREV_TAIL.test(head)) continue;
+    if (/^\s+[a-z0-9]/.test(t.slice(end))) continue;
+    return head.trim();
+  }
+  return t;
+}
+interface SentenceSpan {
+  text: string;
+  start: number;
+  end: number;
+}
+/**
+ * Sentence boundaries with their offsets in the ORIGINAL string. Offsets
+ * (not just trimmed sentence text) matter: item 5's fix deliberately
+ * joins pathway/safeguard items with a bare "\n" so each starts its own
+ * line, and a plain-prose run spanning that "\n" must keep it — rejoining
+ * trimmed sentences with a fixed " " would flatten it back to a run-on
+ * line, undoing that fix.
+ */
+function sentenceSpans(text: string): SentenceSpan[] {
+  const out: SentenceSpan[] = [];
+  let cursor = 0;
+  let rest = text;
+  for (;;) {
+    const leadingWs = /^\s*/.exec(rest)![0];
+    cursor += leadingWs.length;
+    rest = rest.slice(leadingWs.length);
+    if (!rest) break;
+    const one = abbrevFirstSentence(rest);
+    let len = one ? one.length : rest.length;
+    // A lead ending ":" immediately before a "— " item ("...testing: —
+    // Encryption...") is ALSO a boundary here: some composers end their
+    // lead with a colon, not a period, so without this the lead and its
+    // first item glue into one sentence that doesn't itself start with
+    // "—" and the whole run is missed as a list.
+    const colonBoundary = /:\s+—\s/.exec(rest);
+    if (colonBoundary && colonBoundary.index + 1 < len) len = colonBoundary.index + 1;
+    out.push({ text: rest.slice(0, len).trim(), start: cursor, end: cursor + len });
+    cursor += len;
+    rest = rest.slice(len);
+    if (!one) break;
+  }
+  return out;
+}
+interface TextSegment {
+  kind: "list" | "para";
+  parts: string[];
+}
+function segmentDashText(text: string): TextSegment[] | null {
+  const sentences = sentenceSpans(text);
+  const segments: TextSegment[] = [];
+  let hasRealList = false;
+  let runStart = 0;
+  let runKind: "list" | "para" | null = null;
+  const flush = (endIdx: number) => {
+    if (runKind === null || endIdx <= runStart) return;
+    if (runKind === "list") {
+      // A "(addresses: ...)." sentence is a parenthetical continuation of
+      // the item just before it — merge it into the previous item rather
+      // than letting it become a stray non-list entry.
+      const items: string[] = [];
+      for (const s of sentences.slice(runStart, endIdx)) {
+        if (/^\(/.test(s.text) && items.length > 0) items[items.length - 1] += ` ${s.text}`;
+        else items.push(s.text.replace(/^—\s*/, "").trim());
+      }
+      segments.push({ kind: "list", parts: items });
+      if (items.length >= 2) hasRealList = true;
+    } else {
+      segments.push({ kind: "para", parts: [text.slice(sentences[runStart].start, sentences[endIdx - 1].end).trim()] });
+    }
+  };
+  sentences.forEach((sentence, i) => {
+    const kind: "list" | "para" = /^—\s/.test(sentence.text)
+      ? "list"
+      : (/^\(/.test(sentence.text) && runKind) ? runKind : "para";
+    if (runKind !== null && kind !== runKind) { flush(i); runStart = i; }
+    runKind = kind;
+  });
+  flush(sentences.length);
+  return hasRealList ? segments : null;
+}
 
 /** ITEM 4 — FIRST ToA FIX: single-column, one-authority-per-row ToA. */
 function ToaView({ text }: { text: string }) {
@@ -51,6 +153,8 @@ export interface SkeletonTable {
   columns: string[];
   rows: string[][];
   note?: string;
+  /** CEO report review 2026-08-24 — see RenderedTable.hideHeader (backend). */
+  hideHeader?: boolean;
 }
 
 export interface SkeletonParagraph {
@@ -105,6 +209,31 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
             ) : (
 
               p.text.split(/\n{2,}/).map((chunk, j) => {
+                // CEO report review 2026-08-24 — a chunk containing a
+                // "— item" list run (see segmentDashText) renders those
+                // runs as real bullet lists and everything else as
+                // ordinary paragraphs, ahead of the lettered-lead check
+                // below. Same convention as the PDF renderer.
+                const segments = segmentDashText(chunk);
+                if (segments) {
+                  return (
+                    <div key={`${i}-${j}`}>
+                      {segments.map((seg, k) =>
+                        seg.kind === "list" && seg.parts.length >= 2 ? (
+                          <ul key={k} className="list-disc space-y-1 pl-5 leading-relaxed text-foreground">
+                            {seg.parts.map((item, m) => (
+                              <li key={m}>{renderBodyText(item)}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p key={k} className="leading-relaxed text-foreground whitespace-pre-line">
+                            {renderBodyText(seg.parts.join(" "))}
+                          </p>
+                        )
+                      )}
+                    </div>
+                  );
+                }
                 // Part B item 1 (2026-08-21, CEO-confirmed) — bold a
                 // paragraph's lettered lead ("E. Residual Risk.") when one
                 // opens the chunk. Same pattern/regex as the PDF renderer
@@ -120,12 +249,14 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                     {lead
                       ? (
                         <>
-                          <strong>{renderWithFootnotes(lead[1])}</strong>
+                          {/* CEO report review 2026-08-24 — bold alone
+                              doesn't read as distinct enough; underlined too. */}
+                          <strong className="underline">{renderBodyText(lead[1])}</strong>
                           {lead[2]}
-                          {renderWithFootnotes(lead[3])}
+                          {renderBodyText(lead[3])}
                         </>
                       )
-                      : renderWithFootnotes(chunk)}
+                      : renderBodyText(chunk)}
                   </p>
                 );
               })
@@ -148,19 +279,21 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
       )}
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full border-collapse text-xs">
-          <thead>
-            <tr className="bg-muted/60">
-              {table.columns.map((c, i) => (
-                <th
-                  key={i}
-                  scope="col"
-                  className="border-b border-border px-3 py-2 text-left font-body font-semibold text-foreground"
-                >
-                  {c}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          {!table.hideHeader && (
+            <thead>
+              <tr className="bg-muted/60">
+                {table.columns.map((c, i) => (
+                  <th
+                    key={i}
+                    scope="col"
+                    className="border-b border-border px-3 py-2 text-left font-body font-semibold text-foreground"
+                  >
+                    {c}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
           <tbody>
             {table.rows.map((row, r) => (
               <tr key={r} className="align-top even:bg-muted/20">

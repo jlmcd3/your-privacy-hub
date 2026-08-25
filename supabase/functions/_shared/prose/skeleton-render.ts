@@ -63,6 +63,14 @@ export interface RenderedTable {
   readonly rows: readonly (readonly string[])[];
   /** Optional single-line note printed under the table (verbatim). */
   readonly note?: string;
+  /**
+   * CEO report review 2026-08-24 — a label/value table (e.g. the cover
+   * summary) whose column headers ("Field", "Value") add no information
+   * the row's own first cell doesn't already state. When true, the
+   * renderer omits the header row entirely; `columns` still governs cell
+   * count/order.
+   */
+  readonly hideHeader?: boolean;
 }
 
 export type SkeletonTables = Record<string, RenderedTable | null | undefined>;

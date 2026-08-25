@@ -48,7 +48,7 @@ import {
 // identical note in risk-factor-engine.ts. This module carried the same
 // naive, non-abbreviation-aware copy of firstSentence(); replaced with the
 // shared implementation already proven out for DPIA.
-import { firstSentence } from "./clause-bound.ts";
+import { firstSentence, firstSubstantiveSentence } from "./clause-bound.ts";
 // v4.6 — corpus program phase 2: Appendix I renders by pure attachment
 // over the Risk CAM (the determinism law's generation-plane mechanism).
 import { attachCorpusRows } from "../corpus/cam-attach.ts";
@@ -223,11 +223,92 @@ export function deriveCoverTable(values: SlotValues): RenderedTable {
     surface: "cover_summary",
     title: "",
     columns: ["Field", "Value"],
+    // CEO report review 2026-08-24 — the header row adds nothing the row's
+    // own first cell ("Prepared for", "Assessment date", ...) doesn't
+    // already say.
+    hideHeader: true,
     rows: [
       ["Prepared for", v("entityName")],
       ["Processing activity", v("activityName")],
       ["Assessment date", v("assessmentDate")],
       ["Assessment version", v("versionNumber")],
+    ],
+  };
+}
+
+/**
+ * {{DERIVED.review_approval_signatures}} — CEO report review 2026-08-24: a
+ * blank-signature-line table for the § 7152(a)(9) reviewers/approvers
+ * already named in Section I.E. Name/Title are drawn from the record when
+ * present; Signature and Date are NEVER pre-filled — this is a page a
+ * human signs, not an attestation the tool performs on anyone's behalf.
+ */
+export function deriveReviewApprovalTable(intake: Bag): RenderedTable {
+  const BLANK = "________________________";
+  const named: Array<{ role: string; name: string; title: string }> = [];
+  for (const r of rows(intake.assessment_reviewers_approvers)) {
+    const name = s(r.name);
+    const title = s(r.position);
+    if (!name && !title) continue;
+    const role = s(r.role);
+    const label = role === "Reviewed" ? "Reviewed by"
+      : role === "Approved" ? "Approved by"
+      : "Reviewed and approved by";
+    named.push({ role: label, name, title });
+  }
+  if (named.length === 0 && s(intake.a9_approver_name)) {
+    named.push({
+      role: "Approved by",
+      name: s(intake.a9_approver_name),
+      title: s(intake.a9_approver_position),
+    });
+  }
+  if (named.length === 0) {
+    named.push({ role: "Reviewed and approved by", name: "", title: "" });
+  }
+  return {
+    key: "",
+    surface: "review_approval_signatures",
+    title: "",
+    columns: ["Role", "Name", "Title", "Signature", "Date"],
+    rows: named.map((r) => [r.role, r.name || BLANK, r.title || BLANK, BLANK, BLANK]),
+  };
+}
+
+/**
+ * {{DERIVED.agency_submission_checklist}} — CEO report review 2026-08-24: a
+ * one-page extract of the § 7157(b) submission fields already on this
+ * assessment's record, so the submitting executive does not have to hunt
+ * through the report for them. States facts already in the record only;
+ * performs no submission and adds no new intake field.
+ */
+export function deriveAgencySubmissionChecklistTable(
+  intake: Bag,
+  values: SlotValues,
+): RenderedTable {
+  const v = (k: string): string => {
+    const val = values[k];
+    return typeof val === "string" && val.trim() ? val : "Not reported.";
+  };
+  const contactName = s(intake.i8_certifying_exec_name);
+  const contactTitle = clause(intake.i8_certifying_exec_title);
+  const contact = contactName
+    ? `${contactName}${contactTitle ? `, ${contactTitle}` : ""}`
+    : "Not reported.";
+  return {
+    key: "",
+    surface: "agency_submission_checklist",
+    title: "",
+    columns: ["Field", "Value"],
+    hideHeader: true,
+    rows: [
+      ["Business legal name", v("entityName")],
+      ["Point of contact — § 7157(b)(1)", contact],
+      ["Phone", v("certContactPhone")],
+      ["Email", v("certContactEmail")],
+      ["Processing activity covered by this submission", v("activityName")],
+      ["Categories of personal information involved", v("piCategories")],
+      ["Categories of sensitive personal information involved", deriveActivitySpiInventory(intake) || "Not reported."],
     ],
   };
 }
@@ -408,7 +489,7 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
   ];
   const rowsOut = pairs.filter(([, v]) => v).map(([k, v]) => [k, v]);
   if (rowsOut.length === 0) return null;
-  return { key: "", surface: "admt_technical_facts", title: "", columns: ["Field", "Detail"], rows: rowsOut };
+  return { key: "", surface: "admt_technical_facts", title: "", columns: ["Field", "Detail"], hideHeader: true, rows: rowsOut };
 }
 
 // ── Slot values ─────────────────────────────────────────────────────────────
@@ -975,10 +1056,16 @@ export function buildFactorAuthorityMatrixTable(
     }
     // CEO report review 2026-08-23/24: the Report Determination cell is
     // the ONE determination sentence for the factor, not the full body
-    // analysis — firstSentence() bounds every row to its lead sentence
-    // (the fleet's own convention for a compact cell; see clause-bound.ts).
-    // The full reasoning stays in the body section this row cites.
-    rowsOut.push([spec.label, firstSentence(determination), authority]);
+    // analysis — bounded to its lead sentence (the fleet's own convention
+    // for a compact cell; see clause-bound.ts). The full reasoning stays
+    // in the body section this row cites.
+    //
+    // CEO report review 2026-08-24: several composed blocks open with a
+    // bare structural subheading ("C. Conclusion.", "B. Material Risk
+    // Pathways.", "Analysis.") — plain firstSentence() truncated at that
+    // fragment, printing a bare "C." or "Analysis." in this column.
+    // firstSubstantiveSentence() strips the subheading first.
+    rowsOut.push([spec.label, firstSubstantiveSentence(determination), authority]);
   }
   if (rowsOut.length === 0) return null;
   return {
@@ -1139,6 +1226,9 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   // buildRiskAndSafeguardRegisterTable.
   const tables: SkeletonTables = {
     "cover:0": deriveCoverTable(values),
+    // CEO report review 2026-08-24 — signature pages, ahead of Appendix A.
+    "review_and_approval:1": deriveReviewApprovalTable(intake),
+    "agency_submission_checklist:1": deriveAgencySubmissionChecklistTable(intake, values),
     "table_of_authorities:1": matrixTable,
     "appendix_a:1": deriveProcessingAndDataInventory(intake),
     "appendix_b:1": buildNecessityMatrixTable(intake),

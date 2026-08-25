@@ -14,8 +14,18 @@ export const noStop = (t: string): string => String(t ?? "").replace(/\s*\.\s*$/
 
 // SO-3 DEFECT CLASS 2 — abbreviation-aware sentence boundaries. Without this
 // guard "GDPR Art. 35(7)" truncates a sentence at "Art.".
+//
+// CEO report review 2026-08-25 — the generic `\s[A-Z]\.$` fallback (for a
+// single capital letter not on the named list — a mid-name initial, a
+// stray lettered cite) also caught "Appendix F." / "Exhibit F.": a real
+// appendix/exhibit letter is a genuine sentence end, not an abbreviation,
+// so treating it as one merged that sentence with the NEXT one ("...record
+// in Appendix F. Conclusion." became one "sentence"), most visibly in
+// Appendix A's Report Determination cells (firstSubstantiveSentence()).
+// The negative lookbehind excludes exactly that case; every other
+// single-letter abbreviation this branch was protecting is unaffected.
 export const ABBREV_TAIL =
-  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Recital|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Tex|Bus|Com|Ins|Bus\.\s&\sCom|Inc|Ltd|GmbH|AG|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|Dr|Mr|Mrs|Ms|St|U\.S|U\.K)|\s[A-Z])\.$/;
+  /(?:\b(?:Art|Arts|Artt|No|Nos|Reg|Recital|Sched|Sec|Secs|Ch|Cl|para|paras|pp|cf|Cal|Civ|Code|Tex|Bus|Com|Ins|Bus\.\s&\sCom|Inc|Ltd|GmbH|AG|Co|Corp|plc|Nr|vs|v|e\.g|i\.e|etc|approx|Dr|Mr|Mrs|Ms|St|U\.S|U\.K)|(?<!Appendix|Exhibit)\s[A-Z])\.$/;
 
 export function firstSentence(text: string): string {
   const t = String(text ?? "").trim();
@@ -29,6 +39,63 @@ export function firstSentence(text: string): string {
     return head.trim();
   }
   return t;
+}
+
+// CEO report review 2026-08-24 — several composers (the risk factor engine
+// chief among them) open a block with a bare structural subheading:
+// "C. Conclusion.", "B. Material Risk Pathways.", "Analysis.",
+// "Record Considered." — a fixed lettered/numbered head or a bare label,
+// not substantive content. `ABBREV_TAIL` only protects a capital letter
+// PRECEDED by whitespace (so "GDPR Art." doesn't truncate); it has no
+// protection for a capital letter that OPENS the string, or a whole
+// capitalized phrase immediately followed by a period. `firstSentence()`
+// therefore returns exactly that fragment — a bare "C." or "Analysis." —
+// when it is called on the FULL block instead of on the substantive
+// sentence after the subheading. This is most visible in Appendix A /
+// DPIA Appendix A / ADMT Appendix A's "Report Determination" cells, which
+// call `firstSentence()` on a whole composed block to produce one summary
+// sentence.
+//
+// `firstSentence()` itself is left untouched: many callers legitimately
+// want the literal first sentence, including one that IS short. This is a
+// second, narrowly-scoped function for the one call site that specifically
+// wants the first SUBSTANTIVE sentence of a block that may open with a
+// structural preface.
+//
+// Rather than a hand-maintained list of every bare-label constant in the
+// codebase (fragile — a new one added later would silently reproduce this
+// bug), this recognizes the SHAPE of a structural label: short (at most 6
+// words) and every word Title-Case or a minor title-case word ("to",
+// "of", ...). Real prose in this register always carries an ordinary
+// lowercase content word (a verb, noun, adjective) within its first few
+// words — the register guide itself bans headline-style fragments as
+// sentences — so this reliably tells a label from a sentence without
+// needing to know every label's exact text.
+const MINOR_TITLE_WORD = /^(?:to|of|in|and|or|the|a|an|for|on|at)$/i;
+function looksLikeStructuralLabel(sentence: string): boolean {
+  const words = sentence.replace(/[.!?]\s*$/, "").split(/\s+/).filter(Boolean);
+  if (words.length === 0 || words.length > 6) return false;
+  return words.every((w) => MINOR_TITLE_WORD.test(w) || /^[A-Z]/.test(w.replace(/^[("]+/, "")));
+}
+
+/**
+ * `firstSentence()`, but skips past a leading run of structural labels
+ * ("C. Conclusion. ", "Analysis. ", "Record Considered. ") and "— "
+ * list-item markers (see generate-report-pdf/index.ts's splitDashList) so
+ * the returned sentence is the first SUBSTANTIVE one, never a bare
+ * letter, label, or dangling dash. Bounded iteration; falls back to the
+ * last candidate (even if still label-shaped) rather than returning "".
+ */
+export function firstSubstantiveSentence(text: string): string {
+  let t = String(text ?? "").trim();
+  for (let i = 0; i < 6 && t; i++) {
+    t = t.replace(/^—\s*/, "");
+    const one = firstSentence(t);
+    if (!one) return t;
+    if (!looksLikeStructuralLabel(one)) return one;
+    t = t.slice(one.length).trim();
+  }
+  return firstSentence(t) || t;
 }
 
 /** S3-R3 — the first clause of a customer field, quote-safe and unpadded. */

@@ -69,7 +69,13 @@ import type { AuthorityExhibit } from "../../../_shared/report-exhibits/authorit
 import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
 import { ADMT_CORPUS_MAP } from "../../../_shared/corpus/maps/admt-corpus-map.ts";
 
-export const ADMT_V2_SPINE_VERSION = "cppa-admt-v3.2-2026-08-21";
+// v3.2.1 (2026-08-24, CEO report review) — adds the "Review of This
+// Assessment" section between Section 9 (Conclusion) and Appendix A: a
+// blank Name/Title/Signature/Date table with a descriptive (not
+// attestation) lead sentence. No CPPA regulation defines a filed "ADMT
+// Assessment" document, so nothing is certified — this only records that
+// the report was reviewed. No factor logic or intake contract changed.
+export const ADMT_V2_SPINE_VERSION = "cppa-admt-v3.2.1-2026-08-24";
 export const ADMT_V2_SPINE_SOURCE = "CPPA_ADMT_Audit_Spine_v3.2.docx — CEO-ratified 2026-08-21";
 
 export interface RenderedTable {
@@ -79,6 +85,8 @@ export interface RenderedTable {
   columns: string[];
   rows: string[][];
   note?: string;
+  /** CEO report review 2026-08-24 — see the shared RenderedTable.hideHeader. */
+  hideHeader?: boolean;
 }
 export interface RenderedParagraph {
   kind: string;
@@ -421,7 +429,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // ── Cover / header table ────────────────────────────────────────────────
   push("cover", "CPPA ADMT Compliance Audit Assessment", [
     { kind: "table", text: "", table: {
-      key: "cover:0", surface: "header", title: "", columns: ["Report field", "Value"],
+      // CEO report review 2026-08-24 — the header row adds nothing the
+      // row's own first cell ("Organization", "System reviewed", ...)
+      // doesn't already say.
+      key: "cover:0", surface: "header", title: "", columns: ["Report field", "Value"], hideHeader: true,
       rows: [
         ["Organization", organizationName || "(not provided)"],
         ["System reviewed", systemName || "(not provided)"],
@@ -659,6 +670,26 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   push("conclusion", "9. Conclusion", [
     { kind: "lead", text: overallConclusionSentence(computed) },
     { kind: "skeleton", text: "The easiest way to keep this report useful is to update the relevant answers when the System or compliance process changes and rerun the assessment. That shows which conclusions changed and why without rebuilding the analysis from the beginning." },
+  ]);
+
+  // ── Review of This Assessment ────────────────────────────────────────────
+  // CEO report review 2026-08-24. Deliberately NOT an attestation or
+  // certification: no CPPA regulation defines a filed "ADMT Assessment"
+  // document, so there is nothing for this signature to certify against
+  // (see the discussion this section closes out). It only records that the
+  // report was reviewed. Name/Title/Signature/Date are never pre-filled.
+  push("review_of_assessment", "Review of This Assessment", [
+    { kind: "skeleton", text: "The foregoing report describes the pre-use notice, opt-out mechanisms, and consumer access response processes implemented as of the date of this assessment." },
+    { kind: "table", text: "", table: {
+      key: "review_of_assessment:1", surface: "admt_review_signature", title: "",
+      columns: ["Field", "Value"], hideHeader: true,
+      rows: [
+        ["Name", "________________________________"],
+        ["Title", "________________________________"],
+        ["Signature", "________________________________"],
+        ["Date", "________________________________"],
+      ],
+    }},
   ]);
 
   // CEO review 2026-08-23/24 (same fleet-wide reordering principle applied

@@ -29,7 +29,7 @@ function esc(s: unknown): string {
 
 const SHELL_CSS = `
   * { box-sizing: border-box; }
-  body { font-family:'Times New Roman', Times, serif; color:#1a1916; background:#f5f8fa;
+  body { font-family:'Georgia','Times New Roman',serif; color:#1a1916; background:#f5f8fa;
     font-size:11pt; line-height:1.5; margin:0;
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:#fff; border:1px solid #dde5ea; border-radius:14px; overflow:hidden; }

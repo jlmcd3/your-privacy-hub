@@ -183,7 +183,7 @@ function buildHTML(riskRow: any, cyberRow: any) {
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   return `<!doctype html><html><head><meta charset="utf-8"><title>CPPA Audit Readiness Suite</title>
 <style>
-  body{font-family:Helvetica,Arial,sans-serif;color:#1a1916;font-size:11px;line-height:1.45;margin:0;padding:0;}
+  body{font-family:Georgia,'Times New Roman',serif;color:#1a1916;font-size:11px;line-height:1.45;margin:0;padding:0;}
   .cover{padding:40px 0 24px;border-bottom:2px solid #0d2a45;margin-bottom:24px}
   .cover .kicker{font-family:monospace;letter-spacing:.12em;color:#5c5a54;font-size:10px;text-transform:uppercase;margin:0}
   .cover h1{font-family:Georgia,serif;font-size:22px;margin:6px 0 8px;color:#0d2a45}

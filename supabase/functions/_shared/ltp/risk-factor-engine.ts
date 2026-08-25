@@ -73,6 +73,27 @@ function clause(v: unknown): string {
   return s(v).replace(/\.\s*$/, "");
 }
 
+/**
+ * CEO report review 2026-08-24 — § 7152(a)(8) "information providers" is a
+ * free-text field (no per-person data model behind it), and the customer
+ * commonly types it as "Name (Role) — materials, materials. Name (Role) —
+ * materials." — a real list that used to render as one long run-on
+ * sentence. This detects that shape and inserts the renderer's own
+ * "— item" list marker (see generate-report-pdf/index.ts's
+ * splitDashList) at each person boundary, so it renders as real bullets.
+ * Text that doesn't match the pattern is returned unchanged — never a
+ * partial or garbled split.
+ */
+function markInformationProviderItems(text: string): string {
+  const t = s(text);
+  if (!t) return t;
+  const NAME_LEAD = /^[A-ZÀ-ÿ][\wÀ-ÿ'.-]*(?:\s[A-ZÀ-ÿ][\wÀ-ÿ'.-]*)*\s+\([^)]+\)\s+—\s+/;
+  if (!NAME_LEAD.test(t)) return t;
+  const NAME_BOUNDARY = /\.\s+(?=[A-ZÀ-ÿ][\wÀ-ÿ'.-]*(?:\s[A-ZÀ-ÿ][\wÀ-ÿ'.-]*)*\s+\([^)]+\)\s+—\s+)/g;
+  const marked = t.replace(NAME_BOUNDARY, ". — ");
+  return `— ${marked}`;
+}
+
 
 /** "a, b and c" */
 function asProse(items: readonly string[]): string {
@@ -1057,7 +1078,10 @@ export function runRiskFactorEngine(
       "vii_risks:1",
       "material_risk_blocks",
       "B",
-      `${RISK_FACTOR_FIXED.vii_b_head} ${blocksText.join(" ")}`,
+      // CEO report review 2026-08-24 — each pathway starts its own line
+      // (not a bullet: the request was specifically "new line", and each
+      // item here is a long multi-field block, not a short list clause).
+      `${RISK_FACTOR_FIXED.vii_b_head}\n${blocksText.join("\n")}`,
       ["INTAKE:a5_harm_pathways", "FACTOR:materiality_matrix"],
       ["11 CCR § 7152(a)(5)"],
     );
@@ -1168,14 +1192,18 @@ export function runRiskFactorEngine(
     materialHarms.has(s(g.harm)) && (SAFEGUARD_STATUS_RANK[s(g.safeguard_status)] ?? 0) >= 2
   );
   if (materialSafeguards.length) {
+    // CEO report review 2026-08-24 — no leading "— " marker here: the
+    // request for this subsection was specifically "new line" (not
+    // bulleted), so each safeguard starts its own line via the "\n" join
+    // below without tripping the renderer's "— item" bullet detector.
     const lines = materialSafeguards.map((g) =>
-      `— ${firstSentence(s(g.safeguard))} (addresses: ${s(g.harm)}; status: ${s(g.safeguard_status)}).`
+      `${firstSentence(s(g.safeguard))} (addresses: ${s(g.harm)}; status: ${s(g.safeguard_status)}).`
     );
     put(
       "viii_safeguards:1",
       "material_existing_safeguards",
       "A",
-      `${RISK_FACTOR_FIXED.viii_b_head} ${RISK_FACTOR_FIXED.material_safeguards_lead} ${lines.join(" ")}`,
+      `${RISK_FACTOR_FIXED.viii_b_head} ${RISK_FACTOR_FIXED.material_safeguards_lead}\n${lines.join("\n")}`,
       ["INTAKE:a6_safeguards", "FACTOR:material_risk_blocks"],
       ["11 CCR § 7152(a)(6)"],
     );
@@ -1856,8 +1884,11 @@ export function runRiskFactorEngine(
     const providers = clause(intake.a8_information_providers);
     const parts: string[] = [];
     if (providers) {
+      // CEO report review 2026-08-24 — bullet-ize a "Name (Role) —
+      // materials." list when the customer's free text matches that
+      // shape; markInformationProviderItems() is a no-op otherwise.
       parts.push(
-        `Record Considered. The assessment record consists of the intake record and the materials indexed in Appendix H — Materials Considered. Information was provided by: ${providers}.`,
+        `Record Considered. The assessment record consists of the intake record and the materials indexed in Appendix H — Materials Considered. Information was provided by: ${markInformationProviderItems(providers)}.`,
       );
     }
     if (rc && rc.value === true) {

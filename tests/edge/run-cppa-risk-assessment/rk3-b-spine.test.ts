@@ -44,8 +44,8 @@ const BUILD_STAMP = "rk3-b-spine-pins";
 
 // ── Spine structure pins ──────────────────────────────────────────────────────
 
-Deno.test("RK3-B — spine version is the v4.7 encode (CEO report review: cover table, real Appendix B/C tables, appendix reorder)", () => {
-  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.7-2026-08-24");
+Deno.test("RK3-B — spine version is the v4.7.1 encode (CEO report review: signature pages)", () => {
+  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.7.1-2026-08-24");
 });
 
 Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
@@ -53,6 +53,9 @@ Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
   // formerly "G") and appendix_i (Appendix B, formerly "I") now lead the
   // appendix set; appendix_a-f follow, reletterd C-H. appendix_h (EUP
   // Methodology, never triggered) is retired — no longer a valid id.
+  // CEO report review 2026-08-24: two new signature pages, "review_and_
+  // approval" and "agency_submission_checklist", sit between x_governance
+  // and table_of_authorities — neither is titled "Appendix ...".
   assertEquals(SKELETON_SECTIONS.map((s) => s.id), [
     "cover",
     "executive_summary",
@@ -66,6 +69,8 @@ Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
     "viii_safeguards",
     "ix_balancing",
     "x_governance",
+    "review_and_approval",
+    "agency_submission_checklist",
     "table_of_authorities",
     // v4.6 — corpus phase 2 (doc 49 A.2.4): the S5 persuasive-authority
     // surface; fully conditional, drops when no precedent row attaches.
@@ -122,6 +127,9 @@ const PRESENT_ALWAYS = [
   "viii_safeguards",
   "ix_balancing",
   "x_governance",
+  // CEO report review 2026-08-24 — signature pages, always present.
+  "review_and_approval",
+  "agency_submission_checklist",
   "appendix_a",
   // RK3-C: the factor engine now composes the necessity matrix and the risk
   // register, so both factor appendices render on a perfect fixture.

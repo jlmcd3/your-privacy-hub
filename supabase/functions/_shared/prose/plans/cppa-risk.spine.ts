@@ -68,13 +68,20 @@
 // changed — presentation and ordering only. Every "Appendix X" cross-
 // reference inside fixed body prose was updated to match (grep-verified,
 // see the 2026-08-24 session record).
-export const RISK_SKELETON_VERSION = "cppa-risk-v4.7-2026-08-24";
+// v4.7.1 (2026-08-24) — CEO REPORT REVIEW, signature pages: adds two new
+// front-of-appendix sections, "Review and Approval" and "Agency Submission
+// Checklist (11 CCR § 7157)", between Section X and the (now-Appendix-A)
+// factor matrix. Neither is an attestation the tool performs — both are
+// blank-signature/blank-portal-field pages the customer signs and, for the
+// checklist, uses to complete the § 7157(d) online submission themselves.
+// No appendix letter changes (neither new section is titled "Appendix ...").
+export const RISK_SKELETON_VERSION = "cppa-risk-v4.7.1-2026-08-24";
 /** The prior encode's stamp, retained for provenance. */
 export const RISK_SKELETON_VERSION_V45 = "cppa-risk-v4.5-2026-08-21";
 export const RISK_SKELETON_SOURCE_FILE =
   "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx";
 export const RISK_SKELETON_PROVENANCE =
-  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx — CEO redline round, ratified 2026-08-21; supersedes Spine 4.3/4.4. Legal-narrative and citation-forward voice rewrite; Table of Authorities replaced by a factor/determination/authority matrix appendix. v4.6 (2026-08-22) adds a Persuasive Authority appendix (corpus program phase 2, doc 49 A.2.4). v4.7 (2026-08-23/24, CEO report review) reorders/reletters the appendix set (determination matrix first, persuasive authority second) and converts the cover block and two more appendices to real tables.";
+  "CPPA_Risk_Assessment_Spine_v4.5_Deterministic_Assembly_and_Authority_Matrix.docx — CEO redline round, ratified 2026-08-21; supersedes Spine 4.3/4.4. Legal-narrative and citation-forward voice rewrite; Table of Authorities replaced by a factor/determination/authority matrix appendix. v4.6 (2026-08-22) adds a Persuasive Authority appendix (corpus program phase 2, doc 49 A.2.4). v4.7 (2026-08-23/24, CEO report review) reorders/reletters the appendix set (determination matrix first, persuasive authority second) and converts the cover block and two more appendices to real tables. v4.7.1 (2026-08-24) adds the Review-and-Approval and Agency-Submission-Checklist signature pages ahead of the appendices.";
 
 export const RISK_SKELETON_TITLE = "CPPA PRIVACY RISK ASSESSMENT";
 export const RISK_SKELETON_SUBTITLE =
@@ -521,6 +528,37 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "generated", text: "[GENERATED {{FACTOR.certifying_executive_eligibility_analysis}}] Phase C. Absent => omitted." },
     ],
   },
+  // CEO REPORT REVIEW 2026-08-24 — SIGNATURE PAGES. Two new front-of-
+  // appendix pages, positioned after the body (Section X) and before the
+  // first appendix. Neither is itself an "Appendix" (the lettering below
+  // is untouched) — both are plain report_determination-free pages a
+  // customer prints and routes for signature. "Review and Approval" is
+  // descriptive, not an attestation; it simply gives the Section I.E named
+  // reviewers/approvers a physical line to sign. The submission checklist
+  // states, and only states, what § 7157 already requires — it never
+  // performs the § 7157(d) portal submission itself.
+  {
+    id: "review_and_approval",
+    title: "Review and Approval",
+    blocks: [
+      // 0
+      { kind: "skeleton", text: "This risk assessment was prepared from the information the Company supplied and is retained in accordance with 11 CCR § 7155(c). The individuals below reviewed this assessment as of the date indicated." },
+      // 1
+      { kind: "table", text: "review_approval_signatures" },
+    ],
+  },
+  {
+    id: "agency_submission_checklist",
+    title: "Agency Submission Checklist (11 CCR § 7157)",
+    blocks: [
+      // 0
+      { kind: "skeleton", text: "If this risk assessment is subject to the submission requirement under 11 CCR § 7157(a), a member of the Company’s executive management team who meets the qualifications of 11 CCR § 7157(c) must submit the following information to the California Privacy Protection Agency through the Agency’s website at https://cppa.ca.gov/ (11 CCR § 7157(d)). This report does not submit this information on the Company’s behalf — that step must be completed separately, by that individual, on the Agency’s site." },
+      // 1
+      { kind: "table", text: "agency_submission_checklist" },
+      // 2
+      { kind: "skeleton", text: "The submitting executive must additionally attest, on the Agency’s portal, to the following statement required by § 7157(b)(5): \"I attest that the business has conducted a risk assessment for the processing activities set forth in California Code of Regulations, Title 11, section 7150, subsection (b), during the time period covered by this submission, and that I meet the requirements of section 7157, subsection (c). Under penalty of perjury under the laws of the state of California, I hereby declare that the risk assessment information submitted is true and correct.\" No signature is required for this step — it is completed as an online attestation, not a signed document." },
+    ],
+  },
   {
     // CEO REPORT REVIEW 2026-08-23/24 — APPENDIX REORDER. Section id kept
     // as "table_of_authorities": generate-report-pdf forces a fresh page on
@@ -541,8 +579,9 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     id: "table_of_authorities",
     title: "Appendix A — Factor, Determination, and Authority Matrix",
     blocks: [
-      // 0
-      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this assessment. Each row states the factor assessed, the report's determination on that factor, and the primary authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion. Internal field keys, variable names, and reasoning traces are never printed in the customer report." },
+      // 0 — CEO report review 2026-08-24: opening paragraph rewritten
+      // verbatim to the CEO's own text.
+      { kind: "skeleton", text: "The table below identifies the factors analyzed in this assessment, the determinations made for each factor based on the information provided, and the corresponding controlling authority." },
       // 1 — {{DERIVED.factor_input_determination_authority_matrix}}, assembled
       // in risk-skeleton-assemble.ts from the v4.5 Verified Factor-to-Authority
       // Registry (Part 3.G) over the factor engine's own provenance/output —

@@ -49,6 +49,36 @@ export function renderWithFootnotes(text: string): ReactNode {
   return nodes;
 }
 
+// CEO report review 2026-08-24 — web twin of generate-report-pdf/index.ts's
+// underlineAppendixRefs. Underlines every inline cross-reference to an
+// appendix ("Appendix H", "Appendix H — Materials Considered") so a reader
+// can spot the citation at a glance, then runs the surrounding plain text
+// through renderWithFootnotes as before.
+const APPENDIX_REF_RE = /Appendix [A-Z](?:\s*[—–-]\s*[A-Z][^.;]*)?/g;
+
+/** Body-text renderer: underlines appendix references, then footnote-marks. */
+export function renderBodyText(text: string): ReactNode {
+  if (!text) return text;
+  APPENDIX_REF_RE.lastIndex = 0;
+  if (!APPENDIX_REF_RE.test(text)) return renderWithFootnotes(text);
+  APPENDIX_REF_RE.lastIndex = 0;
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = APPENDIX_REF_RE.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(<span key={`t-${key++}`}>{renderWithFootnotes(text.slice(lastIndex, match.index))}</span>);
+    }
+    nodes.push(<u key={`u-${key++}`}>{match[0]}</u>);
+    lastIndex = APPENDIX_REF_RE.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    nodes.push(<span key={`t-${key++}`}>{renderWithFootnotes(text.slice(lastIndex))}</span>);
+  }
+  return nodes;
+}
+
 /**
  * Mirrors `generate-report-pdf/index.ts`'s `toaAnchorId`: a Table of
  * Authorities line the admt-v2 assembler numbered ("3. 11 CCR § 7220(c)(1)

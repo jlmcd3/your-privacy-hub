@@ -37,6 +37,9 @@ const SECTION_IDS = [
   "required_components",
   "findings_remediation",
   "conclusion",
+  // CEO report review 2026-08-24 — the not-pre-filled Signature page, ahead
+  // of the Table of Authorities.
+  "signature",
   "table_of_authorities",
 ];
 
@@ -114,7 +117,7 @@ const REPORT: Record<string, unknown> = {
 
 Deno.test("SO-4 — the skeleton's six sections, in order", () => {
   assertEquals(CYBER_SKELETON_SECTIONS.map((s) => s.id), SECTION_IDS);
-  assertEquals(CYBER_SKELETON_VERSION, "prose-plans-2026-08-10-item-so4");
+  assertEquals(CYBER_SKELETON_VERSION, "prose-plans-2026-08-24-item-so4-v3.1");
   assertEquals(CYBER_SKELETON_SOURCE_FILE, "CPPA_Cybersecurity_Audit_Skeleton_v3.docx");
   assert(CYBER_SKELETON_PROVENANCE.includes("panel-delegated approval per CEO delegation 2026-08-06"));
 });
@@ -135,7 +138,9 @@ Deno.test("SO-4 — determination leads: exactly one, opening its section", () =
 });
 
 Deno.test("SO-4 — fixed prose is byte-pinned and register-clean", () => {
-  assertEquals(CYBER_PROTECTED_FIXED_PROSE.length, 3);
+  // CEO report review 2026-08-24 — +2 for the Signature section's two fixed
+  // sentences (the scoping statement and the not-a-certification disclaimer).
+  assertEquals(CYBER_PROTECTED_FIXED_PROSE.length, 5);
   for (const text of CYBER_PROTECTED_FIXED_PROSE) {
     assert(!text.startsWith("["), "fixed prose never carries a block marker");
     for (const banned of CYBER_V3_BANNED_REGISTER) {
