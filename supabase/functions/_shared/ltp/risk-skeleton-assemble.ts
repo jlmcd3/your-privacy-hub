@@ -247,7 +247,7 @@ export function deriveExecStatusPanel(
   panel: RiskFactorEngineResult["exec_panel"],
 ): RenderedTable | null {
   if (!panel.assessment_required && !panel.inherent && !panel.residual) return null;
-  const tier = (t: string | null): string => t ?? "Not assessed — no risk pathways recorded.";
+  const tier = (t: string | null): string => t ?? "Not assessed — no risks recorded.";
   const disposition = panel.disposition
     .split(" ")
     .map((w) => (w === "with" || w === "not" ? w : w.charAt(0).toUpperCase() + w.slice(1)))
@@ -489,7 +489,7 @@ export function deriveBusinessLevelOutstanding(): RenderedTable {
  */
 export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
   const rowsOut: string[][] = [
-    ["The Company’s CPPA risk-assessment intake record (Intake Contract v2.0), including its structured processing, disclosure, recipient, retention, necessity, benefit, harm-pathway and safeguard records."],
+    ["The Company’s CPPA risk-assessment intake record (Intake Contract v2.0), including its structured processing, disclosure, recipient, retention, necessity, benefit, risk and safeguard records."],
   ];
   if (s(intake.public_privacy_policy_url)) {
     rowsOut.push([`The Company’s public privacy policy: ${s(intake.public_privacy_policy_url)}`]);
@@ -1017,7 +1017,7 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
     },
   },
   {
-    label: "Material privacy-risk pathways",
+    label: "Material privacy risks",
     authority: "11 CCR § 7152(a)(5)(A)–(H)",
     blockKeys: ["vii_risks:1"],
   },
@@ -1271,7 +1271,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   composed["viii_safeguards:4"] ??=
     "C. Planned Safeguards. None recorded: the Company identifies no planned safeguards for this activity, and the analysis rests on the implemented safeguards above.";
   composed["viii_safeguards:5"] ??=
-    "D. Safeguard Gaps. None identified: on the current record, no material risk pathway lacks a safeguard at implemented status.";
+    "D. Safeguard Gaps. None identified: on the information provided, no material risk lacks a safeguard at implemented status.";
 
   // v4.6 — Appendix B (formerly "I", Persuasive Authority): pure CAM
   // attachment over the report's fired trigger states. Computed BEFORE

@@ -464,11 +464,11 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "VII. PRIVACY RISKS",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. How Risk Is Evaluated. Section 7152(a)(5) requires the assessment to identify negative impacts to consumers’ privacy and the sources and causes of those impacts. The regulation gives examples that include unauthorized access or loss of availability, unlawful discrimination, impaired consumer control, coercion, economic harm, physical harm, reputational harm, and psychological harm. Appendix E preserves the full pathway detail; the body focuses on risks that materially affect the processing decision." },
+      { kind: "skeleton", text: "A. How Risk Is Evaluated. Section 7152(a)(5) requires the assessment to identify negative impacts to consumers’ privacy and the sources and causes of those impacts. The regulation gives examples that include unauthorized access or loss of availability, unlawful discrimination, impaired consumer control, coercion, economic harm, physical harm, reputational harm, and psychological harm. Appendix E preserves the full risk detail; the body focuses on risks that materially affect the processing decision." },
       // 1
       { kind: "generated", text: "[GENERATED {{FACTOR.material_risk_blocks}}] B. Material Risk Pathways — ranked repeatable blocks (title; pathway narrative; likelihood; severity; materiality; decision effect before safeguards), projected from the granular risk factors. Phase C. Absent => omitted." },
       // 2
-      { kind: "skeleton", text: "C. Other Risk Categories Considered. The assessment also considers other negative impacts supported or reasonably implicated by the record, including as applicable unauthorized processing or loss of availability, unlawful discrimination, impairment of consumer control, coercion or compulsion, economic harm, physical harm, reputational harm, psychological harm, and other processing-specific consequences. A category is not assigned weight merely because it is possible in the abstract. Where the facts do not establish a credible pathway from this activity to the negative impact, it is not treated as a material risk." },
+      { kind: "skeleton", text: "C. Other Risk Categories Considered. The assessment also considers other negative impacts supported or reasonably implicated by the record, including as applicable unauthorized processing or loss of availability, unlawful discrimination, impairment of consumer control, coercion or compulsion, economic harm, physical harm, reputational harm, psychological harm, and other processing-specific consequences. A category is not assigned weight merely because it is possible in the abstract. Where the facts do not establish a credible path from this activity to the negative impact, it is not treated as a material risk." },
       // 3
       { kind: "generated", text: "[GENERATED {{FACTOR.other_risk_categories_summary}}] Phase C. Absent => omitted." },
       // 4
@@ -684,7 +684,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // (buildRiskAndSafeguardRegisterTable in risk-factor-engine.ts),
       // matching the Appendix C/F/G/H pattern. Same underlying facts, same
       // wording.
-      { kind: "skeleton", text: "This appendix provides the detailed analytical record underlying Sections VII and VIII. For each identified risk pathway, the register records the negative impact, personal information involved, relevant actor or event, source and cause, likelihood, severity, materiality, relevant safeguards, safeguard status, residual risk, and effect on the processing decision. The mapping of risks to safeguards is an EUP analytical method designed to make the reasoning transparent and reviewable. It is not presented as a regulator-prescribed report format." },
+      { kind: "skeleton", text: "This appendix provides the detailed analytical record underlying Sections VII and VIII. For each identified risk, the register records the negative impact, personal information involved, relevant actor or event, source and cause, likelihood, severity, materiality, relevant safeguards, safeguard status, residual risk, and effect on the processing decision. The mapping of risks to safeguards is an EUP analytical method designed to make the reasoning transparent and reviewable. It is not presented as a regulator-prescribed report format." },
       // 1
       { kind: "table", text: "risk_and_safeguard_register" },
     ],

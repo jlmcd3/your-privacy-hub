@@ -221,8 +221,11 @@ for (const c of CPPA_RISK_PERFECT) {
       );
     });
 
-    await t.step("risk pathway blocks and the inherent conclusion render", () => {
-      assert(body.includes("B. Material Risk Pathways."), "VII.B head absent");
+    await t.step("risk blocks and the inherent conclusion render", () => {
+      // v5.2 terminology sweep (2026-08-25) — "risk pathway" retired from
+      // customer-facing text in favor of "risk"; see the identical change
+      // to vii_b_head in risk-factor-engine.ts.
+      assert(body.includes("B. Material Risks."), "VII.B head absent");
       assert(body.includes("Materiality before safeguards:"), "materiality line absent");
       assert(body.includes("E. Inherent Risk Conclusion."), "VII.E head absent");
       assert(

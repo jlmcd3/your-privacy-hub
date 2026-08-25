@@ -153,7 +153,7 @@ export const RISK_FACTOR_FIXED = {
   material_benefits_lead: "The benefits carrying the greatest weight are:",
   discounted_lead: "The following claimed benefits receive reduced or no weight:",
 
-  vii_b_head: "B. Material Risk Pathways.",
+  vii_b_head: "B. Material Risks.",
   vii_e_head: "E. Inherent Risk Conclusion.",
   inherent_lead: "Before safeguards are given effect, the risks carrying the greatest weight are:",
   inherent_close: "The next question is how materially the Company’s safeguards change that risk.",
@@ -303,7 +303,7 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
       conclusion:
         "The benefits of the processing outweigh the residual privacy risks that remain, although the margin is narrower than a low-residual profile would produce.",
       materiality:
-        "The determination is material: the moderate residual pathway or pathways identified in Section VIII could change the balance if the risk grows or a credited safeguard weakens.",
+        "The determination is material: the moderate residual risk or risks identified in Section VIII could change the balance if the risk grows or a credited safeguard weakens.",
       effect:
         "The processing may proceed, subject to any conditions identified below and to the review cadence in Section X.",
       kind: "proceed",
@@ -313,20 +313,20 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
     High: {
       conclusion:
         "The residual privacy risks remaining after credited safeguards are substantial, and the benefits established do not outweigh them on the present record.",
-      materiality: "The determination is material and adverse: a high-tier residual pathway remains.",
+      materiality: "The determination is material and adverse: a high-tier residual risk remains.",
       effect:
         "The processing should not proceed in its present form; completion of the identified conditions and an updated assessment could change the determination.",
       kind: "stop",
       explanation:
-        "The determination rests on the residual-risk conclusion in Section VIII: the benefit record, although material, cannot carry a high-tier residual pathway.",
+        "The determination rests on the residual-risk conclusion in Section VIII: the benefit record, although material, cannot carry a high-tier residual risk.",
     },
     Critical: {
       conclusion: "A critical residual privacy risk remains, and the benefits established cannot outweigh it.",
       materiality: "The determination is decisive on the present record.",
-      effect: "The processing should not proceed while the critical residual pathway remains.",
+      effect: "The processing should not proceed while the critical residual risk remains.",
       kind: "stop",
       explanation:
-        "A critical residual pathway precludes a favorable balance regardless of the weight of the benefit record.",
+        "A critical residual risk precludes a favorable balance regardless of the weight of the benefit record.",
     },
   },
   limited: {
@@ -344,7 +344,7 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
       conclusion:
         "The benefits established carry limited weight and a moderate residual risk remains; the balance favors the processing only narrowly.",
       materiality:
-        "The determination is close. Growth in the residual pathway or pathways, or weakening of a credited safeguard, should prompt reassessment.",
+        "The determination is close. Growth in the residual risk or risks, or weakening of a credited safeguard, should prompt reassessment.",
       effect:
         "The processing may proceed, subject to any conditions identified below; the review cadence in Section X takes on added importance.",
       kind: "proceed",
@@ -358,15 +358,15 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
       effect: "The processing should not proceed in its present form on the present record.",
       kind: "stop",
       explanation:
-        "A high-tier residual pathway cannot be carried by a benefit record of limited weight.",
+        "A high-tier residual risk cannot be carried by a benefit record of limited weight.",
     },
     Critical: {
       conclusion: "A critical residual privacy risk remains, and the limited benefits established cannot outweigh it.",
       materiality: "The determination is decisive on the present record.",
-      effect: "The processing should not proceed while the critical residual pathway remains.",
+      effect: "The processing should not proceed while the critical residual risk remains.",
       kind: "stop",
       explanation:
-        "A critical residual pathway precludes a favorable balance regardless of the weight of the benefit record.",
+        "A critical residual risk precludes a favorable balance regardless of the weight of the benefit record.",
     },
   },
   none: {
@@ -674,7 +674,7 @@ export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
     surface: "risk_and_safeguard_register",
     title: "",
     columns: [
-      "Risk Pathway",
+      "Risk",
       "Information, Actor, Source, and Cause",
       "Likelihood, Severity, and Materiality (Before Safeguards)",
       "Safeguards",
@@ -789,7 +789,7 @@ export function runRiskFactorEngine(
   }
   for (const p of gaps) {
     conditions.push(
-      `Establish and implement a safeguard addressing the material risk pathway: ${p.harm}`,
+      `Establish and implement a safeguard addressing the material risk: ${p.harm}`,
     );
   }
 
@@ -940,7 +940,7 @@ export function runRiskFactorEngine(
   }
   if (interdependency === "Unsure") {
     followUps.push(
-      "Determine whether the identified risk pathways could compound each other",
+      "Determine whether the identified risks could compound each other",
     );
   }
   if (isAdmt && (admtLogicDocumented === "The logic is not fully documented or understood" || admtLogicDocumented === "Unsure")) {
@@ -1082,13 +1082,13 @@ export function runRiskFactorEngine(
   if (material.length) {
     const blocksText = material.map((p) => {
       const effect = p.materiality === "Critical"
-        ? "this pathway alone could preclude a favorable balance unless materially reduced by safeguards."
+        ? "this risk alone could preclude a favorable balance unless materially reduced by safeguards."
         : p.materiality === "High"
-        ? "this pathway weighs substantially against the processing unless materially reduced by safeguards."
+        ? "this risk weighs substantially against the processing unless materially reduced by safeguards."
         : p.materiality === "Moderate"
-        ? "this pathway is material to the balance and requires safeguard credit to be acceptable."
-        : "this pathway does not by itself move the balance.";
-      return `Risk pathway — ${p.harm}. The Company describes the pathway as follows. Information involved: ${p.data}. Actor or event: ${p.actor}. Source: ${p.source}. Cause: ${p.cause}. Likelihood (Company assessment): ${p.likelihood}. Severity (Company assessment): ${p.severity}. Materiality before safeguards: ${p.materiality}. Decision effect before safeguards: ${effect}`;
+        ? "this risk is material to the balance and requires safeguard credit to be acceptable."
+        : "this risk does not by itself move the balance.";
+      return `Risk — ${p.harm}. The Company describes the risk as follows. Information involved: ${p.data}. Actor or event: ${p.actor}. Source: ${p.source}. Cause: ${p.cause}. Likelihood (Company assessment): ${p.likelihood}. Severity (Company assessment): ${p.severity}. Materiality before safeguards: ${p.materiality}. Decision effect before safeguards: ${effect}`;
     });
     put(
       "vii_risks:1",
@@ -1118,13 +1118,13 @@ export function runRiskFactorEngine(
     // The fix is to stop reading that field here entirely, not to correct the
     // key names: this sentence must always compose from the customer-facing
     // harm-pathway record, which is what the retained branch already does.
-    const text = `The Company’s pathway record addresses the following ${
+    const text = `The Company’s risk record addresses the following ${
       plural(addressed.length, "category", "categories")
     }: ${addressed.join("; ")}.${
       remaining.length
         ? ` For the remaining ${
           plural(remaining.length, "category", "categories")
-        } — ${remaining.join("; ")} — no credible pathway is identified in the assessment record, and ${
+        } — ${remaining.join("; ")} — no credible path is identified in the assessment record, and ${
           plural(remaining.length, "it is", "they are")
         } not treated as material ${plural(remaining.length, "risk", "risks")}.`
         : ""
@@ -1153,9 +1153,9 @@ export function runRiskFactorEngine(
         "B",
         `${interactingLead} the Company records that ${
           named.length >= 2
-            ? `the following pathways could compound each other: ${asProse(named)}`
-            : "two or more of the identified pathways could compound each other"
-        }. The materiality tiers above are assigned per pathway and are not increased by the interaction; the interaction is instead treated as a consideration against the processing in Section IX, because a compounding pathway can make an adverse outcome more likely or more severe than either pathway alone.`,
+            ? `the following risks could compound each other: ${asProse(named)}`
+            : "two or more of the identified risks could compound each other"
+        }. The materiality tiers above are assigned per risk and are not increased by the interaction; the interaction is instead treated as a consideration against the processing in Section IX, because a compounding risk can make an adverse outcome more likely or more severe than either risk alone.`,
         ["INTAKE:risk_interdependency_check", "INTAKE:compounding_pathways"],
         [],
       );
@@ -1237,7 +1237,7 @@ export function runRiskFactorEngine(
               ? "validated by testing against the risk it addresses and is credited at full weight in the residual-risk analysis."
               : "described as validated by testing, but the implementation status recorded above does not yet support that description; the credited weight follows the recorded status, not the description."
             : basis === "Consistent with an industry standard or framework"
-            ? "consistent with an industry standard or framework; conformance to a standard is credited as evidence of sound design, not as evidence the control operates against this activity’s specific pathways."
+            ? "consistent with an industry standard or framework; conformance to a standard is credited as evidence of sound design, not as evidence the control operates against this activity’s specific risks."
             : basis === "Based on internal design review only"
             ? "supported by internal design review only; design review establishes intent, and the absence of testing against the linked risk limits the reliance the assessment places on it."
             : "recorded without effectiveness evidence; the control is credited as existing at the status recorded above, and no effectiveness weight is added.";
@@ -1355,7 +1355,7 @@ export function runRiskFactorEngine(
       `${RISK_FACTOR_FIXED.gaps_lead} ${
         gaps.map((p) => `— ${p.harm} (materiality before safeguards: ${p.materiality}).`).join(" ")
       } Consequence. Until a safeguard is established for ${
-        plural(gaps.length, "this pathway", "these pathways")
+        plural(gaps.length, "this risk", "these risks")
       }, the full inherent materiality is carried into the residual-risk conclusion and weighs against the processing in Section IX.`,
       ["FACTOR:material_risk_blocks", "INTAKE:a6_safeguards"],
       ["11 CCR § 7152(a)(6)"],
@@ -1366,9 +1366,9 @@ export function runRiskFactorEngine(
       "viii_safeguards:5",
       "safeguard_gap_analysis",
       "B",
-      `Analysis. A gap is recorded where a material pathway has no safeguard at implemented status. ${
+      `Analysis. A gap is recorded where a material risk has no safeguard at implemented status. ${
         gaps.map((p) =>
-          `For ${p.harm}, the pathway’s own record identifies the information involved and the cause, and no implemented control addresses it.`
+          `For ${p.harm}, the risk’s own record identifies the information involved and the cause, and no implemented control addresses it.`
         ).join(" ")
       } The gap determination is mechanical over the Company’s own safeguard record; it does not assert that no control exists, only that none is established in the record at implemented status.`,
       ["FACTOR:safeguard_gaps", "INTAKE:a6_safeguards"],
@@ -1386,14 +1386,14 @@ export function runRiskFactorEngine(
       );
     const listText = residualList.length
       ? residualList.join(" ")
-      : "— None above the low tier. Each pathway is reduced to, or already sits at, the low tier once safeguards supported by testing evidence are credited.";
+      : "— None above the low tier. Each risk is reduced to, or already sits at, the low tier once safeguards supported by testing evidence are credited.";
     const conclusionText = maxResidual === "Critical"
       ? "Conclusion. After credited safeguards, the residual privacy risk of the activity is critical. The processing cannot be favorably balanced while this residual risk remains."
       : maxResidual === "High"
       ? "Conclusion. After credited safeguards, the residual privacy risk of the activity is high. The balancing analysis in Section IX treats this residual risk as weighing substantially against the processing."
       : maxResidual === "Moderate"
-      ? "Conclusion. After credited safeguards, the residual privacy risk of the activity is moderate. The pathways identified above remain material to the balancing decision."
-      : "Conclusion. After credited safeguards, the residual privacy risk of the activity is low. No individual pathway remains above the low tier.";
+      ? "Conclusion. After credited safeguards, the residual privacy risk of the activity is moderate. The risks identified above remain material to the balancing decision."
+      : "Conclusion. After credited safeguards, the residual privacy risk of the activity is low. No individual risk remains above the low tier.";
     put(
       "viii_safeguards:7",
       "material_residual_risks",
@@ -1416,14 +1416,14 @@ export function runRiskFactorEngine(
             ? `unchanged at ${p.residual} — the only recorded safeguard is planned, and a planned safeguard is a condition, not present mitigation.`
             : p.bestStatus
             ? `unchanged at ${p.residual} on the recorded safeguard status.`
-            : `unchanged at ${p.residual} — no safeguard is established for the pathway.`
+            : `unchanged at ${p.residual} — no safeguard is established for the risk.`
         }`;
       });
       put(
         "viii_safeguards:7",
         "residual_risk_analysis",
         "B",
-        `Analysis. Each pathway’s residual tier follows from the Company’s own safeguard record: ${
+        `Analysis. Each risk’s residual tier follows from the Company’s own safeguard record: ${
           walk.join(" ")
         }`,
         ["INTAKE:a5_harm_pathways", "INTAKE:a6_safeguards", "FACTOR:residual_rule"],
@@ -1434,7 +1434,7 @@ export function runRiskFactorEngine(
       "viii_safeguards:7",
       "overall_residual_risk_conclusion",
       "B",
-      `${conclusionText} Reasoning. A safeguard reduces a pathway’s materiality by one tier only where implementation and testing evidence supports it; implemented-but-untested and planned safeguards are recorded but do not change the tier. The Company’s own residual descriptions are preserved in Appendix E.`,
+      `${conclusionText} Reasoning. A safeguard reduces a risk’s materiality by one tier only where implementation and testing evidence supports it; implemented-but-untested and planned safeguards are recorded but do not change the tier. The Company’s own residual descriptions are preserved in Appendix E.`,
       ["FACTOR:material_residual_risks"],
       ["11 CCR § 7152(a)(6)"],
     );
@@ -1558,7 +1558,7 @@ export function runRiskFactorEngine(
       );
     }
     if (tested.length) {
-      pro.push("— Safeguards supported by testing evidence reduce the principal risk pathways (Section VIII).");
+      pro.push("— Safeguards supported by testing evidence reduce the principal risks (Section VIII).");
     }
     // RK3-D — typed expectation and choice-architecture support (doc 33 D-L5).
     if (expectAll.length && divergenceMarkers.length === 0) {
@@ -1604,7 +1604,7 @@ export function runRiskFactorEngine(
       );
     }
     if (gaps.length) {
-      con.push(`— ${plural(gaps.length, "A material risk pathway lacks", "Material risk pathways lack")} an implemented safeguard (Section VIII).`);
+      con.push(`— ${plural(gaps.length, "A material risk lacks", "Material risks lack")} an implemented safeguard (Section VIII).`);
     }
     if (planned.length) {
       con.push("— The safeguard posture depends in part on safeguards that are planned but not yet operational (Section VIII).");
@@ -1623,11 +1623,11 @@ export function runRiskFactorEngine(
     }
     if (interdependency === "Two or more identified pathways could compound each other") {
       con.push(
-        "— Two or more identified risk pathways could compound each other, which can make an adverse outcome more likely or more severe than either pathway alone (Section VII).",
+        "— Two or more identified risks could compound each other, which can make an adverse outcome more likely or more severe than either risk alone (Section VII).",
       );
     }
     if (con.length === 0 && pathways.length) {
-      con.push("— No residual pathway remains above the low tier; the considerations against the activity are correspondingly limited.");
+      con.push("— No residual risk remains above the low tier; the considerations against the activity are correspondingly limited.");
     }
     if (con.length) {
       put(
