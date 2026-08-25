@@ -17,6 +17,24 @@ console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directiv
 // retention re-anchor guard supersedes § 7123(e) mis-anchor (wave-15 HIGH).
 export const BUILD_STAMP = "w21-cyber-turnc@2026-07-25T12:53:27Z";
 console.log(`[run-cppa-cybersecurity] boot build_stamp=${BUILD_STAMP}`);
+// C1.1a — CYBER DETERMINISM REWRITE (2026-08-25, doc 67 §2.1). With the flag
+// on, both model stages (the controls-half calls + synthesis call, their
+// retry surface, and the post-lint T-2/T-3/T-4/T-5 retry) and the ~9 passes
+// that exist only to police that model output's prose defects (W6/W9/W10/
+// W12/W15-VA/W21/refinement/the cyber-controls dedup pass/
+// applyConsistencyFixes) are skipped entirely. buildCyberDeliverables
+// (ITEM 315) remains the sole writer of the substantive conclusion, exactly
+// as it already runs today UNCONDITIONALLY (doc 24a §8.2 — it never
+// depended on the model's controls[] scoring in the first place). Mirrors
+// the DPIA_UNITS_MINIMAL pattern (run-dpia-framework/index.ts): env-driven
+// so it can flip per-deploy without a code change. DEFAULT: false — the
+// legacy (model-authored) path is untouched when the flag is off.
+export const CYBER_DETERMINISTIC_DEFAULT = false;
+export const CYBER_DETERMINISTIC_ENABLED: boolean = (() => {
+  const raw = Deno.env.get("CYBER_DETERMINISTIC_ENABLED");
+  if (raw == null || raw.trim() === "") return CYBER_DETERMINISTIC_DEFAULT;
+  return /^(1|true|yes|on)$/i.test(raw.trim());
+})();
 // ITEM 404 — CYBER PROSE GOLD (leg A). The pipeline stamp is a NEW constant;
 // this function carried only BUILD_STAMP before item404.
 import { applyCyberProseGold, CYBER_PROSE_GOLD_VERSION } from "./_local/ltp/cyber-prose-gold.ts";
@@ -975,6 +993,31 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     }
 
 
+    // C1.1a (doc 67 §2.1) — deterministic path: skip both model stages and
+    // their retry/lint surface entirely under the flag. buildCyberDeliverables
+    // (ITEM 315, below) is the sole writer of the substantive conclusion
+    // either way — it never read from `report.controls`. The stub fields
+    // below carry no model-authored content; every downstream pass is
+    // fail-open by construction (each already wrapped in its own try/catch)
+    // and degrades harmlessly against an empty controls array.
+    let report: any;
+    const lintViolations: any[] = [];
+    if (CYBER_DETERMINISTIC_ENABLED) {
+      report = {
+        executive_summary: "",
+        overall_score: 0,
+        readiness_level: "Insufficient basis to assess",
+        controls: [],
+        top_risks: [],
+        enforcement_context: "",
+        next_steps: [],
+        annotations: [],
+      };
+      console.log(JSON.stringify({
+        evt: "cyber_deterministic_path", fn: "run-cppa-cybersecurity",
+        build_stamp: BUILD_STAMP, assessment_id, enabled: true,
+      }));
+    } else {
     // ── Run two parallel controls halves ─────────────────────────────────
     let [half1, half2] = await Promise.all([
       callControlsHalf(1, 9, ""),
@@ -1017,7 +1060,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       return;
     }
 
-    let report: any = {
+    report = {
       executive_summary: synthesis.executive_summary,
       overall_score,
       readiness_level: synthesis.readiness_level,
@@ -1031,7 +1074,6 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     normaliseReport(report);
 
     // Output lint: surgical retry — re-run only the call(s) whose text violates.
-    const lintViolations: any[] = [];
     {
       const lintHalf1 = lintReportText(assembleControlsNarrative(half1!.controls));
       const lintHalf2 = lintReportText(assembleControlsNarrative(half2!.controls));
@@ -1221,6 +1263,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // Deterministic consistency check: align status↔score, recompute overall_score,
     // and align readiness_level to the score band.
     applyConsistencyFixes(report);
+    } // end else (CYBER_DETERMINISTIC_ENABLED — model stages + retry/lint surface)
 
 
 
@@ -1466,7 +1509,9 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // ITEM 337 (PROSE PROGRAM 1, Part D4) — deterministic control dedup onto
     // the canonical § 7123(c) component (more severe status wins) and HIPAA
     // pinpointing with comparative framing.
-    {
+    // C1.1a — retired outright under CYBER_DETERMINISTIC_ENABLED (doc 67
+    // §2.1): this pass only repairs defects in the model's controls[] array.
+    if (!CYBER_DETERMINISTIC_ENABLED) {
       const cyberProse = applyCyberProsePass(report as Record<string, unknown>);
       (report as any)._meta = {
         ...((report as any)._meta || {}),
@@ -1672,6 +1717,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // the fully-assembled report AFTER all prior scrubs (component-cite,
     // slug, enforcement-tag, exec-summary count reconciliation) and BEFORE
     // the _meta stamp / terminal write. Idempotent, fail-open.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const intakeForW6 = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const w6 = applyW6CyberFix(report as any, intakeForW6 as any);
@@ -1687,6 +1733,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     // W9 TURN 3 — deterministic slot reprojection (component_matrix,
     // scope_justification, top_3_actions). Runs after W6 scrub; fail-open.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const intakeForW9 = ((row as any).intake_data as Record<string, unknown>) ?? {};
       const w9 = attachAndValidateCyberSlots(report as any, intakeForW9);
@@ -1705,6 +1752,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // A2 (2026-07-24) — deterministic aggregates injection + authored-aggregate
     // scrub. Runs AFTER W9 slots so aggregates see the final controls array.
     // Fail-open.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const w10 = attachCyberAggregates(report as any);
       console.log(JSON.stringify({
@@ -1752,6 +1800,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // parens, and dedupes exact-match operative sentences per surface.
     // Telemetry lands under _meta.internal.crosswalk (NOT customer-visible).
     // Fail-open.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const e1 = applyW12CyberE1(report as any);
       console.log(JSON.stringify({
@@ -1844,6 +1893,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // anchor guard: any entry whose text mentions the § 7122(g) five-year
     // retention rule (or mis-anchors it to § 7123(e)) is re-anchored to the
     // cyber_retention_5yr row. Fail-open.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       let stamped = 0;
       let retentionReanchored = 0;
@@ -1951,6 +2001,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // counters + stamp sequestered under _meta.internal.cyber_w21c (never a
     // customer-surface key). See supabase/functions/run-cppa-cybersecurity/
     // _w21_cyber_turnc.ts for the C1-C6 charter.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const w21c = applyW21CyberTurnC(report as any, {
         intake: ((row as any).intake_data as Record<string, unknown>) ?? null,
@@ -1975,6 +2026,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // item406 coverage → item405 record-complete gate — so every downstream
     // deterministic pass, and the gate, see the spliced document. One pass,
     // no loops. Config-gated by CYBER_REFINEMENT_ENABLED; fail-open.
+    if (!CYBER_DETERMINISTIC_ENABLED)
     try {
       const { runCyberRefinement } = await import("./_local/ltp/cyber-refinement.ts");
       const { makeCyberRefinementDeps, CYBER_REFINEMENT_ENABLED } = await import("./_local/ltp/cyber-refinement-deps.ts"
