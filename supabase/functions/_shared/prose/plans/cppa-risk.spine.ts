@@ -492,7 +492,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 4
       { kind: "conditional", text: "[CONDITIONAL] PLANNED SAFEGUARDS - trigger {{FACTOR.planned_safeguards}} present. Fixed lead \"C. Planned Safeguards. The Company plans to implement:\" + note \"A planned safeguard does not eliminate present risk. Where the favorable determination depends materially on a safeguard that is not yet operational, implementation is treated as a Condition to Proceed rather than as an existing mitigation.\" Phase C. Absent => the v4.7.2 not-applicable line (no planned safeguards recorded), so the A-B-E lettering never shows an unexplained gap." },
       // 5
-      { kind: "conditional", text: "[CONDITIONAL] SAFEGUARD GAPS - trigger {{FACTOR.safeguard_gaps}} present. Fixed lead \"D. Safeguard Gaps. The following material risk is not sufficiently addressed by safeguards established on the current record:\". Phase C. Absent => the v4.7.2 none-identified line." },
+      { kind: "conditional", text: "[CONDITIONAL] SAFEGUARD GAPS - trigger {{FACTOR.safeguard_gaps}} present. Fixed lead \"D. Safeguard Gaps. The following material risk is not sufficiently addressed by safeguards established on the information provided:\". Phase C. Absent => the v4.7.2 none-identified line." },
       // 6
       { kind: "skeleton", text: "E. Residual Risk. Sections 7152(a)(5)–(6) require the assessment to consider the identified negative impacts together with the safeguards used to address them. Residual risk is the practical risk that remains after safeguards that can reasonably be credited are taken into account; that remaining risk is what enters the final balancing analysis under § 7154." },
       // 7

@@ -171,7 +171,7 @@ export const RISK_FACTOR_FIXED = {
   planned_note:
     "A planned safeguard does not eliminate present risk. Where the favorable determination depends materially on a safeguard that is not yet operational, implementation is treated as a Condition to Proceed rather than as an existing mitigation.",
   gaps_lead:
-    "D. Safeguard Gaps. The following material risk is not sufficiently addressed by safeguards established on the current record:",
+    "D. Safeguard Gaps. The following material risk is not sufficiently addressed by safeguards established on the information provided:",
   residual_lead: "The principal residual risks are:",
 
   ix_b_head: "B. Factors Supporting the Processing.",
@@ -1164,7 +1164,7 @@ export function runRiskFactorEngine(
         "vii_risks:4",
         "risk_interdependency_analysis",
         "B",
-        `${interactingLead} the Company records that the identified risk pathways operate independently, and no compounding interaction enters the analysis on the structured record.`,
+        `${interactingLead} the Company records that the identified risk pathways operate independently, and no compounding interaction enters the analysis on the information provided.`,
         ["INTAKE:risk_interdependency_check"],
         [],
       );
@@ -1618,7 +1618,7 @@ export function runRiskFactorEngine(
     }
     if (choiceNoneConfirmed) {
       con.push(
-        "— None of the choice-architecture facts the assessment checks can be confirmed on the structured record (Section IV).",
+        "— None of the choice-architecture facts the assessment checks can be confirmed on the information provided (Section IV).",
       );
     }
     if (interdependency === "Two or more identified pathways could compound each other") {
@@ -2102,7 +2102,7 @@ export function runRiskFactorEngine(
         );
       }
       const text = sourceFactors.length === 0 && direct
-        ? "Analysis. The Company identifies a single source category: information supplied directly by the consumer. Direct collection ties the information to the interaction the consumer participates in, and no source-based accuracy or awareness consideration is identified on the structured record."
+        ? "Analysis. The Company identifies a single source category: information supplied directly by the consumer. Direct collection ties the information to the interaction the consumer participates in, and no source-based accuracy or awareness consideration is identified on the information provided."
         : `Analysis. The Company identifies the following source ${
           plural(sourceCats.length, "category", "categories")
         }: ${asProse(sourceCats.map((x) => x.toLowerCase()))}. On the structured record, ${asProse(sourceFactors)}.${
@@ -2643,7 +2643,7 @@ export function runRiskFactorEngine(
           ? `Analysis. The Company confirms that ${asProse(confirmed)}, and does not confirm that ${
             asProse(missing)
           }. Human review is credited only to the extent confirmed; an unconfirmed element is not assumed.`
-          : "Analysis. None of the elements of effective human involvement can be confirmed on the structured record. The review that exists is not shown to change outcomes, and the automated component is weighed as if it decides.";
+          : "Analysis. None of the elements of effective human involvement can be confirmed on the information provided. The review that exists is not shown to change outcomes, and the automated component is weighed as if it decides.";
         put(
           "v_admt:7",
           "human_review_effectiveness_analysis",
