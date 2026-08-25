@@ -5,7 +5,9 @@
 //     profile: { entity_name, industry, incidents_12mo, framework, last_audit,
 //                in_scope_frameworks, audit_scope_rationale,
 //                auditor_engagement_status, prior_audit_scope,
-//                remediation_owner },
+//                remediation_owner,
+//                q1_revenue, q2_consumers, q5_sell_share,
+//                q5c_share_revenue_50pct, q15_sensitive_pi, q15c_spi_volume },
 //     controls: [ { key, label, maturity, notes, evidence } × 18 ]
 //   }
 //
@@ -14,6 +16,32 @@
 // immediately after `prior_audit_scope`. `profile.in_scope_frameworks` is
 // PREFILLED from `profile.framework` and presented as a confirmation —
 // prefill only, never merged; key, options and stored values unchanged.
+//
+// C1.2 (2026-08-25) — the § 7120(a)-(b) audit-applicability predicate
+// inputs. Prior to this change the contract asked NO revenue or
+// data-volume question at all (see the now-superseded "AUDIT-SCHEDULE
+// TRUTH" note in _shared/golden/cppa-cyber.ts), so § 7120's A1/A2
+// applicability test could never be computed — only stated as law. These
+// six fields are the SAME fields, verbatim, that
+// _shared/intake-contracts/cppa-risk-assessment.ts already asks
+// (q1_revenue/q2_consumers/q5_sell_share/q5c_share_revenue_50pct/
+// q15_sensitive_pi/q15c_spi_volume) — no new customer-facing text is
+// authored; Risk's q5c and q15c labels already cite § 7120(b)(1) and
+// § 7120(b)(2)(B) by name, confirming these are the intended predicate
+// inputs. Classified `required: "optional", askEligible: true` — matching
+// this contract's OWN convention for every other non-core-five field
+// (auditor_engagement_status, prior_audit_scope, controls[].maturity),
+// not Risk's stricter "always" classification for the identical fields;
+// an unanswered field routes the applicability table to an explicit
+// "insufficient information" cell rather than blocking checkout or
+// failing a contract check against pre-existing fixtures that predate
+// this landing. Deliberately NOT extended to the § 7121(a)
+// deadline-tier / § 7121(b) cadence content: the CEO-ratified skeleton's
+// OWN fixed prose (cppa-cyber.spine.ts, "audit_scope" section, the
+// byte-pinned corpus block) states "No slot, no generation, no cohort
+// computed" as the ITEM-204 design law for that specific surface —
+// computing a tier there would contradict shipped, ratified prose and
+// needs its own CEO ruling, not a Sonnet engineering call.
 //
 // IMPORT-VS-LITERAL DECISION: Supabase edge-function bundling only ships
 // files under supabase/functions/, so this contract cannot import from
@@ -120,6 +148,25 @@ export const CYBER_AUDITOR_ENGAGEMENT_OPTIONS = [
   "External auditor engaged, independence confirmed in writing",
 ] as const;
 
+// C1.2 — LITERAL COPY of src/pages/CPPACybersecurity.enums.ts
+// CYBER_REVENUE_OPTS/CYBER_CONSUMER_OPTS/CYBER_SELL_SHARE_OPTS/
+// CYBER_SHARE_REVENUE_50PCT_OPTS/CYBER_SENSITIVE_PI_OPTS/
+// CYBER_SPI_VOLUME_OPTS, which are themselves verbatim reuses of Risk's
+// already-ratified REVENUE_OPTS/CONSUMER_OPTS/Q5_SELL_SHARE_OPTS/
+// SHARE_REVENUE_50PCT_OPTS/Q15_SENSITIVE_PI_OPTS/SPI_VOLUME_OPTS.
+export const CYBER_APPLICABILITY_REVENUE_OPTIONS = [
+  "Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M",
+] as const;
+export const CYBER_APPLICABILITY_CONSUMER_OPTIONS = [
+  "Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more",
+] as const;
+export const CYBER_APPLICABILITY_SELL_SHARE_OPTIONS = [
+  "Yes — sell only", "Yes — share for advertising only", "Both", "No",
+] as const;
+export const CYBER_APPLICABILITY_SHARE_REVENUE_50PCT_OPTIONS = ["Yes", "No", "Unsure"] as const;
+export const CYBER_APPLICABILITY_SENSITIVE_PI_OPTIONS = ["Yes", "No", "Unsure"] as const;
+export const CYBER_APPLICABILITY_SPI_VOLUME_OPTIONS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;
+
 
 
 export const cppaCybersecurityContract: IntakeContract = {
@@ -153,6 +200,41 @@ export const cppaCybersecurityContract: IntakeContract = {
     // stored rows validate unchanged.
     { key: "profile.remediation_owner", kind: "text", required: "optional",
       askEligible: true },
+    // C1.2 — § 7120(a)-(b) audit-applicability predicate inputs. See the
+    // header comment for the full rationale (verbatim reuse of Risk's own
+    // q1/q2/q5/q5c/q15/q15c fields, deliberately NOT extended to the
+    // § 7121 deadline surface).
+    // Classified `required: "optional"` (revised during this landing from an
+    // initial "always" — reverted after `contract-surface-audit.test.ts`
+    // and `intake-contracts.test.ts` showed multiple existing sample-report
+    // and contract-scenario fixtures across the fleet predate these fields
+    // and don't carry them; "always" would make every one of those a
+    // contract violation). This matches Cyber's OWN established convention
+    // for every other non-core-five field (`auditor_engagement_status`,
+    // `prior_audit_scope`, `controls[].maturity` are all `required:
+    // "optional", askEligible: true`) rather than Risk's stricter
+    // classification for the identical fields — the runtime predicate
+    // (cyber-applicability.ts) already treats an empty answer as
+    // indeterminate regardless of this classification, so nothing about
+    // the applicability table's correctness depends on it.
+    { key: "profile.q1_revenue", kind: "enum", required: "optional",
+      options: CYBER_APPLICABILITY_REVENUE_OPTIONS, askEligible: true },
+    { key: "profile.q2_consumers", kind: "enum", required: "optional",
+      options: CYBER_APPLICABILITY_CONSUMER_OPTIONS, askEligible: true },
+    { key: "profile.q5_sell_share", kind: "enum", required: "optional",
+      options: CYBER_APPLICABILITY_SELL_SHARE_OPTIONS, askEligible: true },
+    // Conditional, mirroring Risk's own gate: only asked once q5_sell_share
+    // indicates any selling/sharing at all.
+    { key: "profile.q5c_share_revenue_50pct", kind: "enum", required: "conditional",
+      requiredWhen: 'q5_sell_share !== "No"', hiddenValue: "",
+      trigger: { key: "profile.q5_sell_share", equals: ["Yes — sell only", "Yes — share for advertising only", "Both"] },
+      options: CYBER_APPLICABILITY_SHARE_REVENUE_50PCT_OPTIONS },
+    { key: "profile.q15_sensitive_pi", kind: "enum", required: "optional",
+      options: CYBER_APPLICABILITY_SENSITIVE_PI_OPTIONS, askEligible: true },
+    { key: "profile.q15c_spi_volume", kind: "enum", required: "conditional",
+      requiredWhen: 'q15_sensitive_pi === "Yes"', hiddenValue: "",
+      trigger: { key: "profile.q15_sensitive_pi", equals: ["Yes"] },
+      options: CYBER_APPLICABILITY_SPI_VOLUME_OPTIONS },
     // controls[]
     { key: "controls[].key",     kind: "enum",      required: "always",
       options: CYBER_CONTROL_SLUGS },

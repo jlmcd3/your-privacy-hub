@@ -26,7 +26,26 @@
 // not-pre-filled Name/Title/Signature/Date table with a scoping statement
 // before it and a clarifying disclaimer after it. No component finding,
 // determination, or intake contract changed.
-export const CYBER_SKELETON_VERSION = "prose-plans-2026-08-24-item-so4-v3.1";
+//
+// v3.2 (2026-08-25, Conversion C1.2) — adds ONE new `{kind:"table"}` block
+// as the FIRST block of Section I ("audit_scope"), before the existing
+// fixed prose: the doc-64-ratified § 7120(a)-(b) applicability table
+// (computed from six new intake fields, gated behind
+// CYBER_DETERMINISTIC_ENABLED — absent under the flag, per the NO-PADDING
+// law in skeleton-render.ts). No new fixed prose is added (none is
+// available to transcribe byte-for-byte from a ratified docx for this
+// insertion; the table's own title/columns/note carry its framing,
+// matching the v3.1 Signature-table precedent). The existing Section I
+// skeleton prose and the byte-pinned ITEM-204 corpus block shift from
+// blocks[0]/[1] to blocks[1]/[2] — their TEXT is unchanged, only their
+// position, so CYBER_SKELETON_CONTENT_HASH (which hashes only `kind:
+// "skeleton"` block text, in order) is unaffected and NOT recomputed.
+// Deliberately does NOT touch the § 7121(a)/(b) deadline/cadence content:
+// that block's own text states "No slot, no generation, no cohort
+// computed" as the ITEM-204 design law, and computing a tier there would
+// contradict already-shipped, CEO-ratified prose — see the intake
+// contract's header comment for the full reasoning.
+export const CYBER_SKELETON_VERSION = "prose-plans-2026-08-25-item-so4-v3.2";
 export const CYBER_SKELETON_SOURCE_FILE = "CPPA_Cybersecurity_Audit_Skeleton_v3.docx";
 export const CYBER_SKELETON_PROVENANCE =
   "CPPA_Cybersecurity_Audit_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
@@ -72,6 +91,10 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
     id: "audit_scope",
     title: "I. Audit Scope and the Auditor",
     blocks: [
+      // v3.2 (Conversion C1.2) — the § 7120(a)-(b) applicability table.
+      // Gated behind CYBER_DETERMINISTIC_ENABLED at the assembler; absent
+      // (NO-PADDING law) when the flag is off.
+      { kind: "table", text: "" },
       { kind: "skeleton", text: "The company has indicated that its programme is built on {profile.framework - verbatim option value rendered in a sentence}, and that the frameworks in scope for the audit are {profile.in_scope_frameworks - as prose}. Its rationale for the audit's scope, as recorded: {profile.audit_scope_rationale - own paragraph, attributed}. As to the auditor, the company reports {AUDITOR_PHRASE - reader label from auditor_engagement_status}. {PRIOR_AUDIT_SENTENCE - from prior_audit_scope, attributed; absent => the honest sentence that no prior audit coverage was recorded}. The company reports {profile.incidents_12mo - rendered as prose} in the preceding twelve months, and that its last audit occurred {profile.last_audit - adverbial phrase}." },
       { kind: "corpus", text: "[BYTE-PINNED - the ITEM-204 ruling] The certification phase-in schedule is stated as law, all three tiers, corpus-quoted from the verified Section 7121 row; the company, in consultation with counsel, determines which tier its revenue places it in. No slot, no generation, no cohort computed." },
     ],

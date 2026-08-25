@@ -53,3 +53,19 @@ export const CYBER_AUDITOR_ENGAGEMENT = [
   "External auditor engaged",
   "External auditor engaged, independence confirmed in writing",
 ] as const;
+
+// C1.2 (2026-08-25) — § 7120(a)-(b) audit-applicability predicate inputs.
+// VERBATIM reuse of the identical, already-ratified, already-live fields
+// from src/pages/CPPARiskAssessment.enums.ts (REVENUE_OPTS, CONSUMER_OPTS,
+// Q5_SELL_SHARE_OPTS, SHARE_REVENUE_50PCT_OPTS, Q15_SENSITIVE_PI_OPTS,
+// SPI_VOLUME_OPTS) — same statutory tests (§ 1798.140(d)(1)(A)/(C),
+// § 7120(b)(2)(A)-(B)), same option wording, no new customer-facing text
+// authored. Content-anchored: the edge contract
+// (_shared/intake-contracts/cppa-cybersecurity.ts) copies these literally;
+// parity is asserted in _tests/intake-contracts.test.ts.
+export const CYBER_REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M", "Over $100M"] as const;
+export const CYBER_CONSUMER_OPTS = ["Under 100,000", "100,000 to under 250,000", "250,000 to under 1,000,000", "1,000,000 or more"] as const;
+export const CYBER_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for advertising only", "Both", "No"] as const;
+export const CYBER_SHARE_REVENUE_50PCT_OPTS = ["Yes", "No", "Unsure"] as const;
+export const CYBER_SENSITIVE_PI_OPTS = ["Yes", "No", "Unsure"] as const;
+export const CYBER_SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Unsure"] as const;

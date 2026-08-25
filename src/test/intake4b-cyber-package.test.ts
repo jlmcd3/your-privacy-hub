@@ -38,7 +38,20 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
     ]);
   });
 
-  it("the only new field is profile.remediation_owner, optional text", () => {
+  it("the new field is profile.remediation_owner, optional text", () => {
+    const added = cppaCybersecurityContract.fields.find((f) => f.key === "profile.remediation_owner");
+    expect(added?.kind).toBe("text");
+    expect(added?.required).toBe("optional");
+  });
+
+  // DELIBERATE RE-PIN (2026-08-25, Conversion C1.2): this test's title and
+  // exact field list predate the § 7120(a)-(b) applicability predicate
+  // fields (q1_revenue/q2_consumers/q5_sell_share/q5c_share_revenue_50pct/
+  // q15_sensitive_pi/q15c_spi_volume) — see the intake contract's own
+  // header comment for the full rationale. Re-pinned to the current field
+  // list rather than widened to "contains at least"; a future INTAKE-4b-
+  // style addition should touch this list deliberately, same discipline.
+  it("the full field list is the INTAKE-4b set plus C1.2's six applicability fields", () => {
     const keys = cppaCybersecurityContract.fields.map((f) => f.key);
     expect(keys).toEqual([
       "profile.entity_name",
@@ -51,15 +64,18 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
       "profile.auditor_engagement_status",
       "profile.prior_audit_scope",
       "profile.remediation_owner",
+      "profile.q1_revenue",
+      "profile.q2_consumers",
+      "profile.q5_sell_share",
+      "profile.q5c_share_revenue_50pct",
+      "profile.q15_sensitive_pi",
+      "profile.q15c_spi_volume",
       "controls[].key",
       "controls[].label",
       "controls[].maturity",
       "controls[].notes",
       "controls[].evidence",
     ]);
-    const added = cppaCybersecurityContract.fields.find((f) => f.key === "profile.remediation_owner");
-    expect(added?.kind).toBe("text");
-    expect(added?.required).toBe("optional");
   });
 
   it("every pinned golden intake still validates unchanged", () => {

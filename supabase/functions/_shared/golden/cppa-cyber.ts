@@ -40,6 +40,26 @@ const DEFAULT_SCOPE = {
     "Audit covers the production processing estate; supplements the primary framework where § 7123(c) components are not fully addressed.",
 };
 
+// C1.2 (2026-08-25) — § 7120(a)-(b) applicability predicate answers. Every
+// fixture below resolves the audit-required question DETERMINATELY (never
+// "insufficient information"), matching this golden set's own convention
+// that a tuning/perfect fixture supplies every asked field. Two shapes:
+// APPLICABILITY_YES (both triggers met — realistic for a business large
+// enough to run the mature control postures these fixtures describe) and
+// APPLICABILITY_NO (a smaller, cleanly-negative record) — see call sites.
+const APPLICABILITY_YES = {
+  q1_revenue: "Over $100M",
+  q2_consumers: "1,000,000 or more",
+  q5_sell_share: "No",
+  q15_sensitive_pi: "No",
+};
+const APPLICABILITY_NO = {
+  q1_revenue: "Under $25M",
+  q2_consumers: "Under 100,000",
+  q5_sell_share: "No",
+  q15_sensitive_pi: "No",
+};
+
 // ─── Fixture 1: Meridian SaaS Inc. — mid-maturity NIST CSF, mixed posture ───
 const meridian: Record<string, CtrlSpec> = {
   c1_auth: { notes: "Okta SSO with FIDO2 hardware keys for engineering (168 users) and Duo push for staff (412 users); admin console access requires WebAuthn." },
@@ -146,7 +166,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "tuning",
     intake: {
-      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"] },
+      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"], ...APPLICABILITY_YES },
       controls: build(meridian, "Implemented across organization"),
     },
     assertions: [
@@ -159,7 +179,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "tuning",
     intake: {
-      profile: { entity_name: "Helios Fintech", industry: "Financial services", incidents_12mo: "None", framework: "ISO 27001", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["ISO 27001"] },
+      profile: { entity_name: "Helios Fintech", industry: "Financial services", incidents_12mo: "None", framework: "ISO 27001", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["ISO 27001"], ...APPLICABILITY_YES },
       controls: build(helios, "Implemented with continuous monitoring"),
     },
     assertions: [
@@ -172,7 +192,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     tool: "cppa-cyber",
     set: "adversarial",
     intake: {
-      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"] },
+      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"], ...APPLICABILITY_NO },
       controls: build({
         c1_auth: { notes: "MFA via Okta. Encryption: AES-256 at rest with KMS-managed keys; TLS 1.3 in transit." },
         c2_encryption: { notes: "See auth notes." },
@@ -204,6 +224,8 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
           "FY2025 cybersecurity audit covering the same production estate; report, sampling worksheets, interview notes, and management letter retained in the GRC system under a five-year hold.",
         // INTAKE-4b addition.
         remediation_owner: "Director of Information Security, reporting to the CFO.",
+        // C1.2 addition.
+        ...APPLICABILITY_YES,
       },
       controls: build(northwind, "Implemented with continuous monitoring"),
     },
@@ -232,14 +254,18 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
 // implementing technology, the accountable owner, the cadence, and the
 // evidence artefact a § 7122 auditor would be handed.
 //
-// AUDIT-SCHEDULE TRUTH (verified premise). The contract asks NO revenue
-// question, and per the ITEM-204 CEO ruling encoded in
-// `_shared/ltp/cyber-audit-schedule.ts` the § 7121(a) surface STATES the full
-// three-tier phase-in schedule and never computes the customer's tier ("No
-// revenue ask is emitted"). No revenue field is added here and no cohort is
-// made to resolve; the fixture's obligation is only that the corpus-pinned
-// schedule sentences render byte-identically, which the item-405 battery
-// asserts against `renderCyberAuditSchedule()`.
+// AUDIT-SCHEDULE TRUTH (verified premise, UPDATED 2026-08-25 — C1.2). The
+// contract now DOES ask the § 7120(a)-(b) applicability predicate fields
+// (q1_revenue/q2_consumers/q5_sell_share/q5c_share_revenue_50pct/
+// q15_sensitive_pi/q15c_spi_volume), added below via APPLICABILITY_YES —
+// but only for the NEW § 7120 applicability table (cyber-applicability.ts).
+// The ITEM-204 ruling encoded in `_shared/ltp/cyber-audit-schedule.ts`
+// governs a DIFFERENT surface — the § 7121(a) deadline/cadence schedule —
+// and is UNCHANGED: that surface still states the full three-tier phase-in
+// schedule and never computes the customer's tier. The fixture's obligation
+// there is unchanged too: the corpus-pinned schedule sentences render
+// byte-identically, which the item-405 battery asserts against
+// `renderCyberAuditSchedule()`.
 //
 // DEGRADED PILOT SOURCES (named, not extended, not modified):
 //   * GOLDEN_BY_TOOL["cppa-cyber"] — `_shared/golden/cppa-cyber.ts`:
@@ -521,6 +547,8 @@ export const CYBER_PERFECT: GoldenCase[] = [
         // INTAKE-4b — named accountable owner for closing audit findings.
         remediation_owner:
           "Priya Raghavan, Vice President of Security Engineering, accountable to the Audit Committee for closing every finding on the tracked remediation plan.",
+        // C1.2 addition.
+        ...APPLICABILITY_YES,
       },
       controls: CONTROL_ROWS.map((c) => ({
         key: c.key,

@@ -2385,6 +2385,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         report as unknown as Record<string, unknown>,
         ((row as any)?.intake_data as Record<string, unknown>) ?? {},
         phaseIn,
+        // C1.2 — gates the new § 7120(a)-(b) applicability table.
+        CYBER_DETERMINISTIC_ENABLED,
       );
       (report as any).skeleton_document = sk.document;
       console.log(JSON.stringify({

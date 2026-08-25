@@ -140,4 +140,14 @@ export interface CorpusMap {
     readonly ratified_on: string; // ISO date
     readonly ledger_ref: string; // decision-queue or ratification-ledger entry id
   };
+  /** C1.2 (2026-08-25) — the AQ/S2 analog of s4_ratification. Present ONLY
+   * when the CEO has ratified THIS map's S2 AQ rows by name (a table-
+   * renderer landing has actually built the surface those rows pin). A
+   * map-level fact, same shape and same law as s4_ratification: no stamp,
+   * no render-eligible AQ, however many rows exist. */
+  readonly s2_ratification?: {
+    readonly ratified_by: string;
+    readonly ratified_on: string; // ISO date
+    readonly ledger_ref: string;
+  };
 }

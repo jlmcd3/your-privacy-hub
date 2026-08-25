@@ -109,7 +109,7 @@ Deno.test("cppa-risk: wave C1 posture — 41 dark FC (11 phase-1/2 + 30 FC-J bul
   }
 });
 
-Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 3 dark AQ, S5 dark", () => {
+Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 1 live + 2 dark AQ, S5 dark", () => {
   const darkFc = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
   const s0 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S0");
   const s4 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S4");
@@ -122,15 +122,25 @@ Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows 
   // ratified); a 21st S4 row is an unratified customer surface.
   assertEquals(s4.length, 20);
   assertEquals(new Set(s4.map((r) => r.factor_id)).size, 15);
-  // S2 rows are banked dark until the conversion's C1 landing builds the
-  // table renderer and proves in the AQ render mechanism (doc 48 §II.6).
+  // C1.2 (2026-08-25): the applicability AQ row (cppa-cyber/P1/s2-01)
+  // flipped live behind CYBER_DETERMINISTIC_ENABLED — doc 64's
+  // applicability table now has a real renderer. The two deadline/cadence
+  // AQ rows (P2) stay dark: their surface's shipped, CEO-ratified fixed
+  // prose states "no cohort computed" (ITEM-204) and computing one would
+  // contradict already-ratified bytes — see their curation_notes.
   assertEquals(aq.length, 3);
-  for (const r of aq) assertEquals(r.render_eligible, false, r.id);
+  const liveAq = aq.filter((r) => r.render_eligible);
+  const darkAq = aq.filter((r) => !r.render_eligible);
+  assertEquals(liveAq.length, 1);
+  assertEquals(liveAq[0]?.id, "cppa-cyber/P1/s2-01");
+  assertEquals(darkAq.length, 2);
+  for (const r of darkAq) assertEquals(r.render_eligible, false, r.id);
   // S5-dark posture (doc 54 §3): no CPPA-native enforcement; GDPR analogies
   // fail jurisdiction-fit for a CCPA audit-readiness document.
   assertEquals(ap.length, 0);
   assertEquals(aow.length, 0);
   assert(CYBER_CORPUS_MAP.s4_ratification, "CYBER_CORPUS_MAP must carry its s4_ratification stamp (PN-CMP-B1)");
+  assert(CYBER_CORPUS_MAP.s2_ratification, "CYBER_CORPUS_MAP must carry its s2_ratification stamp (doc-64-PN-C1)");
   assertEquals(CYBER_CORPUS_MAP.rows.length, 96);
 });
 

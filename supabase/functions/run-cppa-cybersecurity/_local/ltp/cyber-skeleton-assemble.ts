@@ -36,6 +36,7 @@ import {
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { buildCyberApplicabilityTable } from "./cyber-applicability.ts";
 
 export const CYBER_SKELETON_ASSEMBLER_STAMP = "cyber-skeleton-assembler@so4-wire-in-2026-08-10";
 
@@ -333,6 +334,10 @@ export function assembleCyberSkeletonDocument(
   report: Bag,
   intake: Bag,
   phaseInCorpusExcerpt: string,
+  // C1.2 — gates the new applicability table (see deriveCyberApplicability
+  // Table below); defaults false so any caller that doesn't pass it keeps
+  // today's flag-off behavior (no table, zero customer-facing change).
+  deterministicEnabled = false,
 ): CyberSkeletonResult {
   const values = buildCyberSlotValues(intake);
 
@@ -340,8 +345,10 @@ export function assembleCyberSkeletonDocument(
     "executive_summary:0": composeExecutiveLead(report),
     "executive_summary:2": composeExecutiveBody(report),
 
-    // Section I block 1 is the ITEM-204 byte-pinned corpus quote.
-    "audit_scope:1": buildPhaseInBlock(phaseInCorpusExcerpt),
+    // v3.2 — Section I block 2 is the ITEM-204 byte-pinned corpus quote
+    // (shifted from block 1 to block 2 when the applicability table took
+    // block 0; see the spine's v3.2 changelog comment).
+    "audit_scope:2": buildPhaseInBlock(phaseInCorpusExcerpt),
 
     "required_components:0": composeComponentsLead(report),
     "required_components:1": [composeIndependence(report), composeComponents(report, intake)]
@@ -359,6 +366,11 @@ export function assembleCyberSkeletonDocument(
   // other block in this spine composes through `composed` instead.
   const tables: SkeletonTables = {
     "signature:1": deriveCyberSignatureTable(),
+    // C1.2 — gated: absent under the flag (NO-PADDING law drops the
+    // block), so flag-off reports render byte-identically to today.
+    ...(deterministicEnabled
+      ? { "audit_scope:0": buildCyberApplicabilityTable((intake.profile ?? {}) as Bag) }
+      : {}),
   };
 
   const draft = renderSkeletonDocument({

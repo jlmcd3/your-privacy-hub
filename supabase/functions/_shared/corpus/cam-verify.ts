@@ -108,8 +108,20 @@ export function mapInvariants(map: CorpusMap): string[] {
           problems.push(`${row.id}: render-eligible AOW rows require render_when`);
         }
       }
-      if (row.role === "SB" || row.role === "AQ") {
-        problems.push(`${row.id}: role ${row.role} has no proven render mechanism yet (SB deferred until after S5 ships)`);
+      if (row.role === "SB") {
+        problems.push(`${row.id}: role SB has no proven render mechanism yet (deferred until after S5 ships)`);
+      }
+      // C1.2 (2026-08-25) — AQ/S2 carve-out, exactly mirroring the FC/S4
+      // carve-out above: an AQ row may render on S2 ONLY inside a map
+      // carrying s2_ratification (a table renderer that actually pins
+      // this row's excerpt has landed). No stamp, no render-eligible AQ.
+      if (row.role === "AQ") {
+        const s2Ratified = row.render_surface === "S2" && !!map.s2_ratification;
+        if (!s2Ratified) {
+          problems.push(
+            `${row.id}: AQ rows may render only on S2 inside a map carrying s2_ratification (the C1.2 table-renderer carve-out) — this map has neither`,
+          );
+        }
       }
       // Reader-Value Law (doc 62 §11.2): every render_eligible row must
       // name a purpose class — a row that cannot is not fit to render.

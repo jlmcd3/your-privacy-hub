@@ -182,6 +182,15 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "li_assessment:jurisdictions": LIA_JURISDICTIONS,
   // cppa_cybersecurity — single maturity enum, shared across 18 controls.
   "cppa_cybersecurity:maturity": CYBER_MATURITY_OPTS,
+  // C1.2 — § 7120(a)-(b) applicability predicate inputs; the SAME option
+  // arrays cppa_risk_assessment's q1/q2/q5/q5c/q15/q15c already use above
+  // (no new enum literals — direct reuse, not a copy).
+  "cppa_cybersecurity:q1_revenue": REVENUE_OPTS,
+  "cppa_cybersecurity:q2_consumers": CONSUMER_OPTS,
+  "cppa_cybersecurity:q5_sell_share": Q5_SELL_SHARE_OPTS,
+  "cppa_cybersecurity:q5c_share_revenue_50pct": SHARE_REVENUE_50PCT_OPTS,
+  "cppa_cybersecurity:q15_sensitive_pi": Q15_SENSITIVE_PI_OPTS,
+  "cppa_cybersecurity:q15c_spi_volume": SPI_VOLUME_OPTS,
 };
 
 export function resolveEnumRef(enumRef: string | null | undefined): readonly string[] | null {

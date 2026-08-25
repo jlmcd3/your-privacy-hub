@@ -97,6 +97,16 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
     ratified_on: "2026-08-23",
     ledger_ref: "PN-CMP-B1",
   },
+  // C1.2 (2026-08-25) — the AQ/S2 analog: doc 64 already ratified the
+  // applicability table's content byte-for-byte (2026-08-23); this stamp
+  // records that a renderer now exists and the P1 applicability AQ row is
+  // live. Governs the P1 row only — the two P2 (deadline/cadence) AQ rows
+  // stay dark regardless of this stamp, per their own curation_notes.
+  s2_ratification: {
+    ratified_by: "CEO",
+    ratified_on: "2026-08-23",
+    ledger_ref: "doc-64-PN-C1",
+  },
   rows: [
     // ── S0 — intake callouts ────────────────────────────────────────────
     {
@@ -560,12 +570,18 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
         "Testing, not just documentation: the audit reaches actual execution of incident-response capability — the customer retains testing/exercise evidence, not only the written plan. F-BRIDGE applies (internal (b)(2)).",
     },
 
-    // ── S2 — quoted-law rows (the doc 64 tables; DARK until the
-    // conversion's C1 landing builds the deadline/applicability table
-    // renderer and cam-verify's AQ/S2 render mechanism proves in — the
-    // §II.6 posture; content ratified byte-for-byte via doc 64, which
-    // lifted PN-C1's "no table content" interim rule for exactly these
-    // bytes). ─────────────────────────────────────────────────────────
+    // ── S2 — quoted-law rows (the doc 64 tables). ───────────────────────
+    // C1.2 (2026-08-25): the P1 applicability row FLIPS live — the
+    // § 7120(a)-(b) applicability table it pins is built and shipping
+    // behind CYBER_DETERMINISTIC_ENABLED (cyber-applicability.ts). The two
+    // P2 deadline/cadence rows STAY DARK: their content is the § 7121(a)/
+    // (b) deadline schedule, and that surface's own shipped, CEO-ratified
+    // fixed prose (cppa-cyber.spine.ts) states "No slot, no generation, no
+    // cohort computed" as the ITEM-204 design law — computing and
+    // rendering a cohort table there would contradict already-ratified
+    // bytes, so these two rows wait on a CEO ruling to lift ITEM-204 for
+    // this surface specifically, not on a renderer being built (one now
+    // exists; it was deliberately not pointed at these two rows).
     {
       id: "cppa-cyber/P1/s2-01",
       factor_id: "Applicability and thresholds",
@@ -575,14 +591,16 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       excerpt_field: "verbatim_excerpt",
       pinned_excerpt:
         "The business meets the threshold set forth in Civil Code section 1798.140,",
-      render_eligible: false,
+      render_eligible: true,
+      render_surface: "S2",
+      purpose_class: "authority",
       trail_impact:
         "CPPA, FSOR (Appendix, pp. 64–66) — thresholds retained as statutory — interpretive",
       direction: "supports",
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
       curation_note:
-        "The doc 64 §1 applicability table (A1/A2 triggers, § 7120(b), preceding-calendar-year caveat verbatim). Flips to S2 at the conversion C1 landing with the table renderer + verification stamps (last_verified_at of cppa-7120) + the § 7123(b)(2)/(c) applicability caveat (doc 64 §4.2). FSOR conformance evidence: cc96acc3, 67ddb51a, 8537edab, 8109b58a (this map's P1 FC rows).",
+        "The doc 64 §1 applicability table (A1/A2 triggers, § 7120(b), preceding-calendar-year caveat verbatim), built and rendered by buildCyberApplicabilityTable() (cyber-applicability.ts) behind CYBER_DETERMINISTIC_ENABLED, spliced into the skeleton document at audit_scope:0 (cyber-skeleton-assemble.ts, C1.2, 2026-08-25). The table's own A1/A2 statutory descriptions and its § 7123(b)(2)/(c) applicability caveat (doc 64 §4.2) are authored independently in code, ratified via doc 64 itself, not composed from this row at render time — this row is the corpus-side verification pin proving the table's statutory description traces to real, verified provision text (checked live against the fsor-snapshot-cyber.json snapshot at this landing: contains=true). FSOR conformance evidence: cc96acc3, 67ddb51a, 8537edab, 8109b58a (this map's P1 FC rows).",
     },
     {
       id: "cppa-cyber/P2/s2-01",
@@ -600,7 +618,7 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
       curation_note:
-        "The doc 64 §2 first-audit deadline table (T1/T2/T3 by revenue YEAR with the statute's own as-of dates — doc 64 §4.4: a simplified \"current revenue\" rendering is WRONG and prohibited). Carries the ITEM-204 § 7121(a) phase-in quote forward byte-for-byte alongside (already ratified, doc 64 §5). Flips to S2 at the conversion C1 landing. FSOR conformance evidence: 171c1746, 56d825a9, 8bf9c38c, 30096b68, 0aa22547 (P2 rows).",
+        "The doc 64 §2 first-audit deadline table (T1/T2/T3 by revenue YEAR with the statute's own as-of dates — doc 64 §4.4: a simplified \"current revenue\" rendering is WRONG and prohibited). Carries the ITEM-204 § 7121(a) phase-in quote forward byte-for-byte alongside (already ratified, doc 64 §5). STAYS DARK at the C1.2 landing (2026-08-25): the shipped § 7121(a) skeleton block (cppa-cyber.spine.ts, audit_scope section) is CEO-ratified fixed prose stating \"No slot, no generation, no cohort computed\" as the ITEM-204 design law; a computed deadline table would contradict it and needs its own CEO ruling to supersede ITEM-204 for this surface, not a renderer (see doc 64 §2 vs the spine's own corpus block). FSOR conformance evidence: 171c1746, 56d825a9, 8bf9c38c, 30096b68, 0aa22547 (P2 rows).",
     },
     {
       id: "cppa-cyber/P2/s2-02",
@@ -616,7 +634,7 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
       curation_note:
-        "The doc 64 §3 steady-state cadence (§ 7121(b), with the provision's own 2035/2036 worked example). Flips to S2 with s2-01 at the conversion C1 landing. FSOR conformance evidence: 59ddcdd2, e810dd63, 8fe08152, eb1af5f9 (P2 rows).",
+        "The doc 64 §3 steady-state cadence (§ 7121(b), with the provision's own 2035/2036 worked example). STAYS DARK with s2-01 at the C1.2 landing (2026-08-25) for the same ITEM-204 reason recorded on that row.",
     },
 
     // ── The FC-L register (doc 54 §1, L1–L12) — dark, logic-bearing; one

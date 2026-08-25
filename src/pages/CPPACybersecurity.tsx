@@ -47,7 +47,11 @@ import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 // shared components (refine surface) don't import this page module. Re-export
 // kept for any external references to `@/pages/CPPACybersecurity`.
 export { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
-import { MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT } from "./CPPACybersecurity.enums";
+import {
+  MATURITY, CYBER_EVIDENCE_OPTS, CYBER_IN_SCOPE_FRAMEWORKS, CYBER_AUDITOR_ENGAGEMENT,
+  CYBER_REVENUE_OPTS, CYBER_CONSUMER_OPTS, CYBER_SELL_SHARE_OPTS,
+  CYBER_SHARE_REVENUE_50PCT_OPTS, CYBER_SENSITIVE_PI_OPTS, CYBER_SPI_VOLUME_OPTS,
+} from "./CPPACybersecurity.enums";
 
 // INTAKE-4b — `notesHint` / `evidenceHint` carry the per-component plain-language
 // framing for the two rows the wording pass names (c4 inventory, c11 port and
@@ -110,6 +114,12 @@ export default function CPPACybersecurity() {
     auditor_engagement_status: "", prior_audit_scope: "",
     // INTAKE-4b — CEO-approved addition 2026-08-09 (optional).
     remediation_owner: "",
+    // C1.2 — § 7120(a)-(b) audit-applicability predicate inputs. Not part
+    // of the hard submit gate (see `allComplete` below); an unanswered
+    // field routes the applicability table to an "insufficient
+    // information" cell instead.
+    q1_revenue: "", q2_consumers: "", q5_sell_share: "",
+    q5c_share_revenue_50pct: "", q15_sensitive_pi: "", q15c_spi_volume: "",
   });
   // INTAKE-4b — prefill-confirm for profile.in_scope_frameworks. The earlier
   // "primary security framework in use" answer supplies the same fact for the
@@ -389,6 +399,69 @@ export default function CPPACybersecurity() {
               <option value="Never">Never</option>
             </select>
           </div>
+          {/* C1.2 (2026-08-25) — § 7120(a)-(b) audit-applicability predicate
+              inputs. Verbatim reuse of the identical, already-live fields
+              from src/pages/CPPARiskAssessment.tsx (q1_revenue/q2_consumers/
+              q5_sell_share/q5c_share_revenue_50pct/q15_sensitive_pi/
+              q15c_spi_volume) — same statutory tests, same wording, no new
+              customer-facing text. Contract-optional (not "always" like
+              Risk's copies) and not part of `allComplete`: an unanswered
+              field routes the applicability table to an "insufficient
+              information" cell rather than blocking checkout. */}
+          <p className="text-sm font-medium mt-2">Audit applicability</p>
+          <p className="text-xs text-muted-foreground -mt-2">These answers determine whether 11 CCR § 7120 requires this business to complete a cybersecurity audit at all. Left blank, the report states the applicability question as unresolved rather than assuming an answer.</p>
+          <div data-rail-key="q1_revenue" onFocus={() => focusRail('q1_revenue')}>
+            <Label htmlFor="cyber_q1_revenue">What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(A))</span></Label>
+            <p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p>
+            <select id="cyber_q1_revenue" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q1_revenue} onChange={(e) => setProfile({ ...profile, q1_revenue: e.target.value })}>
+              <option value="">Select…</option>
+              {CYBER_REVENUE_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div data-rail-key="q2_consumers" onFocus={() => focusRail('q2_consumers')}>
+            <Label htmlFor="cyber_q2_consumers">How many California consumers' personal information do you process in a year? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(A))</span></Label>
+            <p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p>
+            <select id="cyber_q2_consumers" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q2_consumers} onChange={(e) => setProfile({ ...profile, q2_consumers: e.target.value })}>
+              <option value="">Select…</option>
+              {CYBER_CONSUMER_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div data-rail-key="q5_sell_share" onFocus={() => focusRail('q5_sell_share')}>
+            <Label htmlFor="cyber_q5_sell_share">Do you sell or share personal information for cross-context behavioural advertising?</Label>
+            <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings.</p>
+            <select id="cyber_q5_sell_share" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q5_sell_share} onChange={(e) => setProfile({ ...profile, q5_sell_share: e.target.value })}>
+              <option value="">Select…</option>
+              {CYBER_SELL_SHARE_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          {profile.q5_sell_share && profile.q5_sell_share !== "No" && (
+            <div data-rail-key="q5c_share_revenue_50pct" onFocus={() => focusRail('q5c_share_revenue_50pct')}>
+              <Label htmlFor="cyber_q5c">Does 50% or more of your annual gross revenue derive from selling or sharing personal information? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(C) / 11 CCR § 7120(b)(1))</span></Label>
+              <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the covered-business test for the § 7120(b)(1) 50%-revenue prong. Skip if you're unsure or the number isn't material.</p>
+              <select id="cyber_q5c" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q5c_share_revenue_50pct} onChange={(e) => setProfile({ ...profile, q5c_share_revenue_50pct: e.target.value })}>
+                <option value="">Select…</option>
+                {CYBER_SHARE_REVENUE_50PCT_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+          )}
+          <div data-rail-key="q15_sensitive_pi" onFocus={() => focusRail('q15_sensitive_pi')}>
+            <Label htmlFor="cyber_q15">Do you process any sensitive PI?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more.</p>
+            <select id="cyber_q15" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q15_sensitive_pi} onChange={(e) => setProfile({ ...profile, q15_sensitive_pi: e.target.value })}>
+              <option value="">Select…</option>
+              {CYBER_SENSITIVE_PI_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          {profile.q15_sensitive_pi === "Yes" && (
+            <div data-rail-key="q15c_spi_volume" onFocus={() => focusRail('q15c_spi_volume')}>
+              <Label htmlFor="cyber_q15c">For how many California consumers do you process sensitive personal information annually? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(B))</span></Label>
+              <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the § 7120(b)(2)(B) SPI-volume cyber-audit prong. Give your best estimate for the distinct California residents whose SPI you process in a year.</p>
+              <select id="cyber_q15c" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q15c_spi_volume} onChange={(e) => setProfile({ ...profile, q15c_spi_volume: e.target.value })}>
+                <option value="">Select…</option>
+                {CYBER_SPI_VOLUME_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+          )}
           <div data-rail-key="in_scope_frameworks" onFocus={() => focusRail('in_scope_frameworks')}>
             <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
             {inScopePrefilled && !inScopeTouched ? (
