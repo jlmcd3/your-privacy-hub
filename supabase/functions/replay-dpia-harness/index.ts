@@ -14,7 +14,7 @@
  * Results land in service-role-locked public.replay_harness_results.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { replayDpiaDoc, DPIA_REPLAY_STAMP } from "../_shared/ltp/replay/dpia-replay.ts";
+import { replayDpiaDoc, DPIA_REPLAY_STAMP } from "./_local/ltp/replay/dpia-replay.ts";
 
 export const HARNESS_BUILD_STAMP = "replay-dpia-harness-2026-08-17-so-clone";
 

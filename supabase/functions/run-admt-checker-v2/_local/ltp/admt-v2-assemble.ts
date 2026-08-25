@@ -67,7 +67,7 @@ import {
 } from "./admt-v2-generated.ts";
 import type { AuthorityExhibit } from "../../../_shared/report-exhibits/authority-exhibit.ts";
 import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
-import { ADMT_CORPUS_MAP } from "../../../_shared/corpus/maps/admt-corpus-map.ts";
+import { ADMT_CORPUS_MAP } from "../corpus/maps/admt-corpus-map.ts";
 
 // v3.2.1 (2026-08-24, CEO report review) — adds the "Review of This
 // Assessment" section between Section 9 (Conclusion) and Appendix A: a

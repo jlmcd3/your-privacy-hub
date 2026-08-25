@@ -39,7 +39,7 @@ import {
   formatDrift,
   toReferencePassages,
 } from "../_shared/prose/biometric-reference-passages.ts";
-import { BIOMETRIC_PIPELINE_STAMP } from "../_shared/prose/plans/biometric.spine.ts";
+import { BIOMETRIC_PIPELINE_STAMP } from "./_local/prose/plans/biometric.spine.ts";
 import { BIOMETRIC_DUTY_ROWS } from "./_local/registry/biometric-verified-authorities.ts";
 
 /**
