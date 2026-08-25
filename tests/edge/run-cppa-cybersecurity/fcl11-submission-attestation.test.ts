@@ -42,14 +42,30 @@ Deno.test("buildCyberSubmissionAttestationBlock — the attestation is never bul
   const attestationIdx = text.indexOf(CYBER_7124_ATTESTATION_STATEMENT);
   const item4Idx = text.indexOf("(4) An electronically signed attestation to the following statement:");
   assert(attestationIdx > item4Idx, "the full attestation quote should appear after its own list reference, not interleaved with it");
-  // The numbered list item itself must not ALSO contain the full attestation text.
-  const listSection = text.slice(0, text.lastIndexOf("\n\n"));
+  // The numbered list items themselves (paragraphs [1] and [2] — signer
+  // qualifications, certification content) must not ALSO contain the full
+  // attestation text. Sliced by paragraph index, not lastIndexOf("\n\n"):
+  // the trailing disclaimer paragraph (added 2026-08-25) also sits after a
+  // "\n\n" boundary, so lastIndexOf would wrongly include the attestation
+  // paragraph itself in "the list section".
+  const paragraphs = text.split("\n\n");
+  const listSection = [paragraphs[1], paragraphs[2]].join("\n\n");
   assert(!listSection.includes(CYBER_7124_ATTESTATION_STATEMENT));
 });
 
 Deno.test("buildCyberSubmissionAttestationBlock — no Rule-4 dash markers ('— ') anywhere (semicolon-joined source clauses can't be real bullets under doc 66 Rule 4; caught and fixed before landing)", () => {
   const text = buildCyberSubmissionAttestationBlock();
   assert(!text.includes("— "), "a stray '— ' would render as a literal dash, not a bullet, under Rule 4's sentence-boundary requirement");
+});
+
+Deno.test("buildCyberSubmissionAttestationBlock — closes on a disclaimer paragraph stating the report does not itself perform the § 7124 submission (2026-08-25, mirrors cppa-risk.spine.ts's agency_submission_checklist precedent)", () => {
+  const text = buildCyberSubmissionAttestationBlock();
+  const paragraphs = text.split("\n\n");
+  assertEquals(paragraphs.length, 5, "expected 5 paragraphs: marker+obligation, signer list, content list, attestation quote, disclaimer");
+  const disclaimer = paragraphs[4];
+  assert(disclaimer.includes("does not submit this certification on the company's behalf"));
+  assert(disclaimer.includes("not itself the certification described in 11 CCR § 7124"));
+  assert(!disclaimer.includes(CYBER_7124_ATTESTATION_STATEMENT), "the disclaimer paragraph must not itself re-quote the attestation text");
 });
 
 Deno.test("buildCyberSubmissionAttestationBlock — the two numbered lists reproduce the source's own markers (1)-(3) and (1)-(5), never renumbered or reordered", () => {

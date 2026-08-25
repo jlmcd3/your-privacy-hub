@@ -45,7 +45,16 @@
 // computed" as the ITEM-204 design law, and computing a tier there would
 // contradict already-shipped, CEO-ratified prose — see the intake
 // contract's header comment for the full reasoning.
-export const CYBER_SKELETON_VERSION = "prose-plans-2026-08-25-item-so4-v3.2";
+//
+// v3.3 (2026-08-25, FC-L11 wire-in, per CEO instruction to add it "in the
+// similar manner that we added a signature section to CPPA Risk") — adds
+// the "Submission and Attestation" section between Signature and the Table
+// of Authorities: the § 7124 certification-of-completion requirement,
+// corpus-quoted, unconditional (see the section's own header comment for
+// the `kind: "corpus"` vs `kind: "skeleton"` reasoning). No `kind:
+// "skeleton"` text is added or moved by this change, so
+// CYBER_SKELETON_CONTENT_HASH is unaffected and NOT recomputed.
+export const CYBER_SKELETON_VERSION = "prose-plans-2026-08-25-item-so4-v3.3";
 export const CYBER_SKELETON_SOURCE_FILE = "CPPA_Cybersecurity_Audit_Skeleton_v3.docx";
 export const CYBER_SKELETON_PROVENANCE =
   "CPPA_Cybersecurity_Audit_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
@@ -140,6 +149,33 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
       { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit as required pursuant to 11 CCR §§ 7120-7124." },
       { kind: "table", text: "" },
       { kind: "skeleton", text: "This signature acknowledges the information above, and is not the certification described in 11 CCR § 7124." },
+    ],
+  },
+  // CEO instruction 2026-08-25 — "add the Submission and attestation section
+  // in the similar manner that we added a signature section to CPPA Risk."
+  // Mirrors cppa-risk.spine.ts's v4.7.1 "agency_submission_checklist"
+  // section: positioned after the Signature section and before the Table of
+  // Authorities, states the § 7124 certification requirement and closes on
+  // the same "this report does not submit on your behalf" disclaimer.
+  //
+  // UNLIKE Risk's own section (produced through an actual CEO docx redline,
+  // so its prose is `kind: "skeleton"`), this content has no ratified docx
+  // behind it — the CEO's instruction here was structural, not a text
+  // redline. It uses `kind: "corpus"` throughout instead, the SAME kind
+  // already used for this document's other byte-pinned, no-slot,
+  // no-computation block (the § 7121(a) ITEM-204 schedule in Section I):
+  // the § 7124 facts and the attestation quote are verbatim corpus text,
+  // pin-verified against the approved `cppa-7124` row
+  // (cyber-submission-attestation.ts, components.ts), never paraphrased.
+  // Runs UNCONDITIONALLY (both CYBER_DETERMINISTIC_ENABLED states), same as
+  // the ITEM-204 block: it is pure law, with no dependency on any of the
+  // C1.2 intake fields, so there is no flag-off state where it would be
+  // incomplete or misleading.
+  {
+    id: "submission_and_attestation",
+    title: "Submission and Attestation",
+    blocks: [
+      { kind: "corpus", text: "[BYTE-PINNED - the § 7124 certification of completion] Who must sign, what the certification must contain, and the verbatim attestation statement, corpus-quoted from the approved cppa-7124 row. No slot, no generation." },
     ],
   },
   {

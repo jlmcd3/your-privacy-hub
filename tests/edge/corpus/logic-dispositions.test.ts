@@ -87,7 +87,7 @@ Deno.test("ADMT_CORPUS_MAP: disposition mix matches this session's finding (5 im
   assertEquals(counts, { implemented: 5, extension_filed: 0, declined: 0 });
 });
 
-Deno.test("CYBER_CORPUS_MAP: disposition mix matches the wave C3 register (5 implemented, 7 filed, 0 declined)", () => {
+Deno.test("CYBER_CORPUS_MAP: disposition mix matches the wave C3 register (6 implemented, 6 filed, 0 declined)", () => {
   const counts = { implemented: 0, extension_filed: 0, declined: 0 };
   for (const row of CYBER_CORPUS_MAP.rows) {
     const kind = row.logic_disposition?.kind;
@@ -95,11 +95,15 @@ Deno.test("CYBER_CORPUS_MAP: disposition mix matches the wave C3 register (5 imp
   }
   // Doc 54 §1's L1–L12 register: L1/L2/L3/L8/L12 live in the current prompt
   // laws (implemented); L4 (password predicate → C0.5), L5/L6/L7 (frame
-  // constraints → C2), and L9/L10/L11 (date table + submission block → C1,
-  // facts ratified via doc 64) are extension_filed against the Cyber
-  // conversion's own landings — Cyber is pre-conversion, so the code homes
-  // for those positions do not exist yet BY DESIGN (doc 48 §II.6).
-  assertEquals(counts, { implemented: 5, extension_filed: 7, declined: 0 });
+  // constraints → C2), and L9/L10 (date table → C1, facts ratified via doc
+  // 64) are extension_filed against the Cyber conversion's own landings —
+  // Cyber is pre-conversion, so the code homes for those positions do not
+  // exist yet BY DESIGN (doc 48 §II.6). L11 (the § 7124 submission block)
+  // moved from extension_filed to implemented on 2026-08-25 (v3.3): the CEO
+  // resolved the skeleton-placement decision it was waiting on ("add it in
+  // the similar manner that we added a signature section to CPPA Risk"),
+  // and the composer is now spliced into cyber-skeleton-assemble.ts.
+  assertEquals(counts, { implemented: 6, extension_filed: 6, declined: 0 });
 });
 
 Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (7 implemented, 0 filed, 1 declined)", () => {

@@ -109,7 +109,7 @@ Deno.test("cppa-risk: wave C1 posture — 41 dark FC (11 phase-1/2 + 30 FC-J bul
   }
 });
 
-Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 1 live + 3 dark AQ, S5 dark", () => {
+Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 2 live + 2 dark AQ, S5 dark", () => {
   const darkFc = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
   const s0 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S0");
   const s4 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S4");
@@ -128,17 +128,17 @@ Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows 
   // AQ rows (P2) stay dark: their surface's shipped, CEO-ratified fixed
   // prose states "no cohort computed" (ITEM-204) and computing one would
   // contradict already-ratified bytes — see their curation_notes.
-  // FC-L11 (2026-08-25): a 4th AQ row (cppa-cyber/P6/s2-01, § 7124
-  // certification-of-completion) added — text is CEO-supplied and
-  // pin-verified, the composer is BUILT (cyber-submission-attestation.ts),
-  // but it stays dark pending a CEO decision on skeleton placement (a new
-  // section, not a single-block insertion like C1.2's).
+  // FC-L11/v3.3 (2026-08-25): the 4th AQ row (cppa-cyber/P6/s2-01, § 7124
+  // certification-of-completion) flipped live too — the CEO resolved the
+  // placement decision ("add it in the similar manner that we added a
+  // signature section to CPPA Risk"); the composer is spliced into the new
+  // "submission_and_attestation" skeleton section, unconditionally.
   assertEquals(aq.length, 4);
   const liveAq = aq.filter((r) => r.render_eligible);
   const darkAq = aq.filter((r) => !r.render_eligible);
-  assertEquals(liveAq.length, 1);
-  assertEquals(liveAq[0]?.id, "cppa-cyber/P1/s2-01");
-  assertEquals(darkAq.length, 3);
+  assertEquals(liveAq.length, 2);
+  assertEquals(new Set(liveAq.map((r) => r.id)), new Set(["cppa-cyber/P1/s2-01", "cppa-cyber/P6/s2-01"]));
+  assertEquals(darkAq.length, 2);
   for (const r of darkAq) assertEquals(r.render_eligible, false, r.id);
   // S5-dark posture (doc 54 §3): no CPPA-native enforcement; GDPR analogies
   // fail jurisdiction-fit for a CCPA audit-readiness document.

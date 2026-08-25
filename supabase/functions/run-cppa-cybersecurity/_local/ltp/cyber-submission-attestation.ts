@@ -23,6 +23,19 @@
  * block.
  *
  * Pure. No I/O. Never throws.
+ *
+ * DISCLAIMER PARAGRAPH (added 2026-08-25, CEO instruction: "add the
+ * Submission and attestation section in the similar manner that we added a
+ * signature section to CPPA Risk" — mirrors cppa-risk.spine.ts's
+ * "agency_submission_checklist" section, which closes on the same "this
+ * report does not submit on your behalf" disclaimer, and states, at its
+ * open, that the report doesn't perform the submission itself). UNLIKE the
+ * rest of this block, that closing sentence is NOT a verbatim corpus quote
+ * — no ratified docx redline produced it, so it is deliberately not worded
+ * as if it were byte-pinned law. It states only what is already true from
+ * this tool's own nature: a self-reported readiness report, not the § 7124
+ * certification itself (the same distinction the spine's own Signature-
+ * section comment already draws for the § 7123(e)(8)/§ 7124 line).
  */
 
 import {
@@ -83,5 +96,6 @@ export function buildCyberSubmissionAttestationBlock(): string {
     signerLines,
     contentLines,
     `The ${CYBER_7124_ATTESTATION_CITATION} attestation statement, to be signed electronically, reads: “${CYBER_7124_ATTESTATION_STATEMENT}”`,
+    "A member of the company's executive management team who meets the qualifications above must submit this certification to the California Privacy Protection Agency through the Agency's website at https://cppa.ca.gov/. This report does not submit this certification on the company's behalf, and it is not itself the certification described in 11 CCR § 7124: that step, including the electronic attestation, must be completed separately, by that individual, on the Agency's site.",
   ].join("\n\n");
 }

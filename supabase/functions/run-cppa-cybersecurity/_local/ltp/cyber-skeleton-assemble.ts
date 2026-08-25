@@ -37,6 +37,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { buildCyberApplicabilityTable } from "./cyber-applicability.ts";
+import { buildCyberSubmissionAttestationBlock } from "./cyber-submission-attestation.ts";
 
 export const CYBER_SKELETON_ASSEMBLER_STAMP = "cyber-skeleton-assembler@so4-wire-in-2026-08-10";
 
@@ -359,6 +360,11 @@ export function assembleCyberSkeletonDocument(
 
     "conclusion:0": composeConclusionLead(report),
     "conclusion:1": composeConclusion(report, intake),
+
+    // v3.3 (FC-L11) — the § 7124 certification-of-completion block. Pure
+    // law, no intake dependency, so composed unconditionally, same as the
+    // audit_scope:2 ITEM-204 block above.
+    "submission_and_attestation:0": buildCyberSubmissionAttestationBlock(),
   };
 
   // CEO report review 2026-08-24 — the Signature section's table. First use
