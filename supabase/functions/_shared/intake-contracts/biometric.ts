@@ -447,6 +447,21 @@ export const biometricContract: IntakeContract = {
       requiredWhen: "Washington state is in scope",
       trigger: WASHINGTON_TRIGGER,
     }, // L546
+    // TURN 1d (2026-08-26, fleet intake audit) — RCW 19.373.080 conditions
+    // unlawfulness on the geofence's USE ("where such geofence is used to:
+    // (1) identify or track consumers seeking health care services; (2)
+    // collect consumer health data...; (3) send notifications, messages,
+    // or advertisements..."), never on bare existence. The existence
+    // answer alone previously drove an asserted violation; the purpose
+    // element now has its own question, asked only when a geofence exists.
+    {
+      key: "wa_mhmda_geofence_purpose",
+      kind: "enum",
+      options: TRI,
+      required: "conditional",
+      requiredWhen: "a geofence exists around an in-person health-care entity",
+      trigger: { key: "wa_mhmda_geofence_health_facility", equals: ["Yes"] },
+    },
 
     // ── Stage 4 — approval and review (L557-L588) ────────────────────────
     // ITEM 380 r5c — emptyIsAnswer. The block sits OUTSIDE every conditional

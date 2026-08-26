@@ -100,7 +100,8 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
     jurisdiction_tag: CPPA,
     description:
       "Applicability gate — § 7150(b)(4) inference from systematic observation of workers, students, or applicants. "
-      + "Keyed to q5b_profiling_observation options \"Yes — systematic observation of workers/students/applicants\" and \"Both\".",
+      + "TURN 1d (2026-08-26): keyed to q5b_profiling_observation === \"Yes\" (a direct Yes/No on the observation-"
+      + "inference element); the retired 4-option enum's two observation-affirming values remain recognised for stored records.",
     intake_fields: ["q5b_profiling_observation"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(4)",
@@ -110,9 +111,10 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
     jurisdiction_tag: CPPA,
     description:
       "Applicability gate — § 7150(b)(5) inference from a consumer's presence in a sensitive location. "
-      + "Keyed to q5b_profiling_observation options \"Yes — based on sensitive-location presence\" and \"Both\", "
-      + "plus sensitive_location_basis === \"Yes\" (TURN 1c, 2026-08-26 — a direct Yes/No on the statutory element, not a location-type pick).",
-    intake_fields: ["q5b_profiling_observation", "sensitive_location_basis"],
+      + "TURN 1c/1d (2026-08-26): keyed SOLELY to sensitive_location_basis === \"Yes\" (a direct Yes/No on the "
+      + "statutory element). The former q5b_profiling_observation OR-path is retired — it fed this gate without "
+      + "the inference caveat (fleet intake audit finding 1).",
+    intake_fields: ["sensitive_location_basis"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(5)",
   },

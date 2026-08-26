@@ -250,10 +250,19 @@ export const CONSUMER_INTERACTION_METHOD_OPTS = [
 // arrays not re-exported from .enums.ts); parity for them is spot-checked
 // via CPPA_RISK_INLINE_LISTS below (imported into the test module and
 // asserted against the page source via a substring anchor).
+// TURN 1d (2026-08-26, fleet intake audit findings 1+2) — direct Yes/No on
+// the § 7150(b)(4) element only (inference from systematic observation of
+// workers/students/applicants). The retired 4-option enum's
+// "sensitive-location presence"/"Both" options fed the § 7150(b)(5) gate
+// WITHOUT the inference caveat the TURN 1c sensitive_location_basis
+// redesign added (the audit's finding-1 loophole), and its observation
+// option never required an inference to be described (finding 2).
+// § 7150(b)(5) now resolves solely from sensitive_location_basis. The
+// deterministic predicates keep a narrow legacy-compat clause for the two
+// retired values that genuinely affirmed the OBSERVATION branch, so stored
+// records re-run under the engine do not silently lose that trigger.
 const Q5B_PROFILING_OPTS = [
-  "Yes — systematic observation of workers/students/applicants",
-  "Yes — based on sensitive-location presence",
-  "Both",
+  "Yes",
   "No",
 ] as const;
 const Q7_OPTS = ["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"] as const;

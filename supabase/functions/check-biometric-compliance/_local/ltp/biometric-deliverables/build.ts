@@ -101,6 +101,10 @@ export interface BiometricIntakeForDeliverables {
   wa_mhmda_collection_consent?: string | null;
   wa_mhmda_share_consent_separate?: string | null;
   wa_mhmda_geofence_health_facility?: string | null;
+  // TURN 1d (2026-08-26, fleet intake audit) — the RCW 19.373.080 purpose
+  // element (identify/track, collect, or message), asked only when a
+  // geofence exists.
+  wa_mhmda_geofence_purpose?: string | null;
 }
 
 // ── Small pure helpers ───────────────────────────────────────────────────────
@@ -1064,6 +1068,7 @@ function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding
   const collect = tri(intake.wa_mhmda_collection_consent);
   const share = tri(intake.wa_mhmda_share_consent_separate);
   const geofence = tri(intake.wa_mhmda_geofence_health_facility);
+  const geofencePurpose = tri(intake.wa_mhmda_geofence_purpose);
   const bases = listed(intake.disclosure_bases);
   const noDisclosures = bases.some((b) => /^no disclosures are made$/i.test(b));
   const out: DutyFinding[] = [];
@@ -1196,18 +1201,47 @@ function buildWaMhmdaDuties(intake: BiometricIntakeForDeliverables): DutyFinding
 
   // RCW 19.373.080 — geofencing. NOT gated on the consumer-health-data
   // predicate: the section binds "any person", not only regulated entities.
+  //
+  // TURN 1d (2026-08-26, fleet intake audit) — the section's prohibition is
+  // conditioned on the geofence's USE ("where such geofence is used to:
+  // (1) identify or track consumers seeking health care services; (2)
+  // collect consumer health data...; (3) send notifications, messages, or
+  // advertisements..."), never on bare existence. The prior logic asserted
+  // "The record describes one [of the three listed uses]" from the
+  // existence answer alone — a use the record was never asked about (e.g.
+  // a rideshare app geofencing a hospital purely for pickup/drop-off
+  // zoning would have been reported in violation). The purpose element now
+  // has its own intake answer; a geofence whose recorded use is none of
+  // the three is not the prohibited conduct, and a geofence whose use is
+  // unrecorded yields an insufficiency, never an asserted violation.
   out.push(mk(
     s,
     "wa_19373.080_geofence",
     "Geofence restrictions around in-person health-care facilities",
-    `Geofence implemented around an entity providing in-person health-care services: ${geofence}.`,
     geofence === "yes"
-      ? "The section makes it unlawful for any person to implement such a geofence for any of the three listed uses. The record describes one."
+      ? `Geofence implemented around an entity providing in-person health-care services: ${geofence}. Used to identify or track consumers seeking health-care services, collect consumer health data, or send notifications, messages, or advertisements: ${geofencePurpose}.`
+      : `Geofence implemented around an entity providing in-person health-care services: ${geofence}.`,
+    geofence === "yes"
+      ? (geofencePurpose === "yes"
+        ? "The section makes it unlawful for any person to implement such a geofence where it is used to identify or track consumers seeking health-care services, to collect consumer health data, or to send notifications, messages, or advertisements to consumers. The record describes a geofence used for at least one of those purposes."
+        : geofencePurpose === "no"
+        ? "A geofence exists, but the record states it is used for none of the three purposes the section enumerates — identifying or tracking consumers seeking health-care services, collecting consumer health data, or sending notifications, messages, or advertisements. The section's prohibition attaches to those uses, not to the geofence itself."
+        : "A geofence exists, but what it is used for is not described. The section's prohibition turns on the geofence being used to identify or track consumers seeking health-care services, to collect consumer health data, or to send notifications, messages, or advertisements — none of which can be resolved on this record.")
       : geofence === "no"
       ? "The record describes no geofence around an entity providing in-person health-care services."
       : "Whether a geofence is implemented around an entity providing in-person health-care services is not described. This section binds any person, so it does not wait on the consumer-health-data predicate.",
-    geofence === "yes" ? "not_satisfied" : geofence === "no" ? "satisfied" : "record_insufficient",
-    geofence === "unknown"
+    geofence === "yes"
+      ? (geofencePurpose === "yes"
+        ? "not_satisfied"
+        : geofencePurpose === "no"
+        ? "satisfied"
+        : "record_insufficient")
+      : geofence === "no"
+      ? "satisfied"
+      : "record_insufficient",
+    geofence === "yes" && geofencePurpose === "unknown"
+      ? "State what the geofence around the in-person health-care entity is used for — specifically whether it identifies or tracks consumers seeking health-care services, collects consumer health data, or sends notifications, messages, or advertisements to consumers."
+      : geofence === "unknown"
       ? "State whether any geofence is implemented around an entity that provides in-person health-care services and, if so, what it is used for."
       : undefined,
   ));

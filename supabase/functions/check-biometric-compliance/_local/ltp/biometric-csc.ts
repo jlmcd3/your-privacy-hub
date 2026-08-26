@@ -261,6 +261,8 @@ export const BIOMETRIC_KEY_SENTENCES: Readonly<Record<string, Sentence>> = {
   wa_mhmda_collection_consent: (v) => `On consent obtained before collection for a specified purpose the record answers ${q(v, 200)}.`,
   wa_mhmda_share_consent_separate: (v) => `On a separate sharing consent the record answers ${q(v, 200)}.`,
   wa_mhmda_geofence_health_facility: (v) => `On a geofence around an in-person health-care facility the record answers ${q(v, 200)}.`,
+  // TURN 1d (2026-08-26) — the RCW 19.373.080 purpose element.
+  wa_mhmda_geofence_purpose: (v) => `On whether that geofence is used to identify or track health-seeking consumers, collect consumer health data, or send notifications, messages, or advertisements, the record answers ${q(v, 200)}.`,
 
   approved_by_name: (v) => `The record names ${v} as the approver.`,
   approved_by_title: (v) => `The approver's recorded title is ${v}.`,
@@ -442,7 +444,8 @@ const DUTY_SURFACE_KEYS: Readonly<Record<string, {
     keys: ["wa_mhmda_share_consent_separate"],
     corroborating: ["disclosure_recipients"],
   },
-  "wa_19373.080_geofence": { keys: ["wa_mhmda_geofence_health_facility"] },
+  // TURN 1d (2026-08-26) — the purpose answer now also supports this duty.
+  "wa_19373.080_geofence": { keys: ["wa_mhmda_geofence_health_facility", "wa_mhmda_geofence_purpose"] },
 };
 
 

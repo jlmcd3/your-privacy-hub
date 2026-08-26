@@ -111,7 +111,7 @@ describe("W9-RISK-SLOTS golden presence", () => {
     // location-type picker — "Yes" engages the trigger, "No" does not.
     const intake = {
       q5_sell_share: "Both",
-      q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants",
+      q5b_profiling_observation: "Yes",
       q18_admt_use: "Yes",
       q15_sensitive_pi: "No",
       sensitive_location_basis: "Yes",

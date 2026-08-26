@@ -390,7 +390,16 @@ describe("Item 323 — RCW 19.373 (MHMDA) is ACTIVE, as a DISTINCT Washington au
     expect(d.scope_gated).toEqual([]);
   });
 
-  it("the geofence duty is NOT gated on the consumer-health-data predicate", () => {
+  // TURN 1d RE-PIN (2026-08-26, fleet intake audit): RCW 19.373.080's
+  // prohibition turns on the geofence's USE ("where such geofence is used
+  // to: (1) identify or track...; (2) collect...; (3) send notifications,
+  // messages, or advertisements"), never on bare existence. The prior pin
+  // asserted a VIOLATION from the existence answer alone — the exact
+  // overclaim the audit flagged (a rideshare app geofencing a hospital for
+  // pickup zoning would have been reported in violation). Existence with
+  // the purpose unrecorded now yields record_insufficient; the violation
+  // requires the purpose answer.
+  it("the geofence duty is NOT gated on the consumer-health-data predicate — and existence alone is an insufficiency, not a violation", () => {
     const d = buildBiometricDeliverables({
       ...PERFECT_MULTI(),
       wa_mhmda_health_inference: "No",
@@ -398,7 +407,34 @@ describe("Item 323 — RCW 19.373 (MHMDA) is ACTIVE, as a DISTINCT Washington au
     });
     const geo = d.duty_findings.find((f) => f.key === "wa_19373.080_geofence");
     expect(geo).toBeDefined();
+    expect(geo!.verdict).toBe("record_insufficient");
+    expect(geo!.information_needed).toMatch(/used for|identifies or tracks/);
+  });
+
+  it("TURN 1d — geofence used for an enumerated purpose is the violation", () => {
+    const d = buildBiometricDeliverables({
+      ...PERFECT_MULTI(),
+      wa_mhmda_health_inference: "No",
+      wa_mhmda_geofence_health_facility: "Yes",
+      wa_mhmda_geofence_purpose: "Yes",
+    });
+    const geo = d.duty_findings.find((f) => f.key === "wa_19373.080_geofence");
     expect(geo!.verdict).toBe("not_satisfied");
+    expect(geo!.application).toMatch(/used for at least one of those purposes/);
+  });
+
+  it("TURN 1d — a geofence used for none of the three purposes is not the prohibited conduct", () => {
+    // The audit's concrete scenario: a rideshare/logistics geofence around a
+    // hospital campus purely for pickup/drop-off zoning.
+    const d = buildBiometricDeliverables({
+      ...PERFECT_MULTI(),
+      wa_mhmda_health_inference: "No",
+      wa_mhmda_geofence_health_facility: "Yes",
+      wa_mhmda_geofence_purpose: "No",
+    });
+    const geo = d.duty_findings.find((f) => f.key === "wa_19373.080_geofence");
+    expect(geo!.verdict).toBe("satisfied");
+    expect(geo!.application).toMatch(/prohibition attaches to those uses, not to the geofence itself/);
   });
 
   it("clearing the MHMDA predicate does not disturb the RCW 19.375 analysis", () => {

@@ -76,14 +76,27 @@ export { FIELD_ALIASES };
 
 
 /**
- * ITEM 272 — § 7150(b)(4)/(b)(5) are BOTH keyed to the single intake enum
- * q5b_profiling_observation, so the generic "every field negative" rule
- * cannot separate them. These predicates read the option value.
+ * ITEM 272 → TURN 1d (2026-08-26, fleet intake audit findings 1+2).
+ * q5b_profiling_observation is now a direct Yes/No on the § 7150(b)(4)
+ * element ONLY (inference from systematic observation of workers/students/
+ * applicants). The retired 4-option enum's sensitive-location branch is
+ * GONE from this field: it fed the § 7150(b)(5) gate WITHOUT the inference
+ * caveat the TURN 1c sensitive_location_basis redesign added — a second
+ * door into the exact false positive that redesign closed (audit finding
+ * 1). § 7150(b)(5) resolves solely from sensitive_location_basis below.
+ *
+ * LEGACY COMPAT (narrow, deliberate): the two retired values that
+ * genuinely affirmed the OBSERVATION branch stay recognised, so a stored
+ * record re-run under this engine does not silently lose a trigger it had
+ * legitimately engaged. The retired sensitive-location-only value affirms
+ * nothing anywhere — that IS the loophole being closed, and unlike the
+ * observation values it was never a reliable affirmation of any element.
  */
 const q5bSaysObservation = (v: unknown): boolean =>
-  typeof v === "string" && /systematic observation|^both$/i.test(v.trim());
-const q5bSaysSensitiveLocation = (v: unknown): boolean =>
-  typeof v === "string" && /sensitive-location presence|^both$/i.test(v.trim());
+  typeof v === "string" &&
+  (/^yes$/i.test(v.trim()) ||
+    v.trim() === "Yes — systematic observation of workers/students/applicants" ||
+    /^both$/i.test(v.trim()));
 // TURN 1c (2026-08-26, CEO-directed redesign) — sensitive_location_basis is
 // now a direct Yes/No answer to the statute's own inference-from-presence
 // test (see src/pages/CPPARiskAssessment.enums.ts). The prior version of
@@ -160,11 +173,14 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
         continue;
       }
       if (gate.id === "G.applicability.sensitive_location") {
-        const v = readField(intake, "q5b_profiling_observation");
+        // TURN 1d (2026-08-26, audit finding 1) — the q5b OR-path is
+        // removed: this prong resolves SOLELY from the corrected TURN 1c
+        // Yes/No field, so no answer on any other field can re-open the
+        // sector-for-mechanism false positive that redesign closed.
         const basis = readField(intake, "sensitive_location_basis");
-        if (v === undefined && basis === undefined) {
-          outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q5b_profiling_observation and sensitive_location_basis absent" });
-        } else if (q5bSaysSensitiveLocation(v) || sensitiveLocationBasisEngaged(basis)) {
+        if (basis === undefined) {
+          outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "sensitive_location_basis absent" });
+        } else if (sensitiveLocationBasisEngaged(basis)) {
           outcomes.push({ gate_id: gate.id, outcome: "pass" });
         } else {
           outcomes.push({ gate_id: gate.id, outcome: "block", reason: "no sensitive-location inference on the record" });

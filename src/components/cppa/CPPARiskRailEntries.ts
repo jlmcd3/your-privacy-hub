@@ -594,20 +594,24 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     commonMistake: "Sweeping every use of order data under 'providing the service'. The consumer asked for delivery, not analytics.",
   },
 
+  // TURN 1d (2026-08-26, fleet intake audit) — this field is now a direct
+  // Yes/No on the § 7150(b)(4) element only; sensitive-location coaching
+  // lives entirely on the sensitive_location_basis entry.
   q5b_profiling: {
-    fieldLabel: "Profiling via systematic observation / sensitive location",
+    fieldLabel: "Inference from systematic observation (work or education context)",
     citation: "11 CCR § 7150(b)(4)",
     citationUrl: CPPA_URL,
-    plainSummary: "A risk assessment is independently required where a business profiles consumers acting as job applicants, employees, students, or independent contractors based on systematic observation, or profiles consumers based on their presence in a sensitive location. This is separate from selling/sharing or ADMT use.",
-    regulationText: "Processing the personal information of consumers to profile them while they are acting in their capacity as a job applicant, student, employee, or independent contractor, where the profiling is based on the consumer's systematic observation; or to profile a consumer based on their presence in a sensitive location.",
+    plainSummary: "A risk assessment is independently required where a business uses automated processing to infer or extrapolate a consumer's characteristics — intelligence, ability, aptitude, performance at work, economic situation, health, preferences, reliability, predispositions, behavior, or movements — based on systematic observation of that consumer acting as an educational-program applicant, job applicant, student, employee, or independent contractor. This is separate from selling/sharing, ADMT use, and the sensitive-location trigger.",
+    regulationText: "Using automated processing to infer or extrapolate a consumer's intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), personal preferences, interests, reliability, predispositions, behavior, location, or movements, based upon systematic observation of that consumer when they are acting in their capacity as an educational program applicant, job applicant, student, employee, or independent contractor for the business.",
     relatedCitations: [
       { citation: "11 CCR § 7001(ii)", label: "'Profiling' definition" },
-      { citation: "11 CCR § 7001", label: "'Sensitive location' / 'systematic observation'" },
+      { citation: "11 CCR § 7001", label: "'Systematic observation' definition" },
+      { citation: "11 CCR § 7150(b)(5)", label: "Sensitive-location inference (separate trigger)" },
     ],
-    coachLead: "Answer from where and how you watch people — not what it's called.",
-    coachBody: "The trigger covers profiling through systematic observation of public places or sensitive locations. Check for cameras, sensors, wifi tracking, and location analytics.",
-    goodAnswer: "A mall operator runs footfall analytics from wifi pings. That is a yes — systematic observation of a public place, whatever the vendor calls it.",
-    commonMistake: "Answering no because the pipeline anonymises at the end. The trigger looks at the observation itself.",
+    coachLead: "Answer \"Yes\" only where the observation itself feeds an inference about the person — bare monitoring with nothing derived from it is not this trigger.",
+    coachBody: "Check two things: whether the people observed are applicants, students, employees, or independent contractors, and whether the automated processing derives a characteristic FROM the observation — a productivity score, a reliability rating, a fatigue or health flag, a behavioral profile. Cameras, sensors, keystroke analytics, and location tracking are observation methods; the trigger fires when something about the person is inferred from them.",
+    goodAnswer: "A logistics company scores driver reliability from continuous telematics observation — that is a yes. The same company keeping raw clock-in/out logs purely as attendance records, with nothing derived from them, is a no.",
+    commonMistake: "Answering no because the pipeline anonymises at the end, or answering yes for bare record-keeping. The trigger turns on whether a characteristic is inferred from the observation — not on what the vendor calls the tool, and not on monitoring that derives nothing.",
   },
 
   q15b_under16: {

@@ -91,11 +91,13 @@ Deno.test("item408 / biometric PARITY — every form control has a contract key"
   assertEquals(missing, [], `form keys absent from the contract: ${missing.join(", ")}`);
 });
 
-Deno.test("item408 / biometric PARITY — contract declares 38 fields, no duplicates", () => {
+Deno.test("item408 / biometric PARITY — contract declares 39 fields, no duplicates", () => {
   const keys = biometricContract.fields.map((f) => f.key);
   assertEquals(new Set(keys).size, keys.length, "duplicate contract key");
   // INTAKE-4g added the CEO-approved optional `biometric_consent_withdrawal`.
-  assertEquals(keys.length, 38);
+  // TURN 1d (2026-08-26) added `wa_mhmda_geofence_purpose` — the RCW
+  // 19.373.080 purpose element, asked only when a geofence exists.
+  assertEquals(keys.length, 39);
 
   assertEquals(biometricContract.tool_type, "biometric_checker");
   assertEquals(biometricContract.table, "biometric_assessments");
@@ -218,6 +220,30 @@ Deno.test("item408 / biometric TRIGGERS — Washington opens RCW 19.375 and RCW 
     ]
   ) assert(asked.includes(k), `${k} not asked with Washington in scope`);
   assert(!asked.some((k) => k.startsWith("tx_")));
+});
+
+// TURN 1d (2026-08-26, fleet intake audit) — RCW 19.373.080's prohibition is
+// conditioned on the geofence's USE, so the purpose element has its own
+// question, asked only when a geofence exists.
+Deno.test("item408 / biometric TRIGGERS — the geofence PURPOSE question opens only when a geofence exists", () => {
+  const withoutGeofence = emptyAskedKeys(biometricContract, {
+    ...BASE,
+    jurisdictions: ["Washington state, USA"],
+  });
+  assert(!withoutGeofence.includes("wa_mhmda_geofence_purpose"), "purpose must not be asked before existence is affirmed");
+  const withGeofence = emptyAskedKeys(biometricContract, {
+    ...BASE,
+    jurisdictions: ["Washington state, USA"],
+    wa_mhmda_geofence_health_facility: "Yes",
+  });
+  assert(withGeofence.includes("wa_mhmda_geofence_purpose"), "purpose must be asked once a geofence exists");
+  const answered = emptyAskedKeys(biometricContract, {
+    ...BASE,
+    jurisdictions: ["Washington state, USA"],
+    wa_mhmda_geofence_health_facility: "Yes",
+    wa_mhmda_geofence_purpose: "No",
+  });
+  assert(!answered.includes("wa_mhmda_geofence_purpose"));
 });
 
 Deno.test('item408 / biometric TRIGGERS — "Other US state" opens the named-states input', () => {

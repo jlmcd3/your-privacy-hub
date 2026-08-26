@@ -152,6 +152,22 @@ function arr(v: unknown): string[] {
   return v.map((x) => (typeof x === "string" ? x.trim() : "")).filter(Boolean);
 }
 
+/**
+ * TURN 1d (2026-08-26, fleet intake audit findings 1+2) —
+ * q5b_profiling_observation is a direct Yes/No on the § 7150(b)(4)
+ * observation-inference element. The two retired values that genuinely
+ * affirmed the OBSERVATION branch of the old 4-option enum stay
+ * recognised (stored records must not silently lose a legitimately
+ * engaged trigger); the retired sensitive-location-only value affirms
+ * nothing anywhere — its § 7150(b)(5) path was the audit's finding-1
+ * loophole and is retired.
+ */
+function q5bAffirmsObservation(v: string): boolean {
+  return /^yes$/i.test(v) ||
+    v === "Yes — systematic observation of workers/students/applicants" ||
+    /^both$/i.test(v);
+}
+
 function formatOxford(items: string[]): string {
   if (items.length === 0) return "";
   if (items.length === 1) return items[0];
@@ -223,10 +239,11 @@ export function buildRiskOpening(
   if (SELL_SHARE_AFFIRMATIVE.has(sellShare)) triggers.push(1);
   if (str(intake.q15_sensitive_pi) === "Yes") triggers.push(2);
   if (str(intake.q18_admt_use) === "Yes") triggers.push(3);
+  // TURN 1d (2026-08-26) — direct Yes/No; legacy observation-branch values
+  // recognised. (Also fixes a pre-existing S1 drift: legacy "Both" fired
+  // (b)(4) in gate-eval but not here.)
   const prof = str(intake.q5b_profiling_observation);
-  if (prof && /^Yes/.test(prof) && /worker|student|applicant/i.test(prof)) {
-    triggers.push(4);
-  }
+  if (prof && q5bAffirmsObservation(prof)) triggers.push(4);
   // TURN 1c (2026-08-26) — sensitive_location_basis is now a direct Yes/No
   // on the statutory element itself; a plain equality check replaces the
   // prior "anything but not-applicable/No" heuristic.
@@ -286,9 +303,14 @@ export function buildRiskOpening(
   if (prof) {
     // CP5 (c) — no hyphen. Hyphenated compound was rendering as
     // "systematicobservation" after PDF text extraction on some viewers.
+    // TURN 1d — affirmative via the shared predicate ("Yes" + the two
+    // legacy observation-branch values, incl. legacy "Both", which the old
+    // /^Yes/ test missed); the retired sensitive-location-only legacy
+    // value now yields NO qualifier here — it never affirmed observation
+    // profiling, and the old /^Yes/ catch-all wrongly said it did.
     if (/^No\b/i.test(prof)) {
       qparts.push("does not conduct systematic observation profiling");
-    } else if (/^Yes/.test(prof)) {
+    } else if (q5bAffirmsObservation(prof)) {
       qparts.push("conducts systematic observation profiling as described in the intake");
     }
   }

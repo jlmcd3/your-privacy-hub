@@ -135,6 +135,9 @@ export default function BiometricChecker() {
     wa_mhmda_collection_consent: "",
     wa_mhmda_share_consent_separate: "",
     wa_mhmda_geofence_health_facility: "",
+    // TURN 1d (2026-08-26) — RCW 19.373.080's prohibition turns on the
+    // geofence's USE, not its existence; asked only when one exists.
+    wa_mhmda_geofence_purpose: "",
   });
 
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
@@ -562,7 +565,17 @@ export default function BiometricChecker() {
                         <Tri label="Is a consumer health data privacy policy published and linked from the homepage?" value={form.wa_mhmda_privacy_policy_published} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_privacy_policy_published: v }))} />
                         <Tri label="Was consent obtained before collection, for a specified purpose?" value={form.wa_mhmda_collection_consent} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_collection_consent: v }))} />
                         <Tri label="Is there a sharing consent separate and distinct from the collection consent?" value={form.wa_mhmda_share_consent_separate} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_share_consent_separate: v }))} />
-                        <Tri label="Is any geofence implemented around an entity providing in-person health-care services?" value={form.wa_mhmda_geofence_health_facility} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_geofence_health_facility: v }))} />
+                        {/* TURN 1d (2026-08-26, fleet intake audit) — RCW 19.373.080
+                            conditions unlawfulness on the geofence's USE (identify/
+                            track health-seeking consumers, collect consumer health
+                            data, or send notifications/messages/ads), never on bare
+                            existence. Existence and purpose are asked separately;
+                            flipping existence away from "Yes" clears the purpose
+                            answer so a stale value never rides along. */}
+                        <Tri label="Is any geofence implemented around an entity providing in-person health-care services?" value={form.wa_mhmda_geofence_health_facility} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_geofence_health_facility: v, ...(v === "Yes" ? {} : { wa_mhmda_geofence_purpose: "" }) }))} />
+                        {form.wa_mhmda_geofence_health_facility === "Yes" && (
+                          <Tri label="Is that geofence used to identify or track consumers seeking health-care services, to collect consumer health data, or to send notifications, messages, or advertisements to consumers?" value={form.wa_mhmda_geofence_purpose} onChange={(v) => setForm(f => ({ ...f, wa_mhmda_geofence_purpose: v }))} />
+                        )}
                       </div>
                     </div>
                   </div>

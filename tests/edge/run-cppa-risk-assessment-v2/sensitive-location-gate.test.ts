@@ -103,20 +103,58 @@ Deno.test("sensitive-location gate: a genuine presence-inference record still en
   assertEquals(o?.outcome, "pass");
 });
 
-// The parallel q5b path (a separate, already-correct signal for the SAME
-// trigger) must be unaffected by this fix.
-Deno.test("sensitive-location gate: the parallel q5b 'sensitive-location presence' signal still engages independently", () => {
+// TURN 1d RE-PIN (2026-08-26, fleet intake audit finding 1) — the two
+// tests below originally pinned the OPPOSITE behaviour: that the q5b
+// "sensitive-location presence"/"Both" options engage this gate
+// independently. The fleet audit found that OR-path was a live loophole:
+// q5b's option text carried none of the inference caveat the TURN 1c
+// redesign added, so a skim-answer on the OLD adjacent question re-opened
+// the exact Vantara-class false positive the redesign closed. The gate now
+// resolves SOLELY from sensitive_location_basis; no q5b value — current or
+// legacy — can engage § 7150(b)(5).
+Deno.test("sensitive-location gate (TURN 1d): legacy q5b 'sensitive-location presence' can no longer engage the gate", () => {
   const o = outcomeFor({
     q5b_profiling_observation: "Yes — based on sensitive-location presence",
     sensitive_location_basis: "No",
   });
-  assertEquals(o?.outcome, "pass");
+  assertEquals(o?.outcome, "block");
 });
 
-Deno.test("sensitive-location gate: 'Both' on q5b still engages independently of sensitive_location_basis", () => {
+Deno.test("sensitive-location gate (TURN 1d): legacy q5b 'Both' can no longer engage the gate", () => {
   const o = outcomeFor({
     q5b_profiling_observation: "Both",
     sensitive_location_basis: "No",
   });
-  assertEquals(o?.outcome, "pass");
+  assertEquals(o?.outcome, "block");
+});
+
+// ── § 7150(b)(4) — the systematic-observation gate (TURN 1d, audit
+// finding 2): q5b is now a direct Yes/No on the observation-inference
+// element, with a narrow legacy-compat clause so stored records keep a
+// trigger they legitimately engaged. ────────────────────────────────────
+
+const OBS_GATE_ID = "G.applicability.systematic_observation";
+
+function obsOutcomeFor(intake: Record<string, unknown>) {
+  const outcomes = evaluateCppaRiskGates(intake as never);
+  return outcomes.find((o) => o.gate_id === OBS_GATE_ID);
+}
+
+Deno.test("observation gate (TURN 1d): canonical 'Yes' passes, 'No' blocks, absent is not_applicable", () => {
+  assertEquals(obsOutcomeFor({ q5b_profiling_observation: "Yes" })?.outcome, "pass");
+  assertEquals(obsOutcomeFor({ q5b_profiling_observation: "No" })?.outcome, "block");
+  assertEquals(obsOutcomeFor({})?.outcome, "not_applicable");
+});
+
+Deno.test("observation gate (TURN 1d): legacy observation-branch values stay recognised for stored records", () => {
+  assertEquals(
+    obsOutcomeFor({ q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants" })?.outcome,
+    "pass",
+  );
+  assertEquals(obsOutcomeFor({ q5b_profiling_observation: "Both" })?.outcome, "pass");
+});
+
+Deno.test("observation gate (TURN 1d): the legacy sensitive-location-only value affirms NOTHING — it blocks (b)(4) too", () => {
+  const intake = { q5b_profiling_observation: "Yes — based on sensitive-location presence" };
+  assertEquals(obsOutcomeFor(intake)?.outcome, "block");
 });

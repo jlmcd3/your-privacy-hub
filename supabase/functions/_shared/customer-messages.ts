@@ -522,6 +522,8 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   wa_mhmda_collection_consent: "the consent obtained for collecting consumer health data",
   wa_mhmda_share_consent_separate: "whether sharing consent was obtained separately",
   wa_mhmda_geofence_health_facility: "whether a geofence is used around a health-care facility",
+  // TURN 1d (2026-08-26) — the RCW 19.373.080 purpose element.
+  wa_mhmda_geofence_purpose: "what the geofence around the health-care facility is used for",
 });
 
 

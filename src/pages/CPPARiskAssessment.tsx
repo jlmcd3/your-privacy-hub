@@ -741,21 +741,18 @@ export default function CPPARiskAssessment() {
       {
         citation: "11 CCR § 7150(b)(4)",
         label: "Risk assessment required — systematic-observation inference (work or education context)",
-        triggered:
-          q5bProfiling === "Yes — systematic observation of workers/students/applicants" ||
-          q5bProfiling === "Both",
+        // TURN 1d (2026-08-26) — q5b is now a direct Yes/No on the (b)(4)
+        // inference-from-systematic-observation element.
+        triggered: q5bProfiling === "Yes",
       },
       {
         citation: "11 CCR § 7150(b)(5)",
         label: "Risk assessment required — sensitive-location inference",
-        // TURN 1c (2026-08-26) — sensitiveLocationBasis is now a direct
-        // Yes/No answer to the statute's own inference-from-presence test;
-        // the q5bProfiling OR-clauses remain a separate, legitimate signal
-        // for the same trigger (see the coach note on that field).
-        triggered:
-          q5bProfiling === "Yes — based on sensitive-location presence" ||
-          q5bProfiling === "Both" ||
-          sensitiveLocationBasis === "Yes",
+        // TURN 1c/1d (2026-08-26) — this trigger resolves SOLELY from the
+        // dedicated Yes/No sensitive_location_basis question. The former
+        // q5b OR-clauses were the fleet-audit finding-1 loophole: they fed
+        // this trigger without the inference caveat and are retired.
+        triggered: sensitiveLocationBasis === "Yes",
       },
       {
         citation: "11 CCR § 7150(b)(6)",
@@ -2069,10 +2066,21 @@ export default function CPPARiskAssessment() {
                   </select>
                 </div>
               )}
+              {/* TURN 1d (2026-08-26, fleet intake audit findings 1+2) — q5b is
+                  now a direct Yes/No on the § 7150(b)(4) element ONLY. The
+                  retired 4-option enum did two wrong things: (a) its
+                  "sensitive-location presence"/"Both" options fed the
+                  § 7150(b)(5) gate WITHOUT the inference caveat the TURN 1c
+                  sensitive_location_basis redesign added — a second door into
+                  the exact false positive that redesign closed; (b) its
+                  observation option never required the record to describe an
+                  inference at all, so bare monitoring (clock-in logs) could
+                  read as the trigger. § 7150(b)(5) now resolves solely from
+                  the dedicated sensitive_location_basis question below. */}
               <div data-rail-key="q5b_profiling" onFocus={() => focusRail('q5b_profiling')}>
-                <Label>Do you profile consumers based on systematic observation, or based on their presence in a sensitive location? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
-                <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger from selling/sharing. It covers profiling of applicants, employees, students, or independent contractors through systematic observation (e.g. productivity or location tracking), or profiling based on presence in a sensitive location such as a health-care facility, shelter, place of worship, or domestic-violence services provider.</p>
-                <div className="mt-2"><Radio name="q5b" options={["Yes — systematic observation of workers/students/applicants", "Yes — based on sensitive-location presence", "Both", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
+                <Label>Does the automated processing derive any personal attributes of your workers, students, or applicants — like their performance, reliability, health, or behavior — based on systematic observation of them? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger covering educational-program applicants, job applicants, students, employees, and independent contractors. Answer "Yes" only where the observation itself feeds an inference about the person — for example productivity, keystroke, or location tracking used to score performance or reliability. Bare record-keeping (e.g. clock-in/out logs kept as records) with no characteristic derived from it is not this trigger.</p>
+                <div className="mt-2"><Radio name="q5b" options={["Yes", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
               </div>
               {/* TURN 1c (2026-08-26, CEO-directed redesign) — § 7150(b)(5) is a
                   direct Yes/No question on the statute's actual element

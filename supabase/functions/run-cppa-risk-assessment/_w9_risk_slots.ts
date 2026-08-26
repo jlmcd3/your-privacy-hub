@@ -121,8 +121,18 @@ export function computeIntakeSelectedSubsections(intake: Intake): string[] {
   const q5 = clampStr(merged.q5_sell_share);
   if (q5 && q5 !== "No" && q5 !== "Unsure") push("§ 7150(b)(1)");
 
+  // (b)(4) — TURN 1d (2026-08-26): direct Yes/No on the observation-
+  // inference element; the two legacy observation-branch values stay
+  // recognised for stored records. This also FIXES a live defect the old
+  // `q5b !== "No"` check carried: the retired "Yes — based on
+  // sensitive-location presence" value fired the (b)(4) SUBSECTION here
+  // despite never affirming systematic observation at all.
   const q5b = clampStr(merged.q5b_profiling_observation);
-  if (q5b && q5b !== "No") push("§ 7150(b)(4)");
+  if (
+    /^yes$/i.test(q5b) ||
+    q5b === "Yes — systematic observation of workers/students/applicants" ||
+    /^both$/i.test(q5b)
+  ) push("§ 7150(b)(4)");
 
   // (b)(3) — ADMT for significant decisions.
   const q18 = clampStr(merged.q18_admt_use);
