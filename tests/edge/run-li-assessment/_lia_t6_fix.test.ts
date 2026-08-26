@@ -219,6 +219,30 @@ Deno.test("_meta.internal preexisting keys preserved", () => {
   assert(report._meta.internal.lia_t6fix);
 });
 
+// ── L0.5 D3 WIRING GUARD (2026-08-25) — production must pass the FULL
+// record, never the trimmed liaIntakeObject. A trimmed intake omits
+// purpose_details/necessity_details/balancing_details/attestation, so
+// Class B's "is this claim intake-supported" check sees almost nothing and
+// downgrades genuine, record-grounded claims to the generic hedge sentence
+// (empirically confirmed before this fix landed). CSC's own call site was
+// already fixed for the identical defect class; this guard prevents the
+// same regression recurring silently in index.ts. ──────────────────────
+Deno.test("WIRING GUARD — index.ts calls applyLiaT6Fix with the full assessment record, not liaIntakeObject", async () => {
+  const src = (await Deno.readTextFile(
+    new URL("../../../supabase/functions/run-li-assessment/index.ts", import.meta.url),
+  )).replace(/\r\n/g, "\n");
+  const callSite = src.match(/applyLiaT6Fix\(reportData,[\s\S]*?\}\);/)?.[0];
+  assert(callSite, "applyLiaT6Fix call site not found in index.ts");
+  assert(
+    !/intake:\s*liaIntakeObject/.test(callSite!),
+    `applyLiaT6Fix must not be called with the trimmed liaIntakeObject:\n${callSite}`,
+  );
+  assert(
+    /intake:\s*\(assessment as unknown as Record<string, unknown>\)/.test(callSite!),
+    `applyLiaT6Fix must be called with the full assessment record:\n${callSite}`,
+  );
+});
+
 // ── Truncated-citation detector unit ──
 Deno.test("isTruncatedCitation: shapes", () => {
   const f = _internals.isTruncatedCitation;

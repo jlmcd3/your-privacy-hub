@@ -1877,9 +1877,28 @@ Return JSON:
     // and Class B unsupported-business-claim downgrade using whole-sentence
     // excision doctrine (ledger item 84c). Telemetry to
     // `_meta.internal.lia_t6fix`. Fail-open.
+    //
+    // L0.5 D3 FIX (2026-08-25): was called with `liaIntakeObject`, the
+    // TRIMMED Stage-A-only object (organization_name, subject_anchor,
+    // relationship_type, jurisdictions, data_categories,
+    // processing_description, stated_purpose, sector,
+    // alternatives_considered) — it omits purpose_details / necessity_details
+    // / balancing_details / attestation, which is where nearly every Class B
+    // "intake-supported claim" fact actually lives. Empirically confirmed:
+    // a genuine, fully-supported claim whose only support was in
+    // purpose_details.interest_statement was DOWNGRADED to the generic hedge
+    // sentence when checked against liaIntakeObject, and correctly preserved
+    // when checked against the full record. This is the exact same
+    // trimmed-intake defect class the CSC pass below was already fixed for
+    // (see that pass's own "ITEM 385 r2" comment) — Class B has been
+    // silently over-hedging real, record-grounded LIA prose ever since it
+    // landed. Switched to the full persisted row, matching the CSC call.
     try {
       const { applyLiaT6Fix } = await import("./_lia_t6_fix.ts");
-      applyLiaT6Fix(reportData, { intake: liaIntakeObject, buildStamp: BUILD_STAMP });
+      applyLiaT6Fix(reportData, {
+        intake: (assessment as unknown as Record<string, unknown>) ?? {},
+        buildStamp: BUILD_STAMP,
+      });
     } catch (e) {
       console.warn("[run-li-assessment] LIA-T6-FIX-TURN post-pass failed (non-fatal):", (e as Error)?.message);
     }
