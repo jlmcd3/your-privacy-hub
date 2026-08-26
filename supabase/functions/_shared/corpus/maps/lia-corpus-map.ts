@@ -476,7 +476,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "7a874890-4f84-423e-82b2-1eed7d42f52a",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt:
-        "The DPC found that Airbnb lacked a legal basis under Article 6 GDPR for processing a complainant's ID to delete his account and violated data minimisation obligations by requiring the ID for an erasure request.",
+        "The DPC found that Airbnb lacked a legal basis under Article 6 GDPR for processing a complainant’s ID to delete his account and violated data minimisation obligations by requiring the ID for an erasure request.",
       render_eligible: false,
       direction: "limits",
       logic_bearing: true,
@@ -500,7 +500,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "f53002af-7fcd-4a9d-b16f-5f7ff12e379f",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt:
-        "Groupon lacked a legal basis for requiring a data subject's ID to fulfill access and erasure requests, violating data minimisation obligations and failing to comply with SARs",
+        "Groupon lacked a legal basis for requiring a data subject’s ID to fulfill access and erasure requests, violating data minimisation obligations and failing to comply with SARs",
       render_eligible: false,
       direction: "limits",
       logic_bearing: true,
@@ -548,7 +548,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "1400828c-90d8-4dc1-8576-dc002ff7ed23",
       excerpt_field: "excerpt_text",
       pinned_excerpt:
-        "A service provider may have a legitimate business interest in ensuring that its customers will not misuse the service (or will not be able to obtain services without payment), while at the same time, the customers of the company, as well as other third parties, may also have a legitimate",
+        "customers of the company, as well as other third parties, may also have a legitimate interest in ensuring that fraudulent activities are discouraged and detected when they occur.",
       render_eligible: false,
       direction: "supports",
       logic_bearing: false,
@@ -564,7 +564,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "4bc253a9-dc73-4ab4-a6ba-8ef3bdb8da85",
       excerpt_field: "excerpt_text",
       pinned_excerpt:
-        "It should therefore be noted that a generic reference to the purpose of \"combating fraud\" to define the legitimate interest, for example in the privacy policy, is not sufficient to meet the transparency and documentation obligations under the GDPR.",
+        "It should therefore be noted that a generic reference to the purpose of “combating fraud” to define the legitimate interest, for example in the privacy policy, is not sufficient to meet the transparency and documentation obligations under the GDPR.",
       render_eligible: false,
       direction: "limits",
       logic_bearing: false,
@@ -614,7 +614,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "234234e9-19f0-4bd7-8bdc-9cccc4902f70",
       excerpt_field: "excerpt_text",
       pinned_excerpt:
-        "According to Recital 48 GDPR, controllers that are part of a group of undertakings may have a legitimate interest in transmitting personal data within the group of undertakings for internal administrative purposes, including the processing of clients' or employees' personal data.",
+        "According to Recital 48 GDPR, controllers that are part of a group of undertakings may have a legitimate interest in transmitting personal data within the group of undertakings for internal administrative purposes, including the processing of clients’ or employees’ personal data.",
       render_eligible: false,
       direction: "supports",
       logic_bearing: false,
@@ -630,7 +630,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "14ed8415-0004-499f-a7da-b83ed92b3753",
       excerpt_field: "excerpt_text",
       pinned_excerpt:
-        "However, the reference to an interest pursued by \"a third party\" in the wording of Article 6(1)(f) GDPR indicates that the interest(s) of one or more specific third parties may be legitimately pursued within the meaning of Article 6(1)(f)",
+        "However, the reference to an interest pursued by “a third party” in the wording of Article 6(1)(f) GDPR indicates that the interest(s) of one or more specific third parties may be legitimately pursued within the meaning of Article 6(1)(f)",
       render_eligible: false,
       direction: "supports",
       logic_bearing: false,
@@ -666,7 +666,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "27446e53-e259-42b3-928e-bbb6c56348a2",
       excerpt_field: "excerpt_text",
       pinned_excerpt:
-        "The duty is upon the controller to demonstrate that the balancing test has been conducted appropriately and that the legitimate interest(s) being pursued are not objectively overridden by the data subject's interests, fundamental rights and freedoms.",
+        "The duty is upon the controller to demonstrate that the balancing test has been conducted appropriately and that the legitimate interest(s) being pursued are not objectively overridden by the data subject’s interests, fundamental rights and freedoms.",
       render_eligible: false,
       direction: "limits",
       logic_bearing: false,
