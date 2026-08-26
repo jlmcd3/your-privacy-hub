@@ -10,7 +10,7 @@ import type { CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-t
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
 import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
-import { CYBER_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/cyber-corpus-map.ts";
+import { CYBER_CORPUS_MAP } from "../../../supabase/functions/run-cppa-cybersecurity/_local/corpus/maps/cyber-corpus-map.ts";
 
 const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP, CYBER_CORPUS_MAP];
 

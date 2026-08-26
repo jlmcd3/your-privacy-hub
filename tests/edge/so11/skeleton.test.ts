@@ -14,7 +14,7 @@ import {
   LIA_SKELETON_PARAGRAPHS,
   LIA_SKELETON_PINPOINTS,
   LIA_SKELETON_SECTIONS,
-} from "../../../supabase/functions/_shared/prose/plans/lia.spine.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts";
 import {
   LIA_CONDITIONAL_TRIGGERS,
   LIA_SLOT_MAP,

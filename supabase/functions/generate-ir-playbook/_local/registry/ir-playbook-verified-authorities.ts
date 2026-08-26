@@ -42,7 +42,7 @@
 // IMPORTED here by reference rather than re-typed: a second literal copy of the
 // same verbatim quote is a second thing to drift, and the Item 327 pin test
 // would not be guarding it. The corpus pin therefore covers both products.
-import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../_shared/registry/governance-verified-authorities.ts";
+import { GOVERNANCE_VERIFIED_AUTHORITIES } from "./governance-verified-authorities.ts";
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,

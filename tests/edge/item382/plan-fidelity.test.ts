@@ -16,7 +16,7 @@ import {
   liaSectionTitle,
   LIA_PLAN_SUPERSEDED_ROW_ID,
   LIA_PLAN_SUPERSEDED_VERSION,
-} from "../../../supabase/functions/_shared/prose/plans/lia.spine.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts";
 
 const EXPECTED: readonly [string, string, string, string][] = [
   ["determination", "Determination", "headline", "determination"],

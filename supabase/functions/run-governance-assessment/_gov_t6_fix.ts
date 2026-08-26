@@ -43,7 +43,7 @@ import {
   GOVERNANCE_VERIFIED_AUTHORITIES,
   GOVERNANCE_UNANCHORED_PROPOSITIONS,
   GOVERNANCE_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/governance-verified-authorities.ts";
+} from "./_local/registry/governance-verified-authorities.ts";
 
 export const GOV_T6_FIX_STAMP = "gov-t6fix@2026-07-25T23:47:00Z";
 

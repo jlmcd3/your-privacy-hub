@@ -41,7 +41,7 @@ import {
   LIA_SKELETON_TITLE,
   LIA_SKELETON_VERSION,
   LIA_V3_BANNED_REGISTER,
-} from "../../../_shared/prose/plans/lia.spine.ts";
+} from "../prose/plans/lia.spine.ts";
 import {
   LIA_CONDITIONAL_TRIGGERS,
   LIA_DATA_CATEGORY_LABELS,
