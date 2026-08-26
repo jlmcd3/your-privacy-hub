@@ -178,7 +178,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
     },
     {
       id: "cppa-risk/material-privacy-risk-pathways/01",
-      factor_id: "Material privacy-risk pathways",
+      factor_id: "Material privacy risks",
       role: "FC",
       source_table: "cppa_fsor_commentary",
       source_row_id: "36ccaa19-6dc0-4970-966c-317e463ee7e2",
@@ -200,7 +200,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
     },
     {
       id: "cppa-risk/material-privacy-risk-pathways/02",
-      factor_id: "Material privacy-risk pathways",
+      factor_id: "Material privacy risks",
       role: "FC",
       source_table: "cppa_fsor_commentary",
       source_row_id: "89c6105e-f589-4a94-bbdc-fd84149a2d6d",

@@ -126,7 +126,10 @@ export interface CamRow {
 }
 
 export interface CorpusMap {
-  readonly product: "cppa-risk" | "cppa-admt" | "dpia" | "cppa-cyber";
+  // LIA Conversion L-CA (2026-08-25) widens the union by one member, same
+  // law as the phase-2 `render_eligible: boolean` widening above: additive,
+  // scoped by mapInvariants, no other member's behavior changes.
+  readonly product: "cppa-risk" | "cppa-admt" | "dpia" | "cppa-cyber" | "lia";
   readonly map_version: string; // "<product>-cam-vN-YYYY-MM-DD"
   readonly snapshot_file: string; // the fixture this map pins against
   readonly rows: readonly CamRow[];

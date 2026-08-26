@@ -11,9 +11,16 @@ import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
 import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
 import { CYBER_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/cyber-corpus-map.ts";
+import { LIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts";
 import type { CamRow, CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
 
-const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP, CYBER_CORPUS_MAP];
+const MAPS: readonly CorpusMap[] = [
+  RISK_CORPUS_MAP,
+  ADMT_CORPUS_MAP,
+  DPIA_CORPUS_MAP,
+  CYBER_CORPUS_MAP,
+  LIA_CORPUS_MAP,
+];
 
 async function assertImplementedBranchExists(row: CamRow): Promise<void> {
   if (!row.logic_disposition || row.logic_disposition.kind !== "implemented") return;

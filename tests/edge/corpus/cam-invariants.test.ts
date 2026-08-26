@@ -15,9 +15,16 @@ import {
   CYBER_CORPUS_MAP,
   CYBER_PROCEDURAL_FACTORS,
 } from "../../../supabase/functions/_shared/corpus/maps/cyber-corpus-map.ts";
+import { LIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts";
 
 // All maps landed so far.
-const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP, CYBER_CORPUS_MAP];
+const MAPS: readonly CorpusMap[] = [
+  RISK_CORPUS_MAP,
+  ADMT_CORPUS_MAP,
+  DPIA_CORPUS_MAP,
+  CYBER_CORPUS_MAP,
+  LIA_CORPUS_MAP,
+];
 
 Deno.test("mapInvariants: empty map is trivially valid", () => {
   const empty: CorpusMap = {
@@ -161,6 +168,33 @@ Deno.test("CYBER_CORPUS_MAP: every factor_id is a canonical component name or a 
       src.includes(`"${row.factor_id}"`),
       `${row.id}: factor_id "${row.factor_id}" is neither a procedural factor nor an ALL_COMPONENTS literal`,
     );
+  }
+});
+
+Deno.test("lia: L-CA posture — all rows dark (pre-conversion, doc 48 §II.6), 8 AP, 1 AOW, 1 logic-bearing FC, 14 FC-J", () => {
+  const ap = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AP");
+  const aow = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
+  const logicBearing = LIA_CORPUS_MAP.rows.filter((r) => r.logic_bearing);
+  const fcJ = LIA_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.logic_bearing);
+  assertEquals(ap.length, 8);
+  assertEquals(aow.length, 1);
+  assertEquals(logicBearing.length, 1);
+  assertEquals(fcJ.length, 14);
+  assertEquals(LIA_CORPUS_MAP.rows.length, 24);
+  // The Render-Readiness Law (doc 48 §II.6): LIA's three-part test is still
+  // model-authored, so every row stays dark regardless of role.
+  for (const r of LIA_CORPUS_MAP.rows) assertEquals(r.render_eligible, false, r.id);
+  assertEquals(LIA_CORPUS_MAP.s4_ratification, undefined);
+  assertEquals(LIA_CORPUS_MAP.s2_ratification, undefined);
+});
+
+Deno.test("LIA_CORPUS_MAP: every factor_id matches the ratified LIA_FACTOR_VOCABULARY (doc 58 §1)", async () => {
+  const { LIA_FACTOR_VOCABULARY } = await import(
+    "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts"
+  );
+  const vocab = new Set<string>(LIA_FACTOR_VOCABULARY);
+  for (const row of LIA_CORPUS_MAP.rows) {
+    assert(vocab.has(row.factor_id), `${row.id}: factor_id "${row.factor_id}" is not in LIA_FACTOR_VOCABULARY`);
   }
 });
 
