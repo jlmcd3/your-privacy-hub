@@ -34,7 +34,7 @@
 // attached rows.
 
 import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
-import { CYBER_CORPUS_MAP, CYBER_S4_FRAMES } from "../../../_shared/corpus/maps/cyber-corpus-map.ts";
+import { CYBER_CORPUS_MAP, CYBER_S4_FRAMES } from "../corpus/maps/cyber-corpus-map.ts";
 import { CYBER_7123_COMPONENTS } from "./cppa-cyber-deliverables/components.ts";
 
 export interface CyberS4CommentaryEntry {

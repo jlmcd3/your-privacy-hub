@@ -70,7 +70,7 @@ import { renderDeterminationHtml, DETERMINATION_CSS } from "./_local/report-exhi
 import { buildCPPARiskProse9HTML } from "./prose9-html.ts";
 // ITEM 369-IR LEG 1 — two-file IR delivery (standing playbook + worksheet).
 import { buildIRStandingPlaybookHTML, buildIRWorksheetHTML } from "./ir-artifacts-html.ts";
-import { liaSectionTitle, liaVerdictLabel } from "../_shared/prose/plans/lia.spine.ts";
+import { liaSectionTitle, liaVerdictLabel } from "./_local/prose/plans/lia.spine.ts";
 
 
 

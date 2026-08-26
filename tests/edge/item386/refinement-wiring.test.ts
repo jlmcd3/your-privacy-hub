@@ -30,7 +30,7 @@ import {
 } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
 import { DPIA_REFINEMENT_CONFIG } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-refinement.ts";
 import { RISK_REFINEMENT_CONFIG } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-refinement.ts";
-import { LIA_SECTION_SPECS, LIA_PIPELINE_STAMP } from "../../../supabase/functions/_shared/prose/plans/lia.spine.ts";
+import { LIA_SECTION_SPECS, LIA_PIPELINE_STAMP } from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts";
 
 const finding = (path: string, quote: string, replacement: string): CriticFinding => ({
   path,

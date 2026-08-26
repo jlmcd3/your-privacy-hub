@@ -11,7 +11,7 @@ export const BUILD_STAMP = "lia-upgrade4@2026-08-03T22:00:00Z";
 // ITEM 382 — LIA prose encode + register repair. The stamp is written into
 // every document's `_meta.internal.lia_pipeline_stamp` at the finalize point
 // below (immediately before the P2 serializer).
-import { LIA_PIPELINE_STAMP } from "../_shared/prose/plans/lia.spine.ts";
+import { LIA_PIPELINE_STAMP } from "./_local/prose/plans/lia.spine.ts";
 console.log(`[run-li-assessment] boot ${BUILD_STAMP} ${LIA_PIPELINE_STAMP}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";

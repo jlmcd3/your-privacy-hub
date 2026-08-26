@@ -13,7 +13,7 @@ import {
   LIA_PIPELINE_STAMP,
   REFERENCE_RENDER_TOKENS,
   liaVerdictLabel,
-} from "../../../supabase/functions/_shared/prose/plans/lia.spine.ts";
+} from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 
@@ -22,7 +22,7 @@ const SURFACES = [
   "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts",
   "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build-upgrade4.ts",
   "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/elements.ts",
-  "supabase/functions/_shared/prose/plans/lia.spine.ts",
+  "supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts",
   "supabase/functions/run-li-assessment/_lia_boilerplate_cap.ts",
   "supabase/functions/run-li-assessment/_lia_t6_fix.ts",
 ];

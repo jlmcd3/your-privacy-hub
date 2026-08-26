@@ -12,7 +12,7 @@
 import { describe, expect, it } from "vitest";
 import { GOVERNANCE_CORPUS_SNAPSHOT } from "./__fixtures__/governance-corpus-snapshot";
 import { GOVERNANCE_ACCOUNTABILITY_AUTHORITIES } from "../../../supabase/functions/run-governance-assessment/_local/registry/governance-accountability-authorities";
-import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/governance-verified-authorities";
+import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-governance-assessment/_local/registry/governance-verified-authorities";
 import {
   ANCHOR_KEYS,
   ART30_ELEMENTS,

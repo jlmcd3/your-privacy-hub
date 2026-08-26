@@ -29,7 +29,7 @@ import {
   GOVERNANCE_VERIFIED_AUTHORITIES,
   GOVERNANCE_UNANCHORED_PROPOSITIONS,
   GOVERNANCE_VERIFIED_AUTHORITY_VERSION,
-} from "../_shared/registry/governance-verified-authorities.ts";
+} from "./_local/registry/governance-verified-authorities.ts";
 
 export const W1_GOVERNANCE_WIRE_STAMP =
   "w1-governance-wire@2026-07-25T14:02:34Z";
