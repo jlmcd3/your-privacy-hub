@@ -246,7 +246,7 @@ const TOOLS: ToolDef[] = [
     slug: "healthcheck",
     section: "assessments",
     icon: iconEl(Shield),
-    name: "GDPR Governance Assessment",
+    name: "GDPR Accountability Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
     requirement: { tier: "supports", text: "Demonstrates Art. 5(2) accountability" },
@@ -255,7 +255,7 @@ const TOOLS: ToolDef[] = [
     freeBadge: "Quick scan free",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong, rather than after.",
-      "The GDPR Governance Assessment works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents (not a generic best-practice checklist), and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
+      "The GDPR Accountability Assessment works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents (not a generic best-practice checklist), and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
       "The output is a dated, scored assessment document with cited enforcement decisions behind every risk finding. It is not a regulatory audit and does not carry the authority of one.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -270,8 +270,8 @@ const TOOLS: ToolDef[] = [
     slug: "li-assessment",
     section: "assessments",
     icon: iconEl(Scale),
-    name: "Legitimate Interest Assessment",
-    tagline: "Build a complete, documented Legitimate Interest Assessment: the three-part test, done properly.",
+    name: "Legitimate Interests Assessment",
+    tagline: "Build a complete, documented Legitimate Interests Assessment: the three-part test, done properly.",
     href: "/li-assessment",
     requirement: { tier: "expected", text: "Expected — to rely on Art. 6(1)(f)" },
     subscriberPrice: PRICING.tools.lia.display,
@@ -294,7 +294,7 @@ const TOOLS: ToolDef[] = [
     slug: "dpia",
     section: "assessments",
     icon: iconEl(Search),
-    name: "Impact Assessment Builder (DPIA)",
+    name: "DPIA Builder (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
     requirement: { tier: "required", text: "Required — GDPR Art. 35" },
@@ -302,7 +302,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.dpia.display,
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
-      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis most templates omit, with cited supervisory authority decisions.",
+      "The DPIA Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis most templates omit, with cited supervisory authority decisions.",
       "The output is designed to be reviewed by the appropriate privacy professional in your organisation and retained as part of your permanent accountability record. It is intended to form the basis of a documented professional review, not to substitute for it.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -555,8 +555,8 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["GDPR Governance Assessment", `${PRICING.tools.governance.display} (Smart)`],
-  ["Legitimate Interest Assessment", `${PRICING.tools.lia.display} (Smart)`],
+  ["GDPR Accountability Assessment", `${PRICING.tools.governance.display} (Smart)`],
+  ["Legitimate Interests Assessment", `${PRICING.tools.lia.display} (Smart)`],
   ["Impact Assessment (DPIA)", `${PRICING.tools.dpia.display} (Smart)`],
   ["DPA Generator", `Included with subscription · ${PRICING.tools.dpa.display} standalone`],
   ["Incident Response Playbook", `Included with subscription · ${PRICING.tools.ir_playbook.display} standalone`],

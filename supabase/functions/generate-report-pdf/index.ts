@@ -374,7 +374,7 @@ ${AUTHORITY_EXHIBIT_CSS}
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
   <p class="eyebrow">Customized Compliance Assessment</p>
-  <h1>Legitimate Interest Assessment</h1>
+  <h1>Legitimate Interests Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
@@ -499,7 +499,7 @@ ${AUTHORITY_EXHIBIT_CSS}
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
   <p class="eyebrow">Customized Compliance Assessment</p>
-  <h1>GDPR Governance Assessment</h1>
+  <h1>GDPR Accountability Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
@@ -732,7 +732,7 @@ ${DETERMINATION_CSS}
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
   <p class="eyebrow">Customized Compliance Assessment</p>
-  <h1>Impact Assessment Builder</h1>
+  <h1>Data Protection Impact Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
@@ -3523,7 +3523,7 @@ Deno.serve(async (req) => {
       // survives only for reports generated before the wire-in.
       const skelGov = readSkeletonDocument(report);
       html = skelGov
-        ? buildSkeletonReportHTML(skelGov, record, "Privacy Governance Assessment")
+        ? buildSkeletonReportHTML(skelGov, record, "GDPR Accountability Assessment")
         : buildGovernanceReportHTML(report, record);
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
     } else if (tool_type === "dpia_framework") {

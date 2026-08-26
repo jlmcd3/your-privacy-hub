@@ -46,7 +46,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: ShieldCheck,
-    title: "GDPR Governance Assessment",
+    title: "GDPR Accountability Assessment",
     blurb: "Score your program against the domains regulators actually inspect — cited enforcement decisions behind every risk finding.",
     price: T.governance.display,
     cta: "Run assessment",
@@ -54,7 +54,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: Scale,
-    title: "Legitimate Interest Assessment",
+    title: "Legitimate Interests Assessment",
     blurb: "Build a defensible three-part LIA — each test verdict annotated with cited enforcement precedents.",
     price: T.lia.display,
     cta: "Build LIA",
@@ -62,7 +62,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: FileSearch,
-    title: "Impact Assessment Builder (DPIA)",
+    title: "DPIA Builder (DPIA)",
     blurb: "Article 35-aligned DPIA — risk items annotated with cited supervisory authority decisions.",
     price: T.dpia.display,
     cta: "Build DPIA",

@@ -78,7 +78,7 @@ function nextActionFor(bill: Bill): { label: string; href: string } | null {
   if (iso === "US" || bill.region === "Americas") {
     return { label: "Generate a U.S. Privacy Notice", href: "/us-notice-builder" };
   }
-  return { label: "Run Governance Assessment", href: "/governance-assessment" };
+  return { label: "Run Accountability Assessment", href: "/governance-assessment" };
 }
 
 // Pick the most relevant date for a bill. We don't have an explicit

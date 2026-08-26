@@ -188,7 +188,7 @@ describe("translateDocument (with mocked Anthropic)", () => {
 
   it("translates a small document end-to-end and preserves structure", async () => {
     const source = {
-      title: "Governance Assessment",
+      title: "Accountability Assessment",
       sections: [
         { heading: "Overview", body: "The controller must document." },
         { heading: "Risks", body: "Consider Article 6." },
@@ -201,7 +201,7 @@ describe("translateDocument (with mocked Anthropic)", () => {
       languageName: "French",
     });
     const t: any = result.translated;
-    expect(t.title).toBe("[FR] Governance Assessment");
+    expect(t.title).toBe("[FR] Accountability Assessment");
     expect(t.sections[0].heading).toBe("[FR] Overview");
     expect(t.sections[0].body).toBe("[FR] The controller must document.");
     // Excluded values pass through byte-identical.

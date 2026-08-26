@@ -196,7 +196,7 @@ export const WORD_CONVERSION_PROMPTS: Record<WordPromptDocumentType, WordPromptE
 
   governance_assessment: {
     documentType: "governance_assessment",
-    label: "Governance Assessment",
+    label: "Accountability Assessment",
     structureAnchors: [
       "Executive summary",
       "Findings",
@@ -204,7 +204,7 @@ export const WORD_CONVERSION_PROMPTS: Record<WordPromptDocumentType, WordPromptE
       "Framework mapping",
     ],
     prompt: buildPrompt(
-      "Convert the attached Governance Assessment PDF into a Microsoft Word (.docx) file for board or steering-committee review.",
+      "Convert the attached Accountability Assessment PDF into a Microsoft Word (.docx) file for board or steering-committee review.",
       ["Executive summary", "Findings", "Recommendations", "Framework mapping"],
       "Framework mappings (e.g., NIST, ISO, GDPR articles) must be reconstructed as native Word tables. Preserve every framework reference VERBATIM.",
     ),

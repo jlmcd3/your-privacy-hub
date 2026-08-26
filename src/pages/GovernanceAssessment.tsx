@@ -523,7 +523,7 @@ const GovernanceAssessment = () => {
 
   return (
     <WorkspaceLayout className="bg-paper">
-      <Helmet><title>GDPR Governance Assessment | End User Privacy</title>
+      <Helmet><title>GDPR Accountability Assessment | End User Privacy</title>
         <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
       {refine.isRefine && refine.intake && !refine.loading ? (
         <section className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -549,8 +549,8 @@ const GovernanceAssessment = () => {
           disclaimer is compressed with a Legal notes disclosure. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Governance Assessment</>}
-        title="GDPR Governance Assessment"
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Accountability Assessment</>}
+        title="GDPR Accountability Assessment"
         valueProposition={INCLUDED_GENERATIONS_HERO}
         citationLine="GDPR Art. 5(2) · Ten governance domains · Cited enforcement decisions behind every risk finding"
         showIntakeCta={false}
@@ -559,7 +559,7 @@ const GovernanceAssessment = () => {
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
           isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
-          primaryLabel="Start Governance Assessment"
+          primaryLabel="Start Accountability Assessment"
           toolSlug="governance"
           sampleSlug="governance"
         />
@@ -602,8 +602,8 @@ const GovernanceAssessment = () => {
         <div className="text-sm text-muted-foreground" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <IntakeMasthead
-          kicker="GDPR Governance Assessment · Art. 5(2) accountability"
-          title="GDPR Governance Assessment"
+          kicker="GDPR Accountability Assessment · Art. 5(2) accountability"
+          title="GDPR Accountability Assessment"
           subjectLabel={meter ? "Assessment subject · locked" : undefined}
           subjectValue={
             meter && typeof meter.lockedFields?.organization_name === "string"
@@ -1009,7 +1009,7 @@ const GovernanceAssessment = () => {
         />
         <ToolSamplePreview
           toolType="healthcheck"
-          toolName="GDPR Governance Assessment"
+          toolName="GDPR Accountability Assessment"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}

@@ -101,7 +101,7 @@ const GlobalPrivacyLaws = () => (
         synthesisKey: "global__enforcement",
         content: `<p>Enforcement outside the U.S. and EU is accelerating. Key cases by region:</p><ul><li><strong>Asia-Pacific:</strong> Korea PIPC — ₩15.1B Kakao penalty (2024; upheld on appeal 2026); China CAC enforcement of PIPL cross-border requirements against multiple multinationals.</li><li><strong>Latin America:</strong> Brazil ANPD — escalating guidance and first significant fines; Argentina AAIP enforcement of Ley 25.326.</li><li><strong>Middle East & Africa:</strong> South Africa Information Regulator — expanding POPIA enforcement actions; UAE DIFC Commissioner active enforcement.</li></ul><p>Cross-cutting trends: AI-specific provisions are being integrated into privacy frameworks globally; children's privacy is receiving heightened attention across all regions; cross-border DPA cooperation is increasing; and data localization requirements are expanding, particularly in Asia and the Middle East.</p>`,
         toolCta: {
-          toolName: "Governance Assessment",
+          toolName: "Accountability Assessment",
           toolDescription:
             "Assess your privacy program against enforcement patterns from regulators across the world.",
           href: "/governance-assessment",

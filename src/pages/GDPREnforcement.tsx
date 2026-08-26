@@ -117,7 +117,7 @@ function ComparisonTable() {
                 to="/li-assessment"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent no-underline hover:underline"
               >
-                Run a Legitimate Interest Assessment →
+                Run a Legitimate Interests Assessment →
               </Link>
             </div>
           )}
@@ -240,14 +240,14 @@ export default function GDPREnforcement() {
           heading: "Turn this reference into work product",
           items: [
             { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material EU DPA and ICO action, curated weekly." },
-            { label: "Governance Assessment", href: "/governance-assessment", description: "Score your programme against the domains DPAs actually enforce." },
+            { label: "Accountability Assessment", href: "/governance-assessment", description: "Score your programme against the domains DPAs actually enforce." },
             { label: "Enforcement Feed", href: "/enforcement", description: "Live queryable index of GDPR and UK GDPR actions." },
           ],
         }}
 
         pageSynthesisKey="gdpr__page"
         topToolCta={{
-          toolName: "Governance Assessment",
+          toolName: "Accountability Assessment",
           toolDescription:
             "Score your GDPR programme against the domains DPAs actually enforce, with cited enforcement decisions behind every finding.",
           href: "/governance-assessment",
@@ -278,9 +278,9 @@ export default function GDPREnforcement() {
             id: "legitimate-interest",
             h2: "Legitimate Interest Under GDPR & UK GDPR",
             synthesisKey: "gdpr__legitimate_interest",
-            content: `<p>Legitimate interest under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6(1)(f)</a> is the most flexible — and most contested — lawful basis. Controllers must conduct and document a three-part Legitimate Interest Assessment (LIA): identify the legitimate interest, demonstrate necessity, and balance against data subjects' rights and reasonable expectations. The CJEU's <em>Meta v. Bundeskartellamt</em> ruling and the <a href="/regulator/edpb">EDPB</a>'s 2024 Article 6(1)(f) guidelines significantly tightened the analysis for behavioural advertising and large-scale profiling. The UK ICO's parallel guidance — and the DUA Act 2025's "recognised legitimate interests" list — produce materially different outcomes in close cases.</p>`,
+            content: `<p>Legitimate interest under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6(1)(f)</a> is the most flexible — and most contested — lawful basis. Controllers must conduct and document a three-part Legitimate Interests Assessment (LIA): identify the legitimate interest, demonstrate necessity, and balance against data subjects' rights and reasonable expectations. The CJEU's <em>Meta v. Bundeskartellamt</em> ruling and the <a href="/regulator/edpb">EDPB</a>'s 2024 Article 6(1)(f) guidelines significantly tightened the analysis for behavioural advertising and large-scale profiling. The UK ICO's parallel guidance — and the DUA Act 2025's "recognised legitimate interests" list — produce materially different outcomes in close cases.</p>`,
             toolCta: {
-              toolName: "Legitimate Interest Assessment",
+              toolName: "Legitimate Interests Assessment",
               toolDescription:
                 "Generate a documented three-part LIA aligned to EDPB guidance and ICO expectations.",
               href: "/li-assessment",

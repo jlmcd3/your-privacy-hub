@@ -23,7 +23,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/ropa-builder": "RoPA Builder | End User Privacy",
   "/registration-manager": "Privacy Registration Manager | End User Privacy",
   "/legitimate-interest-tracker": "Legitimate Interest Tracker | End User Privacy",
-  "/li-assessment": "Legitimate Interest Assessment | End User Privacy",
+  "/li-assessment": "Legitimate Interests Assessment | End User Privacy",
   "/breach-notification": "Breach Notification Requirements | End User Privacy",
   "/cross-border-transfers": "Cross-Border Data Transfers | End User Privacy",
   "/cppa-scope-checker": "CPPA Scope Checker | End User Privacy",

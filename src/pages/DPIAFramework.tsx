@@ -556,7 +556,7 @@ const DPIAFramework = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <DashboardSubnav />
-      <Helmet><title>{`Impact Assessment Builder · from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
+      <Helmet><title>{`Data Protection Impact Assessment (DPIA) Builder · from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
       {refine.isRefine && refine.intake && !refine.loading ? (
         <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <RefinePanel
@@ -582,7 +582,7 @@ const DPIAFramework = () => {
       <ProductHero
         geography="gdpr"
         eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Data Protection Impact Assessment</>}
-        title={<>Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></>}
+        title={<>Data Protection Impact Assessment (DPIA) Builder <DefPopover termKey="gdpr_dpia" /></>}
         valueProposition={INCLUDED_GENERATIONS_HERO}
         citationLine="GDPR Art. 35 · Accountability record for high-risk processing"
         showIntakeCta={false}
@@ -627,13 +627,13 @@ const DPIAFramework = () => {
 
         {prefilled && (
           <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded text-sm">
-            Pre-populated from your GDPR Governance Assessment. Review and edit all fields before purchasing.
+            Pre-populated from your GDPR Accountability Assessment. Review and edit all fields before purchasing.
           </div>
         )}
 
         <IntakeMasthead
           kicker="Data Protection Impact Assessment · GDPR Art. 35"
-          title="Impact Assessment Builder"
+          title="DPIA Builder"
           subjectLabel={meter ? "Assessment subject · locked" : undefined}
           subjectValue={
             meter
@@ -1181,7 +1181,7 @@ const DPIAFramework = () => {
         />
         <ToolSamplePreview
           toolType="dpia"
-          toolName="Impact Assessment Builder"
+          toolName="DPIA Builder"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}

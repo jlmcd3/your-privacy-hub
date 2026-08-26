@@ -1,4 +1,4 @@
-// Pure presentational body for GDPR Governance Assessment reports.
+// Pure presentational body for GDPR Accountability Assessment reports.
 // Extracted from GovernanceAssessmentResult so sample pages render the
 // same UI as the real result page.
 import { useState } from "react";
@@ -209,7 +209,7 @@ export default function GovernanceReportBody({ report = {}, organizationName, sa
           </ul>
           <Button asChild>
             <Link to={sampleMode || !assessmentId ? "/dpia-framework" : `/dpia-framework?source=${assessmentId}`}>
-              Open Impact Assessment Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →
+              Open DPIA Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →
             </Link>
           </Button>
         </section>

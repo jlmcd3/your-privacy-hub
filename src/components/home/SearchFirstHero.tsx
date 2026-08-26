@@ -27,9 +27,9 @@ const priceLine = (standalone: string, subscriber: string) =>
   `${standalone} · ${subscriber} subscriber`;
 
 const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
-  { href: "/li-assessment", title: "Legitimate Interest Assessment", sub: priceLine(LIA_PRICE, LIA_SUB) },
+  { href: "/li-assessment", title: "Legitimate Interests Assessment", sub: priceLine(LIA_PRICE, LIA_SUB) },
   { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: priceLine(PRICING.tools.dpia.display, DPIA_SUB) },
-  { href: "/governance-assessment", title: "GDPR Governance Assessment", sub: priceLine(PRICING.tools.governance.display, GOV_SUB) },
+  { href: "/governance-assessment", title: "GDPR Accountability Assessment", sub: priceLine(PRICING.tools.governance.display, GOV_SUB) },
   { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free on annual plans" },
 ];
 
@@ -68,7 +68,7 @@ export default function SearchFirstHero() {
                     to="/li-assessment"
                     className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90"
                   >
-                    Start a Legitimate Interest Assessment — {priceLine(LIA_PRICE, LIA_SUB)} →
+                    Start a Legitimate Interests Assessment — {priceLine(LIA_PRICE, LIA_SUB)} →
                   </Link>
                   <Link
                     to="/ropa-builder"

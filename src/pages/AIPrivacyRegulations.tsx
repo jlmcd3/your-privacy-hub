@@ -83,7 +83,7 @@ const AIPrivacyRegulations = () => (
           "Applies if you place an AI system on the EU market, put one into service in the EU, or your AI system's output is used in the EU — regardless of where you're established.",
         toolCtaPlacement: "top",
         toolCta: {
-          toolName: "Impact Assessment Builder",
+          toolName: "DPIA Builder",
           toolDescription: "High-risk AI systems under the EU AI Act and GDPR Article 35 require a DPIA. Generate one structured to EDPB WP 248 requirements.",
           href: "/dpia-framework",
         },
@@ -97,7 +97,7 @@ const AIPrivacyRegulations = () => (
           "Applies if you train, fine-tune, or deploy a model using personal data of EU/EEA individuals — including scraped public web data.",
         toolCtaPlacement: "top",
           toolCta: {
-            toolName: "Legitimate Interest Assessment",
+            toolName: "Legitimate Interests Assessment",
             toolDescription: "Where you rely on Article 6(1)(f) for AI development or deployment, the legitimate-interest, necessity, and balancing elements must be satisfied and documented. Generate a structured LIA aligned to EDPB guidance.",
             href: "/li-assessment",
           },
@@ -126,7 +126,7 @@ const AIPrivacyRegulations = () => (
           "Applies to every AI deployer — regulators are using existing GDPR, CCPA, and FTC Act powers against AI systems now, without waiting for AI-specific legislation.",
         toolCtaPlacement: "top",
         toolCta: {
-          toolName: "Governance Assessment",
+          toolName: "Accountability Assessment",
           toolDescription: "Assess your AI governance program against active enforcement patterns from the EDPB, FTC, ICO, and CPPA.",
           href: "/governance-assessment",
         },

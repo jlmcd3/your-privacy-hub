@@ -1,4 +1,4 @@
-// LIA (Legitimate Interest Assessment) — enum option sets extracted into a
+// LIA (Legitimate Interests Assessment) — enum option sets extracted into a
 // standalone module so both the intake page and shared components (refine
 // surface) can import them without a page↔shared-component cycle.
 // Content-anchored: page re-exports from here.

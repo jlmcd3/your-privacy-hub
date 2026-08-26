@@ -205,13 +205,13 @@ export const DPIA_TEST: AssertionTest = {
   ],
 };
 
-// ─── 3. Governance Assessment ─────────────────────────────────────────────────
+// ─── 3. Accountability Assessment ─────────────────────────────────────────────────
 
 const GOV_INPUT = { ...GOV_VARIANTS[0] };
 
 export const GOVERNANCE_TEST: AssertionTest = {
   toolId: "governance",
-  toolName: "GDPR Governance Assessment",
+  toolName: "GDPR Accountability Assessment",
   edgeFunction: "run-governance-assessment",
   testInput: GOV_INPUT,
   expectedSeconds: 80,

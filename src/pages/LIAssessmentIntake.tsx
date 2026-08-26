@@ -431,7 +431,7 @@ const LIAssessmentIntake = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{`Full Legitimate Interest Assessment — $${pricing.price} | End User Privacy`}</title>
+        <title>{`Full Legitimate Interests Assessment — $${pricing.price} | End User Privacy`}</title>
         <meta name="description" content="Adaptive three-part legitimate interest assessment. Defensible documentation reviewed with counsel." />
       </Helmet>
       <Navbar />
@@ -441,7 +441,7 @@ const LIAssessmentIntake = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             Step 2 — Full assessment · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate)` : ""}
           </span>
-          <h1 className="text-hero-h1 text-white">Full Legitimate Interest Assessment</h1>
+          <h1 className="text-hero-h1 text-white">Full Legitimate Interests Assessment</h1>
           <p className="text-slate-300 mt-2 text-sm">
             These questions track the EDPB's three-part test. We've already loaded what you told us in Step 1
             and adapted the rest to your use case ({row.preview_signal?.use_case_label}).

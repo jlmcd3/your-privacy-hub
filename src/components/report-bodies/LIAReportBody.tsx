@@ -1,4 +1,4 @@
-// Pure presentational body for Legitimate Interest Assessment (LIA) reports.
+// Pure presentational body for Legitimate Interests Assessment (LIA) reports.
 // Extracted from LIAssessmentResult so sample pages render the same UI.
 //
 // UPGRADE-4 — the ICO three-part arc (Purpose → Necessity → Balancing) is the
@@ -372,7 +372,7 @@ export default function LIAReportBody({ report = {}, intake = {} }: LIAReportBod
         <p className="text-sm text-muted-foreground mb-3">
           If your assessment identifies high-risk processing, you may be required to conduct a Data Protection Impact Assessment under GDPR Article 35.
         </p>
-        <Button asChild><Link to="/dpia-framework">Open Impact Assessment Builder →</Link></Button>
+        <Button asChild><Link to="/dpia-framework">Open DPIA Builder →</Link></Button>
       </section>
 
       {/* UPGRADE-4 — ATTESTATION (close of the body) */}

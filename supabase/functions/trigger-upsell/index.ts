@@ -13,8 +13,8 @@ const COOLDOWN_DAYS = 30;
 
 // Confirmed pricing from EUP pricing table.
 const PRODUCT_META: Record<string, any> = {
-  governance_assessment:  { name: 'Governance Assessment',           url: '/tools/governance-assessment',  price_subscriber: '$25',  price_standalone: '$49'  },
-  li_assessment:          { name: 'Legitimate Interest Assessment',  url: '/tools/li-assessment',          price_subscriber: '$35',  price_standalone: '$79'  },
+  governance_assessment:  { name: 'Accountability Assessment',           url: '/tools/governance-assessment',  price_subscriber: '$25',  price_standalone: '$49'  },
+  li_assessment:          { name: 'Legitimate Interests Assessment',  url: '/tools/li-assessment',          price_subscriber: '$35',  price_standalone: '$79'  },
   dpia_framework:         { name: 'DPIA Builder',                    url: '/tools/dpia-framework',         price_subscriber: '$49',  price_standalone: '$99'  },
   biometric_checker:      { name: 'Biometric Checker',               url: '/tools/biometric-checker',      price_subscriber: 'Free', price_standalone: '$49'  },
   ir_playbook:            { name: 'Breach IR Playbook',              url: '/tools/ir-playbook',            price_subscriber: 'Free', price_standalone: '$59'  },

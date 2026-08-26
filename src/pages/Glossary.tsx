@@ -56,7 +56,7 @@ const THEMES: { id: string; label: string; description: string; slugs: string[] 
 
 // "See in practice" — slug → tool route + label
 const TOOL_LINKS: Record<string, { href: string; label: string }> = {
-  "legitimate-interest": { href: "/li-assessment", label: "Run a Legitimate Interest Assessment" },
+  "legitimate-interest": { href: "/li-assessment", label: "Run a Legitimate Interests Assessment" },
   dpia: { href: "/dpia-framework", label: "Open the DPIA Builder" },
   dpa: { href: "/dpa-generator", label: "Generate a Data Processing Agreement" },
   ropa: { href: "/ropa-builder", label: "Build your Record of Processing" },

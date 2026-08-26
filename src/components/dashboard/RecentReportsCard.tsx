@@ -27,19 +27,19 @@ export default function RecentReportsCard() {
     (async () => {
       const lists = await Promise.all([
         fetchTool("li_assessments", user.id, "id, created_at, processing_description", (r: any) => ({
-          id: r.id, tool_label: "Legitimate Interest Assessment", created_at: r.created_at,
+          id: r.id, tool_label: "Legitimate Interests Assessment", created_at: r.created_at,
           view_path: `/li-assessment/result/${r.id}`,
           summary: (r.processing_description || "").slice(0, 80),
         })),
         fetchTool("dpia_frameworks", user.id, "id, created_at, intake_data", (r: any) => ({
-          id: r.id, tool_label: "Impact Assessment Builder", created_at: r.created_at,
+          id: r.id, tool_label: "DPIA Builder", created_at: r.created_at,
           view_path: `/dpia-framework/result/${r.id}`,
           summary: r.intake_data?.processing_name || "DPIA",
         })),
         fetchTool("governance_assessments", user.id, "id, created_at, intake_data", (r: any) => ({
-          id: r.id, tool_label: "Governance Assessment", created_at: r.created_at,
+          id: r.id, tool_label: "Accountability Assessment", created_at: r.created_at,
           view_path: `/governance-assessment/result/${r.id}`,
-          summary: r.intake_data?.organisation_name || "Governance",
+          summary: r.intake_data?.organisation_name || "Accountability",
         })),
         fetchTool("dpa_documents", user.id, "id, created_at, intake_data", (r: any) => ({
           id: r.id, tool_label: "Custom DPA", created_at: r.created_at,

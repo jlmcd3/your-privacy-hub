@@ -212,9 +212,9 @@ Deno.serve(async (req) => {
     const reviewSpecs: Array<{
       table: string; kind: string; titleSlug: string; route: (id: string) => string;
     }> = [
-      { table: "li_assessments", kind: "lia_review", titleSlug: "Legitimate Interest Assessment", route: (id) => `/li-assessment/result/${id}` },
-      { table: "dpia_frameworks", kind: "dpia_review", titleSlug: "Impact Assessment Builder", route: (id) => `/dpia-framework/result/${id}` },
-      { table: "governance_assessments", kind: "governance_review", titleSlug: "Governance Assessment", route: (id) => `/governance-assessment/result/${id}` },
+      { table: "li_assessments", kind: "lia_review", titleSlug: "Legitimate Interests Assessment", route: (id) => `/li-assessment/result/${id}` },
+      { table: "dpia_frameworks", kind: "dpia_review", titleSlug: "DPIA Builder", route: (id) => `/dpia-framework/result/${id}` },
+      { table: "governance_assessments", kind: "governance_review", titleSlug: "Accountability Assessment", route: (id) => `/governance-assessment/result/${id}` },
     ];
     for (const spec of reviewSpecs) {
       try {

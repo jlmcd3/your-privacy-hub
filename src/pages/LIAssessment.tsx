@@ -200,7 +200,7 @@ const LIAssessment = () => {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>Legitimate Interest Assessment | End User Privacy</title>
+        <title>Legitimate Interests Assessment | End User Privacy</title>
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
       </Helmet>
       {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip, name-led hero with
@@ -209,8 +209,8 @@ const LIAssessment = () => {
           the top-up offer leaves the initial purchase path. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interest Assessment · Free preliminary signal</>}
-        title="Legitimate Interest Assessment"
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interests Assessment · Free preliminary signal</>}
+        title="Legitimate Interests Assessment"
         valueProposition={INCLUDED_GENERATIONS_HERO}
         citationLine="GDPR Art. 6(1)(f) · Three-part balancing test · Cited enforcement precedents behind every verdict"
         showIntakeCta={false}
@@ -219,7 +219,7 @@ const LIAssessment = () => {
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
           isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
-          primaryLabel="Start Legitimate Interest Assessment"
+          primaryLabel="Start Legitimate Interests Assessment"
           toolSlug="li_assessment"
           sampleSlug="li_assessment"
         />
@@ -347,7 +347,7 @@ const LIAssessment = () => {
         ) : (
         <section className="mb-10 bg-paper">
           <IntakeMasthead
-            kicker="Legitimate Interest Assessment · GDPR Art. 6(1)(f)"
+            kicker="Legitimate Interests Assessment · GDPR Art. 6(1)(f)"
             title="Tell us about the processing"
             subjectLabel={meter ? "Assessment subject · locked" : undefined}
             subjectValue={

@@ -185,7 +185,7 @@ const DPIAFrameworkResult = () => {
   const cc = report?.section_6_conclusion;
   const status = dpia?.status;
 
-  const titleText = "Impact Assessment Builder";
+  const titleText = "DPIA Builder";
   const activityName = meta.processing_activity_name || dpia?.intake_data?.processing_activity_name;
   const orgName = dpia?.organization_name || dpia?.intake_data?.organization_name;
   const metaBits: string[] = [];
@@ -218,7 +218,7 @@ const DPIAFrameworkResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Impact Assessment Builder | End User Privacy</title></Helmet>
+      <Helmet><title>DPIA Builder | End User Privacy</title></Helmet>
       <Navbar />
 
       <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">

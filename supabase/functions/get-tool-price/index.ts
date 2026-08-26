@@ -51,7 +51,7 @@ const TOOLS: Record<
     classification: "smart",
   },
   li_analyzer: {
-    name: "Legitimate Interest Assessment Tool",
+    name: "Legitimate Interests Assessment Tool",
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     fallback_standalone_cents: 9900,
@@ -59,7 +59,7 @@ const TOOLS: Record<
     classification: "smart",
   },
   li_assessment: {
-    name: "Legitimate Interest Assessment Tool",
+    name: "Legitimate Interests Assessment Tool",
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     fallback_standalone_cents: 9900,
@@ -67,7 +67,7 @@ const TOOLS: Record<
     classification: "smart",
   },
   dpia_builder: {
-    name: "Impact Assessment Builder",
+    name: "DPIA Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 9900,
@@ -75,7 +75,7 @@ const TOOLS: Record<
     classification: "smart",
   },
   dpia_framework: {
-    name: "Impact Assessment Builder",
+    name: "DPIA Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 9900,

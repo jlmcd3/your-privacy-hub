@@ -135,7 +135,7 @@ const GovernanceAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>GDPR Governance Assessment | End User Privacy</title></Helmet>
+      <Helmet><title>GDPR Accountability Assessment | End User Privacy</title></Helmet>
       <Navbar />
 
       <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
@@ -150,7 +150,7 @@ const GovernanceAssessmentResult = () => {
         )}
 
         <ReportShell
-          title="GDPR Governance Assessment"
+          title="GDPR Accountability Assessment"
           meta={metaBits.length ? metaBits.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
           topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
@@ -480,7 +480,7 @@ const GovernanceAssessmentResult = () => {
                     ))}
                   </ul>
                   <Button asChild>
-                    <Link to={`/dpia-framework?source=${id}`}>Open Impact Assessment Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
+                    <Link to={`/dpia-framework?source=${id}`}>Open DPIA Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
                   </Button>
                 </section>
               )}

@@ -522,7 +522,7 @@ const JurisdictionPage = () => {
           const tools: Tool[] = [];
           if (usEnacted) {
             tools.push({
-              label: "GDPR Governance Assessment",
+              label: "GDPR Accountability Assessment",
               desc: "Assess your organisation's privacy programme posture.",
               href: "/governance-assessment",
             });
@@ -550,12 +550,12 @@ const JurisdictionPage = () => {
               href: "/eu-notices",
             });
             tools.push({
-              label: "Legitimate Interest Assessment",
+              label: "Legitimate Interests Assessment",
               desc: "Document your legitimate interest basis before you rely on it.",
               href: "/li-assessment",
             });
             tools.push({
-              label: "Impact Assessment Builder",
+              label: "DPIA Builder",
               desc: "Build a Data Protection Impact Assessment under Article 35.",
               href: "/dpia-framework",
             });

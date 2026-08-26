@@ -229,7 +229,7 @@ export default function CrossBorderTransfersPage() {
             ],
             content: `<p>Article 49 permits transfers without an adequacy decision or appropriate safeguards in narrow circumstances — explicit consent, contract necessity, important reasons of public interest, legal claims, vital interests, or transfers from a public register. The "compelling legitimate interests" sub-derogation is interpreted by the <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22018-derogations-article-49-under-regulation-2016679_en" target="_blank" rel="noopener noreferrer">EDPB Guidelines 2/2018</a> as a measure of last resort, non-systematic, and requiring a documented balancing test plus DPA notification.</p>`,
             toolCta: {
-              toolName: "Legitimate Interest Assessment",
+              toolName: "Legitimate Interests Assessment",
               toolDescription:
                 "Run the three-part LIA — necessity, balancing, safeguards — to support reliance on the Art. 49(1)(g) compelling legitimate interests derogation.",
               href: "/li-assessment",

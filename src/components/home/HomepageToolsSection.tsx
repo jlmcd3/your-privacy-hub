@@ -13,17 +13,17 @@ type Product = {
 
 const ASSESSMENTS: Product[] = [
   {
-    title: "GDPR Governance Assessment",
+    title: "GDPR Accountability Assessment",
     blurb: "Score your program against the domains regulators actually inspect — with cited enforcement decisions behind every risk finding.",
     href: "/governance-assessment",
   },
   {
-    title: "Legitimate Interest Assessment",
+    title: "Legitimate Interests Assessment",
     blurb: "Build a defensible three-part LIA — each test verdict backed by cited enforcement precedents.",
     href: "/li-assessment",
   },
   {
-    title: "Impact Assessment Builder (DPIA)",
+    title: "DPIA Builder (DPIA)",
     blurb: "Article 35-aligned DPIA with necessity and proportionality analysis — annotated with supervisory authority decisions.",
     href: "/dpia-framework",
   },

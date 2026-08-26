@@ -236,7 +236,7 @@ const LIAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Legitimate Interest Assessment Tool | End User Privacy</title></Helmet>
+      <Helmet><title>Legitimate Interests Assessment Tool | End User Privacy</title></Helmet>
       <Navbar />
       <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
@@ -251,7 +251,7 @@ const LIAssessmentResult = () => {
         )}
 
         <ReportShell
-          title="Legitimate Interest Assessment"
+          title="Legitimate Interests Assessment"
           meta={metaParts.length ? metaParts.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
           topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
@@ -467,7 +467,7 @@ const LIAssessmentResult = () => {
                 <p className="text-sm text-muted-foreground mb-3">
                   If your assessment identifies high-risk processing, you may be required to conduct a Data Protection Impact Assessment under GDPR Article 35.
                 </p>
-                <Button asChild><Link to="/dpia-framework">Open Impact Assessment Builder →</Link></Button>
+                <Button asChild><Link to="/dpia-framework">Open DPIA Builder →</Link></Button>
               </section>
             </div>
           )}

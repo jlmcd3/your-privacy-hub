@@ -48,8 +48,8 @@ const comparisonRows: ComparisonRow[] = [
   { isSection: true, feature: "The action layer: compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
   { feature: "Includes 4 generations per report: your initial report plus up to 3 revisions at no extra cost", free: true, intel: true, platform: true },
-  { feature: "Governance Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
-  { feature: "Legitimate Interest Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
+  { feature: "Accountability Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
+  { feature: "Legitimate Interests Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
   { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
   { feature: "DPA Generator (Smart Tool)", free: false, intel: T.dpa.display, platform: T.dpa.display },
   { feature: "IR Playbook (Convenience)", free: false, intel: T.ir_playbook.display, platform: T.ir_playbook.display },
@@ -303,7 +303,7 @@ const Subscribe = () => {
                 to="/samples/governance"
                 className="mt-2 block text-center text-meta text-amber-100/90 hover:text-white underline underline-offset-2 no-underline"
               >
-                See a sample Governance Assessment →
+                See a sample Accountability Assessment →
               </Link>
             </div>
           </div>
@@ -376,8 +376,8 @@ const Subscribe = () => {
 
                   { type: 'section', feature: "The action layer: compliance tools with cited enforcement evidence" },
                   { type: 'row', feature: "Sample preview of all tools", free: "", intel: "", platform: "" },
-                  { type: 'row', feature: "Governance Assessment (Smart)", free: "—", intel: T.governance.display, platform: T.governance.display },
-                  { type: 'row', feature: "Legitimate Interest Assessment (Smart)", free: "—", intel: T.lia.display, platform: T.lia.display },
+                  { type: 'row', feature: "Accountability Assessment (Smart)", free: "—", intel: T.governance.display, platform: T.governance.display },
+                  { type: 'row', feature: "Legitimate Interests Assessment (Smart)", free: "—", intel: T.lia.display, platform: T.lia.display },
                   { type: 'row', feature: "DPIA / Impact Assessment (Smart)", free: "—", intel: T.dpia.display, platform: T.dpia.display },
                   { type: 'row', feature: "DPA Generator (Smart)", free: "—", intel: T.dpa.display, platform: T.dpa.display },
                   { type: 'row', feature: "Biometric Privacy Checker (Smart)", free: "—", intel: T.biometric.display, platform: T.biometric.display },

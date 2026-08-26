@@ -239,7 +239,7 @@ export default function CookieConsentPage() {
             synthesisKey: "cookie__enforcement",
             content: ENFORCEMENT,
             toolCta: {
-              toolName: "Governance Assessment",
+              toolName: "Accountability Assessment",
               toolDescription:
                 "Assess your cookie consent program against CNIL, ICO, CPPA and EDPB enforcement patterns.",
               href: "/governance-assessment",

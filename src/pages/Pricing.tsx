@@ -30,21 +30,21 @@ interface SmartToolRow {
 
 const SMART_TOOL_ROWS: SmartToolRow[] = [
   {
-    tool: "GDPR Governance Assessment",
+    tool: "GDPR Accountability Assessment",
     standaloneKey: "hc_standalone_v2",
     subscriberKey: "hc_subscriber_v2",
     annualCredit: "1 credit / yr",
     topupKey: "governance_topup_v1",
   },
   {
-    tool: "Legitimate Interest Assessment (LIA)",
+    tool: "Legitimate Interests Assessment (LIA)",
     standaloneKey: "li_standalone_v2",
     subscriberKey: "li_subscriber_v2",
     annualCredit: "1 credit / yr",
     topupKey: "li_topup_v1",
   },
   {
-    tool: "Impact Assessment Builder (DPIA)",
+    tool: "DPIA Builder (DPIA)",
     standaloneKey: "dpia_standalone_v2",
     subscriberKey: "dpia_subscriber_v2",
     annualCredit: "1 credit / yr",

@@ -35,8 +35,8 @@ const SLUG_TO_TOOL_KEY: Record<string, ToolKey | "cppa_suite_combo"> = {
 };
 
 const DISPLAY_NAMES: Record<string, string> = {
-  li_assessment:                "Legitimate Interest Assessment",
-  governance_assessment:        "GDPR Governance Assessment",
+  li_assessment:                "Legitimate Interests Assessment",
+  governance_assessment:        "GDPR Accountability Assessment",
   dpia_framework:               "Data Protection Impact Assessment",
   ropa_initial:                 "RoPA Builder — Initial Generation",
   ropa_refresh:                 "RoPA Builder — Annual Refresh",

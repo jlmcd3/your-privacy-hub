@@ -1772,7 +1772,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           source_tool: "governance_assessment",
           source_assessment_id: assessment_id,
           display_name: "Privacy programme governance",
-          source_summary: "Drafted from Governance Assessment — review domain findings and link to RoPA categories.",
+          source_summary: "Drafted from Accountability Assessment — review domain findings and link to RoPA categories.",
           is_high_risk: false,
           category: "finance_legal",
         },

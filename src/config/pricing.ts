@@ -170,7 +170,7 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Annual",
     description:
-      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, every Layer-1 tool (Notice Builders, IR Playbook, Biometric, DPA), RoPA (first generation free, plus one free update each subscription year — $29 per additional update), and 3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value).",
+      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, every Layer-1 tool (Notice Builders, IR Playbook, Biometric, DPA), RoPA (first generation free, plus one free update each subscription year — $29 per additional update), and 3 free Smart Tool runs per year (Accountability, LIA, or DPIA — up to $267 value).",
     amountCents: 49000,
     currency: "usd",
     displayPrice: "$490",
@@ -235,8 +235,8 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "hc_standalone_v2",
     productKey: "governance_v8",
-    productName: "GDPR Governance Assessment (Standalone)",
-    description: "Standalone per-use price for the GDPR Governance Assessment.",
+    productName: "GDPR Accountability Assessment (Standalone)",
+    description: "Standalone per-use price for the GDPR Accountability Assessment.",
     amountCents: 8900,
     currency: "usd",
     displayPrice: "$89",
@@ -247,8 +247,8 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "hc_subscriber_v2",
     productKey: "governance_v8",
-    productName: "GDPR Governance Assessment (Subscriber)",
-    description: "Subscriber per-use price for the GDPR Governance Assessment.",
+    productName: "GDPR Accountability Assessment (Subscriber)",
+    description: "Subscriber per-use price for the GDPR Accountability Assessment.",
     amountCents: 4900,
     currency: "usd",
     displayPrice: "$49",
@@ -261,7 +261,7 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "li_standalone_v2",
     productKey: "lia_v8",
-    productName: "Legitimate Interest Assessment (Standalone)",
+    productName: "Legitimate Interests Assessment (Standalone)",
     description: "Standalone per-use price for the LIA Tool.",
     amountCents: 10900,
     currency: "usd",
@@ -273,7 +273,7 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "li_subscriber_v2",
     productKey: "lia_v8",
-    productName: "Legitimate Interest Assessment (Subscriber)",
+    productName: "Legitimate Interests Assessment (Subscriber)",
     description: "Subscriber per-use price for the LIA Tool.",
     amountCents: 5900,
     currency: "usd",
@@ -287,7 +287,7 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "dpia_standalone_v2",
     productKey: "dpia_v8",
-    productName: "Impact Assessment Builder (Standalone)",
+    productName: "DPIA Builder (Standalone)",
     description: "Standalone per-use price for the DPIA Tool.",
     amountCents: 10900,
     currency: "usd",
@@ -299,7 +299,7 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "dpia_subscriber_v2",
     productKey: "dpia_v8",
-    productName: "Impact Assessment Builder (Subscriber)",
+    productName: "DPIA Builder (Subscriber)",
     description: "Subscriber per-use price for the DPIA Tool.",
     amountCents: 5900,
     currency: "usd",
@@ -667,7 +667,7 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "li_topup_v1",
     productKey: "lia_v8",
-    productName: "Legitimate Interest Assessment — 4 additional generations",
+    productName: "Legitimate Interests Assessment — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing LIA. Half-price policy.",
     amountCents: 5450,
     currency: "usd",
@@ -681,8 +681,8 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "governance_topup_v1",
     productKey: "governance_v8",
-    productName: "GDPR Governance Assessment — 4 additional generations",
-    description: "Meter top-up: adds 4 additional generations on an existing Governance Assessment. Half-price policy.",
+    productName: "GDPR Accountability Assessment — 4 additional generations",
+    description: "Meter top-up: adds 4 additional generations on an existing Accountability Assessment. Half-price policy.",
     amountCents: 4450,
     currency: "usd",
     displayPrice: "$44.50",
@@ -695,7 +695,7 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "dpia_topup_v1",
     productKey: "dpia_v8",
-    productName: "Impact Assessment Builder — 4 additional generations",
+    productName: "DPIA Builder — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing DPIA. Half-price policy.",
     amountCents: 5450,
     currency: "usd",
@@ -1015,14 +1015,14 @@ export const PRICING = {
     cppa_scope:   { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
     biometric:    { name: 'Biometric Compliance Check',         dollars: 49,  display: '$49',  stripePriceId: 'biometric_standalone_v2' },
     ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 59,  display: '$59',  stripePriceId: 'ir_standalone_v2' },
-    lia:          { name: 'Legitimate Interest Assessment',     dollars: 109, display: '$109',  stripePriceId: 'li_standalone_v2' },
+    lia:          { name: 'Legitimate Interests Assessment',     dollars: 109, display: '$109',  stripePriceId: 'li_standalone_v2' },
     us_notice:    { name: 'US Privacy Notice Builder',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     dpia:         { name: 'Data Protection Impact Assessment',  dollars: 109, display: '$109',  stripePriceId: 'dpia_standalone_v2' },
     dpa:          { name: 'Custom DPA Generator',               dollars: 49,  display: '$49',  stripePriceId: 'dpa_standalone_v2' },
     ropa:         { name: 'RoPA Builder',                       dollars: 29,  display: 'Free (annual) · $29/generation (monthly)', stripePriceId: 'ropa_paid_generation' },
     eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     registration: { name: 'Registration Filings',               dollars: 59,  display: '$59',  stripePriceId: 'registration_standalone' },
-    governance:   { name: 'GDPR Governance Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
+    governance:   { name: 'GDPR Accountability Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 239, display: '$239', stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
     cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
@@ -1136,8 +1136,8 @@ export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
  * Cannot be replicated by prompting a general AI.
  */
 export const SMART_TOOL_KEYS = [
-  'governance',   // GDPR Governance Assessment — 10-domain scoring
-  'lia',          // Legitimate Interest Assessment — 3-part enforcement test
+  'governance',   // GDPR Accountability Assessment — 10-domain scoring
+  'lia',          // Legitimate Interests Assessment — 3-part enforcement test
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
   'cppa_cyber',   // CPPA Cybersecurity — 18-control gap analysis
@@ -1231,11 +1231,11 @@ export const ANNUAL_CREDIT = {
   // standalone, so the credit value cap stays at $89/credit.
   maxValueCents: 8900,
   marketingLabel:
-    'Annual plans include free Smart Tool runs each year — 1 with Intelligence, 3 with Professional (Governance, LIA, or DPIA).',
+    'Annual plans include free Smart Tool runs each year — 1 with Intelligence, 3 with Professional (Accountability, LIA, or DPIA).',
   professionalLabel:
-    '3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value)',
+    '3 free Smart Tool runs per year (Accountability, LIA, or DPIA — up to $267 value)',
   intelligenceLabel:
-    '1 free Smart Tool run per year (Governance, LIA, or DPIA — up to $89 value)',
+    '1 free Smart Tool run per year (Accountability, LIA, or DPIA — up to $89 value)',
 } as const;
 
 /** Credits granted at each annual renewal, by subscription type. */

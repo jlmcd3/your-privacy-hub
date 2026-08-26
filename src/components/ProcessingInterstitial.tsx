@@ -11,7 +11,7 @@ type ToolConfig = { label: string; etaText: string; etaSeconds: number; stages: 
 // PLACEHOLDER (architecture estimates) — replace with measured medians: cppa_risk, cppa_cyber, cppa_suite.
 const TOOLS: Record<ToolKey, ToolConfig> = {
   lia: {
-    label: "Legitimate Interest Assessment",
+    label: "Legitimate Interests Assessment",
     etaText: "about 4–5 minutes",
     etaSeconds: 300,
     stages: ["Classifying the processing activity", "Checking the enforcement corpus", "Running the three-part test", "Drafting documentation guidance", "Building your PDF"],
@@ -23,7 +23,7 @@ const TOOLS: Record<ToolKey, ToolConfig> = {
     stages: ["Assessing necessity & proportionality", "Checking enforcement precedents", "Identifying risks & safeguards", "Building your PDF"],
   },
   governance: {
-    label: "Governance Assessment",
+    label: "Accountability Assessment",
     etaText: "about 2–3 minutes",
     etaSeconds: 180,
     stages: ["Scoring governance domains", "Cross-checking enforcement patterns", "Synthesising findings", "Building your PDF"],

@@ -60,7 +60,7 @@ export default function HomeGeographyPaths() {
                 to="/governance-assessment"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline"
               >
-                Start GDPR Governance Assessment <ArrowRight className="w-4 h-4" />
+                Start GDPR Accountability Assessment <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 to="/samples/governance"

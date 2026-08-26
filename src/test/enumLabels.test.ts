@@ -17,7 +17,7 @@ describe("enumLabels", () => {
   it("maps tool_type identifiers to catalog names", () => {
     expect(enumLabel("tool_type", "cppa_risk_assessment")).toBe("CPPA Risk Assessment");
     expect(enumLabel("tool_type", "dpia_framework")).toBe("DPIA");
-    expect(enumLabel("tool_type", "li_assessment")).toBe("Legitimate Interest Assessment");
+    expect(enumLabel("tool_type", "li_assessment")).toBe("Legitimate Interests Assessment");
   });
 
   it("falls back to humanized form for unknown values", () => {

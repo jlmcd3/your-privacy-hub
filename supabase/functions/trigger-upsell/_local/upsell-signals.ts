@@ -54,7 +54,7 @@ export function computeUpsellSignals(
 
       if (['weak','insufficient'].includes(String(oa.argument_strength)))
         push('governance_assessment',
-          'Your LIA returned a weak result — a Governance Assessment identifies root-cause gaps.',
+          'Your LIA returned a weak result — a Accountability Assessment identifies root-cause gaps.',
           'high', 1);
 
       if (Array.isArray(oa.blocking_issues) &&
@@ -111,7 +111,7 @@ export function computeUpsellSignals(
 
       if (Array.isArray(rd?.dpia_scope) && rd.dpia_scope.length > 0)
         push('dpia_framework',
-          'Your Governance Assessment identified processing activities requiring a DPIA.',
+          'Your Accountability Assessment identified processing activities requiring a DPIA.',
           'high', 1);
 
       if (['Critical','High'].includes(df?.privacy_notice?.severity))
@@ -156,7 +156,7 @@ export function computeUpsellSignals(
 
       if (!row?.source_assessment_id)
         push('governance_assessment',
-          'No Governance Assessment is linked to this DPIA — run one to establish your programme baseline.',
+          'No Accountability Assessment is linked to this DPIA — run one to establish your programme baseline.',
           'medium', 3);
 
       if (cats.some((d: string) => /biometric/i.test(d)))
@@ -199,7 +199,7 @@ export function computeUpsellSignals(
 
       if (bipaApplies)
         push('governance_assessment',
-          'BIPA exposure identified — a Governance Assessment reviews your broader Illinois compliance posture.',
+          'BIPA exposure identified — a Accountability Assessment reviews your broader Illinois compliance posture.',
           'high', 2);
 
       if (isCalifornia(jurs))
@@ -228,7 +228,7 @@ export function computeUpsellSignals(
       const jurs   = norm(intake?.jurisdictions ?? []);
 
       push('governance_assessment',
-        'An IR Playbook covers response — a Governance Assessment covers root cause.',
+        'An IR Playbook covers response — a Accountability Assessment covers root cause.',
         'high', 1);
 
       if (isEuUk(jurs))
@@ -302,7 +302,7 @@ export function computeUpsellSignals(
 
       if (intake?.eu_uk_data === true || isEuUk(jurs))
         push('governance_assessment',
-          'Your processing spans CPPA and EU/UK — a Governance Assessment covers GDPR alongside your California obligations.',
+          'Your processing spans CPPA and EU/UK — a Accountability Assessment covers GDPR alongside your California obligations.',
           'medium', 3);
 
       if (Array.isArray(rd?.top_risks) && rd.top_risks.some((r: any) => r?.severity === 'High'))
@@ -326,7 +326,7 @@ export function computeUpsellSignals(
           'Material cybersecurity gaps identified — an IR Playbook establishes your breach response procedures.',
           'high', 1);
         push('governance_assessment',
-          'Significant cybersecurity gaps often reflect broader governance issues — a Governance Assessment provides the full picture.',
+          'Significant cybersecurity gaps often reflect broader governance issues — a Accountability Assessment provides the full picture.',
           'medium', 3);
       }
 

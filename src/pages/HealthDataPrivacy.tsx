@@ -185,7 +185,7 @@ export default function HealthDataPrivacyPage() {
 
         pageSynthesisKey="health__page"
         topToolCta={{
-          toolName: "Impact Assessment Builder",
+          toolName: "DPIA Builder",
           toolDescription:
             "Structured DPIA for high-risk health-data processing — HIPAA overlap, FTC Health Breach Rule, and state consumer-health regimes.",
           href: "/dpia-framework",

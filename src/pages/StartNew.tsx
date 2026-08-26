@@ -55,7 +55,7 @@ type ToolDef = {
 const TOOLS: ToolDef[] = [
   {
     key: "li",
-    label: "Legitimate Interest Assessment",
+    label: "Legitimate Interests Assessment",
     blurb: "Document and defend a legitimate-interest basis for processing.",
     startPath: "/li-assessment",
     viewPath: "/dashboard/reports",
@@ -65,7 +65,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "dpia",
-    label: "Impact Assessment Builder",
+    label: "DPIA Builder",
     blurb: "Structured Data Protection Impact Assessment for high-risk processing.",
     startPath: "/dpia-framework",
     viewPath: "/dashboard/reports",
@@ -75,7 +75,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "governance",
-    label: "Governance Assessment",
+    label: "Accountability Assessment",
     blurb: "Privacy-program health check across people, process, and policy.",
     startPath: "/governance-assessment",
     viewPath: "/dashboard/reports",

@@ -742,9 +742,9 @@ export interface ToolDef {
 }
 
 export const TOOLS: ToolDef[] = [
-  { id: "lia",         label: "Legitimate Interest Assessment", group: "Assessments", runner: runLIA,        expectedSeconds: 60 },
+  { id: "lia",         label: "Legitimate Interests Assessment", group: "Assessments", runner: runLIA,        expectedSeconds: 60 },
   { id: "dpia",        label: "DPIA Framework",                 group: "Assessments", runner: runDPIA,       expectedSeconds: 70 },
-  { id: "governance",  label: "Governance Assessment",          group: "Assessments", runner: runGovernance, expectedSeconds: 80 },
+  { id: "governance",  label: "Accountability Assessment",          group: "Assessments", runner: runGovernance, expectedSeconds: 80 },
   { id: "biometric",   label: "Biometric Compliance",           group: "Assessments", runner: runBiometric,  expectedSeconds: 60 },
   { id: "dpa",         label: "DPA Generator",                  group: "Documents",   runner: runDPA,        expectedSeconds: 60 },
   { id: "ir-playbook", label: "IR Playbook",                    group: "Documents",   runner: runIRPlaybook, expectedSeconds: 60 },

@@ -15,7 +15,7 @@ interface AssessmentRow {
 const TOOLS = [
   {
     icon: <Scale aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
-    title: "Legitimate Interest Assessment Tool",
+    title: "Legitimate Interests Assessment Tool",
     description:
       "Search a curated database of enforcement decisions and regulatory guidance to see how regulators have treated processing use cases similar to yours — and what documentation you need for a defensible balancing record.",
     cta: "View Sample & Purchase",
@@ -25,7 +25,7 @@ const TOOLS = [
   },
   {
     icon: <Shield aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
-    title: "GDPR Governance Assessment",
+    title: "GDPR Accountability Assessment",
     description:
       "Ten-domain review of your organisation's privacy practices mapped to applicable regulatory frameworks. Each finding is rated by severity and paired with a recommended action, suggested owner, and timeline.",
     cta: "View Sample & Purchase",
@@ -35,7 +35,7 @@ const TOOLS = [
   },
   {
     icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
-    title: "Impact Assessment Builder",
+    title: "DPIA Builder",
     description:
       "Structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
     cta: "View Sample & Purchase",
@@ -87,8 +87,8 @@ const TOOLS = [
 
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
   li: "LI Assessment Tool",
-  governance: "GDPR Governance Assessment",
-  dpia: "Impact Assessment Builder",
+  governance: "GDPR Accountability Assessment",
+  dpia: "DPIA Builder",
 };
 
 const TYPE_BADGE: Record<AssessmentRow["type"], string> = {

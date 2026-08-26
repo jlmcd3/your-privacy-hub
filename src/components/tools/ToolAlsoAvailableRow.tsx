@@ -13,10 +13,10 @@ import { Link } from "react-router-dom";
 type ToolId = "governance" | "dpia" | "dpa" | "lia" | "ir_playbook";
 
 const ALL: Array<{ id: ToolId; label: string; href: string }> = [
-  { id: "governance", label: "GDPR Governance Assessment", href: "/governance-assessment" },
+  { id: "governance", label: "GDPR Accountability Assessment", href: "/governance-assessment" },
   { id: "dpia",       label: "Impact Assessment (DPIA)",   href: "/dpia-framework" },
   { id: "dpa",        label: "Custom DPA Generator",       href: "/dpa-generator" },
-  { id: "lia",        label: "Legitimate Interest Assessment", href: "/li-assessment" },
+  { id: "lia",        label: "Legitimate Interests Assessment", href: "/li-assessment" },
   { id: "ir_playbook",label: "Incident Response Playbook", href: "/ir-playbook" },
 ];
 

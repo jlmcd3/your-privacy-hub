@@ -36,7 +36,7 @@ const TOOLS: Record<
   }
 > = {
   li_assessment: {
-    name: "Legitimate Interest Assessment Tool",
+    name: "Legitimate Interests Assessment Tool",
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
@@ -52,7 +52,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 4900,
   },
   dpia_framework: {
-    name: "Impact Assessment Builder",
+    name: "DPIA Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
