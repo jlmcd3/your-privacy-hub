@@ -128,14 +128,46 @@ interface Counts {
   byStatus: Record<string, number>;
 }
 
+// DEFECT FIX (batch a2db9e57, 2026-08-26) — this used to read
+// `report.control_status_counts`, a side-channel object attached by a
+// SEPARATE pass (attachControlStatusCounts, cyber-prose-gold.ts) earlier in
+// the pipeline. Live batch evidence showed a served document where that
+// pass's own telemetry (`_meta.internal.cyber_prose_gold`) was entirely
+// absent — the side-channel was never attached — while `report.controls`
+// (the SAME per-component array Section II renders from, and the source
+// `readiness_determination` is itself built from) was fully populated with
+// 7 blocking components. Because readCounts silently defaulted every field
+// to zero when the side-channel was missing, the executive summary,
+// required-components lead, and remediation lead all asserted "no material
+// gap" / "no remediation outstanding" in the SAME document whose executive
+// summary and conclusion correctly said 7 components were blocking — a
+// direct, customer-visible self-contradiction (batch a2db9e57 scored this
+// document 28.8/100 against GPT's 92.25/100 for exactly this defect).
+// Deriving the tally directly from report.controls removes the side-channel
+// dependency entirely: there is now only one source of truth for "how many
+// components are blocking," so this composer can never disagree with
+// Section II or with readiness_determination again, regardless of whether
+// any earlier pass runs.
 function readCounts(report: Bag): Counts {
-  const c = (report.control_status_counts ?? {}) as Bag;
-  const byStatus = (c.by_status ?? {}) as Record<string, number>;
+  const controls = Array.isArray(report.controls) ? (report.controls as Bag[]) : [];
+  const byStatus: Record<string, number> = {};
+  let insufficient = 0;
+  let scored = 0;
+  for (const c of controls) {
+    const status = s(c?.status);
+    if (!status) continue;
+    byStatus[status] = (byStatus[status] ?? 0) + 1;
+    if (/^insufficient information$/i.test(status)) { insufficient++; continue; }
+    if (Number.isFinite(Number(c?.score))) scored++;
+  }
   return {
-    total: Number(c.total_components ?? 18),
-    scored: Number(c.scored_count ?? 0),
-    insufficient: Number(c.insufficient_count ?? 0),
-    byStatus: byStatus && typeof byStatus === "object" ? byStatus : {},
+    // The regulation's own denominator (11 CCR § 7123(c)(1)-(18)) — never
+    // derived from how many control entries happen to be present, matching
+    // CYBER_TOTAL_COMPONENTS in cyber-prose-gold.ts.
+    total: 18,
+    scored,
+    insufficient,
+    byStatus,
   };
 }
 

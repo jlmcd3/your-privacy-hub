@@ -40,6 +40,9 @@ const SECTION_IDS = [
   // CEO report review 2026-08-24 — the not-pre-filled Signature page, ahead
   // of the Table of Authorities.
   "signature",
+  // Cyber v3.3 (2026-08-25) — FC-L11 Submission and Attestation, spliced
+  // after Signature and before the Table of Authorities.
+  "submission_and_attestation",
   "table_of_authorities",
 ];
 
@@ -117,7 +120,7 @@ const REPORT: Record<string, unknown> = {
 
 Deno.test("SO-4 — the skeleton's six sections, in order", () => {
   assertEquals(CYBER_SKELETON_SECTIONS.map((s) => s.id), SECTION_IDS);
-  assertEquals(CYBER_SKELETON_VERSION, "prose-plans-2026-08-24-item-so4-v3.1");
+  assertEquals(CYBER_SKELETON_VERSION, "prose-plans-2026-08-25-item-so4-v3.3");
   assertEquals(CYBER_SKELETON_SOURCE_FILE, "CPPA_Cybersecurity_Audit_Skeleton_v3.docx");
   assert(CYBER_SKELETON_PROVENANCE.includes("panel-delegated approval per CEO delegation 2026-08-06"));
 });
@@ -151,8 +154,10 @@ Deno.test("SO-4 — fixed prose is byte-pinned and register-clean", () => {
 
 Deno.test("SO-4 — the ITEM-204 byte-pinned block is a corpus block, not generated", () => {
   const scope = CYBER_SKELETON_SECTIONS.find((s) => s.id === "audit_scope")!;
-  assertEquals(scope.blocks.map((b) => b.kind), ["skeleton", "corpus"]);
-  assert(scope.blocks[1].text.startsWith("[BYTE-PINNED"));
+  // C1.2 (2026-08-25) — the § 7120(a)-(b) audit-applicability table leads
+  // this section, ahead of the skeleton/corpus blocks pinned here.
+  assertEquals(scope.blocks.map((b) => b.kind), ["table", "skeleton", "corpus"]);
+  assert(scope.blocks[2].text.startsWith("[BYTE-PINNED"));
   assertEquals(CYBER_PHASE_IN_CORPUS_KEY, "cppa-7121");
 });
 
@@ -248,4 +253,52 @@ Deno.test("SO-4 — an absent prior audit yields the honest sentence, never an a
   const text = skeletonDocumentToText(res.document);
   assert(text.includes("The company has not recorded the coverage of any prior audit."));
   assertEquals(res.conformance, []);
+});
+
+// DEFECT FIX (batch a2db9e57, 2026-08-26) — a live so-final-test batch scored
+// this exact shape 28.8/100: control_status_counts absent (the
+// cyber-prose-gold.ts side-channel never attached for that document), while
+// readiness_determination and report.controls both correctly recorded 7
+// blocking components. The executive summary, required-components lead, and
+// remediation lead all silently defaulted to "no material gap" / "no
+// remediation outstanding" — directly contradicting the SAME document's own
+// conclusion. readCounts() now reads report.controls directly (the field
+// Section II already renders from), so it can no longer disagree with what
+// the rest of the document says, regardless of whether control_status_counts
+// was ever attached.
+Deno.test("SO-4 defect fix — an absent control_status_counts side-channel never produces a false all-clear", () => {
+  const report = JSON.parse(JSON.stringify(REPORT));
+  delete report.control_status_counts;
+  // 7 of 18 controls carry a blocking status; the rest are healthy — mirrors
+  // the live batch document's actual shape (readiness_determination named 7
+  // blocking components on that record).
+  report.controls = [
+    { status: "Mature", score: 97 },
+    { status: "Mature", score: 95 },
+    { status: "Implemented", score: 80 },
+    { status: "Implemented", score: 75 },
+    { status: "Implemented", score: 70 },
+    { status: "Implemented", score: 65 },
+    { status: "Implemented", score: 62 },
+    { status: "Implemented", score: 61 },
+    { status: "Implemented", score: 60 },
+    { status: "Implemented", score: 60 },
+    { status: "Implemented", score: 60 },
+    { status: "Critical Gap", score: 10 },
+    { status: "Critical Gap", score: 8 },
+    { status: "Partial", score: 30 },
+    { status: "Partial", score: 25 },
+    { status: "Critical Gap", score: 5 },
+    { status: "Partial", score: 22 },
+    { status: "Critical Gap", score: 0 },
+  ];
+  const res = assembleCyberSkeletonDocument(report, INTAKE, PHASE_IN_CORPUS);
+  const text = skeletonDocumentToText(res.document);
+  assert(!text.includes("do not yet support any of the 18 components"));
+  assert(!text.includes("No component carries a material gap"));
+  assert(!text.includes("support all 18 enumerated components, and no material gap"));
+  assert(!text.includes("no remediation is outstanding before the audit"));
+  // 2 Mature + 9 Implemented = 11 strong; 4 Critical Gap + 3 Partial = 7 gaps.
+  assert(text.includes("The company's answers support 11 components of the 18 the regulation enumerates."));
+  assert(text.includes("7 components carry a material gap on the company's answers"));
 });

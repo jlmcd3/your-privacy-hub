@@ -94,6 +94,69 @@ Deno.test("9M item 4 step 2: reader honours blockers and requires one sentence",
   assert(ok.span.length > 0);
 });
 
+// DEFECT FIX (batch a2db9e57, 2026-08-26) — art9Special previously read the
+// RECORD-LEVEL data_categories unconditionally, so a SECONDARY operation
+// whose own text disclaims touching special-category data still got the
+// Art. 9(2) isolation ask, purely because the PRIMARY operation on the same
+// record processes health data under its own, separately-compliant basis.
+// Mirrors the disclaimer carve-out already applied to the quality-batch
+// fixture screener (perfect-closed-loop.ts, fixed 2026-08-25) — that fix
+// only patched the test screen; this closes the same gap in the product
+// builder itself.
+Deno.test("9M defect fix: secondary op disclaiming special-category data is NOT flagged, even though the record's primary operation processes health data", () => {
+  const [primary, secondary] = buildLegalBasis({
+    ...BASE,
+    processing_activity_name: "Return-to-work review scheduling",
+    data_categories: ["Contact details", "Health or medical data"],
+    legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
+    article_9_condition: "Employment, social security & social protection law (Art. 9(2)(b))",
+    secondary_uses:
+      "Aggregated, anonymised session counts are also used under legitimate interests to monitor scheduling-tool reliability; no special-category data or biometric data is included in this secondary use.",
+    alternatives_considered: [
+      ...BASE.alternatives_considered,
+      {
+        processing_operation: "Return-to-work review scheduling — secondary use",
+        alternative: "Sampling a subset of sessions instead of aggregating all of them",
+        rejection_reason: "Would not give a reliable reliability signal at low volumes.",
+      },
+    ],
+  });
+  // Primary operation: unaffected, still reads record-level categories via
+  // the non-6(1)(f) branch (legal obligation), cross-referencing Art. 9.
+  assertEquals(primary.legitimate_interests_test, undefined);
+  // Secondary operation: resolves its OWN 6(1)(f) basis from its own text,
+  // and that text disclaims special-category involvement — no isolation ask.
+  assertEquals(secondary.operation_id, "op_secondary");
+  assertEquals(secondary.art9_special, undefined);
+  assert(!(secondary.information_needed ?? "").includes("Isolate the special-category items"));
+  assert(!secondary.justification.includes("Legitimate interests cannot serve as the lawful basis"));
+  assert(!(secondary.ask_parts ?? []).some((p) => p.ask_class === "ask_lia_special_category"));
+});
+
+Deno.test("9M defect-fix negative control: secondary op with NO disclaimer still gets the isolation ask (the fix must not over-widen)", () => {
+  const [, secondary] = buildLegalBasis({
+    ...BASE,
+    processing_activity_name: "Return-to-work review scheduling",
+    data_categories: ["Contact details", "Health or medical data"],
+    legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
+    article_9_condition: "Employment, social security & social protection law (Art. 9(2)(b))",
+    secondary_uses:
+      "Session data is also used under legitimate interests to monitor scheduling-tool reliability.",
+    alternatives_considered: [
+      ...BASE.alternatives_considered,
+      {
+        processing_operation: "Return-to-work review scheduling — secondary use",
+        alternative: "Sampling a subset of sessions instead of aggregating all of them",
+        rejection_reason: "Would not give a reliable reliability signal at low volumes.",
+      },
+    ],
+  });
+  assertEquals(secondary.operation_id, "op_secondary");
+  assertEquals(secondary.art9_special, true);
+  assert((secondary.information_needed ?? "").includes("Isolate the special-category items"));
+  assert((secondary.ask_parts ?? []).some((p) => p.ask_class === "ask_lia_special_category"));
+});
+
 Deno.test("9M: byte identity — a record with neither trigger is unchanged", () => {
   const [f] = buildLegalBasis(BASE);
   assertEquals(f.status, "analysed");

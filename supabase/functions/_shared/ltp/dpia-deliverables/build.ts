@@ -1323,6 +1323,15 @@ const VULNERABLE_SUBJECTS: readonly RegExp[] = [
 const ART9_SPECIAL_CATS = ["Health or medical data", "Biometric data"];
 const CHILDREN_CAT = "Children's data";
 
+// DEFECT FIX (batch a2db9e57, 2026-08-26) — single source of truth for the
+// "this specific operation doesn't touch special-category data" disclaimer,
+// shared with the quality-batch fixture screener (perfect-closed-loop.ts
+// imports this constant rather than keeping its own copy, so the two can
+// never drift). See the art9Cats/art9Special computation below for why a
+// per-operation check exists at all.
+export const SPECIAL_CATEGORY_DISCLAIMER_RE =
+  /\bno special[- ]category data\b|\bno health or biometric\b|\bde-?identifi(?:ed|cation)\b|\banonymi[sz]ed?\b|\bk-anonymit(?:y|ies)\b|\bstripped of all (?:direct )?identifiers\b/i;
+
 /**
  * PROMPT 9M item 4 step 2 — CREDIT-FIRST children's-LIA reader.
  *
@@ -1766,7 +1775,30 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       VULNERABLE_SUBJECTS.some((re) => re.test(subjects)) ||
       categories.includes(CHILDREN_CAT);
     // PROMPT 9M item 1 — the two triggers, read separately.
-    const art9Cats = categories.filter((c) => ART9_SPECIAL_CATS.includes(c));
+    // DEFECT FIX (batch a2db9e57, 2026-08-26): art9Cats/art9Special used to
+    // read the RECORD-LEVEL data_categories unconditionally, so a secondary
+    // operation whose OWN text disclaims touching special-category data
+    // (e.g. "this secondary use processes only anonymised session counts —
+    // no health or biometric data") still received the Art. 9(2) isolation
+    // ask, purely because some OTHER operation on the same record processes
+    // health data under its own, separately-compliant basis. Special
+    // category is a per-PROCESSING question under Art. 9, not a per-record
+    // one — an operation whose own text says it never touches the
+    // special-category data was never the PROMPT 9M target. This mirrors
+    // the disclaimer carve-out already applied to the quality-batch fixture
+    // screener (perfect-closed-loop.ts's violatesPerfectCarveOut, fixed
+    // 2026-08-25) — that fix only patched the test-fixture screen; this is
+    // the same fix in the product builder both PRIMARY and PERFECT/messy
+    // customer records exercise. The PRIMARY operation is unaffected: its
+    // basis always comes from the record-level field, so it keeps reading
+    // record-level categories exactly as before.
+    const opDisclaimsSpecialCategory =
+      op.operation_id === "op_secondary" &&
+      opBasisText === op.purpose_text &&
+      SPECIAL_CATEGORY_DISCLAIMER_RE.test(op.purpose_text);
+    const art9Cats = opDisclaimsSpecialCategory
+      ? []
+      : categories.filter((c) => ART9_SPECIAL_CATS.includes(c));
     const art9Special = art9Cats.length > 0;
     const childrensData = categories.includes(CHILDREN_CAT);
 

@@ -29,7 +29,7 @@
 // therefore never be closed-loop perfect, and the lint keeps rejecting it.
 // Lint behaviour is unchanged by the ruling — only the rationale is settled.
 
-import { buildDpiaDeliverables } from "../ltp/dpia-deliverables/build.ts";
+import { buildDpiaDeliverables, SPECIAL_CATEGORY_DISCLAIMER_RE } from "../ltp/dpia-deliverables/build.ts";
 
 export const PERFECT_CLOSED_LOOP_VERSION = "perfect-closed-loop@prompt8k-2026-08-12";
 
@@ -64,8 +64,13 @@ const SPECIAL_CATEGORY_CATS = [
 // field stays exactly as blunt as before (a record that names "Legitimate
 // interest" as ITS OWN basis for special-category data is unconditionally a
 // violation, matching the existing pinned prompt8k test).
-const ANONYMISATION_DISCLAIMER_RE =
-  /\bno special[- ]category data\b|\bno health or biometric\b|\bde-?identifi(?:ed|cation)\b|\banonymi[sz]ed?\b|\bk-anonymit(?:y|ies)\b|\bstripped of all (?:direct )?identifiers\b/i;
+//
+// FIX 2026-08-26 (batch a2db9e57) — the SAME false-positive class was found
+// live in the PRODUCT builder itself (buildLegalBasis's art9Special), not
+// only in this screener; that fix made build.ts's SPECIAL_CATEGORY_DISCLAIMER_RE
+// the single source of truth, so this file imports it instead of keeping a
+// separate literal copy that could drift from the product's own rule.
+const ANONYMISATION_DISCLAIMER_RE = SPECIAL_CATEGORY_DISCLAIMER_RE;
 
 export interface PerfectDeficiency {
   /** "gap" | "insufficient" | "undetermined" | "signoff" | "carve_out" | "build" */
