@@ -125,6 +125,10 @@ interface Counts {
   total: number;
   scored: number;
   insufficient: number;
+  /** Controls carrying ANY recorded status (insufficient included). Zero
+   * when `report.controls` is empty or statusless — the batch-4e89037e
+   * shape — which the all-clear branches below must never read as health. */
+  withStatus: number;
   byStatus: Record<string, number>;
 }
 
@@ -153,9 +157,11 @@ function readCounts(report: Bag): Counts {
   const byStatus: Record<string, number> = {};
   let insufficient = 0;
   let scored = 0;
+  let withStatus = 0;
   for (const c of controls) {
     const status = s(c?.status);
     if (!status) continue;
+    withStatus++;
     byStatus[status] = (byStatus[status] ?? 0) + 1;
     if (/^insufficient information$/i.test(status)) { insufficient++; continue; }
     if (Number.isFinite(Number(c?.score))) scored++;
@@ -167,6 +173,7 @@ function readCounts(report: Bag): Counts {
     total: 18,
     scored,
     insufficient,
+    withStatus,
     byStatus,
   };
 }
@@ -183,9 +190,16 @@ function composeExecutiveLead(report: Bag): string {
   if (headline) return repairRegister(headline);
   const counts = readCounts(report);
   const gaps = gapCount(counts);
-  return gaps === 0
-    ? "On the company's answers, its recorded programme is ready for the certified cybersecurity audit across the enumerated components."
-    : `On the company's answers, its recorded programme is not yet ready for the certified cybersecurity audit: ${gaps === 1 ? "one component is" : `${gaps} components are`} not yet supported.`;
+  if (gaps > 0) {
+    return `On the company's answers, its recorded programme is not yet ready for the certified cybersecurity audit: ${gaps === 1 ? "one component is" : `${gaps} components are`} not yet supported.`;
+  }
+  // VACUOUS-TRUTH GUARD (batch 4e89037e, 2026-08-26): zero gaps proves
+  // nothing when the components were never assessed at all — an empty
+  // controls array must never read as readiness.
+  if (counts.withStatus < counts.total) {
+    return `On the company's answers, ${counts.withStatus === 0 ? "the enumerated components are not yet assessed" : `only ${counts.withStatus} of the ${counts.total} enumerated components are assessed`}, and the record does not yet support a readiness conclusion for the certified cybersecurity audit.`;
+  }
+  return "On the company's answers, its recorded programme is ready for the certified cybersecurity audit across the enumerated components.";
 }
 
 function composeExecutiveBody(report: Bag): string {
@@ -204,6 +218,11 @@ function composeExecutiveBody(report: Bag): string {
   );
   if (gaps > 0) {
     sentences.push(`${gaps === 1 ? "One component carries" : `${gaps} components carry`} a material gap on the company's answers, and the remediation section names the action that closes each.`);
+  } else if (counts.withStatus === 0) {
+    // VACUOUS-TRUTH GUARD (batch 4e89037e): with nothing assessed, "no
+    // material gap" is technically true but reads as an all-clear directly
+    // against the "do not yet support any" sentence above it.
+    sentences.push("No component is assessed on the company's answers; each is treated as unassessed rather than as satisfied.");
   } else {
     sentences.push("No component carries a material gap on the company's answers.");
   }
@@ -225,6 +244,16 @@ function composeComponentsLead(report: Bag): string {
   const gaps = gapCount(counts);
   const supported = counts.total - gaps - counts.insufficient;
   if (gaps === 0 && counts.insufficient === 0) {
+    // VACUOUS-TRUTH GUARD (batch 4e89037e, 2026-08-26): the all-clear
+    // sentence may only state what the record actually establishes. Zero
+    // gaps and zero insufficient-flags is trivially true of an empty or
+    // sparse controls array; "supports all 18" requires all 18 assessed.
+    if (counts.withStatus === 0) {
+      return `None of the ${counts.total} enumerated components is assessed on the company's answers; each is treated as unassessed rather than as satisfied.`;
+    }
+    if (counts.withStatus < counts.total) {
+      return `The company's answers support ${counts.withStatus} of the ${counts.total} enumerated components; the remaining ${counts.total - counts.withStatus} are treated as unassessed rather than as satisfied.`;
+    }
     return `The company's answers support all ${counts.total} enumerated components, and no material gap arises on those answers.`;
   }
   const clauses: string[] = [`The company's answers support ${supported} of the ${counts.total} enumerated components`];
@@ -265,6 +294,12 @@ function composeRemediationLead(report: Bag): string {
   const gaps = gapCount(counts);
   const risks = Array.isArray(report.top_risks) ? (report.top_risks as Bag[]).length : 0;
   if (gaps === 0 && risks === 0) {
+    // VACUOUS-TRUTH GUARD (batch 4e89037e, 2026-08-26): an unassessed
+    // record has no remediation POSITION, which is not the same as having
+    // no remediation outstanding.
+    if (counts.withStatus < counts.total) {
+      return "On the company's answers, the record leaves components unassessed; completing the record is the action outstanding before the audit.";
+    }
     return "On the company's answers, no remediation is outstanding before the audit.";
   }
   return `On the company's answers, ${risks || gaps} ${((risks || gaps) === 1) ? "matter requires" : "matters require"} remediation before the audit, each owned and timed below.`;

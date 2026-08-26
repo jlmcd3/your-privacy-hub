@@ -3346,6 +3346,16 @@ Deno.serve(async (req) => {
             missingKey = "risk_assessment_by_activity|assessment_summary|part_a|domains";
             break;
           case "cppa_cybersecurity":
+            // CYBER_DETERMINISTIC_ENABLED (C1.1a/C2): the deterministic path
+            // deliberately persists `controls: []` and the customer document
+            // is `skeleton_document`, which the render dispatch below prefers.
+            // A renderable skeleton therefore satisfies the guard; the
+            // controls minimum applies only when no skeleton exists (defect
+            // found live: batch 4e89037e, 409 report_body_empty on a
+            // complete deterministic-path row, 2026-08-26).
+            if (isNonEmptyObj(rd.skeleton_document) && isNonEmptyArr(rd.skeleton_document?.sections)) {
+              break;
+            }
             // Only enforce when the structured path would be selected.
             if (Array.isArray(rd.controls) || rd.controls != null) {
               bodyOk = isNonEmptyArr(rd.controls);

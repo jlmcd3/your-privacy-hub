@@ -120,6 +120,51 @@ Deno.test("8J/2: internal consultation only → false", () => {
   assertEquals(dpoRecommendsConsultation("The project team consulted the DPO in April."), false);
 });
 
+// Batch 4e89037e (2026-08-26) — negation attached to the NOUN rather than
+// the verb. The live Velthorpe record's advice said "no prior consultation
+// with the HBDI is required", the fwd consult+authority pattern matched, no
+// verb-anchored negation matched, and the ratified disclosure sentence
+// asserted the opposite of the record (the run-c3762c61 defect class, new
+// grammatical shape).
+Deno.test("8J/2: 'advised no prior consultation with the HBDI is required' → false", () => {
+  assertEquals(
+    dpoRecommendsConsultation(
+      "DPO advised no prior consultation with the HBDI is required provided all recommended measures are implemented before go-live.",
+    ),
+    false,
+  );
+});
+
+Deno.test("8J/2: 'no Article 36 consultation is needed' → false", () => {
+  assertEquals(
+    dpoRecommendsConsultation("The DPO advised that no Article 36 consultation is needed."),
+    false,
+  );
+});
+
+Deno.test("8J/2: 'without prior consultation' → false", () => {
+  assertEquals(
+    dpoRecommendsConsultation(
+      "The DPO advised that processing may begin without prior consultation of the supervisory authority.",
+    ),
+    false,
+  );
+});
+
+// Guard the guard: the noun-negation pattern must not swallow genuinely
+// positive recommendations.
+Deno.test("8J/2: 'recommended an Article 36 consultation' still → true", () => {
+  assert(dpoRecommendsConsultation("The DPO recommended an Article 36 consultation."));
+});
+
+Deno.test("8J/2: 'no substitute for consulting the ICO' still → true", () => {
+  assert(
+    dpoRecommendsConsultation(
+      "The DPO advised there is no substitute for consulting the ICO before go-live.",
+    ),
+  );
+});
+
 // ── item 3 — impact reader scope ────────────────────────────────────────
 const DOC3 = {
   ...BASE,

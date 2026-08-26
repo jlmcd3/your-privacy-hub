@@ -302,3 +302,47 @@ Deno.test("SO-4 defect fix — an absent control_status_counts side-channel neve
   assert(text.includes("The company's answers support 11 components of the 18 the regulation enumerates."));
   assert(text.includes("7 components carry a material gap on the company's answers"));
 });
+
+// DEFECT FIX (batch 4e89037e, 2026-08-26) — a live run on the C1-era
+// deterministic path persisted `controls: []` (the intentional stub) and the
+// v3 composers' all-clear branches fired VACUOUSLY: zero gaps and zero
+// insufficient-flags is trivially true of an empty array, so the document
+// claimed "support all 18 enumerated components, and no material gap arises"
+// and "no remediation is outstanding" in the same document whose executive
+// body correctly said no component was supported. The guards now require the
+// components to actually BE assessed before any all-clear sentence renders.
+Deno.test("SO-4 defect fix — an empty controls array never produces a false all-clear", () => {
+  const report = JSON.parse(JSON.stringify(REPORT));
+  delete report.control_status_counts;
+  delete report.readiness_determination; // exercise the executive-lead fallback
+  report.controls = [];
+  report.top_risks = [];
+  const res = assembleCyberSkeletonDocument(report, INTAKE, PHASE_IN_CORPUS);
+  const text = skeletonDocumentToText(res.document);
+  // The three vacuous all-clear sentences must not render.
+  assert(!text.includes("support all 18 enumerated components, and no material gap"));
+  assert(!text.includes("no remediation is outstanding before the audit"));
+  assert(!text.includes("is ready for the certified cybersecurity audit across the enumerated components"));
+  assert(!text.includes("No component carries a material gap"));
+  // The honest replacements render instead.
+  assert(text.includes("the enumerated components are not yet assessed"));
+  assert(text.includes("None of the 18 enumerated components is assessed on the company's answers"));
+  assert(text.includes("treated as unassessed rather than as satisfied"));
+  assert(text.includes("completing the record is the action outstanding before the audit"));
+});
+
+// Same guard, sparse shape: a partial controls array with zero gaps must not
+// claim all 18 components are supported.
+Deno.test("SO-4 defect fix — a sparse all-healthy controls array never claims all 18 supported", () => {
+  const report = JSON.parse(JSON.stringify(REPORT));
+  delete report.control_status_counts;
+  report.controls = [
+    { status: "Mature", score: 95 },
+    { status: "Implemented", score: 70 },
+  ];
+  report.top_risks = [];
+  const res = assembleCyberSkeletonDocument(report, INTAKE, PHASE_IN_CORPUS);
+  const text = skeletonDocumentToText(res.document);
+  assert(!text.includes("support all 18 enumerated components"));
+  assert(text.includes("The company's answers support 2 of the 18 enumerated components; the remaining 16 are treated as unassessed rather than as satisfied."));
+});

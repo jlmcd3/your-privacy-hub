@@ -125,6 +125,15 @@ const DPO_NEGATION_RE = new RegExp(
     "\\bdon't\\b|\\bdoesn't\\b|\\bdidn't\\b|\\bwouldn't\\b|\\bwon't\\b|\\bisn't\\b|\\baren't\\b",
     "\\bnot\\s+(?:met|meet|required|necessary|needed|recommended|warranted|triggered)\\b",
     "\\bno\\s+(?:need|requirement|basis)\\b",
+    // Batch 4e89037e (2026-08-26): negation attached to the NOUN — "advised
+    // no prior consultation with the HBDI is required" — matched the fwd
+    // consult+authority pattern but none of the verb-anchored negations
+    // above, so the flag went true against the record. Up to two modifiers
+    // may sit between "no" and the consult-family noun ("no prior
+    // consultation", "no Article 36 consultation"); connective prepositions
+    // are excluded so "no substitute for consulting the ICO" stays positive.
+    "\\bno\\s+(?:(?!for\\b|to\\b|of\\b)\\w+\\s+){0,2}(?:consult|referral|escalat|notif)\\w*",
+    "\\bwithout\\s+(?:\\w+\\s+){0,2}consult\\w*",
     "\\bfall(?:s)?\\s+(?:below|short)\\b",
     "\\bbelow\\s+the\\s+threshold\\b",
     "\\bdeclin\\w*\\s+to\\s+recommend\\b",
