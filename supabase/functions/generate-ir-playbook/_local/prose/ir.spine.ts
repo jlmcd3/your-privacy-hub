@@ -7,9 +7,12 @@
 // function's `_local`, so no other function pays its bytes on upload. The only
 // consumers of this spine are `generate-ir-playbook/index.ts` and this
 // function's own `_local/ltp/ir-prose-gold.ts` / `ir-finalize.ts`. (Contrast
-// `_shared/prose/plans/lia.spine.ts`, which stays shared because
-// `generate-report-pdf` also imports it.) Every other function's upload size is
-// therefore unchanged by item 414.
+// `lia.spine.ts`, which is imported by both `run-li-assessment` and
+// `generate-report-pdf` and is therefore MIRRORED — canonical copy in
+// `run-li-assessment/_local/prose/plans/`, byte-identical mirror in
+// `generate-report-pdf/_local/prose/plans/`, drift guarded by
+// `tests/edge/so11/lia-spine-mirror.test.ts`.) Every other function's upload
+// size is therefore unchanged by item 414.
 //
 // SOURCE OF TRUTH: `prose_document_plans` row for product `ir-playbook`,
 // version `prose-plans-2026-08-09-item414`, approved = true. That row is the
