@@ -65,11 +65,15 @@ const RATIFIED: Record<string, string> = {
     "a separate assessment of the special-category items, once an appropriate Article 9(2) condition (such as explicit consent) is established",
   ask_lia_children:
     "a dedicated legitimate interests assessment for the children's data stream, with age-appropriate safeguards",
+  // 2026-08-26 — the "Other"-bypass guard class (CEO batch ruling;
+  // label bytes on the advance-ratification ledger pending redline).
+  ask_art9_other_category:
+    'whether the data recorded under "Other" includes special-category data, and the Art. 9(2) condition relied on',
 };
 
-Deno.test("9A — all 30 registry entries are byte-exact (9M: +2)", () => {
-  assertEquals(DPIA_ASK_CLASSES.length, 30);
-  assertEquals(Object.keys(RATIFIED).length, 30);
+Deno.test("9A — all 31 registry entries are byte-exact (9M: +2; Other-guard: +1)", () => {
+  assertEquals(DPIA_ASK_CLASSES.length, 31);
+  assertEquals(Object.keys(RATIFIED).length, 31);
   for (const [id, bytes] of Object.entries(RATIFIED)) {
     assertEquals(DPIA_ASK_LABELS[id as keyof typeof DPIA_ASK_LABELS], bytes, id);
   }

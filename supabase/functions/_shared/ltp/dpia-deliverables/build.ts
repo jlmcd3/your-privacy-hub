@@ -2424,6 +2424,54 @@ const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendati
   },
 ];
 
+// ── "Other" data-category Art. 9 guard (CEO-ratified 2026-08-26 batch
+// ruling; closes the fleet-standing "DPIA 'Other' data-category free-text
+// can bypass the Art. 9 trigger" item). The bypass: `data_categories` is a
+// closed multi-enum whose special-category members are exactly ["Health or
+// medical data", "Biometric data"]; a record that selects "Other" and
+// describes special-category data only in free text never triggers the
+// Art. 9(2) condition question. The ratified guard: a deterministic
+// lexicon sweep over the record's descriptive free-text fields, firing
+// ONLY in the pure-bypass state ("Other" selected, no enum special
+// category selected, no Art. 9(2) condition recorded). On a hit it emits
+// an open-item condition — never a silent skip, never an assertion that
+// Art. 9 applies (the degradation-law pattern). Over-asking is the safe
+// direction, matching the program's over-assessment posture.
+const ART9_OTHER_LEXICON: readonly { label: string; re: RegExp }[] = [
+  { label: "racial or ethnic origin", re: /\bracial\b|\bethnic\b/i },
+  { label: "political opinions", re: /\bpolitical opinion/i },
+  { label: "religious or philosophical beliefs", re: /\breligious\b|\bphilosophical belief/i },
+  { label: "trade-union membership", re: /\btrade[- ]union/i },
+  { label: "genetic data", re: /\bgenetic\b|\bgenomic\b|\bdna\b/i },
+  { label: "biometric data", re: /\bbiometric\b|\bfingerprint\b|\bfacial recognition\b/i },
+  {
+    label: "data concerning health",
+    re: /\bhealth\b|\bmedical\b|\bdiagnos\w*|\bpatient\b|\bclinical\b|\bdisabilit\w*|\bprescription\b|\bmental[- ]health\b/i,
+  },
+  { label: "sex life or sexual orientation", re: /\bsex life\b|\bsexual orientation\b/i },
+];
+
+/** The record's descriptive free-text surfaces the guard sweeps. */
+const ART9_OTHER_SWEEP_FIELDS = [
+  "description",
+  "purpose",
+  "data_subjects",
+  "functional_description",
+  "nature_scope_context",
+  "secondary_uses",
+] as const;
+
+/** First lexicon class the swept free text mentions, or null. Exported for
+ * the pin battery. */
+export function art9OtherLexiconHit(intake: unknown): string | null {
+  const text = ART9_OTHER_SWEEP_FIELDS.map((f) => str(get(intake, f))).join("\n");
+  if (!text.trim()) return null;
+  for (const { label, re } of ART9_OTHER_LEXICON) {
+    if (re.test(text)) return label;
+  }
+  return null;
+}
+
 // UK Sch. 1 depth sentence (2026-08-26 CEO batch ruling; implementation-
 // authored bytes — advance-ratification ledger, CEO redline pending). The
 // leading space is deliberate: the sentence appends after a full stop. The
@@ -2489,6 +2537,40 @@ export function buildSection2Coverage(
         source_field: "article_9_condition",
       };
     });
+
+  // ── "Other" bypass guard (see ART9_OTHER_LEXICON above) — fires only in
+  // the pure-bypass state: "Other" selected, no enum special category
+  // selected, no Art. 9(2) condition recorded, and the free text mentions
+  // a special-category class. The row rides the existing surface plumbing:
+  // the Art. 9(2) conditions table, the gap ledger, and the executive open
+  // points all read special_category_conditions rows carrying an ask.
+  {
+    const cats = arr(get(intake, "data_categories"));
+    const art9Recorded = str(get(intake, "article_9_condition"));
+    const enumSpecialSelected = inv.data_items.some((d) => d.special_category);
+    if (cats.includes("Other") && !art9Recorded && !enumSpecialSelected) {
+      const hit = art9OtherLexiconHit(intake);
+      if (hit) {
+        special_category_conditions.push({
+          item: "Other",
+          condition_label: "",
+          // The lexicon class label is registry vocabulary, never customer
+          // free text — deterministic bytes, ledgered with this landing.
+          justification:
+            `The company has recorded "Other" among the data categories, and its description of the processing refers to ${hit}; the described data may constitute special-category data, and no Art. 9(2) condition is named for it.`,
+          citation: a9.citation,
+          authority_verbatim: a9.verbatim,
+          status: "record_insufficient" as const,
+          // CEO-ratified open-item formula (2026-08-26 batch ruling), verbatim.
+          information_needed:
+            "the described data may constitute special-category data; confirm and identify an Art. 9(2) condition",
+          ask_class: "ask_art9_other_category",
+          display_label: resolveAskLabel("ask_art9_other_category"),
+          source_field: "data_categories",
+        });
+      }
+    }
+  }
 
   // ── TIER 1b — transfers (emptyIsAnswer: zero rows is a determination) ─
   const chapterVCite = cit(regime, "Chapter V (Arts. 44–49)");

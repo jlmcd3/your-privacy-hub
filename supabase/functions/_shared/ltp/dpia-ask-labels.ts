@@ -40,6 +40,7 @@ export type DpiaAskClass =
   | "ask_dpo"
   | "ask_processor_contract"
   | "ask_art9_condition"
+  | "ask_art9_other_category"
   | "ask_transfer_mechanism"
   | "ask_dpa_contracts"
   | "ask_retention"
@@ -79,6 +80,10 @@ export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.fr
   ask_dpo: "whether a data protection officer is designated, and their contact details",
   ask_processor_contract: "a written Art. 28 contract with {name}, and the date it was signed",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",
+  // 2026-08-26 "Other"-bypass guard (CEO batch ruling) — implementation-
+  // authored label, advance-ratification ledger, CEO redline pending.
+  ask_art9_other_category:
+    'whether the data recorded under "Other" includes special-category data, and the Art. 9(2) condition relied on',
   ask_transfer_mechanism: "the Chapter V mechanism relied on for the transfer to {dest}",
   ask_dpa_contracts:
     "whether a written processing contract is in place with each named processor, and the date it was signed",
@@ -104,10 +109,12 @@ export function serializeAskLabels(): string {
 }
 
 /** SHA-256 over serializeAskLabels(), lower-case hex. PINNED.
- *  Re-pinned by PROMPT 9M (ask_lia_special_category + ask_lia_children).
- *  Audit trail — 9A pin: b1b55a5dc1f1adcfa41497f0376330f59d6ca044e5404bf8dbff8bd10d739fb4 */
+ *  Re-pinned 2026-08-26 (ask_art9_other_category — the "Other"-bypass
+ *  guard, CEO batch ruling; deliberate re-pin, one new label only).
+ *  Audit trail — 9A pin: b1b55a5dc1f1adcfa41497f0376330f59d6ca044e5404bf8dbff8bd10d739fb4
+ *  9M pin: 290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd */
 export const DPIA_ASK_LABELS_HASH =
-  "290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd";
+  "8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1";
 
 
 /** Recompute the hash (async — Web Crypto). Used by the pin test. */
