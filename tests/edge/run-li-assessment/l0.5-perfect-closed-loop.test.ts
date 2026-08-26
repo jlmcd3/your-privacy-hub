@@ -129,9 +129,14 @@ Deno.test("L0.5 mutation — dropping purpose_details.specific_benefit reopens b
   );
 });
 
-Deno.test("L0.5 mutation — dropping necessity_details.alternatives AND alternatives_considered reopens alternatives_considered", () => {
+Deno.test("L0.5 mutation — dropping every alternatives source reopens alternatives_considered", () => {
+  // L4 re-point (2026-08-26): the fixtures now carry
+  // necessity_details.alternatives_rationale, and the builder deliberately
+  // parses the rationale as an alternatives source too — so the mutation
+  // must blank all three sources to reach the no-alternatives state.
   const intake = clone(REFERENCE_INTAKE);
   intake.necessity_details.alternatives = "";
+  intake.necessity_details.alternatives_rationale = "";
   intake.alternatives_considered = "";
   const res = checkPerfectLiaIntake(intake);
   assertEquals(res.ok, false);

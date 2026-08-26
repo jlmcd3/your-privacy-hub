@@ -123,24 +123,47 @@ Deno.test("L1-B — typed documentation: the two mandatory documents always pres
 
 // ── L2 — the v2 skeleton assembly ───────────────────────────────────────────
 
-Deno.test("L2 — deterministic assembly: no NEW conformance findings vs legacy; register clean; leads coherent", () => {
+// L4 re-point (2026-08-26): the fixture gap is CLOSED — both perfect
+// fixtures now carry necessity_details.alternatives_rationale — so the
+// deterministic assembly pins STRICT ZERO conformance findings.
+Deno.test("L2/L4 — deterministic assembly: conformance strictly clean; register clean; leads coherent", () => {
   for (const c of LIA_PERFECT_PINNED) {
     const report = typedReportFor(c.intake as Bag);
-    // Baseline: the legacy assembly over the SAME typed report. (The clean
-    // fixture carries one pre-existing, fixture-borne finding — its
-    // necessity_details has no alternatives_rationale, so a mid-sentence
-    // clause drops on BOTH paths; confirmed identical on legacy. The pin
-    // here is that the deterministic path adds nothing.)
-    const legacy = assembleLiaSkeletonDocument(report, c.intake as Bag);
     const sk = assembleLiaSkeletonDocument(report, c.intake as Bag, { deterministic: true });
-    assertEquals(
-      JSON.stringify(sk.conformance),
-      JSON.stringify(legacy.conformance),
-      `${c.id}: deterministic path changed the conformance set`,
-    );
+    assertEquals(sk.conformance.length, 0, `${c.id}: ${JSON.stringify(sk.conformance)}`);
     assertEquals(sk.register_findings, [], c.id);
     assertEquals(sk.lead_coherence, [], c.id);
   }
+});
+
+// ── L4 — the NO-MODEL import-graph pin ─────────────────────────────────────
+// The deterministic path's modules must be pure: no model client, no fetch
+// to a model endpoint, no dynamic escape hatch. Source-level, so a future
+// import cannot slip in silently.
+Deno.test("L4 — NO-MODEL pin: the deterministic modules import no model client", async () => {
+  const MODULES = [
+    "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/three-part-test-typed.ts",
+    "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts",
+    "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build-upgrade4.ts",
+    "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/precedent-class.ts",
+    "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/eprivacy-gate.ts",
+    "supabase/functions/run-li-assessment/_local/ltp/lia-persuasive-authority.ts",
+    "supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts",
+  ];
+  for (const path of MODULES) {
+    const src = await Deno.readTextFile(path);
+    for (const banned of ["callAnthropic", "anthropic", "api.openai", "currentGenerationModel", "fetch("]) {
+      assert(!src.includes(banned), `${path} references "${banned}" — the deterministic path must be model-free`);
+    }
+  }
+});
+
+// The flag's default is FALSE until the CEO's deploy-time cutover.
+Deno.test("L4 — LIA_DETERMINISTIC_DEFAULT is false (cutover is the CEO's deploy-time act)", async () => {
+  const { LIA_DETERMINISTIC_DEFAULT } = await import(
+    "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deterministic-flag.ts"
+  );
+  assertEquals(LIA_DETERMINISTIC_DEFAULT, false);
 });
 
 Deno.test("L2 — the Persuasive Authority section renders the four ratified decisions with a ToA trail", () => {

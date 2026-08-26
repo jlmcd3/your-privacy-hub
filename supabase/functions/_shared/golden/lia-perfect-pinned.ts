@@ -66,7 +66,12 @@ const base = {
   necessity_details: {
     alternatives:
       "Consent under Article 6(1)(a) — members could decline app-based recommendations entirely, which would remove the scheduling and availability feature members have said in surveys they value, and would need to be re-obtained at every renewal. Manual scheduling by staff — would not scale to the volume of daily bookings and could not update live equipment availability in real time.",
-    alternatives_rationale: "",
+    // L4 (2026-08-26): filled — a "perfect" record states WHY each
+    // alternative was rejected, on purpose-defeat grounds; the empty
+    // string here produced the fixture-borne conformance finding both
+    // rendering paths carried.
+    alternatives_rationale:
+      "Each alternative was rejected on purpose-defeat grounds rather than cost: renewal-cycle consent would drop the live availability feature for members who do not re-consent in time, and manual staff scheduling cannot reflect equipment check-ins as they happen.",
     why_consent_not_used: "",
     data_minimised:
       "Only the member's own session timestamps and equipment check-in/out events are used; no data from any other member is included in an individual's recommendations.",
