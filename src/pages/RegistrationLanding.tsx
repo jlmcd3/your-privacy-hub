@@ -5,8 +5,8 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { RequirementBadge } from "@/components/RequirementBadge";
 import { ProductHero } from "@/components/ProductHero";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
@@ -69,12 +69,14 @@ export default function RegistrationLanding() {
         <ToolTierNote />
       </div>
 
+      {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip (price moves to the
+          pricing section), name-led H1; the legal trigger moves into the
+          applicability card below the hero. */}
       <ProductHero
         geography="us"
-        eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Registration Manager · {formatPrice("registration_standalone")} per filing</>}
-        title="Privacy registration filings, drafted and tracked"
-        legalTrigger={{ tier: "required", text: "Several jurisdictions require controllers to register with — or pay a data-protection fee to — their supervisory authority. In the UK, the ICO data-protection fee is a legal requirement for most organisations." }}
-        valueProposition="DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act registration drafts, generated in minutes, tailored to every jurisdiction you operate in, and renewed on schedule."
+        eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Registration Manager</>}
+        title="Privacy Registration Manager"
+        valueProposition={`Privacy registration filings, drafted and tracked — DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act registration drafts, generated in minutes and renewed on schedule. ${formatPrice("registration_standalone")} per filing.`}
         citationLine="Free assessment · No card required · Pay only when you generate documents"
         showIntakeCta={false}
       >
@@ -85,6 +87,20 @@ export default function RegistrationLanding() {
           <Link to="#how-it-works">How it works</Link>
         </Button>
       </ProductHero>
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does the registration duty apply to you?",
+            tone: "amber",
+            body: "Several jurisdictions require controllers to register with — or pay a data-protection fee to — their supervisory authority. In the UK, the ICO data-protection fee is a legal requirement for most organisations.",
+          },
+          {
+            title: "What you receive",
+            body: "Draft filings tailored to every jurisdiction you operate in — DPO appointment letters, RoPA templates, Article 27 representative letters, and EU AI Act registration drafts — with renewals tracked on schedule.",
+          },
+        ]}
+      />
       <PageContainer>
 
         {/* 2. Problem */}

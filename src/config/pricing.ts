@@ -1045,6 +1045,10 @@ export const PRICING = {
 export const INCLUDED_GENERATIONS_SHORT = "4 generations included";
 export const INCLUDED_GENERATIONS_COPY =
   "Includes 4 generations — refine your answers and regenerate up to 3 times at no extra cost.";
+// Pre-intake redesign (2026-08-26): the hero support line used on product
+// pages. Same mechanics as INCLUDED_GENERATIONS_COPY, phrased for the hero.
+export const INCLUDED_GENERATIONS_HERO =
+  "4 generations included — one initial report plus up to 3 revisions at no extra cost.";
 
 export type ToolKey = keyof typeof PRICING.tools;
 

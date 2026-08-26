@@ -9,6 +9,7 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import SampleReportLink from "@/components/SampleReportLink";
 import { ProductHero } from "@/components/ProductHero";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import {
   Accordion,
   AccordionContent,
@@ -116,12 +117,13 @@ export default function RopaLanding() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
       </div>
+      {/* PRE-INTAKE REDESIGN (2026-08-26): name-led H1; the Article 30 legal
+          trigger moves into the applicability card below the hero. */}
       <ProductHero
         geography="gdpr"
         eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Free on annual plans</>}
-        title="Build an audit-ready Record of Processing Activities (RoPA) in minutes"
-        legalTrigger={{ tier: "required", text: "GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data." }}
-        valueProposition="Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Included with every Intelligence and Professional subscription, monthly or annual. Not sold as a standalone product."
+        title="Record of Processing Activities (RoPA) Builder"
+        valueProposition="An audit-ready RoPA in minutes. Guided questions in plain language — covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Included with every Intelligence and Professional subscription, monthly or annual. Not sold as a standalone product."
         sampleReportToolSlug="ropa"
         showIntakeCta={false}
       >
@@ -141,7 +143,21 @@ export default function RopaLanding() {
           </Link>
         </Button>
       </ProductHero>
-      <main className="flex-1">
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does the RoPA requirement apply to you?",
+            tone: "amber",
+            body: "GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data.",
+          },
+          {
+            title: "What you receive",
+            body: "An audit-ready, Article 30-compliant Record of Processing Activities covering 25+ jurisdictions, built from guided plain-language questions and refreshed annually.",
+          },
+        ]}
+      />
+      <main className="flex-1 mt-6">
 
         {/* TRUST BAR */}
         <section className="border-y border-border bg-muted/30 py-6 px-4">

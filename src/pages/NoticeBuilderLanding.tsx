@@ -76,7 +76,7 @@ export default function NoticeBuilderLanding() {
         geography="global"
         showIntakeCta={false}
         eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Privacy Notice Builder · US & EU/Global · Included with any subscription</>}
-        title="Generate your privacy notices: US states and EU/Global frameworks, in one place."
+        title="Privacy Notice Builder"
         valueProposition="Two guided builders, one workspace. Cover all 20 US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">

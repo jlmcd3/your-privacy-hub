@@ -7,7 +7,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
-import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -22,24 +21,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 // ITEM 381 — intake completeness coach (Layer 1), per-product flag, default off.
 import IntakeCoachStep from "@/components/intake/IntakeCoachStep";
 import { isIntakeCoachEnabled } from "@/config/intakeCoach";
 import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 import { useActiveClient } from "@/hooks/useActiveClient";
-import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { InfoPopover } from "@/components/InfoPopover";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
-import SampleReportLink from "@/components/SampleReportLink";
 import { ProductHero } from "@/components/ProductHero";
-import MethodologyBox from "@/components/cppa/MethodologyBox";
+import SuiteSelector from "@/components/product/SuiteSelector";
+import HeroPriceCta from "@/components/product/HeroPriceCta";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
+import HowItWorksRow from "@/components/product/HowItWorksRow";
+import SuiteCrossSellStrip from "@/components/product/SuiteCrossSellStrip";
+import CompactDisclaimer from "@/components/product/CompactDisclaimer";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 
-import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { consumeRiskPrefill } from "@/lib/riskIntakePrefill";
@@ -362,7 +363,7 @@ export default function CPPARiskAssessment() {
   const isSuite = searchParams.get("suite") === "true";
   const suitePricing = useToolPrice("cppa_suite");
   const activePricing = isSuite ? suitePricing : pricing;
-  const headerLabel = isSuite ? "CPPA AUDIT READINESS · FULL SUITE (M1 + M2)" : "CPPA AUDIT READINESS · MODULE 1";
+  const headerLabel = isSuite ? "FULL AUDIT SUITE · MODULE 1 OF 2" : "CPPA AUDIT READINESS · MODULE 1";
   const displayPrice = activePricing.price;
 
   const [step, setStep] = useState(1);
@@ -1472,53 +1473,78 @@ export default function CPPARiskAssessment() {
         <meta name="description" content="California CPPA risk assessment mapped 1:1 to § 7152(a)(1)–(9). Generates a regulation-mapped framework pre-populated from your intake, ready for executive sign-off." />
         <link rel="canonical" href="https://enduserprivacy.com/cppa-risk-assessment" />
       </Helmet>
-      {/* UX-1c: compact tool-landing hero (≤280px), two-line copy + one CTA row. */}
+      {/* PRE-INTAKE REDESIGN (2026-08-26): suite selector → name-led hero with
+          the standardized price/CTA block → sales-proof card band → compact
+          how-it-works row → shared suite cross-sell → compressed disclaimer.
+          Intake guidance and the client selector move to the intake boundary. */}
+      <SuiteSelector active="m1" />
       <ProductHero
         geography="us"
         eyebrowLabel={headerLabel}
-        title="The risk assessment California now requires."
-        valueProposition="If you sell or share personal data, process sensitive data, or use automated decision-making — existing activities must be assessed by December 31, 2027."
-        sampleReportToolSlug="cppa_risk"
-        citationLine="11 CCR § 7150 · submission-ready for the Apr 1, 2028 attestation"
+        title="CPPA Privacy Risk Assessment"
+        valueProposition={INCLUDED_GENERATIONS_HERO}
+        citationLine="11 CCR §§ 7150–7157 · Built from the CPPA final regulations and Final Statement of Reasons"
         showIntakeCta={false}
       >
-        <a
-          href="#run-assessment"
-          className="inline-flex flex-col items-start bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] text-white font-semibold px-5 py-2.5 rounded-lg no-underline transition-colors"
-        >
-          <span>{`Start your assessment — $${pricing.standalonePrice}`}</span>
-          <span className="text-[12px] font-normal text-white/85">{`Subscribers: $${pricing.subscriberPrice}`}</span>
-        </a>
+        <HeroPriceCta
+          standalonePrice={activePricing.standalonePrice}
+          subscriberPrice={activePricing.subscriberPrice}
+          isSubscriber={activePricing.isSubscriber && activePricing.price === activePricing.subscriberPrice}
+          primaryLabel={isSuite ? "Start Full Audit Suite" : "Start Risk Assessment"}
+          toolSlug="cppa_risk"
+          sampleSlug="cppa_risk"
+        />
       </ProductHero>
-      {/* UX-1c: RequirementBadge and framework context relocated below the fold — legal text preserved intact. */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-3">
-        <RequirementBadge tier="conditional" text="California (11 CCR § 7150) requires a privacy risk assessment if you sell or share personal information, process sensitive data, or use automated decision-making. Existing activities must be assessed by December 31, 2027." className="max-w-3xl" />
-        <p className="text-slate-700 text-base max-w-3xl">A regulation-mapped risk assessment framework, structured 1:1 to Cal. Code Regs. tit. 11 § 7152(a)(1)–(9), pre-populated from your intake and ready for your team to review, complete, and sign.</p>
-        <p className="text-slate-500 text-sm max-w-3xl">Generates two deliverables: an internal report retained for the § 7156(c) 30-day production demand, and a § 7157 Annual Submission Worksheet for the April 1, 2028 filing.</p>
-        <p className="text-slate-500 text-xs italic max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
-        <p className="text-slate-500 text-xs italic max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
-        <p className="text-slate-500 text-xs italic max-w-3xl">
-          Built on the CPPA's final regulations and Final Statement of Reasons, paragraph-cited. This tool never invents precedent — where the agency hasn't spoken, it says so.
-        </p>
-      </div>
 
-      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
-        <ToolTierNote isCppa={true} />
-      </div>
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does this assessment apply to you?",
+            tone: "amber",
+            body: (
+              <>
+                <p>A CPPA risk assessment is required for covered processing involving the sale or share of personal information, sensitive personal information, or automated decision-making. Existing covered activities must be assessed by Dec. 31, 2027.</p>
+                <p className="mt-2">Annual submissions to the CPPA begin with the April 1, 2028 filing.</p>
+              </>
+            ),
+          },
+          {
+            title: "What you receive",
+            body: "A regulation-mapped assessment record structured 1:1 to 11 CCR § 7152(a)(1)–(9), pre-populated from your intake and organized for internal review, completion, and sign-off.",
+          },
+          {
+            title: "Two compliance deliverables",
+            body: (
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Your internal risk-assessment record for the § 7156(c) production requirement.</li>
+                <li>A § 7157 Annual Submission Worksheet for the April 1 filing.</li>
+              </ol>
+            ),
+          },
+          {
+            title: "Why trust the analysis",
+            body: "Built from the CPPA's final regulations and Final Statement of Reasons, with paragraph-level citations. Where the agency has not spoken, the report says so.",
+          },
+        ]}
+      />
+
+      <HowItWorksRow
+        className="mt-4"
+        items={[
+          "Covers the risk-assessment obligation in Article 10 of the CCPA regulations (11 CCR §§ 7150–7157).",
+          "Your intake is validated before generation; contradictions are flagged with citations, never resolved for you.",
+          "Generates a Part A stakeholder summary and a Part B full assessment record.",
+        ]}
+      />
+
+      <SuiteCrossSellStrip className="mt-4" />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <MethodologyBox
-          title="How this assessment works"
-          lines={[
-            "Covers the risk-assessment obligation in Article 10 of the CCPA regulations (11 CCR §§ 7150–7157).",
-            "Your intake is validated before generation; contradictions are flagged with citations, never resolved for you.",
-            "Output: a Part A stakeholder summary and a Part B full assessment record.",
-            "This tool documents your record — it is an analytical aid, not legal advice.",
-          ]}
+        <CompactDisclaimer
+          line="Analytical aid only — not legal advice, a certified audit, or a regulatory submission."
+          addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid and does not constitute a certified audit or regulatory submission."
         />
-        <IntakeGuidance>Where a field asks you to describe something, be specific and complete: name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
-        <ActiveClientLabel />
-        <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid and does not constitute a certified audit or regulatory submission." />
         {refine.isRefine && refine.intake && !refine.loading && (
           <RefinePanel
             toolType="cppa_risk_assessment"
@@ -1564,8 +1590,10 @@ export default function CPPARiskAssessment() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The entity and subject line you set below are fixed once you first generate. Everything else stays editable across your included generations."
+          preRunHint="Entity and subject lock after the first generation; other answers remain editable across included generations."
+          clientSlot={<ActiveClientLabel variant="masthead" />}
         />
+        <IntakeGuidance className="mt-3">For a more precise report, name the systems, data, and steps; list multiple items separately.</IntakeGuidance>
         <div ref={topRef} className="text-sm text-muted-foreground my-4" aria-live="polite">Step {step} of {totalSteps}</div>
 
         <BenchLayout

@@ -25,8 +25,10 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
-import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
-import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { ProductHero } from "@/components/ProductHero";
+import HeroPriceCta from "@/components/product/HeroPriceCta";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
+import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
@@ -573,30 +575,51 @@ const DPIAFramework = () => {
           />
         </main>
       ) : (<>
+      {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip, name-led hero with
+          the 4-generations support line and the standardized price/CTA block;
+          the legal trigger and the DPO-ownership expectation move into the
+          card band; the top-up offer leaves the initial purchase path. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Data Protection Impact Assessment · ${pricing.price}</>}
+        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Data Protection Impact Assessment</>}
         title={<>Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></>}
-        legalTrigger={{ tier: "required", text: "A DPIA is required under GDPR Article 35 before high-risk processing — large-scale special-category data, systematic profiling, or large-scale monitoring of public areas." }}
-        valueProposition="Build a defensible impact assessment for one high-risk processing activity. Your intake maps to the accountability record your DPO or counsel needs to sign off."
-        sampleReportToolSlug="dpia"
-        citationLine="GDPR Art. 35 · accountability record your DPO or counsel signs off before high-risk processing begins"
-      />
-      <ProductHeroSubstrip
-        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost."
-        methodologyLine="Need more? Add 4 additional generations for half the tool price."
-      />
-      <ToolAlsoAvailableRow currentTool="dpia" />
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
-          
-        </div>
+        valueProposition={INCLUDED_GENERATIONS_HERO}
+        citationLine="GDPR Art. 35 · Accountability record for high-risk processing"
+        showIntakeCta={false}
+      >
+        <HeroPriceCta
+          standalonePrice={pricing.standalonePrice}
+          subscriberPrice={pricing.subscriberPrice}
+          isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
+          primaryLabel="Start Impact Assessment"
+          toolSlug="dpia"
+          sampleSlug="dpia"
+        />
+      </ProductHero>
 
-      
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does this assessment apply to you?",
+            tone: "amber",
+            body: "A DPIA is required under GDPR Article 35 before high-risk processing — large-scale special-category data, systematic profiling, or large-scale monitoring of public areas.",
+          },
+          {
+            title: "What you receive",
+            body: "A defensible impact assessment for one high-risk processing activity, pre-populated from your intake and mapped to the accountability record your DPO or counsel needs to sign off.",
+          },
+          {
+            title: "A starting point for your DPO",
+            body: "The document is a structured starting point for your Data Protection Officer or legal counsel to complete and own — it is not a finished DPIA and does not satisfy Article 35 on its own. Qualified legal review is required before relying on it.",
+          },
+        ]}
+      />
+
+      <ToolAlsoAvailableRow currentTool="dpia" />
+
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 bg-paper">
         <ActiveClientLabel />
-        <div className="p-4 bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] border-l-4 border-brand-teal rounded text-sm">
-          This tool produces an Impact Assessment document — a structured starting point for your organisation's Data Protection Officer or legal counsel to complete and own. It is not a finished Data Protection Impact Assessment (DPIA) and does not satisfy the requirements of GDPR Article 35 on its own. Qualified legal review is required before relying on this document.
-        </div>
 
         {prefilled && (
           <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded text-sm">
@@ -618,7 +641,7 @@ const DPIAFramework = () => {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The processing activity you name below is fixed once you first generate. Everything else stays editable across your included revision runs."
+          preRunHint="Processing activity locks after the first generation; other answers remain editable across included generations."
         />
 
         <BenchLayout

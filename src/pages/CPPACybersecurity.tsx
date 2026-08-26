@@ -3,7 +3,6 @@ import { useMemo, useState , useEffect} from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
-import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -15,17 +14,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
-import SampleReportLink from "@/components/SampleReportLink";
-import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
-import MethodologyBox from "@/components/cppa/MethodologyBox";
-import { INCLUDED_GENERATIONS_COPY, PRICING } from "@/config/pricing";
+import { ProductHero } from "@/components/ProductHero";
+import SuiteSelector from "@/components/product/SuiteSelector";
+import HeroPriceCta from "@/components/product/HeroPriceCta";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
+import HowItWorksRow from "@/components/product/HowItWorksRow";
+import SuiteCrossSellStrip from "@/components/product/SuiteCrossSellStrip";
+import CompactDisclaimer from "@/components/product/CompactDisclaimer";
+import { INCLUDED_GENERATIONS_HERO, PRICING } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
-import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import StatuteRail from "@/components/intake/StatuteRail";
@@ -97,7 +98,7 @@ export default function CPPACybersecurity() {
   // v7: show the price the current viewer will pay; switch to Suite pricing
   // when launched in suite mode.
   const activePricing = isSuite ? suitePricing : pricing;
-  const headerLabel = isSuite ? "CPPA AUDIT READINESS · FULL SUITE (M1 + M2)" : "CPPA AUDIT READINESS · MODULE 2";
+  const headerLabel = isSuite ? "FULL AUDIT SUITE · MODULE 2 OF 2" : "CPPA AUDIT READINESS · MODULE 2";
   const displayPrice = activePricing.price;
 
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -274,36 +275,68 @@ export default function CPPACybersecurity() {
           offers: { "@type": "Offer", price: String(PRICING.tools.cppa_cyber.dollars), priceCurrency: "USD", availability: "https://schema.org/InStock" },
         })}</script>
       </Helmet>
+      {/* PRE-INTAKE REDESIGN (2026-08-26): suite selector → name-led hero with
+          the standardized price/CTA block → sales-proof card band → compact
+          how-it-works row → shared suite cross-sell → compressed disclaimer.
+          Intake guidance moves to the top of the control intake; the client
+          selector moves into the workspace masthead. */}
+      <SuiteSelector active="m2" />
       <ProductHero
         geography="us"
-        eyebrowLabel={<>{headerLabel} · ${displayPrice}</>}
+        eyebrowLabel={headerLabel}
         title="CPPA Cybersecurity Audit Readiness"
-        legalTrigger={{ tier: "conditional", text: "If your business clears the CCPA revenue and data-volume thresholds, an independent annual cybersecurity audit is required — first certification due April 1, 2028 for businesses over $100M in revenue." }}
-        valueProposition="A structured readiness review mapped to the 18 cybersecurity program components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report."
-        sampleReportToolSlug="cppa_cyber"
-        citationLine="11 CCR § 7123 · 18-component readiness map for the Apr 1, 2028 independent audit certification"
-      />
-      <ProductHeroSubstrip
-        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost."
-        methodologyLine="Built on the CPPA's final regulations and Final Statement of Reasons, paragraph-cited. This tool never invents precedent — where the agency hasn't spoken, it says so."
-      />
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
-          <ToolTierNote isCppa={true} />
-        </div>
+        valueProposition={INCLUDED_GENERATIONS_HERO}
+        citationLine="11 CCR § 7123 · 18-component readiness map · CPPA final regulations + Final Statement of Reasons"
+        showIntakeCta={false}
+      >
+        <HeroPriceCta
+          standalonePrice={activePricing.standalonePrice}
+          subscriberPrice={activePricing.subscriberPrice}
+          isSubscriber={activePricing.isSubscriber && activePricing.price === activePricing.subscriberPrice}
+          primaryLabel={isSuite ? "Start Full Audit Suite" : "Start Cybersecurity Readiness Assessment"}
+          toolSlug="cppa_cyber"
+          sampleSlug="cppa_cyber"
+        />
+      </ProductHero>
 
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does the audit requirement apply to you?",
+            tone: "amber",
+            body: "Businesses that clear the CCPA revenue and data-volume thresholds may be subject to an independent annual cybersecurity audit. For businesses over $100M in revenue, the first certification is due Apr. 1, 2028.",
+          },
+          {
+            title: "What you receive",
+            body: "A readiness review mapped to all 18 CPPA cybersecurity program components, with a control-by-control gap analysis and evidence checklist.",
+          },
+          {
+            title: "Readiness before the independent audit",
+            body: "Maps your program to the 18 components in § 7123(c), identifies readiness gaps, and builds an evidence checklist for the independent audit engagement required by § 7122.",
+          },
+          {
+            title: "Why trust the analysis",
+            body: "Built from the CPPA's final regulations and Final Statement of Reasons, with paragraph-level citations. Where the agency has not spoken, the report says so.",
+          },
+        ]}
+      />
+
+      <HowItWorksRow
+        className="mt-4"
+        items={[
+          "Maps your program against the 18 components in 11 CCR § 7123(c)(1)–(18).",
+          "Produces an audit-readiness gap analysis and evidence checklist.",
+          "Prepares you for the § 7122 independent-audit engagement — it is not the independent audit itself.",
+        ]}
+      />
+
+      <SuiteCrossSellStrip className="mt-4" />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 bg-paper">
-        <MethodologyBox
-          title="Readiness, not the audit"
-          lines={[
-            "Maps your program against the 18 components in 11 CCR § 7123(c)(1)–(18).",
-            "Produces an audit-readiness gap analysis and evidence checklist.",
-            "It is not the independent cybersecurity audit itself — § 7122 requires a qualified, independent auditor; this prepares you for that engagement.",
-          ]}
-        />
-        <IntakeGuidance>For each control, note the specific tools in place, the scope they cover, and any exceptions — separately and concretely. A control marked "in place" with a vague note produces a weaker gap analysis than one described precisely.</IntakeGuidance>
-        <ActiveClientLabel />
-        <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7123(c). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
+        <CompactDisclaimer
+          line="Readiness analysis only — not the independent cybersecurity audit and not legal advice."
+          addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7123(c). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
         {refine.isRefine && refine.intake && !refine.loading && (
           <RefinePanel
             toolType="cppa_cybersecurity"
@@ -344,7 +377,8 @@ export default function CPPACybersecurity() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The entity name you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
+          preRunHint="Entity name locks after the first generation; other answers remain editable across included generations."
+          clientSlot={<ActiveClientLabel variant="masthead" />}
         />
         <BenchLayout
           toolType="cppa_cyber"
@@ -539,6 +573,7 @@ export default function CPPACybersecurity() {
             <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7123(c)(1)–(18) — enumerated program components</p>
             <p className="text-sm text-muted-foreground mt-1">Each component becomes one finding in the readiness report. Rate what is running today; a component left unrated is reported as insufficient information rather than as a shortfall.</p>
           </div>
+          <IntakeGuidance>For stronger findings, name the tools in place, the scope they cover, and any exceptions. Specific evidence produces a stronger gap analysis than a vague "in place" rating.</IntakeGuidance>
 
           {CONTROLS.map((c, i) => (
             <div key={c.key} className="border-t pt-5 first:border-t-0 first:pt-0">

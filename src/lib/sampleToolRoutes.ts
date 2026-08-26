@@ -11,6 +11,9 @@ export const TOOL_ROUTE: Record<string, string> = {
   biometric: "/biometric-checker",
   cppa_risk: "/cppa-risk-assessment",
   cppa_cyber: "/cppa-cybersecurity",
+  // Pre-intake redesign (2026-08-26): ADMT sample route registered so all
+  // three CPPA heroes can offer "View Sample Report". DB slug is cppa_admt.
+  cppa_admt: "/cppa-admt-checker",
   ropa: "/ropa-builder",
   us_notice: "/us-notice-builder",
   eu_notice: "/eu-global-notice-builder",

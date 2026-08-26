@@ -97,8 +97,8 @@ export default function USNoticeLanding() {
       <ProductHero
         geography="us"
         eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> US Privacy Notice Builder · Included with any subscription</>}
-        title="Generate US privacy notices for all 20 states, in one session."
-        valueProposition="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        title="US Privacy Notice Builder"
+        valueProposition="All 20 US state privacy notices, generated in one session. Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
         showIntakeCta={false}
       >
         <div className="flex flex-wrap gap-3">

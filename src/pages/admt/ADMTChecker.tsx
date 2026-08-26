@@ -8,12 +8,17 @@ import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
-import { RequirementBadge } from "@/components/RequirementBadge";
-import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
+import { ProductHero } from "@/components/ProductHero";
+import SuiteSelector from "@/components/product/SuiteSelector";
+import HeroPriceCta from "@/components/product/HeroPriceCta";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
+import HowItWorksRow from "@/components/product/HowItWorksRow";
+import SuiteCrossSellStrip from "@/components/product/SuiteCrossSellStrip";
+import CompactDisclaimer from "@/components/product/CompactDisclaimer";
 import { Button } from "@/components/ui/button";
 import { Label as UILabel } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,12 +36,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import ToolTierNote from "@/components/tools/ToolTierNote";
-import ToolCTABlock from "@/components/ToolCTABlock";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
@@ -49,7 +51,6 @@ import type { RailEntry } from "@/components/intake/StatuteRail";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
-import MethodologyBox from "@/components/cppa/MethodologyBox";
 
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",
@@ -678,45 +679,75 @@ export default function ADMTChecker() {
         <link rel="canonical" href="https://enduserprivacy.com/cppa-admt-checker" />
       </Helmet>
 
+      {/* PRE-INTAKE REDESIGN (2026-08-26): suite selector → name-led hero with
+          the standardized price/CTA block → sales-proof card band (deadline in
+          the applicability card; provenance card now on ADMT too) → compact
+          how-it-works row → shared suite cross-sell (replaces the ADMT-only
+          box) → compressed disclaimer. Intake guidance moves to the first
+          intake step; the client selector moves into the workspace masthead. */}
+      <SuiteSelector active="m3" />
       <ProductHero
         geography="us"
-        eyebrowLabel={<>CPPA AUDIT READINESS · MODULE 3 · ${pricing.price}</>}
+        eyebrowLabel="CPPA AUDIT READINESS · MODULE 3"
         title="ADMT Compliance Assessment"
-        legalTrigger={{ tier: "conditional", text: "If you use automated decision-making for significant decisions — hiring, lending, housing, healthcare — California requires pre-use notice, an opt-out, and a risk assessment by January 1, 2027." }}
-        valueProposition="Assess your automated decisionmaking against the CPPA's final regulations — pre-use notice, opt-out, and access rights. You get a gap report with specific remediation steps for each deficit, cited to the rule."
-        citationLine="11 CCR §§ 7200–7222 · pre-use notice, opt-out, and access rights on the Jan 1, 2027 clock"
+        valueProposition={INCLUDED_GENERATIONS_HERO}
+        citationLine="11 CCR §§ 7200–7222 · Pre-use notice · Opt-out · Access rights"
         showIntakeCta={false}
       >
-        <ToolCTABlock
-          toolSlug="admt"
-          ctaPosition="hero"
-          onDark
-          pagePath="/cppa-admt-checker"
-          primaryLabel={`Start an ADMT Compliance Assessment — $${pricing.price}`}
+        <HeroPriceCta
+          standalonePrice={pricing.standalonePrice}
+          subscriberPrice={pricing.subscriberPrice}
+          isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
+          primaryLabel="Start ADMT Assessment"
+          toolSlug="cppa_admt"
+          sampleSlug="cppa_admt"
         />
       </ProductHero>
-      <ProductHeroSubstrip
-        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost. Need more? Add 4 additional generations for half the tool price."
-        methodologyLine={<>Compliance deadline: <strong>January 1, 2027</strong> for businesses already using ADMT for significant decisions.</>}
+
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does the ADMT rule apply to you?",
+            tone: "amber",
+            body: "If you use automated decision-making for significant decisions such as hiring, lending, housing, or healthcare, California's pre-use notice, opt-out, and risk-assessment duties begin Jan. 1, 2027.",
+          },
+          {
+            title: "What you receive",
+            body: "A rule-cited gap report covering pre-use notice, opt-out, and access rights, with specific remediation steps for each identified deficit.",
+          },
+          {
+            title: "Scope is tested first",
+            body: (
+              <>
+                <p>Every finding is gated on whether the technology makes a "significant decision" under the regulations; ordinary advertising or personalization is not treated as a significant decision.</p>
+                <p className="mt-2">Then: pre-use notice · opt-out · access rights.</p>
+              </>
+            ),
+          },
+          {
+            title: "Why trust the analysis",
+            body: "Built from the CPPA's final regulations and Final Statement of Reasons, with paragraph-level citations. Where the agency has not spoken, the report says so.",
+          },
+        ]}
       />
 
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
-        <ToolTierNote isCppa={true} />
-      </div>
+      <HowItWorksRow
+        className="mt-4"
+        items={[
+          "Scope is determined first — every finding is gated on the \"significant decision\" test.",
+          "Tests pre-use notice, opt-out, and access rights against 11 CCR §§ 7200–7222.",
+          "Each identified deficit gets a specific remediation step, cited to the rule.",
+        ]}
+      />
+
+      <SuiteCrossSellStrip className="mt-4" note="ADMT remains standalone." />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <MethodologyBox
+        <CompactDisclaimer
           className="mb-4"
-          title="Scope first"
-          lines={[
-            "Applies only where automated decisionmaking technology makes a significant decision as defined by the regulations.",
-            "The checker gates every finding on that scope determination — ordinary advertising or personalization is not treated as a significant decision.",
-            "Deadline context: ADMT disclosure obligations begin January 1, 2027.",
-          ]}
-        />
-        <IntakeGuidance className="mb-4">Describe each automated decision-making system specifically and separately: what it decides, on what data, and the human-review step. If you run several systems, give each its own description rather than merging them.</IntakeGuidance>
-        <ActiveClientLabel />
-        <ToolDisclaimer addition="This tool produces a compliance gap analysis for your ADMT systems under 11 CCR Article 11 (§§ 7200–7222). It is an analytical aid, not legal advice. Review all output with qualified California privacy counsel before relying on it for regulatory submissions." />
+          line="Compliance gap analysis only — not legal advice or a regulatory submission."
+          addition="This tool produces a compliance gap analysis for your ADMT systems under 11 CCR Article 11 (§§ 7200–7222). It is an analytical aid, not legal advice. Review all output with qualified California privacy counsel before relying on it for regulatory submissions." />
 
         {refine.isRefine && refine.intake && !refine.loading && (
           <RefinePanel
@@ -747,7 +778,7 @@ export default function ADMTChecker() {
         )}
 
         <IntakeMasthead
-          kicker="CPPA ADMT Checker · 11 CCR Article 11 (§§ 7200–7222)"
+          kicker="CPPA ADMT · 11 CCR Article 11 (§§ 7200–7222)"
           title={STEP_TITLES[step] ?? `Step ${step}`}
           subjectLabel={meter ? "Assessment subject · locked" : undefined}
           subjectValue={
@@ -760,19 +791,11 @@ export default function ADMTChecker() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The subject you set below is fixed once you first generate. Everything else stays editable across your 4 included generations."
+          preRunHint="Assessment subject locks after the first generation; other answers remain editable across included generations."
+          clientSlot={<ActiveClientLabel variant="masthead" />}
         />
 
-        <div className="mt-3 rounded-md border border-brand-teal/30 bg-brand-cloud/40 p-3 text-sm">
-          <span className="font-semibold text-brand-navy">Also need Risk (M1) + Cybersecurity (M2)?</span>{" "}
-          <span className="text-muted-foreground">
-            ADMT is standalone. If you triggered M1 and M2 in the Scope Checker, the{" "}
-          </span>
-          <a href="/cppa-risk-assessment?suite=true" className="text-brand-teal-text underline">
-            CPPA Full Audit Suite
-          </a>
-          <span className="text-muted-foreground"> bundles them at a discount.</span>
-        </div>
+        <IntakeGuidance className="mt-3">Describe each ADMT system separately — what it decides, the data it uses, and the human-review step. Separate systems produce clearer, more actionable findings.</IntakeGuidance>
 
         <div className="text-sm text-muted-foreground my-4" aria-live="polite">Step {step} of {totalSteps}</div>
 

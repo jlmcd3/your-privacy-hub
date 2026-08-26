@@ -32,8 +32,11 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
-import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
-import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { ProductHero } from "@/components/ProductHero";
+import HeroPriceCta from "@/components/product/HeroPriceCta";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
+import CompactDisclaimer from "@/components/product/CompactDisclaimer";
+import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
@@ -540,34 +543,57 @@ const GovernanceAssessment = () => {
           />
         </section>
       ) : (<>
+      {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip, name-led hero with
+          the 4-generations support line and the standardized price/CTA block;
+          the legal trigger and framework scope move into the card band; the
+          disclaimer is compressed with a Legal notes disclosure. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Governance Assessment · ${pricing.price}</>}
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Governance Assessment</>}
         title="GDPR Governance Assessment"
-        legalTrigger={{ tier: "supports", text: "GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability." }}
-        valueProposition="A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding."
-        sampleReportToolSlug="governance"
-        citationLine="GDPR Art. 5(2) · documented evidence that you can demonstrate compliance across ten governance domains"
+        valueProposition={INCLUDED_GENERATIONS_HERO}
+        citationLine="GDPR Art. 5(2) · Ten governance domains · Cited enforcement decisions behind every risk finding"
+        showIntakeCta={false}
+      >
+        <HeroPriceCta
+          standalonePrice={pricing.standalonePrice}
+          subscriberPrice={pricing.subscriberPrice}
+          isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
+          primaryLabel="Start Governance Assessment"
+          toolSlug="governance"
+          sampleSlug="governance"
+        />
+      </ProductHero>
+
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Why this assessment matters",
+            tone: "amber",
+            body: "GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability.",
+          },
+          {
+            title: "What you receive",
+            body: "A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding. Estimated completion time: 10–15 minutes.",
+          },
+          {
+            title: "Framework scope",
+            body: (
+              <>Evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.</>
+            ),
+          },
+        ]}
       />
-      <ProductHeroSubstrip
-        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost."
-        methodologyLine={isPremium
-          ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."
-          : "Estimated completion time: 10-15 minutes. Sign in to save your completed report to My Reports."}
-      />
+
       <ToolAlsoAvailableRow currentTool="governance" />
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
-          
-        </div>
 
       <section className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
-        <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
-          This assessment is a compliance framework tool. It identifies governance findings that should be validated against your organization's authoritative records. It does not constitute legal advice or a legal compliance opinion.
-        </div>
-        <div className="text-sm text-muted-foreground">
-          This assessment evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.
-        </div>
+        <CompactDisclaimer
+          line="Compliance framework tool — findings should be validated against your records; not legal advice."
+          addition="This assessment is a compliance framework tool. It identifies governance findings that should be validated against your organization's authoritative records. It does not constitute legal advice or a legal compliance opinion."
+        />
 
         <div className="text-sm text-muted-foreground" aria-live="polite">Step {step} of {totalSteps}</div>
 
@@ -581,7 +607,7 @@ const GovernanceAssessment = () => {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="The organisation name you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
+          preRunHint="Organisation name locks after the first generation; other answers remain editable across included generations."
         />
         <BenchLayout
           toolType="governance"

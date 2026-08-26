@@ -36,7 +36,7 @@ export interface ProductHeroProps {
   className?: string;
 }
 
-function focusIntakeStart(targetId?: string) {
+export function focusIntakeStart(targetId?: string) {
   const explicit = targetId ? document.getElementById(targetId) : null;
   const scope = document.querySelector("main") ?? document.body;
   const target =

@@ -21,8 +21,10 @@ import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
-import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
-import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { ProductHero } from "@/components/ProductHero";
+import HeroPriceCta from "@/components/product/HeroPriceCta";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
+import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
@@ -201,20 +203,47 @@ const LIAssessment = () => {
         <title>Legitimate Interest Assessment | End User Privacy</title>
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
       </Helmet>
-      {/* Header */}
+      {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip, name-led hero with
+          the 4-generations support line and the standardized price/CTA block;
+          the legal trigger moves into the applicability card below the hero;
+          the top-up offer leaves the initial purchase path. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}</>}
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interest Assessment · Free preliminary signal</>}
         title="Legitimate Interest Assessment"
-        legalTrigger={{ tier: "expected", text: "To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record." }}
-        valueProposition="Get an instant read on whether your processing can rest on legitimate interests, then continue to a full three-part test grounded in the precedents you'll actually face."
-        sampleReportToolSlug="li_assessment"
-        citationLine="GDPR Art. 6(1)(f) · three-part balancing test regulators expect on file before you rely on it"
+        valueProposition={INCLUDED_GENERATIONS_HERO}
+        citationLine="GDPR Art. 6(1)(f) · Three-part balancing test · Cited enforcement precedents behind every verdict"
+        showIntakeCta={false}
+      >
+        <HeroPriceCta
+          standalonePrice={pricing.standalonePrice}
+          subscriberPrice={pricing.subscriberPrice}
+          isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
+          primaryLabel="Start Legitimate Interest Assessment"
+          toolSlug="li_assessment"
+          sampleSlug="li_assessment"
+        />
+      </ProductHero>
+
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does this assessment apply to you?",
+            tone: "amber",
+            body: "To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record before you rely on it.",
+          },
+          {
+            title: "What you receive",
+            body: "A free preliminary signal on whether your processing can rest on legitimate interests, then a full three-part test — purpose, necessity, balancing — plus a documentation pack and PDF you can hand to counsel.",
+          },
+          {
+            title: "Why trust the analysis",
+            body: "Every test verdict cites the specific enforcement decisions that informed it — CNIL, ICO, Garante and others — so you can see exactly what stands behind the analysis.",
+          },
+        ]}
       />
-      <ProductHeroSubstrip
-        generationsLine="Includes 4 generations: your initial report plus up to 3 revisions at no extra cost."
-        methodologyLine="Need more? Add 4 additional generations for half the tool price."
-      />
+
       <ToolAlsoAvailableRow currentTool="lia" />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
