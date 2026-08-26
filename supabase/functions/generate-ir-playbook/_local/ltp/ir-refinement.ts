@@ -277,6 +277,49 @@ export const IR_PROTECTED_LEAF_CLASSES = {
  * depth: the blank-by-design worksheet, the authority exhibit and its corpus
  * metadata, the determination machinery, the per-regime duty sets, the
  * enforcement material, the deterministic check ledger and the portals table.
+ *
+ * IR CONVERSION I0 (2026-08-26) — two additions, both closing a real,
+ * currently-live gap rather than a theoretical one:
+ *   • `standing_playbook` was NOT a protected root. Individual leaves
+ *     (heading/status/information_needed/verdict/template_note/…) were
+ *     covered by the I1–I9 leaf-key lists, but `sections[].body`,
+ *     `.record_fact` and `.application` — real, populated free-text fields
+ *     (`ir-playbook-deliverables/standing-playbook.ts`) — carried none of
+ *     those key names and so were open to the critic/verifier/splicer.
+ *     Currently harmless in practice (the SO-7 skeleton assembler,
+ *     `ir-skeleton-assemble.ts`, never reads those three leaves — it composes
+ *     its own sentences from heading/status/information_needed only), but
+ *     latent: nothing stops a future skeleton-composer extension from reading
+ *     `record_fact`/`application` and silently inheriting model-touched text
+ *     into what is meant to be a zero-model-call customer document (the
+ *     LIA/doc-48-§II.6 failure shape). Root-level bar removes the
+ *     possibility outright rather than relying on the composer never being
+ *     extended.
+ *   • `state_notification_duties` was NOT a protected root and NONE of its
+ *     leaves (`state_label`, `citation`, `individual_deadline`,
+ *     `regulator_deadline`) match any I1–I9 protected leaf key by exact
+ *     name — unlike its GDPR sibling `notification_duties`, which has
+ *     enjoyed root protection since this file's original authoring. This
+ *     surface (`buildDeadlinesProse` in `ir-skeleton-assemble.ts`) renders
+ *     DIRECTLY into the customer-facing `notificationDeadlines` slot on
+ *     every run: a live gap, not a latent one, until this fix — the
+ *     refinement pass runs unconditionally today and could have spliced US
+ *     state breach-notification deadline text.
+ * NOT merely theoretical: live `ir_playbooks` telemetry (row
+ * `831c40f0-4e70-471e-90d7-142ff9966d87`, 2026-08-09, pre-dating the SO-7
+ * skeleton wire-in by one day) shows the splicer ALREADY applied 5 splices
+ * to a real document, one of them at `$.standing_playbook.sections[7].body[0]`
+ * — the exact unprotected leaf class this fix closes. That row rendered
+ * through the pre-SO-7 legacy path (`StandingPlaybookView.tsx` /
+ * `buildIRStandingPlaybookHTML`), which does display `sections[].body` and
+ * `.rows` directly, so the customer on that row received refinement-modified
+ * standing-playbook text. On the CURRENT (post-2026-08-10) skeleton path
+ * this specific leaf is not customer-reachable — `composeStandingPosture` in
+ * `ir-skeleton-assemble.ts` composes its own sentences from
+ * heading/status/information_needed only and never reads
+ * `body`/`record_fact`/`application`/`rows` — but that safety is an
+ * incidental property of what the composer currently chooses to read, not a
+ * structural guarantee; this fix makes it structural.
  */
 export const IR_PROTECTED_ROOTS: string[] = [
   "incident_worksheet",
@@ -287,6 +330,8 @@ export const IR_PROTECTED_ROOTS: string[] = [
   "art34_exemption_analysis",
   "content_owner_mapping",
   "notification_duties",
+  "state_notification_duties",
+  "standing_playbook",
   "enforcement_precedents",
   "enforcement_meta",
   "deterministic_checks",

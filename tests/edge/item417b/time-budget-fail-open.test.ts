@@ -22,21 +22,27 @@ import {
 } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-refinement.ts";
 import type { RefinementDeps } from "../../../supabase/functions/_shared/ltp/refinement-core.ts";
 
+// IR CONVERSION I0 (2026-08-26): standing_playbook is now a protected root
+// (IR_PROTECTED_ROOTS) — a real fix, not a test-only concern (see
+// ir-refinement.ts's own comment and 15-BUILD-STATE-ir.md). This fixture's
+// job is only to exercise the TIME-BUDGET gating mechanics (does the pass
+// run/skip at the right gate), so it needs SOME genuinely splice-able path
+// as its positive control — retargeted to `playbook_text`, the same
+// always-unprotected monolith field item417's own "monolith guard" tests use
+// for exactly this reason. Not a statement that playbook_text is still
+// meaningful content; it is the fleet's established stand-in for "a real,
+// unprotected leaf" in refinement tests.
 function doc(): Record<string, unknown> {
   return {
-    standing_playbook: {
-      sections: [
-        { id: "s1", body: "The controller has not recorded a containment time for the incident." },
-      ],
-    },
+    playbook_text: "The controller has not recorded a containment time for the incident.",
   };
 }
 
-const APPROVE_ALL = '{"verdicts":[{"path":"$.standing_playbook.sections[0].body","verdict":"approve"}]}';
+const APPROVE_ALL = '{"verdicts":[{"path":"$.playbook_text","verdict":"approve"}]}';
 function criticFindings(): string {
   return JSON.stringify({
     findings: [{
-      path: "$.standing_playbook.sections[0].body",
+      path: "$.playbook_text",
       class: "false-absence",
       confidence: "high",
       quote: "has not recorded a containment time",

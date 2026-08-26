@@ -165,7 +165,16 @@ Deno.test("item417 refusal I3 citations and verbatim authority text are protecte
 });
 
 Deno.test("item417 refusal I4 BARRED-LEAF CANARY: the template-vs-authority framing note", () => {
-  assertEquals(irProtectedReason("$.standing_playbook.template_note"), "template_note");
+  // IR CONVERSION I0 (2026-08-26): standing_playbook is now ALSO a protected
+  // root (see IR_PROTECTED_ROOTS), which is checked before leaf keys and so
+  // now wins the reason string on this real-world path — a strict widening
+  // of protection, not a weakening. Assert the real path is protected under
+  // the (new, broader) reason, and independently exercise the I4 LEAF-KEY
+  // mechanism itself on a path outside any protected root, so the leaf-key
+  // defense stays verified on its own (defense in depth against a future
+  // change to the root list).
+  assertEquals(irProtectedReason("$.standing_playbook.template_note"), "standing_playbook");
+  assertEquals(irProtectedReason("$.some_other_surface.template_note"), "template_note");
 });
 
 Deno.test("item417 refusal I5 notification clocks and statutory deadlines are protected", () => {
@@ -175,7 +184,11 @@ Deno.test("item417 refusal I5 notification clocks and statutory deadlines are pr
 });
 
 Deno.test("item417 refusal I6 the item414 unrecorded-section ledger machinery is protected", () => {
-  assertEquals(irProtectedReason("$.standing_playbook.unrecorded_ledger"), "unrecorded_ledger");
+  // See the I4 test above: standing_playbook's new root protection now wins
+  // the reason string on this real path; the leaf-key mechanism itself is
+  // independently exercised outside any protected root.
+  assertEquals(irProtectedReason("$.standing_playbook.unrecorded_ledger"), "standing_playbook");
+  assertEquals(irProtectedReason("$.some_other_surface.unrecorded_ledger"), "unrecorded_ledger");
   assert(isIrProtectedPath("$.standing_playbook.information_needed"));
 });
 
@@ -198,6 +211,36 @@ Deno.test("item417 refusal I9 spine section ids are computed from the spine, nev
 Deno.test("item417 the blank-by-design worksheet is a protected root at any depth", () => {
   assertEquals(irProtectedReason("$.incident_worksheet.forms[0].blank_rows"), "incident_worksheet");
   assertEquals(irProtectedReason("$.notification_duties.regimes[0]"), "notification_duties");
+});
+
+// IR CONVERSION I0 (2026-08-26) — DEFECT FIX. Live telemetry (row
+// 831c40f0-4e70-471e-90d7-142ff9966d87, 2026-08-09) proved the splicer could
+// reach $.standing_playbook.sections[N].body — a real free-text leaf with no
+// I1–I9 key-name match — before standing_playbook was a protected root.
+// state_notification_duties (SO-FT FIX 3, added after this file's original
+// authoring) never got the same root protection its GDPR sibling
+// notification_duties has always had, despite feeding the customer-facing
+// notificationDeadlines slot on every run via buildDeadlinesProse.
+Deno.test("item417 IR-I0 fix: standing_playbook is a protected root at any depth, including body/record_fact/application/rows", () => {
+  for (
+    const p of [
+      "$.standing_playbook.sections[7].body[0]",
+      "$.standing_playbook.sections[0].record_fact",
+      "$.standing_playbook.sections[0].application",
+      "$.standing_playbook.sections[3].rows[1][2]",
+    ]
+  ) assertEquals(irProtectedReason(p), "standing_playbook", p);
+});
+
+Deno.test("item417 IR-I0 fix: state_notification_duties is a protected root at any depth", () => {
+  for (
+    const p of [
+      "$.state_notification_duties[0].state_label",
+      "$.state_notification_duties[0].citation",
+      "$.state_notification_duties[0].individual_deadline",
+      "$.state_notification_duties[0].regulator_deadline",
+    ]
+  ) assertEquals(irProtectedReason(p), "state_notification_duties", p);
 });
 
 // ── 3. CANARIES THROUGH A FULL PASS ─────────────────────────────────────────
@@ -240,8 +283,17 @@ Deno.test("item417 designed-output splice canary: the standing placeholder survi
   });
   // BARRED-LEAF CANARY — byte-identical, and killed before the verifier saw it.
   assertEquals((doc.standing_playbook as any).template_note, noteBefore);
-  assertEquals(tel.protected_rejected.count, 1);
-  assertEquals(tel.protected_rejected.items[0].leaf_key_or_rule, "template_note");
+  // IR CONVERSION I0 (2026-08-26): standing_playbook is now a protected root,
+  // so BOTH proposals in this canary — the framing note and the standing
+  // placeholder — are killed in code under that one root reason, before
+  // either reaches the verifier. This is a strict widening (the designed-
+  // output placeholder no longer depends on the verifier's judgment call at
+  // all), so the canary now proves code-level protection for both, not one
+  // code-killed + one verifier-killed as originally designed.
+  assertEquals(tel.protected_rejected.count, 2);
+  for (const item of tel.protected_rejected.items) {
+    assertEquals(item.leaf_key_or_rule, "standing_playbook");
+  }
   // DESIGNED-OUTPUT CANARY — the standing placeholder is untouched.
   assertEquals((doc.standing_playbook as any).sections[1].body[0], STANDING_TO_COMPLETE);
   assertEquals(tel.spliced, 0);
