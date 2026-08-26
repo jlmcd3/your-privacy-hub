@@ -104,7 +104,21 @@ export function composeApplicabilityAnalysis(scope: ScopeResult, systemName: str
     return `The Company has stated that ${systemName} is used solely for advertising but also identifies a regulated significant decision. Those answers lead to different outcomes under the ADMT rules because the significant-decision test and the advertising exclusion cannot both apply. Accordingly, applicability cannot be resolved until the Company reconciles the conflict.`;
   }
   if (s === "UNABLE_TO_ASSESS") {
-    return `The Company has not provided enough information to determine whether ${systemName} constitutes ADMT. The key missing facts are the decision category and the human role. The audit cannot resolve applicability without that information.`;
+    // NR-08 fix (doc 75, CEO-directed 2026-08-26): the old sentence always
+    // asserted BOTH facts were missing ("the decision category and the human
+    // role"), but UNABLE_TO_ASSESS can arise from either alone — and the
+    // DEF-2 fix made the domain-present/human-unresolved combination
+    // reachable, where the old text falsely told the reader their selected
+    // decision category was missing. The sentence now names only what the
+    // record actually lacks.
+    const domainMissing = scope.significantDecisionLabel === "No significant-decision domain identified";
+    const humanMissing = scope.humanInvolvementLabel === "Human review not resolved";
+    const missing = domainMissing && !humanMissing
+      ? "The key missing fact is the decision category."
+      : humanMissing && !domainMissing
+      ? "The key missing fact is the human role."
+      : "The key missing facts are the decision category and the human role.";
+    return `The Company has not provided enough information to determine whether ${systemName} constitutes ADMT. ${missing} The audit cannot resolve applicability without that information.`;
   }
   if (s === "OUT_OF_SCOPE") {
     if (scope.humanInvolvementEffect === "WEIGHS_AGAINST") {

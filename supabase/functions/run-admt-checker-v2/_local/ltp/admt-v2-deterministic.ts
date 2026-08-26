@@ -480,11 +480,14 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
   const methodsStatus: SubstantiveState = methodsSel.length >= 2 ? "MEETS_REPORTED" : "GAP";
   const methods: NoticeFactor = {
     status: onFullOptOut ? methodsStatus : "NOT_APPLICABLE",
-    label: `${methodsSel.length} method(s) selected`, effect: statusEffect(onFullOptOut ? methodsStatus : "NOT_APPLICABLE"),
+    // NR-34 fix (doc 75): proper pluralization replaces the typewriter-style
+    // "method(s)" in rendered cells and findings.
+    label: `${methodsSel.length} ${methodsSel.length === 1 ? "method" : "methods"} selected`,
+    effect: statusEffect(onFullOptOut ? methodsStatus : "NOT_APPLICABLE"),
     authority: elementCite("optout_designated_methods", intake),
   };
   push("Opt-Out", "Designated methods", methods, ["opt_out_methods"],
-    `The Company selected ${methodsSel.length} opt-out method(s): ${methodsSel.join("; ") || "(none)"}.`,
+    `The Company selected ${methodsSel.length} opt-out ${methodsSel.length === 1 ? "method" : "methods"}: ${methodsSel.join("; ") || "(none)"}.`,
     "Offer at least two designated methods for consumers to submit an opt-out request.", 2, "opt_out_methods lists two or more methods");
 
   const cookieAns = str((intake as any)?.opt_out_no_cookie_banner);

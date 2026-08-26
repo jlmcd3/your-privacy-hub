@@ -476,7 +476,15 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   push("executive_summary", "Executive Summary", [
     { kind: "lead", text: execLead },
     { kind: "skeleton", text: ADMT_V3_FIXED.general_requirement_summary },
-    { kind: "skeleton", text: `The Company uses ${systemName || "the System"} in ${reader(domains)}. This audit addresses four questions: whether Article 11 applies to that use; whether the required Pre-use Notice is in place; whether the Company provides the required opt-out or can support the exception it selected; and whether it can provide the consumer-specific access and explanation required by the regulations.` },
+    // NR-75 fix (doc 75, CEO-directed 2026-08-26): reader()'s "not reported"
+    // fallback spliced mid-sentence produced "The Company uses the System in
+    // not reported." on a blank-domains record; the blank branch now
+    // degrades as its own honest sentence.
+    { kind: "skeleton", text: `${
+      domains.length
+        ? `The Company uses ${systemName || "the System"} in ${reader(domains)}.`
+        : `The Company has not identified the decision domain in which it uses ${systemName || "the System"}.`
+    } This audit addresses four questions: whether Article 11 applies to that use; whether the required Pre-use Notice is in place; whether the Company provides the required opt-out or can support the exception it selected; and whether it can provide the consumer-specific access and explanation required by the regulations.` },
     { kind: "table", text: "", table: {
       key: "executive_summary:2", surface: "audit_area_summary", title: "",
       columns: ["Audit area", "Result on reported facts", "Record grade", "Assessment"],
@@ -513,7 +521,12 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   const sysDesc = (str((intake as any)?.system_description) || "(not provided)").trim();
   const sysDescSentence = /[.!?]$/.test(sysDesc) ? sysDesc : `${sysDesc}.`;
   push("system_profile", "1. System and Decision Profile", [
-    { kind: "skeleton", text: `The Company identifies the System as ${systemName || "(not provided)"}${sysTypePhrase}. The Company describes the System as follows: ${sysDescSentence} The System is used in ${reader(domains)}.` },
+    // NR-75 fix (doc 75): same blank-domains degradation as the exec summary.
+    { kind: "skeleton", text: `The Company identifies the System as ${systemName || "(not provided)"}${sysTypePhrase}. The Company describes the System as follows: ${sysDescSentence} ${
+      domains.length
+        ? `The System is used in ${reader(domains)}.`
+        : "The Company has not identified the decision domain in which the System is used."
+    }` },
     { kind: "skeleton", text: `The Company describes human review as: ${str((intake as any)?.human_review) || "(not answered)"}. ADMT status turns on whether the System replaces or substantially replaces human judgment.` },
     { kind: "skeleton", text: vendorLead(intake, vendor) },
   ]);
