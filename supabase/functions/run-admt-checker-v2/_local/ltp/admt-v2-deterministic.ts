@@ -124,9 +124,23 @@ export function computeScope(intake: Intake): ScopeResult {
   const significantDecisionBasis = vaCite("sig_decision") || cite("sig_decision");
 
   // -- Human involvement factor --
+  // DEF-2 fix (doc 75, CEO-directed 2026-08-26), with a worse collision
+  // found on implementation: the intake option "Not applicable / unsure"
+  // STARTS WITH "No", so it fell into the startsWith("No") branch and the
+  // report affirmatively stated "No human review reported" — a
+  // misattribution of an answer that says unsure — then treated it as
+  // scope-SUPPORTING and reached IN_SCOPE. An unresolved answer now
+  // behaves exactly like a blank one (the degradation law): NEUTRAL
+  // effect, unresolved label, an INSUFFICIENT_RECORD ask, scope
+  // UNABLE_TO_ASSESS, and an INCOMPLETE record grade. The unsure check
+  // runs BEFORE the "No" prefix check, deliberately.
+  const humanReviewUnresolved = !humanReview || /^not applicable/i.test(humanReview);
   let humanInvolvementEffect: DecisionEffect = "NEUTRAL";
   let humanInvolvementLabel = "Human review not resolved";
-  if (humanReview.startsWith("Yes")) {
+  if (humanReviewUnresolved) {
+    humanInvolvementEffect = "NEUTRAL";
+    humanInvolvementLabel = "Human review not resolved";
+  } else if (humanReview.startsWith("Yes")) {
     humanInvolvementEffect = "WEIGHS_AGAINST";
     humanInvolvementLabel = "Qualifying human review reported";
   } else if (humanReview.startsWith("Partial")) {
@@ -140,11 +154,14 @@ export function computeScope(intake: Intake): ScopeResult {
     humanInvolvementLabel = "Human review not resolved";
   }
   const humanInvolvementBasis = vaCite("human_involvement") || cite("human_involvement");
-  if (!humanReview) {
+  if (humanReviewUnresolved) {
     findings.push(mkFinding({
       area: "Applicability", criterion: "Human involvement",
       source_fields: ["human_review"], substantive_state: "INSUFFICIENT_RECORD",
-      decision_effect: "NEUTRAL", factual_basis: "The Company has not described human review of the System's output.",
+      decision_effect: "NEUTRAL",
+      factual_basis: humanReview
+        ? `The Company's answer on human review — "${humanReview}" — does not resolve whether a qualifying human review occurs.`
+        : "The Company has not described human review of the System's output.",
       authority: humanInvolvementBasis, action_text: "Confirm whether a human reviews the System's output before it is applied, and describe that review.",
       priority: 3, closure_condition: "human_review answered",
     }));
@@ -183,7 +200,9 @@ export function computeScope(intake: Intake): ScopeResult {
     scopeState = "UNABLE_TO_ASSESS";
   } else if (humanReview.startsWith("Yes")) {
     scopeState = "OUT_OF_SCOPE";
-  } else if (!humanReview) {
+  } else if (humanReviewUnresolved) {
+    // DEF-2: an unresolved answer (blank OR "Not applicable / unsure")
+    // cannot carry an affirmative scope determination.
     scopeState = "UNABLE_TO_ASSESS";
   } else {
     scopeState = "IN_SCOPE";
@@ -192,7 +211,7 @@ export function computeScope(intake: Intake): ScopeResult {
   // Record grade for §2 / §7.
   let recordGrade: RecordGrade;
   const disambiguatorsMissing = !soleFactor && !feedsFuture;
-  if (domains.length > 0 && humanReview && !advertisingConflict) {
+  if (domains.length > 0 && !humanReviewUnresolved && !advertisingConflict) {
     recordGrade = disambiguatorsMissing ? "QUALIFIED" : "COMPLETE";
   } else if (domains.length === 0 && !humanReview) {
     recordGrade = "MATERIALLY_INCOMPLETE";
@@ -822,8 +841,10 @@ export function computeVendor(intake: Intake, scopeState: ScopeState, path: Path
   // contradicted the correctly-reproduced intake answer one line above it.
   const identified = !!thirdParty && !/^no\b/i.test(thirdParty) && !/^none\b/i.test(thirdParty);
 
+  // DEF-4 fix (doc 75): strip the free text's own terminal stop at the seam
+  // so the template's stop is the only one (double period rendered live).
   const sectionLead = identified
-    ? `The Company identifies the third-party ADMT as: ${thirdParty}.`
+    ? `The Company identifies the third-party ADMT as: ${thirdParty.replace(/\.\s*$/, "")}.`
     : "The Company did not identify a third-party ADMT in the information supplied for this assessment.";
 
   if (!identified) {

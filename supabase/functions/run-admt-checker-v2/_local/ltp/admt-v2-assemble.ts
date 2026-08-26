@@ -263,8 +263,13 @@ function scopeAreaPhrase(scope: ScopeResult): string {
   if (scope.scopeState === "IN_SCOPE") return "ADMT duties apply to this decision.";
   return "No effect; scope is not yet resolved.";
 }
-function postureEffectPhrase(posture: SubstantiveState, context: string): string {
-  if (posture === "GAP") return `Condition — ${context} is not currently supported.`;
+// DEF-1 fix (doc 75, CEO-directed 2026-08-26): the GAP branch rendered
+// "the Pre-use Notice requirements is not currently supported" — plural
+// subject, singular verb — live in production (the PN-A7 sample). The verb
+// now agrees via an explicit per-call-site flag (every context is a known
+// literal, so plurality is declared, never guessed).
+function postureEffectPhrase(posture: SubstantiveState, context: string, plural = false): string {
+  if (posture === "GAP") return `Condition — ${context} ${plural ? "are" : "is"} not currently supported.`;
   if (posture === "PARTIAL" || posture === "INSUFFICIENT_RECORD") return `Recommendation — follow up on ${context}.`;
   if (posture === "NOT_APPLICABLE") return "Not applicable.";
   return `Supports ${context}.`;
@@ -478,9 +483,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       rows: [
         ["Applicability", stateCell(scope.scopeState), gradeCell(scope.recordGrade), scopeAreaPhrase(scope)],
         ...(scope.scopeState !== "OUT_OF_SCOPE" ? [
-          ["Pre-use Notice", stateCell(notice.posture), gradeCell(notice.recordGrade), postureEffectPhrase(notice.posture, "the Pre-use Notice requirements")],
+          ["Pre-use Notice", stateCell(notice.posture), gradeCell(notice.recordGrade), postureEffectPhrase(notice.posture, "the Pre-use Notice requirements", true)],
           ["Opt-out / exception", stateCell(optOut.posture), gradeCell(optOut.recordGrade), postureEffectPhrase(optOut.posture, "the selected opt-out pathway")],
-          ["Access and explanation", stateCell(access.posture), gradeCell(access.recordGrade), postureEffectPhrase(access.posture, "the access and explanation requirements")],
+          ["Access and explanation", stateCell(access.posture), gradeCell(access.recordGrade), postureEffectPhrase(access.posture, "the access and explanation requirements", true)],
         ] : []),
         ...(vendor.identified ? [["Vendor dependency", stateCell(vendor.posture), gradeCell(vendor.recordGrade), vendorDependencyPhrase(vendor)]] : []),
       ],
@@ -833,7 +838,10 @@ function vendorMaterialityMatrixTable(): { title: string; columns: string[]; row
 }
 
 function vendorLead(intake: Record<string, unknown>, vendor: { identified: boolean }): string {
-  const thirdParty = str((intake as any)?.third_party_admt);
+  // DEF-4 fix (doc 75): the free-text answer may end in its own period —
+  // strip the terminal stop at the seam so the template's stop is the only
+  // one ("…third-party data providers.." rendered in the PN-A7 sample).
+  const thirdParty = str((intake as any)?.third_party_admt).replace(/\.\s*$/, "");
   return vendor.identified
     ? `The Company identifies a third-party ADMT: ${thirdParty}.`
     : "The Company did not identify a third-party ADMT in the information supplied for this assessment.";
