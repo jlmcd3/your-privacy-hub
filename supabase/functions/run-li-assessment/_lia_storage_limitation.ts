@@ -51,6 +51,19 @@ export type StorageLimitationResult = {
 /**
  * Rewrites false storage-limitation absence claims in the necessity test when
  * the record carries a retention statement. Mutates `report` in place.
+ *
+ * L0.5 D3 FIX (2026-08-25): the model's three-part-test JSON is assigned to
+ * `report.three_part_test` (index.ts: `reportData.three_part_test = analysis`)
+ * — `necessity_test` is NEVER a top-level key on the report. This function
+ * read `report.necessity_test` directly, which is always undefined on a real
+ * assembled report, so the guard has been a SILENT NO-OP in production since
+ * it landed: `nt` was always undefined, the early-return at the top always
+ * fired, and "CEO defect 1" (the false storage-limitation absence claim) kept
+ * shipping. The existing regression test (ceo-defects-2026-08-04.test.ts)
+ * masked this by constructing its fixture with the flat shape the function
+ * reads, never the real assembled-artifact shape — exactly the D4 lesson
+ * ("test the assembled artifact, never the constants"). Fixed at the read
+ * site; the test file is corrected in the same landing.
  */
 export function enforceStorageLimitationCrossRead(
   report: unknown,
@@ -58,7 +71,7 @@ export function enforceStorageLimitationCrossRead(
 ): StorageLimitationResult {
   const retention = retentionOnRecord(intake);
   const rd = (report ?? {}) as Record<string, any>;
-  const nt = rd?.necessity_test as Record<string, any> | undefined;
+  const nt = rd?.three_part_test?.necessity_test as Record<string, any> | undefined;
   if (!retention || !nt || typeof nt !== "object") {
     return { changed: false, retention, replacements: 0 };
   }

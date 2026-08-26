@@ -1,7 +1,14 @@
 // CEO defects (run 33e79a31 / doc 4d610d79) — LIA regression tests.
 //
 // 1. storage-limitation cross-read against the golden fixture that carries
-//    balancing_details.duration.
+//    balancing_details.duration. L0.5 D3 (2026-08-25): these fixtures were
+//    reshaped to `{ three_part_test: { necessity_test: {...} } }` — the REAL
+//    assembled-report shape (index.ts: `reportData.three_part_test =
+//    analysis`) — after discovering the flat `{ necessity_test: {...} }`
+//    shape these tests used previously masked a live production no-op: the
+//    guard read `report.necessity_test` (always undefined on a real report)
+//    and always early-returned. See _lia_storage_limitation.ts's own
+//    "L0.5 D3 FIX" comment for the source-side fix.
 // 2. Annex 1 corpus-pending sentence matches the sanctioned counsel register.
 // 3. Universal disclaimer is exempt from the grader's e6 scan; a genuine
 //    model-authored counsel referral still flags.
@@ -37,20 +44,22 @@ Deno.test("golden fixture carrying duration: storage-limitation passage never cl
   assert(retention.length > 0, "duration not read off the record");
 
   const report: any = {
-    necessity_test: {
-      analysis:
-        "The processing is the least intrusive route available on the alternatives stated. " +
-        OFFENDING +
-        " Pseudonymisation is applied to the behavioural stream.",
-      risk_factors: ["retention period not stated for the behavioural category"],
-      open_questions: ["What is the deletion trigger?"],
+    three_part_test: {
+      necessity_test: {
+        analysis:
+          "The processing is the least intrusive route available on the alternatives stated. " +
+          OFFENDING +
+          " Pseudonymisation is applied to the behavioural stream.",
+        risk_factors: ["retention period not stated for the behavioural category"],
+        open_questions: ["What is the deletion trigger?"],
+      },
     },
   };
 
   const res = enforceStorageLimitationCrossRead(report, f.intake);
   assert(res.changed, "guard did not engage on a record that states retention");
 
-  const analysis: string = report.necessity_test.analysis;
+  const analysis: string = report.three_part_test.necessity_test.analysis;
   assert(
     !/undocumented/i.test(analysis),
     "storage-limitation passage still claims the requirement is undocumented:\n" + analysis,
@@ -61,15 +70,30 @@ Deno.test("golden fixture carrying duration: storage-limitation passage never cl
   );
   assertStringIncludes(analysis, retention);
   assertEquals(
-    report.necessity_test.risk_factors.filter((r: string) => /retention period not stated/i.test(r)).length,
+    report.three_part_test.necessity_test.risk_factors.filter((r: string) =>
+      /retention period not stated/i.test(r)
+    ).length,
     0,
   );
 });
 
 Deno.test("record without retention: existing degradation stands untouched", () => {
-  const report: any = { necessity_test: { analysis: OFFENDING } };
+  const report: any = { three_part_test: { necessity_test: { analysis: OFFENDING } } };
   const res = enforceStorageLimitationCrossRead(report, { balancing_details: {} });
   assertEquals(res.changed, false);
+  assertEquals(report.three_part_test.necessity_test.analysis, OFFENDING);
+});
+
+Deno.test("REGRESSION GUARD — a flat top-level necessity_test (the old, wrong shape) is never read", () => {
+  // Proves the class of bug this fix closes cannot silently reopen: a report
+  // shaped like the pre-fix tests used (flat necessity_test, no
+  // three_part_test wrapper) must NOT engage the guard, because that shape
+  // never occurs on a real assembled report.
+  const report: any = { necessity_test: { analysis: OFFENDING } };
+  const res = enforceStorageLimitationCrossRead(report, {
+    balancing_details: { duration: "12 months, then deleted." },
+  });
+  assertEquals(res.changed, false, "guard engaged on a shape that does not occur in production");
   assertEquals(report.necessity_test.analysis, OFFENDING);
 });
 
