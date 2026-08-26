@@ -37,11 +37,14 @@ import {
   LIA_PROTECTED_FIXED_PROSE,
   LIA_SKELETON_PINPOINTS,
   LIA_SKELETON_SECTIONS,
+  LIA_SKELETON_SECTIONS_V2,
   LIA_SKELETON_SUBTITLE,
   LIA_SKELETON_TITLE,
   LIA_SKELETON_VERSION,
+  LIA_SKELETON_VERSION_V2,
   LIA_V3_BANNED_REGISTER,
 } from "../prose/plans/lia.spine.ts";
+import { buildLiaPersuasiveAuthority } from "./lia-persuasive-authority.ts";
 import {
   LIA_CONDITIONAL_TRIGGERS,
   LIA_DATA_CATEGORY_LABELS,
@@ -308,8 +311,14 @@ function fromTyped(...parts: (string | undefined)[]): string {
 // LIA_PRECEDENT_CLASS_RATIFIED until L2 builds it or the Factor-Bearing
 // Law (doc 48 §II.2a) is violated: a render-eligible corpus citation with
 // no ToA/appendix trail.
-export function precedentClassSentence(report: Bag): string {
-  if (!LIA_PRECEDENT_CLASS_RATIFIED) return "";
+// L2 (2026-08-26): the KNOWN GAP above is CLOSED — the Persuasive
+// Authority section (lia-persuasive-authority.ts) now carries the cited
+// decisions with composed authority labels, and the ToA lists them
+// iff-cited. The sentence renders ONLY on the deterministic path
+// (`deterministic` below), so the legacy model path stays byte-frozen;
+// LIA_PRECEDENT_CLASS_RATIFIED records the text ratification.
+export function precedentClassSentence(report: Bag, deterministic = false): string {
+  if (!LIA_PRECEDENT_CLASS_RATIFIED || !deterministic) return "";
   const finding = bag(report.precedent_class_posture);
   if (s(finding.status) !== "analysed") return "";
   if (s(finding.posture) === "not_assessed" || !s(finding.posture)) return "";
@@ -451,7 +460,13 @@ function checkLeadCoherence(
 export function assembleLiaSkeletonDocument(
   report: Bag,
   recordInput: Bag,
+  // L2 (2026-08-26): the deterministic path renders through the v2 section
+  // list (the Persuasive Authority section included) and unlocks the
+  // ratified precedent sentence. Default false keeps the legacy model path
+  // byte-identical to before this landing.
+  opts: { deterministic?: boolean } = {},
 ): LiaSkeletonResult {
+  const deterministic = opts.deterministic === true;
   const record = recordInput ?? {};
   const values = buildLiaSlotValues(record);
   const org = s(record.organization_name) || "the organisation";
@@ -559,7 +574,7 @@ export function assembleLiaSkeletonDocument(
       s(bag(report.reasonable_expectations).application),
       s(bag(report.potential_harms).application),
       s(bag(report.opt_out_feasibility).application),
-      precedentClassSentence(report),
+      precedentClassSentence(report, deterministic),
     ),
 
     "findings:0": findingsLead,
@@ -582,16 +597,29 @@ export function assembleLiaSkeletonDocument(
       : "",
   };
 
+  // L2 — the Persuasive Authority section (deterministic path only). The
+  // "balancing_fails" render_when state is the typed balancing verdict,
+  // now code-computed (the render-readiness law's condition).
+  const persuasive = deterministic
+    ? buildLiaPersuasiveAuthority(report, v.balancing === "likely_fails")
+    : { body: "", ledger: [] as readonly string[], entry_count: 0, aow_fired: false };
+  if (deterministic && persuasive.body) {
+    composed["persuasive_authority:0"] = persuasive.body;
+  }
+
   const args = {
-    sections: LIA_SKELETON_SECTIONS,
+    sections: deterministic ? LIA_SKELETON_SECTIONS_V2 : LIA_SKELETON_SECTIONS,
     title: LIA_SKELETON_TITLE,
     subtitle: LIA_SKELETON_SUBTITLE,
-    spineVersion: LIA_SKELETON_VERSION,
+    spineVersion: deterministic ? LIA_SKELETON_VERSION_V2 : LIA_SKELETON_VERSION,
     values,
   };
 
   const draft = renderSkeletonDocument({ ...args, composed });
-  const toa = renderLiaToa(composeToaLedger(report), skeletonDocumentToText(draft));
+  const toa = renderLiaToa(
+    [...composeToaLedger(report), ...persuasive.ledger],
+    skeletonDocumentToText(draft),
+  );
 
   const rendered = renderSkeletonDocument({
     ...args,
@@ -633,7 +661,11 @@ export function assembleLiaSkeletonDocument(
     // `values` is passed so the exemption for a sentence dropped by a null slot
     // is computed EXACTLY, from the same values the renderer used, rather than
     // inferred from the shape of the literal.
-    conformance: verifySkeletonConformance(document, LIA_SKELETON_SECTIONS, values),
+    conformance: verifySkeletonConformance(
+      document,
+      deterministic ? LIA_SKELETON_SECTIONS_V2 : LIA_SKELETON_SECTIONS,
+      values,
+    ),
     register_findings,
     lead_coherence: checkLeadCoherence(
       { exec: execLead, purpose: purposeLead, necessity: necessityLead, balancing: balancingLead, findings: findingsLead },

@@ -171,22 +171,43 @@ Deno.test("CYBER_CORPUS_MAP: every factor_id is a canonical component name or a 
   }
 });
 
-Deno.test("lia: L-CA posture — all rows dark (pre-conversion, doc 48 §II.6), 11 AP, 1 AOW, 3 logic-bearing FC, 14 FC-J", () => {
+// L2 re-point (2026-08-26): the render-readiness condition is satisfied —
+// the three-part test is code-computed (three-part-test-typed.ts) — so the
+// FOUR doc-63 §6.1 release-1 AP rows and the doc-63 §6.2 AOW are LIVE on
+// S5 (the skeleton's Persuasive Authority section, deterministic path
+// only). Sibling factor-tags and doc-73 additions stay dark.
+Deno.test("lia: L2 posture — 4 live AP + 1 live AOW on S5, everything else dark; 3 logic-bearing FC, 14 FC-J", () => {
   const ap = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AP");
   const aow = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
   const logicBearing = LIA_CORPUS_MAP.rows.filter((r) => r.logic_bearing);
   const fcJ = LIA_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.logic_bearing);
-  // doc 73 §4/§5 (2026-08-26): 3 new AP rows (Amazon France Logistique ×2
-  // factors, KASPR) and 2 new logic-bearing FC-L rows (Airbnb, Groupon —
-  // R1 candidates) extend doc 58's original set.
   assertEquals(ap.length, 11);
   assertEquals(aow.length, 1);
   assertEquals(logicBearing.length, 3);
   assertEquals(fcJ.length, 14);
   assertEquals(LIA_CORPUS_MAP.rows.length, 29);
-  // The Render-Readiness Law (doc 48 §II.6): LIA's three-part test is still
-  // model-authored, so every row stays dark regardless of role.
-  for (const r of LIA_CORPUS_MAP.rows) assertEquals(r.render_eligible, false, r.id);
+  const liveAp = ap.filter((r) => r.render_eligible);
+  assertEquals(
+    new Set(liveAp.map((r) => r.id)),
+    new Set([
+      "lia/f04-balancing/ap-01",
+      "lia/f03-necessity/ap-01",
+      "lia/f01-interest-legitimacy/ap-02",
+      "lia/f05-reasonable-expectations/ap-01",
+    ]),
+  );
+  for (const r of liveAp) {
+    assertEquals(r.render_surface, "S5", r.id);
+    assert(!!r.display, `${r.id}: live AP without display`);
+  }
+  const liveAow = aow.filter((r) => r.render_eligible);
+  assertEquals(liveAow.length, 1);
+  assertEquals(liveAow[0].render_when, ["balancing_fails"]);
+  assert(!!liveAow[0].warning_text, "live AOW without warning_text");
+  // Every FC row (logic-bearing or FC-J) stays dark.
+  for (const r of LIA_CORPUS_MAP.rows) {
+    if (r.role === "FC") assertEquals(r.render_eligible, false, r.id);
+  }
   assertEquals(LIA_CORPUS_MAP.s4_ratification, undefined);
   assertEquals(LIA_CORPUS_MAP.s2_ratification, undefined);
 });

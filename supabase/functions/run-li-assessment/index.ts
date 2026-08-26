@@ -2,6 +2,12 @@
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
 import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
+// LIA CONVERSION L3 (2026-08-26) — the deterministic flag. When true,
+// Stages 1-3 are replaced by the typed builders, refinement is forced off,
+// and the skeleton assembles through the v2 sections. Env-driven, default
+// false: the legacy model path is byte-untouched until the CEO flips the
+// env var at a deploy.
+import { LIA_DETERMINISTIC_ENABLED } from "./_local/ltp/lia-deterministic-flag.ts";
 import { enforceStorageLimitationCrossRead } from './_lia_storage_limitation.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
@@ -820,9 +826,15 @@ async function runAssessment(assessment_id: string, assessment: any, opts?: { re
       currentDate: today,
     });
 
-    // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
+    // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel.
+    // L3 (2026-08-26): under the deterministic flag the Stage-1 Haiku call is
+    // retired — classification comes from the typed classifier below — and
+    // the GDPR-context fetch drops its semantic limb (the DPIA determinism
+    // fix's pattern): deterministic articles/recitals only.
     const [classifyResult, enforcementCtxResult, gdprCtxResult] = await Promise.all([
-      callAnthropic(
+      LIA_DETERMINISTIC_ENABLED
+        ? Promise.resolve({ text: "" } as { text: string })
+        : callAnthropic(
         "claude-haiku-4-5-20251001",
         classifySystemBlocks,
         `Classify this processing activity for legitimate interest analysis:\nOrganisation (controller) being assessed: ${assessment.organization_name || "not specified"}\nDescription: ${assessment.processing_description}\nData categories: ${(Array.isArray(assessment.data_categories) ? assessment.data_categories : []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
@@ -849,17 +861,26 @@ async function runAssessment(assessment_id: string, assessment: any, opts?: { re
         jurisdiction: gdprJurisdiction,
         recitals: [47],
         guidelineArticles: ["6"],
-        semanticQuery: assessment.processing_description || "",
+        semanticQuery: LIA_DETERMINISTIC_ENABLED ? "" : (assessment.processing_description || ""),
       }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; })
     ]);
     console.log(`[LIA] stage=1 classify+context elapsed=${Date.now() - t1Start}ms`);
 
     const classifyText = classifyResult.text;
     let classification: any = {};
-    try {
-      const m = classifyText.match(/\{[\s\S]*\}/);
-      if (m) classification = JSON.parse(m[0]);
-    } catch { classification = { use_case_category: "other" }; }
+    if (LIA_DETERMINISTIC_ENABLED) {
+      // L1-A — classify_typed: the shared deterministic classifier plus
+      // enum-membership reads (the PN-L4 table, ratified by delegation
+      // 2026-08-26 — the same classifier the precedent-class engine and the
+      // ePrivacy gate already run on every record).
+      const { buildClassificationTyped } = await import("./_local/ltp/lia-deliverables/three-part-test-typed.ts");
+      classification = buildClassificationTyped(assessment as unknown as Record<string, unknown>);
+    } else {
+      try {
+        const m = classifyText.match(/\{[\s\S]*\}/);
+        if (m) classification = JSON.parse(m[0]);
+      } catch { classification = { use_case_category: "other" }; }
+    }
 
     let enforcementPrecedents: any[] = [];
     let enforcementMeta: any = { attempted: false };
@@ -1192,6 +1213,16 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
       return await callAnthropic(currentGenerationModel(), analysisSystemBlocks, finalUser, maxTokens);
     }
 
+    // L3 (2026-08-26) — hoisted so both paths share them: the deterministic
+    // path skips the entire Stage-2 model region below (analysis is replaced
+    // by the typed three-part test in the resumed isolate, after the typed
+    // deliverables attach); the placeholder object keeps the normalize block
+    // and checkpoint shape unchanged.
+    let analysis: any = { _typed_pending: true };
+    const lintViolations: any[] = [];
+    let blacklistRetryUsed = false;
+    let blacklistResidualHits = 0;
+    if (!LIA_DETERMINISTIC_ENABLED) {
     const t2Start = Date.now();
     let stage2 = await runStage2("");
     if (stage2.stopReason === "max_tokens") {
@@ -1204,7 +1235,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     }
     console.log(`[LIA] stage=2 analysis elapsed=${Date.now() - t2Start}ms`);
     const analysisText = stage2.text;
-    let analysis: any = parseLlmJson(analysisText);
+    analysis = parseLlmJson(analysisText);
     if (!analysis) {
       console.error("[LIA] Stage 2 parse failed even with repair. Length:", analysisText.length);
       console.error("[LIA] Tail:", analysisText.slice(-300));
@@ -1212,7 +1243,6 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     }
 
     // Lint narrative fields and retry once on hard violations.
-    const lintViolations: any[] = [];
     function lintAnalysis(a: any): boolean {
       let hardSeen = false;
       const testKeys = ["purpose_test", "necessity_test", "balancing_test"];
@@ -1481,8 +1511,6 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
     // phrases banned in user-facing prose). LIA's existing retry path is
     // full-regeneration under runStage2 with a suffix; we reuse it once, then
     // fall through to lint-only shipping if still hitting.
-    let blacklistRetryUsed = false;
-    let blacklistResidualHits = 0;
     {
       const hits = detectBlacklistPhrases(analysis);
       if (hits.length > 0) {
@@ -1505,6 +1533,7 @@ Every insufficient-basis or Insufficient-information finding elsewhere in this o
         }
       }
     }
+    } // end if (!LIA_DETERMINISTIC_ENABLED) — Stage-2 model region
 
 
 
@@ -1638,6 +1667,11 @@ async function runDocsAndFinalize(assessment_id: string, assessment: any): Promi
 
     // ── STAGE 3: Documentation recommendations ──
     await liaHeartbeat(supabase, assessment_id, "docs");
+    // L3 (2026-08-26): the deterministic path skips the Stage-3 model call;
+    // documentation_recommendations comes from the typed builder after the
+    // deliverables attach (below). The placeholder keeps the assembly shape.
+    let docRecs: any = null;
+    if (!LIA_DETERMINISTIC_ENABLED) {
     const docsSystemBlocks = buildSystemContent({
       toolModule: LIA_DOCS_TOOL_MODULE,
       currentDate: today,
@@ -1697,7 +1731,7 @@ Return JSON:
     console.log(`[LIA] stage=3 docs elapsed=${Date.now() - t3Start}ms`);
     const docsText = docsStage.text;
 
-    let docRecs: any = parseLlmJson(docsText);
+    docRecs = parseLlmJson(docsText);
     if (!docRecs) {
       console.error("[LIA] Stage 3 parse failed even with repair. Length:", docsText.length);
       docRecs = {
@@ -1705,6 +1739,7 @@ Return JSON:
         disclaimer: REPORT_DISCLAIMER
       };
     }
+    } // end if (!LIA_DETERMINISTIC_ENABLED) — Stage-3 model region
 
     await liaHeartbeat(supabase, assessment_id, "assemble");
 
@@ -1807,6 +1842,50 @@ Return JSON:
     }
 
 
+
+    // ── LIA CONVERSION L1-B/L3 — THE TYPED THREE-PART TEST (2026-08-26) ──
+    // Deterministic path only: replaces the model's Stage-2 bag with the
+    // typed test derived from the deliverables that just attached, applies
+    // the ePrivacy hard-gate outcome override (the B5 ruling), and supplies
+    // the typed Stage-3 documentation recommendations. Single writer for
+    // the deterministic three_part_test; the legacy model path is
+    // untouched. Fail-loud here would strand the row, so fail-open with
+    // telemetry, matching every attach above.
+    if (LIA_DETERMINISTIC_ENABLED) {
+      try {
+        const { buildThreePartTestTyped, buildDocumentationTyped, LIA_TYPED_TEST_STAMP } = await import(
+          "./_local/ltp/lia-deliverables/three-part-test-typed.ts"
+        );
+        const typed = buildThreePartTestTyped(
+          reportData as Record<string, unknown>,
+          assessment as unknown as Record<string, unknown>,
+        );
+        (reportData as any).three_part_test = typed.three_part_test;
+        if (typed.determination_override) {
+          (reportData as any).lia_determination = typed.determination_override;
+        }
+        (reportData as any).information_needed = typed.information_needed;
+        (reportData as any).annotations = [];
+        (reportData as any).documentation_recommendations = buildDocumentationTyped(
+          reportData as Record<string, unknown>,
+          REPORT_DISCLAIMER,
+        );
+        const _m = ((reportData as any)._meta ??= {});
+        (_m.internal ??= {}).lia_typed_test = {
+          stamp: LIA_TYPED_TEST_STAMP,
+          purpose: (typed.three_part_test as any)?.purpose_test?.verdict,
+          necessity: (typed.three_part_test as any)?.necessity_test?.verdict,
+          balancing: (typed.three_part_test as any)?.balancing_test?.verdict,
+          eprivacy_foreclosed: typed.eprivacy_foreclosed,
+        };
+        console.log(JSON.stringify({
+          evt: "lia_typed_three_part_test", fn: "run-li-assessment",
+          build_stamp: BUILD_STAMP, ...(_m.internal as any).lia_typed_test,
+        }));
+      } catch (e) {
+        console.warn("[run-li-assessment] typed three-part test failed (non-fatal):", (e as Error)?.message);
+      }
+    }
 
     const guarded = guardInformationNeeded(reportData, liaIntakeObject, "li_assessment");
     Object.assign(reportData, guarded.report);
@@ -2021,7 +2100,10 @@ Return JSON:
         refineIntake,
         makeLiaRefinementDeps(assessment_id ?? null, refineModel),
         {
-          enabled: LIA_REFINEMENT_ENABLED,
+          // L3 (2026-08-26): refinement is a declared model tier — forced
+          // OFF on the deterministic path (the DPIA Prompt-10 precedence
+          // pattern), whatever the env flag says.
+          enabled: LIA_REFINEMENT_ENABLED && !LIA_DETERMINISTIC_ENABLED,
           coverageList: coverageListForCritic(preCoverage),
           coverageAnchors: coverageAnchorTokens(preCoverage),
         },
@@ -2231,6 +2313,9 @@ Return JSON:
       const assembled = assembleLiaSkeletonDocument(
         reportData as Record<string, unknown>,
         assessment as unknown as Record<string, unknown>,
+        // L2/L3 (2026-08-26): the deterministic path renders the v2 spine
+        // (Persuasive Authority section + the ratified precedent sentence).
+        { deterministic: LIA_DETERMINISTIC_ENABLED },
       );
       (reportData as Record<string, unknown>).skeleton_document = assembled.document;
       const _m = ((reportData as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;

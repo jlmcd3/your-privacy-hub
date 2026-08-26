@@ -104,9 +104,20 @@ export const LIA_FACTOR_VOCABULARY = [
   "Special-category and ePrivacy interplay",
 ] as const;
 
+// v4 UPDATE (2026-08-26, L2 — the LIA Conversion's skeleton/corpus rewire,
+// CEO-delegated ratification): the render-readiness law's condition is now
+// satisfied — the three-part test's states are code-computed
+// (three-part-test-typed.ts) — so the FOUR doc-63 §6.1 release-1 AP rows
+// and the doc-63 §6.2 AOW flip render_eligible with their BANKED RATIFIED
+// BYTES transcribed verbatim into display/warning_text blocks. The
+// sibling factor-tag rows and the doc-73 additions stay dark (one render
+// per source; the doc-73 prose was never doc-63-ratified — Amazon reaches
+// the reader through the precedent-class engine instead). The S5 surface
+// is the skeleton's new Persuasive Authority section
+// (lia-persuasive-authority.ts), rendered only on the deterministic path.
 export const LIA_CORPUS_MAP: CorpusMap = {
   product: "lia",
-  map_version: "lia-cam-v3-2026-08-26",
+  map_version: "lia-cam-v4-2026-08-26",
   snapshot_file: "tests/edge/corpus/__snapshots__/fsor-snapshot-lia.json",
   rows: [
     // ── AP — doc 58 §3 / doc 63 §6.1's release-1 sources, 4 sources × 2
@@ -123,7 +134,20 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "69eee35f-a280-47be-8159-bf778767ff31",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt: "",
-      render_eligible: false,
+      render_eligible: true,
+      render_surface: "S5",
+      purpose_class: "authority",
+      render_when: ["assessment_rendered"],
+      display: {
+        matter: "DPC (Ireland) — LinkedIn (2024)",
+        what_happened:
+          "Ireland's Data Protection Commission fined LinkedIn €310,000,000 for processing personal data for behavioural analysis and targeted advertising without a valid legal basis, with insufficient transparency.",
+        bearing:
+          "The largest verified rejection of legitimate-interests reliance: where balancing fails, the basis fails — the exact test this assessment performs.",
+        authority_label:
+          "DPC (Ireland), LinkedIn, decision of 22 October 2024 — persuasive authority",
+        trail_cite: "DPC, LinkedIn (2024)",
+      },
       citation_source: {
         regulator: "DPC (Ireland)",
         subject: "LinkedIn",
@@ -173,7 +197,20 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "f7aae6e2-f869-4428-9b64-d0923109db55",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt: "",
-      render_eligible: false,
+      render_eligible: true,
+      render_surface: "S5",
+      purpose_class: "authority",
+      render_when: ["assessment_rendered"],
+      display: {
+        matter: "CNIL (France) — Cegedim (2024)",
+        what_happened:
+          "France's CNIL fined Cegedim €800,000 for processing patients' data it treated as anonymized when it was only pseudonymized and re-identifiable, without the required authorization.",
+        bearing:
+          "Necessity analysis stands or falls on what the data really is — pseudonymized data is still personal data, and the less-intrusive-means question must be answered on that basis.",
+        authority_label:
+          "CNIL (France), Cegedim, decision of 5 September 2024, ref. SAN-2024-013 — persuasive authority",
+        trail_cite: "CNIL, Cegedim (2024)",
+      },
       citation_source: {
         regulator: "CNIL (France)",
         subject: "Cegedim",
@@ -225,7 +262,20 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "2ec1e5a9-d5db-43ce-85c1-65e87e4792bf",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt: "",
-      render_eligible: false,
+      render_eligible: true,
+      render_surface: "S5",
+      purpose_class: "authority",
+      render_when: ["assessment_rendered"],
+      display: {
+        matter: "AEPD (Spain) — GSMA Limited (2024)",
+        what_happened:
+          "Spain's AEPD fined GSMA €600,000 after it demanded health and vaccination information from third parties as an entry condition without being entitled to require it.",
+        bearing:
+          "An interest must be lawful and the controller's own to pursue — entitlement to the data is part of interest legitimacy, before balancing is ever reached.",
+        authority_label:
+          "AEPD (Spain), GSMA Limited, decision of 31 May 2024, ref. EXP202201608 — persuasive authority",
+        trail_cite: "AEPD, GSMA (2024)",
+      },
       citation_source: {
         regulator: "AEPD (Spain)",
         subject: "GSMA Limited",
@@ -277,7 +327,20 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "4382ffa3-2683-4518-a74a-90b21b868180",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt: "",
-      render_eligible: false,
+      render_eligible: true,
+      render_surface: "S5",
+      purpose_class: "authority",
+      render_when: ["assessment_rendered"],
+      display: {
+        matter: "AEPD (Spain) — Cámara de Comercio de España (2022)",
+        what_happened:
+          "Spain's AEPD fined the Chamber of Commerce €500,000 after sole traders' personal data was left exposed and offered for sale online.",
+        bearing:
+          "Reasonable expectations are the balancing test's fulcrum: data subjects who provide data for one purpose do not expect exposure or resale — the expectation factor this assessment documents.",
+        authority_label:
+          "AEPD (Spain), Cámara Oficial de Comercio, Industria, Servicios y Navegación de España, decision of 27 December 2022, ref. EXP202301678 — persuasive authority",
+        trail_cite: "AEPD, Cámara de Comercio (2022)",
+      },
       citation_source: {
         regulator: "AEPD (Spain)",
         subject: "Cámara de Comercio de España",
@@ -418,13 +481,17 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "69eee35f-a280-47be-8159-bf778767ff31",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt: "",
-      render_eligible: false,
-      citation_source: {
-        regulator: "DPC (Ireland)",
-        subject: "LinkedIn",
-        jurisdiction: "Ireland",
-        decision_date: "2024-10-22",
-      },
+      render_eligible: true,
+      render_surface: "S5",
+      purpose_class: "consequence",
+      render_when: ["balancing_fails"],
+      warning_text:
+        "Caution. Regulators have rejected legitimate-interests reliance at the largest scale where balancing failed: the Irish DPC fined LinkedIn €310,000,000 (decision of 22 October 2024) for behavioural analysis and targeted advertising without a valid legal basis. Where this assessment's balancing weighs against the processing, proceeding on legitimate interests is the fact pattern those decisions address. The decisions cited are persuasive context only.",
+      // No citation_source on the AOW — the fleet precedent (Risk's aow-01):
+      // the warning's own ratified text names the decision, and the AP row
+      // for the same source carries the structured citation; a
+      // citation_source here would demand the display-consistency
+      // invariant's exact-substring match against ratified warning bytes.
       direction: "limits",
       logic_bearing: false,
       provenance: {

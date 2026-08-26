@@ -152,19 +152,17 @@ Deno.test("attachPrecedentClassPosture: fail-open on builder throw", () => {
   assert(typeof meta.error === "string");
 });
 
-// ── Ratification gate (doc 73 §4 R5) ────────────────────────────────────
+// ── Ratification gate (doc 73 §4 R5) — L2 re-point (2026-08-26) ─────────
+// The flag is TRUE under the CEO's delegated ratification (the LIA
+// Conversion completion directive); rendering is additionally confined to
+// the deterministic path via the sentence's second parameter, so the
+// legacy model path stays byte-frozen.
 
-Deno.test("LIA_PRECEDENT_CLASS_RATIFIED is false — the finding is banked, not yet customer-facing", () => {
-  assertEquals(LIA_PRECEDENT_CLASS_RATIFIED, false);
+Deno.test("LIA_PRECEDENT_CLASS_RATIFIED is true — the prose is ratified; the deterministic option is the render gate", () => {
+  assertEquals(LIA_PRECEDENT_CLASS_RATIFIED, true);
 });
 
-// ── Skeleton wiring guard (doc 73 §4 R5) ────────────────────────────────
-// While the gate is closed this MUST be a true no-op, regardless of how
-// complete or well-formed the underlying finding is — proves the splice
-// in lia-skeleton-assemble.ts (balancing_test:6) cannot leak unratified
-// prose even if a future edit to the finding's shape changes.
-
-Deno.test("precedentClassSentence: closed gate — a fully analysed, real-posture finding still renders nothing", () => {
+Deno.test("precedentClassSentence: model path (deterministic=false) — a fully analysed finding still renders nothing", () => {
   const report = {
     precedent_class_posture: {
       status: "analysed",
@@ -173,12 +171,24 @@ Deno.test("precedentClassSentence: closed gate — a fully analysed, real-postur
     },
   };
   assertEquals(precedentClassSentence(report), "");
+  // Deterministic path: the ratified sentence renders.
+  assertEquals(
+    precedentClassSentence(report, true),
+    "Regulators have rejected this class of processing under legitimate interests.",
+  );
 });
 
-Deno.test("precedentClassSentence: closed gate — even a malformed/hostile finding shape renders nothing", () => {
-  assertEquals(precedentClassSentence({ precedent_class_posture: { status: "analysed", posture: "rejected", application: "x".repeat(10_000) } }), "");
-  assertEquals(precedentClassSentence({}), "");
-  assertEquals(precedentClassSentence({ precedent_class_posture: null }), "");
+Deno.test("precedentClassSentence: malformed/degraded shapes render nothing on either path", () => {
+  assertEquals(precedentClassSentence({}, true), "");
+  assertEquals(precedentClassSentence({ precedent_class_posture: null }, true), "");
+  assertEquals(
+    precedentClassSentence({ precedent_class_posture: { status: "record_insufficient", posture: "rejected", application: "x" } }, true),
+    "",
+  );
+  assertEquals(
+    precedentClassSentence({ precedent_class_posture: { status: "analysed", posture: "not_assessed", application: "x" } }, true),
+    "",
+  );
 });
 
 // ── R4: one classifier, both surfaces (doc 73 §4) ───────────────────────

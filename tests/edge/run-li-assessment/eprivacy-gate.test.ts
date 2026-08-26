@@ -177,10 +177,15 @@ Deno.test("ePrivacy gate — standard is the CAM row's pinned excerpt, never re-
   assertEquals(row!.logic_disposition?.kind, "implemented");
 });
 
-Deno.test("ePrivacy gate — prose is DARK: the ratification flag is off until the CEO rules on PN-L6", () => {
-  assertEquals(LIA_EPRIVACY_GATE_RATIFIED, false);
-  // And no skeleton wiring may exist while it is off: the assembler must
-  // not reference the finding yet.
+// L1-B/L3 re-point (2026-08-26, CEO-delegated ratification): the flag is
+// TRUE — PN-L6(c)'s prose is ratified — and the gate reaches the document
+// through the typed engine's OUTCOME OVERRIDE (three-part-test-typed.ts:
+// the determination's why quotes the gate's application, which itself
+// carries the rule sentence), deterministic path only. The skeleton
+// assembler still never reads the finding directly, which keeps the
+// single-writer boundary: the override is the one door.
+Deno.test("ePrivacy gate — RATIFIED; the typed engine's override is the only render door", () => {
+  assertEquals(LIA_EPRIVACY_GATE_RATIFIED, true);
   const src = Deno.readTextFileSync(
     new URL(
       "../../../supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts",
@@ -189,6 +194,6 @@ Deno.test("ePrivacy gate — prose is DARK: the ratification flag is off until t
   );
   assert(
     !src.includes("eprivacy_short_circuit"),
-    "skeleton assembler must not consume the gate's prose before PN-L6 ratification wiring lands (behind the flag)",
+    "the skeleton assembler must not consume the gate directly — the typed engine's determination override is the single render door",
   );
 });

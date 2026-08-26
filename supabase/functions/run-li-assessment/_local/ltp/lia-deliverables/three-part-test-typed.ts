@@ -1,0 +1,505 @@
+// LIA CONVERSION L1-B — THE TYPED THREE-PART TEST (2026-08-26).
+//
+// The deterministic replacement for Stages 1–3 of the model pipeline.
+// Pure functions over the intake row and the typed deliverables that are
+// ALREADY code-computed and attached to the report (ITEM-311, UPGRADE-4,
+// the ePrivacy gate, the precedent-class posture). Zero model calls, zero
+// I/O. The three verdicts are derived from the same typed surfaces the
+// ratified determination engine (build.ts buildDetermination) reads, so
+// the test and the determination cannot disagree; the analysis prose is
+// composed from the findings' own analysed sentences (verbatim reuse —
+// single-writer respecting) plus the weighing templates below.
+//
+// THE VERDICT TABLE (the L1-B ratification artifact; CEO-delegated
+// 2026-08-26 "complete LIA Conversion … I defer to your recommendations"):
+//   purpose_test.verdict   <- interest_legitimacy.verdict:
+//       legitimate_interest_established      -> "passes"
+//       legitimate_interest_not_established  -> "fails"
+//       undetermined_on_the_record           -> "uncertain"
+//   necessity_test.verdict <- the recorded less-intrusive-means comparison:
+//       alternatives recorded                -> "passes"
+//       absent                               -> "uncertain"
+//       (never "fails" on silence — the degradation law; no intake fact
+//       can affirmatively establish that a viable less-intrusive means
+//       was declined, so an adverse necessity verdict is never composed.)
+//   balancing_test.verdict <- the typed balancing findings:
+//       expectations not_reasonably_expected            -> "likely_fails"
+//       children in scope AND material harm weight      -> "likely_fails"
+//       material harm weight AND no recorded safeguards -> "likely_fails"
+//       any of expectations / harms / child undetermined-> "uncertain"
+//       otherwise                                       -> "likely_passes"
+//   These are Stage 2's own registered enum strings, so the skeleton's
+//   readTypedVerdicts consumes them unchanged.
+//
+// HARD GATES (evaluated before / independent of balancing, per the B5
+// ruling and PN-L1's 9M rule):
+//   • Public-authority exclusion — already inside buildDetermination.
+//   • The ePrivacy short-circuit — where the gate finds the consent
+//     requirement engaged, the OUTCOME is overridden to
+//     legitimate_interests_not_available regardless of the balance, and
+//     the ratified rule sentence (PN-L6(c)) carries the why. The
+//     balancing verdict itself is NOT altered — the gate is a gate, never
+//     a weight.
+//
+// ADVANCE-RATIFICATION LEDGER: every sentence template in this file is an
+// implementation-authored customer byte under the CEO's delegation;
+// they are written as visible literals so the redline surface is complete.
+
+import type {
+  AutomatedDecisionFinding,
+  ChildFactorFinding,
+  LiaDetermination,
+  LiaUpgrade4Deliverables,
+  PrecedentClassFinding,
+  PublicAuthorityFinding,
+  ReasonableExpectationsFinding,
+} from "./types.ts";
+import { classifyLiaUseCase } from "../../../../_shared/lia/lia-use-case-classifier.ts";
+
+type Bag = Record<string, unknown>;
+
+const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
+const bag = (v: unknown): Bag => (v && typeof v === "object" && !Array.isArray(v) ? v as Bag : {});
+const arr = (v: unknown): string[] =>
+  Array.isArray(v) ? v.map((x) => s(x)).filter(Boolean) : s(v) ? [s(v)] : [];
+const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
+
+export const LIA_TYPED_TEST_STAMP = "lia-three-part-test-typed@l1b-2026-08-26";
+
+/** The model path's plain-language strength notes (index.ts normalize
+ * block) — existing shipped bytes, reused verbatim for parity. */
+const STRENGTH_NOTES: Record<string, string> = {
+  strong: "Strong: as the record stands the facts present a strong argument for legitimate interest — the balancing record still requires the recommended documentation.",
+  moderate: "Moderate: the record supports a colorable legitimate-interest argument on named recorded facts; the items in Information Needed would strengthen it before deployment.",
+  weak: "Weak: the record as documented establishes some elements of the three-part test; the items in Information Needed would need to be recorded before a defensible legitimate-interest argument can be made.",
+  insufficient: "The record as it stands does not yet establish a defensible legitimate-interest claim; the items listed under Information Needed would complete the record.",
+  uncertain: "Uncertain: blocking issues have been identified that must be resolved before a defensible LI claim can be established — this does NOT mean legitimate interest is categorically unavailable.",
+};
+
+/** The ratified ePrivacy rule sentence (PN-L6(c), ratified by delegation
+ * 2026-08-26). Byte-pinned; the outcome override quotes it verbatim. */
+export const LIA_EPRIVACY_RULE_SENTENCE =
+  "Where Article 5(3) of the ePrivacy Directive requires consent for the processing — for example cookies or other access to terminal equipment, or unsolicited electronic messages — legitimate interests under Article 6(1)(f) GDPR cannot substitute for that consent, however the balancing test would otherwise resolve.";
+
+// ── Stage 1 replacement — typed classification ──────────────────────────────
+
+const SPECIAL_CATEGORY_TEXT = /health|medical|biometric|genetic|racial|ethnic|political|religio|sex life|sexual orientation|trade[- ]union/i;
+
+export interface LiaTypedClassification {
+  readonly use_case_category: string;
+  readonly primary_data_categories: readonly string[];
+  readonly special_category_data: boolean;
+  readonly relationship_exists: boolean;
+  readonly jurisdictions_scope: readonly string[];
+}
+
+export function buildClassificationTyped(intake: Bag): LiaTypedClassification {
+  const balancing = bag(intake.balancing_details);
+  const dataCats = arr(intake.data_categories);
+  const scdRaw = balancing.special_category_data;
+  const special = typeof scdRaw === "boolean"
+    ? scdRaw
+    : dataCats.some((c) => SPECIAL_CATEGORY_TEXT.test(c));
+  return {
+    use_case_category: classifyLiaUseCase(s(intake.processing_description)),
+    primary_data_categories: dataCats,
+    special_category_data: special,
+    relationship_exists: !!s(intake.relationship_type) && !/^none$/i.test(s(intake.relationship_type)),
+    jurisdictions_scope: arr(intake.jurisdictions),
+  };
+}
+
+// ── Verdicts ────────────────────────────────────────────────────────────────
+
+type TestVerdict = "passes" | "fails" | "uncertain";
+type BalancingVerdict = "likely_passes" | "likely_fails" | "uncertain";
+
+export function purposeVerdict(u4: LiaUpgrade4Deliverables): TestVerdict {
+  switch (u4.interest_legitimacy.verdict) {
+    case "legitimate_interest_established":
+      return "passes";
+    case "legitimate_interest_not_established":
+      return "fails";
+    default:
+      return "uncertain";
+  }
+}
+
+export function necessityVerdict(intake: Bag): TestVerdict {
+  const alternatives = s(bag(intake.necessity_details).alternatives) || s(intake.alternatives_considered);
+  return alternatives ? "passes" : "uncertain";
+}
+
+export function balancingVerdict(
+  expectations: ReasonableExpectationsFinding,
+  child: ChildFactorFinding,
+  u4: LiaUpgrade4Deliverables,
+  intake: Bag,
+): BalancingVerdict {
+  const harms = u4.potential_harms;
+  const safeguards = arr(bag(intake.balancing_details).safeguards);
+  const materialHarm = harms.material_weight_against_controller === true;
+  if (expectations.verdict === "not_reasonably_expected") return "likely_fails";
+  if (child.determination === "children_in_scope" && materialHarm) return "likely_fails";
+  if (materialHarm && safeguards.length === 0) return "likely_fails";
+  if (
+    expectations.verdict === "undetermined_on_the_record" ||
+    harms.status === "record_insufficient" ||
+    child.determination === "undetermined_on_the_record"
+  ) return "uncertain";
+  return "likely_passes";
+}
+
+// ── The weighing narrative (balancing analysis + synthesis) ─────────────────
+
+function expectationClause(expectations: ReasonableExpectationsFinding): string {
+  switch (expectations.verdict) {
+    case "reasonably_expected":
+      return "the people affected would reasonably expect this processing";
+    case "partly_expected":
+      return "the people affected would only partly expect this processing";
+    case "not_reasonably_expected":
+      return "the people affected would not reasonably expect this processing";
+    default:
+      return "what the people affected would expect is not established";
+  }
+}
+
+function harmClause(u4: LiaUpgrade4Deliverables): string {
+  const h = u4.potential_harms;
+  if (h.status === "record_insufficient") return "the worst-case impact is not stated";
+  if (h.material_weight_against_controller) {
+    return `the worst-case impact recorded is ${h.worst_case_severity} and weighs materially against the interest`;
+  }
+  return `the worst-case impact recorded is ${h.worst_case_severity}`;
+}
+
+function controllerSideClause(intake: Bag, u4: LiaUpgrade4Deliverables): string {
+  const parts: string[] = [];
+  const benefit = s(u4.benefit_and_beneficiary.benefit);
+  parts.push(benefit ? `the specific benefit stated — ${benefit.replace(/\.$/, "")}` : "the interest as stated");
+  const safeguards = arr(bag(intake.balancing_details).safeguards);
+  if (safeguards.length) parts.push(`the recorded safeguards (${safeguards.join(", ").toLowerCase()})`);
+  if (u4.opt_out_feasibility.counts_as_mitigation) parts.push("an opt-out that goes beyond what the GDPR already requires");
+  return parts.join("; ");
+}
+
+export function composeBalancingAnalysis(
+  verdict: BalancingVerdict,
+  expectations: ReasonableExpectationsFinding,
+  child: ChildFactorFinding,
+  u4: LiaUpgrade4Deliverables,
+  intake: Bag,
+): { analysis: string; synthesis: string } {
+  const forSide = controllerSideClause(intake, u4);
+  const againstParts: string[] = [expectationClause(expectations), harmClause(u4)];
+  if (child.determination === "children_in_scope") {
+    againstParts.push("children are among the people affected, and their interests carry particular weight");
+  }
+  if (u4.relationship_with_individual.power_imbalance) {
+    againstParts.push("the relationship carries a recognised power imbalance");
+  }
+  const closing = verdict === "likely_passes"
+    ? "Weighed together, the balance favours the interest pursued as the record stands."
+    : verdict === "likely_fails"
+    ? "Weighed together, the balance favours the people affected as the record stands."
+    : "Weighed together, the balance cannot be struck on the information provided.";
+  const analysis =
+    `In favour of the interest: ${forSide}. Against it: ${againstParts.join("; ")}. ${closing}`;
+  return { analysis, synthesis: closing };
+}
+
+// ── W3-T2 factor entries (evidence-pointer discipline) ──────────────────────
+
+interface BalancingFactorEntry {
+  readonly factor: string;
+  readonly intake_evidence: string;
+  readonly evidence_absence: string;
+  readonly direction: "controller" | "data_subject" | "neutral";
+  readonly reasoning: string;
+}
+
+function factorEntries(
+  expectations: ReasonableExpectationsFinding,
+  u4: LiaUpgrade4Deliverables,
+): BalancingFactorEntry[] {
+  const h = u4.potential_harms;
+  const o = u4.opt_out_feasibility;
+  const r = u4.relationship_with_individual;
+  return [
+    {
+      factor: "Reasonable expectations",
+      intake_evidence: expectations.status === "analysed" ? "balancing_details.reasonable_expectation" : "",
+      evidence_absence: expectations.status === "analysed" ? "" : "the expectation answer is not recorded",
+      direction: expectations.verdict === "reasonably_expected"
+        ? "controller"
+        : expectations.verdict === "undetermined_on_the_record"
+        ? "neutral"
+        : "data_subject",
+      reasoning: stop(s(expectations.application)) || "The expectation position is taken from the record.",
+    },
+    {
+      factor: "Potential harms and severity",
+      intake_evidence: h.status === "analysed" ? "balancing_details.potential_harm" : "",
+      evidence_absence: h.status === "analysed" ? "" : "the worst-case impact is not recorded",
+      direction: h.material_weight_against_controller ? "data_subject" : h.status === "analysed" ? "neutral" : "neutral",
+      reasoning: stop(s(h.application)) || "The harm position is taken from the record.",
+    },
+    {
+      factor: "Relationship and power imbalance",
+      intake_evidence: r.status === "analysed" ? "relationship_type" : "",
+      evidence_absence: r.status === "analysed" ? "" : "the relationship is not recorded",
+      direction: r.power_imbalance ? "data_subject" : "neutral",
+      reasoning: stop(s(r.application)) || "The relationship position is taken from the record.",
+    },
+    {
+      factor: "Opt-out and mitigations",
+      intake_evidence: o.status === "analysed" ? "balancing_details.opt_out_mechanism" : "",
+      evidence_absence: o.status === "analysed" ? "" : "the opt-out position is not recorded",
+      direction: o.counts_as_mitigation ? "controller" : "neutral",
+      reasoning: stop(s(o.application)) || "The opt-out position is taken from the record.",
+    },
+  ];
+}
+
+// ── Stage 3 replacement — typed documentation recommendations ──────────────
+
+export interface LiaTypedDocRec {
+  readonly document: string;
+  readonly purpose: string;
+  readonly key_elements: readonly string[];
+  readonly basis: string;
+}
+
+export function buildDocumentationTyped(report: Bag, disclaimer: string): Bag {
+  const determination = bag(report.lia_determination) as unknown as LiaDetermination;
+  const u4 = {
+    opt_out_feasibility: bag(report.opt_out_feasibility),
+    attestation_block: bag(report.attestation_block),
+  } as unknown as LiaUpgrade4Deliverables;
+  const recs: LiaTypedDocRec[] = [
+    {
+      document: "Legitimate Interests Balancing Record",
+      purpose: "Preserves the three-part analysis this assessment records, so the position can be demonstrated if questioned.",
+      key_elements: [
+        "the interest pursued and who holds it",
+        "the less intrusive alternatives considered and why each was rejected",
+        "the balancing factors weighed and where the balance fell",
+        "the review triggers adopted",
+      ],
+      basis: "EDPB Guidelines 1/2024 — the controller must be able to demonstrate that the balancing test was conducted appropriately.",
+    },
+    {
+      document: "Legitimate Interests Notice (transparency statement)",
+      purpose: "States the interest pursued and the right to object, in the notice the people affected actually see.",
+      key_elements: [
+        "the legitimate interest, stated specifically rather than generically",
+        "the right to object under Article 21(1) and how to exercise it",
+      ],
+      basis: "GDPR Arts. 13(1)(d) and 21(1); EDPB Guidelines 1/2024 on specificity of the stated interest.",
+    },
+  ];
+  if (u4.opt_out_feasibility.status === "analysed" && u4.opt_out_feasibility.feasibility !== "no_opt_out_available") {
+    recs.push({
+      document: "Opt-out and objection handling procedure",
+      purpose: "Records how the stated opt-out operates and how downstream suppression is enforced.",
+      key_elements: [
+        "where the person encounters the opt-out",
+        "who operates it and how suppression is verified",
+      ],
+      basis: "The record's own opt-out position; EDPB Guidelines 1/2024, Section II.C.4 on measures that count.",
+    });
+  }
+  if (determination.outcome === "available_only_with_mitigations" && determination.mitigations.length) {
+    recs.push({
+      document: "Mitigation implementation plan",
+      purpose: "Tracks each mitigation this assessment conditions the basis on, and the re-run of the balance once adopted.",
+      key_elements: [
+        "each mitigation, its owner, and its evidence",
+        "the re-performed balancing test after adoption",
+      ],
+      basis: "EDPB Guidelines 1/2024, Section II.C.4 — after mitigations are adopted the balancing test is performed anew.",
+    });
+  }
+  const reviewTriggers = u4.attestation_block.review_triggers.length
+    ? u4.attestation_block.review_triggers
+    : [
+      "a material change to the processing, its purposes, or the data categories involved",
+      "a relevant regulatory decision or guidance change on legitimate interests",
+      "evidence that the balance struck here no longer reflects how the processing operates",
+    ];
+  return {
+    recommended_documentation: recs,
+    balancing_record_elements: [
+      "the interest pursued, stated precisely enough to be weighed",
+      "the necessity comparison against less intrusive means",
+      "each balancing factor and its direction",
+      "the mitigations adopted and their evidence",
+    ],
+    opt_out_mechanism: {
+      required: false,
+      basis: u4.opt_out_feasibility.status === "analysed"
+        ? "Recorded position; an opt-out beyond Article 21 is a mitigating measure, not a free-standing requirement."
+        : "Not established on the information provided.",
+      recommended_approach: u4.opt_out_feasibility.status === "analysed" && s(u4.opt_out_feasibility.mechanism)
+        ? s(u4.opt_out_feasibility.mechanism)
+        : "Offer a standing means of declining the specific use at the point the person first encounters it.",
+    },
+    review_triggers: reviewTriggers,
+    disclaimer,
+  };
+}
+
+// ── The assembled typed Stage 2 ─────────────────────────────────────────────
+
+export interface LiaTypedStage2Result {
+  readonly three_part_test: Bag;
+  readonly information_needed: readonly Bag[];
+  readonly determination_override: LiaDetermination | null;
+  readonly eprivacy_foreclosed: boolean;
+}
+
+export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage2Result {
+  const u4 = {
+    interest_legitimacy: bag(report.interest_legitimacy),
+    benefit_and_beneficiary: bag(report.benefit_and_beneficiary),
+    alternatives_considered: bag(report.alternatives_considered),
+    relationship_with_individual: bag(report.relationship_with_individual),
+    scale_frequency_duration: bag(report.scale_frequency_duration),
+    potential_harms: bag(report.potential_harms),
+    opt_out_feasibility: bag(report.opt_out_feasibility),
+    attestation_block: bag(report.attestation_block),
+  } as unknown as LiaUpgrade4Deliverables;
+  const expectations = bag(report.reasonable_expectations) as unknown as ReasonableExpectationsFinding;
+  const child = bag(report.child_factor) as unknown as ChildFactorFinding;
+  const publicAuthority = bag(report.public_authority_exclusion) as unknown as PublicAuthorityFinding;
+  const determination = bag(report.lia_determination) as unknown as LiaDetermination;
+  const adm = bag(report.automated_decision_analysis) as unknown as AutomatedDecisionFinding;
+  const gate = bag(report.eprivacy_short_circuit);
+  const precedent = bag(report.precedent_class_posture) as unknown as PrecedentClassFinding;
+
+  const pv = purposeVerdict(u4);
+  const nv = necessityVerdict(intake);
+  const bv = balancingVerdict(expectations, child, u4, intake);
+  const weighing = composeBalancingAnalysis(bv, expectations, child, u4, intake);
+
+  // ── The ePrivacy hard gate (outcome override, never a weight). ──────────
+  const foreclosed = gate.li_foreclosed_for_covered_processing === true;
+  // The gate's `application` sentence already carries the ratified rule
+  // sentence verbatim (eprivacy-gate.ts RULE_SENTENCE — byte-identical to
+  // LIA_EPRIVACY_RULE_SENTENCE above, pinned by the battery), so the
+  // override quotes the application once and appends the original why.
+  const determination_override: LiaDetermination | null = foreclosed
+    ? {
+      ...determination,
+      outcome: "legitimate_interests_not_available",
+      why: `${stop(s(gate.application))} ${stop(s(determination.why))}`.trim(),
+      rebalance_required: false,
+      status: "analysed",
+    }
+    : null;
+  const outcome = foreclosed ? "legitimate_interests_not_available" : s(determination.outcome);
+
+  // ── overall_assessment (UI surface; registered honest strings). ────────
+  const allPass = pv === "passes" && nv === "passes" && bv === "likely_passes";
+  const argument_strength = foreclosed
+    ? "weak"
+    : outcome === "legitimate_interests_available"
+    ? (allPass ? "strong" : "moderate")
+    : outcome === "available_only_with_mitigations"
+    ? "weak"
+    : outcome === "legitimate_interests_not_available"
+    ? "weak"
+    : "insufficient";
+  const posture = s(precedent.posture);
+  const precedentNames = Array.isArray(precedent.authorities)
+    ? (precedent.authorities as unknown as { subject?: string }[]).map((a) => s(a.subject)).filter(Boolean)
+    : [];
+  const NONE = "None identified in current database";
+  const closest_accepted_precedent = posture === "accepted" && precedentNames.length ? precedentNames.join("; ") : NONE;
+  const closest_rejected_precedent = posture === "rejected" && precedentNames.length ? precedentNames.join("; ") : NONE;
+  const strength_basis = foreclosed
+    ? "The ePrivacy consent requirement forecloses the basis for the covered processing, whatever the balance."
+    : posture && posture !== "not_assessed" && precedentNames.length
+    ? `The rating reflects the record's own three-part result, read alongside the tracked ${posture} posture for this class of processing (${precedentNames.join("; ")}).`
+    : "The rating reflects the record's own three-part result; no tracked precedent class bears on it.";
+  const blocking_issues = outcome === "legitimate_interests_not_available" || outcome === "undetermined_on_the_record"
+    ? (Array.isArray(determination.driving_factors) ? determination.driving_factors.map((f) => String(f)) : [])
+    : [];
+
+  // ── Test analyses: verbatim reuse of the typed applications. ───────────
+  const three_part_test: Bag = {
+    purpose_test: {
+      verdict: pv,
+      analysis: stop(s((u4.interest_legitimacy as unknown as Bag).application)),
+      risk_factors: pv === "fails" ? ["the interest as stated does not qualify as legitimate"] : [],
+      supporting_factors: pv === "passes" ? ["the interest is lawful, clearly articulated, and real and present on the record"] : [],
+      open_questions: pv === "uncertain" && s((u4.interest_legitimacy as unknown as Bag).information_needed as string)
+        ? [s((u4.interest_legitimacy as unknown as Bag).information_needed as string)]
+        : [],
+    },
+    necessity_test: {
+      verdict: nv,
+      analysis: stop(s((u4.alternatives_considered as unknown as Bag).application)),
+      risk_factors: [],
+      supporting_factors: nv === "passes" ? ["less intrusive alternatives are recorded with the reasons they were not adopted"] : [],
+      open_questions: nv === "uncertain"
+        ? ["the less intrusive alternatives considered, and why each was rejected"]
+        : [],
+    },
+    balancing_test: {
+      verdict: bv,
+      analysis: weighing.analysis,
+      factors: factorEntries(expectations, u4),
+      synthesis: weighing.synthesis,
+      risk_factors: factorEntries(expectations, u4).filter((f) => f.direction === "data_subject").map((f) => f.factor),
+      supporting_factors: factorEntries(expectations, u4).filter((f) => f.direction === "controller").map((f) => f.factor),
+      open_questions: [],
+      special_category_flag: bag(intake.balancing_details).special_category_data === true,
+      vulnerable_subject_flag: arr(bag(intake.balancing_details).vulnerable_subjects).filter((v) => v !== "None").length > 0,
+    },
+    overall_assessment: {
+      argument_strength,
+      strength_basis,
+      closest_accepted_precedent,
+      closest_rejected_precedent,
+      key_distinguishing_factors: [],
+      blocking_issues,
+      // Parity with the model path's normalize block: the plain-language
+      // note attaches on every run (existing shipped bytes, reused verbatim).
+      argument_strength_note: STRENGTH_NOTES[argument_strength] ?? STRENGTH_NOTES.uncertain,
+    },
+    annotations: [],
+  };
+
+  // ── information_needed (roster-shaped; the guard validates fields). ────
+  const information_needed: Bag[] = [];
+  if (pv === "uncertain") {
+    information_needed.push({
+      field: "stated_purpose",
+      dimensions: "the interest pursued, stated precisely enough to be weighed",
+      provision: "GDPR Art. 6(1)(f)",
+      enables: "the purpose test",
+    });
+  }
+  if (nv === "uncertain") {
+    information_needed.push({
+      field: "alternatives_considered",
+      dimensions: "the less intrusive alternatives considered and why each was rejected",
+      provision: "EDPB Guidelines 1/2024, Section II.B",
+      enables: "the necessity test",
+    });
+  }
+  if (bv === "uncertain") {
+    information_needed.push({
+      field: "processing_description",
+      dimensions: "the balancing facts still open — the expectation position, the worst-case impact, or the child question",
+      provision: "GDPR Art. 6(1)(f)",
+      enables: "the balancing test",
+    });
+  }
+  // ADM regime note rides through the existing finding; no extra ask here.
+  void adm;
+
+  return { three_part_test, information_needed, determination_override, eprivacy_foreclosed: foreclosed };
+}

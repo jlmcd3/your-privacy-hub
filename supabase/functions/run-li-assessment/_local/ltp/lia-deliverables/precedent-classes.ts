@@ -65,10 +65,15 @@ import type { PrecedentClassAuthority, PrecedentClassPosture } from "./types.ts"
 
 export const LIA_PRECEDENT_CLASSES_VERSION = "lia-precedent-classes-v1-2026-08-26";
 
-/** Set true only after the CEO ratifies the exact `what_happened` prose
- * below at a redline. Until then the finding computes and logs to
- * telemetry (proving the mechanism) but never reaches the skeleton. */
-export const LIA_PRECEDENT_CLASS_RATIFIED = false;
+/** Flipped TRUE 2026-08-26 under the CEO's delegated ratification (the LIA
+ * Conversion completion directive): the `what_happened` prose below and
+ * the POSTURE_SENTENCE templates (precedent-class.ts) are ratified bytes.
+ * The Factor-Bearing Law's ToA/appendix trail now exists — the skeleton's
+ * Persuasive Authority section (lia-persuasive-authority.ts) carries the
+ * cited decisions with composed authority labels, and the ToA lists them
+ * iff cited. Rendering is additionally confined to the deterministic path
+ * (LIA_DETERMINISTIC_ENABLED) so the legacy model path stays byte-frozen. */
+export const LIA_PRECEDENT_CLASS_RATIFIED = true;
 
 export interface PrecedentClassRow {
   readonly use_case_class: string;

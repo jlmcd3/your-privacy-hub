@@ -68,11 +68,15 @@ import type { EprivacyShortCircuitFinding, EprivacyTriggerBasis } from "./types.
 export const LIA_EPRIVACY_GATE_VERSION = "lia-eprivacy-gate-2026-08-26-v1";
 
 /**
- * RATIFICATION GATE (PN-L6). While false, no renderer may print any prose
- * from an EprivacyShortCircuitFinding into a customer document. Flipping
- * this flag is a CEO ratification event, not a code decision.
+ * RATIFICATION GATE (PN-L6). Flipped TRUE 2026-08-26 under the CEO's
+ * delegated ratification ("complete LIA Conversion … I defer to your
+ * recommendations"): the finding's prose, and the PN-L6(c) rule sentence
+ * (LIA_EPRIVACY_RULE_SENTENCE, three-part-test-typed.ts), are ratified
+ * bytes. Rendering happens ONLY on the deterministic path (the typed
+ * engine's outcome override carries the rule into the document); the
+ * legacy model path remains byte-untouched.
  */
-export const LIA_EPRIVACY_GATE_RATIFIED = false;
+export const LIA_EPRIVACY_GATE_RATIFIED = true;
 
 /** The CAM row this gate implements (lia-corpus-map.ts, logic-bearing FC). */
 export const EPRIVACY_CAM_ROW_ID = "lia/f11-eprivacy/fcl-01";
