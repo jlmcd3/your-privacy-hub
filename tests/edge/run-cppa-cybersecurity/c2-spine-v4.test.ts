@@ -170,3 +170,30 @@ Deno.test("C2 — the § 7124 attestation block renders (carried v3.3 content)",
   const text = skeletonDocumentToText(assembleGolden().document);
   assertStringIncludes(text, "Submission and Attestation");
 });
+
+// PN-C4 close-out (CEO-ratified 2026-08-26): counsel-referral zones are
+// moot-by-determinism at cutover — this document-level sweep IS the zone
+// rule. The only counsel mention the assembled document may carry is the
+// ITEM-204 pinned sentence's phrase.
+Deno.test("PN-C4 sweep — every counsel mention in the assembled document is the ITEM-204 pinned form", () => {
+  for (const doc of [
+    assembleGolden().document,
+    assembleCyberSkeletonDocumentV4(
+      reportFor({ profile: { entity_name: "Thin Co" }, controls: [] }),
+      { profile: { entity_name: "Thin Co" }, controls: [] },
+      PHASE_IN_EXCERPT,
+      REPORT_DATE,
+    ).document,
+  ]) {
+    const text = skeletonDocumentToText(doc);
+    let i = text.toLowerCase().indexOf("counsel");
+    while (i >= 0) {
+      const window = text.slice(Math.max(0, i - 60), i + 60);
+      assert(
+        window.includes("in consultation with qualified legal counsel"),
+        `counsel mention outside the pinned ITEM-204 form: …${window}…`,
+      );
+      i = text.toLowerCase().indexOf("counsel", i + 1);
+    }
+  }
+});
