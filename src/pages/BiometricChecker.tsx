@@ -259,7 +259,7 @@ export default function BiometricChecker() {
             primaryLabel={`Run a Biometric Privacy Assessment — $${pricing.price}`}
           />
           <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            740 ILCS 14 (BIPA) · written retention policy and informed written consent before you collect any identifier
+            740 ILCS 14 (BIPA) · Built from each biometric statute's own text — BIPA, CUBI, MHMD, GDPR Art. 9 — with cited enforcement decisions behind every priority action
           </p>
         </div>
       </header>

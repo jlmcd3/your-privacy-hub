@@ -56,6 +56,7 @@ export default function EUNoticeLanding() {
         title="EU & Global Privacy Notice Builder"
         showIntakeCta={false}
         valueProposition="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks, in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        citationLine="Built from each framework's statutory notice requirements — GDPR Arts. 13–14 and their counterparts in every covered law"
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg">

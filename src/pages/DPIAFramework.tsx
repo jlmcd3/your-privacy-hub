@@ -613,6 +613,10 @@ const DPIAFramework = () => {
             title: "A starting point for your DPO",
             body: "The document is a structured starting point for your Data Protection Officer or legal counsel to complete and own — it is not a finished DPIA and does not satisfy Article 35 on its own. Qualified legal review is required before relying on it.",
           },
+          {
+            title: "Why trust the analysis",
+            body: "Built on GDPR Article 35 and the EDPB's impact-assessment guidance, with cited regulator authority behind the analysis.",
+          },
         ]}
       />
 

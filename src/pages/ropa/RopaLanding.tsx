@@ -155,6 +155,10 @@ export default function RopaLanding() {
             title: "What you receive",
             body: "An audit-ready, Article 30-compliant Record of Processing Activities covering 25+ jurisdictions, built from guided plain-language questions and refreshed annually.",
           },
+          {
+            title: "Why trust the analysis",
+            body: "Built to GDPR Article 30's enumerated record requirements — and to the corresponding record-keeping provisions of LGPD, CCPA, and each other covered framework.",
+          },
         ]}
       />
       <main className="flex-1 mt-6">

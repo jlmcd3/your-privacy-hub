@@ -239,7 +239,7 @@ const LIAssessment = () => {
           },
           {
             title: "Why trust the analysis",
-            body: "Every test verdict cites the specific enforcement decisions that informed it — CNIL, ICO, Garante and others — so you can see exactly what stands behind the analysis.",
+            body: "Built upon regulator guidance and enforcement actions throughout the EU and UK — every test verdict cites the specific guidance and enforcement decisions (EDPB, CNIL, ICO, Garante and others) that informed it, so you can see exactly what stands behind the analysis.",
           },
         ]}
       />

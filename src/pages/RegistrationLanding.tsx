@@ -76,7 +76,7 @@ export default function RegistrationLanding() {
         geography="us"
         eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Registration Manager</>}
         title="Privacy Registration Manager"
-        valueProposition={`Privacy registration filings, drafted and tracked — DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act registration drafts, generated in minutes and renewed on schedule. ${formatPrice("registration_standalone")} per filing.`}
+        valueProposition={`Privacy registration filings, drafted and tracked — DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act registration documents, generated in minutes and renewed on schedule. ${formatPrice("registration_standalone")} per filing.`}
         citationLine="Free assessment · No card required · Pay only when you generate documents"
         showIntakeCta={false}
       >
@@ -97,7 +97,11 @@ export default function RegistrationLanding() {
           },
           {
             title: "What you receive",
-            body: "Draft filings tailored to every jurisdiction you operate in — DPO appointment letters, RoPA templates, Article 27 representative letters, and EU AI Act registration drafts — with renewals tracked on schedule.",
+            body: "Filings tailored to every jurisdiction you operate in — DPO appointment letters, RoPA templates, Article 27 representative letters, and EU AI Act registration documents — with renewals tracked on schedule.",
+          },
+          {
+            title: "Why trust the analysis",
+            body: "Built from each supervisory authority's own registration and fee requirements, jurisdiction by jurisdiction — including the ICO's data-protection-fee rules and the EU AI Act's registration provisions.",
           },
         ]}
       />

@@ -235,7 +235,7 @@ export default function DPAGenerator() {
           <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
           <div className="mt-4"><SampleReportLink toolSlug="dpa" tone="onDark" variant="link" /></div>
           <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            GDPR Art. 28 · controller-processor terms calibrated to your jurisdictions and the enforcement record
+            GDPR Art. 28 · Every clause built from the statutory processor obligations of your jurisdictions and calibrated to cited enforcement decisions
           </p>
         </div>
       </header>

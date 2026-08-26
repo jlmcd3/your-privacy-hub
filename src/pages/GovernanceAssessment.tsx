@@ -583,6 +583,10 @@ const GovernanceAssessment = () => {
               <>Evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.</>
             ),
           },
+          {
+            title: "Why trust the analysis",
+            body: "Conforms to the EDPB's latest recommended guidance, with cited enforcement decisions behind every risk finding — so you can see the regulator authority standing behind each conclusion.",
+          },
         ]}
       />
 

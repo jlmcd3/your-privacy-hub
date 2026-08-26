@@ -253,7 +253,7 @@ export default function IRPlaybook() {
           <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
           <div className="mt-4"><SampleReportLink toolSlug="ir_playbook" tone="onDark" variant="link" /></div>
           <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            GDPR Arts. 33–34 · jurisdiction-specific deadlines, portals, and templates ready when the clock starts
+            GDPR Arts. 33–34 · Built from each regulator's own notification rules, portals, and deadlines, with cited enforcement decisions behind every threshold
           </p>
         </div>
       </header>

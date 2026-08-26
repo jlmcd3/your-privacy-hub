@@ -727,7 +727,7 @@ export default function ADMTChecker() {
           },
           {
             title: "Why trust the analysis",
-            body: "Built from the CPPA's final regulations and Final Statement of Reasons, with paragraph-level citations. Where the agency has not spoken, the report says so.",
+            body: "Compiled with reference to the statute, the regulations, and the regulator's own commentary and guidance — the CPPA's final regulations and Final Statement of Reasons, cited at paragraph level. Where the agency has not spoken, the report says so.",
           },
         ]}
       />
