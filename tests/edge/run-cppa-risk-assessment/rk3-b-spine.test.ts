@@ -1,10 +1,9 @@
-// RK3-B — Spine 4.3 pin tests (Phase B).
+// Spine v5.2 pin tests (the Memorandum Redesign, CEO-ratified 2026-08-26).
 //
-// Pins the Spine 4.3 encode: section structure, Phase B rendering behaviour
-// over both CPPA_RISK_PERFECT fixtures (skeleton + INTAKE/FINAL/SYSTEM slots +
-// DERIVED rule blocks; FACTOR blocks honestly absent), the ADMT gate
-// (section V and Appendix D fully absent for the non-ADMT fixture), and the
-// deterministic DERIVED builders introduced for the 4.3 appendices.
+// Pins the v5.2 encode: section structure, rendering behaviour over both
+// CPPA_RISK_PERFECT fixtures (skeleton + slots + generated blocks + tables),
+// the ADMT gate (§ III.E and Appendix F carry a not-applicable record for
+// the non-ADMT fixture), and the deterministic DERIVED builders.
 //
 // Engine invocation matches the RK0.5 harness: deterministic Pass-1,
 // EMPTY_RISK_CORPUS, no refinementDeps — zero model calls, zero DB access.
@@ -33,47 +32,37 @@ import {
   deriveMaterialsConsideredIndex,
   deriveNextReviewDate,
   deriveProcessingAndDataInventory,
-  deriveProcessingLifecycleNarrative,
   deriveSubmissionSupportRecord,
 } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;
 
-const BUILD_STAMP = "rk3-b-spine-pins";
+const BUILD_STAMP = "spine-v52-pins";
 
 // ── Spine structure pins ──────────────────────────────────────────────────────
 
-Deno.test("RK3-B — spine version is the v4.7.2 encode (2026-08-25 polish round)", () => {
-  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v4.7.2-2026-08-25");
+Deno.test("v5.2 — spine version is the 2026-08-26 memorandum encode", () => {
+  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v5.2-2026-08-26");
 });
 
-Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
-  // CEO report review 2026-08-23/24: table_of_authorities (Appendix A,
-  // formerly "G") and appendix_i (Appendix B, formerly "I") now lead the
-  // appendix set; appendix_a-f follow, reletterd C-H. appendix_h (EUP
-  // Methodology, never triggered) is retired — no longer a valid id.
-  // CEO report review 2026-08-24: two new signature pages, "review_and_
-  // approval" and "agency_submission_checklist", sit between x_governance
-  // and table_of_authorities — neither is titled "Appendix ...".
+Deno.test("v5.2 — section ids, in document order", () => {
+  // The memorandum structure: Exec Summary → I. Method → II. Information →
+  // III. Analysis → IV. Balance/Determination → V. Governance → signature
+  // pages → Appendices A–H. Appendix section ids are CARRIED from the v4.x
+  // encode (the PDF renderer page-breaks on "table_of_authorities", and the
+  // corpus wiring keys on "appendix_i").
   assertEquals(SKELETON_SECTIONS.map((s) => s.id), [
     "cover",
     "executive_summary",
-    "i_purpose_scope",
-    "ii_processing_context",
-    "iii_necessity",
-    "iv_consumer_transparency",
-    "v_admt",
-    "vi_benefits",
-    "vii_risks",
-    "viii_safeguards",
-    "ix_balancing",
-    "x_governance",
+    "i_method",
+    "ii_information",
+    "iii_analysis",
+    "iv_determination",
+    "v_governance",
     "review_and_approval",
     "agency_submission_checklist",
     "table_of_authorities",
-    // v4.6 — corpus phase 2 (doc 49 A.2.4): the S5 persuasive-authority
-    // surface; fully conditional, drops when no precedent row attaches.
     "appendix_i",
     "appendix_a",
     "appendix_b",
@@ -84,7 +73,7 @@ Deno.test("RK3-B — Spine 4.3 section ids, in document order", () => {
   ]);
 });
 
-Deno.test("RK3-B — Appendix A (formerly \"G\") keeps the id the PDF renderer page-breaks on", () => {
+Deno.test("v5.2 — Appendix A keeps the id the PDF renderer page-breaks on", () => {
   const appA = SKELETON_SECTIONS.find((s) =>
     s.title === "Appendix A — Factor, Determination, and Authority Matrix"
   );
@@ -92,7 +81,7 @@ Deno.test("RK3-B — Appendix A (formerly \"G\") keeps the id the PDF renderer p
   assertEquals(appA.id, "table_of_authorities");
 });
 
-Deno.test("RK3-B — the v3 banned register never appears in fixed prose", () => {
+Deno.test("v5.2 — the banned register never appears in fixed prose", () => {
   const banned = [
     "the record shows",
     "the record reflects",
@@ -101,6 +90,9 @@ Deno.test("RK3-B — the v3 banned register never appears in fixed prose", () =>
     "the record establishes",
     "on this record",
     "as the record makes clear",
+    "on the present record",
+    "structured record",
+    "risk pathway",
   ];
   for (const section of SKELETON_SECTIONS) {
     for (const block of section.blocks) {
@@ -113,41 +105,29 @@ Deno.test("RK3-B — the v3 banned register never appears in fixed prose", () =>
   }
 });
 
-// ── Phase B rendering over the perfect fixtures ──────────────────────────────
+// ── Rendering over the perfect fixtures ──────────────────────────────────────
 
 const PRESENT_ALWAYS = [
   "cover",
   "executive_summary",
-  "i_purpose_scope",
-  "ii_processing_context",
-  "iii_necessity",
-  "iv_consumer_transparency",
-  "vi_benefits",
-  "vii_risks",
-  "viii_safeguards",
-  "ix_balancing",
-  "x_governance",
-  // CEO report review 2026-08-24 — signature pages, always present.
+  "i_method",
+  "ii_information",
+  "iii_analysis",
+  "iv_determination",
+  "v_governance",
   "review_and_approval",
   "agency_submission_checklist",
+  "table_of_authorities",
   "appendix_a",
-  // RK3-C: the factor engine now composes the necessity matrix and the risk
-  // register, so both factor appendices render on a perfect fixture.
   "appendix_b",
   "appendix_c",
+  "appendix_d",
   "appendix_e",
   "appendix_f",
 ];
 
-// CEO report review 2026-08-23/24: the EUP-methodology appendix (formerly
-// id "appendix_h") is RETIRED from the spine entirely — it never composed
-// (its trigger, {{SYSTEM.include_methodology_appendix}}, no fixture ever
-// set) and "appendix_h" is no longer even a section this array can
-// produce, so there is nothing left to assert absent here.
-const ABSENT_PHASE_B: string[] = [];
-
 for (const c of CPPA_RISK_PERFECT) {
-  Deno.test(`RK3-B — Spine 4.3 rendering — ${c.id}`, async (t) => {
+  Deno.test(`v5.2 — memorandum rendering — ${c.id}`, async (t) => {
     const result = await generateCppaRiskReport(c.intake, {
       pass1: "deterministic",
       riskCorpus: EMPTY_RISK_CORPUS,
@@ -161,7 +141,7 @@ for (const c of CPPA_RISK_PERFECT) {
     const body = skeletonDocumentToText(doc);
     const isAdmt = /^yes\b/i.test(String((c.intake as Bag).q18_admt_use ?? ""));
 
-    await t.step("document carries the 4.3 spine version", () => {
+    await t.step("document carries the v5.2 spine version", () => {
       assertEquals(doc.spine_version, RISK_SKELETON_VERSION);
     });
 
@@ -179,58 +159,64 @@ for (const c of CPPA_RISK_PERFECT) {
       }
     });
 
-    await t.step("untriggered sections stay honestly absent", () => {
-      for (const id of ABSENT_PHASE_B) {
-        assert(!ids.includes(id), `section ${id} must be absent`);
-      }
-    });
-
-    await t.step("ADMT gate — Section V and Appendix D carry full content iff ADMT, a not-applicable line otherwise", () => {
-      // v4.7.2 (2026-08-25 polish round) — the section and appendix no
-      // longer vanish for non-ADMT activities; they carry a one-line
-      // not-applicable record so the fixed numbering shows no gap. Full
-      // ADMT content still renders iff ADMT.
-      assert(ids.includes("v_admt"), `v_admt section absent on ${c.id}`);
-      assert(ids.includes("appendix_d"), `appendix_d section absent on ${c.id}`);
-      if (!isAdmt) {
-        assert(body.includes("does not identify automated decisionmaking technology"), "non-ADMT Section V placeholder absent");
+    await t.step("ADMT gate — § III.E and Appendix F carry full content iff ADMT, a not-applicable record otherwise", () => {
+      if (isAdmt) {
+        assert(body.includes("E. Automated Decisionmaking Technology. Section 7152(a)(3)(G)"), "ADMT § III.E intro absent on ADMT fixture");
+      } else {
+        assert(
+          body.includes("does not identify automated decisionmaking technology"),
+          "non-ADMT § III.E not-applicable record absent",
+        );
         assert(body.includes("no ADMT technical and decision record is required"), "non-ADMT Appendix F placeholder absent");
-        assert(!body.includes("The Company describes the relevant automated system as"), "non-ADMT body leaks ADMT prose");
+        assert(!body.includes("It classifies the system as"), "non-ADMT body leaks ADMT prose");
       }
-    });
-
-    await t.step("Appendix A (formerly \"G\") renders", () => {
-      assert(ids.includes("table_of_authorities"), "Appendix A (factor/determination matrix) section absent");
     });
 
     await t.step("no placeholder or sentinel leakage", () => {
       assert(!body.includes("{{"), "spine placeholder notation leaked");
       assert(!body.includes("[GENERATED"), "generated block marker leaked");
       assert(!body.includes("[CONDITIONAL"), "conditional block marker leaked");
-      assert(!body.includes("\u0000"), "sentinel leaked");
+      assert(!body.includes(String.fromCharCode(0)), "sentinel leaked");
     });
 
-    await t.step("key Spine 4.3 fixed literals render", () => {
+    await t.step("key v5.2 fixed literals render", () => {
       for (const literal of [
-        "Activity Assessed.",
-        "Why a Risk Assessment Is Required.",
-        "A. Processing Purpose.",
-        "D. Basis for the Assessment.",
-        "E. Record Sufficiency.",
-        "A. How the Processing Works.",
-        "A. The Necessity Question.",
-        "A. Consumer Perspective.",
-        "A. How Benefits Are Considered.",
-        "A. How Risk Is Evaluated.",
-        "A. Role of Safeguards.",
-        "A. The Decision.",
-        "B. Assessment Timing.",
-        "C. Review and Material Changes.",
+        "A. Activity Assessed.",
+        "B. Why a Risk Assessment Is Required.",
+        "C. The Balancing Test.",
+        "I. HOW THIS ASSESSMENT DECIDES",
+        "A. The Question.",
+        "B. The EUP Decision Logic.",
+        "Step 1 — Triggers.",
+        "Step 5 — The balance.",
+        "C. Qualitative Refinement.",
+        "II. THE INFORMATION PROVIDED",
+        "A. Purpose and Scope.",
+        "B. How the Processing Operates.",
+        "F. Recipients and Disclosures.",
+        "G. Retention.",
+        "III. ANALYSIS",
+        "A. The Triggers, Applied.",
+        "B. Necessity and Minimization.",
+        "D. Practical Consumer Control.",
+        "F. Benefits.",
+        "IV. THE BALANCE AND THE DETERMINATION",
+        "A. The Risk Ledger.",
+        "B. What Weighs For, and What Weighs Against.",
+        "C. The Determination.",
+        "D. Conditions, Follow-Ups, and Recommendations.",
+        "V. GOVERNANCE, REVIEW, AND SUBMISSION",
         "D. Retention of the Assessment Record.",
-        "E. CPPA Submission Support Record (§ 7157).",
+        "E. CPPA Submission Support (§ 7157).",
       ]) {
         assert(body.includes(literal), `missing fixed literal: ${literal}`);
       }
+    });
+
+    await t.step("the defined terms are introduced in the executive summary", () => {
+      assert(body.includes("(the “Company”)"), "Company defined term absent");
+      assert(body.includes("(the “Activity”)"), "Activity defined term absent");
+      assert(body.includes("(the “Purpose”)"), "Purpose defined term absent");
     });
 
     await t.step("intake facts reach the document", () => {
@@ -238,46 +224,46 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes(String(intake.entity_name)), "entity name absent");
       assert(body.includes(String(intake.primary_activity_name)), "activity name absent");
       assert(body.includes(String(intake.processing_entry_point)), "processing entry point absent");
-      assert(body.includes(String(intake.consumer_interaction_purpose)), "interaction purpose absent");
       assert(body.includes(String(intake.i8_certifying_exec_name)), "certifying exec absent");
     });
 
-    await t.step("SPI conditional renders for a sensitive-PI record", () => {
+    await t.step("the determination renders once, in the re-registered voice", () => {
       assert(
-        body.includes("The activity includes the following sensitive personal information:"),
-        "SPI conditional absent on a q15=Yes fixture",
+        body.includes("Based on the information provided by the Company"),
+        "re-registered determination string absent",
       );
+      assert(!body.includes("on the present record"), "retired register leaked");
     });
 
-    await t.step("benefit gates render the identified branch, never the no-benefit branch", () => {
-      assert(body.includes("The Company identifies:"), "identified-benefit lead absent");
-      assert(
-        !body.includes("has been established on the present record"),
-        "no-benefit branch rendered on a fixture with all four benefits identified",
-      );
+    await t.step("the risk ledger and balance summary tables render", () => {
+      assert(body.includes("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining"), "risk ledger columns absent");
+      assert(body.includes("Benefits established (weight) | Risks remaining (level)"), "balance summary columns absent");
     });
 
     await t.step("§ 7150(b) triggers derive and render", () => {
       const triggers = deriveApplicable7150Triggers(report);
       assertExists(triggers, "no engaged trigger derived on a perfect fixture");
       assert(
-        body.includes("The activity triggers the requirement under"),
-        "trigger sentence absent from the executive summary",
+        body.includes("On the information provided, the Activity engages the following trigger or triggers:"),
+        "trigger lead absent from the executive summary",
+      );
+    });
+
+    await t.step("benefit paragraphs render branch-complete (Annex T2)", () => {
+      assert(
+        body.includes("benefit carries material weight") || body.includes("benefit carries limited weight"),
+        "no T2 benefit paragraph rendered",
       );
     });
 
     await t.step("appendix table blocks compose", () => {
-      // Part B item 3 (2026-08-21, CEO-confirmed, presentation only):
-      // Appendices A, D, E and F now render as tables (skeletonTableToText
-      // joins each row's cells with " | ", not a trailing colon on the
-      // label) instead of a joined "rule" string. Facts unchanged.
-      assert(body.includes("Personal-information categories (this activity)"), "Appendix A inventory absent");
-      assert(body.includes("Applicable § 7150(b) trigger(s)"), "Appendix E submission record absent");
-      // v4.7.2 — retitled; "Outstanding" read as the assessment being unfinished.
-      assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "Appendix E outstanding checklist absent");
-      assert(body.includes("CPPA risk-assessment intake record"), "Appendix F materials index absent");
+      assert(body.includes("Personal-information categories (this activity)"), "Appendix C inventory absent");
+      assert(body.includes("Applicable § 7150(b) trigger(s)"), "Appendix G submission record absent");
+      assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "Appendix G outstanding checklist absent");
+      assert(body.includes("CPPA risk-assessment intake record"), "Appendix H materials index absent");
+      assert(body.includes(`Assessment engine version: ${RISK_SKELETON_VERSION}`), "Appendix H engine-version line absent");
       if (isAdmt) {
-        assert(body.includes("System description"), "Appendix D ADMT facts absent on ADMT fixture");
+        assert(body.includes("System description"), "Appendix F ADMT facts absent on ADMT fixture");
       }
     });
   });
@@ -285,7 +271,7 @@ for (const c of CPPA_RISK_PERFECT) {
 
 // ── DERIVED builder unit pins ────────────────────────────────────────────────
 
-Deno.test("RK3-B — deriveInitialAssessmentDeadline (§ 7155 timing rules)", () => {
+Deno.test("v5.2 — deriveInitialAssessmentDeadline (§ 7155 timing rules)", () => {
   assertEquals(deriveInitialAssessmentDeadline({}), null);
   const planned = deriveInitialAssessmentDeadline({
     processing_status: "Planned",
@@ -305,12 +291,12 @@ Deno.test("RK3-B — deriveInitialAssessmentDeadline (§ 7155 timing rules)", ()
   assert(post2026?.includes("before initiation of the processing"), post2026 ?? "");
 });
 
-Deno.test("RK3-B — deriveNextReviewDate adds the three-year review rule", () => {
+Deno.test("v5.2 — deriveNextReviewDate adds the three-year review rule", () => {
   assertEquals(deriveNextReviewDate("2026-08-18"), "2029-08-18");
   assertEquals(deriveNextReviewDate("2028-02-29"), "2031-03-01");
 });
 
-Deno.test("RK3-B — deriveAssessmentRetentionEnd (§ 7155 later-of rule)", () => {
+Deno.test("v5.2 — deriveAssessmentRetentionEnd (§ 7155 later-of rule)", () => {
   assertEquals(deriveAssessmentRetentionEnd({}), null);
   assert(
     deriveAssessmentRetentionEnd({ processing_status: "Discontinued" })
@@ -322,23 +308,20 @@ Deno.test("RK3-B — deriveAssessmentRetentionEnd (§ 7155 later-of rule)", () =
   );
 });
 
-Deno.test("RK3-B — SPI inventory maps the canonical taxonomy with the q15 fallback", () => {
+Deno.test("v5.2 — SPI inventory maps the canonical taxonomy with the q15 fallback", () => {
   const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
   const locus = CPPA_RISK_PERFECT[1].intake as Bag;
-  // Locus carries a mapped SPI category.
   const locusSpi = deriveActivitySpiInventory(locus);
   assert(locusSpi?.includes("Precise geolocation"), locusSpi ?? "");
-  // Sierra answers q15=Yes with no SPI-mapped q4 category → fallback [R3].
   const sierraSpi = deriveActivitySpiInventory(sierra);
   assert(sierraSpi?.includes("sensitive personal information"), sierraSpi ?? "");
-  // No SPI at all → null.
   assertEquals(
     deriveActivitySpiInventory({ q4_pi_categories: ["Financial information"], q15_sensitive_pi: "No" }),
     null,
   );
 });
 
-Deno.test("RK3-B — PI inventory carries the canonical California mapping", () => {
+Deno.test("v5.2 — PI inventory carries the canonical California mapping", () => {
   const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
   const inv = deriveActivityPiInventory(sierra);
   assert(inv?.includes("canonical California category"), inv ?? "");
@@ -346,20 +329,7 @@ Deno.test("RK3-B — PI inventory carries the canonical California mapping", () 
   assertEquals(deriveActivityPiInventory({}), null);
 });
 
-Deno.test("RK3-B — lifecycle narrative sequences the company's own first sentences", () => {
-  const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
-  const n = deriveProcessingLifecycleNarrative(sierra);
-  assertExists(n);
-  assert(n.includes("point of sale"), n);
-  assertEquals(deriveProcessingLifecycleNarrative({}), null);
-});
-
-// Part B item 3 (2026-08-21, CEO-confirmed, presentation only): these five
-// builders now return a RenderedTable (columns + rows) instead of a joined
-// string, so the renderer gives them real <table> treatment instead of
-// falling through to the plain-paragraph branch. Facts and computation are
-// unchanged — only the shape of the return value is.
-Deno.test("RK3-B — Appendix A / E / F builders compose from established facts only", () => {
+Deno.test("v5.2 — Appendix C / G / H builders compose from established facts only", () => {
   const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
   const invA = deriveProcessingAndDataInventory(sierra);
   assertExists(invA);
@@ -369,7 +339,7 @@ Deno.test("RK3-B — Appendix A / E / F builders compose from established facts 
     JSON.stringify(invA.rows),
   );
   assert(
-    invA.rows.some((r) => r[0] === "Retention" && r[1].includes("Financial information: Statutory or regulatory retention requirement")),
+    invA.rows.some((r) => r[0] === "Processing lifecycle (operational sequence)"),
     JSON.stringify(invA.rows),
   );
 
@@ -393,9 +363,11 @@ Deno.test("RK3-B — Appendix A / E / F builders compose from established facts 
   const idx = deriveMaterialsConsideredIndex(sierra);
   assert(idx.rows.some((r) => r[0].includes("intake record")), JSON.stringify(idx.rows));
   assert(idx.rows.some((r) => r[0].includes("https://www.sierraoutfitters.example/privacy")), JSON.stringify(idx.rows));
+  // v5.2 — the engine-version line moved off the cover into Appendix H.
+  assert(idx.rows.some((r) => r[0].includes("Assessment engine version")), JSON.stringify(idx.rows));
 });
 
-Deno.test("RK3-B — Appendix D ADMT facts compose iff ADMT", () => {
+Deno.test("v5.2 — Appendix F ADMT facts compose iff ADMT", () => {
   const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
   const locus = CPPA_RISK_PERFECT[1].intake as Bag;
   const facts = deriveAdmtTechnicalFacts(sierra);

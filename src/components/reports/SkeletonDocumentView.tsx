@@ -75,27 +75,37 @@ function sentenceSpans(text: string): SentenceSpan[] {
   }
   return out;
 }
-// 2026-08-25 batch be0f9e02 — LEAD-PHRASE STYLING, the web twin of
-// generate-report-pdf/index.ts's styleLeadPhrases (doc 66 Rule 2, extended).
-// One regex: lettered leads ("E. Residual Risk."), the named exec
-// phrase-leads, and run-in analytic labels ("Analysis.", "Conclusion.", …)
-// at chunk start, after a sentence end, or after a newline. Closed
-// whitelist; keep the two files' label lists and boundaries in sync.
-const LEAD_LABELS = [
+// LEAD-PHRASE STYLING — the web twin of generate-report-pdf/index.ts's
+// styleLeadPhrases (doc 66 Rule 2; run-in treatment re-ruled by the CEO
+// 2026-08-26). Two closed-whitelist families:
+//  HEAD — bold + underlined, inline where they stand: lettered leads
+//   ("E. Residual Risk."), statutory harm labels ("(B) Unlawful …"),
+//   method-step leads ("Step 1 — Triggers."), the named phrase-leads.
+//  RUN-IN — "Conclusion.", "Out of scope.", "Analysis.", … render
+//   UNDERLINED, NOT BOLD, and START A NEW LINE (the paragraph's
+//   whitespace-pre-line renders the inserted "\n").
+// Keep the two files' label lists and boundaries in sync.
+const HEAD_LEAD_LABELS = [
   "Activity Assessed\\.", "Why a Risk Assessment Is Required\\.", "Key Findings\\.",
   "Overall Determination\\.", "Conditions to Proceed\\.", "Condition to Proceed\\.",
-  "Assessment Follow-Up Required\\.", "Analysis\\.", "Conclusion\\.", "Reasoning\\.",
-  "Consequence\\.", "Recommendation\\.", "Recommendations\\.", "Required Follow-Up\\.",
-  "Record Considered\\.", "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
+  "Assessment Follow-Up Required\\.", "Recommendation\\.", "Recommendations\\.",
+  "Required Follow-Up\\.", "Follow-Ups\\.", "Record Considered\\.",
   "Risk Assessments\\.", "Outstanding Matters\\.", "Review and Maintenance\\.",
   "Priority Matters:", "Scope of Assessment:", "Withholding and Security:",
 ];
+const RUNIN_LEAD_LABELS = [
+  "Analysis\\.", "Conclusion\\.", "Reasoning\\.", "Consequence\\.",
+  "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
+  "Entry\\.", "Stages\\.", "Output\\.",
+];
 const LEAD_PHRASE_RE = new RegExp(
-  `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|${LEAD_LABELS.join("|")})(?=\\s|$)`,
+  `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|(?:\\([A-H]\\)\\s+[A-Z][^.\\n]{0,140}?\\.)|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)|${HEAD_LEAD_LABELS.join("|")})(?=\\s|$)` +
+    `|(^|[.!?]\\s+|\\n\\s*)(${RUNIN_LEAD_LABELS.join("|")})(?=\\s|$)`,
   "g",
 );
-/** Chunk text → React nodes with every lead phrase bold+underlined and the
- * remaining text routed through renderBodyText (appendix-ref underlining). */
+/** Chunk text → React nodes: HEAD leads bold+underlined inline; RUN-IN
+ * labels underlined (not bold) on a new line; the remaining text routed
+ * through renderBodyText (appendix-ref underlining). */
 function renderLeadStyledText(text: string): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
   let last = 0;
@@ -103,18 +113,37 @@ function renderLeadStyledText(text: string): React.ReactNode[] {
   LEAD_PHRASE_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = LEAD_PHRASE_RE.exec(text)) !== null) {
-    const pre = m[1];
-    const label = m[2];
+    const isHead = m[2] !== undefined;
+    const pre = (isHead ? m[1] : m[3]) ?? "";
+    const label = (isHead ? m[2] : m[4]) as string;
     const labelStart = m.index + pre.length;
     if (labelStart > last) {
-      nodes.push(<span key={`t${key++}`}>{renderBodyText(text.slice(last, labelStart))}</span>);
+      const preText = text.slice(last, labelStart);
+      // Run-in labels start a new line: trim the separating spaces off the
+      // preceding text and insert a "\n" (rendered by whitespace-pre-line),
+      // unless the label already sits at a line start.
+      const needsBreak = !isHead && preText !== "" && !/\n\s*$/.test(preText);
+      nodes.push(
+        <span key={`t${key++}`}>
+          {renderBodyText(needsBreak ? preText.replace(/[^\S\n]+$/, "") : preText)}
+        </span>,
+      );
+      if (needsBreak) nodes.push(<span key={`b${key++}`}>{"\n"}</span>);
     }
     // doc 72 §4 — dropped, thin underline (clears descenders), matching
     // generate-report-pdf's styleLeadPhrases treatment.
     nodes.push(
-      <strong key={`l${key++}`} className="underline underline-offset-[2.5px] decoration-[0.5px]">
-        {label}
-      </strong>,
+      isHead
+        ? (
+          <strong key={`l${key++}`} className="underline underline-offset-[2.5px] decoration-[0.5px]">
+            {label}
+          </strong>
+        )
+        : (
+          <span key={`l${key++}`} className="underline underline-offset-[2.5px] decoration-[0.5px]">
+            {label}
+          </span>
+        ),
     );
     last = labelStart + label.length;
   }

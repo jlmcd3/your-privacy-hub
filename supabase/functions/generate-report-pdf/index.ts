@@ -1439,35 +1439,47 @@ const SIGNATURE_PAGE_IDS = new Set([
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────
-// LEAD-PHRASE STYLING (doc 66 Rule 2, extended 2026-08-25 batch be0f9e02).
+// LEAD-PHRASE STYLING (doc 66 Rule 2; run-in treatment re-ruled by the CEO
+// 2026-08-26).
 //
-// One regex, applied to the ESCAPED text of every plain paragraph run:
-//  - lettered leads ("E. Residual Risk.") — at chunk start, after a
-//    sentence end, or after a newline (Rule 5's "\n"-joined blocks put
-//    leads like "F. Overall Benefits Conclusion." mid-chunk);
-//  - the named phrase-leads (exec-summary heads, verified against
-//    RISK_FACTOR_FIXED) — same boundaries;
-//  - run-in analytic labels ("Analysis.", "Conclusion.", "Reasoning.",
-//    "Consequence.", …) which the engines emit MID-paragraph as
-//    sentence-opening labels. Closed whitelist — never a heuristic — so a
-//    sentence that happens to start with a capitalized word is never
-//    styled by accident.
+// One regex, applied to the ESCAPED text of every plain paragraph run, with
+// TWO label families (both closed whitelists — never a heuristic):
+//
+//  HEAD family — bold + underlined, inline where they stand:
+//   - lettered leads ("E. Residual Risk.") — at chunk start, after a
+//     sentence end, or after a newline;
+//   - statutory harm labels ("(B) Unlawful discrimination …") opening the
+//     v5.2 risk-ledger paragraphs;
+//   - method-step leads ("Step 1 — Triggers.");
+//   - the named phrase-leads (exec-summary and section heads).
+//
+//  RUN-IN family — CEO ruling 2026-08-26 (supersedes the 2026-08-25
+//  batch-be0f9e02 inline treatment): the analytic run-in labels
+//  ("Conclusion.", "Out of scope.", "Analysis.", …) render UNDERLINED, NOT
+//  BOLD, and START A NEW LINE. The paragraph's `white-space:pre-line`
+//  renders the inserted "\n"; a label already at a chunk start or after a
+//  newline stays where it is.
 //
 // The lettered alternation is bounded ([^.\n]{0,80} and a required capital
 // after the letter) so a mid-sentence "… v. Smith." can never be mistaken
 // for a lead. Keep the web twin (SkeletonDocumentView.tsx) in sync.
 // ─────────────────────────────────────────────────────────────────────────
-const LEAD_LABELS = [
+const HEAD_LEAD_LABELS = [
   "Activity Assessed\\.", "Why a Risk Assessment Is Required\\.", "Key Findings\\.",
   "Overall Determination\\.", "Conditions to Proceed\\.", "Condition to Proceed\\.",
-  "Assessment Follow-Up Required\\.", "Analysis\\.", "Conclusion\\.", "Reasoning\\.",
-  "Consequence\\.", "Recommendation\\.", "Recommendations\\.", "Required Follow-Up\\.",
-  "Record Considered\\.", "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
+  "Assessment Follow-Up Required\\.", "Recommendation\\.", "Recommendations\\.",
+  "Required Follow-Up\\.", "Follow-Ups\\.", "Record Considered\\.",
   "Risk Assessments\\.", "Outstanding Matters\\.", "Review and Maintenance\\.",
   "Priority Matters:", "Scope of Assessment:", "Withholding and Security:",
 ];
+const RUNIN_LEAD_LABELS = [
+  "Analysis\\.", "Conclusion\\.", "Reasoning\\.", "Consequence\\.",
+  "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
+  "Entry\\.", "Stages\\.", "Output\\.",
+];
 const LEAD_PHRASE_RE = new RegExp(
-  `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|${LEAD_LABELS.join("|")})(?=\\s|$)`,
+  `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|(?:\\([A-H]\\)\\s+[A-Z][^.\\n]{0,140}?\\.)|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)|${HEAD_LEAD_LABELS.join("|")})(?=\\s|$)` +
+    `|(^|[.!?]\\s+|\\n\\s*)(${RUNIN_LEAD_LABELS.join("|")})(?=\\s|$)`,
   "g",
 );
 function styleLeadPhrases(escapedText: string): string {
@@ -1476,8 +1488,17 @@ function styleLeadPhrases(escapedText: string): string {
     // doc 72 §4 — a dropped, thin underline (offset from the baseline so it
     // clears descenders) reads as engraved emphasis rather than a stray
     // hyperlink; the default browser underline strikes descenders.
-    (_m, pre: string, label: string) =>
-      `${pre}<strong style="text-decoration:underline;text-underline-offset:2.5px;text-decoration-thickness:0.5pt;">${label}</strong>`,
+    (_m, preHead: string | undefined, headLabel: string | undefined, preRunin: string | undefined, runinLabel: string | undefined) => {
+      if (headLabel !== undefined) {
+        return `${preHead}<strong style="text-decoration:underline;text-underline-offset:2.5px;text-decoration-thickness:0.5pt;">${headLabel}</strong>`;
+      }
+      // Run-in: underlined (not bold), on a new line. Keep the sentence
+      // punctuation of the preceding text, replace the separating spaces
+      // with a line break; a label already at a line start stays put.
+      const pre = preRunin ?? "";
+      const brk = pre === "" || /\n\s*$/.test(pre) ? pre : `${pre.replace(/[^\S\n]+$/, "")}\n`;
+      return `${brk}<u style="text-underline-offset:2.5px;text-decoration-thickness:0.5pt;">${runinLabel}</u>`;
+    },
   );
 }
 

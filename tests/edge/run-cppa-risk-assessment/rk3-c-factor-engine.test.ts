@@ -1,10 +1,12 @@
-// RK3-C — factor engine pins (Spine 4.3 Phase C, Classes A + B).
+// Factor engine pins — Spine v5.2 (the Memorandum Redesign).
 //
-// Pins the ratified determination tables (materiality matrix, residual rule,
-// benefit-weight table, balancing table, recommended-outcome mapping), the
-// engine's rendering behaviour over both CPPA_RISK_PERFECT fixtures, the
-// Class C honest-absence law, the impact_intake.benefitsOutweigh firewall
-// (contract §7), provenance coverage, and determinism.
+// Pins the ratified determination LOGIC (materiality matrix, residual rule,
+// benefit-weight table, balancing-table kinds, recommended-outcome mapping —
+// all carried byte-identical from the RK3-C/PN-RK8 ratifications), the
+// re-registered v5.2 determination STRINGS, the engine's rendering behaviour
+// over both CPPA_RISK_PERFECT fixtures, the Class C honest-absence law, the
+// impact_intake.benefitsOutweigh firewall (contract §7), provenance
+// coverage, and determinism.
 //
 // Engine invocation matches the RK0.5 harness: deterministic Pass-1,
 // EMPTY_RISK_CORPUS, no refinementDeps — zero model calls, zero DB access.
@@ -34,11 +36,11 @@ import {
 
 type Bag = Record<string, unknown>;
 
-const BUILD_STAMP = "rk3-c-factor-pins";
+const BUILD_STAMP = "v52-factor-pins";
 
-// ── Ratified-table pins ───────────────────────────────────────────────────────
+// ── Ratified-table pins (logic carried byte-identical) ───────────────────────
 
-Deno.test("RK3-C — materiality matrix (severity-weighted, conservative)", () => {
+Deno.test("v5.2 — materiality matrix (severity-weighted, conservative; carried)", () => {
   assertEquals(resolveMateriality("Unlikely", "Minimal"), "Low");
   assertEquals(resolveMateriality("Unlikely", "Moderate"), "Low");
   assertEquals(resolveMateriality("Possible", "Moderate"), "Moderate");
@@ -46,7 +48,7 @@ Deno.test("RK3-C — materiality matrix (severity-weighted, conservative)", () =
   assertEquals(resolveMateriality("Likely", "Severe"), "Critical");
   assertEquals(resolveMateriality("Highly likely", "Significant"), "Critical");
   assertEquals(resolveMateriality("Unlikely", "Severe"), "High");
-  // Unknown operands resolve to null, never to a default tier.
+  // Unknown operands resolve to null, never to a default level.
   assertEquals(resolveMateriality("Sometimes", "Severe"), null);
   assertEquals(resolveMateriality("Likely", "Catastrophic"), null);
   // The matrix is total over the two enums.
@@ -56,7 +58,7 @@ Deno.test("RK3-C — materiality matrix (severity-weighted, conservative)", () =
   }
 });
 
-Deno.test("RK3-C — residual rule credits only tested safeguards", () => {
+Deno.test("v5.2 — residual rule credits only tested safeguards (carried)", () => {
   assertEquals(resolveResidual("High", "Implemented and tested"), "Moderate");
   assertEquals(resolveResidual("Critical", "Implemented and tested"), "High");
   assertEquals(resolveResidual("Low", "Implemented and tested"), "Low");
@@ -65,7 +67,7 @@ Deno.test("RK3-C — residual rule credits only tested safeguards", () => {
   assertEquals(resolveResidual("High", null), "High");
 });
 
-Deno.test("RK3-C — benefit-weight table (identified × fact-supplied)", () => {
+Deno.test("v5.2 — benefit-weight table (identified × fact-supplied; carried)", () => {
   assertEquals(resolveBenefitWeight("No", "a benefit", "a fact"), "no affirmative weight");
   assertEquals(resolveBenefitWeight("Yes", "", "a fact"), "no affirmative weight");
   assertEquals(resolveBenefitWeight("Yes", "a benefit", ""), "limited weight");
@@ -73,7 +75,7 @@ Deno.test("RK3-C — benefit-weight table (identified × fact-supplied)", () => 
   assertEquals(resolveBenefitWeight(true, "a benefit", "a fact"), "material weight");
 });
 
-Deno.test("RK3-C — balancing table spot pins (the PN-RK8 artifact)", () => {
+Deno.test("v5.2 — balancing table: kinds carried, strings re-registered (redline ¶72)", () => {
   assertEquals(RISK_BALANCING_TABLE.material.Low.kind, "proceed");
   assertEquals(RISK_BALANCING_TABLE.material.Moderate.kind, "proceed");
   assertEquals(RISK_BALANCING_TABLE.material.High.kind, "stop");
@@ -81,29 +83,52 @@ Deno.test("RK3-C — balancing table spot pins (the PN-RK8 artifact)", () => {
   assertEquals(RISK_BALANCING_TABLE.limited.Low.kind, "proceed");
   assertEquals(RISK_BALANCING_TABLE.limited.Moderate.kind, "proceed");
   assertEquals(RISK_BALANCING_TABLE.limited.High.kind, "stop");
-  // No benefit established → no residual tier can be outweighed.
+  // No benefit established → no remaining level can be outweighed.
   for (const tier of ["Low", "Moderate", "High", "Critical"] as const) {
     assertEquals(RISK_BALANCING_TABLE.none[tier].kind, "stop");
   }
-  assert(
-    RISK_BALANCING_TABLE.material.Low.conclusion.startsWith("The benefits of the processing outweigh"),
+  // Every conclusion cell opens in the CEO's target register.
+  for (const tier of ["material", "limited", "none"] as const) {
+    for (const level of ["Low", "Moderate", "High", "Critical"] as const) {
+      assert(
+        RISK_BALANCING_TABLE[tier][level].conclusion.startsWith(
+          "Based on the information provided by the Company",
+        ),
+        `${tier}×${level} conclusion not re-registered`,
+      );
+    }
+  }
+  // The material×High cell carries the redline-¶72 target wording verbatim.
+  assertEquals(
+    RISK_BALANCING_TABLE.material.High.conclusion,
+    "Based on the information provided by the Company, the residual privacy risks remaining after credited safeguards are substantial, and the benefits established by the Activity do not outweigh those risks.",
   );
+  // The retired register never appears in any cell.
+  for (const tier of ["material", "limited", "none"] as const) {
+    for (const level of ["Low", "Moderate", "High", "Critical"] as const) {
+      const cell = RISK_BALANCING_TABLE[tier][level];
+      for (const text of [cell.conclusion, cell.materiality, cell.effect, cell.explanation]) {
+        assert(!text.toLowerCase().includes("on the present record"), `${tier}×${level} carries the retired register`);
+        assert(!text.toLowerCase().includes("tier"), `${tier}×${level} says "tier" — v5.2 says "level"`);
+      }
+    }
+  }
 });
 
-Deno.test("RK3-C — recommended outcome keyed to consequence × processing status", () => {
+Deno.test("v5.2 — recommended outcome keyed to consequence × processing status (re-registered)", () => {
   assertEquals(
     resolveRecommendedOutcome("proceed", false, "Planned").outcome,
-    "Initiate the processing as described in the assessment record.",
+    "Initiate the processing as described in the information provided.",
   );
   assertEquals(resolveRecommendedOutcome("proceed", false, "Planned").consequence, "proceed");
   assertEquals(
     resolveRecommendedOutcome("proceed", true, "Ongoing").outcome,
-    "Continue the processing subject to the Conditions to Proceed identified below.",
+    "Continue the processing subject to the Conditions to Proceed identified in § IV.D.",
   );
   assertEquals(resolveRecommendedOutcome("proceed", true, "Ongoing").consequence, "proceed with conditions");
   assertEquals(
     resolveRecommendedOutcome("stop", false, "Planned").outcome,
-    "Do not initiate the processing on the present record.",
+    "Do not initiate the processing on the information provided.",
   );
   assertEquals(resolveRecommendedOutcome("stop", true, "Ongoing").consequence, "do not proceed");
   assert(resolveRecommendedOutcome("proceed", false, "Discontinued").outcome.includes("discontinued"));
@@ -111,7 +136,7 @@ Deno.test("RK3-C — recommended outcome keyed to consequence × processing stat
 
 // ── Engine unit behaviour over the perfect fixtures ──────────────────────────
 
-Deno.test("RK3-C — engine is deterministic and never composes a Class C id", () => {
+Deno.test("v5.2 — engine is deterministic and never composes a Class C id", () => {
   for (const c of CPPA_RISK_PERFECT) {
     const intake = c.intake as Bag;
     const report = { scope_and_triggers: { narrative: ["Engaged — Section 7150(b)(1): sale or sharing."] } };
@@ -132,7 +157,7 @@ Deno.test("RK3-C — engine is deterministic and never composes a Class C id", (
   }
 });
 
-Deno.test("RK3-C — impact_intake.benefitsOutweigh never feeds the balancing conclusion", () => {
+Deno.test("v5.2 — impact_intake.benefitsOutweigh never feeds the determination", () => {
   const base = CPPA_RISK_PERFECT[0].intake as Bag;
   const report = { scope_and_triggers: { narrative: ["Engaged — Section 7150(b)(3): significant-decision ADMT."] } };
   const flip = (v: string): Bag => ({
@@ -142,14 +167,14 @@ Deno.test("RK3-C — impact_intake.benefitsOutweigh never feeds the balancing co
   const yes = runRiskFactorEngine(flip("Yes"), report, "2026-08-18");
   const no = runRiskFactorEngine(flip("No"), report, "2026-08-18");
   assertEquals(
-    yes.factors.balancing_conclusion,
-    no.factors.balancing_conclusion,
-    "balancing conclusion must be identical whatever the customer's perspective answer",
+    yes.factors.determination_text,
+    no.factors.determination_text,
+    "the determination must be identical whatever the customer's perspective answer",
   );
-  assertEquals(yes.factors.recommended_processing_outcome, no.factors.recommended_processing_outcome);
+  assertEquals(yes.factors.recommended_outcome, no.factors.recommended_outcome);
 });
 
-Deno.test("RK3-C — banned register never appears in factor text", () => {
+Deno.test("v5.2 — banned register never appears in factor text", () => {
   for (const c of CPPA_RISK_PERFECT) {
     const report = { scope_and_triggers: { narrative: ["Engaged — Section 7150(b)(1): sale or sharing."] } };
     const out = runRiskFactorEngine(c.intake as Bag, report, "2026-08-18");
@@ -163,10 +188,10 @@ Deno.test("RK3-C — banned register never appears in factor text", () => {
   }
 });
 
-// ── Full Phase C rendering over the perfect fixtures ─────────────────────────
+// ── Full rendering over the perfect fixtures ─────────────────────────────────
 
 for (const c of CPPA_RISK_PERFECT) {
-  Deno.test(`RK3-C — Phase C rendering — ${c.id}`, async (t) => {
+  Deno.test(`v5.2 — engine rendering — ${c.id}`, async (t) => {
     const result = await generateCppaRiskReport(c.intake, {
       pass1: "deterministic",
       riskCorpus: EMPTY_RISK_CORPUS,
@@ -187,111 +212,112 @@ for (const c of CPPA_RISK_PERFECT) {
       assertEquals(sk.register_findings.length, 0, JSON.stringify(sk.register_findings));
     });
 
-    await t.step("factor appendices render (the EUP-methodology appendix is retired, not merely absent — see cppa-risk.spine.ts's v4.7 note)", () => {
+    await t.step("factor appendices render", () => {
       assert(ids.includes("appendix_b"), "the necessity matrix appendix (id appendix_b, printed as Appendix D) is absent");
       assert(ids.includes("appendix_c"), "the risk register appendix (id appendix_c, printed as Appendix E) is absent");
     });
 
-    await t.step("necessity conversion renders end-to-end", () => {
-      assert(body.includes("B. Analysis. Information Supported as Necessary."), "III.B head absent");
-      assert(body.includes("C. Conclusion."), "III.C head absent");
+    await t.step("necessity renders end-to-end (Annex T4)", () => {
       const rows = ((c.intake as Bag).a2_necessity_set ?? []) as Bag[];
       const unnecessary = rows.filter((r) =>
         r.necessity === "Collected but not necessary to the stated purpose"
       );
+      assert(
+        body.includes("The information provided supports the necessity of"),
+        "T4 supported sentence absent",
+      );
       if (unnecessary.length === 0) {
         assert(
-          body.includes("supported as necessary to the stated purpose on the basis the Company has supplied"),
-          "all-necessary conclusion absent on an all-necessary fixture",
+          body.includes("The necessity analysis supports the information processed"),
+          "all-necessary lead absent on an all-necessary fixture",
         );
       } else {
-        // The fixture's own facts demand the qualified branch: the
-        // unnecessary-elements block, the qualified conclusion, and the
-        // minimization condition all render.
-        assert(body.includes("Information Not Shown to Be Necessary."), "unnecessary lead absent");
+        assert(
+          body.includes("is collected but not shown to be necessary"),
+          "T4 unsupported paragraph absent",
+        );
         assert(
           body.includes("The necessity analysis is qualified"),
-          "qualified conclusion absent on a fixture with an unnecessary element",
+          "qualified lead absent on a fixture with an unnecessary element",
         );
-        assert(body.includes("D. Consequence. Condition to Proceed."), "minimization condition absent");
       }
       assert(
-        body.includes("This appendix provides the element-level analysis underlying Section III."),
-        "Appendix B intro absent",
+        body.includes("This appendix provides the element-level analysis underlying § III.B."),
+        "Appendix D intro absent",
       );
     });
 
-    await t.step("risk blocks and the inherent conclusion render", () => {
-      // v5.2 terminology sweep (2026-08-25) — "risk pathway" retired from
-      // customer-facing text in favor of "risk"; see the identical change
-      // to vii_b_head in risk-factor-engine.ts.
-      assert(body.includes("B. Material Risks."), "VII.B head absent");
-      assert(body.includes("Materiality before safeguards:"), "materiality line absent");
-      assert(body.includes("E. Inherent Risk Conclusion."), "VII.E head absent");
+    await t.step("the risk ledger and T1 paragraphs render", () => {
+      assert(body.includes("A. The Risk Ledger."), "§ IV.A head absent");
       assert(
-        body.includes("The next question is how materially the Company’s safeguards change that risk."),
-        "VII.E closing absent",
+        body.includes("before safeguards."),
+        "T1 opening (level before safeguards) absent",
       );
       assert(
-        body.includes("This appendix provides the detailed analytical record underlying Sections VII and VIII."),
-        "Appendix C intro absent",
+        body.includes("Before safeguards, the most serious identified risk stands at"),
+        "risk rollup absent",
       );
-    });
-
-    await t.step("safeguards and the residual conclusion render", () => {
-      assert(body.includes("The principal residual risks are:"), "residual lead absent");
       assert(
-        body.includes("After credited safeguards, the residual privacy risk of the activity is"),
-        "residual conclusion absent",
+        body.includes("After the credits shown, the most serious remaining risk is"),
+        "remaining-risk rollup absent",
       );
-    });
-
-    await t.step("benefit weights and the overall benefits conclusion render", () => {
-      assert(body.includes("Weight in the balancing analysis:"), "weight lead absent");
-      assert(body.includes("F. Overall Benefits Conclusion."), "VI.F head absent");
-    });
-
-    await t.step("the balancing determination renders with its three leads", () => {
-      assert(body.includes("D. Overall Balancing Conclusion."), "IX.D head absent");
-      assert(body.includes("Balancing conclusion:"), "balancing lead absent");
-      assert(body.includes("Materiality of the determination:"), "materiality lead absent");
-      assert(body.includes("Decision effect:"), "decision-effect lead absent");
-      assert(body.includes("Assessment recommendation:"), "recommendation lead absent");
-      assert(body.includes("Processing consequence type:"), "consequence type absent");
-    });
-
-    await t.step("executive summary carries the determination and outcome", () => {
-      assert(body.includes("Overall Determination."), "exec determination head absent");
       assert(
-        body.includes("The assessment reaches the following recommended processing outcome:"),
-        "exec outcome lead absent",
+        body.includes("This appendix provides the detailed factual register underlying § IV.A."),
+        "Appendix E intro absent",
       );
-      assert(body.includes("Key Findings."), "exec key findings absent");
     });
 
-    await t.step("consumer controls project from the established rights facts", () => {
-      assert(body.includes("Relevant consumer rights and controls include:"), "controls lead absent");
-      assert(body.includes("— Right to know:"), "right-to-know line absent");
-      assert(body.includes("— Opt-out of sale or sharing:"), "opt-out line absent");
+    await t.step("benefit paragraphs and the benefits lead render (Annex T2)", () => {
+      assert(
+        body.includes("benefit carries material weight") || body.includes("benefit carries limited weight"),
+        "T2 paragraph absent",
+      );
+      assert(
+        body.includes("The strongest benefit established carries"),
+        "benefits lead absent",
+      );
     });
 
-    await t.step("ADMT factor conclusions render iff ADMT", () => {
+    await t.step("the determination renders once, with the outcome (Annex T5)", () => {
+      assert(body.includes("Based on the information provided by the Company"), "re-registered conclusion absent");
+      // At most three renders: the exec-summary lead, § IV.C, and the
+      // Appendix A audit-trail row (the appendix is the trace, not a body
+      // restatement).
+      const occurrences = body.split("Based on the information provided by the Company").length - 1;
+      assert(occurrences <= 3, `the determination conclusion renders ${occurrences} times`);
+      assert(
+        body.includes("The reasoning behind each row, and the determination it produces, appear in Section IV."),
+        "exec determination pointer absent",
+      );
+      assert(body.includes("D. Outcome and Conditions."), "exec outcome head absent");
+    });
+
+    await t.step("the controls table and application render (§ III.D)", () => {
+      assert(body.includes("Control | Reported status | Weight credited"), "controls table columns absent");
+      assert(
+        body.includes("which weighs in the Company’s favor") || body.includes("carries no weight"),
+        "controls directional close absent",
+      );
+    });
+
+    await t.step("ADMT unit conclusions render iff ADMT", () => {
       assertEquals(
-        body.includes("H. Overall ADMT Conclusion."),
+        body.includes("The automated component is adequately described for assessment purposes") ||
+          body.includes("The automated component is not yet fully described"),
         isAdmt,
-        `ADMT overall conclusion presence on ${c.id}`,
+        `ADMT lead presence on ${c.id}`,
       );
     });
 
     await t.step("no factor markers or placeholders leak", () => {
       assert(!body.includes("[GENERATED"), "generated marker leaked");
       assert(!body.includes("{{"), "placeholder notation leaked");
-      assert(!body.includes("\u0000"), "sentinel leaked");
+      assert(!body.includes(String.fromCharCode(0)), "sentinel leaked");
     });
 
     await t.step("factor engine result is exposed with provenance", () => {
       assertEquals(sk.factor_engine.stamp, RISK_FACTOR_ENGINE_STAMP);
-      assert(sk.factor_engine.composed_factor_ids.length >= 20, "expected a full Phase C composition");
+      assert(sk.factor_engine.composed_factor_ids.length >= 20, "expected a full v5.2 composition");
       assertEquals(
         sk.factor_engine.provenance.length >= sk.factor_engine.composed_factor_ids.length,
         true,
