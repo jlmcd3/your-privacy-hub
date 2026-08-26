@@ -89,6 +89,23 @@ const OPT_OUT_KEYS = [
   "counts_as_mitigation",
 ] as const;
 
+// DOC 73 §4 (R2), 2026-08-26 — precedent-class posture finding. Computed
+// and persisted on EVERY run (telemetry + T2/T3 curation visibility)
+// regardless of LIA_PRECEDENT_CLASS_RATIFIED; the ratification gate
+// controls whether skeleton_document's prose includes it, not whether it
+// is computed or schema-allowed. `authorities` is array-of-object and
+// passes through whole per the NESTED-ARRAY NOTE below — its key set is
+// PRECEDENT_CLASS_AUTHORITY_ENTRY_KEYS.
+const PRECEDENT_CLASS_KEYS = [
+  ...ANALYSIS_SHAPE_KEYS,
+  "use_case_class",
+  "use_case_label",
+  "posture",
+  "authorities",
+  "factor_ids",
+  "map_version",
+] as const;
+
 const ATTESTATION_BLOCK_KEYS = [
   "text",
   "attested",
@@ -111,10 +128,23 @@ const HARM_ENTRY_KEYS = ["harm", "severity", "bearing_on_balance"] as const;
 // UPGRADE-4 ITEM 3 — shared authority exhibit (report-exhibits/authority-exhibit.ts).
 // Mirrors AuthorityExhibit: {version, heading, entries[]}.
 const AUTHORITY_EXHIBIT_ENTRY_KEYS = ["version", "heading", "entries"] as const;
+// DOC 73 §4 (R2) — precedent_class_posture.authorities entry keys
+// (PrecedentClassAuthority, lia-deliverables/types.ts). Passes through
+// whole per the NESTED-ARRAY NOTE below.
+const PRECEDENT_CLASS_AUTHORITY_ENTRY_KEYS = [
+  "source_row_id",
+  "regulator",
+  "subject",
+  "jurisdiction",
+  "decision_date",
+  "case_reference",
+  "fine_eur",
+  "what_happened",
+] as const;
 
 
 export const LIA_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-lia-w3-2026-08-10-item-so11",
+  version: "rs-lia-w4-2026-08-26-precedent-class",
   tool: "li_assessment",
   topLevel: [
     // Core assembly
@@ -147,6 +177,8 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     "attestation_block",
     // UPGRADE-4 — shared authority exhibit (renders before the disclaimer)
     "authority_exhibit",
+    // DOC 73 §4 (R2) — precedent-class posture (single-writer key)
+    "precedent_class_posture",
 
     // ITEM SO-11 — the assembled byte-pinned skeleton document. This is the
     // customer document; the PDF and the result page both read it.
@@ -180,6 +212,7 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     potential_harms: HARMS_KEYS,
     opt_out_feasibility: OPT_OUT_KEYS,
     attestation_block: ATTESTATION_BLOCK_KEYS,
+    precedent_class_posture: PRECEDENT_CLASS_KEYS,
   },
 
   entries: {
@@ -195,6 +228,8 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     //   alternatives -> alternative, why_inadequate, rationale_recorded
     //   dimensions   -> id, label, recorded, status
     //   harms        -> harm, severity, bearing_on_balance
+    //   authorities  -> source_row_id, regulator, subject, jurisdiction,
+    //                   decision_date, case_reference, fine_eur, what_happened
     authority_exhibit: AUTHORITY_EXHIBIT_ENTRY_KEYS,
   },
 };
@@ -205,5 +240,6 @@ export const LIA_NESTED_ENTRY_KEYS = {
   alternatives: ALTERNATIVE_ENTRY_KEYS,
   dimensions: DIMENSION_ENTRY_KEYS,
   harms: HARM_ENTRY_KEYS,
+  authorities: PRECEDENT_CLASS_AUTHORITY_ENTRY_KEYS,
 } as const;
 

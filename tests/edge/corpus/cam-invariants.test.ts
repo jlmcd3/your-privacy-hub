@@ -171,16 +171,19 @@ Deno.test("CYBER_CORPUS_MAP: every factor_id is a canonical component name or a 
   }
 });
 
-Deno.test("lia: L-CA posture — all rows dark (pre-conversion, doc 48 §II.6), 8 AP, 1 AOW, 1 logic-bearing FC, 14 FC-J", () => {
+Deno.test("lia: L-CA posture — all rows dark (pre-conversion, doc 48 §II.6), 11 AP, 1 AOW, 3 logic-bearing FC, 14 FC-J", () => {
   const ap = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AP");
   const aow = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
   const logicBearing = LIA_CORPUS_MAP.rows.filter((r) => r.logic_bearing);
   const fcJ = LIA_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.logic_bearing);
-  assertEquals(ap.length, 8);
+  // doc 73 §4/§5 (2026-08-26): 3 new AP rows (Amazon France Logistique ×2
+  // factors, KASPR) and 2 new logic-bearing FC-L rows (Airbnb, Groupon —
+  // R1 candidates) extend doc 58's original set.
+  assertEquals(ap.length, 11);
   assertEquals(aow.length, 1);
-  assertEquals(logicBearing.length, 1);
+  assertEquals(logicBearing.length, 3);
   assertEquals(fcJ.length, 14);
-  assertEquals(LIA_CORPUS_MAP.rows.length, 24);
+  assertEquals(LIA_CORPUS_MAP.rows.length, 29);
   // The Render-Readiness Law (doc 48 §II.6): LIA's three-part test is still
   // model-authored, so every row stays dark regardless of role.
   for (const r of LIA_CORPUS_MAP.rows) assertEquals(r.render_eligible, false, r.id);

@@ -61,6 +61,10 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
+// DOC 73 §4 (R2/R5, 2026-08-26) — the precedent-class posture finding.
+// LIA_PRECEDENT_CLASS_RATIFIED gates whether it reaches the document at
+// all; see precedent-classes.ts's own header for the ratification law.
+import { LIA_PRECEDENT_CLASS_RATIFIED } from "./lia-deliverables/precedent-classes.ts";
 
 export const LIA_SKELETON_ASSEMBLER_STAMP =
   "lia-skeleton-assembler@so11-wire-in-2026-08-10";
@@ -284,6 +288,31 @@ function composeTestLead(verdict: string, subject: string, positive: string, neg
 function fromTyped(...parts: (string | undefined)[]): string {
   const text = parts.map((p) => stop(s(p))).filter(Boolean).join(" ");
   return text ? repairRegister(text) : "";
+}
+
+// DOC 73 §4 (R2/R5) — renders the precedent-class posture's application
+// text ONLY when LIA_PRECEDENT_CLASS_RATIFIED is true, the finding is
+// "analysed", and a real posture exists (never the internal
+// "not_assessed" degradation state, which is telemetry-only and must
+// never reach the customer). Empty string is filtered out by fromTyped,
+// so this is a true no-op splice while the gate is closed.
+//
+// KNOWN GAP, flagged not silently deferred: when the gate opens, this
+// sentence's regulator citations (e.g. "DPC (Ireland)", "CNIL (France)")
+// will NOT reach composeToaLedger — that ledger's source, authority_exhibit
+// (index.ts's walkCites), only pattern-matches GDPR Article/Recital/EDPB
+// Guidelines citations, not enforcement-decision citations. LIA has no
+// Persuasive-Authority appendix surface yet to carry them properly (doc 58
+// §4: "S5 OPEN at L-series" — this is that surface). Do not flip
+// LIA_PRECEDENT_CLASS_RATIFIED until L2 builds it or the Factor-Bearing
+// Law (doc 48 §II.2a) is violated: a render-eligible corpus citation with
+// no ToA/appendix trail.
+export function precedentClassSentence(report: Bag): string {
+  if (!LIA_PRECEDENT_CLASS_RATIFIED) return "";
+  const finding = bag(report.precedent_class_posture);
+  if (s(finding.status) !== "analysed") return "";
+  if (s(finding.posture) === "not_assessed" || !s(finding.posture)) return "";
+  return s(finding.application);
 }
 
 function composeExecPosture(report: Bag, org: string): string {
@@ -527,6 +556,7 @@ export function assembleLiaSkeletonDocument(
       s(bag(report.reasonable_expectations).application),
       s(bag(report.potential_harms).application),
       s(bag(report.opt_out_feasibility).application),
+      precedentClassSentence(report),
     ),
 
     "findings:0": findingsLead,

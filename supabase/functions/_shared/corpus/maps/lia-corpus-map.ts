@@ -62,6 +62,20 @@
 //       overall) — this is one curated FC-J set for the ratified B5
 //       scope (vocabulary + ePrivacy extension), not a claim of complete
 //       EDPB coverage.
+//
+// v2 UPDATE (2026-08-26, doc 73 §4/§5, CEO-ratified): doc 73's live sweep
+// found the TRUE verified LIA-relevant enforcement pool is 58 rows, not
+// the 15 doc 58 curated from — the `tool_relevance='LIA'` tag alone is an
+// unreliable net (94 of 111 rows citing Art. 6(1)(f) carry no LIA tag).
+// The standing watch query is _shared/corpus/lia-li-relevant-watch.sql;
+// re-run it at every T2 (doc 50 §4) and diff against the ids curated here
+// and in precedent-classes.ts. Added this pass: 3 new AP rows (Amazon
+// France Logistique ×2 factors, KASPR — sourced from the watch, not
+// doc 58's original four) and 2 new logic-bearing FC-L rows (Airbnb,
+// Groupon — doc 73 §4 R1 candidates, a narrower necessity rule than a
+// whole precedent-class posture warrants). This map is NOT yet exhaustive
+// over the 58-row pool — T3 curation work continues per doc 50 §4's
+// quarterly cadence, not a one-time landing.
 
 import type { CorpusMap } from "../cam-types.ts";
 
@@ -85,7 +99,7 @@ export const LIA_FACTOR_VOCABULARY = [
 
 export const LIA_CORPUS_MAP: CorpusMap = {
   product: "lia",
-  map_version: "lia-cam-v1-2026-08-25",
+  map_version: "lia-cam-v2-2026-08-26",
   snapshot_file: "tests/edge/corpus/__snapshots__/fsor-snapshot-lia.json",
   rows: [
     // ── AP — doc 58 §3 / doc 63 §6.1's release-1 sources, 4 sources × 2
@@ -299,6 +313,94 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         "Doc 63 §6.1 item 4's second tag (same source and ratified bytes as lia/f05-reasonable-expectations/ap-01). AEPD (Spain), Cámara de Comercio, 27 December 2022, €500,000 (re-confirmed live 2026-08-25 — see the sibling row's full data-quality note): sole traders' data left exposed and offered for sale is the realized-harm end state this factor asks the assessment to weigh in advance. Banked per doc 48 §II.6.",
     },
 
+    // ── AP — doc 73 §2.1/§4 R3 (2026-08-26): four new sources curated from
+    // the 58-row verified LIA-relevant pool (doc 73's standing watch,
+    // lia-li-relevant-watch.sql), extending doc 58's original four. Two
+    // (Amazon France Logistique, KASPR) back the ratified precedent-class
+    // rows in precedent-classes.ts (one curation, two consumers — the
+    // engine's precedent_class_posture finding AND this map's own future
+    // S5 surface). Two (Airbnb, Groupon) are R1 branch-rule candidates,
+    // logic-bearing FC rows below, not AP rows on their own merits — they
+    // illustrate a narrower rule (ID-verification necessity) than a whole
+    // AP display warrants; kept as FC-L only to avoid inflating the AP
+    // plane with a citation weaker than doc 58's original four. ALL DARK
+    // (render-readiness note above). ─────────────────────────────────────
+    {
+      id: "lia/f06-relationship/ap-01",
+      factor_id: "Relationship with the individual",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "e7ad2d7a-bce7-493d-8cd9-b8966fb9114d",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt: "",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Amazon France Logistique",
+        jurisdiction: "France",
+        decision_date: "2023-12-07",
+        case_reference: "SAN-2023-021",
+      },
+      direction: "supports",
+      logic_bearing: false,
+      provenance: {
+        source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2023-021",
+        verified_on: "2026-08-26",
+      },
+      curation_note:
+        "Doc 73 §4 R2's employee_monitoring precedent-class authority (precedent-classes.ts, same source_row_id). CNIL (France), Amazon France Logistique, 7 December 2023, €32,000,000: extensive scanner/video employee monitoring found to violate data minimisation, the legitimate-interests basis, and transparency. What happened: \"France's CNIL fined Amazon France Logistique €32,000,000 for extensively monitoring employee activity and performance using scanners and video surveillance, finding violations of data minimisation, the legitimate-interests basis, and transparency principles.\" Bearing (this factor): the employment relationship's power imbalance is exactly what made this scale of monitoring indefensible under Art. 6(1)(f). Sibling row: lia/f07-harms/ap-02 (same source, harms tag). Already curated for CPPA Risk's own map (doc 50 §3.3, one-curation-many-products law) — re-verified independently here, not copied. Banked per doc 48 §II.6.",
+    },
+    {
+      id: "lia/f07-harms/ap-02",
+      factor_id: "Potential harms and severity",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "e7ad2d7a-bce7-493d-8cd9-b8966fb9114d",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt: "",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Amazon France Logistique",
+        jurisdiction: "France",
+        decision_date: "2023-12-07",
+        case_reference: "SAN-2023-021",
+      },
+      direction: "supports",
+      logic_bearing: false,
+      provenance: {
+        source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2023-021",
+        verified_on: "2026-08-26",
+      },
+      curation_note:
+        "Doc 73 §4 R2's employee_monitoring precedent-class authority, second factor tag (same source and bytes as lia/f06-relationship/ap-01: CNIL (France), Amazon France Logistique, decision of 7 December 2023). The intrusiveness the decision penalized — granular scanner/video performance tracking — is the realized-harm end state factor 7 asks the assessment to weigh in advance. Banked per doc 48 §II.6.",
+    },
+    {
+      id: "lia/f05-reasonable-expectations/ap-02",
+      factor_id: "Reasonable expectations of the data subject",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "6b1b12d2-3e6b-4cfd-92bc-e676c5701a0d",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt: "",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "KASPR",
+        jurisdiction: "France",
+        decision_date: "2024-12-05",
+        case_reference: "SAN-2024-020",
+      },
+      direction: "supports",
+      logic_bearing: false,
+      provenance: {
+        source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2024-020",
+        verified_on: "2026-08-26",
+      },
+      curation_note:
+        "Doc 73 §2.1's verified untagged-pool exemplar (found via the standing watch, not doc 58's original curation). CNIL (France), KASPR, 5 December 2024, €240,000: scraping LinkedIn profile data INCLUDING users who had restricted their visibility settings. What happened: \"The company unlawfully processed personal data harvested from LinkedIn, particularly for users who had restricted their visibility settings, and failed to provide adequate transparency, information, and access to data subjects.\" Bearing (this factor): a data subject who sets a visibility restriction has affirmatively stated an expectation; processing that reaches past it is the clearest possible reasonable-expectations failure this factor tests for. Not yet tied to a ratified precedent-class row (KASPR's activity — B2B contact-data scraping/enrichment — does not cleanly fit any of the eight use-case classes in precedent-classes.ts; logged for T3 curation, doc 73 §4 coverage note). Banked per doc 48 §II.6.",
+    },
+
     // ── AOW — doc 63 §6.2, binds to the balancing-fails adverse state at
     // L1. DARK (render-readiness note above); warning_text banked below. ──
     {
@@ -353,6 +455,66 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       },
       curation_note:
         "EDPB Guidelines 1/2024 on Article 6(1)(f) GDPR (guideline_ref: \"EDPB Guidelines 1/2024\", status: final) — the primary evidence row doc 58 §2 already cited for this exact finding; re-verified live 2026-08-25, source_row_id confirmed unchanged. DATA-QUALITY NOTE: the live excerpt_text begins mid-sentence (\"13 ePrivacy Directive, there would be no legitimate interest...\" — a footnote-marker artifact truncating the clause's own lead-in); pinned_excerpt starts from the first complete clause forward, per the mid-word/mid-clause truncation discipline (cyber-corpus-map.ts precedent). Logic rule: ePrivacy's own consent requirement is not just one balancing factor among others — it forecloses Article 6(1)(f) entirely for the processing it covers. The 3 direct-marketing / reasonable-expectations siblings (34a9f202, 4bc253a9, 47420238 — this map's f01/f04 FC-J rows) inform the surrounding balancing test but do not carry this short-circuit property themselves.",
+    },
+
+    // ── FC, logic-bearing — doc 73 §4 R1 candidates (2026-08-26): two
+    // NEW branch-rule candidates from the standing watch, both about the
+    // SAME narrow rule (ID-verification for rights requests must be
+    // scoped to what necessity actually requires) rather than a whole
+    // precedent-class posture — this is why they are FC-L rows, not AP
+    // rows (see the AP section's own note above). extension_filed: the
+    // intake contract has no field recording what identity evidence a
+    // controller demands when a rights request is exercised, so
+    // implementing this as a real branch needs a new intake field, not
+    // just a decision — a product-scope change beyond this landing,
+    // logged for L1 design. ──────────────────────────────────────────────
+    {
+      id: "lia/f03-necessity/fcl-02",
+      factor_id: "Necessity and less-intrusive means",
+      role: "FC",
+      source_table: "enforcement_actions",
+      source_row_id: "7a874890-4f84-423e-82b2-1eed7d42f52a",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "The DPC found that Airbnb lacked a legal basis under Article 6 GDPR for processing a complainant's ID to delete his account and violated data minimisation obligations by requiring the ID for an erasure request.",
+      render_eligible: false,
+      direction: "limits",
+      logic_bearing: true,
+      logic_disposition: {
+        kind: "extension_filed",
+        queue_ref:
+          "LIA conversion L1 factor-3 branch (doc 73 §4 R1) — needs a NEW intake field recording what identity evidence, if any, the controller demands when a data subject exercises a rights request; no such field exists in the current contract, so this is a product-scope decision for L1 design, not solely a logic gap. Rule: demanding a copy of government ID (or similar) beyond what is needed to confirm the requester's identity, for an access/erasure request, fails necessity even where the underlying processing's own basis is otherwise sound.",
+      },
+      provenance: {
+        source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Inquiry_into_Airbnb_Ireland_UC_-_January_2024",
+        verified_on: "2026-08-26",
+      },
+      curation_note:
+        "Doc 73 §2.1's verified untagged-pool exemplar. DPC (Ireland), Airbnb Ireland UC, 31 January 2024: the controller's OWN separate ID-verification practice (for an erasure request), not the primary processing basis, was found unlawful under Art. 6 and a data-minimisation violation. Sibling: lia/f03-necessity/fcl-03 (Groupon, same rule, same regulator). Banked per doc 48 §II.6.",
+    },
+    {
+      id: "lia/f03-necessity/fcl-03",
+      factor_id: "Necessity and less-intrusive means",
+      role: "FC",
+      source_table: "enforcement_actions",
+      source_row_id: "f53002af-7fcd-4a9d-b16f-5f7ff12e379f",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "Groupon lacked a legal basis for requiring a data subject's ID to fulfill access and erasure requests, violating data minimisation obligations and failing to comply with SARs",
+      render_eligible: false,
+      direction: "limits",
+      logic_bearing: true,
+      logic_disposition: {
+        kind: "extension_filed",
+        queue_ref:
+          "LIA conversion L1 factor-3 branch (doc 73 §4 R1) — same rule and same missing-intake-field gap as lia/f03-necessity/fcl-02 (Airbnb); the two are one logic item, filed once here per the pinned_excerpt each carries.",
+      },
+      provenance: {
+        source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Groupon_Ireland_Operations_Limited",
+        verified_on: "2026-08-26",
+      },
+      curation_note:
+        "Doc 73 §2.1's verified untagged-pool exemplar. DPC (Ireland), Groupon Ireland Operations Limited, 8 March 2024: the same ID-for-rights-request pattern as Airbnb, same regulator, decided five weeks apart — two independent decisions on the identical rule strengthen rather than duplicate the finding. Sibling: lia/f03-necessity/fcl-02. Banked per doc 48 §II.6.",
     },
 
     // ── FC-J — dark, non-logic-bearing EDPB Guidelines 1/2024 support rows

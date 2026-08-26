@@ -1782,6 +1782,30 @@ Return JSON:
       console.warn("[run-li-assessment] UPGRADE-4 deliverables failed (non-fatal):", (e as Error)?.message);
     }
 
+    // ── DOC 73 §4 (R2) — PRECEDENT-CLASS POSTURE (2026-08-26) ──────────
+    // CEO-ratified resolution of PN-L2: classifies the processing (the
+    // SAME deterministic classifier the free preview uses) and attaches
+    // the ratified regulatory-precedent posture for that class, if one
+    // exists yet. Computed and logged to telemetry on EVERY run starting
+    // now; whether it reaches the skeleton document is gated separately
+    // by LIA_PRECEDENT_CLASS_RATIFIED (precedent-classes.ts) until the
+    // CEO ratifies the per-class sentence text. Deterministic, no model
+    // call, fail-open.
+    try {
+      const { attachPrecedentClassPosture } = await import(
+        "./_local/ltp/lia-deliverables/precedent-class.ts"
+      );
+      const pmeta = attachPrecedentClassPosture(
+        reportData as Record<string, unknown>,
+        assessment as unknown as Record<string, unknown>,
+      );
+      const _m = ((reportData as any)._meta ??= {});
+      (_m.internal ??= {}).lia_precedent_class = pmeta;
+      console.log(JSON.stringify({ evt: "_lia_precedent_class", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...pmeta }));
+    } catch (e) {
+      console.warn("[run-li-assessment] precedent-class posture failed (non-fatal):", (e as Error)?.message);
+    }
+
 
 
     const guarded = guardInformationNeeded(reportData, liaIntakeObject, "li_assessment");

@@ -1,7 +1,14 @@
 // Free, fast, deterministic Stage A preview for the LI Assessment tool.
 // No AI calls. Pulls precedents from li_tracker_entries, classifies the use case
 // via keyword match, and returns a heuristic strength signal with rationale.
+//
+// DOC 73 §4 (R4, CEO-ratified 2026-08-25/26): the classifier is now the
+// SHARED, single-source-of-truth `classifyLiaUseCase` also used by the paid
+// report's precedent-class posture finding (lia-deliverables/
+// precedent-class.ts) — one classifier, both surfaces, no drift between the
+// free-preview signal and what the deterministic engine computes.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { classifyLiaUseCase, USE_CASE_KEYWORDS, USE_CASE_LABELS } from "../_shared/lia/lia-use-case-classifier.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -12,43 +19,6 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const USE_CASE_KEYWORDS: Record<string, string[]> = {
-  direct_marketing: ["marketing", "promotional", "newsletter", "campaign", "outreach", "email"],
-  fraud_prevention: ["fraud", "abuse", "risk scor", "anti-money", "aml", "kyc"],
-  employee_monitoring: ["employee", "worker", "workplace", "staff", "monitor"],
-  behavioral_advertising: ["behavioural", "behavioral", "advertis", "targeting", "tracking", "profiling for ads"],
-  research_analytics: ["research", "analytics", "statistics", "insights", "measurement"],
-  it_security: ["security", "intrusion", "logging", "audit", "network", "cyber"],
-  contractual_administration: ["account", "billing", "service delivery", "support", "customer"],
-  product_improvement: ["improve", "develop", "feature", "personalis", "personaliz", "recommend"],
-};
-
-const USE_CASE_LABELS: Record<string, string> = {
-  direct_marketing: "Direct marketing",
-  fraud_prevention: "Fraud prevention",
-  employee_monitoring: "Employee monitoring",
-  behavioral_advertising: "Behavioural advertising",
-  research_analytics: "Research & analytics",
-  it_security: "IT security",
-  contractual_administration: "Contractual administration",
-  product_improvement: "Product improvement",
-  other: "General processing",
-};
-
-function classifyUseCase(description: string): string {
-  const text = description.toLowerCase();
-  let best = "other";
-  let bestScore = 0;
-  for (const [code, keywords] of Object.entries(USE_CASE_KEYWORDS)) {
-    const score = keywords.reduce((n, kw) => n + (text.includes(kw) ? 1 : 0), 0);
-    if (score > bestScore) {
-      bestScore = score;
-      best = code;
-    }
-  }
-  return best;
-}
 
 function heuristicStrength(input: {
   useCase: string;
@@ -130,7 +100,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const useCase = classifyUseCase(description);
+    const useCase = classifyLiaUseCase(description);
     const useCaseLabel = USE_CASE_LABELS[useCase];
 
     // Pull up to 40 recent precedents and filter by use-case keywords

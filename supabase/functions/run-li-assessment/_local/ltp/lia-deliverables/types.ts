@@ -412,3 +412,68 @@ export interface LiaUpgrade4Deliverables {
   readonly opt_out_feasibility: OptOutFeasibilityFinding;
   readonly attestation_block: LiaAttestationBlock;
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// DOC 73 §4 (R2, CEO-ratified 2026-08-25/26) — the precedent-class
+// posture finding. Resolves PN-L2: enforcement decisions inform the
+// deterministic engine as a CEO-ratified, class-level, sourced posture
+// (never a numeric score weight, never a verdict override) and surface in
+// the report with their authorities. See precedent-class.ts for the
+// builder and precedent-classes.ts for the ratified table.
+//
+// SINGLE-WRITER LAW: precedent-class.ts is the ONLY producer of
+// report.precedent_class_posture. Deterministic: the use-case class comes
+// from classifyLiaUseCase (lia-use-case-classifier.ts), never from the
+// model's Stage 1 output — this finding is code-computed end to end and
+// answers to the Render-Readiness Law (doc 48 §II.6) on that basis alone.
+//
+// RATIFICATION GATE (mirrors the CAM's PN-CORPUS-1 default-dark law): the
+// posture and authorities compute and are logged to telemetry on every
+// run starting now; whether this finding's prose actually reaches the
+// skeleton document is gated by LIA_PRECEDENT_CLASS_RATIFIED
+// (precedent-class.ts) until the CEO ratifies the per-class sentence
+// text. Flipping that one flag is the only step needed to ship it.
+// ─────────────────────────────────────────────────────────────────────
+
+/** A regulator decision backing a precedent-class posture. Every field is
+ * copied from a live-verified enforcement_actions row at curation, never
+ * composed at generation — same discipline as CamCitationSource
+ * (cam-types.ts). `case_reference` is omitted (not invented) unless the
+ * source's own reference is docket-shaped. */
+export interface PrecedentClassAuthority {
+  readonly source_row_id: string; // enforcement_actions.id
+  readonly regulator: string;
+  readonly subject: string;
+  readonly jurisdiction: string;
+  readonly decision_date: string; // ISO YYYY-MM-DD
+  readonly case_reference?: string;
+  readonly fine_eur?: number;
+  /** Ratified-prose-ready summary of what the decision found — DRAFT until
+   * LIA_PRECEDENT_CLASS_RATIFIED flips; never invented, sourced from
+   * key_compliance_failure/raw_text, verified at curation. */
+  readonly what_happened: string;
+}
+
+/** The class-level determination doc 73 §4 R2 designs: sourced, disclosed,
+ * never a numeric weight or an override of the record's own three-part
+ * test. "not_assessed" means no ratified posture exists yet for this
+ * class — correct, honest absence (doc 73 explicitly bars inventing
+ * coverage), not a defect. */
+export type PrecedentClassPosture =
+  | "rejected"
+  | "conditional"
+  | "accepted"
+  | "contested"
+  | "not_assessed";
+
+export interface PrecedentClassFinding extends AnalysisShape {
+  readonly use_case_class: string;
+  readonly use_case_label: string;
+  readonly posture: PrecedentClassPosture;
+  readonly authorities: readonly PrecedentClassAuthority[];
+  /** doc 58 §1 factor_ids this class posture bears on. */
+  readonly factor_ids: readonly string[];
+  readonly map_version: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
+}
