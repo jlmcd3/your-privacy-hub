@@ -50,6 +50,7 @@ import { repairRegister } from "./risk-skeleton-assemble.ts";
 import { boundedClause, boundedPassage, firstSentence, noStop } from "./clause-bound.ts";
 export { boundedClause, boundedPassage, firstSentence };
 import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
+import { naturalCitationCompare } from "./citation-order.ts";
 import { attachCorpusRows } from "../corpus/cam-attach.ts";
 import { DPIA_CORPUS_MAP } from "../corpus/maps/dpia-corpus-map.ts";
 
@@ -1148,7 +1149,9 @@ function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string 
   }
   const lines: string[] = [];
   for (const group of Object.keys(groups)) {
-    const inGroup = consolidatePinpoints(groups[group].sort());
+    // 2026-08-26 CEO-ratified numeric ordering (citation-order.ts) — the
+    // lexicographic .sort() rendered "Art. 35(11), (7), (7)(a)…".
+    const inGroup = consolidatePinpoints(groups[group].sort(naturalCitationCompare));
     if (!inGroup.length) continue;
     lines.push(group === "Guidance and Persuasive Authority" ? `${group} (persuasive)` : group);
     for (const c of inGroup) lines.push(`    ${c}`);

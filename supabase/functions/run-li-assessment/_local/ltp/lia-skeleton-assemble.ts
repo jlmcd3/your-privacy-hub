@@ -61,6 +61,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
+import { naturalCitationCompare } from "../../../_shared/ltp/citation-order.ts";
 // DOC 73 §4 (R2/R5, 2026-08-26) — the precedent-class posture finding.
 // LIA_PRECEDENT_CLASS_RATIFIED gates whether it reaches the document at
 // all; see precedent-classes.ts's own header for the ratification law.
@@ -364,7 +365,9 @@ export function renderLiaToa(ledger: readonly string[], assembledBody: string): 
   if (cited.length === 0) return "";
   const groups: ["Regulations" | "Statutes" | "Guidance and Persuasive Authority", string][] = [];
   for (const g of ["Regulations", "Statutes", "Guidance and Persuasive Authority"] as const) {
-    const inGroup = cited.filter((c) => liaAuthorityGroup(c) === g).sort();
+    // 2026-08-26 CEO-ratified numeric ordering (citation-order.ts) — bare
+    // .sort() is lexicographic, so "(11)" sorted before "(7)".
+    const inGroup = cited.filter((c) => liaAuthorityGroup(c) === g).sort(naturalCitationCompare);
     if (inGroup.length) groups.push([g, inGroup.join("\n")]);
   }
   const lines: string[] = [];
