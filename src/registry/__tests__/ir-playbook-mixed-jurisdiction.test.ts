@@ -201,10 +201,16 @@ describe("ir-playbook — UK Chapter V rows are REUSED from Item 327, not duplic
     "uk_transfers_data_protection_test",
   ] as const;
 
-  it("every shared key is the SAME OBJECT in both registries", () => {
+  it("every shared key is a DEEP-EQUAL row in both registries", () => {
+    // Deploy-cap mirror split: the two registries now live in separate
+    // function-local copies (canonical run-governance-assessment, mirror
+    // generate-ir-playbook), so object identity no longer holds across them.
+    // Byte-identity of the two module files is guarded by
+    // tests/edge/_tests/governance-verified-authorities-mirror.test.ts; here we
+    // assert the rows are deep-equal.
     for (const key of SHARED) {
       expect(IR_PLAYBOOK_VERIFIED_AUTHORITIES[key], `${key} missing from ir registry`).toBeTruthy();
-      expect(IR_PLAYBOOK_VERIFIED_AUTHORITIES[key]).toBe(
+      expect(IR_PLAYBOOK_VERIFIED_AUTHORITIES[key]).toStrictEqual(
         GOVERNANCE_VERIFIED_AUTHORITIES[key],
       );
     }
