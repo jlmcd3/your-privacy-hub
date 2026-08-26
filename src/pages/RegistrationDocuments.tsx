@@ -52,7 +52,7 @@ function cleanMarkdown(s: string): string {
 const DOC_LABELS: Record<string, string> = {
   dpo_appointment: "DPO Appointment Letter",
   ropa: "Record of Processing Activities",
-  ai_registration: "AI System Registration Draft",
+  ai_registration: "AI System Registration Filing",
   representative_letter: "Article 27 Representative Letter",
   filing_instructions: "Filing Instructions & Checklist",
 };
@@ -170,7 +170,7 @@ export default function RegistrationDocuments() {
           </div>
 
           <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-900 dark:text-amber-200">
-            <strong>Important:</strong> These are draft documents prepared from your self-reported organisation profile and our jurisdiction database. They are not legal advice and do not constitute a completed filing. You (or your counsel) must review each document, fill in all [placeholder] fields, and submit to the relevant data protection authority. End User Privacy is not responsible for filings rejected, delayed, or otherwise affected.
+            <strong>Important:</strong> These documents are prepared from your self-reported organisation profile and our jurisdiction database. They are not legal advice and do not constitute a completed filing. You (or your counsel) must review each document, fill in all [placeholder] fields, and submit to the relevant data protection authority. End User Privacy is not responsible for filings rejected, delayed, or otherwise affected.
           </div>
 
           {docs.length === 0 ? (

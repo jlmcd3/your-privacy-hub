@@ -258,7 +258,10 @@ Deno.test("determination: N=0 ends the affirmative paragraph after 'answered.'",
   assert(!block.paragraphs.some((p) => /action plan of/i.test(p)));
 });
 
-Deno.test("determination: NOT record-complete keeps today's draft framing", () => {
+Deno.test("determination: NOT record-complete keeps today's unsigned framing", () => {
+  // DE-DRAFT re-pin (CEO directive 2026-08-26): outputs no longer label
+  // themselves "a draft" — the incomplete-record framing now closes on the
+  // sign-off bar ("no one can sign it") without the self-label.
   const report = docWithAsks(["State the retention period for the health records (data_retention_period)."]);
   report.has_unresolved_placeholders = true;
   const before = buildDeterminationBlock({ report, intake: { data_retention_period: "" } })!;
@@ -270,7 +273,8 @@ Deno.test("determination: NOT record-complete keeps today's draft framing", () =
     preconditions: 2,
   })!;
   assertEquals(after.paragraphs, before.paragraphs);
-  assert(after.paragraphs.some((p) => /draft/i.test(p)));
+  assert(after.paragraphs.some((p) => /no one can sign/i.test(p)));
+  assert(!after.paragraphs.some((p) => /\bdraft\b/i.test(p)));
 });
 
 Deno.test("determination: a generic ask against a supplied key is never a missing foundation", () => {

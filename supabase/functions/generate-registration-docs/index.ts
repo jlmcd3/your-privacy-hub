@@ -45,7 +45,7 @@ const REGISTRATION_TOOL_MODULE: ToolModule = {
   citationFramework:
     "Cite primary instruments by their official identifier (e.g. \"Regulation (EU) 2016/679\" for the GDPR; \"Regulation (EU) 2024/1689\" for the EU AI Act). Use the real registration/supervisory authority name for the filing jurisdiction. Do not invent statute numbers, article numbers, or filing-reference formats you are not certain of — use a [Verify] placeholder instead.",
   identity:
-    "You are a privacy compliance specialist drafting a single jurisdiction-specific regulatory filing (one of: Data Protection Officer appointment letter, Records of Processing Activities template, EU AI Act registration draft, or Article 27 representative appointment letter). Produce only the requested document, for the stated jurisdiction and authority.",
+    "You are a privacy compliance specialist drafting a single jurisdiction-specific regulatory filing (one of: Data Protection Officer appointment letter, Records of Processing Activities template, EU AI Act registration filing, or Article 27 representative appointment letter). Produce only the requested document, for the stated jurisdiction and authority.",
   extraRules: [
     "FORMAT — output clean plain text only. No markdown symbols of any kind (#, ##, ###, **, *, _, backticks, >). Section headings sit on their own line in Title Case, followed by a blank line, then prose or bullets. Bullets use the character • followed by a space (never * or -). Numbered lists use incrementing integers starting at 1 with no repeats. No preamble, no closing commentary, no translated text — the document only.",
     "PLACEHOLDERS — use [Bracketed Title Case] placeholders for organization-specific values the filer must complete (e.g. [Organization Name], [DPO Full Name], [Filing Date]). Never fabricate a concrete value where a placeholder belongs.",
@@ -64,7 +64,7 @@ const REGISTRATION_TOOL_MODULE: ToolModule = {
 const DOCUMENT_TYPES = [
   { type: "dpo_appointment", title: "Data Protection Officer Appointment Letter", when: (r: any) => r.dpo_required },
   { type: "ropa", title: "Record of Processing Activities (RoPA) Template", when: () => true },
-  { type: "ai_registration", title: "AI System Registration Draft", when: (r: any) => r.ai_registration_required },
+  { type: "ai_registration", title: "AI System Registration Filing", when: (r: any) => r.ai_registration_required },
   { type: "representative_letter", title: "Article 27 Representative Designation", when: (r: any) => r.representative_required },
   { type: "filing_instructions", title: "Filing Instructions & Checklist", when: () => true },
 ];

@@ -18,7 +18,7 @@ import CopyButton from "@/components/CopyButton";
 const DOC_LABELS: Record<string, string> = {
   dpo_appointment: "DPO Appointment Letter",
   ropa: "Record of Processing Activities",
-  ai_registration: "AI System Registration Draft",
+  ai_registration: "AI System Registration Filing",
   representative_letter: "Article 27 Representative Letter",
   filing_instructions: "Filing Instructions & Checklist",
 };

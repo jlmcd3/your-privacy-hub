@@ -1706,7 +1706,7 @@ Return this JSON structure exactly:
       "element": "exact element name from input",
       "section": "notice|opt_out|access",
       "citation": "citation from input",
-      "sample_language": "Ready-to-use draft text. Use [PLACEHOLDER] only where business-specific information was not provided.",
+      "sample_language": "Ready-to-use text. Use [PLACEHOLDER] only where business-specific information was not provided.",
       "usage_note": "One sentence explaining where/how to deploy this language (e.g., 'Add to your privacy notice at collection, before any data is used for scoring.')"
     }
   ]

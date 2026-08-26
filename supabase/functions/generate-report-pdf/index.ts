@@ -3632,7 +3632,7 @@ Deno.serve(async (req) => {
       <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Organization type</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(orgType || "—")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
-      <td style="padding:3px 0;color:#7c1a1a;font-weight:600;">DRAFT — CONFIRM ALL DEADLINES WITH COUNSEL</td>
+      <td style="padding:3px 0;color:#7c1a1a;font-weight:600;">CONFIRM ALL DEADLINES WITH COUNSEL</td>
     </tr>
     <tr>
       <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Jurisdictions</td>

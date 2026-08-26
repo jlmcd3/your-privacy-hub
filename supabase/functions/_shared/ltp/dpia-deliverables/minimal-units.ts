@@ -186,7 +186,10 @@ export const DPIA_LEGACY_DECISION_LABELS: Readonly<Record<DpiaDetermination, str
   approved: "APPROVED",
   conditionally_approved: "CONDITIONALLY APPROVED",
   consultation_required: "CONSULTATION (SA)",
-  draft_incomplete: "DRAFT — INCOMPLETE",
+  // DE-DRAFT DIRECTIVE (CEO, 2026-08-26): outputs never label themselves
+  // "draft"/"preliminary". Internal key stays `draft_incomplete`; only the
+  // customer-facing label changed.
+  draft_incomplete: "INCOMPLETE — INPUTS OUTSTANDING",
 };
 
 /** Fixed U5_SKELETON review-schedule and sign-off texts, copied unchanged. */

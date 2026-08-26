@@ -332,7 +332,7 @@ export default function DPAGenerator() {
             <div className="space-y-3 text-sm">
               <RequiredLegend />
               <label className="block"><span className="font-semibold text-brand-navy">Your organisation<Req /></span>
-                <span className="block text-meta text-muted-foreground mt-0.5">The party commissioning this draft. It appears on the drafting record, not in the operative clauses.</span>
+                <span className="block text-meta text-muted-foreground mt-0.5">The party commissioning this agreement. It appears on the drafting record, not in the operative clauses.</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Legal entity name" value={form.entityName} onChange={e => setForm(f => ({ ...f, entityName: e.target.value }))} autoComplete="organization" /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller name<Req /> <DefPopover termKey="gdpr_controller" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(7) GDPR)</span></span>
                 <span className="block text-meta text-muted-foreground mt-0.5">The party determining the purposes and means. Use the full legal name as it appears on the principal agreement, not a trading name.</span>

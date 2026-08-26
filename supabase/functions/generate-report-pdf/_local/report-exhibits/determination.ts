@@ -226,8 +226,8 @@ export function buildDeterminationBlock(input: DeterminationInput): Determinatio
   if (incomplete) {
     paragraphs.push(
       foundations.length
-        ? "Until those entries are written down, the risks this assessment records stand where it found them, and no one can sign it. The assessment is a draft."
-        : "This assessment is a draft, and no one can sign it while an entry it depends on is still open.",
+        ? "Until those entries are written down, the risks this assessment records stand where it found them, and no one can sign it."
+        : "No one can sign this assessment while an entry it depends on is still open.",
     );
   } else if (decision && !hasPlaceholderToken(decision)) {
     paragraphs.push(`The decision recorded is: ${decision}.`);

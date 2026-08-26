@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 const FAQS = [
   {
     q: "Is this legal advice?",
-    a: "No. The Registration Manager generates draft filings and checklists tailored to your inputs. You should always have qualified counsel review filings before submission, especially for high-risk processing or AI Act registrations.",
+    a: "No. The Registration Manager generates filings and checklists tailored to your inputs. You should always have qualified counsel review filings before submission, especially for high-risk processing or AI Act registrations.",
   },
   {
     q: "How current is your jurisdiction data?",
@@ -36,11 +36,11 @@ const FAQS = [
   },
   {
     q: "How does pricing work?",
-    a: `Registration filings are ${PRICING.tools.registration.display} per filing, flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.`,
+    a: `Registration filings are ${PRICING.tools.registration.display} per filing, flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the filing documents, the jurisdiction-specific checklist, and portal URLs. You (or your counsel) submit the filings.`,
   },
   {
     q: "Do you create EU AI Act registration documents?",
-    a: `Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, priced at the same ${PRICING.tools.registration.display} per filing. You review with your counsel and you or they submit the filings — we do not file for you.`,
+    a: `Yes. We generate AI System Registration filings for high-risk AI systems under the EU AI Act, priced at the same ${PRICING.tools.registration.display} per filing. You review with your counsel and you or they submit the filings — we do not file for you.`,
   },
   {
     q: "Can I get reminders before renewals are due?",
@@ -61,7 +61,7 @@ export default function RegistrationLanding() {
         <title>Privacy Registration Manager | End User Privacy</title>
         <meta
           name="description"
-          content="Generate DPO appointment letters, RoPA templates, EU AI Act registration drafts, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
+          content="Generate DPO appointment letters, RoPA templates, EU AI Act registration documents, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>

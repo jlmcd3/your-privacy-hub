@@ -733,7 +733,7 @@ function buildHtml(d: AssembledData): string {
 
   const transfers = collectTransfers(d);
   const transferTable = transfers.length === 0
-    ? `<p><em>No cross-border transfers have been recorded in this draft. This statement cannot be confirmed as accurate until processor, recipient, and data destination fields have been completed for all processing activities.</em></p>`
+    ? `<p><em>No cross-border transfers have been recorded in this document. This statement cannot be confirmed as accurate until processor, recipient, and data destination fields have been completed for all processing activities.</em></p>`
     : `
       <table class="grid">
         <thead><tr>
@@ -898,7 +898,7 @@ function buildHtml(d: AssembledData): string {
     if (hasIncomplete) {
       return `
         <div style="margin: 24px 0; padding: 14px 18px; background: #fff8e1; border: 2px solid #f59e0b; border-radius: 8px; font-size: 13px; color: #92400e;">
-          <strong>⚠ DRAFT — Required fields incomplete</strong><br/>
+          <strong>⚠ Required fields incomplete</strong><br/>
           One or more processing activities are missing a purpose or lawful basis. This record does not yet satisfy the requirements of Article 30(1)(b) GDPR. Complete all required fields before signing or relying on this document.
         </div>
       `;
@@ -1086,7 +1086,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           new TableRow({
             children: [
               new TableCell({
-                children: [p("No cross-border transfers recorded in this draft — transfer status cannot be confirmed until processor and recipient fields are completed.", { size: 18 })],
+                children: [p("No cross-border transfers recorded in this document — transfer status cannot be confirmed until processor and recipient fields are completed.", { size: 18 })],
                 columnSpan: 5,
               }),
             ],

@@ -478,7 +478,7 @@ function hasRequiredFieldsBlank(controllerName: string, contactEmail: string): b
 const DRAFT_BANNER_HTML = `<div style="background:#7c1a1a;color:#fff;padding:12px 20px;font-size:13px;
   font-weight:600;border-radius:6px;margin-bottom:24px;letter-spacing:0.02em;
   border-left:6px solid #f87171;">
-  ⚠ DRAFT — REQUIRED FIELDS MISSING — DO NOT PUBLISH this notice until controller
+  ⚠ REQUIRED FIELDS MISSING — DO NOT PUBLISH this notice until controller
   name, contact email, data categories, purposes, lawful basis, and retention are
   completed.
 </div>`;

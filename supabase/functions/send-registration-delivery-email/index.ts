@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       <p><a href="https://enduserprivacy.com/registration-manager/documents/${order_id}">View and download your documents</a></p>
       <hr>
       <p style="font-size:12px;color:#666">
-        Important — These are draft filings, not legal advice. Always verify with the relevant authority and
+        Important — These filings are not legal advice. Always verify with the relevant authority and
         consult qualified counsel before submission.
       </p>
     `;
