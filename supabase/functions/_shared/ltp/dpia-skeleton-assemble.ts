@@ -1110,7 +1110,31 @@ export function bodyCites(body: string, citation: string): boolean {
   return body.includes(`Article ${pin}`) || body.includes(`Art. ${pin}`);
 }
 
-function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string {
+// ── Second ToA Fix (CEO-ratified 2026-08-26) — domestic instruments. The UK
+// body cites the Data Protection Act 2018 (the Sch. 1 depth sentence in
+// buildSection2Coverage renders "Schedule 1, Part 1, paragraph 1" /
+// "Schedule 1, Part 4, paragraph 39"), but no exhibit entry carried the
+// statute, so the iff-cited gate never listed it — the ToA omitted a
+// statute the body cites. These candidates close that gap. `body_alias` is
+// the long form the body actually renders; `citation` is the ratified
+// house short form the table lists. HSWA rides along: it lists iff a body
+// ever cites it (today none does), per the iff-cited law.
+const DPIA_DOMESTIC_STATUTE_CANDIDATES: readonly { citation: string; body_alias: string }[] = [
+  {
+    citation: "Data Protection Act 2018, Sch. 1, Pt. 1, para. 1",
+    body_alias: "Schedule 1, Part 1, paragraph 1",
+  },
+  {
+    citation: "Data Protection Act 2018, Sch. 1, Pt. 4, para. 39",
+    body_alias: "Schedule 1, Part 4, paragraph 39",
+  },
+  {
+    citation: "Health and Safety at Work etc. Act 1974",
+    body_alias: "Health and Safety at Work",
+  },
+];
+
+export function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string {
   const exhibit = (report.authority_exhibit ?? {}) as Bag;
   const entries = Array.isArray(exhibit.entries) ? (exhibit.entries as Bag[]) : [];
   // PROMPT 12D — the ratified spine openers cite Art. 35(7)(a), Art. 35(9) and
@@ -1123,6 +1147,11 @@ function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string 
       citation: c,
       authority_class: "regulation",
     } as Bag)),
+    ...DPIA_DOMESTIC_STATUTE_CANDIDATES.map((c) => ({
+      citation: c.citation,
+      authority_class: "statute",
+      body_alias: c.body_alias,
+    } as Bag)),
   ];
   const groups: Record<string, string[]> = {
     "Regulations": [],
@@ -1134,7 +1163,11 @@ function dpiaToa(report: Bag, body: string, regime: "EU" | "UK" = "EU"): string 
 
     const raw = s(e.citation);
     if (!raw) continue;
-    if (!bodyCites(body, raw)) continue; // iff-cited
+    // iff-cited: the citation itself, either GDPR form (bodyCites), or the
+    // candidate's declared body_alias (domestic statutes render a long form
+    // the house short form cannot substring-match).
+    const alias = s(e.body_alias);
+    if (!bodyCites(body, raw) && !(alias && body.includes(alias))) continue;
     if (!isWellFormedGdprPinpoint(raw)) continue;
     const citation = toaRegimeForm(regime, raw);
     if (seen.has(citation)) continue;

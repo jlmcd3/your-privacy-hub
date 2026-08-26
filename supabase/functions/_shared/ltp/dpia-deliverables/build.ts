@@ -12,7 +12,7 @@
  * out of art36_consultation.why into .exposure_note (Item 308 pattern).
  */
 import { ANCHOR_KEYS, DPIA_RISK_SPECS, DPIA_SAFEGUARD_SPECS, row, type RiskFacts } from "./elements.ts";
-import { transferMechanism, type TransferFlow } from "../../dpia-jurisdiction-registry.ts";
+import { specialCategoryHook, transferMechanism, type TransferFlow } from "../../dpia-jurisdiction-registry.ts";
 import { spliceVerbatim } from "../verbatim-splice.ts";
 // PROMPT 9J — shared segmenter + shared clause bound (single writer for both).
 import { splitSentencesSafe } from "../../prose/segment.ts";
@@ -2424,6 +2424,16 @@ const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendati
   },
 ];
 
+// UK Sch. 1 depth sentence (2026-08-26 CEO batch ruling; implementation-
+// authored bytes — advance-ratification ledger, CEO redline pending). The
+// leading space is deliberate: the sentence appends after a full stop. The
+// citation phrasings ("Schedule 1, Part 1, paragraph 1", "Schedule 1,
+// Part 4, paragraph 39") are the body-side aliases the ToA's domestic-
+// statute candidates key on (dpia-skeleton-assemble.ts) — change both
+// together or the iff-cited gate silently drops the listing.
+export const UK_SCH1_EMPLOYMENT_SENTENCE =
+  " Under the UK GDPR, this reliance additionally requires a condition under the Data Protection Act 2018 — here, Schedule 1, Part 1, paragraph 1 (employment, social security and social protection) — and an appropriate policy document under Schedule 1, Part 4, paragraph 39, retained for the duration of the processing and for six months after the last processing event.";
+
 export function buildSection2Coverage(
   intake: unknown,
   deliverables: { readonly processing_inventory: DpiaProcessingInventory },
@@ -2452,9 +2462,20 @@ export function buildSection2Coverage(
           source_field: "article_9_condition",
         };
       }
-      const justification = np
+      let justification = np
         ? `The company relies on ${label} for ${d.item.toLowerCase()}. On the company's own account of necessity and proportionality, ${np}`
         : `The company relies on ${label} for ${d.item.toLowerCase()}.`;
+      // ── UK Sch. 1 depth (CEO-ratified landing, 2026-08-26 batch ruling;
+      // closes the fleet-standing "Art. 9(3)/DPA 2018 Sch. 1 depth" item).
+      // The condition-to-Schedule-1 mapping is the jurisdiction registry's
+      // (specialCategoryHook — single source of truth, its own
+      // verifyAgainst/lastVerified discipline); this sentence renders the
+      // depth the registry already carries. Advance-ratification ledger:
+      // UK_SCH1_EMPLOYMENT_SENTENCE below is an implementation-authored
+      // customer byte, flagged for CEO redline.
+      if (regime === "UK" && specialCategoryHook("UK", label)) {
+        justification = `${justification.endsWith(".") ? justification : `${justification}.`}${UK_SCH1_EMPLOYMENT_SENTENCE}`;
+      }
       return {
         item: d.item,
         condition_label: label,
